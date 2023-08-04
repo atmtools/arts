@@ -13,9 +13,8 @@
   === External declarations
   ===========================================================================*/
 
-#include <complex.h>
 #include <stdexcept>
-#include "auto_md.h"
+#include <workspace.h>
 #include "disort.h"
 #include "m_xml.h"
 #include "rt4.h"
@@ -275,7 +274,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                     surface_reflectivity,
                     surface_complex_refr_index);
 
-  Agenda dummy_agenda{ws};
+  Agenda dummy_agenda{};
 
   run_rt4(ws,
           cloudbox_field,

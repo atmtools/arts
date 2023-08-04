@@ -24,7 +24,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "disort.h"

@@ -13,8 +13,7 @@
 
 #include "sun.h"
 #include "atm.h"
-#include "auto_md.h"
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
@@ -23,7 +22,6 @@
 #include "geodetic.h"
 #include "arts.h"
 #include "surf.h"
-#include "workspace_ng.h"
 
 using Constant::sigma;
 using Constant::pi;

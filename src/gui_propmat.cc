@@ -8,17 +8,15 @@
 #include <stdexcept>
 #include <thread>
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "artstime.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "debug.h"
 #include "jacobian.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "rtepack.h"
 #include "species_tags.h"
-#include "workspace_ng.h"
 
 #ifdef ARTS_GUI_ENABLED
 #include <gui/propmat.h>
@@ -134,9 +132,9 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
 
   // Set some defaults
   if (load) {
-    if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
-    if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
-    if (auto* val = ws.get<AtmPoint>("atm_point")) atm_point = *val;
+    if (ws.contains("f_grid")) f_grid = ws.get<Vector>("f_grid");
+    if (ws.contains("rtp_los")) rtp_los = ws.get<Vector>("rtp_los");
+    if (ws.contains("atm_point")) atm_point = ws.get<AtmPoint>("atm_point");
   }
 
   auto success = std::async(std::launch::async,

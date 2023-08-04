@@ -19,13 +19,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include "agenda_class.h"
+#include <workspace.h>
 #include "array.h"
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
 #include "doit.h"
@@ -41,8 +40,8 @@
 #include "special_interp.h"
 #include "species_tags.h"
 #include "surf.h"
-#include "wsv_aux.h"
 #include "xml_io.h"
+#include "arts_omp.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
@@ -2560,9 +2559,7 @@ void DoitCalc(Workspace& ws,
     String fail_msg;
     bool failed = false;
 
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(wss)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
@@ -2575,7 +2572,7 @@ void DoitCalc(Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local{
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker)};
-        doit_mono_agendaExecute(wss,
+        doit_mono_agendaExecute(ws,
                                 cloudbox_field_mono_local,
                                 f_grid,
                                 f_index,

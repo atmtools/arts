@@ -28,7 +28,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "jacobian.h"
 #include "math_funcs.h"

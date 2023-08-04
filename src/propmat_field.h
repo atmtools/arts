@@ -15,7 +15,7 @@
 
 #include "atm.h"
 #include "field.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 
 class Agenda;
 class Workspace;

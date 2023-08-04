@@ -10,11 +10,10 @@
 #include "array.h"
 #include "arts_omp.h"
 #include "artstime.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "enums.h"
 #include "file.h"
-#include "global_data.h"
 #include "lineshapemodel.h"
 #include "m_xml.h"
 #include "quantum_numbers.h"

@@ -2,7 +2,7 @@
   ===  File description
   ===========================================================================*/
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "physics_funcs.h"
 #include "arts_conversions.h"
 #include "gas_scattering.h"
@@ -38,8 +38,7 @@ void gas_scatteringOff(Workspace& ws,
   // set flag to False (default)
   gas_scattering_do = 0;
 
-  gas_scattering_agenda = Agenda(ws);
-  gas_scattering_agenda.set_name("gas_scattering_agenda");
+  gas_scattering_agenda = Agenda("gas_scattering_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

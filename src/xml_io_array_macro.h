@@ -1,16 +1,16 @@
 #pragma once
 
-#include "tokval.h"
 #include "xml_io.h"
 
 //! Both T and T{}[0] are ARTS groups exposed to the user if this is true
 template <typename T>
-concept array_of_group = ArtsType<T> and ArtsType<decltype(T{}[0])>;
+concept array_of_group = WorkspaceGroup<std::remove_cvref_t<T>> and
+                         WorkspaceGroup<std::remove_cvref_t<decltype(T{}[0])>>;
 
 template <array_of_group T>
 void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
   const static String subtype =
-      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
+      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
 
   ArtsXMLTag tag;
   Index nelem;
@@ -29,7 +29,7 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
   } catch (const std::runtime_error &e) {
     ostringstream os;
     os << "Error reading "
-       << WorkspaceGroupNameValue<std::remove_cvref_t<T>> << ": "
+       << WorkspaceGroupInfo<std::remove_cvref_t<T>>::name << ": "
        << "\n Element: " << n << "\n"
        << e.what();
     throw runtime_error(os.str());
@@ -40,7 +40,7 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
 } catch (std::runtime_error &e) {
   throw std::runtime_error(
       var_string("Failed reading routine for ",
-                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
+                 WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
                  "\nError reads:\n", e.what()));
 }
 
@@ -48,7 +48,7 @@ template <array_of_group T>
 void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
                const String &name) try {
   const static String subtype =
-      WorkspaceGroupNameValue<std::remove_cvref_t<decltype(T{}[0])>>;
+      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
 
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -73,7 +73,7 @@ void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
 } catch (std::runtime_error &e) {
   throw std::runtime_error(
       var_string("Failed saving routine for ",
-                 WorkspaceGroupNameValue<std::remove_cvref_t<T>>,
+                 WorkspaceGroupInfo<std::remove_cvref_t<T>>::name,
                  "\nError reads:\n", e.what()));
 }
 

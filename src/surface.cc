@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iomanip>
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "matpack_complex.h"
@@ -30,7 +30,6 @@
 #include "physics_funcs.h"
 #include "surf.h"
 #include "variousZZZ.h"
-#include "workspace_ng.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

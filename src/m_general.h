@@ -13,7 +13,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts.h"
 #include "cia.h"
 #include "mystring.h"

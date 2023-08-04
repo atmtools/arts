@@ -14,8 +14,7 @@
 #include "arts.h"
 #include "debug.h"
 #include "species_tags.h"
-#include "tokval.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 #include "xml_io.h"
 #include "xml_io_array_macro.h"
 #include "xml_io_arts_types.h"

@@ -29,7 +29,7 @@
   === External declarations
   ===========================================================================*/
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "geodetic.h"
 #include "lin_alg.h"

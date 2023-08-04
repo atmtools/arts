@@ -5,7 +5,7 @@
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
 #include "arts.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "geodetic.h"
 #include "sun.h"
 #include "surf.h"

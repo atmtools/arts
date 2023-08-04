@@ -15,7 +15,7 @@
 #ifndef refraction_h
 #define refraction_h
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts.h"
 #include "matpack_data.h"
 

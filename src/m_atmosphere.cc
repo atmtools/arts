@@ -27,13 +27,11 @@
 #include "debug.h"
 #include "species_tags.h"
 #include "absorption.h"
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "geodetic.h"
-#include "global_data.h"
 #include "gridded_fields.h"
 #include "igrf13.h"
 #include "interpolation.h"
@@ -44,6 +42,7 @@
 #include "special_interp.h"
 #include "surf.h"
 #include "xml_io.h"
+#include "arts_omp.h"
 
 using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD3_LAT_GRID;

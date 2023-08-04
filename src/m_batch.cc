@@ -23,7 +23,7 @@ using namespace std;
 
 #include "arts.h"
 #include "arts_omp.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "math_funcs.h"
 #include "physics_funcs.h"
 #include "rte.h"
@@ -95,10 +95,7 @@ void ybatchCalc(Workspace& ws,
   // Go through the batch:
 
   if (ybatch_n) {
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(wss)
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && ybatch_n > 1)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -119,7 +116,7 @@ void ybatchCalc(Workspace& ws,
         ArrayOfVector y_aux;
         Matrix jacobian;
 
-        ybatch_calc_agendaExecute(wss,
+        ybatch_calc_agendaExecute(ws,
                                   y,
                                   y_aux,
                                   jacobian,
@@ -617,11 +614,9 @@ void DOBatchCalc(Workspace& ws,
 
   // Go through the batch:
 
-  if (ybatch_n) {
-  WorkspaceOmpParallelCopyGuard wss{ws};
-  
+  if (ybatch_n) {  
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(wss)
+                                               ybatch_n > 1)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -643,7 +638,7 @@ void DOBatchCalc(Workspace& ws,
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
-        dobatch_calc_agendaExecute(wss,
+        dobatch_calc_agendaExecute(ws,
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,

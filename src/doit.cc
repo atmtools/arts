@@ -17,12 +17,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
-#include "agenda_class.h"
+#include <workspace.h>
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"

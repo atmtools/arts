@@ -15,7 +15,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "geodetic.h"
@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include "arts_omp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
@@ -1435,10 +1436,8 @@ void iyb_calc(Workspace& ws,
   String fail_msg;
   bool failed = false;
   if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
     // Start of actual calculations
-#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(wss)
+#pragma omp parallel for if (!arts_omp_in_parallel())
     for (Index ilos = 0; ilos < nlos; ilos++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -1448,7 +1447,7 @@ void iyb_calc(Workspace& ws,
       iyb_calc_body(failed,
                     fail_msg,
                     iy_aux_array,
-                    wss,
+                    ws,
                     ppath,
                     iyb,
                     diyb_dx,

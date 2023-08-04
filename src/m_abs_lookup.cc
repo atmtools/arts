@@ -12,16 +12,14 @@
 #include <map>
 
 #include "absorption.h"
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts.h"
 #include "arts_omp.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
 #include "gas_abs_lookup.h"
-#include "global_data.h"
 #include "gridded_fields.h"
 #include "interp.h"
 #include "math_funcs.h"
@@ -60,7 +58,7 @@ void abs_lookupCalc(  // Workspace reference:
     // GIN
     const Numeric& lowest_vmr) {
   ARTS_USER_ERROR_IF(
-      propmat_clearsky_agenda.name() not_eq "propmat_clearsky_agenda",
+      propmat_clearsky_agenda.get_name() not_eq "propmat_clearsky_agenda",
       R"--(
 Not propmat_clearsky_agenda:
 
@@ -316,13 +314,10 @@ Your current lowest_vmr value is: )--", lowest_vmr)
       // function. Anyway, shared is the correct setting for
       // abs_lookup, so there is no problem.
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
 #pragma omp parallel for if (                                         \
     !arts_omp_in_parallel() &&                                        \
     these_t_pert_nelem >=                                             \
-        arts_omp_get_max_threads()) private(this_t)                   \
-    firstprivate(wss)
+        arts_omp_get_max_threads()) private(this_t)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
         if (failed) continue;
@@ -345,7 +340,7 @@ Your current lowest_vmr value is: )--", lowest_vmr)
             for (auto& x : rtp_vmr) x = std::max(lowest_vmr, x);
 
             // Perform the propagation matrix computations
-            propmat_clearsky_agendaExecute(wss,
+            propmat_clearsky_agendaExecute(ws,
                                            K,
                                            S,
                                            dK,
@@ -1994,13 +1989,11 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
   // Make local copy of f_grid, so that we can apply Dopler if we want.
   Vector this_f_grid = f_grid;
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
   // Now we have to loop all points in the atmosphere:
   if (n_altitudes)
 #pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
                              n_altitudes >= arts_omp_get_max_threads()) \
-    firstprivate(wss, this_f_grid) private(                              \
+    firstprivate(this_f_grid) private(                              \
         abs, nlte, partial_abs, partial_nlte, a_vmr_list)
     for (Index ial = 0; ial < n_altitudes; ++ial)  // Altitude:  ial
     {
@@ -2025,7 +2018,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(wss,
+            propmat_clearsky_agendaExecute(ws,
                                            abs,
                                            nlte,
                                            partial_abs,

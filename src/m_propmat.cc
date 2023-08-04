@@ -1,7 +1,6 @@
 //! File contains ways to manipulate the propagation matrix
 
-#include "agenda_class.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "jacobian.h"
 #include "species_tags.h"

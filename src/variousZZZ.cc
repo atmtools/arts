@@ -24,7 +24,7 @@
  */
 
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "geodetic.h"
 #include "gridded_fields.h"

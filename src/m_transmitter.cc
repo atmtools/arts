@@ -18,7 +18,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "geodetic.h"
 #include "jacobian.h"
 #include "lin_alg.h"

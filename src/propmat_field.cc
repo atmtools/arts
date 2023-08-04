@@ -15,6 +15,7 @@
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "arts_omp.h"
 
 void field_of_propagation(Workspace& ws,
                           FieldOfPropmatVector& propmat_field,
@@ -50,16 +51,13 @@ Index nalt, nlat, nlon;
   additional_source_field =
       FieldOfStokvecVector(nalt, nlat, nlon, StokvecVector(nf));
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3) \
-    firstprivate(wss)
+#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3)
   for (Index i = 0; i < nalt; i++) {
     for (Index j = 0; j < nlat; j++) {
       for (Index k = 0; k < nlon; k++) {
         ARTS_USER_ERROR("ERROR")
         get_stepwise_clearsky_propmat(
-            wss,
+            ws,
             propmat_field(i, j, k),
             additional_source_field(i, j, k),
             dK_dx,

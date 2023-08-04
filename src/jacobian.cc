@@ -10,9 +10,8 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
-#include "global_data.h"
 #include "lin_alg.h"
 #include "physics_funcs.h"
 #include "rte.h"

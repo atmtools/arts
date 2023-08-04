@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "ppath.h"

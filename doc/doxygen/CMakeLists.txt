@@ -23,7 +23,7 @@ add_custom_command (
 )
 
 add_custom_target (apidoc ALL DEPENDS doxified)
-add_dependencies (apidoc UpdateAutoVersion BuildAutoSources)
+add_dependencies (apidoc UpdateAutoVersion)
 
 set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "html")
 

@@ -20,7 +20,7 @@
 
 #include "arts.h"
 #include "arts_constants.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"

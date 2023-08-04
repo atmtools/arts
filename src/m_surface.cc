@@ -22,7 +22,7 @@
 #include "array.h"
 #include "arts.h"
 #include "arts_constants.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "matpack_complex.h"
@@ -1420,7 +1420,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
 
       if (iy.ncols() != 4 || iy.nrows() != nf) {
         ostringstream os;
-        os << "The size of *iy* returned from *" << iy_main_agenda.name()
+        os << "The size of *iy* returned from *" << iy_main_agenda.get_name()
            << "* is\n"
            << "not correct:\n"
            << "  expected size = [" << nf << "," << 4 << "]\n"
@@ -1550,7 +1550,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
 
       if (iy.ncols() != 4 || iy.nrows() != nf) {
         ostringstream os;
-        os << "The size of *iy* returned from *" << iy_main_agenda.name()
+        os << "The size of *iy* returned from *" << iy_main_agenda.get_name()
            << "* is\n"
            << "not correct:\n"
            << "  expected size = [" << nf << "," << 4 << "]\n"

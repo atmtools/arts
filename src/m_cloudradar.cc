@@ -18,7 +18,7 @@
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "logic.h"
 #include "matpack_data.h"
@@ -833,12 +833,10 @@ void particle_bulkpropRadarOnionPeeling(
   const Numeric extrap_fac = 100;
   
   ArrayOfString fail_msg;
-
-  WorkspaceOmpParallelCopyGuard wss{ws};
   
   // Loop all profiles
 #pragma omp parallel for if (!arts_omp_in_parallel() && nlat + nlon > 2) \
-    firstprivate(wss) collapse(2)
+    collapse(2)
   for (Index ilat = 0; ilat < nlat; ilat++) {
     for (Index ilon = 0; ilon < nlon; ilon++) {
       if (fail_msg.nelem() != 0) continue;
@@ -927,7 +925,7 @@ void particle_bulkpropRadarOnionPeeling(
                   StokvecVector nlte_dummy;
                   StokvecMatrix partial_nlte_dummy;
                   propmat_clearsky_agendaExecute(
-                      wss,
+                      ws,
                       propmat,
                       nlte_dummy,
                       partial_dummy,

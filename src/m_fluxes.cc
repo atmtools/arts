@@ -5,12 +5,10 @@
 #include <iostream>
 #include <stdexcept>
 #include "absorption.h"
-#include "agenda_class.h"
-#include "agenda_set.h"
+#include <workspace.h>
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
 #include "legendre.h"
@@ -19,10 +17,9 @@
 #include "sorting.h"
 #include "surf.h"
 #include "surface.h"
-#include "workspace_ng.h"
 #include "check_input.h"
-#include "global_data.h"
 #include "gsl_gauss_legendre.h"
+#include "arts_omp.h"
 
 /*!
   \file   m_fluxes.cc
@@ -530,7 +527,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method. This definition of iy_main_agenda will be used to when
   // calculating the the radiation reflected by the surface
-  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");
+  const Agenda iy_main_agenda=get_iy_main_agenda("EmissionPlaneParallel");
 
   // Index in p_grid where field at surface shall be placed
   const Numeric surf_alt = surface_field.single_value(Surf::Key::h, 0, 0); // FIXME: Need lat and lon?
@@ -539,10 +536,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   // Loop zenith angles
   //
   if (nza) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(wss)
+                             use_parallel_za)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {
@@ -760,7 +755,7 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Define iy_main_agenda to be consistent with the assumptions of
   // this method (but the agenda will not be used).
-  const Agenda iy_main_agenda=AgendaManip::get_iy_main_agenda(ws, "EmissionPlaneParallel");;
+  const Agenda iy_main_agenda=get_iy_main_agenda("EmissionPlaneParallel");;
 
   // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
@@ -769,10 +764,8 @@ void spectral_radiance_fieldExpandCloudboxField(
   // Loop zenith angles
   //
   if (nza) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
 #pragma omp parallel for if (!arts_omp_in_parallel() && nza > 1 && \
-                             use_parallel_za) firstprivate(wss)
+                             use_parallel_za)
     for (Index i = 0; i < nza; i++) {
       if (failed) continue;
       try {

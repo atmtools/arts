@@ -9,7 +9,7 @@
 #include "absorption.h"
 #include "arts.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "lin_alg.h"
 #include "nlte.h"

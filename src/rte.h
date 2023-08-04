@@ -17,7 +17,7 @@
   === External declarations
   ===========================================================================*/
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "arts.h"
 #include "atm.h"
 #include "jacobian.h"

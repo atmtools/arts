@@ -16,7 +16,7 @@
 #ifndef doit_h
 #define doit_h
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "matpack_data.h"
 #include "ppath.h"
 #include "rtepack.h"

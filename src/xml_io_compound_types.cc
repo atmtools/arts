@@ -14,7 +14,6 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "fwd.h"
-#include "global_data.h"
 #include "gridded_fields.h"
 #include "isotopologues.h"
 #include "mystring.h"

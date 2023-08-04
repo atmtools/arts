@@ -20,7 +20,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "logic.h"
 #include "matpack_data.h"

@@ -8,11 +8,12 @@
 */
 
 #include "arts.h"
-#include "global_data.h"
+#include <workspace.h>
 #include "xsec_fit.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "physics_funcs.h"
+#include "arts_omp.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,

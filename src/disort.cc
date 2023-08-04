@@ -16,15 +16,16 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "array.h"
 #include "arts_constants.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "arts_conversions.h"
 #include "rtepack.h"
 #include "species_tags.h"
+
+#include "special_interp.h"
 
 #if not ARTS_LGPL
 extern "C" {

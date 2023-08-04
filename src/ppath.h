@@ -9,7 +9,8 @@
 #ifndef ppath_h
 #define ppath_h
 
-#include "agenda_class.h"
+
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "surf.h"

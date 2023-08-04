@@ -12,7 +12,7 @@
 #ifndef disort_h
 #define disort_h
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "matpack_data.h"
 #include "mystring.h"
 #include "optproperties.h"

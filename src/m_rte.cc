@@ -15,7 +15,7 @@
 #include "arts_omp.h"
 #include "atm.h"
 #include "atm_path.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "geodetic.h"
@@ -342,20 +342,19 @@ Tensor3 p_field;
     const ArrayOfString scat_species_dummy;
     const ArrayOfArrayOfSingleScatteringData scat_data_dummy;
 
-    WorkspaceOmpParallelCopyGuard wss{ws};
     ArrayOfString fail_msg;
     bool do_abort = false;
 
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(wss, a, B, dB, S, da_dx, dS_dx)
+    firstprivate( a, B, dB, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       if (do_abort) continue;
       try {
         get_stepwise_blackbody_radiation(
             B, dB, ppvar_f[ip], ppvar_atm[ip].temperature, jacobian_quantities, j_analytical_do);
 
-        get_stepwise_clearsky_propmat(wss,
+        get_stepwise_clearsky_propmat(ws,
                                       K[ip],
                                       S,
                                       dK_dx[ip],
@@ -388,7 +387,7 @@ ARTS_USER_ERROR("ERROR")
             ArrayOfVector sun_rte_los(suns.nelem(), Vector(2));
 
             // FIXME: THESE FIELDS AND GRIDS ARE WRONG!
-            get_sun_ppaths(wss,
+            get_sun_ppaths(ws,
                             sun_ppaths,
                             suns_visible,
                             sun_rte_los,
@@ -404,7 +403,7 @@ ARTS_USER_ERROR("ERROR")
             ArrayOfMatrix transmitted_sunlight;
             ArrayOfArrayOfTensor3 dtransmitted_sunlight_dummy(suns.nelem(),ArrayOfTensor3(jacobian_quantities.nelem()));
 
-            get_direct_radiation(wss,
+            get_direct_radiation(ws,
                                  transmitted_sunlight,
                                  dtransmitted_sunlight_dummy,
                                  f_grid,
@@ -437,7 +436,7 @@ ARTS_USER_ERROR("ERROR")
 
                 // here we calculate how much incoming sun radiation is scattered
                 //into the direction of the ppath
-                get_scattered_sunsource(wss,
+                get_scattered_sunsource(ws,
                                          scattered_sunlight_isun,
                                          f_grid,
                                          ppvar_atm[ip],
@@ -456,7 +455,7 @@ ARTS_USER_ERROR("ERROR")
           MuelmatVector sca_mat_dummy;
           Vector sca_fct_dummy;
 
-          gas_scattering_agendaExecute(wss,
+          gas_scattering_agendaExecute(ws,
                                        K_sca,
                                        sca_mat_dummy,
                                        sca_fct_dummy,
@@ -1311,16 +1310,14 @@ void ppvar_propmatCalc(Workspace &ws,
   ppvar_dpropmat.resize(np);
   ppvar_dnlte.resize(np);
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
   // Loop ppath points and determine radiative properties
-#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(wss)
+#pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ip = 0; ip < np; ip++) {
     if (do_abort)
       continue;
     try {
       get_stepwise_clearsky_propmat(
-          wss, ppvar_propmat[ip], ppvar_nlte[ip], ppvar_dpropmat[ip],
+          ws, ppvar_propmat[ip], ppvar_nlte[ip], ppvar_dpropmat[ip],
           ppvar_dnlte[ip], propmat_clearsky_agenda, jacobian_quantities,
           ppvar_f[ip], Vector{ppath.los(ip, joker)}, ppvar_atm[ip],
           j_analytical_do);
@@ -2187,9 +2184,7 @@ void iyMC(Workspace& ws,
   bool failed = false;
 
   if (nf) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1) firstprivate(wss)
+#pragma omp parallel for if (!arts_omp_in_parallel() && nf > 1)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) continue;
 
@@ -2204,7 +2199,7 @@ void iyMC(Workspace& ws,
         Tensor3 mc_points;
         ArrayOfIndex mc_scat_order, mc_source_domain;
 
-        MCGeneral(wss,
+        MCGeneral(ws,
                   y,
                   mc_iteration_count,
                   mc_error,
@@ -2413,9 +2408,7 @@ void yCalc(Workspace& ws,
 
   if (nmblock >= arts_omp_get_max_threads() ||
       (nf <= nmblock && nmblock >= nlos)) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for firstprivate(wss)
+#pragma omp parallel for
     for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
       // Skip remaining iterations if an error occurred
       if (failed) continue;
@@ -2423,7 +2416,7 @@ void yCalc(Workspace& ws,
       yCalc_mblock_loop_body(failed,
                              fail_msg,
                              iyb_aux_array,
-                             wss,
+                             ws,
                              y,
                              y_f,
                              y_pol,

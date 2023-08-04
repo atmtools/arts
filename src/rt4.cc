@@ -22,7 +22,7 @@
 #include <complex>
 #include <stdexcept>
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "disort.h"
 #include "interpolation.h"
@@ -32,6 +32,7 @@
 #include "physics_funcs.h"
 #include "rt4.h"
 #include "rte.h"
+#include "special_interp.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

@@ -11,10 +11,9 @@
 #ifndef m_select_h
 #define m_select_h
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "matpack_data.h"
 #include "mystring.h"
-#include "workspace_ng.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <class T>

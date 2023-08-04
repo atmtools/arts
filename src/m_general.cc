@@ -33,15 +33,13 @@
 #include "mystring.h"
 
 #include "math_funcs.h"
-#include "wsv_aux.h"
-
-#include "auto_md.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 
 #include "sensor.h"
 
 #include "fastem.h"
 #include "tessem.h"
+#include "arts_omp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
@@ -59,10 +57,7 @@ void Print(Workspace& ws _U_,
            // Keywords:
            const Index& level) {
   ostringstream os;
-  os << "    " << x.name() << " {\n";
-  x.print(os, "        ");
-  os << "    "
-     << "}";
+  os << x << '\n';
   if (level) std::cerr << os.str() << '\n';
   else std::cout << os.str() << '\n';
 }
@@ -74,12 +69,9 @@ void Print(Workspace& ws _U_,
            // Keywords:
            const Index& level) {
   ostringstream os;
-  os << "    " << x.nelem() << " agendas: {\n";
   for (Index i = 0; i < x.nelem(); i++) {
-    os << "      " << x[i].name() << ": {\n";
-    x[i].print(os, "          ");
-    os << "      "
-       << "}\n";
+    os << x[i]
+    <<"\n";
   }
   os << "    "
      << "}";
@@ -198,22 +190,7 @@ void PrintWorkspace(  // Workspace reference
     const Index& level) {
   ostringstream os;
 
-  if (only_allocated)
-    os << "  Allocated workspace variables: \n";
-  else
-    os << "  Workspace variables: \n";
-  for (Index i = 0; i < ws.nelem(); i++) {
-    if (!only_allocated) {
-      os << "    ";
-      ws.PrintWsvName(os, i);
-      if (ws.is_initialized(i)) os << ws.depth(i);
-      os << "\n";
-    } else if (ws.is_initialized(i)) {
-      os << "    ";
-      ws.PrintWsvName(os, i);
-      os << ws.depth(i) << "\n";
-    }
-  }
+  os << ws;
   if (level) std::cerr << os.str() << '\n';
   else std::cout << os.str() << '\n';
 }
@@ -264,16 +241,6 @@ void Error(const String& msg) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Exit() {
   arts_exit(EXIT_SUCCESS);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void TestArrayOfAgenda(Workspace& ws,
-                       const ArrayOfAgenda& test_agenda_array,
-                       const Index& index) {
-  ostringstream os;
-  os << "  Local value of iy_unit, agenda #" << index << " of "
-     << test_agenda_array.nelem();
-  test_agenda_arrayExecute(ws, index, os.str(), test_agenda_array);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

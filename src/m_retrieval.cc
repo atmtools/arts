@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "covariance_matrix.h"
 #include "jacobian.h"
 

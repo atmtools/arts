@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 // All workspace groups are known by the agenda class through tokval.h
-#include "agenda_class.h"
+#include <workspace.h>
 
 // Extras
 #include "mc_interp.h"

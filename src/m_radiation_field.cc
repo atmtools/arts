@@ -10,7 +10,7 @@
 #include "arts.h"
 #include "arts_omp.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "lineshape.h"
 #include "logic.h"
@@ -159,10 +159,8 @@ ARTS_USER_ERROR("ERROR")
   for (Index i = 0; i < np; i++)
     line_radiance[i].resize(sorted_index[i].nelem(), nl);
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
 #pragma omp parallel for if (not arts_omp_in_parallel()) \
-    schedule(guided) default(shared) firstprivate(wss, il)
+    schedule(guided) default(shared) firstprivate(il)
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
@@ -171,7 +169,7 @@ ARTS_USER_ERROR("ERROR")
     ArrayOfMuelmatVector lyr_tra;
     ArrayOfMuelmatVector tot_tra;
 
-    emission_from_propmat_field(wss,
+    emission_from_propmat_field(ws,
                                 lvl_rad,
                                 src_rad,
                                 lyr_tra,

@@ -14,7 +14,7 @@
 #include <string>
 #include "absorption.h"
 #include "arts.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "arts_conversions.h"
@@ -25,6 +25,7 @@
 #include "matpack_math.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "special_interp.h"
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -54,7 +55,7 @@ void jacobianClose(Workspace& ws_in,
     throw runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(ws_in);
+  jacobian_agenda.finalize();
   jacobian_do = 1;
 }
 
@@ -63,8 +64,7 @@ void jacobianInit(Workspace& ws,
                   ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda{ws};
-  jacobian_agenda.set_name("jacobian_agenda");
+  jacobian_agenda = Agenda("jacobian_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -139,7 +139,7 @@ void jacobianAddAbsSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add(Method{"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -197,7 +197,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcFreqShift", "");
+  jacobian_agenda.add(Method{"jacobianCalcFreqShift"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -335,7 +335,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcFreqStretch", "");
+  jacobian_agenda.add(Method{"jacobianCalcFreqStretch"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -499,10 +499,10 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   RetrievalQuantity rq;
   if (calcmode == "recalc") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
-    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
+    jacobian_agenda.add({"jacobianCalcPointingZaRecalc"});
   } else if (calcmode == "interp") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
-    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
+    jacobian_agenda.add({"jacobianCalcPointingZaInterp"});
   } else
     throw runtime_error(
       R"(Possible choices for *calcmode* are "recalc" and "interp".)");
@@ -838,7 +838,8 @@ void jacobianAddPolyfit(Workspace& ws _U_,
     jq.push_back(rq);
 
     // Add pointing method to the jacobian agenda
-    jacobian_agenda.append("jacobianCalcPolyfit", i);
+    jacobian_agenda.add(Method{"my_poly_coeff", i});
+    jacobian_agenda.add(Method{"jacobianCalcPolyfit", {}, {{"poly_coeff", "my_poly_coeff"}}});
   }
 }
 
@@ -960,7 +961,7 @@ void jacobianAddScatSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1037,7 +1038,8 @@ void jacobianAddSinefit(Workspace& ws _U_,
     jq.push_back(rq);
 
     // Add pointing method to the jacobian agenda
-    jacobian_agenda.append("jacobianCalcSinefit", i);
+    jacobian_agenda.add(Method{"my_period_index", i});
+    jacobian_agenda.add(Method{"jacobianCalcSinefit", {}, {{"period_index", "my_period_index"}}});
   }
 }
 
@@ -1162,7 +1164,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
   jq.push_back(rq);
 
   // Add dummy
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1210,7 +1212,7 @@ void jacobianAddTemperature(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1260,7 +1262,7 @@ void jacobianAddWind(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1310,7 +1312,7 @@ void jacobianAddMagField(Workspace&,
   jq.push_back(rq);
 
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1348,8 +1350,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Append and do housekeeping
   jq.push_back(rq);
-  jacobian_agenda.append("jacobianCalcDoNothing",
-                         TokVal());  // old code activation
+  jacobian_agenda.add({"jacobianCalcDoNothing"});  // old code activation
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1418,7 +1419,7 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1469,7 +1470,7 @@ void jacobianAddNLTE(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 void jacobianAddNLTEs(Workspace& ws,
@@ -1534,7 +1535,7 @@ void jacobianAddSpecialSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------

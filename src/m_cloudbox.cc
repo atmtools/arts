@@ -25,7 +25,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
@@ -45,6 +45,7 @@
 #include "special_interp.h"
 #include "species_tags.h"
 #include "xml_io.h"
+#include "arts_omp.h"
 
 using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD3_LAT_GRID;
@@ -76,8 +77,7 @@ void cloudboxOff(Workspace& ws,
   cloudbox_on = 0;
   ppath_inside_cloudbox_do = 0;
   cloudbox_limits.resize(0);
-  iy_cloudbox_agenda = Agenda{ws};
-  iy_cloudbox_agenda.set_name("iy_cloudbox_agenda");
+  iy_cloudbox_agenda = Agenda("iy_cloudbox_agenda");
   pnd_field.resize(0, 0, 0, 0);
   // we need to size dpnd_field to be consistent with jacobian_quantities.
   dpnd_field_dx.resize(jacobian_quantities.nelem());

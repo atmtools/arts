@@ -2,8 +2,7 @@
 
 #include <algorithm>
 
-#include "agenda_set.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "rte.h"
 

@@ -2,7 +2,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "matpack_concepts.h"
 #include "matpack_view.h"

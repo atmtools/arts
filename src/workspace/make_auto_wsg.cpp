@@ -69,7 +69,13 @@ void header(std::ostream& os) {
   }
   os << ";\n\n";
 
-  os << "template <WorkspaceGroup T> struct WorkspaceGroupInfo {};\n\n";
+  os << R"(template <typename T> struct WorkspaceGroupInfo {
+  static constexpr std::string_view name = "<Unknown>";
+  static constexpr std::string_view file = "<Unknown>";
+  static constexpr std::string_view desc = "<Unknown>";
+};
+
+)";
   for (auto& group : groups()) {
     os << "template <> struct WorkspaceGroupInfo<" << group << "> {\n";
     os << "  static constexpr std::string_view name = \"" << group << "\";\n";

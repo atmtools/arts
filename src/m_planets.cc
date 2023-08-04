@@ -17,11 +17,10 @@
   === External declarations
   ===========================================================================*/
 
-#include "agenda_set.h"
+#include <workspace.h>
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "matpack_data.h"
 #include "surf.h"
@@ -274,5 +273,5 @@ void PlanetSet(Workspace &ws, Agenda &g0_agenda, SurfaceField &surface_field,
     break;
   }
 
-  g0_agenda = AgendaManip::get_g0_agenda(ws, option);
+  g0_agenda = get_g0_agenda(option);
 }

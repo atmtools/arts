@@ -14,7 +14,7 @@
 #include "absorption.h"
 #include "arts.h"
 #include "arts_constants.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "cia.h"
 #include "debug.h"
 #include "file.h"

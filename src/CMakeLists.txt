@@ -4,6 +4,7 @@ add_subdirectory(partfun)
 add_subdirectory(predefined)
 add_subdirectory(python_interface)
 add_subdirectory(rtepack)
+add_subdirectory(workspace)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -43,73 +44,6 @@ install (TARGETS arts RUNTIME DESTINATION bin)
 
 ########### next target ###############
 
-add_executable (make_workspace_memory_handler_cc
-                make_workspace_memory_handler_cc.cc
-                arts.cc
-                groups.cc
-                file.cc
-                parameters.cc)
-target_link_libraries(make_workspace_memory_handler_cc PRIVATE matpack)
-add_custom_command (
-        OUTPUT workspace_memory_handler.cc
-        COMMAND make_workspace_memory_handler_cc
-        DEPENDS make_workspace_memory_handler_cc
-        )
-add_custom_target (BuildAutoSources DEPENDS auto_md.h
-                   auto_md.cc tokval.h)
-
-########### next target ###############
-
-add_executable (make_auto_md_h
-        agenda_record.cc
-        arts.cc
-        file.cc
-        make_auto_md_h.cc
-        parameters.cc
-        )
-
-target_link_libraries (make_auto_md_h PRIVATE methods matpack)
-
-add_custom_command (
-        OUTPUT auto_md.h
-        COMMAND make_auto_md_h
-        DEPENDS make_auto_md_h
-)
-
-########### next target ###############
-
-add_executable (make_auto_md_cc
-        agenda_record.cc
-        arts.cc
-        file.cc
-        make_auto_md_cc.cc
-        parameters.cc
-        )
-
-target_link_libraries (make_auto_md_cc PRIVATE methods matpack)
-
-add_custom_command (
-        OUTPUT auto_md.cc
-        COMMAND make_auto_md_cc
-        DEPENDS make_auto_md_cc
-        )
-
-########### next target ###############
-
-add_executable (make_default_gins
-        make_default_gins.cc
-        )
-
-target_link_libraries (make_default_gins PRIVATE methods)
-
-add_custom_command (
-        OUTPUT default_gins.cc default_gins.h
-        COMMAND make_default_gins
-        DEPENDS make_default_gins
-        )
-
-########### next target ###############
-
 set (ARTSCORE_EXTRA_SOURCES)
 if (NOT HAVE_GETOPT_H)
   list (APPEND ARTSCORE_EXTRA_SOURCES
@@ -117,14 +51,9 @@ if (NOT HAVE_GETOPT_H)
 endif (NOT HAVE_GETOPT_H)
 
 add_library (artscore STATIC
-        auto_md.h
-        auto_md.cc
   ${ARTSCORE_EXTRA_SOURCES}
   absorption.cc
   absorptionlines.cc
-  agenda_class.cc
-  agenda_record.cc
-  agenda_set.cc
   arts.cc
   arts_omp.cc
   artstime.cc
@@ -137,7 +66,6 @@ add_library (artscore STATIC
   cloudbox.cc
   compile_time_tests.cc
   covariance_matrix.cc
-  default_gins.cc
   disort.cc
   docserver.cc
   doit.cc
@@ -164,7 +92,6 @@ add_library (artscore STATIC
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
-  m_agenda.cc
   m_agenda_set.cc
   m_array.cc
   m_artstime.cc
@@ -227,7 +154,6 @@ add_library (artscore STATIC
   nlte.cc
   optproperties.cc
   parameters.cc
-  parser.cc
   partfun.cc
   physics_funcs.cc
   poly_roots.cc
@@ -254,12 +180,8 @@ add_library (artscore STATIC
   tessem.cc
   timings.cc
   tmatrix.cc
-  tokval_io.cc
   variousZZZ.cc
   wigner_functions.cc
-  workspace_ng.cc
-  workspace_memory_handler.cc
-  wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -281,7 +203,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva)
+target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva workspace)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)
@@ -342,23 +264,6 @@ set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
 target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
 
-########### next target ###############
-
-add_library (methods STATIC
-        methods.cc
-        tokval.cc
-
-        agendas.cc
-        agenda_record.cc
-        methods_aux.cc
-        groups.cc
-        workspace.cc
-        wsv_aux.cc
-        )
-
-set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-target_link_libraries(methods PUBLIC matpack predef species fwd)
-
 ########################################################################################
 
 add_library(species STATIC
@@ -367,13 +272,6 @@ add_library(species STATIC
 target_link_libraries(species PUBLIC auto_partfun)
 
 ########################################################################################
-
-########### variant tokval
-add_executable (make_tokval make_tokval.cc groups.cc)
-target_link_libraries(make_tokval PRIVATE matpack)
-add_custom_command(OUTPUT tokval.h tokval.cc
-                   COMMAND make_tokval
-                   DEPENDS make_tokval)
 
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
@@ -395,4 +293,3 @@ add_subdirectory(tests)
 add_subdirectory(fwd)
 target_link_libraries(artscore PUBLIC fwd)
 
-add_subdirectory(workspace)

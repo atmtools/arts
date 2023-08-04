@@ -19,7 +19,6 @@
 #include "matpack_arrays.h"
 #include "matpack_data.h"
 #include "matpack_sparse.h"
-#include "methods.h"
 #include "mystring.h"
 #include "ppath_struct.h"
 #include "quantum_numbers.h"  

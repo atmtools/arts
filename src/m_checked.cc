@@ -16,7 +16,7 @@
 #include "arts.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
