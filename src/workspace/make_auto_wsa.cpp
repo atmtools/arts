@@ -62,15 +62,20 @@ void header_docstring(std::ostream& os,
                       const std::string& agname) {
   os << "/** " << ag.desc << "\n  @param[in] ws The workspace";
 
+  const auto is_input = [&ag](auto& v){return std::find_if(ag.i.begin(), ag.i.end(), [v](auto& i){return i.second == v;}) != ag.i.end();};
+  const auto is_output = [&ag](auto& v){return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o){return o.second == v;}) != ag.o.end();};
+
   for (auto& [type, name] : ag.o) {
-    if (std::find_if(ag.i.begin(), ag.i.end(), [name](auto& v){return v.second == name;}) == ag.i.end())
+    if (not is_input(name))
       os << "\n  @param[out] " << name << " As WSV";
     else
       os << "\n  @param[inout] " << name << " As WSV";
   }
 
+
   for (auto& [type, name] : ag.i) {
-    os << "\n  @param[in] " << name << " As WSV";
+    if (not is_output(name))
+      os << "\n  @param[in] " << name << " As WSV";
   }
 
   os << "\n  @param[in] " << agname << " As WSV"  << "\n*/\n";
@@ -79,6 +84,8 @@ void header_docstring(std::ostream& os,
 void call_operator(std::ostream& os,
                    const auto_ag& ag,
                    const std::string& agname) {
+  const auto is_output = [&ag](auto& v){return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o){return o.second == v;}) != ag.o.end();};
+
   const std::string spaces(5 + agname.size() + 8, ' ');
 
   os << "void " << agname << "Execute(const Workspace& ws";
@@ -88,7 +95,8 @@ void call_operator(std::ostream& os,
   }
 
   for (auto& [type, name] : ag.i) {
-    os << ",\n" << spaces << "const " << type << "& " << name;
+    if (not is_output(name))
+      os << ",\n" << spaces << "const " << type << "& " << name;
   }
 
   os << ",\n" << spaces << "const ";
@@ -130,7 +138,7 @@ struct WorkspaceAgendaBoolHandler {
   }
 
  os << R"--(
-  bool has(const std::string&) const;
+  [[nodiscard]] bool has(const std::string&) const;
   void set(const std::string&);
   friend std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab);
 };
@@ -163,6 +171,7 @@ void workspace_setup_and_exec(std::ostream& os, const std::string& name, const a
 
   os << "  // Always share original data here\n";
 
+  // FIXME: This should be overwrite, no?  And then if it exists we should copy over it?
   for (auto& i: ag.i) {
     os << "  _lws.set(" << std::quoted(i.second) << ", const_cast<"<<i.first<<"*>(&" << i.second << "));\n";
   }

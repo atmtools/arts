@@ -48,10 +48,3 @@ add_library(workspace STATIC
 target_link_libraries(workspace PUBLIC workspace_internals)
 target_include_directories(workspace PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-
-
-
-
-add_executable(test_ws test_ws.cpp)
-target_link_libraries(test_ws PRIVATE workspace)
