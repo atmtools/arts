@@ -111,21 +111,19 @@ MdRecord create_mdrecord(
   md_data_raw.push_back
     ( create_mdrecord
       ( NAME( "MethodName" ),
-        DESCRIPTION
-        (
-        "A concise summary of the method.\n"
-        "\n"
-        "A more detailed description of the method. Try to describe the\n"
-        "purpose of the method and important considerations. Try to avoid\n"
-        "references to other WSMs as they might change. Refer to the user\n"
-        "guide for more complex information (as long as it exists, or that\n"
-        "you add it to AUG!).\n"
-        "\n"
-        "You do not need to describe workspace variables used. That\n"
-        "information is found in workspace.cc. Generic\n"
-        "output and input variables must be described in GIN_DESC and\n"
-        "GOUT_DESC below.\n"
-        ),
+        DESCRIPTION(R"--(A concise summary of the method.
+
+A more detailed description of the method. Try to describe the
+purpose of the method and important considerations. Try to avoid
+references to other WSMs as they might change. Refer to the user
+guide for more complex information (as long as it exists, or that
+you add it to AUG!).
+
+You do not need to describe workspace variables used. That
+information is found in workspace.cc. Generic
+output and input variables must be described in GIN_DESC and
+GOUT_DESC below.
+)--"),
         AUTHORS( "Your Name" ),
         OUT(),
         GOUT(),
@@ -213,7 +211,8 @@ void define_md_data_raw() {
       if (wsv_group not_eq "Agenda" and wsv_group not_eq "ArrayOfAgenda") {
         md_data_raw.push_back(MdRecord(
             NAME(String(wsv_group.name + "Set").c_str()),
-            DESCRIPTION("Sets a workspace variable to the given value.\n"),
+            DESCRIPTION(R"--(Sets a workspace variable to the given value.
+)--"),
             ArrayOfString(AUTHORS("Richard Larsson")),
             ArrayOfString(OUT()),
             ArrayOfString(GOUT("output")),
@@ -239,13 +238,13 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataAddCIARecord"),
-      DESCRIPTION(
-          "Takes CIARecord as input and appends the results in the appropriate place.\n"
-          "\n"
-          "If CIARecord has same species as species in *abs_cia_data*, then the array\n"
-          "position is used to append all of the CIARecord into the array.  If clobber\n"
-          "evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If\n"
-          "species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.\n"),
+      DESCRIPTION(R"--(Takes CIARecord as input and appends the results in the appropriate place.
+
+If CIARecord has same species as species in *abs_cia_data*, then the array
+position is used to append all of the CIARecord into the array.  If clobber
+evaluates as true, cia_record overwrites the appropriate *abs_cia_data*.  If
+species in cia_record are not in *abs_cia_data*, the CIARecord is pushed back.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_cia_data"),
       GOUT(),
@@ -260,8 +259,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadSpeciesSplitCatalog"),
-      DESCRIPTION(
-          "Reads a species split CIA dataset.\n"),
+      DESCRIPTION(R"--(Reads a species split CIA dataset.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_cia_data"),
       GOUT(),
@@ -276,16 +275,16 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadFromCIA"),
-      DESCRIPTION(
-          "Read data from a CIA data file for all CIA molecules defined\n"
-          "in *abs_species*.\n"
-          "\n"
-          "The units in the HITRAN file are:\n"
-          " - Frequency: cm^(-1)\n"
-          " - Binary absorption cross-section: cm^5 molec^(-2)\n"
-          "\n"
-          "Upon reading we convert this to the ARTS internal SI units \n"
-          "of Hz and m^5 molec^(-2).\n"),
+      DESCRIPTION(R"--(Read data from a CIA data file for all CIA molecules defined
+in *abs_species*.
+
+The units in the HITRAN file are:
+ - Frequency: cm^(-1)
+ - Binary absorption cross-section: cm^5 molec^(-2)
+
+Upon reading we convert this to the ARTS internal SI units 
+of Hz and m^5 molec^(-2).
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("abs_cia_data"),
       GOUT(),
@@ -299,11 +298,11 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadFromXML"),
-      DESCRIPTION(
-          "Read data from a CIA XML file and check that all CIA tags defined\n"
-          "in *abs_species* are present in the file.\n"
-          "\n"
-          "The units of the data are described in *abs_cia_dataReadFromCIA*.\n"),
+      DESCRIPTION(R"--(Read data from a CIA XML file and check that all CIA tags defined
+in *abs_species* are present in the file.
+
+The units of the data are described in *abs_cia_dataReadFromCIA*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("abs_cia_data"),
       GOUT(),
@@ -317,23 +316,24 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
-      DESCRIPTION("Reads HITRAN line mixing data from a basedir\n\n"
-        "The basedir must point at line mixing data as provided by HITRAN.\n"
-        "The lines will be changed such that ALL CO2 lines are truncated\n"
-        "before adding the HITRAN line mixing lines.\n"
-        "\n"
-        "The available modes are such that \"VP*\" uses Voigt profiles and\n"
-        "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
-        "signifies if Rosenkranz-style line mixing is considered or not, and\n"
-        "the \"W\" at the end signifies that full calculations are used.  At\n"
-        "the line mixing limit, line mixing is simply turned off.\n"
-        "\n"
-        "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
-        "matrix until the line mixing limit is reached and it switches to Voigt.\n"
-        "\n"
-        "The HITRAN LM data is available for download at:\n"
-        "https://hitran.org/supplementary/\n"
-      ),
+      DESCRIPTION(R"--(Reads HITRAN line mixing data from a basedir
+
+The basedir must point at line mixing data as provided by HITRAN.
+The lines will be changed such that ALL CO2 lines are truncated
+before adding the HITRAN line mixing lines.
+
+The available modes are such that \"VP*\" uses Voigt profiles and
+\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"
+signifies if Rosenkranz-style line mixing is considered or not, and
+the \"W\" at the end signifies that full calculations are used.  At
+the line mixing limit, line mixing is simply turned off.
+
+The \"FullW\" mode uses Lorentzian calculations with the full relaxation
+matrix until the line mixing limit is reached and it switches to Voigt.
+
+The HITRAN LM data is available for download at:
+https:
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_hitran_relmat_data", "abs_lines_per_species"),
       GOUT(),
@@ -353,13 +353,13 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesAdaptOnTheFlyLineMixing"),
-      DESCRIPTION("Adapts the line-catalog from using *ecs_data* data to.\n"
-        "instead fit ordered parameters to imitate the line mxixing\n"
-        "\n"
-        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
-        "there's no support in current ARTS LBL to make use of it so it\n"
-        "will crash at some point\n"
-      ),
+      DESCRIPTION(R"--(Adapts the line-catalog from using *ecs_data* data to.
+instead fit ordered parameters to imitate the line mxixing
+
+The order should be 1 or 2.  It will compute at 3 as well, but
+there's no support in current ARTS LBL to make use of it so it
+will crash at some point
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -377,8 +377,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptOnTheFlyLineMixing"),
-      DESCRIPTION("Calls *abs_linesAdaptOnTheFlyLineMixing* for each internal array\n"
-      ),
+      DESCRIPTION(R"--(Calls *abs_linesAdaptOnTheFlyLineMixing* for each internal array
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -396,13 +396,13 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesAdaptHitranLineMixing"),
-      DESCRIPTION("Adapts the line-catalog from using *abs_hitran_relmat_data* to.\n"
-        "instead fit ordered parameters to imitate the line mxixing\n"
-        "\n"
-        "The order should be 1 or 2.  It will compute at 3 as well, but\n"
-        "there's no support in current ARTS LBL to make use of it so it\n"
-        "will crash at some point\n"
-      ),
+      DESCRIPTION(R"--(Adapts the line-catalog from using *abs_hitran_relmat_data* to.
+instead fit ordered parameters to imitate the line mxixing
+
+The order should be 1 or 2.  It will compute at 3 as well, but
+there's no support in current ARTS LBL to make use of it so it
+will crash at some point
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -418,9 +418,10 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBand"),
-      DESCRIPTION("Keep only ``qid``-match band lines in *abs_lines*\n"
-      "\n"
-      "Note that other bands are technically kept but have zero lines\n"),
+      DESCRIPTION(R"--(Keep only ``qid``-match band lines in *abs_lines*
+
+Note that other bands are technically kept but have zero lines
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -434,7 +435,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveBand"),
-      DESCRIPTION("Removes ``qid`` band from *abs_lines*\n"),
+      DESCRIPTION(R"--(Removes ``qid`` band from *abs_lines*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -448,23 +450,23 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveLines"),
-      DESCRIPTION("Remove lines *abs_lines* outside of specifications\n"
-        "\n"
-        "The specifications are:\n"
-        " - The lower frequency bound (all lines of this frequency or higher may be kept)\n"
-        " - The upper frequency bound (all lines of this frequency or lower may be kept)\n"
-        " - The lower intensity bound (all lines with lower intensity may be removed)\n"
-        "\n"
-        "If safe evaluates true, all lines in an absorption band must fail the above\n"
-        "tests to be removed\n"
-        "\n"
-        "The frequency filtering can be reversed, from keeping upper_frequency to\n"
-        "lower_frequency, to instead remove lines inside the range by setting\n"
-        "``flip_flims`` to 1.\n"
-        "\n"
-        "The method *abs_linesRemoveEmptyBands* is internally applied after the\n"
-        "filtering.\n"
-      ),
+      DESCRIPTION(R"--(Remove lines *abs_lines* outside of specifications
+
+The specifications are:
+ - The lower frequency bound (all lines of this frequency or higher may be kept)
+ - The upper frequency bound (all lines of this frequency or lower may be kept)
+ - The lower intensity bound (all lines with lower intensity may be removed)
+
+If safe evaluates true, all lines in an absorption band must fail the above
+tests to be removed
+
+The frequency filtering can be reversed, from keeping upper_frequency to
+lower_frequency, to instead remove lines inside the range by setting
+``flip_flims`` to 1.
+
+The method *abs_linesRemoveEmptyBands* is internally applied after the
+filtering.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -482,8 +484,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesRemoveLines"),
-      DESCRIPTION("Repeats *abs_linesRemoveLines* for all inner arrays\n"
-      ),
+      DESCRIPTION(R"--(Repeats *abs_linesRemoveLines* for all inner arrays
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -501,10 +503,10 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveLinesFromSpecies"),
-      DESCRIPTION("As *abs_linesRemoveLines* but only for bands of the given species.\n"
-      "\n"
-      "``species`` must be a single entry, and must specify the isotopologue\n"
-      ),
+      DESCRIPTION(R"--(As *abs_linesRemoveLines* but only for bands of the given species.
+
+``species`` must be a single entry, and must specify the isotopologue
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -524,8 +526,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesRemoveLinesFromSpecies"),
-      DESCRIPTION("Repeats *abs_linesRemoveLinesFromSpecies* for all inner arrays\n"
-      ),
+      DESCRIPTION(R"--(Repeats *abs_linesRemoveLinesFromSpecies* for all inner arrays
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -545,7 +547,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveEmptyBands"),
-      DESCRIPTION("Removes emtpy bands from *abs_lines*\n"),
+      DESCRIPTION(R"--(Removes emtpy bands from *abs_lines*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -559,7 +562,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesFlatten"),
-      DESCRIPTION("Makes *abs_lines* with the same ID share lines\n"),
+      DESCRIPTION(R"--(Makes *abs_lines* with the same ID share lines
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -573,7 +577,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_lines_per_speciesFlatten"),
-      DESCRIPTION("Calls *abs_linesFlatten* per internal set of bands\n"),
+      DESCRIPTION(R"--(Calls *abs_linesFlatten* per internal set of bands
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -587,7 +592,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CallbackFunctionExecute"),
-      DESCRIPTION("Execute any code in Arts\n"),
+      DESCRIPTION(R"--(Execute any code in Arts
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -606,8 +612,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CheckUnique"),
-      DESCRIPTION(
-          "Checks that *abs_lines* contains only unique absorption lines\n"),
+      DESCRIPTION(R"--(Checks that *abs_lines* contains only unique absorption lines
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -621,16 +627,16 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReplaceLines"),
-      DESCRIPTION(
-          "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
-          "\n"
-          "Each replacement_lines must match excatly a single line in *abs_lines*.\n"
-          "\n"
-          "The matching requires identical quantum number signatures to work\n"
-          "\n"
-          "Note that lines are identified by their quantum number identifier, and if the broadening or\n"
-          "compute data disagree between two bands, a new band is appended unless we can work around the issue.\n"
-          "This may cause *CheckUnique* to fail after running this method\n"),
+      DESCRIPTION(R"--(Replace all lines in *abs_lines* that match with lines in replacement_lines.
+
+Each replacement_lines must match excatly a single line in *abs_lines*.
+
+The matching requires identical quantum number signatures to work
+
+Note that lines are identified by their quantum number identifier, and if the broadening or
+compute data disagree between two bands, a new band is appended unless we can work around the issue.
+This may cause *CheckUnique* to fail after running this method
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -644,12 +650,12 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReplaceBands"),
-      DESCRIPTION(
-          "Replace all bands in *abs_lines* that match with bands in ``replacing_bands``.\n"
-          "\n"
-          "Each ``replacing_bands`` must match excatly a single band in *abs_lines*.\n"
-          "\n"
-          "The matching requires identical quantum number signatures to work.\n"),
+      DESCRIPTION(R"--(Replace all bands in *abs_lines* that match with bands in ``replacing_bands``.
+
+Each ``replacing_bands`` must match excatly a single band in *abs_lines*.
+
+The matching requires identical quantum number signatures to work.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -663,11 +669,11 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesDeleteBadF0"),
-      DESCRIPTION(
-          "Deletes all lines in *abs_lines* that have bad central frequencies\n"
-          "\n"
-          "If lower evaluates as true, deletes all lines with a frequency below f0.\n"
-          "Otherwise deletes all lines with a frequency above f0.\n"),
+      DESCRIPTION(R"--(Deletes all lines in *abs_lines* that have bad central frequencies
+
+If lower evaluates as true, deletes all lines with a frequency below f0.
+Otherwise deletes all lines with a frequency above f0.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -682,7 +688,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReadSpeciesSplitCatalog"),
-      DESCRIPTION("Reads a catalog of absorption lines files in a directory\n"),
+      DESCRIPTION(R"--(Reads a catalog of absorption lines files in a directory
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -697,7 +704,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesReadSpeciesSplitCatalog"),
-      DESCRIPTION("See *abs_linesReadSpeciesSplitCatalog* but only for *abs_species*\n"),
+      DESCRIPTION(R"--(See *abs_linesReadSpeciesSplitCatalog* but only for *abs_species*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -712,7 +720,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetEmpty"),
-      DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
+      DESCRIPTION(R"--(Empties *abs_lines_per_species* at the correct size.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -726,7 +735,8 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesEmptyBroadeningParameters"),
-               DESCRIPTION("Sets a broadening parameter to empty if it is effectively empty\n"),
+               DESCRIPTION(R"--(Sets a broadening parameter to empty if it is effectively empty
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -920,7 +930,8 @@ offsets might not work as hoped.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesSort"),
-               DESCRIPTION("Sorts first the lines then the bands by smallest first\n"),
+               DESCRIPTION(R"--(Sorts first the lines then the bands by smallest first
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -934,8 +945,9 @@ offsets might not work as hoped.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesManualMirroring"),
-               DESCRIPTION("Makes a copy of all lines at negative frequency setting them"
-                           "to manual mirroring mode\n"),
+               DESCRIPTION(R"--(Makes a copy of all lines at negative frequency setting them
+to manual mirroring mode
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -949,8 +961,9 @@ offsets might not work as hoped.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesManualMirroring"),
-               DESCRIPTION("Makes a copy of all lines at negative frequency setting them.\n"
-                           "to manual mirroring mode\n"),
+               DESCRIPTION(R"--(Makes a copy of all lines at negative frequency setting them.
+to manual mirroring mode
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -964,7 +977,8 @@ offsets might not work as hoped.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesManualMirroringSpecies"),
-               DESCRIPTION("Calls *abs_linesManualMirroring* for given species in *abs_species*\n"),
+               DESCRIPTION(R"--(Calls *abs_linesManualMirroring* for given species in *abs_species*
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1253,10 +1267,11 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesLinemixingLimit"),
-               DESCRIPTION("Sets line mixing limit for all lines.\n"
-                           "\n"
-                           "If value is less than 0, no limit is applied and line mixing is active.\n"
-                           "Otherwise, line mixing is inactive if the pressure is below the limit.\n"),
+               DESCRIPTION(R"--(Sets line mixing limit for all lines.
+
+If value is less than 0, no limit is applied and line mixing is active.
+Otherwise, line mixing is inactive if the pressure is below the limit.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1270,7 +1285,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimit"),
-               DESCRIPTION("See *abs_linesLinemixingLimit*\n"),
+               DESCRIPTION(R"--(See *abs_linesLinemixingLimit*
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1284,9 +1300,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesLinemixingLimitMatch"),
-               DESCRIPTION("See *abs_linesLinemixingLimit* for values\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+               DESCRIPTION(R"--(See *abs_linesLinemixingLimit* for values
+
+This function only acts on matches between the bands and input ID
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1301,9 +1318,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimitMatch"),
-               DESCRIPTION("See *abs_linesLinemixingLimit* for values\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+               DESCRIPTION(R"--(See *abs_linesLinemixingLimit* for values
+
+This function only acts on matches between the bands and input ID
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1318,7 +1336,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesLinemixingLimitSpecies"),
-               DESCRIPTION("See *abs_linesLinemixingLimit* but for single species\n"),
+               DESCRIPTION(R"--(See *abs_linesLinemixingLimit* but for single species
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1333,7 +1352,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesT0"),
-               DESCRIPTION("Sets reference temperature for all lines.\n"),
+               DESCRIPTION(R"--(Sets reference temperature for all lines.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1347,7 +1367,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesT0"),
-               DESCRIPTION("See *abs_linesT0*\n"),
+               DESCRIPTION(R"--(See *abs_linesT0*
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1361,9 +1382,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesT0Match"),
-               DESCRIPTION("Sets reference temperature\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+               DESCRIPTION(R"--(Sets reference temperature
+
+This function only acts on matches between the bands and input ID
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -1378,9 +1400,10 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_lines_per_speciesT0Match"),
-               DESCRIPTION("Sets reference temperature\n"
-                           "\n"
-                           "This function only acts on matches between the bands and input ID\n"),
+               DESCRIPTION(R"--(Sets reference temperature
+
+This function only acts on matches between the bands and input ID
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
                GOUT(),
@@ -1395,7 +1418,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
     create_mdrecord(NAME("abs_lines_per_speciesT0Species"),
-             DESCRIPTION("See *abs_linesT0* but for single species\n"),
+             DESCRIPTION(R"--(See *abs_linesT0* but for single species
+)--"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
              GOUT(),
@@ -1410,11 +1434,12 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevel"),
-      DESCRIPTION(
-          "Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n\n"
-          "Only works for these ``parameter_name``:\n"
-          " - ``\"Statistical Weight\"``\n"
-          " - ``\"Zeeman Coefficient\"``\n"),
+      DESCRIPTION(R"--(Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.
+
+Only works for these ``parameter_name``:
+ - ``\"Statistical Weight\"``
+ - ``\"Zeeman Coefficient\"``
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1431,7 +1456,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1448,7 +1474,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevel"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1465,7 +1492,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1482,11 +1510,12 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesBaseParameterMatchingLevel"),
-      DESCRIPTION(
-          "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n\n"
-          "Only works for these ``parameter_name``:\n"
-          " - ``\"Statistical Weight\"``\n"
-          " - ``\"Zeeman Coefficient\"``\n"),
+      DESCRIPTION(R"--(Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.
+
+Only works for these ``parameter_name``:
+ - ``\"Statistical Weight\"``
+ - ``\"Zeeman Coefficient\"``
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1502,7 +1531,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesBaseParameterMatchingLevels"),
-      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesBaseParameterMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1518,7 +1548,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesBaseParameterMatchingLevel"),
-      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesBaseParameterMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1534,7 +1565,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesBaseParameterMatchingLevels"),
-      DESCRIPTION("See *abs_linesBaseParameterMatchingLevel*\n"),
+      DESCRIPTION(R"--(See *abs_linesBaseParameterMatchingLevel*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1550,17 +1582,18 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLines"),
-      DESCRIPTION(
-          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n\n"
-          "Only works for these ``parameter_name``:\n"
-          " - ``\"Central Frequency\"``\n"
-          " - ``\"Line Strength\"``\n"
-          " - ``\"Lower State Energy\"``\n"
-          " - ``\"Einstein Coefficient\"``\n"
-          " - ``\"Lower Statistical Weight\"``\n"
-          " - ``\"Upper Statistical Weight\"``\n"
-          " - ``\"Lower Zeeman Coefficient\"``\n"
-          " - ``\"Upper Zeeman Coefficient\"``\n"),
+      DESCRIPTION(R"--(Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.
+
+Only works for these ``parameter_name``:
+ - ``\"Central Frequency\"``
+ - ``\"Line Strength\"``
+ - ``\"Lower State Energy\"``
+ - ``\"Einstein Coefficient\"``
+ - ``\"Lower Statistical Weight\"``
+ - ``\"Upper Statistical Weight\"``
+ - ``\"Lower Zeeman Coefficient\"``
+ - ``\"Upper Zeeman Coefficient\"``
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1577,7 +1610,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines*\n"),
+      DESCRIPTION(R"--(See *abs_linesChangeBaseParameterForMatchingLines*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1594,7 +1628,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines* but for single species\n"),
+      DESCRIPTION(R"--(See *abs_linesChangeBaseParameterForMatchingLines* but for single species
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1612,17 +1647,18 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesBaseParameterMatchingLines"),
-      DESCRIPTION(
-          "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n\n"
-          "Only works for these ``parameter_name``:\n"
-          " - ``\"Central Frequency\"``\n"
-          " - ``\"Line Strength\"``\n"
-          " - ``\"Lower State Energy\"``\n"
-          " - ``\"Einstein Coefficient\"``\n"
-          " - ``\"Lower Statistical Weight\"``\n"
-          " - ``\"Upper Statistical Weight\"``\n"
-          " - ``\"Lower Zeeman Coefficient\"``\n"
-          " - ``\"Upper Zeeman Coefficient\"``\n"),
+      DESCRIPTION(R"--(Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.
+
+Only works for these ``parameter_name``:
+ - ``\"Central Frequency\"``
+ - ``\"Line Strength\"``
+ - ``\"Lower State Energy\"``
+ - ``\"Einstein Coefficient\"``
+ - ``\"Lower Statistical Weight\"``
+ - ``\"Upper Statistical Weight\"``
+ - ``\"Lower Zeeman Coefficient\"``
+ - ``\"Upper Zeeman Coefficient\"``
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1638,39 +1674,39 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesLineShapeModelParametersMatchingLines"),
-      DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
-        "\n"
-        "The matching is done so that QI must be in the line identifier\n"
-        "\n"
-        "Acceptable ``parameter`` (s) are:\n"
-        " - ``\"G0\"``\n"
-        " - ``\"D0\"``\n"
-        " - ``\"G2\"``\n"
-        " - ``\"D2\"``\n"
-        " - ``\"FVC\"``\n"
-        " - ``\"ETA\"``\n"
-        " - ``\"Y\"``\n"
-        " - ``\"G\"``\n"
-        " - ``\"DV\"``\n"
-        "\n"
-        "Acceptable ``temperaturemodel`` (s) are:\n"
-        " - ``\"None\"``\n"
-        " - ``\"T0\"``\n"
-        " - ``\"T1\"``\n"
-        " - ``\"T2\"``\n"
-        " - ``\"T3\"``\n"
-        " - ``\"T4\"``\n"
-        " - ``\"T5\"``\n"
-        " - ``\"LM_AER\"``\n"
-        " - ``\"DPL\"``\n"
-        "\n"
-        "Acceptable ``species`` are:\n"
-        " - ``\"AIR\"`` (so long as it is the broadening species list)\n"
-        " - ``\"SELF\"`` (so long as it is the broadening species list)\n"
-        " - Any species in the line broadening species\n"
-        "\n"
-        "See the user guide for the meanings of all of these keywords\n"
-      ),
+      DESCRIPTION(R"--(Sets line shape model data parameter in matching lines.
+
+The matching is done so that QI must be in the line identifier
+
+Acceptable ``parameter`` (s) are:
+ - ``\"G0\"``
+ - ``\"D0\"``
+ - ``\"G2\"``
+ - ``\"D2\"``
+ - ``\"FVC\"``
+ - ``\"ETA\"``
+ - ``\"Y\"``
+ - ``\"G\"``
+ - ``\"DV\"``
+
+Acceptable ``temperaturemodel`` (s) are:
+ - ``\"None\"``
+ - ``\"T0\"``
+ - ``\"T1\"``
+ - ``\"T2\"``
+ - ``\"T3\"``
+ - ``\"T4\"``
+ - ``\"T5\"``
+ - ``\"LM_AER\"``
+ - ``\"DPL\"``
+
+Acceptable ``species`` are:
+ - ``\"AIR\"`` (so long as it is the broadening species list)
+ - ``\"SELF\"`` (so long as it is the broadening species list)
+ - Any species in the line broadening species
+
+See the user guide for the meanings of all of these keywords
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1692,8 +1728,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesLineShapeModelParametersMatchingLines"),
-      DESCRIPTION("See *abs_linesLineShapeModelParametersMatchingLines*\n"
-      ),
+      DESCRIPTION(R"--(See *abs_linesLineShapeModelParametersMatchingLines*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1715,10 +1751,11 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesZeemanCoefficients"),
-      DESCRIPTION("Sets the Zeeman coefficients of the lines by user input\n"
-        "\n"
-        "The matching is permissive, all in qid must just match.  If there\n"
-        "are multiple matches, the last match rules\n"),
+      DESCRIPTION(R"--(Sets the Zeeman coefficients of the lines by user input
+
+The matching is permissive, all in qid must just match.  If there
+are multiple matches, the last match rules
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1733,7 +1770,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesZeemanCoefficients"),
-      DESCRIPTION("See *abs_linesZeemanCoefficients*\n"),
+      DESCRIPTION(R"--(See *abs_linesZeemanCoefficients*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1748,8 +1786,9 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesCompact"),
-      DESCRIPTION("Removes lines that are unimportant because of their\n"
-                  "cutoff frequency range\n"),
+      DESCRIPTION(R"--(Removes lines that are unimportant because of their
+cutoff frequency range
+)--"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1763,7 +1802,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesCompact"),
-      DESCRIPTION("See *abs_linesCompact*\n"),
+      DESCRIPTION(R"--(See *abs_linesCompact*
+)--"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1777,11 +1817,11 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesCreateFromLines"),
-      DESCRIPTION(
-          "Split lines up into the different species.\n"
-          "\n"
-          "The order of the splitting will match the outer layer of *abs_species*\n"
-          "There will be no respect for the internal layer of *abs_species*\n"),
+      DESCRIPTION(R"--(Split lines up into the different species.
+
+The order of the splitting will match the outer layer of *abs_species*
+There will be no respect for the internal layer of *abs_species*
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1795,7 +1835,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesTurnOffLineMixing"),
-      DESCRIPTION("Sets all line mixing parameters to emtpy.\n"),
+      DESCRIPTION(R"--(Sets all line mixing parameters to emtpy.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -1809,7 +1850,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesTurnOffLineMixing"),
-      DESCRIPTION("Sets all line mixing parameters to emtpy.\n"),
+      DESCRIPTION(R"--(Sets all line mixing parameters to emtpy.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1823,21 +1865,21 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupAdapt"),
-      DESCRIPTION(
-          "Adapts a gas absorption lookup table to the current calculation.\n"
-          "\n"
-          "The lookup table can contain more species and more frequencies than\n"
-          "are needed for the current calculation. This method cuts down the\n"
-          "table in memory, so that it contains just what is needed. Also, the\n"
-          "species in the table are brought in the same order as the species in\n"
-          "the current calculation.\n"
-          "\n"
-          "Of course, the method also performs quite a lot of checks on the\n"
-          "table. If something is not ok, a runtime error is thrown.\n"
-          "\n"
-          "The method sets a flag *abs_lookup_is_adapted* to indicate that the\n"
-          "table has been checked and that it is ok. Never set this by hand,\n"
-          "always use this method to set it!\n"),
+      DESCRIPTION(R"--(Adapts a gas absorption lookup table to the current calculation.
+
+The lookup table can contain more species and more frequencies than
+are needed for the current calculation. This method cuts down the
+table in memory, so that it contains just what is needed. Also, the
+species in the table are brought in the same order as the species in
+the current calculation.
+
+Of course, the method also performs quite a lot of checks on the
+table. If something is not ok, a runtime error is thrown.
+
+The method sets a flag *abs_lookup_is_adapted* to indicate that the
+table has been checked and that it is ok. Never set this by hand,
+always use this method to set it!
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lookup", "abs_lookup_is_adapted"),
       GOUT(),
@@ -1851,21 +1893,21 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupCalc"),
-      DESCRIPTION(
-          "Creates a gas absorption lookup table.\n"
-          "\n"
-          "The lookup table stores absorption cross-sections as a function of\n"
-          "pressure. Additionally, absorption can be stored as a function of\n"
-          "temperature for temperature perturbations from a reference\n"
-          "profile.\n"
-          "\n"
-          "Additionally, absorption can be stored as a function of water vapor\n"
-          "VMR perturbations from a reference profile. The variable *abs_nls*\n"
-          "specifies, for which species water vapor perturbations should be\n"
-          "generated.\n"
-          "\n"
-          "Note, that the absorbing gas can be any gas, but the perturbing gas is\n"
-          "always H2O.\n"),
+      DESCRIPTION(R"--(Creates a gas absorption lookup table.
+
+The lookup table stores absorption cross-sections as a function of
+pressure. Additionally, absorption can be stored as a function of
+temperature for temperature perturbations from a reference
+profile.
+
+Additionally, absorption can be stored as a function of water vapor
+VMR perturbations from a reference profile. The variable *abs_nls*
+specifies, for which species water vapor perturbations should be
+generated.
+
+Note, that the absorbing gas can be any gas, but the perturbing gas is
+always H2O.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lookup", "abs_lookup_is_adapted"),
       GOUT(),
@@ -1887,11 +1929,11 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupInit"),
-      DESCRIPTION(
-          "Creates an empty gas absorption lookup table.\n"
-          "\n"
-          "This is mainly there to help developers. For example, you can write\n"
-          "the empty table to an XML file, to see the file format.\n"),
+      DESCRIPTION(R"--(Creates an empty gas absorption lookup table.
+
+This is mainly there to help developers. For example, you can write
+the empty table to an XML file, to see the file format.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lookup"),
       GOUT(),
@@ -1905,25 +1947,25 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetup"),
-      DESCRIPTION(
-          "Set up input parameters for abs_lookupCalc.\n"
-          "\n"
-          "More information can be found in the documentation for method\n"
-          "*abs_lookupSetupBatch*\n"
-          "\n"
-          "Max and min values of H2O and temperature are adjusted to allow for\n"
-          "numerical perturbations in Jacobian calculation.\n"
-          "\n"
-          "The input variables *abs_nls_interp_order* and *abs_t_interp_order*\n"
-          "are used to make sure that there are enough points in *abs_nls_pert*\n"
-          "and *abs_t_pert* for the chosen interpolation order.\n"
-          "\n"
-          "Note: For homogeneous 1D cases, it can be advantageous to calculate\n"
-          "*abs_lookup* from the 1D atmosphere, and to expand the atmosphere\n"
-          "to 3D only after that. This particularly if nonlinear species\n"
-          "(i.e., H2O) are involved."
-          "\n"
-          "See also: *abs_lookupSetupBatch*\n"),
+      DESCRIPTION(R"--(Set up input parameters for abs_lookupCalc.
+
+More information can be found in the documentation for method
+*abs_lookupSetupBatch*
+
+Max and min values of H2O and temperature are adjusted to allow for
+numerical perturbations in Jacobian calculation.
+
+The input variables *abs_nls_interp_order* and *abs_t_interp_order*
+are used to make sure that there are enough points in *abs_nls_pert*
+and *abs_t_pert* for the chosen interpolation order.
+
+Note: For homogeneous 1D cases, it can be advantageous to calculate
+*abs_lookup* from the 1D atmosphere, and to expand the atmosphere
+to 3D only after that. This particularly if nonlinear species
+(i.e., H2O) are involved.
+
+See also: *abs_lookupSetupBatch*
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -1960,39 +2002,39 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetupBatch"),
-      DESCRIPTION(
-          "Set up input parameters for abs_lookupCalc for batch calculations.\n"
-          "\n"
-          "This method performs a similar task as *abs_lookupSetup*, with the\n"
-          "difference that the lookup table setup is not for a single\n"
-          "atmospheric state, but for a whole batch of them, stored in\n"
-          "*batch_atm_fields_compact*.\n"
-          "\n"
-          "The method checks *abs_species* to decide which species require\n"
-          "nonlinear treatment in the lookup table.\n"
-          "\n"
-          "The method also checks which range of pressures, temperatures, and\n"
-          "VMRs occurs, and sets *abs_p*, *abs_t*, *abs_t_pert*, and *abs_vmrs*\n"
-          "accordingly.\n"
-          "\n"
-          "If nonlinear species are present, *abs_nls* and *abs_nls_pert* are also\n"
-          "generated.\n"
-          "\n"
-          "Max and min values of H2O and temperature are adjusted to allow for\n"
-          "numerical perturbations in Jacobian calculation.\n"
-          "\n"
-          "The input variables *abs_nls_interp_order* and *abs_t_interp_order*\n"
-          "are used to make sure that there are enough points in *abs_nls_pert*\n"
-          "and *abs_t_pert* for the chosen interpolation order.\n"
-          "\n"
-          "The method checks each given field using *atmfields_checkedCalc*.\n"
-          "If a field does not pass the check, a run-time error is thrown.\n"
-          "To prevent this, the parameter ``robust`` can be set to one: Invalid \n"
-          "atmospheres are skipped, but the run continues. This matches the \n"
-          "robust behaviour of *ybatchCalc*.\n"
-          "\n"
-          "See also:\n"
-          "   *abs_lookupSetup*\n"),
+      DESCRIPTION(R"--(Set up input parameters for abs_lookupCalc for batch calculations.
+
+This method performs a similar task as *abs_lookupSetup*, with the
+difference that the lookup table setup is not for a single
+atmospheric state, but for a whole batch of them, stored in
+*batch_atm_fields_compact*.
+
+The method checks *abs_species* to decide which species require
+nonlinear treatment in the lookup table.
+
+The method also checks which range of pressures, temperatures, and
+VMRs occurs, and sets *abs_p*, *abs_t*, *abs_t_pert*, and *abs_vmrs*
+accordingly.
+
+If nonlinear species are present, *abs_nls* and *abs_nls_pert* are also
+generated.
+
+Max and min values of H2O and temperature are adjusted to allow for
+numerical perturbations in Jacobian calculation.
+
+The input variables *abs_nls_interp_order* and *abs_t_interp_order*
+are used to make sure that there are enough points in *abs_nls_pert*
+and *abs_t_pert* for the chosen interpolation order.
+
+The method checks each given field using *atmfields_checkedCalc*.
+If a field does not pass the check, a run-time error is thrown.
+To prevent this, the parameter ``robust`` can be set to one: Invalid 
+atmospheres are skipped, but the run continues. This matches the 
+robust behaviour of *ybatchCalc*.
+
+See also:
+   *abs_lookupSetup*
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -2041,28 +2083,28 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetupWide"),
-      DESCRIPTION(
-          "Set up input parameters for abs_lookupCalc for a wide range of\n"
-          "atmospheric conditions.\n"
-          "\n"
-          "This method can be used to set up parameters for a lookup table that\n"
-          "really covers all reasonable atmospheric conditions.\n"
-          "\n"
-          "Reference profiles of T and H2O will be constant, so that the\n"
-          "different dimensions in the lookup table are actually \"orthogonal\",\n"
-          "unlike the traditional case where we have pressure dependent reference\n"
-          "profiles. This makes the table numerically somewhat more robust then\n"
-          "the traditional ones, and it makes it straightforward to calculate the\n"
-          "accuracy for the different interpolations with abs_lookupTestAccuracy.\n"
-          "\n"
-          "You can give min an max values for the atmospheric conditions. The\n"
-          "default values are chosen such that they cover the value range over\n"
-          "the complete Chevallier91L data set, and a bit more. The statistics\n"
-          "of the Chevallier91L data are::\n"
-          "\n"
-          "  min(p)   / max(p)   [Pa]:  1 / 104960\n"
-          "  min(T)   / max(T)   [K]:   158.21 / 320.39\n"
-          "  min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"),
+      DESCRIPTION(R"--(Set up input parameters for abs_lookupCalc for a wide range of
+atmospheric conditions.
+
+This method can be used to set up parameters for a lookup table that
+really covers all reasonable atmospheric conditions.
+
+Reference profiles of T and H2O will be constant, so that the
+different dimensions in the lookup table are actually \"orthogonal\",
+unlike the traditional case where we have pressure dependent reference
+profiles. This makes the table numerically somewhat more robust then
+the traditional ones, and it makes it straightforward to calculate the
+accuracy for the different interpolations with abs_lookupTestAccuracy.
+
+You can give min an max values for the atmospheric conditions. The
+default values are chosen such that they cover the value range over
+the complete Chevallier91L data set, and a bit more. The statistics
+of the Chevallier91L data are::
+
+  min(p)   / max(p)   [Pa]:  1 / 104960
+  min(T)   / max(T)   [K]:   158.21 / 320.39
+  min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_p",
           "abs_t",
@@ -2096,15 +2138,15 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd"),
-      DESCRIPTION(
-          "Adds species tag groups to the list of absorption species.\n"
-          "\n"
-          "This WSM is similar to *abs_speciesSet*, the only difference is that\n"
-          "this method appends species to an existing list of absorption species instead\n"
-          "of creating the whole list.\n"
-          "\n"
-          "See *abs_speciesSet* for details on how tags are defined and examples of\n"
-          "how to input them in the control file.\n"),
+      DESCRIPTION(R"--(Adds species tag groups to the list of absorption species.
+
+This WSM is similar to *abs_speciesSet*, the only difference is that
+this method appends species to an existing list of absorption species instead
+of creating the whole list.
+
+See *abs_speciesSet* for details on how tags are defined and examples of
+how to input them in the control file.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
           "propmat_clearsky_agenda_checked"),
@@ -2121,17 +2163,17 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd2"),
-      DESCRIPTION(
-          "Adds a species tag group to the list of absorption species and\n"
-          "jacobian quantities.\n"
-          "\n"
-          "The method is basically a combined call of *abs_speciesAdd* and\n"
-          "*jacobianAddAbsSpecies*. In this way it is not needed to specify a\n"
-          "tag group in two different places.\n"
-          "\n"
-          "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
-          "method only handles a single tag group, in contrast to\n"
-          "*abs_speciesAdd*.\n"),
+      DESCRIPTION(R"--(Adds a species tag group to the list of absorption species and
+jacobian quantities.
+
+The method is basically a combined call of *abs_speciesAdd* and
+*jacobianAddAbsSpecies*. In this way it is not needed to specify a
+tag group in two different places.
+
+Arguments exactly as for *jacobianAddAbsSpecies*. Note that this
+method only handles a single tag group, in contrast to
+*abs_speciesAdd*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("abs_species",
           "jacobian_quantities",
@@ -2156,14 +2198,14 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAllInScenario"),
-      DESCRIPTION(
-          "Define one tag group for each species known to ARTS and included in an\n"
-          "atmospheric scenario.\n"
-          "\n"
-          "You can use this as an alternative to *abs_speciesSet* if you want to make an\n"
-          "absorption calculation that is as complete as possible. The method\n"
-          "goes through all defined species and tries to open the VMR file. If\n"
-          "this works the tag is included, otherwise it is skipped.\n"),
+      DESCRIPTION(R"--(Define one tag group for each species known to ARTS and included in an
+atmospheric scenario.
+
+You can use this as an alternative to *abs_speciesSet* if you want to make an
+absorption calculation that is as complete as possible. The method
+goes through all defined species and tries to open the VMR file. If
+this works the tag is included, otherwise it is skipped.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
           "propmat_clearsky_agenda_checked"),
@@ -2180,7 +2222,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAll"),
-      DESCRIPTION("Sets *abs_species* [i][0] to all species in ARTS\n"),
+      DESCRIPTION(R"--(Sets *abs_species* [i][0] to all species in ARTS
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_species",
           "propmat_clearsky_agenda_checked"),
@@ -2195,7 +2238,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_speciesInit"),
-               DESCRIPTION("Sets  *abs_species* to be empty.\n"),
+               DESCRIPTION(R"--(Sets  *abs_species* to be empty.
+)--"),
                AUTHORS("Stefan Buehler"),
                OUT("abs_species"),
                GOUT(),
@@ -2209,67 +2253,67 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesSet"),
-      DESCRIPTION(
-          "Set up a list of absorption species tag groups.\n"
-          "\n"
-          "Workspace variables like *abs_species* contain several tag\n"
-          "groups. Each tag group contains one or more tags. This method converts\n"
-          "descriptions of tag groups given in the keyword to the ARTS internal\n"
-          "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
-          "spectral features which belong to the same species.\n"
-          "\n"
-          "A tag is defined in terms of the name of the species, isotopologue, and a\n"
-          "range of frequencies. Species are named after the standard chemical\n"
-          "names, e.g., ``\"O3\"``. Isotopologues are given by the last digit of the atomic\n"
-          "weight, i.g., ``\"O3-668\"`` for the asymmetric ozone molecule including an\n"
-          "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
-          "and upper limit of a frequency range, e.g., ``\"O3-666-500e9-501e9\"``.\n"
-          "\n"
-          "To turn on Zeeman calculation for a species, ``\"-Z\"`` may be appended\n"
-          "to its name: ``\"O2-Z\"`` or ``\"O2-Z-66\"``\n"
-          "\n"
-          "The symbol ``\"*\"`` acts as a wild card. Furthermore, frequency range or\n"
-          "frequency range and isotopologue may be omitted.\n"
-          "\n"
-          "Finally, instead of the isotopologue the special letter ``\"nl\"`` may be given,\n"
-          "e.g., ``\"H2O-nl\"``. This means that no absorption at all is associated\n"
-          "with this tag. (It is not quite clear if this feature is useful for\n"
-          "anything right now.)\n"
-          "\n"
-          "Example:\n"
-          "\n"
-          ">>> species = [ \"O3-666-500e9-501e9, O3-686\", \"O3\", \"H2O-PWR98\" ]\n"
-          "\n"
-          "   The first tag group selects all O3-666 lines between 500 and\n"
-          "   501 GHz plus all O3-686 lines. \n"
-          "\n"
-          "   The second tag group selects all remaining O3 transitions.\n"
-          "\n"
-          "   The third tag group selects H2O, with one of the complete\n"
-          "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
-          "   data will be used for that third tag group.  For more available full\n"
-          "   absorption models see *propmat_clearskyAddPredefined*\n"
-          "\n"
-          "   Note that order of tag groups in the species list matters. In our\n"
-          "   example, changing the order of the first two tag group will give\n"
-          "   different results: as ``\"O3\"`` already selects all O3 transitions,\n"
-          "   no lines will remain to be selected by the\n"
-          "   ``\"O3-666-500e9-501e9, O3-686\"`` tag.\n"
-          "\n"
-          "For CIA species the tag consists of the two involved species and\n"
-          "a dataset index. CIA species can be defined for multiple regions\n"
-          "The dataset index determines which region to use from the corresponding\n"
-          "CIARecord in *abs_cia_data*.\n"
-          "\n"
-          "Example\n"
-          "\n"
-          ">>> species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]\n"
-          "\n"
-          "For Hitran cross section species the tag consists of the species and\n"
-          "the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be\n"
-          "available in the *xsec_fit_data* variable."
-          "\n"
-          "*propmat_clearsky_agenda_checked* is set to be false.\n"),
+      DESCRIPTION(R"--(Set up a list of absorption species tag groups.
+
+Workspace variables like *abs_species* contain several tag
+groups. Each tag group contains one or more tags. This method converts
+descriptions of tag groups given in the keyword to the ARTS internal
+representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects
+spectral features which belong to the same species.
+
+A tag is defined in terms of the name of the species, isotopologue, and a
+range of frequencies. Species are named after the standard chemical
+names, e.g., ``\"O3\"``. Isotopologues are given by the last digit of the atomic
+weight, i.g., ``\"O3-668\"`` for the asymmetric ozone molecule including an
+oxygen 18 atom. Groups of transitions are specified by giving a lower
+and upper limit of a frequency range, e.g., ``\"O3-666-500e9-501e9\"``.
+
+To turn on Zeeman calculation for a species, ``\"-Z\"`` may be appended
+to its name: ``\"O2-Z\"`` or ``\"O2-Z-66\"``
+
+The symbol ``\"*\"`` acts as a wild card. Furthermore, frequency range or
+frequency range and isotopologue may be omitted.
+
+Finally, instead of the isotopologue the special letter ``\"nl\"`` may be given,
+e.g., ``\"H2O-nl\"``. This means that no absorption at all is associated
+with this tag. (It is not quite clear if this feature is useful for
+anything right now.)
+
+Example:
+
+>>> species = [ \"O3-666-500e9-501e9, O3-686\", \"O3\", \"H2O-PWR98\" ]
+
+   The first tag group selects all O3-666 lines between 500 and
+   501 GHz plus all O3-686 lines. 
+
+   The second tag group selects all remaining O3 transitions.
+
+   The third tag group selects H2O, with one of the complete
+   absorption models (Rosenkranz 98). No spectrocopic line catalogue
+   data will be used for that third tag group.  For more available full
+   absorption models see *propmat_clearskyAddPredefined*
+
+   Note that order of tag groups in the species list matters. In our
+   example, changing the order of the first two tag group will give
+   different results: as ``\"O3\"`` already selects all O3 transitions,
+   no lines will remain to be selected by the
+   ``\"O3-666-500e9-501e9, O3-686\"`` tag.
+
+For CIA species the tag consists of the two involved species and
+a dataset index. CIA species can be defined for multiple regions
+The dataset index determines which region to use from the corresponding
+CIARecord in *abs_cia_data*.
+
+Example
+
+>>> species = [ \"N2-CIA-N2-0, N2-CIA-N2-1\" ]
+
+For Hitran cross section species the tag consists of the species and
+the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be
+available in the *xsec_fit_data* variable.
+
+*propmat_clearsky_agenda_checked* is set to be false.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_species",
           "propmat_clearsky_agenda_checked"),
@@ -2286,12 +2330,12 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_vecAddGas"),
-      DESCRIPTION(
-          "Add gas absorption to first element of absorption vector.\n"
-          "\n"
-          "The task of this method is to sum up the gas absorption of the\n"
-          "different gas species and add the result to the first element of the\n"
-          "absorption vector.\n"),
+      DESCRIPTION(R"--(Add gas absorption to first element of absorption vector.
+
+The task of this method is to sum up the gas absorption of the
+different gas species and add the result to the first element of the
+absorption vector.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_vec"),
       GOUT(),
@@ -2685,19 +2729,19 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AgendaAppend"),
-      DESCRIPTION(
-          "Append methods to an agenda.\n"
-          "\n"
-          "An agenda is used to store a list of methods that are meant to be\n"
-          "executed sequentially.\n"
-          "\n"
-          "This method takes the methods given in the body (in the curly braces)\n"
-          "and appends them to the agenda given by the output argument (in the round\n"
-          "braces).\n"
-          "\n"
-          "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
-          "check, whether the given methods use the right input WSVs and produce\n"
-          "the right output WSVs.\n"),
+      DESCRIPTION(R"--(Append methods to an agenda.
+
+An agenda is used to store a list of methods that are meant to be
+executed sequentially.
+
+This method takes the methods given in the body (in the curly braces)
+and appends them to the agenda given by the output argument (in the round
+braces).
+
+It also uses the agenda lookup data (defined in file agendas.cc) to
+check, whether the given methods use the right input WSVs and produce
+the right output WSVs.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -2715,7 +2759,8 @@ Available models:
       PASSWSVNAMES(true)));
 
   md_data_raw.push_back(create_mdrecord(NAME("AgendaExecute"),
-                                 DESCRIPTION("Execute an agenda.\n"),
+                                 DESCRIPTION(R"--(Execute an agenda.
+)--"),
                                  AUTHORS("Oliver Lemke"),
                                  OUT(),
                                  GOUT(),
@@ -2731,12 +2776,12 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AgendaExecuteExclusive"),
-      DESCRIPTION(
-          "Execute an agenda exclusively.\n"
-          "\n"
-          "Only one call to *AgendaExecuteExclusive* is executed at a time.\n"
-          "Other calls to this function are blocked until the current one\n"
-          "finishes. WARNING: Can cause deadlocks! Use with care.\n"),
+      DESCRIPTION(R"--(Execute an agenda exclusively.
+
+Only one call to *AgendaExecuteExclusive* is executed at a time.
+Other calls to this function are blocked until the current one
+finishes. WARNING: Can cause deadlocks! Use with care.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -2752,19 +2797,19 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AgendaSet"),
-      DESCRIPTION(
-          "Set up an agenda.\n"
-          "\n"
-          "An agenda is used to store a list of methods that are meant to be\n"
-          "executed sequentially.\n"
-          "\n"
-          "This method takes the methods given in the body (in the curly braces)\n"
-          "and puts them in the agenda given by the output argument (in the round\n"
-          "braces).\n"
-          "\n"
-          "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
-          "check, whether the given methods use the right input WSVs and\n"
-          "produce the right output WSVs.\n"),
+      DESCRIPTION(R"--(Set up an agenda.
+
+An agenda is used to store a list of methods that are meant to be
+executed sequentially.
+
+This method takes the methods given in the body (in the curly braces)
+and puts them in the agenda given by the output argument (in the round
+braces).
+
+It also uses the agenda lookup data (defined in file agendas.cc) to
+check, whether the given methods use the right input WSVs and
+produce the right output WSVs.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -2783,10 +2828,10 @@ Available models:
   
   md_data_raw.push_back(create_mdrecord(
       NAME("AltLatLonFieldSet"),
-      DESCRIPTION(
-          "Fills an altitude-latitude-longitude field with given input.\n"
-          "\n"
-          "Grids and data must match in size.\n"),
+      DESCRIPTION(R"--(Fills an altitude-latitude-longitude field with given input.
+
+Grids and data must match in size.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("gfield3"),
@@ -2804,10 +2849,10 @@ Available models:
   
   md_data_raw.push_back(create_mdrecord(
       NAME("AltLatLonFieldSetConstant"),
-      DESCRIPTION(
-          "Sets an altitude-latitude-longitude field to have a constant data value.\n"
-          "\n"
-          "All three grids grids are set to have length one, with the value 0.\n"),
+      DESCRIPTION(R"--(Sets an altitude-latitude-longitude field to have a constant data value.
+
+All three grids grids are set to have length one, with the value 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("gfield3"),
@@ -2822,23 +2867,22 @@ Available models:
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AngularGridsSetFluxCalc"),
-      DESCRIPTION(
-          "Sets the angular grids for the calculation of radiation fluxes. \n"
-          "\n"
-          "This method sets the angular grids for the radiation fluxes type\n"
-          "calculations and calculates the integration weights *za_grid_weights*\n"
-          "for the zenith angle integration. For down- und up-looking geometries\n"
-          "it suffices to use the default values of N_za_grid and N_aa_grid.\n"
-          "From N_aa_grid an equally spaced grid is created and stored in the\n"
-          "WSV *aa_grid*.\n"
-          "\n"
-          "Depending on the desired za_grid_type *za_grid* will be\n"
-          "equally spaced ('linear') or unequally ('linear_mu','double_gauss')\n"
-          "Important, N_za_grid must be an even number because for the \n"
-          "integration over each hemisphere N_za_grid / 2 zenith angles are needed.\n"
-          "\n"
-          "Possible zenith angle grid types are:\n"
-R"(
+      DESCRIPTION(R"--(Sets the angular grids for the calculation of radiation fluxes. 
+
+This method sets the angular grids for the radiation fluxes type
+calculations and calculates the integration weights *za_grid_weights*
+for the zenith angle integration. For down- und up-looking geometries
+it suffices to use the default values of N_za_grid and N_aa_grid.
+From N_aa_grid an equally spaced grid is created and stored in the
+WSV *aa_grid*.
+
+Depending on the desired za_grid_type *za_grid* will be
+equally spaced ('linear') or unequally ('linear_mu','double_gauss')
+Important, N_za_grid must be an even number because for the 
+integration over each hemisphere N_za_grid / 2 zenith angles are needed.
+
+Possible zenith angle grid types are:
+
 - ``double_gauss``:
   The zenith grid and the integration weights are set according
   to a gauss-legendre integration for each hemispheres.
@@ -2846,7 +2890,7 @@ R"(
 - ``linear_mu``:
   Similar to 'linear' but equally spaced for cos(180 deg) to cos(0 deg),
   which results a unequally spaced angular grid
-)"),
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("za_grid", "aa_grid", "za_grid_weights"),
       GOUT(),
@@ -2862,9 +2906,10 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfAgendaAppend"),
-      DESCRIPTION("Set up an agenda and append it to the array of agendas.\n"
-                  "\n"
-                  "See *AgendaSet* for details.\n"),
+      DESCRIPTION(R"--(Set up an agenda and append it to the array of agendas.
+
+See *AgendaSet* for details.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -2883,7 +2928,8 @@ R"(
 
   md_data_raw.push_back(
       create_mdrecord(NAME("ArrayOfAgendaExecute"),
-               DESCRIPTION("Execute an agenda from an ArrayOfAgenda.\n"),
+               DESCRIPTION(R"--(Execute an agenda from an ArrayOfAgenda.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT(),
                GOUT(),
@@ -2899,19 +2945,19 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AntennaMultiBeamsToPencilBeams"),
-      DESCRIPTION(
-          "Maps a multi-beam case to a matching pencil beam case.\n"
-          "\n"
-          "Cases with overlapping beams are most efficiently handled by\n"
-          "letting *antenna_dlos* have several rows. That is, there are\n"
-          "multiple beams for each measurement block. The drawback is that\n"
-          "many variables must be adjusted if the corresponding pencil beam\n"
-          "spectra shall be calculated. This method makes this adjustment.\n"
-          "That is, if you have a control file for a multiple beam case and\n"
-          "for some reason want to avoid the antenna weighting, you add this\n"
-          "method before *sensor_responseInit*, and remove the call of\n"
-          "*sensor_responseAntenna* and you will get the matching pencil beam\n"
-          "spectra.\n"),
+      DESCRIPTION(R"--(Maps a multi-beam case to a matching pencil beam case.
+
+Cases with overlapping beams are most efficiently handled by
+letting *antenna_dlos* have several rows. That is, there are
+multiple beams for each measurement block. The drawback is that
+many variables must be adjusted if the corresponding pencil beam
+spectra shall be calculated. This method makes this adjustment.
+That is, if you have a control file for a multiple beam case and
+for some reason want to avoid the antenna weighting, you add this
+method before *sensor_responseInit*, and remove the call of
+*sensor_responseAntenna* and you will get the matching pencil beam
+spectra.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_pos",
           "sensor_los",
@@ -2933,12 +2979,12 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AntennaOff"),
-      DESCRIPTION(
-          "Sets some antenna related variables\n"
-          "\n"
-          "Use this method to set *antenna_dim* and *mblock_dlos* to\n"
-          "suitable values (1 and [0], respectively) for cases when a\n"
-          "sensor is included, but the antenna pattern is neglected.\n"),
+      DESCRIPTION(R"--(Sets some antenna related variables
+
+Use this method to set *antenna_dim* and *mblock_dlos* to
+suitable values (1 and [0], respectively) for cases when a
+sensor is included, but the antenna pattern is neglected.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_dim", "mblock_dlos"),
       GOUT(),
@@ -2952,16 +2998,16 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussian"),
-      DESCRIPTION(
-          "Sets up a Gaussian antenna response.\n"
-          "\n"
-          "This method works as *antenna_responseGaussianConstant* but allows\n"
-          "to inlude a frequency variation of the antenna width. Here the FWHM\n" 
-          "is specified at a set of frequencies. These frequencies will also be\n"
-          "the frequency grid of *antenna_response*.\n"
-          "\n"
-          "If ``grid_width`` is set to <=0, the grid width will be twice the max\n"
-          "value in ``fwhm``.\n"),
+      DESCRIPTION(R"--(Sets up a Gaussian antenna response.
+
+This method works as *antenna_responseGaussianConstant* but allows
+to inlude a frequency variation of the antenna width. Here the FWHM
+is specified at a set of frequencies. These frequencies will also be
+the frequency grid of *antenna_response*.
+
+If ``grid_width`` is set to <=0, the grid width will be twice the max
+value in ``fwhm``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
@@ -2979,30 +3025,30 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussianConstant"),
-      DESCRIPTION(
-          "Sets up a Gaussian antenna response, with no frequency variation.\n"
-          "\n"
-          "The method assumes that the response is the same for all\n"
-          "frequencies and polarisations, and that it can be modelled\n"
-          "as Gaussian. The width of the Gaussian is specified by its\n"
-          "full width at half maximum (FWHM).\n"
-          "\n"
-          "The grid generated has ``grid_npoints`` equidistant values, with\n"
-          "the first one at -grid_width/2 and the last one at grid_width/2.\n"
-          "\n"
-          "If ``grid_width`` is set to <= 0, a default of twice the FWMH is\n"
-          "applied. This gives a coverage of about 98\% of the response.\n"
-          "\n"
-          "The default for ``grid_npoints`` is 21. When the grid width is 2*FWHM,\n"
-          "that default value gives an error < 0.001 of the integrated response\n"
-          "using trapezoidal integration. ``grid_npoints`` must be > 1.\n"
-          "\n"
-          "If the 2D option is selected (``do_2d``), a circular antenna is\n"
-          "assumed. The same grid and FWHM is applied in both dimensions.\n"
-          "\n"
-          "If the grid has a sufficiently high width the integral of the\n"
-          "response is 1. Otherwise the integral is smaller than 1. That\n"
-          "is, no normalisation is applied.\n"),
+      DESCRIPTION(R"--(Sets up a Gaussian antenna response, with no frequency variation.
+
+The method assumes that the response is the same for all
+frequencies and polarisations, and that it can be modelled
+as Gaussian. The width of the Gaussian is specified by its
+full width at half maximum (FWHM).
+
+The grid generated has ``grid_npoints`` equidistant values, with
+the first one at -grid_width/2 and the last one at grid_width/2.
+
+If ``grid_width`` is set to <= 0, a default of twice the FWMH is
+applied. This gives a coverage of about 98\% of the response.
+
+The default for ``grid_npoints`` is 21. When the grid width is 2*FWHM,
+that default value gives an error < 0.001 of the integrated response
+using trapezoidal integration. ``grid_npoints`` must be > 1.
+
+If the 2D option is selected (``do_2d``), a circular antenna is
+assumed. The same grid and FWHM is applied in both dimensions.
+
+If the grid has a sufficiently high width the integral of the
+response is 1. Otherwise the integral is smaller than 1. That
+is, no normalisation is applied.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
@@ -3019,30 +3065,30 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussianEffectiveSize"),
-      DESCRIPTION(
-          "Sets up Gaussian antenna responses.\n"
-          "\n"
-          "Similar to *antenna_responseGaussianConstant* but allows to set up\n"
-          "responses that varies with frequency. That is, the method assumes\n"
-          "that the response is the same for all polarisations, and that it\n"
-          "can be modelled as a Gaussian function varying with frequency.\n"
-          "\n"
-          "The full width at half maximum (FWHM in radians) is calculated as::\n"
-          "\n"
-          "  fwhm = lambda / leff\n"
-          "\n"
-          "where lambda is the wavelength and ``leff`` is the effective size of\n"
-          "the antenna. Normally, ``leff`` is smaller than the physical antenna\n"
-          "size.\n"
-          "\n"
-          "Antenna responses are created for ``nf`` frequencies spanning the\n"
-          "range [``fstart``,``fstop``], with a logarithmic spacing. That is, the\n"
-          "frequency grid of the responses is taken from *VectorNLogSpace*.\n"
-          "\n"
-          "The responses have a common angular grid. The parameters to define\n"
-          "the grid are the same as for *antenna_responseGaussianConstant*. If\n" 
-          "``grid_width`` is <= 0, it is set to twice the FWHM at the lowest\n"
-          "frequency.\n"),
+      DESCRIPTION(R"--(Sets up Gaussian antenna responses.
+
+Similar to *antenna_responseGaussianConstant* but allows to set up
+responses that varies with frequency. That is, the method assumes
+that the response is the same for all polarisations, and that it
+can be modelled as a Gaussian function varying with frequency.
+
+The full width at half maximum (FWHM in radians) is calculated as::
+
+  fwhm = lambda / leff
+
+where lambda is the wavelength and ``leff`` is the effective size of
+the antenna. Normally, ``leff`` is smaller than the physical antenna
+size.
+
+Antenna responses are created for ``nf`` frequencies spanning the
+range [``fstart``,``fstop``], with a logarithmic spacing. That is, the
+frequency grid of the responses is taken from *VectorNLogSpace*.
+
+The responses have a common angular grid. The parameters to define
+the grid are the same as for *antenna_responseGaussianConstant*. If
+``grid_width`` is <= 0, it is set to twice the FWHM at the lowest
+frequency.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("antenna_response"),
       GOUT(),
@@ -3068,27 +3114,27 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Append"),
-      DESCRIPTION(
-          "Append one workspace variable to another.\n"
-          "\n"
-          "This method can append an array to another array of the same type,\n"
-          "e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array\n"
-          "such as a Tensor3 to an ArrayOfTensor3.\n"
-          "\n"
-          "Appending two vectors or a numeric to a vector works as for array\n"
-          "variables.\n"
-          "\n"
-          "Both another matrix or a vector can be appended to a matrix. In\n"
-          "addition, for matrices, the 'append dimension' can be selected.\n"
-          "The third argument, ``dimension``, indicates how to append, where\n"
-          "\"leading\" means to append row-wise, and \"trailing\" means\n"
-          "column-wise.\n"
-          "\n"
-          "Other types (TensorX) are currently only implemented for\n"
-          "appending to the leading dimension.\n"
-          "\n"
-          "This method is not implemented for all types, just for those that\n"
-          "were thought or found to be useful. (See variable list below.).\n"),
+      DESCRIPTION(R"--(Append one workspace variable to another.
+
+This method can append an array to another array of the same type,
+e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array
+such as a Tensor3 to an ArrayOfTensor3.
+
+Appending two vectors or a numeric to a vector works as for array
+variables.
+
+Both another matrix or a vector can be appended to a matrix. In
+addition, for matrices, the 'append dimension' can be selected.
+The third argument, ``dimension``, indicates how to append, where
+\"leading\" means to append row-wise, and \"trailing\" means
+column-wise.
+
+Other types (TensorX) are currently only implemented for
+appending to the leading dimension.
+
+This method is not implemented for all types, just for those that
+were thought or found to be useful. (See variable list below.).
+)--"),
       AUTHORS("Stefan Buehler, Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -3121,9 +3167,10 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfGriddedFieldGetNames"),
-      DESCRIPTION("Get the names of all GriddedFields stored in an Array.\n"
-                  "\n"
-                  "See *GriddedFieldGetName*.\n"),
+      DESCRIPTION(R"--(Get the names of all GriddedFields stored in an Array.
+
+See *GriddedFieldGetName*.
+)--"),
       AUTHORS("Lukas Kluft"),
       OUT(),
       GOUT("names"),
@@ -3141,14 +3188,14 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexLinSpace"),
-      DESCRIPTION(
-          "Initializes an ArrayOfIndex with linear spacing.\n"
-          "\n"
-          "The first element equals always the start value, and the spacing\n"
-          "equals always the step value, but the last value can deviate from\n"
-          "the stop value. ``step`` can be both positive and negative.\n"
-          "\n"
-          "The created array is [start, start+step, start+2*step, ...]\n "),
+      DESCRIPTION(R"--(Initializes an ArrayOfIndex with linear spacing.
+
+The first element equals always the start value, and the spacing
+equals always the step value, but the last value can deviate from
+the stop value. ``step`` can be both positive and negative.
+
+The created array is [start, start+step, start+2*step, ...]
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -3164,8 +3211,9 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexSetConstant"),
-      DESCRIPTION("Creates an ArrayOfIndex of length *nelem*, with all values\n"
-                  "identical.\n"),
+      DESCRIPTION(R"--(Creates an ArrayOfIndex of length *nelem*, with all values
+identical.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -3180,11 +3228,11 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfTimeNLinSpace"),
-      DESCRIPTION(
-          "Creates a time array with length *nelem*, equally spaced between the\n"
-          "given end values.\n"
-          "\n"
-          "The length (*nelem*) must be larger than 1.\n"),
+      DESCRIPTION(R"--(Creates a time array with length *nelem*, equally spaced between the
+given end values.
+
+The length (*nelem*) must be larger than 1.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -3198,10 +3246,10 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
     NAME("ArrayOfTimeSetConstant"),
-      DESCRIPTION(
-          "Creates an ArrayOfTime and sets all elements to the specified value.\n"
-          "\n"
-          "The vector length is determined by *nelem*.\n"),
+      DESCRIPTION(R"--(Creates an ArrayOfTime and sets all elements to the specified value.
+
+The vector length is determined by *nelem*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -3215,12 +3263,12 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Arts"),
-      DESCRIPTION(
-          "Runs the agenda that is specified inside the curly braces. ARTS\n"
-          "controlfiles must define this method. It is executed automatically\n"
-          "when ARTS is run on the controlfile and cannot be called by the user.\n"
-          "This methods was used for Arts 1 controlfiles and is now obsolete.\n"
-          "See *Arts2*\n"),
+      DESCRIPTION(R"--(Runs the agenda that is specified inside the curly braces. ARTS
+controlfiles must define this method. It is executed automatically
+when ARTS is run on the controlfile and cannot be called by the user.
+This methods was used for Arts 1 controlfiles and is now obsolete.
+See *Arts2*
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT(),
@@ -3236,10 +3284,10 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Arts2"),
-      DESCRIPTION(
-          "Runs the agenda that is specified inside the curly braces. ARTS\n"
-          "controlfiles must define this method. It is executed automatically\n"
-          "when ARTS is run on the controlfile and cannot be called by the user.\n"),
+      DESCRIPTION(R"--(Runs the agenda that is specified inside the curly braces. ARTS
+controlfiles must define this method. It is executed automatically
+when ARTS is run on the controlfile and cannot be called by the user.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -3255,12 +3303,12 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldPRegrid"),
-      DESCRIPTION(
-          "Interpolates the input field along the pressure dimension from\n"
-          "``p_grid_old`` to to ``p_grid_new``.\n"
-          "\n"
-          "Extrapolation is allowed within the common 0.5grid-step margin.\n"
-          "in and out fields can be the same variable.\n"),
+      DESCRIPTION(R"--(Interpolates the input field along the pressure dimension from
+``p_grid_old`` to to ``p_grid_new``.
+
+Extrapolation is allowed within the common 0.5grid-step margin.
+in and out fields can be the same variable.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("output"),
@@ -3277,34 +3325,34 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsAndParticleBulkPropFieldFromCompact"),
-      DESCRIPTION(
-          "Extract pressure grid and atmospheric fields from\n"
-          "*atm_fields_compact*.\n"
-          "\n"
-          "An atmospheric scenario includes the following data for each\n"
-          "position (pressure, latitude, longitude) in the atmosphere:\n"
-          "\n"
-          "1. temperature field\n"
-          "2. the corresponding altitude field\n"
-          "3. vmr fields for the gaseous species\n"
-          "4. scattering species fields\n"
-          "\n"
-          "This method splits up the data found in *atm_fields_compact* to\n"
-          "p_grid, lat_grid, lon_grid, vmr_field, particle_bulkprop_field,\n"
-          "and particle_bulkprop_names.\n"
-          "See documentation of *atm_fields_compact* for a definition of the\n"
-          "data.\n"
-          "\n"
-          "Compact states are characterized by having all atmospheric fields\n"
-          "already given on identical grids. That is, no interpolation needs\n"
-          "to be and is performed. Keyword ``p_min`` allows to remove atmospheric\n"
-          "levels with pressures lower than the given value (default: no\n"
-          "removal). This reduces computational burden and is useful when\n"
-          "upper atmospheric contributions are negligible.\n"
-          "\n"
-          "Possible future extensions: Add a keyword parameter to refine the\n"
-          "pressure grid if it is too coarse. Or a version that interpolates\n"
-          "onto given grids, instead of using and returning the original grids.\n"),
+      DESCRIPTION(R"--(Extract pressure grid and atmospheric fields from
+*atm_fields_compact*.
+
+An atmospheric scenario includes the following data for each
+position (pressure, latitude, longitude) in the atmosphere:
+
+1. temperature field
+2. the corresponding altitude field
+3. vmr fields for the gaseous species
+4. scattering species fields
+
+This method splits up the data found in *atm_fields_compact* to
+p_grid, lat_grid, lon_grid, vmr_field, particle_bulkprop_field,
+and particle_bulkprop_names.
+See documentation of *atm_fields_compact* for a definition of the
+data.
+
+Compact states are characterized by having all atmospheric fields
+already given on identical grids. That is, no interpolation needs
+to be and is performed. Keyword ``p_min`` allows to remove atmospheric
+levels with pressures lower than the given value (default: no
+removal). This reduces computational burden and is useful when
+upper atmospheric contributions are negligible.
+
+Possible future extensions: Add a keyword parameter to refine the
+pressure grid if it is too coarse. Or a version that interpolates
+onto given grids, instead of using and returning the original grids.
+)--"),
       AUTHORS("Jana Mendrok, Manfred Brath"),
       OUT(
           "atm_field",
@@ -3324,32 +3372,32 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atmfields_checkedCalc"),
-      DESCRIPTION(
-          "Checks consistency of (clear sky) atmospheric fields.\n"
-          "\n"
-          "The following WSVs are treated: ``p_grid``, ``lat_grid``, ``lon_grid``,\n"
-          "``t_field``, ``vmr_field``, wind_u/v/w_field and mag_u/v/w_field.\n"
-          "\n"
-          "If any of the variables above is changed, then this method shall be\n"
-          "called again (no automatic check that this is fulfilled!).\n"
-          "\n"
-          "The tests include that:\n"
-          " 1. Atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
-          "    ``atmosphere_dim`` (and vmr_field also regarding *abs_species*).\n"
-          " 2. Atmospheric fields have sizes consistent with the atmospheric\n"
-          "    grids.\n"
-          " 3. *abs_f_interp_order* is not zero if any wind is nonzero.\n"
-          " 4. All values in ``t_field`` are > 0.\n"
-          "\n"
-          "Default is that values in ``vmr_field`` are demanded to be >= 0\n"
-          "(ie. zero allowed, in contrast to ``t_field``), but this\n"
-          "requirement can be removed by the ``negative_vmr_ok`` argument.\n"
-          "\n"
-          "If any test fails, there is an error. Otherwise,\n"
-          "*atmfields_checked* is set to 1.\n"
-          "\n"
-          "The cloudbox is covered by *cloudbox_checked*, ``z_field`` is\n"
-          "part of the checks done around *atmgeom_checked*.\n"),
+      DESCRIPTION(R"--(Checks consistency of (clear sky) atmospheric fields.
+
+The following WSVs are treated: ``p_grid``, ``lat_grid``, ``lon_grid``,
+``t_field``, ``vmr_field``, wind_u/v/w_field and mag_u/v/w_field.
+
+If any of the variables above is changed, then this method shall be
+called again (no automatic check that this is fulfilled!).
+
+The tests include that:
+ 1. Atmospheric grids (p/lat/lon_grid) are OK with respect to
+    ``atmosphere_dim`` (and vmr_field also regarding *abs_species*).
+ 2. Atmospheric fields have sizes consistent with the atmospheric
+    grids.
+ 3. *abs_f_interp_order* is not zero if any wind is nonzero.
+ 4. All values in ``t_field`` are > 0.
+
+Default is that values in ``vmr_field`` are demanded to be >= 0
+(ie. zero allowed, in contrast to ``t_field``), but this
+requirement can be removed by the ``negative_vmr_ok`` argument.
+
+If any test fails, there is an error. Otherwise,
+*atmfields_checked* is set to 1.
+
+The cloudbox is covered by *cloudbox_checked*, ``z_field`` is
+part of the checks done around *atmgeom_checked*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atmfields_checked"),
       GOUT(),
@@ -3366,32 +3414,32 @@ R"(
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
-      DESCRIPTION(
-          "Checks consistency of geometric considerations of the atmosphere.\n"
-          "\n"
-          "The following WSVs are checked: ``z_field``, ``refellipsoid``, ``z_surface``,\n"
-          "*lat_true* and *lon_true*. If any of the variables above is changed,\n"
-          "then this method shall be called again (no automatic check that this is\n"
-          "fulfilled!).\n"
-          "\n"
-          "The tests include that:\n"
-          " 1. ``refellipsoid`` has correct size, and that eccentricity is\n"
-          "    set to zero if 1D atmosphere.\n"
-          " 2. ``z_field`` and ``z_surface`` have sizes consistent with the\n"
-          "    atmospheric grids.\n"
-          " 3. There is no gap between ``z_surface`` and ``z_field``.\n"
-          " 4. A rough search of maximum gradient of the altitude of the pressure\n"
-          "    level closest to 500 hPa is made. If this value exceeds the GIN\n"
-          "    ``max500hpa_gradient`` an error is issued. Please note that the unit\n"
-          "    of this GIN is m per 100km. For normal conditions on Earth, large\n"
-          "    scale gradients of the 500 hPa level is in the order of 20m/100km.\n"
-          "\n"
-          "*lat_true* and *lon_true* are allowed to be empty.\n"
-          "\n"
-          "If any test fails, there is an error. Otherwise, *atmgeom_checked*\n"
-          "is set to 1.\n"
-          "\n"
-          "See further *atmgeom_checkedCalc*.\n"),
+      DESCRIPTION(R"--(Checks consistency of geometric considerations of the atmosphere.
+
+The following WSVs are checked: ``z_field``, ``refellipsoid``, ``z_surface``,
+*lat_true* and *lon_true*. If any of the variables above is changed,
+then this method shall be called again (no automatic check that this is
+fulfilled!).
+
+The tests include that:
+ 1. ``refellipsoid`` has correct size, and that eccentricity is
+    set to zero if 1D atmosphere.
+ 2. ``z_field`` and ``z_surface`` have sizes consistent with the
+    atmospheric grids.
+ 3. There is no gap between ``z_surface`` and ``z_field``.
+ 4. A rough search of maximum gradient of the altitude of the pressure
+    level closest to 500 hPa is made. If this value exceeds the GIN
+    ``max500hpa_gradient`` an error is issued. Please note that the unit
+    of this GIN is m per 100km. For normal conditions on Earth, large
+    scale gradients of the 500 hPa level is in the order of 20m/100km.
+
+*lat_true* and *lon_true* are allowed to be empty.
+
+If any test fails, there is an error. Otherwise, *atmgeom_checked*
+is set to 1.
+
+See further *atmgeom_checkedCalc*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atmgeom_checked"),
       GOUT(),
@@ -3410,12 +3458,12 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldLteInternalPartitionFunction"),
-      DESCRIPTION(
-          "Turns on NTLE calculations.\n"
-          "\n"
-          "Sets NLTE ratios to those expected for LTE calculations\n"
-          "with estimation of the partition function as the sum of all\n"
-          "states of a species\n"),
+      DESCRIPTION(R"--(Turns on NTLE calculations.
+
+Sets NLTE ratios to those expected for LTE calculations
+with estimation of the partition function as the sum of all
+states of a species
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_do", "atm_field", "abs_lines_per_species"),
       GOUT(),
@@ -3429,10 +3477,11 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldLteExternalPartitionFunction"),
-      DESCRIPTION("Turns on NTLE calculations.\n"
-                  "\n"
-                  "Sets NLTE ratios to those expected for LTE calculations\n"
-                  "with a known partition function\n"),
+      DESCRIPTION(R"--(Turns on NTLE calculations.
+
+Sets NLTE ratios to those expected for LTE calculations
+with a known partition function
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_do", "atm_field", "abs_lines_per_species"),
       GOUT(),
@@ -3446,25 +3495,26 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddConstant"),
-      DESCRIPTION(
-          "Adds a constant field to atm_fields_compact.\n"
-          "\n"
-          "This is handy, e.g., for nitrogen or oxygen. The constant value can\n"
-          "be appended or prepended as an additional field to the already\n"
-          "existing collection of fields. All dimensions (pressure, latitude,\n"
-          "longitude) are filled up, so this works for 1D, 2D, or 3D\n"
-          "atmospheres.\n"
-          "\n"
-          "The passed ``name`` of the field has to be in accordance with the\n"
-          "tagging structure described for *atm_fields_compact*.\n"
-          "\n"
-          "A list of condensibles can be optionally specified if the VMR of\n"
-          "the added species is assuming dry air. The VMR of the added species\n"
-          "is then scaled down by the sum of the condensibles' VMR::\n"
-          "\n"
-          "  VMR * (1 - VMR_sum_of_condensibles).\n\n"
-          "\n"
-          "For Earth this should be set to [\"abs_species-H2O\"]\n"),
+      DESCRIPTION(R"--(Adds a constant field to atm_fields_compact.
+
+This is handy, e.g., for nitrogen or oxygen. The constant value can
+be appended or prepended as an additional field to the already
+existing collection of fields. All dimensions (pressure, latitude,
+longitude) are filled up, so this works for 1D, 2D, or 3D
+atmospheres.
+
+The passed ``name`` of the field has to be in accordance with the
+tagging structure described for *atm_fields_compact*.
+
+A list of condensibles can be optionally specified if the VMR of
+the added species is assuming dry air. The VMR of the added species
+is then scaled down by the sum of the condensibles' VMR::
+
+  VMR * (1 - VMR_sum_of_condensibles).
+
+
+For Earth this should be set to [\"abs_species-H2O\"]
+)--"),
       AUTHORS("Stefan Buehler, Oliver Lemke"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -3482,23 +3532,23 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddSpecies"),
-      DESCRIPTION(
-          "Adds a field to atm_fields_compact, with interpolation.\n"
-          "\n"
-          "This method appends or prepends a *GriddedField3* to *atm_fields_compact*.\n"
-          "The *GriddedField3* is interpolated upon the grid of\n"
-          "*atm_fields_compact*. A typical use case for this method may be to\n"
-          "add a climatology of some gas when this gas is needed for radiative\n"
-          "transfer calculations, but not yet present in *atm_fields_compact*.\n"
-          "One case where this happens is when using the Chevalier91L dataset\n"
-          "for infrared simulations.\n"
-          "\n"
-          "The grids in *atm_fields_compact* must fully encompass the grids in\n"
-          "the *GriddedField3* to be added, for interpolation to succeed. If\n"
-          "this is not the case, a RuntimeError is thrown.\n"
-          "\n"
-          "The passed ``name`` of the field has to be in accordance with the\n"
-          "tagging structure described for *atm_fields_compact*.\n"),
+      DESCRIPTION(R"--(Adds a field to atm_fields_compact, with interpolation.
+
+This method appends or prepends a *GriddedField3* to *atm_fields_compact*.
+The *GriddedField3* is interpolated upon the grid of
+*atm_fields_compact*. A typical use case for this method may be to
+add a climatology of some gas when this gas is needed for radiative
+transfer calculations, but not yet present in *atm_fields_compact*.
+One case where this happens is when using the Chevalier91L dataset
+for infrared simulations.
+
+The grids in *atm_fields_compact* must fully encompass the grids in
+the *GriddedField3* to be added, for interpolation to succeed. If
+this is not the case, a RuntimeError is thrown.
+
+The passed ``name`` of the field has to be in accordance with the
+tagging structure described for *atm_fields_compact*.
+)--"),
       AUTHORS("Gerrit Holl"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -3514,18 +3564,18 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactCleanup"),
-      DESCRIPTION(
-          "Removes unrealistically small or erroneous data from\n"
-          "*atm_fields_compact* (or other GriddedField4 data)\n"
-          "\n"
-          "This WSM checks if the data in *atm_fields_compact* contains\n"
-          "values smaller than the given ``threshold``. In this case, these\n"
-          "values will be set to zero.\n"
-          "\n"
-          "The method should be applied if *atm_fields_compact* contains\n"
-          "unrealistically small or erroneous data (NWP/GCM model data\n"
-          "occassionally contains negative values, which are numerical\n"
-          "artefacts rather than physical values.)\n"),
+      DESCRIPTION(R"--(Removes unrealistically small or erroneous data from
+*atm_fields_compact* (or other GriddedField4 data)
+
+This WSM checks if the data in *atm_fields_compact* contains
+values smaller than the given ``threshold``. In this case, these
+values will be set to zero.
+
+The method should be applied if *atm_fields_compact* contains
+unrealistically small or erroneous data (NWP/GCM model data
+occassionally contains negative values, which are numerical
+artefacts rather than physical values.)
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -3540,11 +3590,11 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactCreateFromField"),
-      DESCRIPTION(
-          "Initiates *atm_fields_compact* from a field.\n"
-          "\n"
-          "*atm_fields_compact* will have the same size and grids as the GriddedField3,\n"
-          "but with one dimension as length 1.\n"),
+      DESCRIPTION(R"--(Initiates *atm_fields_compact* from a field.
+
+*atm_fields_compact* will have the same size and grids as the GriddedField3,
+but with one dimension as length 1.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -3558,36 +3608,36 @@ R"(
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactFromMatrix"),
-      DESCRIPTION(
-          "Sets *atm_fields_compact* from 1D fields given in form of a matrix.\n"
-          "\n"
-          "For batch calculations it is handy to store atmospheric\n"
-          "profiles in an array of matrix. We take such a matrix, and create\n"
-          "*atm_fields_compact* from it.\n"
-          "\n"
-          "The matrix must contain one row for each pressure level.\n"
-          "\n"
-          "Not all fields contained in the matrix must be selected into\n"
-          "*atm_fields_compact*, but the selection must at least contain\n"
-          "fields of pressure, temperature, altitude and one absorption\n"
-          "species.\n"
-          "The matrix can contain some additional fields which are not\n"
-          "directly used by ARTS for calculations but can be required for\n"
-          "further processing, e.g. wind speed and direction. These fields do\n"
-          "not need to be transfered into the *atm_fields_compact* variable.\n"
-          "\n"
-          "Selection of fields into *atm_fields_compact* works by providing a\n"
-          "field name tag in ``field_names`` for the selected fields, while\n"
-          "unselected fields are tagged by 'ignore'. Order of tags in\n"
-          "``field_names`` is strictly taken as corresponding to column order in\n"
-          "the matrix.\n"
-          "The pressure fields are by convention the first column of the\n"
-          "matrix, hence must not be tagged. That is, there must be given one\n"
-          "field name tag less than matrix columns.\n"
-          "\n"
-          "For detailed tagging conventions see *atm_fields_compact*.\n"
-          "\n"
-          "Works only for ``atmosphere_dim`` == 1.\n"),
+      DESCRIPTION(R"--(Sets *atm_fields_compact* from 1D fields given in form of a matrix.
+
+For batch calculations it is handy to store atmospheric
+profiles in an array of matrix. We take such a matrix, and create
+*atm_fields_compact* from it.
+
+The matrix must contain one row for each pressure level.
+
+Not all fields contained in the matrix must be selected into
+*atm_fields_compact*, but the selection must at least contain
+fields of pressure, temperature, altitude and one absorption
+species.
+The matrix can contain some additional fields which are not
+directly used by ARTS for calculations but can be required for
+further processing, e.g. wind speed and direction. These fields do
+not need to be transfered into the *atm_fields_compact* variable.
+
+Selection of fields into *atm_fields_compact* works by providing a
+field name tag in ``field_names`` for the selected fields, while
+unselected fields are tagged by 'ignore'. Order of tags in
+``field_names`` is strictly taken as corresponding to column order in
+the matrix.
+The pressure fields are by convention the first column of the
+matrix, hence must not be tagged. That is, there must be given one
+field name tag less than matrix columns.
+
+For detailed tagging conventions see *atm_fields_compact*.
+
+Works only for ``atmosphere_dim`` == 1.
+)--"),
       AUTHORS("Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"),
       OUT("atm_fields_compact"),
       GOUT(),
@@ -3818,13 +3868,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
-      DESCRIPTION(
-          "Sets up a rectangular channel response.\n" 
-          "\n"
-          "The method assumes that all channels have the same response.\n"
-          "\n"
-          "The response of the backend channels is hee assumed to be constant\n"
-          "inside the resolution width, and zero outside.\n"),
+      DESCRIPTION(R"--(Sets up a rectangular channel response.
+
+The method assumes that all channels have the same response.
+
+The response of the backend channels is hee assumed to be constant
+inside the resolution width, and zero outside.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -3838,18 +3888,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseGaussian"),
-      DESCRIPTION(
-          "Sets up a Gaussian backend channel response.\n"
-          "\n"
-          "The method assumes that all channels have the same response.\n"
-          "\n"
-          "This method works as *backend_channel_responseGaussianConstant*\n"
-          "but handles the case where the response of each channel must be\n"
-          "described. Here the FWHM is specified for each *f_backend*.\n" 
-          "\n"
-          "The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for\n"
-          "*antenna_responseGaussianConstant*. A negative ``grid_width``\n"
-          "gives a grid that is twice the FWHM of each channel.\n"),
+      DESCRIPTION(R"--(Sets up a Gaussian backend channel response.
+
+The method assumes that all channels have the same response.
+
+This method works as *backend_channel_responseGaussianConstant*
+but handles the case where the response of each channel must be
+described. Here the FWHM is specified for each *f_backend*.
+
+The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for
+*antenna_responseGaussianConstant*. A negative ``grid_width``
+gives a grid that is twice the FWHM of each channel.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -3865,14 +3915,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseGaussianConstant"),
-      DESCRIPTION(
-          "Sets up a single Gaussian backend channel response.\n"
-          "\n"
-          "The method assumes that all channels have the same response.\n"
-          "\n"
-          "The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for\n"
-          "*antenna_responseGaussianConstant*. A negative ``grid_width``\n"
-          "gives a grid that is twice the FWHM.\n"),
+      DESCRIPTION(R"--(Sets up a single Gaussian backend channel response.
+
+The method assumes that all channels have the same response.
+
+The GINs ``fwhm`` and ``grid_npoints`` work in the same way as for
+*antenna_responseGaussianConstant*. A negative ``grid_width``
+gives a grid that is twice the FWHM.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT("backend_channel_response"),
       GOUT(),
@@ -3888,10 +3938,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddConstant"),
-      DESCRIPTION("Adds a constant field to batch_atm_fields_compact.\n"
-                  "\n"
-                  "Applies *atm_fields_compactAddConstant* to each batch.\n"
-                  "The format is equal to that WSM.\n"),
+      DESCRIPTION(R"--(Adds a constant field to batch_atm_fields_compact.
+
+Applies *atm_fields_compactAddConstant* to each batch.
+The format is equal to that WSM.
+)--"),
       AUTHORS("Gerrit Holl"),
       OUT("batch_atm_fields_compact"),
       GOUT(),
@@ -3909,11 +3960,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddSpecies"),
-      DESCRIPTION(
-          "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
-          "\n"
-          "This method appends or prepends a *GriddedField3* to each *atm_fields_compact*.\n"
-          "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"),
+      DESCRIPTION(R"--(Adds a field to *batch_atm_fields_compact*, with interpolation.
+
+This method appends or prepends a *GriddedField3* to each *atm_fields_compact*.
+in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.
+)--"),
       AUTHORS("Gerrit Holl"),
       OUT("batch_atm_fields_compact"),
       GOUT(),
@@ -3930,18 +3981,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactCleanup"),
-      DESCRIPTION(
-          "Removes unrealistically small or erroneous data from each data field\n"
-          "of *batch_atm_fields_compact* (or other AerrayOfGriddedField4 data)\n"
-          "\n"
-          "This WSM checks if the data in *batch_atm_fields_compact* contains\n"
-          "values smaller than the given ``threshold``. In this case, these\n"
-          "values will be set to zero.\n"
-          "\n"
-          "The method should be applied if *batch_atm_fields_compact* contains\n"
-          "unrealistically small or erroneous data (NWP/GCM model data\n"
-          "occassionally contains negative values, which are numerical\n"
-          "artefacts rather than physical values.)\n"),
+      DESCRIPTION(R"--(Removes unrealistically small or erroneous data from each data field
+of *batch_atm_fields_compact* (or other AerrayOfGriddedField4 data)
+
+This WSM checks if the data in *batch_atm_fields_compact* contains
+values smaller than the given ``threshold``. In this case, these
+values will be set to zero.
+
+The method should be applied if *batch_atm_fields_compact* contains
+unrealistically small or erroneous data (NWP/GCM model data
+occassionally contains negative values, which are numerical
+artefacts rather than physical values.)
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("batch_atm_fields_compact"),
       GOUT(),
@@ -3956,21 +4007,21 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactFromArrayOfMatrix"),
-      DESCRIPTION(
-          "Expand batch of 1D atmospheric state matrices to batch_atm_fields_compact.\n"
-          "\n"
-          "This is used to handle 1D batch cases, e.g. from NWP/GCM model like\n"
-          "the Chevallier91L data set, stored in a matrix (it is preferred,\n"
-          "though, to immediatedly store the model fields as\n"
-          "*ArrayOfGriddedField4* and use *ReadXML* to load them directly into\n"
-          "*batch_atm_fields_compact*).\n"
-          "\n"
-          "Works only for ``atmosphere_dim`` == 1.\n"
-          "\n"
-          "See *atm_fields_compactFromMatrix* for basic documentation.\n"
-          "\n"
-          "See *batch_atm_fields_compactAddConstant* and\n"
-          "*batch_atm_fields_compactAddSpecies* for adding additional fields.\n"),
+      DESCRIPTION(R"--(Expand batch of 1D atmospheric state matrices to batch_atm_fields_compact.
+
+This is used to handle 1D batch cases, e.g. from NWP/GCM model like
+the Chevallier91L data set, stored in a matrix (it is preferred,
+though, to immediatedly store the model fields as
+*ArrayOfGriddedField4* and use *ReadXML* to load them directly into
+*batch_atm_fields_compact*).
+
+Works only for ``atmosphere_dim`` == 1.
+
+See *atm_fields_compactFromMatrix* for basic documentation.
+
+See *batch_atm_fields_compactAddConstant* and
+*batch_atm_fields_compactAddSpecies* for adding additional fields.
+)--"),
       AUTHORS("Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"),
       OUT("batch_atm_fields_compact"),
       GOUT(),
@@ -3985,9 +4036,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CIAInfo"),
-      DESCRIPTION(
-          "Display information about the given CIA tags.\n"
-          "The CIA tags shown are in the same format as needed by *abs_speciesSet*.\n"),
+      DESCRIPTION(R"--(Display information about the given CIA tags.
+The CIA tags shown are in the same format as needed by *abs_speciesSet*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -4002,7 +4053,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CIARecordReadFromFile"),
-      DESCRIPTION("Reads CIARecord from Hitran-style file.\n"),
+      DESCRIPTION(R"--(Reads CIARecord from Hitran-style file.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("cia_record"),
@@ -4019,15 +4071,15 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxOff"),
-      DESCRIPTION(
-          "Deactivates the cloud box.\n"
-          "\n"
-          "Use this method if no scattering calculations shall be performed.\n"
-          "\n"
-          "The function sets *cloudbox_on* to 0, *cloudbox_limits*,\n"
-          "*pnd_field*, *scat_data*, *scat_data_raw*, *iy_cloudbox_agenda*\n"
-          "and *particle_masses* to be empty and sizes *dpnd_field_dx* to be\n"
-          "consitent with *jacobian_quantities*.\n"),
+      DESCRIPTION(R"--(Deactivates the cloud box.
+
+Use this method if no scattering calculations shall be performed.
+
+The function sets *cloudbox_on* to 0, *cloudbox_limits*,
+*pnd_field*, *scat_data*, *scat_data_raw*, *iy_cloudbox_agenda*
+and *particle_masses* to be empty and sizes *dpnd_field_dx* to be
+consitent with *jacobian_quantities*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("cloudbox_on",
           "ppath_inside_cloudbox_do",
@@ -4056,35 +4108,35 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetAutomatically"),
-      DESCRIPTION(
-          "Sets the cloud box to encompass the cloud given by the entries\n"
-          "in ``particle_field``.\n"
-          "\n"
-          "This WSM handles one *Tensor4* type ``particle_field`` at a time. It can\n"
-          "be used to determine the cloudbox from ``particle_bulkprop_field``\n"
-          "\n"
-          "The function must be called before executing any WSM that applies\n"
-          "*cloudbox_limits*.\n"
-          "\n"
-          "The function iterates over all 3D fields in ``particle_field`` (which\n"
-          "might correspond to different particle bulk properties as in\n"
-          "``particle_bulkprop_field``). Each field is searched for the first\n"
-          "and last pressure index, where the value is unequal to zero. This\n"
-          "index is then copied to *cloudbox_limits*.\n"
-          "If ``particle_field`` is empty, the cloudbox is switched off\n"
-          "(*cloudbox_on* = 0).\n"
-          "\n"
-          "Additionaly the lower cloudbox_limit is altered by ``cloudbox_margin``.\n"
-          "The margin is given as a height difference in meters and transformed\n"
-          "into a pressure (via isothermal barometric height formula). This\n"
-          "alteration is to ensure covering photons that leave the cloud, but\n"
-          "reenter through a limb path.\n"
-          "If ``cloudbox_margin`` is set to -1 (default), the cloudbox will extend\n"
-          "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
-          "of first pressure level).\n"
-          "``cloudbox_margin`` will be applied on each call of the WSM.\n"
-          "\n"
-          "Works only for ``atmosphere_dim`` == 1.\n"),
+      DESCRIPTION(R"--(Sets the cloud box to encompass the cloud given by the entries
+in ``particle_field``.
+
+This WSM handles one *Tensor4* type ``particle_field`` at a time. It can
+be used to determine the cloudbox from ``particle_bulkprop_field``
+
+The function must be called before executing any WSM that applies
+*cloudbox_limits*.
+
+The function iterates over all 3D fields in ``particle_field`` (which
+might correspond to different particle bulk properties as in
+``particle_bulkprop_field``). Each field is searched for the first
+and last pressure index, where the value is unequal to zero. This
+index is then copied to *cloudbox_limits*.
+If ``particle_field`` is empty, the cloudbox is switched off
+(*cloudbox_on* = 0).
+
+Additionaly the lower cloudbox_limit is altered by ``cloudbox_margin``.
+The margin is given as a height difference in meters and transformed
+into a pressure (via isothermal barometric height formula). This
+alteration is to ensure covering photons that leave the cloud, but
+reenter through a limb path.
+If ``cloudbox_margin`` is set to -1 (default), the cloudbox will extend
+to the surface. Hence, the lower cloudbox_limit is set to 0 (index
+of first pressure level).
+``cloudbox_margin`` will be applied on each call of the WSM.
+
+Works only for ``atmosphere_dim`` == 1.
+)--"),
       AUTHORS("Jana Mendrok, Daniel Kreyling"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -4103,17 +4155,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetFullAtm"),
-      DESCRIPTION(
-          "Sets the cloudbox to cover the full atmosphere.\n"
-          "\n"
-          "The cloudbox is always set to fully span the atmosphere vertically.\n"
-          "\n"
-          "For the latitide and longitide dimensions, default is to leave room\n"
-          "between the cloudbox an the end of the atmosphere in these dimensions.\n"
-          "This is required for some scattering solvers (MC and DOIT). In other\n"
-          "cases it can be OK to let the cloudbox to fill the atmosphere fully\n"
-          "also in latitude and longitude. This is triggered by setting the GIN\n"
-          "fullfull to 1.\n"),
+      DESCRIPTION(R"--(Sets the cloudbox to cover the full atmosphere.
+
+The cloudbox is always set to fully span the atmosphere vertically.
+
+For the latitide and longitide dimensions, default is to leave room
+between the cloudbox an the end of the atmosphere in these dimensions.
+This is required for some scattering solvers (MC and DOIT). In other
+cases it can be OK to let the cloudbox to fill the atmosphere fully
+also in latitude and longitude. This is triggered by setting the GIN
+fullfull to 1.
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok, Patrick Eriksson"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -4127,28 +4179,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManually"),
-      DESCRIPTION(
-          "Sets the cloud box to encompass the given positions.\n"
-          "\n"
-          "The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*\n"
-          "following the given pressure, latitude and longitude positions.\n"
-          "The index limits in *cloudbox_limits* are selected to give the\n"
-          "smallest possible cloud box that encompass the given points.\n"
-          "\n"
-          "The points must be given in the same order as used in\n"
-          "*cloudbox_limits*. That means that the first keyword argument\n"
-          "shall be a higher pressure than argument two, while the latitude\n"
-          "and longitude points are given in increasing order. Positions\n"
-          "given for dimensions not used by the selected atmospheric\n"
-          "dimensionality are ignored.\n"
-          "\n"
-          "The given pressure points can be outside the range of ``p_grid``.\n"
-          "The pressure limit is then set to the end point of ``p_grid``.\n"
-          "The given latitude and longitude points must be inside the range\n"
-          "of the corresponding grid. In addition, the latitude and longitude\n"
-          "points cannot be inside the outermost grid ranges as the latitude\n"
-          "and longitude limits in *cloudbox_limits* are not allowed to be\n"
-          "grid end points.\n"),
+      DESCRIPTION(R"--(Sets the cloud box to encompass the given positions.
+
+The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*
+following the given pressure, latitude and longitude positions.
+The index limits in *cloudbox_limits* are selected to give the
+smallest possible cloud box that encompass the given points.
+
+The points must be given in the same order as used in
+*cloudbox_limits*. That means that the first keyword argument
+shall be a higher pressure than argument two, while the latitude
+and longitude points are given in increasing order. Positions
+given for dimensions not used by the selected atmospheric
+dimensionality are ignored.
+
+The given pressure points can be outside the range of ``p_grid``.
+The pressure limit is then set to the end point of ``p_grid``.
+The given latitude and longitude points must be inside the range
+of the corresponding grid. In addition, the latitude and longitude
+points cannot be inside the outermost grid ranges as the latitude
+and longitude limits in *cloudbox_limits* are not allowed to be
+grid end points.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -4168,12 +4220,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManuallyAltitude"),
-      DESCRIPTION(
-          "Sets the cloud box to encompass the given positions.\n"
-          "\n"
-          "As ``cloudboxSetManually`` but uses altitudes instead of pressure.\n"
-          "The given altitude points can be outside the range of ``z_field``.\n"
-          "The altitude limit is then set to the end point of ``p_grid``.\n"),
+      DESCRIPTION(R"--(Sets the cloud box to encompass the given positions.
+
+As ``cloudboxSetManually`` but uses altitudes instead of pressure.
+The given altitude points can be outside the range of ``z_field``.
+The altitude limit is then set to the end point of ``p_grid``.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_on", "cloudbox_limits"),
       GOUT(),
@@ -4193,34 +4245,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_checkedCalc"),
-      DESCRIPTION(
-          "Checks consistency and validity of the cloudbox governing variables.\n"
-          "\n"
-          "The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,\n"
-          "*pnd_field*, *scat_data*, *scat_species*, *abs_species*, *particle_masses*\n"
-          "``particle_bulkprop_field``, *particle_bulkprop_names* and wind_u/v/w_field.\n"
-          "\n"
-          "If any of these variables is changed, then this method shall be\n"
-          "called again (no automatic check that this is fulfilled!).\n"
-          "\n"
-          "The main checks are if the cloudbox limits are OK with respect to\n"
-          "the atmospheric dimensionality and the limits of the atmosphere,\n"
-          "and that the scattering element variables *pnd_field* and\n"
-          "*scat_data* match in size.\n"
-          "\n"
-          "Default is to demand that there is a margin between the cloudbox\n"
-          "and the ends of latitide and longitude grids. Such margins are\n"
-          "required by MC and DOIT/3D, but are not needed for e.g. IBA.\n"
-          "If the margins not are a demand, set GIN demand_latlon_margin to 0.\n"
-          "\n"
-          "Further checks on *scat_data* are performed in *scat_data_checkedCalc*\n"
-          "\n"
-          "*scat_species* and *particle_masses* must either be empty or have a\n"
-          "size that matches the other data. If non-empty, some check of these\n"
-          "variables are performed.\n"
-          "\n"
-          "If any test fails, there is an error. Otherwise, *cloudbox_checked*\n"
-          "is set to 1.\n"),
+      DESCRIPTION(R"--(Checks consistency and validity of the cloudbox governing variables.
+
+The following WSVs are treated: *cloudbox_on*, *cloudbox_limits*,
+*pnd_field*, *scat_data*, *scat_species*, *abs_species*, *particle_masses*
+``particle_bulkprop_field``, *particle_bulkprop_names* and wind_u/v/w_field.
+
+If any of these variables is changed, then this method shall be
+called again (no automatic check that this is fulfilled!).
+
+The main checks are if the cloudbox limits are OK with respect to
+the atmospheric dimensionality and the limits of the atmosphere,
+and that the scattering element variables *pnd_field* and
+*scat_data* match in size.
+
+Default is to demand that there is a margin between the cloudbox
+and the ends of latitide and longitude grids. Such margins are
+required by MC and DOIT/3D, but are not needed for e.g. IBA.
+If the margins not are a demand, set GIN demand_latlon_margin to 0.
+
+Further checks on *scat_data* are performed in *scat_data_checkedCalc*
+
+*scat_species* and *particle_masses* must either be empty or have a
+size that matches the other data. If non-empty, some check of these
+variables are performed.
+
+If any test fails, there is an error. Otherwise, *cloudbox_checked*
+is set to 1.
+)--"),
       AUTHORS("Patrick Eriksson, Jana Mendrok"),
       OUT("cloudbox_checked"),
       GOUT(),
@@ -4246,22 +4298,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoIterate"),
-      DESCRIPTION(
-          "Iterative solution of the VRTE (DOIT method).\n"
-          "\n"
-          "A solution for the RTE with scattering is found using the\n"
-          "DOIT method:\n"
-          "\n"
-          "1. Calculate scattering integral using *doit_scat_field_agenda*.\n"
-          "2. Calculate RT with fixed scattered field using\n"
-          "   *doit_rte_agenda*.\n"
-          "3. Convergence test using *doit_conv_test_agenda*.\n"
-          "\n"
-          "Note:\n"
-          "      The atmospheric dimensionality ``atmosphere_dim`` can be\n"
-          "      either 1 or 3. To these dimensions the method adapts\n"
-          "      automatically. 2D scattering calculations are not\n"
-          "      supported.\n"),
+      DESCRIPTION(R"--(Iterative solution of the VRTE (DOIT method).
+
+A solution for the RTE with scattering is found using the
+DOIT method:
+
+1. Calculate scattering integral using *doit_scat_field_agenda*.
+2. Calculate RT with fixed scattered field using
+   *doit_rte_agenda*.
+3. Convergence test using *doit_conv_test_agenda*.
+
+Note:
+      The atmospheric dimensionality ``atmosphere_dim`` can be
+      either 1 or 3. To these dimensions the method adapts
+      automatically. 2D scattering calculations are not
+      supported.
+)--"),
       AUTHORS("Claudia Emde, Jakob Doerr"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4279,21 +4331,21 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldCrop"),
-      DESCRIPTION(
-          "Extracts a part of an existing *cloudbox_field*.\n"
-          "\n"
-          "The cropping is defined by defining new cloudbox limits. Note that\n"
-          "``new_limit0`` is an index with respect to ``p_grid``, etc.\n"
-          "\n"
-          "The following must be valid:\n"
-          " * new_limit0 >= cloudbox_limits[0]\n"
-          " * new_limit1 <= cloudbox_limits[1]\n"
-          " * new_limit2 >= cloudbox_limits[2]\n"
-          " * new_limit3 <= cloudbox_limits[3]\n"
-          " * new_limit4 >= cloudbox_limits[4]\n"
-          " * new_limit5 <= cloudbox_limits[5]\n"
-          "\n"
-          "Indexes for dimensions not used are ignored.\n"),
+      DESCRIPTION(R"--(Extracts a part of an existing *cloudbox_field*.
+
+The cropping is defined by defining new cloudbox limits. Note that
+``new_limit0`` is an index with respect to ``p_grid``, etc.
+
+The following must be valid:
+ * new_limit0 >= cloudbox_limits[0]
+ * new_limit1 <= cloudbox_limits[1]
+ * new_limit2 >= cloudbox_limits[2]
+ * new_limit3 <= cloudbox_limits[3]
+ * new_limit4 >= cloudbox_limits[4]
+ * new_limit5 <= cloudbox_limits[5]
+
+Indexes for dimensions not used are ignored.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("cloudbox_field", "cloudbox_limits"),
       GOUT(),
@@ -4317,19 +4369,19 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldInterp2Azimuth"),
-      DESCRIPTION(
-          "Reinterpolate a *cloudbox_field* with azimuthal dependency.\n"
-          "\n"
-          "Intended use: Call directly after cloudbox_fieldDisort if sun is present and yCalc should be\n"
-          "should be run afterwards."
-          "\n"
-          "In ARTS a 1D atmosphere cannot have a azimuth dependency, but if a \n"
-          "collimated source like a sun is present even a 1D atmosphere has an \n"
-          "azimuth dependency. To overcome this constraint, the user must set an \n"
-          "additional local sensor line of sight azimuth angle for the true\n"
-          "geopgraphical location of the atmosphere. For this angle the \n"
-          "*cloudbox_field* with azimuthal dependency is interpolated to a \n"
-          "*cloudbox_field* without azimuthal dependency\n"),
+      DESCRIPTION(R"--(Reinterpolate a *cloudbox_field* with azimuthal dependency.
+
+Intended use: Call directly after cloudbox_fieldDisort if sun is present and yCalc should be
+should be run afterwards.
+
+In ARTS a 1D atmosphere cannot have a azimuth dependency, but if a 
+collimated source like a sun is present even a 1D atmosphere has an 
+azimuth dependency. To overcome this constraint, the user must set an 
+additional local sensor line of sight azimuth angle for the true
+geopgraphical location of the atmosphere. For this angle the 
+*cloudbox_field* with azimuthal dependency is interpolated to a 
+*cloudbox_field* without azimuthal dependency
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4344,18 +4396,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetFromPrecalc"),
-      DESCRIPTION(
-          "Sets the initial cloudbox intensity field *cloudbox_field* from a\n"
-          "precalculated field.\n"
-          "\n"
-          "This method sets the (monochromatic) first guess radiation field\n"
-          "inside the cloudbox from a precalculated ``cloudbox_field_precalc``,\n"
-          "e.g., from the solution of a similar atmospheric scenario. The\n"
-          "dimensions of ``cloudbox_field_precalc`` have to be consistent with\n"
-          "the DOIT setup in terms of frequencies, pressure levels inside the\n"
-          "cloudbox, polar angles used as well as the stokes dimension.\n"
-          "Incoming field on the cloudbox boundaries is adapted to the actual\n"
-          "clearsky incoming field as, e.g., calculated by *DoitGetIncoming*.\n"),
+      DESCRIPTION(R"--(Sets the initial cloudbox intensity field *cloudbox_field* from a
+precalculated field.
+
+This method sets the (monochromatic) first guess radiation field
+inside the cloudbox from a precalculated ``cloudbox_field_precalc``,
+e.g., from the solution of a similar atmospheric scenario. The
+dimensions of ``cloudbox_field_precalc`` have to be consistent with
+the DOIT setup in terms of frequencies, pressure levels inside the
+cloudbox, polar angles used as well as the stokes dimension.
+Incoming field on the cloudbox boundaries is adapted to the actual
+clearsky incoming field as, e.g., calculated by *DoitGetIncoming*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4374,19 +4426,19 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetClearsky"),
-      DESCRIPTION(
-          "Interpolate clearsky field on all gridpoints in cloudbox.\n"
-          "\n"
-          "This method uses a linear 1D/3D interpolation scheme to obtain the\n"
-          "radiation field on all grid points inside the cloud box from the\n"
-          "clear sky field on the cloudbox boundary. This radiation field\n"
-          "is taken as the first guess radiation field in the DOIT module.\n"
-          "\n"
-          "Set the ``all_frequencies`` to 1 if the clearsky field shall be used\n"
-          "as initial field for all frequencies. Set it to 0 if the clear sky\n"
-          "field shall be used only for the first frequency in *f_grid*. For\n"
-          "later frequencies, *cloudbox_field* of the previous frequency is then\n"
-          "used.\n"),
+      DESCRIPTION(R"--(Interpolate clearsky field on all gridpoints in cloudbox.
+
+This method uses a linear 1D/3D interpolation scheme to obtain the
+radiation field on all grid points inside the cloud box from the
+clear sky field on the cloudbox boundary. This radiation field
+is taken as the first guess radiation field in the DOIT module.
+
+Set the ``all_frequencies`` to 1 if the clearsky field shall be used
+as initial field for all frequencies. Set it to 0 if the clear sky
+field shall be used only for the first frequency in *f_grid*. For
+later frequencies, *cloudbox_field* of the previous frequency is then
+used.
+)--"),
       AUTHORS("Sreerekha T.R. and Claudia Emde"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4406,13 +4458,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoSetConst"),
-      DESCRIPTION(
-          "This method sets the initial field inside the cloudbox to a\n"
-          "constant value. The method works only for monochromatic\n"
-          "calculations (number of elements in f_grid=1).\n"
-          "\n"
-          "The user can specify a value for each Stokes dimension in the\n"
-          "control file by ``value``.\n"),
+      DESCRIPTION(R"--(This method sets the initial field inside the cloudbox to a
+constant value. The method works only for monochromatic
+calculations (number of elements in f_grid=1).
+
+The user can specify a value for each Stokes dimension in the
+control file by ``value``.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4432,12 +4484,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetConst"),
-      DESCRIPTION(
-          "This method sets the initial field inside the cloudbox to a\n"
-          "constant value.\n"
-          "\n"
-          "The user has to specify a value for each Stokes dimension in the\n"
-          "control file by ``value``.\n"),
+      DESCRIPTION(R"--(This method sets the initial field inside the cloudbox to a
+constant value.
+
+The user has to specify a value for each Stokes dimension in the
+control file by ``value``.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4457,12 +4509,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetConstPerFreq"),
-      DESCRIPTION(
-          "This method sets the initial field inside the cloudbox to a\n"
-          "constant value per frequency slice.\n"
-          "\n"
-          "The user has specify a value for each frequency and Stokes\n"
-          "dimension in the control file by ``value``.\n"),
+      DESCRIPTION(R"--(This method sets the initial field inside the cloudbox to a
+constant value per frequency slice.
+
+The user has specify a value for each frequency and Stokes
+dimension in the control file by ``value``.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -4483,16 +4535,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdate1D"),
-      DESCRIPTION(
-          "RT calculation in cloudbox with fixed scattering integral (1D).\n"
-          "\n"
-          "Updates the radiation field (DOIT method). The method loops\n"
-          "through the cloudbox to update the radiation field for all\n"
-          "positions and directions in the 1D cloudbox.\n"
-          "\n"
-          "Note: This method is very inefficient, because the number of\n"
-          "iterations scales with the number of cloudbox pressure levels.\n"
-          "It is recommended to use *cloudbox_fieldUpdateSeq1D*.\n"),
+      DESCRIPTION(R"--(RT calculation in cloudbox with fixed scattering integral (1D).
+
+Updates the radiation field (DOIT method). The method loops
+through the cloudbox to update the radiation field for all
+positions and directions in the 1D cloudbox.
+
+Note: This method is very inefficient, because the number of
+iterations scales with the number of cloudbox pressure levels.
+It is recommended to use *cloudbox_fieldUpdateSeq1D*.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4522,14 +4574,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq1D"),
-      DESCRIPTION(
-          "RT calculation in cloudbox with fixed scattering integral.\n"
-          "\n"
-          "Updates radiation field (*cloudbox_field*) in DOIT module.\n"
-          "This method loops through the cloudbox to update the\n"
-          "radiation field for all positions and directions in the 1D\n"
-          "cloudbox. The method applies the sequential update. For more\n"
-          "information refer to AUG.\n"),
+      DESCRIPTION(R"--(RT calculation in cloudbox with fixed scattering integral.
+
+Updates radiation field (*cloudbox_field*) in DOIT module.
+This method loops through the cloudbox to update the
+radiation field for all positions and directions in the 1D
+cloudbox. The method applies the sequential update. For more
+information refer to AUG.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field_mono", "doit_scat_field"),
       GOUT(),
@@ -4562,17 +4614,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq1DPP"),
-      DESCRIPTION(
-          "RT calculation in cloudbox with fixed scattering integral.\n"
-          "\n"
-          "Update radiation field (*cloudbox_field*) in DOIT module.\n"
-          "This method loops through the cloudbox to update the\n"
-          "radiation field for all\n"
-          "positions and directions in the 1D cloudbox. The method applies\n"
-          "the sequential update and the plane parallel approximation.\n"
-          "This method is only slightly faster than\n"
-          "*cloudbox_fieldUpdateSeq1D* and it is less accurate. It can not\n"
-          "be used for limb simulations.\n"),
+      DESCRIPTION(R"--(RT calculation in cloudbox with fixed scattering integral.
+
+Update radiation field (*cloudbox_field*) in DOIT module.
+This method loops through the cloudbox to update the
+radiation field for all
+positions and directions in the 1D cloudbox. The method applies
+the sequential update and the plane parallel approximation.
+This method is only slightly faster than
+*cloudbox_fieldUpdateSeq1D* and it is less accurate. It can not
+be used for limb simulations.
+)--"),
       AUTHORS("Sreerekha T.R."),
       OUT("cloudbox_field_mono", "za_index"),
       GOUT(),
@@ -4596,16 +4648,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq3D"),
-      DESCRIPTION(
-          "RT calculation in cloudbox with fixed scattering integral.\n"
-          "\n"
-          "Update radiation field (*cloudbox_field*) in DOIT module.\n"
-          "This method loops through the cloudbox to update the\n"
-          "radiation field for all positions and directions in the 3D\n"
-          "cloudbox. The method applies the sequential update. For more\n"
-          "information please refer to AUG.\n"
-          "Surface reflections are not yet implemented in 3D scattering\n"
-          "calculations.\n"),
+      DESCRIPTION(R"--(RT calculation in cloudbox with fixed scattering integral.
+
+Update radiation field (*cloudbox_field*) in DOIT module.
+This method loops through the cloudbox to update the
+radiation field for all positions and directions in the 3D
+cloudbox. The method applies the sequential update. For more
+information please refer to AUG.
+Surface reflections are not yet implemented in 3D scattering
+calculations.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4634,9 +4686,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoOptimizeReverse"),
-      DESCRIPTION(
-          "Interpolate *cloudbox_field_mono* back to the original p_grid.\n\n"
-          "For detailed description, see *OptimizeDoitPressureGrid*. \n"),
+      DESCRIPTION(R"--(Interpolate *cloudbox_field_mono* back to the original p_grid.
+
+For detailed description, see *OptimizeDoitPressureGrid*.
+)--"),
       AUTHORS("Jakob Doerr"),
       OUT("cloudbox_field_mono"),
       GOUT(),
@@ -4651,15 +4704,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Compare"),
-      DESCRIPTION(
-          "Checks the consistency between two variables.\n"
-          "\n"
-          "The two variables are checked to not deviate outside the specified\n"
-          "value (``maxabsdiff``). An error is issued if this is not fulfilled.\n"
-          "\n"
-          "The main application of this method is to be part of the test\n"
-          "control files, and then used to check that a calculated value\n"
-          "is consistent with an old, reference, value.\n"),
+      DESCRIPTION(R"--(Checks the consistency between two variables.
+
+The two variables are checked to not deviate outside the specified
+value (``maxabsdiff``). An error is issued if this is not fulfilled.
+
+The main application of this method is to be part of the test
+control files, and then used to check that a calculated value
+is consistent with an old, reference, value.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -4691,24 +4744,24 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("CompareRelative"),
-      DESCRIPTION(
-          "Checks the consistency between two variables by their relative values.\n"
-          "\n"
-          "The two variables are checked to not deviate outside the specified\n"
-          "relative value (``maxabsreldiff``). An error is issued if this is not\n"
-          "fulfilled.\n"
-          "\n"
-          "The main application of this method is to be part of the test\n"
-          "control files, and then used to check that a calculated value\n"
-          "is consistent with an old, reference, value.\n"
-          "\n"
-          "If either value is 0.0, the relative error is considered as 0\n"
-          "for easier use.  This really means infinite differences, though\n"
-          "allowing zero-crossings is useful for plenty of tests. So Be Aware!\n"
-          "\n"
-          "If both ``var1`` and ``var2`` are non-zero, the difference is evaluated\n"
-          "as: abs(var1/var2-1)\n"
-          "That is, ``var2`` is taken as the reference value.\n"),
+      DESCRIPTION(R"--(Checks the consistency between two variables by their relative values.
+
+The two variables are checked to not deviate outside the specified
+relative value (``maxabsreldiff``). An error is issued if this is not
+fulfilled.
+
+The main application of this method is to be part of the test
+control files, and then used to check that a calculated value
+is consistent with an old, reference, value.
+
+If either value is 0.0, the relative error is considered as 0
+for easier use.  This really means infinite differences, though
+allowing zero-crossings is useful for plenty of tests. So Be Aware!
+
+If both ``var1`` and ``var2`` are non-zero, the difference is evaluated
+as: abs(var1/var2-1)
+That is, ``var2`` is taken as the reference value.
+)--"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT(),
       GOUT(),
@@ -4740,11 +4793,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexConstant"),
-      DESCRIPTION(
-          "Set complex refractive index to a constant value.\n"
-          "\n"
-          "Frequency and temperature grids are set to have length 1 (and\n"
-          "set to the value 0).\n"),
+      DESCRIPTION(R"--(Set complex refractive index to a constant value.
+
+Frequency and temperature grids are set to have length 1 (and
+set to the value 0).
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("complex_refr_index"),
       GOUT(),
@@ -4759,22 +4812,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexIceMatzler06"),
-      DESCRIPTION(
-          "Refractive index of ice following Matzler06 parameterization.\n"
-          "\n"
-          "Calculates temperature dependent complex refractive index of\n"
-          "hexagonal ice at microwave and sub-mm frequencies (10MHz-3Tz).\n"
-          "\n"
-          "This parametrization is also applied by the microwave and\n"
-          "submm-wave part of the Warren08 model.\n"
-          "\n"
-          "References:\n"
-          "Matzler, C., 2006: Thermal Microwave Radiation: Application for\n"
-          "Remote Sensing, Microwave dielectric properties of ice, pp. 455-462,\n"
-          "Inst. Eng. Technol., Stevenage, U. K.\n"
-          "Warren, S. G., and R. E. Brandt, 2008: Optical constants of ice\n"
-          "from the ultraviolet to the microwave: A revised compilation,\n"
-          "J. Geophys. Res., 113, D14220, doi:10.1029/2007JD009744.\n"),
+      DESCRIPTION(R"--(Refractive index of ice following Matzler06 parameterization.
+
+Calculates temperature dependent complex refractive index of
+hexagonal ice at microwave and sub-mm frequencies (10MHz-3Tz).
+
+This parametrization is also applied by the microwave and
+submm-wave part of the Warren08 model.
+
+References:
+Matzler, C., 2006: Thermal Microwave Radiation: Application for
+Remote Sensing, Microwave dielectric properties of ice, pp. 455-462,
+Inst. Eng. Technol., Stevenage, U. K.
+Warren, S. G., and R. E. Brandt, 2008: Optical constants of ice
+from the ultraviolet to the microwave: A revised compilation,
+J. Geophys. Res., 113, D14220, doi:10.1029/2007JD009744.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("complex_refr_index"),
       GOUT(),
@@ -4789,11 +4842,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexTemperatureConstant"),
-      DESCRIPTION(
-          "Set frequency dependent complex refractive index.\n"
-          "\n"
-          "Temperature grid is set to have length 1 (and\n"
-          "set to the value 0).\n"),
+      DESCRIPTION(R"--(Set frequency dependent complex refractive index.
+
+Temperature grid is set to have length 1 (and
+set to the value 0).
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("complex_refr_index"),
       GOUT(),
@@ -4809,17 +4862,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterLiebe93"),
-      DESCRIPTION(
-          "Complex refractive index of liquid water according to Liebe 1993.\n"
-          "\n"
-          "The method treats liquid water without salt. Thus, not valid below\n"
-          "10 GHz. Upper frequency limit not known, here set to 1000 GHz.\n"
-          "Model parameters taken from Atmlab function epswater93 (by\n"
-          "C. Maetzler), which refer to Liebe 1993 without closer\n"
-          "specifications.\n"
-          "\n"
-          "Temperatures must be between -40 and 100 degrees Celsius. The\n"
-          "accuracy of the parametrization below 0 C is not known by us.\n"),
+      DESCRIPTION(R"--(Complex refractive index of liquid water according to Liebe 1993.
+
+The method treats liquid water without salt. Thus, not valid below
+10 GHz. Upper frequency limit not known, here set to 1000 GHz.
+Model parameters taken from Atmlab function epswater93 (by
+C. Maetzler), which refer to Liebe 1993 without closer
+specifications.
+
+Temperatures must be between -40 and 100 degrees Celsius. The
+accuracy of the parametrization below 0 C is not known by us.
+)--"),
       AUTHORS("Patrick Eriksson", "Oliver Lemke"),
       OUT("complex_refr_index"),
       GOUT(),
@@ -4834,31 +4887,31 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterVisibleNIRHarvey98"),
-      DESCRIPTION(
-          "Refractive index of water and steam for the optical and near infrared.\n"
-          "\n"
-          "Refractive index as function of temparature, frequency and density.\n"
-          "It is limited only to the real part. The imaginary part is 0.\n"
-          "\n"
-          "From:\n"
-          "Revised formulation for the Refractive Index of Water and Steam as a Function\n"
-          "of Wavelength, Temperature and Density\n"
-          "Journal of Physical and Chemical Reference Data 27, 761 (1998), \n"
-          "https://doi.org/10.1063/1.556029 27, 761 \n"
-          "\n"
-          "See also: http://www.iapws.org/release.html or https://www.nist.gov"
-          "\n"
-          "Range of validity:\n"
-          "\n"
-          "- 271.15K < temperature < 773.15K\n"
-          "- 0 kg m^-3 < density < 1060 kg m^-3\n"
-          "- 157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm\n"
-          "\n"
-          "Density can be set as Vector of size 1 or it must have the same size as\n"
-          "as data_t_grid.\n"
-          "\n"
-          "IMPORTANT: Though the output is *complex_refr_index*, it only contains\n"
-          "the real part. The imaginry part is zero.\n"),
+      DESCRIPTION(R"--(Refractive index of water and steam for the optical and near infrared.
+
+Refractive index as function of temparature, frequency and density.
+It is limited only to the real part. The imaginary part is 0.
+
+From:
+Revised formulation for the Refractive Index of Water and Steam as a Function
+of Wavelength, Temperature and Density
+Journal of Physical and Chemical Reference Data 27, 761 (1998), 
+https:
+
+See also: http:
+
+Range of validity:
+
+- 271.15K < temperature < 773.15K
+- 0 kg m^-3 < density < 1060 kg m^-3
+- 157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm
+
+Density can be set as Vector of size 1 or it must have the same size as
+as data_t_grid.
+
+IMPORTANT: Though the output is *complex_refr_index*, it only contains
+the real part. The imaginry part is zero.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("complex_refr_index"),
       GOUT(),
@@ -4878,22 +4931,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Copy"),
-      DESCRIPTION(
-          "Copy a workspace variable.\n"
-          "\n"
-          "This method can copy any workspace variable\n"
-          "to another workspace variable of the same group. (E.g., a Matrix to\n"
-          "another Matrix.)\n"
-          "\n"
-          "As always, output comes first in the argument list!\n"
-          "\n"
-          "Usage example:\n"
-          "\n"
-          "Copy(f_grid, p_grid)\n"
-          "\n"
-          "Will copy the content of ``p_grid`` to *f_grid*. The size of *f_grid*\n"
-          "is adjusted automatically (the normal behaviour for workspace\n"
-          "methods).\n"),
+      DESCRIPTION(R"--(Copy a workspace variable.
+
+This method can copy any workspace variable
+to another workspace variable of the same group. (E.g., a Matrix to
+another Matrix.)
+
+As always, output comes first in the argument list!
+
+Usage example:
+
+Copy(f_grid, p_grid)
+
+Will copy the content of ``p_grid`` to *f_grid*. The size of *f_grid*
+is adjusted automatically (the normal behaviour for workspace
+methods).
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("output"),
@@ -4912,26 +4965,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat1D"),
-      DESCRIPTION(
-          "Create 1D covariance matrix.\n"
-          "\n"
-          "Creates a 1D covariance matrix for two retrieval quantities on given \n"
-          "grids from a given functional form. Elements  of the covariance matrix\n"
-          "are computed as::\n"
-          "\n"
-          "  S_{i,j} = sigma_i * sigma_j * f(d_{i,j} / l_{i,j})\n"
-          "\n"
-          "where d_{i,j} is the distance between the two grid points and l_{i,j}\n"
-          "the mean of the correlation lengths of the grid points.\n"
-          "\n"
-          "If a cutoff value ``co`` is given elements with absolute value less than this \n"
-          "are set to zero.\n"
-          "\n"
-          "The following functional forms are available:\n"
-          "\n"
-          "- ``\"exp\"``: f(x) = exp(-x) \n"
-          "- ``\"lin\"``: f(x) = 1.0 - x, for x > 1.0, 0.0 otherwise \n"
-          "- ``\"gauss\"``: f(x) = exp(-x^2) \n"),
+      DESCRIPTION(R"--(Create 1D covariance matrix.
+
+Creates a 1D covariance matrix for two retrieval quantities on given 
+grids from a given functional form. Elements  of the covariance matrix
+are computed as::
+
+  S_{i,j} = sigma_i * sigma_j * f(d_{i,j} / l_{i,j})
+
+where d_{i,j} is the distance between the two grid points and l_{i,j}
+the mean of the correlation lengths of the grid points.
+
+If a cutoff value ``co`` is given elements with absolute value less than this 
+are set to zero.
+
+The following functional forms are available:
+
+- ``\"exp\"``: f(x) = exp(-x) 
+- ``\"lin\"``: f(x) = 1.0 - x, for x > 1.0, 0.0 otherwise 
+- ``\"gauss\"``: f(x) = exp(-x^2)
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("output"),
@@ -4972,20 +5025,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat1DMarkov"),
-      DESCRIPTION(
-          "Create Markov Process Covariance Matrix.\n"
-          "\n"
-          "Create a markov process covariance matrix for a retrieval quantity on\n"
-          "evenly spaced 1D grid. The correlation between two grid points i,j is \n"
-          "is computed as::\n"
-          "\n"
-          "  cov(i,j) = sigma[i] * sigma[j] * exp(- d(i,j) / lc)\n"
-          "\n"
-          "where d(i,j) = abs(grid[i] - grid[j]).\n"
-          "\n"
-          "This function also sets covmat_inv_block to the analytically computed inverse\n"
-          "of the covariance matrix of the markov provess, which is tri-diagonal. Note\n"
-          "that this requires the retrieval grid to be evenly spaced.\n"),
+      DESCRIPTION(R"--(Create Markov Process Covariance Matrix.
+
+Create a markov process covariance matrix for a retrieval quantity on
+evenly spaced 1D grid. The correlation between two grid points i,j is 
+is computed as::
+
+  cov(i,j) = sigma[i] * sigma[j] * exp(- d(i,j) / lc)
+
+where d(i,j) = abs(grid[i] - grid[j]).
+
+This function also sets covmat_inv_block to the analytically computed inverse
+of the covariance matrix of the markov provess, which is tri-diagonal. Note
+that this requires the retrieval grid to be evenly spaced.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("output", "out_inverse"),
@@ -5007,12 +5060,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmatDiagonal"),
-      DESCRIPTION(
-          "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
-          "provided in ``vars`` as diagonal elements."
-          "\n"
-          "Also sets covmat_block_inv to the inverse of the block so that the\n"
-          "computation of the inverse is avoided.\n"),
+      DESCRIPTION(R"--(Sets the matrix in covmat_block to a diagonal matrix with the variances
+provided in ``vars`` as diagonal elements.
+
+Also sets covmat_block_inv to the inverse of the block so that the
+computation of the inverse is avoided.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("output", "out_inverse"),
@@ -5031,16 +5084,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seAddBlock"),
-      DESCRIPTION(
-          "Add a block to the measurement covariance matrix *covmat_se*\n"
-          "\n"
-          "This functions adds a given dense or sparse matrix as block to the covariance\n"
-          "matrix *covmat_sx*. The position of the block can be given by the generic\n"
-          "arguments ``i`` and ``j``. Note that diagonal blocks must be added in order starting from\n"
-          "in the top left corner. If an off-diagonal block is added it must have corresponding\n"
-          "existing blocks on the diagonal and these must be consistent with the dimensions\n"
-          "of the block.  If ``i`` and ``j``  are not provided, the blok will be added\n"
-          "at the first free spot on the diagonal.\n"),
+      DESCRIPTION(R"--(Add a block to the measurement covariance matrix *covmat_se*
+
+This functions adds a given dense or sparse matrix as block to the covariance
+matrix *covmat_sx*. The position of the block can be given by the generic
+arguments ``i`` and ``j``. Note that diagonal blocks must be added in order starting from
+in the top left corner. If an off-diagonal block is added it must have corresponding
+existing blocks on the diagonal and these must be consistent with the dimensions
+of the block.  If ``i`` and ``j``  are not provided, the blok will be added
+at the first free spot on the diagonal.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
       GOUT(),
@@ -5059,26 +5112,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seAddInverseBlock"),
-      DESCRIPTION(
-          "Add the inverse of a block to covariance matrix *covmat_se*\n"
-          "\n"
-          "This functions adds a given matrix as the inverse of a block in the covariance\n"
-          "matrix *covmat_se*. The purpose of this function is to allow the user to\n"
-          "to use a precomputed inverse for this block in the covariance matrix, that may\n"
-          "for example have been obtained analytically.\n"
-          "\n"
-          "This function requires the corresponding non-inverse block to already be present\n"
-          "in *covmat_se*\n"
-          "\n"
-          "If the 'i' and 'j' input arguments are not given, the inverse block\n"
-          "will be added at the position of the most recently added non-inverse diagonal\n"
-          "block.\n"
-          "\n"
-          "\nNote that for this to work this retrieval quantity must be independent from\n"
-          "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
-          "will be ignored and recomputed numerically.\n"
-          "\n"
-          "For the rest, the same requirements as for *covmat_seAddBlock* apply.\n"),
+      DESCRIPTION(R"--(Add the inverse of a block to covariance matrix *covmat_se*
+
+This functions adds a given matrix as the inverse of a block in the covariance
+matrix *covmat_se*. The purpose of this function is to allow the user to
+to use a precomputed inverse for this block in the covariance matrix, that may
+for example have been obtained analytically.
+
+This function requires the corresponding non-inverse block to already be present
+in *covmat_se*
+
+If the 'i' and 'j' input arguments are not given, the inverse block
+will be added at the position of the most recently added non-inverse diagonal
+block.
+
+Note that for this to work this retrieval quantity must be independent from
+other retrieval quantities that do not have an inverse. Otherwise the inverse
+will be ignored and recomputed numerically.
+
+For the rest, the same requirements as for *covmat_seAddBlock* apply.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
       GOUT(),
@@ -5097,12 +5150,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seSet"),
-      DESCRIPTION(
-          "Set covmat_se to a given matrix.\n"
-          "\n"
-          "This sets the measurement covariance matrix *covmat_se* to\n"
-          "the matrix given by the generic input ``covmat``. The covariance\n"
-          "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"),
+      DESCRIPTION(R"--(Set covmat_se to a given matrix.
+
+This sets the measurement covariance matrix *covmat_se* to
+the matrix given by the generic input ``covmat``. The covariance
+matrix can be of type CovarianceMatrix, Matrix or Sparse.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se"),
       GOUT(),
@@ -5119,12 +5172,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxSet"),
-      DESCRIPTION(
-          "Set covmat_sx to a given matrix.\n"
-          "\n"
-          "This sets the measurement covariance matrix *covmat_sx* to\n"
-          "the matrix given by the generic input ``covmat``. The covariance\n"
-          "matrix can be of type CovarianceMatrix, Matrix or Sparse.\n"),
+      DESCRIPTION(R"--(Set covmat_sx to a given matrix.
+
+This sets the measurement covariance matrix *covmat_sx* to
+the matrix given by the generic input ``covmat``. The covariance
+matrix can be of type CovarianceMatrix, Matrix or Sparse.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx"),
       GOUT(),
@@ -5141,20 +5194,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxAddBlock"),
-      DESCRIPTION(
-          "Add a block to the a priori covariance matrix *covmat_sx*\n"
-          "\n"
-          "This functions adds a given matrix as a block in the covariance\n"
-          "matrix *covmat_sx*. The position of the block can be given by the generic\n"
-          "arguments ``i`` and ``j``, which should give the index of the retrieval quantity in\n"
-          "*jacobian_quantities*, which is given just by the order the quantities have been\n"
-          "added to the retrieval.\n"
-          "\n"
-          "If arguments ``i`` and ``j`` are omitted, the block will be added as diagonal block\n"
-          "for the last added retrieval quantity.\n"
-          "\n"
-          "If provided, the index ``i`` must be less than or equal to ``j``. Also the provided\n"
-          "block must be consistent with the corresponding retrieval quantities.\n"),
+      DESCRIPTION(R"--(Add a block to the a priori covariance matrix *covmat_sx*
+
+This functions adds a given matrix as a block in the covariance
+matrix *covmat_sx*. The position of the block can be given by the generic
+arguments ``i`` and ``j``, which should give the index of the retrieval quantity in
+*jacobian_quantities*, which is given just by the order the quantities have been
+added to the retrieval.
+
+If arguments ``i`` and ``j`` are omitted, the block will be added as diagonal block
+for the last added retrieval quantity.
+
+If provided, the index ``i`` must be less than or equal to ``j``. Also the provided
+block must be consistent with the corresponding retrieval quantities.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx"),
       GOUT(),
@@ -5173,25 +5226,25 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxAddInverseBlock"),
-      DESCRIPTION(
-          "Add the inverse of a block in covariance matrix *covmat_sx*\n"
-          "\n"
-          "This functions adds a given matrix as the inverse of a block in the covariance\n"
-          "matrix *covmat_sx*. The purpose of this function is to allow the user to\n"
-          "to use a precomputed inverse for this block in the covariance matrix, the may\n"
-          "for example by obtained analytically.\n"
-          "\n"
-          "This function requires the non-inverse block to already be present in *covmat_sx*"
-          "\n"
-          "If the 'i' and 'j' input arguments are not given, the inverse block\n"
-          "will be added at the position of the most recently added non-inverse diagonal\n"
-          "block.\n"
-          "\n"
-          "Note that for this to work this retrieval quantity must be independent from\n"
-          "other retrieval quantities that do not have an inverse. Otherwise the inverse\n"
-          "will be ignored and recomputed numerically.\n"
-          "\n"
-          "For the rest, the same requirements as for *covmat_sxAddBlock* apply.\n"),
+      DESCRIPTION(R"--(Add the inverse of a block in covariance matrix *covmat_sx*
+
+This functions adds a given matrix as the inverse of a block in the covariance
+matrix *covmat_sx*. The purpose of this function is to allow the user to
+to use a precomputed inverse for this block in the covariance matrix, the may
+for example by obtained analytically.
+
+This function requires the non-inverse block to already be present in *covmat_sx*
+
+If the 'i' and 'j' input arguments are not given, the inverse block
+will be added at the position of the most recently added non-inverse diagonal
+block.
+
+Note that for this to work this retrieval quantity must be independent from
+other retrieval quantities that do not have an inverse. Otherwise the inverse
+will be ignored and recomputed numerically.
+
+For the rest, the same requirements as for *covmat_sxAddBlock* apply.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx"),
       GOUT(),
@@ -5210,12 +5263,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxExtractSqrtDiagonal"),
-      DESCRIPTION(
-          "Extract the square root of the diagonal of the state space covariance matrix.\n"
-          "\n"
-          "This function extracts the diagonal of the state space covariance matrix\n"
-          "*covmat_sx* and computes its square root. The resulting vector can then\n"
-          "be used as ``x_norm`` argument for the OEM method to avoid scaling problems.\n"),
+      DESCRIPTION(R"--(Extract the square root of the diagonal of the state space covariance matrix.
+
+This function extracts the diagonal of the state space covariance matrix
+*covmat_sx* and computes its square root. The resulting vector can then
+be used as ``x_norm`` argument for the OEM method to avoid scaling problems.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("x_norm"),
@@ -5232,12 +5285,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Delete"),
-      DESCRIPTION(
-          "Deletes a workspace variable.\n"
-          "\n"
-          "The variable is marked as uninitialized and its memory freed.\n"
-          "It is not removed from the workspace though, therefore you\n"
-          "don't need to/can't call Create for this variable again.\n"),
+      DESCRIPTION(R"--(Deletes a workspace variable.
+
+The variable is marked as uninitialized and its memory freed.
+It is not removed from the workspace though, therefore you
+don't need to/can't call Create for this variable again.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -5256,22 +5309,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("diameter_maxFromDiameter_volume_equ"),
-      DESCRIPTION(
-          "Calculates maximum and area equivalent diameters from volume\n"
-          "equivalent diameter.\n"
-          "\n"
-          "This is primarily a help function for using the T-matrix method\n"
-          "and only a few particle shapes are handled. "
-          "\n"
-          "For shapes handled and further comments on the input arguments, see\n"
-          "*scat_data_singleTmatrix*.\n"
-          "\n"
-          "Area equivalent diameter is the equivalent sphere diameter\n"
-          "corresponding to the \"maximum axial area\". This is the largest\n"
-          "cross-sectional area of the particle, observed either along the\n"
-          "particle's main axis or in the perpendicular direction. That is,\n"
-          "for a cylinder having diameter d and thickness h, this area is\n"
-          "either (pi*d^2)/4 or (h*d).\n"),
+      DESCRIPTION(R"--(Calculates maximum and area equivalent diameters from volume
+equivalent diameter.
+
+This is primarily a help function for using the T-matrix method
+and only a few particle shapes are handled. 
+
+For shapes handled and further comments on the input arguments, see
+*scat_data_singleTmatrix*.
+
+Area equivalent diameter is the equivalent sphere diameter
+corresponding to the \"maximum axial area\". This is the largest
+cross-sectional area of the particle, observed either along the
+particle's main axis or in the perpendicular direction. That is,
+for a cylinder having diameter d and thickness h, this area is
+either (pi*d^2)/4 or (h*d).
+)--"),
       AUTHORS("Johan Strandgren", "Patrick Eriksson"),
       OUT(),
       GOUT("diameter_max", "diameter_area_equ"),
@@ -5289,16 +5342,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("diameter_volume_equFromDiameter_max"),
-      DESCRIPTION(
-          "Converts from maximum to volume equivalent diameter.\n"
-          "\n"
-          "This is primarily a help function for using the T-matrix part\n"
-          "and only a few particle shapes are handled. "
-          "\n"
-          "For shapes handled and further comments on the input arguments,\n"
-          "see *scat_data_singleTmatrix*.\n"
-          "\n"
-          "Also the volume is provided. It is simply sqrt(pi*dveq^3/6).\n"),
+      DESCRIPTION(R"--(Converts from maximum to volume equivalent diameter.
+
+This is primarily a help function for using the T-matrix part
+and only a few particle shapes are handled. 
+
+For shapes handled and further comments on the input arguments,
+see *scat_data_singleTmatrix*.
+
+Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
+)--"),
       AUTHORS("Johan Strandgren", "Patrick Eriksson"),
       OUT(),
       GOUT("diameter_volume_equ", "volume"),
@@ -5315,11 +5368,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DiagonalMatrix"),
-      DESCRIPTION(
-          "Create a diagonal matrix from a vector.\n"
-          "\n"
-          "This creates a dense or sparse diagonal matrix with the elements of the given vector\n"
-          "on the diagonal.\n"),
+      DESCRIPTION(R"--(Create a diagonal matrix from a vector.
+
+This creates a dense or sparse diagonal matrix with the elements of the given vector
+on the diagonal.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("output"),
@@ -5333,12 +5386,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("dlosDiffOfLos"),
-      DESCRIPTION(
-          "Derives the difference betwenn zenith and azimuth angles.\n"
-          "\n"
-          "Determines the difference between a set of angles (``other_los``)\n"
-          "and a reference direction (``ref_los``). This method reverses the\n"
-          "addition made by *sensor_losAddLosAndDlos*.\n"),
+      DESCRIPTION(R"--(Derives the difference betwenn zenith and azimuth angles.
+
+Determines the difference between a set of angles (``other_los``)
+and a reference direction (``ref_los``). This method reverses the
+addition made by *sensor_losAddLosAndDlos*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("dlos"),
@@ -5353,28 +5406,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("dlosGauss"),
-      DESCRIPTION(
-          "Gives a *dlos* suitable for a circular Gaussian response.\n"
-          "\n"
-          "The method generates a *dlos* where each direction is meant to have\n"
-          "an equal weight in terms of the product of solid angle and a circular\n"
-          "Gaussian response. That is, the FWHM of the response is equal in zenith\n"
-          "and azimuth directions.\n"
-          "\n"
-          "The points have an unequal distribution in radius. The weight in radius\n"
-          "equals radius times the magnitude of the Gaussian response (this product\n"
-          "peaks for a radius around 0.41 * FWHM). The points are distributed in\n"
-          "polar angle simply by adding 208.8 deg from one point to next. There is\n"
-          "no theoretical basis for this step in angle, just found to result in a\n"
-          "relatively uniform distribution over the circle.\n"
-          "\n"
-          "The method should mainly be used for ``npoints`` above 10-20. For lower\n"
-          "``npoints``, a rectangular pattern should give a more robust sampling\n"
-          "spatially.\n"
-          "\n"
-          "Default is to let *dlos_weight_vector* represent the solid angle of\n"
-          "each dlos direction. With ``include_response_in_weight`` set to 1, all\n"
-          "elements of *dlos_weight_vector* are equal and their sum is 1.\n"),
+      DESCRIPTION(R"--(Gives a *dlos* suitable for a circular Gaussian response.
+
+The method generates a *dlos* where each direction is meant to have
+an equal weight in terms of the product of solid angle and a circular
+Gaussian response. That is, the FWHM of the response is equal in zenith
+and azimuth directions.
+
+The points have an unequal distribution in radius. The weight in radius
+equals radius times the magnitude of the Gaussian response (this product
+peaks for a radius around 0.41 * FWHM). The points are distributed in
+polar angle simply by adding 208.8 deg from one point to next. There is
+no theoretical basis for this step in angle, just found to result in a
+relatively uniform distribution over the circle.
+
+The method should mainly be used for ``npoints`` above 10-20. For lower
+``npoints``, a rectangular pattern should give a more robust sampling
+spatially.
+
+Default is to let *dlos_weight_vector* represent the solid angle of
+each dlos direction. With ``include_response_in_weight`` set to 1, all
+elements of *dlos_weight_vector* are equal and their sum is 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("dlos", "dlos_weight_vector"),
       GOUT(),
@@ -5390,27 +5443,27 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("dlosUniform"),
-      DESCRIPTION(
-          "Gives *dlos* a rectangular coverage, with uniform spacing.\n"
-          "\n"
-          "The directions described by *dlos* are uniform with respect\n"
-          "to relative zenith and azimuth (and thus are NOT uniform in\n"
-          "solid angle). The same angular grid is applied in both angular\n"
-          "dimensions. With width = 1 and npoints = 5, the angular grids\n"
-          "both are [-0.4, -0.2, 0, 0.2, 0.4].\n"
-          "\n"
-          "The inner loop in is the zenith direction. That is, first comes\n"
-          "all relative zenith angles for first relative azimuth angle etc.\n"
-          "\n"
-          "For default settings, the resulting number of dlos-directions\n"
-          "is npoints * npoints.\n"
-          "\n"
-          "If GIN ``crop_circular`` is true, dlos-es at a radius outside of\n"
-          "width/2 are removed. The resulting number of directions then\n"
-          "approaches pi * npoints * npoints / 4, for high values of ``npoints``.\n"
-          "There is no effect of ``crop_circular`` for npoints=2, while for\n"
-          "npoints=3 the corner points are removed (despite being inside\n"
-          "the radius limit) and the number of directions becomes five.\n"),
+      DESCRIPTION(R"--(Gives *dlos* a rectangular coverage, with uniform spacing.
+
+The directions described by *dlos* are uniform with respect
+to relative zenith and azimuth (and thus are NOT uniform in
+solid angle). The same angular grid is applied in both angular
+dimensions. With width = 1 and npoints = 5, the angular grids
+both are [-0.4, -0.2, 0, 0.2, 0.4].
+
+The inner loop in is the zenith direction. That is, first comes
+all relative zenith angles for first relative azimuth angle etc.
+
+For default settings, the resulting number of dlos-directions
+is npoints * npoints.
+
+If GIN ``crop_circular`` is true, dlos-es at a radius outside of
+width/2 are removed. The resulting number of directions then
+approaches pi * npoints * npoints / 4, for high values of ``npoints``.
+There is no effect of ``crop_circular`` for npoints=2, while for
+npoints=3 the corner points are removed (despite being inside
+the radius limit) and the number of directions becomes five.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("dlos", "dlos_weight_vector"),
       GOUT(),
@@ -5426,55 +5479,55 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldDisort"),
-      DESCRIPTION(
-          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
-          "\n"
-          "DISCLAIMER: There is a couple of known issues with the current\n"
-          "implementation (see below). Use this WSM with care and only if\n"
-          "these limitations/requirements are fulfilled. Results might be\n"
-          "erroneous otherwise.\n"
-          "\n"
-          "DISORT provides the radiation field (*cloudbox_field*) from a scalar\n"
-          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-          "Earth). Only totally randomly oriented particles are allowed.\n"
-          "Refraction is not taken into account. Only Lambertian surface\n"
-          "reflection is handled.\n"
-          "\n"
-          "``nstreams`` is the number of polar angles taken into account\n"
-          "internally in the scattering solution, *za_grid* is the\n"
-          "polar angle grid on which *cloudbox_field* is provided.\n"
-          "``nstreams`` determines the angular resolution, hence the accuracy,\n"
-          "of the scattering solution. The more anisotropic the bulk scattering\n"
-          "matrix, the more streams are required. The computational burden\n"
-          "increases approximately linearly with ``nstreams``. The default value\n"
-          "(8) is sufficient for most microwave scattering calculations. It is\n"
-          "likely insufficient for IR calculations involving ice clouds,\n"
-          "though.\n"
-          "\n"
-          "Further, *za_grid* determines the resolution of the output\n"
-          "radiation field. The size of *za_grid* has no practical\n"
-          "impact on computation time in the case of Disort and higher\n"
-          "resolution generally improves the interpolation results, hence\n"
-          "larger *za_grid* are recommended. To ensure sufficient\n"
-          "interpolation accuracy, we require a (hardcoded) minimum size of 38.\n"
-          "\n"
-          "Different sphericity levels are emulated here by embedding DISORT\n"
-          "in different ways and using different output. The available options\n"
-          "(from low to high sphericity level) are:\n"
-          "\n"
-          "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from ``cloudboxSetFullAtm``).\n"
-          "- Cloudbox extends over a limited part of the atmosphere only\n"
-          "  (e.g. by setting cloudbox from ``cloudboxSetAutomatically`` or ``cloudboxSetManually``).\n"
-          "  Internally, DISORT is run over the whole atmosphere, but only the radiation field within\n"
-          "  the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "\n"
-          "Some auxiliary quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          "\n"
-          "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
-          "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\" scattering albedo.\n"
-          "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present \n"),
+      DESCRIPTION(R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
+
+DISCLAIMER: There is a couple of known issues with the current
+implementation (see below). Use this WSM with care and only if
+these limitations/requirements are fulfilled. Results might be
+erroneous otherwise.
+
+DISORT provides the radiation field (*cloudbox_field*) from a scalar
+1D scattering solution assuming a plane-parallel atmosphere (flat
+Earth). Only totally randomly oriented particles are allowed.
+Refraction is not taken into account. Only Lambertian surface
+reflection is handled.
+
+``nstreams`` is the number of polar angles taken into account
+internally in the scattering solution, *za_grid* is the
+polar angle grid on which *cloudbox_field* is provided.
+``nstreams`` determines the angular resolution, hence the accuracy,
+of the scattering solution. The more anisotropic the bulk scattering
+matrix, the more streams are required. The computational burden
+increases approximately linearly with ``nstreams``. The default value
+(8) is sufficient for most microwave scattering calculations. It is
+likely insufficient for IR calculations involving ice clouds,
+though.
+
+Further, *za_grid* determines the resolution of the output
+radiation field. The size of *za_grid* has no practical
+impact on computation time in the case of Disort and higher
+resolution generally improves the interpolation results, hence
+larger *za_grid* are recommended. To ensure sufficient
+interpolation accuracy, we require a (hardcoded) minimum size of 38.
+
+Different sphericity levels are emulated here by embedding DISORT
+in different ways and using different output. The available options
+(from low to high sphericity level) are:
+
+- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from ``cloudboxSetFullAtm``).
+- Cloudbox extends over a limited part of the atmosphere only
+  (e.g. by setting cloudbox from ``cloudboxSetAutomatically`` or ``cloudboxSetManually``).
+  Internally, DISORT is run over the whole atmosphere, but only the radiation field within
+  the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).
+
+Some auxiliary quantities can be obtained. Auxiliary
+quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
+- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\" scattering albedo.
+- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -5525,23 +5578,24 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldDisortWithARTSSurface"),
-      DESCRIPTION(
-          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
-          "\n"
-          "As *cloudbox_fieldDisort* but uses *surface_rtprop_agenda*.\n"
-          "\n"
-          "The Lambertian surface reflection is set by *surface_rtprop_agenda*.\n"
-          "If the GIN inc_angle is inside of the range [0,90], the reflection is\n"
-          "set according to the result of *surface_rtprop_agenda* for this incidence\n"
-          "angle. Otherwise (default) is to call *surface_rtprop_agenda* for\n"
-          "multiple angles, to estimate the hemispheric mean value.\n"
-          "\n"
-          "Some auxiliary quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n\n"
-          "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
-          "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\"scattering albedo.\n"
-          "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present \n"),
+      DESCRIPTION(R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
+
+As *cloudbox_fieldDisort* but uses *surface_rtprop_agenda*.
+
+The Lambertian surface reflection is set by *surface_rtprop_agenda*.
+If the GIN inc_angle is inside of the range [0,90], the reflection is
+set according to the result of *surface_rtprop_agenda* for this incidence
+angle. Otherwise (default) is to call *surface_rtprop_agenda* for
+multiple angles, to estimate the hemispheric mean value.
+
+Some auxiliary quantities can be obtained. Auxiliary
+quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
+- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\"scattering albedo.
+- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
       GOUT(),
@@ -5594,22 +5648,23 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldDisortClearsky"),
-      DESCRIPTION(
-          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
-          "for running clear-sky cases.\n"
-          "\n"
-          "The method runs DISORT with *pnd_field* set to zero.\n"
-          "\n"
-          "Note that this version returns *spectral_radiance_field*, i.e.\n"
-          "the solution for the full atmosphere. The standard *cloudbox_fieldDisort*\n"
-          "only returns the field inside the cloudbox.\n"
-          "\n"
-          "Some auxiliary quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n\n"
-          "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
-          "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
-          "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present \n"),
+      DESCRIPTION(R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
+for running clear-sky cases.
+
+The method runs DISORT with *pnd_field* set to zero.
+
+Note that this version returns *spectral_radiance_field*, i.e.
+the solution for the full atmosphere. The standard *cloudbox_fieldDisort*
+only returns the field inside the cloudbox.
+
+Some auxiliary quantities can be obtained. Auxiliary
+quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
+- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.
+- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present
+)--"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
@@ -5650,31 +5705,32 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_irradiance_fieldDisort"),
-      DESCRIPTION(
-          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
-          "for running flux (irradiance) calculations\n"
-          "\n"
-          "It provides the irradiance field from a scalar\n"
-          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-          "Earth). Only totally randomly oriented particles are allowed.\n"
-          "Refraction is not taken into account. Only Lambertian surface\n"
-          "reflection is handled.\n"
-          "\n"
-          "``nstreams`` is the number of polar angles taken into account\n"
-          "internally in the scattering solution and for the angular integration.\n"
-          "``nstreams`` determines the angular resolution, hence the accuracy,\n"
-          "of the scattering solution. The more anisotropic the bulk scattering\n"
-          "matrix, the more streams are required. The computational burden\n"
-          "increases approximately linearly with ``nstreams``. The default value\n"
-          "(6) is sufficient for most flux calculations.\n"
-          "\n"
-          "Some auxiliary quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *disort_aux_vars* and returned by *disort_aux*.\n"
-          "Valid choices for auxiliary data are:\n\n"
-          "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
-          "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
-          "- ``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. \n"
-          "- ``\"dFdtau\"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.\n"),
+      DESCRIPTION(R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
+for running flux (irradiance) calculations
+
+It provides the irradiance field from a scalar
+1D scattering solution assuming a plane-parallel atmosphere (flat
+Earth). Only totally randomly oriented particles are allowed.
+Refraction is not taken into account. Only Lambertian surface
+reflection is handled.
+
+``nstreams`` is the number of polar angles taken into account
+internally in the scattering solution and for the angular integration.
+``nstreams`` determines the angular resolution, hence the accuracy,
+of the scattering solution. The more anisotropic the bulk scattering
+matrix, the more streams are required. The computational burden
+increases approximately linearly with ``nstreams``. The default value
+(6) is sufficient for most flux calculations.
+
+Some auxiliary quantities can be obtained. Auxiliary
+quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
+- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.
+- ``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. 
+- ``\"dFdtau\"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field","disort_aux"),
       GOUT(),
@@ -5721,36 +5777,36 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
-      DESCRIPTION(
-          "Performs batch calculations for radiation fields.\n"
-          "\n"
-          "We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero\n"
-          "based indexing, as usual.) The output arrays will have\n"
-          "ybatch_n elements. Indices in the output array start\n"
-          "with zero, independent of *ybatch_start*.\n"
-          "\n"
-          "WARNING, MEMORY INTENSIVE!!!: Since the outputs of this methods can\n"
-          "be very large, make sure you only pass back output you need.\n"
-          "Estimate the size of your output by looking at the dimensions\n"
-          "beforehand. If you only want to pass back some fields, make sure to\n"
-          "empty the others at the end of your *dobatch_calc_agenda*. E.g.:\n"
-          "Tensor7SetConstant(cloudbox_field, 0, 0, 0, 0, 0, 0, 0, 0.)\n"
-          "\n"
-          "The method performs the following:\n"
-          "  1. Sets *ybatch_index* = *ybatch_start*.\n"
-          "  2. Performs a-d until *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
-          "\n"
-          "    a. Executes *dobatch_calc_agenda*.\n"
-          "    b. If *ybatch_index* = *ybatch_start*, resizes the output\n"
-          "       arrays based on *ybatch_n*.\n"
-          "    c. Copies calculated fields to *ybatch_index* - *ybatch_start*\n"
-          "       of output arrays.\n"
-          "    d. Adds 1 to *ybatch_index*.\n"
-          "\n"
-          "Beside the *dobatch_calc_agenda*, the WSVs *ybatch_start*\n"
-          "and *ybatch_n* must be set before calling this method.\n"
-          "\n"
-          "The input variable *ybatch_start* is set to a default of zero.\n"),
+      DESCRIPTION(R"--(Performs batch calculations for radiation fields.
+
+We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero
+based indexing, as usual.) The output arrays will have
+ybatch_n elements. Indices in the output array start
+with zero, independent of *ybatch_start*.
+
+WARNING, MEMORY INTENSIVE!!!: Since the outputs of this methods can
+be very large, make sure you only pass back output you need.
+Estimate the size of your output by looking at the dimensions
+beforehand. If you only want to pass back some fields, make sure to
+empty the others at the end of your *dobatch_calc_agenda*. E.g.:
+Tensor7SetConstant(cloudbox_field, 0, 0, 0, 0, 0, 0, 0, 0.)
+
+The method performs the following:
+  1. Sets *ybatch_index* = *ybatch_start*.
+  2. Performs a-d until *ybatch_index* = *ybatch_start* + *ybatch_n*.
+
+    a. Executes *dobatch_calc_agenda*.
+    b. If *ybatch_index* = *ybatch_start*, resizes the output
+       arrays based on *ybatch_n*.
+    c. Copies calculated fields to *ybatch_index* - *ybatch_start*
+       of output arrays.
+    d. Adds 1 to *ybatch_index*.
+
+Beside the *dobatch_calc_agenda*, the WSVs *ybatch_start*
+and *ybatch_n* must be set before calling this method.
+
+The input variable *ybatch_start* is set to a default of zero.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("dobatch_cloudbox_field",
           "dobatch_radiance_field",
@@ -5771,28 +5827,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DOAngularGridsSet"),
-      DESCRIPTION(
-          "Sets the angular grids for Discrete Ordinate type scattering\n"
-          "calculations.\n"
-          "\n"
-          "This method sets the angular grids for the Discrete Ordinate type\n"
-          "scattering calculations (DOIT, DISORT). For down- und up-looking\n"
-          "geometries it suffices to define ``N_za_grid`` (both solvers) and\n"
-          "``N_aa_grid`` (DOIT). From these numbers equally spaced grids are\n"
-          "created and stored in the WSVs *za_grid* and *aa_grid*.\n"
-          "\n"
-          "For limb simulations it is important to use an optimized zenith\n"
-          "angle grid with a very fine resolution around the horizon\n"
-          "(za=90 degrees). Such a grid can be generated using\n"
-          "*doit_za_grid_optCalc*. To be applied, the name of the file holding\n"
-          "the optimized angle grid has to be given (``za_grid_opt_file``).\n"
-          "\n"
-          "When an optimized grid is present, the equidistant grid is used for\n"
-          "the calculation of the scattering integrals, while the optimized\n"
-          "grid is applied for the integration of the radiative transfer\n"
-          "equation. Otherwise the equidistant grid is used throughout. For\n"
-          "down-looking cases using the equidistant grid typically suffices\n"
-          "and speeds up the calculations.\n"),
+      DESCRIPTION(R"--(Sets the angular grids for Discrete Ordinate type scattering
+calculations.
+
+This method sets the angular grids for the Discrete Ordinate type
+scattering calculations (DOIT, DISORT). For down- und up-looking
+geometries it suffices to define ``N_za_grid`` (both solvers) and
+``N_aa_grid`` (DOIT). From these numbers equally spaced grids are
+created and stored in the WSVs *za_grid* and *aa_grid*.
+
+For limb simulations it is important to use an optimized zenith
+angle grid with a very fine resolution around the horizon
+(za=90 degrees). Such a grid can be generated using
+*doit_za_grid_optCalc*. To be applied, the name of the file holding
+the optimized angle grid has to be given (``za_grid_opt_file``).
+
+When an optimized grid is present, the equidistant grid is used for
+the calculation of the scattering integrals, while the optimized
+grid is applied for the integration of the radiative transfer
+equation. Otherwise the equidistant grid is used throughout. For
+down-looking cases using the equidistant grid typically suffices
+and speeds up the calculations.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_za_grid_size", "aa_grid", "za_grid"),
       GOUT(),
@@ -5810,12 +5866,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitCalc"),
-      DESCRIPTION(
-          "Main DOIT method.\n"
-          "\n"
-          "This method executes *doit_mono_agenda* for each frequency\n"
-          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
-          "(*cloudbox_field*).\n"),
+      DESCRIPTION(R"--(Main DOIT method.
+
+This method executes *doit_mono_agenda* for each frequency
+in *f_grid*. The output is the radiation field inside the cloudbox
+(*cloudbox_field*).
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5837,22 +5893,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitGetIncoming"),
-      DESCRIPTION(
-          "Calculates incoming radiation field of the cloudbox by repeated\n"
-          "radiative transfer calculations.\n"
-          "\n"
-          "The method performs monochromatic pencil beam calculations for\n"
-          "all grid positions on the cloudbox boundary, and all directions\n"
-          "given by scattering angle grids (*aa_grid*). Found radiances\n"
-          "are stored in *cloudbox_field* which can be used as boundary\n"
-          "conditions when scattering inside the cloud box is solved by the\n"
-          "*DoitCalc* method.\n"
-          "\n"
-          "Note that *cloudbox_field* will always hold intensity in terms of\n"
-          "radiances, regardless of the setting of *iy_unit* (unit conversion\n"
-          "is done within *yCalc* or *iyCalc*, which will provide their output\n"
-          "in terms of the specified *iy_unit*; no explicit unit conversion by\n"
-          "the user necessary.).\n"),
+      DESCRIPTION(R"--(Calculates incoming radiation field of the cloudbox by repeated
+radiative transfer calculations.
+
+The method performs monochromatic pencil beam calculations for
+all grid positions on the cloudbox boundary, and all directions
+given by scattering angle grids (*aa_grid*). Found radiances
+are stored in *cloudbox_field* which can be used as boundary
+conditions when scattering inside the cloud box is solved by the
+*DoitCalc* method.
+
+Note that *cloudbox_field* will always hold intensity in terms of
+radiances, regardless of the setting of *iy_unit* (unit conversion
+is done within *yCalc* or *iyCalc*, which will provide their output
+in terms of the specified *iy_unit*; no explicit unit conversion by
+the user necessary.).
+)--"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde"),
       OUT("cloudbox_field"),
       GOUT(),
@@ -5880,15 +5936,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitGetIncoming1DAtm"),
-      DESCRIPTION(
-          "As *DoitGetIncoming* but assumes clear sky part to be 1D.\n"
-          "\n"
-          "The incoming field is calculated only for one position and azimuth\n"
-          "angle for each cloud box boundary, and obtained values are used\n"
-          "for all other postions and azimuth angles. This works if a 3D\n"
-          "cloud box is put into an 1D background atmosphere.\n"
-          "\n"
-          "This method can only be used for 3D cases.\n"),
+      DESCRIPTION(R"--(As *DoitGetIncoming* but assumes clear sky part to be 1D.
+
+The incoming field is calculated only for one position and azimuth
+angle for each cloud box boundary, and obtained values are used
+for all other postions and azimuth angles. This works if a 3D
+cloud box is put into an 1D background atmosphere.
+
+This method can only be used for 3D cases.
+)--"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde"),
       OUT("cloudbox_field", "cloudbox_on"),
       GOUT(),
@@ -5914,13 +5970,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitInit"),
-      DESCRIPTION(
-          "Initialises variables for DOIT scattering calculations.\n"
-          "\n"
-          "Note that multi-dimensional output variables (Tensors, specifically)\n"
-          "are NaN-initialized. That is, this methods needs to be called\n"
-          "BEFORE other WSMs that provide input to *DoitCalc*, e.g. before\n"
-          "*DoitGetIncoming*.\n"),
+      DESCRIPTION(R"--(Initialises variables for DOIT scattering calculations.
+
+Note that multi-dimensional output variables (Tensors, specifically)
+are NaN-initialized. That is, this methods needs to be called
+BEFORE other WSMs that provide input to *DoitCalc*, e.g. before
+*DoitGetIncoming*.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_scat_field", "cloudbox_field", "doit_is_initialized"),
       GOUT(),
@@ -5940,15 +5996,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitScatteringDataPrepare"),
-      DESCRIPTION(
-          "Prepares single scattering data for a DOIT scattering calculation.\n"
-          "\n"
-          "First the scattering data is interpolated in frequency using\n"
-          "*scat_data_monoCalc*. Then the phase matrix data is\n"
-          "transformed or interpolated from the raw data to the laboratory frame\n"
-          "for all possible combinations of the angles contained in the angular\n"
-          "grids which are set in *DOAngularGridsSet*. The resulting phase\n"
-          "matrices are stored in *pha_mat_sptDOITOpt*.\n"),
+      DESCRIPTION(R"--(Prepares single scattering data for a DOIT scattering calculation.
+
+First the scattering data is interpolated in frequency using
+*scat_data_monoCalc*. Then the phase matrix data is
+transformed or interpolated from the raw data to the laboratory frame
+for all possible combinations of the angles contained in the angular
+grids which are set in *DOAngularGridsSet*. The resulting phase
+matrices are stored in *pha_mat_sptDOITOpt*.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_sptDOITOpt", "scat_data_mono", "pha_mat_doit", "aa_grid"),
       GOUT(),
@@ -5971,28 +6027,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("DoitWriteIterationFields"),
-      DESCRIPTION(
-          "Writes DOIT iteration fields.\n"
-          "\n"
-          "This method writes intermediate iteration fields to xml-files. The\n"
-          "method can be used as a part of *doit_conv_test_agenda*.\n"
-          "\n"
-          "The iterations to be stored are specified by ``iterations``, e.g. ::\n"
-          "\n"
-          "  iterations = [3, 6, 9]\n"
-          "\n"
-          "In this case the 3rd, 6th and 9th iterations are stored.\n"
-          "If a number is larger than the total number of iterations, this\n"
-          "number is ignored. If all iterations should be stored set::\n"
-          "\n"
-          "  iterations = [-1]\n"
-          "\n"
-          "The frequencies to be stored are specified by ``frequencies`` in the\n"
-          "same way as the iterations. The frequency index corresponds to the\n"
-          "order of frequencies in *f_grid*.\n"
-          "\n"
-          "The output files are named doit_iteration_fX_iY.xml with X being the\n"
-          "frequency index and iY the iteration counter.\n"),
+      DESCRIPTION(R"--(Writes DOIT iteration fields.
+
+This method writes intermediate iteration fields to xml-files. The
+method can be used as a part of *doit_conv_test_agenda*.
+
+The iterations to be stored are specified by ``iterations``, e.g. ::
+
+  iterations = [3, 6, 9]
+
+In this case the 3rd, 6th and 9th iterations are stored.
+If a number is larger than the total number of iterations, this
+number is ignored. If all iterations should be stored set::
+
+  iterations = [-1]
+
+The frequencies to be stored are specified by ``frequencies`` in the
+same way as the iterations. The frequency index corresponds to the
+order of frequencies in *f_grid*.
+
+The output files are named doit_iteration_fX_iY.xml with X being the
+frequency index and iY the iteration counter.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT(),
@@ -6007,21 +6063,21 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagAbs"),
-      DESCRIPTION(
-          "DOIT convergence test (maximum absolute difference).\n"
-          "\n"
-          "The function calculates the absolute differences for two successive\n"
-          "iteration fields. It picks out the maximum values for each Stokes\n"
-          "component separately. The convergence test is fullfilled under the\n"
-          "following conditions:\n"
-          "\n"
-          "- ``|I(m+1) - I(m)| < epsilon_1``: Intensity.\n"
-          "- ``|Q(m+1) - Q(m)| < epsilon_2``: The other Stokes components.\n"
-          "- ``|U(m+1) - U(m)| < epsilon_3``: \n"
-          "- ``|V(m+1) - V(m)| < epsilon_4``: \n"
-          "\n"
-          "These conditions have to be valid for all positions in the\n"
-          "cloudbox and for all directions.\n"),
+      DESCRIPTION(R"--(DOIT convergence test (maximum absolute difference).
+
+The function calculates the absolute differences for two successive
+iteration fields. It picks out the maximum values for each Stokes
+component separately. The convergence test is fullfilled under the
+following conditions:
+
+- ``|I(m+1) - I(m)| < epsilon_1``: Intensity.
+- ``|Q(m+1) - Q(m)| < epsilon_2``: The other Stokes components.
+- ``|U(m+1) - U(m)| < epsilon_3``: 
+- ``|V(m+1) - V(m)| < epsilon_4``: 
+
+These conditions have to be valid for all positions in the
+cloudbox and for all directions.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_conv_flag", "doit_iteration_counter", "cloudbox_field_mono"),
       GOUT(),
@@ -6044,12 +6100,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagAbsBT"),
-      DESCRIPTION(
-          "DOIT convergence test (maximum absolute difference in Rayleigh Jeans "
-          "BT)\n"
-          "\n"
-          "As *doit_conv_flagAbs* but convergence limits are specified in\n"
-          "Rayleigh-Jeans brighntess temperatures.\n"),
+      DESCRIPTION(R"--(DOIT convergence test (maximum absolute difference in Rayleigh Jeans 
+BT)
+
+As *doit_conv_flagAbs* but convergence limits are specified in
+Rayleigh-Jeans brighntess temperatures.
+)--"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde"),
       OUT("doit_conv_flag", "doit_iteration_counter", "cloudbox_field_mono"),
       GOUT(),
@@ -6074,15 +6130,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagLsq"),
-      DESCRIPTION(
-          "DOIT convergence test (least squares).\n"
-          "\n"
-          "As *doit_conv_flagAbsBT* but applies a least squares convergence\n"
-          "test between two successive iteration fields.\n"
-          "\n"
-          "Warning: This method is not recommended because this kind of\n"
-          "convergence test is not sufficiently strict, so that the\n"
-          "DOIT result might be wrong.\n"),
+      DESCRIPTION(R"--(DOIT convergence test (least squares).
+
+As *doit_conv_flagAbsBT* but applies a least squares convergence
+test between two successive iteration fields.
+
+Warning: This method is not recommended because this kind of
+convergence test is not sufficiently strict, so that the
+DOIT result might be wrong.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_conv_flag", "doit_iteration_counter", "cloudbox_field_mono"),
       GOUT(),
@@ -6108,24 +6164,25 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("OptimizeDoitPressureGrid"),
-      DESCRIPTION(
-          "Optimization of the pressure grid for RT calculation.\n\n"
-          "The methods consists of three parts:\n"
-          "\n"
-          "1. Calculate the single scattering albedo and the scattering optical"
-          "   thickness from the scattering and absorption species. \n"
-          "2. Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max."
-          "   If the resulting cloudbox size is bigger than cloudbox_size_max, this step is \n"
-          "   repeated with a higher threshold of tau_scat_max. \n"
-          "3. Interpolate all variables used in doit_mono_agenda to the new z_field \n"
-          "   This method should be called inside\n"
-          "   *doit_mono_agenda*, right before ``cloudbox_field_monoIterate``. It can \n"
-          "   only be used if *ScatSpeciesMerge* has been called and if it is\n"
-          "   called, *cloudbox_field_monoOptimizeReverse* has to be\n"
-          "   called right after ``cloudbox_field_monoIterate`` to interpolate\n"
-          "   *cloudbox_field_mono* back to the original size.\n"
-          "\n"
-          "Optimization currently only works with ``stokes_dim`` = 1 .\n"),
+      DESCRIPTION(R"--(Optimization of the pressure grid for RT calculation.
+
+The methods consists of three parts:
+
+1. Calculate the single scattering albedo and the scattering optical
+   thickness from the scattering and absorption species. 
+2. Enhance z_field according to the two thresholds sgl_alb_max and tau_scat_max.
+   If the resulting cloudbox size is bigger than cloudbox_size_max, this step is 
+   repeated with a higher threshold of tau_scat_max. 
+3. Interpolate all variables used in doit_mono_agenda to the new z_field 
+   This method should be called inside
+   *doit_mono_agenda*, right before ``cloudbox_field_monoIterate``. It can 
+   only be used if *ScatSpeciesMerge* has been called and if it is
+   called, *cloudbox_field_monoOptimizeReverse* has to be
+   called right after ``cloudbox_field_monoIterate`` to interpolate
+   *cloudbox_field_mono* back to the original size.
+
+Optimization currently only works with ``stokes_dim`` = 1 .
+)--"),
       AUTHORS("Jakob Doerr"),
       OUT("p_grid",
           "pnd_field",
@@ -6162,12 +6219,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_scat_fieldCalc"),
-      DESCRIPTION(
-          "Calculates the scattering integral field in the DOIT module.\n"
-          "\n"
-          "The scattering integral field is generated by integrating\n"
-          "the product of phase matrix and Stokes vector over all incident\n"
-          "angles. For more information please refer to AUG.\n"),
+      DESCRIPTION(R"--(Calculates the scattering integral field in the DOIT module.
+
+The scattering integral field is generated by integrating
+the product of phase matrix and Stokes vector over all incident
+angles. For more information please refer to AUG.
+)--"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde"),
       OUT("doit_scat_field"),
       GOUT(),
@@ -6190,23 +6247,23 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_scat_fieldCalcLimb"),
-      DESCRIPTION(
-          "Calculates the scattering integral field in the DOIT module (limb).\n"
-          "\n"
-          "The scattering integral field is the field generated by integrating\n"
-          "the product of phase matrix and the Stokes vector over all incident\n"
-          "angles.\n"
-          "\n"
-          "For limb simulations it makes sense to use different\n"
-          "zenith angle grids for the scattering integral part and the RT part,\n"
-          "because the latter part requires a much finer resolution near\n"
-          "90 degrees. Taking an optimized grid for the RT part and an equidistant\n"
-          "grid for the scattering integral part saves very much CPU time.\n"
-          "This method uses the equidistant za_grid defined in\n"
-          "*DOAngularGridsSet* and it should always be used for limb\n"
-          "simulations.\n"
-          "\n"
-          "For more information please refer to AUG.\n"),
+      DESCRIPTION(R"--(Calculates the scattering integral field in the DOIT module (limb).
+
+The scattering integral field is the field generated by integrating
+the product of phase matrix and the Stokes vector over all incident
+angles.
+
+For limb simulations it makes sense to use different
+zenith angle grids for the scattering integral part and the RT part,
+because the latter part requires a much finer resolution near
+90 degrees. Taking an optimized grid for the RT part and an equidistant
+grid for the scattering integral part saves very much CPU time.
+This method uses the equidistant za_grid defined in
+*DOAngularGridsSet* and it should always be used for limb
+simulations.
+
+For more information please refer to AUG.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_scat_field"),
       GOUT(),
@@ -6230,21 +6287,21 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_za_grid_optCalc"),
-      DESCRIPTION(
-          "Zenith angle grid optimization for scattering calculation.\n"
-          "\n"
-          "This method optimizes the zenith angle grid. As input it requires\n"
-          "a radiation field (*cloudbox_field*) which is calculated on a very\n"
-          "fine zenith angle grid (*za_grid*). Based on this field\n"
-          "zenith angle grid points are selected, such that the maximum\n"
-          "difference between the radiation field represented on the very\n"
-          "fine zenith angle grid and the radiation field represented on the\n"
-          "optimized grid (*doit_za_grid_opt*) is less than the accuracy\n"
-          "(``acc``). Between the grid points the radiation field is interpolated\n"
-          "linearly or polynomially depending on *doit_za_interp*.\n"
-          "\n"
-          "Note: The method works only for a 1D atmosphere and for one\n"
-          "frequency.\n"),
+      DESCRIPTION(R"--(Zenith angle grid optimization for scattering calculation.
+
+This method optimizes the zenith angle grid. As input it requires
+a radiation field (*cloudbox_field*) which is calculated on a very
+fine zenith angle grid (*za_grid*). Based on this field
+zenith angle grid points are selected, such that the maximum
+difference between the radiation field represented on the very
+fine zenith angle grid and the radiation field represented on the
+optimized grid (*doit_za_grid_opt*) is less than the accuracy
+(``acc``). Between the grid points the radiation field is interpolated
+linearly or polynomially depending on *doit_za_interp*.
+
+Note: The method works only for a 1D atmosphere and for one
+frequency.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_za_grid_opt"),
       GOUT(),
@@ -6258,11 +6315,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("doit_za_interpSet"),
-      DESCRIPTION(
-          "Define interpolation method for zenith angle dimension.\n"
-          "\n"
-          "You can use this method to choose the interpolation method for\n"
-          "interpolations in the zenith angle dimension.\n"),
+      DESCRIPTION(R"--(Define interpolation method for zenith angle dimension.
+
+You can use this method to choose the interpolation method for
+interpolations in the zenith angle dimension.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("doit_za_interp"),
       GOUT(),
@@ -6276,7 +6333,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Duration"),
-      DESCRIPTION("Sets the seconds between two times.\n"),
+      DESCRIPTION(R"--(Sets the seconds between two times.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("duration"),
@@ -6290,7 +6348,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddMakarov2020"),
-      DESCRIPTION("Sets the O2-66 microwave band data for ECS.\n"),
+      DESCRIPTION(R"--(Sets the O2-66 microwave band data for ECS.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6304,10 +6363,11 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddRodrigues1997"),
-      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"
-        "\n"
-        "Note that the broadening species has to be N2 and not AIR for the band,\n"
-        "and that N2 VMR must be present\n"),
+      DESCRIPTION(R"--(Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.
+
+Note that the broadening species has to be N2 and not AIR for the band,
+and that N2 VMR must be present
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6321,7 +6381,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddTran2011"),
-      DESCRIPTION("Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.\n"),
+      DESCRIPTION(R"--(Sets the CO2-626, CO2-636, and CO2-628 IR band data for ECS.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6335,7 +6396,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddTran2006"),
-      DESCRIPTION("Sets the O2-66 visible band data for ECS.\n"),
+      DESCRIPTION(R"--(Sets the O2-66 visible band data for ECS.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6349,7 +6411,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataInit"),
-      DESCRIPTION("Resets/initializes the ECS data.\n"),
+      DESCRIPTION(R"--(Resets/initializes the ECS data.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6363,7 +6426,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddMeanAir"),
-      DESCRIPTION("Sets ECS data for air from other data if available.\n"),
+      DESCRIPTION(R"--(Sets ECS data for air from other data if available.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6379,7 +6443,8 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ecs_dataAddSpeciesData"),
-      DESCRIPTION("Sets ECS data for one set of species and quantum identifiers.\n"),
+      DESCRIPTION(R"--(Sets ECS data for one set of species and quantum identifiers.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ecs_data"),
       GOUT(),
@@ -6403,16 +6468,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Error"),
-      DESCRIPTION(
-          "Issues an error and exits ARTS.\n"
-          "\n"
-          "This method can be placed in agendas that must be specified, but\n"
-          "are expected not to be used for the particular case. An inclusion\n"
-          "in *surface_rtprop_agenda* could look like::\n"
-          "\n"
-          "  Error{\"Surface interceptions of propagation path not expected.\"}\n"
-          "\n"
-          "Ignore and other dummy method calls must still be included.\n"),
+      DESCRIPTION(R"--(Issues an error and exits ARTS.
+
+This method can be placed in agendas that must be specified, but
+are expected not to be used for the particular case. An inclusion
+in *surface_rtprop_agenda* could look like::
+
+  Error{\"Surface interceptions of propagation path not expected.\"}
+
+Ignore and other dummy method calls must still be included.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -6426,12 +6491,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Exit"),
-      DESCRIPTION(
-          "Stops the execution and exits ARTS.\n"
-          "\n"
-          "This method is handy if you want to debug one of your control\n"
-          "files. You can insert it anywhere in the control file. When\n"
-          "it is reached, it will terminate the program.\n"),
+      DESCRIPTION(R"--(Stops the execution and exits ARTS.
+
+This method is handy if you want to debug one of your control
+files. You can insert it anywhere in the control file. When
+it is reached, it will terminate the program.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -6445,16 +6510,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Extract"),
-      DESCRIPTION(
-          "Extracts an element from an array.\n"
-          "\n"
-          "Copies the element with the given Index from the input\n"
-          "variable to the output variable.\n"
-          "\n"
-          "For a Tensor3 as an input, it copies the page with the given\n"
-          "Index from the input Tensor3 variable to the output Matrix.\n"
-          "\n"
-          "In other words, the selection is always done on the first dimension.\n"),
+      DESCRIPTION(R"--(Extracts an element from an array.
+
+Copies the element with the given Index from the input
+variable to the output variable.
+
+For a Tensor3 as an input, it copies the page with the given
+Index from the input Tensor3 variable to the output Matrix.
+
+In other words, the selection is always done on the first dimension.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("needle"),
@@ -6490,11 +6555,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ExtractFromMetaSingleScatSpecies"),
-      DESCRIPTION(
-          "Extract (numeric) parameters from scat_meta of a single scattering\n"
-          "species.\n"
-          "\n"
-          "...\n"),
+      DESCRIPTION(R"--(Extract (numeric) parameters from scat_meta of a single scattering
+species.
+
+...
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("meta_param"),
@@ -6509,11 +6574,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ext_matAddGas"),
-      DESCRIPTION(
-          "Add gas absorption to all diagonal elements of extinction matrix.\n"
-          "\n"
-          "The task of this method is to sum up the gas absorption of the\n"
-          "different gas species and add the result to the extinction matrix.\n"),
+      DESCRIPTION(R"--(Add gas absorption to all diagonal elements of extinction matrix.
+
+The task of this method is to sum up the gas absorption of the
+different gas species and add the result to the extinction matrix.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("ext_mat"),
       GOUT(),
@@ -6527,30 +6592,30 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FastemStandAlone"),
-      DESCRIPTION(
-          "Stand-alone usage of FASTEM.\n"
-          "\n"
-          "FASTEM is a parameterisation of the emissivity of water surfaces\n"
-          "including the impact of waves, salinity and non-specular effects.\n"
-          "This is more or less direct interface to FASTEM, but slightly\n"
-          "adopted to fit with ARTS. The unit of frequency and salinity\n"
-          "differ, and this version is \"vectorised\" in frequency.\n"
-          "\n"
-          "The output is four emissivity and reflectivity values for each\n"
-          "frequency. These values are defined in Eq. 13 of  \"An Improved\n"
-          "Fast Microwave Water Emissivity Model\" by Liu, Weng and English,\n"
-          "I3TRGS, 2011. Note that emissivity and reflectivity do not add up\n"
-          "to 1, which is the way FASTEM compensates for non-specular effects.\n"
-          "\n"
-          "There is an error if any frequency is above 250 GHz, or if the skin\n"
-          "temperature is below 260 K. If the skin temperature is below 270 K,\n"
-          "it is adjusted to 270 K.\n"
-          "\n"
-          "FASTEM returns unphysical values for propagation close to the\n"
-          "horizon, here emissivity and reflectivity can be outside [0,1].\n"
-          "If either emissivity or reflectivity is below/above 0/1, it is\n"
-          "set to 0/1, and the other value is set to 1/0. That is, e+r=1\n"
-          "is enforced. These problems start about 15 degrees from the horizon.\n"),
+      DESCRIPTION(R"--(Stand-alone usage of FASTEM.
+
+FASTEM is a parameterisation of the emissivity of water surfaces
+including the impact of waves, salinity and non-specular effects.
+This is more or less direct interface to FASTEM, but slightly
+adopted to fit with ARTS. The unit of frequency and salinity
+differ, and this version is \"vectorised\" in frequency.
+
+The output is four emissivity and reflectivity values for each
+frequency. These values are defined in Eq. 13 of  \"An Improved
+Fast Microwave Water Emissivity Model\" by Liu, Weng and English,
+I3TRGS, 2011. Note that emissivity and reflectivity do not add up
+to 1, which is the way FASTEM compensates for non-specular effects.
+
+There is an error if any frequency is above 250 GHz, or if the skin
+temperature is below 260 K. If the skin temperature is below 270 K,
+it is adjusted to 270 K.
+
+FASTEM returns unphysical values for propagation close to the
+horizon, here emissivity and reflectivity can be outside [0,1].
+If either emissivity or reflectivity is below/above 0/1, it is
+set to 0/1, and the other value is set to 1/0. That is, e+r=1
+is enforced. These problems start about 15 degrees from the horizon.
+)--"),
       AUTHORS("Oliver Lemke, Patrick Eriksson"),
       OUT(),
       GOUT("emissivity", "reflectivity"),
@@ -6577,7 +6642,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FlagOff"),
-      DESCRIPTION("Sets an index variable that acts as an on/off flag to 0.\n"),
+      DESCRIPTION(R"--(Sets an index variable that acts as an on/off flag to 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("flag"),
@@ -6591,7 +6657,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FlagOn"),
-      DESCRIPTION("Sets an index variable that acts as an on/off flag to 1.\n"),
+      DESCRIPTION(R"--(Sets an index variable that acts as an on/off flag to 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("flag"),
@@ -6605,14 +6672,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Flatten"),
-      DESCRIPTION("Flattens an ArrayOfArray<T> to Array<T> or an Array\n"
-        "of matpack-types to a larger dimension matpack (if dimensions agree)\n"
-        "\n"
-        "The intended transformation for arrays is (sub-arrays can have different sizes):\n"
-        "    {{a, b, c}, {d, e}} -> {a, b, c, d, e}\n"
-        "\n"
-        "The intended transformation for arrays to matpack types is (sub-types must have same size):\n"
-        "    {{a, b, c}, {d, e, f}} -> {a, b, c, d, e, f}\n"),
+      DESCRIPTION(R"--(Flattens an ArrayOfArray<T> to Array<T> or an Array
+of matpack-types to a larger dimension matpack (if dimensions agree)
+
+The intended transformation for arrays is (sub-arrays can have different sizes):
+    {{a, b, c}, {d, e}} -> {a, b, c, d, e}
+
+The intended transformation for arrays to matpack types is (sub-types must have same size):
+    {{a, b, c}, {d, e, f}} -> {a, b, c, d, e, f}
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -6626,27 +6694,27 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ForLoop"),
-      DESCRIPTION(
-          "A simple for-loop.\n"
-          "\n"
-          "This method is handy when you quickly want to test out a calculation\n"
-          "with a set of different settings.\n"
-          "\n"
-          "It does a for-loop from start to stop in steps of step (who would\n"
-          "have guessed that). For each iteration, the agenda *forloop_agenda* is\n"
-          "executed. Inside the agenda, the variable *forloop_index* is available\n"
-          "as index counter.\n"
-          "\n"
-          "There are no other inputs to *forloop_agenda*, and also no outputs. That\n"
-          "means, if you want to get any results out of this loop, you have to\n"
-          "save it to files (for example with *WriteXMLIndexed*), since\n"
-          "variables used inside the agenda will only be local.\n"
-          "\n"
-          "Note that this kind of for loop is not parallel.\n"
-          "\n"
-          "The method is intended for simple testing, not as a replacement of\n"
-          "*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense\n"
-          "that *ybatchCalc* may occur inside *forloop_agenda*.\n"),
+      DESCRIPTION(R"--(A simple for-loop.
+
+This method is handy when you quickly want to test out a calculation
+with a set of different settings.
+
+It does a for-loop from start to stop in steps of step (who would
+have guessed that). For each iteration, the agenda *forloop_agenda* is
+executed. Inside the agenda, the variable *forloop_index* is available
+as index counter.
+
+There are no other inputs to *forloop_agenda*, and also no outputs. That
+means, if you want to get any results out of this loop, you have to
+save it to files (for example with *WriteXMLIndexed*), since
+variables used inside the agenda will only be local.
+
+Note that this kind of for loop is not parallel.
+
+The method is intended for simple testing, not as a replacement of
+*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense
+that *ybatchCalc* may occur inside *forloop_agenda*.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT(),
@@ -6660,10 +6728,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromWavelength"),
-      DESCRIPTION(
-          "Convert from wavelength [m] to frequency [Hz].\n"
-          "\n"
-          "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"),
+      DESCRIPTION(R"--(Convert from wavelength [m] to frequency [Hz].
+
+This is a generic method. It can take a single wavelength value or a wavelength vector as input.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("frequency"),
@@ -6677,10 +6745,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromCGSAngularWavenumber"),
-      DESCRIPTION(
-          "Convert from angular wavenumber [cm^-1] to frequency [Hz].\n"
-          "\n"
-          "This converts angular wavenumber (2*PI/wavelength) into frequency.\n"),
+      DESCRIPTION(R"--(Convert from angular wavenumber [cm^-1] to frequency [Hz].
+
+This converts angular wavenumber (2*PI/wavelength) into frequency.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("frequency"),
@@ -6694,10 +6762,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromCGSKayserWavenumber"),
-      DESCRIPTION(
-          "Convert from Kayser wavenumber [cm^-1] to frequency [Hz].\n"
-          "\n"
-          "This converts Kayser wavenumber (1/wavelength) into frequency.\n"),
+      DESCRIPTION(R"--(Convert from Kayser wavenumber [cm^-1] to frequency [Hz].
+
+This converts Kayser wavenumber (1/wavelength) into frequency.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("frequency"),
@@ -6711,16 +6779,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromAbsorptionLines"),
-      DESCRIPTION("Sets *f_grid* to a grid relative to *abs_lines_per_species*\n"
-                  "\n"
-                  "Each line will have *abs_lines_per_species* will have a grid\n"
-                  "of ``num_freqs`` grid points in [ f0 + ``delta_f_low``, f0 + ``delta_f_upp`` ],\n"
-                  "where f0 is the line center.\n"
-                  "\n"
-                  "Before leaving the function, *f_grid* is sorted.\n"
-                  "\n"
-                  "Note that this method could generate significantly large *f_grid*\n"
-                  "if used carelessly\n"),
+      DESCRIPTION(R"--(Sets *f_grid* to a grid relative to *abs_lines_per_species*
+
+Each line will have *abs_lines_per_species* will have a grid
+of ``num_freqs`` grid points in [ f0 + ``delta_f_low``, f0 + ``delta_f_upp`` ],
+where f0 is the line center.
+
+Before leaving the function, *f_grid* is sorted.
+
+Note that this method could generate significantly large *f_grid*
+if used carelessly
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("f_grid"),
       GOUT(),
@@ -6736,11 +6805,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromGasAbsLookup"),
-      DESCRIPTION(
-          "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
-          "\n"
-          "Must be called between importing/creating raw absorption table and\n"
-          "call of *abs_lookupAdapt*.\n"),
+      DESCRIPTION(R"--(Sets *f_grid* to the frequency grid of *abs_lookup*.
+
+Must be called between importing/creating raw absorption table and
+call of *abs_lookupAdapt*.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("f_grid"),
       GOUT(),
@@ -6754,30 +6823,30 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorAMSU"),
-      DESCRIPTION(
-          "Automatically calculate f_grid to match the sensor.\n"
-          "\n"
-          "This method is handy if you are simulating an AMSU-type instrument,\n"
-          "consisting of a few discrete channels. The case that channels touch,\n"
-          "as for MHS, is handled correctly. But the case that channels overlap\n"
-          "is not (yet) handled and results in an error message.\n"
-          "\n"
-          "The method calculates *f_grid* to match the instrument, as given by\n"
-          "the local oscillator frequencies *lo_multi*, the backend\n"
-          "frequencies *f_backend_multi*, and the backend channel\n"
-          "responses *backend_channel_response_multi*.\n"
-          "\n"
-          "You have to specify the desired spacing in the keyword ``spacing``,\n"
-          "which has a default value of 100 MHz. (The actual value is 0.1e9,\n"
-          "since our unit is Hz.)\n"
-          "\n"
-          "The produced grid will not have exactly the requested spacing, but\n"
-          "will not be coarser than requested. The algorithm starts with the band\n"
-          "edges, then adds additional points until the spacing is at least as\n"
-          "fine as requested.\n"
-          "\n"
-          "There is a similar method for HIRS-type instruments,\n"
-          "see *f_gridFromSensorHIRS*.\n"),
+      DESCRIPTION(R"--(Automatically calculate f_grid to match the sensor.
+
+This method is handy if you are simulating an AMSU-type instrument,
+consisting of a few discrete channels. The case that channels touch,
+as for MHS, is handled correctly. But the case that channels overlap
+is not (yet) handled and results in an error message.
+
+The method calculates *f_grid* to match the instrument, as given by
+the local oscillator frequencies *lo_multi*, the backend
+frequencies *f_backend_multi*, and the backend channel
+responses *backend_channel_response_multi*.
+
+You have to specify the desired spacing in the keyword ``spacing``,
+which has a default value of 100 MHz. (The actual value is 0.1e9,
+since our unit is Hz.)
+
+The produced grid will not have exactly the requested spacing, but
+will not be coarser than requested. The algorithm starts with the band
+edges, then adds additional points until the spacing is at least as
+fine as requested.
+
+There is a similar method for HIRS-type instruments,
+see *f_gridFromSensorHIRS*.
+)--"),
       AUTHORS("Stefan Buehler, Mathias Milz"),
       OUT("f_grid"),
       GOUT(),
@@ -6791,22 +6860,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorAMSUgeneric"),
-      DESCRIPTION(
-          "Automatcially calculate f_grid to match the sensor. \n"
-          "This function is based on 'f_gridFromSensorAMSU' \n"
-          "\n"
-          "The method calculates *f_grid* to match the instrument, as given by\n"
-          "the backend frequencies *f_backend*, and the backend channel\n"
-          "responses *backend_channel_response*.\n"
-          "\n"
-          "You have to specify the desired spacing in the keyword ``spacing``,\n"
-          "which has a default value of 100 MHz. (The actual value is 0.1e9,\n"
-          "since our unit is Hz.)"
-          "\n"
-          "The produced grid will not have exactly the requested spacing, but\n"
-          "it will not be coarser than requested. The algorithm starts with the band\n"
-          "edges, then adds additional points until the spacing is at least as\n"
-          "fine as requested.\n"),
+      DESCRIPTION(R"--(Automatcially calculate f_grid to match the sensor. 
+This function is based on 'f_gridFromSensorAMSU' 
+
+The method calculates *f_grid* to match the instrument, as given by
+the backend frequencies *f_backend*, and the backend channel
+responses *backend_channel_response*.
+
+You have to specify the desired spacing in the keyword ``spacing``,
+which has a default value of 100 MHz. (The actual value is 0.1e9,
+since our unit is Hz.)
+
+The produced grid will not have exactly the requested spacing, but
+it will not be coarser than requested. The algorithm starts with the band
+edges, then adds additional points until the spacing is at least as
+fine as requested.
+)--"),
       AUTHORS("Oscar Isoz"),
       OUT("f_grid"),
       GOUT(),
@@ -6820,26 +6889,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorHIRS"),
-      DESCRIPTION(
-          "Automatically calculate f_grid to match the sensor.\n"
-          "\n"
-          "This method is handy if you are simulating a HIRS-type instrument,\n"
-          "consisting of a few discrete channels.\n"
-          "\n"
-          "It calculates f_grid to match the instrument, as given by the nominal\n"
-          "band frequencies *f_backend* and the spectral channel response\n"
-          "functions given by *backend_channel_response*.\n"
-          "\n"
-          "You have to specify the desired spacing in the keyword ``spacing``, which\n"
-          "has a default value of 5e8 Hz.\n"
-          "\n"
-          "The produced grid will not have exactly the requested spacing, but\n"
-          "will not be coarser than requested. The algorithm starts with the band\n"
-          "edges, then adds additional points until the spacing is at least as\n"
-          "fine as requested.\n"
-          "\n"
-          "There is a similar method for AMSU-type instruments, see\n"
-          "*f_gridFromSensorAMSU*.\n"),
+      DESCRIPTION(R"--(Automatically calculate f_grid to match the sensor.
+
+This method is handy if you are simulating a HIRS-type instrument,
+consisting of a few discrete channels.
+
+It calculates f_grid to match the instrument, as given by the nominal
+band frequencies *f_backend* and the spectral channel response
+functions given by *backend_channel_response*.
+
+You have to specify the desired spacing in the keyword ``spacing``, which
+has a default value of 5e8 Hz.
+
+The produced grid will not have exactly the requested spacing, but
+will not be coarser than requested. The algorithm starts with the band
+edges, then adds additional points until the spacing is at least as
+fine as requested.
+
+There is a similar method for AMSU-type instruments, see
+*f_gridFromSensorAMSU*.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("f_grid"),
       GOUT(),
@@ -6853,34 +6922,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("f_gridMetMM"),
-      DESCRIPTION(
-          "Sets *f_grid* and associated variables match MetMM settings.\n"
-          "\n"
-          "The method calculates *f_grid* to match the specifications of a\n"
-          "*met_mm_backend* table and method arguments.\n"
-          "\n"
-          "You have to specify the desired spacing using the keyword ``freq_spacing``.\n"
-          "You can pass a *Vector* with one element to apply the same spacing to all\n"
-          "channels or pass a spacing value for each channel separately.\n"
-          "\n"
-          "Optionally, ``freq_number`` can be set to specify the mininum number of\n"
-          "frequencies per passband for each channel. The frequencies are placed\n"
-          "equally spaced in each passband. The minimum spacing resulting from\n"
-          "``freq_number`` and ``freq_spacing`` will be used for the calculation. To\n"
-          "explicitly use ``freq_spacing`` for a channel, ``freq_number`` can be set\n"
-          "to -1 for this channel.\n"
-          "\n"
-          "The number of elements in ``freq_number`` can either be the number of\n"
-          "channels or 1. If only one element is given, this number is used for\n"
-          "all channels. If ``freq_number`` is 1 and ``freq_spacing`` is wider than\n"
-          "the bandwidth of the channel, one frequency is placed in the middle of\n"
-          "each passband.\n"
-          "\n"
-          "Frequencies that would be closer than ``freq_merge_threshold`` in the\n"
-          "generated *f_grid* are merged together. This value should be left at\n"
-          "the default value. This is only meant to compensate for numerical\n"
-          "inaccuracies in the frequency calculation to merge frequency that are\n"
-          "supposed to be identical.\n"),
+      DESCRIPTION(R"--(Sets *f_grid* and associated variables match MetMM settings.
+
+The method calculates *f_grid* to match the specifications of a
+*met_mm_backend* table and method arguments.
+
+You have to specify the desired spacing using the keyword ``freq_spacing``.
+You can pass a *Vector* with one element to apply the same spacing to all
+channels or pass a spacing value for each channel separately.
+
+Optionally, ``freq_number`` can be set to specify the mininum number of
+frequencies per passband for each channel. The frequencies are placed
+equally spaced in each passband. The minimum spacing resulting from
+``freq_number`` and ``freq_spacing`` will be used for the calculation. To
+explicitly use ``freq_spacing`` for a channel, ``freq_number`` can be set
+to -1 for this channel.
+
+The number of elements in ``freq_number`` can either be the number of
+channels or 1. If only one element is given, this number is used for
+all channels. If ``freq_number`` is 1 and ``freq_spacing`` is wider than
+the bandwidth of the channel, one frequency is placed in the middle of
+each passband.
+
+Frequencies that would be closer than ``freq_merge_threshold`` in the
+generated *f_grid* are merged together. This value should be left at
+the default value. This is only meant to compensate for numerical
+inaccuracies in the frequency calculation to merge frequency that are
+supposed to be identical.
+)--"),
       AUTHORS("Oliver Lemke", "Patrick Eriksson"),
       OUT("f_grid",
           "f_backend",
@@ -6899,10 +6968,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yMaskOutsideMedianRange"),
-      DESCRIPTION("Masks values not within the range as NaN::\n\n"
-        "  [median(y) - dx, median(y) + dx]\n\n"
-        "Ignores NaNs in median calculations.\n"
-      ),
+      DESCRIPTION(R"--(Masks values not within the range as NaN::
+
+  [median(y) - dx, median(y) + dx]
+
+Ignores NaNs in median calculations.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("y"),
       GOUT(),
@@ -6916,8 +6987,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMaskOutsideMedianRange"),
-      DESCRIPTION("Apply *yMaskOutsideMedianRange* for each *y* in *ybatch*\n"
-      ),
+      DESCRIPTION(R"--(Apply *yMaskOutsideMedianRange* for each *y* in *ybatch*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch"),
       GOUT(),
@@ -6931,25 +7002,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yDoublingMeanFocus"),
-      DESCRIPTION("Focus in on *y* around some *f_grid*, then sets *f_grid* to\n"
-                  "same focus\n"
-                  "\n"
-                  "The algorithm will double the frequency spacing DF\n"
-                  "steps away from F0, doubling it again DF steps away\n"
-                  "from F0+DF, and so on until the end of the range.\n"
-                  "The same happens but reversely towards F0-DF, ...\n"
-                  "\n"
-                  "Inside these ranges, the values will be averaged\n"
-                  "so that there's one value per original input\n"
-                  "between F0-DF and F0+DF, 1 value per 2 original values\n"
-                  "between F0+DF and F0+2*DF, and so on ever doubling the\n"
-                  "number of original values per output value\n"
-                  "\n"
-                  "F0 and DF are set inside the function to either the values\n"
-                  "given by the user, or if they are non-positive as mean(f_grid)\n"
-                  "and 10 * (f_grid[1] - f_grid[0]), respectively\n"
-                  "\n"
-                  "Ignores NaNs and infinities in averaging calculations.\n"),
+      DESCRIPTION(R"--(Focus in on *y* around some *f_grid*, then sets *f_grid* to
+same focus
+
+The algorithm will double the frequency spacing DF
+steps away from F0, doubling it again DF steps away
+from F0+DF, and so on until the end of the range.
+The same happens but reversely towards F0-DF, ...
+
+Inside these ranges, the values will be averaged
+so that there's one value per original input
+between F0-DF and F0+DF, 1 value per 2 original values
+between F0+DF and F0+2*DF, and so on ever doubling the
+number of original values per output value
+
+F0 and DF are set inside the function to either the values
+given by the user, or if they are non-positive as mean(f_grid)
+and 10 * (f_grid[1] - f_grid[0]), respectively
+
+Ignores NaNs and infinities in averaging calculations.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("f_grid", "y"),
       GOUT(),
@@ -6964,7 +7036,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchDoublingMeanFocus"),
-      DESCRIPTION("See *yDoublingMeanFocus*\n"),
+      DESCRIPTION(R"--(See *yDoublingMeanFocus*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("f_grid", "ybatch"),
       GOUT(),
@@ -6979,8 +7052,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scatteringOff"),
-      DESCRIPTION(
-          "Deactivates the gas_scattering within radiative transfer calculations.\n"),
+      DESCRIPTION(R"--(Deactivates the gas_scattering within radiative transfer calculations.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("gas_scattering_do",
           "gas_scattering_agenda"),
@@ -6999,20 +7072,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scattering_coefAirSimple"),
-      DESCRIPTION(
-          "Calculates of scattering coefficient matrix for air.\n"
-          "\n"
-          "This function calculates the scattering coefficient for air using a\n"
-          "fitted version from Stamnes et al., 2017 of the numerical results of\n"
-          "Bates, 1984. Internally it calculates the spectrum of scattering\n"
-          "coefficient matrices from the spectrum of scattering cross section matrices,\n"
-          "atmospheric pressure, temperature for one point in the atmosphere. The\n"
-          "function multiplies the cross sections with the number density of gas\n"
-          "molecules under the assumption of an ideal gas to get the coefficients.\n"
-          "The result is returned in *gas_scattering_coef*. The atmospheric  pressure  and \n"
-          "temperature  state  has  to  be  specified by  *rtp_pressure*,\n"
-          "*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths\n"
-          "between 0.205 and 1.05 micrometer.\n"),
+      DESCRIPTION(R"--(Calculates of scattering coefficient matrix for air.
+
+This function calculates the scattering coefficient for air using a
+fitted version from Stamnes et al., 2017 of the numerical results of
+Bates, 1984. Internally it calculates the spectrum of scattering
+coefficient matrices from the spectrum of scattering cross section matrices,
+atmospheric pressure, temperature for one point in the atmosphere. The
+function multiplies the cross sections with the number density of gas
+molecules under the assumption of an ideal gas to get the coefficients.
+The result is returned in *gas_scattering_coef*. The atmospheric  pressure  and 
+temperature  state  has  to  be  specified by  *rtp_pressure*,
+*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths
+between 0.205 and 1.05 micrometer.
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("gas_scattering_coef"),
       GOUT(),
@@ -7028,16 +7101,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scattering_coefXsecConst"),
-      DESCRIPTION(
-          "Calculates the spectrum of scattering coefficient matrices.\n"
-          "\n"
-          "It calculates the spectrum of scattering coefficient matrices from \n"
-          "constant spectrum of scattering cross section matrices, atmospheric pressure,\n"
-          "temperature for one point in the atmosphere. Basically, it multiplies\n"
-          "the cross sections with the number density of gas molecules under the\n"
-          "assumption of an ideal gas. The result is returned in *gas_scattering_coef*. The\n"
-          "atmospheric  pressure  and  temperature  state  has  to  be  specified\n"
-          "by  *rtp_pressure*, *rtp_temperature*.\n"),
+      DESCRIPTION(R"--(Calculates the spectrum of scattering coefficient matrices.
+
+It calculates the spectrum of scattering coefficient matrices from 
+constant spectrum of scattering cross section matrices, atmospheric pressure,
+temperature for one point in the atmosphere. Basically, it multiplies
+the cross sections with the number density of gas molecules under the
+assumption of an ideal gas. The result is returned in *gas_scattering_coef*. The
+atmospheric  pressure  and  temperature  state  has  to  be  specified
+by  *rtp_pressure*, *rtp_temperature*.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("gas_scattering_coef"),
       GOUT(),
@@ -7053,10 +7126,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scattering_matIsotropic"),
-      DESCRIPTION(
-          "Calculates the spectrum of normalized scattering matrices.\n"
-          "Important, the angular direction are line of sight direction not the\n"
-          "propagation direction.\n"),
+      DESCRIPTION(R"--(Calculates the spectrum of normalized scattering matrices.
+Important, the angular direction are line of sight direction not the
+propagation direction.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("gas_scattering_mat",
           "gas_scattering_fct_legendre"),
@@ -7074,12 +7147,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("gas_scattering_matRayleigh"),
-      DESCRIPTION(
-          "Calculates the normalized Rayleigh scattering matrix.\n"
-          "\n"
-          "The phase matrix for anisotropic Rayleigh particles in random orientations."
-          "Important, the angular direction are defined as line of sight direction not as\n"
-          "propagation direction.\n"),
+      DESCRIPTION(R"--(Calculates the normalized Rayleigh scattering matrix.
+
+The phase matrix for anisotropic Rayleigh particles in random orientations.
+Important, the angular direction are defined as line of sight direction not as
+propagation direction.
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("gas_scattering_mat", "gas_scattering_fct_legendre"),
       GOUT(),
@@ -7093,10 +7166,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
-      DESCRIPTION(
-          "Gravity at zero altitude on Earth.\n"
-          "\n"
-          "Sets *g0* for the given latitude using a standard parameterisation.\n"),
+      DESCRIPTION(R"--(Gravity at zero altitude on Earth.
+
+Sets *g0* for the given latitude using a standard parameterisation.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("g0"),
       GOUT(),
@@ -7109,9 +7182,10 @@ computations.
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(NAME("g0Io"),
-                                 DESCRIPTION("Gravity at zero altitude on Io.\n"
-                                             "\n"
-                                             "Numeric from Wikipedia.\n"),
+                                 DESCRIPTION(R"--(Gravity at zero altitude on Io.
+
+Numeric from Wikipedia.
+)--"),
                                  AUTHORS("Richard Larsson"),
                                  OUT("g0"),
                                  GOUT(),
@@ -7125,11 +7199,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Jupiter"),
-      DESCRIPTION(
-          "Gravity at zero altitude on Jupiter.\n"
-          "\n"
-          "Sets *g0*  to mean equatorial gravity on Jupiter. Value provided by\n"
-          "MPS under ESA-planetary study (TN1).\n"),
+      DESCRIPTION(R"--(Gravity at zero altitude on Jupiter.
+
+Sets *g0*  to mean equatorial gravity on Jupiter. Value provided by
+MPS under ESA-planetary study (TN1).
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("g0"),
       GOUT(),
@@ -7143,11 +7217,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Mars"),
-      DESCRIPTION(
-          "Gravity at zero altitude on Mars.\n"
-          "\n"
-          "Sets *g0*  to mean equatorial gravity on Mars. Value provided by\n"
-          "MPS under ESA-planetary study (TN1).\n"),
+      DESCRIPTION(R"--(Gravity at zero altitude on Mars.
+
+Sets *g0*  to mean equatorial gravity on Mars. Value provided by
+MPS under ESA-planetary study (TN1).
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("g0"),
       GOUT(),
@@ -7161,11 +7235,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("g0Venus"),
-      DESCRIPTION(
-          "Gravity at zero altitude on Venus.\n"
-          "\n"
-          "Sets *g0*  to mean equatorial gravity on Venus. Value from Ahrens\n"
-          "(1995), provided by MPS under ESA-planetary study (TN1).\n"),
+      DESCRIPTION(R"--(Gravity at zero altitude on Venus.
+
+Sets *g0*  to mean equatorial gravity on Venus. Value from Ahrens
+(1995), provided by MPS under ESA-planetary study (TN1).
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("g0"),
       GOUT(),
@@ -7179,12 +7253,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("geo_posEndOfPpath"),
-      DESCRIPTION(
-          "Sets geo-position based on *ppath*.\n"
-          "\n"
-          "The geo-position is set to the position of the last point in *ppath*.\n"
-          "\n"
-          "NaN is returned if *ppath* is totally outside of the atmosphere.\n"),
+      DESCRIPTION(R"--(Sets geo-position based on *ppath*.
+
+The geo-position is set to the position of the last point in *ppath*.
+
+NaN is returned if *ppath* is totally outside of the atmosphere.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -7198,13 +7272,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("geo_posLowestAltitudeOfPpath"),
-      DESCRIPTION(
-          "Sets geo-position based on *ppath*.\n"
-          "\n"
-          "The geo-position is set to the position of the point in *ppath*\n"
-          "having the lowest altitude.\n"
-          "\n"
-          "NaN is returned if *ppath* is totally outside of the atmosphere.\n"),
+      DESCRIPTION(R"--(Sets geo-position based on *ppath*.
+
+The geo-position is set to the position of the point in *ppath*
+having the lowest altitude.
+
+NaN is returned if *ppath* is totally outside of the atmosphere.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -7218,16 +7292,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("geo_posWhereAltitudeIsPassed"),
-      DESCRIPTION(
-          "Sets geo-position based on *ppath*.\n"
-          "\n"
-          "The geo-position is set to the position where the propagation\n"
-          "path passes the stated altitude. If this altitude is passed\n"
-          "more than once, the passing closest to the sensor is selected.\n"
-          "If the reference altitude is not passed at all, *geo_pos* is\n"
-          "set to NaN.\n"
-          "\n"
-          "NaN is also returned if *ppath* is totally outside of the atmosphere.\n"),
+      DESCRIPTION(R"--(Sets geo-position based on *ppath*.
+
+The geo-position is set to the position where the propagation
+path passes the stated altitude. If this altitude is passed
+more than once, the passing closest to the sensor is selected.
+If the reference altitude is not passed at all, *geo_pos* is
+set to NaN.
+
+NaN is also returned if *ppath* is totally outside of the atmosphere.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
       GOUT(),
@@ -7241,8 +7315,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("GetEnvironmentVariable"),
-      DESCRIPTION(
-          "Copy the contents of an environment variable to an ARTS String or Index.\n"),
+      DESCRIPTION(R"--(Copy the contents of an environment variable to an ARTS String or Index.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -7256,7 +7330,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("GetNumberOfThreads"),
-               DESCRIPTION("Returns the number of threads used by ARTS.\n"),
+               DESCRIPTION(R"--(Returns the number of threads used by ARTS.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT(),
                GOUT("nthreads"),
@@ -7270,9 +7345,10 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("GriddedFieldGetName"),
-               DESCRIPTION("Get the name of a GriddedField.\n"
-                           "\n"
-                           "See *ArrayOfGriddedFieldGetNames*.\n"),
+               DESCRIPTION(R"--(Get the name of a GriddedField.
+
+See *ArrayOfGriddedFieldGetNames*.
+)--"),
                AUTHORS("Lukas Kluft"),
                OUT(),
                GOUT("name"),
@@ -7290,13 +7366,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldLatLonExpand"),
-      DESCRIPTION(
-          "Expands the latitude and longitude grid of the GriddedField to\n"
-          "[-90, 90] and [0,360], respectively.\n\nExpansion is only done in\n"
-          "the dimension(s), where the grid size is 1.\n"
-          "The values from the input data will be duplicated to accomodate\n"
-          "for the larger size of the output field.\n"
-          "output and input can be the same variable.\n"),
+      DESCRIPTION(R"--(Expands the latitude and longitude grid of the GriddedField to
+[-90, 90] and [0,360], respectively.
+Expansion is only done in
+the dimension(s), where the grid size is 1.
+The values from the input data will be duplicated to accomodate
+for the larger size of the output field.
+output and input can be the same variable.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -7312,14 +7389,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldLatLonRegrid"),
-      DESCRIPTION(
-          "Interpolates the input field along the latitude and longitude dimensions\n"
-          "to *lat_true* and *lon_true*.\n"
-          "\n"
-          "If the input longitude grid is outside of *lon_true* it will be shifted\n"
-          "left or right by 360. If it covers 360 degrees, a cyclic interpolation\n"
-          "will be performed.\n"
-          "input and output fields can be the same variable.\n"),
+      DESCRIPTION(R"--(Interpolates the input field along the latitude and longitude dimensions
+to *lat_true* and *lon_true*.
+
+If the input longitude grid is outside of *lon_true* it will be shifted
+left or right by 360. If it covers 360 degrees, a cyclic interpolation
+will be performed.
+input and output fields can be the same variable.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -7336,13 +7413,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
-      DESCRIPTION(
-          "Calculates heating rates from the *irradiance_field*.\n"
-          "\n"
-          "The method assumes that the heating rates depend only on the\n"
-          "vertical derivation of the net flux. The net flux is the sum of the\n"
-          "*irradiance_field* in upward direction and the *irradiance_field*\n"
-          "in downward direction\n"),
+      DESCRIPTION(R"--(Calculates heating rates from the *irradiance_field*.
+
+The method assumes that the heating rates depend only on the
+vertical derivation of the net flux. The net flux is the sum of the
+*irradiance_field* in upward direction and the *irradiance_field*
+in downward direction
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("heating_rates"),
       GOUT(),
@@ -7356,24 +7433,24 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("HydrotableCalc"),
-      DESCRIPTION(
-         "Creates a look-up table of scattering properties.\n"
-         "\n"
-         "The table produced largely follows the format used in RTTOV-SCATT for\n"
-         "its \"hydrotables\". The table is returned as a GriddedField4, with\n"
-         "dimensions (in order):\n"
-         "\n"
-         "1. Scattering property\n"
-         "2. Frequency (equals WSV f_grid)\n"
-         "3. Temperature (equals GIN T_grid)\n"
-         "4. Particle content [kg/m3]  (equals GIN wc_grid)\n"
-         "\n"
-         "Four scattering properties are calculated. They are (in order)\n"
-         "\n"
-         "1. Extinction [m-1]\n"
-         "2. Single scattering albedo [-]\n"
-         "3. Asymmetry parameter [-]\n"
-         "4. Radar reflectivity [m2]\n"),
+      DESCRIPTION(R"--(Creates a look-up table of scattering properties.
+
+The table produced largely follows the format used in RTTOV-SCATT for
+its \"hydrotables\". The table is returned as a GriddedField4, with
+dimensions (in order):
+
+1. Scattering property
+2. Frequency (equals WSV f_grid)
+3. Temperature (equals GIN T_grid)
+4. Particle content [kg/m3]  (equals GIN wc_grid)
+
+Four scattering properties are calculated. They are (in order)
+
+1. Extinction [m-1]
+2. Single scattering albedo [-]
+3. Asymmetry parameter [-]
+4. Radar reflectivity [m2]
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("hydrotable"),
@@ -7393,14 +7470,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Ignore"),
-      DESCRIPTION(
-          "Ignore a workspace variable.\n"
-          "\n"
-          "This method is handy for use in agendas in order to suppress warnings\n"
-          "about unused input workspace variables. What it does is: Nothing!\n"
-          "In other words, it just ignores the variable it is called on.\n"
-          "\n"
-          "This method can ignore any workspace variable you want.\n"),
+      DESCRIPTION(R"--(Ignore a workspace variable.
+
+This method is handy for use in agendas in order to suppress warnings
+about unused input workspace variables. What it does is: Nothing!
+In other words, it just ignores the variable it is called on.
+
+This method can ignore any workspace variable you want.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT(),
@@ -7417,35 +7494,35 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("INCLUDE"),
-      DESCRIPTION(
-          "Includes the contents of another controlfile.\n"
-          "\n"
-          "The INCLUDE statement inserts the contents of the controlfile\n"
-          "with the given name into the current controlfile.\n"
-          "If the filename is given without path information, ARTS will\n"
-          "first search for the file in all directories specified with the\n"
-          "-I (see arts -h) commandline option and then in directories given\n"
-          "in the environment variable ARTS_INCLUDE_PATH. In the environment\n"
-          "variable multiple paths have to be separated by colons.\n"
-          "\n"
-          "Note that INCLUDE is not a workspace method and thus the\n"
-          "syntax is different::\n"
-          "\n"
-          "  Arts {\n"
-          "    INCLUDE \"agendas.arts\"\n"
-          "  }\n"
-          "\n"
-          "Includes can also be nested. In the example above agendas.arts\n"
-          "can contain further includes which will then be treated\n"
-          "the same way.\n"
-          "\n"
-          "The idea behind this mechanism is that you can write common settings\n"
-          "for a bunch of calculations into one file. Then, you can create\n"
-          "several controlfiles which include the basic settings and tweak them\n"
-          "for different cases. When you decide to make changes to your setup\n"
-          "that should apply to all calculations, you only have to make a\n"
-          "single change in the include file instead of modifying all your\n"
-          "controlfiles.\n"),
+      DESCRIPTION(R"--(Includes the contents of another controlfile.
+
+The INCLUDE statement inserts the contents of the controlfile
+with the given name into the current controlfile.
+If the filename is given without path information, ARTS will
+first search for the file in all directories specified with the
+-I (see arts -h) commandline option and then in directories given
+in the environment variable ARTS_INCLUDE_PATH. In the environment
+variable multiple paths have to be separated by colons.
+
+Note that INCLUDE is not a workspace method and thus the
+syntax is different::
+
+  Arts {
+    INCLUDE \"agendas.arts\"
+  }
+
+Includes can also be nested. In the example above agendas.arts
+can contain further includes which will then be treated
+the same way.
+
+The idea behind this mechanism is that you can write common settings
+for a bunch of calculations into one file. Then, you can create
+several controlfiles which include the basic settings and tweak them
+for different cases. When you decide to make changes to your setup
+that should apply to all calculations, you only have to make a
+single change in the include file instead of modifying all your
+controlfiles.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -7459,10 +7536,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexAdd"),
-      DESCRIPTION(
-          "Adds a Index and a value (output = input + value).\n"
-          "\n"
-          "The result can either be stored in the same or another Index.\n"),
+      DESCRIPTION(R"--(Adds a Index and a value (output = input + value).
+
+The result can either be stored in the same or another Index.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -7476,12 +7553,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexDivide"),
-      DESCRIPTION(
-          "Integer division of a Index and a value (output = input / value).\n"
-          "\n"
-          "Please note that integer divison is applied, and e.g. 5/3=1.\n"
-          "\n"
-          "The result can either be stored in the same or another Index.\n"),
+      DESCRIPTION(R"--(Integer division of a Index and a value (output = input / value).
+
+Please note that integer divison is applied, and e.g. 5/3=1.
+
+The result can either be stored in the same or another Index.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -7495,10 +7572,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexMultiply"),
-      DESCRIPTION(
-          "Multiplies a Index and a value (output = input * value).\n"
-          "\n"
-          "The result can either be stored in the same or another Index.\n"),
+      DESCRIPTION(R"--(Multiplies a Index and a value (output = input * value).
+
+The result can either be stored in the same or another Index.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -7512,11 +7589,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexSetToLast"),
-      DESCRIPTION(
-          "Set an Index to point towards last position of array-type variables.\n"
-          "\n"
-          "This method works as nelemGet, but gives the index number of the last\n"
-          "element (which equals nelem-1).\n"),
+      DESCRIPTION(R"--(Set an Index to point towards last position of array-type variables.
+
+This method works as nelemGet, but gives the index number of the last
+element (which equals nelem-1).
+)--"),
       AUTHORS("Patrick Eriksson", "Oliver Lemke"),
       OUT("nelem"),
       GOUT(),
@@ -7533,9 +7610,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexStepDown"),
-      DESCRIPTION("Performas: output = input - 1\n"
-                  "\n"
-                  "Input and output can be same variable.\n"),
+      DESCRIPTION(R"--(Performas: output = input - 1
+
+Input and output can be same variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -7549,9 +7627,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexStepUp"),
-      DESCRIPTION("Performas: output = input + 1\n"
-                  "\n"
-                  "Input and output can be same variable.\n"),
+      DESCRIPTION(R"--(Performas: output = input + 1
+
+Input and output can be same variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -7565,10 +7644,10 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("IndexSubtract"),
-      DESCRIPTION(
-          "Subtracts a Index value (output = input - value).\n"
-          "\n"
-          "The result can either be stored in the same or another Index.\n"),
+      DESCRIPTION(R"--(Subtracts a Index value (output = input - value).
+
+The result can either be stored in the same or another Index.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -7582,11 +7661,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpAtmFieldToPosition"),
-      DESCRIPTION("Point interpolation of atmospheric fields.\n"
-                  "\n"
-                  "The default way to specify the position is by *rtp_pos*.\n"
-                  "\n"
-                  "Linear interpolation is applied.\n"),
+      DESCRIPTION(R"--(Point interpolation of atmospheric fields.
+
+The default way to specify the position is by *rtp_pos*.
+
+Linear interpolation is applied.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("out"),
@@ -7601,17 +7681,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpGriddedField2ToPosition"),
-      DESCRIPTION(
-          "Latitude and longitude interpolation of a GriddedField2.\n"
-          "\n"
-          "The default way to specify the position is by *rtp_pos*.\n"
-          "\n"
-          "The interpolation is done for the latitude and longitude in\n"
-          "*rtp_pos*. The altitude in *rtp_pos* is completely ignored.\n"
-          "Linear interpolation is applied.\n"
-          "\n"
-          "The input field (``gfield2``) is expected to have latitude and\n"
-          "longitude as first and second dimension.\n"),
+      DESCRIPTION(R"--(Latitude and longitude interpolation of a GriddedField2.
+
+The default way to specify the position is by *rtp_pos*.
+
+The interpolation is done for the latitude and longitude in
+*rtp_pos*. The altitude in *rtp_pos* is completely ignored.
+Linear interpolation is applied.
+
+The input field (``gfield2``) is expected to have latitude and
+longitude as first and second dimension.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -7625,19 +7705,19 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceFieldToPosition"),
-      DESCRIPTION(
-          "Point interpolation of surface fields.\n"
-          "\n"
-          "The default way to specify the position is by *rtp_pos*.\n"
-          "\n"
-          "Linear interpolation is applied.\n"
-          "\n"
-          "The interpolation is done for the latitude and longitude in\n"
-          "*rtp_pos*, while the altitude in *rtp_pos* is not part of the\n"
-          "calculations. However, it is checked that the altitude of *rtp_pos*\n"
-          "is inside the range covered by ``z_surface`` with a 1 m margin, to\n"
-          "give a warning when the specified position is not consistent with\n"
-          "the surface altitudes.\n"),
+      DESCRIPTION(R"--(Point interpolation of surface fields.
+
+The default way to specify the position is by *rtp_pos*.
+
+Linear interpolation is applied.
+
+The interpolation is done for the latitude and longitude in
+*rtp_pos*, while the altitude in *rtp_pos* is not part of the
+calculations. However, it is checked that the altitude of *rtp_pos*
+is inside the range covered by ``z_surface`` with a 1 m margin, to
+give a warning when the specified position is not consistent with
+the surface altitudes.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_point"),
       GOUT(),
@@ -7652,15 +7732,15 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceTypeMask"),
-      DESCRIPTION(
-          "Interpolation of surface type mask.\n"
-          "\n"
-          "The method determines the surface type at the position of concern\n"
-          "(*rtp_pos*) from the provided type mask.\n"
-          "\n"
-          "The surface type is taken as the nearest value in *surface_type_mask*.\n"
-          "\n"
-          "The altitude in *rtp_pos* is ignored.\n"),
+      DESCRIPTION(R"--(Interpolation of surface type mask.
+
+The method determines the surface type at the position of concern
+(*rtp_pos*) from the provided type mask.
+
+The surface type is taken as the nearest value in *surface_type_mask*.
+
+The altitude in *rtp_pos* is ignored.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("surface_type"),
@@ -7680,20 +7760,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricAltitude"),
-      DESCRIPTION(
-          "Calculates the geometrical intersection with an altitude.\n"
-          "\n"
-          "For each observation geometry specified by the combination of\n"
-          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
-          "an altitude is determined. The intersections are described by the\n"
-          "GOUT ``pos`` and ``los``.\n"
-          "\n"
-          "For cases with no intersection, ``pos`` and ``los`` are filled with NaN.\n"
-          "\n"
-          "The GOUT ``pos`` and ``los`` can NOT be *sensor_pos* and *sensor_los*.\n"
-          "If you want to store the intersections in *sensor_pos* and *sensor_los*\n"
-          "use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*\n"
-          "you have *rte_pos_losForwardToAltitude*.\n"),
+      DESCRIPTION(R"--(Calculates the geometrical intersection with an altitude.
+
+For each observation geometry specified by the combination of
+*sensor_pos* and *sensor_los*, the geometrical intersection with
+an altitude is determined. The intersections are described by the
+GOUT ``pos`` and ``los``.
+
+For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
+
+The GOUT ``pos`` and ``los`` can NOT be *sensor_pos* and *sensor_los*.
+If you want to store the intersections in *sensor_pos* and *sensor_los*
+use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*
+you have *rte_pos_losForwardToAltitude*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -7708,15 +7788,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricLatitude"),
-      DESCRIPTION(
-          "Calculates the geometrical intersection with a latitude.\n"
-          "\n"
-          "For each observation geometry specified by the combination of\n"
-          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
-          "a latitude is determined. The intersections are described by the\n"
-          "GOUT ``pos`` and *los.\n"
-          "\n"
-          "For cases with no intersection, ``pos`` and ``los`` are filled with NaN.\n"),
+      DESCRIPTION(R"--(Calculates the geometrical intersection with a latitude.
+
+For each observation geometry specified by the combination of
+*sensor_pos* and *sensor_los*, the geometrical intersection with
+a latitude is determined. The intersections are described by the
+GOUT ``pos`` and *los.
+
+For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -7731,15 +7811,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricLongitude"),
-      DESCRIPTION(
-          "Calculates the geometrical intersection with a longitude.\n"
-          "\n"
-          "For each observation geometry specified by the combination of\n"
-          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
-          "a longitude is determined. The intersections are described by the\n"
-          "GOUT ``pos`` and *los.\n"
-          "\n"
-          "For cases with no intersection, ``pos`` and ``los`` are filled with NaN.\n"),
+      DESCRIPTION(R"--(Calculates the geometrical intersection with a longitude.
+
+For each observation geometry specified by the combination of
+*sensor_pos* and *sensor_los*, the geometrical intersection with
+a longitude is determined. The intersections are described by the
+GOUT ``pos`` and *los.
+
+For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -7754,34 +7834,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("IntersectionGeometricSurface"),
-      DESCRIPTION(
-          "Calculates the geometrical intersection with the surface.\n"
-          "\n"
-          "For each observation geometry specified by the combination of\n"
-          "*sensor_pos* and *sensor_los*, the geometrical intersection with\n"
-          "the surface is determined. The intersections are described by the\n"
-          "GOUT ``pos`` and *los. For cases with no intersection, ``pos`` and ``los``\n"
-          "are filled with NaN.\n"
-          "\n"
-          "If the surface elevation is constant, the intersections are found\n"
-          "analytically. Otherwise a search in terms of distance from the sensor\n"
-          "is applied. The default is to use a bisection algorithm. This option\n"
-          "should suffice in general, but it can fail if the elevation varies\n"
-          "strongly and/or the incidence angle is high. The path can then cross\n"
-          "the surface at several positions and the bisection search does not\n"
-          "guarantee that the correct intersection is found. To avoid this, set\n"
-          "*surface_search_safe* to 1 and a safe, but much more slow option, is\n"
-          "used. In this case the path is simple sampled in a step-by-step\n"
-          "fashion.\n"
-          "\n"
-          "To be clear, the faster bisection algorith can fail if the path goes\n"
-          "through a mountain top. For an upward observation inside a valley, the\n"
-          "bisection can also miss if the path touches the side of the valley.\n"
-          "\n"
-          "For both algorithms *surface_search_accuracy* governs the accuracy. In\n"
-          "the first case, the bisection is stopped when the set accuracy has\n"
-          "been reached, while in the safe option *surface_search_accuracy* is\n"
-          "the step length used.\n"),
+      DESCRIPTION(R"--(Calculates the geometrical intersection with the surface.
+
+For each observation geometry specified by the combination of
+*sensor_pos* and *sensor_los*, the geometrical intersection with
+the surface is determined. The intersections are described by the
+GOUT ``pos`` and *los. For cases with no intersection, ``pos`` and ``los``
+are filled with NaN.
+
+If the surface elevation is constant, the intersections are found
+analytically. Otherwise a search in terms of distance from the sensor
+is applied. The default is to use a bisection algorithm. This option
+should suffice in general, but it can fail if the elevation varies
+strongly and/or the incidence angle is high. The path can then cross
+the surface at several positions and the bisection search does not
+guarantee that the correct intersection is found. To avoid this, set
+*surface_search_safe* to 1 and a safe, but much more slow option, is
+used. In this case the path is simple sampled in a step-by-step
+fashion.
+
+To be clear, the faster bisection algorith can fail if the path goes
+through a mountain top. For an upward observation inside a valley, the
+bisection can also miss if the path touches the side of the valley.
+
+For both algorithms *surface_search_accuracy* governs the accuracy. In
+the first case, the bisection is stopped when the set accuracy has
+been reached, while in the safe option *surface_search_accuracy* is
+the step length used.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("pos", "los"),
@@ -7800,13 +7880,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
-      DESCRIPTION(
-          "Calculates the irradiance from the *radiance_field*.\n"
-          "\n"
-          "The *radiance_field* is integrated over the angular grids according to\n"
-          "the grids set by *AngularGridsSetFluxCalc*. \n"
-          "See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and\n"
-          "*za_grid_weights*\n"),
+      DESCRIPTION(R"--(Calculates the irradiance from the *radiance_field*.
+
+The *radiance_field* is integrated over the angular grids according to
+the grids set by *AngularGridsSetFluxCalc*. 
+See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
+*za_grid_weights*
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("irradiance_field"),
       GOUT(),
@@ -7820,9 +7900,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("isotopologue_ratiosInitFromBuiltin"),
-      DESCRIPTION(
-          "Initialize isotopologue ratios with default values from built-in\n"
-          "species data.  This should be OK for Earth-like atmospheres\n"),
+      DESCRIPTION(R"--(Initialize isotopologue ratios with default values from built-in
+species data.  This should be OK for Earth-like atmospheres
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("isotopologue_ratios"),
       GOUT(),
@@ -7836,9 +7916,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("isotopologue_ratiosInitFromHitran"),
-      DESCRIPTION(
-          "Initialize isotopologue ratios with default values from built-in\n"
-          "Hitran species data.\n"),
+      DESCRIPTION(R"--(Initialize isotopologue ratios with default values from built-in
+Hitran species data.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("isotopologue_ratios"),
       GOUT(),
@@ -7852,28 +7932,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
-      DESCRIPTION(
-          "Conversion of *iy* to other spectral units (for passive observations).\n"
-          "\n"
-          "The method allows a change of unit, as a post-processing step,\n"
-          "ignoring the n2-law of radiance.\n"
-          "\n"
-          "The conversion made inside ``iyEmissionStandard`` is mimiced,\n"
-          "see that method for constraints and selection of output units.\n"
-          "Restricted to that the n2-law can be ignored. This assumption\n"
-          "is valid if the sensor is placed in space, or if the refractive\n"
-          "index only deviates slightly from unity.\n"
-          "\n"
-          "It is stressed that there is no automatic check that the method is\n"
-          "applied correctly, it is up to the user to ensure that the input\n"
-          "data are suitable for the conversion.\n"
-          "\n"
-          "Beside *iy*, these auxilary quantities are modified:\n"
-          "    \"iy\", \"Error\" and \"Error (uncorrelated)\"\n"
-          "\n"
-          "Please note that *diy_dx* is not handled. Also note that this method\n"
-          "considers *iy_unit*, while *iy_unit_radar* is handled directly by\n"
-          "the methods dealing with such simulations.\n"),
+      DESCRIPTION(R"--(Conversion of *iy* to other spectral units (for passive observations).
+
+The method allows a change of unit, as a post-processing step,
+ignoring the n2-law of radiance.
+
+The conversion made inside ``iyEmissionStandard`` is mimiced,
+see that method for constraints and selection of output units.
+Restricted to that the n2-law can be ignored. This assumption
+is valid if the sensor is placed in space, or if the refractive
+index only deviates slightly from unity.
+
+It is stressed that there is no automatic check that the method is
+applied correctly, it is up to the user to ensure that the input
+data are suitable for the conversion.
+
+Beside *iy*, these auxilary quantities are modified:
+    \"iy\", \"Error\" and \"Error (uncorrelated)\"
+
+Please note that *diy_dx* is not handled. Also note that this method
+considers *iy_unit*, while *iy_unit_radar* is handled directly by
+the methods dealing with such simulations.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux"),
       GOUT(),
@@ -7889,8 +7969,8 @@ computations.
       create_mdrecord
 
       (NAME("iyBackground"),
-       DESCRIPTION(
-           "Computes background radiation by wrapping various agendas\n"),
+       DESCRIPTION(R"--(Computes background radiation by wrapping various agendas
+)--"),
        AUTHORS("Richard Larsson"),
        OUT("iy", "diy_dx"),
        GOUT(),
@@ -7922,18 +8002,18 @@ computations.
       create_mdrecord
 
       (NAME("iyCalc"),
-       DESCRIPTION(
-           "A single monochromatic pencil beam calculation.\n"
-           "\n"
-           "Performs monochromatic radiative transfer calculations for the\n"
-           "specified position (*rte_pos*) and line-of-sight (*rte_pos*).\n"
-           "See *iy* and associated variables for format of output.\n"
-           "\n"
-           "Please note that Jacobian type calculations not are supported.\n"
-           "For this use *yCalc*.\n"
-           "\n"
-           "No sensor characteristics are applied. These are most easily\n"
-           "incorporated by using *yCalc*\n"),
+       DESCRIPTION(R"--(A single monochromatic pencil beam calculation.
+
+Performs monochromatic radiative transfer calculations for the
+specified position (*rte_pos*) and line-of-sight (*rte_pos*).
+See *iy* and associated variables for format of output.
+
+Please note that Jacobian type calculations not are supported.
+For this use *yCalc*.
+
+No sensor characteristics are applied. These are most easily
+incorporated by using *yCalc*
+)--"),
        AUTHORS("Patrick Eriksson"),
        OUT("iy", "iy_aux", "ppath", "geo_pos"),
        GOUT(),
@@ -7960,62 +8040,62 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyClearsky"),
-      DESCRIPTION(
-          "Standard method for radiative transfer calculations with emission\n"
-          "and a direct (solar) source\n."
-          "\n"
-          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-          "outside the cloudbox (no scattering). For details se the user guide.\n"
-          "\n"
-          "The possible choices for *iy_unit* are\n"
-          "\n"
-          "- ``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).\n"
-          "- ``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.\n"
-          "- ``\"PlanckBT\"``: Conversion to Planck brightness temperature.\n"
-          "- ``\"W/(m^2 m sr)\"``: Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).\n"
-          "- ``\"W/(m^2 m-1 sr)\"``: Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).\n"
-          "\n"
-          "Expressions applied and considerations for the unit conversion of\n"
-          "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
-          "\n"
-          "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
-          "no unit ocnversion is applied for internal iterative calls.\n"
-          "\n"
-          "Recognised choices for *rt_integration_option* are:\n"
-          "\n"
-          "- ``\"first order\"``: A first order integration is applied.\n"
-          "- ``\"second order\"``: A second order integration is applied.\n"
-          "- ``\"default\"``: Another way to select the first order option.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          "\n"
-          "- ``\"Radiative background\"``:\n"
-          "    Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox.\n"
-          "- ``\"Optical depth\"``:\n"
-          "    Scalar optical depth between the observation point\n"
-          "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT.\n"
-          "- ``\"Direct radiation\"``:\n"
-          "    Stokes vector of direct radiation. It dimensions\n"
-          "    are number of frequencies and ``stokes_dim``. If no sun is present \n"
-          "    in the line of sight, it is zero.\n"
-          "- ``\"Radiation Background\"``:\n"
-          "    Stokes vector of the radiation at start of\n"
-          "    the propagation path. It dimensions are number of frequencies and\n"
-          "    ``stokes_dim``.\n"
-          "\n"
-          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
-          "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"
-          "\n"
-          "IMPORTANT:\n"
-          "    No jacobian calculation is supported when suns or gas "
-          "    scattering is included! This will be implemented in a future version.\n"),
+      DESCRIPTION(R"--(Standard method for radiative transfer calculations with emission
+and a direct (solar) source.
+
+Designed to be part of *iy_main_agenda*. That is, only valid
+outside the cloudbox (no scattering). For details se the user guide.
+
+The possible choices for *iy_unit* are
+
+- ``\"1\"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).
+- ``\"RJBT\"``: Conversion to Rayleigh-Jean brightness temperature.
+- ``\"PlanckBT\"``: Conversion to Planck brightness temperature.
+- ``\"W/(m^2 m sr)\"``: Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).
+- ``\"W/(m^2 m-1 sr)\"``: Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).
+
+Expressions applied and considerations for the unit conversion of
+radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.
+
+*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that
+no unit ocnversion is applied for internal iterative calls.
+
+Recognised choices for *rt_integration_option* are:
+
+- ``\"first order\"``: A first order integration is applied.
+- ``\"second order\"``: A second order integration is applied.
+- ``\"default\"``: Another way to select the first order option.
+
+Some auxiliary radiative transfer quantities can be obtained. Auxiliary
+quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Radiative background\"``:
+    Index value flagging the radiative
+    background. The following coding is used: 0=space, 1=surface
+    and 2=cloudbox.
+- ``\"Optical depth\"``:
+    Scalar optical depth between the observation point
+    and the end of the present propagation path. Calculated based on
+    the (1,1)-element of the transmittance matrix (1-based indexing),
+    i.e. only fully valid for scalar RT.
+- ``\"Direct radiation\"``:
+    Stokes vector of direct radiation. It dimensions
+    are number of frequencies and ``stokes_dim``. If no sun is present 
+    in the line of sight, it is zero.
+- ``\"Radiation Background\"``:
+    Stokes vector of the radiation at start of
+    the propagation path. It dimensions are number of frequencies and
+    ``stokes_dim``.
+
+If nothing else is stated, only the first column of *iy_aux* is filled,
+i.e. the column matching Stokes element I, while remaing columns are
+are filled with zeros.
+
+IMPORTANT:
+    No jacobian calculation is supported when suns or gas 
+    scattering is included! This will be implemented in a future version.
+)--"),
       AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke", "Manfred Brath"),
       OUT("iy",
           "iy_aux",
@@ -8066,28 +8146,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyEmissionHybrid"),
-      DESCRIPTION(
-        "Radiative transfer with emission and precalculated radiation field.\n"
-        "\n"
-        "This method works largely as ``iyEmissionStandard`` but incorporates\n"
-        "scattering by a precalculated radiation field. It is so far limited\n"
-        "to 1D calculations.\n"
-        "\n"
-        "The method integrates the source term along the propagation path. While\n"
-        "``iyEmissionStandard`` only considers local thermal emission, this method\n"
-        "also includes scattering into the line-of-sight in the source term.\n"
-        "The scattering integral is solved with the precalculated field as incoming\n"
-        "radiation. That is, this method extends the integration into the cloudbox,\n"
-        "while ``iyEmissionStandard`` starts at the cloudbox boundary.\n"
-        "\n"
-        "The calculate radiance should be as exact as what is produced by the\n"
-        "scattering solver used to calculate the precalculted radiation field,\n"
-        "but the main reason to use this method is to obtain the Jacobian even\n"
-        "in the presence of scattering. The Jacobian with respect to bulk scattering\n"
-        "properties can be obtained, but it is approximate. This is the case as\n"
-        "the incoming radiation field is treated as fixed in the calculation\n"
-        "of the Jacobian. The impact of this approximation increases with the degree\n"
-        "of scattering.\n"),
+      DESCRIPTION(R"--(Radiative transfer with emission and precalculated radiation field.
+
+This method works largely as ``iyEmissionStandard`` but incorporates
+scattering by a precalculated radiation field. It is so far limited
+to 1D calculations.
+
+The method integrates the source term along the propagation path. While
+``iyEmissionStandard`` only considers local thermal emission, this method
+also includes scattering into the line-of-sight in the source term.
+The scattering integral is solved with the precalculated field as incoming
+radiation. That is, this method extends the integration into the cloudbox,
+while ``iyEmissionStandard`` starts at the cloudbox boundary.
+
+The calculate radiance should be as exact as what is produced by the
+scattering solver used to calculate the precalculted radiation field,
+but the main reason to use this method is to obtain the Jacobian even
+in the presence of scattering. The Jacobian with respect to bulk scattering
+properties can be obtained, but it is approximate. This is the case as
+the incoming radiation field is treated as fixed in the calculation
+of the Jacobian. The impact of this approximation increases with the degree
+of scattering.
+)--"),
       AUTHORS("Patrick Eriksson", "Jana Mendrok", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
@@ -8143,35 +8223,35 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
-      DESCRIPTION(
-        "Samples atmosphere along ppath and make 1D-type RT calculation.\n"
-        "\n"
-        "The main application of this method should be to apply 1D\n"
-        "scattering solvers on 2D or 3D atmospheres. The 1D calculation\n"
-        "is set up inside *iy_independent_beam_approx_agenda*.\n"
-        "\n"
-        "The method calculates the ppath until reaching the surface or the\n"
-        "top-of-the atmosphere. If the sensor is inside the atmosphere the\n"
-        "ppath is extended from the sensor vertically to cover the remaining\n"
-        "part of the atmosphere. All atmospheric fields are interpolated to\n"
-        "the obtain ppath, to form a 1D view of the atmosphere. This 1D\n"
-        "atmosphere forms the input to *iy_independent_beam_approx_agenda*\n"
-        "\n"
-        "*lat_true* and *lon_true* for the 1D view is set to the intersection\n"
-        "with the surface of the ppath described above.\n"
-        "\n"
-        "The function accepts that the input atmosphere is 1D, as well as\n"
-        "that there is no active cloudbox.\n"
-        "\n"
-        "The constructed 1D atmosphere is exported if the GIN ``return_atm1d``\n"
-        "is set to 1. The default then is to include all atmospheric fields,\n"
-        "but ``vmr_field`` and *pnd_field* can be deselected by two of the GIN-s.\n"
-        "The order of the fields is specified by the first grid in the structure\n"
-        "member grids. If *atm_fields_compact* is denoted as A, then\n"
-        "A.grids{0}{i} gives the name of field with index i.\n"
-        "Each book in ``vmr_field`` and *pnd_field* is stored separately. For\n"
-        "example, the first book in *pnd_field* is stored with the name\n"
-        "\"Scattering element 0\".\n"),
+      DESCRIPTION(R"--(Samples atmosphere along ppath and make 1D-type RT calculation.
+
+The main application of this method should be to apply 1D
+scattering solvers on 2D or 3D atmospheres. The 1D calculation
+is set up inside *iy_independent_beam_approx_agenda*.
+
+The method calculates the ppath until reaching the surface or the
+top-of-the atmosphere. If the sensor is inside the atmosphere the
+ppath is extended from the sensor vertically to cover the remaining
+part of the atmosphere. All atmospheric fields are interpolated to
+the obtain ppath, to form a 1D view of the atmosphere. This 1D
+atmosphere forms the input to *iy_independent_beam_approx_agenda*
+
+*lat_true* and *lon_true* for the 1D view is set to the intersection
+with the surface of the ppath described above.
+
+The function accepts that the input atmosphere is 1D, as well as
+that there is no active cloudbox.
+
+The constructed 1D atmosphere is exported if the GIN ``return_atm1d``
+is set to 1. The default then is to include all atmospheric fields,
+but ``vmr_field`` and *pnd_field* can be deselected by two of the GIN-s.
+The order of the fields is specified by the first grid in the structure
+member grids. If *atm_fields_compact* is denoted as A, then
+A.grids{0}{i} gives the name of field with index i.
+Each book in ``vmr_field`` and *pnd_field* is stored separately. For
+example, the first book in *pnd_field* is stored with the name
+\"Scattering element 0\".
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"),
       GOUT(),
@@ -8210,27 +8290,27 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("iyInterpCloudboxField"),
-      DESCRIPTION(
-          "Interpolates the intensity field of the cloud box.\n"
-          "\n"
-          "Determines the intensity field at the position and direction\n"
-          "specified by *rte_pos* and *rte_los*. The position can be both\n"
-          "inside the cloud box or at its edge.\n"
-          "\n"
-          "The interpolation in the spatial dimensions is linear.\n"
-          "\n"
-          "For the zenith angle dimensions several options for controlling\n"
-          "the interpolation are at hand. Default is linear interpolation.\n"
-          "Higher order polynomial interpolation is activated by setting\n"
-          "``za_interp_order`` to a value > 1. Default is to perform the\n"
-          "interpolation separately for [0,90[ and ]90,180]. To handle\n"
-          "90 degree or use the full range ([0,180]) as basis for the\n"
-          "interpolation, set ``za_restrict`` to 0. You can select to use\n"
-          "cos(za) as the independent variable (instead of za) by setting\n"
-          "``cos_za_interp`` to 1.\n"
-          "\n"
-          "For the azimuth dimension the interpolation order can be\n"
-          "selected, in the same manner as for zenith.\n"),
+      DESCRIPTION(R"--(Interpolates the intensity field of the cloud box.
+
+Determines the intensity field at the position and direction
+specified by *rte_pos* and *rte_los*. The position can be both
+inside the cloud box or at its edge.
+
+The interpolation in the spatial dimensions is linear.
+
+For the zenith angle dimensions several options for controlling
+the interpolation are at hand. Default is linear interpolation.
+Higher order polynomial interpolation is activated by setting
+``za_interp_order`` to a value > 1. Default is to perform the
+interpolation separately for [0,90[ and ]90,180]. To handle
+90 degree or use the full range ([0,180]) as basis for the
+interpolation, set ``za_restrict`` to 0. You can select to use
+cos(za) as the independent variable (instead of za) by setting
+``cos_za_interp`` to 1.
+
+For the azimuth dimension the interpolation order can be
+selected, in the same manner as for zenith.
+)--"),
       AUTHORS("Claudia Emde", "Patrick Eriksson", "Jana Mendrok"),
       OUT("iy"),
       GOUT(),
@@ -8265,17 +8345,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyLoopFrequencies"),
-      DESCRIPTION(
-          "Radiative transfer calculations one frequency at the time.\n"
-          "\n"
-          "The method loops the frequencies in *f_grid* and calls\n"
-          "*iy_loop_freqs_agenda* for each individual value. This method is\n"
-          "placed in *iy_main_agenda*, and the actual radiative transfer\n"
-          "method is put in *iy_loop_freqs_agenda*.\n"
-          "\n"
-          "A common justification for using the method should be to consider\n"
-          "dispersion. By using this method it is ensured that the propagation\n"
-          "path for each individual frequency is calculated.\n"),
+      DESCRIPTION(R"--(Radiative transfer calculations one frequency at the time.
+
+The method loops the frequencies in *f_grid* and calls
+*iy_loop_freqs_agenda* for each individual value. This method is
+placed in *iy_main_agenda*, and the actual radiative transfer
+method is put in *iy_loop_freqs_agenda*.
+
+A common justification for using the method should be to consider
+dispersion. By using this method it is ensured that the propagation
+path for each individual frequency is calculated.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx"),
       GOUT(),
@@ -8297,43 +8377,44 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyMC"),
-      DESCRIPTION(
-          "Interface to Monte Carlo part for *iy_main_agenda*.\n"
-          "\n"
-          "Basically an interface to *MCGeneral* for doing monochromatic\n"
-          "pencil beam calculations. This functions allows Monte Carlo (MC)\n"
-          "calculations for sets of frequencies and sensor pos/los in a single\n"
-          "run. Sensor responses can be included in the standard manner\n"
-          "(through *yCalc*).\n"
-          "\n"
-          "This function does not apply the MC approach when it comes\n"
-          "to sensor properties. These properties are not considered when\n"
-          "tracking photons, which is done in *MCGeneral* (but then only for\n"
-          "the antenna pattern).\n"
-          "\n"
-          "Output unit options  (*iy_unit*) exactly as for *MCGeneral*.\n"
-          "\n"
-          "The MC calculation errors are all assumed be uncorrelated and each\n"
-          "have a normal distribution. These properties are of relevance when\n"
-          "weighting the errors with the sensor repsonse matrix. The seed is\n"
-          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
-          "\n"
-          "MC control arguments (mc_std_err, mc_max_time, mc_min_iter, mc_max_iter\n"
-          "mc_taustep_limit) as for *MCGeneral*. The arguments are applied\n"
-          "for each monochromatic pencil beam calculation individually.\n"
-          "As for *MCGeneral*, the value of *mc_error* shall be adopted to\n"
-          "*iy_unit*.\n"
-          "\n"
-          "The following auxiliary data can be obtained:\n"
-          "\n"
-          "- ``\"Error (uncorrelated)\"``:\n"
-          "    Calculation error. Size: [nf,ns,1,1].\n"
-          "    (The later part of the text string is required. It is used as\n"
-          "    a flag to yCalc for how to apply the sensor data.)\n"
-          "\n"
-          "where\n\n"
-          "- `nf`: Number of frequencies.\n"
-          "- `ns`: Number of Stokes elements.\n"),
+      DESCRIPTION(R"--(Interface to Monte Carlo part for *iy_main_agenda*.
+
+Basically an interface to *MCGeneral* for doing monochromatic
+pencil beam calculations. This functions allows Monte Carlo (MC)
+calculations for sets of frequencies and sensor pos/los in a single
+run. Sensor responses can be included in the standard manner
+(through *yCalc*).
+
+This function does not apply the MC approach when it comes
+to sensor properties. These properties are not considered when
+tracking photons, which is done in *MCGeneral* (but then only for
+the antenna pattern).
+
+Output unit options  (*iy_unit*) exactly as for *MCGeneral*.
+
+The MC calculation errors are all assumed be uncorrelated and each
+have a normal distribution. These properties are of relevance when
+weighting the errors with the sensor repsonse matrix. The seed is
+reset for each call of *MCGeneral* to obtain uncorrelated errors.
+
+MC control arguments (mc_std_err, mc_max_time, mc_min_iter, mc_max_iter
+mc_taustep_limit) as for *MCGeneral*. The arguments are applied
+for each monochromatic pencil beam calculation individually.
+As for *MCGeneral*, the value of *mc_error* shall be adopted to
+*iy_unit*.
+
+The following auxiliary data can be obtained:
+
+- ``\"Error (uncorrelated)\"``:
+    Calculation error. Size: [nf,ns,1,1].
+    (The later part of the text string is required. It is used as
+    a flag to yCalc for how to apply the sensor data.)
+
+where
+
+- `nf`: Number of frequencies.
+- `ns`: Number of Stokes elements.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "diy_dx"),
       GOUT(),
@@ -8374,70 +8455,71 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyRadarSingleScat"),
-      DESCRIPTION(
-          "Simulation of radar, restricted to single scattering.\n"
-          "\n"
-          "The WSM treats e.g. radar measurements of cloud and precipitation,\n"
-          "on the condition that multiple scattering can be ignored. Beside\n"
-          "the direct back-scattering, the two-way attenuation by gases and\n"
-          "particles is considered. Surface scattering/clutter is ignored.\n"
-          "\n"
-          "The method could potentially be used for lidars, but multiple\n"
-          "scattering poses here a must stronger constrain for the range of\n"
-          "applications.\n"
-          "\n"
-          "The method shall be used with *yRadar*, NOT with *yCalc*.\n"
-          "\n"
-          "The *ppath* provided should be calculated including cloudbox interior::\n"
-          "\n"
-          "     ppathCalc( cloudbox_on=0 )\n"
-          "\n"
-          "The method returns the back-scattering for each point of *ppath*.\n"
-          "Several frequencies can be treated in parallel. The size of *iy*\n"
-          "is [ nf * np, stokes_dim ], where nf is the length of *f_grid* and\n"
-          "np is the number of path points. The data are stored in blocks\n"
-          "of [ np, stokes_dim ]. That is, all the results for the first\n"
-          "frequency occupy the np first rows of *iy* etc.\n"
-          "\n"
-          "The polarisation state of the transmitted pulse is taken from\n"
-          "*iy_transmitter*. If the radar transmits several polarisations at\n"
-          "the same frequency, you need to handle this by using two frequencies\n"
-          "in *f_grid*, but these can be almost identical.\n"
-          "\n"
-          "This method does not consider *iy_unit_radar*. Unit changes are instead\n"
-          "applied in *yRadar*. The output of this method matches the option \"1\".\n"
-          "\n"
-          "The extinction due to particles can be scaled (by ``pext_scaling``),\n"
-          "which could be of interest when e.g. characterising inversions or\n"
-          "trying to compensate for ignored multiple scattering. The later is\n"
-          "commented further for *particle_bulkpropRadarOnionPeeling*.\n"
-          "\n"
-          "For Jacobian calculations the default is to assume that the\n"
-          "transmittance is unaffected by the retrieval quantities. This is\n"
-          "done to save computational time, and should be a valid approximation\n"
-          "for the single-scattering conditions. Set ``trans_in_jacobian`` to 1 to\n"
-          "activate full Jacobian calculations.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n\n"
-          "- ``\"Radiative background\"``:\n"
-          "    Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox (the last case should not occur!). Only column\n"
-          "    matching first Stokes element filled. Other columns are set to 0.\n"
-          "- ``\"Backscattering\"``:\n"
-          "    The unattenuated back-scattering. That is, as\n"
-          "    *iy* but with no attenuated applied. Here all columns are filled.\n"
-          "    By combing *iy* and this auxiliary variable, the total two-way\n"
-          "    attenuation can be derived.\n"
-          "- ``\"Abs species extinction\"``:\n"
-          "    Extinction due to *abs_species* at each\n"
-          "    ppath point, taken as the diagonal of the local extinction matrix.\n"
-          "- ``\"Particle extinction\"``:\n"
-          "    Extinction due to particles at each\n"
-          "    ppath point, taken as the diagonal of the local extinction matrix.\n"
-          "    The retunred values includes ``pext_scaling``\n"),
+      DESCRIPTION(R"--(Simulation of radar, restricted to single scattering.
+
+The WSM treats e.g. radar measurements of cloud and precipitation,
+on the condition that multiple scattering can be ignored. Beside
+the direct back-scattering, the two-way attenuation by gases and
+particles is considered. Surface scattering/clutter is ignored.
+
+The method could potentially be used for lidars, but multiple
+scattering poses here a must stronger constrain for the range of
+applications.
+
+The method shall be used with *yRadar*, NOT with *yCalc*.
+
+The *ppath* provided should be calculated including cloudbox interior::
+
+     ppathCalc( cloudbox_on=0 )
+
+The method returns the back-scattering for each point of *ppath*.
+Several frequencies can be treated in parallel. The size of *iy*
+is [ nf * np, stokes_dim ], where nf is the length of *f_grid* and
+np is the number of path points. The data are stored in blocks
+of [ np, stokes_dim ]. That is, all the results for the first
+frequency occupy the np first rows of *iy* etc.
+
+The polarisation state of the transmitted pulse is taken from
+*iy_transmitter*. If the radar transmits several polarisations at
+the same frequency, you need to handle this by using two frequencies
+in *f_grid*, but these can be almost identical.
+
+This method does not consider *iy_unit_radar*. Unit changes are instead
+applied in *yRadar*. The output of this method matches the option \"1\".
+
+The extinction due to particles can be scaled (by ``pext_scaling``),
+which could be of interest when e.g. characterising inversions or
+trying to compensate for ignored multiple scattering. The later is
+commented further for *particle_bulkpropRadarOnionPeeling*.
+
+For Jacobian calculations the default is to assume that the
+transmittance is unaffected by the retrieval quantities. This is
+done to save computational time, and should be a valid approximation
+for the single-scattering conditions. Set ``trans_in_jacobian`` to 1 to
+activate full Jacobian calculations.
+
+Some auxiliary radiative transfer quantities can be obtained. Auxiliary
+quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Radiative background\"``:
+    Index value flagging the radiative
+    background. The following coding is used: 0=space, 1=surface
+    and 2=cloudbox (the last case should not occur!). Only column
+    matching first Stokes element filled. Other columns are set to 0.
+- ``\"Backscattering\"``:
+    The unattenuated back-scattering. That is, as
+    *iy* but with no attenuated applied. Here all columns are filled.
+    By combing *iy* and this auxiliary variable, the total two-way
+    attenuation can be derived.
+- ``\"Abs species extinction\"``:
+    Extinction due to *abs_species* at each
+    ppath point, taken as the diagonal of the local extinction matrix.
+- ``\"Particle extinction\"``:
+    Extinction due to particles at each
+    ppath point, taken as the diagonal of the local extinction matrix.
+    The retunred values includes ``pext_scaling``
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy",
           "iy_aux",
@@ -8481,17 +8563,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyReplaceFromAux"),
-      DESCRIPTION(
-          "Change of main output variable.\n"
-          "\n"
-          "With this method you can replace the content of *iy* with one of\n"
-          "the auxiliary variables. The selected variable (by ``aux_var``) must\n"
-          "be part of *iy_aux_vars*. The corresponding data from *iy_aux* are\n"
-          "copied to form a new *iy* (*iy_aux* is left unchanged). Elements of\n"
-          "*iy* correponding to Stokes elements not covered by the auxiliary\n"
-          "variable are just set to zero.\n"
-          "\n"
-          "Jacobian variables are not handled.\n"),
+      DESCRIPTION(R"--(Change of main output variable.
+
+With this method you can replace the content of *iy* with one of
+the auxiliary variables. The selected variable (by ``aux_var``) must
+be part of *iy_aux_vars*. The corresponding data from *iy_aux* are
+copied to form a new *iy* (*iy_aux* is left unchanged). Elements of
+*iy* correponding to Stokes elements not covered by the auxiliary
+variable are just set to zero.
+
+Jacobian variables are not handled.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy"),
       GOUT(),
@@ -8505,26 +8587,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
-      DESCRIPTION(
-          "Usage of FASTEM for emissivity and reflectivity of water surfaces.\n"
-          "\n"
-          "This method allows usage of the FASTEM model inside\n"
-          "*iy_surface_agenda*. The aim is to use FASTEM in the exact same\n"
-          "way as done in RTTOV. For example, the transmittance for down-\n"
-          "welling radiation is considered. RTTOV os just 1D. Here 2D and 3D\n"
-          "are handled as the 1D case, the down-welling radiation is just\n"
-          "calculated for the directuon matching specular reflection.\n"
-          "\n"
-          "The wind direction is given as the azimuth angle, counted\n"
-          "clockwise from north (i.e. an easterly wind is at 90 deg).\n"
-          "This matches the general definition of azimuth inside ARTS.\n"
-          "For 1D and 2D, the wind direction must be adjusted to match the\n"
-          "fact that the line-of-sight is locked to be at 0 deg (180 for 2D\n"
-          "in the case of a negative zenith angle). For 3D, the true wind\n"
-          "direction shall be used.\n"
-          "\n"
-          "FASTEM is called by *FastemStandAlone*. See that WSM for further\n"
-          "comments on variables and limitations.\n"),
+      DESCRIPTION(R"--(Usage of FASTEM for emissivity and reflectivity of water surfaces.
+
+This method allows usage of the FASTEM model inside
+*iy_surface_agenda*. The aim is to use FASTEM in the exact same
+way as done in RTTOV. For example, the transmittance for down-
+welling radiation is considered. RTTOV os just 1D. Here 2D and 3D
+are handled as the 1D case, the down-welling radiation is just
+calculated for the directuon matching specular reflection.
+
+The wind direction is given as the azimuth angle, counted
+clockwise from north (i.e. an easterly wind is at 90 deg).
+This matches the general definition of azimuth inside ARTS.
+For 1D and 2D, the wind direction must be adjusted to match the
+fact that the line-of-sight is locked to be at 0 deg (180 for 2D
+in the case of a negative zenith angle). For 3D, the true wind
+direction shall be used.
+
+FASTEM is called by *FastemStandAlone*. See that WSM for further
+comments on variables and limitations.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "diy_dx"),
       GOUT(),
@@ -8555,18 +8637,18 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivity"),
-      DESCRIPTION(
-          "This method calculates upwelling radiation for a specular flat surface.\n"
-          "\n"
-          "These are due to the reflection of the downgoing diffuse radiation and emission from\n"
-          "the surface using a predefined reflectivity matrix. \n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the reflection of the diffuse\n"
-          "downward radiation. No direct incoming radiation is considered\n"
-          "\n"
-          "Jacobian is supported only for Skin temperature\n"),
+      DESCRIPTION(R"--(This method calculates upwelling radiation for a specular flat surface.
+
+These are due to the reflection of the downgoing diffuse radiation and emission from
+the surface using a predefined reflectivity matrix. 
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the reflection of the diffuse
+downward radiation. No direct incoming radiation is considered
+
+Jacobian is supported only for Skin temperature
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
           "diy_dx",
@@ -8608,16 +8690,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatReflectivityDirect"),
-      DESCRIPTION(
-          "This method calculates the specular reflection at a flat \n"
-          "surface of the direct radiation with a predefined reflectivity matrix.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the scattering of the direct\n"
-          "(sun) radiation. No diffuse incoming radiation is considered\n"
-          "\n"
-          "This method has no jacobian capability\n"),
+      DESCRIPTION(R"--(This method calculates the specular reflection at a flat 
+surface of the direct radiation with a predefined reflectivity matrix.
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the scattering of the direct
+(sun) radiation. No diffuse incoming radiation is considered
+
+This method has no jacobian capability
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
@@ -8659,18 +8741,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatRefractiveIndex"),
-      DESCRIPTION(
-          "This method calculates upwelling radiation for a specular flat surface.\n"
-          "\n"
-          "These are due to the reflection of the downgoing diffuse radiation and emission from\n"
-          "the surface using a predefined reflectivity matrix. \n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the reflection of the diffuse\n"
-          "downward radiation. No direct incoming radiation is considered\n"
-          "\n"
-          "Jacobian is supported only for Skin temperature\n"),
+      DESCRIPTION(R"--(This method calculates upwelling radiation for a specular flat surface.
+
+These are due to the reflection of the downgoing diffuse radiation and emission from
+the surface using a predefined reflectivity matrix. 
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the reflection of the diffuse
+downward radiation. No direct incoming radiation is considered
+
+Jacobian is supported only for Skin temperature
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
           "diy_dx",
@@ -8708,16 +8790,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFlatRefractiveIndexDirect"),
-      DESCRIPTION(
-          "This method calculates the specular reflection at a flat \n"
-          "surface of the direct radiation.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the scattering of the direct\n"
-          "(sun) radiation. No diffuse incoming radiation is considered\n"
-          "\n"
-          "This method has no jacobian capability\n"),
+      DESCRIPTION(R"--(This method calculates the specular reflection at a flat 
+surface of the direct radiation.
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the scattering of the direct
+(sun) radiation. No diffuse incoming radiation is considered
+
+This method has no jacobian capability
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
@@ -8759,12 +8841,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceInit"),
-      DESCRIPTION(
-          "This method initialize iy.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*.\n"
-          "Its only prpose is to initialize *iy* properly within the \n"
-          "*iy_surface_agenda*\n"),
+      DESCRIPTION(R"--(This method initialize iy.
+
+This method is designed to be part of *iy_surface_agenda*.
+Its only prpose is to initialize *iy* properly within the 
+*iy_surface_agenda*
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
@@ -8778,27 +8860,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceLambertian"),
-      DESCRIPTION(
-          "This method calculates upwelling radiation for a lambertian surface.\n\n"
-          "These are due to the scattering of the downgoing diffuse radiation and emission from\n"
-          "the surface.\n"
-          "This method works only for 1D or 3D atmospheres.\n"
-          "For the integration over the zenith angles a gaussian quadrature with\n"
-          "N_za angles is used.\n"
-          "For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds\n"
-          "azimuthal dependency can be neglected. N_aa = 1 is sufficient.\n"
-          "For 3D atmospheres with cloudbox on azimuthal dependency needs to be \n"
-          "accounted. In that case the number of azimuth angles N_aa as a rule of"
-          "thumb should be set to 4*N_za.\n"
-          "For the 1D case N_za downwelling streams and 3D case N_za*N_aa downwelling\n"
-          "streams are calculated.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the scattering of the diffuse\n"
-          "downward radiation. No direct incoming radiation is considered\n"
-          "\n"
-          "Jacobian is supported only for Skin temperature\n"),
+      DESCRIPTION(R"--(This method calculates upwelling radiation for a lambertian surface.
+
+These are due to the scattering of the downgoing diffuse radiation and emission from
+the surface.
+This method works only for 1D or 3D atmospheres.
+For the integration over the zenith angles a gaussian quadrature with
+N_za angles is used.
+For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds
+azimuthal dependency can be neglected. N_aa = 1 is sufficient.
+For 3D atmospheres with cloudbox on azimuthal dependency needs to be 
+accounted. In that case the number of azimuth angles N_aa as a rule of
+thumb should be set to 4*N_za.
+For the 1D case N_za downwelling streams and 3D case N_za*N_aa downwelling
+streams are calculated.
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the scattering of the diffuse
+downward radiation. No direct incoming radiation is considered
+
+Jacobian is supported only for Skin temperature
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy",
           "diy_dx"),
@@ -8832,16 +8915,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceLambertianDirect"),
-      DESCRIPTION(
-          "This method calculates the scattering of the direct radiation\n"
-          "for a Lambertian surface.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*\n"
-          "\n"
-          "Important this method calculates only the scattering of the direct\n"
-          "(sun) radiation. No diffuse incoming radiation is considered\n"
-          "\n"
-          "This method has no jacobian capability\n"),
+      DESCRIPTION(R"--(This method calculates the scattering of the direct radiation
+for a Lambertian surface.
+
+This method is designed to be part of *iy_surface_agenda*
+
+Important this method calculates only the scattering of the direct
+(sun) radiation. No diffuse incoming radiation is considered
+
+This method has no jacobian capability
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("iy"),
       GOUT(),
@@ -8881,15 +8964,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropAgenda"),
-      DESCRIPTION(
-          "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*. It\n"
-          "determines the radiative properties of the surface by\n"
-          "*surface_rtprop_agenda* and calculates the downwelling radiation\n"
-          "by *iy_main_agenda*, and sums up the terms as described in AUG.\n"
-          "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
-          "in a straightforward fashion.\n"),
+      DESCRIPTION(R"--(Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.
+
+This method is designed to be part of *iy_surface_agenda*. It
+determines the radiative properties of the surface by
+*surface_rtprop_agenda* and calculates the downwelling radiation
+by *iy_main_agenda*, and sums up the terms as described in AUG.
+That is, this WSM uses the output from *surface_rtprop_agenda*
+in a straightforward fashion.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy",
           "diy_dx",
@@ -8922,17 +9005,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropCalc"),
-      DESCRIPTION(
-          "Applies *surface_los*, *surface_rmatrix* and *surface_emission*.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda* and\n"
-          "should be mandatory when using methods describing the surface\n"
-          "radiative transfer properties by *surface_los*, *surface_rmatrix*\n"
-          "and *surface_emission*. The task of this method is to apply these\n"
-          "three WSVs to obtain the upwelling radiation from the surface.\n"
-          "This upwelling radiation is the sum of surface emission and\n"
-          "reflected downwelling radiation. The later part is calculated\n"
-          "by calling *iy_main_agenda*. See further AUG.\n"),
+      DESCRIPTION(R"--(Applies *surface_los*, *surface_rmatrix* and *surface_emission*.
+
+This method is designed to be part of *iy_surface_agenda* and
+should be mandatory when using methods describing the surface
+radiative transfer properties by *surface_los*, *surface_rmatrix*
+and *surface_emission*. The task of this method is to apply these
+three WSVs to obtain the upwelling radiation from the surface.
+This upwelling radiation is the sum of surface emission and
+reflected downwelling radiation. The later part is calculated
+by calling *iy_main_agenda*. See further AUG.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "diy_dx"),
       GOUT(),
@@ -8966,48 +9049,48 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iyTransmissionStandard"),
-      DESCRIPTION(
-          "Standard method for handling transmission measurements.\n"
-          "\n"
-          "Designed to be part of *iy_main_agenda*. Treatment of the cloudbox\n"
-          "is incorporated (that is, no need to define *iy_cloudbox_agenda*).\n"
-          "\n"
-          "The transmitter is assumed to be placed at the end of provided *ppath*.\n"
-          "The transmitted signal is taken from *iy_transmitter*. This\n"
-          "signal is propagated along the path, considering attenuation alone.\n"
-          "That is, the result of the method (*iy*) is the output of\n"
-          "*iy_transmitter* multiplied with the transmittance along the\n"
-          "propagation path.\n"
-          "\n"
-          "As mentioned, the given *ppath* determines the position of the\n"
-          "transmitter. For clear-sky and no modification of *ppath*, this\n"
-          "means that the transitter will either be found at the surface or\n"
-          "at the top-of-the-atmosphere. If you want to maintain this even with\n"
-          "an active cloudbox, calculate *ppath* as::\n"
-          "\n"
-          "     ppathCalc( cloudbox_on=0 )\n"
-          "\n"
-          "Without setting cloudbox_on=0, the transmitter will end up inside or\n"
-          "at the boundary of the cloudbox.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          "\n"
-          "- ``\"Radiative background\"``:\n"
-          "    Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox. The value is added to each column.\n"
-          "- ``\"Optical depth\"``:\n"
-          "    Scalar optical depth between the observation point\n"
-          "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT. The value is added to each\n"
-          "    column.\n"
-          "\n"
-          "IMPORTANT:\n"
-          "    No jacobian calculation is supported when gas scattering is\n"
-          "    included! This will be implemented in a future version.\n"),
+      DESCRIPTION(R"--(Standard method for handling transmission measurements.
+
+Designed to be part of *iy_main_agenda*. Treatment of the cloudbox
+is incorporated (that is, no need to define *iy_cloudbox_agenda*).
+
+The transmitter is assumed to be placed at the end of provided *ppath*.
+The transmitted signal is taken from *iy_transmitter*. This
+signal is propagated along the path, considering attenuation alone.
+That is, the result of the method (*iy*) is the output of
+*iy_transmitter* multiplied with the transmittance along the
+propagation path.
+
+As mentioned, the given *ppath* determines the position of the
+transmitter. For clear-sky and no modification of *ppath*, this
+means that the transitter will either be found at the surface or
+at the top-of-the-atmosphere. If you want to maintain this even with
+an active cloudbox, calculate *ppath* as::
+
+     ppathCalc( cloudbox_on=0 )
+
+Without setting cloudbox_on=0, the transmitter will end up inside or
+at the boundary of the cloudbox.
+
+Some auxiliary radiative transfer quantities can be obtained. Auxiliary
+quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
+Valid choices for auxiliary data are:
+
+- ``\"Radiative background\"``:
+    Index value flagging the radiative
+    background. The following coding is used: 0=space, 1=surface
+    and 2=cloudbox. The value is added to each column.
+- ``\"Optical depth\"``:
+    Scalar optical depth between the observation point
+    and the end of the present propagation path. Calculated based on
+    the (1,1)-element of the transmittance matrix (1-based indexing),
+    i.e. only fully valid for scalar RT. The value is added to each
+    column.
+
+IMPORTANT:
+    No jacobian calculation is supported when gas scattering is
+    included! This will be implemented in a future version.
+)--"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
@@ -9051,16 +9134,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iy_transmitterMultiplePol"),
-      DESCRIPTION(
-          "Transmitted signal having multiple polarisations.\n"
-          "\n"
-          "The method is intended to be used as possible input of "
-          "*iyTransmissionStandard*.\n"
-          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
-          "The polarisation state is taken from *instrument_pol*, where\n"
-          "*instrument_pol* must contain an element for each frequency in *f_grid*.\n"
-          "The transmitted signal/pulses are set to be of unit magnitude, such\n"
-          "as [1,1,0,0].\n"),
+      DESCRIPTION(R"--(Transmitted signal having multiple polarisations.
+
+The method is intended to be used as possible input of 
+*iyTransmissionStandard*.
+It sets *iy_transmitter* to describe the transmitted signal/pulses.
+The polarisation state is taken from *instrument_pol*, where
+*instrument_pol* must contain an element for each frequency in *f_grid*.
+The transmitted signal/pulses are set to be of unit magnitude, such
+as [1,1,0,0].
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy_transmitter"),
       GOUT(),
@@ -9074,17 +9157,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("iy_transmitterSinglePol"),
-      DESCRIPTION(
-          "Transmitted signal having a single polarisations.\n"
-          "\n"
-          "The method is intended to be used as possible input of "
-          "*iyTransmissionStandard*.\n"
-          "It sets *iy_transmitter* to describe the transmitted signal/pulses.\n"
-          "The polarisation state is taken from *instrument_pol*, where\n"
-          "*instrument_pol* must contain a single value.\n"
-          "This polarisation state is applied for all frequencies.\n"
-          "The transmitted pulses/signals are set to be of unit\n"
-          "magnitude, such as [1,1,0,0].\n"),
+      DESCRIPTION(R"--(Transmitted signal having a single polarisations.
+
+The method is intended to be used as possible input of 
+*iyTransmissionStandard*.
+It sets *iy_transmitter* to describe the transmitted signal/pulses.
+The polarisation state is taken from *instrument_pol*, where
+*instrument_pol* must contain a single value.
+This polarisation state is applied for all frequencies.
+The transmitted pulses/signals are set to be of unit
+magnitude, such as [1,1,0,0].
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy_transmitter"),
       GOUT(),
@@ -9098,35 +9181,37 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddAbsSpecies"),
-      DESCRIPTION(
-          "Includes an absorption species in the Jacobian.\n"
-          "\n"
-          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-          "the retrieval field should set to have zero length.\n"
-          "\n"
-          "These retrieval units are at hand for all gas species:\n\n"
-          "- ``\"vmr\"``: Volume mixing ratio.\n"
-          "- ``\"nd\"``: Number density.\n"
-          "- ``\"rel\"``: Relative unit (e.g. 1.1 means 10% more of the gas).\n"
-          "\n"
-          "For water vapour, also these units are at hand:\n\n"
-          "- ``\"rh\"``: Relative humidity.\n"
-          "- ``\"q\"``: Specific humidity.\n"
-          "\n"
-          "Note that ``for_species_tag`` is used to indicate if species tag VMR,\n"
-          "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
-          "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
-          "\n"
-          "Note that the Jacobian is set to zero where volume mixing ratio equals zero.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes an absorption species in the Jacobian.
+
+For 1D or 2D calculations the latitude and/or longitude grid of
+the retrieval field should set to have zero length.
+
+These retrieval units are at hand for all gas species:
+
+- ``\"vmr\"``: Volume mixing ratio.
+- ``\"nd\"``: Number density.
+- ``\"rel\"``: Relative unit (e.g. 1.1 means 10% more of the gas).
+
+For water vapour, also these units are at hand:
+
+- ``\"rh\"``: Relative humidity.
+- ``\"q\"``: Specific humidity.
+
+Note that ``for_species_tag`` is used to indicate if species tag VMR,
+rather than atmospheric gas VMR is calculated. Set it to 0 and we
+calculate the atmospheric gas VMR, but this only works for \"analytical\".
+
+Note that the Jacobian is set to zero where volume mixing ratio equals zero.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9150,29 +9235,30 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddBasicCatalogParameter"),
-      DESCRIPTION(
-          "Includes a basic catalog parameter in the Jacobian. These are constant\n"
-          "over all layers and so only a single vector output is returned.\n"
-          "\n"
-          "The only basic catalog parameters currently supported are:\n\n"
-          "* ``\"LineStrength\"``\n"
-          "* ``\"LineCenter\"``\n"
-          "\n"
-          "The ``catalog_identity`` should be able to identify one or many\n"
-          "lines in the catalog used for calculating the spectral absorption.\n"
-          "Note that partial matching for energy levels are allowed but not\n"
-          "recommended, as it is somewhat nonsensical to add multiple parameters.\n"
-          "\n"
-          "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
-          "of shape parameters, e.g., pressure broadening coefficients.\n"
-          "\n"
-          "Each call to this function adds just a single value to *x*.\n"
-          "\n"
-          "Example given the catalog_identity=\"O2-66 TR UP v1 0 J 1 LO v1 0 J 0\",\n"
-          "only the O2 ground-level 119 GHz line can be accessed and only its\n"
-          "catalog_parameter will be accessed.  However, the more lenient\n"
-          "catalog_identity=\"O2-66 TR UP J 1 LO J 0\" may be used, but then the\n"
-          "118 GHz line belonging to v1=1 branch will be added to the same *x*.\n"),
+      DESCRIPTION(R"--(Includes a basic catalog parameter in the Jacobian. These are constant
+over all layers and so only a single vector output is returned.
+
+The only basic catalog parameters currently supported are:
+
+* ``\"LineStrength\"``
+* ``\"LineCenter\"``
+
+The ``catalog_identity`` should be able to identify one or many
+lines in the catalog used for calculating the spectral absorption.
+Note that partial matching for energy levels are allowed but not
+recommended, as it is somewhat nonsensical to add multiple parameters.
+
+Also note *jacobianAddShapeCatalogParameter* as this allows addition
+of shape parameters, e.g., pressure broadening coefficients.
+
+Each call to this function adds just a single value to *x*.
+
+Example given the catalog_identity=\"O2-66 TR UP v1 0 J 1 LO v1 0 J 0\",
+only the O2 ground-level 119 GHz line can be accessed and only its
+catalog_parameter will be accessed.  However, the more lenient
+catalog_identity=\"O2-66 TR UP J 1 LO J 0\" may be used, but then the
+118 GHz line belonging to v1=1 branch will be added to the same *x*.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9187,13 +9273,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddBasicCatalogParameters"),
-      DESCRIPTION(
-          "See *jacobianAddBasicCatalogParameter*.\n"
-          "\n"
-          "This adds a multiple of parameters for first each catalog identity in\n"
-          "``catalog_identities`` and then for each catalog parameter in\n"
-          "``catalog_parameters`` by looping calls to *jacobianAddBasicCatalogParameter*\n"
-          "over these input.\n"),
+      DESCRIPTION(R"--(See *jacobianAddBasicCatalogParameter*.
+
+This adds a multiple of parameters for first each catalog identity in
+``catalog_identities`` and then for each catalog parameter in
+``catalog_parameters`` by looping calls to *jacobianAddBasicCatalogParameter*
+over these input.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9208,15 +9294,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddFreqShift"),
-      DESCRIPTION(
-          "Includes a frequency fit of shift type in the Jacobian.\n"
-          "\n"
-          "Retrieval of deviations between nominal and actual backend\n"
-          "frequencies can be included by this method. The assumption here is\n"
-          "that the deviation is a constant off-set, a shift, common for all\n"
-          "frequencies (and not varying between measurement blocks).\n"
-          "\n"
-          "This method adds one element to the state vector (*x*).\n"),
+      DESCRIPTION(R"--(Includes a frequency fit of shift type in the Jacobian.
+
+Retrieval of deviations between nominal and actual backend
+frequencies can be included by this method. The assumption here is
+that the deviation is a constant off-set, a shift, common for all
+frequencies (and not varying between measurement blocks).
+
+This method adds one element to the state vector (*x*).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9230,15 +9316,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddFreqStretch"),
-      DESCRIPTION(
-          "Includes a frequency fit of stretch type in the Jacobian.\n"
-          "\n"
-          "Retrieval of deviations between nominal and actual backend\n"
-          "frequencies can be included by this method. The assumption here is\n"
-          "that the deviation varies linearly over the frequency range\n"
-          "(following ARTS basis function for polynomial order 1).\n"
-          "\n"
-          "This method adds one element to the state vector (*x*).\n"),
+      DESCRIPTION(R"--(Includes a frequency fit of stretch type in the Jacobian.
+
+Retrieval of deviations between nominal and actual backend
+frequencies can be included by this method. The assumption here is
+that the deviation varies linearly over the frequency range
+(following ARTS basis function for polynomial order 1).
+
+This method adds one element to the state vector (*x*).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9252,42 +9338,44 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddShapeCatalogParameter"),
-      DESCRIPTION(
-          "Adds a line shape parameter to the Jacobian calculations. These\n"
-          "are constant over all levels so only a single *x*-value is added\n"
-          "\n"
-          "Line function parameter assume the derivatives of internal pressure\n"
-          "broadening and line mixing functionality follows a f(T, T0, X0, X1, X2)\n"
-          "format. The shape of the function f() is determined by input\n"
-          "catalog; please see the ARTS documentation for more details.\n"
-          "\n"
-          "The input are as follows:\n\n"
-          "- line_identity:\n"
-          "    Identifier of preferably a single line\n"
-          "- species:\n"
-          "    A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
-          "    Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
-          "    affected by self and air-broadening, respectively.\n"
-          "- variable:\n"
-          "    A variable supported by the line, these can be\n\n"
-          "    - ``\"G0\"``:  Speed-independent pressure broadening\n"
-          "    - ``\"G2\"``:  Speed-dependent pressure broadening\n"
-          "    - ``\"D0\"``:  Speed-independent pressure shift\n"
-          "    - ``\"D2\"``:  Speed-dependent pressure shift\n"
-          "    - ``\"FVC\"``: Frequency of velocity changing collisions\n"
-          "    - ``\"ETA\"``: partial correlation between velocity and rotational state changes due to collisions\n"
-          "    - ``\"Y\"``:   First order line-mixing parameter\n"
-          "    - ``\"G\"``:   Second order line-mixing parameter for strength\n"
-          "    - ``\"DV\"``:  Second order line-mixing parameter for shifting\n"
-          "- coefficient:\n"
-          "    A coefficient in the model to compute the above parameters.\n"
-          "\n"
-          "Note that we cannot test if the line in question supports the variable and\n"
-          "coefficient at the level of this function, so many errors will only be reported\n"
-          "at a later stage.\n"
-          "\n"
-          "For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.\n"
-          "Also see said function for an example of how to set the QuantumIdentifier.\n"),
+      DESCRIPTION(R"--(Adds a line shape parameter to the Jacobian calculations. These
+are constant over all levels so only a single *x*-value is added
+
+Line function parameter assume the derivatives of internal pressure
+broadening and line mixing functionality follows a f(T, T0, X0, X1, X2)
+format. The shape of the function f() is determined by input
+catalog; please see the ARTS documentation for more details.
+
+The input are as follows:
+
+- line_identity:
+    Identifier of preferably a single line
+- species:
+    A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.
+    Note that \"SELF\" and \"AIR\" tags are used for shape parameters
+    affected by self and air-broadening, respectively.
+- variable:
+    A variable supported by the line, these can be
+
+    - ``\"G0\"``:  Speed-independent pressure broadening
+    - ``\"G2\"``:  Speed-dependent pressure broadening
+    - ``\"D0\"``:  Speed-independent pressure shift
+    - ``\"D2\"``:  Speed-dependent pressure shift
+    - ``\"FVC\"``: Frequency of velocity changing collisions
+    - ``\"ETA\"``: partial correlation between velocity and rotational state changes due to collisions
+    - ``\"Y\"``:   First order line-mixing parameter
+    - ``\"G\"``:   Second order line-mixing parameter for strength
+    - ``\"DV\"``:  Second order line-mixing parameter for shifting
+- coefficient:
+    A coefficient in the model to compute the above parameters.
+
+Note that we cannot test if the line in question supports the variable and
+coefficient at the level of this function, so many errors will only be reported
+at a later stage.
+
+For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.
+Also see said function for an example of how to set the QuantumIdentifier.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9304,35 +9392,35 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddShapeCatalogParameters"),
-      DESCRIPTION(
-          "See *jacobianAddShapeCatalogParameter* for information on\n"
-          "the GIN parameters\n"
-          "\n"
-          "This function accepts the same input but for lists of data.\n"
-          "The function loops over each input list\n"
-          "individually and appends the information to *jacobian_quantities*.\n"
-          "\n"
-          "Special \"ALL\" for 1 length ``variables`` and ``coefficients`` are\n"
-          "allowed to compute all variables/coefficients in the order described\n"
-          "in the description of *jacobianAddShapeCatalogParameter*.\n"
-          "\n"
-          "For example, if ``line_identities`` have length 5, ``species`` length 4,\n"
-          "``variables`` length 3, and ``coefficients`` length 2, there will be\n"
-          "5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:\n"
-          "\n"
-          "- [{line_identities[0], species[0], variables[0] coefficients[0]}]\n"
-          "- [{line_identities[0], species[0], variables[0] coefficients[1]}]\n"
-          "- [{line_identities[0], species[0], variables[1] coefficients[0]}]\n"
-          "- [{line_identities[0], species[0], variables[1] coefficients[1]}]\n"
-          "- [{line_identities[0], species[0], variables[2] coefficients[0]}]\n"
-          "- [{line_identities[0], species[0], variables[2] coefficients[1]}]\n"
-          "- [{line_identities[0], species[1], variables[0] coefficients[0]}]\n"
-          "- ...\n"
-          "- [{line_identities[4], species[3], variables[1] coefficients[1]}]\n"
-          "- [{line_identities[4], species[3], variables[2] coefficients[0]}]\n"
-          "- [{line_identities[4], species[3], variables[2] coefficients[1]}]\n"
-          "\n"
-          "or in words: lines first, then species, then variables, then coefficients\n"),
+      DESCRIPTION(R"--(See *jacobianAddShapeCatalogParameter* for information on
+the GIN parameters
+
+This function accepts the same input but for lists of data.
+The function loops over each input list
+individually and appends the information to *jacobian_quantities*.
+
+Special \"ALL\" for 1 length ``variables`` and ``coefficients`` are
+allowed to compute all variables/coefficients in the order described
+in the description of *jacobianAddShapeCatalogParameter*.
+
+For example, if ``line_identities`` have length 5, ``species`` length 4,
+``variables`` length 3, and ``coefficients`` length 2, there will be
+5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:
+
+- [{line_identities[0], species[0], variables[0] coefficients[0]}]
+- [{line_identities[0], species[0], variables[0] coefficients[1]}]
+- [{line_identities[0], species[0], variables[1] coefficients[0]}]
+- [{line_identities[0], species[0], variables[1] coefficients[1]}]
+- [{line_identities[0], species[0], variables[2] coefficients[0]}]
+- [{line_identities[0], species[0], variables[2] coefficients[1]}]
+- [{line_identities[0], species[1], variables[0] coefficients[0]}]
+- ...
+- [{line_identities[4], species[3], variables[1] coefficients[1]}]
+- [{line_identities[4], species[3], variables[2] coefficients[0]}]
+- [{line_identities[4], species[3], variables[2] coefficients[1]}]
+
+or in words: lines first, then species, then variables, then coefficients
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9352,26 +9440,26 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddMagField"),
-      DESCRIPTION(
-          "Includes one magnetic field component in the Jacobian.\n"
-          "\n"
-          "The method follows the pattern of other Jacobian methods. The\n"
-          "calculations can only be performed by analytic expressions.\n"
-          "\n"
-          "The magnetic field components are retrieved separately, and,\n"
-          "hence, the argument ``component`` can be  \"u\", \"v\", \"w\",\n"
-          "and \"strength\".\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"
-          "\n"
-          "The dB-parameter is only used for Faraday rotation.\n"),
+      DESCRIPTION(R"--(Includes one magnetic field component in the Jacobian.
+
+The method follows the pattern of other Jacobian methods. The
+calculations can only be performed by analytic expressions.
+
+The magnetic field components are retrieved separately, and,
+hence, the argument ``component`` can be  \"u\", \"v\", \"w\",
+and \"strength\".
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+
+The dB-parameter is only used for Faraday rotation.
+)--"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9390,28 +9478,28 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddNLTE"),
-      DESCRIPTION(
-          "Experimental NLTE Jacobian.\n"
-          "\n"
-          "Intention: Adds the nlte_field level distribution per atmospheric grid\n"
-          "to the Jacobian.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"
-          "\n"
-          "The QuantumIdentifier should identify a single energy level, such as:\n"
-          "\"H2O-161 EN J 1 Ka 0 Kc 1\", for one of the lower levels in the chains\n"
-          "of transitions of water.  Note that using this method directly is not\n"
-          "best practice, as the quantum identifiers of the levels have to be known\n"
-          "at an early stage in NLTE calculations, and will usually populate the\n"
-          "``nlte_level_identifiers`` variable, meaning it is better to use *jacobianAddNLTE*\n"
-          "directly than to individually call this function.\n"),
+      DESCRIPTION(R"--(Experimental NLTE Jacobian.
+
+Intention: Adds the nlte_field level distribution per atmospheric grid
+to the Jacobian.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+
+The QuantumIdentifier should identify a single energy level, such as:
+\"H2O-161 EN J 1 Ka 0 Kc 1\", for one of the lower levels in the chains
+of transitions of water.  Note that using this method directly is not
+best practice, as the quantum identifiers of the levels have to be known
+at an early stage in NLTE calculations, and will usually populate the
+``nlte_level_identifiers`` variable, meaning it is better to use *jacobianAddNLTE*
+directly than to individually call this function.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9430,15 +9518,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddNLTEs"),
-      DESCRIPTION(
-          "Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for\n"
-          "many levels\n"
-          "\n"
-          "Adds energy_level_identities.nelem() times as many arguments to *x*\n"
-          "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
-          "\n"
-          "This method is preferred to *jacobianAddNLTE*, since ``energy_level_identities``\n"
-          "is conveniently almost always the same as ``nlte_level_identifiers``.\n"),
+      DESCRIPTION(R"--(Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for
+many levels
+
+Adds energy_level_identities.nelem() times as many arguments to *x*
+as *jacobianAddNLTE*, ordered as energy_level_identities describes
+
+This method is preferred to *jacobianAddNLTE*, since ``energy_level_identities``
+is conveniently almost always the same as ``nlte_level_identifiers``.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9458,42 +9546,42 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddPointingZa"),
-      DESCRIPTION(
-          "Adds sensor pointing zenith angle off-set jacobian.\n"
-          "\n"
-          "Retrieval of deviations between nominal and actual zenith angle of\n"
-          "the sensor can be included by this method. The weighing functions\n"
-          "can be calculated in several ways:\n"
-          "\n"
-          "- ``calcmode = \"recalc\"``:\n"
-          "    Recalculation of pencil beam spectra,\n"
-          "    shifted with ``dza`` from nominal values. A single-sided\n"
-          "    perturbation is applied (towards higher zenith angles).\n"
-          "- ``calcmode = \"interp\"``:\n"
-          "    Inter/extrapolation of existing pencil\n"
-          "    beam spectra. For this option, allow some extra margins for\n"
-          "    zenith angle grids, to avoid artifacts when extrapolating\n"
-          "    the data (to shifted zenith angles). The average of a\n"
-          "    negative and a positive shift is taken.\n"
-          "\n"
-          "The interp option is recommended. It should in general be both\n"
-          "faster and more accurate (due to the double sided disturbance).\n"
-          "In addition, it is less sensitive to the choice of dza (as long\n"
-          "as a small value is applied).\n"
-          "\n"
-          "The pointing off-set can be modelled to be time varying. The time\n"
-          "variation is then described by a polynomial (with standard base\n"
-          "functions). For example, a polynomial order of 0 means that the\n"
-          "off-set is constant in time. If the off-set is totally uncorrelated\n"
-          "between the spectra, set the order to -1.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is\n"
-          "\n"
-          "* if poly_order < 0 : length of *sensor_time*\n"
-          "* otherwise : poly_order+1\n"
-          "\n"
-          "In the first case, the order in *x* matches *sensor_time*. In the second\n"
-          "case, the coefficient for polynomial order 0 comes first etc.\n"),
+      DESCRIPTION(R"--(Adds sensor pointing zenith angle off-set jacobian.
+
+Retrieval of deviations between nominal and actual zenith angle of
+the sensor can be included by this method. The weighing functions
+can be calculated in several ways:
+
+- ``calcmode = \"recalc\"``:
+    Recalculation of pencil beam spectra,
+    shifted with ``dza`` from nominal values. A single-sided
+    perturbation is applied (towards higher zenith angles).
+- ``calcmode = \"interp\"``:
+    Inter/extrapolation of existing pencil
+    beam spectra. For this option, allow some extra margins for
+    zenith angle grids, to avoid artifacts when extrapolating
+    the data (to shifted zenith angles). The average of a
+    negative and a positive shift is taken.
+
+The interp option is recommended. It should in general be both
+faster and more accurate (due to the double sided disturbance).
+In addition, it is less sensitive to the choice of dza (as long
+as a small value is applied).
+
+The pointing off-set can be modelled to be time varying. The time
+variation is then described by a polynomial (with standard base
+functions). For example, a polynomial order of 0 means that the
+off-set is constant in time. If the off-set is totally uncorrelated
+between the spectra, set the order to -1.
+
+The number of elements added to the state vector (*x*) is
+
+* if poly_order < 0 : length of *sensor_time*
+* otherwise : poly_order+1
+
+In the first case, the order in *x* matches *sensor_time*. In the second
+case, the coefficient for polynomial order 0 comes first etc.
+)--"),
       AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9510,31 +9598,31 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddPolyfit"),
-      DESCRIPTION(
-          "Includes polynomial baseline fit in the Jacobian.\n"
-          "\n"
-          "This method deals with retrieval of disturbances of the spectra\n"
-          "that can be described by an additive term, a baseline off-set.\n"
-          "\n"
-          "The baseline off-set is here modelled as a polynomial. The\n"
-          "polynomial spans the complete frequency range spanned by\n"
-          "*sensor_response_f_grid* and the method should only of interest for\n"
-          "cases with no frequency gap in the spectra. The default assumption\n"
-          "is that the off-set differs between all spectra, but it can also be\n"
-          "assumed that the off-set is common for all e.g. line-of-sights.\n"
-          "\n"
-          "If the simulation/retrieval deals with a single spectrum, the number\n"
-          "of elements added to the state vector (*x*) is poly_order+1. The\n"
-          "coefficient for polynomial order 0 comes first etc. The same is true\n"
-          "if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``\n"
-          "all are set to 1, even if several spectra are involved. Otherwise the"
-          "number of elements added to *x* depends on the number of spectra and\n"
-          "the settings of ``no_pol_variation``, ``no_los_variation`` and \n"
-          "``no_mblock_variation``. The coefficients of the different polynomial\n"
-          "orders are treated as separate retrieval quantities. That is, the\n"
-          "the elements associated with polynomial order 0 are grouped and form\n"
-          "together a retrieval quantity. The coefficients for higher polynomial\n"
-          "orders are treated in the same way.\n"),
+      DESCRIPTION(R"--(Includes polynomial baseline fit in the Jacobian.
+
+This method deals with retrieval of disturbances of the spectra
+that can be described by an additive term, a baseline off-set.
+
+The baseline off-set is here modelled as a polynomial. The
+polynomial spans the complete frequency range spanned by
+*sensor_response_f_grid* and the method should only of interest for
+cases with no frequency gap in the spectra. The default assumption
+is that the off-set differs between all spectra, but it can also be
+assumed that the off-set is common for all e.g. line-of-sights.
+
+If the simulation/retrieval deals with a single spectrum, the number
+of elements added to the state vector (*x*) is poly_order+1. The
+coefficient for polynomial order 0 comes first etc. The same is true
+if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``
+all are set to 1, even if several spectra are involved. Otherwise the
+number of elements added to *x* depends on the number of spectra and
+the settings of ``no_pol_variation``, ``no_los_variation`` and 
+``no_mblock_variation``. The coefficients of the different polynomial
+orders are treated as separate retrieval quantities. That is, the
+the elements associated with polynomial order 0 are grouped and form
+together a retrieval quantity. The coefficients for higher polynomial
+orders are treated in the same way.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9561,20 +9649,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddScatSpecies"),
-      DESCRIPTION(
-          "Includes a scattering species in the Jacobian.\n"
-          "\n"
-          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-          "the retrieval field should set to have zero length.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes a scattering species in the Jacobian.
+
+For 1D or 2D calculations the latitude and/or longitude grid of
+the retrieval field should set to have zero length.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9598,29 +9686,29 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSinefit"),
-      DESCRIPTION(
-          "Includes sinusoidal baseline fit in the Jacobian.\n"
-          "\n"
-          "Works as *jacobianAddPolyfit*, beside that a series of sine and\n"
-          "cosine terms are used for the baseline fit.\n"
-          "\n"
-          "For each value in ``period_lengths`` one sine and one cosine term are\n"
-          "included (in mentioned order). By these two terms the amplitude and\n"
-          "\"phase\" for each period length can be determined. The sine and\n"
-          "cosine terms have value 0 and 1, respectively, for first frequency.\n"
-          "\n"
-          "If the simulation/retrieval deals with a single spectrum, the number\n"
-          "of elements added to the state vector (*x*) is 2 * nperiods, where\n"
-          "nperiods is the length of ``period_lengths``. The same is true\n"
-          "if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``\n"
-          "all are set to 1, even if several spectra are involved. Otherwise the"
-          "number of elements added to *x* depends on the number of spectra and\n"
-          "the settings of ``no_pol_variation``, ``no_los_variation`` and \n"
-          "``no_mblock_variation``. The sine and cosine terms for each period\n"
-          "length are treated as a  separate retrieval quantities. That is, the\n"
-          "the elements associated with the first period length are grouped and\n"
-          "form together a retrieval quantity, etc. Inside each retrieval quantity\n"
-          "the pairs of sine and cosine terms are kept together, in given order.\n"),
+      DESCRIPTION(R"--(Includes sinusoidal baseline fit in the Jacobian.
+
+Works as *jacobianAddPolyfit*, beside that a series of sine and
+cosine terms are used for the baseline fit.
+
+For each value in ``period_lengths`` one sine and one cosine term are
+included (in mentioned order). By these two terms the amplitude and
+\"phase\" for each period length can be determined. The sine and
+cosine terms have value 0 and 1, respectively, for first frequency.
+
+If the simulation/retrieval deals with a single spectrum, the number
+of elements added to the state vector (*x*) is 2 * nperiods, where
+nperiods is the length of ``period_lengths``. The same is true
+if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``
+all are set to 1, even if several spectra are involved. Otherwise the
+number of elements added to *x* depends on the number of spectra and
+the settings of ``no_pol_variation``, ``no_los_variation`` and 
+``no_mblock_variation``. The sine and cosine terms for each period
+length are treated as a  separate retrieval quantities. That is, the
+the elements associated with the first period length are grouped and
+form together a retrieval quantity, etc. Inside each retrieval quantity
+the pairs of sine and cosine terms are kept together, in given order.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9647,28 +9735,29 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSpecialSpecies"),
-      DESCRIPTION(
-          "Includes a special absorption species in the Jacobian.\n"
-          "\n"
-          "Similar to *jacobianAddAbsSpecies* but only for number densities.\n"
-          "\n"
-          "Species allowed are:\n\n"
-          "* \"electrons\"\n"
-          "* \"particulates\"\n"
-          "\n"
-          "Note that the average of all particulates are used to scale its\n"
-          "*jacobian*, so this method works best when only one type of\n"
-          "particulate is being used, i.e., when *scat_data* has only one\n"
-          "scattering species.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes a special absorption species in the Jacobian.
+
+Similar to *jacobianAddAbsSpecies* but only for number densities.
+
+Species allowed are:
+
+* \"electrons\"
+* \"particulates\"
+
+Note that the average of all particulates are used to scale its
+*jacobian*, so this method works best when only one type of
+particulate is being used, i.e., when *scat_data* has only one
+scattering species.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9690,23 +9779,23 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSurfaceQuantity"),
-      DESCRIPTION(
-          "Includes a surface quantity in the Jacobian.\n"
-          "\n"
-          "The quantity is specified by the GIN-variable ``quantity``. The name\n"
-          "of the quantity must match the name used in *surface_props_names*.\n"
-          "\n"
-          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-          "the retrieval field should set to have zero length.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2\n"
-          "\n"
-          "where n_g1 and n_g2 are the length of GIN ``g1`` and ``g2``, respectively.\n"
-          "Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with latitude as innermost loop and longitude\n"
-          "as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes a surface quantity in the Jacobian.
+
+The quantity is specified by the GIN-variable ``quantity``. The name
+of the quantity must match the name used in *surface_props_names*.
+
+For 1D or 2D calculations the latitude and/or longitude grid of
+the retrieval field should set to have zero length.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2
+
+where n_g1 and n_g2 are the length of GIN ``g1`` and ``g2``, respectively.
+Here empty vectors should be considered to have a length 1.
+The elements are sorted with latitude as innermost loop and longitude
+as outermost loop.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9727,34 +9816,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddTemperature"),
-      DESCRIPTION(
-          "Includes atmospheric temperatures in the Jacobian.\n"
-          "\n"
-          "The calculations are performed by (semi-)analytical expressions.\n"
-          "Hydrostatic equilibrium (HSE) can be included.\n"
-          "\n"
-          "The analytical calculation approach neglects so far refraction\n"
-          "totally, but considers the local effect of HSE.\n"
-          "The later should be accaptable for observations around zenith and\n"
-          "nadir. There is no warning if the method is applied incorrectly, \n"
-          "with respect to these issues. Note that the argument ``hse`` of this\n"
-          "WSM only refers to the Jacobian calculation, if the model and/or\n"
-          "retrieved atmosphere actually fulfils HSE or not is governed in\n"
-          "other manners.\n"
-          "\n"
-          "The calculations (both options) assume that gas species are defined\n"
-          "in VMR (a change in temperature then changes the number density). \n"
-          "This has the consequence that retrieval of temperatures and number\n"
-          "density can not be mixed. Neither any warning here!\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes atmospheric temperatures in the Jacobian.
+
+The calculations are performed by (semi-)analytical expressions.
+Hydrostatic equilibrium (HSE) can be included.
+
+The analytical calculation approach neglects so far refraction
+totally, but considers the local effect of HSE.
+The later should be accaptable for observations around zenith and
+nadir. There is no warning if the method is applied incorrectly, 
+with respect to these issues. Note that the argument ``hse`` of this
+WSM only refers to the Jacobian calculation, if the model and/or
+retrieved atmosphere actually fulfils HSE or not is governed in
+other manners.
+
+The calculations (both options) assume that gas species are defined
+in VMR (a change in temperature then changes the number density). 
+This has the consequence that retrieval of temperatures and number
+density can not be mixed. Neither any warning here!
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9772,27 +9861,27 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddWind"),
-      DESCRIPTION(
-          "Includes one atmospheric wind component in the Jacobian.\n"
-          "\n"
-          "The method follows the pattern of other Jacobian methods. The\n"
-          "calculations can only be performed by analytic expressions.\n"
-          "Some lower level function depends on frequency perturbations,\n"
-          "however, so therefore a frequency perturbation df is required\n"
-          "and as a consequence *abs_f_interp_order* must be > 0.\n"
-          "\n"
-          "The wind field components are retrieved separately, and,\n"
-          "hence, the argument ``component`` can be \"u\", \"v\" or \"w\" \n"
-          "for vector components, or just \"strength\" for total wind speed.\n"
-          "\n"
-          "The number of elements added to the state vector (*x*) is::\n"
-          "\n"
-          "  n_g1 * n_g2 * n_g3\n"
-          "\n"
-          "where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,\n"
-          "respectively. Here empty vectors should be considered to have a length 1.\n"
-          "The elements are sorted with pressure as innermost loop, followed by\n"
-          "latitude and longitude as outermost loop.\n"),
+      DESCRIPTION(R"--(Includes one atmospheric wind component in the Jacobian.
+
+The method follows the pattern of other Jacobian methods. The
+calculations can only be performed by analytic expressions.
+Some lower level function depends on frequency perturbations,
+however, so therefore a frequency perturbation df is required
+and as a consequence *abs_f_interp_order* must be > 0.
+
+The wind field components are retrieved separately, and,
+hence, the argument ``component`` can be \"u\", \"v\" or \"w\" 
+for vector components, or just \"strength\" for total wind speed.
+
+The number of elements added to the state vector (*x*) is::
+
+  n_g1 * n_g2 * n_g3
+
+where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
+respectively. Here empty vectors should be considered to have a length 1.
+The elements are sorted with pressure as innermost loop, followed by
+latitude and longitude as outermost loop.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -9811,24 +9900,24 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAdjustAndTransform"),
-      DESCRIPTION(
-          "Applies adjustments and transformations on *jacobian*.\n"
-          "\n"
-          "The method handles two tasks:\n"
-          "1. The retrieval transformations set by the user can not be applied\n"
-          "onthe  Jacobian inside *yCalc*. Transformations are instead applied\n"
-          "by calling this method.\n"
-          "2. It applies required adjustments of the Jacoboan. So far there is\n"
-          "only one possible adjustment. If any absorption species uses the \"rel\"\n"
-          "unit, an adjustment is needed for later iterations of the inversion.\n"
-          "\n"
-          "If no tranformations are selected and the \"rel\" option is not used at\n"
-          "all, there is no need to call this method(, but you can still include it\n"
-          "without causing any error, the calculations will just be a bit slower).\n"
-          "Otherwise, this method should be called, typically as part of\n"
-          "*inversion_iterate_agenda*.\n"
-          "\n"
-          "The method accepts if *jacobian* is empty, and then does, nothing.\n"),
+      DESCRIPTION(R"--(Applies adjustments and transformations on *jacobian*.
+
+The method handles two tasks:
+1. The retrieval transformations set by the user can not be applied
+onthe  Jacobian inside *yCalc*. Transformations are instead applied
+by calling this method.
+2. It applies required adjustments of the Jacoboan. So far there is
+only one possible adjustment. If any absorption species uses the \"rel\"
+unit, an adjustment is needed for later iterations of the inversion.
+
+If no tranformations are selected and the \"rel\" option is not used at
+all, there is no need to call this method(, but you can still include it
+without causing any error, the calculations will just be a bit slower).
+Otherwise, this method should be called, typically as part of
+*inversion_iterate_agenda*.
+
+The method accepts if *jacobian* is empty, and then does, nothing.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -9842,13 +9931,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcDoNothing"),
-      DESCRIPTION(
-          "This function doesn't do anything. It just exists to satisfy\n"
-          "the input and output requirement of the *jacobian_agenda*.\n"
-          "\n"
-          "This method is added to *jacobian_agenda* by *jacobianAddAbsSpecies*\n"
-          "and some similar methods, and it should normally not be called by\n"
-          "the user.\n"),
+      DESCRIPTION(R"--(This function doesn't do anything. It just exists to satisfy
+the input and output requirement of the *jacobian_agenda*.
+
+This method is added to *jacobian_agenda* by *jacobianAddAbsSpecies*
+and some similar methods, and it should normally not be called by
+the user.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("jacobian"),
       GOUT(),
@@ -9862,12 +9951,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcFreqShift"),
-      DESCRIPTION(
-          "Calculates frequency shift jacobians by interpolation\n"
-          "of *iyb*.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by jacobianAddFreqShift\n"
-          "and should normally not be called by the user.\n"),
+      DESCRIPTION(R"--(Calculates frequency shift jacobians by interpolation
+of *iyb*.
+
+This function is added to *jacobian_agenda* by jacobianAddFreqShift
+and should normally not be called by the user.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -9889,12 +9978,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcFreqStretch"),
-      DESCRIPTION(
-          "Calculates frequency stretch jacobians by interpolation\n"
-          "of *iyb*.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by jacobianAddFreqStretch\n"
-          "and should normally not be called by the user.\n"),
+      DESCRIPTION(R"--(Calculates frequency stretch jacobians by interpolation
+of *iyb*.
+
+This function is added to *jacobian_agenda* by jacobianAddFreqStretch
+and should normally not be called by the user.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -9919,12 +10008,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPointingZaInterp"),
-      DESCRIPTION("Calculates zenith angle pointing deviation jacobians by\n"
-                  "inter-extrapolation of *iyb*.\n"
-                  "\n"
-                  "This function is added to *jacobian_agenda* by\n"
-                  "jacobianAddPointingZa and should normally not be\n"
-                  "called by the user.\n"),
+      DESCRIPTION(R"--(Calculates zenith angle pointing deviation jacobians by
+inter-extrapolation of *iyb*.
+
+This function is added to *jacobian_agenda* by
+jacobianAddPointingZa and should normally not be
+called by the user.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -9948,12 +10038,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPointingZaRecalc"),
-      DESCRIPTION("Calculates zenith angle pointing deviation jacobians by\n"
-                  "recalulation of *iyb*.\n"
-                  "\n"
-                  "This function is added to *jacobian_agenda* by\n"
-                  "jacobianAddPointingZa and should normally not be\n"
-                  "called by the user.\n"),
+      DESCRIPTION(R"--(Calculates zenith angle pointing deviation jacobians by
+recalulation of *iyb*.
+
+This function is added to *jacobian_agenda* by
+jacobianAddPointingZa and should normally not be
+called by the user.
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -9983,11 +10074,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPolyfit"),
-      DESCRIPTION(
-          "Calculates jacobians for polynomial baseline fit.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
-          "and should normally not be called by the user.\n"),
+      DESCRIPTION(R"--(Calculates jacobians for polynomial baseline fit.
+
+This function is added to *jacobian_agenda* by jacobianAddPolyfit
+and should normally not be called by the user.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -10010,11 +10101,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcSinefit"),
-      DESCRIPTION(
-          "Calculates jacobians for sinusoidal baseline fit.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
-          "and should normally not be called by the user.\n"),
+      DESCRIPTION(R"--(Calculates jacobians for sinusoidal baseline fit.
+
+This function is added to *jacobian_agenda* by jacobianAddPolyfit
+and should normally not be called by the user.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -10037,15 +10128,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianClose"),
-      DESCRIPTION(
-          "Closes the array of retrieval quantities and prepares for\n"
-          "calculation of the Jacobian matrix.\n"
-          "\n"
-          "This function closes the *jacobian_quantities* array and sets\n"
-          "*jacobian_do* to 1.\n"
-          "\n"
-          "Retrieval quantities should not be added after a call to this WSM.\n"
-          "No calculations are performed here.\n"),
+      DESCRIPTION(R"--(Closes the array of retrieval quantities and prepares for
+calculation of the Jacobian matrix.
+
+This function closes the *jacobian_quantities* array and sets
+*jacobian_do* to 1.
+
+Retrieval quantities should not be added after a call to this WSM.
+No calculations are performed here.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT("jacobian_do", "jacobian_agenda"),
       GOUT(),
@@ -10059,16 +10150,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianFromTwoY"),
-      DESCRIPTION(
-          "Sets *jacobian* based on the difference vetween two measurement vectors.\n"
-          "\n"
-          "This function assumes that ``y_pert`` contains a measurement calculated\n"
-          "with some variable perturbed, in comparison to the calculation\n"
-          "behind *y*. The function takes the differences between ``y_pert``\n"
-          "and *y* to form a numerical derived estimate of *jacobian*.\n"
-          "This gives a Jacobian wit a single column.\n"
-          "\n"
-          "*jacobian* equals here: (y_pert-y)/pert_size.\n"),
+      DESCRIPTION(R"--(Sets *jacobian* based on the difference vetween two measurement vectors.
+
+This function assumes that ``y_pert`` contains a measurement calculated
+with some variable perturbed, in comparison to the calculation
+behind *y*. The function takes the differences between ``y_pert``
+and *y* to form a numerical derived estimate of *jacobian*.
+This gives a Jacobian wit a single column.
+
+*jacobian* equals here: (y_pert-y)/pert_size.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -10083,15 +10174,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianFromYbatch"),
-      DESCRIPTION(
-          "Sets *jacobian* based on perturbation calcuations.\n"
-          "\n"
-          "This function assumes that *ybatch* contains spectra calculated\n"
-          "with some variable perturbed, in comparison to the calculation\n"
-          "behind *y*. The function takes the differences between *ybatch*\n"
-          "and *y* to form a numerical derived estimate of *jacobian*.\n"
-          "\n"
-          "Column i of *jacobian* equals: (ybatch[i]-y)/pert_size.\n"),
+      DESCRIPTION(R"--(Sets *jacobian* based on perturbation calcuations.
+
+This function assumes that *ybatch* contains spectra calculated
+with some variable perturbed, in comparison to the calculation
+behind *y*. The function takes the differences between *ybatch*
+and *y* to form a numerical derived estimate of *jacobian*.
+
+Column i of *jacobian* equals: (ybatch[i]-y)/pert_size.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
@@ -10105,15 +10196,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianInit"),
-      DESCRIPTION(
-          "Initialises the variables connected to the Jacobian matrix.\n"
-          "\n"
-          "This function initialises the *jacobian_quantities* array so\n"
-          "that retrieval quantities can be added to it. Accordingly, it has\n"
-          "to be called before any calls to jacobianAddTemperature or\n"
-          "similar methods.\n"
-          "\n"
-          "The Jacobian quantities are initialised to be empty.\n"),
+      DESCRIPTION(R"--(Initialises the variables connected to the Jacobian matrix.
+
+This function initialises the *jacobian_quantities* array so
+that retrieval quantities can be added to it. Accordingly, it has
+to be called before any calls to jacobianAddTemperature or
+similar methods.
+
+The Jacobian quantities are initialised to be empty.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT("jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -10132,15 +10223,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianOff"),
-      DESCRIPTION(
-          "Makes mandatory initialisation of some jacobian variables.\n"
-          "\n"
-          "Some clear-sky jacobian WSVs must be initialised even if no such\n"
-          "calculations will be performed.  This is handled with this method.\n"
-          "That is, this method must be called when no clear-sky jacobians\n"
-          "will be calculated (even if cloudy-sky jacobians are calculated!).\n"
-          "\n"
-          "Sets *jacobian_do* to 0.\n"),
+      DESCRIPTION(R"--(Makes mandatory initialisation of some jacobian variables.
+
+Some clear-sky jacobian WSVs must be initialised even if no such
+calculations will be performed.  This is handled with this method.
+That is, this method must be called when no clear-sky jacobians
+will be calculated (even if cloudy-sky jacobians are calculated!).
+
+Sets *jacobian_do* to 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_do", "jacobian_agenda", "jacobian_quantities"),
       GOUT(),
@@ -10159,34 +10250,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianSetAffineTransformation"),
-      DESCRIPTION(
-          "Adds an affine transformation of the last element of\n"
-          "*jacobian_quantities*.\n"
-          "\n"
-          "See *jacobianSetFuncTransformation* for  a general description of how\n"
-          "retrieval transformations are defined. Transformations are not applied by\n"
-          "methods such as *yCalc*. Instead, the method *jacobianAdjustAndTransform*\n"
-          "must be called to activate the transformations.\n"
-          "\n"
-          "The affine transformation is specified by a transformation matrix, A,\n"
-          "and an offset vector, b. These two are applied as described in\n"
-          "*jacobianSetFuncTransformation*.\n"
-          "\n"
-          "The transformations is applied as::\n"
-          "\n"
-          "  x = A * ( z - b )\n"
-          "\n"
-          "where z is the retrieval quantity on the standard retrieval grids\n"
-          "and x is the final state vector.\n"
-          "\n"
-          "So far, the following must be true for valid A-matrices::\n"
-          "\n"
-          "  z = A' * x + b\n"
-          "\n"
-          "That is, the reversed transformation is given by A transposed.\n"
-          "\n"
-          "This method must only be called if an affine transformation is wanted.\n"
-          "Default is to make no such tranformation at all.\n"),
+      DESCRIPTION(R"--(Adds an affine transformation of the last element of
+*jacobian_quantities*.
+
+See *jacobianSetFuncTransformation* for  a general description of how
+retrieval transformations are defined. Transformations are not applied by
+methods such as *yCalc*. Instead, the method *jacobianAdjustAndTransform*
+must be called to activate the transformations.
+
+The affine transformation is specified by a transformation matrix, A,
+and an offset vector, b. These two are applied as described in
+*jacobianSetFuncTransformation*.
+
+The transformations is applied as::
+
+  x = A * ( z - b )
+
+where z is the retrieval quantity on the standard retrieval grids
+and x is the final state vector.
+
+So far, the following must be true for valid A-matrices::
+
+  z = A' * x + b
+
+That is, the reversed transformation is given by A transposed.
+
+This method must only be called if an affine transformation is wanted.
+Default is to make no such tranformation at all.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("jacobian_quantities"),
       GOUT(),
@@ -10200,66 +10291,67 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("jacobianSetFuncTransformation"),
-      DESCRIPTION(
-          "Sets the functional transformation of the last element of\n"
-          "*jacobian_quantities*.\n"
-          "\n"
-          "See below for a general description of how retrieval transformations\n"
-          "are defined. Transformations are not applied by methods such as *yCalc*.\n"
-          "Instead, the method *jacobianAdjustAndTransform* must be called to\n"
-          "activate the transformations.\n"
-          "\n"
-          "The following transformations can be selected (by ``transformation_func``):\n\n"
-          "- ``\"log\"``: The natural logarithm\n"
-          "- ``\"log10\"``: The base-10 logarithm\n"
-          "- ``\"atanh\"``: Area hyperbolic tangent \n"
-          "- ``\"none\"``: No transformation at all\n"
-          "\n"
-          "This method needs only to be called if a functional transformation\n"
-          "is wanted. Default is to make no such tranformation at all (i.e.\n"
-          "the option \"none\" exists only for reasons of flexibility).\n"
-          "\n"
-          "The log-options are applied as log(z-z_min) and log10(z-z_min).\n"
-          "The default for ``z_min`` is zero, but by changing it the lower limit\n"
-          "for z can be changed. Note that ``z_min`` becomes the lower limit for\n"
-          "allowed values of z. The GIN ``z_max`` is here ignored.\n"
-          "\n"
-          "For the atanh-option, also ``z_max`` is considered. This transformation\n"
-          "is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,``z_min``\n"
-          "is lower limit for allowed values of z. On the other hand, ``z_max``\n"
-          "eines the upper limit for z.\n"
-          "\n"
-          "The GIN ``transformation_func`` is so far only used for atanh. The parameter\n"
-          "specifies the maximum allowed value allowed for u. That is, the valid\n"
-          "range for u becomes ]0,tfunc_parameter[. Note that log and log10\n"
-          "demands/ensures that u > 0, but implies no upper limit.\n"
-          "\n"
-          "General handling of retrieval units and transformations:\n"
-          "---\n"
-          "Default is that quantities are retrieved as defined in ARTS, but\n"
-          "both some unit conversion and transformations are provided. These\n"
-          "operations are applied as::\n"
-          "\n"
-          "  x = A * ( f(u(z)) - b ) \n"
-          "\n"
-          "where\n"
-          "\n"
-          "- z is the quantity as defined ARTS\n"
-          "- u represents the change of unit\n"
-          "- f is the transformation function\n"
-          "- A and b define together an affine transformation\n"
-          "- x is the retrieved quantity\n"
-          "\n"
-          "For example, this systen allows to retrive a principal component\n"
-          "representation (A and b) of the log (f) of relative humidity (u).\n"
-          "\n"
-          "Change of unit is selected by the quantity specific jacobian-add\n"
-          "methods (so far only at hand for gas species). \n"
-          "\n"
-          "Activating a transformation function is done by this method. Note\n"
-          "that the functions are defined as the transformation from z to x.\n"
-          "For more details on affine transformations, see\n"
-          "*jacobianSetAffineTransformation*.\n"),
+      DESCRIPTION(R"--(Sets the functional transformation of the last element of
+*jacobian_quantities*.
+
+See below for a general description of how retrieval transformations
+are defined. Transformations are not applied by methods such as *yCalc*.
+Instead, the method *jacobianAdjustAndTransform* must be called to
+activate the transformations.
+
+The following transformations can be selected (by ``transformation_func``):
+
+- ``\"log\"``: The natural logarithm
+- ``\"log10\"``: The base-10 logarithm
+- ``\"atanh\"``: Area hyperbolic tangent 
+- ``\"none\"``: No transformation at all
+
+This method needs only to be called if a functional transformation
+is wanted. Default is to make no such tranformation at all (i.e.
+the option \"none\" exists only for reasons of flexibility).
+
+The log-options are applied as log(z-z_min) and log10(z-z_min).
+The default for ``z_min`` is zero, but by changing it the lower limit
+for z can be changed. Note that ``z_min`` becomes the lower limit for
+allowed values of z. The GIN ``z_max`` is here ignored.
+
+For the atanh-option, also ``z_max`` is considered. This transformation
+is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,``z_min``
+is lower limit for allowed values of z. On the other hand, ``z_max``
+eines the upper limit for z.
+
+The GIN ``transformation_func`` is so far only used for atanh. The parameter
+specifies the maximum allowed value allowed for u. That is, the valid
+range for u becomes ]0,tfunc_parameter[. Note that log and log10
+demands/ensures that u > 0, but implies no upper limit.
+
+General handling of retrieval units and transformations:
+---
+Default is that quantities are retrieved as defined in ARTS, but
+both some unit conversion and transformations are provided. These
+operations are applied as::
+
+  x = A * ( f(u(z)) - b ) 
+
+where
+
+- z is the quantity as defined ARTS
+- u represents the change of unit
+- f is the transformation function
+- A and b define together an affine transformation
+- x is the retrieved quantity
+
+For example, this systen allows to retrive a principal component
+representation (A and b) of the log (f) of relative humidity (u).
+
+Change of unit is selected by the quantity specific jacobian-add
+methods (so far only at hand for gas species). 
+
+Activating a transformation function is done by this method. Note
+that the functions are defined as the transformation from z to x.
+For more details on affine transformations, see
+*jacobianSetAffineTransformation*.
+)--"),
       AUTHORS("Patrick Eriksson", "Simon Pfreundschuh"),
       OUT("jacobian_quantities"),
       GOUT(),
@@ -10275,10 +10367,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("LatLonFieldSet"),
-      DESCRIPTION(
-          "Fills a latitude-longitude field with given input.\n"
-          "\n"
-          "Grids and data must match in size.\n"),
+      DESCRIPTION(R"--(Fills a latitude-longitude field with given input.
+
+Grids and data must match in size.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("gfield2"),
@@ -10295,11 +10387,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("LatLonFieldSetConstant"),
-      DESCRIPTION(
-          "Sets a latitude-longitude field to have a constant data value.\n"
-          "\n"
-          "Both latitude and longitude grids are set to have length one,\n"
-          "with the value 0.\n"),
+      DESCRIPTION(R"--(Sets a latitude-longitude field to have a constant data value.
+
+Both latitude and longitude grids are set to have length one,
+with the value 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("gfield2"),
@@ -10314,13 +10406,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("lbl_checkedCalc"),
-      DESCRIPTION("Checks that the line-by-line parameters are OK.\n"
-                  "\n"
-                  "On failure, will throw.  On success, lbl_checked evals as true\n"
-                  "\n"
-                  "Note that checks may become more stringent as ARTS evolves, especially for\n"
-                  "\"new\" options.  This test might succeed in one version of ARTS but fail\n"
-                  "in later versions\n"),
+      DESCRIPTION(R"--(Checks that the line-by-line parameters are OK.
+
+On failure, will throw.  On success, lbl_checked evals as true
+
+Note that checks may become more stringent as ARTS evolves, especially for
+\"new\" options.  This test might succeed in one version of ARTS but fail
+in later versions
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("lbl_checked"),
       GOUT(),
@@ -10334,7 +10427,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
-      DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
+      DESCRIPTION(R"--(Sets the seconds between localtime and gmtime representation of now().
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("dt"),
@@ -10348,10 +10442,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixAdd"),
-      DESCRIPTION(
-          "Adds a scalar to all elements of a matrix.\n"
-          "\n"
-          "The result can either be stored in the same or another matrix.\n"),
+      DESCRIPTION(R"--(Adds a scalar to all elements of a matrix.
+
+The result can either be stored in the same or another matrix.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10365,22 +10459,22 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixCBR"),
-      DESCRIPTION(
-          "Sets a matrix to hold cosmic background radiation (CBR).\n"
-          "\n"
-          "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
-          "are zero. Number of Stokes components, that equals the number\n"
-          "of columns in the created matrix, is determined by ``stokes_dim``.\n"
-          "The number of rows in the created matrix equals the length of the\n"
-          "given frequency vector.\n"
-          "\n"
-          "The cosmic radiation is modelled as blackbody radiation for the\n"
-          "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
-          "the file constants.cc. The frequencies are taken from the generic\n"
-          "input vector.\n"
-          "\n"
-          "The standard definition, in ARTS, of the Planck function is\n"
-          "followed and the unit of the returned data is W/(m3 * Hz * sr).\n"),
+      DESCRIPTION(R"--(Sets a matrix to hold cosmic background radiation (CBR).
+
+The CBR is assumed to be un-polarized and Stokes components 2-4
+are zero. Number of Stokes components, that equals the number
+of columns in the created matrix, is determined by ``stokes_dim``.
+The number of rows in the created matrix equals the length of the
+given frequency vector.
+
+The cosmic radiation is modelled as blackbody radiation for the
+temperature given by the global constant COSMIC_BG_TEMP, set in
+the file constants.cc. The frequencies are taken from the generic
+input vector.
+
+The standard definition, in ARTS, of the Planck function is
+followed and the unit of the returned data is W/(m3 * Hz * sr).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10394,7 +10488,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixCopySparse"),
-      DESCRIPTION("Creates a matrix by copying a variable of type Sparse.\n"),
+      DESCRIPTION(R"--(Creates a matrix by copying a variable of type Sparse.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10408,10 +10503,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixDivide"),
-      DESCRIPTION("Divides all elements of a matrix with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Divides all elements of a matrix with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10425,12 +10521,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixExtractFromTensor3"),
-      DESCRIPTION(
-          "Extracts a Matrix from a Tensor3.\n"
-          "\n"
-          "Copies page or row or column with given Index from input Tensor3\n"
-          "variable to output Matrix.\n"
-          "Higher order equivalent of *VectorExtractFromMatrix*.\n"),
+      DESCRIPTION(R"--(Extracts a Matrix from a Tensor3.
+
+Copies page or row or column with given Index from input Tensor3
+variable to output Matrix.
+Higher order equivalent of *VectorExtractFromMatrix*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("output"),
@@ -10446,7 +10542,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("MatrixFromCovarianceMatrix"),
-               DESCRIPTION("Turns a covariance matrix into a Matrix.\n"),
+               DESCRIPTION(R"--(Turns a covariance matrix into a Matrix.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT(),
                GOUT("output"),
@@ -10461,11 +10558,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixGaussian"),
-      DESCRIPTION(
-          "Fills a matrix with a Gaussian function.\n"
-          "\n"
-          "Works as *VectorGaussian* but grid, mean and si/fwhm must be\n"
-          "specified for each dimension.\n"),
+      DESCRIPTION(R"--(Fills a matrix with a Gaussian function.
+
+Works as *VectorGaussian* but grid, mean and si/fwhm must be
+specified for each dimension.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("Y"),
@@ -10489,13 +10586,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixIdentity"),
-      DESCRIPTION(
-          "Returns the identity matrix.\n"
-          "\n"
-          "The size if the matrix created is n x n. Default is to return a\n"
-          "true identity matrix (I), but you can also select another value\n"
-          "along the diagonal by setting ``value``. That is, the output is\n"
-          "value * I.\n"),
+      DESCRIPTION(R"--(Returns the identity matrix.
+
+The size if the matrix created is n x n. Default is to return a
+true identity matrix (I), but you can also select another value
+along the diagonal by setting ``value``. That is, the output is
+value * I.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10509,12 +10606,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixMatrixMultiply"),
-      DESCRIPTION(
-          "Multiply a Matrix with another Matrix and store the result in the result\n"
-          "Matrix.\n"
-          "\n"
-          "This just computes the normal Matrix-Matrix product, Y = M * X. It is ok\n"
-          "if Y and X are the same Matrix.\n"),
+      DESCRIPTION(R"--(Multiply a Matrix with another Matrix and store the result in the result
+Matrix.
+
+This just computes the normal Matrix-Matrix product, Y = M * X. It is ok
+if Y and X are the same Matrix.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("Y"),
@@ -10529,17 +10626,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixPlanck"),
-      DESCRIPTION(
-          "Sets a matrix to hold blackbody radiation.\n"
-          "\n"
-          "The radiation is assumed to be un-polarized and Stokes components\n"
-          "2-4 are zero. Number of Stokes components, that equals the number\n"
-          "of columns in the created matrix, is determined by ``stokes_dim``.\n"
-          "The number of rows in the created matrix equals the length of the\n"
-          "given frequency vector.\n"
-          "\n"
-          "The standard definition, in ARTS, of the Planck function is\n"
-          "followed and the unit of the returned data is W/(m3 * Hz * sr).\n"),
+      DESCRIPTION(R"--(Sets a matrix to hold blackbody radiation.
+
+The radiation is assumed to be un-polarized and Stokes components
+2-4 are zero. Number of Stokes components, that equals the number
+of columns in the created matrix, is determined by ``stokes_dim``.
+The number of rows in the created matrix equals the length of the
+given frequency vector.
+
+The standard definition, in ARTS, of the Planck function is
+followed and the unit of the returned data is W/(m3 * Hz * sr).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10553,10 +10650,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixMultiply"),
-      DESCRIPTION("Multiplies all elements of a matrix with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a matrix with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10571,12 +10669,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixReshapeTensor3"),
-      DESCRIPTION(
-          "Creates a matrix as reshaped version of a tenor3.\n"
-          "\n"
-          "If the size of the tensor is [npages, nrows, ncols], the created\n"
-          "matrix gets size [npages * nrows, ncols]. The matrix is filled with\n"
-          "the tensor's page dimension as the outermost loop.\n"),
+      DESCRIPTION(R"--(Creates a matrix as reshaped version of a tenor3.
+
+If the size of the tensor is [npages, nrows, ncols], the created
+matrix gets size [npages * nrows, ncols]. The matrix is filled with
+the tensor's page dimension as the outermost loop.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10590,10 +10688,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSetConstant"),
-      DESCRIPTION(
-          "Creates a matrix and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols* and *nrows*.\n"),
+      DESCRIPTION(R"--(Creates a matrix and sets all elements to the specified value.
+
+The size is determined by *ncols* and *nrows*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10607,10 +10705,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSubtract"),
-      DESCRIPTION(
-          "Subtracts a scalar from all elements of a matrix.\n"
-          "\n"
-          "The result can either be stored in the same or another matrix.\n"),
+      DESCRIPTION(R"--(Subtracts a scalar from all elements of a matrix.
+
+The result can either be stored in the same or another matrix.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10624,10 +10722,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixUnitIntensity"),
-      DESCRIPTION(
-          "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
-          "\n"
-          "Works as MatrixPlanck where the radiation is set to 1.\n"),
+      DESCRIPTION(R"--(Sets a matrix to hold unpolarised radiation with unit intensity.
+
+Works as MatrixPlanck where the radiation is set to 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -10641,7 +10739,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix1ColFromVector"),
-      DESCRIPTION("Forms a matrix containing one column from a vector.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing one column from a vector.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10655,11 +10754,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix2ColFromVectors"),
-      DESCRIPTION(
-          "Forms a matrix containing two columns from two vectors.\n"
-          "\n"
-          "The vectors are included as columns in the matrix in the same order\n"
-          "as they are given.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing two columns from two vectors.
+
+The vectors are included as columns in the matrix in the same order
+as they are given.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10674,11 +10773,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix3ColFromVectors"),
-      DESCRIPTION(
-          "Forms a matrix containing three columns from three vectors.\n"
-          "\n"
-          "The vectors are included as columns in the matrix in the same order\n"
-          "as they are given.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing three columns from three vectors.
+
+The vectors are included as columns in the matrix in the same order
+as they are given.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10694,7 +10793,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix1RowFromVector"),
-      DESCRIPTION("Forms a matrix containing one row from a vector.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing one row from a vector.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10708,11 +10808,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix2RowFromVectors"),
-      DESCRIPTION(
-          "Forms a matrix containing two rows from two vectors.\n"
-          "\n"
-          "The vectors are included as rows in the matrix in the same order\n"
-          "as they are given.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing two rows from two vectors.
+
+The vectors are included as rows in the matrix in the same order
+as they are given.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10727,11 +10827,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Matrix3RowFromVectors"),
-      DESCRIPTION(
-          "Forms a matrix containing three rows from three vectors.\n"
-          "\n"
-          "The vectors are included as rows in the matrix in the same order\n"
-          "as they are given.\n"),
+      DESCRIPTION(R"--(Forms a matrix containing three rows from three vectors.
+
+The vectors are included as rows in the matrix in the same order
+as they are given.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -10747,15 +10847,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("mblock_dlosFrom1dAntenna"),
-      DESCRIPTION(
-          "Sets *mblock_dlos* based on a 1D gaussian antenna response.\n"
-          "\n"
-          "The length of *mblock_dlos* is determined by ``npoints``. The end\n"
-          "points of the grid are set to be the same as for the antenna\n"
-          "response. The spacing of the grid follows the magnitude of the\n"
-          "response; the spacing is smaller where the response is high.\n"
-          "More precisely, the grid points are determined by dividing the\n"
-          "cumulative sum of the response in equal steps.\n"),
+      DESCRIPTION(R"--(Sets *mblock_dlos* based on a 1D gaussian antenna response.
+
+The length of *mblock_dlos* is determined by ``npoints``. The end
+points of the grid are set to be the same as for the antenna
+response. The spacing of the grid follows the magnitude of the
+response; the spacing is smaller where the response is high.
+More precisely, the grid points are determined by dividing the
+cumulative sum of the response in equal steps.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("mblock_dlos"),
       GOUT(),
@@ -10769,12 +10869,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussian"),
-      DESCRIPTION(
-          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
-          "\n"
-          "The gaussian antenna pattern is determined by ``za_sigma`` and\n"
-          "``aa_sigma``, which represent the standard deviations in the\n"
-          "uncorrelated bivariate normal distribution.\n"),
+      DESCRIPTION(R"--(Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.
+
+The gaussian antenna pattern is determined by ``za_sigma`` and
+``aa_sigma``, which represent the standard deviations in the
+uncorrelated bivariate normal distribution.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("mc_antenna"),
       GOUT(),
@@ -10789,12 +10889,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussianByFWHM"),
-      DESCRIPTION(
-          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
-          "\n"
-          "The gaussian antenna pattern is determined by ``za_fwhm`` and\n"
-          "``aa_fwhm``, which represent the full width half maximum (FWHM)\n"
-          "of the antenna response, in the zenith and azimuthal planes.\n"),
+      DESCRIPTION(R"--(Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.
+
+The gaussian antenna pattern is determined by ``za_fwhm`` and
+``aa_fwhm``, which represent the full width half maximum (FWHM)
+of the antenna response, in the zenith and azimuthal planes.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("mc_antenna"),
       GOUT(),
@@ -10809,11 +10909,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetPencilBeam"),
-      DESCRIPTION(
-          "Makes mc_antenna (used by MCGeneral) a pencil beam.\n"
-          "\n"
-          "This WSM makes the subsequent MCGeneral WSM perform pencil beam\n"
-          "RT calculations.\n"),
+      DESCRIPTION(R"--(Makes mc_antenna (used by MCGeneral) a pencil beam.
+
+This WSM makes the subsequent MCGeneral WSM perform pencil beam
+RT calculations.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("mc_antenna"),
       GOUT(),
@@ -10827,30 +10927,30 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MCGeneral"),
-      DESCRIPTION(
-          "A generalised 3D reversed Monte Carlo radiative algorithm, that\n"
-          "allows for 2D antenna patterns, surface reflection and arbitrary\n"
-          "sensor positions.\n"
-          "\n"
-          "The main output variables *y* and *mc_error* represent the\n"
-          "Stokes vector integrated over the antenna function, and the\n"
-          "estimated error in this vector, respectively.\n"
-          "\n"
-          "The WSV *mc_max_iter* describes the maximum number of \'photons\'\n"
-          "used in the simulation (more photons means smaller *mc_error*).\n"
-          "*mc_std_err* is the desired value of mc_error. *mc_max_time* is\n"
-          "the maximum allowed number of seconds for MCGeneral. The method\n"
-          "will terminate once any of the max_iter, std_err, max_time\n"
-          "criteria are met. If negative values are given for these\n"
-          "parameters then it is ignored.\n"
-          "\n"
-          "The WSV *mc_min_iter* sets the minimum number of photons to apply\n"
-          "before the condition set by *mc_std_err* is considered. Values\n"
-          "of *mc_min_iter* below 100 are not accepted.\n"
-          "\n"
-          "Only \"1\" and \"RJBT\" are allowed for *iy_unit*. The value of\n"
-          "*mc_error* follows the selection for *iy_unit* (both for in- and\n"
-          "output.\n"),
+      DESCRIPTION(R"--(A generalised 3D reversed Monte Carlo radiative algorithm, that
+allows for 2D antenna patterns, surface reflection and arbitrary
+sensor positions.
+
+The main output variables *y* and *mc_error* represent the
+Stokes vector integrated over the antenna function, and the
+estimated error in this vector, respectively.
+
+The WSV *mc_max_iter* describes the maximum number of \'photons\'
+used in the simulation (more photons means smaller *mc_error*).
+*mc_std_err* is the desired value of mc_error. *mc_max_time* is
+the maximum allowed number of seconds for MCGeneral. The method
+will terminate once any of the max_iter, std_err, max_time
+criteria are met. If negative values are given for these
+parameters then it is ignored.
+
+The WSV *mc_min_iter* sets the minimum number of photons to apply
+before the condition set by *mc_std_err* is considered. Values
+of *mc_min_iter* below 100 are not accepted.
+
+Only \"1\" and \"RJBT\" are allowed for *iy_unit*. The value of
+*mc_error* follows the selection for *iy_unit* (both for in- and
+output.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("y",
           "mc_iteration_count",
@@ -10902,34 +11002,34 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MCRadar"),
-      DESCRIPTION(
-          "A radar 3D foward Monte Carlo radiative algorithm, that allows \n"
-          "for 2D antenna patterns and arbitrary sensor positions.\n"
-          "Surface reflections are currently ignored.\n"
-          "\n"
-          "The main output variable *y* and *mc_error* represent the\n"
-          "radar reflectivity integrated over the antenna function, and the\n"
-          "estimated error in this vector, respectively.\n"
-          "\n"
-          "Unlike with yRadar, the range bins gives the boundaries of \n"
-          "the range bins as either round-trip time or distance from radar.\n"
-          "\n"
-          "The WSV *mc_y_tx* gives the polarization state of the \n"
-          "transmitter.\n"
-          "\n"
-          "The WSV *mc_max_scatorder* prescribes the maximum scattering \n"
-          "order to consider, after which \'photon\'-tracing will be\n"
-          "terminated. A value of one calculates only single scattering.\n"
-          "\n"
-          "The WSV *mc_max_iter* describes the maximum number of \'photons\'\n"
-          "used in the simulation (more photons means smaller *mc_error* ).\n"
-          "The method will terminate once the max_iter criterium is met.\n"
-          "If negative values are given for these parameters then it is\n"
-          "ignored.\n"
-          "\n"
-          "Here \"1\" and \"Ze\" are the allowed options for *iy_unit_radar*.\n"
-          "The value of *mc_error* follows the selection for *iy_unit_radar*\n"
-          "(both for in- and output. See *yRadar* for details of the units.\n"),
+      DESCRIPTION(R"--(A radar 3D foward Monte Carlo radiative algorithm, that allows 
+for 2D antenna patterns and arbitrary sensor positions.
+Surface reflections are currently ignored.
+
+The main output variable *y* and *mc_error* represent the
+radar reflectivity integrated over the antenna function, and the
+estimated error in this vector, respectively.
+
+Unlike with yRadar, the range bins gives the boundaries of 
+the range bins as either round-trip time or distance from radar.
+
+The WSV *mc_y_tx* gives the polarization state of the 
+transmitter.
+
+The WSV *mc_max_scatorder* prescribes the maximum scattering 
+order to consider, after which \'photon\'-tracing will be
+terminated. A value of one calculates only single scattering.
+
+The WSV *mc_max_iter* describes the maximum number of \'photons\'
+used in the simulation (more photons means smaller *mc_error* ).
+The method will terminate once the max_iter criterium is met.
+If negative values are given for these parameters then it is
+ignored.
+
+Here \"1\" and \"Ze\" are the allowed options for *iy_unit_radar*.
+The value of *mc_error* follows the selection for *iy_unit_radar*
+(both for in- and output. See *yRadar* for details of the units.
+)--"),
       AUTHORS("Ian S. Adams"),
       OUT("y", "mc_error"),
       GOUT(),
@@ -10972,7 +11072,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("MCSetSeedFromTime"),
-               DESCRIPTION("Sets the value of mc_seed from system time\n"),
+               DESCRIPTION(R"--(Sets the value of mc_seed from system time
+)--"),
                AUTHORS("Cory Davis"),
                OUT("mc_seed"),
                GOUT(),
@@ -10986,8 +11087,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldRescalePopulationLevels"),
-      DESCRIPTION(
-          "Rescale NLTE field to expected total distribution amongst levels\n"),
+      DESCRIPTION(R"--(Rescale NLTE field to expected total distribution amongst levels
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("atm_field"),
       GOUT(),
@@ -11001,12 +11102,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("atm_fieldForSingleSpeciesNonOverlappingLines"),
-      DESCRIPTION(
-          "NLTE field for a simple setup.\n"
-          "\n"
-          "This will solve for ``nlte_field`` in the input atmosphere.\n"
-          "The solver depends on the lines not overlapping and that there\n"
-          "is only a single species in the atmosphere.\n"),
+      DESCRIPTION(R"--(NLTE field for a simple setup.
+
+This will solve for ``nlte_field`` in the input atmosphere.
+The solver depends on the lines not overlapping and that there
+is only a single species in the atmosphere.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("atm_field"),
       GOUT(),
@@ -11038,10 +11139,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("collision_coefficientsFromSplitFiles"),
-      DESCRIPTION(
-          "Reads *collision_coefficients* and *collision_line_identifiers* from files.\n"
-          "\nThe species in in these files must match *abs_species*.  The location\n"
-          "must also contain an *ArrayOfQuantumIdentifier* file ending with ``qid.xml``\n"),
+      DESCRIPTION(R"--(Reads *collision_coefficients* and *collision_line_identifiers* from files.
+The species in in these files must match *abs_species*.  The location
+must also contain an *ArrayOfQuantumIdentifier* file ending with ``qid.xml``
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("collision_coefficients", "collision_line_identifiers"),
       GOUT(),
@@ -11055,10 +11156,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericAdd"),
-      DESCRIPTION(
-          "Adds a Numeric and a value (output = input + value).\n"
-          "\n"
-          "The result can either be stored in the same or another Numeric.\n"),
+      DESCRIPTION(R"--(Adds a Numeric and a value (output = input + value).
+
+The result can either be stored in the same or another Numeric.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -11072,13 +11173,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericClip"),
-      DESCRIPTION(
-          "Clipping of a Numeric.\n"
-          "\n"
-          "The input value is copied to the output one (that can be same WSV)\n"
-          "but ensures that ``out`` is inside the range [limit_low,limit_high].\n"
-          "When the input value is below ``limit_low``, ``output`` is set to ``limit_low``.\n"
-          "And the same is performed with respect to ``limit_high``.\n"),
+      DESCRIPTION(R"--(Clipping of a Numeric.
+
+The input value is copied to the output one (that can be same WSV)
+but ensures that ``out`` is inside the range [limit_low,limit_high].
+When the input value is below ``limit_low``, ``output`` is set to ``limit_low``.
+And the same is performed with respect to ``limit_high``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -11094,10 +11195,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericDivide"),
-      DESCRIPTION(
-          "Divides a Numeric with a value (output = input / value).\n"
-          "\n"
-          "The result can either be stored in the same or another Numeric.\n"),
+      DESCRIPTION(R"--(Divides a Numeric with a value (output = input / value).
+
+The result can either be stored in the same or another Numeric.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("output"),
@@ -11111,15 +11212,16 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericFromVector"),
-      DESCRIPTION(
-          "Derivs a Numeric from a vector, following selected operation.\n"
-          "\n"
-          "The following operations can be selected:\n\n"
-          "- ``\"first\"``: Selects the first element of the vector.\n"
-          "- ``\"last\"``: Selects the last element of the vector.\n"
-          "- ``\"max\"``: Selects the maximum element of the vector.\n"
-          "- ``\"min\"``: Selects the minimum element of the vector.\n"
-          "- ``\"mean\"``: Calculates the mean of the vector.\n"),
+      DESCRIPTION(R"--(Derivs a Numeric from a vector, following selected operation.
+
+The following operations can be selected:
+
+- ``\"first\"``: Selects the first element of the vector.
+- ``\"last\"``: Selects the last element of the vector.
+- ``\"max\"``: Selects the maximum element of the vector.
+- ``\"min\"``: Selects the minimum element of the vector.
+- ``\"mean\"``: Calculates the mean of the vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -11133,11 +11235,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericInterpAltLatLonField"),
-      DESCRIPTION(
-          "Interpolates an altitude-latitude-longitiude field.\n"
-          "\n"
-          "The gridded field must have \"Altitude\", \"Latitude\" and\n"
-          "\"Longitude\" as dimensions.\n"),
+      DESCRIPTION(R"--(Interpolates an altitude-latitude-longitiude field.
+
+The gridded field must have \"Altitude\", \"Latitude\" and
+\"Longitude\" as dimensions.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("value"),
@@ -11152,13 +11254,13 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericInterpLatLonField"),
-      DESCRIPTION(
-          "Interpolates a latitude-longitiude field to the selected position.\n"
-          "\n"
-          "The gridded field must have \"Latitude\" and \"Longitude\" as dimensions.\n"
-          "\n"
-          "The position shall be given as a full atmospheric position. The altitude\n"
-          "in ``pos`` is ignored.\n"),
+      DESCRIPTION(R"--(Interpolates a latitude-longitiude field to the selected position.
+
+The gridded field must have \"Latitude\" and \"Longitude\" as dimensions.
+
+The position shall be given as a full atmospheric position. The altitude
+in ``pos`` is ignored.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("value"),
@@ -11173,10 +11275,10 @@ computations.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericInterpVector"),
-      DESCRIPTION(
-          "Interpolates a vector to the selected position.\n"
-          "\n"
-          "Returns y(xv) given y(x).\n"),
+      DESCRIPTION(R"--(Interpolates a vector to the selected position.
+
+Returns y(xv) given y(x).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("value"),
@@ -11192,10 +11294,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericMultiply"),
-      DESCRIPTION(
-          "Multiplies a Numeric with a value (output = input * value).\n"
-          "\n"
-          "The result can either be stored in the same or another Numeric.\n"),
+      DESCRIPTION(R"--(Multiplies a Numeric with a value (output = input * value).
+
+The result can either be stored in the same or another Numeric.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -11209,10 +11311,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericSubtract"),
-      DESCRIPTION(
-          "Subtracts a Numeric value (output = input - value).\n"
-          "\n"
-          "The result can either be stored in the same or another Numeric.\n"),
+      DESCRIPTION(R"--(Subtracts a Numeric value (output = input - value).
+
+The result can either be stored in the same or another Numeric.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -11226,9 +11328,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nelemGet"),
-      DESCRIPTION(
-          "Retrieve nelem from given variable and store the value in the\n"
-          "variable *nelem*.\n"),
+      DESCRIPTION(R"--(Retrieve nelem from given variable and store the value in the
+variable *nelem*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nelem"),
       GOUT(),
@@ -11245,9 +11347,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ncolsGet"),
-      DESCRIPTION(
-          "Retrieve ncols from given variable and store the value in the\n"
-          "workspace variable *ncols*\n"),
+      DESCRIPTION(R"--(Retrieve ncols from given variable and store the value in the
+workspace variable *ncols*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("ncols"),
       GOUT(),
@@ -11264,9 +11366,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nrowsGet"),
-      DESCRIPTION(
-          "Retrieve nrows from given variable and store the value in the\n"
-          "workspace variable *nrows*\n"),
+      DESCRIPTION(R"--(Retrieve nrows from given variable and store the value in the
+workspace variable *nrows*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nrows"),
       GOUT(),
@@ -11283,9 +11385,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("npagesGet"),
-      DESCRIPTION(
-          "Retrieve npages from given variable and store the value in the\n"
-          "workspace variable *npages*\n"),
+      DESCRIPTION(R"--(Retrieve npages from given variable and store the value in the
+workspace variable *npages*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("npages"),
       GOUT(),
@@ -11302,9 +11404,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nbooksGet"),
-      DESCRIPTION(
-          "Retrieve nbooks from given variable and store the value in the\n"
-          "workspace variable *nbooks*\n"),
+      DESCRIPTION(R"--(Retrieve nbooks from given variable and store the value in the
+workspace variable *nbooks*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nbooks"),
       GOUT(),
@@ -11321,9 +11423,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nshelvesGet"),
-      DESCRIPTION(
-          "Retrieve nshelves from given variable and store the value in the\n"
-          "workspace variable *nshelves*\n"),
+      DESCRIPTION(R"--(Retrieve nshelves from given variable and store the value in the
+workspace variable *nshelves*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nshelves"),
       GOUT(),
@@ -11340,9 +11442,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nvitrinesGet"),
-      DESCRIPTION(
-          "Retrieve nvitrines from given variable and store the value in the\n"
-          "workspace variable *nvitrines*\n"),
+      DESCRIPTION(R"--(Retrieve nvitrines from given variable and store the value in the
+workspace variable *nvitrines*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nvitrines"),
       GOUT(),
@@ -11359,9 +11461,9 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("nlibrariesGet"),
-      DESCRIPTION(
-          "Retrieve nlibraries from given variable and store the value in the\n"
-          "workspace variable *nlibraries*\n"),
+      DESCRIPTION(R"--(Retrieve nlibraries from given variable and store the value in the
+workspace variable *nlibraries*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("nlibraries"),
       GOUT(),
@@ -11378,7 +11480,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("nlteOff"),
-               DESCRIPTION("Disable Non-LTE calculations.\n"),
+               DESCRIPTION(R"--(Disable Non-LTE calculations.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("nlte_do"),
                GOUT(),
@@ -11392,38 +11495,38 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesPopulationNlteField"),
-      DESCRIPTION(
-          "Turns on NTLE calculations.\n"
-          "\n"
-          "Takes the quantum identifers for NLTE temperatures and matches it to\n"
-          "lines in *abs_lines_per_species*.  *abs_species* must be set and is used\n"
-          "to speed up calculations.  After the function is done,  all affected\n"
-          "lines in *abs_lines_per_species* will have an internal tag to the relevant\n"
-          "quantum identifier, which is a requirement for deeper code.\n"
-          "\n"
-          "If vibrational_energies is input it must match ``nlte_level_identifiers``\n"
-          "in length.  The vibrational energies of the affected lines will then be\n"
-          "set by the function.  Otherwise, it is assumed the vibrational energies\n"
-          "are set by another method.  If they are not set, calculations will complain\n"
-          "later on while running deeper code.\n"
-          "\n"
-          "For now only vibrational energy states are assumed to be able to be in\n"
-          "non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS\n"
-          "can look like::\n"
-          "\n"
-          "  \"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"\n"
-          "\n"
-          "and the matching will match ALL lines with the above.  Note then that if, e.g.,\n"
-          "the \"v1 0/1\" term was removed from the above, then ARTS will assume that\n"
-          "\"v1\" is not part of the level of energy state of interest, so lines\n"
-          "of different \"v1\" will be matched as the same state.  If a line is matched\n"
-          "to more than one energy state, errors should be thrown, but be careful.\n"
-          "\n"
-          "Set type of population to change computations and expected input as:\n"
-          "\n"
-          "- ``\"LTE\"``: Compute population by ratios found from LTE temperatures\n"
-          "- ``\"TV\"``: Compute population by ratios found from NLTE vibrational temperatures\n"
-          "- ``\"ND\"``: Compute population by ratios found from NLTE number densities\n"),
+      DESCRIPTION(R"--(Turns on NTLE calculations.
+
+Takes the quantum identifers for NLTE temperatures and matches it to
+lines in *abs_lines_per_species*.  *abs_species* must be set and is used
+to speed up calculations.  After the function is done,  all affected
+lines in *abs_lines_per_species* will have an internal tag to the relevant
+quantum identifier, which is a requirement for deeper code.
+
+If vibrational_energies is input it must match ``nlte_level_identifiers``
+in length.  The vibrational energies of the affected lines will then be
+set by the function.  Otherwise, it is assumed the vibrational energies
+are set by another method.  If they are not set, calculations will complain
+later on while running deeper code.
+
+For now only vibrational energy states are assumed to be able to be in
+non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS
+can look like::
+
+  \"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"
+
+and the matching will match ALL lines with the above.  Note then that if, e.g.,
+the \"v1 0/1\" term was removed from the above, then ARTS will assume that
+\"v1\" is not part of the level of energy state of interest, so lines
+of different \"v1\" will be matched as the same state.  If a line is matched
+to more than one energy state, errors should be thrown, but be careful.
+
+Set type of population to change computations and expected input as:
+
+- ``\"LTE\"``: Compute population by ratios found from LTE temperatures
+- ``\"TV\"``: Compute population by ratios found from NLTE vibrational temperatures
+- ``\"ND\"``: Compute population by ratios found from NLTE number densities
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("nlte_do", "abs_lines_per_species"),
       GOUT(),
@@ -11437,11 +11540,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfQuantumIdentifierFromLines"),
-      DESCRIPTION(
-          "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
-          "with defined quantum numbers\n"
-          "\n"
-          "Lines without defined quantum numbers are ignored\n"),
+      DESCRIPTION(R"--(Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*
+with defined quantum numbers
+
+Lines without defined quantum numbers are ignored
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -11455,7 +11558,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("timeNow"),
-      DESCRIPTION("Sets time to system_clock::now().\n"),
+      DESCRIPTION(R"--(Sets time to system_clock::now().
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("time"),
       GOUT(),
@@ -11469,7 +11573,8 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("timeOffset"),
-      DESCRIPTION("Offsets time for some seconds\n"),
+      DESCRIPTION(R"--(Offsets time for some seconds
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("time"),
       GOUT(),
@@ -11483,89 +11588,89 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
-      DESCRIPTION(
-          "Inversion by the so called optimal estimation method (OEM).\n"
-          "\n"
-          "Work in progress ...\n"
-          "\n"
-          "The cost function to minimise, including a normalisation with length"
-          "of *y*, is::\n"
-          "\n"
-          "  cost = cost_y + cost_x\n"
-          "\n"
-          "where::\n"
-          "\n"
-          "  cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]\n"
-          "  cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]\n"
-          "\n"
-          "The current implementation provides 3 methods for the minimization of\n"
-          "the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.\n"
-          "The Gauss-Newton minimizer attempts to find a minimum solution by \n"
-          "fitting a quadratic function to the cost functional. The linear minimizer\n"
-          "is a special case of the Gauss-Newton method, since for a linear forward\n"
-          "model the exact solution of the minimization problem is obtained after\n"
-          "the first step. The Levenberg-Marquardt method adaptively constrains the\n"
-          "search region for the next iteration step by means of the so-called gamma-factor.\n"
-          "This makes the method more suitable for strongly non-linear problems.\n"
-          "If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method\n"
-          "are identical. Each minimization method (li,gn,lm) has an indirect\n"
-          "variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver\n"
-          "for the linear system that has to be solved in each minimzation step.\n"
-          "This of advantage for very large problems, that would otherwise require\n"
-          "the computation of expensive matrix products.\n"
-          "\n"
-          "Description of the special input arguments:\n"
-          "\n"
-          "- ``method``: One of the following:\n"
-          "\n"
-          "  - ``\"li\"``: A linear problem is assumed and a single iteration is performed.\n"
-          "  - ``\"li_cg\"``: A linear problem is assumed and solved using the CG solver.\n"
-          "  - ``\"gn\"``: Non-linear, with Gauss-Newton iteration scheme.\n"
-          "  - ``\"gn_cg\"``: Non-linear, with Gauss-Newton and conjugate gradient solver.\n"
-          "  - ``\"lm\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.\n"
-          "  - ``\"lm_cg\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.\n"
-          "\n"
-          "- ``max_start_cost``:\n"
-          "  No inversion is done if the cost matching the a priori state is above\n"
-          "  this value. If set to a negative value, all values are accepted.\n"
-          "  This argument also controls if the start cost is calculated. If\n"
-          "  set to <= 0, the start cost in *oem_diagnostics* is set to NaN\n"
-          "  when using \"li\" and \"gn\".\n"
-          "- ``x_norm``:\n"
-          "  A normalisation vector for *x*. A normalisation of *x* can be needed\n"
-          "  due to limited numerical precision. If this vector is set to be empty\n"
-          "  no normalisation is done (defualt case). Otherwise, this must be a\n"
-          "  vector with same length as *x*, just having values above zero.\n"
-          "  Elementwise division between *x* and ``x_norm`` (x./x_norm) shall give\n"
-          "  a vector where all values are in the order of unity. Maybe the best\n"
-          "  way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).\n"
-          "- ``max_iter``:\n"
-          "  Maximum number of iterations to perform. No effect for \"li\".\n"
-          "- ``stop_dx``:\n"
-          "  Iteration stop criterion. The criterion used is the same as given\n"
-          "  in Rodgers\' \"Inverse Methods for Atmospheric Sounding\"\n"
-          "- ``lm_ga_settings``:\n"
-          "  Settings controlling the gamma factor, part of the \"LM\" method.\n"
-          "  This is a vector of length 6, having the elements (0-based index):\n"
-          "\n"
-          "    0. Start value.\n"
-          "    1. Fractional decrease after succesfull iteration.\n"
-          "    2. Fractional increase after unsuccessful iteration.\n"
-          "    3. Maximum allowed value. If the value is passed, the inversion\n"
-          "       is halted.\n"
-          "    4. Lower treshold. If the threshold is passed, gamma is set to zero.\n"
-          "       If gamma must be increased from zero, gamma is set to this value.\n"
-          "    5. Gamma limit. This is an additional stop criterion. Convergence\n"
-          "       is not considered until there has been one succesful iteration\n"
-          "       having a gamma <= this value.\n"
-          "\n"
-          "  The default setting triggers an error if \"lm\" is selected.\n"
-          "- ``clear matrices``:\n"
-          "   With this flag set to 1, *jacobian* and *dxdy* are returned as empty\n"
-          "   matrices.\n"
-          "- ``display_progress``:\n"
-          "   Controls if there is any screen output. The overall report level\n"
-          "   is ignored by this WSM.\n"),
+      DESCRIPTION(R"--(Inversion by the so called optimal estimation method (OEM).
+
+Work in progress ...
+
+The cost function to minimise, including a normalisation with length
+of *y*, is::
+
+  cost = cost_y + cost_x
+
+where::
+
+  cost_y = 1/m * [y-yf]' * covmat_se_inv * [y-yf]
+  cost_x = 1/m * [x-xa]' * covmat_sx_inv * [x-xa]
+
+The current implementation provides 3 methods for the minimization of
+the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
+The Gauss-Newton minimizer attempts to find a minimum solution by 
+fitting a quadratic function to the cost functional. The linear minimizer
+is a special case of the Gauss-Newton method, since for a linear forward
+model the exact solution of the minimization problem is obtained after
+the first step. The Levenberg-Marquardt method adaptively constrains the
+search region for the next iteration step by means of the so-called gamma-factor.
+This makes the method more suitable for strongly non-linear problems.
+If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method
+are identical. Each minimization method (li,gn,lm) has an indirect
+variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver
+for the linear system that has to be solved in each minimzation step.
+This of advantage for very large problems, that would otherwise require
+the computation of expensive matrix products.
+
+Description of the special input arguments:
+
+- ``method``: One of the following:
+
+  - ``\"li\"``: A linear problem is assumed and a single iteration is performed.
+  - ``\"li_cg\"``: A linear problem is assumed and solved using the CG solver.
+  - ``\"gn\"``: Non-linear, with Gauss-Newton iteration scheme.
+  - ``\"gn_cg\"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
+  - ``\"lm\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
+  - ``\"lm_cg\"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
+
+- ``max_start_cost``:
+  No inversion is done if the cost matching the a priori state is above
+  this value. If set to a negative value, all values are accepted.
+  This argument also controls if the start cost is calculated. If
+  set to <= 0, the start cost in *oem_diagnostics* is set to NaN
+  when using \"li\" and \"gn\".
+- ``x_norm``:
+  A normalisation vector for *x*. A normalisation of *x* can be needed
+  due to limited numerical precision. If this vector is set to be empty
+  no normalisation is done (defualt case). Otherwise, this must be a
+  vector with same length as *x*, just having values above zero.
+  Elementwise division between *x* and ``x_norm`` (x./x_norm) shall give
+  a vector where all values are in the order of unity. Maybe the best
+  way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
+- ``max_iter``:
+  Maximum number of iterations to perform. No effect for \"li\".
+- ``stop_dx``:
+  Iteration stop criterion. The criterion used is the same as given
+  in Rodgers\' \"Inverse Methods for Atmospheric Sounding\"
+- ``lm_ga_settings``:
+  Settings controlling the gamma factor, part of the \"LM\" method.
+  This is a vector of length 6, having the elements (0-based index):
+
+    0. Start value.
+    1. Fractional decrease after succesfull iteration.
+    2. Fractional increase after unsuccessful iteration.
+    3. Maximum allowed value. If the value is passed, the inversion
+       is halted.
+    4. Lower treshold. If the threshold is passed, gamma is set to zero.
+       If gamma must be increased from zero, gamma is set to this value.
+    5. Gamma limit. This is an additional stop criterion. Convergence
+       is not considered until there has been one succesful iteration
+       having a gamma <= this value.
+
+  The default setting triggers an error if \"lm\" is selected.
+- ``clear matrices``:
+   With this flag set to 1, *jacobian* and *dxdy* are returned as empty
+   matrices.
+- ``display_progress``:
+   Controls if there is any screen output. The overall report level
+   is ignored by this WSM.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("x",
           "yf",
@@ -11616,11 +11721,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("avkCalc"),
-      DESCRIPTION(
-          "Calculate the averaging kernel matrix.\n\nThis is done by describing the sensitivity of the\n"
-          "OEM retrieval with respect to the true state of the system. A prerequisite\n"
-          "for the calculation of the averaging kernel matrix is a successful OEM\n"
-          "calculation in which the *jacobian* and the gain matrix *dxdy* have been calculated.\n"),
+      DESCRIPTION(R"--(Calculate the averaging kernel matrix.
+This is done by describing the sensitivity of the
+OEM retrieval with respect to the true state of the system. A prerequisite
+for the calculation of the averaging kernel matrix is a successful OEM
+calculation in which the *jacobian* and the gain matrix *dxdy* have been calculated.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("avk"),
       GOUT(),
@@ -11634,14 +11740,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_soCalc"),
-      DESCRIPTION(
-          "Calculates the covariance matrix describing the error due to uncertainties\n"
-          "in the observation system.\n\nThe uncertainties of the observation system are\n"
-          "described by *covmat_se*, which must be set by the user to include the\n"
-          "relevant contributions from the measurement and the forward model.\n"
-          "\n"
-          "Prerequisite for the calculation of *covmat_so* is a successful OEM\n"
-          "computation where also the gain matrix has been computed.\n"),
+      DESCRIPTION(R"--(Calculates the covariance matrix describing the error due to uncertainties
+in the observation system.
+The uncertainties of the observation system are
+described by *covmat_se*, which must be set by the user to include the
+relevant contributions from the measurement and the forward model.
+
+Prerequisite for the calculation of *covmat_so* is a successful OEM
+computation where also the gain matrix has been computed.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_so"),
       GOUT(),
@@ -11655,11 +11762,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("covmat_ssCalc"),
-      DESCRIPTION(
-          "Calculates the covariance matrix describing the error due to smoothing.\n"
-          "\n"
-          "The calculation of *covmat_ss* also requires the averaging kernel matrix *avk*\n"
-          "to be computed after a successful OEM calculation.\n"),
+      DESCRIPTION(R"--(Calculates the covariance matrix describing the error due to smoothing.
+
+The calculation of *covmat_ss* also requires the averaging kernel matrix *avk*
+to be computed after a successful OEM calculation.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_ss"),
       GOUT(),
@@ -11673,17 +11780,17 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_bulkCalc"),
-      DESCRIPTION(
-          "Calculates bulk absorption extinction at one atmospheric grid point.\n"
-          "\n"
-          "This WSM sums up the monochromatic absorption vectors and\n"
-          "extinction matrices of all scattering elements (*abs_vec_spt* and\n"
-          "*ext_mat_spt*, respectively) weighted by their respective\n"
-          "particle number density given by *pnd_field*, for a single location\n"
-          "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
-          "*scat_lon_index*.\n"
-          "The resulting  extinction matrix is added to the workspace variable\n"
-          "*ext_mat*.\n"),
+      DESCRIPTION(R"--(Calculates bulk absorption extinction at one atmospheric grid point.
+
+This WSM sums up the monochromatic absorption vectors and
+extinction matrices of all scattering elements (*abs_vec_spt* and
+*ext_mat_spt*, respectively) weighted by their respective
+particle number density given by *pnd_field*, for a single location
+within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and
+*scat_lon_index*.
+The resulting  extinction matrix is added to the workspace variable
+*ext_mat*.
+)--"),
       AUTHORS("Jana Mendrok, Sreerekha T.R."),
       OUT("ext_mat", "abs_vec"),
       GOUT(),
@@ -11704,19 +11811,19 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromData"),
-      DESCRIPTION(
-          "Calculates monochromatic optical properties for all scattering\n"
-          "elements.\n"
-          "\n"
-          "In this function the extinction matrix and the absorption vector\n"
-          "are calculated in the laboratory frame. An interpolation of the\n"
-          "data on the actual frequency is the first step in this function.\n"
-          "The next step is a transformation from the database coordinate\n"
-          "system to the laboratory coordinate system.\n"
-          "\n"
-          "Output of the function are *ext_mat_spt* and *abs_vec_spt*, which\n"
-          "hold the optical properties for a specified propagation direction\n"
-          "for each scattering element.\n"),
+      DESCRIPTION(R"--(Calculates monochromatic optical properties for all scattering
+elements.
+
+In this function the extinction matrix and the absorption vector
+are calculated in the laboratory frame. An interpolation of the
+data on the actual frequency is the first step in this function.
+The next step is a transformation from the database coordinate
+system to the laboratory coordinate system.
+
+Output of the function are *ext_mat_spt* and *abs_vec_spt*, which
+hold the optical properties for a specified propagation direction
+for each scattering element.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("ext_mat_spt", "abs_vec_spt"),
       GOUT(),
@@ -11743,13 +11850,13 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromScat_data"),
-      DESCRIPTION(
-          "Derives monochromatic optical properties for all scattering\n"
-          "elements.\n"
-          "\n"
-          "As *opt_prop_sptFromData*, but using frequency pre-interpolated\n"
-          "data (as produced by *scat_dataCalc*), i.e. in here no frequency\n"
-          "interpolation is done anymore.\n"),
+      DESCRIPTION(R"--(Derives monochromatic optical properties for all scattering
+elements.
+
+As *opt_prop_sptFromData*, but using frequency pre-interpolated
+data (as produced by *scat_dataCalc*), i.e. in here no frequency
+interpolation is done anymore.
+)--"),
       AUTHORS("Jana Mendrok, Claudia Emde"),
       OUT("ext_mat_spt", "abs_vec_spt"),
       GOUT(),
@@ -11776,12 +11883,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromMonoData"),
-      DESCRIPTION(
-          "Calculates optical properties for the scattering elements.\n"
-          "\n"
-          "As *opt_prop_sptFromData* but no frequency interpolation is\n"
-          "performed. The single scattering data is here obtained from\n"
-          "*scat_data_mono*, instead of *scat_data*.\n"),
+      DESCRIPTION(R"--(Calculates optical properties for the scattering elements.
+
+As *opt_prop_sptFromData* but no frequency interpolation is
+performed. The single scattering data is here obtained from
+*scat_data_mono*, instead of *scat_data*.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("ext_mat_spt", "abs_vec_spt"),
       GOUT(),
@@ -11806,7 +11913,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("output_file_formatSetAscii"),
-               DESCRIPTION("Sets the output file format to ASCII.\n"),
+               DESCRIPTION(R"--(Sets the output file format to ASCII.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
                GOUT(),
@@ -11820,7 +11928,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("output_file_formatSetBinary"),
-               DESCRIPTION("Sets the output file format to binary.\n"),
+               DESCRIPTION(R"--(Sets the output file format to binary.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
                GOUT(),
@@ -11834,7 +11943,8 @@ computations.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("output_file_formatSetZippedAscii"),
-               DESCRIPTION("Sets the output file format to zipped ASCII.\n"),
+               DESCRIPTION(R"--(Sets the output file format to zipped ASCII.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
                GOUT(),
@@ -11848,75 +11958,75 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkpropRadarOnionPeeling"),
-      DESCRIPTION(
-          "Inverts radar reflectivities by in an onion peeling manner.\n"
-          "\n"
-          "The method assumes space-based measurements and invert one altitude\n"
-          "at the time, based on a pre-calculated inversion table (``invtable``)\n"
-          "and starting at the top of the atmosphere. If attenuation is\n"
-          "completely ignored, the table is effectively used as a look-up table\n"
-          "to map dBZe to hydrometeor values. The method considers attenuation\n"
-          "by default, where extinction due to hydrometeors is taken from the\n"
-          "table and the one due to *abs_species* is obtained by\n"
-          "*propmat_clearsky_agenda*.\n"
-          "\n"
-          "The inversion table consists of two GriddedField3. The first field\n"
-          "shall match liquid hydrometeors and is applied for temperatures above\n"
-          "``t_phase``. The second field is applied for lower temperatures and\n"
-          "shall thus correspond to ice hydrometeors.\n"
-          "\n"
-          "The size of each field is (2,ndb,nt). The two page dimensions match\n"
-          "the hydrometeor property to retrieve and extinction, respectively.\n"
-          "The table shall hold the 10-logarithm of the property, such as\n"
-          "log10(IWC). ndb is the number of dBZe values in the table and nt\n"
-          "the number of temperatures. The table is interpolated in temperature\n"
-          "in a nearest neighbour fashion, while in a linear interpolation is\n"
-          "applied in the dBZe dimension.\n"
-          "\n"
-          "The field of radar reflectivities (``dBZe``) shall cover the complete\n"
-          "atmosphere and then match e.g. ``t_field`` in size. The observation\n"
-          "geometry is here specified by giving the incidence angle for each\n"
-          "profile of dBZe values (by ``incangles``). A flat Earth approximation\n"
-          "is applied inside the method.\n"
-          "\n"
-          "All values below ``dbze_noise`` are treated as pure noise and\n"
-          "``particle_bulkprop_field`` is set to zero for these positions.\n"
-          "The comparison to ``dbze_noise`` is done with uncorrected values.\n"
-          "\n"
-          "Further, all values at altitudes below z_surface + h_clutter are\n"
-          "assumed to be surface clutter and are rejected. If ``fill_clutter``\n"
-          "is set to 1, the retrieval just above the clutter zone is assumed\n"
-          "valid also below and is copied to all altitudes below (also for\n"
-          "altitudes below the surface).\n"
-          "\n"
-          "Unfiltered clutter can cause extremely high retrived water contents.\n"
-          "The GIN ``wc_max`` defines an upper limit for reasonable water contents.\n"
-          "Retrievals ending up above this value are set to zero. Values below\n"
-          "``wc_max`` but above ``wc_clip``, are set to ``wc_clip``.\n"
-          "\n"
-          "Significant radar echos (>dbze_noise and above clutter zone) are\n"
-          "assumed to match liquid hydrometeors for temperatures >= ``t_phase``\n"
-          "and ice ones for lower temperatures.\n"
-          "\n"
-          "Default is to consider attenuation of both hydrometeors and absorption\n"
-          "species. These two sources to attenuation can be ignored by setting\n"
-          "``do_atten_hyd`` and ``do_atten_abs`` to zero, respectively.\n"
-          "\n"
-          "Default is to consider hydrometeor attenuation, but there could be\n"
-          "two reasons to ignore it. It can cause a \"run away\" effect in the\n"
-          "retrievals. Ignoring it can also compensate for impact of multiple\n"
-          "scattering in space-based observations, as shown by: Matrosov and\n"
-          "Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation\n"
-          "totally gives a too high compensating effect and the GIN\n"
-          "``atten_hyd_scaling`` allows to test intermediate compensations. This\n"
-          "GIN matches the GIN pext_scaling of *iyRadarSingleScat*, but they\n"
-          "have different default values. The default in this method follows the\n"
-          "results for CloudSat in Matrosov and Battaglia. Please note that\n"
-          "``do_atten_hyd`` must be true to apply ``atten_hyd_scaling``.\n"
-          "\n"
-          "Even with ``atten_hyd_scaling`` below 1, there could be a run-away in\n"
-          "the estimated attenuation, and ``atten_hyd_max`` stops this by setting\n"
-          "a maximum value to the hydrometeor attenuation.\n"),
+      DESCRIPTION(R"--(Inverts radar reflectivities by in an onion peeling manner.
+
+The method assumes space-based measurements and invert one altitude
+at the time, based on a pre-calculated inversion table (``invtable``)
+and starting at the top of the atmosphere. If attenuation is
+completely ignored, the table is effectively used as a look-up table
+to map dBZe to hydrometeor values. The method considers attenuation
+by default, where extinction due to hydrometeors is taken from the
+table and the one due to *abs_species* is obtained by
+*propmat_clearsky_agenda*.
+
+The inversion table consists of two GriddedField3. The first field
+shall match liquid hydrometeors and is applied for temperatures above
+``t_phase``. The second field is applied for lower temperatures and
+shall thus correspond to ice hydrometeors.
+
+The size of each field is (2,ndb,nt). The two page dimensions match
+the hydrometeor property to retrieve and extinction, respectively.
+The table shall hold the 10-logarithm of the property, such as
+log10(IWC). ndb is the number of dBZe values in the table and nt
+the number of temperatures. The table is interpolated in temperature
+in a nearest neighbour fashion, while in a linear interpolation is
+applied in the dBZe dimension.
+
+The field of radar reflectivities (``dBZe``) shall cover the complete
+atmosphere and then match e.g. ``t_field`` in size. The observation
+geometry is here specified by giving the incidence angle for each
+profile of dBZe values (by ``incangles``). A flat Earth approximation
+is applied inside the method.
+
+All values below ``dbze_noise`` are treated as pure noise and
+``particle_bulkprop_field`` is set to zero for these positions.
+The comparison to ``dbze_noise`` is done with uncorrected values.
+
+Further, all values at altitudes below z_surface + h_clutter are
+assumed to be surface clutter and are rejected. If ``fill_clutter``
+is set to 1, the retrieval just above the clutter zone is assumed
+valid also below and is copied to all altitudes below (also for
+altitudes below the surface).
+
+Unfiltered clutter can cause extremely high retrived water contents.
+The GIN ``wc_max`` defines an upper limit for reasonable water contents.
+Retrievals ending up above this value are set to zero. Values below
+``wc_max`` but above ``wc_clip``, are set to ``wc_clip``.
+
+Significant radar echos (>dbze_noise and above clutter zone) are
+assumed to match liquid hydrometeors for temperatures >= ``t_phase``
+and ice ones for lower temperatures.
+
+Default is to consider attenuation of both hydrometeors and absorption
+species. These two sources to attenuation can be ignored by setting
+``do_atten_hyd`` and ``do_atten_abs`` to zero, respectively.
+
+Default is to consider hydrometeor attenuation, but there could be
+two reasons to ignore it. It can cause a \"run away\" effect in the
+retrievals. Ignoring it can also compensate for impact of multiple
+scattering in space-based observations, as shown by: Matrosov and
+Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation
+totally gives a too high compensating effect and the GIN
+``atten_hyd_scaling`` allows to test intermediate compensations. This
+GIN matches the GIN pext_scaling of *iyRadarSingleScat*, but they
+have different default values. The default in this method follows the
+results for CloudSat in Matrosov and Battaglia. Please note that
+``do_atten_hyd`` must be true to apply ``atten_hyd_scaling``.
+
+Even with ``atten_hyd_scaling`` below 1, there could be a run-away in
+the estimated attenuation, and ``atten_hyd_max`` stops this by setting
+a maximum value to the hydrometeor attenuation.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atm_field", "particle_bulkprop_names"),
       GOUT(),
@@ -11965,18 +12075,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
-      DESCRIPTION(
-          "Clipping of ``particle_bulkprop_field``.\n"
-          "\n"
-          "The method allows you to apply hard limits the values of\n"
-          "``particle_bulkprop_field``. All values, of the property selected,\n"
-          "below ``limit_low``, are simply set to ``limit_low``. And the same\n"
-          "is performed with respect to ``limit_high``. That is, the data in x\n"
-          "for the retrieval quantity are forced to be inside the range\n"
-          "[limit_low,limit_high].\n"
-          "\n"
-          "Setting species=\"ALL\", is a shortcut for applying the limits on all\n"
-          "properties.\n"),
+      DESCRIPTION(R"--(Clipping of ``particle_bulkprop_field``.
+
+The method allows you to apply hard limits the values of
+``particle_bulkprop_field``. All values, of the property selected,
+below ``limit_low``, are simply set to ``limit_low``. And the same
+is performed with respect to ``limit_high``. That is, the data in x
+for the retrieval quantity are forced to be inside the range
+[limit_low,limit_high].
+
+Setting species=\"ALL\", is a shortcut for applying the limits on all
+properties.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atm_field"),
       GOUT(),
@@ -11992,20 +12102,20 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaDataSingleCategory"),
-      DESCRIPTION(
-          "Sets *particle_masses* based on *scat_meta* assuming\n"
-          "all particles are of the same mass category.\n"
-          "\n"
-          "This method derives the particle masses from the mass entry\n"
-          "of each scattering element. It is assumed that all scattering\n"
-          "elements represent particles of the same (bulk) matter\n"
-          "(e.g. water or ice). With other words, a single mass category\n"
-          "is assumed (see *particle_masses* for a definition of \"mass\n"
-          "category\").\n"
-          "\n"
-          "If just having clouds, the resulting mass category can be seen as\n"
-          "the total cloud water content, with possible contribution from\n"
-          "both ice and liquid phase.\n"),
+      DESCRIPTION(R"--(Sets *particle_masses* based on *scat_meta* assuming
+all particles are of the same mass category.
+
+This method derives the particle masses from the mass entry
+of each scattering element. It is assumed that all scattering
+elements represent particles of the same (bulk) matter
+(e.g. water or ice). With other words, a single mass category
+is assumed (see *particle_masses* for a definition of \"mass
+category\").
+
+If just having clouds, the resulting mass category can be seen as
+the total cloud water content, with possible contribution from
+both ice and liquid phase.
+)--"),
       AUTHORS("Jana Mendrok", "Patrick Eriksson"),
       OUT("particle_masses"),
       GOUT(),
@@ -12019,14 +12129,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaData"),
-      DESCRIPTION(
-          "Derives *particle_masses* from *scat_meta*.\n"
-          "\n"
-          "It extracts the mass information of the scattering elements\n"
-          "from *scat_meta*. Each scattering species is taken as a\n"
-          "separate category of particle_masses, i.e., the resulting\n"
-          "*particle_masses* matrix will contain as many columns as\n"
-          "scattering species are present in *scat_meta*.\n"),
+      DESCRIPTION(R"--(Derives *particle_masses* from *scat_meta*.
+
+It extracts the mass information of the scattering elements
+from *scat_meta*. Each scattering species is taken as a
+separate category of particle_masses, i.e., the resulting
+*particle_masses* matrix will contain as many columns as
+scattering species are present in *scat_meta*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("particle_masses"),
       GOUT(),
@@ -12040,14 +12150,14 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pha_matCalc"),
-      DESCRIPTION(
-          "Calculates the total phase matrix of all scattering elements.\n"
-          "\n"
-          "This function sums up the monochromatic phase matrices of all\n"
-          "scattering elements *pha_mat_spt* weighted with  their respective\n"
-          "particle number density, given by *pnd_field*, for a single location\n"
-          "within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and\n"
-          "*scat_lon_index*.\n"),
+      DESCRIPTION(R"--(Calculates the total phase matrix of all scattering elements.
+
+This function sums up the monochromatic phase matrices of all
+scattering elements *pha_mat_spt* weighted with  their respective
+particle number density, given by *pnd_field*, for a single location
+within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and
+*scat_lon_index*.
+)--"),
       AUTHORS("Sreerekha T.R."),
       OUT("pha_mat"),
       GOUT(),
@@ -12065,30 +12175,30 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromData"),
-      DESCRIPTION(
-          "Calculation of the phase matrix of the individual scattering elements.\n"
-          "\n"
-          "This function can be used in *pha_mat_spt_agenda* as part of\n"
-          "the calculation of the scattering integral.\n"
-          "\n"
-          "First, data at the requested frequency (given by *f_grid* and\n"
-          "*f_index*) and temperature (given by *rtp_temperature*) is\n"
-          "extracted. This is followed by a transformation from the database\n"
-          "coordinate system to the laboratory coordinate system.\n"
-          "\n"
-          "Frequency extraction is always done by (linear) interpolation.\n"
-          "Temperature is (linearly) interpolated when at least two\n"
-          "temperature grid points are present in the *scat_data* and\n"
-          "*rtp_temperature* is positive. If only a single temperature point\n"
-          "is available, data for this point is used without modification. In\n"
-          "order to speed up calculations, temperature interpolation can be\n"
-          "avoided by passing a *rtp_temperature* < 0. In this case, a specific\n"
-          "temperature grid from the *scat_data* grid is used without\n"
-          "modification. The selection is as follows:\n"
-          "\n"
-          "- -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature\n"
-          "- -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature\n"
-          "- *rtp_temperature* < -20   T_grid[nT/2]  median grid point\n"),
+      DESCRIPTION(R"--(Calculation of the phase matrix of the individual scattering elements.
+
+This function can be used in *pha_mat_spt_agenda* as part of
+the calculation of the scattering integral.
+
+First, data at the requested frequency (given by *f_grid* and
+*f_index*) and temperature (given by *rtp_temperature*) is
+extracted. This is followed by a transformation from the database
+coordinate system to the laboratory coordinate system.
+
+Frequency extraction is always done by (linear) interpolation.
+Temperature is (linearly) interpolated when at least two
+temperature grid points are present in the *scat_data* and
+*rtp_temperature* is positive. If only a single temperature point
+is available, data for this point is used without modification. In
+order to speed up calculations, temperature interpolation can be
+avoided by passing a *rtp_temperature* < 0. In this case, a specific
+temperature grid from the *scat_data* grid is used without
+modification. The selection is as follows:
+
+- -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature
+- -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature
+- *rtp_temperature* < -20   T_grid[nT/2]  median grid point
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -12114,15 +12224,15 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromDataDOITOpt"),
-      DESCRIPTION(
-          "Calculation of the phase matrix of the individual scattering elements.\n"
-          "\n"
-          "In this function the phase matrix is extracted from\n"
-          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
-          "*pha_mat_spt_agenda*. This method must be used in combination with\n"
-          "*DoitScatteringDataPrepare*.\n"
-          "\n"
-          "Temperature is considered as described for *pha_mat_sptFromData*\n"),
+      DESCRIPTION(R"--(Calculation of the phase matrix of the individual scattering elements.
+
+In this function the phase matrix is extracted from
+*pha_mat_sptDOITOpt*. It can be used in the agenda
+*pha_mat_spt_agenda*. This method must be used in combination with
+*DoitScatteringDataPrepare*.
+
+Temperature is considered as described for *pha_mat_sptFromData*
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -12147,10 +12257,10 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromMonoData"),
-      DESCRIPTION(
-          "Calculation of the phase matrix of the individual scattering elements.\n"
-          "\n"
-          "This function is the monochromatic version of *pha_mat_sptFromData*.\n"),
+      DESCRIPTION(R"--(Calculation of the phase matrix of the individual scattering elements.
+
+This function is the monochromatic version of *pha_mat_sptFromData*.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -12174,12 +12284,12 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromScat_data"),
-      DESCRIPTION(
-          "Calculation of the phase matrix of the individual scattering elements.\n"
-          "\n"
-          "As *pha_mat_sptFromData*, but using frequency pre-interpolated\n"
-          "data (as produced by *scat_dataCalc*), i.e. in here no frequency\n"
-          "interpolation is done anymore.\n"),
+      DESCRIPTION(R"--(Calculation of the phase matrix of the individual scattering elements.
+
+As *pha_mat_sptFromData*, but using frequency pre-interpolated
+data (as produced by *scat_dataCalc*), i.e. in here no frequency
+interpolation is done anymore.
+)--"),
       AUTHORS("Jana Mendrok, Claudia Emde"),
       OUT("pha_mat_spt"),
       GOUT(),
@@ -12205,42 +12315,42 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pndFromPsd"),
-      DESCRIPTION(
-          "Calculates *pnd_data* from given *psd_data* for one scattering species.\n"
-          "\n"
-          "Performs integration of the size distribution over the size grid\n"
-          "bin deriving pnd (units #/m3) from psd (units #/m3/m). Some checks\n"
-          "on the sufficiency of the size grid range and coverage are applied.\n"
-          "\n"
-          "``quad_order`` can be 0 for rectangular or 1 for trapezoidal\n"
-          "integration. The only difference is the treatment of the start and\n"
-          "end nodes. For trapezoidal their corresponding bins end exactly at\n"
-          "the nodes, while for rectangular they extend further out by the half\n"
-          "distance to the neighbor node (but not beyond 0).\n"
-          "\n"
-          "Attempts to check that the size grids and *scat_data* represent the\n"
-          "bulk extinction sufficiently. Specifically, it is tested that\n"
-          "\n"
-          "(a) psd*ext is decreasing at the small and large particle size\n"
-          "    ends of the size grid - but only if scattering species bulk\n"
-          "    extinction exceeds 1% of ``threshold_ss_ext``.\n"
-          "(b) removing the smallest and largest particles changes the\n"
-          "    resulting bulk extinction by less then a fraction of\n"
-          "    ``threshold_se_ext`` - but only if scattering species bulk\n"
-          "    extinction exceeds ``threshold_ss_ext`` and number density (pnd)\n"
-          "    of the edge size point at this atmospheric level is larger\n"
-          "    than ``threshold_se_pnd`` times the maximum pnd of this\n"
-          "    scattering element over all atmospheric levels.\n"
-          "\n"
-          "Skipping tests in case of low extinction is done in order to\n"
-          "minimize issues arising from very low mass densities,\n"
-          "particularly at single atmospheric levels, and very low bulk\n"
-          "extinctions, i.e. in cases where the effects on the radiance fields\n"
-          "are estimated to be low."
-          "\n"
-          "NOTE: The tests are only approximate and do not guarantee the\n"
-          "validity of the resulting bulk properties (and increasing the\n"
-          "thresholds will decrease the reliability of the bulk properties).\n"),
+      DESCRIPTION(R"--(Calculates *pnd_data* from given *psd_data* for one scattering species.
+
+Performs integration of the size distribution over the size grid
+bin deriving pnd (units #/m3) from psd (units #/m3/m). Some checks
+on the sufficiency of the size grid range and coverage are applied.
+
+``quad_order`` can be 0 for rectangular or 1 for trapezoidal
+integration. The only difference is the treatment of the start and
+end nodes. For trapezoidal their corresponding bins end exactly at
+the nodes, while for rectangular they extend further out by the half
+distance to the neighbor node (but not beyond 0).
+
+Attempts to check that the size grids and *scat_data* represent the
+bulk extinction sufficiently. Specifically, it is tested that
+
+(a) psd*ext is decreasing at the small and large particle size
+    ends of the size grid - but only if scattering species bulk
+    extinction exceeds 1% of ``threshold_ss_ext``.
+(b) removing the smallest and largest particles changes the
+    resulting bulk extinction by less then a fraction of
+    ``threshold_se_ext`` - but only if scattering species bulk
+    extinction exceeds ``threshold_ss_ext`` and number density (pnd)
+    of the edge size point at this atmospheric level is larger
+    than ``threshold_se_pnd`` times the maximum pnd of this
+    scattering element over all atmospheric levels.
+
+Skipping tests in case of low extinction is done in order to
+minimize issues arising from very low mass densities,
+particularly at single atmospheric levels, and very low bulk
+extinctions, i.e. in cases where the effects on the radiance fields
+are estimated to be low.
+
+NOTE: The tests are only approximate and do not guarantee the
+validity of the resulting bulk properties (and increasing the
+thresholds will decrease the reliability of the bulk properties).
+)--"),
       AUTHORS("Jana Mendrok, Patrick Eriksson"),
       OUT("pnd_data", "dpnd_data_dx"),
       GOUT(),
@@ -12272,11 +12382,11 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pndFromPsdBasic"),
-      DESCRIPTION(
-          "Calculates *pnd_data* from given *psd_data*.\n"
-          "\n"
-          "As *pndFromPsdBasic*, but without bulk extinction representation\n"
-          "checks.\n"),
+      DESCRIPTION(R"--(Calculates *pnd_data* from given *psd_data*.
+
+As *pndFromPsdBasic*, but without bulk extinction representation
+checks.
+)--"),
       AUTHORS("Jana Mendrok, Patrick Eriksson"),
       OUT("pnd_data", "dpnd_data_dx"),
       GOUT(),
@@ -12290,18 +12400,18 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldCalcFromParticleBulkProps"),
-      DESCRIPTION(
-          "Converts particle bulk property data to *pnd_field*.\n"
-          "\n"
-          "In short, the method combines *scat_species*, *pnd_agenda_array*,\n"
-          "``particle_bulkprop_field`` and their associated variables to derive\n"
-          "*pnd_field*.\n"
-          "\n"
-          "The method does nothing if cloudbox is inactive.\n"
-          "\n"
-          "Otherwise, cloudbox limits must be set before calling the method,\n"
-          "and ``particle_bulkprop_field`` is checked to have non-zero elements\n"
-          "just inside the cloudbox.\n"),
+      DESCRIPTION(R"--(Converts particle bulk property data to *pnd_field*.
+
+In short, the method combines *scat_species*, *pnd_agenda_array*,
+``particle_bulkprop_field`` and their associated variables to derive
+*pnd_field*.
+
+The method does nothing if cloudbox is inactive.
+
+Otherwise, cloudbox limits must be set before calling the method,
+and ``particle_bulkprop_field`` is checked to have non-zero elements
+just inside the cloudbox.
+)--"),
       AUTHORS("Patrick Eriksson, Jana Mendrok"),
       OUT("pnd_field", "dpnd_field_dx"),
       GOUT(),
@@ -12327,18 +12437,18 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldCalcFrompnd_field_raw"),
-      DESCRIPTION(
-          "Interpolation of particle number density fields to calculation grid\n"
-          "inside cloudbox.\n"
-          "\n"
-          "This method interpolates the particle number density field\n"
-          "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
-          "For 1D cases, where internally *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid* are applied, ``zeropadding`` = 1 sets the\n"
-          "*pnd_field* at pressure levels levels exceeding pnd_field_raw's\n"
-          "pressure grid to 0 (not implemented for 2D and 3D yet). Default:\n"
-          "zeropadding = 0, which throws an error if the calculation pressure grid\n"
-          "``p_grid`` is not completely covered by pnd_field_raw's pressure grid.\n"),
+      DESCRIPTION(R"--(Interpolation of particle number density fields to calculation grid
+inside cloudbox.
+
+This method interpolates the particle number density field
+from the raw data *pnd_field_raw* to obtain *pnd_field*.
+For 1D cases, where internally *GriddedFieldPRegrid* and
+*GriddedFieldLatLonRegrid* are applied, ``zeropadding`` = 1 sets the
+*pnd_field* at pressure levels levels exceeding pnd_field_raw's
+pressure grid to 0 (not implemented for 2D and 3D yet). Default:
+zeropadding = 0, which throws an error if the calculation pressure grid
+``p_grid`` is not completely covered by pnd_field_raw's pressure grid.
+)--"),
       AUTHORS("Sreerekha T.R.", "Claudia Emde", "Oliver Lemke"),
       OUT("pnd_field", "dpnd_field_dx"),
       GOUT(),
@@ -12358,23 +12468,23 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldExpand1D"),
-      DESCRIPTION(
-          "Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.\n"
-          "\n"
-          "This method takes a 1D *pnd_field* and converts it to a 2D or 3D\n"
-          "\"cloud\". It is assumed that a complete 1D case has been created,\n"
-          "and after this ``atmosphere_dim``, ``lat_grid``, ``lon_grid`` and\n"
-          "*cloudbox_limits* have been changed to a 2D or 3D case (without\n"
-          "changing the vertical extent of the cloudbox.\n"
-          "\n"
-          "No modification of *pnd_field* is made for the pressure dimension.\n"
-          "At the latitude and longitude cloudbox edge points *pnd_field* is set to\n"
-          "zero. This corresponds to nzero=1. If you want a larger margin between\n"
-          "the lat and lon cloudbox edges and the \"cloud\" you increase\n"
-          "``nzero``, where ``nzero`` is the number of grid points for which\n"
-          "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
-          "\n"
-          "See further ``AtmFieldsExpand1D``.\n"),
+      DESCRIPTION(R"--(Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.
+
+This method takes a 1D *pnd_field* and converts it to a 2D or 3D
+\"cloud\". It is assumed that a complete 1D case has been created,
+and after this ``atmosphere_dim``, ``lat_grid``, ``lon_grid`` and
+*cloudbox_limits* have been changed to a 2D or 3D case (without
+changing the vertical extent of the cloudbox.
+
+No modification of *pnd_field* is made for the pressure dimension.
+At the latitude and longitude cloudbox edge points *pnd_field* is set to
+zero. This corresponds to nzero=1. If you want a larger margin between
+the lat and lon cloudbox edges and the \"cloud\" you increase
+``nzero``, where ``nzero`` is the number of grid points for which
+*pnd_field* shall be set to 0, counted from each lat and lon edge.
+
+See further ``AtmFieldsExpand1D``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("pnd_field"),
       GOUT(),
@@ -12388,27 +12498,27 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldZero"),
-      DESCRIPTION(
-          "Sets *pnd_field* to zero.\n"
-          "\n"
-          "Creates an empty *pnd_field* of cloudbox size according to\n"
-          "*cloudbox_limits* and with number of scattering elemements\n"
-          "according to *scat_data*. If *scat_data* is not set yet, it will be\n"
-          "filled with one dummy scattering element.\n"
-          "\n"
-          "The method works with both *scat_data* and *scat_data_raw*."
-          "\n"
-          "This method primarily exists for testing purposes.\n"
-          "On the one hand, empty *pnd_field* runs can be used to test the\n"
-          "agreement between true clear-sky (``cloudboxOff``) solutions and the\n"
-          "scattering solver solution in factual clear-sky conditions. It is\n"
-          "important to avoid discontinuities when switching from thin-cloud\n"
-          "to clear-sky conditions.\n"
-          "Moreover, scattering calculations using the DOIT method include\n"
-          "interpolation errors. If one is interested in this effect, one\n"
-          "should compare the DOIT result with an empty cloudbox to a clearsky\n"
-          "calculation. That means that the iterative method is performed for\n"
-          "a cloudbox with no particles.\n"),
+      DESCRIPTION(R"--(Sets *pnd_field* to zero.
+
+Creates an empty *pnd_field* of cloudbox size according to
+*cloudbox_limits* and with number of scattering elemements
+according to *scat_data*. If *scat_data* is not set yet, it will be
+filled with one dummy scattering element.
+
+The method works with both *scat_data* and *scat_data_raw*.
+
+This method primarily exists for testing purposes.
+On the one hand, empty *pnd_field* runs can be used to test the
+agreement between true clear-sky (``cloudboxOff``) solutions and the
+scattering solver solution in factual clear-sky conditions. It is
+important to avoid discontinuities when switching from thin-cloud
+to clear-sky conditions.
+Moreover, scattering calculations using the DOIT method include
+interpolation errors. If one is interested in this effect, one
+should compare the DOIT result with an empty cloudbox to a clearsky
+calculation. That means that the iterative method is performed for
+a cloudbox with no particles.
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("pnd_field", "dpnd_field_dx", "scat_data"),
       GOUT(),
@@ -12426,24 +12536,24 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
-      DESCRIPTION(
-          "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
-          "\n"
-          "The propagation path linking *rte_pos* and *rte_pos2* is calculated\n"
-          "and returned. The method determines the path in a pure numerical\n"
-          "manner, where a simple algorithm is applied. The task is to find\n"
-          "the value of *rte_los* (at *rte_pos*) linking the two positions.\n"
-          "\n"
-          "See the user guide for a description of the search algorithm,\n"
-          "including a more detailed definition of ``za_accuracy``, \n"
-          "``pplrt_factor`` and ``pplrt_lowest``.\n"
-          "\n"
-          "The standard application of this method should be to radio link\n"
-          "calculations, where *rte_pos2* corresponds to a transmitter, and\n"
-          "*rte_pos* to the receiver/sensor.\n"
-          "\n"
-          "The details of the ray tracing is controlled by *ppath_step_agenda*\n"
-          "as usual.\n"),
+      DESCRIPTION(R"--(Determines the propagation path from *rte_pos2* to *rte_pos*.
+
+The propagation path linking *rte_pos* and *rte_pos2* is calculated
+and returned. The method determines the path in a pure numerical
+manner, where a simple algorithm is applied. The task is to find
+the value of *rte_los* (at *rte_pos*) linking the two positions.
+
+See the user guide for a description of the search algorithm,
+including a more detailed definition of ``za_accuracy``, 
+``pplrt_factor`` and ``pplrt_lowest``.
+
+The standard application of this method should be to radio link
+calculations, where *rte_pos2* corresponds to a transmitter, and
+*rte_pos* to the receiver/sensor.
+
+The details of the ray tracing is controlled by *ppath_step_agenda*
+as usual.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath", "rte_los", "ppath_lraytrace"),
       GOUT(),
@@ -12471,22 +12581,22 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathPlaneParallel"),
-      DESCRIPTION(
-          "Propagation path calculations for a plane parallel atmosphere.\n"
-          "\n"
-          "This method basically assumes that the planet's radius is infinite,\n"
-          "i.e. the planet surface has no curvature. Some consequences of this\n"
-          "assumption:\n"
-          "\n"
-          "- the mathod can only be used for 1D\n"
-          "- zenith angles between 89.9 and 90.1 deg are not allowed\n"
-          "- refraction is always neglected\n"
-          "- radii in ppath are set to Inf\n"
-          "\n"
-          "Notice that the method provides full propagation paths. This means\n"
-          "that *ppath_step_agenda* is ignored (and thus also refraction).\n"
-          "On the other hand, the method considers the cloudbox exactly as\n"
-          "the standard path calculations.\n"),
+      DESCRIPTION(R"--(Propagation path calculations for a plane parallel atmosphere.
+
+This method basically assumes that the planet's radius is infinite,
+i.e. the planet surface has no curvature. Some consequences of this
+assumption:
+
+- the mathod can only be used for 1D
+- zenith angles between 89.9 and 90.1 deg are not allowed
+- refraction is always neglected
+- radii in ppath are set to Inf
+
+Notice that the method provides full propagation paths. This means
+that *ppath_step_agenda* is ignored (and thus also refraction).
+On the other hand, the method considers the cloudbox exactly as
+the standard path calculations.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -12509,19 +12619,19 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathStepByStep"),
-      DESCRIPTION(
-          "Standard method for calculation of propagation paths.\n"
-          "\n"
-          "This method calculates complete propagation paths in a stepwise\n"
-          "manner. Each step is denoted as a \"ppath_step\" and is the path\n"
-          "through/inside a single grid box.\n"
-          "\n"
-          "The definition of a propgation path cannot be accommodated here.\n"
-          "For more information read the chapter on propagation paths in the\n"
-          "ARTS user guide.\n"
-          "\n"
-          "This method should never be called directly. Use ``ppathCalc`` instead\n"
-          "if you want to extract propagation paths.\n"),
+      DESCRIPTION(R"--(Standard method for calculation of propagation paths.
+
+This method calculates complete propagation paths in a stepwise
+manner. Each step is denoted as a \"ppath_step\" and is the path
+through/inside a single grid box.
+
+The definition of a propgation path cannot be accommodated here.
+For more information read the chapter on propagation paths in the
+ARTS user guide.
+
+This method should never be called directly. Use ``ppathCalc`` instead
+if you want to extract propagation paths.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -12546,20 +12656,20 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepGeometric"),
-      DESCRIPTION(
-          "Calculates a geometrical propagation path step.\n"
-          "\n"
-          "This function determines a propagation path step by pure\n"
-          "geometrical calculations. That is, refraction is neglected. Path\n"
-          "points are always included for crossings with the grids, tangent\n"
-          "points and intersection points with the surface. The WSV *ppath_lmax*\n"
-          "gives the option to include additional points to ensure that the\n"
-          "distance along the path between the points does not exceed the\n"
-          "selected maximum length. No additional points are included if\n"
-          "*ppath_lmax* is set to <= 0.\n"
-          "\n"
-          "For further information, type see the on-line information for\n"
-          "*ppath_step_agenda*.\n"),
+      DESCRIPTION(R"--(Calculates a geometrical propagation path step.
+
+This function determines a propagation path step by pure
+geometrical calculations. That is, refraction is neglected. Path
+points are always included for crossings with the grids, tangent
+points and intersection points with the surface. The WSV *ppath_lmax*
+gives the option to include additional points to ensure that the
+distance along the path between the points does not exceed the
+selected maximum length. No additional points are included if
+*ppath_lmax* is set to <= 0.
+
+For further information, type see the on-line information for
+*ppath_step_agenda*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath_step"),
       GOUT(),
@@ -12578,25 +12688,25 @@ computations.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepRefractionBasic"),
-      DESCRIPTION(
-          "Calculates a propagation path step, considering refraction by a\n"
-          "basic approach.\n"
-          "\n"
-          "Refraction is taken into account by probably the simplest approach\n"
-          "possible. The path is treated to consist of piece-wise geometric\n"
-          "steps. A geometric path step is calculated from each point by\n"
-          "using the local line-of-sight. Snell's law for spherical symmetry\n"
-          "is used for 1D to determine the zenith angle at the new point.\n"
-          "For 2D and 3D, the zenith angle is calculated using the average\n"
-          "gradient of the refractive index between the two points. For 3D,\n"
-          "the azimuth angle is treated in the same way as the zenith one.\n"
-          "\n"
-          "The maximum length of each ray tracing step is given by the WSV\n"
-          "*ppath_lraytrace*. The length will never exceed the given maximum,\n"
-          "but it can be smaller. The ray tracing steps are only used to\n"
-          "determine the path. Points to describe the path are included as\n"
-          "for ``ppath_stepGeometric``, this including the functionality of\n"
-          "*ppath_lmax*.\n"),
+      DESCRIPTION(R"--(Calculates a propagation path step, considering refraction by a
+basic approach.
+
+Refraction is taken into account by probably the simplest approach
+possible. The path is treated to consist of piece-wise geometric
+steps. A geometric path step is calculated from each point by
+using the local line-of-sight. Snell's law for spherical symmetry
+is used for 1D to determine the zenith angle at the new point.
+For 2D and 3D, the zenith angle is calculated using the average
+gradient of the refractive index between the two points. For 3D,
+the azimuth angle is treated in the same way as the zenith one.
+
+The maximum length of each ray tracing step is given by the WSV
+*ppath_lraytrace*. The length will never exceed the given maximum,
+but it can be smaller. The ray tracing steps are only used to
+determine the path. Points to describe the path are included as
+for ``ppath_stepGeometric``, this including the functionality of
+*ppath_lmax*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath_step"),
       GOUT(),
@@ -12620,25 +12730,25 @@ computations.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathAddGridCrossings"),
-      DESCRIPTION(
-         "Adds grids crossings to an existing *ppath*.\n"
-         "\n"
-         "This method allows including certain altitudes, latitudes and\n"
-         "longitudes in *ppath*, if they are passed. These additional points\n"
-         "to consider should in general constitute one or several merged\n"
-         "atmospheric grids. By including the grid of e.g. a species, it is\n"
-         "ensured that min and max values get represented when interpolating\n"
-         "the atmosphere to the path.\n"
-         "\n"
-         "You can set one or several of the grids to be non-empty.\n"
-         "\n"
-         "The input *ppath* shall contain enough points that it can be treated\n"
-         "as a straight line between the points. For pure geometrical cases,\n" 
-         "the end points of the path are sufficient, as long as altitudes,\n"
-         "latitudes and longitudes are stictly increasing or decreasing along\n"
-         "the path. If the later not is valid, such as when passing a tangent\n"
-         "point or one of the geographical poles, more input path points are\n"
-         "required (max 10 km distance?).\n"),
+      DESCRIPTION(R"--(Adds grids crossings to an existing *ppath*.
+
+This method allows including certain altitudes, latitudes and
+longitudes in *ppath*, if they are passed. These additional points
+to consider should in general constitute one or several merged
+atmospheric grids. By including the grid of e.g. a species, it is
+ensured that min and max values get represented when interpolating
+the atmosphere to the path.
+
+You can set one or several of the grids to be non-empty.
+
+The input *ppath* shall contain enough points that it can be treated
+as a straight line between the points. For pure geometrical cases,
+the end points of the path are sufficient, as long as altitudes,
+latitudes and longitudes are stictly increasing or decreasing along
+the path. If the later not is valid, such as when passing a tangent
+point or one of the geographical poles, more input path points are
+required (max 10 km distance?).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -12712,15 +12822,15 @@ strings. The following coding is used for the radiative background:
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckInsideDomain"),
-      DESCRIPTION(
-         "Checks that propagation path is fully inside specified domain.\n"
-         "\n"
-         "An error is issued if a point in *ppath* is outside of ranges\n"
-         "[lat_min, lat_max] and [lon_min, lon_max], in latitude and\n"
-         "longitude, respectively. The path is checked starting at the end\n"
-         "furthest away from the sensor and an error is given as soon an\n"
-         "incorrect point is found. This is not guaranteed to be the point\n"
-         "most outside of the domain.\n"),
+      DESCRIPTION(R"--(Checks that propagation path is fully inside specified domain.
+
+An error is issued if a point in *ppath* is outside of ranges
+[lat_min, lat_max] and [lon_min, lon_max], in latitude and
+longitude, respectively. The path is checked starting at the end
+furthest away from the sensor and an error is given as soon an
+incorrect point is found. This is not guaranteed to be the point
+most outside of the domain.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -12737,11 +12847,11 @@ strings. The following coding is used for the radiative background:
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathCheckInsideGrids"),
-      DESCRIPTION(
-         "Checks that propagation path is fully inside grid ranges.\n"
-         "\n"
-         "As *ppathCheckInsideDomain* but with the domain specified by a\n"
-         "combination of latitude and longitude grids.\n"),
+      DESCRIPTION(R"--(Checks that propagation path is fully inside grid ranges.
+
+As *ppathCheckInsideDomain* but with the domain specified by a
+combination of latitude and longitude grids.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -12802,36 +12912,36 @@ considered. The surface intersection point will appear twice in
 
     md_data_raw.push_back(create_mdrecord(
       NAME("ppathRefracted"),
-      DESCRIPTION(
-          "Calculates propagation paths, including refraction by a basic approach.\n"
-          "\n"
-          "Refraction is taken into account by probably the simplest approach\n"
-          "possible. The ray tracing is made by piece-wise geometric steps.\n"
-          "At the end of each step, the zenith and azimuth propagation angles\n"
-          "are updated following the local gradients of the refractive index.\n" 
-          "\n"
-          "Otherwise works largely as *ppathGeometric*. However, the spacing\n"
-          "between path points will here in general exactly be *ppath_lstep*.\n"
-          "The exception is the last ppath step, where the length is adjusted\n"
-          "to the remaining distance of the path. To be clear, the ray tracing\n"
-          "step length is governed by *ppath_lraytrace*.\n"
-          "\n"
-          "Surface intersections are found in manner matching setting\n"
-          "*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).\n"
-          "This for efficiency reasons, but also as the ray tracing largely\n"
-          "removes the need for a \"safe\" search.\n"
-          "\n"
-          "For more accurate calculations, but slower, consider the two GIN\n"
-          "parameters ``do_horizontal_gradients`` and ``do_twosided_perturb``\n"
-          "\n"
-          "Default is to only determine the altitude gradients of the refractive\n"
-          "index, as this is in general the only relevant term. To also calculate\n"
-          "and consider the latitude and longitude gradients, set\n"
-          "``do_horizontal_gradients`` to true.\n"
-          "\n"
-          "The gradients of the refractive index are obtained by perturbing the\n"
-          "position of concern with small positive values. With ``do_twosided_perturb``\n"
-          "set to true, there is also a perturbation in the negative direction.\n"),
+      DESCRIPTION(R"--(Calculates propagation paths, including refraction by a basic approach.
+
+Refraction is taken into account by probably the simplest approach
+possible. The ray tracing is made by piece-wise geometric steps.
+At the end of each step, the zenith and azimuth propagation angles
+are updated following the local gradients of the refractive index.
+
+Otherwise works largely as *ppathGeometric*. However, the spacing
+between path points will here in general exactly be *ppath_lstep*.
+The exception is the last ppath step, where the length is adjusted
+to the remaining distance of the path. To be clear, the ray tracing
+step length is governed by *ppath_lraytrace*.
+
+Surface intersections are found in manner matching setting
+*surface_search_safe* to 0 (see *IntersectionGeometricSurface*).
+This for efficiency reasons, but also as the ray tracing largely
+removes the need for a \"safe\" search.
+
+For more accurate calculations, but slower, consider the two GIN
+parameters ``do_horizontal_gradients`` and ``do_twosided_perturb``
+
+Default is to only determine the altitude gradients of the refractive
+index, as this is in general the only relevant term. To also calculate
+and consider the latitude and longitude gradients, set
+``do_horizontal_gradients`` to true.
+
+The gradients of the refractive index are obtained by perturbing the
+position of concern with small positive values. With ``do_twosided_perturb``
+set to true, there is also a perturbation in the negative direction.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -12859,11 +12969,11 @@ considered. The surface intersection point will appear twice in
                
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
-      DESCRIPTION(
-          "Sets *ppvar_optical_depth* according to provided transmittance data.\n"
-          "\n"
-          "The values in ppvar_optical_depth are set to\n"
-          "-log( ppvar_trans_cumulat(joker,joker,0,0) ).\n"),
+      DESCRIPTION(R"--(Sets *ppvar_optical_depth* according to provided transmittance data.
+
+The values in ppvar_optical_depth are set to
+-log( ppvar_trans_cumulat(joker,joker,0,0) ).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppvar_optical_depth"),
       GOUT(),
@@ -12877,22 +12987,24 @@ considered. The surface intersection point will appear twice in
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_atmFromPath"),
-      DESCRIPTION("Gets the atmospheric points along the path.\n"),
+      DESCRIPTION(R"--(Gets the atmospheric points along the path.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_atm"), GOUT(), GOUT_TYPE(),
       GOUT_DESC(), IN("ppath", "atm_field"), GIN(), GIN_TYPE(), GIN_DEFAULT(),
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_fFromPath"),
-      DESCRIPTION("Gets the frequency grid along the path.\n"),
+      DESCRIPTION(R"--(Gets the frequency grid along the path.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_f"), GOUT(), GOUT_TYPE(),
       GOUT_DESC(), IN("f_grid", "ppath", "ppvar_atm", "rte_alonglos_v"), GIN(),
       GIN_TYPE(), GIN_DEFAULT(), GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_propmatCalc"),
-      DESCRIPTION(
-          "Gets the propagation matrix and NLTE source term along the path.\n"),
+      DESCRIPTION(R"--(Gets the propagation matrix and NLTE source term along the path.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"),
       GOUT(), GOUT_TYPE(), GOUT_DESC(),
@@ -12902,7 +13014,8 @@ considered. The surface intersection point will appear twice in
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_radCalc"),
-      DESCRIPTION("Gets the radiation along the path.\n"),
+      DESCRIPTION(R"--(Gets the radiation along the path.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
       GOUT_TYPE(), GOUT_DESC(),
       IN("background_rad", "ppvar_src", "ppvar_dsrc", "ppvar_tramat",
@@ -12912,7 +13025,8 @@ considered. The surface intersection point will appear twice in
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_radCalcEmission"),
-      DESCRIPTION("Gets the radiation along the path by linear emission calculations.\n"),
+      DESCRIPTION(R"--(Gets the radiation along the path by linear emission calculations.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
       GOUT_TYPE(), GOUT_DESC(),
       IN("background_rad", "ppvar_src", "ppvar_dsrc", "ppvar_tramat",
@@ -12921,7 +13035,8 @@ considered. The surface intersection point will appear twice in
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_radCalcTransmission"),
-      DESCRIPTION("Gets the radiation along the path by linear emission calculations.\n"),
+      DESCRIPTION(R"--(Gets the radiation along the path by linear emission calculations.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_rad", "ppvar_drad"), GOUT(),
       GOUT_TYPE(), GOUT_DESC(),
       IN("ppvar_tramat",
@@ -12930,7 +13045,8 @@ considered. The surface intersection point will appear twice in
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_srcFromPropmat"),
-      DESCRIPTION("Gets the source term along the path.\n"),
+      DESCRIPTION(R"--(Gets the source term along the path.
+)--"),
       AUTHORS("Richard Larsson"), OUT("ppvar_src", "ppvar_dsrc"), GOUT(),
       GOUT_TYPE(), GOUT_DESC(),
       IN("ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte",
@@ -13073,7 +13189,8 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("Print"),
-               DESCRIPTION("Prints a variable on the screen.\n"),
+               DESCRIPTION(R"--(Prints a variable on the screen.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT(),
                GOUT(),
@@ -13090,7 +13207,8 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("PrintPhysicalConstants"),
-               DESCRIPTION("Prints (most) physical constants used in ARTS.\n"),
+               DESCRIPTION(R"--(Prints (most) physical constants used in ARTS.
+)--"),
                AUTHORS("Richard Larsson"),
                OUT(),
                GOUT(),
@@ -13104,7 +13222,8 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("PrintWorkspace"),
-               DESCRIPTION("Prints a list of the workspace variables.\n"),
+               DESCRIPTION(R"--(Prints a list of the workspace variables.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT(),
                GOUT(),
@@ -13124,13 +13243,13 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddCIA"),
-      DESCRIPTION(
-          "Calculate absorption coefficients per tag group for HITRAN CIA continua.\n"
-          "\n"
-          "This interpolates the cross sections from *abs_cia_data*.\n"
-          "\n"
-          "The robust option is intended only for testing. Do not use for normal\n"
-          "runs, since subsequent functions will not be able to deal with NAN values.\n"),
+      DESCRIPTION(R"--(Calculate absorption coefficients per tag group for HITRAN CIA continua.
+
+This interpolates the cross sections from *abs_cia_data*.
+
+The robust option is intended only for testing. Do not use for normal
+runs, since subsequent functions will not be able to deal with NAN values.
+)--"),
       AUTHORS("Stefan Buehler, Oliver Lemke"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13153,22 +13272,22 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFaraday"),
-      DESCRIPTION(
-          "Calculates absorption matrix describing Faraday rotation.\n"
-          "\n"
-          "Faraday rotation is a change of polarization state of an\n"
-          "electromagnetic wave propagating through charged matter by\n"
-          "interaction with a magnetic field. Hence, this method requires\n"
-          "*abs_species* to contain 'free_electrons' and electron content field\n"
-          "(as part of ``vmr_field``) as well as magnetic field (``mag_u_field``,\n"
-          "``mag_v_field``, ``mag_w_field``) to be specified.\n"
-          "\n"
-          "Faraday rotation affects Stokes parameters 2 and 3 (but not\n"
-          "intensity!). Therefore, this method requires stokes_dim>2.\n"
-          "\n"
-          "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
-          "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
-          "but adds further contributions.\n"),
+      DESCRIPTION(R"--(Calculates absorption matrix describing Faraday rotation.
+
+Faraday rotation is a change of polarization state of an
+electromagnetic wave propagating through charged matter by
+interaction with a magnetic field. Hence, this method requires
+*abs_species* to contain 'free_electrons' and electron content field
+(as part of ``vmr_field``) as well as magnetic field (``mag_u_field``,
+``mag_v_field``, ``mag_w_field``) to be specified.
+
+Faraday rotation affects Stokes parameters 2 and 3 (but not
+intensity!). Therefore, this method requires stokes_dim>2.
+
+Like all 'propmat_clearskyAdd*' methods, the method is additive,
+i.e., does not overwrite the propagation matrix *propmat_clearsky*,
+but adds further contributions.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13190,39 +13309,39 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFromLookup"),
-      DESCRIPTION(
-          "Extract gas absorption coefficients from lookup table.\n"
-          "\n"
-          "This extracts the absorption coefficient for all species from the\n"
-          "lookup table, and adds them to the propagation matrix. Extraction is\n"
-          "for one specific atmospheric condition, i.e., a set of pressure,\n"
-          "temperature, and VMR values.\n"
-          "\n"
-          "Some special species are ignored, for example Zeeman species and free\n"
-          "electrons, since their absorption properties are not simple scalars\n"
-          "and cannot be handled by the lookup table.\n"
-          "\n"
-          "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
-          "and *abs_nls_interp_order*, respectively.\n"
-          "\n"
-          "Extraction is done for the frequencies in f_grid. Frequency\n"
-          "interpolation is controlled by *abs_f_interp_order*. If this is zero,\n"
-          "then f_grid must either be the same as the internal frequency grid of\n"
-          "the lookup table (for efficiency reasons, only the first and last\n"
-          "element of f_grid are checked), or must have only a single element.\n"
-          "If *abs_f_interp_order* is above zero, then frequency is interpolated\n"
-          "along with the other interpolation dimensions. This is useful for\n"
-          "calculations with Doppler shift.\n"
-          "\n"
-          "For Doppler calculations, you should generate the table with a\n"
-          "somewhat larger frequency grid than the calculation itself has, since\n"
-          "the Doppler shift will push the frequency grid out of the table range\n"
-          "on one side.\n"
-          "\n"
-          "Some extrapolation is allowed. For pressure and frequency interpolation\n"
-          "the standard extrapolation factor of 0.5 is applied. The factor is the\n"
-          "default for temperature and VMR interpolation, but the extrapolation\n"
-          "limit can here be adjusted by the ``extpolfac`` argument.\n"),
+      DESCRIPTION(R"--(Extract gas absorption coefficients from lookup table.
+
+This extracts the absorption coefficient for all species from the
+lookup table, and adds them to the propagation matrix. Extraction is
+for one specific atmospheric condition, i.e., a set of pressure,
+temperature, and VMR values.
+
+Some special species are ignored, for example Zeeman species and free
+electrons, since their absorption properties are not simple scalars
+and cannot be handled by the lookup table.
+
+The interpolation order in T and H2O is given by *abs_t_interp_order*
+and *abs_nls_interp_order*, respectively.
+
+Extraction is done for the frequencies in f_grid. Frequency
+interpolation is controlled by *abs_f_interp_order*. If this is zero,
+then f_grid must either be the same as the internal frequency grid of
+the lookup table (for efficiency reasons, only the first and last
+element of f_grid are checked), or must have only a single element.
+If *abs_f_interp_order* is above zero, then frequency is interpolated
+along with the other interpolation dimensions. This is useful for
+calculations with Doppler shift.
+
+For Doppler calculations, you should generate the table with a
+somewhat larger frequency grid than the calculation itself has, since
+the Doppler shift will push the frequency grid out of the table range
+on one side.
+
+Some extrapolation is allowed. For pressure and frequency interpolation
+the standard extrapolation factor of 0.5 is applied. The factor is the
+default for temperature and VMR interpolation, but the extrapolation
+limit can here be adjusted by the ``extpolfac`` argument.
+)--"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13250,16 +13369,16 @@ of the derivatives out of this function is 2.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddHitranLineMixingLines"),
-      DESCRIPTION(
-          "Calculates gas absorption coefficients line-by-line for HITRAN line mixed data.\n"
-          "\n"
-          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
-          "\n"
-          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
-          "to compensate the calculations for the pressure limit\n"
-          "\n"
-          "Please ensure you cite the original authors when you use this function:\n"
-          "\tJ. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"),
+      DESCRIPTION(R"--(Calculates gas absorption coefficients line-by-line for HITRAN line mixed data.
+
+*Wigner6Init* or *Wigner3Init* must be called before this function.
+
+Note that you need to have *propmat_clearskyAddLines* in addition to this method
+to compensate the calculations for the pressure limit
+
+Please ensure you cite the original authors when you use this function:
+\tJ. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky"),
       GOUT(),
@@ -13310,14 +13429,14 @@ offers
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddXsecFit"),
-      DESCRIPTION(
-          "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
-          "\n"
-          "This broadens the cross section data from *xsec_fit_data* and\n"
-          "interpolates it onto the current f_grid.\n"
-          "\n"
-          "Model data needs to be read in with *ReadXsecData* before calling\n"
-          "this method.\n"),
+      DESCRIPTION(R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
+
+This broadens the cross section data from *xsec_fit_data* and
+interpolates it onto the current f_grid.
+
+Model data needs to be read in with *ReadXsecData* before calling
+this method.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13399,18 +13518,18 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFlyLineMixing"),
-      DESCRIPTION(
-          "Compute the line mixing of matching lines and add it to the propagation matrix\n"
-          "\n"
-          "Each band's Population Type is checked and the calculations are only performed\n"
-          "for bands with matching population types (and a good pressure limits)\n"
-          "\n"
-          "Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020\n"
-          "\n"
-          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
-          "\n"
-          "Note that you need to have *propmat_clearskyAddLines* addition to this method\n"
-          "to compensate the calculations for the pressure limit\n"),
+      DESCRIPTION(R"--(Compute the line mixing of matching lines and add it to the propagation matrix
+
+Each band's Population Type is checked and the calculations are only performed
+for bands with matching population types (and a good pressure limits)
+
+Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020
+
+*Wigner6Init* or *Wigner3Init* must be called before this function.
+
+Note that you need to have *propmat_clearskyAddLines* addition to this method
+to compensate the calculations for the pressure limit
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13434,19 +13553,19 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFlyLineMixingWithZeeman"),
-      DESCRIPTION(
-          "Compute the line mixing of matching lines and add it to the propagation matrix\n"
-          "Also computes Zeeman effect for all the lines in the band\n"
-          "\n"
-          "Each band's Population Type is checked and the calculations are only performed\n"
-          "for bands with matching population types (and a good pressure limits)\n"
-          "\n"
-          "Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020\n"
-          "\n"
-          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
-          "\n"
-          "Note that you need to have *propmat_clearskyAddLines* in addition to this method\n"
-          "to compensate the calculations for the pressure limit\n"),
+      DESCRIPTION(R"--(Compute the line mixing of matching lines and add it to the propagation matrix
+Also computes Zeeman effect for all the lines in the band
+
+Each band's Population Type is checked and the calculations are only performed
+for bands with matching population types (and a good pressure limits)
+
+Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020
+
+*Wigner6Init* or *Wigner3Init* must be called before this function.
+
+Note that you need to have *propmat_clearskyAddLines* in addition to this method
+to compensate the calculations for the pressure limit
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13471,48 +13590,48 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddParticles"),
-      DESCRIPTION(
-          "Calculates absorption coefficients of particles to be used in\n"
-          "clearsky (non-cloudbox) calculations.\n"
-          "\n"
-          "This is a method to include particles (neglecting possible\n"
-          "scattering components) in a clearsky calculation, i.e. without\n"
-          "applying the cloudbox and scattering solvers. Particles are handled\n"
-          "as absorbing species with one instance of 'particles' per scattering\n"
-          "element considered added to *abs_species*. Particle absorption cross-\n"
-          "sections at current atmospheric conditions are extracted from the\n"
-          "single scattering data stored in *scat_data*, i.e., one array\n"
-          "element per 'particles' instance in *abs_species* is required. Number\n"
-          "densities are stored in ``vmr_field_raw`` or ``vmr_field`` as for all\n"
-          "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
-          "\n"
-          "Note that the absorption coefficient is applied both in the\n"
-          "extinction term (neglecting scattering out of the line of sight)\n"
-          "and the emission term (neglecting the scattering source term, i.e.\n"
-          "scattering into the line of sight).\n"
-          "\n"
-          "Optionally, particle extinction (sum of absorption and scattering\n"
-          "coefficient) can be used instead of absorption only. To choose this\n"
-          "case, set the ``use_abs_as_ext`` flag to 0. However, be aware that\n"
-          "this creates some unphysical emission term, hence is only suitable,\n"
-          "where the source term is negligible anyways, e.g. for occultation\n"
-          "simulations.\n"
-          "\n"
-          "A line-of-sight direction *rtp_los* is required as particles can\n"
-          "exhibit directional dependent absorption properties, which is taken\n"
-          "into account by this method."
-          "\n"
-          "*ScatElementsToabs_speciesAdd* can be used to add all required\n"
-          "settings/data for individual scattering elements at once, i.e. a\n"
-          "'particles' tag to *abs_species*, a set of single scattering data to\n"
-          "*scat_data* and a number density field to ``vmr_field_raw``\n"
-          "(``vmr_field`` is derived applying AtmFieldsCalc once VMRs for all\n"
-          "*abs_species* have been added) is appended for each scattering\n"
-          "element.\n"
-          "\n"
-          "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
-          "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
-          "but adds further contributions.\n"),
+      DESCRIPTION(R"--(Calculates absorption coefficients of particles to be used in
+clearsky (non-cloudbox) calculations.
+
+This is a method to include particles (neglecting possible
+scattering components) in a clearsky calculation, i.e. without
+applying the cloudbox and scattering solvers. Particles are handled
+as absorbing species with one instance of 'particles' per scattering
+element considered added to *abs_species*. Particle absorption cross-
+sections at current atmospheric conditions are extracted from the
+single scattering data stored in *scat_data*, i.e., one array
+element per 'particles' instance in *abs_species* is required. Number
+densities are stored in ``vmr_field_raw`` or ``vmr_field`` as for all
+*abs_species*, but can be taken from (raw) pnd_field type data.
+
+Note that the absorption coefficient is applied both in the
+extinction term (neglecting scattering out of the line of sight)
+and the emission term (neglecting the scattering source term, i.e.
+scattering into the line of sight).
+
+Optionally, particle extinction (sum of absorption and scattering
+coefficient) can be used instead of absorption only. To choose this
+case, set the ``use_abs_as_ext`` flag to 0. However, be aware that
+this creates some unphysical emission term, hence is only suitable,
+where the source term is negligible anyways, e.g. for occultation
+simulations.
+
+A line-of-sight direction *rtp_los* is required as particles can
+exhibit directional dependent absorption properties, which is taken
+into account by this method.
+
+*ScatElementsToabs_speciesAdd* can be used to add all required
+settings/data for individual scattering elements at once, i.e. a
+'particles' tag to *abs_species*, a set of single scattering data to
+*scat_data* and a number density field to ``vmr_field_raw``
+(``vmr_field`` is derived applying AtmFieldsCalc once VMRs for all
+*abs_species* have been added) is appended for each scattering
+element.
+
+Like all 'propmat_clearskyAdd*' methods, the method is additive,
+i.e., does not overwrite the propagation matrix *propmat_clearsky*,
+but adds further contributions.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -13543,11 +13662,11 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddZeeman"),
-      DESCRIPTION(
-          "Calculates Zeeman-affected polarized propagation matrix and its\n"
-          "derivatives.\n"
-          "\n"
-          "Otherwise as *propmat_clearskyAddFromLookup*\n"),
+      DESCRIPTION(R"--(Calculates Zeeman-affected polarized propagation matrix and its
+derivatives.
+
+Otherwise as *propmat_clearskyAddFromLookup*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",
           "nlte_source",
@@ -13581,10 +13700,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyInit"),
-      DESCRIPTION(
-          "Initialize *propmat_clearsky*, *nlte_source*, and their derivatives to zeroes.\n"
-          "\n"
-          "This method must be used inside *propmat_clearsky_agenda* and then be called first.\n"),
+      DESCRIPTION(R"--(Initialize *propmat_clearsky*, *nlte_source*, and their derivatives to zeroes.
+
+This method must be used inside *propmat_clearsky_agenda* and then be called first.
+)--"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT("propmat_clearsky",
           "nlte_source",
@@ -13604,14 +13723,14 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyZero"),
-      DESCRIPTION(
-          "Sets *propmat_clearsky* to match zero attenuation.\n"
-          "\n"
-          "Use this method just if you know what you are doing!\n"
-          "\n"
-          "If you want to make a calculation with no clear-sky attenuation at\n"
-          "all, fill *propmat_clearsky_agenda* with this method and required\n"
-          "Ignore statements (don't include *propmat_clearskyInit*).\n"),
+      DESCRIPTION(R"--(Sets *propmat_clearsky* to match zero attenuation.
+
+Use this method just if you know what you are doing!
+
+If you want to make a calculation with no clear-sky attenuation at
+all, fill *propmat_clearsky_agenda* with this method and required
+Ignore statements (don't include *propmat_clearskyInit*).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("propmat_clearsky"),
       GOUT(),
@@ -13625,10 +13744,11 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyForceNegativeToZero"),
-      DESCRIPTION("Sets *propmat_clearsky* to match zero attenuation\n"
-                  "if negative value.  Useful for line mixing in some cases.\n"
-                  "\n"
-                  "Use this method just if you know what you are doing!\n"),
+      DESCRIPTION(R"--(Sets *propmat_clearsky* to match zero attenuation
+if negative value.  Useful for line mixing in some cases.
+
+Use this method just if you know what you are doing!
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky"),
       GOUT(),
@@ -13642,12 +13762,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_agenda_checkedCalc"),
-      DESCRIPTION(
-          "Checks if the *propmat_clearsky_agenda* contains all necessary\n"
-          "methods to calculate all the species in *abs_species*.\n"
-          "\n"
-          "This method should be called just before the *propmat_clearsky_agenda*\n"
-          "is used, e.g. *DoitGetIncoming*, *ybatchCalc*, *yCalc*\n"),
+      DESCRIPTION(R"--(Checks if the *propmat_clearsky_agenda* contains all necessary
+methods to calculate all the species in *abs_species*.
+
+This method should be called just before the *propmat_clearsky_agenda*
+is used, e.g. *DoitGetIncoming*, *ybatchCalc*, *yCalc*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("propmat_clearsky_agenda_checked"),
       GOUT(),
@@ -13661,22 +13781,22 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_fieldCalc"),
-      DESCRIPTION(
-          "Calculate (vector) gas absorption coefficients for all points in the\n"
-          "atmosphere.\n"
-          "\n"
-          "This is useful in two different contexts:\n"
-          "\n"
-          "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
-          "   absorption is calculated or extracted locally, therefore there is no\n"
-          "   need to calculate a global field. But this method is handy for easy\n"
-          "   plotting of absorption vs. pressure, for example.)\n"
-          "\n"
-          "2. Inside the scattering region, monochromatic absorption is\n"
-          "   pre-calculated for the entire atmospheric field.\n"
-          "\n"
-          "The calculation itself is performed by the\n"
-          "*propmat_clearsky_agenda*.\n"),
+      DESCRIPTION(R"--(Calculate (vector) gas absorption coefficients for all points in the
+atmosphere.
+
+This is useful in two different contexts:
+
+1. For testing and plotting gas absorption. (For RT calculations, gas
+   absorption is calculated or extracted locally, therefore there is no
+   need to calculate a global field. But this method is handy for easy
+   plotting of absorption vs. pressure, for example.)
+
+2. Inside the scattering region, monochromatic absorption is
+   pre-calculated for the entire atmospheric field.
+
+The calculation itself is performed by the
+*propmat_clearsky_agenda*.
+)--"),
       AUTHORS("Stefan Buehler, Richard Larsson"),
       OUT("propmat_clearsky_field"),
       GOUT(),
@@ -13696,32 +13816,32 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdAbelBoutle12"),
-      DESCRIPTION(
-          "Abel and Boutle [2012] particle size distribution for rain.\n"
-          "\n"
-          "Reference: Abel and Boutle, An improved representation of the \n"
-          "raindrop size distribution for single-moment microphysics schemes,\n"
-          "QJRMS, 2012.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be rain mass content in\n"
-          "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
-          "but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "Particles are assumed to be near-spherical, ie. *psd_size_grid* can\n"
-          "either be in terms of volume (or mass) equivalent diameter or\n"
-          "maximum diameter.\n"
-          "\n"
-          "Derivatives are obtained analytically.\n"
-          "\n"
-          "The validity range of mass content is not limited. Negative mass\n"
-          "contents will produce negative psd values following a distribution\n"
-          "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
-          "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"),
+      DESCRIPTION(R"--(Abel and Boutle [2012] particle size distribution for rain.
+
+Reference: Abel and Boutle, An improved representation of the 
+raindrop size distribution for single-moment microphysics schemes,
+QJRMS, 2012.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be rain mass content in
+unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
+but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+Particles are assumed to be near-spherical, ie. *psd_size_grid* can
+either be in terms of volume (or mass) equivalent diameter or
+maximum diameter.
+
+Derivatives are obtained analytically.
+
+The validity range of mass content is not limited. Negative mass
+contents will produce negative psd values following a distribution
+given by abs(RWC), ie. abs(psd)=f(abs(RWC)).
+
+If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -13744,27 +13864,27 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdDelanoeEtAl14"),
-      DESCRIPTION(
-          "Normalized PSD as proposed in Delanoë et al. ((2014)),\n"
-          "\n"
-          "Title and journal:\n"
-          "'Normalized particle size distribution for remote sensing\n"
-          "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
-          "\n"
-          "The PSD has two independent parameters ``n0Star``, the intercept\n"
-          "parameter, and ``Dm``, the volume-weighted diameter.\n"
-          "This implementation expects as input two out of the following\n"
-          "three quantities: ``iwc``, ``n0Star``, ``Dm``. In this case one of\n"
-          "the input parameters ``iwc``, ``n0Star``, ``Dm`` must be set to -999.\n"
-          "It is also possible to provide only ``iwc``, in which case an a\n"
-          "priori assumption will be used to deduce ``n0Star`` from temperature.\n"
-          "In this case both ``n0Star`` and ``Dm`` must be set to -999.0.\n"
-          "\n"
-          "This PSD is not defined for vanishing concentrations of\n"
-          "scatterers as it requires normalization by ``Dm``. It is up\n"
-          "to the user to ensure that the value of ``Dm`` is sufficiently\n"
-          "large. An error is thrown if ``Dm`` is zero or below the value\n"
-          "provided by ``dm_min``.\n"),
+      DESCRIPTION(R"--(Normalized PSD as proposed in Delanoë et al. ((2014)),
+
+Title and journal:
+'Normalized particle size distribution for remote sensing
+application', J. Geophys. Res. Atmos., 119, 4204–422.
+
+The PSD has two independent parameters ``n0Star``, the intercept
+parameter, and ``Dm``, the volume-weighted diameter.
+This implementation expects as input two out of the following
+three quantities: ``iwc``, ``n0Star``, ``Dm``. In this case one of
+the input parameters ``iwc``, ``n0Star``, ``Dm`` must be set to -999.
+It is also possible to provide only ``iwc``, in which case an a
+priori assumption will be used to deduce ``n0Star`` from temperature.
+In this case both ``n0Star`` and ``Dm`` must be set to -999.0.
+
+This PSD is not defined for vanishing concentrations of
+scatterers as it requires normalization by ``Dm``. It is up
+to the user to ensure that the value of ``Dm`` is sufficiently
+large. An error is thrown if ``Dm`` is zero or below the value
+provided by ``dm_min``.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -13819,45 +13939,45 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdFieldEtAl07"),
-      DESCRIPTION(
-          "The Field et al. [2007] particle size distribution for snow and\n"
-          "cloud ice.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
-          "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
-          "is free but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "*psd_size_grid* shall contain size in terms of maximum diameter.\n"
-          "\n"
-          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-          "1e-9 kg/m3.\n"
-          "\n"
-          "Both parametrization for tropics and midlatitudes are handled,\n"
-          "governed by setting of ``regime``, where \"TR\" selectes the tropical\n"
-          "case, and \"ML\" the midlatitude one.\n"
-          "\n"
-          "The validity range of mass content is not limited. Negative mass\n"
-          "contents will produce negative psd values following a distribution\n"
-          "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
-          "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
-          "\n"
-          "For temperatures below `t_min_psd``, the size distribution is\n"
-          "calculated for T = `t_min_psd``. Likewise, for temperatures above\n"
-          "``t_max_psd``, the distribution is derived for T = ``t_max_psd``.\n"
-          "\n"
-          "Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that\n"
-          "the parametrization has been derived from measurements over\n"
-          "temperatures of -60C to 0C."
-          "\n"
-          "Checks of the sanity of the mass-dimension relationship are performed\n"
-          "Errors are thrown if:\n"
-          "\n"
-          "- Mass-dimension relation exponent *scat_species_b* is outside [``beta_min``, ``beta_max``].\n"),
+      DESCRIPTION(R"--(The Field et al. [2007] particle size distribution for snow and
+cloud ice.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be ice hydrometeor mass
+content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
+is free but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+*psd_size_grid* shall contain size in terms of maximum diameter.
+
+Derivatives are obtained by perturbation of 0.1%, but not less than
+1e-9 kg/m3.
+
+Both parametrization for tropics and midlatitudes are handled,
+governed by setting of ``regime``, where \"TR\" selectes the tropical
+case, and \"ML\" the midlatitude one.
+
+The validity range of mass content is not limited. Negative mass
+contents will produce negative psd values following a distribution
+given by abs(IWC), ie. abs(psd)=f(abs(IWC)).
+
+If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+
+For temperatures below `t_min_psd``, the size distribution is
+calculated for T = `t_min_psd``. Likewise, for temperatures above
+``t_max_psd``, the distribution is derived for T = ``t_max_psd``.
+
+Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that
+the parametrization has been derived from measurements over
+temperatures of -60C to 0C.
+
+Checks of the sanity of the mass-dimension relationship are performed
+Errors are thrown if:
+
+- Mass-dimension relation exponent *scat_species_b* is outside [``beta_min``, ``beta_max``].
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -13899,28 +14019,28 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdFieldEtAl19"),
-      DESCRIPTION(
-          "The Field [2019] particle size distribution for hail.\n"
-          "\n"
-          "Reference: Field, Normalized hail particle size distributions from the T-28\n"
-          "storm-penetrating aircraft, JAMC, 2019\n"
-          "\n"
-          "This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and\n"
-          "*pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be hail mass content in\n"
-          "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
-          "but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "The parameters assume a constant effective density, i.e. scat_species_b \approx 3\n"
-          "\n"
-          "Derivatives are obtained analytically.\n"
-          "\n"
-          "The validity range of mass content is not limited. Negative mass\n"
-          "contents will produce negative psd values following a distribution\n"
-          "given by abs(HWC), ie. abs(psd)=f(abs(HWC)).\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"),
+      DESCRIPTION(R"--(The Field [2019] particle size distribution for hail.
+
+Reference: Field, Normalized hail particle size distributions from the T-28
+storm-penetrating aircraft, JAMC, 2019
+
+This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and
+*pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be hail mass content in
+unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
+but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+The parameters assume a constant effective density, i.e. scat_species_b \approx 3
+
+Derivatives are obtained analytically.
+
+The validity range of mass content is not limited. Negative mass
+contents will produce negative psd values following a distribution
+given by abs(HWC), ie. abs(psd)=f(abs(HWC)).
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Stuart Fox"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -13943,39 +14063,39 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdMcFarquaharHeymsfield97"),
-      DESCRIPTION(
-          "McFarquahar and Heymsfield [1997] particle size distribution\n"
-          "for cloud ice.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be ice hydrometeor mass\n"
-          "content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*\n"
-          "is free but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "*psd_size_grid* shall contain size in terms of volume equivalent diameter.\n"
-          "\n"
-          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-          "1e-9 kg/m3.\n"
-          "\n"
-          "The validity range of mass content is not limited. Negative mass\n"
-          "contents will produce negative psd values following a distribution\n"
-          "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
-          "\n"
-          "For temperatures below `t_min_psd``, the size distribution is\n"
-          "calculated for T = `t_min_psd``. Likewise, for temperatures above\n"
-          "``t_max_psd``, the distribution is derived for T = ``t_max_psd``.\n"
-          "\n"
-          "Defaults of ``t_min_psd`` and ``t_max_psd`` were set considering that\n"
-          "the parametrization has been derived from measurements over\n"
-          "temperatures of -70C to -20C."
-          "\n"
-          "The noisy option can not be used together with calculation of\n"
-          "derivatives (ie. when *dpnd_data_dx_names* is not empty).\n"),
+      DESCRIPTION(R"--(McFarquahar and Heymsfield [1997] particle size distribution
+for cloud ice.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be ice hydrometeor mass
+content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
+is free but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+*psd_size_grid* shall contain size in terms of volume equivalent diameter.
+
+Derivatives are obtained by perturbation of 0.1%, but not less than
+1e-9 kg/m3.
+
+The validity range of mass content is not limited. Negative mass
+contents will produce negative psd values following a distribution
+given by abs(IWC), ie. abs(psd)=f(abs(IWC)).
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+
+For temperatures below `t_min_psd``, the size distribution is
+calculated for T = `t_min_psd``. Likewise, for temperatures above
+``t_max_psd``, the distribution is derived for T = ``t_max_psd``.
+
+Defaults of ``t_min_psd`` and ``t_max_psd`` were set considering that
+the parametrization has been derived from measurements over
+temperatures of -70C to -20C.
+
+The noisy option can not be used together with calculation of
+derivatives (ie. when *dpnd_data_dx_names* is not empty).
+)--"),
       AUTHORS("Patrick Eriksson, Jana Mendrok"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14000,52 +14120,50 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdMilbrandtYau05"),
-      DESCRIPTION(
-          "Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)\n"
-          "two moment particle size distribution for cloud water, cloud ice,\n"
-          "rain, snow, graupel and hail, which is used in the GEM model.\n"
-          "\n"
-          "WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``\n"
-          "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-          "Produces the particle size distribution values (dN/dD) and their\n"
-          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-          "over multiple particle sizes and atmospheric levels (or SWC/T\n"
-          "combinations).\n"
-          "\n"
-          "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
-          "WC is considered to be in terms of mass content (or mass density),\n"
-          "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3].\n"
-          "\n"
-          "Derivatives with respect to WC and N_tot are obtained analytically.\n"
-          "\n"
-          "Six particle size distributions for the different hydrometeors are handled,\n"
-          "governed by setting of ``hydrometeor_type``, where \n"
-          "\n"
-          "(1) \"cloud_water\" selects cloud liquid water , \n"
-          "(2) \"cloud_ice\" selects cloud ice, \n"
-          "(3) \"snow\" selects snow, \n"
-          "(4) \"rain\" selects rain, \n"
-          "(5) \"graupel\" selects graupel, and \n"
-          "(6) \"hail\" selects hail, \n"
-          "\n"
-          "Requirements:\n"
-          "\n"
-          "*pnd_agenda_input_names* must include::\n"
-          "\n"
-          "    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
-          "\n"
-          "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
-          "independent variablea ) can be \"X-mass_density\" and\\or \n"
-          "\"X-number_density\".\n"
-          "\n"
-          "The validity range of WC is not limited. Negative WC will produce\n"
-          "negative psd values following a distribution given by abs(WC), ie.\n"
-          "abs(psd)=f(abs(WC)).\n"
-          "\n"
-          "If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
+      DESCRIPTION(R"--(Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)
+two moment particle size distribution for cloud water, cloud ice,
+rain, snow, graupel and hail, which is used in the GEM model.
 
-          ),
+WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
+to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.
+Produces the particle size distribution values (dN/dD) and their
+derivates with respect to independent variables x by *dpnd_data_dx_names*
+over multiple particle sizes and atmospheric levels (or SWC/T
+combinations).
+
+*psd_size_grid* is considered to be in terms of maximum diameter.
+WC is considered to be in terms of mass content (or mass density),
+ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3].
+
+Derivatives with respect to WC and N_tot are obtained analytically.
+
+Six particle size distributions for the different hydrometeors are handled,
+governed by setting of ``hydrometeor_type``, where 
+
+(1) \"cloud_water\" selects cloud liquid water , 
+(2) \"cloud_ice\" selects cloud ice, 
+(3) \"snow\" selects snow, 
+(4) \"rain\" selects rain, 
+(5) \"graupel\" selects graupel, and 
+(6) \"hail\" selects hail, 
+
+Requirements:
+
+*pnd_agenda_input_names* must include::
+
+    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name
+
+The entries in  *dpnd_data_dx_names* (ie. the allowed
+independent variablea ) can be \"X-mass_density\" and\\or 
+\"X-number_density\".
+
+The validity range of WC is not limited. Negative WC will produce
+negative psd values following a distribution given by abs(WC), ie.
+abs(psd)=f(abs(WC)).
+
+If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14067,56 +14185,56 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGamma"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD using n0, mu, la and ga as parameters.\n"
-          "\n"
-          "The modified gamma distribution is a 4-parameter (n0, mu, la and ga)\n"
-          "distribution [Petty & Huang, JAS, 2011)]::\n"
-          "\n"
-          "  n(x) = n0 * x^mu * exp( -la*x^ga )\n"
-          "\n"
-          "where x is particle size or mass.\n"
-          "\n"
-          "The parameters can be given in two ways, either by *pnd_agenda_input* or\n"
-          "as GIN arguments. The first option allows the parameter to vary, while\n"
-          "in the second case the parameter gets a constant value. If a parameter is\n"
-          "part of *pnd_agenda_input*, the corresponding GIN argument must be set\n"
-          "to NaN (which is default). This means that the number of columns in\n"
-          "*pnd_agenda_input* and the number of non-NaN choices for n0, mu, la and\n"
-          "ga must add up to four.\n"
-          "\n"
-          "Data in *pnd_agenda_input* are linked to the MGD parameters in term of\n"
-          "order, the naming in *pnd_agenda_input_names* is free. If all four\n"
-          "parameteras are specified by *pnd_agenda_input*, the data in the first\n"
-          "column are taken as n0, the second column as mu etc. If a parameter is\n"
-          "given as a GIN argument, the columns are just shifted with one position.\n"
-          "For example, if mu and ga are specified as GIN arguments, *pnd_agenda_input*\n"
-          "shall have two columns, with n0-values in the first one and la-values in\n"
-          "the second one.\n"
-          "\n"
-          "The GIN route is especially suitable for selecting special cases of MGD.\n"
-          "For example, by setting mu=0 and ga=1, an exponential PSD is obtained::\n"
-          "\n"
-          "  n(x) = n0 * exp( -la * x )\n"
-          "\n"
-          "With mu=1 and ga=1, the gamma PSD is obtained::\n"
-          "\n"
-          "  n(x) = n0 * x^mu * exp( -la * x )\n"
-          "\n"
-          "There should be little overhead in using the method for exponential\n"
-          "and gamma PSDs, there is an internal switch to dedicated expressions\n"
-          "for those PSDs.\n"
-          "\n"
-          "Derivatives can only be obtained for parameters that are specified by\n"
-          "*pnd_agenda_input*.\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "\n"
-          "(1) la > 0\n"
-          "(2) ga > 0\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD using n0, mu, la and ga as parameters.
+
+The modified gamma distribution is a 4-parameter (n0, mu, la and ga)
+distribution [Petty & Huang, JAS, 2011)]::
+
+  n(x) = n0 * x^mu * exp( -la*x^ga )
+
+where x is particle size or mass.
+
+The parameters can be given in two ways, either by *pnd_agenda_input* or
+as GIN arguments. The first option allows the parameter to vary, while
+in the second case the parameter gets a constant value. If a parameter is
+part of *pnd_agenda_input*, the corresponding GIN argument must be set
+to NaN (which is default). This means that the number of columns in
+*pnd_agenda_input* and the number of non-NaN choices for n0, mu, la and
+ga must add up to four.
+
+Data in *pnd_agenda_input* are linked to the MGD parameters in term of
+order, the naming in *pnd_agenda_input_names* is free. If all four
+parameteras are specified by *pnd_agenda_input*, the data in the first
+column are taken as n0, the second column as mu etc. If a parameter is
+given as a GIN argument, the columns are just shifted with one position.
+For example, if mu and ga are specified as GIN arguments, *pnd_agenda_input*
+shall have two columns, with n0-values in the first one and la-values in
+the second one.
+
+The GIN route is especially suitable for selecting special cases of MGD.
+For example, by setting mu=0 and ga=1, an exponential PSD is obtained::
+
+  n(x) = n0 * exp( -la * x )
+
+With mu=1 and ga=1, the gamma PSD is obtained::
+
+  n(x) = n0 * x^mu * exp( -la * x )
+
+There should be little overhead in using the method for exponential
+and gamma PSDs, there is an internal switch to dedicated expressions
+for those PSDs.
+
+Derivatives can only be obtained for parameters that are specified by
+*pnd_agenda_input*.
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+
+These requirements apply to the MGD parameters:
+
+(1) la > 0
+(2) ga > 0
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14147,33 +14265,33 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMass"),
-      DESCRIPTION(
-          "Modified gamma distribution (MGD) PSD, with mass content as input.\n"
-          "\n"
-          "See *psdModifiedGamma* for a defintion of MGD parameters and how\n"
-          "this PSD is handled in ARTS. Only deviations with respect to\n"
-          "*psdModifiedGamma* are described here.\n"
-          "\n"
-          "This version of MGD PSD takes mass content as first input argument.\n"
-          "This means that the first column of *pnd_agenda_input* shall hold\n"
-          "mass content data.\n"
-          "\n"
-          "The mass content basically replaces one of the standard parameters\n"
-          "(n0, mu, la and ga). This parameter is denoted as the dependent one.\n"
-          "The dependent parameter is selected by setting the corresponding GIN\n"
-          "to -999. So far only n0 and la are allowed to be dependent.\n"
-          "\n"
-          "Regarding remaining columns in *pnd_agenda_input* and constant\n"
-          "parameter values (by GIN) follows the same principle as for\n"
-          "*psdModifiedGamma* except that mass is always in column one (as\n"
-          "mentioned) and that there is no position in *pnd_agenda_input*\n"
-          "for the dependent parameter.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          " (1) mu + scat_species_b + 1 > 0\n"
-          " (2) la > 0\n"
-          " (3) ga > 0\n"
-          " (4) If la is the dependent parameter, mass content must be > 0.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution (MGD) PSD, with mass content as input.
+
+See *psdModifiedGamma* for a defintion of MGD parameters and how
+this PSD is handled in ARTS. Only deviations with respect to
+*psdModifiedGamma* are described here.
+
+This version of MGD PSD takes mass content as first input argument.
+This means that the first column of *pnd_agenda_input* shall hold
+mass content data.
+
+The mass content basically replaces one of the standard parameters
+(n0, mu, la and ga). This parameter is denoted as the dependent one.
+The dependent parameter is selected by setting the corresponding GIN
+to -999. So far only n0 and la are allowed to be dependent.
+
+Regarding remaining columns in *pnd_agenda_input* and constant
+parameter values (by GIN) follows the same principle as for
+*psdModifiedGamma* except that mass is always in column one (as
+mentioned) and that there is no position in *pnd_agenda_input*
+for the dependent parameter.
+
+These requirements apply to the MGD parameters:
+ (1) mu + scat_species_b + 1 > 0
+ (2) la > 0
+ (3) ga > 0
+ (4) If la is the dependent parameter, mass content must be > 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14206,21 +14324,21 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassNtot"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and total number\n"
-          "density (Ntot) as inputs.\n"
-          "\n"
-          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
-          "mass content and total number density as first two arguments. This\n"
-          "means that the first and second column of *pnd_agenda_input* shall\n"
-          "hold mass content and Ntot, respectively. Accordingly, the number\n"
-          "of dependent parameters is two.\n"
-          "\n"
-          "These requirements apply:\n"
-          " (1) mu + 1 > 0\n"
-          " (2) la > 0\n"
-          " (3) ga > 0\n"
-          " (4) Ntot must be > 0.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD, with mass content and total number
+density (Ntot) as inputs.
+
+This version of MGD PSD works as *psdModifiedGammaMass*, but takes
+mass content and total number density as first two arguments. This
+means that the first and second column of *pnd_agenda_input* shall
+hold mass content and Ntot, respectively. Accordingly, the number
+of dependent parameters is two.
+
+These requirements apply:
+ (1) mu + 1 > 0
+ (2) la > 0
+ (3) ga > 0
+ (4) Ntot must be > 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14253,24 +14371,24 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassMeanParticleMass"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and mean particle\n"
-          "mass (Mmean) as inputs.\n"
-          "\n"
-          "\"Mean particle mass\" is here defined as the mass content divided with\n"
-          "the total number density.\n"
-          "\n"
-          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
-          "mass content and mean particle mass as first two arguments. This\n"
-          "means that the first and second column of *pnd_agenda_input* shall\n"
-          "hold mass content and Mmean, respectively. Accordingly, the number\n"
-          "of dependent parameters is two.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          " (1) mu + 1 > 0\n"
-          " (2) la > 0\n"
-          " (3) ga > 0\n"
-          " (4) Mmean must be > 0.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD, with mass content and mean particle
+mass (Mmean) as inputs.
+
+\"Mean particle mass\" is here defined as the mass content divided with
+the total number density.
+
+This version of MGD PSD works as *psdModifiedGammaMass*, but takes
+mass content and mean particle mass as first two arguments. This
+means that the first and second column of *pnd_agenda_input* shall
+hold mass content and Mmean, respectively. Accordingly, the number
+of dependent parameters is two.
+
+These requirements apply to the MGD parameters:
+ (1) mu + 1 > 0
+ (2) la > 0
+ (3) ga > 0
+ (4) Mmean must be > 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14303,17 +14421,17 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassSingleMoment"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content as input.\n"
-          "\n"
-          "The intercept parameter N0 is assumed dependent on the slope parameter\n"
-          "lambda, such that N0=N_alpha*lambda^n_b with fixed N_alpha and n_b.\n"
-          "This is a common form for many PSD parametrizations for use with\n"
-          "single-moment mass-based schemes.\n"
-          "\n"
-          "This version of MGD PSD takes mass content as first input argument.\n"
-          "This means that the first column of *pnd_agenda_input* shall hold\n"
-          "mass content data. The dependent parameter is assumed to be lambda.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD, with mass content as input.
+
+The intercept parameter N0 is assumed dependent on the slope parameter
+lambda, such that N0=N_alpha*lambda^n_b with fixed N_alpha and n_b.
+This is a common form for many PSD parametrizations for use with
+single-moment mass-based schemes.
+
+This version of MGD PSD takes mass content as first input argument.
+This means that the first column of *pnd_agenda_input* shall hold
+mass content data. The dependent parameter is assumed to be lambda.
+)--"),
       AUTHORS("Stuart Fox"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14346,25 +14464,25 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassXmean"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and mean size\n"
-          "(Xmean) as inputs.\n"
-          "\n"
-          "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
-          "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
-          "is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).\n"
-          "\n"
-          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
-          "mass content and mass size as first two arguments. This means that\n"
-          "the first and second column of *pnd_agenda_input* shall hold mass\n"
-          "content and Xmean, respectively. Accordingly, the number of dependent\n"
-          "parameters is two.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          " (1) mu + scat_species_b + 1 > 0\n"
-          " (2) la > 0\n"
-          " (3) ga > 0\n"
-          " (4) Xmean must be > 0.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD, with mass content and mean size
+(Xmean) as inputs.
+
+\"Mean size\" is here defined as mass weighted size. Remembering that
+mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b
+is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).
+
+This version of MGD PSD works as *psdModifiedGammaMass*, but takes
+mass content and mass size as first two arguments. This means that
+the first and second column of *pnd_agenda_input* shall hold mass
+content and Xmean, respectively. Accordingly, the number of dependent
+parameters is two.
+
+These requirements apply to the MGD parameters:
+ (1) mu + scat_species_b + 1 > 0
+ (2) la > 0
+ (3) ga > 0
+ (4) Xmean must be > 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14397,22 +14515,22 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassXmedian"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and median size\n"
-          "(Xmedian) as inputs.\n"
-          "\n"
-          "\n"
-          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
-          "mass content and median size as first two arguments. This means that\n"
-          "the first and second column of *pnd_agenda_input* shall hold mass\n"
-          "content and Xmedian, respectively. Accordingly, the number of\n"
-          "dependent parameters is two.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          " (1) mu + scat_species_b + 1 > 0\n"
-          " (2) la > 0\n"
-          " (3) ga > 0\n"
-          " (4) Xmedian must be > 0.\n"),
+      DESCRIPTION(R"--(Modified gamma distribution PSD, with mass content and median size
+(Xmedian) as inputs.
+
+
+This version of MGD PSD works as *psdModifiedGammaMass*, but takes
+mass content and median size as first two arguments. This means that
+the first and second column of *pnd_agenda_input* shall hold mass
+content and Xmedian, respectively. Accordingly, the number of
+dependent parameters is two.
+
+These requirements apply to the MGD parameters:
+ (1) mu + scat_species_b + 1 > 0
+ (2) la > 0
+ (3) ga > 0
+ (4) Xmedian must be > 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14445,22 +14563,22 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdMonoDispersive"),
-      DESCRIPTION(
-          "Mono-dispersive PSD, with number density given.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be number densities, in\n"
-          "unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free\n"
-          "but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "The method checks that the scattering species indicated (by\n"
-          "``species_index``) has a single element, and just inserts the provided\n"
-          "number density in *psd_data*.\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"),
+      DESCRIPTION(R"--(Mono-dispersive PSD, with number density given.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be number densities, in
+unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
+but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+The method checks that the scattering species indicated (by
+``species_index``) has a single element, and just inserts the provided
+number density in *psd_data*.
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14482,23 +14600,23 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdMonoMass"),
-      DESCRIPTION(
-          "Mono-dispersive PSD, with mass content given.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be mass contents, in\n"
-          "unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free\n"
-          "but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "The method checks that the scattering species indicated (by\n"
-          "``species_index``) has a single element, and sets *psd_data* based\n"
-          "on the mass contents given and the particle mass (derived from\n"
-          "*scat_meta*).\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"),
+      DESCRIPTION(R"--(Mono-dispersive PSD, with mass content given.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be mass contents, in
+unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
+but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+The method checks that the scattering species indicated (by
+``species_index``) has a single element, and sets *psd_data* based
+on the mass contents given and the particle mass (derived from
+*scat_meta*).
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14520,52 +14638,50 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdSeifertBeheng06"),
-      DESCRIPTION(
-          "Calculates *psd_data* and *dpsd_data_dx* following Seifert and Beheng (2006)\n"
-          "two moment particle size distribution for cloud water, cloud ice,\n"
-          "rain, snow, graupel and hail, which is used in the ICON model.\n"
-          "\n"
-          "WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``\n"
-          "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-          "Produces the particle size distribution values (dN/dD) and their\n"
-          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-          "over multiple particle sizes and atmospheric levels (or SWC/T\n"
-          "combinations).\n"
-          "\n"
-          "*psd_size_grid* is considered to be in terms of mass.\n"
-          "WC is considered to be in terms of mass content (or mass density),\n"
-          "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] ."
-          "\n"
-          "Derivatives with respect to WC and N_tot are obtained analytically.\n"
-          "\n"
-          "Six particle size distributions for the different hydrometeors are handled,\n"
-          "governed by setting of ``hydrometeor_type``, where \n"
-          "\n"
-          "(1) \"cloud_water\" selects cloud liquid water , \n"
-          "(2) \"cloud_ice\" selects cloud ice, \n"
-          "(3) \"snow\" selects snow, \n"
-          "(4) \"rain\" selects rain, \n"
-          "(5) \"graupel\" selects graupel, and \n"
-          "(6) \"hail\" selects hail, \n"
-          "\n"
-          "Requirements:\n"
-          "\n"
-          "*pnd_agenda_input_names* must include::\n"
-          "\n"
-          "  [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
-          "\n"
-          "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
-          "independent variablea ) can be \"X-mass_density\" and\\or \n"
-          "\"X-number_density\".\n"
-          "\n"
-          "The validity range of WC is not limited. Negative WC will produce\n"
-          "negative psd values following a distribution given by abs(WC), ie.\n"
-          "abs(psd)=f(abs(WC)).\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
+      DESCRIPTION(R"--(Calculates *psd_data* and *dpsd_data_dx* following Seifert and Beheng (2006)
+two moment particle size distribution for cloud water, cloud ice,
+rain, snow, graupel and hail, which is used in the ICON model.
 
-          ),
+WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
+to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.
+Produces the particle size distribution values (dN/dD) and their
+derivates with respect to independent variables x by *dpnd_data_dx_names*
+over multiple particle sizes and atmospheric levels (or SWC/T
+combinations).
+
+*psd_size_grid* is considered to be in terms of mass.
+WC is considered to be in terms of mass content (or mass density),
+ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] .
+
+Derivatives with respect to WC and N_tot are obtained analytically.
+
+Six particle size distributions for the different hydrometeors are handled,
+governed by setting of ``hydrometeor_type``, where 
+
+(1) \"cloud_water\" selects cloud liquid water , 
+(2) \"cloud_ice\" selects cloud ice, 
+(3) \"snow\" selects snow, 
+(4) \"rain\" selects rain, 
+(5) \"graupel\" selects graupel, and 
+(6) \"hail\" selects hail, 
+
+Requirements:
+
+*pnd_agenda_input_names* must include::
+
+  [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name
+
+The entries in  *dpnd_data_dx_names* (ie. the allowed
+independent variablea ) can be \"X-mass_density\" and\\or 
+\"X-number_density\".
+
+The validity range of WC is not limited. Negative WC will produce
+negative psd values following a distribution given by abs(WC), ie.
+abs(psd)=f(abs(WC)).
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14587,32 +14703,32 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("psdWangEtAl16"),
-      DESCRIPTION(
-          "Wang et al. [2016] particle size distribution for rain.\n"
-          "\n"
-          "Reference: Wang et al., Investigation of liquid cloud microphysical\n"
-          "properties of deep convective systems: 1. Parameterization raindrop\n"
-          "size distribution and its application ..., 2016.\n"
-          "\n"
-          "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
-          "column and *pnd_agenda_input_names* shall contain a single string.\n"
-          "The input data in *pnd_agenda_input* shall be rain mass content in\n"
-          "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
-          "but the same name must be used in *particle_bulkprop_names* and\n"
-          "*dpnd_data_dx_names*.\n"
-          "\n"
-          "Particles are assumed to be near-spherical, ie. *psd_size_grid* can\n"
-          "either be in terms of volume (or mass) equivalent diameter or\n"
-          "maximum diameter.\n"
-          "\n"
-          "Derivatives are obtained analytically.\n"
-          "\n"
-          "The validity range of mass content is not limited. Negative mass\n"
-          "contents will produce negative psd values following a distribution\n"
-          "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
-          "\n"
-          "If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"),
+      DESCRIPTION(R"--(Wang et al. [2016] particle size distribution for rain.
+
+Reference: Wang et al., Investigation of liquid cloud microphysical
+properties of deep convective systems: 1. Parameterization raindrop
+size distribution and its application ..., 2016.
+
+This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
+column and *pnd_agenda_input_names* shall contain a single string.
+The input data in *pnd_agenda_input* shall be rain mass content in
+unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
+but the same name must be used in *particle_bulkprop_names* and
+*dpnd_data_dx_names*.
+
+Particles are assumed to be near-spherical, ie. *psd_size_grid* can
+either be in terms of volume (or mass) equivalent diameter or
+maximum diameter.
+
+Derivatives are obtained analytically.
+
+The validity range of mass content is not limited. Negative mass
+contents will produce negative psd values following a distribution
+given by abs(RWC), ie. abs(psd)=f(abs(RWC)).
+
+If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
+picky=0, or an error is thrown if picky=1.
+)--"),
       AUTHORS("Jana Mendrok, Patrick Eriksson"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14635,19 +14751,19 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RadarOnionPeelingTableCalc"),
-      DESCRIPTION(
-          "Creates a radar inversion table.\n"
-          "\n"
-          "This method is tailored to make inversion tables that fit\n"
-          "*particle_bulkpropRadarOnionPeeling*. See that method for\n"
-          "format of the table.\n"
-          "\n"
-          "The method needs to be called twice to form a complete table,\n"
-          "once for liquid and ice hydrometeors. The table can be empty at\n"
-          "the first call.\n"
-          "\n"
-          "The input data (*scat_data* etc.) must match two scattering\n"
-          "species and a single frequency (the one of the radar).\n"),
+      DESCRIPTION(R"--(Creates a radar inversion table.
+
+This method is tailored to make inversion tables that fit
+*particle_bulkpropRadarOnionPeeling*. See that method for
+format of the table.
+
+The method needs to be called twice to form a complete table,
+once for liquid and ice hydrometeors. The table can be empty at
+the first call.
+
+The input data (*scat_data* etc.) must match two scattering
+species and a single frequency (the one of the radar).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("invtable"),
@@ -14681,12 +14797,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RadiationFieldSpectralIntegrate"),
-      DESCRIPTION(
-          "Integrates fields like *spectral_irradiance_field* or *spectral_radiance_field* over frequency.\n"
-          "\n"
-          "Important, the first dimension must be the frequency dimension!\n"
-          "If a field  like *spectral_radiance_field* is input, the stokes dimension\n"
-          "is also removed.\n"),
+      DESCRIPTION(R"--(Integrates fields like *spectral_irradiance_field* or *spectral_radiance_field* over frequency.
+
+Important, the first dimension must be the frequency dimension!
+If a field  like *spectral_radiance_field* is input, the stokes dimension
+is also removed.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT(),
       GOUT("radiation_field"),
@@ -14700,9 +14816,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"),
-      DESCRIPTION("Computes the line irradiance and line transmission\n"
-                  "\n"
-                  "Presently only works for 1D atmospheres\n"),
+      DESCRIPTION(R"--(Computes the line irradiance and line transmission
+
+Presently only works for 1D atmospheres
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("line_irradiance", "line_transmission"),
       GOUT(),
@@ -14750,10 +14867,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalAdd"),
-      DESCRIPTION(
-          "Adds a Rational and a value (output = input + value).\n"
-          "\n"
-          "The result can either be stored in the same or another Rational.\n"),
+      DESCRIPTION(R"--(Adds a Rational and a value (output = input + value).
+
+The result can either be stored in the same or another Rational.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -14767,10 +14884,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalDivide"),
-      DESCRIPTION(
-          "Divides a Rational with a value (output = input / value).\n"
-          "\n"
-          "The result can either be stored in the same or another Rational.\n"),
+      DESCRIPTION(R"--(Divides a Rational with a value (output = input / value).
+
+The result can either be stored in the same or another Rational.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -14784,10 +14901,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalMultiply"),
-      DESCRIPTION(
-          "Multiplies a Rational with a value (output = input * value).\n"
-          "\n"
-          "The result can either be stored in the same or another Rational.\n"),
+      DESCRIPTION(R"--(Multiplies a Rational with a value (output = input * value).
+
+The result can either be stored in the same or another Rational.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -14801,10 +14918,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RationalSubtract"),
-      DESCRIPTION(
-          "Subtracts a Rational value (output = input - value).\n"
-          "\n"
-          "The result can either be stored in the same or another Rational.\n"),
+      DESCRIPTION(R"--(Subtracts a Rational value (output = input - value).
+
+The result can either be stored in the same or another Rational.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -14818,11 +14935,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadArrayOfARTSCAT"),
-      DESCRIPTION("Reads an old Array<ArrayOfLineRecord> ARTSCAT file.\n"
-                  "\n"
-                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
-                  "stored inside it but that the options will overwrite that\n"
-                  "information.  Be careful setting the options!\n"),
+      DESCRIPTION(R"--(Reads an old Array<ArrayOfLineRecord> ARTSCAT file.
+
+Note that the ARTSCAT-5 had quantum numbers and options
+stored inside it but that the options will overwrite that
+information.  Be careful setting the options!
+)--"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -14852,11 +14970,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadSplitARTSCAT"),
-      DESCRIPTION("Reads several old ArrayOfLineRecord ARTSCAT file\n"
-                  "\n"
-                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
-                  "stored inside it but that the options will overwrite that\n"
-                  "information.  Be careful setting the options!\n"),
+      DESCRIPTION(R"--(Reads several old ArrayOfLineRecord ARTSCAT file
+
+Note that the ARTSCAT-5 had quantum numbers and options
+stored inside it but that the options will overwrite that
+information.  Be careful setting the options!
+)--"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -14887,11 +15006,12 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadARTSCAT"),
-      DESCRIPTION("Reads an old ArrayOfLineRecord ARTSCAT file\n"
-                  "\n"
-                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
-                  "stored inside it but that the options will overwrite that\n"
-                  "information.  Be careful setting the options!\n"),
+      DESCRIPTION(R"--(Reads an old ArrayOfLineRecord ARTSCAT file
+
+Note that the ARTSCAT-5 had quantum numbers and options
+stored inside it but that the options will overwrite that
+information.  Be careful setting the options!
+)--"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -14921,37 +15041,40 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadHITRAN"),
-      DESCRIPTION("Reads a HITRAN .par file.\n"
-                  "\n"
-                  "The HITRAN type switch can be:\n\n"
-                  "- ``\"Pre2004\"``: for old format\n"
-                  "- ``\"Post2004\"``: for new format\n"
-                  "- ``\"Online\"``: for the online format with quantum numbers (recommended)\n"
-                  "\n"
-                  "Be careful setting the options!\n"
-                  "\n"
-                  "Note that the isoptopologues in Hitran changes between its versions.\n"
-                  "We support only one version of Hitran isoptopologues per commit.\n"
-                  "To read an older version of Hitran, you should down-grade to the\n"
-                  "correct commit-version.  If you still want to make use of modern features,\n"
-                  "you must also store the generated *abs_lines* to file and reload the\n"
-                  "catalog in the new version of Arts.  This step needs only be done once per\n"
-                  "version of Hitran you are using\n"
-                  "\n"
-                  "The complete flow to downgrade, read Hitran, and update is:\n\n"
-                  "1. 'git checkout <commit hash>' to get the old version of Arts\n"
-                  "2. Compile the program\n"
-                  "3. Run *ReadHITRAN* to get *abs_lines* of that version of Hitran\n"
-                  "4. Run *abs_linesWriteSpeciesSplitCatalog* to store the *abs_lines* to a folder\n"
-                  "5. 'git checkout -' to get back to your previous version of Arts\n"
-                  "6. Compile the program\n"
-                  "7. Use *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*\n"
-                  "\n"
-                  "The <commit hash> required per version of Hitran are:\n\n"
-                  "- Hitran 2020-XXXX: Your current version is OK.\n"
-                  "- Hitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc\n"
-                  "- Hitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7\n"
-      ),
+      DESCRIPTION(R"--(Reads a HITRAN .par file.
+
+The HITRAN type switch can be:
+
+- ``\"Pre2004\"``: for old format
+- ``\"Post2004\"``: for new format
+- ``\"Online\"``: for the online format with quantum numbers (recommended)
+
+Be careful setting the options!
+
+Note that the isoptopologues in Hitran changes between its versions.
+We support only one version of Hitran isoptopologues per commit.
+To read an older version of Hitran, you should down-grade to the
+correct commit-version.  If you still want to make use of modern features,
+you must also store the generated *abs_lines* to file and reload the
+catalog in the new version of Arts.  This step needs only be done once per
+version of Hitran you are using
+
+The complete flow to downgrade, read Hitran, and update is:
+
+1. 'git checkout <commit hash>' to get the old version of Arts
+2. Compile the program
+3. Run *ReadHITRAN* to get *abs_lines* of that version of Hitran
+4. Run *abs_linesWriteSpeciesSplitCatalog* to store the *abs_lines* to a folder
+5. 'git checkout -' to get back to your previous version of Arts
+6. Compile the program
+7. Use *abs_linesReadSpeciesSplitCatalog* to read what *abs_lines*
+
+The <commit hash> required per version of Hitran are:
+
+- Hitran 2020-XXXX: Your current version is OK.
+- Hitran 2004-2016: 60a9664f69f10b3f3eef3d9456282c3638b637fc
+- Hitran  pre-2004: d81802cc7fe887446715491ee8a9eab8e370a0c7
+)--"),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -14982,9 +15105,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadLBLRTM"),
-      DESCRIPTION("Reads a LBLRTM file.\n"
-                  "\n"
-                  "Be careful setting the options!\n"),
+      DESCRIPTION(R"--(Reads a LBLRTM file.
+
+Be careful setting the options!
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -15014,9 +15138,10 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadJPL"),
-      DESCRIPTION("Reads a JPL file.\n"
-                  "\n"
-                  "Be careful setting the options!\n"),
+      DESCRIPTION(R"--(Reads a JPL file.
+
+Be careful setting the options!
+)--"),
       AUTHORS("Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -15069,10 +15194,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesWriteSpeciesSplitCatalog"),
-      DESCRIPTION("See *abs_linesWriteSpeciesSplitCatalog*\n"
-                  "\n"
-                  "In addition, the structure of the files generated will not care about\n"
-                  "generating identifiers for the order in *abs_species*\n"),
+      DESCRIPTION(R"--(See *abs_linesWriteSpeciesSplitCatalog*
+
+In addition, the structure of the files generated will not care about
+generating identifiers for the order in *abs_species*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -15086,10 +15212,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadXsecData"),
-      DESCRIPTION("Reads HITRAN Crosssection coefficients\n"
-                  "\n"
-                  "Reads coefficient files for HITRAN Xsec species defined\n"
-                  "in *abs_species*.\n"),
+      DESCRIPTION(R"--(Reads HITRAN Crosssection coefficients
+
+Reads coefficient files for HITRAN Xsec species defined
+in *abs_species*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("xsec_fit_data"),
       GOUT(),
@@ -15103,12 +15230,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),
-      DESCRIPTION("Reads a workspace variable from a NetCDF file.\n"
-                  "\n"
-                  "This method can read variables of any group.\n"
-                  "\n"
-                  "If the filename is omitted, the variable is read\n"
-                  "from <basename>.<variable_name>.nc.\n"),
+      DESCRIPTION(R"--(Reads a workspace variable from a NetCDF file.
+
+This method can read variables of any group.
+
+If the filename is omitted, the variable is read
+from <basename>.<variable_name>.nc.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -15128,15 +15256,15 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadXML"),
-      DESCRIPTION(
-          "Reads a workspace variable from an XML file.\n"
-          "\n"
-          "This method can read variables of any group.\n"
-          "\n"
-          "If the filename is omitted, the variable is read\n"
-          "from <basename>.<variable_name>.xml.\n"
-          "If the given filename does not exist, this method will\n"
-          "also look for files with an added .xml, .xml.gz and .gz extension\n"),
+      DESCRIPTION(R"--(Reads a workspace variable from an XML file.
+
+This method can read variables of any group.
+
+If the filename is omitted, the variable is read
+from <basename>.<variable_name>.xml.
+If the given filename does not exist, this method will
+also look for files with an added .xml, .xml.gz and .gz extension
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -15155,16 +15283,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadXMLIndexed"),
-      DESCRIPTION("As *ReadXML*, but reads indexed file names.\n"
-                  "\n"
-                  "The variable is read from a file with name::\n"
-                  "\n"
-                  "   <filename>.<file_index>.xml.\n"
-                  "\n"
-                  "where <file_index> is the value of ``file_index``.\n"
-                  "\n"
-                  "This means that ``filename`` shall here not include the .xml\n"
-                  "extension. Omitting filename works as for *ReadXML*.\n"),
+      DESCRIPTION(R"--(As *ReadXML*, but reads indexed file names.
+
+The variable is read from a file with name::
+
+   <filename>.<file_index>.xml.
+
+where <file_index> is the value of ``file_index``.
+
+This means that ``filename`` shall here not include the .xml
+extension. Omitting filename works as for *ReadXML*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -15186,20 +15315,20 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Reduce"),
-      DESCRIPTION(
-          "Reduces a larger class to a smaller class of same size.\n"
-          "\n"
-          "The Reduce command reduces all \"1\"-dimensions to nil.  Examples:\n"
-          "\n"
-          "1) 1 Vector can be reduced to a Numeric\n"
-          "2) 2x1 Matrix can be reduced to 2 Vector\n"
-          "3) 1x3x1 Tensor3 can be reduced to 3 Vector\n"
-          "4) 1x1x1x1 Tensor4 can be reduced to a Numeric\n"
-          "5) 3x1x4x1x5 Tensor5 can only be reduced to 3x4x5 Tensor3\n"
-          "6) 1x1x1x1x2x3 Tensor6 can be reduced to 2x3 Matrix\n"
-          "7) 2x3x4x5x6x7x1 Tensor7 can be reduced to 2x3x4x5x6x7 Tensor6\n"
-          "\n"
-          "And so on\n"),
+      DESCRIPTION(R"--(Reduces a larger class to a smaller class of same size.
+
+The Reduce command reduces all \"1\"-dimensions to nil.  Examples:
+
+1) 1 Vector can be reduced to a Numeric
+2) 2x1 Matrix can be reduced to 2 Vector
+3) 1x3x1 Tensor3 can be reduced to 3 Vector
+4) 1x1x1x1 Tensor4 can be reduced to a Numeric
+5) 3x1x4x1x5 Tensor5 can only be reduced to 3x4x5 Tensor3
+6) 1x1x1x1x2x3 Tensor6 can be reduced to 2x3 Matrix
+7) 2x3x4x5x6x7x1 Tensor7 can be reduced to 2x3x4x5x6x7 Tensor6
+
+And so on
+)--"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT(),
       GOUT("o"),
@@ -15228,17 +15357,18 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldEarth"),
-      DESCRIPTION(
-          "Earth reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model the Earth,\n"
-          "following different models. The options are:\n\n"
-          "- \"Sphere\":\n"
-          "    A spherical Earth. The radius is set following\n"
-          "    the value set for the Earth radius in constants.cc.\n"
-          "- \"WGS84\":\n"
-          "    The reference ellipsoid used by the GPS system.\n"
-          "    Should be the standard choice for a non-spherical Earth.\n"),
+      DESCRIPTION(R"--(Earth reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model the Earth,
+following different models. The options are:
+
+- \"Sphere\":
+    A spherical Earth. The radius is set following
+    the value set for the Earth radius in constants.cc.
+- \"WGS84\":
+    The reference ellipsoid used by the GPS system.
+    Should be the standard choice for a non-spherical Earth.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15252,9 +15382,10 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(
       create_mdrecord(NAME("surface_fieldGanymede"),
-               DESCRIPTION("Ganymede reference ellipsoids.\n"
-                           "\n"
-                           "From Wikipedia\n"),
+               DESCRIPTION(R"--(Ganymede reference ellipsoids.
+
+From Wikipedia
+)--"),
                AUTHORS("Takayoshi Yamada"),
                OUT("surface_field"),
                GOUT(),
@@ -15268,13 +15399,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldEuropa"),
-      DESCRIPTION(
-          "Io reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Io,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.\n"),
+      DESCRIPTION(R"--(Io reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Io,
+folowing different models. The options are:
+
+- \"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -15288,13 +15419,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldIo"),
-      DESCRIPTION(
-          "Io reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Io,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.\n"),
+      DESCRIPTION(R"--(Io reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Io,
+folowing different models. The options are:
+
+- \"Sphere\": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -15308,14 +15439,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldJupiter"),
-      DESCRIPTION(
-          "Jupiter reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Jupiter,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.\n"
-          "- \"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.\n"),
+      DESCRIPTION(R"--(Jupiter reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Jupiter,
+folowing different models. The options are:
+
+- \"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.
+- \"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15329,14 +15460,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldMars"),
-      DESCRIPTION(
-          "Mars reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Mars,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.\n"
-          "- \"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.\n"),
+      DESCRIPTION(R"--(Mars reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Mars,
+folowing different models. The options are:
+
+- \"Sphere\": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.
+- \"Ellipsoid\": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15350,20 +15481,20 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldMoon"),
-      DESCRIPTION(
-          "Moon reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Moon,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\":\n"
-          "    A spherical planet. The radius is taken from a\n"
-          "    report of the IAU/IAG Working Group.\n"
-          "\n"
-          "- \"Ellipsoid\":\n"
-          "    A reference ellipsoid with parameters taken from\n"
-          "    Wikepedia (see code for details). The IAU/IAG working group\n"
-          "    defines the Moon ellipsoid to be a sphere.\n"),
+      DESCRIPTION(R"--(Moon reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Moon,
+folowing different models. The options are:
+
+- \"Sphere\":
+    A spherical planet. The radius is taken from a
+    report of the IAU/IAG Working Group.
+
+- \"Ellipsoid\":
+    A reference ellipsoid with parameters taken from
+    Wikepedia (see code for details). The IAU/IAG working group
+    defines the Moon ellipsoid to be a sphere.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15377,12 +15508,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldInit"),
-      DESCRIPTION(
-          "Manual setting of the reference ellipsoid.\n"
-          "\n"
-          "The two values of ``refellipsoid`` can here be set manually. The two\n"
-          "arguments correspond directly to first and second element of\n"
-          "``refellipsoid``.\n"),
+      DESCRIPTION(R"--(Manual setting of the reference ellipsoid.
+
+The two values of ``refellipsoid`` can here be set manually. The two
+arguments correspond directly to first and second element of
+``refellipsoid``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15396,18 +15527,18 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldVenus"),
-      DESCRIPTION(
-          "Venus reference ellipsoids.\n"
-          "\n"
-          "The reference ellipsoid (``refellipsoid``) is set to model Venus,\n"
-          "folowing different models. The options are:\n"
-          "\n"
-          "- \"Sphere\":\n"
-          "      A spherical planet. The radius is taken from a\n"
-          "      report of the IAU/IAG Working Group.\n"
-          "\n"
-          "According to the report used above, the Venus ellipsoid lacks\n"
-          "eccentricity and no further models should be required.\n"),
+      DESCRIPTION(R"--(Venus reference ellipsoids.
+
+The reference ellipsoid (``refellipsoid``) is set to model Venus,
+folowing different models. The options are:
+
+- \"Sphere\":
+      A spherical planet. The radius is taken from a
+      report of the IAU/IAG Working Group.
+
+According to the report used above, the Venus ellipsoid lacks
+eccentricity and no further models should be required.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_field"),
       GOUT(),
@@ -15421,27 +15552,27 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airFreeElectrons"),
-      DESCRIPTION(
-          "Microwave refractive index due to free electrons.\n"
-          "\n"
-          "The refractive index of free electrons is added to *refr_index_air*.\n"
-          "To obtain the complete value, *refr_index_air* should be set to 1\n"
-          "before calling this WSM. This applies also to *refr_index_air_group*.\n"
-          "\n"
-          "The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma\n"
-          "frequency, and w is the angular frequency (the function returns\n"
-          "n-1, that here is slightly negative). This expressions is found in\n"
-          "many textbooks, e.g. Rybicki and Lightman (1979). The above refers\n"
-          "to *refr_index_air*. *refr_index_air_group* is sqrt(1+wp^2/w^2).\n"
-          "\n"
-          "The expression is dispersive. The frequency applied is the mean of\n"
-          "first and last element of *f_grid* is selected. This frequency must\n"
-          "be at least twice the plasma frequency.\n"
-          "\n"
-          "An error is issued if free electrons not are part of *abs_species*\n"
-          "(and there exist a corresponding \"vmr\"-value). This demand is\n"
-          "removed if ``demand_vmr_value`` is set to 0, but use this option\n"
-          "with care.\n"),
+      DESCRIPTION(R"--(Microwave refractive index due to free electrons.
+
+The refractive index of free electrons is added to *refr_index_air*.
+To obtain the complete value, *refr_index_air* should be set to 1
+before calling this WSM. This applies also to *refr_index_air_group*.
+
+The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma
+frequency, and w is the angular frequency (the function returns
+n-1, that here is slightly negative). This expressions is found in
+many textbooks, e.g. Rybicki and Lightman (1979). The above refers
+to *refr_index_air*. *refr_index_air_group* is sqrt(1+wp^2/w^2).
+
+The expression is dispersive. The frequency applied is the mean of
+first and last element of *f_grid* is selected. This frequency must
+be at least twice the plasma frequency.
+
+An error is issued if free electrons not are part of *abs_species*
+(and there exist a corresponding \"vmr\"-value). This demand is
+removed if ``demand_vmr_value`` is set to 0, but use this option
+with care.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("refr_index_air", "refr_index_air_group"),
       GOUT(),
@@ -15460,19 +15591,19 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airInfraredEarth"),
-      DESCRIPTION(
-          "Calculates the IR refractive index due to gases in the\n"
-          "Earth's atmosphere.\n"
-          "\n"
-          "Only refractivity of dry air is considered. The formula used is\n"
-          "contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.\n"
-          "\n"
-          "The refractivity of dry air is added to *refr_index_air*. To obtain\n"
-          "the complete value, *refr_index_air* should be set to 1 before\n"
-          "calling this WSM. This applies also to *refr_index_air_group*.\n"
-          "\n"
-          "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
-          "*refr_index_air_group* are identical.\n"),
+      DESCRIPTION(R"--(Calculates the IR refractive index due to gases in the
+Earth's atmosphere.
+
+Only refractivity of dry air is considered. The formula used is
+contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.
+
+The refractivity of dry air is added to *refr_index_air*. To obtain
+the complete value, *refr_index_air* should be set to 1 before
+calling this WSM. This applies also to *refr_index_air_group*.
+
+The expression used is non-dispersive. Hence, *refr_index_air* and
+*refr_index_air_group* are identical.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT("refr_index_air", "refr_index_air_group"),
       GOUT(),
@@ -15489,35 +15620,35 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airMicrowavesEarth"),
-      DESCRIPTION(
-          "Microwave refractive index in Earth's atmosphere.\n"
-          "\n"
-          "This method just considers pressure, temperature and water\n"
-          "vapour, which should suffice for Earth. For a more general\n"
-          "method, see *refr_index_airMicrowavesGeneral*.\n"
-          "\n"
-          "The refractivity of dry air and water vapour is added to\n"
-          "*refr_index_air*. To obtain the complete value, *refr_index_air*\n"
-          "should be set to 1 before calling this WSM. This applies also to\n"
-          "*refr_index_air_group*.\n"
-          "\n"
-          "The expression used is non-dispersive. Hence, *refr_index_air*\n"
-          "and *refr_index_air_group* are identical.\n"
-          "\n"
-          "The standard expression for Earth and microwaves is used:\n"
-          "\n"
-          "  N = k1*(P-e)/T + k2*e/T + k3*e/T^2\n"
-          "\n"
-          "where N is refractivity, P is pressure, T is temperature and\n"
-          "e is water vapour partial pressure. The values of k1, k2 and k3\n"
-          "can be modified.\n"
-          "\n"
-          "Many different values of k1, k2 and k3 can be found in the\n"
-          "literature. The default values applied here are taken from\n"
-          "Bevis et al., GPS meteorology: Mapping ..., JAM, 1994.\n"
-          "More specifically, these value are found in Table 1, listed\n"
-          "as \"Present study\". Note that in ARTS Pa is used for pressure\n"
-          "and k1, k2 and k3 must be adjusted accordingly.\n"),
+      DESCRIPTION(R"--(Microwave refractive index in Earth's atmosphere.
+
+This method just considers pressure, temperature and water
+vapour, which should suffice for Earth. For a more general
+method, see *refr_index_airMicrowavesGeneral*.
+
+The refractivity of dry air and water vapour is added to
+*refr_index_air*. To obtain the complete value, *refr_index_air*
+should be set to 1 before calling this WSM. This applies also to
+*refr_index_air_group*.
+
+The expression used is non-dispersive. Hence, *refr_index_air*
+and *refr_index_air_group* are identical.
+
+The standard expression for Earth and microwaves is used:
+
+  N = k1*(P-e)/T + k2*e/T + k3*e/T^2
+
+where N is refractivity, P is pressure, T is temperature and
+e is water vapour partial pressure. The values of k1, k2 and k3
+can be modified.
+
+Many different values of k1, k2 and k3 can be found in the
+literature. The default values applied here are taken from
+Bevis et al., GPS meteorology: Mapping ..., JAM, 1994.
+More specifically, these value are found in Table 1, listed
+as \"Present study\". Note that in ARTS Pa is used for pressure
+and k1, k2 and k3 must be adjusted accordingly.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("refr_index_air", "refr_index_air_group"),
       GOUT(),
@@ -15538,26 +15669,26 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airMicrowavesGeneral"),
-      DESCRIPTION(
-          "Microwave refractive index due to gases in planetary atmospheres.\n"
-          "\n"
-          "The refractivity of a specified gas mixture is calculated and added\n"
-          "to *refr_index_air*. To obtain the complete value, *refr_index_air*\n"
-          "should be set to 1 before calling this WSM. This applies also to\n"
-          "*refr_index_air_group*.\n"
-          "\n"
-          "The expression used is non-dispersive. Hence, *refr_index_air* and\n"
-          "*refr_index_air_group* are identical.\n"
-          "\n"
-          "Uses the methodology introduced by Newell&Baird (1965) for calculating\n"
-          "refractivity of variable gas mixtures based on refractivity of the\n"
-          "individual gases at reference conditions. Assuming ideal gas law for\n"
-          "converting reference refractivity to actual pressure and temperature\n"
-          "conditions. Reference refractivities are also taken from Newell&Baird (1965)\n"
-          "and are vailable for N2, O2, CO2, H2, and He. Additionally, H2O reference\n"
-          "refractivity has been derived from H2O contribution in Thayer (see\n"
-          "*refr_index_airMicrowavesEarth*) for T0=273.15K. Any mixture of these gases\n"
-          "can be taken into account.\n"),
+      DESCRIPTION(R"--(Microwave refractive index due to gases in planetary atmospheres.
+
+The refractivity of a specified gas mixture is calculated and added
+to *refr_index_air*. To obtain the complete value, *refr_index_air*
+should be set to 1 before calling this WSM. This applies also to
+*refr_index_air_group*.
+
+The expression used is non-dispersive. Hence, *refr_index_air* and
+*refr_index_air_group* are identical.
+
+Uses the methodology introduced by Newell&Baird (1965) for calculating
+refractivity of variable gas mixtures based on refractivity of the
+individual gases at reference conditions. Assuming ideal gas law for
+converting reference refractivity to actual pressure and temperature
+conditions. Reference refractivities are also taken from Newell&Baird (1965)
+and are vailable for N2, O2, CO2, H2, and He. Additionally, H2O reference
+refractivity has been derived from H2O contribution in Thayer (see
+*refr_index_airMicrowavesEarth*) for T0=273.15K. Any mixture of these gases
+can be taken into account.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("refr_index_air", "refr_index_air_group"),
       GOUT(),
@@ -15576,12 +15707,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalDefClose"),
-      DESCRIPTION(
-          "Closes the definition of retrieval quantities and correlations and\n"
-          "prepares related WSVs for the retrieval.\n"
-          "\n"
-          "This function calls jacobianClose and checks that the corvariance matrices\n"
-          "are consistent with the Jacobian.\n"),
+      DESCRIPTION(R"--(Closes the definition of retrieval quantities and correlations and
+prepares related WSVs for the retrieval.
+
+This function calls jacobianClose and checks that the corvariance matrices
+are consistent with the Jacobian.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("jacobian_do", "jacobian_agenda", "retrieval_checked"),
       GOUT(),
@@ -15595,20 +15726,20 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddAbsSpecies"),
-      DESCRIPTION(
-          "Adds an absorption species to the retrieval quantities.\n"
-          "\n"
-          "Similar to *jacobianAddAbsSpecies* but also sets the corresponding block in\n"
-          "*covmat_sx* to the matrices provided in *covmat_block* and *covmat_inv_block*.\n"
-          "The dimensions of *covmat_block* are required to agree with the dimensions of the\n"
-          "retrieval grid.\n"
-          "\n"
-          "*covmat_inv_block* must be either empty or the same dimension as *covmat_block*.\n"
-          "If provided, this matrix will be used as the inverse for the covariance matrix block\n"
-          "and numerical inversion of this block is thus avoided. Note, however, that this is\n"
-          "only effective if this block is uncorrelated with any other retrieval quantity.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddAbsSpecies*.\n"),
+      DESCRIPTION(R"--(Adds an absorption species to the retrieval quantities.
+
+Similar to *jacobianAddAbsSpecies* but also sets the corresponding block in
+*covmat_sx* to the matrices provided in *covmat_block* and *covmat_inv_block*.
+The dimensions of *covmat_block* are required to agree with the dimensions of the
+retrieval grid.
+
+*covmat_inv_block* must be either empty or the same dimension as *covmat_block*.
+If provided, this matrix will be used as the inverse for the covariance matrix block
+and numerical inversion of this block is thus avoided. Note, however, that this is
+only effective if this block is uncorrelated with any other retrieval quantity.
+
+For number and order of elements added to *x*, see *jacobianAddAbsSpecies*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15635,11 +15766,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddFreqShift"),
-      DESCRIPTION(
-          "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
-          "contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddFreqShift*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddFreqShift* but also adds the correlation block
+contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.
+
+For number and order of elements added to *x*, see *jacobianAddFreqShift*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15658,11 +15789,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddFreqStretch"),
-      DESCRIPTION(
-          "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
-          "contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddFreqStretch*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddFreqShift* but also adds the correlation block
+contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.
+
+For number and order of elements added to *x*, see *jacobianAddFreqStretch*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15680,15 +15811,15 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalDefInit"),
-      DESCRIPTION(
-          "Begin retrieval definition section.\n"
-          "\n"
-          "This function initialises all variables required for defining\n"
-          "retrieval quantities and corresponding covariance matrices.\n"
-          "By default, Jacobian quantities should be added withing the.\n"
-          "retrieval definition section. If Jacobian quantities are\n"
-          "defined separately ``initialize_jacobian`` must be set to 0,\n"
-          "otherwise the quantities will be discarded.\n"),
+      DESCRIPTION(R"--(Begin retrieval definition section.
+
+This function initialises all variables required for defining
+retrieval quantities and corresponding covariance matrices.
+By default, Jacobian quantities should be added withing the.
+retrieval definition section. If Jacobian quantities are
+defined separately ``initialize_jacobian`` must be set to 0,
+otherwise the quantities will be discarded.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_se",
           "covmat_sx",
@@ -15713,12 +15844,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddCatalogParameter"),
-      DESCRIPTION(
-          "Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding\n"
-          "block to *covmat_sx* with the given ``var`` as variance value.\n"
-          "\n"
-          "For number and order of elements added to *x*,\n"
-          "see *jacobianAddBasicCatalogParameter*.\n"),
+      DESCRIPTION(R"--(Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding
+block to *covmat_sx* with the given ``var`` as variance value.
+
+For number and order of elements added to *x*,
+see *jacobianAddBasicCatalogParameter*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15734,16 +15865,16 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddCatalogParameters"),
-      DESCRIPTION(
-          "Same as *jacobianAddBasicCatalogParameters* but also adds a new\n"
-          "block to *covmat_sx* using the matrices in *covmat_block* and\n"
-          "*covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*,\n"
-          "see *jacobianAddBasicCatalogParameters*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddBasicCatalogParameters* but also adds a new
+block to *covmat_sx* using the matrices in *covmat_block* and
+*covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*,
+see *jacobianAddBasicCatalogParameters*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15762,14 +15893,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddMagField"),
-      DESCRIPTION(
-          "Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddMagField*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddMagField*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15791,14 +15922,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddPointingZa"),
-      DESCRIPTION(
-          "Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddPointingZa*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddPointingZa*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15821,14 +15952,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddPolyfit"),
-      DESCRIPTION(
-          "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddPolyfit*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddPolyfit*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15858,14 +15989,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddScatSpecies"),
-      DESCRIPTION(
-          "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddScatSpecies*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddScatSpecies*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15892,14 +16023,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSinefit"),
-      DESCRIPTION(
-          "Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddSinefit*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddSinefit*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15929,14 +16060,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSpecialSpecies"),
-      DESCRIPTION(
-          "Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddSpecialSpecies*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddSpecialSpecies*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15961,14 +16092,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSurfaceQuantity"),
-      DESCRIPTION(
-          "Same as *jacobianAddSurfaceQuantity* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddSurfaceQuantity*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddSurfaceQuantity* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddSurfaceQuantity*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15988,14 +16119,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddTemperature"),
-      DESCRIPTION(
-          "Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddTemperature*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddTemperature*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -16016,14 +16147,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddWind"),
-      DESCRIPTION(
-          "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          "\n"
-          "For number and order of elements added to *x*, see *jacobianAddWind*.\n"),
+      DESCRIPTION(R"--(Same as *jacobianAddWind* but also adds a new block to *covmat_sx*
+using the matrices in *covmat_block* and *covmat_inv_block*.
+
+If *covmat_inv_block* is non-empty, it is used as inverse for the added block
+which avoids its numerical computation.
+
+For number and order of elements added to *x*, see *jacobianAddWind*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -16045,18 +16176,18 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("retrievalErrorsExtract"),
-      DESCRIPTION(
-          "Extract retrieval error from covariance matrices.\n"
-          "\n"
-          "Extracts the error estimates for the retrieved quantities from the covariance\n"
-          "matrices for the error due to measurement noise *covmat_so* and the error due\n"
-          "to limited resolution of the observation system *covmat_ss* and stores them in\n"
-          "the vectors *retrieval_eo* and *retrieval_ss*, respectively."
-          "\n"
-          "To etract these errors, first the convariance matrices of which the errors \n"
-          "should be extracted have to be computed using the WSMs *covmat_soCalc*\n"
-          "and *covmat_ssCalc* or set to be empty in order to be ignored. Note, however,\n"
-          "that this will also set the corresponding error vector to be empty.\n"),
+      DESCRIPTION(R"--(Extract retrieval error from covariance matrices.
+
+Extracts the error estimates for the retrieved quantities from the covariance
+matrices for the error due to measurement noise *covmat_so* and the error due
+to limited resolution of the observation system *covmat_ss* and stores them in
+the vectors *retrieval_eo* and *retrieval_ss*, respectively.
+
+To etract these errors, first the convariance matrices of which the errors 
+should be extracted have to be computed using the WSMs *covmat_soCalc*
+and *covmat_ssCalc* or set to be empty in order to be ignored. Note, however,
+that this will also set the corresponding error vector to be empty.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("retrieval_eo", "retrieval_ss"),
       GOUT(),
@@ -16070,70 +16201,70 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RT4Calc"),
-      DESCRIPTION(
-          "Interface to the PolRadTran RT4 scattering solver (by F. Evans).\n"
-          "\n"
-          "RT4 provides the radiation field (*cloudbox_field*) from a vector\n"
-          "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
-          "Earth). It calculates up to two Stokes parameters (``stokes_dim`` <= 2),\n"
-          "i.e., all azimuthally randomly oriented particles are allowed (this\n"
-          "also includes macroscopically isotropic particles). Refraction is\n"
-          "not taken into account.\n"
-          "\n"
-          "The scattering solution is internally obtained over the full\n"
-          "(plane-parallel) atmosphere, i.e. not confined to the cloudbox.\n"
-          "However, the radiation field output is limited to the cloudbox.\n"
-          "This allows to consider clearsky RT through a non-spherical\n"
-          "atmosphere outside the cloudbox improving the RT solution for\n"
-          "non-plane-parallel media compared to the plain RT4 output.\n"
-          "\n"
-          "``nstreams`` is the number of polar angles taken into account\n"
-          "internally in the scattering solution. That is, ``nstreams``\n"
-          "determines the angular resolution, hence the accuracy, of the\n"
-          "scattering solution. The more anisotropic the bulk scattering\n"
-          "matrix, the more streams are required. The computational burden\n"
-          "increases approximately with the third power of ``nstreams``.\n"
-          "The default value (``nstreams`` = 16) was found to be sufficient for\n"
-          "most microwave scattering calculations. It is likely insufficient\n"
-          "for IR calculations involving ice clouds, though.\n"
-          "\n"
-          "Here, *za_grid* is NOT an input parameter, but output, and its\n"
-          "size equals ``nstreams`` or ``nstreams`` + 2 (Gauss-Legendre and Double\n"
-          "Gauss quadratures in case ``add_straight_angles`` = 1) (the reason is\n"
-          "that the computational burden is high for additional angles,\n"
-          "regardless whether they are quadrature angles or not; hence the\n"
-          "quadrature angles supplemented with 0 and 180deg are considered to\n"
-          "provide the best radiation field for a given effort).\n"
-          "\n"
-          "The ``auto_inc_nstreams`` feature can be used to increase the number\n"
-          "of streams used internally in the scattering solution when found\n"
-          "necessary.\n"
-          "NOTE: this number-of-streams increase is only internally - the\n"
-          "angular dimension of the output *cloudbox_field* is fixed to the\n"
-          "``nstreams`` given as input to this WSM.\n"
-          "\n"
-          "Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and\n"
-          "'D'ouble Gauss quadrature.\n"
-          "\n"
-          "This WSM applies *surface_rtprop_agenda* to derive reflection\n"
-          "matrix and surface emission vector that are directly feed into\n"
-          "RT4's core solver (instead of their RT4-internal calculation as\n"
-          "used by *RT4CalcWithRT4Surface*).\n"
-          "\n"
-          "Known issues of ARTS implementation:\n"
-          "\n"
-          "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
-          "  background (temperature taken from the ARTS-internal constant).\n"
-          "\n"
-          "The keyword ``pfct_method`` allows to choose how to extract the\n"
-          "scattering matrix, by chosing one specific temperature grid point\n"
-          "from the single scattering data: 'low' choses the lowest T-point,\n"
-          "'high' the highest T-point, and 'median' the median T-point. As\n"
-          "different scattering elements can have different temperature grids,\n"
-          "the actual temperature value used can differ between the scattering\n"
-          "elements. Note that this keyword solely affects the scattering matrix;\n"
-          "extinction matrix and absorption vector are always interpolated to\n"
-          "the actual temperature.\n"),
+      DESCRIPTION(R"--(Interface to the PolRadTran RT4 scattering solver (by F. Evans).
+
+RT4 provides the radiation field (*cloudbox_field*) from a vector
+1D scattering solution assuming a plane-parallel atmosphere (flat
+Earth). It calculates up to two Stokes parameters (``stokes_dim`` <= 2),
+i.e., all azimuthally randomly oriented particles are allowed (this
+also includes macroscopically isotropic particles). Refraction is
+not taken into account.
+
+The scattering solution is internally obtained over the full
+(plane-parallel) atmosphere, i.e. not confined to the cloudbox.
+However, the radiation field output is limited to the cloudbox.
+This allows to consider clearsky RT through a non-spherical
+atmosphere outside the cloudbox improving the RT solution for
+non-plane-parallel media compared to the plain RT4 output.
+
+``nstreams`` is the number of polar angles taken into account
+internally in the scattering solution. That is, ``nstreams``
+determines the angular resolution, hence the accuracy, of the
+scattering solution. The more anisotropic the bulk scattering
+matrix, the more streams are required. The computational burden
+increases approximately with the third power of ``nstreams``.
+The default value (``nstreams`` = 16) was found to be sufficient for
+most microwave scattering calculations. It is likely insufficient
+for IR calculations involving ice clouds, though.
+
+Here, *za_grid* is NOT an input parameter, but output, and its
+size equals ``nstreams`` or ``nstreams`` + 2 (Gauss-Legendre and Double
+Gauss quadratures in case ``add_straight_angles`` = 1) (the reason is
+that the computational burden is high for additional angles,
+regardless whether they are quadrature angles or not; hence the
+quadrature angles supplemented with 0 and 180deg are considered to
+provide the best radiation field for a given effort).
+
+The ``auto_inc_nstreams`` feature can be used to increase the number
+of streams used internally in the scattering solution when found
+necessary.
+NOTE: this number-of-streams increase is only internally - the
+angular dimension of the output *cloudbox_field* is fixed to the
+``nstreams`` given as input to this WSM.
+
+Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and
+'D'ouble Gauss quadrature.
+
+This WSM applies *surface_rtprop_agenda* to derive reflection
+matrix and surface emission vector that are directly feed into
+RT4's core solver (instead of their RT4-internal calculation as
+used by *RT4CalcWithRT4Surface*).
+
+Known issues of ARTS implementation:
+
+- TOA incoming radiation is so far assumed as blackbody cosmic
+  background (temperature taken from the ARTS-internal constant).
+
+The keyword ``pfct_method`` allows to choose how to extract the
+scattering matrix, by chosing one specific temperature grid point
+from the single scattering data: 'low' choses the lowest T-point,
+'high' the highest T-point, and 'median' the median T-point. As
+different scattering elements can have different temperature grids,
+the actual temperature value used can differ between the scattering
+elements. Note that this keyword solely affects the scattering matrix;
+extinction matrix and absorption vector are always interpolated to
+the actual temperature.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("cloudbox_field", "za_grid", "aa_grid"),
       GOUT(),
@@ -16208,21 +16339,21 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RT4CalcWithRT4Surface"),
-      DESCRIPTION(
-          "As RT4Calc except for using RT4's proprietary surface type handling.\n"
-          "\n"
-          "This WSM is only indented for testing purposes.\n"
-          "\n"
-          "The following surface type/property methods are available and\n"
-          "require the the following input:\n"
-          "\n"
-          "- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*\n"
-          "- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*\n"
-          "- 'S'pecular: *surface_reflectivity*, *surface_skin_t*\n"
-          "\n"
-          "'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel\n"
-          "methods modified to behave similar to ARTS'\n"
-          "*surfaceFlatReflectivity*.\n"),
+      DESCRIPTION(R"--(As RT4Calc except for using RT4's proprietary surface type handling.
+
+This WSM is only indented for testing purposes.
+
+The following surface type/property methods are available and
+require the the following input:
+
+- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*
+- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*
+- 'S'pecular: *surface_reflectivity*, *surface_skin_t*
+
+'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel
+methods modified to behave similar to ARTS'
+*surfaceFlatReflectivity*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("cloudbox_field", "za_grid", "aa_grid"),
       GOUT(),
@@ -16302,11 +16433,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("RT4Test"),
-      DESCRIPTION(
-          "RT4 validation test.\n"
-          "\n"
-          "Executes test case testc shipped with PolRadTran/RT4 code (but uses\n"
-          "data files converted to arts-xml). Output written to (xml-)file.\n"),
+      DESCRIPTION(R"--(RT4 validation test.
+
+Executes test case testc shipped with PolRadTran/RT4 code (but uses
+data files converted to arts-xml). Output written to (xml-)file.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("out_rad"),
@@ -16321,17 +16452,17 @@ where N>=0 and the species name is something line "H2O".
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losGeometricFromRtePosToRtePos2"),
-      DESCRIPTION(
-          "The geometric line-of-sight between two points.\n"
-          "\n"
-          "Old! Use *rte_losGeometricToPosition* ZZZ\n"
-          "\n"
-          "The method sets *rte_los* to the line-of-sight, at *rte_pos*,\n"
-          "that matches the geometrical propagation path between *rte_pos*\n"
-          "and *rte_pos2*.\n"
-          "\n"
-          "The standard case should be that *rte_pos2* corresponds to a\n"
-          "transmitter, and *rte_pos* to the receiver/sensor.\n"),
+      DESCRIPTION(R"--(The geometric line-of-sight between two points.
+
+Old! Use *rte_losGeometricToPosition* ZZZ
+
+The method sets *rte_los* to the line-of-sight, at *rte_pos*,
+that matches the geometrical propagation path between *rte_pos*
+and *rte_pos2*.
+
+The standard case should be that *rte_pos2* corresponds to a
+transmitter, and *rte_pos* to the receiver/sensor.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los"),
       GOUT(),
@@ -16350,13 +16481,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losGeometricToPosition"),
-      DESCRIPTION(
-          "The geometric line-of-sight between two points.\n"
-          "\n"
-          "The line-of-sight angles from *rte_pos* to ``target_pos`` are calculated\n"
-          "ignoring refraction. This can be done analytically. The angles are set\n"
-          "without any consideration of the surface. The corresponding propagation\n"
-          "path can thus end with a surface intersection.\n"),
+      DESCRIPTION(R"--(The geometric line-of-sight between two points.
+
+The line-of-sight angles from *rte_pos* to ``target_pos`` are calculated
+ignoring refraction. This can be done analytically. The angles are set
+without any consideration of the surface. The corresponding propagation
+path can thus end with a surface intersection.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los"),
       GOUT(),
@@ -16371,33 +16502,33 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losRefractedToPosition"),
-      DESCRIPTION(
-          "The refracted line-of-sight and propagation path between two positions.\n"
-          "\n"
-          "General remarks: The method assumes geometrical optics. It can fail for\n"
-          "various reasons, especially if there are sharp or multiple gradients in\n"
-          "refractive index. In multi-path situations, the method finds (in best\n"
-          "case) only a single solution. Default is to consider an intersection\n"
-          "with the surface as a failure and give an error about it. To instead\n"
-          "return an empty ppath when the target appears to be behind the horizon,\n"
-          "set GIN ``robust`` to 1.\n"
-          "\n"
-          "The line-of-sight connecting the two points cannot be determined\n"
-          "analytically and a search algorithm is needed. The algorithm options are:\n"
-          "\n"
-          "\"basic\":\n"
-          "A simple iteration scheme with no safety measures. In short, the search\n"
-          "is done by trying to establish the geometric target point that gives the\n"
-          "same path length and a *rte_los* that gives a hit when doing a refracted\n"
-          "path. In each iteration, the geometric target is moved according to the\n"
-          "deviation to ``target_pos`` of the latest refracted path. The convergence\n"
-          "can fail for long distances or with strong refractine index gradients.\n"
-          "Accordingly, the algorithm tends to fail for limb sounding below about\n"
-          "6 km, but should be applicable for other observation geometries (but\n"
-          "notice the general remarks).\n"
-          "\n"
-          "Yes, so far only one option! Hopefully there will be more as the basic\n"
-          "option does not handle all cases properly.\n"),
+      DESCRIPTION(R"--(The refracted line-of-sight and propagation path between two positions.
+
+General remarks: The method assumes geometrical optics. It can fail for
+various reasons, especially if there are sharp or multiple gradients in
+refractive index. In multi-path situations, the method finds (in best
+case) only a single solution. Default is to consider an intersection
+with the surface as a failure and give an error about it. To instead
+return an empty ppath when the target appears to be behind the horizon,
+set GIN ``robust`` to 1.
+
+The line-of-sight connecting the two points cannot be determined
+analytically and a search algorithm is needed. The algorithm options are:
+
+\"basic\":
+A simple iteration scheme with no safety measures. In short, the search
+is done by trying to establish the geometric target point that gives the
+same path length and a *rte_los* that gives a hit when doing a refracted
+path. In each iteration, the geometric target is moved according to the
+deviation to ``target_pos`` of the latest refracted path. The convergence
+can fail for long distances or with strong refractine index gradients.
+Accordingly, the algorithm tends to fail for limb sounding below about
+6 km, but should be applicable for other observation geometries (but
+notice the general remarks).
+
+Yes, so far only one option! Hopefully there will be more as the basic
+option does not handle all cases properly.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los", "ppath"),
       GOUT(),
@@ -16440,11 +16571,11 @@ where N>=0 and the species name is something line "H2O".
   
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_losReverse"),
-      DESCRIPTION(
-          "Reverses the direction in *rte_los*.\n"
-          "\n"
-          "The method updates *rte_los* to have angles of the reversed\n"
-          "direction.\n"),
+      DESCRIPTION(R"--(Reverses the direction in *rte_los*.
+
+The method updates *rte_los* to have angles of the reversed
+direction.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_los"),
       GOUT(),
@@ -16458,7 +16589,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(
       create_mdrecord(NAME("rte_losSet"),
-               DESCRIPTION("Sets *rte_los* to the given angles.\n"),
+               DESCRIPTION(R"--(Sets *rte_los* to the given angles.
+)--"),
                AUTHORS("Patrick Eriksson"),
                OUT("rte_los"),
                GOUT(),
@@ -16473,8 +16605,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_posSet"),
-      DESCRIPTION(
-          "Sets *rte_pos* to the given coordinates.\n"),
+      DESCRIPTION(R"--(Sets *rte_pos* to the given coordinates.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos"),
       GOUT(),
@@ -16490,19 +16622,19 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losBackwardToAltitude"),
-      DESCRIPTION(
-          "Moves *rte_pos* and *rte_los* backwards to the target altitude.\n"
-          "\n"
-          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
-          "to reach the original *rte_pos* and *rte_los* with a geometrical ppath.\n"
-          "That is, the movement is backwards in terms of viewing direction.\n"
-          "\n"
-          "If the original *rte_los* is reversed with respect to the line-of-sight\n"
-          "direction, then set the GIN los_reversed to 1. One such case is that\n"
-          "if *rte_los* represents surface incidence angles, i.e. holds the\n"
-          "zenith and nadir angle towards the sensor.\n"
-          "\n"
-          "There is also *sensor_pos_losBackwardToAltitude*.\n"),
+      DESCRIPTION(R"--(Moves *rte_pos* and *rte_los* backwards to the target altitude.
+
+The method gives the *rte_pos* and *rte_los* at the target altitude
+to reach the original *rte_pos* and *rte_los* with a geometrical ppath.
+That is, the movement is backwards in terms of viewing direction.
+
+If the original *rte_los* is reversed with respect to the line-of-sight
+direction, then set the GIN los_reversed to 1. One such case is that
+if *rte_los* represents surface incidence angles, i.e. holds the
+zenith and nadir angle towards the sensor.
+
+There is also *sensor_pos_losBackwardToAltitude*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
       GOUT(),
@@ -16517,12 +16649,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losEndOfPpath"),
-      DESCRIPTION(
-          "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
-          "\n"
-          "For example, if the propagation path intersects with the surface,\n"
-          "this method gives you the position and angle of *ppath* at the\n"
-          "surface.\n"),
+      DESCRIPTION(R"--(Sets *rte_pos* and *rte_los* to values for last point in *ppath*.
+
+For example, if the propagation path intersects with the surface,
+this method gives you the position and angle of *ppath* at the
+surface.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
       GOUT(),
@@ -16536,16 +16668,16 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losForwardToAltitude"),
-      DESCRIPTION(
-          "Moves *rte_pos* and *rte_los* forward to the target altitude.\n"
-          "\n"
-          "The method gives the *rte_pos* and *rte_los* at the target altitude\n"
-          "when forward-propagating the original *rte_pos* and *rte_los*\n"
-          "geometrically.\n"
-          "\n"
-          "There is also *sensor_pos_losForwardToAltitude*. The WSM\n"
-          "*IntersectionGeometricAltitude* performs the same operation\n"
-          "with *sensor_pos* and *sensor_los* as input.\n"),
+      DESCRIPTION(R"--(Moves *rte_pos* and *rte_los* forward to the target altitude.
+
+The method gives the *rte_pos* and *rte_los* at the target altitude
+when forward-propagating the original *rte_pos* and *rte_los*
+geometrically.
+
+There is also *sensor_pos_losForwardToAltitude*. The WSM
+*IntersectionGeometricAltitude* performs the same operation
+with *sensor_pos* and *sensor_los* as input.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos", "rte_los"),
       GOUT(),
@@ -16559,13 +16691,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsPndAndScatAdd"),
-      DESCRIPTION(
-          "Adds single scattering data and particle number density for\n"
-          "individual scattering elements.\n"
-          "\n"
-          "The methods reads the specified files and appends the obtained data\n"
-          "to *scat_data* and *pnd_field_raw*. Scattering data is appended to\n"
-          "the current last existing scattering species in *scat_data*.\n"),
+      DESCRIPTION(R"--(Adds single scattering data and particle number density for
+individual scattering elements.
+
+The methods reads the specified files and appends the obtained data
+to *scat_data* and *pnd_field_raw*. Scattering data is appended to
+the current last existing scattering species in *scat_data*.
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("scat_data_raw", "pnd_field_raw"),
       GOUT(),
@@ -16580,17 +16712,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsSelect"),
-      DESCRIPTION(
-          "Allows to limit considered scattering elements according to size.\n"
-          "\n"
-          "Scattering elements of a specified scattering species are removed\n"
-          "from *scat_data_raw* and *scat_meta*, i.e. removed from further\n"
-          "calculations, if their particle size exceeds the specified limits.\n"
-          "Specification of the scattering species is done by name matching the\n"
-          "scattering species name part of *scat_species* tag.\n"
-          "As size parameter, all size parameters reported by the meta data\n"
-          "can be used (see *scat_meta_single* for offered parameters and\n"
-          "their naming).\n"),
+      DESCRIPTION(R"--(Allows to limit considered scattering elements according to size.
+
+Scattering elements of a specified scattering species are removed
+from *scat_data_raw* and *scat_meta*, i.e. removed from further
+calculations, if their particle size exceeds the specified limits.
+Specification of the scattering species is done by name matching the
+scattering species name part of *scat_species* tag.
+As size parameter, all size parameters reported by the meta data
+can be used (see *scat_meta_single* for offered parameters and
+their naming).
+)--"),
       AUTHORS("Daniel Kreyling, Oliver Lemke, Jana Mendrok"),
       OUT("scat_data_raw", "scat_meta"),
       GOUT(),
@@ -16610,15 +16742,15 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsToabs_speciesAdd"),
-      DESCRIPTION(
-          "Appends scattering elements to *abs_species* including reading\n"
-          "single scattering data and corresponding pnd field.\n"
-          "\n"
-          "The methods reads the specified single scattering and pnd_field\n"
-          "data of individual scattering elements and appends the obtained data\n"
-          "to *scat_data* (appending to its last scattering species) and\n"
-          "``vmr_field_raw``. Per scattering element, it also appends one\n"
-          "instance of species 'particles' to *abs_species*.\n"),
+      DESCRIPTION(R"--(Appends scattering elements to *abs_species* including reading
+single scattering data and corresponding pnd field.
+
+The methods reads the specified single scattering and pnd_field
+data of individual scattering elements and appends the obtained data
+to *scat_data* (appending to its last scattering species) and
+``vmr_field_raw``. Per scattering element, it also appends one
+instance of species 'particles' to *abs_species*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_raw",
           "atm_field",
@@ -16640,37 +16772,37 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesExtendTemperature"),
-      DESCRIPTION(
-          "Extends valid temperature range of single scattering data.\n"
-          "\n"
-          "The method allows to extend the temperature range of given single\n"
-          "scattering data by duplicating optical property data at the low\n"
-          "and/or high limits of the associated temperature grid. ``T_low`` and\n"
-          "``T_high`` specify the temperature grid points that are added.\n"
-          "Extension is only performed if ``T_low`` is lower and ``T_high`` is\n"
-          "higher than the original lowest and highest temperatures,\n"
-          "respectively, and if the original data contains more than one\n"
-          "temperature grid point (i.e., when not assumed constant anyways).\n"
-          "\n"
-          "The method is thought, e.g., for atmospheric ice falling into\n"
-          "atmospheric layers with temperatures above the melting point of\n"
-          "ice, where ambient and particle temperature deviate (as long as\n"
-          "frozen the ice temperature remains at the melting point\n"
-          "temperature). It is not internally checked, whether the original\n"
-          "data includes the melting point.\n"
-          "The method can be used in a wider sense. However, it remains in the\n"
-          "responsibility of the user to apply the method in a meaningful\n"
-          "sense and on meaningful single scattering data.\n"
-          "\n"
-          "The temperature extension is applied on all scattering elements of\n"
-          "a scattering species. If *scat_species* is defined, ``species`` can\n"
-          "be used to select the species on which the extension shall be\n"
-          "applied comparing ``species`` with the scattering species name part\n"
-          "of *scat_species*. If no ``species`` is specified, the method is\n"
-          "applied on the current last existing scattering species in\n"
-          "*scat_data*. Through the latter the method can be applied for cases\n"
-          "when *scat_species* is not defined (e.g. when *pnd_field* data is\n"
-          "created externally instead of from hydrometeor fields \n"),
+      DESCRIPTION(R"--(Extends valid temperature range of single scattering data.
+
+The method allows to extend the temperature range of given single
+scattering data by duplicating optical property data at the low
+and/or high limits of the associated temperature grid. ``T_low`` and
+``T_high`` specify the temperature grid points that are added.
+Extension is only performed if ``T_low`` is lower and ``T_high`` is
+higher than the original lowest and highest temperatures,
+respectively, and if the original data contains more than one
+temperature grid point (i.e., when not assumed constant anyways).
+
+The method is thought, e.g., for atmospheric ice falling into
+atmospheric layers with temperatures above the melting point of
+ice, where ambient and particle temperature deviate (as long as
+frozen the ice temperature remains at the melting point
+temperature). It is not internally checked, whether the original
+data includes the melting point.
+The method can be used in a wider sense. However, it remains in the
+responsibility of the user to apply the method in a meaningful
+sense and on meaningful single scattering data.
+
+The temperature extension is applied on all scattering elements of
+a scattering species. If *scat_species* is defined, ``species`` can
+be used to select the species on which the extension shall be
+applied comparing ``species`` with the scattering species name part
+of *scat_species*. If no ``species`` is specified, the method is
+applied on the current last existing scattering species in
+*scat_data*. Through the latter the method can be applied for cases
+when *scat_species* is not defined (e.g. when *pnd_field* data is
+created externally instead of from hydrometeor fields
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_raw"),
       GOUT(),
@@ -16688,17 +16820,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesInit"),
-      DESCRIPTION(
-          "Initializes the scattering species related data variables.\n"
-          "\n"
-          "This method initializes the *scat_species* WSV, the variables that\n"
-          "will hold the raw optical properties and the raw particle number\n"
-          "distributions of the scattering elements (*scat_data_raw* and\n"
-          "*pnd_field_raw*, respectively) as well as the one holding the meta\n"
-          "information about the scattering elements (*scat_meta*).\n"
-          "\n"
-          "This method has to be executed before WSM reading/adding to the\n"
-          "said variable, e.g. before *ScatSpeciesPndAndScatAdd*.\n"),
+      DESCRIPTION(R"--(Initializes the scattering species related data variables.
+
+This method initializes the *scat_species* WSV, the variables that
+will hold the raw optical properties and the raw particle number
+distributions of the scattering elements (*scat_data_raw* and
+*pnd_field_raw*, respectively) as well as the one holding the meta
+information about the scattering elements (*scat_meta*).
+
+This method has to be executed before WSM reading/adding to the
+said variable, e.g. before *ScatSpeciesPndAndScatAdd*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_species",
           "scat_data_raw",
@@ -16716,26 +16848,26 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesPndAndScatAdd"),
-      DESCRIPTION(
-          "Adds single scattering data and particle number densities for one\n"
-          "scattering species.\n"
-          "\n"
-          "The WSV *pnd_field_raw* containing particle number densities for\n"
-          "all scattering species can be generated outside ARTS, for example\n"
-          "by using PyARTS or atmlab. This method reads this data as well as\n"
-          "its corresponding single scattering data, which is added as a new\n"
-          "scattering species to *scat_data*.\n"
-          "This method needs as input an ArrayOfString holding the filenames\n"
-          "of the single scattering data for each scattering element and a\n"
-          "file containing the corresponding *pnd_field_raw*. In contrast to\n"
-          "the scattering data, the pnd-fields are stored in a single XML-file\n"
-          "containing an ArrayofGriddedField3, i.e. holding the pnd-field data\n"
-          "of all scattering elements.\n"
-          "\n"
-          "Important note:\n"
-          "The order of the filenames for the scattering data files has to\n"
-          "correspond to the order of the pnd-fields, stored in the variable\n"
-          "*pnd_field_raw*.\n"),
+      DESCRIPTION(R"--(Adds single scattering data and particle number densities for one
+scattering species.
+
+The WSV *pnd_field_raw* containing particle number densities for
+all scattering species can be generated outside ARTS, for example
+by using PyARTS or atmlab. This method reads this data as well as
+its corresponding single scattering data, which is added as a new
+scattering species to *scat_data*.
+This method needs as input an ArrayOfString holding the filenames
+of the single scattering data for each scattering element and a
+file containing the corresponding *pnd_field_raw*. In contrast to
+the scattering data, the pnd-fields are stored in a single XML-file
+containing an ArrayofGriddedField3, i.e. holding the pnd-field data
+of all scattering elements.
+
+Important note:
+The order of the filenames for the scattering data files has to
+correspond to the order of the pnd-fields, stored in the variable
+*pnd_field_raw*.
+)--"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("scat_data_raw", "pnd_field_raw"),
       GOUT(),
@@ -16751,28 +16883,28 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesScatAndMetaRead"),
-      DESCRIPTION(
-          "Reads single scattering data and scattering meta data for one\n"
-          "scattering species.\n"
-          "\n"
-          "This method takes a string array as input containing the location\n"
-          "(path and filename) of the single scattering data. Location of\n"
-          "corresponding scattering meta data is derived applying a naming\n"
-          "convention: ending '.xml*' is replaced by '.meta.xml' (search for\n"
-          "zipped files is done automatically).\n"
-          "\n"
-          "All scattering elements read in one call of the method are assigned\n"
-          "to one and the same scattering species. That is, reading in data for\n"
-          "a bunch of scattering species can be realized by multiple call of\n"
-          "this method. Assignment to scattering species is in the order of the\n"
-          "calls (i.e., first method call reads data for first *scat_species*\n"
-          "entry, second call for second scat_species entry and so on).\n"
-          "Note that no two scattering elements of the same scattering species\n"
-          "are allowed to be equal in size*\n"
-          "\n"
-          "Important note:\n"
-          "The order of the filenames for the single scattering data files has to\n"
-          "exactly correspond to the order of the scattering meta data files.\n"),
+      DESCRIPTION(R"--(Reads single scattering data and scattering meta data for one
+scattering species.
+
+This method takes a string array as input containing the location
+(path and filename) of the single scattering data. Location of
+corresponding scattering meta data is derived applying a naming
+convention: ending '.xml*' is replaced by '.meta.xml' (search for
+zipped files is done automatically).
+
+All scattering elements read in one call of the method are assigned
+to one and the same scattering species. That is, reading in data for
+a bunch of scattering species can be realized by multiple call of
+this method. Assignment to scattering species is in the order of the
+calls (i.e., first method call reads data for first *scat_species*
+entry, second call for second scat_species entry and so on).
+Note that no two scattering elements of the same scattering species
+are allowed to be equal in size*
+
+Important note:
+The order of the filenames for the single scattering data files has to
+exactly correspond to the order of the scattering meta data files.
+)--"),
       AUTHORS("Daniel Kreyling, Oliver Lemke, Jana Mendrok"),
       OUT("scat_data_raw", "scat_meta"),
       GOUT(),
@@ -16786,49 +16918,49 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_singleTmatrix"),
-      DESCRIPTION(
-          "A basic interface to Mishchenko's T-matrix code linked to ARTS.\n"
-          "\n"
-          "The method performs a T-matrix calculation for a single scattering\n"
-          "element, i.e. a combination of particle shape, size, aspect ratio\n"
-          "and orientation.\n"
-          "\n"
-          "Particle shape (``shape``) has two options::\n"
-          "\n"
-          "  \"spheroidal\" and \"cylindrical\"\n"
-          "\n"
-          "Particle size (``diameter_volume_equ``) is given as the equivalent\n"
-          "volume sphere diameter. That is, the diameter obtained if all the\n"
-          "particle's material is rearranged into a (solid) sphere.\n"
-          "\n"
-          "Particle aspect ratio ar (``aspect_ratio``) is a numeric value, defined\n"
-          "according to Mishchenko's definition as ratio of horizontal axis a to\n"
-          "vertical (rotational) axis b: ar=a/b. That is, oblates have ar>1,\n"
-          "prolates ar<1.\n"
-          "Perfect spheres (spheroidals with ar=1) can trigger numerical issues.\n"
-          "To avoid these, we internally increase their aspect ratio by 1e-6,\n"
-          "i.e. turning perfect spheres into very light oblates.\n"
-          "\n"
-          "Particle type (``ptype``) has two options::\n"
-          "\n"
-          "  \"totally_random\" and \"azimuthally_random\"\n"
-          "\n"
-          "For totally randomly oriented particles, ``data_aa_grid`` is not taken\n"
-          "into account (but a Vector type container needs to be passed).\n"
-          "\n"
-          "For further information on how aspect ratio and the different shapes\n"
-          "and orientations are defined, see the documentation of the T-matrix\n"
-          "code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html\n"
-          "\n"
-          "Regarding ``ndgs``, we refer to the this comment from the documentation:\n"
-          "   \"Parameter controlling the number of division points\n"
-          "   in computing integrals over the particle surface.\n"
-          "   For compact particles, the recommended value is 2.\n"
-          "   For highly aspherical particles larger values (3, 4,...)\n"
-          "   may be necessary to obtain convergence.\n"
-          "   The code does not check convergence over this parameter.\n"
-          "   Therefore, control comparisons of results obtained with\n"
-          "   different NDGS-values are recommended.\"\n"),
+      DESCRIPTION(R"--(A basic interface to Mishchenko's T-matrix code linked to ARTS.
+
+The method performs a T-matrix calculation for a single scattering
+element, i.e. a combination of particle shape, size, aspect ratio
+and orientation.
+
+Particle shape (``shape``) has two options::
+
+  \"spheroidal\" and \"cylindrical\"
+
+Particle size (``diameter_volume_equ``) is given as the equivalent
+volume sphere diameter. That is, the diameter obtained if all the
+particle's material is rearranged into a (solid) sphere.
+
+Particle aspect ratio ar (``aspect_ratio``) is a numeric value, defined
+according to Mishchenko's definition as ratio of horizontal axis a to
+vertical (rotational) axis b: ar=a/b. That is, oblates have ar>1,
+prolates ar<1.
+Perfect spheres (spheroidals with ar=1) can trigger numerical issues.
+To avoid these, we internally increase their aspect ratio by 1e-6,
+i.e. turning perfect spheres into very light oblates.
+
+Particle type (``ptype``) has two options::
+
+  \"totally_random\" and \"azimuthally_random\"
+
+For totally randomly oriented particles, ``data_aa_grid`` is not taken
+into account (but a Vector type container needs to be passed).
+
+For further information on how aspect ratio and the different shapes
+and orientations are defined, see the documentation of the T-matrix
+code found http:
+
+Regarding ``ndgs``, we refer to the this comment from the documentation:
+   \"Parameter controlling the number of division points
+   in computing integrals over the particle surface.
+   For compact particles, the recommended value is 2.
+   For highly aspherical particles larger values (3, 4,...)
+   may be necessary to obtain convergence.
+   The code does not check convergence over this parameter.
+   Therefore, control comparisons of results obtained with
+   different NDGS-values are recommended.\
+)--"),
       AUTHORS("Johan Strandgren", "Patrick Eriksson"),
       OUT("scat_data_single", "scat_meta_single"),
       GOUT(),
@@ -16947,33 +17079,34 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_checkedCalc"),
-      DESCRIPTION(
-          "Checks dimensions, grids and single scattering properties of all\n"
-          "scattering elements in *scat_data*.\n"
-          "\n"
-          "Dimension and grid equirements:\n\n"
-          "- The scattering element's f_grid is either identical to *f_grid* or\n"
-          "  of dimension 1.\n"
-          "- In the latter case, the scattering element's f_grid value must\n"
-          "  not deviate from any of the *f_grid* values by more than a\n"
-          "  fraction of ``dfrel_threshold``.\n"
-          "- The frequency dimension of pha_mat_data, ext_mat_data, and\n"
-          "  abs_vec_data is either equal to the scattering element's f_grid\n"
-          "  or 1.\n"
-          "- The temperature dimension of pha_mat_data, ext_mat_data, and\n"
-          "  abs_vec_data is either equal to the scattering element's T_grid\n"
-          "  or 1.\n"
-          "- The temperature dimension of ext_mat_data, and abs_vec_data is\n"
-          "  identical.\n"
-          "\n"
-          "The single scattering property contents are checked using\n"
-          "*scat_dataCheck*. For details, see there. The depth of these checks\n"
-          "and their rigour can adapted (see description of parameters\n"
-          "``check_level`` and ``sca_mat_threshold`` in *scat_dataCheck*) or can\n"
-          "be skipped entirely (setting ``check_level`` to 'none').\n"
-          "NOTE: These test shall only be skipped when one is confident that\n"
-          "the data is correct, e.g. by having run *scat_dataCheck* on the set\n"
-          "of data before, e.g. in a separate ARTS run.\n"),
+      DESCRIPTION(R"--(Checks dimensions, grids and single scattering properties of all
+scattering elements in *scat_data*.
+
+Dimension and grid equirements:
+
+- The scattering element's f_grid is either identical to *f_grid* or
+  of dimension 1.
+- In the latter case, the scattering element's f_grid value must
+  not deviate from any of the *f_grid* values by more than a
+  fraction of ``dfrel_threshold``.
+- The frequency dimension of pha_mat_data, ext_mat_data, and
+  abs_vec_data is either equal to the scattering element's f_grid
+  or 1.
+- The temperature dimension of pha_mat_data, ext_mat_data, and
+  abs_vec_data is either equal to the scattering element's T_grid
+  or 1.
+- The temperature dimension of ext_mat_data, and abs_vec_data is
+  identical.
+
+The single scattering property contents are checked using
+*scat_dataCheck*. For details, see there. The depth of these checks
+and their rigour can adapted (see description of parameters
+``check_level`` and ``sca_mat_threshold`` in *scat_dataCheck*) or can
+be skipped entirely (setting ``check_level`` to 'none').
+NOTE: These test shall only be skipped when one is confident that
+the data is correct, e.g. by having run *scat_dataCheck* on the set
+of data before, e.g. in a separate ARTS run.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_checked"),
       GOUT(),
@@ -16991,8 +17124,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_monoCalc"),
-      DESCRIPTION(
-          "Interpolates *scat_data* by frequency to give *scat_data_mono*.\n"),
+      DESCRIPTION(R"--(Interpolates *scat_data* by frequency to give *scat_data_mono*.
+)--"),
       AUTHORS("Cory Davis"),
       OUT("scat_data_mono"),
       GOUT(),
@@ -17006,8 +17139,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_monoExtract"),
-      DESCRIPTION(
-          "Extracts data at *f_index* from *scat_data* to give *scat_data_mono*.\n"),
+      DESCRIPTION(R"--(Extracts data at *f_index* from *scat_data* to give *scat_data_mono*.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_mono"),
       GOUT(),
@@ -17021,12 +17154,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataCalc"),
-      DESCRIPTION(
-          "Prepares *scat_data* for the scattering solver.\n"
-          "\n"
-          "Derives single scattering data for the frequencies given by\n"
-          "*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be\n"
-          "the actual WSV *f_grid* or a single-element Vector.\n"),
+      DESCRIPTION(R"--(Prepares *scat_data* for the scattering solver.
+
+Derives single scattering data for the frequencies given by
+*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be
+the actual WSV *f_grid* or a single-element Vector.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data"),
       GOUT(),
@@ -17040,27 +17173,27 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataCheck"),
-      DESCRIPTION(
-          "Method for checking the validity and consistency of the single\n"
-          "scattering properties in *scat_data*.\n"
-          "\n"
-          "It checks that *scat_data* does not contain any invalid values,\n"
-          "that is any NaN elements in K, Z, or a or any negative values in\n"
-          "the 'scalar' properties K11, Z11, and a1.\n"
-          "\n"
-          "When ``check_type`` is 'all', it is furthermore checked that the\n"
-          "scattering matrix is properly normalized, that is that the solid\n"
-          "sphere integrated scattering matrix (int_Z11), which is supposed to\n"
-          "be normalized to the scattering cross section, is sufficiently\n"
-          "consistent with the scattering cross section (C_sca) derived from\n"
-          "the difference of extinction (K11) and absorption (a1):\n"
-          "int_z11 ~ C_sca = K11-a1.\n"
-          "Sufficient consistency is defined by the maximum allowed deviation\n"
-          "in single scattering albedo, ``sca_mat_threshold``, testing for::\n"
-          "\n"
-          "  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.\n"
-          "\n"
-          "The check is skipped if ``check_type`` is 'sane'.\n"),
+      DESCRIPTION(R"--(Method for checking the validity and consistency of the single
+scattering properties in *scat_data*.
+
+It checks that *scat_data* does not contain any invalid values,
+that is any NaN elements in K, Z, or a or any negative values in
+the 'scalar' properties K11, Z11, and a1.
+
+When ``check_type`` is 'all', it is furthermore checked that the
+scattering matrix is properly normalized, that is that the solid
+sphere integrated scattering matrix (int_Z11), which is supposed to
+be normalized to the scattering cross section, is sufficiently
+consistent with the scattering cross section (C_sca) derived from
+the difference of extinction (K11) and absorption (a1):
+int_z11 ~ C_sca = K11-a1.
+Sufficient consistency is defined by the maximum allowed deviation
+in single scattering albedo, ``sca_mat_threshold``, testing for::
+
+  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.
+
+The check is skipped if ``check_type`` is 'sane'.
+)--"),
       AUTHORS("Claudia Emde", "Jana Mendrok"),
       OUT(),
       GOUT(),
@@ -17076,13 +17209,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataReduceT"),
-      DESCRIPTION(
-          "Reduces temperature dimension of single scattering to a single entry.\n"
-          "\n"
-          "FIXME...\n"
-          "Derives single scattering data for the frequencies given by\n"
-          "*f_grid* by interpolation from *scat_data*. *f_grid* should be\n"
-          "the actual WSV *f_grid* or a single-element Vector.\n"),
+      DESCRIPTION(R"--(Reduces temperature dimension of single scattering to a single entry.
+
+FIXME...
+Derives single scattering data for the frequencies given by
+*f_grid* by interpolation from *scat_data*. *f_grid* should be
+the actual WSV *f_grid* or a single-element Vector.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data"),
       GOUT(),
@@ -17106,29 +17239,29 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesSizeMassInfo"),
-      DESCRIPTION(
-          "Derives size and mass information for a scattering species."
-          "\n"
-          "This method assumes that the mass-size relationship can described\n"
-          "by *scat_species_a* and *scat_species_b*. See documentation of \n"
-          "*scat_species_a* for details.\n"
-          "\n"
-          "The quantity to be used as size descriptor is here denoted as x, and\n"
-          "is selected by setting ``x_unit``. The options are:\n"
-          "\n"
-          "- ``\"dveq\"``: The size grid is set to scat_meta.diameter_volume_equ\n"
-          "- ``\"dmax\"``: The size grid is set to scat_meta.diameter_max\n"
-          "- ``\"area\"``: The size grid is set to scat_meta.diameter_area_equ_aerodynamical\n"
-          "- ``\"mass\"``: The size grid is set to scat_meta.mass\n"
-          "\n"
-          "This selection determines *scat_species_x*.\n"
-          "\n"
-          "The parameters *scat_species_a* and *scat_species_b* are determined by\n"
-          "a numeric fit between *scat_species_x* and corresponding masses in\n"
-          "*scat_meta*. This fit is performed over sizes inside the range\n"
-          "[x_fit_start,x_fit_end]. This range is allowed to be broader than\n"
-          "the coverage of *scat_species_x*. There must be at least two sizes\n"
-          "inside [x_fit_start,x_fit_end].\n"),
+      DESCRIPTION(R"--(Derives size and mass information for a scattering species.
+
+This method assumes that the mass-size relationship can described
+by *scat_species_a* and *scat_species_b*. See documentation of 
+*scat_species_a* for details.
+
+The quantity to be used as size descriptor is here denoted as x, and
+is selected by setting ``x_unit``. The options are:
+
+- ``\"dveq\"``: The size grid is set to scat_meta.diameter_volume_equ
+- ``\"dmax\"``: The size grid is set to scat_meta.diameter_max
+- ``\"area\"``: The size grid is set to scat_meta.diameter_area_equ_aerodynamical
+- ``\"mass\"``: The size grid is set to scat_meta.mass
+
+This selection determines *scat_species_x*.
+
+The parameters *scat_species_a* and *scat_species_b* are determined by
+a numeric fit between *scat_species_x* and corresponding masses in
+*scat_meta*. This fit is performed over sizes inside the range
+[x_fit_start,x_fit_end]. This range is allowed to be broader than
+the coverage of *scat_species_x*. There must be at least two sizes
+inside [x_fit_start,x_fit_end].
+)--"),
       AUTHORS("Manfred Brath", "Jana Mendrok", "Patrick Eriksson"),
       OUT("scat_species_x", "scat_species_a", "scat_species_b"),
       GOUT(),
@@ -17149,26 +17282,26 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("particle_fieldCleanup"),
-      DESCRIPTION(
-          "Removes unrealistically small or erroneous data from particle fields.\n"
-          "\n"
-          "This WSM checks if the input particle field (e.g.\n"
-          "``particle_bulkprop_field``) contains values\n"
-          "smaller than the given ``threshold``. In this case, these values will\n"
-          "be set to zero.\n"
-          "\n"
-          "The method should be applied if the particle fields contain\n"
-          "unrealistically small or erroneous data (NWP/GCM model data, e.g.\n"
-          "from the Chevallierl_91l sets, often contain very small or even\n"
-          "negative values, which are numerical artefacts rather than physical\n"
-          "values.)\n"
-          "For the scat_species_XXX_fields, it needs to be applied separately\n"
-          "per Tensor4 type field collection. This allows to use different\n"
-          "thresholds for the different types of fields (not for the different\n"
-          "scattering species, though).\n"
-          "\n"
-          "*particle_fieldCleanup* shall be called after generation of the\n"
-          "atmopheric fields.\n"),
+      DESCRIPTION(R"--(Removes unrealistically small or erroneous data from particle fields.
+
+This WSM checks if the input particle field (e.g.
+``particle_bulkprop_field``) contains values
+smaller than the given ``threshold``. In this case, these values will
+be set to zero.
+
+The method should be applied if the particle fields contain
+unrealistically small or erroneous data (NWP/GCM model data, e.g.
+from the Chevallierl_91l sets, often contain very small or even
+negative values, which are numerical artefacts rather than physical
+values.)
+For the scat_species_XXX_fields, it needs to be applied separately
+per Tensor4 type field collection. This allows to use different
+thresholds for the different types of fields (not for the different
+scattering species, though).
+
+*particle_fieldCleanup* shall be called after generation of the
+atmopheric fields.
+)--"),
       AUTHORS("Daniel Kreyling"),
       OUT(),
       GOUT("particle_field_out"),
@@ -17184,24 +17317,24 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Select"),
-      DESCRIPTION(
-          "Method to select some elements from one array and copy them to\n"
-          "a new array. (Works also for vectors.)\n"
-          "\n"
-          "This works also for higher dimensional objects, where the selection is\n"
-          "always performed in the first dimension.\n"
-          "\n"
-          "If needleindexes is set to [-1], all elements are copied."
-          "\n"
-          "For example:\n"
-          "\n"
-          "Select(y,x,[0,3])\n"
-          "\n"
-          "will select the first and fourth row of matrix x and copy them to the\n"
-          "output matrix y.\n"
-          "\n"
-          "Note that it is even safe to use this method if needles and haystack\n"
-          "are the same variable.\n"),
+      DESCRIPTION(R"--(Method to select some elements from one array and copy them to
+a new array. (Works also for vectors.)
+
+This works also for higher dimensional objects, where the selection is
+always performed in the first dimension.
+
+If needleindexes is set to [-1], all elements are copied.
+
+For example:
+
+Select(y,x,[0,3])
+
+will select the first and fourth row of matrix x and copy them to the
+output matrix y.
+
+Note that it is even safe to use this method if needles and haystack
+are the same variable.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("needles"),
@@ -17220,23 +17353,23 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_checkedCalc"),
-      DESCRIPTION(
-          "Checks consistency of the sensor variables.\n"
-          "\n"
-          "The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,\n"
-          "*transmitter_pos*, *mblock_dlos*, *antenna_dim*,\n"
-          "*sensor_response*, *sensor_response_f*, *sensor_response_pol*,\n"
-          "and *sensor_response_dlos*.\n"
-          "\n"
-          "If any of these variables are changed, then this method shall be\n"
-          "called again (no automatic check that this is fulfilled!).\n"
-          "\n"
-          "The main tests are that dimensions of sensor variables agree\n"
-          "with other settings, e.g., the size of f_grid, atmosphere_dim,\n"
-          "stokes_dim, etc.\n"
-          "\n"
-          "If any test fails, there is an error. Otherwise, *sensor_checked*\n"
-          "is set to 1.\n"),
+      DESCRIPTION(R"--(Checks consistency of the sensor variables.
+
+The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,
+*transmitter_pos*, *mblock_dlos*, *antenna_dim*,
+*sensor_response*, *sensor_response_f*, *sensor_response_pol*,
+and *sensor_response_dlos*.
+
+If any of these variables are changed, then this method shall be
+called again (no automatic check that this is fulfilled!).
+
+The main tests are that dimensions of sensor variables agree
+with other settings, e.g., the size of f_grid, atmosphere_dim,
+stokes_dim, etc.
+
+If any test fails, there is an error. Otherwise, *sensor_checked*
+is set to 1.
+)--"),
       AUTHORS("Jana Mendrok"),
       OUT("sensor_checked"),
       GOUT(),
@@ -17260,12 +17393,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensorOff"),
-      DESCRIPTION(
-          "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
-          "\n"
-          "The variables are set as follows:\n"
-          " - *mblock_dlos*        : One row with zero(s).\n"
-          " - *sensor_response*        : As returned by *sensor_responseInit*.\n"),
+      DESCRIPTION(R"--(Sets sensor WSVs to obtain monochromatic pencil beam values.
+
+The variables are set as follows:
+ - *mblock_dlos*        : One row with zero(s).
+ - *sensor_response*        : As returned by *sensor_responseInit*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17286,11 +17419,11 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losAddLosAndDlos"),
-      DESCRIPTION(
-          "Adds zenith and azimuth angles.\n"
-          "\n"
-          "Adds up a line-of-sights (ref_los), with relative angle off-sets\n" 
-          "(dlos).\n"),
+      DESCRIPTION(R"--(Adds zenith and azimuth angles.
+
+Adds up a line-of-sights (ref_los), with relative angle off-sets
+(dlos).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17305,13 +17438,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losGeometricToPosition"),
-      DESCRIPTION(
-          "The geometric line-of-sight to a point.\n"
-          "\n"
-          "Works as *rte_losGeometricToPosition*, but sets *sensor_los*.\n"
-          "\n"
-          "This method handles the case of a single target position. For\n"
-          "multiple target positions, use: *sensor_losGeometricToPositions*.\n"),
+      DESCRIPTION(R"--(The geometric line-of-sight to a point.
+
+Works as *rte_losGeometricToPosition*, but sets *sensor_los*.
+
+This method handles the case of a single target position. For
+multiple target positions, use: *sensor_losGeometricToPositions*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17326,14 +17459,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losGeometricToPositions"),
-      DESCRIPTION(
-          "The geometric line-of-sight to multiple point.\n"
-          "\n"
-          "Works as *rte_losGeometricToPosition*, but sets *sensor_los*. The\n"
-          "number of rows in *sensor_pos* and ``target_pos`` must be equal.\n"
-          "\n"
-          "This method handles the case of mutiple target positions. For\n"
-          "a single target positions, use: *sensor_losGeometricToPosition*.\n"),
+      DESCRIPTION(R"--(The geometric line-of-sight to multiple point.
+
+Works as *rte_losGeometricToPosition*, but sets *sensor_los*. The
+number of rows in *sensor_pos* and ``target_pos`` must be equal.
+
+This method handles the case of mutiple target positions. For
+a single target positions, use: *sensor_losGeometricToPosition*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17348,13 +17481,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losRefractedToPosition"),
-      DESCRIPTION(
-          "The refracted line-of-sight to a point.\n"
-          "\n"
-          "Works as *rte_losRefractedToPosition*, but sets *sensor_los*.\n"
-          "\n"
-          "This method handles the case of a single target position. For\n"
-          "multiple target positions, use: *sensor_losRefractedToPositions*.\n"),
+      DESCRIPTION(R"--(The refracted line-of-sight to a point.
+
+Works as *rte_losRefractedToPosition*, but sets *sensor_los*.
+
+This method handles the case of a single target position. For
+multiple target positions, use: *sensor_losRefractedToPositions*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17397,13 +17530,13 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losRefractedToPositions"),
-      DESCRIPTION(
-          "The refracted line-of-sight to multiple points.\n"
-          "\n"
-          "Works as *rte_losRefractedToPosition*, but sets *sensor_los*.\n"
-          "\n"
-          "This method handles the case of multiple target positions. For\n"
-          "a single target position, use: *sensor_losRefractedToPosition*.\n"),
+      DESCRIPTION(R"--(The refracted line-of-sight to multiple points.
+
+Works as *rte_losRefractedToPosition*, but sets *sensor_los*.
+
+This method handles the case of multiple target positions. For
+a single target position, use: *sensor_losRefractedToPosition*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17446,11 +17579,11 @@ where N>=0 and the species name is something line "H2O".
   
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losReverse"),
-      DESCRIPTION(
-          "Reverses the directions in *sensor_los*.\n"
-          "\n"
-          "The method updates *sensor_los* to have angles of the reversed\n"
-          "direction.\n"),
+      DESCRIPTION(R"--(Reverses the directions in *sensor_los*.
+
+The method updates *sensor_los* to have angles of the reversed
+direction.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los"),
       GOUT(),
@@ -17464,19 +17597,19 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_pos_losBackwardToAltitude"),
-      DESCRIPTION(
-          "Moves *sensor_pos* and *sensor_los* backwards to the target altitude.\n"
-          "\n"
-          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
-          "to reach the original *sensor_pos* and *sensor_los* with a geometrical\n"
-          "ppath. That is, the movement is backwards in terms of viewing direction.\n"
-          "\n"
-          "If the original *sensor_los* is reversed with respect to the line-of-sight\n"
-          "direction, then set the GIN los_reversed to 1. One such case is that\n"
-          "if *sensor_los* represents surface incidence angles, i.e. holds the\n"
-          "zenith and nadir angle towards the sensor.\n"
-          "\n"
-          "There is also *rte_pos_losBackwardToAltitude*.\n"),
+      DESCRIPTION(R"--(Moves *sensor_pos* and *sensor_los* backwards to the target altitude.
+
+The method gives the *sensor_pos* and *sensor_los* at the target altitude
+to reach the original *sensor_pos* and *sensor_los* with a geometrical
+ppath. That is, the movement is backwards in terms of viewing direction.
+
+If the original *sensor_los* is reversed with respect to the line-of-sight
+direction, then set the GIN los_reversed to 1. One such case is that
+if *sensor_los* represents surface incidence angles, i.e. holds the
+zenith and nadir angle towards the sensor.
+
+There is also *rte_pos_losBackwardToAltitude*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_pos", "sensor_los"),
       GOUT(),
@@ -17491,16 +17624,16 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_pos_losForwardToAltitude"),
-      DESCRIPTION(
-          "Moves *sensor_pos* and *sensor_los* forward to the target altitude.\n"
-          "\n"
-          "The method gives the *sensor_pos* and *sensor_los* at the target altitude\n"
-          "when forward-propagating the original *sensor_pos* and *sensor_los*\n"
-          "geometrically.\n"
-          "\n"
-          "The WSM *IntersectionGeometricAltitude* performs the same operation\n"
-          "but allows to store the new pos and los as other variables. There is\n"
-          "also *rte_pos_losForwardToAltitude*.\n"),
+      DESCRIPTION(R"--(Moves *sensor_pos* and *sensor_los* forward to the target altitude.
+
+The method gives the *sensor_pos* and *sensor_los* at the target altitude
+when forward-propagating the original *sensor_pos* and *sensor_los*
+geometrically.
+
+The WSM *IntersectionGeometricAltitude* performs the same operation
+but allows to store the new pos and los as other variables. There is
+also *rte_pos_losForwardToAltitude*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_pos", "sensor_los"),
       GOUT(),
@@ -17514,53 +17647,53 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
-      DESCRIPTION(
-          "Includes response of the antenna.\n"
-          "\n"
-          "The function returns the sensor response matrix after the antenna\n"
-          "characteristics have been included.\n"
-          "\n"
-          "The function handles \"multi-beam\" cases where the polarisation\n"
-          "coordinate system is the same for all beams.\n"
-          "\n"
-          "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
-          "details on how to specify the antenna response.\n"
-          "\n"
-          "The text below refers to *mblock_dlos* despite it is not an input\n"
-          "to the method. The method instead uses *sensor_response_dlos_grid*\n"
-          "but the values in this WSV are likely coming from *mblock_dlos*.\n"
-          "\n"
-          "One dimensional antenna patterns are handled as other response\n"
-          "functions. That is, both antenna response and radiances are treated\n"
-          "as piece-wise linear functions, and the pencil beam calculations\n"
-          "must cover the full sensor response (i.e. *mblock_dlos* shall be\n"
-          "sufficiently broad).\n"
-          "\n"
-          "There exist different options for two dimensional antenna patterns.\n"
-          "(If 2D, the GIN ``option_2d`` must be set, the default setting results\n"
-          "in an error). A normalisation is always applied for 2D antennas.\n"
-          "\n"
-          "\"interp_response\"\n"
-          "Both radiances and the antenna pattern are treated as step-wise\n"
-          "constant functions. The antenna pattern is interpolated to the\n"
-          "*mblock_dlos* directions. At extrapolation, the antenna response\n"
-          "is set to zero. This option considers GIN ``solid_angles``, that\n"
-          "shall be a vector with length matching the rows of *mblock_dlos*.\n"
-          "The values going into *sensor_response* are the interpolated antenna\n"
-          "values times the corresponding solid angle.\n"
-          "\n"
-          "\"gridded_dlos\"\n"
-          "This option is more similar to the 1D case. The radiances are treated\n"
-          "as a bi-linear function, but the antenna response is treated as step-\n"
-          "wise constant function (in contrast to 1D). For this option\n"
-          "*mblock_dlos* must match a combination of zenith and azimuth\n"
-          "grids, and this for a particular order. If the zenith and azimuth\n"
-          "grids have 3 and 2 values, respectively, the order shall be::\n"
-          "\n"
-          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2)]\n"
-          "\n"
-          "Both these grids must be strictly increasing and as for 1D must cover\n"
-          "the antenna response completely.\n"),
+      DESCRIPTION(R"--(Includes response of the antenna.
+
+The function returns the sensor response matrix after the antenna
+characteristics have been included.
+
+The function handles \"multi-beam\" cases where the polarisation
+coordinate system is the same for all beams.
+
+See *antenna_dim*, *antenna_dlos* and *antenna_response* for
+details on how to specify the antenna response.
+
+The text below refers to *mblock_dlos* despite it is not an input
+to the method. The method instead uses *sensor_response_dlos_grid*
+but the values in this WSV are likely coming from *mblock_dlos*.
+
+One dimensional antenna patterns are handled as other response
+functions. That is, both antenna response and radiances are treated
+as piece-wise linear functions, and the pencil beam calculations
+must cover the full sensor response (i.e. *mblock_dlos* shall be
+sufficiently broad).
+
+There exist different options for two dimensional antenna patterns.
+(If 2D, the GIN ``option_2d`` must be set, the default setting results
+in an error). A normalisation is always applied for 2D antennas.
+
+\"interp_response\"
+Both radiances and the antenna pattern are treated as step-wise
+constant functions. The antenna pattern is interpolated to the
+*mblock_dlos* directions. At extrapolation, the antenna response
+is set to zero. This option considers GIN ``solid_angles``, that
+shall be a vector with length matching the rows of *mblock_dlos*.
+The values going into *sensor_response* are the interpolated antenna
+values times the corresponding solid angle.
+
+\"gridded_dlos\"
+This option is more similar to the 1D case. The radiances are treated
+as a bi-linear function, but the antenna response is treated as step-
+wise constant function (in contrast to 1D). For this option
+*mblock_dlos* must match a combination of zenith and azimuth
+grids, and this for a particular order. If the zenith and azimuth
+grids have 3 and 2 values, respectively, the order shall be::
+
+  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2)]
+
+Both these grids must be strictly increasing and as for 1D must cover
+the antenna response completely.
+)--"),
       AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17590,14 +17723,14 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackend"),
-      DESCRIPTION(
-          "Includes response of the backend (spectrometer).\n"
-          "\n"
-          "The function returns the sensor response matrix after the backend\n"
-          "characteristics have been included.\n"
-          "\n"
-          "See *f_backend*, *backend_channel_response* and *sensor_norm* for\n"
-          "details on how to specify the backend response.\n"),
+      DESCRIPTION(R"--(Includes response of the backend (spectrometer).
+
+The function returns the sensor response matrix after the backend
+characteristics have been included.
+
+See *f_backend*, *backend_channel_response* and *sensor_norm* for
+details on how to specify the backend response.
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17624,26 +17757,26 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackendFrequencySwitching"),
-      DESCRIPTION(
-          "Frequency switching for a pure SSB reciever.\n"
-          "\n"
-          "This function can be used for simulation of frequency switching.\n"
-          "That is, when the final spectrum is the difference of two spectra\n"
-          "shifted in frequency. The switching is performed by the LO, but\n"
-          "for a pure singel sideband reciever this is most easily simulated\n"
-          "by instead shifting the backend, as done here.\n"
-          "\n"
-          "A strightforward frequency switching is modelled (no folding)\n"
-          "The channel positions for the first measurement cycle are\n"
-          "f_backend+df1, and for the second f_backend+df2. The first\n"
-          "measurement cycle is given the negive weight. That is, the output\n"
-          "is the spectrum for cycle2 minus the spectrum for cycle1.\n"
-          "Output frequency grids are set to *f_backend*.\n"
-          "\n"
-          "Use *sensor_responseFrequencySwitching* for double sideband cases.\n"
-          "\n"
-          "The method has the same general functionality as, and can replace,\n"
-          "*sensor_responseBackend*.\n"),
+      DESCRIPTION(R"--(Frequency switching for a pure SSB reciever.
+
+This function can be used for simulation of frequency switching.
+That is, when the final spectrum is the difference of two spectra
+shifted in frequency. The switching is performed by the LO, but
+for a pure singel sideband reciever this is most easily simulated
+by instead shifting the backend, as done here.
+
+A strightforward frequency switching is modelled (no folding)
+The channel positions for the first measurement cycle are
+f_backend+df1, and for the second f_backend+df2. The first
+measurement cycle is given the negive weight. That is, the output
+is the spectrum for cycle2 minus the spectrum for cycle1.
+Output frequency grids are set to *f_backend*.
+
+Use *sensor_responseFrequencySwitching* for double sideband cases.
+
+The method has the same general functionality as, and can replace,
+*sensor_responseBackend*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17670,19 +17803,19 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBeamSwitching"),
-      DESCRIPTION(
-          "Simulation of \"beam switching\".\n"
-          "\n"
-          "The measurement procedure is based on taking the difference between\n"
-          "two spectra measured in different directions, and the calculation\n"
-          "set-up must treat exactly two observation directions.\n"
-          "\n"
-          "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
-          "spectrum and weight for the first direction, respectively (y2 and\n"
-          "(w2 defined correspondingly for the second direction).\n"
-          "\n"
-          "Zenith and azimuth angles after beam switching are set to the\n"
-          "values of the second direction.\n"),
+      DESCRIPTION(R"--(Simulation of \"beam switching\".
+
+The measurement procedure is based on taking the difference between
+two spectra measured in different directions, and the calculation
+set-up must treat exactly two observation directions.
+
+The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the
+spectrum and weight for the first direction, respectively (y2 and
+(w2 defined correspondingly for the second direction).
+
+Zenith and azimuth angles after beam switching are set to the
+values of the second direction.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17707,30 +17840,30 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseFillFgrid"),
-      DESCRIPTION(
-          "Polynomial frequency interpolation of spectra.\n"
-          "\n"
-          "The sensor response methods treat the spectra to be piece-wise linear\n"
-          "functions. This method is a workaround for making methods handling\n"
-          "the spectra in a more elaborate way: it generates spectra on a more\n"
-          "dense grid by polynomial interpolation. The interpolation is not\n"
-          "done explicitly, it is incorporated into *sensor_response*.\n"
-          "\n"
-          "This method should in general increase the calculation accuracy for\n"
-          "a given *f_grid*. However, the selection of (original) grid points\n"
-          "becomes more sensitive when using this method. A poor choice of grid\n"
-          "points can result in a decreased accuracy, or generation of negative\n"
-          "radiances. Test calculations indicated that the error easily can\n"
-          "increase with this method close the edge of *f_grid*, and it could\n"
-          "be wise to make *f_grid* a bit wider than actually necessary to avoid\n"
-          "this effect\n"
-          "\n"
-          "The method shall be inserted before the antenna stage. That is, this\n"
-          "method shall normally be called directly after *sensor_responseInit*.\n"
-          "\n"
-          "Between each neighbouring points of *f_grid*, this method adds\n"
-          "``nfill`` grid points. The polynomial order of the interpolation is\n"
-          "``polyorder``.\n"),
+      DESCRIPTION(R"--(Polynomial frequency interpolation of spectra.
+
+The sensor response methods treat the spectra to be piece-wise linear
+functions. This method is a workaround for making methods handling
+the spectra in a more elaborate way: it generates spectra on a more
+dense grid by polynomial interpolation. The interpolation is not
+done explicitly, it is incorporated into *sensor_response*.
+
+This method should in general increase the calculation accuracy for
+a given *f_grid*. However, the selection of (original) grid points
+becomes more sensitive when using this method. A poor choice of grid
+points can result in a decreased accuracy, or generation of negative
+radiances. Test calculations indicated that the error easily can
+increase with this method close the edge of *f_grid*, and it could
+be wise to make *f_grid* a bit wider than actually necessary to avoid
+this effect
+
+The method shall be inserted before the antenna stage. That is, this
+method shall normally be called directly after *sensor_responseInit*.
+
+Between each neighbouring points of *f_grid*, this method adds
+``nfill`` grid points. The polynomial order of the interpolation is
+``polyorder``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17755,21 +17888,21 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseFrequencySwitching"),
-      DESCRIPTION(
-          "Simulation of \"frequency switching\".\n"
-          "\n"
-          "A general method for frequency switching. The WSM\n"
-          "*sensor_responseBackendFrequencySwitching* gives a description of\n"
-          "this observation technique, and is also a more straightforward\n"
-          "method for pure singel sideband cases.\n"
-          "\n"
-          "It is here assume that *sensor_responseMultiMixerBackend* has been\n"
-          "used to calculate the spectrum for two LO positions. This method\n"
-          "calculates the difference between these two spectra, where the\n"
-          "second spectrum gets weight 1 and the first weight -1 (as in\n"
-          "*sensor_responseBackendFrequencySwitching*).\n"
-          "\n"
-          "Output frequency grids are taken from the second spectrum.\n"),
+      DESCRIPTION(R"--(Simulation of \"frequency switching\".
+
+A general method for frequency switching. The WSM
+*sensor_responseBackendFrequencySwitching* gives a description of
+this observation technique, and is also a more straightforward
+method for pure singel sideband cases.
+
+It is here assume that *sensor_responseMultiMixerBackend* has been
+used to calculate the spectrum for two LO positions. This method
+calculates the difference between these two spectra, where the
+second spectrum gets weight 1 and the first weight -1 (as in
+*sensor_responseBackendFrequencySwitching*).
+
+Output frequency grids are taken from the second spectrum.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17793,17 +17926,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseIF2RF"),
-      DESCRIPTION(
-          "Converts sensor response variables from IF to RF.\n"
-          "\n"
-          "The function converts intermediate frequencies (IF) in\n"
-          "*sensor_response_f* and *sensor_response_f_grid* to radio\n"
-          "frequencies (RF). This conversion is needed if the frequency\n"
-          "translation of a mixer is included and the position of backend\n"
-          "channels are specified in RF.\n"
-          "\n"
-          "A direct frequency conversion is performed. Values are not\n"
-          "sorted in any way.\n"),
+      DESCRIPTION(R"--(Converts sensor response variables from IF to RF.
+
+The function converts intermediate frequencies (IF) in
+*sensor_response_f* and *sensor_response_f_grid* to radio
+frequencies (RF). This conversion is needed if the frequency
+translation of a mixer is included and the position of backend
+channels are specified in RF.
+
+A direct frequency conversion is performed. Values are not
+sorted in any way.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response_f", "sensor_response_f_grid"),
       GOUT(),
@@ -17817,22 +17950,23 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseInit"),
-      DESCRIPTION(
-          "Initialises the variables summarising the sensor response.\n"
-          "\n"
-          "This method sets the variables to match monochromatic pencil beam\n"
-          "calculations, to be further modified by inclusion of sensor\n"
-          "characteristics. Use *sensorOff* if pure monochromatic pencil\n"
-          "beam calculations shall be performed.\n"
-          "\n"
-          "The variables are set as follows:\n\n"
-          "- sensor_response: Identity matrix, with size matching *f_grid*, ``stokes_dim`` and *mblock_dlos*.\n"
-          "- sensor_response_f: Repeated values of *f_grid*.\n"
-          "- sensor_response_pol: Data matching ``stokes_dim``.\n"
-          "- sensor_response_dlos: Repeated values of *mblock_dlos*.\n"
-          "- sensor_response_f_grid: Equal to *f_grid*.\n"
-          "- sensor_response_pol_grid: Set to 1:``stokes_dim``.\n"
-          "- sensor_response_dlos_grid: Equal to *mblock_dlos*.\n"),
+      DESCRIPTION(R"--(Initialises the variables summarising the sensor response.
+
+This method sets the variables to match monochromatic pencil beam
+calculations, to be further modified by inclusion of sensor
+characteristics. Use *sensorOff* if pure monochromatic pencil
+beam calculations shall be performed.
+
+The variables are set as follows:
+
+- sensor_response: Identity matrix, with size matching *f_grid*, ``stokes_dim`` and *mblock_dlos*.
+- sensor_response_f: Repeated values of *f_grid*.
+- sensor_response_pol: Data matching ``stokes_dim``.
+- sensor_response_dlos: Repeated values of *mblock_dlos*.
+- sensor_response_f_grid: Equal to *f_grid*.
+- sensor_response_pol_grid: Set to 1:``stokes_dim``.
+- sensor_response_dlos_grid: Equal to *mblock_dlos*.
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17856,41 +17990,41 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMetMM"),
-      DESCRIPTION(
-          "Sensor setup for meteorological millimeter instruments.\n"
-          "\n"
-          "This method is handy if you are simulating a passband-type instrument,\n"
-          "consisting of a few discrete channels.\n"
-          "\n"
-          "For flexibility, the Met-MM system is seperated in two calculation\n"
-          "steps. To fully use the system, create *f_grid* (and some associated\n"
-          "variables) by *f_gridMetMM* before calling this method. However, it is\n"
-          "possible to use this method with any *f_grid*, as long as matching\n"
-          "*f_backend*, *channel2fgrid_indexes* and *channel2fgrid_weights*\n"
-          "are provided.\n"
-          "\n"
-          "Each scan sequence is treated as a measurement block. *sensor_pos* is\n"
-          "set in the standard way. The number of rows in *sensor_pos* determines the\n"
-          "number of scan sequences that will be simulated. On the other hand,\n"
-          "*sensor_los* is handled in a special way. All zenith angles must be set\n"
-          "to 180 deg. For 3D, the given azimuth angles are taken as the direction\n"
-          "of scanning, where the azimuth angle is defined with respect to North\n"
-          "in standard manner. For example, if the scanning happens to move from\n"
-          "SW to NE, the azimuth angle should be set to 45 deg. The angles of the\n"
-          "scanning sequence are taken from *antenna_dlos*. This WSV is here only\n"
-          "allowed to have a single column, holding relative zenith angles. For\n"
-          "3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As\n"
-          "zenith angles in *sensor_los* are locked to 180 deg, *antenna_dlos*\n"
-          "effectively holds the nadir angles. These angles can be both positive or\n"
-          "negative, where the recommended choice is to operate with negative\n"
-          "to end up with final zenith angles between 0 and 180 deg.\n"
-          "\n"
-          "The method does not support 2D atmospheres (across-track scanning is\n"
-          "inconsistent with 2D). For simpler switching between 1D and 3D,\n"
-          "the argument ``mirror_dza`` is at hand. It can only be used for 3D.\n"
-          "If set to true, the zenith angles in *antenna_dlos* are mapped\n"
-          "to also cover the other side of the swath and the simulations will\n"
-          "cover both sides of the swath.\n"),
+      DESCRIPTION(R"--(Sensor setup for meteorological millimeter instruments.
+
+This method is handy if you are simulating a passband-type instrument,
+consisting of a few discrete channels.
+
+For flexibility, the Met-MM system is seperated in two calculation
+steps. To fully use the system, create *f_grid* (and some associated
+variables) by *f_gridMetMM* before calling this method. However, it is
+possible to use this method with any *f_grid*, as long as matching
+*f_backend*, *channel2fgrid_indexes* and *channel2fgrid_weights*
+are provided.
+
+Each scan sequence is treated as a measurement block. *sensor_pos* is
+set in the standard way. The number of rows in *sensor_pos* determines the
+number of scan sequences that will be simulated. On the other hand,
+*sensor_los* is handled in a special way. All zenith angles must be set
+to 180 deg. For 3D, the given azimuth angles are taken as the direction
+of scanning, where the azimuth angle is defined with respect to North
+in standard manner. For example, if the scanning happens to move from
+SW to NE, the azimuth angle should be set to 45 deg. The angles of the
+scanning sequence are taken from *antenna_dlos*. This WSV is here only
+allowed to have a single column, holding relative zenith angles. For
+3D, the azimuth angles in *antenna_dlos* are hard-coded to zero. As
+zenith angles in *sensor_los* are locked to 180 deg, *antenna_dlos*
+effectively holds the nadir angles. These angles can be both positive or
+negative, where the recommended choice is to operate with negative
+to end up with final zenith angles between 0 and 180 deg.
+
+The method does not support 2D atmospheres (across-track scanning is
+inconsistent with 2D). For simpler switching between 1D and 3D,
+the argument ``mirror_dza`` is at hand. It can only be used for 3D.
+If set to true, the zenith angles in *antenna_dlos* are mapped
+to also cover the other side of the swath and the simulations will
+cover both sides of the swath.
+)--"),
       AUTHORS("Oliver Lemke", "Patrick Eriksson"),
       OUT("antenna_dim",
           "mblock_dlos",
@@ -17923,17 +18057,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMixer"),
-      DESCRIPTION(
-          "Includes response of the mixer of a heterodyne system.\n"
-          "\n"
-          "The function returns the sensor response matrix after the mixer\n"
-          "characteristics have been included. Frequency variables are\n"
-          "converted from radio frequency (RF) to intermediate frequency (IF).\n"
-          "The returned frequency grid covers the range [0,max_if], where\n"
-          "max_if is the highest IF covered by the sideband response grid.\n"
-          "\n"
-          "See *lo* and *sideband_response* for details on how to specify the\n"
-          "mixer response\n"),
+      DESCRIPTION(R"--(Includes response of the mixer of a heterodyne system.
+
+The function returns the sensor response matrix after the mixer
+characteristics have been included. Frequency variables are
+converted from radio frequency (RF) to intermediate frequency (IF).
+The returned frequency grid covers the range [0,max_if], where
+max_if is the highest IF covered by the sideband response grid.
+
+See *lo* and *sideband_response* for details on how to specify the
+mixer response
+)--"),
       AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17960,22 +18094,22 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMixerBackendPrecalcWeights"),
-      DESCRIPTION(
-          "Includes pre-calculated response covering mixer and backend.\n"
-          "\n"
-          "This method acts similar to *sensor_responseBackend*, but uses\n"
-          "pre-calculated weights. These weights can also include the effect\n"
-          "of mixer and sideband filtering.\n"
-          "\n"
-          "As usual, *f_backend* gives the frequency of the channels. This WSM\n"
-          "has no direct influence on the result, but at least representative\n"
-          "values must be set.\n"
-          "\n"
-          "The frequency response is defined using *channel2fgrid_indexes* and\n"
-          "*channel2fgrid_weights*.\n"
-          "\n"
-          "Both *channel2fgrid_indexes* and *channel2fgrid_weights* are assumed\n"
-          "to be common for all viewing directions.\n"),
+      DESCRIPTION(R"--(Includes pre-calculated response covering mixer and backend.
+
+This method acts similar to *sensor_responseBackend*, but uses
+pre-calculated weights. These weights can also include the effect
+of mixer and sideband filtering.
+
+As usual, *f_backend* gives the frequency of the channels. This WSM
+has no direct influence on the result, but at least representative
+values must be set.
+
+The frequency response is defined using *channel2fgrid_indexes* and
+*channel2fgrid_weights*.
+
+Both *channel2fgrid_indexes* and *channel2fgrid_weights* are assumed
+to be common for all viewing directions.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -18002,19 +18136,19 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMultiMixerBackend"),
-      DESCRIPTION(
-          "Handles mixer and backend parts for an instrument having multiple\n"
-          "mixer chains.\n"
-          "\n"
-          "The WSMs *sensor_responseMixer*, *sensor_responseIF2RF* and\n"
-          "*sensor_responseBackend* are called for each mixer chain, and a\n"
-          "complete *sensor_response* is assembled. The instrument responses\n"
-          "are described by *lo_multi*, *sideband_response_multi*,\n"
-          "*sideband_mode_multi*, *f_backend_multi* and\n"
-          "*backend_channel_response_multi*. All these WSVs must have same\n"
-          "vector or array length. As *sensor_responseIF2RF* is called,\n"
-          "*f_backend_multi* must hold RF (not IF) and output frequencies\n"
-          "will be in absolute frequency (RF).\n"),
+      DESCRIPTION(R"--(Handles mixer and backend parts for an instrument having multiple
+mixer chains.
+
+The WSMs *sensor_responseMixer*, *sensor_responseIF2RF* and
+*sensor_responseBackend* are called for each mixer chain, and a
+complete *sensor_response* is assembled. The instrument responses
+are described by *lo_multi*, *sideband_response_multi*,
+*sideband_mode_multi*, *f_backend_multi* and
+*backend_channel_response_multi*. All these WSVs must have same
+vector or array length. As *sensor_responseIF2RF* is called,
+*f_backend_multi* must hold RF (not IF) and output frequencies
+will be in absolute frequency (RF).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -18044,28 +18178,28 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responsePolarisation"),
-      DESCRIPTION(
-          "Extraction of non-default polarisation components.\n"
-          "\n"
-          "The default is to output the Stokes elements I, Q, U and V (up to\n"
-          "``stokes_dim``). This method allows to change the \"polarisation\" of\n"
-          "the output. Polarisation components to be extracted are selected by\n"
-          "*instrument_pol*. This method can be applied at any step of the sensor\n"
-          "matrix set-up.\n"
-          "\n"
-          "The method can only be applied on data for I, Q, U and V. The value\n"
-          "of ``stokes_dim`` must be sufficiently large for the selected\n"
-          "components. For example, I+45 requires that ``stokes_dim`` is at\n"
-          "least 3. \n"
-          "\n"
-          "See *instrument_pol* for coding of polarisation states.\n"
-          "\n"
-          "Note that the state of *iy_unit* is considered. This WSV must give\n"
-          "the actual unit of the data. This as, the extraction of components\n"
-          "is slightly different if data are radiances or brightness\n"
-          "temperatures.  In practise this means that *iy_unit* (as to be\n"
-          "applied inside *iy_main_agenda*) must be set before calling this\n"
-          "method.\n"),
+      DESCRIPTION(R"--(Extraction of non-default polarisation components.
+
+The default is to output the Stokes elements I, Q, U and V (up to
+``stokes_dim``). This method allows to change the \"polarisation\" of
+the output. Polarisation components to be extracted are selected by
+*instrument_pol*. This method can be applied at any step of the sensor
+matrix set-up.
+
+The method can only be applied on data for I, Q, U and V. The value
+of ``stokes_dim`` must be sufficiently large for the selected
+components. For example, I+45 requires that ``stokes_dim`` is at
+least 3. 
+
+See *instrument_pol* for coding of polarisation states.
+
+Note that the state of *iy_unit* is considered. This WSV must give
+the actual unit of the data. This as, the extraction of components
+is slightly different if data are radiances or brightness
+temperatures.  In practise this means that *iy_unit* (as to be
+applied inside *iy_main_agenda*) must be set before calling this
+method.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -18092,17 +18226,17 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseStokesRotation"),
-      DESCRIPTION(
-          "Includes a rotation of the Stokes H and V directions.\n"
-          "\n"
-          "The method applies the rotations implied by *stokes_rotation*.\n"
-          "See the description of that WSV for details.\n"
-          "\n"
-          "This method does not change the size of *sensor_response*, and\n"
-          "the auxiliary variables (sensor_response_f etc.) are not changed.\n"
-          "\n"
-          "To apply the method, ``stokes_dim`` must be >= 3. The complete effect\n"
-          "of the rotation can not be determibed with lower ``stokes_dim``.\n"),
+      DESCRIPTION(R"--(Includes a rotation of the Stokes H and V directions.
+
+The method applies the rotations implied by *stokes_rotation*.
+See the description of that WSV for details.
+
+This method does not change the size of *sensor_response*, and
+the auxiliary variables (sensor_response_f etc.) are not changed.
+
+To apply the method, ``stokes_dim`` must be >= 3. The complete effect
+of the rotation can not be determibed with lower ``stokes_dim``.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response"),
       GOUT(),
@@ -18121,20 +18255,20 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseSimpleAMSU"),
-      DESCRIPTION(
-          "Simplified sensor setup for an AMSU-type instrument.\n"
-          "\n"
-          "This method allows quick and simple definition of AMSU-type\n"
-          "sensors. Assumptions:\n"
-          "\n"
-          "1. Pencil beam antenna.\n"
-          "2. Double sideband receivers.\n"
-          "3. Sideband mode \"upper\"\n"
-          "4. The channel response is rectangular.\n"
-          "\n"
-          "Under these assumptions the only inputs needed are the LO positions,\n"
-          "the offsets from the LO, and the IF bandwidths. They are provieded\n"
-          "in sensor_description_amsu.\n"),
+      DESCRIPTION(R"--(Simplified sensor setup for an AMSU-type instrument.
+
+This method allows quick and simple definition of AMSU-type
+sensors. Assumptions:
+
+1. Pencil beam antenna.
+2. Double sideband receivers.
+3. Sideband mode \"upper\"
+4. The channel response is rectangular.
+
+Under these assumptions the only inputs needed are the LO positions,
+the offsets from the LO, and the IF bandwidths. They are provieded
+in sensor_description_amsu.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("f_grid",
           "antenna_dim",
@@ -18158,25 +18292,25 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseGenericAMSU"),
-      DESCRIPTION(
-          "Simplified sensor setup for an AMSU-type instrument.\n"
-          "\n"
-          "This function is derived from 'sensor_responseSimpleAMSU' \n"
-          "but is more generalized since the number of passbands in each \n"
-          "can be in the range from 1 to 4 - in order to correctly simulate\n"
-          "AMSU-A type sensors \n"
-          "\n"
-          "This method allows quick and simple definition of AMSU-type\n"
-          "sensors. Assumptions:\n"
-          "\n"
-          "1. Pencil beam antenna.\n"
-          "2. 1-4 Passband/sidebands per channel.\n"
-          "3. Sideband mode \"upper\"\n"
-          "4. The channel response is rectangular.\n"
-          "\n"
-          "Under these assumptions the only inputs needed are the LO positions,\n"
-          "the offsets from the LO, and the IF bandwidths. They are provided\n"
-          "in sensor_description_amsu.\n"),
+      DESCRIPTION(R"--(Simplified sensor setup for an AMSU-type instrument.
+
+This function is derived from 'sensor_responseSimpleAMSU' 
+but is more generalized since the number of passbands in each 
+can be in the range from 1 to 4 - in order to correctly simulate
+AMSU-A type sensors 
+
+This method allows quick and simple definition of AMSU-type
+sensors. Assumptions:
+
+1. Pencil beam antenna.
+2. 1-4 Passband/sidebands per channel.
+3. Sideband mode \"upper\"
+4. The channel response is rectangular.
+
+Under these assumptions the only inputs needed are the LO positions,
+the offsets from the LO, and the IF bandwidths. They are provided
+in sensor_description_amsu.
+)--"),
       AUTHORS("Oscar Isoz"),
       OUT("f_grid",
           "antenna_dim",
@@ -18200,12 +18334,12 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseWMRF"),
-      DESCRIPTION(
-          "Adds WMRF weights to sensor response.\n"
-          "\n"
-          "This method adds a spectrometer response that has been calculated\n"
-          "with the weighted mean of representative frequencies (WMRF) method. It\n"
-          "consists of a set of selected frequencies, and associated weights.\n"),
+      DESCRIPTION(R"--(Adds WMRF weights to sensor response.
+
+This method adds a spectrometer response that has been calculated
+with the weighted mean of representative frequencies (WMRF) method. It
+consists of a set of selected frequencies, and associated weights.
+)--"),
       AUTHORS(
           "Stefan Buehler, based on Patrick Erikssons sensor_responseBackend"),
       OUT("sensor_response",
@@ -18232,7 +18366,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(
       create_mdrecord(NAME("SetNumberOfThreads"),
-               DESCRIPTION("Change the number of threads used by ARTS.\n"),
+               DESCRIPTION(R"--(Change the number of threads used by ARTS.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT(),
                GOUT(),
@@ -18246,7 +18381,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Sleep"),
-      DESCRIPTION("Sleeps for a number of seconds\n"),
+      DESCRIPTION(R"--(Sleeps for a number of seconds
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -18260,7 +18396,8 @@ where N>=0 and the species name is something line "H2O".
 
   md_data_raw.push_back(create_mdrecord(
       NAME("timeSleep"),
-      DESCRIPTION("Sleeps until time has been reached.\n"),
+      DESCRIPTION(R"--(Sleeps until time has been reached.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -18301,8 +18438,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sparse_f_gridFromFrequencyGrid"),
-      DESCRIPTION(
-          "Outputs the sparse frequency grid in *propmat_clearskyAddLines*\n"),
+      DESCRIPTION(R"--(Outputs the sparse frequency grid in *propmat_clearskyAddLines*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("sparse_f_grid"),
@@ -18316,10 +18453,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),
-      DESCRIPTION(
-          "Multiplies a Sparse with another Sparse, result stored in Sparse.\n"
-          "\n"
-          "Makes the calculation: M = M1 * M2\n"),
+      DESCRIPTION(R"--(Multiplies a Sparse with another Sparse, result stored in Sparse.
+
+Makes the calculation: M = M1 * M2
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("M"),
@@ -18334,13 +18471,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseIdentity"),
-      DESCRIPTION(
-          "Returns a sparse dentity matrix.\n"
-          "\n"
-          "The size of the matrix created is n x n. Default is to return a\n"
-          "true identity matrix (I), but you can also select another value\n"
-          "along the diagonal be setting ``value``. That is, the output is\n"
-          "value*I.\n"),
+      DESCRIPTION(R"--(Returns a sparse dentity matrix.
+
+The size of the matrix created is n x n. Default is to return a
+true identity matrix (I), but you can also select another value
+along the diagonal be setting ``value``. That is, the output is
+value*I.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("output"),
@@ -18354,13 +18491,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_irradiance_fieldFromSpectralRadianceField"),
-      DESCRIPTION(
-          "Calculates the spectral irradiance from *spectral_radiance_field*.\n"
-          "\n"
-          "The *spectral_radiance_field* is integrated over the angular grids\n"
-          "according to the grids set by *AngularGridsSetFluxCalc*.\n"
-          "See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and \n"
-          "*za_grid_weights*.\n"),
+      DESCRIPTION(R"--(Calculates the spectral irradiance from *spectral_radiance_field*.
+
+The *spectral_radiance_field* is integrated over the angular grids
+according to the grids set by *AngularGridsSetFluxCalc*.
+See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and 
+*za_grid_weights*.
+)--"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field"),
       GOUT(),
@@ -18374,25 +18511,25 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldClearskyPlaneParallel"),
-      DESCRIPTION(
-          "Clear-sky radiance field of a plane parallel atmosphere.\n"
-          "\n"
-          "The method assumes a 1D flat planet. Radiances along each direction\n"
-          "given by *za_grid* are calculated using ``ppathPlaneParallel``\n"
-          "and ``iyEmissionStandard``.\n"
-          "\n"
-          "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
-          "restriction to e.g. specular surfaces.\n"
-          "\n"
-          "Note that the variable *ppath_lmax* is considered, and that it can be\n"
-          "critical for the accuracy for zenith angles close to 90 degrees. That\n"
-          "is, using ppath_lmax=-1 is not recommended for this function.\n"
-          "\n"
-          "Information on transmittance is also provided by the GOUT ``trans_field``.\n"
-          "For up-welling radiation (scat_za > 90), this variable holds the\n"
-          "transmittance to space, for considered position and propagation direction.\n"
-          "For down-welling radiation, ``trans_field`` holds instead the transmittance\n"
-          "down to the surface.\n"),
+      DESCRIPTION(R"--(Clear-sky radiance field of a plane parallel atmosphere.
+
+The method assumes a 1D flat planet. Radiances along each direction
+given by *za_grid* are calculated using ``ppathPlaneParallel``
+and ``iyEmissionStandard``.
+
+Surface properties are defined by *iy_surface_agenda*, i.e. there is no
+restriction to e.g. specular surfaces.
+
+Note that the variable *ppath_lmax* is considered, and that it can be
+critical for the accuracy for zenith angles close to 90 degrees. That
+is, using ppath_lmax=-1 is not recommended for this function.
+
+Information on transmittance is also provided by the GOUT ``trans_field``.
+For up-welling radiation (scat_za > 90), this variable holds the
+transmittance to space, for considered position and propagation direction.
+For down-welling radiation, ``trans_field`` holds instead the transmittance
+down to the surface.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
       GOUT("trans_field"),
@@ -18420,12 +18557,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
-      DESCRIPTION(
-          "Set *spectral_radiance_field* to be a copy of *cloudbox_field*.\n"
-          "\n"
-          "This method can only be used for 1D atmospheres and if the cloud\n"
-          "box covers the complete atmosphere. For such case, the two fields\n"
-          "cover the same atmospheric volume and a direct copying can be made.\n"),
+      DESCRIPTION(R"--(Set *spectral_radiance_field* to be a copy of *cloudbox_field*.
+
+This method can only be used for 1D atmospheres and if the cloud
+box covers the complete atmosphere. For such case, the two fields
+cover the same atmospheric volume and a direct copying can be made.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
       GOUT(),
@@ -18444,22 +18581,22 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldExpandCloudboxField"),
-      DESCRIPTION(
-          "Uses and expands *cloudbox_field* to set *spectral_radiance_field*.\n"
-          "\n"
-          "The method demands that *cloudbox_field* starts at the first pressure\n"
-          "level (i.e. cloudbox_limits[0] is 0). The method copies *cloudbox_field*\n"
-          "to fill *spectral_radiance_field* up to the top of the cloudbox.\n"
-          "\n"
-          "To fill the remaning part of *spectral_radiance_field*, clear-sky\n"
-          "calculations are performed largely in the same maner as done by\n"
-          "*spectral_radiance_fieldClearskyPlaneParallel*. That is, clear-sky\n"
-          "calculations are done for the upper part of the atmosphere, assuming\n"
-          "a flat planet.\n"
-          "\n"
-          "Note that the cloud box constitutes the lower boundary for the later\n"
-          "calculations, and *iy_cloudbox_agenda* must be set to perform an\n"
-          "interpolation of the cloudbox field.\n"),
+      DESCRIPTION(R"--(Uses and expands *cloudbox_field* to set *spectral_radiance_field*.
+
+The method demands that *cloudbox_field* starts at the first pressure
+level (i.e. cloudbox_limits[0] is 0). The method copies *cloudbox_field*
+to fill *spectral_radiance_field* up to the top of the cloudbox.
+
+To fill the remaning part of *spectral_radiance_field*, clear-sky
+calculations are performed largely in the same maner as done by
+*spectral_radiance_fieldClearskyPlaneParallel*. That is, clear-sky
+calculations are done for the upper part of the atmosphere, assuming
+a flat planet.
+
+Note that the cloud box constitutes the lower boundary for the later
+calculations, and *iy_cloudbox_agenda* must be set to perform an
+interpolation of the cloudbox field.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
       GOUT(),
@@ -18489,15 +18626,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
-      DESCRIPTION(
-          "Calculates the specular direction of surface reflections.\n"
-          "\n"
-          "The default is to consider surface topography when calculating the\n"
-          "specular direction. That is, the variation of ``surface_elevation``\n"
-          "is allowed to affect the angles of *specular_los*. This impact can\n"
-          "be deactivated by setting ``ignore_topography`` to 1. In this case,\n"
-          "the zenith angle of the specular direction is simply 180-rtp_los[0]\n" 
-          "and the azimuth angle is the same as the one in *rtp_los*.\n"),
+      DESCRIPTION(R"--(Calculates the specular direction of surface reflections.
+
+The default is to consider surface topography when calculating the
+specular direction. That is, the variation of ``surface_elevation``
+is allowed to affect the angles of *specular_los*. This impact can
+be deactivated by setting ``ignore_topography`` to 1. In this case,
+the zenith angle of the specular direction is simply 180-rtp_los[0]
+and the azimuth angle is the same as the one in *rtp_los*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("specular_los"),
       GOUT(),
@@ -18511,15 +18648,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalcOldNoTopography"),
-      DESCRIPTION(
-          "Calculates the specular direction of surface reflections for horisontal\n"
-          "surfaces.\n"
-          "\n"
-          "In contrast to ``specular_losCalcOld``, this method ignores the topography\n"
-          "implied by ``z_surface``. That is, any slope of the surface is ignored.\n"
-          "\n"
-          "The typical application of this WSM should be water surfaces (lakes and\n"
-          "oceans).\n"),
+      DESCRIPTION(R"--(Calculates the specular direction of surface reflections for horisontal
+surfaces.
+
+In contrast to ``specular_losCalcOld``, this method ignores the topography
+implied by ``z_surface``. That is, any slope of the surface is ignored.
+
+The typical application of this WSM should be water surfaces (lakes and
+oceans).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("specular_los", "surface_normal"),
       GOUT(),
@@ -18533,13 +18670,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleBlackbody"),
-      DESCRIPTION("Adds a single blackbody to *suns*\n"
-                  "\n"
-                  "Important note:\n"
-                  "For a Sol-like sun there are huge differences in the UV-range \n"
-                  "between the actual sun spectrum and the blackbody spectrum"
-                  "with the effective temperature of the sun. The blackbody sun\""
-                  "strongly overestimates the UV radiation.\n"),
+      DESCRIPTION(R"--(Adds a single blackbody to *suns*
+
+Important note:
+For a Sol-like sun there are huge differences in the UV-range 
+between the actual sun spectrum and the blackbody spectrum
+with the effective temperature of the sun. The blackbody sun\"
+strongly overestimates the UV radiation.
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("suns",
           "suns_do"),
@@ -18574,28 +18712,28 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleFromGrid"),
-      DESCRIPTION(
-          "Extracts a sun spectrum from a field of such data and\n"
-          "adds it to *suns*.\n"
-          "\n"
-          "The method allows to obtain the sun spectrum by\n"
-          "interpolation from a field of such data. \n"
-          "The sun spectrum is expected to be stored as\n"
-          "the irradiance at the suns photosphere.\n"
-          "\n"
-          "Unit:\n"
-          "\n"
-          "- GriddedField2: [W m-2 Hz-1]\n"
-          "\n"
-          "  - Vector *f_grid* [Hz]\n"
-          "  - Vector ``stokes_dim`` [1]\n"
-          "\n"
-          "Dimensions: [f_grid, stokes_dim]\n"
-          "\n"
-          "This method performs an interpolation onto the f_grid.\n"
-          "The point of *f_grid* that are outside the data frequency grid\n"
-          "are initialized according to planck's law of the temperature variable.\n"
-          "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
+      DESCRIPTION(R"--(Extracts a sun spectrum from a field of such data and
+adds it to *suns*.
+
+The method allows to obtain the sun spectrum by
+interpolation from a field of such data. 
+The sun spectrum is expected to be stored as
+the irradiance at the suns photosphere.
+
+Unit:
+
+- GriddedField2: [W m-2 Hz-1]
+
+  - Vector *f_grid* [Hz]
+  - Vector ``stokes_dim`` [1]
+
+Dimensions: [f_grid, stokes_dim]
+
+This method performs an interpolation onto the f_grid.
+The point of *f_grid* that are outside the data frequency grid
+are initialized according to planck's law of the temperature variable.
+Hence, a temperature of 0 means 0s the edges of the f_grid.
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("suns",
           "suns_do"),
@@ -18640,29 +18778,29 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsAddSingleFromGridAtLocation"),
-      DESCRIPTION(
-          "Extracts a sun spectrum measured at the given location\n"
-          "adds it to *suns*.\n"
-          "\n"
-          "The method allows to obtain the sun spectrum by\n"
-          "interpolation from a field of such data. \n"
-          "The sun spectrum is expected to be stored as\n"
-          "irradiance.\n"
-          "It is coverted to the irradiance at the suns photosphere.\n"
-          "\n"
-          "Unit:\n"
-          "\n"
-          "- GriddedField2: [W m-2 Hz-1]\n"
-          "\n"
-          "  - Vector *f_grid* [Hz]\n"
-          "  - Vector ``stokes_dim`` [1]\n"
-          "\n"
-          "Dimensions: [f_grid, stokes_dim]\n"
-          "\n"
-          "This method performs an interpolation onto the f_grid.\n"
-          "The point of *f_grid* that are outside the data frequency grid\n"
-          "are initialized according to planck's law of the temperature variable.\n"
-          "Hence, a temperature of 0 means 0s the edges of the f_grid.\n"),
+      DESCRIPTION(R"--(Extracts a sun spectrum measured at the given location
+adds it to *suns*.
+
+The method allows to obtain the sun spectrum by
+interpolation from a field of such data. 
+The sun spectrum is expected to be stored as
+irradiance.
+It is coverted to the irradiance at the suns photosphere.
+
+Unit:
+
+- GriddedField2: [W m-2 Hz-1]
+
+  - Vector *f_grid* [Hz]
+  - Vector ``stokes_dim`` [1]
+
+Dimensions: [f_grid, stokes_dim]
+
+This method performs an interpolation onto the f_grid.
+The point of *f_grid* that are outside the data frequency grid
+are initialized according to planck's law of the temperature variable.
+Hence, a temperature of 0 means 0s the edges of the f_grid.
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("suns",
           "suns_do"),
@@ -18721,8 +18859,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsOff"),
-      DESCRIPTION(
-          "Turns all calculations with suns off \n"),
+      DESCRIPTION(R"--(Turns all calculations with suns off
+)--"),
       AUTHORS("Jon Petersen"),
       OUT("suns_do",
           "suns"),
@@ -18737,11 +18875,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("StringJoin"),
-      DESCRIPTION(
-          "Concatenate two or more strings.\n"
-          "\n"
-          "The output string is overwritten, but is allowed to appear\n"
-          "in the input list. Up to 10 strings can be concatenated at once.\n"),
+      DESCRIPTION(R"--(Concatenate two or more strings.
+
+The output string is overwritten, but is allowed to appear
+in the input list. Up to 10 strings can be concatenated at once.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -18782,14 +18920,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_normalCalc"),
-      DESCRIPTION(
-          "Calculates the surface's local normal.\n"
-          "\n"
-          "The default is to consider surface topography when calculating the\n"
-          "normal direction. That is, the variation of ``surface_elevation``\n"
-          "is allowed to affect the angles of *surface_normal*. This impact can\n"
-          "be deactivated by setting ``ignore_topography`` to 1. In this case,\n"
-          "the zenith angle of *surface_normal* becomes 0.\n"),
+      DESCRIPTION(R"--(Calculates the surface's local normal.
+
+The default is to consider surface topography when calculating the
+normal direction. That is, the variation of ``surface_elevation``
+is allowed to affect the angles of *surface_normal*. This impact can
+be deactivated by setting ``ignore_topography`` to 1. In this case,
+the zenith angle of *surface_normal* becomes 0.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_normal"),
       GOUT(),
@@ -18804,8 +18942,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceFromFileAndGrid"),
-      DESCRIPTION(
-          "Sets the surface altitude for a given latitude and longitude grid.\n"),
+      DESCRIPTION(R"--(Sets the surface altitude for a given latitude and longitude grid.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -18824,8 +18962,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceConstantAltitude"),
-      DESCRIPTION(
-          "Sets the surface altitude to a constant. Defaults to zero.\n"),
+      DESCRIPTION(R"--(Sets the surface altitude to a constant. Defaults to zero.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -18840,8 +18978,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldSet"),
-      DESCRIPTION(
-          "Make the surface field hold value at the key.\n"),
+      DESCRIPTION(R"--(Make the surface field hold value at the key.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -18855,8 +18993,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldSetProp"),
-      DESCRIPTION(
-          "Make the surface field hold value at the key.\n"),
+      DESCRIPTION(R"--(Make the surface field hold value at the key.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -18870,8 +19008,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_fieldSetType"),
-      DESCRIPTION(
-          "Make the surface field hold value at the key.\n"),
+      DESCRIPTION(R"--(Make the surface field hold value at the key.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("surface_field"),
       GOUT(),
@@ -18885,13 +19023,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceBlackbody"),
-      DESCRIPTION(
-          "Creates variables to mimic a blackbody surface.\n"
-          "\n"
-          "This method sets up *surface_los*, *surface_rmatrix* and\n"
-          "*surface_emission* for *surface_rtprop_agenda*. Here, *surface_los*\n"
-          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
-          "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"),
+      DESCRIPTION(R"--(Creates variables to mimic a blackbody surface.
+
+This method sets up *surface_los*, *surface_rmatrix* and
+*surface_emission* for *surface_rtprop_agenda*. Here, *surface_los*
+and *surface_rmatrix* are set to be empty, and *surface_emission*
+to hold blackbody radiation for a temperature of *surface_skin_t*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -18910,24 +19048,24 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFastem"),
-      DESCRIPTION(
-          "Usage of FASTEM together with MC and DOIT.\n"
-          "\n"
-          "The recommended way to use FASTEM is by *iySurfaceFastem*, but that\n"
-          "is not always possible, such as when using MC and DOIT. This is the\n"
-          "case as those scattering methods use *surface_rtprop_agenda*,\n"
-          "while *iySurfaceFastem* fits with *iy_surface_agenda*. This WSM solves\n"
-          "this by allowing FASTEM to be used inside *surface_rtprop_agenda*.\n"
-          "\n"
-          "However, FASTEM is here used in an approximative way. For a correct\n"
-          "usage of FASTEM, the atmospheric transmittance shall be calculated\n"
-          "for the position and direction of concern, but this is not possible\n"
-          "together with DOIT and MC. Instead, the transmittance is an input\n"
-          "to the method, and must either be pre-calculated or set to a\n"
-          "representative value.\n"
-          "\n"
-          "See *iySurfaceFastem*, for further details on the special input\n"
-          "arguments.\n"),
+      DESCRIPTION(R"--(Usage of FASTEM together with MC and DOIT.
+
+The recommended way to use FASTEM is by *iySurfaceFastem*, but that
+is not always possible, such as when using MC and DOIT. This is the
+case as those scattering methods use *surface_rtprop_agenda*,
+while *iySurfaceFastem* fits with *iy_surface_agenda*. This WSM solves
+this by allowing FASTEM to be used inside *surface_rtprop_agenda*.
+
+However, FASTEM is here used in an approximative way. For a correct
+usage of FASTEM, the atmospheric transmittance shall be calculated
+for the position and direction of concern, but this is not possible
+together with DOIT and MC. Instead, the transmittance is an input
+to the method, and must either be pre-calculated or set to a
+representative value.
+
+See *iySurfaceFastem*, for further details on the special input
+arguments.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -18955,18 +19093,18 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRefractiveIndex"),
-      DESCRIPTION(
-          "Creates variables to mimic specular reflection by a (flat) surface\n"
-          "where the complex refractive index is specified.\n"
-          "\n"
-          "The dielectric properties of the surface are described by\n"
-          "*surface_complex_refr_index*. The Fresnel equations are used to\n"
-          "calculate amplitude reflection coefficients. The method can thus\n"
-          "result in that the reflection properties differ between frequencies\n"
-          "and polarisations.\n"
-          "\n"
-          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-          "that the reflection and emission coefficients add up to 1.\n"),
+      DESCRIPTION(R"--(Creates variables to mimic specular reflection by a (flat) surface
+where the complex refractive index is specified.
+
+The dielectric properties of the surface are described by
+*surface_complex_refr_index*. The Fresnel equations are used to
+calculate amplitude reflection coefficients. The method can thus
+result in that the reflection properties differ between frequencies
+and polarisations.
+
+Local thermodynamic equilibrium is assumed, which corresponds to
+that the reflection and emission coefficients add up to 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -18986,15 +19124,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatReflectivity"),
-      DESCRIPTION(
-          "Creates variables to mimic specular reflection by a (flat) surface\n"
-          "where *surface_reflectivity* is specified.\n"
-          "\n"
-          "Works basically as *surfaceFlatScalarReflectivity* but is more\n"
-          "general as vector radiative transfer is more properly handled. See\n"
-          "the ARTS theory document (ATD) for details around how\n"
-          "*surface_emission* is determined. In the nomenclature of ATD,\n"
-          "*surface_reflectivity* gives R.\n"),
+      DESCRIPTION(R"--(Creates variables to mimic specular reflection by a (flat) surface
+where *surface_reflectivity* is specified.
+
+Works basically as *surfaceFlatScalarReflectivity* but is more
+general as vector radiative transfer is more properly handled. See
+the ARTS theory document (ATD) for details around how
+*surface_emission* is determined. In the nomenclature of ATD,
+*surface_reflectivity* gives R.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19014,18 +19152,18 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRvRh"),
-      DESCRIPTION(
-          "Creates variables to mimic specular reflection by a (flat) surface\n"
-          "where *surface_rv_rh* is specified.\n"
-          "\n"
-          "This method assumes that the reflection at vertical and horizontal\n"
-          "polarisation differs. As power reflection coefficients are provided\n"
-          "there is no information at hand on phase shifts between polarisations,\n"
-          "and they are simply assumed to be zero. These assumptions result in\n"
-          "that *surface_emission* is set to zero for positions corresponding to\n"
-          "U and V, and that all diagonal elementsof  *surface_rmatrix* are equal\n"
-          "(the mean of rv and rh). Further, all off-diagonal elements of\n"
-          "*surface_rmatrix* are all zero except for (0,1) and (1,0).\n"),
+      DESCRIPTION(R"--(Creates variables to mimic specular reflection by a (flat) surface
+where *surface_rv_rh* is specified.
+
+This method assumes that the reflection at vertical and horizontal
+polarisation differs. As power reflection coefficients are provided
+there is no information at hand on phase shifts between polarisations,
+and they are simply assumed to be zero. These assumptions result in
+that *surface_emission* is set to zero for positions corresponding to
+U and V, and that all diagonal elementsof  *surface_rmatrix* are equal
+(the mean of rv and rh). Further, all off-diagonal elements of
+*surface_rmatrix* are all zero except for (0,1) and (1,0).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19045,16 +19183,16 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatScalarReflectivity"),
-      DESCRIPTION(
-          "Creates variables to mimic specular reflection by a (flat) surface\n"
-          "where *surface_scalar_reflectivity* is specified.\n"
-          "\n"
-          "This method assumes that the reflection at vertical and horizontal\n"
-          "polarisation is identical. This assumption includes that there is no\n"
-          "phase shift between polarisations. These assumptions result in that\n"
-          "*surface_emission* is set to zero for positions corresponding to Q,\n"
-          "U and V, and that *surface_rmatrix* becomes a diagonal matrix (with\n"
-          "all elements on the diagonal equal to the specified reflectivity).\n"),
+      DESCRIPTION(R"--(Creates variables to mimic specular reflection by a (flat) surface
+where *surface_scalar_reflectivity* is specified.
+
+This method assumes that the reflection at vertical and horizontal
+polarisation is identical. This assumption includes that there is no
+phase shift between polarisations. These assumptions result in that
+*surface_emission* is set to zero for positions corresponding to Q,
+U and V, and that *surface_rmatrix* becomes a diagonal matrix (with
+all elements on the diagonal equal to the specified reflectivity).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19074,37 +19212,37 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceLambertianSimple"),
-      DESCRIPTION(
-          "Creates variables to mimic a Lambertian surface.\n"
-          "\n"
-          "A Lambertian surface can be characterised solely by its\n"
-          "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
-          "\n"
-          "The down-welling radiation field is estimated by making calculations\n"
-          "for ``lambertian_nza`` directions. The range of zenith angles ([0,90])\n"
-          "is divided in an equidistant manner for 1D. For 2D and 3D see below.\n"
-          "The values for *surface_rmatrix* are assuming a constant radiance\n"
-          "over each zenith angle range. See AUG.\n"
-          "\n"
-          "Default is to select the zenith angles for *sensor_los* to be placed\n"
-          "centrally in the grid ranges. For example, if ``lambertian_nza`` is set\n"
-          "to 9, down-welling radiation will be calculated for zenith angles = \n"
-          "5, 15, ..., 85. The position of these angles can be shifted by\n"
-          "``za_pos``. This variable specifies the fractional distance inside the\n"
-          "ranges. For example, a ``za_pos`` of 0.7 (np still 9) gives the angles\n"
-          "7, 17, ..., 87.\n"
-          "\n"
-          "Only upper-left diagonal element of the *surface_rmatrix* is\n"
-          "non-zero. That is, the upwelling radiation is always unpolarised.\n"
-          "\n"
-          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-          "that the reflection and emission coefficients \"add up to 1\".\n"
-          "\n"
-          "For 2D and 3D, the down-welling directions are placed along the\n"
-          "the viewing direction, e.g. for 3D the azimuth angle is kept constant.\n"
-          "In 2D and 3D surface topography can exist, and to avoid getting views\n"
-          "going directly into the surface, angels are not distributed over 90 deg,\n"
-          "but 90-abs(surface_normal[0]).\n"),
+      DESCRIPTION(R"--(Creates variables to mimic a Lambertian surface.
+
+A Lambertian surface can be characterised solely by its
+reflectivity, here taken from *surface_scalar_reflectivity*.
+
+The down-welling radiation field is estimated by making calculations
+for ``lambertian_nza`` directions. The range of zenith angles ([0,90])
+is divided in an equidistant manner for 1D. For 2D and 3D see below.
+The values for *surface_rmatrix* are assuming a constant radiance
+over each zenith angle range. See AUG.
+
+Default is to select the zenith angles for *sensor_los* to be placed
+centrally in the grid ranges. For example, if ``lambertian_nza`` is set
+to 9, down-welling radiation will be calculated for zenith angles = 
+5, 15, ..., 85. The position of these angles can be shifted by
+``za_pos``. This variable specifies the fractional distance inside the
+ranges. For example, a ``za_pos`` of 0.7 (np still 9) gives the angles
+7, 17, ..., 87.
+
+Only upper-left diagonal element of the *surface_rmatrix* is
+non-zero. That is, the upwelling radiation is always unpolarised.
+
+Local thermodynamic equilibrium is assumed, which corresponds to
+that the reflection and emission coefficients \"add up to 1\".
+
+For 2D and 3D, the down-welling directions are placed along the
+the viewing direction, e.g. for 3D the azimuth angle is kept constant.
+In 2D and 3D surface topography can exist, and to avoid getting views
+going directly into the surface, angels are not distributed over 90 deg,
+but 90-abs(surface_normal[0]).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19126,35 +19264,35 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceMapToLinearPolarisation"),
-      DESCRIPTION(
-          "Convert surface RT properties to a linear polarisation.\n"
-          "\n"
-          "The properties converted are *surface_emission* and *surface_rmatrix*.\n"
-          "\n"
-          "This method allows to set the surface properties to match a specific\n"
-          "linear polarisation for scalar calculation (stokes_dim=1). If you want\n"
-          "this, you have to call the method(s) setting up the surface RT\n"
-          "properties with ``stokes_dim`` set to 2, 3 or 4. This Stokes dimension\n"
-          "is below called local_stokes_dim.\n"
-          "\n"
-          "The polarisation to apply is selected by ``pol_angle``. This angle is\n"
-          "defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).\n"
-          "\n"
-          "If local_stokes_dim was set to 2, *surface_rmatrix* is assumed to have\n"
-          "the structure:\n"
-          R"(
+      DESCRIPTION(R"--(Convert surface RT properties to a linear polarisation.
+
+The properties converted are *surface_emission* and *surface_rmatrix*.
+
+This method allows to set the surface properties to match a specific
+linear polarisation for scalar calculation (stokes_dim=1). If you want
+this, you have to call the method(s) setting up the surface RT
+properties with ``stokes_dim`` set to 2, 3 or 4. This Stokes dimension
+is below called local_stokes_dim.
+
+The polarisation to apply is selected by ``pol_angle``. This angle is
+defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).
+
+If local_stokes_dim was set to 2, *surface_rmatrix* is assumed to have
+the structure:
+
 .. math:: 
     \begin{array}{cc} (rv+rh)/2 & (rv-rh)/2 \\ (rv-rh)/2 & (rv+rh)/2 \end{array}
 
-)"
-          "while if local_stokes_dim was set to 3 or 4, the mapping involves\n"
-          "several transformation matrices. The later case covers also couplings\n"
-          "between V/H and +-45 deg, and the mapping is described in the ARTS\n"
-          "theory guide, in section \"Rotated modified Stokes vector\".\n"
-          "\n"
-          "In general it should suffice to set local_stokes_dim to 2, that gives\n"
-          "slightly faster calculations. A local_stokes_dim of 3 handles any case\n"
-          "correctly.\n"),
+
+while if local_stokes_dim was set to 3 or 4, the mapping involves
+several transformation matrices. The later case covers also couplings
+between V/H and +-45 deg, and the mapping is described in the ARTS
+theory guide, in section \"Rotated modified Stokes vector\".
+
+In general it should suffice to set local_stokes_dim to 2, that gives
+slightly faster calculations. A local_stokes_dim of 3 handles any case
+correctly.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_emission", "surface_rmatrix"),
       GOUT(),
@@ -19169,37 +19307,37 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTelsem"),
-      DESCRIPTION(
-          "Compute surface emissivities using the TELSEM 2 model.\n"
-          "\n"
-          "This method uses second version of the TELSEM model for calculating\n"
-          "land surface emissivities (F. Aires et al, \"A Tool to Estimate \n"
-          "Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use\n"
-          "in numerical weather prediction\" Quarterly Journal of the Royal\n"
-          "Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)\n"
-          "This methods computes land surface emissivities for a given pencil beam\n"
-          "using a given TELSEM2 atlas.\n"
-          "\n"
-          "The input must satisfy the following conditions, otherwise an error is thrown:\n"
-          " - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]\n"
-          " - The skin temperature (*surface_skin_t*) must be within the range\n"
-          "   [180 K, 360 K]\n"
-          "\n"
-          "A TELSEM atlas contains only suface emissivities for locations that are\n"
-          "classified as land. By default this WSM will throw an error if the\n"
-          "pencil beam hits the surface at a position that is not contained in the\n"
-          "given atlas.\n"
-          "\n"
-          "The above behavior can be avoided by setting ``d_max`` to a positive value.\n"
-          "This enables nearest neighbor interpolation, which assigns the emissivities\n"
-          "of the nearest found cell in the atlas to the given position. In this case,\n"
-          "an error is only thrown if the distance of the found neighbor is higher\n"
-          "than the provided value of ``d_max``.\n"
-          "\n"
-          "You can limit the final reflectivity applied by setting ``r_min`` and ``r_max``.\n"
-          "\n"
-          "To extract a land-sea mask from a given telsem atlas see the WSM\n"
-          "*telsemSurfaceTypeLandSea*.\n"),
+      DESCRIPTION(R"--(Compute surface emissivities using the TELSEM 2 model.
+
+This method uses second version of the TELSEM model for calculating
+land surface emissivities (F. Aires et al, \"A Tool to Estimate 
+Land‐Surface Emissivities at Microwave frequencies (TELSEM) for use
+in numerical weather prediction\" Quarterly Journal of the Royal
+Meteorological Society, vol. 137, (656), pp. 690-699, 2011.)
+This methods computes land surface emissivities for a given pencil beam
+using a given TELSEM2 atlas.
+
+The input must satisfy the following conditions, otherwise an error is thrown:
+ - The input frequencies (*f_grid*) must be within the range [5 GHz, 900 GHz]
+ - The skin temperature (*surface_skin_t*) must be within the range
+   [180 K, 360 K]
+
+A TELSEM atlas contains only suface emissivities for locations that are
+classified as land. By default this WSM will throw an error if the
+pencil beam hits the surface at a position that is not contained in the
+given atlas.
+
+The above behavior can be avoided by setting ``d_max`` to a positive value.
+This enables nearest neighbor interpolation, which assigns the emissivities
+of the nearest found cell in the atlas to the given position. In this case,
+an error is only thrown if the distance of the found neighbor is higher
+than the provided value of ``d_max``.
+
+You can limit the final reflectivity applied by setting ``r_min`` and ``r_max``.
+
+To extract a land-sea mask from a given telsem atlas see the WSM
+*telsemSurfaceTypeLandSea*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19228,20 +19366,20 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTessem"),
-      DESCRIPTION(
-          "TESSEM sea surface microwave emissivity parametrization.\n"
-          "\n"
-          "This method computes surface emissivity and reflectivity matrices for\n"
-          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
-          "Sea‐surface emissivity parametrization from microwaves to millimetre\n"
-          "waves, QJRMS, 2017, 143.702: 596-605.\n"
-          "\n"
-          "The validity range of the parametrization of is 10 to 700 GHz, but for\n"
-          "some extra flexibility frequencies between 5 and 900 GHz are accepted.\n"
-          "The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]\n"
-          "\n"
-          "The model itself is represented by the neural networks in\n"
-          "*tessem_neth* and *tessem_netv*.\n"),
+      DESCRIPTION(R"--(TESSEM sea surface microwave emissivity parametrization.
+
+This method computes surface emissivity and reflectivity matrices for
+ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.
+Sea‐surface emissivity parametrization from microwaves to millimetre
+waves, QJRMS, 2017, 143.702: 596-605.
+
+The validity range of the parametrization of is 10 to 700 GHz, but for
+some extra flexibility frequencies between 5 and 900 GHz are accepted.
+The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]
+
+The model itself is represented by the neural networks in
+*tessem_neth* and *tessem_netv*.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("surface_los", "surface_rmatrix", "surface_emission"),
       GOUT(),
@@ -19263,31 +19401,31 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_complex_refr_indexFromGriddedField5"),
-      DESCRIPTION(
-          "Extracts complex refractive index from a field of such data.\n"
-          "\n"
-          "The method allows to obtain *surface_complex_refr_index* by\n"
-          "interpolation of a geographical field of such data. The position\n"
-          "for which refraction shall be extracted is given by *rtp_pos*.\n"
-          "The refractive index field is expected to be stored as:\n"
-          "\n"
-          "- GriddedField5:\n"
-          "\n"
-          "  - Vector f_grid[N_f]\n"
-          "  - Vector T_grid[N_T]\n"
-          "  - ArrayOfString Complex[2]\n"
-          "  - Vector \"Latitude\"  [N_lat]\n"
-          "  - Vector \"Longitude\" [N_lon]\n"
-          "  - Tensor5 data[N_f][N_T][2][N_lat][N_lon]\n"
-          "\n"
-          "Definition and treatment of the three first dimensions follows\n"
-          "*complex_refr_index*, e.g. the temperature grid is allowed\n"
-          "to have length 1. The grids for latitude and longitude must have\n"
-          "a length of >= 2 (ie. no automatic expansion).\n"
-          "\n"
-          "Hence, this method performs an interpolation only in the lat and\n"
-          "lon dimensions, to a single point. The remaining GriddedField3 is\n"
-          "simply returned as *surface_complex_refr_index*.\n"),
+      DESCRIPTION(R"--(Extracts complex refractive index from a field of such data.
+
+The method allows to obtain *surface_complex_refr_index* by
+interpolation of a geographical field of such data. The position
+for which refraction shall be extracted is given by *rtp_pos*.
+The refractive index field is expected to be stored as:
+
+- GriddedField5:
+
+  - Vector f_grid[N_f]
+  - Vector T_grid[N_T]
+  - ArrayOfString Complex[2]
+  - Vector \"Latitude\"  [N_lat]
+  - Vector \"Longitude\" [N_lon]
+  - Tensor5 data[N_f][N_T][2][N_lat][N_lon]
+
+Definition and treatment of the three first dimensions follows
+*complex_refr_index*, e.g. the temperature grid is allowed
+to have length 1. The grids for latitude and longitude must have
+a length of >= 2 (ie. no automatic expansion).
+
+Hence, this method performs an interpolation only in the lat and
+lon dimensions, to a single point. The remaining GriddedField3 is
+simply returned as *surface_complex_refr_index*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_complex_refr_index"),
       GOUT(),
@@ -19302,41 +19440,41 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_reflectivityFromGriddedField6"),
-      DESCRIPTION(
-          "Extracts surface reflectivities from a field of such data.\n"
-          "\n"
-          "This method allows to specify a field of surface reflectivity for\n"
-          "automatic interpolation to points of interest. The position and\n"
-          "direction for which the reflectivity shall be extracted are given\n"
-          "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
-          "be stored as:\n"
-          "\n"
-          "- GriddedField6:\n"
-          "\n"
-          "  - Vector \"Frequency\"       [N_f]\n"
-          "  - Vector \"Stokes element\"  [N_s1]\n"
-          "  - Vector \"Stokes_element\"  [N_s2]\n"
-          "  - Vector \"Incidence angle\" [N_ia]\n"
-          "  - Vector \"Latitude\"        [N_lat]\n"
-          "  - Vector \"Longitude\"       [N_lon]\n"
-          "  - Tensor6 data[N_f][N_s1][N_s2][N_ia][N_lat][N_lon]\n"
-          "\n"
-          "Grids for incidence angle, latitude and longitude must have a\n"
-          "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
-          "has length 1, this is taken as that the reflectivity is constant,\n"
-          "following the definition of *surface_scalar_reflectivity*.\n"
-          "The data can cover higher Stokes dimensionalities than set by\n"
-          "``stokes_dim``. Data for non-used Stokes elements are just cropped.\n"
-          "The order between the two Stokes dimensions is the same as in\n"
-          "*surface_reflectivity* and surface_rmatrix*.\n"
-          "\n"
-          "The interpolation is done in steps:\n"
-          "   (1) Linear interpolation for lat and lon (std. extrapolation).\n"
-          "   (2) Interpolation in incidence angle (std. extrapolation).\n"
-          "       If the grid has a length of >= 4, cubic interpolation is\n"
-          "       applied. Otherwise linear interpolation.\n"
-          "   (3) Linear interpolation in frequency (if input data have more\n"
-          "       than one frequency).\n"),
+      DESCRIPTION(R"--(Extracts surface reflectivities from a field of such data.
+
+This method allows to specify a field of surface reflectivity for
+automatic interpolation to points of interest. The position and
+direction for which the reflectivity shall be extracted are given
+by *rtp_pos* and *rtp_los*. The reflectivity field is expected to
+be stored as:
+
+- GriddedField6:
+
+  - Vector \"Frequency\"       [N_f]
+  - Vector \"Stokes element\"  [N_s1]
+  - Vector \"Stokes_element\"  [N_s2]
+  - Vector \"Incidence angle\" [N_ia]
+  - Vector \"Latitude\"        [N_lat]
+  - Vector \"Longitude\"       [N_lon]
+  - Tensor6 data[N_f][N_s1][N_s2][N_ia][N_lat][N_lon]
+
+Grids for incidence angle, latitude and longitude must have a
+length of >= 2 (ie. no automatic expansion). If the frequency grid
+has length 1, this is taken as that the reflectivity is constant,
+following the definition of *surface_scalar_reflectivity*.
+The data can cover higher Stokes dimensionalities than set by
+``stokes_dim``. Data for non-used Stokes elements are just cropped.
+The order between the two Stokes dimensions is the same as in
+*surface_reflectivity* and surface_rmatrix*.
+
+The interpolation is done in steps:
+   (1) Linear interpolation for lat and lon (std. extrapolation).
+   (2) Interpolation in incidence angle (std. extrapolation).
+       If the grid has a length of >= 4, cubic interpolation is
+       applied. Otherwise linear interpolation.
+   (3) Linear interpolation in frequency (if input data have more
+       than one frequency).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_reflectivity"),
       GOUT(),
@@ -19357,21 +19495,21 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesAverage"),
-      DESCRIPTION(
-          "Extracts surface RT properties by averaging.\n"
-          "\n"
-          "This method allows to let one pencil beam calculation represent\n"
-          "an area when it comes to surface RT properties. The surface is\n"
-          "sampled at a set of positions. The sampling is defined as a set\n"
-          "of angles by the WSV *dlos*.\n"
-          "\n"
-          "A weight must be specified for each angle by *dlos_weight_vector*.\n"
-          "These weights should represent the solid angle each *dlos* covers,\n"
-          "but can also include other weighting factors such as antenna pattern.\n" 
-          "The sum of *dlos_weight_vector* is internally normalised to 1.\n"
-          "\n"
-          "All the output variables are a weighted average between the surface\n"
-          "types inside the area sampled.\n"),
+      DESCRIPTION(R"--(Extracts surface RT properties by averaging.
+
+This method allows to let one pencil beam calculation represent
+an area when it comes to surface RT properties. The surface is
+sampled at a set of positions. The sampling is defined as a set
+of angles by the WSV *dlos*.
+
+A weight must be specified for each angle by *dlos_weight_vector*.
+These weights should represent the solid angle each *dlos* covers,
+but can also include other weighting factors such as antenna pattern.
+The sum of *dlos_weight_vector* is internally normalised to 1.
+
+All the output variables are a weighted average between the surface
+types inside the area sampled.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_type_mix",
           "surface_skin_t",
@@ -19400,10 +19538,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 */
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesManual"),
-      DESCRIPTION(
-          "Extracts surface RT properties by manual selection of surface type.\n"
-          "\n"
-          "The surface type to apply is selected by the GIN argument.\n"),
+      DESCRIPTION(R"--(Extracts surface RT properties by manual selection of surface type.
+
+The surface type to apply is selected by the GIN argument.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_type_mix",
           "surface_skin_t",
@@ -19425,12 +19563,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropFromTypesNearest"),
-      DESCRIPTION(
-          "Extracts surface RT properties from nearest surface type.\n"
-          "\n"
-          "The surface type is set by nearest interpolation of *surface_type_mask*\n"
-          "and the corresponding agenda in *surface_rtprop_agenda_array* is\n"
-          "called to obtain the local radiative properties of the surface.\n"),
+      DESCRIPTION(R"--(Extracts surface RT properties from nearest surface type.
+
+The surface type is set by nearest interpolation of *surface_type_mask*
+and the corresponding agenda in *surface_rtprop_agenda_array* is
+called to obtain the local radiative properties of the surface.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_type_mix",
           "surface_skin_t",
@@ -19456,13 +19594,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropInterpFreq"),
-      DESCRIPTION(
-          "Interpolates surface RT properties in frequency.\n"
-          "\n"
-          "The WSVs *surface_rmatrix* and *surface_emission* are inter-\n"
-          "polated linearly in frequency. The original frequency is given\n"
-          "by *f_grid*, and there is an interpolation to new frequency grid.\n"
-          "The function resets *f_grid* to the new grid.\n"),
+      DESCRIPTION(R"--(Interpolates surface RT properties in frequency.
+
+The WSVs *surface_rmatrix* and *surface_emission* are inter-
+polated linearly in frequency. The original frequency is given
+by *f_grid*, and there is an interpolation to new frequency grid.
+The function resets *f_grid* to the new grid.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("f_grid",
           "surface_rmatrix",
@@ -19481,36 +19619,36 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromGriddedField4"),
-      DESCRIPTION(
-          "Extracts scalar surface reflectivities from a field of such data.\n"
-          "\n"
-          "This method allows to specify a field of surface reflectivity for\n"
-          "automatic interpolation to points of interest. The position and\n"
-          "direction for which the reflectivity shall be extracted are given\n"
-          "by *rtp_pos* and *rtp_los*. The reflectivity field is expected to\n"
-          "be stored as:\n"
-          "\n"
-          "- GriddedField4:\n"
-          "\n"
-          "  - Vector \"Frequency\"       [N_f]\n"
-          "  - Vector \"Incidence angle\" [N_ia]\n"
-          "  - Vector \"Latitude\"        [N_lat]\n"
-          "  - Vector \"Longitude\"       [N_lon]\n"
-          "  - Tensor4 data[N_f][N_ia][N_lat][N_lon]\n"
-          "\n"
-          "Grids for incidence angle, latitude and longitude must have a\n"
-          "length of >= 2 (ie. no automatic expansion). If the frequency grid\n"
-          "has length 1, this is taken as the reflectivity is constant,\n"
-          "following the definition of *surface_scalar_reflectivity*.\n"
-          "\n"
-          "The interpolation is done in steps:\n"
-          "\n"
-          "1. Linear interpolation for lat and lon (std. extrapolation).\n"
-          "2. Interpolation in incidence angle (std. extrapolation).\n"
-          "   If the grid has a length of >= 4, cubic interpolation is\n"
-          "   applied. Otherwise linear interpolation.\n"
-          "3. Linear interpolation if frequency (if input data have more\n"
-          "   than one frequency).\n"),
+      DESCRIPTION(R"--(Extracts scalar surface reflectivities from a field of such data.
+
+This method allows to specify a field of surface reflectivity for
+automatic interpolation to points of interest. The position and
+direction for which the reflectivity shall be extracted are given
+by *rtp_pos* and *rtp_los*. The reflectivity field is expected to
+be stored as:
+
+- GriddedField4:
+
+  - Vector \"Frequency\"       [N_f]
+  - Vector \"Incidence angle\" [N_ia]
+  - Vector \"Latitude\"        [N_lat]
+  - Vector \"Longitude\"       [N_lon]
+  - Tensor4 data[N_f][N_ia][N_lat][N_lon]
+
+Grids for incidence angle, latitude and longitude must have a
+length of >= 2 (ie. no automatic expansion). If the frequency grid
+has length 1, this is taken as the reflectivity is constant,
+following the definition of *surface_scalar_reflectivity*.
+
+The interpolation is done in steps:
+
+1. Linear interpolation for lat and lon (std. extrapolation).
+2. Interpolation in incidence angle (std. extrapolation).
+   If the grid has a length of >= 4, cubic interpolation is
+   applied. Otherwise linear interpolation.
+3. Linear interpolation if frequency (if input data have more
+   than one frequency).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_scalar_reflectivity"),
       GOUT(),
@@ -19531,11 +19669,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromSurface_rmatrix"),
-      DESCRIPTION(
-          "Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.\n"
-          "\n"
-          "For each frequency f, *surface_scalar_reflectivity* is set to\n"
-          "the sum of surface_rmatrix(joker,f,0,0).\n"),
+      DESCRIPTION(R"--(Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.
+
+For each frequency f, *surface_scalar_reflectivity* is set to
+the sum of surface_rmatrix(joker,f,0,0).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_scalar_reflectivity"),
       GOUT(),
@@ -19550,17 +19688,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceBlackbody"),
-      DESCRIPTION(
-          "Blackbody surface, with support for Jacobian calculations.\n"
-          "\n"
-          "See *surfaceBlackbody* and *SurfaceFastem* for complementary\n"
-          "information.\n"
-          "\n"
-          "For this method, ``surface_props_data`` must contain these data:\n"
-          "  \"Skin temperature\"\n"
-          "\n"
-          "*dsurface_emission_dx* is calculated analytically.\n"
-          "*surface_rmatrix* and *dsurface_rmatrix_dx* are set to 0.\n"),
+      DESCRIPTION(R"--(Blackbody surface, with support for Jacobian calculations.
+
+See *surfaceBlackbody* and *SurfaceFastem* for complementary
+information.
+
+For this method, ``surface_props_data`` must contain these data:
+  \"Skin temperature\"
+
+*dsurface_emission_dx* is calculated analytically.
+*surface_rmatrix* and *dsurface_rmatrix_dx* are set to 0.
+)--"),
       AUTHORS("Marc Prange"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -19590,17 +19728,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
-      DESCRIPTION(
-          "Dummy method for *iy_surface_agenda*.\n"
-          "\n"
-          "If you don't make use of ``surface_props_data`` and associated\n"
-          "variables, include this method *iy_surface_agenda*. The method\n"
-          "just checks that the variables of concern are set to be empty,\n"
-          "and you don't need to include calls of *Ignore* and *Touch* in\n"
-          "the agenda.\n"
-          "\n"
-          "If you use a method of SurfaceSomething type, you don't need\n"
-          "this one.\n"),
+      DESCRIPTION(R"--(Dummy method for *iy_surface_agenda*.
+
+If you don't make use of ``surface_props_data`` and associated
+variables, include this method *iy_surface_agenda*. The method
+just checks that the variables of concern are set to be empty,
+and you don't need to include calls of *Ignore* and *Touch* in
+the agenda.
+
+If you use a method of SurfaceSomething type, you don't need
+this one.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("dsurface_rmatrix_dx", "dsurface_emission_dx"),
       GOUT(),
@@ -19619,28 +19757,28 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFastem"),
-      DESCRIPTION(
-          "FASTEM sea surface microwave emissivity parametrization.\n"
-          "\n"
-          "This method allows to use FASTEM in retrievals requiring the\n"
-          "Jacobian. Otherwise as *surfaceFastem*. See *SurfaceBlackbody\n"
-          "for general remarks about methods of SurfaceSomething type.\n"
-          "\n"
-          "This is an example on a surface method starting with a capital S,\n"
-          "e.g. SurfaceSomething. These methods differ from the methods\n"
-          "named as surfaceSomething in two ways:\n"
-          "  1. The surface properties to apply are taken directly from\n"
-          "     ``surface_props_data``.\n"
-          "  2. The Jacobian with respect to the surface properties can be\n"
-          "     obtained.\n"
-          "The Jacobian can be obtained for all variables in ``surface_props_data``\n"
-          "that the method of concern is using.\n"
-          "\n"
-          "For this method, ``surface_props_data`` must contain these data:\n"
-          "  \"Water skin temperature\"\n"
-          "  \"Wind speed\"\n"
-          "  \"Wind direction\"\n"
-          "  \"Salinity\"\n"),
+      DESCRIPTION(R"--(FASTEM sea surface microwave emissivity parametrization.
+
+This method allows to use FASTEM in retrievals requiring the
+Jacobian. Otherwise as *surfaceFastem*. See *SurfaceBlackbody
+for general remarks about methods of SurfaceSomething type.
+
+This is an example on a surface method starting with a capital S,
+e.g. SurfaceSomething. These methods differ from the methods
+named as surfaceSomething in two ways:
+  1. The surface properties to apply are taken directly from
+     ``surface_props_data``.
+  2. The Jacobian with respect to the surface properties can be
+     obtained.
+The Jacobian can be obtained for all variables in ``surface_props_data``
+that the method of concern is using.
+
+For this method, ``surface_props_data`` must contain these data:
+  \"Water skin temperature\"
+  \"Wind speed\"
+  \"Wind direction\"
+  \"Salinity\
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -19672,33 +19810,33 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFlatScalarReflectivity"),
-      DESCRIPTION(
-          "Piecewise linear scalar surface reflectivity.\n"
-          "\n"
-          "This method is similar to *surfaceFlatScalarReflectivity* but the\n"
-          "reflectivities are specified differently and Jacobian calculations\n"
-          "are supported. See *SurfaceFastem* for general remarks about\n"
-          "methods of SurfaceSomething type.\n"
-          "\n"
-          "The method works with scalar reflectivies, i.e. it is assumed that\n"
-          "the reflection at vertical and horizontal polarisation is identical.\n"
-          "The scalar reflectivity is given at a number of frequencies,\n"
-          "specified by the GIN ``f_reflectivities``. The reflectivity at the\n"
-          "first frequency is denoted as \"Scalar reflectivity 0\" etc. Between\n"
-          "the frequencies in ``f_reflectivities``, the reflectivity is treated\n"
-          "to vary linearly. The reflectivity is assumed to be constant outside\n"
-          "of ``f_reflectivities``, and the end points in ``f_reflectivities`` can be\n"
-          "both inside and outside of the range of *f_grid*. Setting\n"
-          "``f_reflectivities`` to have a single value, implies that the reflectivity\n"
-          "is constant over *f_grid*.\n"
-          "\n"
-          "For this method, ``surface_props_data`` must contain these data:\n"
-          "  \"Skin temperature\"\n"
-          "  \"Scalar reflectivity 0\"\n"
-          "  \"Scalar reflectivity 1\"\n"
-          "  ...\n"
-          "  \"Scalar reflectivity N\"\n"
-          "where N is the length of ``f_reflectivities``-1.\n"),
+      DESCRIPTION(R"--(Piecewise linear scalar surface reflectivity.
+
+This method is similar to *surfaceFlatScalarReflectivity* but the
+reflectivities are specified differently and Jacobian calculations
+are supported. See *SurfaceFastem* for general remarks about
+methods of SurfaceSomething type.
+
+The method works with scalar reflectivies, i.e. it is assumed that
+the reflection at vertical and horizontal polarisation is identical.
+The scalar reflectivity is given at a number of frequencies,
+specified by the GIN ``f_reflectivities``. The reflectivity at the
+first frequency is denoted as \"Scalar reflectivity 0\" etc. Between
+the frequencies in ``f_reflectivities``, the reflectivity is treated
+to vary linearly. The reflectivity is assumed to be constant outside
+of ``f_reflectivities``, and the end points in ``f_reflectivities`` can be
+both inside and outside of the range of *f_grid*. Setting
+``f_reflectivities`` to have a single value, implies that the reflectivity
+is constant over *f_grid*.
+
+For this method, ``surface_props_data`` must contain these data:
+  \"Skin temperature\"
+  \"Scalar reflectivity 0\"
+  \"Scalar reflectivity 1\"
+  ...
+  \"Scalar reflectivity N\"
+where N is the length of ``f_reflectivities``-1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -19729,17 +19867,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
   /*
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceTessem"),
-      DESCRIPTION(
-          "TESSEM sea surface microwave emissivity parametrization.\n"
-          "\n"
-          "This method allows to use TESSEM in retrievals requiring the\n"
-          "Jacobian. Otherwise as *surfaceTessem*. See *SurfaceFastem*\n"
-          "for general remarks about methods of SurfaceSomething type.\n"
-          "\n"
-          "For this method, ``surface_props_data`` must contain these data:\n"
-          "  \"Water skin temperature\"\n"
-          "  \"Wind speed\"\n"
-          "  \"Salinity\"\n"),
+      DESCRIPTION(R"--(TESSEM sea surface microwave emissivity parametrization.
+
+This method allows to use TESSEM in retrievals requiring the
+Jacobian. Otherwise as *surfaceTessem*. See *SurfaceFastem*
+for general remarks about methods of SurfaceSomething type.
+
+For this method, ``surface_props_data`` must contain these data:
+  \"Water skin temperature\"
+  \"Wind speed\"
+  \"Salinity\
+)--"),
       AUTHORS("Simon Pfreundschuh", "Patrick Eriksson"),
       OUT("surface_los",
           "surface_rmatrix",
@@ -19769,19 +19907,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       GIN_DESC()));
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemStandalone"),
-      DESCRIPTION(
-          "Stand-alone evaluation of the Telsem model.\n"
-          "\n"
-          "This evaluates the Telsem land surface emissivity\n"
-          "model using the data from the provided atlas.\n"
-          "\n"
-          "Since TELSEM atlases do not contain data for all locations\n"
-          "this function allows for nearest neighbor interpolation, which\n"
-          "can be enabled by setting the ``d_max`` GIN to a positive value.\n"
-          "\n"
-          "This WSM throws a runtime error if the queried location is not\n"
-          "contained in the atlas or the distance of the neighboring cell\n"
-          "exceeds the given ``d_max`` value.\n"),
+      DESCRIPTION(R"--(Stand-alone evaluation of the Telsem model.
+
+This evaluates the Telsem land surface emissivity
+model using the data from the provided atlas.
+
+Since TELSEM atlases do not contain data for all locations
+this function allows for nearest neighbor interpolation, which
+can be enabled by setting the ``d_max`` GIN to a positive value.
+
+This WSM throws a runtime error if the queried location is not
+contained in the atlas or the distance of the neighboring cell
+exceeds the given ``d_max`` value.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("emissivities"),
@@ -19802,15 +19940,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 */
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemAtlasLookup"),
-      DESCRIPTION(
-          "Lookup SSMI emissivities from Telsem Atlas.\n"
-          "\n"
-          "This returns the emissivities (indices [0,..,6])\n"
-          "for the SSMI channels that are contained in\n"
-          "the Telsem atlas.\n"
-          "\n"
-          "If given latitude and longitude are not in the atlas an empty\n"
-          "vector is returned.\n"),
+      DESCRIPTION(R"--(Lookup SSMI emissivities from Telsem Atlas.
+
+This returns the emissivities (indices [0,..,6])
+for the SSMI channels that are contained in
+the Telsem atlas.
+
+If given latitude and longitude are not in the atlas an empty
+vector is returned.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("emissivities"),
@@ -19827,12 +19965,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("telsemSurfaceTypeLandSea"),
-      DESCRIPTION(
-          "TELSEM based land sea mask.\n"
-          "\n"
-          "This method determines whether the position in *rtp_pos* is\n"
-          "of type ocean or land depending on whether a corresponding\n"
-          "cell is contained in the provided TELSEM atlas.\n"),
+      DESCRIPTION(R"--(TELSEM based land sea mask.
+
+This method determines whether the position in *rtp_pos* is
+of type ocean or land depending on whether a corresponding
+cell is contained in the provided TELSEM atlas.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("surface_type"),
@@ -19846,12 +19984,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 */
   md_data_raw.push_back(create_mdrecord(
       NAME("telsem_atlasReadAscii"),
-      DESCRIPTION(
-          "Reads single TELSEM atlas.\n"
-          "\n"
-          "'directory' needs to contain the original 12 Telsem atlas files\n"
-          "and the correlations file. This WSM reads the atlas for the specified\n"
-          "month and stores the result in the provided output atlas.\n"),
+      DESCRIPTION(R"--(Reads single TELSEM atlas.
+
+'directory' needs to contain the original 12 Telsem atlas files
+and the correlations file. This WSM reads the atlas for the specified
+month and stores the result in the provided output atlas.
+)--"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
       GOUT("atlas"),
@@ -19867,12 +20005,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("telsem_atlasesReadAscii"),
-      DESCRIPTION(
-          "Reads TELSEM atlas files.\n"
-          "\n"
-          "'directory' needs to contain the original 12 Telsem atlas files\n"
-          "and the correlations file.\n"
-          "The whole data is combined into the WSV *telsem_atlases*\n"),
+      DESCRIPTION(R"--(Reads TELSEM atlas files.
+
+'directory' needs to contain the original 12 Telsem atlas files
+and the correlations file.
+The whole data is combined into the WSV *telsem_atlases*
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT("telsem_atlases"),
       GOUT(),
@@ -19887,10 +20025,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3Add"),
-      DESCRIPTION("Adds a scalar value to all elements of a tensor3.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Adds a scalar value to all elements of a tensor3.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -19904,12 +20043,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3ExtractFromTensor4"),
-      DESCRIPTION(
-          "Extracts a Tensor3 from a Tensor4.\n"
-          "\n"
-          "Copies book, page, row or column with given Index from input Tensor4\n"
-          "variable to output Tensor3.\n"
-          "Higher order equivalent of *VectorExtractFromMatrix*.\n"),
+      DESCRIPTION(R"--(Extracts a Tensor3 from a Tensor4.
+
+Copies book, page, row or column with given Index from input Tensor4
+variable to output Tensor3.
+Higher order equivalent of *VectorExtractFromMatrix*.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("output"),
@@ -19925,7 +20064,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3FromVector"),
-      DESCRIPTION("Forms a Tensor3 of size nx1x1 from a vector of length n.\n"),
+      DESCRIPTION(R"--(Forms a Tensor3 of size nx1x1 from a vector of length n.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -19939,10 +20079,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3Multiply"),
-      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a tensor with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -19957,10 +20098,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3SetConstant"),
-      DESCRIPTION(
-          "Creates a tensor and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols*, *nrows* etc.\n"),
+      DESCRIPTION(R"--(Creates a tensor and sets all elements to the specified value.
+
+The size is determined by *ncols*, *nrows* etc.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("output"),
@@ -19974,10 +20115,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4Add"),
-      DESCRIPTION("Adds a scalar value to all elements of a tensor4.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Adds a scalar value to all elements of a tensor4.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -19991,10 +20133,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4Multiply"),
-      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a tensor with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -20009,10 +20152,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4SetConstant"),
-      DESCRIPTION(
-          "Creates a tensor and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols*, *nrows* etc.\n"),
+      DESCRIPTION(R"--(Creates a tensor and sets all elements to the specified value.
+
+The size is determined by *ncols*, *nrows* etc.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("output"),
@@ -20026,10 +20169,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor5Multiply"),
-      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a tensor with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -20044,10 +20188,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor5SetConstant"),
-      DESCRIPTION(
-          "Creates a tensor and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols*, *nrows* etc.\n"),
+      DESCRIPTION(R"--(Creates a tensor and sets all elements to the specified value.
+
+The size is determined by *ncols*, *nrows* etc.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("output"),
@@ -20061,10 +20205,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor6Multiply"),
-      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a tensor with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -20079,10 +20224,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor6SetConstant"),
-      DESCRIPTION(
-          "Creates a tensor and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols*, *nrows* etc.\n"),
+      DESCRIPTION(R"--(Creates a tensor and sets all elements to the specified value.
+
+The size is determined by *ncols*, *nrows* etc.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("output"),
@@ -20096,10 +20241,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor7Multiply"),
-      DESCRIPTION("Multiplies all elements of a tensor with the specified value.\n"
-                  "\n"
-                  "The result can either be stored in the same or another\n"
-                  "variable.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a tensor with the specified value.
+
+The result can either be stored in the same or another
+variable.
+)--"),
       AUTHORS("Mattias Ekstrom"),
       OUT(),
       GOUT("output"),
@@ -20114,10 +20260,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Tensor7SetConstant"),
-      DESCRIPTION(
-          "Creates a tensor and sets all elements to the specified value.\n"
-          "\n"
-          "The size is determined by *ncols*, *nrows* etc.\n"),
+      DESCRIPTION(R"--(Creates a tensor and sets all elements to the specified value.
+
+The size is determined by *ncols*, *nrows* etc.
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT("output"),
@@ -20137,8 +20283,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("TestArrayOfAgenda"),
-      DESCRIPTION(
-          "A method that is used for the TestArrayOfAgenda test case.\n"),
+      DESCRIPTION(R"--(A method that is used for the TestArrayOfAgenda test case.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -20152,21 +20298,21 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("TestBasicGeodeticAccuracy"),
-      DESCRIPTION(
-          "Tests the basic accuracy of the geodetic calculations.\n"
-          "\n"
-          "Basically all geodetic calculations involves conversion to ECEF coordinates\n"
-          "and back. This method tests the accuracy of this conversion. \n"
-          "\n"
-          "A random position and line-of-sights is generated and the conversion are\n"
-          "made. The change of position is calculated as a distance. If the distance\n"
-          "exceeds ``max_allowed_dl`` an error is issued. Otherwise a new test is made.\n"
-          "This is repeated ``ntests`` times. The maximum error is returned as ``max_dl``.\n"
-          "The position the maximum error is returned as *rte_pos*.\n"
-          "\n"
-          "Further, the maximum error for altitude, latitude etc. are returned in\n"
-          "GOUTs ``max_dpos`` and ``max_dlos``. This is the max absolute error for each\n"
-          "value separately (i.e. they can come from different tests/positions.\n"),
+      DESCRIPTION(R"--(Tests the basic accuracy of the geodetic calculations.
+
+Basically all geodetic calculations involves conversion to ECEF coordinates
+and back. This method tests the accuracy of this conversion. 
+
+A random position and line-of-sights is generated and the conversion are
+made. The change of position is calculated as a distance. If the distance
+exceeds ``max_allowed_dl`` an error is issued. Otherwise a new test is made.
+This is repeated ``ntests`` times. The maximum error is returned as ``max_dl``.
+The position the maximum error is returned as *rte_pos*.
+
+Further, the maximum error for altitude, latitude etc. are returned in
+GOUTs ``max_dpos`` and ``max_dlos``. This is the max absolute error for each
+value separately (i.e. they can come from different tests/positions.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("rte_pos"),
       GOUT("max_dl", "max_dpos", "max_dlos"),
@@ -20182,8 +20328,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("TessemNNReadAscii"),
-      DESCRIPTION(
-          "Reads the initialization data for the TESSEM NeuralNet from an ASCII file.\n"),
+      DESCRIPTION(R"--(Reads the initialization data for the TESSEM NeuralNet from an ASCII file.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("tessem_nn"),
@@ -20198,19 +20344,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("TestTessem"),
-      DESCRIPTION(
-          "Example method for TESSEM2.\n"
-          "\n"
-          "When using the default neural network parameter files\n"
-          "from the Tessem 2 distribution, the input Vector should contain\n"
-          "5 elements:\n"
-          "\n"
-          "- Frequency (10-700) in GHz.\n"
-          "- Theta (0-90) Incidence angle in degrees.\n"
-          "- Windspeed (0-25) at 10m (m/s)\n"
-          "  Higher wind speed can be used, but without garantee.\n"
-          "- Surface skin temperature (270-310) in K.\n"
-          "- Salinity (0-0.04) in kg/kg\n"),
+      DESCRIPTION(R"--(Example method for TESSEM2.
+
+When using the default neural network parameter files
+from the Tessem 2 distribution, the input Vector should contain
+5 elements:
+
+- Frequency (10-700) in GHz.
+- Theta (0-90) Incidence angle in degrees.
+- Windspeed (0-25) at 10m (m/s)
+  Higher wind speed can be used, but without garantee.
+- Surface skin temperature (270-310) in K.
+- Salinity (0-0.04) in kg/kg
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("outvalues"),
@@ -20224,7 +20370,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("time_gridOffset"),
-      DESCRIPTION("Offsets a time grid by some seconds.\n"),
+      DESCRIPTION(R"--(Offsets a time grid by some seconds.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("time_grid"),
       GOUT(),
@@ -20238,15 +20385,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("timerStart"),
-               DESCRIPTION("Initializes the CPU timer."
-                           "\n"
-                           "Use *timerStop* to stop the timer.\n"
-                           "\n"
-                           "Usage example:\n\n"
-                           " - timerStart\n"
-                           " - ReadXML(f_grid,\"frequencies.xml\")\n"
-                           " - timerStop\n"
-                           " - Print(timer)\n"),
+               DESCRIPTION(R"--(Initializes the CPU timer.
+
+Use *timerStop* to stop the timer.
+
+Usage example:
+
+ - timerStart
+ - ReadXML(f_grid,\"frequencies.xml\")
+ - timerStop
+ - Print(timer)
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("timer"),
                GOUT(),
@@ -20260,9 +20409,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("timerStop"),
-               DESCRIPTION("Stops the CPU timer."
-                           "\n"
-                           "See *timerStart* for example usage.\n"),
+               DESCRIPTION(R"--(Stops the CPU timer.
+
+See *timerStart* for example usage.
+)--"),
                AUTHORS("Oliver Lemke"),
                OUT("timer"),
                GOUT(),
@@ -20276,7 +20426,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("time_stampsSort"),
-      DESCRIPTION("Sort ``input`` by *time_stamps* into ``output``.\n"),
+      DESCRIPTION(R"--(Sort ``input`` by *time_stamps* into ``output``.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("output"),
@@ -20290,12 +20441,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("TMatrixTest"),
-      DESCRIPTION(
-          "T-Matrix validation test.\n"
-          "\n"
-          "Executes the standard test included with the T-Matrix Fortran code.\n"
-          "Should give the same as running the tmatrix_lp executable in\n"
-          "3rdparty/tmatrix/.\n"),
+      DESCRIPTION(R"--(T-Matrix validation test.
+
+Executes the standard test included with the T-Matrix Fortran code.
+Should give the same as running the tmatrix_lp executable in
+3rdparty/tmatrix/.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -20309,15 +20460,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Touch"),
-      DESCRIPTION(
-          "As *Ignore* but for agenda output.\n"
-          "\n"
-          "This method is handy for use in agendas in order to suppress\n"
-          "warnings about not-produced output workspace variables.\n"
-          "\n"
-          "What it does, in case the variable is initialized already, is:\n"
-          "Nothing!\n"
-          "In case the variable is not yet initialized, it is set to NaN.\n"),
+      DESCRIPTION(R"--(As *Ignore* but for agenda output.
+
+This method is handy for use in agendas in order to suppress
+warnings about not-produced output workspace variables.
+
+What it does, in case the variable is initialized already, is:
+Nothing!
+In case the variable is not yet initialized, it is set to NaN.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT("input"),
@@ -20334,14 +20485,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("transmittanceFromIy_aux"),
-      DESCRIPTION(
-          "Creates a vector of transmittance values.\n"
-          "\n"
-          "The transmittances are set based on optical depths in *iy_aux*. That is,\n"
-          "one of the quantities in *iy_aux* must be \"Optical depth\".\n"
-          "\n"
-          "The created vector has a length matching *f_grid* and can e.g. be used\n"
-          "as input to some of the FASTEM methods.\n"),
+      DESCRIPTION(R"--(Creates a vector of transmittance values.
+
+The transmittances are set based on optical depths in *iy_aux*. That is,
+one of the quantities in *iy_aux* must be \"Optical depth\".
+
+The created vector has a length matching *f_grid* and can e.g. be used
+as input to some of the FASTEM methods.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("transmittance"),
@@ -20355,12 +20506,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Trapz"),
-      DESCRIPTION(
-          "Intregrates a vector of over its grid range\n"
-          "\n"
-          "The method integrates y(x) by the trapezoidal method.\n"
-          "\n"
-          "The vector x is the positions where the integrand, y, is known.\n"),
+      DESCRIPTION(R"--(Intregrates a vector of over its grid range
+
+The method integrates y(x) by the trapezoidal method.
+
+The vector x is the positions where the integrand, y, is known.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20374,10 +20525,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorAdd"),
-      DESCRIPTION(
-          "Adds a scalar to all elements of a vector.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Adds a scalar to all elements of a vector.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20391,16 +20542,16 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorAddElementwise"),
-      DESCRIPTION(
-          "Element-wise addition of two vectors.\n"
-          "\n"
-          "The method calculates c = a + b.\n"
-          "\n"
-          "The variable ``b`` is allowed to have length 1, for any length of\n"
-          "``a``. This single value in ``b`` is then added to every element of ``a``.\n"
-          "\n"
-          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
-          "the same WSV as any of the the other vector.\n"),
+      DESCRIPTION(R"--(Element-wise addition of two vectors.
+
+The method calculates c = a + b.
+
+The variable ``b`` is allowed to have length 1, for any length of
+``a``. This single value in ``b`` is then added to every element of ``a``.
+
+The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
+the same WSV as any of the the other vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("c"),
@@ -20414,17 +20565,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorClip"),
-      DESCRIPTION(
-          "Clipping of a vector.\n"
-          "\n"
-          "The input vector is copied to the output one (that can be same WSV)\n"
-          "but ensures that all values in ``output`` are inside the range [limit_low,\n"
-          "limit_high]. Where the input vector is below ``limit_low``, ``out`` is set\n"
-          "to ``limit_low``. And the same is performed with respect to ``limit_high``.\n"
-          "That is, the method works as *NumericClip* for each element of the\n"
-          "vector.\n"
-          "\n"
-          "The method adopts the length of ``out`` when needed.\n"),
+      DESCRIPTION(R"--(Clipping of a vector.
+
+The input vector is copied to the output one (that can be same WSV)
+but ensures that all values in ``output`` are inside the range [limit_low,
+limit_high]. Where the input vector is below ``limit_low``, ``out`` is set
+to ``limit_low``. And the same is performed with respect to ``limit_high``.
+That is, the method works as *NumericClip* for each element of the
+vector.
+
+The method adopts the length of ``out`` when needed.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20440,13 +20591,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorCrop"),
-      DESCRIPTION(
-          "Keeps only values of a vector inside the specified range.\n"
-          "\n"
-          "All values outside the range [min_value,max-value] are removed.\n"
-          "Note the default values, that basically should act as -+Inf.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Keeps only values of a vector inside the specified range.
+
+All values outside the range [min_value,max-value] are removed.
+Note the default values, that basically should act as -+Inf.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20462,10 +20613,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorDivide"),
-      DESCRIPTION(
-          "Divides all elements of a vector with the same value.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Divides all elements of a vector with the same value.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20479,16 +20630,16 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorDivideElementwise"),
-      DESCRIPTION(
-          "Element-wise division of two vectors.\n"
-          "\n"
-          "The method calculates c = a / b.\n"
-          "\n"
-          "The variable ``b`` is allowed to have length 1, for any length of\n"
-          "``a``. This single value in ``b`` is then applied to every element of ``a``.\n"
-          "\n"
-          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
-          "the same WSV as any of the the other vector.\n"),
+      DESCRIPTION(R"--(Element-wise division of two vectors.
+
+The method calculates c = a / b.
+
+The variable ``b`` is allowed to have length 1, for any length of
+``a``. This single value in ``b`` is then applied to every element of ``a``.
+
+The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
+the same WSV as any of the the other vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("c"),
@@ -20502,11 +20653,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorExtractFromMatrix"),
-      DESCRIPTION(
-          "Extracts a Vector from a Matrix.\n"
-          "\n"
-          "Copies row or column with given Index from input Matrix variable\n"
-          "to create output Vector.\n"),
+      DESCRIPTION(R"--(Extracts a Vector from a Matrix.
+
+Copies row or column with given Index from input Matrix variable
+to create output Vector.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke, Stefan Buehler"),
       OUT(),
       GOUT("output"),
@@ -20522,11 +20673,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorFlip"),
-      DESCRIPTION(
-          "Flips a vector.\n"
-          "\n"
-          "The output is the input vector in reversed order. The result can\n"
-          "either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Flips a vector.
+
+The output is the input vector in reversed order. The result can
+either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20540,14 +20691,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorGaussian"),
-      DESCRIPTION(
-          "Fills a vector with a Gaussian function.\n"
-          "\n"
-          "The width can be set in two ways, either by standard deviation or\n"
-          "the full width at half maximum. Only one of the corresponding GINs\n"
-          "can be >0 and that value will determine the width.\n"
-          "\n"
-          "The vectors *x* and *y* can be the same variable.\n"),
+      DESCRIPTION(R"--(Fills a vector with a Gaussian function.
+
+The width can be set in two ways, either by standard deviation or
+the full width at half maximum. Only one of the corresponding GINs
+can be >0 and that value will determine the width.
+
+The vectors *x* and *y* can be the same variable.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("y"),
@@ -20564,26 +20715,26 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorInsertGridPoints"),
-      DESCRIPTION(
-          "Insert some additional points into a grid.\n"
-          "\n"
-          "This method can for example be used to add line center frequencies to\n"
-          "a regular frequency grid. If the original grid is [1,2,3], and the\n"
-          "additional points are [2.2,2.4], the result will be [1,2,2.2,2.4,3].\n"
-          "\n"
-          "It is assumed that the original grid is sorted, otherwise a runtime\n"
-          "error is thrown. The vector with the points to insert does not have to\n"
-          "be sorted. If some of the input points are already in the grid, these\n"
-          "points are not inserted again. New points outside the original grid are\n"
-          "appended at the appropriate end. Input vector and output vector can be\n"
-          "the same.\n"
-          "\n"
-          "Generic output:\n"
-          " - Vector : The new grid vector.\n"
-          "\n"
-          "Generic input:\n"
-          " - Vector : The original grid vector.\n"
-          " - Vector : The points to insert.\n"),
+      DESCRIPTION(R"--(Insert some additional points into a grid.
+
+This method can for example be used to add line center frequencies to
+a regular frequency grid. If the original grid is [1,2,3], and the
+additional points are [2.2,2.4], the result will be [1,2,2.2,2.4,3].
+
+It is assumed that the original grid is sorted, otherwise a runtime
+error is thrown. The vector with the points to insert does not have to
+be sorted. If some of the input points are already in the grid, these
+points are not inserted again. New points outside the original grid are
+appended at the appropriate end. Input vector and output vector can be
+the same.
+
+Generic output:
+ - Vector : The new grid vector.
+
+Generic input:
+ - Vector : The original grid vector.
+ - Vector : The points to insert.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("output"),
@@ -20597,14 +20748,14 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorLinSpace"),
-      DESCRIPTION(
-          "Initializes a vector with linear spacing.\n"
-          "\n"
-          "The first element equals always the start value, and the spacing\n"
-          "equals always the step value, but the last value can deviate from\n"
-          "the stop value. ``step`` can be both positive and negative.\n"
-          "\n"
-          "The created vector is [start, start+step, start+2*step, ...]\n "),
+      DESCRIPTION(R"--(Initializes a vector with linear spacing.
+
+The first element equals always the start value, and the spacing
+equals always the step value, but the last value can deviate from
+the stop value. ``step`` can be both positive and negative.
+
+The created vector is [start, start+step, start+2*step, ...]
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20620,19 +20771,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorLogSpace"),
-      DESCRIPTION(
-          "Initializes a vector with logarithmic spacing.\n"
-          "\n"
-          "The first element equals always the start value, and the spacing\n"
-          "equals always the step value, but note that the last value can \n"
-          "deviate from the stop value. The keyword step can be both positive\n"
-          "and negative.\n"
-          "\n"
-          "Note, that although start has to be given in direct coordinates,\n"
-          "step has to be given in log coordinates.\n"
-          "\n"
-          "Explicitly, the vector is:\n"
-          " exp([ln(start), ln(start)+step, ln(start)+2*step, ...])\n"),
+      DESCRIPTION(R"--(Initializes a vector with logarithmic spacing.
+
+The first element equals always the start value, and the spacing
+equals always the step value, but note that the last value can 
+deviate from the stop value. The keyword step can be both positive
+and negative.
+
+Note, that although start has to be given in direct coordinates,
+step has to be given in log coordinates.
+
+Explicitly, the vector is:
+ exp([ln(start), ln(start)+step, ln(start)+2*step, ...])
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("output"),
@@ -20648,12 +20799,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorMatrixMultiply"),
-      DESCRIPTION(
-          "Multiply a Vector with a Matrix and store the result in another\n"
-          "Vector.\n"
-          "\n"
-          "This just computes the normal matrix-vector product, y=M*x. It is ok\n"
-          "if input and output Vector are the same.\n"),
+      DESCRIPTION(R"--(Multiply a Vector with a Matrix and store the result in another
+Vector.
+
+This just computes the normal matrix-vector product, y=M*x. It is ok
+if input and output Vector are the same.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT(),
       GOUT("y"),
@@ -20668,10 +20819,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorMultiply"),
-      DESCRIPTION(
-          "Multiplies all elements of a vector with the same value.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Multiplies all elements of a vector with the same value.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20685,17 +20836,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorMultiplyElementwise"),
-      DESCRIPTION(
-          "Element-wise multiplication of two vectors.\n"
-          "\n"
-          "The method calculates c = a * b.\n"
-          "\n"
-          "The variable ``b`` is allowed to have length 1, for any length of\n"
-          "``a``. This single value in ``b`` is then multiplied with every element\n"
-          "of ``a``.\n"
-          "\n"
-          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
-          "the same WSV as any of the the other vector.\n"),
+      DESCRIPTION(R"--(Element-wise multiplication of two vectors.
+
+The method calculates c = a * b.
+
+The variable ``b`` is allowed to have length 1, for any length of
+``a``. This single value in ``b`` is then multiplied with every element
+of ``a``.
+
+The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
+the same WSV as any of the the other vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("c"),
@@ -20709,11 +20860,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLinSpace"),
-      DESCRIPTION(
-          "Creates a vector with length *nelem*, equally spaced between the\n"
-          "given end values.\n"
-          "\n"
-          "The length (*nelem*) must be larger than 1.\n"),
+      DESCRIPTION(R"--(Creates a vector with length *nelem*, equally spaced between the
+given end values.
+
+The length (*nelem*) must be larger than 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20727,13 +20878,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLinSpaceVector"),
-      DESCRIPTION(
-          "As *VectorNLinSpace* but end points taken from a vector.\n"
-          "\n"
-          "The method gives a vector with equidistant spacing between\n"
-          "first and last element of the reference vector.\n"
-          "\n"
-          "The length (*nelem*) must be larger than 1.\n"),
+      DESCRIPTION(R"--(As *VectorNLinSpace* but end points taken from a vector.
+
+The method gives a vector with equidistant spacing between
+first and last element of the reference vector.
+
+The length (*nelem*) must be larger than 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20747,11 +20898,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
-      DESCRIPTION(
-          "Creates a vector with length *nelem*, equally logarithmically\n"
-          "spaced between the given end values.\n"
-          "\n"
-          "The length (*nelem*) must be larger than 1.\n"),
+      DESCRIPTION(R"--(Creates a vector with length *nelem*, equally logarithmically
+spaced between the given end values.
+
+The length (*nelem*) must be larger than 1.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20765,10 +20916,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorPower"),
-      DESCRIPTION(
-          "Calculates the power of each element in a vector.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Calculates the power of each element in a vector.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20782,12 +20933,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorReshapeMatrix"),
-      DESCRIPTION(
-          "Converts a Matrix to a Vector.\n"
-          "\n"
-          "The matrix is reshaped into a vector. That is, all elements of the matrix\n"
-          "are kept. The elements can be extracted both in column (default) and row\n"
-          "order. The output vector has the same length for both options.\n"),
+      DESCRIPTION(R"--(Converts a Matrix to a Vector.
+
+The matrix is reshaped into a vector. That is, all elements of the matrix
+are kept. The elements can be extracted both in column (default) and row
+order. The output vector has the same length for both options.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20801,10 +20952,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSetConstant"),
-      DESCRIPTION(
-          "Creates a vector and sets all elements to the specified value.\n"
-          "\n"
-          "The vector length is determined by *nelem*.\n"),
+      DESCRIPTION(R"--(Creates a vector and sets all elements to the specified value.
+
+The vector length is determined by *nelem*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20818,12 +20969,12 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSparseMultiply"),
-      DESCRIPTION(
-          "Multiply a Vector with a Sparse and store the result in another\n"
-          "Vector.\n"
-          "\n"
-          "This just computes the normal matrix-vector product, y=M*x, with\n"
-          "m being a Sparse. It is ok if input and output Vector are the same.\n"),
+      DESCRIPTION(R"--(Multiply a Vector with a Sparse and store the result in another
+Vector.
+
+This just computes the normal matrix-vector product, y=M*x, with
+m being a Sparse. It is ok if input and output Vector are the same.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("y"),
@@ -20838,10 +20989,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSubtract"),
-      DESCRIPTION(
-          "Subtracts a scalar from all elements of a vector.\n"
-          "\n"
-          "The result can either be stored in the same or another vector.\n"),
+      DESCRIPTION(R"--(Subtracts a scalar from all elements of a vector.
+
+The result can either be stored in the same or another vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("output"),
@@ -20855,16 +21006,16 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("VectorSubtractElementwise"),
-      DESCRIPTION(
-          "Element-wise subtraction of two vectors.\n"
-          "\n"
-          "The method calculates c = a - b.\n"
-          "\n"
-          "The variable ``b`` is allowed to have length 1, for any length of\n"
-          "``a``. This single value in ``b`` is then subtracted to every element of ``a``.\n"
-          "\n"
-          "The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be\n"
-          "the same WSV as any of the the other vector.\n"),
+      DESCRIPTION(R"--(Element-wise subtraction of two vectors.
+
+The method calculates c = a - b.
+
+The variable ``b`` is allowed to have length 1, for any length of
+``a``. This single value in ``b`` is then subtracted to every element of ``a``.
+
+The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
+the same WSV as any of the the other vector.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("c"),
@@ -20878,19 +21029,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("water_p_eq_fieldMK05"),
-      DESCRIPTION(
-          "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
-          "\n"
-          "Default is setting the saturation pressure to the one with respect\n"
-          "to water at temperatures >= 0C, and to the one with respect to ice\n"
-          "for <0C. The GIN ``only_liquid`` allows you to apply the liquid value\n"
-          "at all temperatures.\n"
-          "\n"
-          "The saturation pressure with respect to liquid and ice water is\n"
-          "calculated according to Eq. 10 and 7, respectively, of:\n"
-          "Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of\n"
-          "ice and supercooled water for atmospheric applications. Quarterly\n"
-          "Journal of the Royal Meteorological Society, 131(608), 1539-1565.\n"),
+      DESCRIPTION(R"--(Calculates *water_p_eq_field* according to Murphy and Koop, 2005.
+
+Default is setting the saturation pressure to the one with respect
+to water at temperatures >= 0C, and to the one with respect to ice
+for <0C. The GIN ``only_liquid`` allows you to apply the liquid value
+at all temperatures.
+
+The saturation pressure with respect to liquid and ice water is
+calculated according to Eq. 10 and 7, respectively, of:
+Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of
+ice and supercooled water for atmospheric applications. Quarterly
+Journal of the Royal Meteorological Society, 131(608), 1539-1565.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("water_p_eq_field"),
       GOUT(),
@@ -20904,9 +21055,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Wigner6Init"),
-      DESCRIPTION("Initialize the wigner 3 and 6 tables\n"
-                  "\n"
-                  "The default values take about 1 Gb memory.\n"),
+      DESCRIPTION(R"--(Initialize the wigner 3 and 6 tables
+
+The default values take about 1 Gb memory.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("wigner_initialized"),
       GOUT(),
@@ -20922,9 +21074,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Wigner3Init"),
-      DESCRIPTION("Initialize the wigner 3 tables\n"
-                  "\n"
-                  "The default values take about 400 Mb memory.\n"),
+      DESCRIPTION(R"--(Initialize the wigner 3 tables
+
+The default values take about 400 Mb memory.
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("wigner_initialized"),
       GOUT(),
@@ -20940,7 +21093,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(
       create_mdrecord(NAME("Wigner6Unload"),
-               DESCRIPTION("Unloads the wigner 3 and 6 tables\n"),
+               DESCRIPTION(R"--(Unloads the wigner 3 and 6 tables
+)--"),
                AUTHORS("Richard Larsson"),
                OUT("wigner_initialized"),
                GOUT(),
@@ -20953,7 +21107,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
                GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(NAME("Wigner3Unload"),
-                                 DESCRIPTION("Unloads the wigner 3 tables\n"),
+                                 DESCRIPTION(R"--(Unloads the wigner 3 tables
+)--"),
                                  AUTHORS("Richard Larsson"),
                                  OUT("wigner_initialized"),
                                  GOUT(),
@@ -20967,8 +21122,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WignerFastInfoPrint"),
-      DESCRIPTION(
-          "Prints the fast wigner table information if compiled with this option\n"),
+      DESCRIPTION(R"--(Prints the fast wigner table information if compiled with this option
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -20982,16 +21137,16 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("wind_u_fieldIncludePlanetRotation"),
-      DESCRIPTION(
-          "Maps the planet's rotation to an imaginary wind.\n"
-          "\n"
-          "This method is of relevance if the observation platform is not\n"
-          "following the planet's rotation, and Doppler effects must be\n"
-          "considered. Examples include full disk observations from another\n"
-          "planet or a satellite not in orbit of the observed planet.\n"
-          "\n"
-          "The rotation of the planet is not causing any Doppler shift for\n"
-          "1D and 2D simulations, and the method can only be used for 3D.\n"),
+      DESCRIPTION(R"--(Maps the planet's rotation to an imaginary wind.
+
+This method is of relevance if the observation platform is not
+following the planet's rotation, and Doppler effects must be
+considered. Examples include full disk observations from another
+planet or a satellite not in orbit of the observed planet.
+
+The rotation of the planet is not causing any Doppler shift for
+1D and 2D simulations, and the method can only be used for 3D.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atm_field"),
       GOUT(),
@@ -21006,21 +21161,21 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WMRFSelectChannels"),
-      DESCRIPTION(
-          "Select some channels for WMRF calculation.\n"
-          "\n"
-          "The HIRS fast setup consists of a precalculated frequency grid\n"
-          "covering all HIRS channels, and associated weights for each channel,\n"
-          "stored in a weight matrix. (A *sensor_response* matrix.)\n"
-          "\n"
-          "If not all channels are requested for\n"
-          "simulation, then this method can be used to remove the unwanted\n"
-          "channels. It changes a number of variables in consistent fashion:\n"
-          "\n"
-          "- Unwanted channels are removed from f_backend. \n"
-          "- Unwanted channels are removed from wmrf_weights.\n"
-          "- Unnecessary frequencies are removed from f_grid.\n"
-          "- Unnecessary frequencies are removed from wmrf_weights.\n"),
+      DESCRIPTION(R"--(Select some channels for WMRF calculation.
+
+The HIRS fast setup consists of a precalculated frequency grid
+covering all HIRS channels, and associated weights for each channel,
+stored in a weight matrix. (A *sensor_response* matrix.)
+
+If not all channels are requested for
+simulation, then this method can be used to remove the unwanted
+channels. It changes a number of variables in consistent fashion:
+
+- Unwanted channels are removed from f_backend. 
+- Unwanted channels are removed from wmrf_weights.
+- Unnecessary frequencies are removed from f_grid.
+- Unnecessary frequencies are removed from wmrf_weights.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("f_grid", "wmrf_weights", "f_backend"),
       GOUT(),
@@ -21035,18 +21190,18 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteMolTau"),
-      DESCRIPTION(
-          "Writes a 'molecular_tau_file' as required for libRadtran.\n"
-          "\n"
-          "The libRadtran (www.libradtran.org) radiative transfer package is a \n"
-          "comprehensive package for various applications, it can be used to \n"
-          "compute radiances, irradiances, actinic fluxes, ... for the solar \n"
-          "and the thermal spectral ranges. Absorption is usually treated using \n"
-          "k-distributions or other parameterizations. For calculations with high \n"
-          "spectral resolution it requires absorption coefficients from an external \n"
-          "line-by-line model. Using this method, arts generates a file that can be \n"
-          "used by libRadtran (option molecular_tau_file)."
-          "\n"),
+      DESCRIPTION(R"--(Writes a 'molecular_tau_file' as required for libRadtran.
+
+The libRadtran (www.libradtran.org) radiative transfer package is a 
+comprehensive package for various applications, it can be used to 
+compute radiances, irradiances, actinic fluxes, ... for the solar 
+and the thermal spectral ranges. Absorption is usually treated using 
+k-distributions or other parameterizations. For calculations with high 
+spectral resolution it requires absorption coefficients from an external 
+line-by-line model. Using this method, arts generates a file that can be 
+used by libRadtran (option molecular_tau_file).
+
+)--"),
       AUTHORS("Claudia Emde"),
       OUT(),
       GOUT(),
@@ -21061,12 +21216,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDF"),
-      DESCRIPTION("Writes a workspace variable to a NetCDF file.\n"
-                  "\n"
-                  "This method can write variables of limited groups.\n"
-                  "\n"
-                  "If the filename is omitted, the variable is written\n"
-                  "to <basename>.<variable_name>.nc.\n"),
+      DESCRIPTION(R"--(Writes a workspace variable to a NetCDF file.
+
+This method can write variables of limited groups.
+
+If the filename is omitted, the variable is written
+to <basename>.<variable_name>.nc.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -21087,12 +21243,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDFIndexed"),
-      DESCRIPTION("As *WriteNetCDF*, but creates indexed file names.\n"
-                  "\n"
-                  "This method can write variables of any group.\n"
-                  "\n"
-                  "If the filename is omitted, the variable is written\n"
-                  "to <basename>.<variable_name>.nc.\n"),
+      DESCRIPTION(R"--(As *WriteNetCDF*, but creates indexed file names.
+
+This method can write variables of any group.
+
+If the filename is omitted, the variable is written
+to <basename>.<variable_name>.nc.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -21113,13 +21270,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteBuiltinPartitionFunctionsXML"),
-      DESCRIPTION("Writes all the builtin partition functions to file.\n"
-        "\n"
-        "All available partition functions are written to files in the select format\n"
-        "in the select directory\n"
-        "\n"
-        "The temperature will be linearly spaced between [Tlow, Tupp] with N values\n"
-      ),
+      DESCRIPTION(R"--(Writes all the builtin partition functions to file.
+
+All available partition functions are written to files in the select format
+in the select directory
+
+The temperature will be linearly spaced between [Tlow, Tupp] with N values
+)--"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -21136,14 +21293,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteXML"),
-      DESCRIPTION("Writes a workspace variable to an XML file.\n"
-                  "\n"
-                  "This method can write variables of any group.\n"
-                  "\n"
-                  "If the filename is omitted, the variable is written\n"
-                  "to <basename>.<variable_name>.xml.\n"
-                  "If no_clobber is set to 1, an increasing number will be\n"
-                  "appended to the filename if the file already exists.\n"),
+      DESCRIPTION(R"--(Writes a workspace variable to an XML file.
+
+This method can write variables of any group.
+
+If the filename is omitted, the variable is written
+to <basename>.<variable_name>.xml.
+If no_clobber is set to 1, an increasing number will be
+appended to the filename if the file already exists.
+)--"),
       AUTHORS("Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -21164,16 +21322,17 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("WriteXMLIndexed"),
-      DESCRIPTION("As *WriteXML*, but creates indexed file names.\n"
-                  "\n"
-                  "The variable is written to a file with name::\n"
-                  "\n"
-                  "  <filename>.<file_index>.xml.\n"
-                  "\n"
-                  "where <file_index> is the value of ``file_index``.\n"
-                  "\n"
-                  "This means that ``filename`` shall here not include the .xml\n"
-                  "extension. Omitting filename works as for *WriteXML*.\n"),
+      DESCRIPTION(R"--(As *WriteXML*, but creates indexed file names.
+
+The variable is written to a file with name::
+
+  <filename>.<file_index>.xml.
+
+where <file_index> is the value of ``file_index``.
+
+This means that ``filename`` shall here not include the .xml
+extension. Omitting filename works as for *WriteXML*.
+)--"),
       AUTHORS("Patrick Eriksson, Oliver Lemke"),
       OUT(),
       GOUT(),
@@ -21196,19 +21355,20 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("xaStandard"),
-      DESCRIPTION(
-          "Standard function for creating *xa*.\n"
-          "\n"
-          "The method creates *xa* based on *jacobian_quantities* and the various\n"
-          "atmospheric fields. In the case of scattering species, the data are\n"
-          "taken from ``particle_bulkprop_field``. The following retrieval quantities\n"
-          "are handled:\n\n"
-          " - Temperature\n"
-          " - Absorption species\n"
-          " - Scattering species\n"
-          " - Pointing\n"
-          " - Polynomial baseline fit\n"
-          " - Sinusoidal baseline fit\n"),
+      DESCRIPTION(R"--(Standard function for creating *xa*.
+
+The method creates *xa* based on *jacobian_quantities* and the various
+atmospheric fields. In the case of scattering species, the data are
+taken from ``particle_bulkprop_field``. The following retrieval quantities
+are handled:
+
+ - Temperature
+ - Absorption species
+ - Scattering species
+ - Pointing
+ - Polynomial baseline fit
+ - Sinusoidal baseline fit
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("xa"),
       GOUT(),
@@ -21232,20 +21392,20 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("xClip"),
-      DESCRIPTION(
-          "Clipping of the state vector.\n"
-          "\n"
-          "The method allows you to apply hard limits the values of a\n"
-          "retrieval quantity. The retrieval quantity is specified by\n"
-          "``ijq``. All values of the quantity below ``limit_low``, are simply\n"
-          "set to ``limit_low``. And the same is performed with respect to\n"
-          "``limit_high``. That is, the data in x for the retrieval quantity\n"
-          "are forced to be inside the range [limit_low,limit_high].\n"
-          "\n"
-          "Setting ijq=-1, is a shortcut for applying the limits on all\n"
-          "retrieval quantities.\n"
-          "\n"
-          "Notice that limits must be specified in the unit used in *x*.\n"),
+      DESCRIPTION(R"--(Clipping of the state vector.
+
+The method allows you to apply hard limits the values of a
+retrieval quantity. The retrieval quantity is specified by
+``ijq``. All values of the quantity below ``limit_low``, are simply
+set to ``limit_low``. And the same is performed with respect to
+``limit_high``. That is, the data in x for the retrieval quantity
+are forced to be inside the range [limit_low,limit_high].
+
+Setting ijq=-1, is a shortcut for applying the limits on all
+retrieval quantities.
+
+Notice that limits must be specified in the unit used in *x*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("x"),
       GOUT(),
@@ -21261,22 +21421,23 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("x2artsAtmAndSurf"),
-      DESCRIPTION(
-          "Maps *x* to atmospheric and surface variables.\n"
-          "\n"
-          "Maps OEM's state vector, *x*, to the matching ARTS variables. This\n"
-          "method handles atmospheric and surface variables. If you retrieve\n"
-          "other variables, make sure that you also call *x2artsSensor* and/or\n"
-          "*x2artsSpectroscopy*.\n"
-          "\n"
-          "The following retrieval quantities are handled by this method:\n\n"
-          " - Temperature\n"
-          " - Absorption species\n"
-          " - Scattering species\n"
-          " - Winds\n"
-          " - Surface variables\n"
-          "\n"
-          "Should only be used inside *inversion_iterate_agenda*.\n"),
+      DESCRIPTION(R"--(Maps *x* to atmospheric and surface variables.
+
+Maps OEM's state vector, *x*, to the matching ARTS variables. This
+method handles atmospheric and surface variables. If you retrieve
+other variables, make sure that you also call *x2artsSensor* and/or
+*x2artsSpectroscopy*.
+
+The following retrieval quantities are handled by this method:
+
+ - Temperature
+ - Absorption species
+ - Scattering species
+ - Winds
+ - Surface variables
+
+Should only be used inside *inversion_iterate_agenda*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("atm_field",
           "surface_field"),
@@ -21302,27 +21463,27 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("x2artsSensor"),
-      DESCRIPTION(
-          "Maps *x* to sensor variables.\n"
-          "\n"
-          "Maps OEM's state vector, *x*, to the matching ARTS variables. This\n"
-          "method handles variables associated with the sensor. If you retrieve\n"
-          "other variables, make sure that you also call *x2artsAtmAndSurf*\n"
-          "and/or *x2artsSpectroscopy*.\n"
-          "\n"
-          "The following retrieval quantities are handled by this method:\n"
-          " - Pointing\n"
-          " - Frequency shift and stretch\n"
-          " - Baseline fits\n"
-          "\n"
-          "Should only be used inside *inversion_iterate_agenda*.\n"
-          "\n"
-          "Elements in *x* representing pointing corrections are mapped to\n"
-          "*sensor_los*. Elements representing frequency corrections are mapped\n"
-          "to *f_backend*. Baseline variables are mapped to *y_baseline*.\n"
-          "\n"
-          "The sensor response is recalculated if there is any non-zero frequency\n"
-          "correction.\n"),
+      DESCRIPTION(R"--(Maps *x* to sensor variables.
+
+Maps OEM's state vector, *x*, to the matching ARTS variables. This
+method handles variables associated with the sensor. If you retrieve
+other variables, make sure that you also call *x2artsAtmAndSurf*
+and/or *x2artsSpectroscopy*.
+
+The following retrieval quantities are handled by this method:
+ - Pointing
+ - Frequency shift and stretch
+ - Baseline fits
+
+Should only be used inside *inversion_iterate_agenda*.
+
+Elements in *x* representing pointing corrections are mapped to
+*sensor_los*. Elements representing frequency corrections are mapped
+to *f_backend*. Baseline variables are mapped to *y_baseline*.
+
+The sensor response is recalculated if there is any non-zero frequency
+correction.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_los",
           "f_backend",
@@ -21360,9 +21521,10 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("x2artsSpectroscopy"),
-      DESCRIPTION("Just defined to indicate a future extensiom.\n"
-                  "\n"
-                  "Don't call the method, it will just generate an error.\n"),
+      DESCRIPTION(R"--(Just defined to indicate a future extensiom.
+
+Don't call the method, it will just generate an error.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT(),
@@ -21376,19 +21538,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yApplySensorPol"),
-      DESCRIPTION(
-          "Extraction of arbitrary linear polarisation.\n"
-          "\n"
-          "This method shall be called after *yCalc* and then applies *sensor_pol*\n"
-          "on the output of *yCalc*. See *sensor_pol* for definition of the\n"
-          "polarisation responses. The *sensor_response* given to *yCalc* can not\n"
-          "contain any polarisation response, it must maintain original Stokes\n"
-          "elements. The value of ``stokes_dim`` must be >= 3.\n"
-          "\n"
-          "The values in *sensor_pol* are applied on *y*, and *jacobian* if relevant.\n"
-          "*y_pol* is set following the values in *sensor_pol* but is rounded to\n"
-          "an integer value. Remaining data associated with *y* (e.g. y_pos) are\n"
-          "set to the value matching the first Stokes element.\n"),
+      DESCRIPTION(R"--(Extraction of arbitrary linear polarisation.
+
+This method shall be called after *yCalc* and then applies *sensor_pol*
+on the output of *yCalc*. See *sensor_pol* for definition of the
+polarisation responses. The *sensor_response* given to *yCalc* can not
+contain any polarisation response, it must maintain original Stokes
+elements. The value of ``stokes_dim`` must be >= 3.
+
+The values in *sensor_pol* are applied on *y*, and *jacobian* if relevant.
+*y_pol* is set following the values in *sensor_pol* but is rounded to
+an integer value. Remaining data associated with *y* (e.g. y_pos) are
+set to the value matching the first Stokes element.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),
@@ -21413,34 +21575,34 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yApplyUnit"),
-      DESCRIPTION(
-          "Conversion of *y* to other spectral units.\n"
-          "\n"
-          "Any conversion to brightness temperature is normally made inside\n"
-          "*yCalc*. This method makes it possible to also make this conversion\n"
-          "after *yCalc*, but with restrictions for *jacobian* and with.\n"
-          "respect to the n2-law of radiance.\n"
-          "\n"
-          "The conversion made inside ``iyEmissionStandard`` is mimiced\n"
-          "and see that method for constraints and selection of output units.\n"
-          "This with the restriction that the n2-law can be ignored. The later\n"
-          "is the case if the sensor is placed in space, or if the refractive\n"
-          "only devaites slightly from unity.\n"
-          "\n"
-          "The method handles *y* and *jacobian* in parallel, where\n"
-          "the last variable is only considered if it is set. The\n"
-          "input data must be in original radiance units. A completely\n"
-          "stringent check of this can not be performed.\n"
-          "\n"
-          "The method can not be used with jacobian quantities that are not\n"
-          "obtained through radiative transfer calculations. One example on\n"
-          "quantity that can not be handled is *jacobianAddPolyfit*. There\n"
-          "are no automatic checks warning for incorrect usage!\n"
-          "\n"
-          "If you are using this method, *iy_unit* should be set to \"1\" when\n"
-          "calling *yCalc*, and be changed before calling this method.\n"
-          "\n"
-          "Conversion of *y_aux* is not supported.\n"),
+      DESCRIPTION(R"--(Conversion of *y* to other spectral units.
+
+Any conversion to brightness temperature is normally made inside
+*yCalc*. This method makes it possible to also make this conversion
+after *yCalc*, but with restrictions for *jacobian* and with.
+respect to the n2-law of radiance.
+
+The conversion made inside ``iyEmissionStandard`` is mimiced
+and see that method for constraints and selection of output units.
+This with the restriction that the n2-law can be ignored. The later
+is the case if the sensor is placed in space, or if the refractive
+only devaites slightly from unity.
+
+The method handles *y* and *jacobian* in parallel, where
+the last variable is only considered if it is set. The
+input data must be in original radiance units. A completely
+stringent check of this can not be performed.
+
+The method can not be used with jacobian quantities that are not
+obtained through radiative transfer calculations. One example on
+quantity that can not be handled is *jacobianAddPolyfit*. There
+are no automatic checks warning for incorrect usage!
+
+If you are using this method, *iy_unit* should be set to \"1\" when
+calling *yCalc*, and be changed before calling this method.
+
+Conversion of *y_aux* is not supported.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "jacobian"),
       GOUT(),
@@ -21454,23 +21616,22 @@ the ARTS codebase.  It is there to give an example of how the format looks.
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchColdAtmHotAtmCycle"),
-      DESCRIPTION(
-          "Computes *ybatch* from input using standard calibration scheme of\n"
-          "a cycle through cold-atm-hot-atm-cold-... observations\n"
-          "\n"
-          "Computes for every full cycle reaching a new hot or cold:\n"
-          "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
-          "\n"
-          "Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,\n"
-          "but Cold does not have to be at data[0], instead the first cold\n"
-          "position is set by ``first_c_index``, which defaults to 0 but can be any positive\n"
-          "index so that *level0_data*[``first_c_index``] is a cold-measurements.  Note that if\n"
-          "``first_c_index`` is larger than 1, then the first output data will be around the\n"
-          "observation cycle -HAC-, where H is at ``first_c_index``-2\n"
-          "\n"
-          "Also returns the times of the Atm measurements in *sensor_time*\n"
-          "if the measurement's time data is provided\n"
-          ),
+      DESCRIPTION(R"--(Computes *ybatch* from input using standard calibration scheme of
+a cycle through cold-atm-hot-atm-cold-... observations
+
+Computes for every full cycle reaching a new hot or cold:
+    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)
+
+Assumes data is ordered as Cold-Atm-Hot-Atm-Cold-Atm-Hot-Atm-...,
+but Cold does not have to be at data[0], instead the first cold
+position is set by ``first_c_index``, which defaults to 0 but can be any positive
+index so that *level0_data*[``first_c_index``] is a cold-measurements.  Note that if
+``first_c_index`` is larger than 1, then the first output data will be around the
+observation cycle -HAC-, where H is at ``first_c_index``-2
+
+Also returns the times of the Atm measurements in *sensor_time*
+if the measurement's time data is provided
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch", "sensor_time"),
       GOUT(),
@@ -21487,36 +21648,37 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),
-      DESCRIPTION(
-          "Performs batch calculations for the measurement vector y.\n"
-          "\n"
-          "We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero\n"
-          "based indexing, as usual.) The output array *ybatch* will have\n"
-          "ybatch_n elements. Indices in the output array start\n"
-          "with zero, independent of *ybatch_start*.\n"
-          "\n"
-          "The method performs the following:\n\n"
-          "   (1) Sets *ybatch_index* = *ybatch_start*.\n"
-          "   (2) Performs a-d until *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
-          "        a. Executes *ybatch_calc_agenda*.\n"
-          "        b. If *ybatch_index* = *ybatch_start*, resizes *ybatch*\n"
-          "           based on *ybatch_n* and length of *y*.\n"
-          "        c. Copies *y* to *ybatch_index* - *ybatch_start*\n"
-          "           of *ybatch*.\n"
-          "        d. Adds 1 to *ybatch_index*.\n"
-          "\n"
-          "Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start*\n"
-          "and *ybatch_n* must be set before calling this method.\n"
-          "Further, *ybatch_calc_agenda* is expected to produce a\n"
-          "spectrum and should accordingly include a call of *yCalc*\n"
-          "(or asimilar method).\n"
-          "\n"
-          "The input variable *ybatch_start* is set to a default of zero.\n"
-          "\n"
-          "Jacobians are also collected, and stored in output variable *ybatch_jacobians*. \n"
-          "(This will be empty if *yCalc* produces empty Jacobians.)\n"
-          "\n"
-          "See the user guide for further practical examples.\n"),
+      DESCRIPTION(R"--(Performs batch calculations for the measurement vector y.
+
+We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero
+based indexing, as usual.) The output array *ybatch* will have
+ybatch_n elements. Indices in the output array start
+with zero, independent of *ybatch_start*.
+
+The method performs the following:
+
+   (1) Sets *ybatch_index* = *ybatch_start*.
+   (2) Performs a-d until *ybatch_index* = *ybatch_start* + *ybatch_n*.
+        a. Executes *ybatch_calc_agenda*.
+        b. If *ybatch_index* = *ybatch_start*, resizes *ybatch*
+           based on *ybatch_n* and length of *y*.
+        c. Copies *y* to *ybatch_index* - *ybatch_start*
+           of *ybatch*.
+        d. Adds 1 to *ybatch_index*.
+
+Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start*
+and *ybatch_n* must be set before calling this method.
+Further, *ybatch_calc_agenda* is expected to produce a
+spectrum and should accordingly include a call of *yCalc*
+(or asimilar method).
+
+The input variable *ybatch_start* is set to a default of zero.
+
+Jacobians are also collected, and stored in output variable *ybatch_jacobians*. 
+(This will be empty if *yCalc* produces empty Jacobians.)
+
+See the user guide for further practical examples.
+)--"),
       AUTHORS("Stefan Buehler"),
       OUT("ybatch", "ybatch_aux", "ybatch_jacobians"),
       GOUT(),
@@ -21534,15 +21696,15 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yColdAtmHot"),
-      DESCRIPTION(
-          "Computes *y* from input using standard calibration scheme of\n"
-          "cold-atm-hot observations\n"
-          "\n"
-          "If calib evaluates as true:\n"
-          "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
-          "\n"
-          "If calib evaluates as false:\n"
-          "    y = (hot_temp * cold - cold_temp * hot) / (hot - cold)\n"),
+      DESCRIPTION(R"--(Computes *y* from input using standard calibration scheme of
+cold-atm-hot observations
+
+If calib evaluates as true:
+    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)
+
+If calib evaluates as false:
+    y = (hot_temp * cold - cold_temp * hot) / (hot - cold)
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("y"),
       GOUT(),
@@ -21562,28 +21724,28 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
-      DESCRIPTION(
-          "This method is used for simulating ARTS for metoffice model fields\n"
-          "\n"
-          "This method reads in *met_amsu_data* which contains the\n"
-          "lat-lon of the metoffice profile files as a Matrix. It then\n"
-          "loops over the number of profiles and corresponding to each\n"
-          "longitude create the appropriate profile basename. Then,\n"
-          "corresponding to each basename we have temperature field, altitude\n"
-          "field, humidity field, and particle number density field. The\n"
-          "temperature field and altitude field are stored in the same dimensions\n"
-          "as ``t_field_raw`` and ``z_field_raw``. The oxygen and nitrogen VMRs are\n"
-          "set to constant values of 0.209 and 0.782, respectively and are used\n"
-          "along with humidity field to generate ``vmr_field_raw``. \n"
-          "\n"
-          "The three fields ``t_field_raw``, ``z_field_raw``, and ``vmr_field_raw`` are\n"
-          "given as input to *met_profile_calc_agenda* which is called in this\n"
-          "method. See documentation of WSM *met_profile_calc_agenda* for more\n"
-          "information on this agenda. \n"
-          "\n"
-          "The method also converts satellite zenith angle to appropriate\n"
-          "*sensor_los*. It also sets the ``p_grid`` and *cloudbox_limits*\n"
-          "from the profiles inside the function\n"),
+      DESCRIPTION(R"--(This method is used for simulating ARTS for metoffice model fields
+
+This method reads in *met_amsu_data* which contains the
+lat-lon of the metoffice profile files as a Matrix. It then
+loops over the number of profiles and corresponding to each
+longitude create the appropriate profile basename. Then,
+corresponding to each basename we have temperature field, altitude
+field, humidity field, and particle number density field. The
+temperature field and altitude field are stored in the same dimensions
+as ``t_field_raw`` and ``z_field_raw``. The oxygen and nitrogen VMRs are
+set to constant values of 0.209 and 0.782, respectively and are used
+along with humidity field to generate ``vmr_field_raw``. 
+
+The three fields ``t_field_raw``, ``z_field_raw``, and ``vmr_field_raw`` are
+given as input to *met_profile_calc_agenda* which is called in this
+method. See documentation of WSM *met_profile_calc_agenda* for more
+information on this agenda. 
+
+The method also converts satellite zenith angle to appropriate
+*sensor_los*. It also sets the ``p_grid`` and *cloudbox_limits*
+from the profiles inside the function
+)--"),
       AUTHORS("Sreerekha T.R."),
       OUT("ybatch"),
       GOUT(),
@@ -21604,29 +21766,29 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 */
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfilesClear"),
-      DESCRIPTION(
-          "This method is used for simulating ARTS for metoffice model fields\n"
-          "for clear sky conditions.\n"
-          "\n"
-          "This method reads in *met_amsu_data* which contains the\n"
-          "lat-lon of the metoffice profile files as a Matrix. It then\n"
-          "loops over the number of profiles and corresponding to each\n"
-          "longitude create the appropriate profile basename. Then,\n"
-          "Corresponding to each basename we have temperature field, altitude\n"
-          "field, humidity field, and particle number density field. The\n"
-          "temperature field and altitude field are stored in the same dimensions\n"
-          "as ``t_field_raw`` and ``z_field_raw``. The oxygen and nitrogen VMRs are\n"
-          "set to constant values of 0.209 and 0.782, respectively and are used\n"
-          "along with humidity field to generate ``vmr_field_raw``. \n"
-          "\n"
-          "The three fields ``t_field_raw``, ``z_field_raw``, and ``vmr_field_raw`` are\n"
-          "given as input to *met_profile_calc_agenda* which is called in this\n"
-          "method. See documentation of WSM *met_profile_calc_agenda* for more\n"
-          "information on this agenda. \n"
-          "\n"
-          "The method also converts satellite zenith angle to appropriate\n"
-          "*sensor_los*. It also sets the ``p_grid`` and *cloudbox_limits*\n"
-          "from the profiles inside the function\n"),
+      DESCRIPTION(R"--(This method is used for simulating ARTS for metoffice model fields
+for clear sky conditions.
+
+This method reads in *met_amsu_data* which contains the
+lat-lon of the metoffice profile files as a Matrix. It then
+loops over the number of profiles and corresponding to each
+longitude create the appropriate profile basename. Then,
+Corresponding to each basename we have temperature field, altitude
+field, humidity field, and particle number density field. The
+temperature field and altitude field are stored in the same dimensions
+as ``t_field_raw`` and ``z_field_raw``. The oxygen and nitrogen VMRs are
+set to constant values of 0.209 and 0.782, respectively and are used
+along with humidity field to generate ``vmr_field_raw``. 
+
+The three fields ``t_field_raw``, ``z_field_raw``, and ``vmr_field_raw`` are
+given as input to *met_profile_calc_agenda* which is called in this
+method. See documentation of WSM *met_profile_calc_agenda* for more
+information on this agenda. 
+
+The method also converts satellite zenith angle to appropriate
+*sensor_los*. It also sets the ``p_grid`` and *cloudbox_limits*
+from the profiles inside the function
+)--"),
       AUTHORS("Seerekha T.R."),
       OUT("ybatch"),
       GOUT(),
@@ -21646,8 +21808,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
-      DESCRIPTION(
-          "Time average of *ybatch* and *sensor_time*\n"),
+      DESCRIPTION(R"--(Time average of *ybatch* and *sensor_time*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch", "sensor_time"),
       GOUT(),
@@ -21663,13 +21825,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTroposphericCorrectionNaiveMedianForward"),
-      DESCRIPTION(
-          "Performs naive tropospheric corrections on *ybatch*\n"
-          "\n"
-          "Sets *ybatch_corr* to be able to perform the inverse of the corrections,\n"
-          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"
-          "\n"
-          "Uses the same tropospheric temperature for all values if trop_temp.nelem()==1\n"),
+      DESCRIPTION(R"--(Performs naive tropospheric corrections on *ybatch*
+
+Sets *ybatch_corr* to be able to perform the inverse of the corrections,
+each array-element with 3 entries as [median, part_trans, trop_temp]
+
+Uses the same tropospheric temperature for all values if trop_temp.nelem()==1
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch_corr", "ybatch"),
       GOUT(),
@@ -21685,8 +21847,8 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTroposphericCorrectionNaiveMedianInverse"),
-      DESCRIPTION(
-          "Performs inverse of naive tropospheric corrections on *ybatch*\n"),
+      DESCRIPTION(R"--(Performs inverse of naive tropospheric corrections on *ybatch*
+)--"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch"),
       GOUT(),
@@ -21700,36 +21862,36 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yCalc"),
-      DESCRIPTION(
-          "Calculation of complete measurement vectors (y).\n"
-          "\n"
-          "The method performs radiative transfer calculations from a sensor\n"
-          "perspective. Radiative transfer calculations are performed for\n"
-          "monochromatic pencil beams, following *iy_main_agenda* and\n"
-          "associated agendas. Obtained radiances are weighted together by\n"
-          "*sensor_response*, to include the characteristics of the sensor.\n"
-          "The measurement vector obtained can contain anything from a single\n"
-          "frequency value to a series of measurement scans (each consisting\n"
-          "of a series of spectra), all depending on the settings. Spectra\n"
-          "and jacobians are calculated in parallel.\n"
-          "\n"
-          "The frequency, polarisation etc. for each measurement value is\n"
-          "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
-          "\n"
-          "The content of *y_aux* follows *iy_aux_vars*. See the method selected\n"
-          "for *iy_main_agenda* for allowed choices.\n"
-          "\n"
-          "The geo-positions (*y_geo*) are set based on *sensor_response*. When\n"
-          "an antenna pattern is considered, there are several pencil beams,\n"
-          "and thus also several goe-positions, associated with each value of *y*.\n"
-          "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
-          "beam related to the highest value in *sensor_response*. This means that\n"
-          "*mblock_dlos* must contain the bore-sight direction (0,0), if you\n"
-          "want *y_geo* to exactly match the bore-sight direction.\n"
-          "\n"
-          "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
-          "units, but no transformations are applied. Transformations are\n"
-          "included by calling *jacobianAdjustAndTransform*.\n"),
+      DESCRIPTION(R"--(Calculation of complete measurement vectors (y).
+
+The method performs radiative transfer calculations from a sensor
+perspective. Radiative transfer calculations are performed for
+monochromatic pencil beams, following *iy_main_agenda* and
+associated agendas. Obtained radiances are weighted together by
+*sensor_response*, to include the characteristics of the sensor.
+The measurement vector obtained can contain anything from a single
+frequency value to a series of measurement scans (each consisting
+of a series of spectra), all depending on the settings. Spectra
+and jacobians are calculated in parallel.
+
+The frequency, polarisation etc. for each measurement value is
+given by *y_f*, *y_pol*, *y_pos* and *y_los*.
+
+The content of *y_aux* follows *iy_aux_vars*. See the method selected
+for *iy_main_agenda* for allowed choices.
+
+The geo-positions (*y_geo*) are set based on *sensor_response*. When
+an antenna pattern is considered, there are several pencil beams,
+and thus also several goe-positions, associated with each value of *y*.
+The geo-position assigned to a value in *y* is the *geo_pos* of the pencil
+beam related to the highest value in *sensor_response*. This means that
+*mblock_dlos* must contain the bore-sight direction (0,0), if you
+want *y_geo* to exactly match the bore-sight direction.
+
+The Jacobian provided (*jacobian*) is adopted to selected retrieval
+units, but no transformations are applied. Transformations are
+included by calling *jacobianAdjustAndTransform*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),
@@ -21765,46 +21927,46 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yCalcAppend"),
-      DESCRIPTION(
-          "Replaces *yCalc* if a measurement shall be appended to an\n"
-          "existing one.\n"
-          "\n"
-          "The method works basically as *yCalc* but appends the results to\n"
-          "existing data, instead of creating completely new *y* and its\n"
-          "associated variables. This method is required if your measurement\n"
-          "consists of data from two instruments using different observation\n"
-          "techniques (corresponding to different iyCalc-methods). One such\n"
-          "example is if emission and transmittance data are combined into a\n"
-          "joint retrieval. The method can also be used to get around the\n"
-          "constrain that *sensor_response* is required to be the same for\n"
-          "all data.\n"
-          "\n"
-          "The new measurement is simply appended to the input *y*, and the\n"
-          "other output variables are treated correspondingly. Data are\n"
-          "appended \"blindly\" in *y_aux*. That is, data of different type\n"
-          "are appended if *iy_aux_vars* differs between the two measurements,\n"
-          "the data are appended strictly following the order. First variable\n"
-          "of second measurement is appended to first variable of first\n"
-          "measurement, and so on. The number of auxiliary variables can differ\n"
-          "between the measurements. Missing data are set to zero.\n"
-          "\n"
-          "The set of retrieval quantities can differ between the two\n"
-          "calculations. If an atmospheric quantity is part of both Jacobians,\n"
-          "the same retrieval grids must be used in both cases.\n"
-          "The treatment of instrument related Jacobians (baseline fits,\n"
-          "pointing ...) follows the ``append_instrument_wfs`` argument.\n"
-          "\n"
-          "A difference to *yCalc* is that *jacobian_quantities* is both in-\n"
-          "and output variable. The input version shall match the measurement\n"
-          "to be calculated, while the output version matches the output *y*,\n"
-          "the combined, measurements. A copies of *jacobian_quantities* of the\n"
-          "first measurement must be made and shall be provided to the method\n"
-          "as ``jacobian_quantities_copy``.\n"
-          "\n"
-          "As for *yCalc* Jacobian transformations are not handled, and the\n"
-          "the input Jacobian shall not contain transformations. That is\n"
-          "*jacobianAdjustAndTransform* shall be called after this method,\n"
-          "when the complete Jacobian is at hand.\n"),
+      DESCRIPTION(R"--(Replaces *yCalc* if a measurement shall be appended to an
+existing one.
+
+The method works basically as *yCalc* but appends the results to
+existing data, instead of creating completely new *y* and its
+associated variables. This method is required if your measurement
+consists of data from two instruments using different observation
+techniques (corresponding to different iyCalc-methods). One such
+example is if emission and transmittance data are combined into a
+joint retrieval. The method can also be used to get around the
+constrain that *sensor_response* is required to be the same for
+all data.
+
+The new measurement is simply appended to the input *y*, and the
+other output variables are treated correspondingly. Data are
+appended \"blindly\" in *y_aux*. That is, data of different type
+are appended if *iy_aux_vars* differs between the two measurements,
+the data are appended strictly following the order. First variable
+of second measurement is appended to first variable of first
+measurement, and so on. The number of auxiliary variables can differ
+between the measurements. Missing data are set to zero.
+
+The set of retrieval quantities can differ between the two
+calculations. If an atmospheric quantity is part of both Jacobians,
+the same retrieval grids must be used in both cases.
+The treatment of instrument related Jacobians (baseline fits,
+pointing ...) follows the ``append_instrument_wfs`` argument.
+
+A difference to *yCalc* is that *jacobian_quantities* is both in-
+and output variable. The input version shall match the measurement
+to be calculated, while the output version matches the output *y*,
+the combined, measurements. A copies of *jacobian_quantities* of the
+first measurement must be made and shall be provided to the method
+as ``jacobian_quantities_copy``.
+
+As for *yCalc* Jacobian transformations are not handled, and the
+the input Jacobian shall not contain transformations. That is
+*jacobianAdjustAndTransform* shall be called after this method,
+when the complete Jacobian is at hand.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y",
           "y_f",
@@ -21858,57 +22020,58 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("yRadar"),
-      DESCRIPTION(
-          "Replaces *yCalc* for radar/lidar calculations.\n"
-          "\n"
-          "The output format for *iy* when simulating radars and lidars differs\n"
-          "from the standard one, and *yCalc* can not be used for such simulations.\n"
-          "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyRadarSingleScat*. Note that *iy_radar_agenda* replaces\n"
-          "*iy_main_agenda*.\n"
-          "\n"
-          "The method requires additional information about the sensor,\n"
-          "regarding its recieving properties. First of all, recieved\n"
-          "polarisation states are taken from *instrument_pol_array*. Note\n"
-          "that this WSV allows to define several measured polarisations\n"
-          "for each transmitted signal. For example, it is possible to\n"
-          "simulate transmittance of V and measuring backsacttered V and H.\n"
-          "\n"
-          "Secondly, the range averaging is described by *range_bins*. These\n"
-          "bins can either be specified in altitude or two-way travel time.\n"
-          "In both case, the edges of the range bins shall be specified.\n"
-          "All data (including auxiliary variables) are returned as the\n"
-          "average inside the bins. If a bin is totally outside the model\n"
-          "atmosphere, NaN is returned.\n"
-          "\n"
-          "The options for *iy_unit_radar* are:\n\n"
-          "- ``\"1\"``:\n"
-          "    Backscatter coefficient. Unit is 1/(m*sr). At zero\n"
-          "    attenuation, this equals the scattering matrix value for\n"
-          "    the backward direction. See further AUG.\n"
-          "- ``\"Ze\"``: Equivalent reflectivity. Unit is mm^6/m^3. Conversion formula is given below.\n"
-          "- ``\"dBZe\"``: 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.\n"
-          "\n"
-          "The conversion from backscatter coefficient to Ze is::\n"
-          "\n"
-          "  Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma)\n"
-          "\n"
-          "where sum(sigma) = 4 * pi * b, and b is the backscatter coefficient.\n"
-          "\n"
-          "The reference dielectric factor can either specified directly by\n"
-          "the argument ``k2``. For example, to mimic the CloudSat data, ``k2``\n"
-          "shall be set to 0.75 (citaion needed). If ``k2`` is set to be \n"
-          "negative (which is defualt), k2 is calculated as::\n"
-          "\n"
-          "  k2 = abs( (n^2-1)/(n^2+2) )^2\n"
-          "\n"
-          "where n is the refractive index of liquid water at temperature\n"
-          "``ze_tref`` and the frequency of the radar, calculated by the MPM93\n"
-          "parameterization.\n"
-          "\n"
-          "A lower limit for dBZe is applied (``dbze_min``). The main reason is to\n"
-          "handle the fact that dBZe is not defined for Ze=0, and dBZe is set to\n"
-          "the clip value when Ze < 10^(dbze_min/10).\n"),
+      DESCRIPTION(R"--(Replaces *yCalc* for radar/lidar calculations.
+
+The output format for *iy* when simulating radars and lidars differs
+from the standard one, and *yCalc* can not be used for such simulations.
+This method works largely as *yCalc*, but is tailored to handle the
+output from *iyRadarSingleScat*. Note that *iy_radar_agenda* replaces
+*iy_main_agenda*.
+
+The method requires additional information about the sensor,
+regarding its recieving properties. First of all, recieved
+polarisation states are taken from *instrument_pol_array*. Note
+that this WSV allows to define several measured polarisations
+for each transmitted signal. For example, it is possible to
+simulate transmittance of V and measuring backsacttered V and H.
+
+Secondly, the range averaging is described by *range_bins*. These
+bins can either be specified in altitude or two-way travel time.
+In both case, the edges of the range bins shall be specified.
+All data (including auxiliary variables) are returned as the
+average inside the bins. If a bin is totally outside the model
+atmosphere, NaN is returned.
+
+The options for *iy_unit_radar* are:
+
+- ``\"1\"``:
+    Backscatter coefficient. Unit is 1/(m*sr). At zero
+    attenuation, this equals the scattering matrix value for
+    the backward direction. See further AUG.
+- ``\"Ze\"``: Equivalent reflectivity. Unit is mm^6/m^3. Conversion formula is given below.
+- ``\"dBZe\"``: 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.
+
+The conversion from backscatter coefficient to Ze is::
+
+  Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma)
+
+where sum(sigma) = 4 * pi * b, and b is the backscatter coefficient.
+
+The reference dielectric factor can either specified directly by
+the argument ``k2``. For example, to mimic the CloudSat data, ``k2``
+shall be set to 0.75 (citaion needed). If ``k2`` is set to be 
+negative (which is defualt), k2 is calculated as::
+
+  k2 = abs( (n^2-1)/(n^2+2) )^2
+
+where n is the refractive index of liquid water at temperature
+``ze_tref`` and the frequency of the radar, calculated by the MPM93
+parameterization.
+
+A lower limit for dBZe is applied (``dbze_min``). The main reason is to
+handle the fact that dBZe is not defined for Ze=0, and dBZe is set to
+the clip value when Ze < 10^(dbze_min/10).
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),
@@ -21939,18 +22102,18 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ySimpleSpectrometer"),
-      DESCRIPTION(
-          "Converts *iy* to *y* assuming a fixed frequency resolution.\n"
-          "\n"
-          "This is a short-cut, avoiding *yCalc*, that can be used to convert\n"
-          "monochromatic pencil beam data to spectra with a fixed resolution.\n"
-          "\n"
-          "The method mimics a spectrometer with rectangular response\n"
-          "functions, all having the same width (``df``). The position of\n"
-          "the first spectrometer channel is set to f_grid[0] + df / 2.\n"
-          "The centre frequency of channels are returned as *y_f*.\n"
-          "\n"
-          "Auxiliary variables and *jacobian* s are not handled.\n"),
+      DESCRIPTION(R"--(Converts *iy* to *y* assuming a fixed frequency resolution.
+
+This is a short-cut, avoiding *yCalc*, that can be used to convert
+monochromatic pencil beam data to spectra with a fixed resolution.
+
+The method mimics a spectrometer with rectangular response
+functions, all having the same width (``df``). The position of
+the first spectrometer channel is set to f_grid[0] + df / 2.
+The centre frequency of channels are returned as *y_f*.
+
+Auxiliary variables and *jacobian* s are not handled.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f"),
       GOUT(),
@@ -21964,11 +22127,11 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("y_geo_seriesFromY_geo"),
-      DESCRIPTION(
-          "Fills *y_geo_series* with data from *y_geo*.\n"
-          "\n"
-          "The geo-position is taken from the first channel. There is no check\n"
-          "that the other channels have identical data in *y_geo*.\n"),
+      DESCRIPTION(R"--(Fills *y_geo_series* with data from *y_geo*.
+
+The geo-position is taken from the first channel. There is no check
+that the other channels have identical data in *y_geo*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y_geo_series"),
       GOUT(),
@@ -21982,13 +22145,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("y_geo_swathFromY_geo"),
-      DESCRIPTION(
-          "Fills *y_geo_series* with data from *y_geo*.\n"
-          "\n"
-          "The geo-position is taken from the first channel. There is no check\n"
-          "that the other channels have identical data in *y_geo*.\n"
-          "\n"
-          "The method assumes the same order in *y* as *y_swathFromY*.\n"),
+      DESCRIPTION(R"--(Fills *y_geo_series* with data from *y_geo*.
+
+The geo-position is taken from the first channel. There is no check
+that the other channels have identical data in *y_geo*.
+
+The method assumes the same order in *y* as *y_swathFromY*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y_geo_swath"),
       GOUT(),
@@ -22002,13 +22165,13 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("y_seriesFromY"),
-      DESCRIPTION(
-          "Fills *y_series* with data from *y*.\n"
-          "\n"
-          "The method basically reshapes *y* to fit *y_series*.\n"
-          "\n"
-          "Default is to check that *y_f* does not change between posistions,\n"
-          "i.e. that the channel frequencies do not vary.\n"),
+      DESCRIPTION(R"--(Fills *y_series* with data from *y*.
+
+The method basically reshapes *y* to fit *y_series*.
+
+Default is to check that *y_f* does not change between posistions,
+i.e. that the channel frequencies do not vary.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y_series"),
       GOUT(),
@@ -22022,19 +22185,19 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   md_data_raw.push_back(create_mdrecord(
       NAME("y_swathFromY"),
-      DESCRIPTION(
-          "Fills *y_swath* with data from *y*.\n"
-          "\n"
-          "The method basically reshapes *y* to fit *y_swath*. It is assumed\n"
-          "that swath forms the outermost loop in *y*. That is, first in *y*\n"
-          "are the data for the first swath etc. The number of pixels per swath\n"
-          "must be specified manually by a GIN parameter.\n"
-          "\n"
-          "To set *sensor_pos* and *sensor_los* having data organised in swath\n"
-          "format, use *MatrixReshapeTensor3*.\n"
-          "\n"
-          "Default is to check that *y_f* does not change between posistions,\n"
-          "i.e. that the channel frequencies do not vary.\n"),
+      DESCRIPTION(R"--(Fills *y_swath* with data from *y*.
+
+The method basically reshapes *y* to fit *y_swath*. It is assumed
+that swath forms the outermost loop in *y*. That is, first in *y*
+are the data for the first swath etc. The number of pixels per swath
+must be specified manually by a GIN parameter.
+
+To set *sensor_pos* and *sensor_los* having data organised in swath
+format, use *MatrixReshapeTensor3*.
+
+Default is to check that *y_f* does not change between posistions,
+i.e. that the channel frequencies do not vary.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("y_swath"),
       GOUT(),
@@ -22050,27 +22213,27 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 /*
   md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
-      DESCRIPTION(
-          "Force altitudes to fulfil hydrostatic equilibrium.\n"
-          "\n"
-          "The method applies hydrostatic equilibrium. A mixture of \"dry\n"
-          "air\" and water vapour (if present as *abs_species* tag) is assumed.\n"
-          "That is, the air is assumed to be well mixed and its weight, apart\n"
-          "from the water vapour, is constant (*molarmass_dry_air*). In\n"
-          "addition, the effect of any particles (including liquid and ice\n"
-          "particles) is neglected.\n"
-          "\n"
-          "The output is an update of ``z_field``. This variable is expected to\n"
-          "contain approximative altitudes when calling the function. The\n"
-          "altitude matching *p_hse* is kept constant. Other input altitudes can\n"
-          "basically be arbitrary, but good estimates give quicker calculations.\n"
-          "\n"
-          "The calculations are repeated until the change in altitude is below\n"
-          "*z_hse_accuracy*. An iterative process is needed as gravity varies\n"
-          "with altitude.\n"
-          "\n"
-          "For 1D and 2D, the geographical position is taken from *lat_true*\n"
-          "and *lon_true*.\n"),
+      DESCRIPTION(R"--(Force altitudes to fulfil hydrostatic equilibrium.
+
+The method applies hydrostatic equilibrium. A mixture of \"dry
+air\" and water vapour (if present as *abs_species* tag) is assumed.
+That is, the air is assumed to be well mixed and its weight, apart
+from the water vapour, is constant (*molarmass_dry_air*). In
+addition, the effect of any particles (including liquid and ice
+particles) is neglected.
+
+The output is an update of ``z_field``. This variable is expected to
+contain approximative altitudes when calling the function. The
+altitude matching *p_hse* is kept constant. Other input altitudes can
+basically be arbitrary, but good estimates give quicker calculations.
+
+The calculations are repeated until the change in altitude is below
+*z_hse_accuracy*. An iterative process is needed as gravity varies
+with altitude.
+
+For 1D and 2D, the geographical position is taken from *lat_true*
+and *lon_true*.
+)--"),
       AUTHORS("Patrick Eriksson"),
       OUT("z_field"),
       GOUT(),
@@ -22668,7 +22831,8 @@ Options are:
 
   md_data_raw.push_back(
       create_mdrecord(NAME("main_agendaSet"),
-                      DESCRIPTION("Calling this is - and always will be - an error\n"),
+                      DESCRIPTION(R"--(Calling this is - and always will be - an error
+)--"),
                       AUTHORS("Richard Larsson"),
                       OUT("main_agenda"),
                       GOUT(),
