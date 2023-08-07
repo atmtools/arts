@@ -429,7 +429,7 @@ void doit_conv_flagLsq(  //WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudbox_field_monoIterate(Workspace& ws,
+void cloudbox_field_monoIterate(const Workspace& ws,
                                 // WS Input and Output:
                                 Tensor6& cloudbox_field_mono,
 
@@ -518,7 +518,7 @@ void cloudbox_field_monoIterate(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldUpdate1D(
-    Workspace& ws,
+    const Workspace& ws,
     // WS Input and Output:
     Tensor6& cloudbox_field_mono,
     // WS Input:
@@ -685,7 +685,7 @@ void cloudbox_fieldUpdate1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldUpdateSeq1D(
-    Workspace& ws,
+    const Workspace& ws,
     // WS Input and Output:
     Tensor6& cloudbox_field_mono,
     Tensor6& doit_scat_field,
@@ -983,7 +983,7 @@ void cloudbox_fieldUpdateSeq1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldUpdateSeq3D(
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output and Input:
     Tensor6& cloudbox_field_mono,
     // WS Input:
@@ -1261,7 +1261,7 @@ void cloudbox_fieldUpdateSeq3D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldUpdateSeq1DPP(
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output:
     Tensor6& cloudbox_field_mono,
     // spt_calc_agenda:
@@ -1530,7 +1530,7 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void OptimizeDoitPressureGrid(
-    Workspace& ws,
+    const Workspace& ws,
     //WS input
     Vector& p_grid,
     Tensor4& pnd_field,
@@ -1850,7 +1850,7 @@ void DoitWriteIterationFields(  //WS input
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_scat_fieldCalc(Workspace& ws,
+void doit_scat_fieldCalc(const Workspace& ws,
                          // WS Output and Input
                          Tensor6& doit_scat_field,
                          //WS Input:
@@ -2113,7 +2113,7 @@ void doit_scat_fieldCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_scat_fieldCalcLimb(Workspace& ws,
+void doit_scat_fieldCalcLimb(const Workspace& ws,
                              // WS Output and Input
                              Tensor6& doit_scat_field,
                              //WS Input:
@@ -2501,7 +2501,7 @@ void doit_za_interpSet(Index& doit_za_interp,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitCalc(Workspace& ws,
+void DoitCalc(const Workspace& ws,
               Tensor7& cloudbox_field,
               const Index& atmfields_checked,
               const Index& atmgeom_checked,
@@ -2599,7 +2599,7 @@ void DoitCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitGetIncoming(Workspace& ws,
+void DoitGetIncoming(const Workspace& ws,
                      Tensor7& cloudbox_field,
                      const Index& atmfields_checked,
                      const Index& atmgeom_checked,
@@ -2845,7 +2845,7 @@ void DoitGetIncoming(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitGetIncoming1DAtm(Workspace& ws,
+void DoitGetIncoming1DAtm(const Workspace& ws,
                           Tensor7& cloudbox_field,
                           Index& cloudbox_on,
                           const Index& atmfields_checked,

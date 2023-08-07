@@ -19,8 +19,9 @@
 #include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
-#include "matpack_data.h"
-#include "matpack_sparse.h"
+#include <matpack.h>
+#include <matpack_sparse.h>
+#include "supergeneric.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
   void xml_read_from_stream(std::istream &, what &, bifstream *);              \
@@ -33,6 +34,7 @@
 
 //=== Basic Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(Any)
 TMPL_XML_READ_WRITE_STREAM(Index)
 TMPL_XML_READ_WRITE_STREAM(Matrix)
 TMPL_XML_READ_WRITE_STREAM(Numeric)

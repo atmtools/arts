@@ -96,7 +96,7 @@ void rte_step_doit_replacement(  //Output and Input:
   \author Claudia Emde
   \date 2002-06-03
 */
-void cloud_fieldsCalc(Workspace& ws,
+void cloud_fieldsCalc(const Workspace& ws,
                       // Output:
                       Tensor5View ext_mat_field,
                       Tensor4View abs_vec_field,
@@ -150,7 +150,7 @@ void cloud_fieldsCalc(Workspace& ws,
   \author Claudia Emde
   \date 2003-06-04
 */
-void cloud_ppath_update1D(Workspace& ws,
+void cloud_ppath_update1D(const Workspace& ws,
                           // Input and output
                           Tensor6View cloudbox_field_mono,
                           // ppath_step_agenda:
@@ -217,7 +217,7 @@ void cloud_ppath_update1D(Workspace& ws,
   \author Claudia Emde
   \date 2005-05-04
 */
-void cloud_ppath_update1D_noseq(Workspace& ws,
+void cloud_ppath_update1D_noseq(const Workspace& ws,
                                 // Input and output
                                 Tensor6View cloudbox_field_mono,
                                 // ppath_step_agenda:
@@ -283,7 +283,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   \author Sreerekha Ravi
   \date 2003-11-17
 */
-void cloud_ppath_update1D_planeparallel(Workspace& ws,
+void cloud_ppath_update1D_planeparallel(const Workspace& ws,
                                         Tensor6View cloudbox_field_mono,
                                         // ppath_step_agenda:
                                         const Index& p_index,
@@ -352,7 +352,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   \author Claudia Emde
   \date 2003-06-04
 */
-void cloud_ppath_update3D(Workspace& ws,
+void cloud_ppath_update3D(const Workspace& ws,
                           Tensor6View cloudbox_field_mono,
                           // ppath_step_agenda:
                           const Index& p_index,
@@ -411,7 +411,7 @@ void cloud_ppath_update3D(Workspace& ws,
   \author Claudia Emde
   \date 2005-05-13
 */
-void cloud_RT_no_background(Workspace& ws,
+void cloud_RT_no_background(const Workspace& ws,
                             //Output
                             Tensor6View cloudbox_field_mono,
                             // Input
@@ -455,7 +455,7 @@ void cloud_RT_no_background(Workspace& ws,
   \date 2005-05-13
 
 */
-void cloud_RT_surface(Workspace& ws,
+void cloud_RT_surface(const Workspace& ws,
                       //Output
                       Tensor6View cloudbox_field_mono,
                       //Input
@@ -592,7 +592,7 @@ void za_gridOpt(  //Output:
   \author Oliver Lemke
   \date 2013-01-17
 */
-void doit_scat_fieldNormalize(Workspace& ws,
+void doit_scat_fieldNormalize(const Workspace& ws,
                               Tensor6& doit_scat_field,
                               const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,

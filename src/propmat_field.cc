@@ -17,7 +17,7 @@
 #include "special_interp.h"
 #include "arts_omp.h"
 
-void field_of_propagation(Workspace& ws,
+void field_of_propagation(const Workspace& ws,
                           FieldOfPropmatVector& propmat_field,
                           FieldOfStokvecVector& absorption_field,
                           FieldOfStokvecVector& additional_source_field,
@@ -88,7 +88,7 @@ FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
 }
 
 void emission_from_propmat_field(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfStokvecVector& lvl_rad,
     ArrayOfStokvecVector& src_rad,
     ArrayOfMuelmatVector& lyr_tra,

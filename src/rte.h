@@ -175,7 +175,7 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
     @author Patrick Eriksson 
     @date   2012-04-11
  */
-void defocusing_general(Workspace& ws,
+void defocusing_general(const Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -218,7 +218,7 @@ void defocusing_general(Workspace& ws,
     @author Patrick Eriksson 
     @date   2012-04-11
  */
-void defocusing_sat2sat(Workspace& ws,
+void defocusing_sat2sat(const Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -276,7 +276,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
     @author Patrick Eriksson 
     @date   2012-08-08
  */
-void get_iy(Workspace& ws,
+void get_iy(const Workspace& ws,
             Matrix& iy,
             const Index& cloudbox_on,
             const Vector& f_grid,
@@ -315,7 +315,7 @@ void get_iy(Workspace& ws,
     @author Patrick Eriksson 
     @date   2009-10-08
  */
-void get_iy_of_background(Workspace& ws,
+void get_iy_of_background(const Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
                           const Tensor3& iy_transmittance,
@@ -427,7 +427,7 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @date   2017-09-21
  */
 void get_stepwise_clearsky_propmat(
-  Workspace& ws,
+  const Workspace& ws,
   PropmatVector& K,
   StokvecVector& S,
   PropmatMatrix& dK_dx,
@@ -558,7 +558,7 @@ void get_stepwise_transmission_matrix(
  * 
  * The parameters mainly matches WSVs.
  */
-void iyb_calc(Workspace& ws,
+void iyb_calc(const Workspace& ws,
               Vector& iyb,
               ArrayOfVector& iyb_aux,
               ArrayOfMatrix& diyb_dx,
@@ -747,7 +747,7 @@ void pos2true_latlon(Numeric& lat,
     @date   2017-11-19
 */
 void rtmethods_jacobian_finalisation(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
     const Index& nf,
@@ -788,7 +788,7 @@ void rtmethods_unit_conversion(
 void yCalc_mblock_loop_body(bool& failed,
                             String& fail_msg,
                             ArrayOfArrayOfVector& iyb_aux_array,
-                            Workspace& ws,
+                            const Workspace& ws,
                             Vector& y,
                             Vector& y_f,
                             ArrayOfIndex& y_pol,

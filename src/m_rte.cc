@@ -82,7 +82,7 @@ void iyApplyUnit(Matrix& iy,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyCalc(Workspace& ws,
+void iyCalc(const Workspace& ws,
             Matrix& iy,
             ArrayOfMatrix& iy_aux,
             Ppath& ppath,
@@ -150,7 +150,7 @@ void iyCalc(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyClearsky(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& iy,
     ArrayOfMatrix& iy_aux,
     ArrayOfTensor3& diy_dx,
@@ -677,7 +677,7 @@ ARTS_USER_ERROR("ERROR")
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionHybrid(Workspace& ws,
+void iyEmissionHybrid(const Workspace& ws,
               Matrix& iy,
               ArrayOfMatrix& iy_aux,
               ArrayOfTensor3& diy_dx,
@@ -1669,7 +1669,7 @@ void RadiationBackgroundCalc(Workspace &ws, StokvecVector &background_rad,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyIndependentBeamApproximation(Workspace& ws,
+void iyIndependentBeamApproximation(const Workspace& ws,
                                     Matrix& iy,
                                     ArrayOfMatrix& iy_aux,
                                     Ppath& ppath,
@@ -2034,7 +2034,7 @@ ARTS_USER_ERROR("ERROR")
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyLoopFrequencies(Workspace& ws,
+void iyLoopFrequencies(const Workspace& ws,
                        Matrix& iy,
                        ArrayOfMatrix& iy_aux,
                        Ppath& ppath,
@@ -2103,7 +2103,7 @@ void iyLoopFrequencies(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyMC(Workspace& ws,
+void iyMC(const Workspace& ws,
           Matrix& iy,
           ArrayOfMatrix& iy_aux,
           ArrayOfTensor3& diy_dx,
@@ -2300,7 +2300,7 @@ void ppvar_optical_depthFromPpvar_trans_cumulat(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yCalc(Workspace& ws,
+void yCalc(const Workspace& ws,
            Vector& y,
            Vector& y_f,
            ArrayOfIndex& y_pol,
@@ -2523,7 +2523,7 @@ void yCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yCalcAppend(Workspace& ws,
+void yCalcAppend(const Workspace& ws,
                  Vector& y,
                  Vector& y_f,
                  ArrayOfIndex& y_pol,

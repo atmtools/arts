@@ -105,6 +105,7 @@ add_library (artscore STATIC
   m_cloudradar.cc
   m_disort.cc
   m_doit.cc
+  m_extract.cc
   m_fluxes.cc
   m_fwd.cc
   m_predefined_absorption_models.cc
@@ -133,6 +134,7 @@ add_library (artscore STATIC
   m_rt4.cc
   m_rte.cc
   m_retrieval.cc
+  m_select.cc
   m_sensor.cc
   m_sun.cc
   m_surf.cc
@@ -161,8 +163,6 @@ add_library (artscore STATIC
   ppath_struct.cc
   propmat_field.cc
   psd.cc
-  quantum_numbers.cc
-  quantum_term_symbol.cc
   radiation_field.cc
   raw.cc
   refraction.cc
@@ -203,7 +203,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva workspace)
+target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species predef xmliobase wigner Faddeeva workspace quantum)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)
@@ -278,9 +278,6 @@ if (IPO_SUPPORTED)
   set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET make_auto_md_cc PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET make_auto_md_h PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET methods PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
@@ -293,3 +290,4 @@ add_subdirectory(tests)
 add_subdirectory(fwd)
 target_link_libraries(artscore PUBLIC fwd)
 
+add_subdirectory(quantum)

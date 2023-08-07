@@ -56,7 +56,7 @@
  * @author Cory Davis
  * @date 2005-02-19? *** FIXMEDOC ***
  */
-void clear_rt_vars_at_gp(Workspace& ws,
+void clear_rt_vars_at_gp(const Workspace& ws,
                          MatrixView ext_mat_mono,
                          VectorView abs_vec_mono,
                          Numeric& temperature,
@@ -95,7 +95,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
  * @author Cory Davis
  * @date 2005-02-19? *** FIXMEDOC ***
  */
-void cloudy_rt_vars_at_gp(Workspace& ws,
+void cloudy_rt_vars_at_gp(const Workspace& ws,
                           MatrixView ext_mat_mono,
                           VectorView abs_vec_mono,
                           VectorView pnd_vec,
@@ -176,7 +176,7 @@ void cloud_atm_vars_by_gp(VectorView pressure,
  * @date          2015-09-15
  */
 void get_ppath_transmat(
-    Workspace& ws,
+    const Workspace& ws,
     MatrixView trans_mat,
     const Ppath& ppath,
     const Agenda& propmat_clearsky_agenda,
@@ -250,7 +250,7 @@ bool is_anyptype_nonTotRan(
  * @author        Cory Davis
  * @date          2005-2-21
  */
-void mcPathTraceGeneral(Workspace& ws,
+void mcPathTraceGeneral(const Workspace& ws,
                         MatrixView evol_op,
                         Vector& abs_vec_mono,
                         Numeric& temperature,
@@ -327,7 +327,7 @@ void mcPathTraceGeneral(Workspace& ws,
  * @author        Cory Davis (mcPathTraceGeneral), Ian S. Adams
  * @date          2015-09-08
  */
-void mcPathTraceRadar(Workspace& ws,
+void mcPathTraceRadar(const Workspace& ws,
                       MatrixView evol_op,
                       Vector& abs_vec_mono,
                       Numeric& temperature,

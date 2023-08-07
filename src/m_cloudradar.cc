@@ -39,7 +39,7 @@ const Index GFIELD3_T_GRID = 2;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyRadarSingleScat(Workspace& ws,
+void iyRadarSingleScat(const Workspace& ws,
                        Matrix& iy,
                        ArrayOfMatrix& iy_aux,
                        ArrayOfTensor3& diy_dx,
@@ -440,7 +440,7 @@ ARTS_USER_ERROR("ERROR")
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yRadar(Workspace& ws,
+void yRadar(const Workspace& ws,
             Vector& y,
             Vector& y_f,
             ArrayOfIndex& y_pol,
@@ -757,7 +757,7 @@ void yRadar(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkpropRadarOnionPeeling(
-    Workspace& ws,
+    const Workspace& ws,
     AtmField& atm_field,
     ArrayOfString& particle_bulkprop_names,
     const SurfaceField& surface_field,
@@ -1011,7 +1011,7 @@ void particle_bulkpropRadarOnionPeeling(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadarOnionPeelingTableCalc(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfGriddedField3& invtable,
     const Vector& f_grid,
     const ArrayOfString& scat_species,

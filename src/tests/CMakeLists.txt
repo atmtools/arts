@@ -221,8 +221,8 @@ add_executable (calc_predef predefined.cc)
 target_link_libraries(calc_predef artscore)
 endif()
 
-add_executable (arts_qn arts_quantum_numbers.cc ../quantum_numbers.cc)
-target_link_libraries(arts_qn species xmliobase)
+add_executable (arts_qn arts_quantum_numbers.cc)
+target_link_libraries(arts_qn species xmliobase quantum)
 
 ########################################################################################
 # Test OpenMP

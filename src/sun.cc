@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
   return os;
 }
 
-void get_scattered_sunsource(Workspace& ws,
+void get_scattered_sunsource(const Workspace& ws,
                               StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
@@ -180,7 +180,7 @@ ARTS_USER_ERROR("ERROR")
   }
 }
 
-void get_direct_radiation(Workspace& ws,
+void get_direct_radiation(const Workspace& ws,
                           ArrayOfMatrix& direct_radiation,
                           ArrayOfArrayOfTensor3& ddirect_radiation_dx,
                           const Vector& f_grid,
@@ -326,7 +326,7 @@ ARTS_USER_ERROR("ERROR")
   }
 }
 
-void get_sun_ppaths(Workspace& ws,
+void get_sun_ppaths(const Workspace& ws,
                      ArrayOfPpath& sun_ppaths,
                      ArrayOfIndex& suns_visible,
                      ArrayOfVector& sun_rte_los,

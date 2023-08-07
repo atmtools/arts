@@ -12,36 +12,14 @@
 #ifndef m_ignore_h
 #define m_ignore_h
 
-#include "agenda_class.h"
-#include "exceptions.h"
-#include "mystring.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Ignore(Workspace&,
-            // WS Generic Input:
-            const Agenda&) {}
+template <WorkspaceGroup T>
+void Ignore(const T&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Ignore(Workspace&,
-            // WS Generic Input:
-            const ArrayOfAgenda&) {}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template <class T>
-void Ignore(  // WS Generic Input:
-    const T&) {}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-inline void Touch(Workspace& ws,
-                  // WS Generic Output:
-                  Agenda& out) {
-  out = Agenda{ws};
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template <class T>
-void Touch(  // WS Generic Output:
-    T&) {}
+template <WorkspaceGroup T>
+void Touch(T&) {}
 
 #endif  // m_ignore_h

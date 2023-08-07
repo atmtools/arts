@@ -234,7 +234,7 @@ void surface_fieldInit(SurfaceField &surface_field, const Numeric &r_equatorial,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PlanetSet(Workspace &ws, Agenda &g0_agenda, SurfaceField &surface_field,
+void PlanetSet(Agenda &g0_agenda, SurfaceField &surface_field,
                Numeric &molarmass_dry_air, Numeric &planet_rotation_period,
                const String &option) {
   surface_field = {};

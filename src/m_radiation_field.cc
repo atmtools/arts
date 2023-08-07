@@ -23,7 +23,7 @@
 #include "rtepack.h"
 
 void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& line_irradiance,
     Tensor3& line_transmission,
     const ArrayOfArrayOfSpeciesTag& abs_species,

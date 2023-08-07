@@ -6,3 +6,4 @@
 #include "matpack_data.h"
 #include "matpack_view.h"
 #include "rational.h"
+#include "lin_alg.h"

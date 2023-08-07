@@ -68,7 +68,7 @@ void mc_antennaSetPencilBeam(MCAntenna& mc_antenna) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MCGeneral(Workspace& ws,
+void MCGeneral(const Workspace& ws,
                Vector& y,
                Index& mc_iteration_count,
                Vector& mc_error,
@@ -510,7 +510,7 @@ void MCGeneral(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MCRadar(  // Workspace reference:
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output:
     Vector& y,
     Vector& mc_error,

@@ -373,6 +373,30 @@ template void covmat1D(Sparse& block,
                        const Numeric& co,
                        const String& fname);
 
+void covmat1D(Matrix& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname) {
+  covmat1D<Matrix>(block, grid1, grid2, sigma1, sigma2, lc1, lc2, co, fname);
+}
+
+void covmat1D(Sparse& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname) {
+  covmat1D<Sparse>(block, grid1, grid2, sigma1, sigma2, lc1, lc2, co, fname);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Manipulation of covmat_se and covmat_sx
 ////////////////////////////////////////////////////////////////////////////////

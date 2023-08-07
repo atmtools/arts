@@ -245,7 +245,7 @@ void brent_zero(Numeric& sb,
   }
 }
 
-void clear_rt_vars_at_gp(Workspace& ws,
+void clear_rt_vars_at_gp(const Workspace& ws,
                          MatrixView ext_mat_mono,
                          VectorView abs_vec_mono,
                          Numeric& temperature,
@@ -320,7 +320,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
   abs_vec_mono = to_vector(local_abs_vec[0]);
 }
 
-void cloudy_rt_vars_at_gp(Workspace& ws,
+void cloudy_rt_vars_at_gp(const Workspace& ws,
                           MatrixView ext_mat_mono,
                           VectorView abs_vec_mono,
                           VectorView pnd_vec,
@@ -629,7 +629,7 @@ void ext2trans(MatrixView trans_mat,
   }
 }
 
-void get_ppath_transmat(Workspace& ws,
+void get_ppath_transmat(const Workspace& ws,
                         MatrixView trans_mat,
                         const Ppath& ppath,
                         const Agenda& propmat_clearsky_agenda,
@@ -794,7 +794,7 @@ bool is_anyptype_nonTotRan(
   return is_anyptype_nonTotRan;
 }
 
-void mcPathTraceGeneral(Workspace& ws,
+void mcPathTraceGeneral(const Workspace& ws,
                         MatrixView evol_op,
                         Vector& abs_vec_mono,
                         Numeric& temperature,
@@ -1141,7 +1141,7 @@ void mcPathTraceGeneral(Workspace& ws,
   ppath_step.np = np;
 }
 
-void mcPathTraceRadar(Workspace& ws,
+void mcPathTraceRadar(const Workspace& ws,
                       MatrixView evol_op,
                       Vector& abs_vec_mono,
                       Numeric& temperature,

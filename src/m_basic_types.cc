@@ -24,24 +24,11 @@
   ===========================================================================*/
 
 #include <cmath>
-#include <string_view>
-#include "array.h"
-#include "arts.h"
-#include "arts_constants.h"
-#include "artstime.h"
-#include "exceptions.h"
-#include "gridded_fields.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "matpack_data.h"
-#include "matpack_arrays.h"
-#include "matpack_sparse.h"
-#include "matpack_math.h"
-#include "mystring.h"
-#include "optproperties.h"
-#include "quantum_numbers.h"
+
 #include "sorting.h"
+
+#include <matpack.h>
+#include <workspace.h>
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
@@ -480,7 +467,7 @@ void NumericFromVector(Numeric& out,
   else {
     ostringstream os;
     os << "Your choice, *op* = \"" << op << "\", is not recognised.\n"
-       << "Valid options are: \"first\", \"last\", \"max\", \"min\" and \"mean\".";
+       << R"(Valid options are: "first", "last", "max", "min" and "mean".)";
     throw runtime_error(os.str());
   }
 }

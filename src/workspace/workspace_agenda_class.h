@@ -38,6 +38,8 @@ public:
 
   [[nodiscard]] const std::string& get_name() const {return name;}
 
+  void set_name(const std::string& v) {name = v;}
+
   [[nodiscard]] bool has_method(const std::string& method) const;
 
   friend std::ostream& operator<<(std::ostream& os, const Agenda& a);

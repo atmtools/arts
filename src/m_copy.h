@@ -12,13 +12,12 @@
 #ifndef m_copy_h
 #define m_copy_h
 
-#include "agenda_class.h"
 #include "debug.h"
 #include "mystring.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <class T>
+template <WorkspaceGroup T>
 void Copy(  // WS Generic Output:
     T& out,
     const String& /* out_name */,
@@ -29,31 +28,39 @@ void Copy(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace& ws,
-          // WS Generic Output:
-          Agenda& out,
-          const String& out_name,
-          // WS Generic Input:
-          const Agenda& in,
-          const String& /* in_name */) {
+template <>
+inline void Copy<Agenda>(// WS Generic Output:
+                         Agenda& out,
+                         const String& out_name,
+                         // WS Generic Input:
+                         const Agenda& in,
+                         const String& /* in_name */) {
   out = in;
   out.set_name(out_name);
-  out.check(ws);
+  out.finalize();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Copy(Workspace& ws,
-          // WS Generic Output:
-          ArrayOfAgenda& out,
-          const String& out_name,
-          // WS Generic Input:
-          const ArrayOfAgenda& in,
-          const String& /* in_name */) {
+template <>
+inline void Copy<ArrayOfAgenda>(// WS Generic Output:
+                                ArrayOfAgenda& out,
+                                const String& out_name,
+                                // WS Generic Input:
+                                const ArrayOfAgenda& in,
+                                const String& /* in_name */) {
   out = in;
-  for (auto & it : out) {
+  for (auto& it : out) {
     it.set_name(out_name);
-    it.check(ws);
+    it.finalize();
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template <WorkspaceGroup T>
+void Set(  // WS Generic Output:
+    T& out,
+    const T& in) {
+  out = in;
 }
 
 #endif  // m_copy_h

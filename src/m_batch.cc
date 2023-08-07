@@ -41,7 +41,7 @@ using GriddedFieldGrids::GFIELD3_P_GRID;
 /* Workspace method: Doxygen documentation will be auto-generated 
 
    2008-07-21 Stefan Buehler */
-void ForLoop(Workspace& ws,
+void ForLoop(const Workspace& ws,
              // WS Input:
              const Agenda& forloop_agenda,
              // Control Parameters:
@@ -54,7 +54,7 @@ void ForLoop(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(Workspace& ws,
+void ybatchCalc(const Workspace& ws,
                 // WS Output:
                 ArrayOfVector& ybatch,
                 ArrayOfArrayOfVector& ybatch_aux,
@@ -199,7 +199,7 @@ void ybatchCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfiles(Workspace& ws,
+void ybatchMetProfiles(const Workspace& ws,
                        //Output
                        ArrayOfVector& ybatch,
                        //Input
@@ -416,7 +416,7 @@ void ybatchMetProfiles(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfilesClear(Workspace& ws,
+void ybatchMetProfilesClear(const Workspace& ws,
                             //Output
                             ArrayOfVector& ybatch,
                             //Input
@@ -580,7 +580,7 @@ void ybatchMetProfilesClear(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DOBatchCalc(Workspace& ws,
+void DOBatchCalc(const Workspace& ws,
                  ArrayOfTensor7& dobatch_cloudbox_field,
                  ArrayOfTensor5& dobatch_radiance_field,
                  ArrayOfTensor4& dobatch_irradiance_field,

@@ -85,7 +85,7 @@ using ArrayOfSun = Array<Sun>;
  * @param[in] gas_scattering_agenda Agenda agenda calculating the gas scattering
  *            cross sectionand matrix.
  */
-void get_scattered_sunsource(Workspace& ws,
+void get_scattered_sunsource(const Workspace& ws,
                               StokvecVector& scattered_sunlight,
                               const Vector& f_grid,
                               const AtmPoint& atm_point,
@@ -170,7 +170,7 @@ void get_sun_radiation(Matrix& iy,
  * @param[in] ppath_step_agenda As the WSV.
  * @param[in] rte_alonglos_v As the WSV.
  */
-void get_direct_radiation(Workspace& ws,
+void get_direct_radiation(const Workspace& ws,
                      ArrayOfMatrix& direct_radiation,
                      ArrayOfArrayOfTensor3& ddirect_radiation_dx,
                      const Vector& f_grid,
@@ -215,7 +215,7 @@ void get_direct_radiation(Workspace& ws,
  * @param[in] ppath_lraytrace As the WSV.
  * @param[in] ppath_step_agenda As the WSV.
  */
-void get_sun_ppaths(Workspace& ws,
+void get_sun_ppaths(const Workspace& ws,
                      ArrayOfPpath& sun_ppaths,
                      ArrayOfIndex& suns_visible,
                      ArrayOfVector& sun_rte_los,

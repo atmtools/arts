@@ -42,7 +42,7 @@ void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
                           String(Species::toShortName(species_name)) + ".xml"};
 
     try {
-      ReadXML(xsec_coeffs, "", filename, "");
+      xml_read_from_file(filename, xsec_coeffs);
 
       xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {

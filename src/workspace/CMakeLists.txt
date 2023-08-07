@@ -14,7 +14,7 @@ add_library(workspace_internals STATIC
   workspace_variables.cpp
   auto_wsg.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group matpack predef species fwd)
+target_link_libraries(workspace_internals PUBLIC workspace_group matpack predef species fwd quantum)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

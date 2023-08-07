@@ -1,5 +1,7 @@
 #include <workspace.h>
 
+#include <cstdio>
+
 #include "python_interface/pydocs.h"
 
 void groups(std::ostream&) {
@@ -42,7 +44,7 @@ void variable(std::ostream& os,
   if (wsv.type not_eq "Any") os << " and/or :class:`~pyarts.arts.Any`\n";
 }
 
-void variables(std::vector<std::ostream>& oss) {
+void variables(std::vector<std::ofstream>& oss) {
   const auto wsvs = workspace_variables();
   {
     int i = 0;
@@ -76,4 +78,7 @@ void methods(std::ostream& os) {
 }
 
 int main() {
+  std::vector<std::ofstream> var_oss(1);
+  var_oss[0] = std::ofstream("test.cpp");
+  variables(var_oss);
 }

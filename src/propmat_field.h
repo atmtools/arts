@@ -39,7 +39,7 @@ using FieldOfStokvecVector = Field3D<StokvecVector>;
  * @param[in] jacobian_quantities As WSV
  * @param[in] propmat_clearsky_agenda As WSA
  */
-void field_of_propagation(Workspace& ws,
+void field_of_propagation(const Workspace& ws,
                           FieldOfPropmatVector& propmat_field,
                           FieldOfStokvecVector& absorption_field,
                           FieldOfStokvecVector& additional_source_field,
@@ -86,7 +86,7 @@ FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
  * @param[in] surface_props_data As WSV
  */
 void emission_from_propmat_field(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfStokvecVector& lvl_rad,
     ArrayOfStokvecVector& src_rad,
     ArrayOfMuelmatVector& lyr_tra,

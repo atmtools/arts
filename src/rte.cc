@@ -289,7 +289,7 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
     @author Patrick Eriksson 
     @date   2012-04-11
  */
-void defocusing_general_sub(Workspace& ws,
+void defocusing_general_sub(const Workspace& ws,
                             Vector& pos,
                             Vector& rte_los,
                             Index& background,
@@ -392,7 +392,7 @@ void defocusing_general_sub(Workspace& ws,
   }
 }
 
-void defocusing_general(Workspace& ws,
+void defocusing_general(const Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -495,7 +495,7 @@ void defocusing_general(Workspace& ws,
   }
 }
 
-void defocusing_sat2sat(Workspace& ws,
+void defocusing_sat2sat(const Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
                         const Vector& p_grid,
@@ -629,7 +629,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
 
-void get_iy(Workspace& ws,
+void get_iy(const Workspace& ws,
             Matrix& iy,
             const Index& cloudbox_on,
             const Vector& f_grid,
@@ -670,7 +670,7 @@ void get_iy(Workspace& ws,
                         iy_main_agenda);
 }
 
-void get_iy_of_background(Workspace& ws,
+void get_iy_of_background(const Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
                           const Tensor3& iy_transmittance,
@@ -1277,7 +1277,7 @@ void get_stepwise_scattersky_source(
 void iyb_calc_body(bool& failed,
                    String& fail_msg,
                    ArrayOfArrayOfMatrix& iy_aux_array,
-                   Workspace& ws,
+                   const Workspace& ws,
                    Ppath& ppath,
                    Vector& iyb,
                    ArrayOfMatrix& diyb_dx,
@@ -1391,7 +1391,7 @@ void iyb_calc_body(bool& failed,
   }
 }
 
-void iyb_calc(Workspace& ws,
+void iyb_calc(const Workspace& ws,
               Vector& iyb,
               ArrayOfVector& iyb_aux,
               ArrayOfMatrix& diyb_dx,
@@ -1662,7 +1662,7 @@ void pos2true_latlon(Numeric& lat,
 }
 
 void rtmethods_jacobian_finalisation(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
     const Index& nf,
@@ -1849,7 +1849,7 @@ void rtmethods_unit_conversion(
 void yCalc_mblock_loop_body(bool& failed,
                             String& fail_msg,
                             ArrayOfArrayOfVector& iyb_aux_array,
-                            Workspace& ws,
+                            const Workspace& ws,
                             Vector& y,
                             Vector& y_f,
                             ArrayOfIndex& y_pol,

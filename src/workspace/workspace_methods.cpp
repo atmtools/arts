@@ -3,6 +3,8 @@
 #include <limits>
 #include <optional>
 
+#pragma clang optimize off
+
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods() {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
@@ -16,19 +18,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"AbsorptionLines"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["AbsorptionLinesSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"AbsorptionLines"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"AbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["AgendaAppend"] =
@@ -91,26 +80,6 @@ finishes. WARNING: Can cause deadlocks! Use with care.
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Agenda to be executed.)--"},
   };
-
-  wsm_data["AgendaSet"] =
-      WorkspaceMethodInternalRecord{.desc = R"--(Set up an agenda.
-
-An agenda is used to store a list of methods that are meant to be
-executed sequentially.
-
-This method takes the methods given in the body (in the curly braces)
-and puts them in the agenda given by the output argument (in the round
-braces).
-
-It also uses the agenda lookup data (defined in file agendas.cc) to
-check, whether the given methods use the right input WSVs and
-produce the right output WSVs.
-)--",
-                                    .author = {"Oliver Lemke"},
-                                    .gout = {"output"},
-                                    .gout_type = {"Agenda"},
-                                    .gout_desc = {R"--(The new agenda.)--"},
-                                    .pass_names = true};
 
   wsm_data["AltLatLonFieldSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Fills an altitude-latitude-longitude field with given input.
@@ -270,19 +239,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfAbsorptionLinesSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfAbsorptionLines"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfAbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfAgendaAppend"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Set up an agenda and append it to the array of agendas.
 
@@ -329,19 +285,6 @@ After being created, the variable is uninitialized.
           .gout_desc = {R"--(Variable to create.)--"},
       };
 
-  wsm_data["ArrayOfArrayOfAbsorptionLinesSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfAbsorptionLines"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfAbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfGriddedField1Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfGriddedField1.
 
@@ -351,19 +294,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfGriddedField1"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfGriddedField1Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfGriddedField1"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfGriddedField1"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfGriddedField2Create"] = WorkspaceMethodInternalRecord{
@@ -377,19 +307,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfGriddedField2Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfGriddedField2"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfGriddedField2"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfGriddedField3Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfGriddedField3.
 
@@ -399,19 +316,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfGriddedField3"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfGriddedField3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfGriddedField3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfGriddedField3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfIndexCreate"] = WorkspaceMethodInternalRecord{
@@ -425,19 +329,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfIndexSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfIndex"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfIndex"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfMatrixCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfMatrix.
 
@@ -447,19 +338,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfMatrix"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfMuelmatMatrixCreate"] = WorkspaceMethodInternalRecord{
@@ -473,19 +351,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfMuelmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfMuelmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfMuelmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfMuelmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfMuelmatVector.
 
@@ -495,19 +360,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfMuelmatVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfMuelmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfMuelmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfMuelmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfPropmatMatrixCreate"] = WorkspaceMethodInternalRecord{
@@ -521,19 +373,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfPropmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfPropmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfPropmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfPropmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfPropmatVector.
 
@@ -543,19 +382,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfPropmatVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfPropmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfPropmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfPropmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfScatteringMetaDataCreate"] =
@@ -571,20 +397,6 @@ After being created, the variable is uninitialized.
           .gout_desc = {R"--(Variable to create.)--"},
       };
 
-  wsm_data["ArrayOfArrayOfScatteringMetaDataSet"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets a workspace variable to the given value.
-)--",
-          .author = {"Richard Larsson"},
-          .gout = {"output"},
-          .gout_type = {"ArrayOfArrayOfScatteringMetaData"},
-          .gout_desc = {R"--(Variable to initialize.)--"},
-          .gin = {"value"},
-          .gin_type = {"ArrayOfArrayOfScatteringMetaData"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(The value.)--"},
-      };
-
   wsm_data["ArrayOfArrayOfSingleScatteringDataCreate"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -598,20 +410,6 @@ After being created, the variable is uninitialized.
           .gout_desc = {R"--(Variable to create.)--"},
       };
 
-  wsm_data["ArrayOfArrayOfSingleScatteringDataSet"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets a workspace variable to the given value.
-)--",
-          .author = {"Richard Larsson"},
-          .gout = {"output"},
-          .gout_type = {"ArrayOfArrayOfSingleScatteringData"},
-          .gout_desc = {R"--(Variable to initialize.)--"},
-          .gin = {"value"},
-          .gin_type = {"ArrayOfArrayOfSingleScatteringData"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(The value.)--"},
-      };
-
   wsm_data["ArrayOfArrayOfSpeciesTagCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfSpeciesTag.
 
@@ -621,19 +419,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfSpeciesTag"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfSpeciesTagSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfSpeciesTag"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfSpeciesTag"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfStokvecMatrixCreate"] = WorkspaceMethodInternalRecord{
@@ -647,19 +432,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfStokvecMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfStokvecMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfStokvecMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfStokvecVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfStokvecVector.
 
@@ -669,19 +441,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfStokvecVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfStokvecVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfStokvecVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfStokvecVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfStringCreate"] = WorkspaceMethodInternalRecord{
@@ -695,19 +454,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfStringSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfString"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfString"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfTensor3Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfTensor3.
 
@@ -717,19 +463,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfTensor3"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfTensor3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfTensor3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfTensor3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfTensor6Create"] = WorkspaceMethodInternalRecord{
@@ -743,19 +476,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfTensor6Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfTensor6"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfTensor6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfArrayOfTimeCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfArrayOfTime.
 
@@ -765,19 +485,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfArrayOfTime"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfArrayOfTimeSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfTime"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfTime"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfArrayOfVectorCreate"] = WorkspaceMethodInternalRecord{
@@ -791,19 +498,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfArrayOfVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfArrayOfVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfArrayOfVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfAtmPointCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfAtmPoint.
 
@@ -813,19 +507,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfAtmPoint"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfAtmPointSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfAtmPoint"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfAtmPoint"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfCIARecordCreate"] = WorkspaceMethodInternalRecord{
@@ -839,19 +520,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfCIARecordSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfCIARecord"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfCIARecord"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfGriddedField1Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfGriddedField1.
 
@@ -861,19 +529,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfGriddedField1"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfGriddedField1Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfGriddedField1"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfGriddedField1"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfGriddedField2Create"] = WorkspaceMethodInternalRecord{
@@ -887,19 +542,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfGriddedField2Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfGriddedField2"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfGriddedField2"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfGriddedField3Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfGriddedField3.
 
@@ -911,19 +553,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfGriddedField3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfGriddedField3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfGriddedField3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfGriddedField4Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfGriddedField4.
 
@@ -933,19 +562,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfGriddedField4"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfGriddedField4Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfGriddedField4"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfGriddedField4"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfGriddedFieldGetNames"] = WorkspaceMethodInternalRecord{
@@ -997,19 +613,6 @@ The created array is [start, start+step, start+2*step, ...]
                    R"--(Spacing of the array.)--"},
   };
 
-  wsm_data["ArrayOfIndexSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfIndex"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfIndex"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfIndexSetConstant"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates an ArrayOfIndex of length *nelem*, with all values
 identical.
@@ -1036,19 +639,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfJacobianTargetSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfJacobianTarget"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfJacobianTarget"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfMatrixCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfMatrix.
 
@@ -1058,19 +648,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfMatrix"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfMuelmatMatrixCreate"] = WorkspaceMethodInternalRecord{
@@ -1084,19 +661,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfMuelmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfMuelmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfMuelmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfMuelmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfMuelmatVector.
 
@@ -1106,19 +670,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfMuelmatVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfMuelmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfMuelmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfMuelmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfPpathCreate"] = WorkspaceMethodInternalRecord{
@@ -1132,19 +683,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfPpathSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfPpath"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfPpath"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfPropmatMatrixCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfPropmatMatrix.
 
@@ -1156,19 +694,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfPropmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfPropmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfPropmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfPropmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfPropmatVector.
 
@@ -1178,19 +703,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfPropmatVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfPropmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfPropmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfPropmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfQuantumIdentifierCreate"] = WorkspaceMethodInternalRecord{
@@ -1223,19 +735,6 @@ Lines without defined quantum numbers are ignored
       .gin_desc = {R"--(Only look at global quantum numbers)--"},
   };
 
-  wsm_data["ArrayOfQuantumIdentifierSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfQuantumIdentifier"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfQuantumIdentifier"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfRetrievalQuantityCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfRetrievalQuantity.
 
@@ -1245,19 +744,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfRetrievalQuantity"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfRetrievalQuantitySet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfRetrievalQuantity"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfRetrievalQuantity"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfScatteringMetaDataCreate"] = WorkspaceMethodInternalRecord{
@@ -1271,19 +757,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfScatteringMetaDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfScatteringMetaData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfScatteringMetaData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfSingleScatteringDataCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfSingleScatteringData.
 
@@ -1293,19 +766,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfSingleScatteringData"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfSingleScatteringDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfSingleScatteringData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfSingleScatteringData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfSparseCreate"] = WorkspaceMethodInternalRecord{
@@ -1319,19 +779,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfSparseSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfSparse"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfSparse"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfSpeciesTagCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfSpeciesTag.
 
@@ -1341,19 +788,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfSpeciesTag"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfSpeciesTagSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfSpeciesTag"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfSpeciesTag"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfStokvecMatrixCreate"] = WorkspaceMethodInternalRecord{
@@ -1367,19 +801,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfStokvecMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfStokvecMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfStokvecMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfStokvecVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfStokvecVector.
 
@@ -1389,19 +810,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfStokvecVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfStokvecVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfStokvecVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfStokvecVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfStringCreate"] = WorkspaceMethodInternalRecord{
@@ -1415,19 +823,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfStringSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfString"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfString"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfSunCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfSun.
 
@@ -1437,19 +832,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfSun"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfSunSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfSun"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfSun"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfTelsemAtlasCreate"] = WorkspaceMethodInternalRecord{
@@ -1463,19 +845,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfTelsemAtlasSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTelsemAtlas"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTelsemAtlas"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfTensor3Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfTensor3.
 
@@ -1485,19 +854,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfTensor3"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfTensor3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTensor3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTensor3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfTensor4Create"] = WorkspaceMethodInternalRecord{
@@ -1511,19 +867,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfTensor4Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTensor4"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTensor4"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfTensor5Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfTensor5.
 
@@ -1533,19 +876,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfTensor5"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfTensor5Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTensor5"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTensor5"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfTensor6Create"] = WorkspaceMethodInternalRecord{
@@ -1559,19 +889,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfTensor6Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTensor6"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTensor6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfTensor7Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfTensor7.
 
@@ -1581,19 +898,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfTensor7"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfTensor7Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTensor7"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["ArrayOfTimeCreate"] = WorkspaceMethodInternalRecord{
@@ -1625,19 +929,6 @@ The length (*nelem*) must be larger than 1.
       .gin_desc = {R"--(Start value.)--", R"--(End value.)--"},
   };
 
-  wsm_data["ArrayOfTimeSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTime"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfTime"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfTimeSetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates an ArrayOfTime and sets all elements to the specified value.
@@ -1666,19 +957,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ArrayOfVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["ArrayOfXsecRecordCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group ArrayOfXsecRecord.
 
@@ -1688,39 +966,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"ArrayOfXsecRecord"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["ArrayOfXsecRecordSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ArrayOfXsecRecord"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ArrayOfXsecRecord"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
-  wsm_data["Arts"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Runs the agenda that is specified inside the curly braces. ARTS
-controlfiles must define this method. It is executed automatically
-when ARTS is run on the controlfile and cannot be called by the user.
-This methods was used for Arts 1 controlfiles and is now obsolete.
-See *Arts2*
-)--",
-      .author = {"Stefan Buehler"},
-  };
-
-  wsm_data["Arts2"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Runs the agenda that is specified inside the curly braces. ARTS
-controlfiles must define this method. It is executed automatically
-when ARTS is run on the controlfile and cannot be called by the user.
-)--",
-      .author = {"Oliver Lemke"},
   };
 
   wsm_data["AtmFieldCreate"] = WorkspaceMethodInternalRecord{
@@ -1753,19 +998,6 @@ in and out fields can be the same variable.
                    R"--(Pressure grid to regrid to)--",
                    R"--(Pressure grid of input field)--",
                    R"--(Interpolation order.)--"},
-  };
-
-  wsm_data["AtmFieldSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"AtmField"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"AtmField"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["AtmFieldsAndParticleBulkPropFieldFromCompact"] =
@@ -1820,19 +1052,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["AtmPointSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"AtmPoint"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"AtmPoint"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["CIAInfo"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Display information about the given CIA tags.
 The CIA tags shown are in the same format as needed by *abs_speciesSet*.
@@ -1872,19 +1091,6 @@ After being created, the variable is uninitialized.
            R"--(Filename of HITRAN CIA data file.)--"},
   };
 
-  wsm_data["CIARecordSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"CIARecord"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"CIARecord"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["CallbackFunctionCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group CallbackFunction.
 
@@ -1907,19 +1113,6 @@ After being created, the variable is uninitialized.
           {R"--(This will execute as "function(current workspace);")--"},
       .pass_workspace = true,
 
-  };
-
-  wsm_data["CallbackFunctionSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"CallbackFunction"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"CallbackFunction"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["CheckUnique"] = WorkspaceMethodInternalRecord{
@@ -2025,19 +1218,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["CovarianceMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"CovarianceMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"CovarianceMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["DOAngularGridsSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets the angular grids for Discrete Ordinate type scattering
 calculations.
@@ -2119,17 +1299,13 @@ The input variable *ybatch_start* is set to a default of zero.
   wsm_data["Delete"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Deletes a workspace variable.
 
-The variable is marked as uninitialized and its memory freed.
-It is not removed from the workspace though, therefore you
-don't need to/can't call Create for this variable again.
+The variable still exists after this method, but it is default-initialized
+to have minimal memory footprint
 )--",
       .author = {"Oliver Lemke"},
-      .gin = {"v"},
-      .gin_type = {"Any"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to be deleted.)--"},
-      .pass_workspace = true,
-      .pass_names = true};
+      .gout = {"v"},
+      .gout_type = {"Any"},
+      .gout_desc = {R"--(Variable to be deleted.)--"}};
 
   wsm_data["DiagonalMatrix"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Create a diagonal matrix from a vector.
@@ -2165,6 +1341,7 @@ in *f_grid*. The output is the radiation field inside the cloudbox
              "f_grid",
              "doit_mono_agenda",
              "doit_is_initialized"},
+           .pass_workspace = true
   };
 
   wsm_data["DoitGetIncoming"] = WorkspaceMethodInternalRecord{
@@ -2205,6 +1382,7 @@ the user necessary.).
       .gin_desc =
           {R"--(Fail if incoming field is not safely interpolable.)--",
            R"--(Maximum allowed ratio of two radiances regarded as interpolable.)--"},
+           .pass_workspace = true
   };
 
   wsm_data["DoitGetIncoming1DAtm"] = WorkspaceMethodInternalRecord{
@@ -2231,6 +1409,7 @@ This method can only be used for 3D cases.
              "f_grid",
              "za_grid",
              "aa_grid"},
+           .pass_workspace = true
   };
 
   wsm_data["DoitInit"] = WorkspaceMethodInternalRecord{
@@ -2276,6 +1455,7 @@ matrices are stored in *pha_mat_sptDOITOpt*.
              "cloudbox_limits",
              "pnd_field",
              "pha_mat_spt_agenda"},
+           .pass_workspace = true
   };
 
   wsm_data["DoitWriteIterationFields"] = WorkspaceMethodInternalRecord{
@@ -2521,6 +1701,7 @@ that *ybatchCalc* may occur inside *forloop_agenda*.
       .gin_desc = {R"--(Start value.)--",
                    R"--(End value.)--",
                    R"--(Step size.)--"},
+           .pass_workspace = true
   };
 
   wsm_data["FrequencyFromCGSAngularWavenumber"] = WorkspaceMethodInternalRecord{
@@ -2579,19 +1760,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["GasAbsLookupSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GasAbsLookup"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GasAbsLookup"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["GetEnvironmentVariable"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Copy the contents of an environment variable to an ARTS String or Index.
@@ -2626,19 +1794,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["GridPosSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GridPos"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GridPos"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["GriddedField1Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group GriddedField1.
 
@@ -2648,19 +1803,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"GriddedField1"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["GriddedField1Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField1"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField1"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["GriddedField2Create"] = WorkspaceMethodInternalRecord{
@@ -2674,19 +1816,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["GriddedField2Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField2"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField2"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["GriddedField3Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group GriddedField3.
 
@@ -2696,19 +1825,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"GriddedField3"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["GriddedField3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["GriddedField4Create"] = WorkspaceMethodInternalRecord{
@@ -2722,19 +1838,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["GriddedField4Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField4"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField4"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["GriddedField5Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group GriddedField5.
 
@@ -2746,19 +1849,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["GriddedField5Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField5"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField5"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["GriddedField6Create"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group GriddedField6.
 
@@ -2768,19 +1858,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"GriddedField6"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["GriddedField6Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"GriddedField6"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"GriddedField6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["GriddedFieldGetName"] = WorkspaceMethodInternalRecord{
@@ -2855,19 +1932,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"HitranRelaxationMatrixData"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["HitranRelaxationMatrixDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"HitranRelaxationMatrixData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"HitranRelaxationMatrixData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["HydrotableCalc"] = WorkspaceMethodInternalRecord{
@@ -3012,19 +2076,6 @@ The result can either be stored in the same or another Index.
       .gin_type = {"Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Input Index.)--", R"--(Multiplier.)--"},
-  };
-
-  wsm_data["IndexSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["IndexSetToLast"] = WorkspaceMethodInternalRecord{
@@ -3267,19 +2318,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["JacobianTargetSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"JacobianTarget"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"JacobianTarget"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["LatLonFieldSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Fills a latitude-longitude field with given input.
 
@@ -3335,19 +2373,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"MCAntenna"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["MCAntennaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"MCAntenna"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"MCAntenna"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["MCGeneral"] = WorkspaceMethodInternalRecord{
@@ -3417,6 +2442,7 @@ output.
       .gin_desc =
           {R"--(The length to be given to *mc_scat_order*. Note that scattering orders equal and above this value will not be counted.)--",
            R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
+           .pass_workspace = true
   };
 
   wsm_data["MCRadar"] = WorkspaceMethodInternalRecord{
@@ -3483,6 +2509,7 @@ The value of *mc_error* follows the selection for *iy_unit_radar*
           {R"--(Reference temperature for conversion to Ze.)--",
            R"--(Reference dielectric factor.)--",
            R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
+           .pass_workspace = true
   };
 
   wsm_data["MCSetSeedFromTime"] = WorkspaceMethodInternalRecord{
@@ -3504,19 +2531,6 @@ After being created, the variable is uninitialized.
           .gout_type = {"MapOfErrorCorrectedSuddenData"},
           .gout_desc = {R"--(Variable to create.)--"},
       };
-
-  wsm_data["MapOfErrorCorrectedSuddenDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"MapOfErrorCorrectedSuddenData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"MapOfErrorCorrectedSuddenData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
 
   wsm_data["Matrix1ColFromVector"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Forms a matrix containing one column from a vector.
@@ -3869,19 +2883,6 @@ the tensor's page dimension as the outermost loop.
       .gin_desc = {R"--(Tensor3 to copy.)--"},
   };
 
-  wsm_data["MatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Matrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["MatrixSetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates a matrix and sets all elements to the specified value.
@@ -3953,32 +2954,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["MuelmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"MuelmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"MuelmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
-  wsm_data["MuelmatSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Muelmat"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Muelmat"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["MuelmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group MuelmatVector.
 
@@ -3988,19 +2963,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"MuelmatVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["MuelmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"MuelmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"MuelmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["NumericAdd"] = WorkspaceMethodInternalRecord{
@@ -4156,19 +3118,6 @@ The result can either be stored in the same or another Numeric.
       .gin_desc = {R"--(Input Numeric.)--", R"--(Multiplier.)--"},
   };
 
-  wsm_data["NumericSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["NumericSubtract"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Subtracts a Numeric value (output = input - value).
 
@@ -4318,6 +3267,7 @@ Description of the special input arguments:
            R"--(Settings associated with the ga factor of the LM method.)--",
            R"--(An option to save memory.)--",
            R"--(Flag to control if inversion diagnostics shall be printed on the screen.)--"},
+           .pass_workspace = true
   };
 
   wsm_data["PlanetSet"] = WorkspaceMethodInternalRecord{
@@ -4371,8 +3321,6 @@ Options are:
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
-      .pass_workspace = true,
-
   };
 
   wsm_data["PpathCreate"] = WorkspaceMethodInternalRecord{
@@ -4386,19 +3334,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["PpathSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Ppath"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Ppath"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["PredefinedModelDataCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group PredefinedModelData.
 
@@ -4408,19 +3343,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"PredefinedModelData"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["PredefinedModelDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"PredefinedModelData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"PredefinedModelData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["Print"] = WorkspaceMethodInternalRecord{
@@ -4476,32 +3398,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["PropmatMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"PropmatMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"PropmatMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
-  wsm_data["PropmatSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Propmat"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Propmat"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["PropmatVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group PropmatVector.
 
@@ -4513,19 +3409,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["PropmatVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"PropmatVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"PropmatVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["QuantumIdentifierCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group QuantumIdentifier.
 
@@ -4535,19 +3418,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"QuantumIdentifier"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["QuantumIdentifierSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"QuantumIdentifier"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"QuantumIdentifier"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["RT4Calc"] = WorkspaceMethodInternalRecord{
@@ -4673,6 +3543,7 @@ the actual temperature.
            R"--(For ``auto_inc_nstreams``>0, polar angle interpolation order for interpolation from internal increased stream to originally requested nstreams-ifield.)--",
            R"--(For ``auto_inc_nstreams``>0, flag whether to do polar angle interpolation in cosine (='mu') space.)--",
            R"--(Maximum optical depth of infinitesimal layer (where single scattering approximation is assumed to apply).)--"},
+           .pass_workspace = true
   };
 
   wsm_data["RT4CalcWithRT4Surface"] = WorkspaceMethodInternalRecord{
@@ -4756,6 +3627,7 @@ methods modified to behave similar to ARTS'
            R"--(For ``auto_inc_nstreams``>0, polar angle interpolation order for interpolation from internal increased stream to originally requested nstreams-ifield.)--",
            R"--(For ``auto_inc_nstreams``>0, flag whether to do polar angle interpolation in cosine (='mu') space.)--",
            R"--(Maximum optical depth of infinitesimal layer (where single scattering approximation is assumed to apply).)--"},
+           .pass_workspace = true
   };
 
   wsm_data["RT4Test"] = WorkspaceMethodInternalRecord{
@@ -4842,6 +3714,7 @@ species and a single frequency (the one of the radar).
              "background_transmittance",
              "jacobian_do",
              "rte_background_agenda"},
+           .pass_workspace = true
   };
 
   wsm_data["RadiationFieldSpectralIntegrate"] = WorkspaceMethodInternalRecord{
@@ -4883,6 +3756,7 @@ is also removed.
              "ppvar_f",
              "jacobian_do",
              "ppvar_rtprop_agenda"},
+           .pass_workspace = true
   };
 
   wsm_data["RationalAdd"] = WorkspaceMethodInternalRecord{
@@ -4939,19 +3813,6 @@ The result can either be stored in the same or another Rational.
       .gin_type = {"Rational", "Rational"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Input Rational.)--", R"--(Multiplier.)--"},
-  };
-
-  wsm_data["RationalSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Rational"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Rational"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["RationalSubtract"] = WorkspaceMethodInternalRecord{
@@ -5728,19 +4589,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["ScatteringMetaDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"ScatteringMetaData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"ScatteringMetaData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["Select"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Method to select some elements from one array and copy them to
@@ -5797,19 +4645,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["SingleScatteringDataSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"SingleScatteringData"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"SingleScatteringData"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["Sleep"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sleeps for a number of seconds
 )--",
@@ -5850,19 +4685,6 @@ value*I.
                    R"--(The value along the diagonal.)--"},
   };
 
-  wsm_data["SparseSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Sparse"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Sparse"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["SparseSparseMultiply"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Multiplies a Sparse with another Sparse, result stored in Sparse.
@@ -5892,19 +4714,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["SpeciesIsotopologueRatiosSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"SpeciesIsotopologueRatios"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"SpeciesIsotopologueRatios"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["SpectralRadianceProfileOperatorCreate"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -5916,20 +4725,6 @@ After being created, the variable is uninitialized.
           .gout = {"output"},
           .gout_type = {"SpectralRadianceProfileOperator"},
           .gout_desc = {R"--(Variable to create.)--"},
-      };
-
-  wsm_data["SpectralRadianceProfileOperatorSet"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets a workspace variable to the given value.
-)--",
-          .author = {"Richard Larsson"},
-          .gout = {"output"},
-          .gout_type = {"SpectralRadianceProfileOperator"},
-          .gout_desc = {R"--(Variable to initialize.)--"},
-          .gin = {"value"},
-          .gin_type = {"SpectralRadianceProfileOperator"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(The value.)--"},
       };
 
   wsm_data["StokvecCreate"] = WorkspaceMethodInternalRecord{
@@ -5954,32 +4749,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["StokvecMatrixSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"StokvecMatrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"StokvecMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
-  wsm_data["StokvecSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Stokvec"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Stokvec"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["StokvecVectorCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group StokvecVector.
 
@@ -5989,19 +4758,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"StokvecVector"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["StokvecVectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"StokvecVector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"StokvecVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["StringCreate"] = WorkspaceMethodInternalRecord{
@@ -6067,19 +4823,6 @@ in the input list. Up to 10 strings can be concatenated at once.
                    R"--(Input text string.)--"},
   };
 
-  wsm_data["StringSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"String"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["SurfaceDummy"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Dummy method for *iy_surface_agenda*.
 
@@ -6112,19 +4855,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["SurfaceFieldSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"SurfaceField"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"SurfaceField"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["SurfacePointCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group SurfacePoint.
 
@@ -6134,19 +4864,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"SurfacePoint"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["SurfacePointSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"SurfacePoint"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"SurfacePoint"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["TMatrixTest"] = WorkspaceMethodInternalRecord{
@@ -6168,19 +4885,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"TelsemAtlas"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["TelsemAtlasSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"TelsemAtlas"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"TelsemAtlas"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["Tensor3Add"] = WorkspaceMethodInternalRecord{
@@ -6260,19 +4964,6 @@ variable.
                    R"--(The value to be multiplied with the tensor.)--"},
   };
 
-  wsm_data["Tensor3Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Tensor3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["Tensor3SetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates a tensor and sets all elements to the specified value.
@@ -6335,19 +5026,6 @@ variable.
                    R"--(The value to be multiplied with the tensor.)--"},
   };
 
-  wsm_data["Tensor4Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Tensor4"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Tensor4"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["Tensor4SetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates a tensor and sets all elements to the specified value.
@@ -6391,19 +5069,6 @@ variable.
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Input Tensor.)--",
                    R"--(The value to be multiplied with the tensor.)--"},
-  };
-
-  wsm_data["Tensor5Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Tensor5"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Tensor5"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["Tensor5SetConstant"] = WorkspaceMethodInternalRecord{
@@ -6451,19 +5116,6 @@ variable.
                    R"--(The value to be multiplied with the tensor.)--"},
   };
 
-  wsm_data["Tensor6Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Tensor6"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Tensor6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["Tensor6SetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates a tensor and sets all elements to the specified value.
@@ -6507,19 +5159,6 @@ variable.
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Input Tensor.)--",
                    R"--(The value to be multiplied with the tensor.)--"},
-  };
-
-  wsm_data["Tensor7Set"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Tensor7"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["Tensor7SetConstant"] = WorkspaceMethodInternalRecord{
@@ -6569,19 +5208,6 @@ After being created, the variable is uninitialized.
       .gin_value = {std::nullopt},
       .gin_desc =
           {R"--(NeuralNet parameters file as provided in the TESSEM 2 distribution.)--"},
-  };
-
-  wsm_data["TessemNNSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"TessemNN"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"TessemNN"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["TestBasicGeodeticAccuracy"] = WorkspaceMethodInternalRecord{
@@ -6650,19 +5276,6 @@ After being created, the variable is uninitialized.
       .gout_desc = {R"--(Variable to create.)--"},
   };
 
-  wsm_data["TimeSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Time"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Time"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["TimerCreate"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a variable of group Timer.
 
@@ -6672,19 +5285,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"Timer"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["TimerSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Timer"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Timer"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["Touch"] = WorkspaceMethodInternalRecord{
@@ -7130,19 +5730,6 @@ order. The output vector has the same length for both options.
                    R"--(Direction. "row" or "column".)--"},
   };
 
-  wsm_data["VectorSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
-  };
-
   wsm_data["VectorSetConstant"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Creates a vector and sets all elements to the specified value.
@@ -7225,19 +5812,6 @@ After being created, the variable is uninitialized.
       .gout = {"output"},
       .gout_type = {"VibrationalEnergyLevels"},
       .gout_desc = {R"--(Variable to create.)--"},
-  };
-
-  wsm_data["VibrationalEnergyLevelsSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a workspace variable to the given value.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"output"},
-      .gout_type = {"VibrationalEnergyLevels"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .gin = {"value"},
-      .gin_type = {"VibrationalEnergyLevels"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The value.)--"},
   };
 
   wsm_data["WMRFSelectChannels"] = WorkspaceMethodInternalRecord{
@@ -8963,6 +7537,7 @@ always H2O.
       .gin_type = {"Numeric"},
       .gin_value = {Numeric{1e-9}},
       .gin_desc = {R"--(Lowest possible VMR to compute absorption at)--"},
+           .pass_workspace = true
   };
 
   wsm_data["abs_lookupInit"] = WorkspaceMethodInternalRecord{
@@ -14037,6 +12612,7 @@ Presently only works for 1D atmospheres
                        R"--(number of zeniths)--",
                        R"--(number of frequencies per line)--",
                        R"--(Distance assumed when computing local (1-T))--"},
+           .pass_workspace = true
       };
 
   wsm_data["mblock_dlosFrom1dAntenna"] = WorkspaceMethodInternalRecord{
@@ -14126,7 +12702,7 @@ workspace variable *nbooks*
       .author = {"Oliver Lemke"},
       .out = {"nbooks"},
       .gin = {"v"},
-      .gin_type = {"Tensor4, Tensor5, Tensor6, Tensor7"},
+      .gin_type = {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of books from.)--"},
   };
@@ -14139,7 +12715,7 @@ workspace variable *ncols*
       .out = {"ncols"},
       .gin = {"v"},
       .gin_type =
-          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
+          {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of columns from.)--"},
   };
@@ -14152,7 +12728,7 @@ variable *nelem*.
       .out = {"nelem"},
       .gin = {"v"},
       .gin_type =
-          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfJacobianTarget, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
+          {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of elements from.)--"},
   };
@@ -14165,7 +12741,7 @@ workspace variable *nlibraries*
       .author = {"Oliver Lemke"},
       .out = {"nlibraries"},
       .gin = {"v"},
-      .gin_type = {"Tensor7"},
+      .gin_type = {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of libraries from.)--"},
   };
@@ -14185,7 +12761,7 @@ workspace variable *npages*
       .author = {"Oliver Lemke"},
       .out = {"npages"},
       .gin = {"v"},
-      .gin_type = {"Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
+      .gin_type = {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of pages from.)--"},
   };
@@ -14198,7 +12774,7 @@ workspace variable *nrows*
       .out = {"nrows"},
       .gin = {"v"},
       .gin_type =
-          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
+          {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of rows from.)--"},
   };
@@ -14211,7 +12787,7 @@ workspace variable *nshelves*
       .author = {"Oliver Lemke"},
       .out = {"nshelves"},
       .gin = {"v"},
-      .gin_type = {"Tensor5, Tensor6, Tensor7"},
+      .gin_type = {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of shelves from.)--"},
   };
@@ -14224,7 +12800,7 @@ workspace variable *nvitrines*
       .author = {"Oliver Lemke"},
       .out = {"nvitrines"},
       .gin = {"v"},
-      .gin_type = {"Tensor6, Tensor7"},
+      .gin_type = {"Any"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of vitrines from.)--"},
   };

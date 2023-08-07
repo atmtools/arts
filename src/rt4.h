@@ -165,7 +165,7 @@ void get_rt4surf_props(  // Output
   \author Jana Mendrok
   \date   2017-02-22
 */
-void run_rt4(Workspace& ws,
+void run_rt4(const Workspace& ws,
              // Output
              Tensor7& cloudbox_field,
              Vector& za_grid,
@@ -235,7 +235,7 @@ void za_grid_adjust(  // Output
   \author Jana Mendrok
   \date   2016-08-08
 */
-void gas_optpropCalc(Workspace& ws,
+void gas_optpropCalc(const Workspace& ws,
                      //Output
                      VectorView gas_extinct,
                      //Input
@@ -343,7 +343,7 @@ void sca_optpropCalc(  //Output
   \author Jana Mendrok
   \date   2017-02-09
 */
-void surf_optpropCalc(Workspace& ws,
+void surf_optpropCalc(const Workspace& ws,
                       //Output
                       Tensor5View surf_refl_mat,
                       Tensor3View surf_emis_vec,

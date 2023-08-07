@@ -51,7 +51,7 @@ endwhile()
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py PUBLIC methods artscore)
+target_link_libraries(gen_auto_py PUBLIC artscore)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
@@ -64,6 +64,14 @@ add_custom_command(OUTPUT py_auto_interface.h
                           ${PYARTS_WORKSPACE_CREATE}
                    COMMAND gen_auto_py ${NUM_PYARTS_WSM} ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSC} ${NUM_PYARTS_WSG}
                    DEPENDS gen_auto_py)
+########################################################################################
+
+########################################################################################
+# Build the new generator
+add_executable(gen_auto_py_new gen_auto_py_new.cpp gen_auto_py_helpers.cpp)
+target_link_libraries(gen_auto_py_new PUBLIC artscore workspace)
+target_include_directories(gen_auto_py_new PUBLIC ${ARTS_SOURCE_DIR}/src)
+
 ########################################################################################
 
 ########### pybind11 class interface

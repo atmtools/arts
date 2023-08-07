@@ -25,7 +25,7 @@
 const Numeric pfct_threshold = 0.05;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4Calc(Workspace& ws,
+void RT4Calc(const Workspace& ws,
              // WS Output:
              Tensor7& cloudbox_field,
              Vector& za_grid,

@@ -236,15 +236,7 @@ bool has_any(const WorkspaceMethodInternalRecord& wsmr) {
 }
 
 bool needs_workspace(const WorkspaceMethodInternalRecord& wsmr) {
-  return wsmr.pass_workspace or
-         std::ranges::any_of(wsmr.in,
-                             [](auto& var) {
-                               return wsv.at(var).type == "Agenda" or
-                                      wsv.at(var).type == "ArrayOfAgenda";
-                             }) or
-         std::ranges::any_of(wsmr.gin_type, [](auto& var) {
-           return var == "Agenda" or var == "ArrayOfAgenda";
-         });
+  return wsmr.pass_workspace;
 }
 
 std::string_view any(const std::string& type) {
@@ -690,6 +682,13 @@ void implementation(std::ostream& os) {
 #include "workspace_method_class.h"
 
 #include "workspace_class.h"
+
+#include <m_copy.h>
+#include <m_delete.h>
+#include <m_general.h>
+#include <m_ignore.h>
+#include <m_sizes.h>
+#include <m_xml.h>
 )--";
 
   for (auto& [name, wsmr] : wsm) {

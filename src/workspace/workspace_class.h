@@ -96,4 +96,5 @@ class Workspace {
 
   [[nodiscard]] auto end() const { return wsv.end(); }
 
+  void empty(const std::string& name);
 };
