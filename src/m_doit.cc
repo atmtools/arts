@@ -440,11 +440,6 @@ void cloudbox_field_monoIterate(const Workspace& ws,
                                 const Index& accelerated)
 
 {
-  //---------------Check input---------------------------------
-  chk_not_empty("doit_scat_field_agenda", doit_scat_field_agenda);
-  chk_not_empty("doit_rte_agenda", doit_rte_agenda);
-  chk_not_empty("doit_conv_test_agenda", doit_conv_test_agenda);
-
   for (Index v = 0; v < cloudbox_field_mono.nvitrines(); v++)
     for (Index s = 0; s < cloudbox_field_mono.nshelves(); s++)
       for (Index b = 0; b < cloudbox_field_mono.nbooks(); b++)
@@ -553,10 +548,6 @@ void cloudbox_fieldUpdate1D(
   //const auto vmr_field = Atm::extract_specs_content(atm_field, abs_species);
 
   // ---------- Check the input ----------------------------------------
-
-  // Agendas
-  chk_not_empty("spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty("ppath_step_agenda", ppath_step_agenda);
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2,
         "The cloudbox dimension is not 1D! \n"
@@ -722,11 +713,6 @@ void cloudbox_fieldUpdateSeq1D(
 //const auto& t_field =atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
-
-  // Agendas
-  chk_not_empty("propmat_clearsky_agenda", propmat_clearsky_agenda);
-  chk_not_empty("spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty("ppath_step_agenda", ppath_step_agenda);
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2,
         "The cloudbox dimension is not 1D! \n"
@@ -1016,11 +1002,6 @@ void cloudbox_fieldUpdateSeq3D(
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ---------- Check the input ----------------------------------------
-
-  // Agendas
-  chk_not_empty("propmat_clearsky_agenda", propmat_clearsky_agenda);
-  chk_not_empty("spt_calc_agenda", spt_calc_agenda);
-  chk_not_empty("ppath_step_agenda", ppath_step_agenda);
 
   ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
         "The cloudbox dimension is not 3D! \n"
@@ -1874,9 +1855,6 @@ void doit_scat_fieldCalc(const Workspace& ws,
 
   // ------------ Check the input -------------------------------
 
-  // Agenda for calculation of phase matrix
-  chk_not_empty("pha_mat_spt_agenda", pha_mat_spt_agenda);
-
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
 
@@ -2135,9 +2113,6 @@ void doit_scat_fieldCalcLimb(const Workspace& ws,
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
   // ------------ Check the input -------------------------------
-
-  // Agenda for calculation of phase matrix
-  chk_not_empty("pha_mat_spt_agenda", pha_mat_spt_agenda);
 
   // Number of zenith angles.
   const Index Nza = za_grid.nelem();
@@ -2537,8 +2512,6 @@ void DoitCalc(const Workspace& ws,
   ARTS_USER_ERROR_IF (scat_data_checked != 1,
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
-
-  chk_not_empty("doit_mono_agenda", doit_mono_agenda);
 
   // Frequency grid
   //

@@ -179,7 +179,7 @@ void get_disortsurf_props(  // Output
  * @author        Oliver Lemke, Manfred Brath
  * @date          2019-09-19, 2021-10-27
  */
-void run_cdisort(Workspace& ws,
+void run_cdisort(const Workspace& ws,
                  Tensor7& cloudbox_field,
                  ArrayOfMatrix& disort_aux,
                  ConstVectorView f_grid,
@@ -258,7 +258,7 @@ void run_cdisort(Workspace& ws,
  * @author        Oliver Lemke, Manfred Brath
  * @date          2019-09-19, 2021-10-27
  */
-void run_cdisort_flux(Workspace& ws,
+void run_cdisort_flux(const Workspace& ws,
                       Tensor5& spectral_irradiance_field,
                       ArrayOfMatrix& disort_aux,
                       ConstVectorView f_grid,
@@ -303,7 +303,7 @@ void run_cdisort_flux(Workspace& ws,
  * @author        Jana Mendrok
  * @date          2018-04-04
  */
-void get_gasoptprop(Workspace& ws,
+void get_gasoptprop(const Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
@@ -327,7 +327,7 @@ void get_gasoptprop(Workspace& ws,
  * @author     Manfred Brath
  * @date       2021-11-17
  */
-void get_gas_scattering_properties(Workspace& ws,
+void get_gas_scattering_properties(const Workspace& ws,
                                    MatrixView sca_coeff_gas,
                                    MatrixView sca_coeff_gas_level,
                                    MatrixView pfct_gas,
@@ -548,7 +548,7 @@ void reduced_1datm(Vector& p,
  * @author     Jana Mendrok
  * @date       2019-10-22
  */
-void surf_albedoCalc(Workspace& ws,
+void surf_albedoCalc(const Workspace& ws,
                      //Output
                      VectorView albedo,
                      Numeric& btemp,
@@ -576,7 +576,7 @@ void surf_albedoCalc(Workspace& ws,
  * @author     Patrick Eriksson
  * @date       2022-12-22
  */
-void surf_albedoCalcSingleAngle(Workspace& ws,
+void surf_albedoCalcSingleAngle(const Workspace& ws,
                                 //Output
                                 VectorView albedo,
                                 Numeric& btemp,

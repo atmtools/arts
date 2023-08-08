@@ -212,7 +212,7 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceFastem(Workspace& ws,
+void iySurfaceFastem(const Workspace& ws,
                      Matrix& iy,
                      ArrayOfTensor3& diy_dx,
                      const Tensor3& iy_transmittance,
@@ -322,7 +322,7 @@ void iySurfaceFastem(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceFlatReflectivity(Workspace& ws,
+void iySurfaceFlatReflectivity(const Workspace& ws,
                          Matrix& iy,
                          ArrayOfTensor3& diy_dx,
                          ArrayOfTensor4& dsurface_rmatrix_dx,
@@ -478,7 +478,7 @@ void iySurfaceFlatReflectivity(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceFlatReflectivityDirect(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& iy,
     const Vector& rtp_pos,
     const Vector& rtp_los,
@@ -582,7 +582,7 @@ void iySurfaceFlatReflectivityDirect(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceFlatRefractiveIndex(Workspace& ws,
+void iySurfaceFlatRefractiveIndex(const Workspace& ws,
                                Matrix& iy,
                                ArrayOfTensor3& diy_dx,
                                ArrayOfTensor4& dsurface_rmatrix_dx,
@@ -740,7 +740,7 @@ ARTS_USER_ERROR("ERROR")
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceFlatRefractiveIndexDirect(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& iy,
     const Vector& rtp_pos,
     const Vector& rtp_los,
@@ -851,7 +851,7 @@ void iySurfaceInit(Matrix& iy,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceLambertian(Workspace& ws,
+void iySurfaceLambertian(const Workspace& ws,
                          Matrix& iy,
                          ArrayOfTensor3& diy_dx,
                          const Tensor3& iy_transmittance,
@@ -1146,7 +1146,7 @@ ARTS_USER_ERROR("ERROR")
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceLambertianDirect(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& iy,
     const Vector& rtp_pos,
     const Vector& f_grid,
@@ -1298,7 +1298,7 @@ Vector lon_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceRtpropAgenda(Workspace& ws,
+void iySurfaceRtpropAgenda(const Workspace& ws,
                            Matrix& iy,
                            ArrayOfTensor3& diy_dx,
                            SurfacePoint& surface_point,
@@ -1437,7 +1437,7 @@ void iySurfaceRtpropAgenda(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iySurfaceRtpropCalc(Workspace& ws,
+void iySurfaceRtpropCalc(const Workspace& ws,
                          Matrix& iy,
                          ArrayOfTensor3& diy_dx,
                          const Matrix& surface_los,
@@ -2690,7 +2690,7 @@ ARTS_USER_ERROR("ERROR")
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_rtpropFromTypesAverage(
-       Workspace& ws,
+       const Workspace& ws,
        Vector& surface_type_mix,
        Numeric& surface_skin_t,
        Matrix& surface_los,
@@ -2793,7 +2793,7 @@ void surface_rtpropFromTypesAverage(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropFromTypesManual(Workspace& ws,
+void surface_rtpropFromTypesManual(const Workspace& ws,
                                    Vector& surface_type_mix,
                                    Numeric& surface_skin_t,
                                    Matrix& surface_los,
@@ -2827,7 +2827,7 @@ void surface_rtpropFromTypesManual(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropFromTypesNearest(Workspace& ws,
+void surface_rtpropFromTypesNearest(const Workspace& ws,
                                     Vector& surface_type_mix,
                                     Numeric& surface_skin_t,
                                     Matrix& surface_los,

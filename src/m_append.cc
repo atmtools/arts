@@ -1,52 +1,6 @@
-/*!
-  \file   m_append.h
-  \author Stefan Buehler <sbuehler@ltu.se>
-  \date   Fri Jun 14 17:09:05 2002
-  
-  \brief  Implementation of Append.
-  
-  This file contains the implementation of the supergeneric method
-  Append.
-*/
+#include <workspace.h>
 
-#ifndef m_append_h
-#define m_append_h
-
-#include "agenda_class.h"
-#include "array.h"
-#include "exceptions.h"
-#include "matpack_data.h"
-
-/* Implementations for supported types follow. */
-
-/* Implementation for array types */
-template <class T>
 void Append(  // WS Generic Output:
-    Array<T>& out,
-    const String& /* out_name */,
-    // WS Generic Input:
-    const Array<T>& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
-  const Array<T>* in_pnt;
-  Array<T> in_copy;
-
-  if (&in == &out) {
-    in_copy = in;
-    in_pnt = &in_copy;
-  } else
-    in_pnt = &in;
-
-  const Array<T>& in_ref = *in_pnt;
-
-  // Reserve memory in advance to avoid reallocations:
-  out.reserve(out.nelem() + in_ref.nelem());
-  // Append in to end of out:
-  for (Index i = 0; i < in_ref.nelem(); ++i) out.push_back(in_ref[i]);
-}
-
-inline void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -72,21 +26,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for array types to append single element */
-template <class T>
 void Append(  // WS Generic Output:
-    Array<T>& out,
-    const String& /* out_name */,
-    // WS Generic Input:
-    const T& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
-  // Append in to end of out:
-  out.push_back(in);
-}
-
-/* Implementation for array types to append single element */
-inline void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -99,41 +39,41 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace& ws,
-            // WS Generic Output:
-            ArrayOfAgenda& out,
-            const String& out_name,
-            // WS Generic Input:
-            const Agenda& in,
-            const String& direction _U_,
-            const String& /* in_name */,
-            const String& /* direction_nam */) {
+void Append(
+    // WS Generic Output:
+    ArrayOfAgenda& out,
+    const String& out_name,
+    // WS Generic Input:
+    const Agenda& in,
+    const String& direction _U_,
+    const String& /* in_name */,
+    const String& /* direction_nam */) {
   // Append in to end of out:
   auto& newag = out.emplace_back(in);
   newag.set_name(out_name);
-  newag.check(ws);
+  newag.finalize();
 }
 
 /* Implementation for array types to append single element */
-inline void Append(Workspace& ws_in,
-            // WS Generic Output:
-            ArrayOfAgenda& out,
-            const String& out_name,
-            // WS Generic Input:
-            const ArrayOfAgenda& in,
-            const String& direction _U_,
-            const String& /* in_name */,
-            const String& /* direction_nam */) {
+void Append(
+    // WS Generic Output:
+    ArrayOfAgenda& out,
+    const String& out_name,
+    // WS Generic Input:
+    const ArrayOfAgenda& in,
+    const String& direction _U_,
+    const String& /* in_name */,
+    const String& /* direction_nam */) {
   // Append in to end of out:
-  for (const auto & it : in) {
+  for (const auto& it : in) {
     auto& newag = out.emplace_back(it);
     newag.set_name(out_name);
-    newag.check(ws_in);
+    newag.finalize();
   }
 }
 
 /* Implementation for Vector */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Vector& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -166,7 +106,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for Matrix */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Matrix& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -215,12 +155,11 @@ inline void Append(  // WS Generic Output:
       out(Range(0, in_ref.nrows()), Range(dummy.ncols(), in_ref.ncols())) =
           in_ref;
   } else
-    throw runtime_error(
-        R"(Dimension must be either "leading" or "trailing".)");
+    throw runtime_error(R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Matrix/Vector */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Matrix& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -242,7 +181,8 @@ inline void Append(  // WS Generic Output:
 
       out.resize(dummy.nrows() + 1, dummy.ncols());
       out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-      out(Range(dummy.nrows(), 1), Range(0, in.nelem())) = transpose(ExhaustiveMatrixView{in});
+      out(Range(dummy.nrows(), 1), Range(0, in.nelem())) =
+          transpose(ExhaustiveMatrixView{in});
     }
   } else if (direction == "trailing") {
     if (!out.nrows() || !out.ncols()) {
@@ -255,15 +195,15 @@ inline void Append(  // WS Generic Output:
 
       out.resize(dummy.nrows(), dummy.ncols() + 1);
       out(Range(0, dummy.nrows()), Range(0, dummy.ncols())) = dummy;
-      out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) = ExhaustiveMatrixView{in};
+      out(Range(0, in.nelem()), Range(dummy.ncols(), 1)) =
+          ExhaustiveMatrixView{in};
     }
   } else
-    throw runtime_error(
-        R"(Dimension must be either "leading" or "trailing".)");
+    throw runtime_error(R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Vector/Numeric */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Vector& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -285,7 +225,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor3/Matrix */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Tensor3& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -315,7 +255,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor3 */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Tensor3& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -357,7 +297,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor4/Tensor3 */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Tensor4& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -393,7 +333,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor4 */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     Tensor4& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -442,7 +382,7 @@ inline void Append(  // WS Generic Output:
 }
 
 /* Implementation for String */
-inline void Append(  // WS Generic Output:
+void Append(  // WS Generic Output:
     String& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -458,4 +398,146 @@ inline void Append(  // WS Generic Output:
   out = os.str();
 }
 
-#endif  // m_append_h
+#define self_append(Arr)              \
+  void Append(Arr& x,                 \
+              const String&,          \
+              const Arr& y,           \
+              const String&,          \
+              const String&,          \
+              const String&) {        \
+    for (auto& z : y) x.push_back(z); \
+  }
+
+#define once_append(Val)       \
+  void Append(Array<Val>& x,   \
+              const String&,   \
+              const Val& y,    \
+              const String&,   \
+              const String&,   \
+              const String&) { \
+    x.push_back(y);            \
+  }
+
+once_append(Index)
+once_append(QuantumIdentifier)
+once_append(AbsorptionLines)
+once_append(Time)
+once_append(GriddedField1)
+once_append(GriddedField2)
+once_append(GriddedField3)
+once_append(GriddedField4)
+once_append(Vector)
+once_append(Matrix)
+once_append(Tensor3)
+once_append(Tensor4)
+once_append(Tensor5)
+once_append(Tensor6)
+once_append(Tensor7)
+once_append(JacobianTarget)
+once_append(Ppath)
+once_append(Sparse)
+once_append(ScatteringMetaData)
+once_append(SingleScatteringData)
+once_append(TelsemAtlas)
+once_append(String)
+once_append(Sun)
+once_append(RetrievalQuantity)
+once_append(CIARecord)
+once_append(AtmPoint)
+once_append(MuelmatVector)
+once_append(MuelmatMatrix)
+once_append(PropmatVector)
+once_append(PropmatMatrix)
+once_append(StokvecVector)
+once_append(StokvecMatrix)
+once_append(XsecRecord)
+
+once_append(ArrayOfIndex)
+once_append(ArrayOfQuantumIdentifier)
+once_append(ArrayOfAbsorptionLines)
+once_append(ArrayOfTime)
+once_append(ArrayOfGriddedField1)
+once_append(ArrayOfGriddedField2)
+once_append(ArrayOfGriddedField3)
+once_append(ArrayOfGriddedField4)
+once_append(ArrayOfVector)
+once_append(ArrayOfMatrix)
+once_append(ArrayOfTensor3)
+once_append(ArrayOfTensor4)
+once_append(ArrayOfTensor5)
+once_append(ArrayOfTensor6)
+once_append(ArrayOfTensor7)
+once_append(ArrayOfJacobianTarget)
+once_append(ArrayOfPpath)
+once_append(ArrayOfSparse)
+once_append(ArrayOfScatteringMetaData)
+once_append(ArrayOfSingleScatteringData)
+once_append(ArrayOfTelsemAtlas)
+once_append(ArrayOfString)
+once_append(ArrayOfSun)
+once_append(ArrayOfRetrievalQuantity)
+once_append(ArrayOfCIARecord)
+once_append(ArrayOfAtmPoint)
+once_append(ArrayOfMuelmatVector)
+once_append(ArrayOfMuelmatMatrix)
+once_append(ArrayOfPropmatVector)
+once_append(ArrayOfPropmatMatrix)
+once_append(ArrayOfStokvecVector)
+once_append(ArrayOfStokvecMatrix)
+once_append(ArrayOfXsecRecord)
+once_append(ArrayOfSpeciesTag)
+
+self_append(ArrayOfIndex)
+self_append(ArrayOfQuantumIdentifier)
+self_append(ArrayOfAbsorptionLines)
+self_append(ArrayOfTime)
+self_append(ArrayOfGriddedField1)
+self_append(ArrayOfGriddedField2)
+self_append(ArrayOfGriddedField3)
+self_append(ArrayOfGriddedField4)
+self_append(ArrayOfVector)
+self_append(ArrayOfMatrix)
+self_append(ArrayOfTensor3)
+self_append(ArrayOfTensor4)
+self_append(ArrayOfTensor5)
+self_append(ArrayOfTensor6)
+self_append(ArrayOfTensor7)
+self_append(ArrayOfJacobianTarget)
+self_append(ArrayOfPpath)
+self_append(ArrayOfSparse)
+self_append(ArrayOfScatteringMetaData)
+self_append(ArrayOfSingleScatteringData)
+self_append(ArrayOfTelsemAtlas)
+self_append(ArrayOfString)
+self_append(ArrayOfSun)
+self_append(ArrayOfRetrievalQuantity)
+self_append(ArrayOfCIARecord)
+self_append(ArrayOfAtmPoint)
+self_append(ArrayOfMuelmatVector)
+self_append(ArrayOfMuelmatMatrix)
+self_append(ArrayOfPropmatVector)
+self_append(ArrayOfPropmatMatrix)
+self_append(ArrayOfStokvecVector)
+self_append(ArrayOfStokvecMatrix)
+self_append(ArrayOfXsecRecord)
+
+self_append(ArrayOfArrayOfGriddedField1)
+self_append(ArrayOfArrayOfGriddedField2)
+self_append(ArrayOfArrayOfGriddedField3)
+self_append(ArrayOfArrayOfString)
+self_append(ArrayOfArrayOfScatteringMetaData)
+self_append(ArrayOfArrayOfSingleScatteringData)
+self_append(ArrayOfArrayOfIndex)
+self_append(ArrayOfArrayOfAbsorptionLines)
+self_append(ArrayOfArrayOfTime)
+self_append(ArrayOfArrayOfMuelmatVector)
+self_append(ArrayOfArrayOfMuelmatMatrix)
+self_append(ArrayOfArrayOfPropmatVector)
+self_append(ArrayOfArrayOfPropmatMatrix)
+self_append(ArrayOfArrayOfStokvecVector)
+self_append(ArrayOfArrayOfStokvecMatrix)
+self_append(ArrayOfArrayOfVector)
+self_append(ArrayOfArrayOfMatrix)
+self_append(ArrayOfArrayOfTensor3)
+self_append(ArrayOfArrayOfTensor6)
+self_append(ArrayOfArrayOfSpeciesTag)

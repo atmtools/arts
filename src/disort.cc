@@ -310,7 +310,7 @@ void get_disortsurf_props(  // Output
       albedo[f_index] = surface_scalar_reflectivity[0];
 }
 
-void get_gasoptprop(Workspace& ws,
+void get_gasoptprop(const Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
@@ -351,7 +351,7 @@ void get_gasoptprop(Workspace& ws,
   }
 }
 
-void get_gas_scattering_properties(Workspace& ws,
+void get_gas_scattering_properties(const Workspace& ws,
                                    MatrixView sca_coeff_gas,
                                    MatrixView sca_coeff_gas_level,
                                    MatrixView pfct_gas,
@@ -893,7 +893,7 @@ void reduced_1datm(Vector& p,
   }
 }
 
-void run_cdisort(Workspace& ws,
+void run_cdisort(const Workspace& ws,
                  Tensor7& cloudbox_field,
                  ArrayOfMatrix& disort_aux,
                  ConstVectorView f_grid,
@@ -1333,7 +1333,7 @@ void run_cdisort(Workspace& ws,
   #endif
 }
 
-void run_cdisort_flux(Workspace& ws,
+void run_cdisort_flux(const Workspace& ws,
                       Tensor5& spectral_irradiance_field,
                       ArrayOfMatrix& disort_aux,
                       ConstVectorView f_grid,
@@ -1800,7 +1800,7 @@ void run_cdisort_flux(Workspace& ws,
   #endif
 }
 
-void surf_albedoCalc(Workspace& ws,
+void surf_albedoCalc(const Workspace& ws,
                      //Output
                      VectorView albedo,
                      Numeric& btemp,
@@ -1832,8 +1832,6 @@ void surf_albedoCalc(Workspace& ws,
   // We do all frequencies here at once (assuming this is the faster variant as
   // the agenda anyway (can) provide output for full f_grid at once and as we
   // have to apply the same inter/extrapolation to all the frequencies).
-
-  chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
 
   const Index nf = f_grid.nelem();
   Index frza = 0;
@@ -1972,7 +1970,7 @@ void surf_albedoCalc(Workspace& ws,
   }
 }
 
-void surf_albedoCalcSingleAngle(Workspace& ws,
+void surf_albedoCalcSingleAngle(const Workspace& ws,
                                 //Output
                                 VectorView albedo,
                                 Numeric& btemp,

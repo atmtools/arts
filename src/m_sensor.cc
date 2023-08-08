@@ -29,7 +29,6 @@
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interp.h"
-#include "m_select.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
 #include "ppath.h"

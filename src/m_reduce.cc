@@ -1,37 +1,17 @@
-/**
-  
-  \file   m_reduce.h
-  \author Richard Larsson <ric.larsson@gmail.com>
-  \date   Wed Feb 25 2014
-  
-  \brief  Implementation of Reduce.
-  
-  This file contains the implementation of the supergeneric method
-  Reduce.
-*/
-
-#ifndef m_reduce_h
-#define m_reduce_h
-
-#include <cstring>
-#include "array.h"
-#include "exceptions.h"
-#include "matpack_data.h"
+#include <workspace.h>
 
 //////// Helper function /////////
 
 inline Index num_elem_from_dim_sizes(const ArrayOfIndex& dim_sizes) {
   Index m = 1;
-  for (ArrayOfIndex::const_iterator it = dim_sizes.begin();
-       it != dim_sizes.end();
-       it++)
-    m *= *it;
+  for (long long dim_size : dim_sizes)
+    m *= dim_size;
 
   return m;
 }
 
 // Need this for each matpack type: Vector
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Vector& type) {
   dim_sizes.resize(0);
@@ -39,7 +19,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Matrix
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Matrix& type) {
   dim_sizes.resize(0);
@@ -48,7 +28,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Tensor3
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Tensor3& type) {
   dim_sizes.resize(0);
@@ -58,7 +38,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Tensor4
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Tensor4& type) {
   dim_sizes.resize(0);
@@ -69,7 +49,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Tensor5
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Tensor5& type) {
   dim_sizes.resize(0);
@@ -81,7 +61,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Tensor6
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Tensor6& type) {
   dim_sizes.resize(0);
@@ -94,7 +74,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 }
 
 // Need this for each matpack type: Tensor7
-inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
+void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Tensor7& type) {
   dim_sizes.resize(0);
@@ -112,7 +92,7 @@ inline void select_dims_by_size(ArrayOfIndex& dim_sizes,
 // To Numeric
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -128,7 +108,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -144,7 +124,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -160,7 +140,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -176,7 +156,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -193,7 +173,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -210,7 +190,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Numeric& o,
     // WS Input:
@@ -229,7 +209,7 @@ inline void Reduce(
 //To Vector
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -254,7 +234,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -279,7 +259,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -304,7 +284,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -329,7 +309,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -354,7 +334,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Vector& o,
     // WS Input:
@@ -381,7 +361,7 @@ inline void Reduce(
 // To Matrix
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Matrix& o,
     // WS Input:
@@ -406,7 +386,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Matrix& o,
     // WS Input:
@@ -431,7 +411,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Matrix& o,
     // WS Input:
@@ -456,7 +436,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Matrix& o,
     // WS Input:
@@ -481,7 +461,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Matrix& o,
     // WS Input:
@@ -508,7 +488,7 @@ inline void Reduce(
 // To Tensor 3
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor3& o,
     // WS Input:
@@ -533,7 +513,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor3& o,
     // WS Input:
@@ -558,7 +538,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor3& o,
     // WS Input:
@@ -583,7 +563,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor3& o,
     // WS Input:
@@ -610,7 +590,7 @@ inline void Reduce(
 // To Tensor4
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor4& o,
     // WS Input:
@@ -635,7 +615,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor4& o,
     // WS Input:
@@ -660,7 +640,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor4& o,
     // WS Input:
@@ -687,7 +667,7 @@ inline void Reduce(
 // To Tensor5
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor5& o,
     // WS Input:
@@ -713,7 +693,7 @@ inline void Reduce(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor5& o,
     // WS Input:
@@ -741,7 +721,7 @@ inline void Reduce(
 // To Tensor6
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-inline void Reduce(
+void Reduce(
     // WS Generic Output:
     Tensor6& o,
     // WS Input:
@@ -769,5 +749,3 @@ inline void Reduce(
     throw std::runtime_error(os.str());
   }
 }
-
-#endif /* m_reduce_h */

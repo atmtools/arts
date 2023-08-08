@@ -660,7 +660,7 @@ void lbl_checkedCalc(Index& lbl_checked,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearsky_agenda_checkedCalc(
-    Workspace& ws _U_,
+    const Workspace& ws _U_,
     Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,

@@ -57,7 +57,7 @@ void atm_fieldRescalePopulationLevels(AtmField& atm_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void atm_fieldForSingleSpeciesNonOverlappingLines(
-    Workspace& ws,
+    const Workspace& ws,
     AtmField& atm_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,

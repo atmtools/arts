@@ -482,7 +482,7 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
 }
 
 
-void refracted_link_basic(Workspace& ws,
+void refracted_link_basic(const Workspace& ws,
                           Ppath& ppath,
                           const Agenda& refr_index_air_ZZZ_agenda,
                           const Numeric& ppath_lstep,

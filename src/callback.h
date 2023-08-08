@@ -7,9 +7,9 @@ class Workspace;
 #include <ostream>
 #include <stdexcept>
 
-struct CallbackFunction : public std::function<void(Workspace&)> {
-  CallbackFunction() : std::function<void(Workspace&)>([](Workspace&) {throw std::runtime_error("Not a function yet");}) {}
-  CallbackFunction(std::function<void(Workspace&)> x);
+struct CallbackFunction : public std::function<void(const Workspace&)> {
+  CallbackFunction() : std::function<void(const Workspace&)>([](const Workspace&) {throw std::runtime_error("Not a function yet");}) {}
+  CallbackFunction(std::function<void(const Workspace&)> x);
   friend std::ostream& operator<<(std::ostream& os, const CallbackFunction&);
 };
 

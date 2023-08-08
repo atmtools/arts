@@ -52,7 +52,7 @@ void INCLUDE() {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(  // Workspace reference
-    Workspace& ws,
+    const Workspace& ws,
     // Keywords:
     const Index& only_allocated,
     const Index& level) {

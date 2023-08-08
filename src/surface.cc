@@ -204,7 +204,7 @@ void dsurface_check(const ArrayOfString& surface_props_names,
 
 
 void surface_get_incoming_direct(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& iy_incoming,
     Index& stars_visible,
     Vector& specular_los,

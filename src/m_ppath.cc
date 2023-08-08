@@ -388,7 +388,7 @@ void ppathGeometric(Ppath& ppath,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathRefracted(Workspace& ws,
+void ppathRefracted(const Workspace& ws,
                     Ppath& ppath,
                     const Agenda& refr_index_air_ZZZ_agenda,
                     const Vector& rte_pos,

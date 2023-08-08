@@ -710,14 +710,12 @@ void get_iy_of_background(const Workspace& ws,
     case Space:  //--- Space ----------------------------------------------------
     {
       agenda_name = "iy_space_agenda";
-      chk_not_empty(agenda_name, iy_space_agenda);
       iy_space_agendaExecute(ws, iy, f_grid, rtp_pos, rtp_los, iy_space_agenda);
     } break;
 
     case Surface:  //--- The surface -----------------------------------------------
     {
       agenda_name = "iy_surface_agenda";
-      chk_not_empty(agenda_name, iy_surface_agenda);
       //
       const Index los_id = iy_id % (Index)1000;
       Index iy_id_new = iy_id + (Index)9 * los_id;
@@ -757,7 +755,6 @@ void get_iy_of_background(const Workspace& ws,
 
     case Cloudbox: {//--- Cloudbox boundary or interior ------------------------------
       agenda_name = "iy_cloudbox_agenda";
-      chk_not_empty(agenda_name, iy_cloudbox_agenda);
       iy_cloudbox_agendaExecute(
           ws, iy, f_grid, rtp_pos, rtp_los, iy_cloudbox_agenda);
     } break;
@@ -954,7 +951,7 @@ void get_stepwise_blackbody_radiation(
 }
 
 void get_stepwise_clearsky_propmat(
-    Workspace &ws, PropmatVector &K, StokvecVector &S,
+    const Workspace &ws, PropmatVector &K, StokvecVector &S,
     PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
     const Agenda &propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity &jacobian_quantities,

@@ -32,7 +32,7 @@ using Constant::boltzmann_constant;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void gas_scatteringOff(Workspace& ws,
+void gas_scatteringOff(const Workspace& ws,
                        Index& gas_scattering_do,
                        Agenda& gas_scattering_agenda) {
   // set flag to False (default)

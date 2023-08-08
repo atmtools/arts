@@ -38,7 +38,7 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyTransmissionStandard(Workspace& ws,
+void iyTransmissionStandard(const Workspace& ws,
                             Matrix& iy,
                             ArrayOfMatrix& iy_aux,
                             ArrayOfTensor3& diy_dx,

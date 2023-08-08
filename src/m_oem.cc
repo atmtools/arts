@@ -148,7 +148,7 @@ void xClip(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void xaStandard(Workspace& ws,
+void xaStandard(const Workspace& ws,
                 Vector& xa,
                 const ArrayOfRetrievalQuantity& jacobian_quantities,
                 const Index& atmfields_checked,
@@ -488,7 +488,7 @@ void xaStandard(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void x2artsAtmAndSurf(Workspace& ws,
+void x2artsAtmAndSurf(const Workspace& ws,
                       AtmField& atm_field,
                       SurfaceField& surface_field,
                       const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -845,7 +845,7 @@ Tensor3 mag_u_field, mag_v_field, mag_w_field;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void x2artsSensor(Workspace& ws,
+void x2artsSensor(const Workspace& ws,
                   Matrix& sensor_los,
                   Vector& f_backend,
                   Vector& y_baseline,
@@ -1006,7 +1006,7 @@ void x2artsSpectroscopy() {
 
 #ifdef OEM_SUPPORT
 /* Workspace method: Doxygen documentation will be auto-generated */
-void OEM(Workspace& ws,
+void OEM(const const Workspace& ws,
          Vector& x,
          Vector& yf,
          Matrix& jacobian,
@@ -1132,7 +1132,7 @@ void OEM(Workspace& ws,
 
     oem::CovarianceMatrix Se(covmat_se), Sa(covmat_sx);
     oem::Vector xa_oem(xa), y_oem(y), x_oem(x);
-    oem::AgendaWrapper aw(&ws,
+    oem::AgendaWrapper aw(const_cast<Workspace*>(&ws), // FIXME: WHAT IS HAPPENING HERE????
                           (unsigned int)m,
                           (unsigned int)n,
                           jacobian,
@@ -1467,7 +1467,7 @@ void MPI_Initialize(Matrix& sensor_los,
   }
 }
 
-void OEM_MPI(Workspace& ws,
+void OEM_MPI(const Workspace& ws,
              Vector& x,
              Vector& yf,
              Matrix& jacobian,

@@ -659,7 +659,7 @@ void Tensor4Clip(Tensor4& x,
  * @param display_progress Whether or not to display iteration progress. Checked
  * to be 1 or 0.
  */
-void OEM_checks(Workspace& ws,
+void OEM_checks(const Workspace& ws,
                 Vector& x,
                 Vector& yf,
                 Matrix& jacobian,

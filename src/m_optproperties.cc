@@ -1155,7 +1155,7 @@ void scat_dataCheck(  //Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitScatteringDataPrepare(
-    Workspace& ws,  //Output:
+    const Workspace& ws,  //Output:
     ArrayOfTensor7& pha_mat_sptDOITOpt,
     ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     Tensor7& pha_mat_doit,

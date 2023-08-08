@@ -1,6 +1,6 @@
 #include "callback.h"
 
-void CallbackFunctionExecute(Workspace& ws,
+void CallbackFunctionExecute(const Workspace& ws,
                              const CallbackFunction& function) {
   function(ws);
 }

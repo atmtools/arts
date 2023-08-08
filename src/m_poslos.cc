@@ -226,7 +226,7 @@ void rte_losGeometricToPosition(Vector& rte_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losRefractedToPosition(Workspace& ws,
+void rte_losRefractedToPosition(const Workspace& ws,
                                 Vector& rte_los,
                                 Ppath& ppath,
                                 const Agenda& refr_index_air_ZZZ_agenda,
@@ -448,7 +448,7 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPosition(Workspace& ws,
+void sensor_losRefractedToPosition(const Workspace& ws,
                                    Matrix& sensor_los,
                                    const Agenda& refr_index_air_ZZZ_agenda,
                                    const Numeric& ppath_lstep,
@@ -499,7 +499,7 @@ void sensor_losRefractedToPosition(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPositions(Workspace& ws,
+void sensor_losRefractedToPositions(const Workspace& ws,
                                     Matrix& sensor_los,
                                     const Agenda& refr_index_air_ZZZ_agenda,
                                     const Numeric& ppath_lstep,

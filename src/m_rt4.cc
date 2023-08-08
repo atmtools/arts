@@ -166,7 +166,7 @@ void RT4Calc(const Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4CalcWithRT4Surface(Workspace& ws,
+void RT4CalcWithRT4Surface(const Workspace& ws,
                            // WS Output:
                            Tensor7& cloudbox_field,
                            Vector& za_grid,

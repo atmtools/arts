@@ -1280,7 +1280,7 @@ void iy_transmittance_backgroundFromRte(Tensor3 &iy_transmittance_background,
   }
 }
 
-void ppvar_propmatCalc(Workspace &ws,
+void ppvar_propmatCalc(const Workspace &ws,
                        ArrayOfPropmatVector &ppvar_propmat,
                        ArrayOfStokvecVector &ppvar_nlte,
                        ArrayOfPropmatMatrix &ppvar_dpropmat,
@@ -1548,7 +1548,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
   }
 }
 
-void diy_dxTransform(Workspace &ws, ArrayOfTensor3 &diy_dx,
+void diy_dxTransform(const Workspace &ws, ArrayOfTensor3 &diy_dx,
                      ArrayOfTensor3 &diy_dpath, const Ppath &ppath,
                      const ArrayOfAtmPoint &ppvar_atm,
                      const ArrayOfArrayOfSpeciesTag &abs_species,
@@ -1574,7 +1574,7 @@ void diy_dxTransform(Workspace &ws, ArrayOfTensor3 &diy_dx,
   }
 }
 
-void iyBackground(Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
+void iyBackground(const Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
                    const Tensor3 &iy_transmittance,
                    const MuelmatVector &total_transmittance,
                    const SurfaceField &surface_field, const Vector &f_grid,
@@ -1640,7 +1640,7 @@ void ppvar_cumtramatReverse(ArrayOfMuelmatVector &ppvar_cumtramat,
 }
 
 void RadiativePropertiesCalc(
-    Workspace &ws, ArrayOfPropmatVector &ppvar_propmat,
+    const Workspace &ws, ArrayOfPropmatVector &ppvar_propmat,
     ArrayOfPropmatMatrix &ppvar_dpropmat,
     ArrayOfStokvecVector &ppvar_src,
     ArrayOfStokvecMatrix &ppvar_dsrc,
@@ -1656,7 +1656,7 @@ void RadiativePropertiesCalc(
       ppvar_atm, ppvar_f, jacobian_do, ppvar_rtprop_agenda);
 }
 
-void RadiationBackgroundCalc(Workspace &ws, StokvecVector &background_rad,
+void RadiationBackgroundCalc(const Workspace &ws, StokvecVector &background_rad,
                              ArrayOfTensor3 &diy_dx, const Ppath &ppath,
                              const AtmField &atm_field, const Vector &f_grid,
                              const Tensor3 &iy_transmittance,

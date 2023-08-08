@@ -50,7 +50,7 @@ inline constexpr Numeric PI=Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void HydrotableCalc(Workspace& ws,
+void HydrotableCalc(const Workspace& ws,
                     GriddedField4& hydrotable,
                     const ArrayOfAgenda& pnd_agenda_array,
                     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
@@ -547,7 +547,7 @@ void pndFromPsd(Matrix& pnd_data,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalcFromParticleBulkProps(
-    Workspace& ws,
+    const Workspace& ws,
     Tensor4& pnd_field,
     ArrayOfTensor4& dpnd_field_dx,
     const Index& cloudbox_on,

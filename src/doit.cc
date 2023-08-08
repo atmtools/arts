@@ -1345,7 +1345,6 @@ void cloud_RT_surface(const Workspace& ws,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstVectorView za_grid,
                       const Index& za_index) {
-  chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
 
   Matrix iy;
 

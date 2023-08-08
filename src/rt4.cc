@@ -1329,8 +1329,6 @@ void surf_optpropCalc(const Workspace& ws,
   // atmospheric optical property prep part within the frequency loop further
   // below).
 
-  chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
-
   const Index nf = f_grid.nelem();
   const Index nummu = za_grid.nelem() / 2;
   const String B_unit = "R";

@@ -2545,6 +2545,19 @@ void xml_write_to_stream(ostream&,
 }
 
 void xml_read_from_stream(istream&,
+                          Any&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const Any&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_read_from_stream(istream&,
                           SpectralRadianceProfileOperator&,
                           bifstream* /* pbifs */) {
   ARTS_USER_ERROR("Method not implemented!");

@@ -470,7 +470,7 @@ void spectral_irradiance_fieldFromSpectralRadianceField(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_radiance_fieldClearskyPlaneParallel(
-    Workspace& ws,
+    const Workspace& ws,
     Tensor7& spectral_radiance_field,
     Tensor3& trans_field,
     const Agenda& propmat_clearsky_agenda,
@@ -687,7 +687,7 @@ void spectral_radiance_fieldCopyCloudboxField(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_radiance_fieldExpandCloudboxField(
-    Workspace& ws,
+    const Workspace& ws,
     Tensor7& spectral_radiance_field,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,

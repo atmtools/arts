@@ -93,6 +93,7 @@ add_library (artscore STATIC
   m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda_set.cc
+  m_append.cc
   m_array.cc
   m_artstime.cc
   m_atmosphere.cc
@@ -103,11 +104,13 @@ add_library (artscore STATIC
   m_cia.cc
   m_cloudbox.cc
   m_cloudradar.cc
+  m_conversion.cc
   m_disort.cc
   m_doit.cc
   m_extract.cc
   m_fluxes.cc
   m_fwd.cc
+  m_gridded_fields.cc
   m_predefined_absorption_models.cc
   m_propmat.cc
   m_gas_scattering.cc
@@ -118,6 +121,7 @@ add_library (artscore STATIC
   m_linemixing.cc
   m_microphysics.cc
   m_montecarlo.cc
+  m_nc.cc
   m_nlte.cc
   m_oem.cc
   m_optproperties.cc
@@ -129,6 +133,7 @@ add_library (artscore STATIC
   m_psd.cc
   m_radiation_field.cc
   m_raw.cc
+  m_reduce.cc
   m_refraction.cc
   m_retrieval.cc
   m_rt4.cc

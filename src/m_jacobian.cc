@@ -46,7 +46,7 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace& ws_in,
+void jacobianClose(const Workspace& ws_in,
                    Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities) {
@@ -60,7 +60,7 @@ void jacobianClose(Workspace& ws_in,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(Workspace& ws,
+void jacobianInit(const Workspace& ws,
                   ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda) {
   jacobian_quantities.resize(0);
@@ -68,7 +68,7 @@ void jacobianInit(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(Workspace& ws, 
+void jacobianOff(const Workspace& ws, 
                  Index& jacobian_do,
                  Agenda& jacobian_agenda,
                  ArrayOfRetrievalQuantity& jacobian_quantities) {
@@ -81,7 +81,7 @@ void jacobianOff(Workspace& ws,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddAbsSpecies(Workspace&,
+void jacobianAddAbsSpecies(const Workspace&,
                            ArrayOfRetrievalQuantity& jq,
                            Agenda& jacobian_agenda,
                            const Vector& rq_p_grid,
@@ -147,7 +147,7 @@ void jacobianAddAbsSpecies(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqShift(Workspace& ws _U_,
+void jacobianAddFreqShift(const Workspace& ws _U_,
                           ArrayOfRetrievalQuantity& jacobian_quantities,
                           Agenda& jacobian_agenda,
                           const Vector& f_grid,
@@ -289,7 +289,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqStretch(Workspace& ws _U_,
+void jacobianAddFreqStretch(const Workspace& ws _U_,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
                             const Vector& f_grid,
@@ -453,7 +453,7 @@ void jacobianCalcFreqStretch(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPointingZa(Workspace& ws _U_,
+void jacobianAddPointingZa(const Workspace& ws _U_,
                            ArrayOfRetrievalQuantity& jacobian_quantities,
                            Agenda& jacobian_agenda,
                            const Matrix& sensor_pos,
@@ -652,7 +652,7 @@ void jacobianCalcPointingZaInterp(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPointingZaRecalc(
-    Workspace& ws,
+    const Workspace& ws,
     Matrix& jacobian,
     const Index& mblock_index,
     const Vector& iyb _U_,
@@ -770,7 +770,7 @@ void jacobianCalcPointingZaRecalc(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPolyfit(Workspace& ws _U_,
+void jacobianAddPolyfit(const Workspace& ws _U_,
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -930,7 +930,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddScatSpecies(Workspace&,
+void jacobianAddScatSpecies(const Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
                             const Vector& rq_p_grid,
@@ -969,7 +969,7 @@ void jacobianAddScatSpecies(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSinefit(Workspace& ws _U_,
+void jacobianAddSinefit(const Workspace& ws _U_,
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -1138,7 +1138,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSurfaceQuantity(Workspace&,
+void jacobianAddSurfaceQuantity(const Workspace&,
                                 ArrayOfRetrievalQuantity& jq,
                                 Agenda& jacobian_agenda,
                                 const Vector& rq_lat_grid,
@@ -1172,7 +1172,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddTemperature(Workspace&,
+void jacobianAddTemperature(const Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
                             const Vector& rq_p_grid,
@@ -1220,7 +1220,7 @@ void jacobianAddTemperature(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddWind(Workspace&,
+void jacobianAddWind(const Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
                      const Vector& rq_p_grid,
@@ -1270,7 +1270,7 @@ void jacobianAddWind(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddMagField(Workspace&,
+void jacobianAddMagField(const Workspace&,
                          ArrayOfRetrievalQuantity& jq,
                          Agenda& jacobian_agenda,
                          const Vector& rq_p_grid,
@@ -1320,7 +1320,7 @@ void jacobianAddMagField(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddShapeCatalogParameter(Workspace&,
+void jacobianAddShapeCatalogParameter(const Workspace&,
                                       ArrayOfRetrievalQuantity& jq,
                                       Agenda& jacobian_agenda,
                                       const QuantumIdentifier& line_identity,
@@ -1355,7 +1355,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddShapeCatalogParameters(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     const ArrayOfQuantumIdentifier& line_identities,
@@ -1387,7 +1387,7 @@ void jacobianAddShapeCatalogParameters(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddBasicCatalogParameter(Workspace&,
+void jacobianAddBasicCatalogParameter(const Workspace&,
                                       ArrayOfRetrievalQuantity& jq,
                                       Agenda& jacobian_agenda,
                                       const QuantumIdentifier& catalog_identity,
@@ -1424,7 +1424,7 @@ void jacobianAddBasicCatalogParameter(Workspace&,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddBasicCatalogParameters(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     const ArrayOfQuantumIdentifier& catalog_identities,
@@ -1441,7 +1441,7 @@ void jacobianAddBasicCatalogParameters(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddNLTE(Workspace&,
+void jacobianAddNLTE(const Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
                      const Vector& rq_p_grid,
@@ -1473,7 +1473,7 @@ void jacobianAddNLTE(Workspace&,
   jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
-void jacobianAddNLTEs(Workspace& ws,
+void jacobianAddNLTEs(const Workspace& ws,
                       ArrayOfRetrievalQuantity& jq,
                       Agenda& jacobian_agenda,
                       const Vector& rq_p_grid,
@@ -1493,7 +1493,7 @@ void jacobianAddNLTEs(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSpecialSpecies(Workspace&,
+void jacobianAddSpecialSpecies(const Workspace&,
                                ArrayOfRetrievalQuantity& jq,
                                Agenda& jacobian_agenda,
                                const Vector& rq_p_grid,

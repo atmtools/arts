@@ -73,7 +73,7 @@ class GasAbsLookup {
                                   const String& name);
 
   friend void abs_lookupCalc(  // Workspace reference:
-      Workspace& ws,
+      const Workspace& ws,
       // WS Output:
       GasAbsLookup& abs_lookup,
       Index& abs_lookup_is_adapted,
@@ -91,7 +91,7 @@ class GasAbsLookup {
       const Numeric& lowest_vmr);
 
   friend void abs_lookupTestAccuracy(  // Workspace reference:
-      Workspace& ws,
+      const Workspace& ws,
       // WS Input:
       const GasAbsLookup& abs_lookup,
       const Index& abs_lookup_is_adapted,
@@ -101,7 +101,7 @@ class GasAbsLookup {
       const Agenda& abs_xsec_agenda);
 
   friend void abs_lookupTestAccMC(  // Workspace reference:
-      Workspace& ws,
+      const Workspace& ws,
       // WS Input:
       const GasAbsLookup& abs_lookup,
       const Index& abs_lookup_is_adapted,

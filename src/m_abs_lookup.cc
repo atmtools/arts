@@ -41,7 +41,7 @@ void abs_lookupInit(GasAbsLookup& x) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupCalc(  // Workspace reference:
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output:
     GasAbsLookup& abs_lookup,
     Index& abs_lookup_is_adapted,
@@ -1707,7 +1707,7 @@ void abs_speciesAdd(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd2(  // WS Output:
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfArrayOfSpeciesTag& abs_species,
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
@@ -1912,7 +1912,7 @@ void propmat_clearskyAddFromLookup(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearsky_fieldCalc(Workspace& ws,
+void propmat_clearsky_fieldCalc(const Workspace& ws,
                                 // WS Output:
                                 Tensor7& propmat_clearsky_field,
                                 // WS Input:

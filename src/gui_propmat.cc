@@ -22,7 +22,7 @@
 #include <gui/propmat.h>
 
 namespace PropmatClearskyAgendaGUI {
-void compute(Workspace& ws,
+void compute(const Workspace& ws,
              ARTSGUI::PropmatClearsky::ComputeValues& v,
              const Agenda& propmat_clearsky_agenda) {
   propmat_clearsky_agendaExecute(ws,
@@ -40,7 +40,7 @@ void compute(Workspace& ws,
 
 bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          ARTSGUI::PropmatClearsky::Control& ctrl,
-         Workspace& ws,
+         const Workspace& ws,
          const Agenda& propmat_clearsky_agenda,
          ArrayOfRetrievalQuantity& jacobian_quantities,
          ArrayOfSpeciesTag& select_abs_species,
@@ -110,7 +110,7 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
 
-void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
+void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                                 const Agenda& propmat_clearsky_agenda [[maybe_unused]],
                                 const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
                                 const Index& load [[maybe_unused]]) {
@@ -141,7 +141,7 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
                             &PropmatClearskyAgendaGUI::run,
                             std::ref(res),
                             std::ref(ctrl),
-                            std::ref(ws),
+                            std::cref(ws),
                             std::cref(propmat_clearsky_agenda),
                             std::ref(jacobian_quantities),
                             std::ref(select_abs_species),

@@ -6,7 +6,7 @@
 #include "species_tags.h"
 
 void propmat_clearskyAddScaledSpecies(  // Workspace reference:
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output:
     PropmatVector& propmat_clearsky,
     StokvecVector& nlte_source,
