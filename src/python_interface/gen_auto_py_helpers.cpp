@@ -55,6 +55,20 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
   return str_toupper(lhs) < str_toupper(rhs);
 };
 
+std::string fix_newlines(std::string x) {
+  constexpr auto old = "\n\n\n";
+  constexpr auto new_ = "\n\n";
+  auto ptr = x.find(old);
+  while (ptr not_eq x.npos) {
+    x.replace(ptr, 3, new_);
+    ptr = x.find(old);
+  }
+
+  while (x.back() == '\n') x.pop_back();
+  x.push_back('\n');
+  return x;
+}
+
 String unwrap_stars(String x) {
   const auto find = [&](auto p) {
     p = std::min(p, x.end());

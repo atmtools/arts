@@ -24,10 +24,7 @@ std::shared_ptr<Wsv> Workspace::share(const std::string& name) const try {
   return wsv.at(name);
 } catch (std::out_of_range&) {
   throw std::runtime_error(
-      var_string("Cannot find workspace variable ", std::quoted(name)));
-} catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Cannot share workspace variable ", std::quoted(name), '\n', e.what()));
+      var_string("Undefined workspace variable ", std::quoted(name)));
 }
 
 std::shared_ptr<Wsv> Workspace::copy(const std::string& name) const {
