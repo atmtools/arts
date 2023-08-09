@@ -22,8 +22,7 @@ void py_callback(py::module_& m) {
       .def(
           "__call__",
           [](const CallbackOperator& cb, Workspace& w) { cb(w); },
-          py::arg("ws"),
-          py::is_operator())
+          py::arg("ws"))
       .PythonInterfaceWorkspaceDocumentation(CallbackOperator);
 }
 }  // namespace Python
