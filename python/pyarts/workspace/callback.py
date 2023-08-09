@@ -1,7 +1,6 @@
 from ast import parse, FunctionDef, Return, Name, Tuple, List, ClassDef
 from inspect import getsource
 import pyarts.arts as cxx
-from pyarts.workspace import Workspace
 from pyarts.workspace.utility import unindent as unindent
 
 
@@ -26,8 +25,7 @@ def safe_set(ws, attr, val):
                            f"{type(val)} is not a Workspace Group")
 
 
-def _CallbackOperator(func, ins, outs, extras=[], fnstr="Undefined"):
-    extras.extend(ins)
+def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
 
     def fn(ws):
         try:
@@ -45,10 +43,10 @@ def _CallbackOperator(func, ins, outs, extras=[], fnstr="Undefined"):
                 f"Raised internal error:\n{e}\n\n"
                 "The original function (if known) reads:\n"
                 f"{fnstr}"
-                f"\n\nThe callback is:\nInput: {extras}\nOutput: {outs}"
+                f"\n\nThe callback is:\nInput: {ins}\nOutput: {outs}"
             )
 
-    return cxx.CallbackOperator(fn, extras, outs)
+    return cxx.CallbackOperator(fn, ins, outs)
 
 
 def _callback_operator_function(funcdef):
@@ -64,13 +62,18 @@ def _callback_operator_return(expr):
     elif isinstance(value, Tuple) or isinstance(value, List):
         return [x.id if isinstance(x, Name) else _errvar
                 for x in value.elts]
-    return []
+    return None
 
 
 def _find_return(body):
+    bad = False
     for expr in body:
         if isinstance(expr, Return):
-            return _callback_operator_return(expr)
+            x = _callback_operator_return(expr)
+            if x is not None:
+                return x
+            else:
+                bad = True
         elif isinstance(expr, FunctionDef) or isinstance(expr, ClassDef):
             continue
 
@@ -83,23 +86,13 @@ def _find_return(body):
             if t is not None:
                 return t
 
-    return None
+    if bad:
+        return [_errvar]
+
+    return []
 
 
-def _rename_var(name_list, **kwargs):
-    """ Renames things in name_list by the kwargs
-    """
-    if name_list is None:
-        return []
-
-    for i in range(len(name_list)):
-        n = name_list[i]
-        n = kwargs.get(n, n)
-        name_list[i] = n
-    return name_list
-
-
-def _callback_operator(func, inputs, outputs, extras, **kwargs):
+def _callback_operator(func, inputs, outputs):
     """ Internal source code parser
     """
     srccod = getsource(func)
@@ -113,32 +106,33 @@ def _callback_operator(func, inputs, outputs, extras, **kwargs):
     args = (
         inputs
         if len(inputs)
-        else _rename_var(_callback_operator_function(code_body), **kwargs)
+        else _callback_operator_function(code_body)
     )
 
     retvals = (
         outputs
         if len(outputs)
-        else _rename_var(_find_return(code_body.body), **kwargs)
+        else _find_return(code_body.body)
     )
 
     if _errvar in retvals:
-        raise RuntimeError(f"Missing return name in:\n{srccod}\n\n"
-                           f"The return-values are {retvals}")
+        raise RuntimeError(f"Error in:\n{srccod}\n\n"
+                           "Missing named return values.\n"
+                           "Consider setting `outputs` in decorator.")
 
-    return _CallbackOperator(func, args, retvals, extras, srccod)
+    return _CallbackOperator(func, args, retvals, srccod)
 
 
 def callback_operator(
-    func=None, *, inputs=[], outputs=[], extras=[], **kwargs
+    func=None, *, inputs=[], outputs=[]
 ):
     """
     Creates a callback operator
     """
     def parser(fn):
-        return _callback_operator(fn, inputs, outputs, extras, **kwargs)
+        return _callback_operator(fn, inputs, outputs)
 
     if func is None:
         return parser
     else:
-        return _callback_operator(func, inputs, outputs, extras, **kwargs)
+        return _callback_operator(func, inputs, outputs)
