@@ -220,14 +220,12 @@ void py_workspace(py::module_& m,
       .def(py::init([](Workspace& w) {return w.shallowcopy();}), "Shallowly copy another workspace")
       .def(
           "__copy__",
-          [](Workspace& w) { return w.shallowcopy(); },
-          py::is_operator())
+          [](Workspace& w) { return w.shallowcopy(); })
       .def(
           "__deepcopy__",
           [](Workspace& w, py::dict&) {
             return w.deepcopy();
-          },
-          py::is_operator())
+          })
       .def("execute_controlfile",
            [](Workspace& w, const std::filesystem::path& path) {
              std::unique_ptr<Agenda> a{parse_agenda(w, 

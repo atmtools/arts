@@ -72,8 +72,8 @@ void py_basic(py::module_& m) {
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
       .PythonInterfaceIndexItemAccess(String)
-      .def("__repr__", [](const String& s){return var_string(std::quoted(s));}, py::is_operator())
-      .def("__str__", [](const String& s){return var_string(s);}, py::is_operator())
+      .def("__repr__", [](const String& s){return var_string(std::quoted(s));})
+      .def("__str__", [](const String& s){return var_string(s);})
       .def(py::self + py::self)
       .def(py::self += py::self)
       .def(py::self == py::self)
@@ -140,8 +140,8 @@ be accessed without copy using element-wise access operators)--");
           "value",
           [](Numeric_& x) { return x.val; },
           [](Numeric_& x, Numeric_ y) { x.val = y.val; }, "Value of instance as :class:`float`")
-      .def("__repr__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
-      .def("__str__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
+      .def("__repr__", [](const Numeric_& x){return var_string(x);})
+      .def("__str__", [](const Numeric_& x){return var_string(x);})
       .def(
           "savexml",
           [](const Numeric_& x,
@@ -204,8 +204,8 @@ be accessed without copy using element-wise access operators)--");
           "value",
           [](Index_& x) { return x.val; },
           [](Index_& x, Index_ y) { x.val = y.val; }, "Value of instance as :class:`int`")
-      .def("__repr__", [](const Index_& x){return var_string(x);}, py::is_operator())
-      .def("__str__", [](const Index_& x){return var_string(x);}, py::is_operator())
+      .def("__repr__", [](const Index_& x){return var_string(x);})
+      .def("__str__", [](const Index_& x){return var_string(x);})
       .def(
           "savexml",
           [](const Index_& x,
@@ -264,8 +264,8 @@ be accessed without copy using element-wise access operators)--");
   py::class_<Any>(m, "Any")
       .def(py::init([]() { return std::make_unique<Any>(); }), "Create empty")
       .def(py::init([](const py::args&, const py::kwargs&) { return std::make_unique<Any>(); }), "Create empty")
-      .def("__repr__", [](Any&) { return "Any"; }, py::is_operator())
-      .def("__str__", [](Any&) { return "Any"; }, py::is_operator())
+      .def("__repr__", [](Any&) { return "Any"; })
+      .def("__str__", [](Any&) { return "Any"; })
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")

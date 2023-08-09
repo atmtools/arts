@@ -423,8 +423,7 @@ void py_spectroscopy(py::module_& m) {
       .PythonInterfaceCopyValue(AbsorptionLines)
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
       .def(
-          "__str__", [](const AbsorptionLines &x) { return var_string(x); },
-          py::is_operator())
+          "__str__", [](const AbsorptionLines &x) { return var_string(x); })
       .def(
           "__repr__",
           [](const AbsorptionLines &x) {
@@ -433,8 +432,7 @@ void py_spectroscopy(py::module_& m) {
                               "'-band of ",
                               x.lines.nelem(),
                               " lines");
-          },
-          py::is_operator())
+          })
       .PythonInterfaceFileIO(AbsorptionLines)
       .PythonInterfaceReadWriteData(AbsorptionLines, selfbroadening, ":class:`bool` Does the line broadening have self broadening?")
       .PythonInterfaceReadWriteData(AbsorptionLines, bathbroadening, ":class:`bool` Does the line broadening have bath broadening?")
