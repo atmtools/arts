@@ -119,9 +119,6 @@ class XsecRecord {
   //             Index dataset,
   //             Numeric pressure) const;
 
-  /** Remove negative cross sections and adjust integral */
-  void RemoveNegativeXsec(VectorView xsec) const;
-
   static constexpr Index P00 = 0;
   static constexpr Index P10 = 1;
   static constexpr Index P01 = 2;
