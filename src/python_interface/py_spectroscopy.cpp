@@ -1,11 +1,8 @@
 #include <algorithm>
 #include <lineshape.h>
 #include <lineshapemodel.h>
-#include <py_auto_interface.h>
-#include <pybind11/cast.h>
-#include <pybind11/complex.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
+#include <python_interface.h>
+
 #include <zeemandata.h>
 
 #include <memory>

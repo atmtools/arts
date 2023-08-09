@@ -1,1909 +1,651 @@
-#include <global_data.h>
+#include <workspace.h>
 
 #include <algorithm>
-#include <exception>
+#include <cstdio>
 #include <fstream>
 #include <ostream>
 #include <sstream>
-#include <stdexcept>
-#include <utility>
-#include <vector>
-
-#include "array.h"
-#include "compare.h"
-#include "debug.h"
-#include "mystring.h"
-#include "tokval_io.h"
-#include "workspace.h"
 
 #include "pydocs.h"
 
-namespace global_data {
-extern Array<WsvRecord> wsv_data;
+std::string variable(const std::string& name,
+                     const WorkspaceVariableRecord& wsv) try {
+  std::ostringstream os;
 
-extern std::map<String, Index> WsvMap;
-}  // namespace global_data
+  os << "  ws.def_property(\"" << name << "\",";
+  os << R"--(
+    py::cpp_function([](Workspace& w) -> )--"
+     << wsv.type << R"--(& {
+      return w.get_or<)--"
+     << wsv.type << R"--(>(")--" << name << R"--(");
+    }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
+    [](Workspace& w, )--"
+     << wsv.type << R"--( val) -> void {
+      auto& ws_val = w.get_or<)--"
+     << wsv.type << R"--(>(")--" << name << R"--(");
+      ws_val = std::move(val);
+)--";
 
-/** Implements pybind11 bindings generation for Arts workspace
- *
- *  Some important notes:
- *  - The workspace always class definition is always defined as the "ws" variable
- *    - You can define properties and methods onto this class, including read-only and static ones
- *      - The methods are defined using "ws.def(...);"
- *      - The properties are defined using "ws.def_property(...);"
- *      - The first input to such a method is the Workspace as a reference (pointer or true reference)
- *        - Its name cannot be "ws" as well
- *      - The rest of the inputs are what will be seen if calling ws.Method(...) in python
- *  - Use py::doc("Doc") to give documentation to your added method
- *  - Use py::arg("X") or py::arg_v("X", default, "default doc") to give documentation to variables
- *  - Multiple input methods use std::variant
- *    - pybind11 knows how to deal with the input from python, it will find an option
- *    - C++ must deal with selecting the right type
- *    - There are severeal select_* functions in python_interface.h to use, don't hesitate to add more if necessary but try to use them first
- *  - Custom input that can be understood as Arts types use py::object as their type
- *  - Optional inputs (i.e., when there are defaults) make use of std::optional
- *    - We combine std::optional and std::variant when possible
- *  - All workspace variables are of the type WorkspaceVariable
- *  - A workspace variable can be implicitly converted to its base type
- *    - The conversion from python type to C++ prefers the first seen option
- *    - WorkspaceVariable are therefore prefered
- */
+  if (wsv.type == "Agenda")
+    os << "      ws_val.set_name(\"" << name
+       << "\");\n      ws_val.finalize();\n";
+  if (wsv.type == "ArrayOfAgenda")
+    os << "      for (auto&ws_value: ws_val) {\n        ws_value.set_name(\""
+       << name << "\");\n        ws_value.finalize();\n      }\n";
 
-struct Group {
-  std::string varname_group;
-  std::string varname_desc;
-  std::size_t artspos;
-};
+  os << "    }, py::doc(R\"-x-(:class:`~pyarts.arts." << wsv.type << "` "
+     << unwrap_stars(wsv.desc) << "\n\n";
 
-struct Method {
-  struct Gin {
-    std::vector<std::string> desc;
-    std::vector<std::string> group;
-    std::vector<std::string> name;
-    std::vector<std::string> defs;
-    std::vector<bool> hasdefs;
-  };
-
-  struct Gout {
-    std::vector<std::string> desc;
-    std::vector<std::string> group;
-    std::vector<std::string> name;
-  };
-
-  struct In {
-    std::vector<std::string> varname;
-    std::vector<std::size_t> varpos;
-  };
-
-  struct Out {
-    std::vector<std::string> varname;
-    std::vector<std::size_t> varpos;
-  };
-
-  std::string name;
-  std::size_t pos;
-  std::string desc;
-  std::vector<std::string> authors;
-  bool set_method;
-  bool agenda_method;
-  bool supergeneric;
-  bool uses_templates;
-  bool pass_workspace;
-  bool pass_wsv_names;
-  In in;
-  Gin gin;
-  Out out;
-  Gout gout;
-  std::vector<std::size_t> inoutvarpos;
-};
-
-struct AgendaData {
-  std::size_t pos;
-  std::string desc;
-  std::vector<std::string> ins;
-  std::vector<std::string> outs;
-};
-
-std::map<std::string, Group> groups() {
-  std::map<std::string, std::size_t> group;
-  for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
-  std::map<std::string, std::size_t> name;
-  for (auto& x : global_data::wsv_data) name[x.Name()] = x.Group();
-  std::map<std::string, std::string> desc;
-  for (auto& x : global_data::wsv_data) {
-    auto& val = desc[x.Name()];
-
-    val = var_string(":class:`~pyarts.arts.WorkspaceVariable` - holds type :class:`~pyarts.arts.",
-                     global_data::wsv_groups[x.Group()].name,
-                     "`: ",
-                     unwrap_stars(x.Description()));
-    
-    if (global_data::wsv_groups[x.Group()].name == "Agenda" or global_data::wsv_groups[x.Group()].name == "ArrayOfAgenda") {
-      val += get_agenda_io(x.Name());
-    }
-
-    //! FIXME: Better default, why can't it print???
-    if (x.has_defaults())
-      val += var_string("\nDefault value\n"
-                        "-------------\n\n``",
-                        to_defval_str(var_string(TokValPrinter(x.default_value())), global_data::wsv_groups[x.Group()].name),
-                        "``\n\n");
-
-    struct wsv_io {
-      std::vector<String> wsm_out;
-      std::vector<String> wsm_in;
-      std::vector<String> ag_out;
-      std::vector<String> ag_in;
-    };
-
-    wsv_io usedocs;
-    for (auto& method : global_data::md_data_raw) {
-      if (std::any_of(method.Out().cbegin(),
-                      method.Out().cend(),
-                      [&name = x.Name()](auto& mind) {
-                        return global_data::wsv_data[mind].Name() == name;
-                      }))
-        usedocs.wsm_out.push_back(method.Name());
-
-      if (std::any_of(method.In().cbegin(),
-                      method.In().cend(),
-                      [&name = x.Name()](auto& mind) {
-                        return global_data::wsv_data[mind].Name() == name;
-                      }))
-        usedocs.wsm_in.push_back(method.Name());
-    }
-
-    for (auto& agenda: global_data::agenda_data) {
-      if (std::any_of(agenda.Out().cbegin(),
-                      agenda.Out().cend(),
-                      [&name = x.Name()](auto& mind) {
-                        return global_data::wsv_data[mind].Name() == name;
-                      }))
-        usedocs.ag_out.push_back(agenda.Name());
-
-      if (std::any_of(agenda.In().cbegin(),
-                      agenda.In().cend(),
-                      [&name = x.Name()](auto& mind) {
-                        return global_data::wsv_data[mind].Name() == name;
-                      }))
-        usedocs.ag_in.push_back(agenda.Name());
-    }
-
-    if (usedocs.wsm_out.size()) {
-      val += var_string("\n\nWorkspace methods that can generate ",
-                        x.Name(),
-                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
-                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_out), "\n");
-      for (auto& m : usedocs.wsm_out)
-        val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
-      val += "\n";
-    }
-
-    if (usedocs.wsm_in.size()) {
-      val += var_string("\n\nWorkspace methods that require ",
-                        x.Name(),
-                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
-                        "\n    :columns: ", hlist_num_cols(usedocs.wsm_in), "\n");
-      for (auto& m : usedocs.wsm_in)
-        val +=
-            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
-      val += "\n";
-    }
-
-    if (usedocs.ag_out.size()) {
-      val += var_string("\n\nWorkspace agendas that can generate ",
-                        x.Name(),
-                        "\n", String(36 + x.Name().size(), '-'), "\n\n.. hlist::",
-                        "\n    :columns: ", hlist_num_cols(usedocs.ag_out), "\n");
-      for (auto& m : usedocs.ag_out)
-        val +=
-            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
-      val += "\n";
-    }
-
-    if (usedocs.ag_in.size()) {
-      val += var_string("\n\nWorkspace agendas that require ",
-                        x.Name(),
-                        "\n", String(31 + x.Name().size(), '-'), "\n\n.. hlist::",
-                        "\n    :columns: ", hlist_num_cols(usedocs.ag_in), "\n");
-      for (auto& m : usedocs.ag_in)
-        val +=
-            var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
-      val += "\n";
-    }
-
-    val += var_string(
-        "\n\nGeneric workspace methods that can generate or use ",
-        x.Name(),
-        "\n", String(51 + x.Name().size(), '-'), "\n\nSee :class:`~pyarts.arts.",
-        global_data::wsv_groups[x.Group()].name,
-        "`");
-    if (global_data::wsv_groups[x.Group()].name not_eq "Any")
-      val += var_string(" and/or :class:`~pyarts.arts.Any`\n");
-
-    
-  }
-  std::map<std::string, std::size_t> pos;
-  for (auto& x : global_data::WsvMap) pos[x.first] = x.second;
-
-  std::map<std::string, Group> out;
-  for (auto& x : name) {
-    for (auto& y : group) {
-      if (y.second == x.second) {
-        out[x.first] = {y.first, desc[x.first], pos[x.first]};
-        break;
-      }
-    }
-  }
-  return out;
-}
-
-std::pair<std::vector<std::string>, std::vector<bool>> fixed_defaults(
-    const std::vector<std::string>& vargroups,
-    const std::vector<std::string>& vardefaults) {
-  std::vector<std::string> defaults(vargroups.size());
-  std::vector<bool> hasdefaults(vargroups.size());
-  for (size_t i = 0; i < vargroups.size(); i++) {
-    if (vardefaults[i] == NODEF)
-      hasdefaults[i] = false;
-    else
-      hasdefaults[i] = true;
-
-    if (vargroups[i] == "String") {
-      defaults[i] = std::string("\"") + vardefaults[i] + std::string("\"");
-    } else if (vargroups[i] == "Numeric") {
-      if ("NaN" == vardefaults[i] or "nan" == vardefaults[i]) {
-        defaults[i] = "std::numeric_limits<Numeric>::quiet_NaN()";
-      } else if ("Inf" == vardefaults[i] or "inf" == vardefaults[i]) {
-        defaults[i] = "std::numeric_limits<Numeric>::infinity()";
-      } else if ("-Inf" == vardefaults[i] or "-inf" == vardefaults[i]) {
-        defaults[i] = "-std::numeric_limits<Numeric>::infinity()";
-      } else {
-        defaults[i] = vardefaults[i];
-      }
-    } else if (vardefaults[i] == "[]") {
-      defaults[i] = var_string(vargroups[i], "{}");
-    } else if (vargroups[i] == "ArrayOfIndex") {
-      if (vardefaults[i][0] == '[')
-        defaults[i] = "std::initializer_list<Index>" + vardefaults[i];
-      else
-        defaults[i] = vardefaults[i];
-    } else if (vargroups[i] == "Vector") {
-      if (vardefaults[i][0] == '[')
-        defaults[i] = "std::initializer_list<Numeric>" + vardefaults[i];
-      else
-        defaults[i] = vardefaults[i];
-    } else {
-      defaults[i] = vardefaults[i];
-    }
-
-    if (defaults[i] == "") defaults[i] = var_string(vargroups[i], "{}");
-
-    for (auto& x : defaults[i]) {
-      if (x == '[')
-        x = '{';
-      else if (x == ']')
-        x = '}';
-    }
+  if (wsv.type == "Agenda" or wsv.type == "ArrayOfAgenda") {
+    os << get_agenda_io(name);
   }
 
-  return {defaults, hasdefaults};
-}
-
-std::vector<Method> methods() {
-  std::map<std::string, std::size_t> vargroup;
-  for (auto& x : global_data::WsvGroupMap) vargroup[x.first] = x.second;
-  std::map<std::string, std::size_t> varpos;
-  for (auto& x : global_data::WsvMap) varpos[x.first] = x.second;
-  std::map<std::string, std::size_t> methodpos;
-  for (auto& x : global_data::MdMap) methodpos[x.first] = x.second;
-
-  std::vector<std::string> metname;
-  for (auto& x : global_data::md_data) metname.push_back(x.Name());
-  std::vector<std::string> actual_groups;
-  for (auto& x : global_data::md_data)
-    actual_groups.push_back(x.ActualGroups());
-  std::vector<std::vector<std::size_t>> gin_group;
-  for (auto& x : global_data::md_data)
-    gin_group.emplace_back(x.GInType().cbegin(), x.GInType().cend());
-  std::vector<std::vector<std::string>> gin_names;
-  for (auto& x : global_data::md_data)
-    gin_names.emplace_back(x.GIn().cbegin(), x.GIn().cend());
-  std::vector<std::vector<std::string>> gin_defaults;
-  for (auto& x : global_data::md_data)
-    gin_defaults.emplace_back(x.GInDefault().cbegin(), x.GInDefault().cend());
-  std::vector<std::vector<std::string>> gin_desc;
-  for (auto& x : global_data::md_data)
-    gin_desc.emplace_back(x.GInDescription().cbegin(),
-                          x.GInDescription().cend());
-  std::vector<std::vector<std::size_t>> gout_group;
-  for (auto& x : global_data::md_data)
-    gout_group.emplace_back(x.GOutType().cbegin(), x.GOutType().cend());
-  std::vector<std::vector<std::string>> gout_names;
-  for (auto& x : global_data::md_data)
-    gout_names.emplace_back(x.GOut().cbegin(), x.GOut().cend());
-  std::vector<std::vector<std::string>> gout_desc;
-  for (auto& x : global_data::md_data)
-    gout_desc.emplace_back(x.GOutDescription().cbegin(),
-                           x.GOutDescription().cend());
-  std::vector<std::vector<std::size_t>> in_wspace;
-  for (auto& x : global_data::md_data)
-    in_wspace.emplace_back(x.In().cbegin(), x.In().cend());
-  std::vector<std::vector<std::size_t>> out_wspace;
-  for (auto& x : global_data::md_data)
-    out_wspace.emplace_back(x.Out().cbegin(), x.Out().cend());
-  std::vector<std::string> desc;
-  for (auto& x : global_data::md_data) desc.push_back(x.Description());
-  std::vector<std::vector<std::string>> authors;
-  for (auto& x : global_data::md_data)
-    authors.emplace_back(x.Authors().cbegin(), x.Authors().cend());
-
-  std::vector<bool> set_method;
-  for (auto& x : global_data::md_data) set_method.push_back(x.SetMethod());
-  std::vector<bool> agenda_method;
-  for (auto& x : global_data::md_data)
-    agenda_method.push_back(x.AgendaMethod());
-  std::vector<bool> supergeneric;
-  for (auto& x : global_data::md_data) supergeneric.push_back(x.Supergeneric());
-  std::vector<bool> uses_templates;
-  for (auto& x : global_data::md_data)
-    uses_templates.push_back(x.UsesTemplates());
-  std::vector<bool> pass_workspace;
-  for (auto& x : global_data::md_data)
-    pass_workspace.push_back(x.PassWorkspace());
-  std::vector<bool> pass_wsv_names;
-  for (auto& x : global_data::md_data)
-    pass_wsv_names.push_back(x.PassWsvNames());
-
-  std::vector<std::vector<std::size_t>> inoutvarpos;
-  for (auto& x : global_data::md_data)
-    inoutvarpos.emplace_back(x.InOut().cbegin(), x.InOut().cend());
-  std::vector<std::vector<std::size_t>> invarpos;
-  for (auto& x : global_data::md_data)
-    invarpos.emplace_back(x.InOnly().cbegin(), x.InOnly().cend());
-  std::vector<std::vector<std::size_t>> outvarpos;
-  for (auto& x : global_data::md_data)
-    outvarpos.emplace_back(x.Out().cbegin(), x.Out().cend());
-
-  std::vector<Method> retval;
-  for (std::size_t i = 0; i < desc.size(); i++) {
-    Method m;
-    m.name = metname[i];
-    if (supergeneric[i])
-      m.pos = methodpos[metname[i] + String("_sg_") + actual_groups[i]];
-    else
-      m.pos = methodpos[metname[i]];
-    m.desc = desc[i];
-    m.authors = authors[i];
-
-    Method::Gin gin;
-    gin.desc = gin_desc[i];
-    for (auto g : gin_group[i]) {
-      bool found = false;
-      for (auto& y : vargroup) {
-        if (y.second == g) {
-          gin.group.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find group\n";
-        std::terminate();
-      }
-    }
-    gin.name = gin_names[i];
-    auto fixgin = fixed_defaults(gin.group, gin_defaults[i]);
-    gin.defs = fixgin.first;
-    gin.hasdefs = fixgin.second;
-    m.gin = gin;
-
-    Method::Gout gout;
-    gout.desc = gout_desc[i];
-    for (auto g : gout_group[i]) {
-      bool found = false;
-      for (auto& y : vargroup) {
-        if (y.second == g) {
-          gout.group.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find group\n";
-        std::terminate();
-      }
-    }
-    gout.name = gout_names[i];
-    m.gout = gout;
-
-    Method::In in;
-    for (auto v : in_wspace[i]) {
-      bool found = false;
-      for (auto& y : varpos) {
-        if (v == y.second) {
-          in.varname.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find variable\n";
-        std::terminate();
-      }
-    }
-    in.varpos = invarpos[i];
-    m.in = in;
-
-    Method::Out out;
-    for (auto v : out_wspace[i]) {
-      bool found = false;
-      for (auto& y : varpos) {
-        if (v == y.second) {
-          out.varname.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find variable\n";
-        std::terminate();
-      }
-    }
-    out.varpos = outvarpos[i];
-    m.out = out;
-
-    m.set_method = set_method[i];
-    m.agenda_method = agenda_method[i];
-    m.supergeneric = supergeneric[i];
-    m.uses_templates = uses_templates[i];
-    m.pass_workspace = pass_workspace[i];
-    m.pass_wsv_names = pass_wsv_names[i];
-    m.inoutvarpos = inoutvarpos[i];
-    retval.push_back(m);
+  if (wsv.default_value) {
+    os << "\nDefault value\n"
+          "-------------\n\n``"
+       << to_defval_str(*wsv.default_value, wsv.type) << "``\n\n";
   }
 
-  return retval;
-}
+  os << variable_used_by(name) << '\n';
 
-std::map<std::string, AgendaData> agendas() {
-  auto g = groups();
+  os << "\n\nGeneric workspace methods that can generate or use " << name
+     << "\n"
+     << String(51 + name.size(), '-') << "\n\nSee :class:`~pyarts.arts."
+     << wsv.type << "`";
+  if (wsv.type not_eq "Any") os << " and/or :class:`~pyarts.arts.Any`\n";
 
-  std::map<std::string, AgendaData> out;
-  for (auto& x : global_data::agenda_data) {
-    out[x.Name()].pos = global_data::AgendaMap.at(x.Name());
-    out[x.Name()].desc = x.Description();
-
-    for (std::size_t i : x.In()) {
-      bool found = false;
-      for (auto& y : g) {
-        if (y.second.artspos == i) {
-          out[x.Name()].ins.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find the variable\n";
-        std::terminate();
-      }
-    }
-
-    for (std::size_t i : x.Out()) {
-      bool found = false;
-      for (auto& y : g) {
-        if (y.second.artspos == i) {
-          out[x.Name()].outs.push_back(y.first);
-          found = true;
-          break;
-        }
-      }
-      if (not found) {
-        std::cerr << "Cannot find the variable\n";
-        std::terminate();
-      }
-    }
-  }
-  return out;
-}
-
-struct NameMaps {
-  std::map<std::string, AgendaData> agendaname_agenda;
-  std::vector<Method> methodname_method;
-  std::map<std::string, Group> varname_group;
-  std::map<std::string, std::size_t> group;
-
-  NameMaps() {
-    for (auto& x : global_data::WsvGroupMap) group[x.first] = x.second;
-    varname_group = groups();
-    methodname_method = methods();
-    agendaname_agenda = agendas();
-  }
-};
-
-void includes(std::ofstream& os) {
-  os << "#include <python_interface.h>" << '\n';
-}
-
-void workspace_variables(size_t n, const NameMaps& arts) {
-  std::vector<std::ofstream> oss(n);
-  for (size_t i = 0; i < n; i++) {
-    oss[i] =
-        std::ofstream(var_string("py_auto_workspace_split_vars_", i, ".cc"));
-    oss[i]
-        << "#include <python_interface.h>\n\n#include <pybind11/functional.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsv_"
-        << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
-  }
-
-  auto osptr = oss.begin();
-  for (auto& [name, data] : arts.varname_group) {
-    auto& os = *osptr;
-
-    os << "ws.def_property(\"" << name << "\",\n";
-    os << R"--(  py::cpp_function([](Workspace& w) -> WorkspaceVariable {
-    return WorkspaceVariable{w, )--"
-       << data.artspos
-       << "};\n  }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),\n";
-
-    os << "  [](Workspace& w, " << data.varname_group << "& val) {\n";
-
-    if (data.varname_group == "Agenda")
-      os << "    val.set_name(\"" << name
-         << "\");\n    val.check(w);\n";
-    if (data.varname_group == "ArrayOfAgenda")
-      os << "    for(auto& a : val) a.set_name(\"" << name
-         << "\");\n    for(auto& a : val) a.check(w);\n";
-    os << "    " << data.varname_group << "& v = *static_cast<"
-       << data.varname_group << " *>(w[" << data.artspos
-       << "].get());\n    v = val;\n  }, py::doc(R\"-x-(" << data.varname_desc
-       << ")-x-\")\n); \n\n";
-
-    osptr++;
-    if (osptr == oss.end()) osptr = oss.begin();
-  }
-
-  for (auto& os : oss) os << "}\n}  // namespace Python\n";
-}
-
-void print_method_desc(std::ofstream& os,
-                       const Method& method) try {
-  os << ",\npy::doc(\nR\"" << method_docs(method.name) << "\")";
-} catch (std::invalid_argument& e) {
-  throw std::runtime_error(var_string("Failing in method ", std::quoted(method.name), " with error message:\n", e.what()));
+  return fix_newlines(os.str()) + ")-x-\"));\n\n";
 } catch (std::exception& e) {
-  throw std::runtime_error(e.what());
+  std::cerr << "Error in variable " << std::quoted(name) << ":\n"
+            << e.what() << '\n';
+  std::exit(1);
 }
 
-void print_method_args(std::ofstream& os,
-                       const Method& method) {
-  for (const auto& i : method.out.varname) {
-    os << ',' << '\n'
-       << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i
-       << "\").noconvert()";
-  }
-  for (const auto& i : method.gout.name) {
-    os << ',' << '\n' << "py::arg(\"" << i << "\").noconvert().none(false)";
-  }
-  for (const auto& i : method.in.varname) {
-    if (std::none_of(method.out.varname.cbegin(),
-                     method.out.varname.cend(),
-                     [in = i](const auto& out) { return in == out; })) {
-      os << ',' << '\n'
-         << "py::arg_v(\"" << i << "\", std::nullopt, \"self." << i << "\")";
-    }
-  }
-  for (size_t i = 0; i < method.gin.name.size(); i++) {
-    if (method.gin.hasdefs[i]) {
-      if (method.gin.group[i] == "String")
-        os << ',' << '\n'
-           << "py::arg_v(\"" << method.gin.name[i] << R"(", std::nullopt, "\)"
-           << method.gin.defs[i] << R"("\"")" << ')';
-      else
-        os << ',' << '\n'
-           << "py::arg_v(\"" << method.gin.name[i] << "\", std::nullopt, \""
-           << method.gin.defs[i] << "\")";
-    } else {
-      os << ',' << '\n'
-         << "py::arg(\"" << method.gin.name[i] << "\").none(false)";
-    }
-  }
-}
+void variables(const std::string& fname) {
+  const auto& wsvs = workspace_variables();
 
-void workspace_method_create(size_t n, const NameMaps& arts) {
-  std::vector<std::ofstream> oss(n);
-  for (size_t i = 0; i < n; i++) {
-    oss[i] =
-        std::ofstream(var_string("py_auto_workspace_split_create_", i, ".cc"));
-    oss[i]
-        << "#include \"py_auto_interface.h\"\n#include <pybind11/stl.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsc_"
-        << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
-  }
-  auto osptr = oss.begin();
+  std::ofstream os(fname);
 
-  for (auto& [group, group_index] : arts.group) {
-    auto& os = *osptr;
-
-    if (group == "Any") continue;
-    os << "ws.def(\"" << group
-       << "Create\",[](Workspace& w, const char * name, std::optional<const char *> desc, std::optional<"
-       << group;
-    if (group == "Index" or group == "Numeric") os << '_';
-    os << R"--(> value) {
-  Index pos=-1;
-  if (auto varptr = w.WsvMap_ptr -> find(name); varptr == w.WsvMap_ptr -> end()) {
-    ARTS_USER_ERROR_IF(std::string_view sv{name}; sv.size() == 0 or sv.front() == ':' or sv.back() == ':',
-      "Cannot create variables without a name, or one that starts or ends with \":\"\nVariable name: \"", name, "\"")
-    pos = w.add_wsv(WsvRecord(name, desc.has_value() ? *desc : "User-generated workspace variable", )--"
-       << group_index << R"--());
-  } else {
-    pos = varptr->second;
-    ARTS_USER_ERROR_IF(w.wsv_data_ptr->operator[](pos).Group() not_eq )--"
-       << group_index << R"--(, "Already exist of different group: ", name)
-  }
-
-  if (value.has_value()) w.push_move(pos, std::make_shared<)--"
-       << group << R"--(>(*value));
-}, py::doc(R"-x-(
-Create new :class:`~pyarts.arts.)--"
-       << group << R"--(` on the workspace
-
-It is recommended that this is only called once per new Workspace variable.
-
-If there is no default value, the variable remains uninitialized
-
-If the variable already exist, an error is thrown only if the group
-is not :class:`~pyarts.arts.)--"
-       << group << R"--(`.  If the variable does exist, a new value
-is pushed onto its stack iff value is given.  This efficiently puts
-any current value out of reach for the current Agenda level.
-
-Parameters
-----------
-name : str
-    Name of the variable, can be accessed later with getattr() on the workspace
-
-desc : str, optional:
-    Description of the variable, defaults to ``"User-generated workspace variable"``
-
-value : )--"
-       << group << R"--(, optional
-    Initialized value, default is to not initialize the variable
-)-x-"),
-  py::arg("name").none(false),
-  py::arg("desc")=std::nullopt,
-  py::arg("value")=std::nullopt);
-  
-)--";
-
-    osptr++;
-    if (osptr == oss.end()) osptr = oss.begin();
-  }
-
-  for (auto& os : oss) os << "}\n}  // namespace Python\n";
-}
-
-void workspace_method_nongenerics(size_t n, const NameMaps& arts) try {
-  std::vector<std::ofstream> oss(n);
-  for (size_t i = 0; i < n; i++) {
-    oss[i] =
-        std::ofstream(var_string("py_auto_workspace_split_methods_", i, ".cc"));
-    oss[i]
-        << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsm_"
-        << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
-  }
-
-  auto osptr = oss.begin();
-
-  for (auto& method : arts.methodname_method) {
-    auto& os = *osptr;
-
-    if (method.agenda_method) continue;  // FIXME: Should be fixed???
-
-    // Skip create methods
-    if (std::any_of(arts.group.cbegin(),
-                    arts.group.cend(),
-                    [metname = method.name](auto& y) {
-                      return (y.first + String("Create")) == metname;
-                    }))
-      continue;
-
-    const bool pass_workspace =
-        method.pass_workspace or method.agenda_method or
-        std::any_of(
-            method.gin.group.cbegin(),
-            method.gin.group.cend(),
-            [](auto& g) { return g == "Agenda" or g == "ArrayOfAgenda"; }) or
-        std::any_of(
-            method.in.varname.cbegin(), method.in.varname.cend(), [&](auto& g) {
-              return arts.varname_group.at(g).varname_group == "Agenda" or
-                     arts.varname_group.at(g).varname_group == "ArrayOfAgenda";
-            });
-
-    if ([&]() {
-          long i = 0;
-          for (auto& a : arts.methodname_method) i += (a.name == method.name);
-          return i > 1;
-        }())
-      continue;  // Skip 'generic' functions
-
-    // Arguments from python side
-    os << "ws.def(\"" << method.name << "\",[](Workspace& w_ [[maybe_unused]]";
-    for (const auto& i : method.out.varname) {
-      auto& group = arts.varname_group.at(i).varname_group;
-      os << ",\nstd::optional<std::variant<";
-      if (std::any_of(method.in.varname.cbegin(),
-                      method.in.varname.cend(),
-                      [out = i](const auto& in) { return in == out; }))
-        os << "const ";
-      os << "WorkspaceVariable *, " << group;
-      if (group == "Index" or group == "Numeric") os << "_";
-      os << " *>> " << i;
-    }
-    for (std::size_t i = 0; i < method.gout.name.size(); i++) {
-      auto& group = method.gout.group[i];
-      os << ",\nstd::variant<WorkspaceVariable *, " << group;
-      if (group == "Index" or group == "Numeric") os << "_";
-      os << " *> " << method.gout.name[i];
-    }
-    for (const auto& i : method.in.varname) {
-      if (std::none_of(method.out.varname.cbegin(),
-                       method.out.varname.cend(),
-                       [in = i](const auto& out) { return in == out; })) {
-        auto& group = arts.varname_group.at(i).varname_group;
-        os << ",\nstd::optional<std::variant<const WorkspaceVariable *, "
-           << group;
-        if (group == "Index" or group == "Numeric") os << "_";
-        os << " *>> " << i;
-      }
-    }
-    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      auto& group = method.gin.group[i];
-      os << ",\n";
-      if (method.gin.hasdefs[i]) os << "std::optional<";
-      os << "std::variant<const WorkspaceVariable *, " << group;
-      if (group == "Index" or group == "Numeric") os << "_";
-      os << " *>";
-      if (method.gin.hasdefs[i]) os << '>';
-      os << ' ' << method.gin.name[i];
-    }
-    os << ") {\n";
-    bool has_any = false;
-
-    // Create defaults
-    has_any = false;
-    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      if (method.gin.hasdefs[i]) {
-        os << "  const auto " << method.gin.name[i]
-           << "_ = " << method.gin.group[i] << '(' << method.gin.defs[i] << ')'
-           << ";\n";
-        has_any = true;
-      }
-    }
-    if (has_any) os << '\n';
-
-    // Outputs
-    Index counter = 0;
-    for (const auto& i : method.out.varname) {
-      auto& group = arts.varname_group.at(i).varname_group;
-      os << "  auto& arg" << counter++ << "_ = select_";
-      if (std::any_of(method.in.varname.cbegin(),
-                      method.in.varname.cend(),
-                      [out = i](const auto& in) { return in == out; }))
-        os << "in";
-      os << "out<";
-      os << group;
-      os << ">(WorkspaceVariable{w_, " << arts.varname_group.at(i).artspos
-         << "}, " << i << ");\n";
-    }
-
-    // Generic Outputs
-    for (std::size_t i = 0; i < method.gout.name.size(); i++) {
-      os << "  auto& arg" << counter++ << "_ = select_gout<";
-      os << method.gout.group[i];
-      os << ">(" << method.gout.name[i] << ");\n";
-    }
-
-    // Generic Output Names
-    if (method.pass_wsv_names) {
-      for (auto& name : method.gout.name) {
-        os << "  const String arg" << counter++
-           << "_{std::holds_alternative<WorkspaceVariable*>(" << name
-           << ") ? std::get<WorkspaceVariable*>(" << name << ") -> name() : \""
-           << name << "\"};\n";
-      }
-    }
-
-    // Inputs (that are not outputs)
-    for (auto& i : method.in.varname) {
-      if (std::none_of(method.out.varname.cbegin(),
-                       method.out.varname.cend(),
-                       [in = i](const auto& out) { return in == out; })) {
-        auto& group = arts.varname_group.at(i).varname_group;
-        os << "  const auto& arg" << counter++ << "_ = select_in<";
-        os << group;
-        os << ">(WorkspaceVariable{w_, " << arts.varname_group.at(i).artspos
-           << "}, " << i << ");\n";
-      }
-    }
-
-    // Generic Inputs
-    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      os << "  const auto& arg" << counter++ << "_ = select_gin<"
-         << method.gin.group[i] << ">(";
-      if (method.gin.hasdefs[i]) os << method.gin.name[i] << "_, ";
-      os << method.gin.name[i] << ");\n";
-    }
-
-    // Generic Input Names
-    if (method.pass_wsv_names) {
-      for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-        auto& name = method.gin.name[i];
-        os << "  const String arg" << counter++ << "_{";
-        if (method.gin.hasdefs[i]) os << name << ".has_value() ? (";
-        os << "std::holds_alternative<const WorkspaceVariable*>(";
-        if (method.gin.hasdefs[i]) os << '*';
-        os << name << ") ? std::get<const WorkspaceVariable *>(";
-        if (method.gin.hasdefs[i]) os << '*';
-        os << name << ") -> name() : \"" << name << "\"";
-        if (method.gin.hasdefs[i]) os << ") : \"" << name << "\"";
-        os << "};\n";
-      }
-    }
-    os << '\n';
-
-    // Arguments from Arts side
-    has_any = false;
-    os << "  " << method.name << '(';
-    if (pass_workspace) {
-      os << "w_";
-      has_any = true;
-    }
-    for (Index current_count = 0; current_count < counter; current_count++) {
-      if (has_any) os << ", ";
-      has_any = true;
-      os << "arg" << current_count << "_";
-    }
-    os << ");\n}";
-
-    // Name the paramters and show their defaults
-    print_method_args(os, method);
-
-    // Put description at the end
-    print_method_desc(os, method);
-
-    os << ')' << ';' << '\n' << '\n';
-
-    osptr++;
-    if (osptr == oss.end()) osptr = oss.begin();
-  }
-
-  for (auto& os : oss) os << "}\n}  // namespace Python\n";
-}
-catch (std::exception &e) {
-  throw std::runtime_error("Error in workspace_method_generics: "s + e.what());
-}
-
-struct ArgumentHelper {
-  bool in;
-  bool out;
-  bool gen;
-  bool def;
-  bool wsv;
-  Index wsvpos;
-  String name;
-  String def_str;
-  ArrayOfString types;
-};
-
-struct VariadicInfo {
-  Index counter;
-  String name, type, first, second;
-};
-
-void workspace_method_generics(size_t n, const NameMaps& arts) {
-  std::vector<std::ofstream> oss(n);
-  for (size_t i = 0; i < n; i++) {
-    oss[i] =
-        std::ofstream(var_string("py_auto_workspace_split_generic_", i, ".cc"));
-    oss[i]
-        << "#include <python_interface.h>\n\nnamespace Python {\nvoid py_auto_workspace_wsg_"
-        << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {\n";
-  }
-
-  auto osptr = oss.begin();
-
-  ArrayOfString ignore_methods{"Delete"};
-
-  ArrayOfString extra_workspace_for_agenda{"Append", "Copy"};
-
-  for (std::size_t imethod = 0; imethod < arts.methodname_method.size();
-       imethod++) {
-    auto& method = arts.methodname_method[imethod];
-    auto& os = *osptr;
-
-    if (method.agenda_method) {
-      continue;  // FIXME: Should be fixed???
-    }
-
-    // Skip create methods
-    if (std::any_of(arts.group.cbegin(),
-                    arts.group.cend(),
-                    [metname = method.name](auto& y) {
-                      return (y.first + String("Create")) == metname;
-                    }))
-      continue;
-
-    if (ignore_methods.end() not_eq
-        std::find(ignore_methods.begin(), ignore_methods.end(), method.name))
-      continue;
-
-    const bool pass_workspace =
-        method.pass_workspace or method.agenda_method or
-        std::any_of(
-            method.gin.group.cbegin(),
-            method.gin.group.cend(),
-            [](auto& g) { return g == "Agenda" or g == "ArrayOfAgenda"; }) or
-        std::any_of(
-            method.in.varname.cbegin(), method.in.varname.cend(), [&](auto& g) {
-              return arts.varname_group.at(g).varname_group == "Agenda" or
-                     arts.varname_group.at(g).varname_group == "ArrayOfAgenda";
-            });
-
-    // Count the number of generic functions
-    const std::size_t n_func = [&]() {
-      std::size_t i = 0;
-      for (auto& a : arts.methodname_method) i += (a.name == method.name);
-      return i;
-    }();
-    if (n_func < 2) continue;  // Skip 'nongeneric' functions
-    const std::size_t n_method_end = imethod + n_func;
-
-    // Fix the argument order already so generic variables can be known
-    Array<ArgumentHelper> arg_help;
-    bool first = true;
-    for (; imethod < n_method_end; imethod++) {
-      auto& meth = arts.methodname_method[imethod];
-      Index pos = 0;
-
-      for (std::size_t i = 0; i < meth.out.varname.size(); i++) {
-        if (first) {
-          auto& arg = arg_help.emplace_back();
-          arg.in = std::any_of(meth.in.varname.cbegin(),
-                               meth.in.varname.cend(),
-                               [out = meth.out.varname[i]](const auto& in) {
-                                 return in == out;
-                               });
-          arg.out = true;
-          arg.gen = false;
-          arg.def = false;
-          arg.wsv = true;
-          arg.name = meth.out.varname[i];
-          arg.wsvpos = arts.varname_group.at(arg.name).artspos;
-          arg.def_str = "";
-          arg.types =
-              ArrayOfString{arts.varname_group.at(arg.name).varname_group};
-        }
-
-        pos++;
-      }
-
-      for (std::size_t i = 0; i < meth.gout.name.size(); i++) {
-        if (first) {
-          auto& arg = arg_help.emplace_back();
-          arg.in = false;
-          arg.out = true;
-          arg.gen = true;
-          arg.def = false;
-          arg.wsv = false;
-          arg.wsvpos = -1;
-          arg.name = meth.gout.name[i];
-          arg.def_str = "";
-          arg.types = ArrayOfString(0);
-        }
-        arg_help[pos].types.push_back(meth.gout.group[i]);
-
-        pos++;
-      }
-
-      for (std::size_t i = 0; i < meth.in.varname.size(); i++) {
-        if (std::none_of(meth.out.varname.cbegin(),
-                         meth.out.varname.cend(),
-                         [in = meth.in.varname[i]](const auto& out) {
-                           return in == out;
-                         })) {
-          if (first) {
-            auto& arg = arg_help.emplace_back();
-            arg.in = true;
-            arg.out = false;
-            arg.gen = false;
-            arg.def = false;
-            arg.wsv = true;
-            arg.name = meth.in.varname[i];
-            arg.wsvpos = arts.varname_group.at(arg.name).artspos;
-            arg.def_str = "";
-            arg.types =
-                ArrayOfString{arts.varname_group.at(arg.name).varname_group};
-          }
-
-          pos++;
-        }
-      }
-
-      for (std::size_t i = 0; i < meth.gin.name.size(); i++) {
-        if (first) {
-          auto& arg = arg_help.emplace_back();
-          arg.in = true;
-          arg.out = false;
-          arg.gen = true;
-          arg.def = meth.gin.hasdefs[i];
-          arg.wsv = false;
-          arg.wsvpos = -1;
-          arg.name = meth.gin.name[i];
-          arg.def_str = meth.gin.defs[i];
-          arg.types = ArrayOfString(0);
-        }
-        arg_help[pos].types.push_back(meth.gin.group[i]);
-
-        pos++;
-      }
-      first = false;
-    }
-    imethod--;
-
-    // Minimizie generic inputs
-    std::for_each(arg_help.begin(), arg_help.end(), [](auto& arg) {
-      if (std::all_of(arg.types.begin(),
-                      arg.types.end(),
-                      [in = arg.types.front()](auto& current) {
-                        return current == in;
-                      }))
-        arg.types = ArrayOfString{arg.types.front()};
-    });
-
-    bool allow_py_object_input = false;
-    {
-      bool has_one_possible_combination = true;
-      Index generic_var_out_count = 0;
-      Index generic_var_in_count = 0;
-      for (auto& arg : arg_help) {
-        ArrayOfString copies = arg.types;
-        std::sort(copies.begin(), copies.end());
-        if (std::adjacent_find(copies.begin(), copies.end()) not_eq
-            copies.end())
-          has_one_possible_combination = false;
-        generic_var_in_count += arg.types.nelem() > 1 and arg.in;
-        generic_var_out_count += arg.types.nelem() > 1 and arg.out;
-      }
-
-      if (has_one_possible_combination and generic_var_in_count == 1 and
-          generic_var_out_count > 0)
-        allow_py_object_input = true;
-    }
-
-    bool has_any = false;
-
-    // Arguments from python side
-    os << "ws.def(\"" << method.name << "\",[](Workspace& w_ [[maybe_unused]]";
-    for (auto& arg : arg_help) {
-      os << ",\n";
-      if (arg.wsv or arg.def) os << "std::optional<";
-      os << "std::variant<";
-      if (arg.in) os << "const ";
-      os << "WorkspaceVariable *, ";
-      if (arg.types.size() == 1) {
-        os << arg.types.front();
-        if (arg.types.front() == "Index" or arg.types.front() == "Numeric")
-          os << '_';
-        os << " *";
-      } else {
-        ArrayOfString copy_types = arg.types;
-        std::sort(copy_types.begin(), copy_types.end());
-        copy_types.erase(std::unique(copy_types.begin(), copy_types.end()),
-                         copy_types.end());
-
-        has_any = false;
-        for (auto& t : copy_types) {
-          if (has_any) os << ", ";
-          has_any = true;
-          os << t;
-          if (t == "Index" or t == "Numeric") os << "_";
-          os << " *";
-        }
-
-        if (arg.in and not arg.out and allow_py_object_input)
-          os << ", py::object *";
-      }
-      os << '>';
-
-      if (not arg.gen or arg.def) os << '>';
-      os << ' ' << arg.name;
-    }
-    os << ") {\n";
-
-    // Create defaults
-    has_any = false;
-    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      if (method.gin.hasdefs[i]) {
-        os << "  const auto " << method.gin.name[i] << '_' << '='
-           << method.gin.group[i] << '{';
-        if (method.gin.defs[i] not_eq "{}") os << method.gin.defs[i];
-        os << "};\n";
-        has_any = true;
-      }
-    }
-    if (has_any) os << '\n';
-
-    // Variables
-    Index counter = 0;
-    for (auto& arg : arg_help) {
-      if (method.pass_wsv_names and arg.gen) {
-        os << "  const String arg" << counter << "_name_{";
-        if (arg.def) os << arg.name << ".has_value() ? (";
-        os << "std::holds_alternative<";
-        if (arg.in) os << "const ";
-        os << "WorkspaceVariable*>(";
-        if (arg.def) os << '*';
-        os << arg.name << ") ? (*std::get_if<";
-        if (arg.in) os << "const ";
-        os << "WorkspaceVariable*>(&";
-        if (arg.def) os << '*';
-        os << arg.name << ")) -> name() : \"" << arg.name << "\"";
-        if (arg.def) os << ") : \"" << arg.name << "\"";
-        os << "};\n";
-      }
-
-      os << "  ";
-      if (arg.types.size() == 1) {
-        if (arg.in and not arg.out) os << "const ";
-        os << "auto& ";
-      } else {
-        os << "auto wvv_";
-      }
-      os << "arg" << counter++ << "_ = select_";
-      if (arg.types.size() == 1) {
-        if (arg.gen) os << 'g';
-        if (arg.in) os << "in";
-        if (arg.out) os << "out";
-        os << '<' << arg.types.front() << ">(";
-        if (arg.wsv) os << "WorkspaceVariable{w_, " << arg.wsvpos << "}, ";
-        if (arg.def) os << arg.name << "_, ";
-        os << arg.name << ");";
-      } else {
-        os << "wvv(" << arg.name << ");";
-      }
-      os << '\n';
-    }
-    os << '\n';
-
-    // Find the right function
-    os << "  ";
-    for (std::size_t i = 0; i < n_func; i++) {
-      os << "if (";
-      counter = 0;
-      has_any = false;
-
-      for (auto& arg : arg_help) {
-        if (arg.types.size() > 1) {
-          if (arg.in and not arg.out and allow_py_object_input) continue;
-
-          if (has_any) os << " and ";
-          has_any = true;
-          os << "std::holds_alternative<" << arg.types[i];
-          if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
-          os << " *>(wvv_arg" << counter << "_)";
-        }
-        counter++;
-      }
-      os << ") {\n";
-
-      // Interpret the right variables
-      counter = 0;
-      std::vector<VariadicInfo> input_var_args;
-      for (auto& arg : arg_help) {
-        if (arg.types.size() > 1) {
-          if (arg.in and not arg.out and allow_py_object_input) {
-            VariadicInfo x;
-            x.counter = counter;
-            x.name = var_string("arg", counter, '_');
-            x.type = arg.types[i];
-            bool num = (arg.types[i] == "Numeric" or arg.types[i] == "Index");
-            x.first = var_string("* _tmp",
-                                 counter,
-                                 ".cast<",
-                                 arg.types[i],
-                                 num ? '_' : ' ',
-                                 "*>()");
-            x.second = var_string(
-                "*std::get<",
-                arg.types[i],
-                (num ? '_' : ' '),
-                "*>(wvv_arg",
-                counter,
-                "_) /* Must use std::get because while it can only be a ",
-                arg.types[i],
-                ", user input might disagree */ ");
-            input_var_args.push_back(x);
-            continue;
-          }
-
-          os << "    ";
-          if (not arg.out) os << "const ";
-          os << arg.types[i];
-          os << "& arg" << counter << "_ = ";
-          if (arg.in and not arg.out and allow_py_object_input) {
-            os << "std::holds_alternative<py::object *>(wvv_arg" << counter
-               << "_) ? *std::get<py::object *>(wvv_arg" << counter
-               << "_)->cast<" << arg.types[i];
-            if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
-            os << " *>() : ";
-          }
-          os << "**std::get_if<" << arg.types[i];
-          if (arg.types[i] == "Numeric" or arg.types[i] == "Index") os << '_';
-          os << " *>(&wvv_arg" << counter << "_);\n";
-        }
-        counter++;
-      }
-
-      // Arguments from Arts side
-      has_any = false;
-      std::ostringstream method_os;
-      method_os << method.name << '(';
-      if (pass_workspace or
-          (std::any_of(extra_workspace_for_agenda.begin(),
-                       extra_workspace_for_agenda.end(),
-                       [name = method.name](auto& special_name) {
-                         return special_name == name;
-                       }) and
-           std::any_of(arg_help.begin(), arg_help.end(), [i](auto& arg) {
-             return arg.types.size() > 1 and (arg.types[i] == "Agenda" or
-                                              arg.types[i] == "ArrayOfAgenda");
-           }))) {
-        method_os << "w_";
-        has_any = true;
-      }
-
-      counter = 0;
-      Index gins = 0, gouts = 0;
-      for (auto& arg : arg_help) {
-        gins += arg.gen and arg.in;
-        gouts += arg.gen and arg.out;
-
-        while (method.pass_wsv_names and not arg.out and gouts not_eq 0) {
-          method_os << ", arg" << counter - (gouts--) << "_name_";
-        }
-
-        if (has_any) method_os << ", ";
-        has_any = true;
-        method_os << "arg" << counter++ << "_";
-      }
-
-      while (method.pass_wsv_names and gins not_eq 0) {
-        method_os << ", arg" << counter - (gins--) << "_name_";
-      }
-
-      method_os << ");";
-
-      const String method_call = method_os.str();
-
-      if (allow_py_object_input and input_var_args.size()) {
-        Index s = 4;
-        auto spaces = [](Index NUM) {
-          std::ostringstream space;
-          while (NUM--) space << ' ';
-          return space.str();
-        };
-
-        // keywords to find a logical path
-        const String path1 = "__#1__";
-        const String path2 = "__#2__";
-        String path1_exe;
-        String path2_exe;
-
-        // Get the last argument to work from
-        VariadicInfo last = input_var_args.back();
-        input_var_args.pop_back();
-        ARTS_ASSERT(
-            input_var_args.size() == 0,
-            "You need to implement a better parser. Sorry!  We had no examples of multiple "
-            "GIN in a function that gives GOUT before you added the ",
-            method.name,
-            " method, so this is not supported (yet) as it could not be tested")
-
-        String full_exe =
-            var_string(spaces(s),
-                       "if (std::holds_alternative<py::object *>(wvv_arg",
-                       last.counter,
-                       "_)) {\n",
-                       spaces(s + 2),
-                       path1,
-                       '\n',
-                       spaces(s),
-                       "} else {\n",
-                       spaces(s + 2),
-                       path2,
-                       '\n',
-                       spaces(s),
-                       '}',
-                       '\n');
-
-        // Path1 may have to be formed if it contains an agenda
-        if (last.type == "Agenda") {
-          path1_exe = var_string(
-              "auto _tmp",
-              last.counter,
-              " = py::type::of<Agenda>()(w_, ** std::get_if<py::object *>(&wvv_arg",
-              last.counter,
-              "_));\n",
-              spaces(s + 2),
-              "const Agenda& ",
-              last.name,
-              " = * _tmp",
-              last.counter,
-              ".cast<Agenda *>();\n",
-              spaces(s + 2),
-              method_call);
-        } else {
-          bool num = (last.type == "Numeric" or last.type == "Index");
-          path1_exe = var_string("auto _tmp",
-                                 last.counter,
-                                 " = py::type::of<",
-                                 last.type,
-                                 num ? '_' : ' ',
-                                 ">()(** std::get_if<py::object *>(&wvv_arg",
-                                 last.counter,
-                                 "_));\n",
-                                 spaces(s + 2),
-                                 "const ",
-                                 last.type,
-                                 '&',
-                                 ' ',
-                                 last.name,
-                                 " = ",
-                                 last.first,
-                                 ';',
-                                 '\n',
-                                 spaces(s + 2),
-                                 method_call);
-        }
-
-        // Make sure we can get references out of these values
-        path2_exe = var_string("const ",
-                               last.type,
-                               "& ",
-                               last.name,
-                               " = ",
-                               last.second,
-                               ';',
-                               '\n',
-                               spaces(s + 2),
-                               method_call);
-
-        full_exe.replace(full_exe.find(path1), path1.length(), path1_exe);
-        full_exe.replace(full_exe.find(path2), path2.length(), path2_exe);
-
-        os << full_exe;
-      } else {
-        os << "    " << method_call << '\n';
-      }
-      os << "  } else ";
-    }
-
-    os << "{\n"
-          "    WorkspaceVariablesVariant2String printer{};\n"
-          "    ARTS_USER_ERROR(\"Call to invalid signature:\"\n"
-          "                    \""
-       << method.name << '(';
-    has_any = false;
-    counter = 0;
-    for (auto& arg : arg_help) {
-      if (has_any) os << ", ";
-      has_any = true;
-      os << arg.name << " : ";
-      if (arg.types.size() > 1)
-        os << "\",\n"
-              "                    "
-              "std::visit(printer, wvv_arg"
-           << counter
-           << "_),\n"
-              "                    \"";
-      else
-        os << arg.types.front();
-      counter++;
-    }
-    os << ")\"\n"
-          "                    \"\\n\\n\"\n"
-          "                    \"See method description for valid signatures\")\n  }\n}";
-
-    // Name the paramters and show their defaults
-    print_method_args(os, method);
-
-    // Put description at the end
-    print_method_desc(os, method);
-
-    os << ')' << ';' << '\n' << '\n';
-
-    osptr++;
-    if (osptr == oss.end()) osptr = oss.begin();
-  }
-
-  // Delete
-  {
-    auto& os = *osptr;
-    auto method_ptr = std::find_if(arts.methodname_method.begin(),
-                                   arts.methodname_method.end(),
-                                   [](auto& m) { return m.name == "Delete"; });
-    ARTS_USER_ERROR_IF(method_ptr == arts.methodname_method.end(),
-                       "The Delete method no longer exist")
-
-    os << R"--(ws.def("Delete", [](Workspace& w, WorkspaceVariable& x) {
-      Delete(w, Index(1), x.name());
-    })--";
-    print_method_args(os, *method_ptr);
-    print_method_desc(os, *method_ptr);
-    os << ");\n\n";
-
-    osptr++;
-    if (osptr == oss.end()) osptr = oss.begin();
-  }
-
-  for (auto& os : oss) os << "}\n}  // namespace Python\n";
-}
-
-void auto_header(std::ofstream& os, const NameMaps& arts) {
-  bool first;
-
-  os << R"--(#ifndef py_auto_interface_h
-#define py_auto_interface_h
-
-// Automatic header generated from full Arts setup
-
-#include <agenda_class.h>
-#include <pybind11/pybind11.h>
-#include <python_interface_value_type.h>
-#include <tokval.h>
-#include <workspace_ng.h>
-
-namespace Python {
-namespace py = pybind11;
-
-using WorkspaceVariablesVariant =
-    std::variant<
-    )--";
-
-  first = true;
-  for (auto& [name, group] : arts.group) {
-    if (not first) os << ",\n    ";
-    first = false;
-    os << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *";
-  }
-
-  os << R"--(,
-    py::object *>;
-  
-struct WorkspaceVariablesVariant2String {
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    os << "constexpr std::string_view operator()(" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *) const noexcept {return \"" << name << "\";}\n";
-  }
-
-  os << R"--(
-constexpr std::string_view operator()(Index *) const noexcept {return "Index";}
-constexpr std::string_view operator()(Numeric *) const noexcept {return "Numeric";}
-constexpr std::string_view operator()(py::object *) const noexcept {return "Python Object";}
-};
-
-struct WorkspaceVariable {
-  Workspace &ws;
-  Index pos;
-
-  WorkspaceVariable(Workspace& ws_, Index pos_) : ws(ws_), pos(pos_) {}
-
-  WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting);
-
-  [[nodiscard]] const char * name() const;
-
-  [[nodiscard]] Index group() const;
-
-  void pop_workspace_level();
-
-  operator TokVal() const;
-
-  WorkspaceVariable(const WorkspaceVariable&) = default;
-
-  WorkspaceVariable& operator=(const WorkspaceVariable& wv2) {
-    pos = wv2.pos;
-    return *this;
-  }
-
-  [[nodiscard]] Index stack_depth() {return ws.depth(pos);}
-  [[nodiscard]] bool is_initialized() const; 
-  void initialize_if_not();
-  operator WorkspaceVariablesVariant();
-  operator WorkspaceVariablesVariant() const;
-
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    os << "  operator " << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << "&();\n";
-    os << "  operator " << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << "&() const;\n";
-  }
-
-  os << R"--(
-  // Special cases to allow input to be understood better
-  operator Index&();
-  operator Index&() const;
-  operator Numeric&();
-  operator Numeric&() const;
-};  // struct WorkspaceVariable
-}  // namespace Python
-
-#endif  // py_auto_interface_h
-)--";
-}
-
-struct TypeVal {
-  String type;
-  String val;
-};
-
-void auto_header_definitions(std::ofstream& os, const NameMaps& arts) {
   os << R"--(#include <python_interface.h>
 
-#include <pybind11/functional.h>
+namespace Python {
+void py_auto_wsv(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {
+)--";
+
+  for (auto& [name, wsv] : wsvs) {
+    os << variable(name, wsv) << std::flush;
+  }
+  os << "}\n}  // namespace Python\n";
+}
+
+std::vector<std::string> supergeneric_variable(const std::string& t) {
+  std::vector<std::string> types;
+  std::string type = t;
+  auto ptr = type.find(',');
+  while (ptr != type.npos) {
+    types.push_back(type.substr(0, ptr));
+    type = type.substr(ptr + 1);
+    ptr = type.find(',');
+  }
+  types.push_back(type);
+
+  for (auto& T : types) {
+    while (T.back() == ' ') T.pop_back();
+    while (T.front() == ' ') T.erase(0, 1);
+  }
+  return types;
+}
+
+std::vector<std::string> unique_sorted(const std::vector<std::string>& v) {
+  std::vector<std::string> out = v;
+  std::ranges::sort(out);
+  out.erase(std::unique(out.begin(), out.end()), out.end());
+  return out;
+}
+
+std::vector<std::vector<std::string>> supergeneric_variables(
+    const WorkspaceMethodInternalRecord& wsm) {
+  std::vector<std::vector<std::string>> out;
+
+  for (auto& t : wsm.gout_type) {
+    if (t.find(',') == t.npos) continue;
+
+    const auto types = supergeneric_variable(t);
+
+    if (not out.size()) {
+      out.resize(types.size());
+    }
+    for (std::size_t i = 0; i < types.size(); i++) {
+      out[i].push_back(types[i]);
+    }
+  }
+
+  for (auto& t : wsm.gin_type) {
+    if (t.find(',') == t.npos) continue;
+
+    const auto types = supergeneric_variable(t);
+
+    if (not out.size()) {
+      out.resize(types.size());
+    }
+    for (std::size_t i = 0; i < types.size(); i++) {
+      out[i].push_back(types[i]);
+    }
+  }
+  return out;
+}
+
+std::string method_g_types(const std::string& type) {
+  if (type == "Any") {
+    return "Wsv *";
+  }
+
+  if (type.find(',') != type.npos) {
+    std::ostringstream os;
+    os << "std::variant<";
+    bool first = true;
+    for (auto&& t : unique_sorted(supergeneric_variable(type))) {
+      if (not first) os << ", ";
+      first = false;
+      os << t << " *";
+    }
+    os << ">";
+    return os.str();
+  }
+
+  return type + " *";
+}
+
+std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
+  static const auto& wsvs = workspace_variables();
+
+  std::ostringstream os;
+
+  os << "\n    Workspace& _ws [[maybe_unused]]";
+
+  for (auto& t : wsm.out) {
+    os << ",\n    std::optional<" << wsvs.at(t).type << " *>& _" << t;
+  }
+
+  for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+    os << ",\n    std::optional<" << method_g_types(wsm.gout_type[i]) << ">& _"
+       << wsm.gout[i];
+  }
+
+  for (auto& t : wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    os << ",\n    const std::optional<" << wsvs.at(t).type << " *>& _" << t;
+  }
+
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+    os << ",\n    const std::optional<" << method_g_types(wsm.gin_type[i])
+       << ">& _" << wsm.gin[i];
+  }
+
+  return os.str();
+}
+
+std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+    std::string t = method_g_types(wsm.gout_type[i]);
+    if (t.back() == '*')
+      t.back() = '&';
+    else
+      t += '&';
+    os << "      " << t << " " << wsm.gout[i] << " = select_gout(_"
+       << wsm.gout[i] << ", \"" << wsm.gout[i] << "\");\n";
+  }
+
+  return os.str();
+}
+
+std::string method_gin_selection(const std::string& name,
+                                 const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+    const bool has_default = wsm.gin_value[i].has_value();
+
+    std::string t = method_g_types(wsm.gin_type[i]);
+    if (t.back() == '*')
+      t.back() = '&';
+    else
+      t += '&';
+
+    if (has_default) {
+      os << "      const static " << t << " _" << wsm.gin[i]
+         << "_default = workspace_methods().at(\"" << name << "\").defs.at(\"_"
+         << wsm.gin[i] << "\").get<" << wsm.gin_type[i] << ">();\n";
+      os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
+         << wsm.gin[i] << ", _" << wsm.gin[i] << "_default);\n";
+    } else {
+      os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
+         << wsm.gin[i] << ", \"" << wsm.gin[i] << "\");\n";
+    }
+  }
+
+  return os.str();
+}
+
+std::string method_argument_selection(
+    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  static const auto& wsvs = workspace_variables();
+
+  std::ostringstream os;
+
+  for (auto& t : wsm.out) {
+    os << "      " << wsvs.at(t).type << "& " << t << " = select_";
+    if (std::ranges::any_of(wsm.in, Cmp::eq(t))) {
+      os << "in";
+    }
+    os << "out(_" << t << ", _ws, \"" << t << "\");\n";
+  }
+
+  os << method_gout_selection(wsm);
+
+  for (auto& t : wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    os << "      const " << wsvs.at(t).type << "& " << t << " = select_in(_"
+       << t << ", _ws, \"" << t << "\");\n";
+  }
+
+  os << method_gin_selection(name, wsm);
+
+  return os.str();
+}
+
+std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
+  return std::ranges::count(wsm.gout_type, "Any") +
+         std::ranges::count(wsm.gin_type, "Any");
+}
+
+bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
+  return std::ranges::any_of(
+             wsm.gout_type,
+             [](const std::string& s) { return s.find(',') != s.npos; }) or
+         std::ranges::any_of(wsm.gin_type, [](const std::string& s) {
+           return s.find(',') != s.npos;
+         });
+}
+
+std::string unnamed_method_resolution_any(
+    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  std::size_t i_any = 0;
+  for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+    if (wsm.gout_type[i] == "Any") {
+      os << "      auto& _any" << ++i_any << " = " << wsm.gout[i] << ";\n";
+    }
+  }
+
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+    if (wsm.gin_type[i] == "Any") {
+      os << "      auto& _any" << ++i_any << " = " << wsm.gin[i] << ";\n";
+    }
+  }
+  i_any = 1;
+
+  os << "      std::visit([&](auto& _t) {"
+        "\n        using _tT=std::remove_cvref_t<decltype(*_t)>;"
+        "\n        "
+     << name << "<_tT>(";
+
+  bool any = false;
+  if (wsm.pass_workspace) {
+    os << "_ws";
+    any = true;
+  }
+
+  for (auto& t : wsm.out) {
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+    if (any) os << ", ";
+    any = true;
+    auto& t = wsm.gout[i];
+    auto& tt = wsm.gout_type[i];
+    if (tt == "Any") {
+      if (i_any == 1)
+        os << "*_t";
+      else
+        os << "_any" << i_any << ".get<_tT>()";
+      i_any++;
+    } else {
+      os << t;
+    }
+  }
+
+  for (auto& t : wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+    if (any) os << ", ";
+    any = true;
+    auto& t = wsm.gin[i];
+    auto& tt = wsm.gin_type[i];
+    if (tt == "Any") {
+      if (i_any == 1)
+        os << "*_t";
+      else
+        os << "_any" << i_any << ".get<_tT>()";
+      i_any++;
+    } else {
+      os << t;
+    }
+  }
+
+  os << ");\n        }, _any1.value);\n";
+
+  return os.str();
+}
+
+bool is_unique_variadic(const WorkspaceMethodInternalRecord& wsm) {
+  for (auto& t : wsm.gout_type) {
+    auto supergenerics = supergeneric_variable(t);
+    auto unique = unique_sorted(supergenerics);
+    if (unique.size() != supergenerics.size()) return false;
+    if (not std::is_permutation(
+            unique.begin(), unique.end(), supergenerics.begin()))
+      return false;
+  }
+
+  return true;
+}
+
+std::string unnamed_method_resolution_variadic(
+    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  const std::vector<std::vector<std::string>> supergenerics =
+      supergeneric_variables(wsm);
+  if (is_unique_variadic(wsm)) {
+    os << "      std::visit([&] (auto& _t) {"
+          "\n        using _tT=std::remove_cvref_t<decltype(*_t)>;";
+
+    std::string var = "";
+    for (auto& generics : supergenerics) {
+      std::size_t i_comma = 0;
+
+      os << "\n        if constexpr (std::is_same_v<_tT, " << generics[0]
+         << ">) " << name << "(";
+
+      bool first = true;
+      for (auto& t : wsm.out) {
+        if (not first) os << ", ";
+        first = false;
+        os << t;
+      }
+
+      for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+        if (not first) os << ", ";
+        first = false;
+
+        auto& t = wsm.gout_type[i];
+        if (t.find(',') != t.npos) {
+          if (i_comma == 0) {
+            os << "*_t";
+            var = wsm.gout[i];
+          } else {
+            os << "*std::get<" << generics[i_comma] << "*>(" << wsm.gout[i]
+               << ")";
+          }
+          i_comma++;
+        } else {
+          os << wsm.gout[i];
+        }
+      }
+
+      for (auto& t : wsm.in) {
+        if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+        if (not first) os << ", ";
+        first = false;
+        os << t;
+      }
+
+      for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+        if (not first) os << ", ";
+        first = false;
+
+        auto& t = wsm.gin_type[i];
+        if (t.find(',') != t.npos) {
+          if (i_comma == 0) {
+            os << "*_t";
+            var = wsm.gin[i];
+          } else {
+            os << "*std::get<" << generics[i_comma] << "*>(" << wsm.gin[i]
+               << ")";
+          }
+          i_comma++;
+        } else {
+          os << wsm.gin[i];
+        }
+      }
+
+      os << ");";
+    }
+    os << "\n        }, " << var << ");\n";
+  } else {
+    os << "      ";
+    for (auto& generics : supergenerics) {
+      std::size_t i_comma = 0;
+
+      os << "if (";
+      for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+        auto& t = wsm.gout_type[i];
+        if (t.find(',') != t.npos) {
+          if (i_comma > 0) os << " and ";
+          os << "std::holds_alternative<";
+          os << generics[i_comma++];
+          os << "*>(" << wsm.gout[i] << ")";
+        }
+      }
+      for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+        auto& t = wsm.gin_type[i];
+        if (t.find(',') != t.npos) {
+          if (i_comma > 0) os << " and ";
+          os << "std::holds_alternative<";
+          os << generics[i_comma++];
+          os << "*>(" << wsm.gin[i] << ")";
+        }
+      }
+      os << ") {\n        " << name << '(';
+
+      bool first = true;
+      for (auto& t : wsm.out) {
+        if (not first) os << ", ";
+        first = false;
+        os << t;
+      }
+      i_comma = 0;
+      for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+        if (not first) os << ", ";
+        first = false;
+
+        auto& t = wsm.gout_type[i];
+        if (t.find(',') != t.npos) {
+          os << "**std::get_if<" << generics[i_comma] << "*>(&" << wsm.gout[i]
+             << ")";
+          i_comma++;
+        } else {
+          os << wsm.gout[i];
+        }
+      }
+
+      for (auto& t : wsm.in) {
+        if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+        if (not first) os << ", ";
+        first = false;
+        os << t;
+      }
+
+      for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+        if (not first) os << ", ";
+        first = false;
+
+        auto& t = wsm.gin_type[i];
+        if (t.find(',') != t.npos) {
+          os << "**std::get_if<" << generics[i_comma] << "*>(&" << wsm.gin[i]
+             << ")";
+          i_comma++;
+        } else {
+          os << wsm.gin[i];
+        }
+      }
+
+      os << ");\n      } else ";
+    }
+    os << "{\n";
+    os << R"(        throw std::runtime_error("Cannot call method \")" << name
+       << "\\\" with the given arguments,\");\n";
+    os << "      }\n";
+  }
+
+  return os.str();
+}
+
+std::string unnamed_method_resolution_simple(
+    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  os << "      " << name << "(";
+
+  bool any = false;
+  if (wsm.pass_workspace) {
+    os << "_ws";
+    any = true;
+  }
+
+  for (auto& t : wsm.out) {
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  for (const auto& t : wsm.gout) {
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  for (auto& t : wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  for (const auto& t : wsm.gin) {
+    if (any) os << ", ";
+    any = true;
+    os << t;
+  }
+
+  return os.str() + ");\n";
+}
+
+std::string unnamed_method_resolution(
+    const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  if (count_any(wsm) > 0) {
+    os << '\n' << unnamed_method_resolution_any(name, wsm);
+  } else if (uses_variadic(wsm)) {
+    os << '\n' << unnamed_method_resolution_variadic(name, wsm);
+  } else {
+    os << '\n' << unnamed_method_resolution_simple(name, wsm);
+  }
+
+  return os.str();
+}
+
+std::string method_argument_documentation(const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  bool first = true;
+  
+  for (auto& t: wsm.out) {
+    if (not first) os << ",\n    ";
+    first = false;
+    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t << "\").noconvert()";
+  }
+
+  for (auto& t: wsm.gout) {
+    if (not first) os << ",\n    ";
+    first = false;
+    os << "py::arg_v(\"" << t << R"(", std::nullopt, "None").noconvert())";
+  }
+  
+  for (auto& t: wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (not first) os << ",\n    ";
+    first = false;
+    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t << "\")";
+  }
+
+  for (std::size_t i=0; i<wsm.gin.size(); i++) {
+    if (not first) os << ",\n    ";
+    first = false;
+    os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, ";
+    if (wsm.gin_value[i]) {
+      os << "R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i]) << ")-x-\"";
+    } else {
+      os << R"("None")";
+    }
+    os << ").noconvert()";
+  }
+
+  if (auto out = os.str(); out.size()) return out + ",\n    ";
+  return "";
+}
+
+std::string method(const std::string& name,
+                   const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+
+  os << "  ws.def(\"" << name << "\",";
+  os << "[](";
+  os << method_arguments(wsm);
+  os << ") -> void {\n";
+  os << method_argument_selection(name, wsm);
+
+  if (not wsm.pass_names)
+    os << unnamed_method_resolution(name, wsm);
+  else
+    os << "\n      throw std::runtime_error(\"Cannot call method outside Agenda, see online documentation for workaround\");\n";
+
+  os << "    },\n    "<< method_argument_documentation(wsm) << "py::doc(R\"" << method_docs(name) << "\"));\n\n";
+  return os.str();
+}
+
+void methods(const std::string& fname) {
+  const auto wsms = internal_workspace_methods();
+
+  std::ofstream os(fname);
+
+  os << R"--(#include <python_interface.h>
 
 namespace Python {
-
-bool WorkspaceVariable::is_initialized() const { return ws.is_initialized(pos); }
-
-const char * WorkspaceVariable::name() const {
-  return ws.wsv_data_ptr -> operator[](pos).Name().c_str();
-}
-
-Index WorkspaceVariable::group() const {
-  return ws.wsv_data_ptr -> operator[](pos).Group();
-}
-
-WorkspaceVariable::WorkspaceVariable(Workspace& ws_, Index group_index, const py::object& obj, bool allow_casting) : ws(ws_), pos(-1) {
-  ARTS_USER_ERROR_IF(std::addressof(ws) not_eq std::addressof(ws_), "Cannot use a workspace variable from another workspace")
-
-  if (py::isinstance<WorkspaceVariable>(obj)) {
-    pos = obj.cast<WorkspaceVariable *>() -> pos;
-  } else {
-    ARTS_USER_ERROR_IF(not allow_casting, "Only workspace variable objects allowed")
-    ARTS_USER_ERROR_IF(group_index == )--"
-     << arts.group.at("Any") << R"--(, "Cannot create type Any")
-    std::shared_ptr<void> value_ptr = nullptr;
-    switch(group_index) {
+void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {
 )--";
 
-  for (auto& [name, group] : arts.group) {
-    char extra = (name == "Numeric" or name == "Index") ? '_' : ' ';
-    if (name == "Any") continue;
-    os << "      case " << group << ": {auto conv_obj = py::type::of<" << name
-       << extra << ">()(";
-    if (name == "Agenda") os << "ws, ";
-    os << "obj); value_ptr = std::make_shared<" << name << ">(* conv_obj.cast<" << name << extra << "*>());} break;\n";
+  for (auto& [name, wsv] : wsms) {
+    os << method(name, wsv) << std::flush;
   }
 
-  os << R"--(      default: ARTS_USER_ERROR("Cannot create type")
-    }
-
-    // Create the variable and initialize it
-    const auto i = ws.nelem();
-    pos = ws.add_wsv(WsvRecord(var_string("::anon::", i).c_str(), "Anonymous agenda variable", group_index));
-    ws.push_move(pos, std::move(value_ptr));
-  }
+  os << "}\n}  // namespace Python\n";
 }
 
-void WorkspaceVariable::initialize_if_not() {
-  if (not ws.is_initialized(pos)) ws.emplace(pos);
-  ws[pos];
-}
-
-WorkspaceVariable::operator WorkspaceVariablesVariant() {
-  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    os << "    case " << group << ": return static_cast<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(ws[pos].get());\n";
-  }
-
-  os << R"--(  }
-  
-  ARTS_USER_ERROR("Cannot understand type")
-}
-
-WorkspaceVariable::operator WorkspaceVariablesVariant() const {
-  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
-
-  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    os << "    case " << group << ": return static_cast<" << name;
-    if (name == "Index" or name == "Numeric") os << "_";
-    os << " *>(ws[pos].get());\n";
-  }
-
-  os << R"--(  }
-  
-  ARTS_USER_ERROR("Cannot understand type")
-}
-
-void WorkspaceVariable::pop_workspace_level() { ws.pop(pos); }
-
-WorkspaceVariable::operator TokVal() const {
-  ARTS_USER_ERROR_IF(not is_initialized(), "Not initialized: ", name())
-  
-  switch (ws.wsv_data_ptr -> operator[](pos).Group()) {
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    if (name == "Agenda" or name == "ArrayOfAgenda") continue;
-
-    os << "    case " << group << ": return ";
-    os << "* static_cast<" << name;
-    os << " *>(ws[pos].get())";
-    os << ";\n";
-  }
-
-  os << R"--(  }
-  ARTS_USER_ERROR("Cannot support Agenda and ArrayOfAgenda")
-}
-
-template <typename T, Index group>
-Index get_and_set_wsv_gin_pos(Workspace& ws, Index pos, const char* const name, T&& data) {
-  if (pos < 0) {
-    pos = ws.add_wsv(WsvRecord(name, "do not modify", group));
-  }
-
-  *static_cast<T *>(ws[pos].get()) = std::forward<T>(data);
-  
-  return pos;
-}
-
-Index create_workspace_gin_default_internal(Workspace& ws, const String& key) {
-  const static std::unordered_map<String, Index> gins {
-)--";
-
-  std::map<String, TypeVal> has;
-
-  for (auto& method : arts.methodname_method) {
-    for (std::size_t i = 0; i < method.gin.name.size(); i++) {
-      if (method.gin.hasdefs[i]) {
-        has[var_string("::", method.name, "::", method.gin.name[i])] =
-            TypeVal{method.gin.group[i], method.gin.defs[i]};
-      }
-    }
-  }
-
-  {
-    Index counter = 0;
-    for (auto& [key, items] : has) {
-      os << "    {\"" << key << "\", " << counter++ << "},\n";
-    }
-  }
-
-  os << R"--(  };
-
-  auto ptr = ws.WsvMap_ptr -> find(key);
-  Index pos = ptr == ws.WsvMap_ptr -> end() ? -1 : ptr -> second;
-
-  switch (gins.at(key)) {
-)--";
-  {
-    Index counter = 0;
-    for (auto& [key, items] : has) {
-      os << "    case " << counter++ << ": return get_and_set_wsv_gin_pos<"
-         << items.type << ", " << arts.group.at(items.type)
-         << ">(ws, pos, key.c_str(), " << items.val << ");\n";
-    }
-  }
-  os << R"--(  }
-
-  return pos;
-}
-
-)--";
-
-  for (auto &[name, group] : arts.group) {
-    const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
-
-    os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() {ARTS_USER_ERROR_IF(group() not_eq WorkspaceGroupIndexValue<"
-       << name << R"(>, name(), " is not of type )"
-       << name << "\") return *static_cast<" << name << extra
-       << "*>(ws[pos].get());}\n";
-
-    os << "WorkspaceVariable::operator " << name << extra;
-    os << "&() const {ARTS_USER_ERROR_IF(group() not_eq WorkspaceGroupIndexValue<"
-       << name << R"(>, name(), " is not of type )"
-       << name << "\") ARTS_USER_ERROR_IF(not is_initialized(), \"Not "
-          "initialized: \", name()) return *static_cast<"
-       << name << extra << "*>(ws[pos].get());}\n";
-  }
-
-  os << R"--(WorkspaceVariable::operator Index&() {return static_cast<Index_&>(*this);}
-WorkspaceVariable::operator Index&() const {return static_cast<Index_&>(*this);}
-WorkspaceVariable::operator Numeric&() {return static_cast<Numeric_&>(*this);}
-WorkspaceVariable::operator Numeric&() const {return static_cast<Numeric_&>(*this);}
-}  // namespace Python
-)--";
-}
-
-void workspace_access(std::ofstream& os, const NameMaps& arts) {
-  for (auto& [name, group] : arts.group) {
-    const char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
-    os << R"--(ws.def("_setattr_unchecked_", [](Workspace& w, const char* name, )--"
-       << name << extra;
-    os << R"--(& val) {
-  auto varpos = w.WsvMap_ptr -> find(name);
-  Index i = (varpos == w.WsvMap_ptr -> end()) ? w.add_wsv(WsvRecord(name, "User-created variable", )--"
-       << group << R"--()) : varpos -> second;
-)--";
-    if (name == "Agenda")
-      os << "  val.set_name(name);\n  val.check(w);\n";
-    if (name == "ArrayOfAgenda")
-      os << "  for (auto& y: val) y.set_name(name);\n  for (auto& y: val) y.check(w);\n";
-    os << "  *static_cast<" << name << "*>(w[i].get()) = val;";
-    os << R"--(
-});
-
-)--";
-  }
-
-  os << R"--(wsv.def_property("value",
-  py::cpp_function([](const WorkspaceVariable& w) -> WorkspaceVariablesVariant {
-    return w; }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
-  py::cpp_function([](WorkspaceVariable& w, WorkspaceVariablesVariant v) {
-    WorkspaceVariablesVariant wvv{w};
-    )--";
-  for (auto& [name, group] : arts.group) {
-    char extra = (name == "Index" or name == "Numeric") ? '_' : ' ';
-
-    os << "if (std::holds_alternative<" << name << extra << "*>(wvv)) {\n";
-
-    os << "      " << name << "& lh = **std::get_if<" << name << extra
-       << "*>(&wvv);\n";
-
-    os << "      if (std::holds_alternative<" << name << extra << "*>(v)) {\n";
-
-    os << "        " << name << "& rh = **std::get_if<" << name << extra
-       << "*>(&v);\n";
-
-    if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws);\n";
-    if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws);\n";
-
-    os << "        lh = rh;\n";
-
-    os << "      } else {\n        // Use std::get because we only allow 'py::object *', but cannot enforce it\n";
-    os << "        auto my_obj = py::type::of<" << name << extra << ">()(";
-    if (name == "Agenda") os << "w.ws, ";
-    os << "* std::get<py::object *>(v));\n";
-    os << "        " << name << "& rh = * my_obj.cast<" << name << extra
-       << "*>();\n";
-
-    if (name == "Agenda")
-      os << "        rh.set_name(w.name());\n        rh.check(w.ws);\n";
-    if (name == "ArrayOfAgenda")
-      os << "        for (auto& y: rh) y.set_name(w.name());\n        for (auto& y: rh) y.check(w.ws);\n";
-
-    os << "        lh = rh;\n";
-
-    os << "      }\n";
-    os << "    } else ";
-  }
-  os << R"--({}
-  }, py::arg("ws").noconvert(), py::arg("value")),
-  py::doc("The value of the workspace variable (if initialized)")
-);
-
-)--";
-
-  for (auto& [name, group] : arts.group) {
-    os << "py::implicitly_convertible<WorkspaceVariable, " << name;
-    if (name == "Index" or name == "Numeric") os << '_';
-    os << ">();\n";
-  }
-  os << '\n';
-}
-
-int main(int argc, char** argv) {
-  define_wsv_groups();
-  define_wsv_data();
-  define_wsv_map();
-  define_md_data_raw();
-  expand_md_data_raw_to_md_data();
-  define_md_map();
-  define_agenda_data();
-  define_agenda_map();
-
-  ARTS_USER_ERROR_IF(argc not_eq 5,
-                     "Usage: EXE NUM_WSM NUM_WSV NUM_CREATE NUM_GENERIC")
-  int nwsm = std::stoi(argv[1]);
-  int nwsv = std::stoi(argv[2]);
-  int nwsc = std::stoi(argv[3]);
-  int nwsg = std::stoi(argv[4]);
-  ARTS_USER_ERROR_IF(nwsm < 1 or nwsv < 1 or nwsc < 1 or nwsg < 1,
-                     "Bad value: ",
-                     nwsm,
-                     ' ',
-                     nwsv,
-                     ' ',
-                     nwsc,
-                     ' ',
-                     nwsg)
-
-  const auto artsname = NameMaps();
-  {
-    std::ofstream py_header("py_auto_interface.h");
-    auto_header(py_header, artsname);
-  }
-  {
-    std::ofstream py_header_cc("py_auto_interface.cc");
-    auto_header_definitions(py_header_cc, artsname);
-  }
-
-  std::ofstream py_workspace("py_auto_workspace.cc");
-  includes(py_workspace);
-  py_workspace << '\n' << "namespace Python {\n";
-  for (int i = 0; i < nwsv; i++) {
-    py_workspace
-        << "void py_auto_workspace_wsv_" << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
-  }
-  for (int i = 0; i < nwsg; i++) {
-    py_workspace
-        << "void py_auto_workspace_wsg_" << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
-  }
-  for (int i = 0; i < nwsc; i++) {
-    py_workspace
-        << "void py_auto_workspace_wsc_" << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
-  }
-  for (int i = 0; i < nwsm; i++) {
-    py_workspace
-        << "void py_auto_workspace_wsm_" << i
-        << "(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);\n";
-  }
-  py_workspace
-      << "void py_auto_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws, py::class_<WorkspaceVariable>& wsv) {\n";
-  workspace_access(py_workspace, artsname);
-  for (int i = 0; i < nwsv; i++) {
-    py_workspace << "py_auto_workspace_wsv_" << i << "(ws);\n";
-  }
-  for (int i = 0; i < nwsg; i++) {
-    py_workspace << "py_auto_workspace_wsg_" << i << "(ws);\n";
-  }
-  for (int i = 0; i < nwsm; i++) {
-    py_workspace << "py_auto_workspace_wsm_" << i << "(ws);\n";
-  }
-  for (int i = 0; i < nwsc; i++) {
-    py_workspace << "py_auto_workspace_wsc_" << i << "(ws);\n";
-  }
-  py_workspace << "}\n}  // namespace Python\n";
-
-  workspace_variables(nwsv, artsname);
-  workspace_method_nongenerics(nwsm, artsname);
-  workspace_method_generics(nwsg, artsname);
-  workspace_method_create(nwsc, artsname);
+int main() {
+  variables("py_auto_wsv.cpp");
+  methods("py_auto_wsm.cpp");
 }

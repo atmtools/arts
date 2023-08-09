@@ -134,6 +134,7 @@ Parameters
   };
 
   std::vector<AgendaIO> writer;
+  writer.reserve(out_ind.size());
   for (auto& var : out_ind) {
     writer.emplace_back(AgendaIO{input(var), true, wsvs.at(var).type, var});
   }
@@ -196,8 +197,38 @@ String compose_generic_groups(const String& grps) {
   return var_string("~pyarts.arts.", grps);
 }
 
-String to_defval_str(const Wsv& wsv) {
-  return std::visit([](auto& a) { return var_string(a); }, wsv.value);
+String to_defval_str(const Wsv& wsv, const String& group) {
+  std::string out =
+      std::visit([](auto& a) { return var_string(*a); }, wsv.value);
+
+  while (out.front() == ' ') out.erase(out.begin());
+  while (out.back() == ' ') out.pop_back();
+
+  if (group == "String" and out.front() not_eq '"' and out.back() not_eq '"') {
+    return var_string('"', out, '"');
+  }
+
+  if (out.size() == 0) {
+    if (group.starts_with("Array") or group == "Vector" or group == "Matrix" or
+        group == "Tensor3" or group == "Tensor4" or group == "Tensor5" or
+        group == "Tensor6" or group == "Tensor7")
+      return "[]";
+
+    if (group == "PredefinedModelData")
+      return "pyarts.arts.PredefinedModelData()";
+
+    if (group == "Numeric" or group == "Index") return "0";
+
+    throw std::runtime_error(var_string(
+        "Cannot interpret empty default value for ",
+        group,
+        " to a good python type. Please add one.\n"
+        "Ensure that the default value is usable in the constructor inside python!\n"
+        "Even better, please create a formatter for all Arts's types that print them\n"
+        "in agood pythonesque way.\n\nTHIS IS A DEVELOPER ERROR!\n"));
+  }
+
+  return out;
 }
 
 String method_docs(const String& name) try {
@@ -296,7 +327,7 @@ String method_docs(const String& name) try {
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval), "``")
+        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval, method.gin_type[i]), "``")
                    : ""};
     out += var_string('\n',
                       varname,

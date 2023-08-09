@@ -4,8 +4,7 @@
 #include "ppath_struct.h"
 
 #include "py_macros.h"
-#include "py_auto_interface.h"
-#include "python_interface.h"
+#include <python_interface.h>
 
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)             \

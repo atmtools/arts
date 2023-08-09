@@ -176,3 +176,15 @@ void Method::add_defaults_to_agenda(Agenda& agenda) const {
     }
   }
 }
+
+Method::Method(const std::string& n,
+               const std::vector<std::string>& ins,
+               const std::vector<std::string>& outs,
+               const std::optional<Wsv>& wsv,
+               bool overwrite)
+    : name(n),
+      outargs(outs),
+      inargs(ins),
+      func(wsms.at(name).func),
+      setval(wsv),
+      overwrite_setval(overwrite) {}

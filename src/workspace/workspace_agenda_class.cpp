@@ -160,3 +160,9 @@ bool Agenda::has_method(const std::string& method) const {
   return false;
 }
 
+Agenda::Agenda(std::string n,
+               const std::vector<Method>& m,
+               const std::vector<std::string>& s,
+               const std::vector<std::string>& c,
+               bool check)
+    : name(std::move(n)), methods(m), share(s), copy(c), checked(check) {}

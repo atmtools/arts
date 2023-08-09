@@ -1,6 +1,4 @@
-#include <py_auto_interface.h>
-
-#include <matpack_data.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 

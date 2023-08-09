@@ -1,12 +1,9 @@
 
-#include <global_data.h>
 #include <parameters.h>
-#include <py_auto_interface.h>
-#include <pybind11/pybind11.h>
-#include <workspace_global_data.h>
 
-#include "isotopologues.h"
-#include "py_macros.h"
+#include <python_interface.h>
+
+#include <arts_omp.h>
 
 extern Parameters parameters;
 
@@ -31,86 +28,18 @@ void py_global(py::module_& m) {
       .doc() = "Access to static settings data";
 
   global.def(
-      "get_md_data",
-      []() { return global_data::md_data; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`~pyarts.arts.ArrayOfMdRecord`"
-              "\n    List of global method records"));
-
-  global.def(
-      "get_MdMap",
-      []() { return global_data::MdMap; },
-      py::doc("Get a copy of the global data variable\n\n"
+      "workspace_variables",
+      []() { return workspace_variables(); },
+      py::doc("Get a copy of all workspace variables\n\n"
               "Return\n------\n:class:`dict`"
-              "\n    Dictionary of global method records' position"));
+              "\n    Map of variables"));
 
   global.def(
-      "get_md_data_raw",
-      []() { return global_data::md_data_raw; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`~pyarts.arts.ArrayOfMdRecord`"
-              "\n    List of raw global method records"));
-
-  global.def(
-      "get_MdRawMap",
-      []() { return global_data::MdRawMap; },
-      py::doc("Get a copy of the global data variable\n\n"
+      "workspace_methods",
+      []() { return workspace_methods(); },
+      py::doc("Get a copy of all workspace methods\n\n"
               "Return\n------\n:class:`dict`"
-              "\n    Dictionary of global raw method records' position"));
-
-  global.def(
-      "get_agenda_data",
-      []() { return global_data::agenda_data; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`~pyarts.arts.ArrayOfAgRecord`"
-              "\n    List of global agenda records"));
-
-  global.def(
-      "get_AgendaMap",
-      []() { return global_data::AgendaMap; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Dictionary of global raw agenda records' position"));
-
-  py::class_<GroupRecord>(global, "GroupRecord")
-      .def_readwrite(
-          "name", &GroupRecord::name, ":class:`~pyarts.arts.String` Group name")
-      .def_readwrite("desc",
-                     &GroupRecord::desc,
-                     ":class:`~pyarts.arts.String` Group description")
-      .doc() = "Global workspace data golder - do not use manually";
-
-  py::class_<ArrayOfGroupRecord>(global, "ArrayOfGroupRecord")
-      .PythonInterfaceArrayDefault(GroupRecord)
-      .doc() = ":class:`list` of :class:`~pyarts.arts.globals.GroupRecord`";
-
-  global.def(
-      "get_wsv_groups",
-      []() { return global_data::wsv_groups; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`~pyarts.arts.globals.ArrayOfGroupRecord`"
-              "\n    List of workspace groups"));
-
-  global.def(
-      "get_WsvGroupMap",
-      []() { return global_data::WsvGroupMap; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    Dictionary of workspace groups' position"));
-
-  global.def(
-      "get_wsv_data",
-      []() { return global_data::wsv_data; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`~pyarts.arts.ArrayOfWsvRecord`"
-              "\n    List of workspace variable records"));
-
-  global.def(
-      "get_WsvMap",
-      []() { return global_data::WsvMap; },
-      py::doc("Get a copy of the global data variable\n\n"
-              "Return\n------\n:class:`dict`"
-              "\n    List of workspace variable records"));
+              "\n    Map of methods"));
 
   global.def(
       "get_isotopologues",

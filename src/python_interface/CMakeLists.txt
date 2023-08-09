@@ -1,81 +1,23 @@
 ########################################################################################
-# Generate list of files to be generated
-if (NOT NUM_PYARTS_WSM)
-    set(NUM_PYARTS_WSM 5)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
-
-if (NOT NUM_PYARTS_WSV)
-    set(NUM_PYARTS_WSV 3)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
-
-if (NOT NUM_PYARTS_WSC)
-    set(NUM_PYARTS_WSC 3)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSC} python interface automatic workspace create method files (-DNUM_PYARTS_WSC=N to change)")
-
-if (NOT NUM_PYARTS_WSG)
-    set(NUM_PYARTS_WSG 3)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSG} python interface automatic workspace generic method files (-DNUM_PYARTS_WSG=N to change)")
-
-set(PYARTS_WORKSPACE_METHODS "")
-list(LENGTH PYARTS_WORKSPACE_METHODS N)
-while (N LESS NUM_PYARTS_WSM)
-    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_workspace_split_methods_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_METHODS N)
-endwhile()
-
-set(PYARTS_WORKSPACE_VARS "")
-list(LENGTH PYARTS_WORKSPACE_VARS N)
-while (N LESS NUM_PYARTS_WSV)
-    list(APPEND PYARTS_WORKSPACE_VARS "py_auto_workspace_split_vars_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_VARS N)
-endwhile()
-
-set(PYARTS_WORKSPACE_CREATE "")
-list(LENGTH PYARTS_WORKSPACE_CREATE N)
-while (N LESS NUM_PYARTS_WSC)
-    list(APPEND PYARTS_WORKSPACE_CREATE "py_auto_workspace_split_create_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_CREATE N)
-endwhile()
-
-set(PYARTS_WORKSPACE_GEN "")
-list(LENGTH PYARTS_WORKSPACE_GEN N)
-while (N LESS NUM_PYARTS_WSG)
-    list(APPEND PYARTS_WORKSPACE_GEN "py_auto_workspace_split_generic_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_GEN N)
-endwhile()
 
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py PUBLIC artscore)
+target_link_libraries(gen_auto_py PUBLIC artscore workspace)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
-add_custom_command(OUTPUT py_auto_interface.h
-                          py_auto_interface.cc
-                          py_auto_workspace.cc
-                          ${PYARTS_WORKSPACE_METHODS}
-                          ${PYARTS_WORKSPACE_VARS}
-                          ${PYARTS_WORKSPACE_GEN}
-                          ${PYARTS_WORKSPACE_CREATE}
-                   COMMAND gen_auto_py ${NUM_PYARTS_WSM} ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSC} ${NUM_PYARTS_WSG}
+add_custom_command(OUTPUT py_auto_wsv.cpp py_auto_wsm.cpp
+                   COMMAND gen_auto_py
                    DEPENDS gen_auto_py)
-########################################################################################
-
-########################################################################################
-# Build the new generator
-add_executable(gen_auto_py_new gen_auto_py_new.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py_new PUBLIC artscore workspace)
-target_include_directories(gen_auto_py_new PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 ########################################################################################
 
 ########### pybind11 class interface
 pybind11_add_module(pyarts_cpp THIN_LTO
+    py_auto_wsv.cpp
+    py_auto_wsm.cpp
+
     py_module.cpp
     py_matpack.cpp
     py_basic.cpp
@@ -115,14 +57,6 @@ pybind11_add_module(pyarts_cpp THIN_LTO
 
     pydocs.cpp
     gen_auto_py_helpers.cpp
-
-    py_auto_interface.h
-    py_auto_interface.cc
-    py_auto_workspace.cc
-    ${PYARTS_WORKSPACE_METHODS}
-    ${PYARTS_WORKSPACE_VARS}
-    ${PYARTS_WORKSPACE_GEN}
-    ${PYARTS_WORKSPACE_CREATE}
 )
 
 if (ENABLE_PCH)

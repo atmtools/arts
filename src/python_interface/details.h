@@ -1,8 +1,7 @@
 #ifndef python_interface_pyarts_details_h
 #define python_interface_pyarts_details_h
 
-#include <py_auto_interface.h>
-#include <pybind11/functional.h>
+#include <python_interface.h>
 
 namespace Python::details {
 inline static std::function<py::object(py::object&)> one_arg{[](py::object&) {

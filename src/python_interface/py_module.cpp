@@ -1,9 +1,7 @@
-#include <workspace_ng.h>
-#include <workspace.h>
-#include <memory>
+#include <parameters.h>
+#include <python_interface.h>
 
-#include "py_auto_interface.h"
-#include "python_interface.h"
+#include <memory>
 
 extern Parameters parameters;
 
@@ -29,9 +27,7 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(py::module_& m,
-                  py::class_<Workspace, std::shared_ptr<Workspace>>& ws,
-                  py::class_<WorkspaceVariable>& wsv);
+void py_workspace(py::module_& m, py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
 void py_xsec(py::module_& m);
@@ -63,24 +59,10 @@ void py_cia(py::module_& m);
 PYBIND11_MODULE(arts, m) {
   m.doc() = "Interface directly to the C++ types via python";
   py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
-  py::class_<WorkspaceVariable> wsv(m, "WorkspaceVariable");
-  wsv.doc() = "A wrapper around all workspace groups";
 
   static bool init = true;
   if (init) {
     init = false;
-
-    define_wsv_groups();
-    define_wsv_data();
-    define_wsv_map();
-    define_md_data_raw();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_md_raw_map();
-    define_agenda_data();
-    define_agenda_map();
-    ARTS_ASSERT(check_agenda_data());
-    global_data::workspace_memory_handler.initialize();
 
     // Set parameters that are know on first execution
 #ifdef ARTS_DEFAULT_INCLUDE_DIR
@@ -144,7 +126,7 @@ PYBIND11_MODULE(arts, m) {
   py_cia(m);
 
   // Must be last, it contains automatic conversion operations
-  py_workspace(m, ws, wsv);
+  py_workspace(m, ws);
 
   // Extras calling pure internal functions
   py_constants(m);

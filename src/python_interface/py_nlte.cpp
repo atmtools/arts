@@ -1,9 +1,6 @@
 
 #include <memory>
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/pybind11.h>
+#include <python_interface.h>
 #include <vector>
 
 #include "debug.h"

@@ -1,9 +1,4 @@
-#include <py_auto_interface.h>
-#include <pybind11/cast.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
+#include <python_interface.h>
 
 #include <functional>
 #include <optional>

@@ -1,4 +1,4 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 

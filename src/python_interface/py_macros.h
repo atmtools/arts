@@ -1,13 +1,9 @@
 #ifndef py_macros_h
 #define py_macros_h
 
-#include <debug.h>
-#include <global_data.h>
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <xml_io.h>
+#include <python_interface.h>
 
+#include <xml_io.h>
 #include <functional>
 
 #include "python_interface_value_type.h"
@@ -289,35 +285,24 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                       \
   def(py::init([](const Type &x) { return std::make_unique<Type>(x); }),       \
-      py::arg("val"), py::doc("Copy instance"))                                \
-      .def(py::init([](const WorkspaceVariable *w) {                           \
-             Type &v = *w;                                                     \
-             return std::make_unique<Type>(v);                                 \
-           }),                                                                 \
-           py::arg("wsv").none(false).noconvert(),                             \
-           py::doc("Automatic conversion from a workspace variable"))
+      py::arg("val"), py::doc("Copy instance"))
 
 //! Place at the end!
-#define PythonInterfaceWorkspaceDocumentation(Type)                           \
-  doc() = unwrap_stars(var_string(global_data::wsv_groups                     \
-                                      .at(global_data::WsvGroupMap.at(#Type)) \
-                                      .desc,                                  \
-                                  '\n',                                       \
-                                  group_generics_inout(#Type),                \
-                                  group_workspace_types(#Type)))              \
+#define PythonInterfaceWorkspaceDocumentation(Type)                     \
+  doc() = unwrap_stars(var_string(workspace_variables().at(#Type).desc, \
+                                  '\n',                                 \
+                                  group_generics_inout(#Type),          \
+                                  group_workspace_types(#Type)))        \
               .c_str()
 
 //! Place at the end!  Add a few line-breaks to fit in extra documentation!
-#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)               \
-  doc() =                                                                     \
-      unwrap_stars(var_string(global_data::wsv_groups                         \
-                                      .at(global_data::WsvGroupMap.at(#Type)) \
-                                      .desc +                                 \
-                                  extra,                                      \
-                              '\n',                                           \
-                              group_generics_inout(#Type),                    \
-                              group_workspace_types(#Type)))                  \
-          .c_str()
+#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)         \
+  doc() = unwrap_stars(var_string(workspace_variables().at(#Type).desc, \
+                                  extra,                                \
+                                  '\n',                                 \
+                                  group_generics_inout(#Type),          \
+                                  group_workspace_types(#Type)))        \
+              .c_str()
 
 /*! The workspace array interface
 

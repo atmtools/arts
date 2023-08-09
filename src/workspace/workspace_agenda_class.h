@@ -19,6 +19,11 @@ class Agenda {
 public:
   Agenda() = default;
   Agenda(std::string name);
+  Agenda(std::string name,
+         const std::vector<Method>& methods,
+         const std::vector<std::string>& share,
+         const std::vector<std::string>& copy,
+         bool checked);
 
   void add(const Method& method);
 
@@ -41,6 +46,10 @@ public:
   void set_name(const std::string& v) {name = v;}
 
   [[nodiscard]] bool has_method(const std::string& method) const;
+
+  [[nodiscard]] const std::vector<Method>& get_methods() const {return methods;}
+  [[nodiscard]] const std::vector<std::string>& get_share() const {return share;}
+  [[nodiscard]] const std::vector<std::string>& get_copy() const {return copy;}
 
   friend std::ostream& operator<<(std::ostream& os, const Agenda& a);
 };

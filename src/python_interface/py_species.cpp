@@ -1,8 +1,4 @@
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/numpy.h>
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
+#include <python_interface.h>
 
 #include <memory>
 #include <vector>
