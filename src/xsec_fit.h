@@ -124,7 +124,7 @@ class XsecRecord {
   static constexpr Index P01 = 2;
   static constexpr Index P20 = 3;
 
-  Index mversion{2};
+  static constexpr Index mversion{2};
   Species::Species mspecies;
   /* VERSION 2 */
   Vector mfitminpressures;

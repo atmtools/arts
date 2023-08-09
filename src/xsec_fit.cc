@@ -41,11 +41,10 @@ String XsecRecord::SpeciesName() const {
 }
 
 void XsecRecord::SetVersion(const Index version) {
-  if (version != 2) {
-    ARTS_USER_ERROR("Invalid version, only 2 supported")
+  if (version != mversion) {
+    ARTS_USER_ERROR(
+        "Invalid version ", version, ", only version ", mversion, " supported")
   }
-
-  mversion = version;
 }
 
 void XsecRecord::Extract(VectorView result,
