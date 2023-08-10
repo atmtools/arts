@@ -23,6 +23,8 @@
 #include "species_tags.h"
 #include "xml_io.h"
 
+#include "m_general.h"
+
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -105,7 +105,7 @@ String unwrap_stars(String x) {
   return x;
 }
 
-String get_agenda_io(const String& x) {
+String get_agenda_io(const String& x) try {
   const static auto& wsas = internal_workspace_agendas();
   const static auto& wsvs = workspace_variables();
 
@@ -161,6 +161,9 @@ Parameters
   }
 
   return writer.size() ? out : "";
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));
 }
 
 String until_first_newline(const String& x) {
@@ -169,7 +172,7 @@ String until_first_newline(const String& x) {
   return out;
 }
 
-String short_doc(const String& x) {
+String short_doc(const String& x) try {
   const static auto& wsgs = internal_workspace_groups();
   const static auto& wsvs = workspace_variables();
   const static auto& wsms = internal_workspace_methods();
@@ -187,6 +190,9 @@ String short_doc(const String& x) {
       x,
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Could not get short doc for ", std::quoted(x), ":\n", e.what()));
 }
 
 void remove_trailing(String& x, char n) {

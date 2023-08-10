@@ -216,8 +216,10 @@ std::string method_gin_selection(const std::string& name,
 
     if (has_default) {
       os << "      const static " << t << " _" << wsm.gin[i]
-         << "_default = workspace_methods().at(\"" << name << "\").defs.at(\"_"
-         << wsm.gin[i] << "\").get<" << wsm.gin_type[i] << ">();\n";
+         << "_default = [](){ try { return workspace_methods().at(\"" << name
+         << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
+         << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
+         << name << R"(\" default value \")" << wsm.gin[i] << "\\\"\"); } }();\n";
       os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
          << wsm.gin[i] << ", _" << wsm.gin[i] << "_default);\n";
     } else {

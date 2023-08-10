@@ -1006,7 +1006,7 @@ void x2artsSpectroscopy() {
 
 #ifdef OEM_SUPPORT
 /* Workspace method: Doxygen documentation will be auto-generated */
-void OEM(const const Workspace& ws,
+void OEM(const Workspace& ws,
          Vector& x,
          Vector& yf,
          Matrix& jacobian,

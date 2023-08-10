@@ -1,6 +1,6 @@
 #pragma once
 
-#include <workspace.h>
+#include <auto_wsg.h>
 
 #include <exception>
 

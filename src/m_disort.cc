@@ -429,7 +429,7 @@ const Numeric surf_alt = surface_field.single_value(Surf::Key::h, lat_true[0], l
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_radiance_fieldDisortClearsky(const const Workspace& ws,
+void spectral_radiance_fieldDisortClearsky(const Workspace& ws,
                     // WS Output:
                     Tensor7& spectral_radiance_field,
                     ArrayOfMatrix& disort_aux,
