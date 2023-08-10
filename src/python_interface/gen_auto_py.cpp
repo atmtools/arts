@@ -22,12 +22,11 @@ std::string variable(const std::string& name,
   os << R"--(
     py::cpp_function([](Workspace& w) -> )--"
      << fix_variable(wsv.type) << R"--(& {
-      auto& _v = w.get_or<)--"
-     << wsv.type << R"--(>(")--" << name << R"--(");
-      return as_ref(_v);
+      return *reinterpret_cast<)--" << fix_variable(wsv.type) << R"--(*>(&w.get_or<)--"
+     << wsv.type << R"--(>(")--" << name << R"--("));
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
-     << fix_variable(wsv.type) << R"--(&& val) -> void {
+     << wsv.type << R"--( val) -> void {
       auto& ws_val = w.get_or<)--"
      << wsv.type << R"--(>(")--" << name << R"--(");
       ws_val = std::move(val);
@@ -615,7 +614,7 @@ std::string method_argument_documentation(
     } else {
       os << R"("None")";
     }
-    os << ").noconvert()";
+    os << ")";
   }
 
   if (auto out = os.str(); out.size()) return out + ",\n    ";

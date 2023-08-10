@@ -49,7 +49,7 @@ void Workspace::set(const std::string& name,
         },
         ptr->second->value);
   }
-} catch (const std::bad_variant_access& e) {
+} catch (const std::bad_variant_access&) {
   throw std::runtime_error(var_string("Workspace variable ",
                                       std::quoted(name),
                                       " is of type ",
@@ -110,4 +110,11 @@ std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
 
 bool Workspace::contains(const std::string& name) const {
   return wsv.contains(name);
+}
+
+void Workspace::init(const std::string& name) try {
+  set(name, std::make_shared<Wsv>(Wsv::from_named_type(workspace_variables().at(name).type)));
+} catch (std::out_of_range&) {
+  throw std::runtime_error(
+      var_string("Undefined workspace variable ", std::quoted(name)));
 }

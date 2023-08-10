@@ -144,6 +144,8 @@ struct Wsv {
 
     return get_unsafe<T>();
   }
+
+  static Wsv from_named_type(const std::string& type);
 };
 )--";
 }
@@ -187,6 +189,16 @@ Wsv Wsv::copy() const {
 }
 
 const std::string_view Wsv::type_name() const { return name_wsg(value); }
+
+Wsv Wsv::from_named_type(const std::string& type) {
+)--";
+
+  for (auto& group : groups()) {
+    os << "  if (type == \"" << group << "\") return " << group << "{};\n";
+  }
+
+os << R"--( throw std::runtime_error(var_string("Unknown workspace group ", std::quoted(type)));
+}
 )--";
 }
 

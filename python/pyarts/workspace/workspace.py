@@ -364,7 +364,6 @@ class Workspace(_InternalWorkspace):
         if self._has(attr):
             if isinstance(value, DelayedAgenda):
                 value = value(self)
-
             self._set(attr, type(self._get(attr))(value))
         else:
             if type(value) in _group_types:
