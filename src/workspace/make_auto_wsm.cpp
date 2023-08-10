@@ -687,7 +687,6 @@ void implementation(std::ostream& os) {
 #include <m_delete.h>
 #include <m_general.h>
 #include <m_ignore.h>
-#include <m_sizes.h>
 #include <m_xml.h>
 )--";
 

@@ -2,6 +2,7 @@
 #include <mutex>
 #include <algorithm>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 #include <pybind11/attr.h>
@@ -52,8 +53,10 @@ std::filesystem::path correct_include_path(
 
 std::unique_ptr<Agenda> parse_agenda(Workspace&, const char* filename);
 
-void py_workspace(py::module_& m,
-                  py::class_<Workspace, std::shared_ptr<Workspace>>& ws) {
+void py_auto_wsv(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
+void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
+
+void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws) try {
   ws.def(py::init([]() { return Workspace{}; }))
       .def(py::init([](Workspace& w) { return w; }))
       .def(
@@ -74,5 +77,10 @@ void py_workspace(py::module_& m,
   ws.def("__str__", [](const Workspace& w) {
      return var_string(w);
   });
+
+  py_auto_wsv(ws);
+  py_auto_wsm(ws);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize workspace\n", e.what()));
 }
-}  // namespace Python
+} // namespace Python

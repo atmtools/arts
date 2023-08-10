@@ -1353,7 +1353,7 @@ element (which equals nelem-1).
       .out = {"nelem"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfJacobianTarget, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(The method is defined for these groups.)--"},
 
@@ -12436,7 +12436,7 @@ workspace variable *nbooks*
       .out = {"nbooks"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"Tensor4, Tensor5, Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of books from.)--"},
 
@@ -12451,7 +12451,7 @@ workspace variable *ncols*
 
       .gin = {"v"},
       .gin_type =
-          {"Any"},
+          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of columns from.)--"},
 
@@ -12466,7 +12466,7 @@ variable *nelem*.
 
       .gin = {"v"},
       .gin_type =
-          {"Any"},
+          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfJacobianTarget, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of elements from.)--"},
 
@@ -12481,7 +12481,7 @@ workspace variable *nlibraries*
       .out = {"nlibraries"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of libraries from.)--"},
 
@@ -12504,7 +12504,7 @@ workspace variable *npages*
       .out = {"npages"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of pages from.)--"},
 
@@ -12519,7 +12519,7 @@ workspace variable *nrows*
 
       .gin = {"v"},
       .gin_type =
-          {"Any"},
+          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of rows from.)--"},
 
@@ -12534,7 +12534,7 @@ workspace variable *nshelves*
       .out = {"nshelves"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"Tensor5, Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of shelves from.)--"},
 
@@ -12549,7 +12549,7 @@ workspace variable *nvitrines*
       .out = {"nvitrines"},
 
       .gin = {"v"},
-      .gin_type = {"Any"},
+      .gin_type = {"Tensor6, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of vitrines from.)--"},
 

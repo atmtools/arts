@@ -216,10 +216,12 @@ std::string method_gin_selection(const std::string& name,
 
     if (has_default) {
       os << "      const static " << t << " _" << wsm.gin[i]
-         << "_default = [](){ try { return workspace_methods().at(\"" << name
+         << "_default = []() -> const " << wsm.gin_type[i]
+         << "& { try { return workspace_methods().at(\"" << name
          << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
          << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
-         << name << R"(\" default value \")" << wsm.gin[i] << "\\\"\"); } }();\n";
+         << name << R"(\" default value \")" << wsm.gin[i]
+         << "\\\"\"); } }();\n";
       os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
          << wsm.gin[i] << ", _" << wsm.gin[i] << "_default);\n";
     } else {
@@ -635,6 +637,12 @@ void methods(const std::string& fname) {
   std::ofstream os(fname);
 
   os << R"--(#include <python_interface.h>
+
+#include <m_copy.h>
+#include <m_delete.h>
+#include <m_general.h>
+#include <m_ignore.h>
+#include <m_xml.h>
 
 namespace Python {
 void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {

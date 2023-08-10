@@ -41,7 +41,7 @@ std::filesystem::path correct_include_path(
   return path;
 }
 
-void py_agenda(py::module_& m) {
+void py_agenda(py::module_& m) try {
   py::class_<CallbackFunction>(m, "CallbackFunction")
       .def(py::init([]() { return std::make_unique<CallbackFunction>(); }), py::doc("Initialize as empty call"))
       .PythonInterfaceCopyValue(CallbackFunction)
@@ -223,5 +223,7 @@ Parameters
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));
 }
 }  // namespace Python

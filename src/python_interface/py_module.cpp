@@ -27,7 +27,7 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(py::module_& m, py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
+void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
 void py_xsec(py::module_& m);
@@ -56,7 +56,7 @@ void py_cia(py::module_& m);
  * 
  * 3) Implicit conversion can only be defined between two python-defined Arts types
  */
-PYBIND11_MODULE(arts, m) {
+PYBIND11_MODULE(arts, m) try {
   m.doc() = "Interface directly to the C++ types via python";
   py::class_<Workspace, std::shared_ptr<Workspace>> ws(m, "_Workspace");
 
@@ -126,7 +126,7 @@ PYBIND11_MODULE(arts, m) {
   py_cia(m);
 
   // Must be last, it contains automatic conversion operations
-  py_workspace(m, ws);
+  py_workspace(ws);
 
   // Extras calling pure internal functions
   py_constants(m);
@@ -136,5 +136,7 @@ PYBIND11_MODULE(arts, m) {
   py_physics(m);
   py_math(m);
   py_hitran(m);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize module\n", e.what()));
 }
 }  // namespace Python
