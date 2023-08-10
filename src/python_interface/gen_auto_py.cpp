@@ -8,6 +8,12 @@
 
 #include "pydocs.h"
 
+std::string fix_variable(const std::string& name) {
+  std::string result = name;
+  if ("Numeric" == name or "Index" == name) result += "_";
+  return result;
+}
+
 std::string variable(const std::string& name,
                      const WorkspaceVariableRecord& wsv) try {
   std::ostringstream os;
@@ -15,12 +21,13 @@ std::string variable(const std::string& name,
   os << "  ws.def_property(\"" << name << "\",";
   os << R"--(
     py::cpp_function([](Workspace& w) -> )--"
-     << wsv.type << R"--(& {
-      return w.get_or<)--"
+     << fix_variable(wsv.type) << R"--(& {
+      auto& _v = w.get_or<)--"
      << wsv.type << R"--(>(")--" << name << R"--(");
+      return as_ref(_v);
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
-     << wsv.type << R"--( val) -> void {
+     << fix_variable(wsv.type) << R"--(&& val) -> void {
       auto& ws_val = w.get_or<)--"
      << wsv.type << R"--(>(")--" << name << R"--(");
       ws_val = std::move(val);
@@ -572,36 +579,39 @@ std::string unnamed_method_resolution(
   return os.str();
 }
 
-std::string method_argument_documentation(const WorkspaceMethodInternalRecord& wsm) {
+std::string method_argument_documentation(
+    const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   bool first = true;
-  
-  for (auto& t: wsm.out) {
+
+  for (auto& t : wsm.out) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t << "\").noconvert()";
+    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
+       << "\").noconvert()";
   }
 
-  for (auto& t: wsm.gout) {
+  for (auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
     os << "py::arg_v(\"" << t << R"(", std::nullopt, "None").noconvert())";
   }
-  
-  for (auto& t: wsm.in) {
+
+  for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n    ";
     first = false;
     os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t << "\")";
   }
 
-  for (std::size_t i=0; i<wsm.gin.size(); i++) {
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     if (not first) os << ",\n    ";
     first = false;
     os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, ";
     if (wsm.gin_value[i]) {
-      os << "R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i]) << ")-x-\"";
+      os << "R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i])
+         << ")-x-\"";
     } else {
       os << R"("None")";
     }
@@ -627,7 +637,8 @@ std::string method(const std::string& name,
   else
     os << "\n      throw std::runtime_error(\"Cannot call method outside Agenda, see online documentation for workaround\");\n";
 
-  os << "    },\n    "<< method_argument_documentation(wsm) << "py::doc(R\"" << method_docs(name) << "\"));\n\n";
+  os << "    },\n    " << method_argument_documentation(wsm) << "py::doc(R\""
+     << method_docs(name) << "\"));\n\n";
   return os.str();
 }
 
@@ -655,7 +666,68 @@ void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_u
   os << "}\n}  // namespace Python\n";
 }
 
+void groups(const std::string& fname) {
+  const auto wsgs = internal_workspace_groups();
+
+  std::ofstream hos(fname + ".h");
+
+  hos << R"--(#include <auto_wsg.h>
+#include <python_interface_value_type.h>
+
+namespace Python {
+  using PyWsvValue = std::variant<
+    )--";
+
+  bool first = true;
+  for (auto& [name, wsg] : wsgs) {
+    if (not first) hos << ",\n    ";
+    first = false;
+    hos << "    " << name;
+    if (name == "Index" or name == "Numeric") hos << '_';
+    hos << '*';
+  }
+
+  hos << R"--(>;
+
+  Wsv from(const PyWsvValue& x);
+  PyWsvValue to(const std::shared_ptr<Wsv>& x);
+}  // namespace Python
+)--";
+
+  std::ofstream cos(fname + ".cpp");
+
+  cos << "#include <python_interface.h>\n";
+  cos << R"--(
+namespace Python {
+  Wsv from(const PyWsvValue& x) {
+    return std::visit([](auto&& arg) -> Wsv {
+      using T = std::remove_cvref_t<decltype(arg)>;
+      if constexpr (std::same_as<Numeric_*, T> or std::same_as<Index_*, T>) {
+        return arg -> val;
+      } else {
+        return *arg;
+      }
+    }, x);
+  }
+
+  PyWsvValue to(const std::shared_ptr<Wsv>& x) {
+    return std::visit([](auto&& arg) -> PyWsvValue {
+      using T = std::remove_cvref_t<decltype(arg)>;
+      if constexpr (std::same_as<std::shared_ptr<Numeric>, T>) {
+        return reinterpret_cast<Numeric_*>(arg.get());
+      } else if constexpr (std::same_as<std::shared_ptr<Index>, T>) {
+        return reinterpret_cast<Index_*>(arg.get());
+      } else {
+        return arg.get();
+      }
+    }, x -> value);
+  }
+}  // namespace Python
+)--";
+}
+
 int main() {
+  groups("py_auto_wsg");
   variables("py_auto_wsv.cpp");
   methods("py_auto_wsm.cpp");
 }

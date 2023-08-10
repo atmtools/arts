@@ -24,7 +24,7 @@
 #include <stdexcept>
 #include <variant>
 
-#include "callback.h"
+#include <py_auto_wsg.h>
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {

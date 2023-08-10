@@ -325,26 +325,28 @@ you might call. Everything else is undefined behaviour. ;-)
             if len(callback_body) > 0:
                 agenda.add_callback_method(callback_make_fun(callback_body))
                 callback_body = []
-            
+
             agenda.add_workspace_method(name, *args, **kwargs)
 
     # Check if there's callback code left to add to the agenda.
     if len(callback_body) > 0:
         agenda.add_callback_method(callback_make_fun(callback_body))
         callback_body = []
-    
+
     agenda.name = func_ast.name
-    if set_agenda: setattr(arts, func_ast.name, agenda)
+    if set_agenda:
+        setattr(arts, func_ast.name, agenda)
     return agenda
 
 
-_group_types = [eval(f"cxx.{x.name}") for x in list(cxx.globals.get_wsv_groups())]
+_group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
 
 
 class Workspace(_InternalWorkspace):
     """
     A wrapper for the C++ workspace object
     """
+
     def __getattribute__(self, attr):
         if attr.startswith("__"):
             object.__getattribute__(self, attr)
@@ -352,25 +354,23 @@ class Workspace(_InternalWorkspace):
         return super().__getattribute__(attr)
 
     def __getattr__(self, attr):
-        if super()._hasattr_check_(attr):
-            return super()._getattr_unchecked_(attr)
+        if super()._has(attr):
+            return super()._get(attr)
 
         raise AttributeError(
             f"'Workspace' object has no attribute '{attr}'")
 
     def __setattr__(self, attr, value):
-        if self._hasattr_check_(attr):
+        if self._has(attr):
             if isinstance(value, DelayedAgenda):
                 value = value(self)
 
-            self._getattr_unchecked_(attr).initialize_if_not()
-            self._getattr_unchecked_(attr).value = type(
-                self._getattr_unchecked_(attr).value)(value)
+            self._set(attr, type(self._get(attr))(value))
         else:
             if type(value) in _group_types:
-                self._setattr_unchecked_(attr, value)
+                self._set(attr, value)
             elif isinstance(value, DelayedAgenda):
-                self._setattr_unchecked_(attr, value(self))
+                self._set(attr, value(self))
             else:
                 raise AttributeError(
                     f"'Workspace' object has no attribute '{attr}'")
@@ -378,8 +378,11 @@ class Workspace(_InternalWorkspace):
     def __delattr__(self, attr):
         if attr == '__class__':
             raise AttributeError("You cannot delete __class__")
-
-        getattr(self, attr).delete_level()
+        if self._has(attr):
+            self._set(attr, type(self._get(attr))())
+        else:
+            raise AttributeError(
+                f"'Workspace' object has no attribute '{attr}'")
 
     def __copy__(self):
         x = super().__copy__()

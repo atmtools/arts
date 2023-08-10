@@ -7,7 +7,7 @@ target_link_libraries(gen_auto_py PUBLIC artscore workspace)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
-add_custom_command(OUTPUT py_auto_wsv.cpp py_auto_wsm.cpp
+add_custom_command(OUTPUT py_auto_wsv.cpp py_auto_wsm.cpp py_auto_wsg.cpp py_auto_wsg.h
                    COMMAND gen_auto_py
                    DEPENDS gen_auto_py)
 
@@ -17,6 +17,7 @@ add_custom_command(OUTPUT py_auto_wsv.cpp py_auto_wsm.cpp
 pybind11_add_module(pyarts_cpp THIN_LTO
     py_auto_wsv.cpp
     py_auto_wsm.cpp
+    py_auto_wsg.cpp
 
     py_module.cpp
     py_matpack.cpp

@@ -1,9 +1,7 @@
 
-#include <parameters.h>
-
-#include <python_interface.h>
-
 #include <arts_omp.h>
+#include <parameters.h>
+#include <python_interface.h>
 
 extern Parameters parameters;
 
@@ -16,7 +14,8 @@ void py_global(py::module_& m) try {
       .def_readwrite_static(
           "includepath",
           &parameters.includepath,
-          py::doc(":class:`~pyarts.arts.ArrayOfString` Automatic include paths"))
+          py::doc(
+              ":class:`~pyarts.arts.ArrayOfString` Automatic include paths"))
       .def_readwrite_static(
           "datapath",
           &parameters.datapath,
@@ -24,8 +23,25 @@ void py_global(py::module_& m) try {
       .def_readwrite_static(
           "numthreads",
           &parameters.numthreads,
-          py::doc(":class:`~pyarts.arts.Index` Number of threads allowed to start"))
+          py::doc(
+              ":class:`~pyarts.arts.Index` Number of threads allowed to start"))
       .doc() = "Access to static settings data";
+
+  py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
+      .def_readonly("file", &WorkspaceGroupRecord::file)
+      .def_readonly("desc", &WorkspaceGroupRecord::desc);
+
+  global.def(
+      "workspace_groups",
+      []() { return internal_workspace_groups(); },
+      py::doc("Get a copy of all workspace variables\n\n"
+              "Return\n------\n:class:`dict`"
+              "\n    Map of variables"));
+
+  py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
+      .def_readonly("default_value", &WorkspaceVariableRecord::default_value)
+      .def_readonly("type", &WorkspaceVariableRecord::type)
+      .def_readonly("desc", &WorkspaceVariableRecord::desc);
 
   global.def(
       "workspace_variables",
@@ -34,9 +50,26 @@ void py_global(py::module_& m) try {
               "Return\n------\n:class:`dict`"
               "\n    Map of variables"));
 
+  py::class_<WorkspaceMethodInternalRecord>(global,
+                                            "WorkspaceMethodInternalRecord")
+      .def_readonly("output", &WorkspaceMethodInternalRecord::out)
+      .def_readonly("input", &WorkspaceMethodInternalRecord::in)
+      .def_readonly("author", &WorkspaceMethodInternalRecord::author)
+      .def_readonly("gout", &WorkspaceMethodInternalRecord::gout)
+      .def_readonly("gout_type", &WorkspaceMethodInternalRecord::gout_type)
+      .def_readonly("gout_desc", &WorkspaceMethodInternalRecord::gout_desc)
+      .def_readonly("gin", &WorkspaceMethodInternalRecord::gin)
+      .def_readonly("gin_type", &WorkspaceMethodInternalRecord::gin_type)
+      .def_readonly("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
+      .def_readonly("gin_value", &WorkspaceMethodInternalRecord::gin_value)
+      .def_readonly("pass_names", &WorkspaceMethodInternalRecord::pass_names)
+      .def_readonly("pass_workspace",
+                    &WorkspaceMethodInternalRecord::pass_workspace)
+      .def_readonly("desc", &WorkspaceMethodInternalRecord::desc);
+
   global.def(
       "workspace_methods",
-      []() { return workspace_methods(); },
+      []() { return internal_workspace_methods(); },
       py::doc("Get a copy of all workspace methods\n\n"
               "Return\n------\n:class:`dict`"
               "\n    Map of methods"));
@@ -75,7 +108,8 @@ Parameters
       py::arg("threads") = omp_get_max_threads());
 #endif
 
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize global\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize global\n", e.what()));
 }
 }  // namespace Python

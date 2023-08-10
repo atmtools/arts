@@ -1,14 +1,13 @@
+#include <algorithm>
 #include <memory>
 #include <mutex>
-#include <algorithm>
 #include <optional>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <python_interface.h>
 #include <parameters.h>
+#include <python_interface.h>
 
 extern Parameters parameters;
 namespace Python {
@@ -59,18 +58,20 @@ void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
 void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws) try {
   ws.def(py::init([]() { return Workspace{}; }))
       .def(py::init([](Workspace& w) { return w; }))
+      .def("__copy__", [](Workspace& w) { return w; })
+      .def("__deepcopy__", [](Workspace& w, py::dict&) { return w; })
       .def(
-          "__copy__", [](Workspace& w) { return w; })
-      .def(
-          "__deepcopy__",
-          [](Workspace& w, py::dict&) { return w; })
-      .def("_get", [](const Workspace& w, const char* n) {
-        return w.share(n);
-      }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>())
-      .def("_set", [](Workspace& w, const char* n, Wsv v) {
-        return w.set(n, std::make_shared<Wsv>(v.copy()));
-      })
-      .def("_has", [](const Workspace& w, const char* n) {
+          "_get",
+          [](Workspace& w, const std::string& n) {
+            return to(w.share(n));
+          },
+          py::return_value_policy::reference_internal,
+          py::keep_alive<0, 1>())
+      .def("_set",
+           [](Workspace& w, const std::string& n, const PyWsvValue& x) {
+             w.set(n, std::make_shared<Wsv>(from(x)));
+           })
+      .def("_has", [](const Workspace& w, const std::string& n) {
         return w.contains(n);
       });
 
