@@ -7,7 +7,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_rte(py::module_& m) {
+void py_rte(py::module_& m) try {
   py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
       .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }), "Default interpolation")
       .PythonInterfaceCopyValue(LagrangeInterpolation)
@@ -89,5 +89,7 @@ void py_rte(py::module_& m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(GasAbsLookup);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize rte\n", e.what()));
 }
 }  // namespace Python

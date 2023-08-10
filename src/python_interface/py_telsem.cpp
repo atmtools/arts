@@ -3,7 +3,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_telsem(py::module_& m) {
+void py_telsem(py::module_& m) try {
   py::class_<TelsemAtlas>(m, "TelsemAtlas")
       .def(py::init([]() { return std::make_unique<TelsemAtlas>(); }), "Empty atlas")
       .PythonInterfaceCopyValue(TelsemAtlas)
@@ -51,5 +51,7 @@ void py_telsem(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
 
   PythonInterfaceWorkspaceArray(TelsemAtlas);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));
 }
 }  // namespace Python

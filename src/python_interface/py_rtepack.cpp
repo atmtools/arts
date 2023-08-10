@@ -8,7 +8,7 @@
 #include <rtepack.h>
 
 namespace Python {
-void py_rtepack(py::module_ &m) {
+void py_rtepack(py::module_ &m) try {
   py::class_<Stokvec>(m, "Stokvec", py::buffer_protocol())
       .def(py::init<Numeric>())
       .def(py::init<std::array<Numeric, 4>>())
@@ -333,5 +333,7 @@ void py_rtepack(py::module_ &m) {
   PythonInterfaceWorkspaceArray(MuelmatMatrix);
   PythonInterfaceWorkspaceArray(ArrayOfMuelmatVector);
   PythonInterfaceWorkspaceArray(ArrayOfMuelmatMatrix);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));
 }
 } // namespace Python

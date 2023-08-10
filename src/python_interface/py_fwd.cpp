@@ -6,7 +6,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_fwd(py::module_& m) {
+void py_fwd(py::module_& m) try {
   py::class_<SpectralRadianceProfileOperator>(m, "SpectralRadianceProfileOperator")
       .def(py::init<>(), "From nothing")
       .PythonInterfaceCopyValue(SpectralRadianceProfileOperator)
@@ -59,5 +59,7 @@ prof : ~pyarts.arts.Matrix
 )--"))
     .def_readonly("altitude", &SpectralRadianceProfileOperator::altitude, py::doc(R"--(Altitude grid [m])--"))
       .PythonInterfaceWorkspaceDocumentation(SpectralRadianceProfileOperator);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize fwd\n", e.what()));
 }
 }  // namespace Python

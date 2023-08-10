@@ -19,7 +19,7 @@
 #include "species_tags.h"
 
 namespace Python {
-void py_spectroscopy(py::module_& m) {
+void py_spectroscopy(py::module_& m) try {
   static_assert(LineShapeModelParameters::N == 4);
   py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
       .def(py::init([](LineShape::TemperatureModel a,
@@ -964,5 +964,7 @@ but does not enforce it.
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(HitranRelaxationMatrixData);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
 }
 }  // namespace Python

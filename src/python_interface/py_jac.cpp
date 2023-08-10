@@ -7,7 +7,7 @@
 #include "species_tags.h"
 
 namespace Python {
-void py_jac(py::module_& m) {
+void py_jac(py::module_& m) try {
   py::class_<JacobianTarget>(m, "JacobianTarget")
       .def(py::init([]() { return std::make_unique<JacobianTarget>(); }), "Default target")
       .PythonInterfaceCopyValue(JacobianTarget)
@@ -83,5 +83,7 @@ void py_jac(py::module_& m) {
           })).doc() = "A retrieval quantity";
 
   PythonInterfaceWorkspaceArray(RetrievalQuantity);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));
 }
 }  // namespace Python

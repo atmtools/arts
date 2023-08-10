@@ -9,7 +9,7 @@ extern Parameters parameters;
 
 namespace Python {
 
-void py_global(py::module_& m) {
+void py_global(py::module_& m) try {
   auto global = m.def_submodule("globals");
 
   py::class_<Parameters>(global, "parameters")
@@ -75,5 +75,7 @@ Parameters
       py::arg("threads") = omp_get_max_threads());
 #endif
 
-}  // void py_global(py::module_& m)
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize global\n", e.what()));
+}
 }  // namespace Python

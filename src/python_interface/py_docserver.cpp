@@ -4,7 +4,7 @@
 namespace Python {
 namespace py = pybind11;
 
-void py_docserver(py::module_& m) {
+void py_docserver(py::module_& m) try {
   auto docserver = m.def_submodule("docserver");
   docserver.doc() = R"--(Run the ARTS documentation server)--";
   docserver.def("run",
@@ -26,6 +26,8 @@ Parameters:
     baseurl (str): Base URL to use for the server
     daemon (bool): Run the server as a daemon
 )--");
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize docserver\n", e.what()));
 }
 }  // namespace Python
 

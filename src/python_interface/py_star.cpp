@@ -4,7 +4,7 @@
 
 
 namespace Python {
-void py_star(py::module_& m) {
+void py_star(py::module_& m) try {
   py::class_<Sun>(m, "Sun")
       .def(py::init([]() { return std::make_unique<Sun>(); }), "Empty sun")
       .PythonInterfaceCopyValue(Sun)
@@ -42,5 +42,7 @@ temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";
 
   PythonInterfaceWorkspaceArray(Sun);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }
 }  // namespace Python

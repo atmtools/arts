@@ -10,7 +10,7 @@
 #include "species_tags.h"
 
 namespace Python {
-void py_species(py::module_& m) {
+void py_species(py::module_& m) try {
   //! This class should behave as an `options` but we need also the "fromShortName" policy
   py::class_<Species::Species>(m, "Species")
       .def(py::init([]() { return std::make_unique<Species::Species>(); }), "Default value")
@@ -227,5 +227,7 @@ Returns
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();
 
   PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag).def(py::self == py::self);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize species\n", e.what()));
 }
 }  // namespace Python

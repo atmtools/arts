@@ -5,7 +5,7 @@
 #include <ppath_struct.h>
 
 namespace Python {
-void py_ppath(py::module_& m) {
+void py_ppath(py::module_& m) try {
   py::class_<GridPos>(m, "GridPos")
       .def(py::init([]() { return std::make_unique<GridPos>(); }), "Empty position")
       .PythonInterfaceCopyValue(GridPos)
@@ -102,5 +102,7 @@ void py_ppath(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 
   PythonInterfaceWorkspaceArray(Ppath);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));
 }
 }  // namespace Python

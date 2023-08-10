@@ -288,20 +288,20 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       py::arg("val"), py::doc("Copy instance"))
 
 //! Place at the end!
-#define PythonInterfaceWorkspaceDocumentation(Type)                     \
-  doc() = unwrap_stars(var_string(workspace_variables().at(#Type).desc, \
-                                  '\n',                                 \
-                                  group_generics_inout(#Type),          \
-                                  group_workspace_types(#Type)))        \
+#define PythonInterfaceWorkspaceDocumentation(Type)                           \
+  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
+                                  '\n',                                       \
+                                  group_generics_inout(#Type),                \
+                                  group_workspace_types(#Type)))              \
               .c_str()
 
 //! Place at the end!  Add a few line-breaks to fit in extra documentation!
-#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)         \
-  doc() = unwrap_stars(var_string(workspace_variables().at(#Type).desc, \
-                                  extra,                                \
-                                  '\n',                                 \
-                                  group_generics_inout(#Type),          \
-                                  group_workspace_types(#Type)))        \
+#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)               \
+  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
+                                  extra,                                      \
+                                  '\n',                                       \
+                                  group_generics_inout(#Type),                \
+                                  group_workspace_types(#Type)))              \
               .c_str()
 
 /*! The workspace array interface

@@ -12,7 +12,7 @@
 
 namespace Python {
 
-void py_atm(py::module_ &m) {
+void py_atm(py::module_ &m) try {
   py::class_<Atm::Data>(m, "AtmData")
       .def(py::init([]() { return std::make_unique<Atm::Data>(); }))
       .def(py::init([](const GriddedField3 &x) {
@@ -199,5 +199,7 @@ void py_atm(py::module_ &m) {
       .PythonInterfaceWorkspaceDocumentation(AtmField);
 
   PythonInterfaceWorkspaceArray(AtmPoint);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
 }
 } // namespace Python

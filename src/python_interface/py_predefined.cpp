@@ -526,7 +526,6 @@ abs_coef : ~pyarts.arts.Vector
 )--"));
 }
 
-
 void internalTRE05(py::module_& m) {
   m.def(
       "get_o2_tre05",
@@ -1075,7 +1074,7 @@ abs_coef : ~pyarts.arts.Vector
 )--"));
 }
 
-void py_predefined(py::module_& m) {
+void py_predefined(py::module_& m) try {
   //! The predef python namespace where all INTERNAL data lives
   auto predef = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
@@ -1136,5 +1135,7 @@ water_data : ~pyarts.arts.predef.MTCKD400WaterData
   internalTRE05(predef);
   internalELL07(predef);
   internalSTANDARD(predef);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize predefined\n", e.what()));
 }
 }  // namespace Python

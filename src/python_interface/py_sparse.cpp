@@ -9,7 +9,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_sparse(py::module_& m) {
+void py_sparse(py::module_& m) try {
   py::class_<Sparse>(m, "Sparse")
       .def(py::init([]() { return std::make_unique<Sparse>(); }), "Empty sparse")
       .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
@@ -190,5 +190,7 @@ arr : numpy.ndarray
       .PythonInterfaceWorkspaceDocumentation(CovarianceMatrix);
 
   PythonInterfaceWorkspaceArray(Sparse);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
 }
 }  // namespace Python

@@ -25,7 +25,7 @@ struct XsecRecord {
 };
 }  // namespace details
 
-void py_xsec(py::module_& m) {
+void py_xsec(py::module_& m) try {
   m.add_object("_cleanupXsecRecord", py::capsule([]() {
                  details::XsecRecord::to_xarray = details::one_arg;
                  details::XsecRecord::from_xarray = details::two_args;
@@ -183,5 +183,7 @@ Returns
 )--";
 
   PythonInterfaceWorkspaceArray(XsecRecord);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));
 }
 }  // namespace Python

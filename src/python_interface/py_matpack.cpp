@@ -23,7 +23,7 @@ void test_correct_size(const std::vector<T>& x) {
   }
 }
 
-void py_matpack(py::module_& m) {
+void py_matpack(py::module_& m) try {
   py::class_<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
              ARTS_USER_ERROR_IF(0 > a, "Bad offset")
@@ -645,5 +645,7 @@ via x.value
           }))
       .doc() = R"--(Holds complex vector data.
 )--";
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));
 }
 }  // namespace Python

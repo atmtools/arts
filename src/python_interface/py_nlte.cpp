@@ -9,7 +9,7 @@
 #include "quantum_numbers.h"
 
 namespace Python {
-void py_nlte(py::module_& m) {
+void py_nlte(py::module_& m) try {
   py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
       .def(py::init(
           []() { return std::make_unique<VibrationalEnergyLevels>(); }))
@@ -64,5 +64,7 @@ void py_nlte(py::module_& m) {
       .PythonInterfaceBasicRepresentation(VibrationalEnergyLevels)
       .PythonInterfaceFileIO(VibrationalEnergyLevels)
       .PythonInterfaceWorkspaceDocumentation(VibrationalEnergyLevels);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize nlte\n", e.what()));
 }
 }  // namespace Python

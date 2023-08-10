@@ -3,7 +3,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_scattering(py::module_& m) {
+void py_scattering(py::module_& m) try {
   py::enum_<PType>(m, "PType")
       .value("PTYPE_GENERAL", PType::PTYPE_GENERAL, "As general")
       .value("PTYPE_AZIMUTH_RND", PType::PTYPE_AZIMUTH_RND, "Azimuthally random")
@@ -103,5 +103,7 @@ void py_scattering(py::module_& m) {
   PythonInterfaceWorkspaceArray(SingleScatteringData);
   PythonInterfaceWorkspaceArray(ArrayOfScatteringMetaData);
   PythonInterfaceWorkspaceArray(ArrayOfSingleScatteringData);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }
 }  // namespace Python

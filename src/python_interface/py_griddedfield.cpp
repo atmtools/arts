@@ -27,7 +27,7 @@ struct GriddedField {
 
 using VectorOrArrayOfString = std::variant<Vector, ArrayOfString>;
 
-void py_griddedfield(py::module_& m) {
+void py_griddedfield(py::module_& m) try {
   m.add_object("_cleanupGriddedField", py::capsule([]() {
                  details::GriddedField::extract_slice = details::three_args;
                  details::GriddedField::refine_grid = details::five_args;
@@ -341,5 +341,7 @@ void py_griddedfield(py::module_& m) {
       }), "Initialize from lists");
   py::implicitly_convertible<std::vector<std::vector<GriddedField3>>,
                              ArrayOfArrayOfGriddedField3>();
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));
 }
 }  // namespace Python

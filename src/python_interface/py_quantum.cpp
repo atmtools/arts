@@ -7,7 +7,7 @@
 #include <pybind11/operators.h>
 
 namespace Python {
-void py_quantum(py::module_& m) {
+void py_quantum(py::module_& m) try {
   py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
       .def(py::init([]() { return std::make_unique<QuantumNumberValue>(); }), "Default value")
       .def(py::init(
@@ -153,5 +153,7 @@ symbol : str
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
   PythonInterfaceWorkspaceArray(QuantumIdentifier);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }
 }  // namespace Python

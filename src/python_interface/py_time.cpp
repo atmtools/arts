@@ -3,7 +3,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_time(py::module_& m) {
+void py_time(py::module_& m) try {
   py::class_<std::clock_t>(m, "clock_t")
       .def(py::init([]() { return std::clock(); }), "Default clock")
       .def(py::pickle([](const clock_t& self) { return py::make_tuple(self); },
@@ -135,5 +135,7 @@ void py_time(py::module_& m) {
       }), "From nested lists");
   py::implicitly_convertible<std::vector<std::vector<Time>>,
                              ArrayOfArrayOfTime>();
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
 }
 }  // namespace Python

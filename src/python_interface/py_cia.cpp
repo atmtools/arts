@@ -18,7 +18,7 @@
 #include "species_tags.h"
 
 namespace Python {
-void py_cia(py::module_& m) {
+void py_cia(py::module_& m) try {
   py::class_<CIARecord>(m, "CIARecord")
       .def(py::init([]() { return std::make_unique<CIARecord>(); }),
            "Empty record")
@@ -108,5 +108,7 @@ Returns
       .PythonInterfaceWorkspaceDocumentation(CIARecord);
 
   PythonInterfaceWorkspaceArray(CIARecord);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));
 }
 }  // namespace Python

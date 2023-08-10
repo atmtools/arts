@@ -12,7 +12,7 @@
 
 namespace Python {
 
-void py_surf(py::module_ &m) {
+void py_surf(py::module_ &m) try {
   py::class_<Surf::Data>(m, "SurfData")
       .def(py::init([]() { return std::make_unique<Surf::Data>(); }))
       .def(py::init([](const GriddedField2 &x) {
@@ -150,5 +150,7 @@ void py_surf(py::module_ &m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(SurfaceField);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize surf\n", e.what()));
 }
 } // namespace Python

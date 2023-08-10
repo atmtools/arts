@@ -5,7 +5,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_basic(py::module_& m) {
+void py_basic(py::module_& m) try {
   py::class_<String>(m, "String")
       .def(py::init([]() { return std::make_unique<String>(); }), "Create empty")
       .def(py::init([](const std::string& s) { return std::make_unique<String>(s); }), "Create from :class:`str`")
@@ -235,5 +235,7 @@ be accessed without copy using element-wise access operators)--");
                     [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; })
       .doc() = R"--(A list of :class:`~pyarts.arts.Numeric`)--";
   py::implicitly_convertible<std::vector<Numeric>, ArrayOfNumeric>();
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize basic\n", e.what()));
 }
 }  // namespace Python

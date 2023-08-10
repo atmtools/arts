@@ -66,7 +66,7 @@
 #define DeclareOption(opt_namespace, opt_localname) \
   DeclareOptionRenamed(opt_localname, opt_namespace, opt_localname)
 namespace Python {
-void py_options(py::module_& m) {
+void py_options(py::module_& m) try {
   auto opt = m.def_submodule("options");
   opt.doc() = "Various named options of Arts";
 
@@ -139,5 +139,7 @@ void py_options(py::module_& m) {
 
   // Species enums
   DeclareOptionRenamed(SpeciesTagType, Species, TagType)
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize options\n", e.what()));
 }
 }  // namespace Python

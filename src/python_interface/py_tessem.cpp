@@ -3,7 +3,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_tessem(py::module_& m) {
+void py_tessem(py::module_& m) try {
   py::class_<TessemNN>(m, "TessemNN")
       .def(py::init([]() { return std::make_unique<TessemNN>(); }), "Empty default")
       .PythonInterfaceCopyValue(TessemNN)
@@ -50,5 +50,7 @@ void py_tessem(py::module_& m) {
                                 t[10].cast<Vector>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(TessemNN);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize tessem\n", e.what()));
 }
 }  // namespace Python

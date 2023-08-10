@@ -4,7 +4,7 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_mcantenna(py::module_& m) {
+void py_mcantenna(py::module_& m) try {
   py::enum_<AntennaType>(m, "AntennaType")
       .value("ANTENNA_TYPE_PENCIL_BEAM", AntennaType::ANTENNA_TYPE_PENCIL_BEAM, "As pencil beam")
       .value("ANTENNA_TYPE_GAUSSIAN", AntennaType::ANTENNA_TYPE_GAUSSIAN, "As gaussian beam")
@@ -54,5 +54,7 @@ void py_mcantenna(py::module_& m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(MCAntenna);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize mcantenna\n", e.what()));
 }
 }  // namespace Python
