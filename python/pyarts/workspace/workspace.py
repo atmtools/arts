@@ -340,6 +340,7 @@ you might call. Everything else is undefined behaviour. ;-)
 
 
 _group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
+_wsvs = cxx.globals.workspace_variables()
 
 
 class Workspace(_InternalWorkspace):
@@ -366,7 +367,9 @@ class Workspace(_InternalWorkspace):
                 value = value(self)
             self._set(attr, type(self._get(attr))(value))
         else:
-            if type(value) in _group_types:
+            if attr in _wsvs:
+                super().__setattr__(attr, value)
+            elif type(value) in _group_types:
                 self._set(attr, value)
             elif isinstance(value, DelayedAgenda):
                 self._set(attr, value(self))

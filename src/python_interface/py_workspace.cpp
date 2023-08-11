@@ -16,7 +16,7 @@ py::tuple pickle_method(const Method &m) {
   return py::make_tuple(m.get_name(), m.get_ins(), m.get_outs(), m.get_setval(), m.overwrite());
 }
 
-Method unpickle_mrecord(Workspace &ws, const py::tuple &t) {
+Method unpickle_method(const py::tuple &t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
   auto name = t[0].cast<std::string>();
@@ -51,12 +51,10 @@ Agenda unpickle_agenda(const py::tuple &t) {
 std::filesystem::path correct_include_path(
     const std::filesystem::path& path_copy);
 
-std::unique_ptr<Agenda> parse_agenda(Workspace&, const char* filename);
+void py_auto_wsv(artsclass<Workspace>& ws);
+void py_auto_wsm(artsclass<Workspace>& ws);
 
-void py_auto_wsv(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
-void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
-
-void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws) try {
+void py_workspace(artsclass<Workspace>& ws) try {
   ws.def(py::init([]() { return Workspace{}; }))
       .def(py::init([](Workspace& w) { return w; }))
       .def("__copy__", [](Workspace& w) { return w; })
@@ -68,7 +66,6 @@ void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws) try {
           py::keep_alive<0, 1>())
       .def("_set",
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
-            py::print("OI");
              w.set(n, std::make_shared<Wsv>(from(x)));
            })
       .def("_has", [](Workspace& w, const std::string& n) {

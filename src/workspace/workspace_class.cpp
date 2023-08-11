@@ -90,20 +90,11 @@ std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
 
   os << "\n  ";
 
-  constexpr std::size_t linebreak = 77;
   auto str = var_string(std::quoted(ws.wsv.begin() -> first), " : ", ws.wsv.begin() -> second ->type_name());
   os << str;
-  std::size_t count = str.size();
   for (auto& v: std::ranges::drop_view{ws.wsv, 1}) {
-    str = var_string(std::quoted(v.first), " : ", v.second -> type_name());
-    count += str.size();
-    if (count >= linebreak) {
-      os << ",\n  ";
-      count = 0;
-    } else {
-      os << ", ";
-    }
-    os << str;
+    str = var_string();
+    os << std::quoted(v.first) <<" : " << v.second -> type_name() << ",\n";
   }
   return os;
 }

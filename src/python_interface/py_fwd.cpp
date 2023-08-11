@@ -7,7 +7,7 @@
 
 namespace Python {
 void py_fwd(py::module_& m) try {
-  py::class_<SpectralRadianceProfileOperator>(m, "SpectralRadianceProfileOperator")
+  artsclass<SpectralRadianceProfileOperator>(m, "SpectralRadianceProfileOperator")
       .def(py::init<>(), "From nothing")
       .PythonInterfaceCopyValue(SpectralRadianceProfileOperator)
       .PythonInterfaceWorkspaceVariableConversion(SpectralRadianceProfileOperator)

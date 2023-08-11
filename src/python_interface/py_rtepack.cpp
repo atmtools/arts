@@ -9,7 +9,7 @@
 
 namespace Python {
 void py_rtepack(py::module_ &m) try {
-  py::class_<Stokvec>(m, "Stokvec", py::buffer_protocol())
+  artsclass<Stokvec>(m, "Stokvec", py::buffer_protocol())
       .def(py::init<Numeric>())
       .def(py::init<std::array<Numeric, 4>>())
       .def_buffer([](Stokvec &x) -> py::buffer_info {
@@ -42,7 +42,7 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<Numeric, Stokvec>();
   py::implicitly_convertible<std::array<Numeric, 4>, Stokvec>();
 
-  py::class_<StokvecVector>(m, "StokvecVector", py::buffer_protocol())
+  artsclass<StokvecVector>(m, "StokvecVector", py::buffer_protocol())
       .def(py::init<std::vector<Numeric>>())
       .def(py::init<std::vector<Stokvec>>())
       .def_buffer([](StokvecVector &x) -> py::buffer_info {
@@ -78,7 +78,7 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<std::vector<Numeric>, StokvecVector>();
   py::implicitly_convertible<std::vector<Stokvec>, StokvecVector>();
 
-  py::class_<StokvecMatrix>(m, "StokvecMatrix", py::buffer_protocol())
+  artsclass<StokvecMatrix>(m, "StokvecMatrix", py::buffer_protocol())
       .def_buffer([](StokvecMatrix &x) -> py::buffer_info {
         return py::buffer_info(
             x.data_handle(), sizeof(Numeric),
@@ -117,7 +117,7 @@ void py_rtepack(py::module_ &m) try {
   PythonInterfaceWorkspaceArray(ArrayOfStokvecVector);
   PythonInterfaceWorkspaceArray(ArrayOfStokvecMatrix);
 
-  py::class_<Propmat>(m, "Propmat", py::buffer_protocol())
+  artsclass<Propmat>(m, "Propmat", py::buffer_protocol())
       .def(py::init<Numeric>())
       .def(py::init<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>())
       .def_buffer([](Propmat &x) -> py::buffer_info {
@@ -149,7 +149,7 @@ void py_rtepack(py::module_ &m) try {
       .PythonInterfaceWorkspaceDocumentation(Propmat);
   py::implicitly_convertible<Numeric, Propmat>();
 
-  py::class_<PropmatVector>(m, "PropmatVector", py::buffer_protocol())
+  artsclass<PropmatVector>(m, "PropmatVector", py::buffer_protocol())
       .def(py::init<std::vector<Numeric>>())
       .def(py::init<std::vector<Propmat>>())
       .def_buffer([](PropmatVector &x) -> py::buffer_info {
@@ -185,7 +185,7 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<std::vector<Numeric>, PropmatVector>();
   py::implicitly_convertible<std::vector<Propmat>, PropmatVector>();
 
-  py::class_<PropmatMatrix>(m, "PropmatMatrix", py::buffer_protocol())
+  artsclass<PropmatMatrix>(m, "PropmatMatrix", py::buffer_protocol())
       .def_buffer([](PropmatMatrix &x) -> py::buffer_info {
         return py::buffer_info(
             x.data_handle(), sizeof(Numeric),
@@ -224,7 +224,7 @@ void py_rtepack(py::module_ &m) try {
   PythonInterfaceWorkspaceArray(ArrayOfPropmatVector);
   PythonInterfaceWorkspaceArray(ArrayOfPropmatMatrix);
 
-  py::class_<Muelmat>(m, "Muelmat", py::buffer_protocol())
+  artsclass<Muelmat>(m, "Muelmat", py::buffer_protocol())
       .def(py::init<Numeric>())
       .def(py::init<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>())
       .def_buffer([](Muelmat &x) -> py::buffer_info {
@@ -256,7 +256,7 @@ void py_rtepack(py::module_ &m) try {
       .PythonInterfaceWorkspaceDocumentation(Muelmat);
   py::implicitly_convertible<Numeric, Muelmat>();
 
-  py::class_<MuelmatVector>(m, "MuelmatVector", py::buffer_protocol())
+  artsclass<MuelmatVector>(m, "MuelmatVector", py::buffer_protocol())
       .def(py::init<std::vector<Numeric>>())
       .def(py::init<std::vector<Muelmat>>())
       .def_buffer([](MuelmatVector &x) -> py::buffer_info {
@@ -294,7 +294,7 @@ void py_rtepack(py::module_ &m) try {
   py::implicitly_convertible<std::vector<Numeric>, MuelmatVector>();
   py::implicitly_convertible<std::vector<Muelmat>, MuelmatVector>();
 
-  py::class_<MuelmatMatrix>(m, "MuelmatMatrix", py::buffer_protocol())
+  artsclass<MuelmatMatrix>(m, "MuelmatMatrix", py::buffer_protocol())
       .def_buffer([](MuelmatMatrix &x) -> py::buffer_info {
         return py::buffer_info(
             x.data_handle(), sizeof(Numeric),

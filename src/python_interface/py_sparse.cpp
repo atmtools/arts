@@ -10,8 +10,8 @@
 
 namespace Python {
 void py_sparse(py::module_& m) try {
-  py::class_<Sparse>(m, "Sparse")
-      .def(py::init([]() { return std::make_unique<Sparse>(); }), "Empty sparse")
+  artsclass<Sparse>(m, "Sparse")
+      .def(py::init([]() { return std::make_shared<Sparse>(); }), "Empty sparse")
       .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
         Sparse s;
         s.matrix.swap(es);
@@ -59,7 +59,7 @@ arr : numpy.ndarray
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
 
-            auto out = std::make_unique<Sparse>();
+            auto out = std::make_shared<Sparse>();
             out->matrix = t[0].cast<decltype(out->matrix)>();
 
             return out;
@@ -82,12 +82,12 @@ arr : numpy.ndarray
             return static_cast<Block::MatrixType>(t[0].cast<Index>());
           }));
 
-  py::class_<Block>(m, "Block")
+  artsclass<Block>(m, "Block")
       .def(py::init([](Range row_range,
                        Range column_range,
                        IndexPair indices,
                        Matrix mat) {
-             return std::make_unique<Block>(
+             return std::make_shared<Block>(
                  row_range,
                  column_range,
                  indices,
@@ -98,7 +98,7 @@ arr : numpy.ndarray
                        Range column_range,
                        IndexPair indices,
                        Sparse mat) {
-             return std::make_unique<Block>(
+             return std::make_shared<Block>(
                  row_range,
                  column_range,
                  indices,
@@ -147,12 +147,12 @@ arr : numpy.ndarray
             auto indices = t[2].cast<IndexPair>();
 
             if (t[3].cast<Block::MatrixType>() == Block::MatrixType::sparse)
-              return std::make_unique<Block>(
+              return std::make_shared<Block>(
                   row_range,
                   column_range,
                   indices,
                   std::make_shared<Sparse>(Sparse{t[4].cast<Sparse>()}));
-            return std::make_unique<Block>(
+            return std::make_shared<Block>(
                 row_range,
                 column_range,
                 indices,
@@ -160,8 +160,8 @@ arr : numpy.ndarray
           }))
       .doc() = "A single block matrix";
 
-  py::class_<CovarianceMatrix>(m, "CovarianceMatrix")
-      .def(py::init([]() { return std::make_unique<CovarianceMatrix>(); }), "Empty matrix")
+  artsclass<CovarianceMatrix>(m, "CovarianceMatrix")
+      .def(py::init([]() { return std::make_shared<CovarianceMatrix>(); }), "Empty matrix")
       .PythonInterfaceCopyValue(CovarianceMatrix)
       .PythonInterfaceWorkspaceVariableConversion(CovarianceMatrix)
       .def_property(
@@ -182,7 +182,7 @@ arr : numpy.ndarray
             auto b = t[0].cast<std::vector<Block>>();
             auto i = t[0].cast<std::vector<Block>>();
 
-            auto out = std::make_unique<CovarianceMatrix>();
+            auto out = std::make_shared<CovarianceMatrix>();
             out->get_blocks() = std::move(b);
             out->get_inverse_blocks() = std::move(i);
             return out;

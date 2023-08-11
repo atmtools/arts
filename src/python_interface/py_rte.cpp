@@ -8,8 +8,8 @@
 
 namespace Python {
 void py_rte(py::module_& m) try {
-  py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }), "Default interpolation")
+  artsclass<LagrangeInterpolation>(m, "LagrangeInterpolation")
+      .def(py::init([]() { return std::make_shared<LagrangeInterpolation>(); }), "Default interpolation")
       .PythonInterfaceCopyValue(LagrangeInterpolation)
       .def(py::pickle(
           [](const LagrangeInterpolation& self) {
@@ -18,7 +18,7 @@ void py_rte(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
-            auto out = std::make_unique<LagrangeInterpolation>();
+            auto out = std::make_shared<LagrangeInterpolation>();
 
             out->pos = t[0].cast<Index>();
             out->lx = t[1].cast<Array<Numeric>>();
@@ -26,15 +26,15 @@ void py_rte(py::module_& m) try {
             return out;
           })).doc() = "Interpolation object";
 
-  py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
+  artsclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .PythonInterfaceArrayDefault(LagrangeInterpolation)
       .PythonInterfaceBasicRepresentation(ArrayOfLagrangeInterpolation)
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
   py::implicitly_convertible<std::vector<LagrangeInterpolation>,
                              ArrayOfLagrangeInterpolation>();
 
-  py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init([]() { return std::make_unique<GasAbsLookup>(); }), "Default lookup")
+  artsclass<GasAbsLookup>(m, "GasAbsLookup")
+      .def(py::init([]() { return std::make_shared<GasAbsLookup>(); }), "Default lookup")
       .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
@@ -72,7 +72,7 @@ void py_rte(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 11, "Invalid state!")
 
-            auto out = std::make_unique<GasAbsLookup>();
+            auto out = std::make_shared<GasAbsLookup>();
 
             out->Species() = t[0].cast<ArrayOfArrayOfSpeciesTag>();
             out->NonLinearSpecies() = t[1].cast<ArrayOfIndex>();

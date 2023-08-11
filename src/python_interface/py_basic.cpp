@@ -6,9 +6,9 @@
 
 namespace Python {
 void py_basic(py::module_& m) try {
-  py::class_<String>(m, "String")
-      .def(py::init([]() { return std::make_unique<String>(); }), "Create empty")
-      .def(py::init([](const std::string& s) { return std::make_unique<String>(s); }), "Create from :class:`str`")
+  artsclass<String>(m, "String")
+      .def(py::init([]() { return std::make_shared<String>(); }), "Create empty")
+      .def(py::init([](const std::string& s) { return std::make_shared<String>(s); }), "Create from :class:`str`")
       .PythonInterfaceCopyValue(String)
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
@@ -23,7 +23,7 @@ void py_basic(py::module_& m) try {
           [](const String& self) { return py::make_tuple(std::string(self)); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<String>(t[0].cast<std::string>());
+            return std::make_shared<String>(t[0].cast<std::string>());
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(String,
                                                   R"--(
@@ -34,7 +34,7 @@ be accessed without copy using element-wise access operators)--");
   PythonInterfaceWorkspaceArray(String);
   PythonInterfaceWorkspaceArray(ArrayOfString);
 
-  py::class_<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
+  artsclass<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
       .PythonInterfaceFileIO(ArrayOfIndex)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceBasicRepresentation(ArrayOfIndex)
@@ -64,12 +64,12 @@ be accessed without copy using element-wise access operators)--");
   py::implicitly_convertible<std::vector<std::vector<Index>>,
                              ArrayOfArrayOfIndex>();
 
-  py::class_<Numeric_>(m, "Numeric")
-      .def(py::init([]() { return std::make_unique<Numeric_>(); }), "Create default")
+  artsclass<Numeric_>(m, "Numeric")
+      .def(py::init([]() { return std::make_shared<Numeric_>(); }), "Create default")
       .def(py::init([](Index i) -> Numeric_ {
         return Numeric_{static_cast<Numeric>(i)};
       }), "Create from :class:`int`")
-      .def(py::init([](Numeric n) { return std::make_unique<Numeric_>(n); }), "Create from :class:`float`")
+      .def(py::init([](Numeric n) { return std::make_shared<Numeric_>(n); }), "Create from :class:`float`")
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(*x.val)); })
@@ -127,13 +127,13 @@ be accessed without copy using element-wise access operators)--");
           [](const Numeric_& self) { return py::make_tuple(*self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<Numeric_>(t[0].cast<Numeric>());
+            return std::make_shared<Numeric_>(t[0].cast<Numeric>());
           }))
       .PythonInterfaceWorkspaceDocumentation(Numeric);
 
-  py::class_<Index_>(m, "Index")
-      .def(py::init([]() { return std::make_unique<Index_>(); }), "Create default")
-      .def(py::init([](Index i) { return std::make_unique<Index_>(i); }), "Create from :class:`int`")
+  artsclass<Index_>(m, "Index")
+      .def(py::init([]() { return std::make_shared<Index_>(); }), "Create default")
+      .def(py::init([](Index i) { return std::make_shared<Index_>(i); }), "Create from :class:`int`")
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
       .def("__hash__", [](Index_& x) { return py::hash(py::int_(*x.val)); })
@@ -190,7 +190,7 @@ be accessed without copy using element-wise access operators)--");
           [](const Index_& self) { return py::make_tuple(*self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<Index_>(t[0].cast<Index>());
+            return std::make_shared<Index_>(t[0].cast<Index>());
           }))
       .PythonInterfaceWorkspaceDocumentation(Index);
 
@@ -200,19 +200,19 @@ be accessed without copy using element-wise access operators)--");
   py::implicitly_convertible<Numeric, Numeric_>();
   py::implicitly_convertible<Index, Index_>();
 
-  py::class_<Any>(m, "Any")
-      .def(py::init([]() { return std::make_unique<Any>(); }), "Create empty")
-      .def(py::init([](const py::args&, const py::kwargs&) { return std::make_unique<Any>(); }), "Create empty")
+  artsclass<Any>(m, "Any")
+      .def(py::init([]() { return std::make_shared<Any>(); }), "Create empty")
+      .def(py::init([](const py::args&, const py::kwargs&) { return std::make_shared<Any>(); }), "Create empty")
       .def("__repr__", [](Any&) { return "Any"; }, py::is_operator())
       .def("__str__", [](Any&) { return "Any"; }, py::is_operator())
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
-                        return std::make_unique<Any>();
+                        return std::make_shared<Any>();
                       }))
       .PythonInterfaceWorkspaceDocumentation(Any);
 
-  py::class_<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+  artsclass<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       // .PythonInterfaceFileIO(ArrayOfNumeric)
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
       .PythonInterfaceArrayDefault(Numeric)

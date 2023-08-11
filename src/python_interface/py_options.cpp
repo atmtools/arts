@@ -10,7 +10,7 @@
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)             \
   [&]() {                                                                          \
     auto cls =                                                                     \
-        py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
+        artsclass<opt_namespace::opt_localname>(opt, #opt_rename)                  \
             .def(py::init([]() { return opt_namespace::opt_localname{}; }),        \
                  "Default value")                                                  \
             .def(py::init([](const std::string& s) {                               \

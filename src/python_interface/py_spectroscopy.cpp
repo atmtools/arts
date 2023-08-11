@@ -21,13 +21,13 @@
 namespace Python {
 void py_spectroscopy(py::module_& m) try {
   static_assert(LineShapeModelParameters::N == 4);
-  py::class_<LineShapeModelParameters>(m, "LineShapeModelParameters")
+  artsclass<LineShapeModelParameters>(m, "LineShapeModelParameters")
       .def(py::init([](LineShape::TemperatureModel a,
                        Numeric b,
                        Numeric c,
                        Numeric d,
                        Numeric e) {
-             return std::make_unique<LineShapeModelParameters>(a, b, c, d, e);
+             return std::make_shared<LineShapeModelParameters>(a, b, c, d, e);
            }),
            py::arg("type") = LineShape::TemperatureModel::None,
            py::arg("X0") = 0,
@@ -47,7 +47,7 @@ void py_spectroscopy(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
-            return std::make_unique<LineShapeModelParameters>(
+            return std::make_shared<LineShapeModelParameters>(
                 t[0].cast<LineShape::TemperatureModel>(),
                 t[1].cast<Numeric>(),
                 t[2].cast<Numeric>(),
@@ -71,8 +71,8 @@ void py_spectroscopy(py::module_& m) try {
     if (c == "None") return Zeeman::Polarization::None;
     ARTS_USER_ERROR("Bad enum value ", c);
   };
-  py::class_<Zeeman::Polarization>(m, "ZeemanPolarization")
-      .def(py::init([]() { return std::make_unique<Zeeman::Polarization>(); }), "Default polarization")
+  artsclass<Zeeman::Polarization>(m, "ZeemanPolarization")
+      .def(py::init([]() { return std::make_shared<Zeeman::Polarization>(); }), "Default polarization")
       .def(py::init([ZeemanPolarizationEnumGetter](const std::string& c) {
              return ZeemanPolarizationEnumGetter(c);
            }),
@@ -96,15 +96,15 @@ void py_spectroscopy(py::module_& m) try {
           })).doc() = "Options for ZeemanPolarization";
   py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
-  py::class_<Zeeman::Model>(m, "ZeemanModel")
-      .def(py::init([]() { return std::make_unique<Zeeman::Model>(); }), "Empty model")
+  artsclass<Zeeman::Model>(m, "ZeemanModel")
+      .def(py::init([]() { return std::make_shared<Zeeman::Model>(); }), "Empty model")
       .def(py::init([](Numeric a, Numeric b) {
-             return std::make_unique<Zeeman::Model>(a, b);
+             return std::make_shared<Zeeman::Model>(a, b);
            }),
            py::arg("gu"),
            py::arg("gl"), "From two numeric values")
       .def(py::init([](std::array<Numeric, 2> a) {
-             return std::make_unique<Zeeman::Model>(a[0], a[1]);
+             return std::make_shared<Zeeman::Model>(a[0], a[1]);
            }),
            py::arg("gs"), "From list of two values")
       .PythonInterfaceCopyValue(Zeeman::Model)
@@ -115,12 +115,12 @@ void py_spectroscopy(py::module_& m) try {
           [](const Zeeman::Model& t) { return py::make_tuple(t.gu(), t.gl()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            return std::make_unique<Zeeman::Model>(t[0].cast<Numeric>(),
+            return std::make_shared<Zeeman::Model>(t[0].cast<Numeric>(),
                                      t[1].cast<Numeric>());
           })).doc() = "A Zeeman model";
   py::implicitly_convertible<std::array<Numeric, 2>, Zeeman::Model>();
 
-  py::class_<LineShape::Output>(m, "LineShapeOutput")
+  artsclass<LineShape::Output>(m, "LineShapeOutput")
       .def(py::init([](Numeric a,
                        Numeric b,
                        Numeric c,
@@ -130,7 +130,7 @@ void py_spectroscopy(py::module_& m) try {
                        Numeric g,
                        Numeric h,
                        Numeric i) {
-             return std::make_unique< LineShape::Output>(a, b, c, d, e, f, g, h, i);
+             return std::make_shared< LineShape::Output>(a, b, c, d, e, f, g, h, i);
            }),
            py::arg("g0") = 0,
            py::arg("d0") = 0,
@@ -159,7 +159,7 @@ void py_spectroscopy(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return std::make_unique< LineShape::Output>(t[0].cast<Numeric>(),
+            return std::make_shared< LineShape::Output>(t[0].cast<Numeric>(),
                                          t[1].cast<Numeric>(),
                                          t[2].cast<Numeric>(),
                                          t[3].cast<Numeric>(),
@@ -170,7 +170,7 @@ void py_spectroscopy(py::module_& m) try {
                                          t[8].cast<Numeric>());
           })).doc() = "Derived line shape parameters";
 
-  py::class_<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
+  artsclass<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
       .def(py::init([](LineShape::ModelParameters G0,
                        LineShape::ModelParameters D0,
                        LineShape::ModelParameters G2,
@@ -180,7 +180,7 @@ void py_spectroscopy(py::module_& m) try {
                        LineShape::ModelParameters Y,
                        LineShape::ModelParameters G,
                        LineShape::ModelParameters DV) {
-             return std::make_unique<LineShapeSingleSpeciesModel>(G0, D0, G2, D2, FVC, ETA, Y, G, DV);
+             return std::make_shared<LineShapeSingleSpeciesModel>(G0, D0, G2, D2, FVC, ETA, Y, G, DV);
            }),
            py::arg("G0") = LineShape::ModelParameters{},
            py::arg("D0") = LineShape::ModelParameters{},
@@ -261,7 +261,7 @@ void py_spectroscopy(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return std::make_unique<LineShapeSingleSpeciesModel>(
+            return std::make_shared<LineShapeSingleSpeciesModel>(
                 t[0].cast<LineShape::ModelParameters>(),
                 t[1].cast<LineShape::ModelParameters>(),
                 t[2].cast<LineShape::ModelParameters>(),
@@ -273,10 +273,10 @@ void py_spectroscopy(py::module_& m) try {
                 t[8].cast<LineShape::ModelParameters>());
           })).doc() = "Single species line shape model";
 
-  py::class_<LineShapeModel>(m, "LineShapeModel")
-      .def(py::init([]() { return std::make_unique<LineShapeModel>(); }), "Empty model")
+  artsclass<LineShapeModel>(m, "LineShapeModel")
+      .def(py::init([]() { return std::make_shared<LineShapeModel>(); }), "Empty model")
       .def(py::init([](const std::vector<LineShapeSingleSpeciesModel>& v) {
-        return std::make_unique<LineShapeModel>(v);
+        return std::make_shared<LineShapeModel>(v);
       }), "From :class:`list`")
       .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
@@ -291,13 +291,13 @@ void py_spectroscopy(py::module_& m) try {
           [](const LineShapeModel& t) { return py::make_tuple(t.Data()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<LineShapeModel>(
+            return std::make_shared<LineShapeModel>(
                 t[0].cast<std::vector<LineShapeSingleSpeciesModel>>());
           })).doc() = "Multi-species line shape model";
   py::implicitly_convertible<std::vector<LineShapeSingleSpeciesModel>,
                              LineShapeModel>();
 
-  py::class_<AbsorptionSingleLine>(m, "AbsorptionSingleLine")
+  artsclass<AbsorptionSingleLine>(m, "AbsorptionSingleLine")
       .def(py::init([](Numeric a,
                        Numeric b,
                        Numeric c,
@@ -307,7 +307,7 @@ void py_spectroscopy(py::module_& m) try {
                        ZeemanModel g,
                        LineShapeModel h,
                        Quantum::Number::LocalState i) {
-             return std::make_unique<AbsorptionSingleLine>(
+             return std::make_shared<AbsorptionSingleLine>(
                  a, b, c, d, e, f, g, std::move(h), std::move(i));
            }),
            py::arg("F0") = 0,
@@ -344,7 +344,7 @@ void py_spectroscopy(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return std::make_unique<AbsorptionSingleLine>(
+            return std::make_shared<AbsorptionSingleLine>(
                 t[0].cast<Numeric>(),
                 t[1].cast<Numeric>(),
                 t[2].cast<Numeric>(),
@@ -356,14 +356,14 @@ void py_spectroscopy(py::module_& m) try {
                 t[8].cast<Quantum::Number::LocalState>());
           })).doc() = "Single absorption line";
 
-  py::class_<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
+  artsclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .PythonInterfaceBasicRepresentation(Array<AbsorptionSingleLine>)
       .PythonInterfaceArrayDefault(AbsorptionSingleLine)
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
   py::implicitly_convertible<std::vector<AbsorptionSingleLine>,
                              Array<AbsorptionSingleLine>>();
 
-  py::class_<AbsorptionLines>(m, "AbsorptionLines")
+  artsclass<AbsorptionLines>(m, "AbsorptionLines")
       .def(
           py::init([](bool selfbroadening, bool bathbroadening,
                       AbsorptionCutoffType cutoff,
@@ -393,7 +393,7 @@ void py_spectroscopy(py::module_& m) try {
                 broadeningspecies.size() < static_cast<std::size_t>(selfbroadening + bathbroadening),
                 "Must have atleast ", (selfbroadening + bathbroadening),
                 " broadening species to support settings")
-            return std::make_unique<AbsorptionLines>(selfbroadening,
+            return std::make_shared<AbsorptionLines>(selfbroadening,
                                        bathbroadening,
                                        cutoff,
                                        mirroring,
@@ -508,7 +508,7 @@ X : ~pyarts.arts.LineShapeOutput
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 13, "Invalid state!")
-            return std::make_unique<AbsorptionLines>(
+            return std::make_shared<AbsorptionLines>(
                 t[0].cast<bool>(),
                 t[1].cast<bool>(),
                 t[2].cast<AbsorptionCutoffType>(),
@@ -532,7 +532,7 @@ X : ~pyarts.arts.LineShapeOutput
 
   PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
 
-  py::class_<LineShape::Calculator>(m, "LineShapeCalculator")
+  artsclass<LineShape::Calculator>(m, "LineShapeCalculator")
       .def(py::init([](AbsorptionLines& band,
                        Index line,
                        Numeric T,
@@ -792,10 +792,10 @@ Note that the normalization assumes sum(VMR) is 1 for good results
 but does not enforce it.
 )";
 
-  py::class_<SpeciesErrorCorrectedSuddenData>(m,
+  artsclass<SpeciesErrorCorrectedSuddenData>(m,
                                               "SpeciesErrorCorrectedSuddenData")
       .def(py::init(
-          []() { return std::make_unique<SpeciesErrorCorrectedSuddenData>(); }), "Empty data")
+          []() { return std::make_shared<SpeciesErrorCorrectedSuddenData>(); }), "Empty data")
       .PythonInterfaceCopyValue(SpeciesErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(SpeciesErrorCorrectedSuddenData)
       .def_readwrite("spec", &SpeciesErrorCorrectedSuddenData::spec, ":class:`~pyarts.arts.Species` The species")
@@ -816,7 +816,7 @@ but does not enforce it.
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            auto out = std::make_unique<SpeciesErrorCorrectedSuddenData>();
+            auto out = std::make_shared<SpeciesErrorCorrectedSuddenData>();
             out->spec = t[0].cast<Species::Species>();
             out->scaling = t[1].cast<LineShapeModelParameters>();
             out->beta = t[2].cast<LineShapeModelParameters>();
@@ -826,15 +826,15 @@ but does not enforce it.
             return out;
           })).doc() = "Holds data required for a single species error corrected sudden method application";
 
-  py::class_<Array<SpeciesErrorCorrectedSuddenData>>(
+  artsclass<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(
           Array<SpeciesErrorCorrectedSuddenData>)
       .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData)
       .doc() = "List of :class:`~pyarts.arts.SpeciesErrorCorrectedSuddenData`";
 
-  py::class_<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
-      .def(py::init([]() { return std::make_unique<ErrorCorrectedSuddenData>(); }), "Empty data")
+  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
+      .def(py::init([]() { return std::make_shared<ErrorCorrectedSuddenData>(); }), "Empty data")
       .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
       .def(
@@ -854,20 +854,20 @@ but does not enforce it.
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_unique<ErrorCorrectedSuddenData>();
+            auto out = std::make_shared<ErrorCorrectedSuddenData>();
             out->id = t[0].cast<QuantumIdentifier>();
             out->data = t[1].cast<Array<SpeciesErrorCorrectedSuddenData>>();
             return out;
           })).doc() = "Data for the error corrected sudden method of line mixing";
 
-  py::class_<Array<ErrorCorrectedSuddenData>>(m,
+  artsclass<Array<ErrorCorrectedSuddenData>>(m,
                                               "ArrayOfErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
       .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData).doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
 
-  py::class_<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
+  artsclass<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
       m, "MapOfErrorCorrectedSuddenData")
-      .def(py::init([]() { return std::make_unique<MapOfErrorCorrectedSuddenData>(); }), "Empty map")
+      .def(py::init([]() { return std::make_shared<MapOfErrorCorrectedSuddenData>(); }), "Empty map")
       .PythonInterfaceCopyValue(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceWorkspaceVariableConversion(MapOfErrorCorrectedSuddenData)
       .PythonInterfaceBasicRepresentation(MapOfErrorCorrectedSuddenData)
@@ -893,14 +893,14 @@ but does not enforce it.
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             auto x = t[0].cast<Array<ErrorCorrectedSuddenData>>();
-            auto out = std::make_unique<MapOfErrorCorrectedSuddenData>();
+            auto out = std::make_shared<MapOfErrorCorrectedSuddenData>();
             for (auto& b : x) out->operator[](b.id) = b;
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(MapOfErrorCorrectedSuddenData);
 
-  py::class_<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
-      .def(py::init([]() { return std::make_unique<HitranRelaxationMatrixData>(); }), "Empty data")
+  artsclass<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
+      .def(py::init([]() { return std::make_shared<HitranRelaxationMatrixData>(); }), "Empty data")
       .PythonInterfaceCopyValue(HitranRelaxationMatrixData)
       .PythonInterfaceWorkspaceVariableConversion(HitranRelaxationMatrixData)
       .PythonInterfaceBasicRepresentation(HitranRelaxationMatrixData)
@@ -944,7 +944,7 @@ but does not enforce it.
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 16, "Invalid state!")
-            auto out = std::make_unique<HitranRelaxationMatrixData>();
+            auto out = std::make_shared<HitranRelaxationMatrixData>();
             out->W0pp = t[0].cast<Tensor4>();
             out->B0pp = t[1].cast<Tensor4>();
             out->W0rp = t[2].cast<Tensor4>();

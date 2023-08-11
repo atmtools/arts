@@ -5,8 +5,8 @@
 
 namespace Python {
 void py_star(py::module_& m) try {
-  py::class_<Sun>(m, "Sun")
-      .def(py::init([]() { return std::make_unique<Sun>(); }), "Empty sun")
+  artsclass<Sun>(m, "Sun")
+      .def(py::init([]() { return std::make_shared<Sun>(); }), "Empty sun")
       .PythonInterfaceCopyValue(Sun)
 //      .PythonInterfaceWorkspaceVariableConversion(Sun)
       .PythonInterfaceBasicRepresentation(Sun)
@@ -28,7 +28,7 @@ void py_star(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            return std::make_unique<Sun>(Sun{t[0].cast<String>(),
+            return std::make_shared<Sun>(Sun{t[0].cast<String>(),
                              t[1].cast<Matrix>(),
                              t[2].cast<Numeric>(),
                              t[3].cast<Numeric>(),

@@ -8,8 +8,8 @@
 
 namespace Python {
 void py_jac(py::module_& m) try {
-  py::class_<JacobianTarget>(m, "JacobianTarget")
-      .def(py::init([]() { return std::make_unique<JacobianTarget>(); }), "Default target")
+  artsclass<JacobianTarget>(m, "JacobianTarget")
+      .def(py::init([]() { return std::make_shared<JacobianTarget>(); }), "Default target")
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
       .PythonInterfaceFileIO(JacobianTarget)
@@ -31,7 +31,7 @@ void py_jac(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 10, "Invalid state!")
             
-            auto out = std::make_unique<JacobianTarget>();
+            auto out = std::make_shared<JacobianTarget>();
             
             out -> type = t[0].cast<Jacobian::Type>();
             out -> atm = t[1].cast<Jacobian::Atm>();
@@ -50,8 +50,8 @@ void py_jac(py::module_& m) try {
 
   PythonInterfaceWorkspaceArray(JacobianTarget);
 
-  py::class_<RetrievalQuantity>(m, "RetrievalQuantity")
-      .def(py::init([]() { return std::make_unique<RetrievalQuantity>(); }), "Empty quantity")
+  artsclass<RetrievalQuantity>(m, "RetrievalQuantity")
+      .def(py::init([]() { return std::make_shared<RetrievalQuantity>(); }), "Empty quantity")
       .def(py::pickle(
           [](const RetrievalQuantity& self) {
             return py::make_tuple(self.SubTag(),
@@ -67,7 +67,7 @@ void py_jac(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-            auto out = std::make_unique<RetrievalQuantity>();
+            auto out = std::make_shared<RetrievalQuantity>();
 
             out->SubTag() = t[0].cast<String>();
             out->SubSubTag() = t[1].cast<String>();

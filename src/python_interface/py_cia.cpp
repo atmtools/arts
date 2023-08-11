@@ -19,13 +19,13 @@
 
 namespace Python {
 void py_cia(py::module_& m) try {
-  py::class_<CIARecord>(m, "CIARecord")
-      .def(py::init([]() { return std::make_unique<CIARecord>(); }),
+  artsclass<CIARecord>(m, "CIARecord")
+      .def(py::init([]() { return std::make_shared<CIARecord>(); }),
            "Empty record")
       .def(py::init([](const ArrayOfGriddedField2& data,
                        Species::Species spec1,
                        Species::Species spec2) {
-             return std::make_unique<CIARecord>(data, spec1, spec2);
+             return std::make_shared<CIARecord>(data, spec1, spec2);
            }),
            "From values")
       .PythonInterfaceCopyValue(CIARecord)
@@ -100,7 +100,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_unique<CIARecord>();
+            auto out = std::make_shared<CIARecord>();
             out->Data() = t[0].cast<ArrayOfGriddedField2>();
             out->TwoSpecies() = t[1].cast<std::array<Species::Species, 2>>();
             return out;

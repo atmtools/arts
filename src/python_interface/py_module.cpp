@@ -27,7 +27,7 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws);
+void py_workspace(artsclass<Workspace>& ws);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
 void py_xsec(py::module_& m);

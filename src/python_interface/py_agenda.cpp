@@ -42,11 +42,11 @@ std::filesystem::path correct_include_path(
 }
 
 void py_agenda(py::module_& m) try {
-  py::class_<CallbackFunction>(m, "CallbackFunction")
-      .def(py::init([]() { return std::make_unique<CallbackFunction>(); }), py::doc("Initialize as empty call"))
+  artsclass<CallbackFunction>(m, "CallbackFunction")
+      .def(py::init([]() { return std::make_shared<CallbackFunction>(); }), py::doc("Initialize as empty call"))
       .PythonInterfaceCopyValue(CallbackFunction)
       .def(py::init([](const std::function<void(const Workspace&)>& f) {
-        return std::make_unique<CallbackFunction>(f);
+        return std::make_shared<CallbackFunction>(f);
       }), py::doc("Initialize from python callable"))
       .def(
           "__call__",
@@ -69,8 +69,8 @@ Example
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
-  py::class_<Agenda>(m, "Agenda")
-      .def(py::init([]() { return std::make_unique<Agenda>(); }), "Create empty")
+  artsclass<Agenda>(m, "Agenda")
+      .def(py::init([]() { return std::make_shared<Agenda>(); }), "Create empty")
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .PythonInterfaceFileIO(Agenda)
       .def(
@@ -126,8 +126,8 @@ Parameters
            })
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
-  py::class_<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(py::init([]() { return std::make_unique<ArrayOfAgenda>(); }), "Create empty")
+  artsclass<ArrayOfAgenda>(m, "ArrayOfAgenda")
+      .def(py::init([]() { return std::make_shared<ArrayOfAgenda>(); }), "Create empty")
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
       .PythonInterfaceCopyValue(ArrayOfAgenda)
       .def(py::init([](std::vector<Agenda> va) {
@@ -219,7 +219,7 @@ Parameters
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
+            return std::make_shared<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
           }))
       .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
   py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();

@@ -12,8 +12,8 @@
 namespace Python {
 void py_species(py::module_& m) try {
   //! This class should behave as an `options` but we need also the "fromShortName" policy
-  py::class_<Species::Species>(m, "Species")
-      .def(py::init([]() { return std::make_unique<Species::Species>(); }), "Default value")
+  artsclass<Species::Species>(m, "Species")
+      .def(py::init([]() { return std::make_shared<Species::Species>(); }), "Default value")
       .def(py::init([](const std::string& c) {
         if (auto out = Species::fromShortName(c); good_enum(out)) return out;
         return Species::toSpeciesOrThrow(c);
@@ -26,12 +26,12 @@ void py_species(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<Species::Species>(
+            return std::make_shared<Species::Species>(
                 Species::toSpecies(t[0].cast<std::string>()));
           }));
   py::implicitly_convertible<std::string, Species::Species>();
 
-  py::class_<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
+  artsclass<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
            py::doc("Builtin values"))
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
@@ -51,19 +51,19 @@ void py_species(py::module_& m) try {
                 "Bad version")
             auto v = t[1].cast<
                 std::array<Numeric, SpeciesIsotopologueRatios::maxsize>>();
-            auto out = std::make_unique<SpeciesIsotopologueRatios>();
+            auto out = std::make_shared<SpeciesIsotopologueRatios>();
             out->data = v;
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
-  py::class_<ArrayOfSpecies>(m, "ArrayOfSpecies")
+  artsclass<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .PythonInterfaceBasicRepresentation(ArrayOfSpecies)
       .PythonInterfaceArrayDefault(Species::Species).doc() = "List of :class:`~pyarts.arts.Species`";
   py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
-  py::class_<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
+  artsclass<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
       .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
            py::arg("isot") = 0, "From position")
       .def(py::init([](const std::string& c) {
@@ -83,14 +83,14 @@ void py_species(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            return std::make_unique<SpeciesIsotopeRecord>(t[0].cast<Species::Species>(),
+            return std::make_shared<SpeciesIsotopeRecord>(t[0].cast<Species::Species>(),
                                             t[1].cast<std::string>(),
                                             t[2].cast<Numeric>(),
                                             t[3].cast<Index>());
           })).doc() = "An isotopologue record entry";
   py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
 
-  py::class_<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
+  artsclass<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
       .def(py::init([](bool full_list) -> ArrayOfIsotopeRecord {
              if (full_list) return ArrayOfIsotopeRecord{Species::Isotopologues};
              return ArrayOfIsotopeRecord{};
@@ -99,7 +99,7 @@ void py_species(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(ArrayOfIsotopeRecord)
       .PythonInterfaceIndexItemAccess(ArrayOfIsotopeRecord)
       .def(py::init([](const std::vector<SpeciesIsotopeRecord>& a) {
-        return std::make_unique<ArrayOfIsotopeRecord>(a);
+        return std::make_shared<ArrayOfIsotopeRecord>(a);
       }), "From :class:`list`")
       .def(
           "append",
@@ -116,7 +116,7 @@ void py_species(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<ArrayOfIsotopeRecord>(
+            return std::make_shared<ArrayOfIsotopeRecord>(
                 t[0].cast<std::vector<SpeciesIsotopeRecord>>());
           }))
       .doc() =
@@ -126,9 +126,9 @@ Initialize with ``ArrayOfIsotopeRecord(True)`` to get all
 available Arts isotopologues
 )";
 
-  py::class_<SpeciesTag>(m, "SpeciesTag")
-      .def(py::init([]() { return std::make_unique<SpeciesTag>(); }), "Empty tag")
-      .def(py::init([](const std::string& s) { return std::make_unique<SpeciesTag>(s); }), "From :class:`str`")
+  artsclass<SpeciesTag>(m, "SpeciesTag")
+      .def(py::init([]() { return std::make_shared<SpeciesTag>(); }), "Empty tag")
+      .def(py::init([](const std::string& s) { return std::make_shared<SpeciesTag>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(SpeciesTag)
       .def_readwrite("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq, ":class:`float` Lower cutoff frequency")
@@ -163,7 +163,7 @@ Returns
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
-            auto out = std::make_unique<SpeciesTag>();;
+            auto out = std::make_shared<SpeciesTag>();;
             out->spec_ind = t[0].cast<Index>();
             out->lower_freq = t[1].cast<Numeric>();
             out->upper_freq = t[2].cast<Numeric>();
@@ -173,11 +173,11 @@ Returns
           })).doc() = "The tag of a single absorption species";
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  py::class_<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag")
+  artsclass<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag")
       .PythonInterfaceBasicRepresentation(Array<SpeciesTag>)
       .PythonInterfaceArrayDefault(Species::Tag).doc() = "Internal array type - do not use manually ";
 
-  py::class_<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
+  artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
       .PythonInterfaceCopyValue(ArrayOfSpeciesTag)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
@@ -189,14 +189,14 @@ Returns
            [](const ArrayOfSpeciesTag &x) {
              return std::hash<ArrayOfSpeciesTag>{}(x);
            })
-      .def(py::init([]() { return std::make_unique<ArrayOfSpeciesTag>(); }), "Empty list")
+      .def(py::init([]() { return std::make_shared<ArrayOfSpeciesTag>(); }), "Empty list")
       .def(py::init(
-          [](const std::string& s) { return std::make_unique<ArrayOfSpeciesTag>(s); }), "From :class:`str`")
+          [](const std::string& s) { return std::make_shared<ArrayOfSpeciesTag>(s); }), "From :class:`str`")
       .def(py::init([](Index a, SpeciesTag b) {
-        return std::make_unique<ArrayOfSpeciesTag>(a, b);
+        return std::make_shared<ArrayOfSpeciesTag>(a, b);
       }))
       .def(py::init([](const std::vector<SpeciesTag>& v) {
-        return std::make_unique<ArrayOfSpeciesTag>(v);
+        return std::make_shared<ArrayOfSpeciesTag>(v);
       }), "From :class:`list`")
       .def(
           "append",
@@ -219,7 +219,7 @@ Returns
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
+            return std::make_shared<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
   py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();

@@ -10,11 +10,11 @@
 
 namespace Python {
 void py_nlte(py::module_& m) try {
-  py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
+  artsclass<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
       .def(py::init(
-          []() { return std::make_unique<VibrationalEnergyLevels>(); }))
+          []() { return std::make_shared<VibrationalEnergyLevels>(); }))
       .def(py::init([](std::map<QuantumIdentifier, Numeric> &in) {
-        auto out = std::make_unique<VibrationalEnergyLevels>();
+        auto out = std::make_shared<VibrationalEnergyLevels>();
         for (auto &x : in) {
           out->operator[](x.first) = x.second;
         }
@@ -53,7 +53,7 @@ void py_nlte(py::module_& m) try {
             const auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
 
-            auto out = std::make_unique<VibrationalEnergyLevels>();
+            auto out = std::make_shared<VibrationalEnergyLevels>();
             for (std::size_t i = 0; i < v.size(); i++) {
               out->operator[](qn[i]) = v[i];
             }

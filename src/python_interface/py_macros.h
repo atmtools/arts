@@ -159,16 +159,16 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
       .PythonInterfaceArrayEquality(Array<BaseType>)                           \
       .PythonInterfaceCopyValue(Array<BaseType>)                               \
-      .def(py::init([]() { return std::make_unique<Array<BaseType>>(); }),     \
+      .def(py::init([]() { return std::make_shared<Array<BaseType>>(); }),     \
            py::doc("Empty array"))                                             \
       .def(py::init([](Index n, const BaseType& v) {                           \
-             return std::make_unique<Array<BaseType>>(n, v);                   \
+             return std::make_shared<Array<BaseType>>(n, v);                   \
            }),                                                                 \
            py::arg("size"),                                                    \
            py::arg("cval"),                                                    \
            py::doc("Sized same-value array"))                                  \
       .def(py::init([](const std::vector<BaseType>& v) {                       \
-             return std::make_unique<Array<BaseType>>(v);                      \
+             return std::make_shared<Array<BaseType>>(v);                      \
            }),                                                                 \
            py::arg("arr"),                                                     \
            py::doc("Array from :class:`list`"))                                \
@@ -236,7 +236,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           },                                                                   \
           [](const py::tuple& t) {                                             \
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")                \
-            return std::make_unique<Array<BaseType>>(                          \
+            return std::make_shared<Array<BaseType>>(                          \
                 t[0].cast<std::vector<BaseType>>());                           \
           }))
 
@@ -285,7 +285,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(py::self > py::self)
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                       \
-  def(py::init([](const Type &x) { return std::make_unique<Type>(x); }),       \
+  def(py::init([](const Type &x) { return std::make_shared<Type>(x); }),       \
       py::arg("val"), py::doc("Copy instance"))
 
 //! Place at the end!
@@ -318,7 +318,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 */
 #define PythonInterfaceWorkspaceArray(BaseType)                               \
   auto auto_impl_name##BaseType =                                             \
-      py::class_<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);                  \
+      artsclass<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);                   \
   auto_impl_name##BaseType.PythonInterfaceWorkspaceDocumentationExtra(        \
       ArrayOf##BaseType,                                                      \
       "\n\nIt aims to be compatible with :class:`list` of :class:`" #BaseType \
@@ -370,7 +370,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
             auto grids =                                                        \
                 t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();  \
                                                                                 \
-            auto out = std::make_unique<Type>(name);                            \
+            auto out = std::make_shared<Type>(name);                            \
             out->data = data;                                                   \
             for (Index i = 0; i < out->get_dim(); i++) {                        \
               out->set_grid_name(i, grid_names[i]);                             \

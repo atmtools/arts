@@ -110,7 +110,7 @@ struct Wsv {
   template <WorkspaceGroup T> Wsv(T* x) : value(std::shared_ptr<T>(x, [](void*){})) {}
 
   //! Share value as workspace variable
-  template <WorkspaceGroup T> Wsv(std::shared_ptr<T> x) : value(std::move(x)) {}
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x) : value(std::move(x)) {}
 
   //! Must declare destructor to avoid incomplete type error
   Wsv() = default;

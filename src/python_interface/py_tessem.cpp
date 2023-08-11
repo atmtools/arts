@@ -4,8 +4,8 @@
 
 namespace Python {
 void py_tessem(py::module_& m) try {
-  py::class_<TessemNN>(m, "TessemNN")
-      .def(py::init([]() { return std::make_unique<TessemNN>(); }), "Empty default")
+  artsclass<TessemNN>(m, "TessemNN")
+      .def(py::init([]() { return std::make_shared<TessemNN>(); }), "Empty default")
       .PythonInterfaceCopyValue(TessemNN)
       .PythonInterfaceWorkspaceVariableConversion(TessemNN)
       .PythonInterfaceFileIO(TessemNN)
@@ -37,7 +37,7 @@ void py_tessem(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 11, "Invalid state!")
-            return std::make_unique<TessemNN>(TessemNN{t[0].cast<Index>(),
+            return std::make_shared<TessemNN>(TessemNN{t[0].cast<Index>(),
                                 t[1].cast<Index>(),
                                 t[2].cast<Index>(),
                                 t[3].cast<Vector>(),

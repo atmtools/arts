@@ -24,17 +24,17 @@ std::string variable(const std::string& name,
       return w.share(")--" << name << R"--(") -> share_unsafe<)--" << wsv.type<< R"--(>();
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
-     << wsv.type << R"--( val) -> void {
-      auto& ws_val = w.get_or<)--"
-     << wsv.type << R"--(>(")--" << name << R"--(");
-      ws_val = std::move(val);
+     << fix_type(wsv.type) << R"--( val) -> void {
+      w.set(")--" << name << R"--(", std::make_shared<Wsv>(std::move(val)--";
+      if (wsv.type == "Numeric" or wsv.type == "Index") os << ".val"; 
+      os << R"--()));
 )--";
 
   if (wsv.type == "Agenda")
-    os << "      ws_val.set_name(\"" << name
+    os << "      auto& ws_val = w.get<"<<wsv.type<<">(\""<<name<<"\");\n      ws_val.set_name(\"" << name
        << "\");\n      ws_val.finalize();\n";
   if (wsv.type == "ArrayOfAgenda")
-    os << "      for (auto&ws_value: ws_val) {\n        ws_value.set_name(\""
+    os << "      auto& ws_val = w.get<"<<wsv.type<<">(\""<<name<<"\");\n      for (auto&ws_value: ws_val) {\n        ws_value.set_name(\""
        << name << "\");\n        ws_value.finalize();\n      }\n";
 
   os << "    }, py::doc(R\"-x-(:class:`~pyarts.arts." << wsv.type << "` "
@@ -73,7 +73,7 @@ void variables(const std::string& fname) {
   os << R"--(#include <python_interface.h>
 
 namespace Python {
-void py_auto_wsv(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {
+void py_auto_wsv(artsclass<Workspace>& ws [[maybe_unused]]) {
 )--";
 
   for (auto& [name, wsv] : wsvs) {
@@ -678,7 +678,7 @@ void methods(const std::string& fname) {
 #include <m_xml.h>
 
 namespace Python {
-void py_auto_wsm(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_unused]]) {
+void py_auto_wsm(artsclass<Workspace>& ws [[maybe_unused]]) {
 )--";
 
   for (auto& [name, wsv] : wsms) {

@@ -10,7 +10,7 @@ namespace Python {
 void py_global(py::module_& m) try {
   auto global = m.def_submodule("globals");
 
-  py::class_<Parameters>(global, "parameters")
+  artsclass<Parameters>(global, "parameters")
       .def_readwrite_static(
           "includepath",
           &parameters.includepath,
@@ -27,7 +27,7 @@ void py_global(py::module_& m) try {
               ":class:`~pyarts.arts.Index` Number of threads allowed to start"))
       .doc() = "Access to static settings data";
 
-  py::class_<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
+  artsclass<WorkspaceGroupRecord>(global, "WorkspaceGroupRecord")
       .def_readonly("file", &WorkspaceGroupRecord::file)
       .def_readonly("desc", &WorkspaceGroupRecord::desc);
 
@@ -38,7 +38,7 @@ void py_global(py::module_& m) try {
               "Return\n------\n:class:`dict`"
               "\n    Map of variables"));
 
-  py::class_<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
+  artsclass<WorkspaceVariableRecord>(global, "WorkspaceVariableRecord")
       .def_readonly("default_value", &WorkspaceVariableRecord::default_value)
       .def_readonly("type", &WorkspaceVariableRecord::type)
       .def_readonly("desc", &WorkspaceVariableRecord::desc);
@@ -50,7 +50,7 @@ void py_global(py::module_& m) try {
               "Return\n------\n:class:`dict`"
               "\n    Map of variables"));
 
-  py::class_<WorkspaceMethodInternalRecord>(global,
+  artsclass<WorkspaceMethodInternalRecord>(global,
                                             "WorkspaceMethodInternalRecord")
       .def_readonly("output", &WorkspaceMethodInternalRecord::out)
       .def_readonly("input", &WorkspaceMethodInternalRecord::in)
