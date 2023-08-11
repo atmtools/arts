@@ -216,8 +216,7 @@ void py_agenda(py::module_& m) {
       }), py::doc("Initialize from python callable"))
       .def(
           "__call__",
-          [](CallbackFunction& f, Workspace& ws) { f(ws); },
-          py::is_operator())
+          [](CallbackFunction& f, Workspace& ws) { f(ws); })
       .PythonInterfaceWorkspaceDocumentationExtra(CallbackFunction, R"(
 
 An instance of this object can be called taking only an
