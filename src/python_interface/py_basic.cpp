@@ -72,15 +72,15 @@ be accessed without copy using element-wise access operators)--");
       .def(py::init([](Numeric n) { return std::make_unique<Numeric_>(n); }), "Create from :class:`float`")
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
-      .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(x.val)); })
+      .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(*x.val)); })
       .PythonInterfaceCommonMath(Numeric)
       .PythonInterfaceCommonMath(Index_)
       .PythonInterfaceCommonMath(Index)
       .PythonInterfaceCommonMathSelf
       .def_property(
           "value",
-          [](Numeric_& x) { return x.val; },
-          [](Numeric_& x, Numeric_ y) { x.val = y.val; }, "Value of instance as :class:`float`")
+          [](Numeric_& x) { return *x.val; },
+          [](Numeric_& x, Numeric_ y) { *x.val = *y.val; }, "Value of instance as :class:`float`")
       .def("__repr__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
       .def("__str__", [](const Numeric_& x){return var_string(x);}, py::is_operator())
       .def(
@@ -90,7 +90,7 @@ be accessed without copy using element-wise access operators)--");
              const char* const type,
              bool clobber) {
             xml_write_to_file(file,
-                              x.val,
+                              *x.val,
                               string2filetype(type),
                               clobber ? 0 : 1);
           },
@@ -113,7 +113,7 @@ be accessed without copy using element-wise access operators)--");
       .def(
           "readxml",
           [](Numeric_& x, const char* const file) {
-            xml_read_from_file(file, x.val);
+            xml_read_from_file(file, *x.val);
           },
           py::arg("file").none(false),
           py::doc("Read Numeric from file\n"
@@ -124,7 +124,7 @@ be accessed without copy using element-wise access operators)--");
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
       .def(py::pickle(
-          [](const Numeric_& self) { return py::make_tuple(self.val); },
+          [](const Numeric_& self) { return py::make_tuple(*self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<Numeric_>(t[0].cast<Numeric>());
@@ -136,14 +136,14 @@ be accessed without copy using element-wise access operators)--");
       .def(py::init([](Index i) { return std::make_unique<Index_>(i); }), "Create from :class:`int`")
       .PythonInterfaceCopyValue(Index_)
       .PythonInterfaceWorkspaceVariableConversion(Index_)
-      .def("__hash__", [](Index_& x) { return py::hash(py::int_(x.val)); })
+      .def("__hash__", [](Index_& x) { return py::hash(py::int_(*x.val)); })
       .PythonInterfaceCommonMath(Numeric)
       .PythonInterfaceCommonMath(Index)
       .PythonInterfaceCommonMathSelf
       .def_property(
           "value",
-          [](Index_& x) { return x.val; },
-          [](Index_& x, Index_ y) { x.val = y.val; }, "Value of instance as :class:`int`")
+          [](Index_& x) { return *x.val; },
+          [](Index_& x, Index_ y) { *x.val = *y.val; }, "Value of instance as :class:`int`")
       .def("__repr__", [](const Index_& x){return var_string(x);}, py::is_operator())
       .def("__str__", [](const Index_& x){return var_string(x);}, py::is_operator())
       .def(
@@ -153,7 +153,7 @@ be accessed without copy using element-wise access operators)--");
              const char* const type,
              bool clobber) {
             xml_write_to_file(file,
-                              x.val,
+                              *x.val,
                               string2filetype(type),
                               clobber ? 0 : 1);
           },
@@ -176,7 +176,7 @@ be accessed without copy using element-wise access operators)--");
       .def(
           "readxml",
           [](Index_& x, const char* const file) {
-            xml_read_from_file(file, x.val);
+            xml_read_from_file(file, *x.val);
           },
           py::arg("file").none(false),
           py::doc("Read Index from file\n"
@@ -187,7 +187,7 @@ be accessed without copy using element-wise access operators)--");
                   "On Error:\n"
                   "    Throws RuntimeError for any failure to read"))
       .def(py::pickle(
-          [](const Index_& self) { return py::make_tuple(self.val); },
+          [](const Index_& self) { return py::make_tuple(*self.val); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_unique<Index_>(t[0].cast<Index>());

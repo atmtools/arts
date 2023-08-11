@@ -109,6 +109,9 @@ struct Wsv {
   //! Borrow value as workspace variable
   template <WorkspaceGroup T> Wsv(T* x) : value(std::shared_ptr<T>(x, [](void*){})) {}
 
+  //! Share value as workspace variable
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T> x) : value(std::move(x)) {}
+
   //! Must declare destructor to avoid incomplete type error
   Wsv() = default;
   Wsv(const Wsv&) = default;
@@ -129,12 +132,12 @@ struct Wsv {
   [[nodiscard]] Wsv copy() const;
 
   template <WorkspaceGroup T>
-  [[nodiscard]] T& get_unsafe() const {
-    return **std::get_if<std::shared_ptr<T>>(&value);
+  [[nodiscard]] std::shared_ptr<T> share_unsafe() const {
+    return *std::get_if<std::shared_ptr<T>>(&value);
   }
 
   template <WorkspaceGroup T>
-  [[nodiscard]] T& get() const {
+  [[nodiscard]] std::shared_ptr<T> share() const {
     if (not holds<T>()) {
       throw std::runtime_error(var_string("Cannot use workspace variable of workspace group ",
                                           std::quoted(type_name()),
@@ -142,7 +145,17 @@ struct Wsv {
                                           std::quoted(WorkspaceGroupInfo<T>::name)));
     }
 
-    return get_unsafe<T>();
+    return share_unsafe<T>();
+  }
+
+  template <WorkspaceGroup T>
+  [[nodiscard]] T& get_unsafe() const {
+    return *share_unsafe<T>();
+  }
+
+  template <WorkspaceGroup T>
+  [[nodiscard]] T& get() const {
+    return *share<T>();
   }
 
   static Wsv from_named_type(const std::string& type);

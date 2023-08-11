@@ -1,5 +1,6 @@
 #include <python_interface.h>
 
+#include <memory>
 #include <type_traits>
 #include <vector>
 
@@ -46,10 +47,10 @@ void py_matpack(py::module_& m) try {
           })).doc() = "A range, used to select parts of a matpack type";
 
 
-  py::class_<Vector>(m, "Vector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Vector>(); }), "Default vector")
+  artsclass<Vector>(m, "Vector", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Vector>(); }), "Default vector")
       .def(py::init([](const std::vector<Scalar>& v) {
-             auto out = std::make_unique<Vector>(v.size());;
+             auto out = std::make_shared<Vector>(v.size());;
              for (size_t i = 0; i < v.size(); i++)
                out->operator[](i) = std::visit(
                    [](auto&& x) { return static_cast<Numeric>(x); }, v[i]);

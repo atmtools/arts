@@ -63,22 +63,16 @@ void py_workspace(py::class_<Workspace, std::shared_ptr<Workspace>>& ws) try {
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w; })
       .def(
           "_get",
-          [](Workspace& w, const std::string& n) { return to(w.share(n)); },
+          [](Workspace& w, const std::string& n) { return from(w.share(n)); },
           py::return_value_policy::reference_internal,
           py::keep_alive<0, 1>())
       .def("_set",
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
+            py::print("OI");
              w.set(n, std::make_shared<Wsv>(from(x)));
            })
       .def("_has", [](Workspace& w, const std::string& n) {
-        if (w.contains(n)) {
-          return true;
-        }
-        if (workspace_variables().contains(n)) {
-          w.init(n);
-          return true;
-        }
-        return false;
+        return w.contains(n);
       });
 
   ws.def("__str__", [](const Workspace& w) {

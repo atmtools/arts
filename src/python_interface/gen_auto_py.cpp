@@ -8,10 +8,9 @@
 
 #include "pydocs.h"
 
-std::string fix_variable(const std::string& name) {
-  std::string result = name;
-  if ("Numeric" == name or "Index" == name) result += "_";
-  return result;
+std::string fix_type(const std::string& name) {
+  if ("Numeric" == name or "Index" == name) return name + "_";
+  return "std::shared_ptr<" + name + ">";
 }
 
 std::string variable(const std::string& name,
@@ -21,9 +20,8 @@ std::string variable(const std::string& name,
   os << "  ws.def_property(\"" << name << "\",";
   os << R"--(
     py::cpp_function([](Workspace& w) -> )--"
-     << fix_variable(wsv.type) << R"--(& {
-      return *reinterpret_cast<)--" << fix_variable(wsv.type) << R"--(*>(&w.get_or<)--"
-     << wsv.type << R"--(>(")--" << name << R"--("));
+     << fix_type(wsv.type) << R"--( {
+      return w.share(")--" << name << R"--(") -> share_unsafe<)--" << wsv.type<< R"--(>();
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
      << wsv.type << R"--( val) -> void {
@@ -84,7 +82,7 @@ void py_auto_wsv(py::class_<Workspace, std::shared_ptr<Workspace>>& ws [[maybe_u
   os << "}\n}  // namespace Python\n";
 }
 
-std::vector<std::string> supergeneric_variable(const std::string& t) {
+std::vector<std::string> supergeneric_type(const std::string& t) {
   std::vector<std::string> types;
   std::string type = t;
   auto ptr = type.find(',');
@@ -99,6 +97,11 @@ std::vector<std::string> supergeneric_variable(const std::string& t) {
     while (T.back() == ' ') T.pop_back();
     while (T.front() == ' ') T.erase(0, 1);
   }
+
+  for (auto& T : types) {
+    T = fix_type(T);
+  }
+
   return types;
 }
 
@@ -109,14 +112,14 @@ std::vector<std::string> unique_sorted(const std::vector<std::string>& v) {
   return out;
 }
 
-std::vector<std::vector<std::string>> supergeneric_variables(
+std::vector<std::vector<std::string>> supergeneric_types(
     const WorkspaceMethodInternalRecord& wsm) {
   std::vector<std::vector<std::string>> out;
 
   for (auto& t : wsm.gout_type) {
     if (t.find(',') == t.npos) continue;
 
-    const auto types = supergeneric_variable(t);
+    const auto types = supergeneric_type(t);
 
     if (not out.size()) {
       out.resize(types.size());
@@ -129,7 +132,7 @@ std::vector<std::vector<std::string>> supergeneric_variables(
   for (auto& t : wsm.gin_type) {
     if (t.find(',') == t.npos) continue;
 
-    const auto types = supergeneric_variable(t);
+    const auto types = supergeneric_type(t);
 
     if (not out.size()) {
       out.resize(types.size());
@@ -143,23 +146,23 @@ std::vector<std::vector<std::string>> supergeneric_variables(
 
 std::string method_g_types(const std::string& type) {
   if (type == "Any") {
-    return "Wsv *";
+    return "PyWsvValue";
   }
 
   if (type.find(',') != type.npos) {
     std::ostringstream os;
     os << "std::variant<";
     bool first = true;
-    for (auto&& t : unique_sorted(supergeneric_variable(type))) {
+    for (auto&& t : unique_sorted(supergeneric_type(type))) {
       if (not first) os << ", ";
       first = false;
-      os << t << " *";
+      os << t;
     }
     os << ">";
     return os.str();
   }
 
-  return type + " *";
+  return fix_type(type);
 }
 
 std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
@@ -170,7 +173,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   os << "\n    Workspace& _ws [[maybe_unused]]";
 
   for (auto& t : wsm.out) {
-    os << ",\n    std::optional<" << wsvs.at(t).type << " *>& _" << t;
+    os << ",\n    std::optional<" << fix_type(wsvs.at(t).type) << ">& _" << t;
   }
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
@@ -180,7 +183,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
-    os << ",\n    const std::optional<" << wsvs.at(t).type << " *>& _" << t;
+    os << ",\n    const std::optional<" << fix_type(wsvs.at(t).type) << ">& _" << t;
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
@@ -191,17 +194,38 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   return os.str();
 }
 
+std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
+  return std::ranges::count(wsm.gout_type, "Any") +
+         std::ranges::count(wsm.gin_type, "Any");
+}
+
+bool uses_variadic(const std::string& v) {
+  return [](const std::string& s) { return s.find(',') != s.npos; }(v);
+}
+
+bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
+  return std::ranges::any_of(
+             wsm.gout_type,
+             [](const std::string& s) { return s.find(',') != s.npos; }) or
+         std::ranges::any_of(wsm.gin_type, [](const std::string& s) {
+           return s.find(',') != s.npos;
+         });
+}
+
 std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
-    std::string t = method_g_types(wsm.gout_type[i]);
-    if (t.back() == '*')
-      t.back() = '&';
-    else
-      t += '&';
-    os << "      " << t << " " << wsm.gout[i] << " = select_gout(_"
-       << wsm.gout[i] << ", \"" << wsm.gout[i] << "\");\n";
+    if (wsm.gout_type[i] == "Any" or uses_variadic(wsm.gout_type[i])) {
+      os << "      Wsv " << wsm.gout[i] << " = _" << wsm.gout[i] << " ? from(_"
+         << wsm.gout[i]
+         << R"(.value()) : throw std::runtime_error("Unknown output: \")"
+         << wsm.gout[i] << "\\\"\");\n";
+    } else {
+      os << "      auto& " << wsm.gout[i] << " = select_gout<"
+         << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", \"" << wsm.gout[i]
+         << "\");\n";
+    }
   }
 
   return os.str();
@@ -214,25 +238,27 @@ std::string method_gin_selection(const std::string& name,
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     const bool has_default = wsm.gin_value[i].has_value();
 
-    std::string t = method_g_types(wsm.gin_type[i]);
-    if (t.back() == '*')
-      t.back() = '&';
-    else
-      t += '&';
-
-    if (has_default) {
-      os << "      const static " << t << " _" << wsm.gin[i]
-         << "_default = []() -> const " << wsm.gin_type[i]
-         << "& { try { return workspace_methods().at(\"" << name
-         << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
-         << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
-         << name << R"(\" default value \")" << wsm.gin[i]
-         << "\\\"\"); } }();\n";
-      os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
-         << wsm.gin[i] << ", _" << wsm.gin[i] << "_default);\n";
+    if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
+      os << "      Wsv " << wsm.gin[i] << " = _" << wsm.gin[i]
+         << " ? from(_" << wsm.gin[i]
+         << R"(.value()) : throw std::runtime_error("Unknown input: \")"
+         << wsm.gin[i] << "\\\"\");\n";
     } else {
-      os << "      const " << t << " " << wsm.gin[i] << " = select_gin(_"
-         << wsm.gin[i] << ", \"" << wsm.gin[i] << "\");\n";
+      if (has_default) {
+        os << "      static auto _" << wsm.gin[i]
+           << "_default = []() { try { return workspace_methods().at(\"" << name
+           << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
+           << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
+           << name << R"(\" default value \")" << wsm.gin[i]
+           << "\\\"\"); } }();\n";
+        os << "      auto& " << wsm.gin[i] << " = select_gin<"
+           << wsm.gin_type[i] << ">(_" << wsm.gin[i] << ", _" << wsm.gin[i]
+           << "_default);\n";
+      } else {
+        os << "      auto& " << wsm.gin[i] << " = select_gin<"
+           << wsm.gin_type[i] << ">(_" << wsm.gin[i] << ", \"" << wsm.gin[i]
+           << "\");\n";
+      }
     }
   }
 
@@ -246,38 +272,24 @@ std::string method_argument_selection(
   std::ostringstream os;
 
   for (auto& t : wsm.out) {
-    os << "      " << wsvs.at(t).type << "& " << t << " = select_";
+    os << "      auto& " << t << " = select_";
     if (std::ranges::any_of(wsm.in, Cmp::eq(t))) {
       os << "in";
     }
-    os << "out(_" << t << ", _ws, \"" << t << "\");\n";
+    os << "out<" << wsvs.at(t).type << ">(_" << t << ", _ws, \"" << t << "\");\n";
   }
 
   os << method_gout_selection(wsm);
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
-    os << "      const " << wsvs.at(t).type << "& " << t << " = select_in(_"
+    os << "      auto& " << t << " = select_in<"<<wsvs.at(t).type<<">(_"
        << t << ", _ws, \"" << t << "\");\n";
   }
 
   os << method_gin_selection(name, wsm);
 
   return os.str();
-}
-
-std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
-  return std::ranges::count(wsm.gout_type, "Any") +
-         std::ranges::count(wsm.gin_type, "Any");
-}
-
-bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
-  return std::ranges::any_of(
-             wsm.gout_type,
-             [](const std::string& s) { return s.find(',') != s.npos; }) or
-         std::ranges::any_of(wsm.gin_type, [](const std::string& s) {
-           return s.find(',') != s.npos;
-         });
 }
 
 std::string unnamed_method_resolution_any(
@@ -361,7 +373,7 @@ std::string unnamed_method_resolution_any(
 
 bool is_unique_variadic(const WorkspaceMethodInternalRecord& wsm) {
   for (auto& t : wsm.gout_type) {
-    auto supergenerics = supergeneric_variable(t);
+    auto supergenerics = supergeneric_type(t);
     auto unique = unique_sorted(supergenerics);
     if (unique.size() != supergenerics.size()) return false;
     if (not std::is_permutation(
@@ -372,21 +384,31 @@ bool is_unique_variadic(const WorkspaceMethodInternalRecord& wsm) {
   return true;
 }
 
+std::vector<std::string> unfix(std::vector<std::string> a) {
+  for (auto& b: a) {
+    if (b == "Numeric_") b = "std::shared_ptr<Numeric>";
+    if (b == "Index_") b = "std::shared_ptr<Index>";
+  }
+  return a;
+}
+
 std::string unnamed_method_resolution_variadic(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   const std::vector<std::vector<std::string>> supergenerics =
-      supergeneric_variables(wsm);
+      supergeneric_types(wsm);
   if (is_unique_variadic(wsm)) {
     os << "      std::visit([&] (auto& _t) {"
-          "\n        using _tT=std::remove_cvref_t<decltype(*_t)>;";
+          "\n        using _tT=std::remove_cvref_t<decltype(_t)>;";
 
     std::string var = "";
+    os << "\n        if constexpr (false) {}";
     for (auto& generics : supergenerics) {
       std::size_t i_comma = 0;
+      auto ungen = unfix(generics);
 
-      os << "\n        if constexpr (std::is_same_v<_tT, " << generics[0]
+      os << "\n        else if constexpr (std::is_same_v<_tT, " << ungen[0]
          << ">) " << name << "(";
 
       bool first = true;
@@ -406,8 +428,8 @@ std::string unnamed_method_resolution_variadic(
             os << "*_t";
             var = wsm.gout[i];
           } else {
-            os << "*std::get<" << generics[i_comma] << "*>(" << wsm.gout[i]
-               << ")";
+            os << "*std::get<" << ungen[i_comma] << ">(" << wsm.gout[i]
+               << ".value)";
           }
           i_comma++;
         } else {
@@ -432,8 +454,8 @@ std::string unnamed_method_resolution_variadic(
             os << "*_t";
             var = wsm.gin[i];
           } else {
-            os << "*std::get<" << generics[i_comma] << "*>(" << wsm.gin[i]
-               << ")";
+            os << "*std::get<" << ungen[i_comma] << ">(" << wsm.gin[i]
+               << ".value)";
           }
           i_comma++;
         } else {
@@ -443,11 +465,12 @@ std::string unnamed_method_resolution_variadic(
 
       os << ");";
     }
-    os << "\n        }, " << var << ");\n";
+    os << "\n        else throw std::runtime_error(\"Bad combination in \\\"" << name << R"(\""); }, )" << var << ".value);\n";
   } else {
     os << "      ";
     for (auto& generics : supergenerics) {
       std::size_t i_comma = 0;
+      auto ungen = unfix(generics);
 
       os << "if (";
       for (std::size_t i = 0; i < wsm.gout.size(); i++) {
@@ -455,8 +478,8 @@ std::string unnamed_method_resolution_variadic(
         if (t.find(',') != t.npos) {
           if (i_comma > 0) os << " and ";
           os << "std::holds_alternative<";
-          os << generics[i_comma++];
-          os << "*>(" << wsm.gout[i] << ")";
+          os << ungen[i_comma++];
+          os << ">(" << wsm.gout[i] << ".value)";
         }
       }
       for (std::size_t i = 0; i < wsm.gin.size(); i++) {
@@ -464,8 +487,8 @@ std::string unnamed_method_resolution_variadic(
         if (t.find(',') != t.npos) {
           if (i_comma > 0) os << " and ";
           os << "std::holds_alternative<";
-          os << generics[i_comma++];
-          os << "*>(" << wsm.gin[i] << ")";
+          os << ungen[i_comma++];
+          os << ">(" << wsm.gin[i] << ".value)";
         }
       }
       os << ") {\n        " << name << '(';
@@ -483,8 +506,8 @@ std::string unnamed_method_resolution_variadic(
 
         auto& t = wsm.gout_type[i];
         if (t.find(',') != t.npos) {
-          os << "**std::get_if<" << generics[i_comma] << "*>(&" << wsm.gout[i]
-             << ")";
+          os << "**std::get_if<" << ungen[i_comma] << ">(&" << wsm.gout[i]
+             << ".value)";
           i_comma++;
         } else {
           os << wsm.gout[i];
@@ -504,8 +527,8 @@ std::string unnamed_method_resolution_variadic(
 
         auto& t = wsm.gin_type[i];
         if (t.find(',') != t.npos) {
-          os << "**std::get_if<" << generics[i_comma] << "*>(&" << wsm.gin[i]
-             << ")";
+          os << "**std::get_if<" << ungen[i_comma] << ">(&" << wsm.gin[i]
+             << ".value)";
           i_comma++;
         } else {
           os << wsm.gin[i];
@@ -674,53 +697,83 @@ void groups(const std::string& fname) {
 #include <python_interface_value_type.h>
 
 namespace Python {
-  using PyWsvValue = std::variant<
-    )--";
+using PyWsvValue = std::variant<
+  )--";
 
   bool first = true;
   for (auto& [name, wsg] : wsgs) {
     if (not first) hos << ",\n    ";
     first = false;
-    hos << "    " << name;
-    if (name == "Index" or name == "Numeric") hos << '_';
-    hos << '*';
+    hos << "  ";
+    if (name == "Index" or name == "Numeric") {
+      hos << name << '_';
+    } else {
+      hos << "std::shared_ptr<" << name << '>';
+    }
   }
 
   hos << R"--(>;
 
-  Wsv from(const PyWsvValue& x);
-  PyWsvValue to(const std::shared_ptr<Wsv>& x);
+template <typename T>
+concept PythonWorkspaceGroup =
+       )--";
+
+  first = true;
+  for (auto& [name, wsg] : wsgs) {
+    if (not first) hos << "\n    || ";
+    first = false;
+    hos << "std::is_same_v<T, " << name;
+    if (name == "Index" or name == "Numeric") {
+      hos << '_';
+    }
+    hos << '>';
+  }
+
+  hos << R"--(;
+
+template <PythonWorkspaceGroup T>
+Wsv from(const std::shared_ptr<T>& x) {
+  Wsv out;
+  if constexpr (WorkspaceGroup<T>)
+    out.value = x;
+  else
+    out.value = x.val;
+  return out;
+}
+
+template <WorkspaceGroup T>
+Wsv from(const ValueHolder<T>& x) {
+  Wsv out;
+  out.value = x.val;
+  return out;
+}
+
+template <typename T>
+concept Wsvable = requires (T x) {
+  { from(x) } -> std::same_as<Wsv>;
+};
+
+template <Wsvable ... Ts>
+Wsv from(const std::variant<Ts...>& x) {
+  return std::visit([](auto& arg) -> Wsv {
+    return from(arg);
+  }, x);
+}
+
+PyWsvValue from(const std::shared_ptr<Wsv>& x);
 }  // namespace Python
 )--";
 
   std::ofstream cos(fname + ".cpp");
 
-  cos << "#include <python_interface.h>\n";
-  cos << R"--(
-namespace Python {
-  Wsv from(const PyWsvValue& x) {
-    return std::visit([](auto&& arg) -> Wsv {
-      using T = std::remove_cvref_t<decltype(arg)>;
-      if constexpr (std::same_as<Numeric_*, T> or std::same_as<Index_*, T>) {
-        return arg -> val;
-      } else {
-        return *arg;
-      }
-    }, x);
-  }
+  cos << R"--(#include <py_auto_wsg.h>
 
-  PyWsvValue to(const std::shared_ptr<Wsv>& x) {
-    return std::visit([](auto&& arg) -> PyWsvValue {
-      using T = std::remove_cvref_t<decltype(arg)>;
-      if constexpr (std::same_as<std::shared_ptr<Numeric>, T>) {
-        return reinterpret_cast<Numeric_*>(arg.get());
-      } else if constexpr (std::same_as<std::shared_ptr<Index>, T>) {
-        return reinterpret_cast<Index_*>(arg.get());
-      } else {
-        return arg.get();
-      }
-    }, x -> value);
-  }
+namespace Python {
+PyWsvValue from(const std::shared_ptr<Wsv>& x) {
+  return std::visit([](auto& arg) -> PyWsvValue {
+    return arg;
+  }, x -> value);
+}
 }  // namespace Python
 )--";
 }

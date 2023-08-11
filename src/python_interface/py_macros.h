@@ -84,9 +84,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                                                  " in object of size [0, ", \
                                                  x.size(),                  \
                                                  ")"));                     \
-            return as_ref(x[i]);                                            \
+            return x[i];                                                    \
           },                                                                \
-          py::return_value_policy::reference_internal)                      \
+          py::return_value_policy::reference_internal,                      \
+          py::keep_alive<0, 1>())                                           \
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \

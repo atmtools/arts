@@ -78,9 +78,9 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
-  [[nodiscard]] T& get_or(const std::string& name) {
+  [[nodiscard]] std::shared_ptr<T> share_or(const std::string& name) {
     if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {
-      return ptr->second->get<T>();
+      return ptr->second->template share<T>();
     }
 
     std::shared_ptr<Wsv> out;
@@ -91,7 +91,13 @@ class Workspace {
     }
 
     set(name, out);
-    return out->get<T>();
+    return out->share_unsafe<T>();
+  }
+
+  //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
+  template <WorkspaceGroup T>
+  [[nodiscard]] T& get_or(const std::string& name) {
+    return *share_or<T>(name);
   }
 
   [[nodiscard]] bool contains(const std::string& name) const;
