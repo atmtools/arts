@@ -1,5 +1,27 @@
 ########################################################################################
+if (NOT NUM_PYARTS_WSM)
+    set(NUM_PYARTS_WSM 10)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
 
+if (NOT NUM_PYARTS_WSV)
+    set(NUM_PYARTS_WSV 3)
+endif()
+message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
+
+set(PYARTS_WORKSPACE_METHODS "")
+list(LENGTH PYARTS_WORKSPACE_METHODS N)
+while (N LESS NUM_PYARTS_WSM)
+    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_wsm_${N}.cpp")
+    list(LENGTH PYARTS_WORKSPACE_METHODS N)
+endwhile()
+
+set(PYARTS_WORKSPACE_VARS "")
+list(LENGTH PYARTS_WORKSPACE_VARS N)
+while (N LESS NUM_PYARTS_WSV)
+    list(APPEND PYARTS_WORKSPACE_VARS "py_auto_wsv_${N}.cpp")
+    list(LENGTH PYARTS_WORKSPACE_VARS N)
+endwhile()
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
@@ -7,17 +29,18 @@ target_link_libraries(gen_auto_py PUBLIC artscore workspace)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
-add_custom_command(OUTPUT py_auto_wsv.cpp py_auto_wsm.cpp py_auto_wsg.cpp py_auto_wsg.h
-                   COMMAND gen_auto_py
+add_custom_command(OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp
+                   COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
                    DEPENDS gen_auto_py)
 
 ########################################################################################
 
 ########### pybind11 class interface
 pybind11_add_module(pyarts_cpp THIN_LTO
-    py_auto_wsv.cpp
-    py_auto_wsm.cpp
+    ${PYARTS_WORKSPACE_METHODS}
+    ${PYARTS_WORKSPACE_VARS}
     py_auto_wsg.cpp
+    py_auto_interface.cpp
 
     py_module.cpp
     py_matpack.cpp

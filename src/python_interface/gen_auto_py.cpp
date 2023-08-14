@@ -8,6 +8,19 @@
 
 #include "pydocs.h"
 
+std::vector<std::ofstream> autofiles(int n, const std::string& fname, const std::string& ftype) {
+  std::vector<std::ofstream> ofs;
+  ofs.reserve(n);
+  for (int i=0; i<n; i++) {
+    ofs.emplace_back(var_string(fname, '_', i, '.', ftype));
+  }
+  return ofs;
+}
+
+std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
+  return ofs[i % ofs.size()];
+}
+
 std::string fix_type(const std::string& name) {
   if ("Numeric" == name or "Index" == name) return name + "_";
   return "std::shared_ptr<" + name + ">";
@@ -65,21 +78,26 @@ std::string variable(const std::string& name,
   std::exit(1);
 }
 
-void variables(const std::string& fname) {
+void variables(const int nfiles) {
   const auto& wsvs = workspace_variables();
 
-  std::ofstream os(fname);
+  auto ofs = autofiles(nfiles, "py_auto_wsv", "cpp");
 
-  os << R"--(#include <python_interface.h>
+  for (int i = 0; i < nfiles; i++) {
+    select_ofstream(ofs, i) << R"--(#include <python_interface.h>
 
 namespace Python {
-void py_auto_wsv(artsclass<Workspace>& ws [[maybe_unused]]) {
-)--";
-
-  for (auto& [name, wsv] : wsvs) {
-    os << variable(name, wsv) << std::flush;
+void py_auto_wsv_)--" << i << "(artsclass<Workspace>& ws [[maybe_unused]]) {\n";
   }
-  os << "}\n}  // namespace Python\n";
+
+  int ifile = 0;
+  for (auto& [name, wsv] : wsvs) {
+    select_ofstream(ofs, ifile++) << variable(name, wsv) << std::flush;
+  }
+
+  for (int i = 0; i < nfiles; i++) {
+    select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
+  }
 }
 
 std::vector<std::string> supergeneric_type(const std::string& t) {
@@ -709,12 +727,13 @@ std::string method(const std::string& name,
   return os.str();
 }
 
-void methods(const std::string& fname) {
+void methods(const int nfiles) {
   const auto wsms = internal_workspace_methods();
 
-  std::ofstream os(fname);
+  auto ofs = autofiles(nfiles, "py_auto_wsm", "cpp");
 
-  os << R"--(#include <python_interface.h>
+  for (int i = 0; i < nfiles; i++) {
+    select_ofstream(ofs, i) << R"--(#include <python_interface.h>
 
 #include <m_copy.h>
 #include <m_delete.h>
@@ -723,14 +742,17 @@ void methods(const std::string& fname) {
 #include <m_xml.h>
 
 namespace Python {
-void py_auto_wsm(artsclass<Workspace>& ws [[maybe_unused]]) {
-)--";
-
-  for (auto& [name, wsv] : wsms) {
-    os << method(name, wsv) << std::flush;
+void py_auto_wsm_)--" << i << "(artsclass<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
-  os << "}\n}  // namespace Python\n";
+  int ifile = 0;
+  for (auto& [name, wsv] : wsms) {
+    select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
+  }
+
+  for (int i = 0; i < nfiles; i++) {
+    select_ofstream(ofs, i) << "}\n}  // namespace Python\n";
+  }
 }
 
 void groups(const std::string& fname) {
@@ -823,8 +845,38 @@ PyWsvValue from(const std::shared_ptr<Wsv>& x) {
 )--";
 }
 
-int main() {
+int main(int argc, char** argv) {
+  if (argc != 3) {
+    std::cerr << "Usage: " << argv[0] << "<NUM VARIABLE FILES> <NUM METHOD FILES>\n";
+    return 1;
+  }
+
+  const int num_variables = std::stoi(argv[1]);
+  const int num_methods = std::stoi(argv[2]);
+
   groups("py_auto_wsg");
-  variables("py_auto_wsv.cpp");
-  methods("py_auto_wsm.cpp");
+  variables(num_variables);
+  methods(num_methods);
+
+  std::ofstream os("py_auto_interface.cpp");
+  os << "#include <python_interface.h>\n\n";
+  os << "namespace Python {\n";
+
+  for (int i=0; i<num_variables; i++) {
+    os << "void py_auto_wsv_" << i << "(artsclass<Workspace>& ws);\n";
+  }
+  os << "void py_auto_wsv(artsclass<Workspace>& ws) {\n";
+  for (int i=0; i<num_variables; i++) {
+    os << "  py_auto_wsv_" << i << "(ws);\n";
+  }
+  os << "}\n\n";
+
+  for (int i=0; i<num_methods; i++) {
+    os << "void py_auto_wsm_" << i << "(artsclass<Workspace>& ws);\n";
+  }
+  os << "void py_auto_wsm(artsclass<Workspace>& ws) {\n";
+  for (int i=0; i<num_methods; i++) {
+    os << "  py_auto_wsm_" << i << "(ws);\n";
+  }
+  os << "}\n}  // namespace Python\n";
 }
