@@ -24,9 +24,22 @@ add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
                    DEPENDS make_auto_wsv)
 target_link_libraries(make_auto_wsv PRIVATE workspace_internals)
 
+
+if (NOT NUM_ARTS_WSM)
+    set(NUM_ARTS_WSM 10)
+endif()
+message(STATUS "Using ${NUM_ARTS_WSM} automatic workspace method files (--DNUM_ARTS_WSM=N to change)")
+
+set(ARTS_WORKSPACE_METHODS "")
+list(LENGTH ARTS_WORKSPACE_METHODS N)
+while (N LESS NUM_ARTS_WSM)
+    list(APPEND ARTS_WORKSPACE_METHODS "auto_wsm_${N}.cpp")
+    list(LENGTH ARTS_WORKSPACE_METHODS N)
+endwhile()
+
 add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
-add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp
-                   COMMAND make_auto_wsm > auto_wsm.h 2> auto_wsm.cpp
+add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp ${ARTS_WORKSPACE_METHODS}
+                   COMMAND make_auto_wsm ${NUM_ARTS_WSM} > auto_wsm.h 2> auto_wsm.cpp
                    DEPENDS make_auto_wsm)
 target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
@@ -41,6 +54,7 @@ add_library(workspace STATIC
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
   workspace_class.cpp
+  ${ARTS_WORKSPACE_METHODS}
   auto_wsv.cpp
   auto_wsm.cpp
   auto_wsa.cpp
