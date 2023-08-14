@@ -89,14 +89,14 @@ T& select_inout(std::optional<ValueHolder<T>>& x,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_in(const std::optional<std::shared_ptr<U>>& x,
+const T& select_in(const std::optional<const std::shared_ptr<U>>& x,
                    const Workspace& ws,
                    const char * const name) {
   return x ? *x.value() : ws.get<T>(name);
 }
 
 template <WorkspaceGroup T>
-const T& select_in(const std::optional<ValueHolder<T>>& x,
+const T& select_in(const std::optional<const ValueHolder<T>>& x,
                    const Workspace& ws,
                    const char * const name) {
   return x ? static_cast<const T&>(x.value()) : ws.get<T>(name);
@@ -106,7 +106,7 @@ const T& select_in(const std::optional<ValueHolder<T>>& x,
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_gin(const std::optional<std::shared_ptr<U>>& x,
+const T& select_gin(const std::optional<const std::shared_ptr<U>>& x,
                     const char * const name) {
   return x ? *x.value()
            : throw std::runtime_error(
@@ -114,7 +114,7 @@ const T& select_gin(const std::optional<std::shared_ptr<U>>& x,
 }
 
 template <WorkspaceGroup T>
-const T& select_gin(const std::optional<ValueHolder<T>>& x,
+const T& select_gin(const std::optional<const ValueHolder<T>>& x,
                     const char * const name) {
   return x ? x.value()
            : throw std::runtime_error(
@@ -122,13 +122,13 @@ const T& select_gin(const std::optional<ValueHolder<T>>& x,
 }
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_gin(const std::optional<std::shared_ptr<U>>& x,
+const T& select_gin(const std::optional<const std::shared_ptr<U>>& x,
                     const T& defval) {
   return x ? *x.value() : defval;
 }
 
 template <WorkspaceGroup T>
-const T& select_gin(const std::optional<ValueHolder<T>>& x, const T& defval) {
+const T& select_gin(const std::optional<const ValueHolder<T>>& x, const T& defval) {
   return x ? static_cast<const T&>(x.value()) : defval;
 }
 
