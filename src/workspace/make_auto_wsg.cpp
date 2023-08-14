@@ -67,7 +67,8 @@ void header(std::ostream& os) {
   for (auto& group : std::ranges::drop_view{groups(), 1}) {
     os << "\n  || std::is_same_v<T, " << group << ">";
   }
-  os << ";\n\n";
+  os << "\n;\n\n";
+  os << "template <typename T>\nconcept ConstWorkspaceGroup = WorkspaceGroup<std::remove_const_t<T>>;\n\n";
 
   os << R"(template <typename T> struct WorkspaceGroupInfo {
   static constexpr std::string_view name = "<Unknown>";

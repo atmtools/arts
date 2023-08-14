@@ -82,19 +82,18 @@ void Workspace::overwrite(const std::string& name,
 
 std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
   os << "Workspace containing:";
+  for (auto& [name, wsv] : ws) {
+    os << "\n  " << name << " : " << wsv->type_name() << " = ";
 
-  if (ws.wsv.empty()) {
-    os << " nothing";
-    return os;
-  }
+    std::string varvalue =
+        std::visit([](auto& val) { return var_string(*val); }, wsv->value);
+    constexpr std::size_t len = 50;
+    const bool is_long = varvalue.size() > len;
+    if (is_long) varvalue = varvalue.substr(0, len);
+    std::replace(varvalue.begin(), varvalue.end(), '\n', ' ');
 
-  os << "\n  ";
-
-  auto str = var_string(std::quoted(ws.wsv.begin() -> first), " : ", ws.wsv.begin() -> second ->type_name());
-  os << str;
-  for (auto& v: std::ranges::drop_view{ws.wsv, 1}) {
-    str = var_string();
-    os << std::quoted(v.first) <<" : " << v.second -> type_name() << ",\n";
+    os << varvalue;
+    if (is_long) os << "...";
   }
   return os;
 }

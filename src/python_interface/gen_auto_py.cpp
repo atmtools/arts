@@ -183,11 +183,11 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
-    os << ",\n    const std::optional<" << fix_type(wsvs.at(t).type) << ">& _" << t;
+    os << ",\n    const std::optional<const " << fix_type(wsvs.at(t).type) << ">& _" << t;
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
-    os << ",\n    const std::optional<" << method_g_types(wsm.gin_type[i])
+    os << ",\n    const std::optional<const " << method_g_types(wsm.gin_type[i])
        << ">& _" << wsm.gin[i];
   }
 
@@ -245,7 +245,7 @@ std::string method_gin_selection(const std::string& name,
          << wsm.gin[i] << "\\\"\");\n";
     } else {
       if (has_default) {
-        os << "      static auto _" << wsm.gin[i]
+        os << "      static const auto _" << wsm.gin[i]
            << "_default = []() { try { return workspace_methods().at(\"" << name
            << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
            << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
@@ -292,7 +292,7 @@ std::string method_argument_selection(
   return os.str();
 }
 
-std::string unnamed_method_resolution_any(
+std::string method_resolution_any(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
@@ -343,6 +343,12 @@ std::string unnamed_method_resolution_any(
     }
   }
 
+  if (wsm.pass_names) {
+    for (auto& t: wsm.gout) {
+      os << ", \"" << t << "\"";
+    }
+  }
+
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (any) os << ", ";
@@ -363,6 +369,12 @@ std::string unnamed_method_resolution_any(
       i_any++;
     } else {
       os << t;
+    }
+  }
+
+  if (wsm.pass_names) {
+    for (auto& t: wsm.gin) {
+      os << ", \"" << t << "\"";
     }
   }
 
@@ -392,7 +404,7 @@ std::vector<std::string> unfix(std::vector<std::string> a) {
   return a;
 }
 
-std::string unnamed_method_resolution_variadic(
+std::string method_resolution_variadic(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
@@ -437,6 +449,12 @@ std::string unnamed_method_resolution_variadic(
         }
       }
 
+      if (wsm.pass_names) {
+        for (auto& t: wsm.gout) {
+          os << ", \"" << t << "\"";
+        }
+      }
+
       for (auto& t : wsm.in) {
         if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
         if (not first) os << ", ";
@@ -460,6 +478,12 @@ std::string unnamed_method_resolution_variadic(
           i_comma++;
         } else {
           os << wsm.gin[i];
+        }
+      }
+
+      if (wsm.pass_names) {
+        for (auto& t: wsm.gin) {
+          os << ", \"" << t << "\"";
         }
       }
 
@@ -499,6 +523,7 @@ std::string unnamed_method_resolution_variadic(
         first = false;
         os << t;
       }
+
       i_comma = 0;
       for (std::size_t i = 0; i < wsm.gout.size(); i++) {
         if (not first) os << ", ";
@@ -511,6 +536,12 @@ std::string unnamed_method_resolution_variadic(
           i_comma++;
         } else {
           os << wsm.gout[i];
+        }
+      }
+
+      if (wsm.pass_names) {
+        for (auto& t: wsm.gout) {
+          os << ", \"" << t << "\"";
         }
       }
 
@@ -535,6 +566,12 @@ std::string unnamed_method_resolution_variadic(
         }
       }
 
+      if (wsm.pass_names) {
+        for (auto& t: wsm.gin) {
+          os << ", \"" << t << "\"";
+        }
+      }
+
       os << ");\n      } else ";
     }
     os << "{\n";
@@ -546,7 +583,7 @@ std::string unnamed_method_resolution_variadic(
   return os.str();
 }
 
-std::string unnamed_method_resolution_simple(
+std::string method_resolution_simple(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
@@ -570,6 +607,12 @@ std::string unnamed_method_resolution_simple(
     os << t;
   }
 
+  if (wsm.pass_names) {
+    for (auto& t: wsm.gout) {
+      os << ", \"" << t << "\"";
+    }
+  }
+
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (any) os << ", ";
@@ -583,19 +626,25 @@ std::string unnamed_method_resolution_simple(
     os << t;
   }
 
+  if (wsm.pass_names) {
+    for (auto& t: wsm.gin) {
+      os << ", \"" << t << "\"";
+    }
+  }
+
   return os.str() + ");\n";
 }
 
-std::string unnamed_method_resolution(
+std::string method_resolution(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
   if (count_any(wsm) > 0) {
-    os << '\n' << unnamed_method_resolution_any(name, wsm);
+    os << '\n' << method_resolution_any(name, wsm);
   } else if (uses_variadic(wsm)) {
-    os << '\n' << unnamed_method_resolution_variadic(name, wsm);
+    os << '\n' << method_resolution_variadic(name, wsm);
   } else {
-    os << '\n' << unnamed_method_resolution_simple(name, wsm);
+    os << '\n' << method_resolution_simple(name, wsm);
   }
 
   return os.str();
@@ -653,11 +702,7 @@ std::string method(const std::string& name,
   os << method_arguments(wsm);
   os << ") -> void {\n";
   os << method_argument_selection(name, wsm);
-
-  if (not wsm.pass_names)
-    os << unnamed_method_resolution(name, wsm);
-  else
-    os << "\n      throw std::runtime_error(\"Cannot call method outside Agenda, see online documentation for workaround\");\n";
+  os << method_resolution(name, wsm);
 
   os << "    },\n    " << method_argument_documentation(wsm) << "py::doc(R\""
      << method_docs(name) << "\"));\n\n";

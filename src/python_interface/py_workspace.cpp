@@ -1,22 +1,25 @@
+#include <parameters.h>
+#include <python_interface.h>
+
 #include <algorithm>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <vector>
-#include "auto_wsv.h"
 
-#include <parameters.h>
-#include <python_interface.h>
+#include "auto_wsv.h"
 
 extern Parameters parameters;
 namespace Python {
-py::tuple pickle_method(const Method &m) {
-  return py::make_tuple(m.get_name(), m.get_ins(), m.get_outs(), m.get_setval(), m.overwrite());
+py::tuple pickle_method(const Method& m) {
+  return py::make_tuple(
+      m.get_name(), m.get_ins(), m.get_outs(), m.get_setval(), m.overwrite());
 }
 
-Method unpickle_method(const py::tuple &t) {
+Method unpickle_method(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
   auto name = t[0].cast<std::string>();
@@ -36,7 +39,7 @@ py::tuple pickle_agenda(const Agenda& ag) {
                         ag.is_checked());
 }
 
-Agenda unpickle_agenda(const py::tuple &t) {
+Agenda unpickle_agenda(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
   auto n = t[0].cast<std::string>();
@@ -68,17 +71,17 @@ void py_workspace(artsclass<Workspace>& ws) try {
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
              w.set(n, std::make_shared<Wsv>(from(x)));
            })
-      .def("_has", [](Workspace& w, const std::string& n) {
-        return w.contains(n);
-      });
+      .def("_has",
+           [](Workspace& w, const std::string& n) { return w.contains(n); });
 
   ws.def("__str__", [](const Workspace& w) {
-     return var_string(w);
+    return var_string(w);
   });
 
   py_auto_wsv(ws);
   py_auto_wsm(ws);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize workspace\n", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize workspace\n", e.what()));
 }
-} // namespace Python
+}  // namespace Python
