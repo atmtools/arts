@@ -82,11 +82,22 @@ void Workspace::overwrite(const std::string& name,
 
 std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
   os << "Workspace containing:";
-  for (auto& [name, wsv] : ws) {
-    os << "\n  " << name << " : " << wsv->type_name() << " = ";
+
+  const std::vector<std::string> names = [](const Workspace& w) {
+    std::vector<std::string> n;
+    n.reserve(w.wsv.size());
+    for (const auto& [name, _] : w.wsv) n.push_back(name);
+    std::ranges::sort(n);
+    return n;
+  }(ws);
+
+  for (auto& name : names) {
+    const Wsv& wsv = *ws.wsv.at(name);
+
+    os << "\n  " << name << " : " << wsv.type_name() << " = ";
 
     std::string varvalue =
-        std::visit([](auto& val) { return var_string(*val); }, wsv->value);
+        std::visit([](auto& val) { return var_string(*val); }, wsv.value);
     constexpr std::size_t len = 50;
     const bool is_long = varvalue.size() > len;
     if (is_long) varvalue = varvalue.substr(0, len);
