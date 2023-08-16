@@ -33,14 +33,68 @@ auto is_not_in(const std::vector<std::string>& seq) {
 void Agenda::finalize() try {
   static const auto& wsa = workspace_agendas();
 
+  auto ag_ptr = wsa.find(name);
+  if (ag_ptr == wsa.end()) {
+    throw std::runtime_error("Only pre-compiled agendas may be finalized and thus live on the workspace");
+  }
+
+  auto must_out = ag_ptr->second.output;
+  auto must_in = ag_ptr->second.input;
+
   for (auto& method : methods) {
     const auto& ins = method.get_ins();
     const auto& outs = method.get_outs();
+
+    for (auto& i : ins) {
+      if (auto ptr = std::ranges::find(must_in, i); ptr != must_in.end()) {
+        must_in.erase(ptr);
+      } else if (std::ranges::any_of(must_out, Cmp::eq(i))) {
+        throw std::runtime_error(
+            var_string("method:\n",
+                       method,
+                       "\nvariable: ",
+                       std::quoted(i),
+                       '\n',
+                       "Despite being an output of the agenda, "
+                       "the variable is first encountered as an input to a method"));
+      }
+    }
+
+    for (auto& i : outs) {
+      if (auto ptr = std::ranges::find(must_out, i); ptr != must_out.end()) {
+        must_out.erase(ptr);
+      }
+    }
 
     std::ranges::copy_if(ins, std::back_inserter(copy), is_in(outs));
     std::ranges::copy_if(ins, std::back_inserter(share), is_not_in(outs));
     std::ranges::copy_if(outs, std::back_inserter(share), is_in(ins));
     std::ranges::copy_if(outs, std::back_inserter(copy), is_not_in(ins));
+  }
+
+  if (must_in.size() or must_out.size()) {
+    std::ostringstream os;
+    os << "Agenda has unused variables:\nRequired output : ";
+    for (auto& o: ag_ptr->second.output) {
+      os << o << ", ";
+    }
+
+    os << "\nRequired input  : ";
+    for (auto& o: ag_ptr->second.input) {
+      os << o << ", ";
+    }
+
+    os << "\nUnused output   : ";
+    for (auto& o: must_out) {
+      os << o << ", ";
+    }
+
+    os << "\nUnused input    : ";
+    for (auto& o: must_in) {
+      os << o << ", ";
+    }
+    os << "\nPlease Touch unused output and Ignore unused input if this is intentional.";
+    throw std::runtime_error(os.str());
   }
 
   const auto remove_copies = [](std::vector<string>& seq) {
@@ -70,7 +124,7 @@ void Agenda::finalize() try {
   checked = true;
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
-      "Error finalizing agenda ", std::quoted(name), "\n", e.what()));
+      "Error finalizing agenda ", std::quoted(name), '\n', e.what()));
 }
 
 void agenda_add_inner_logic(Workspace& out, const Workspace& in, WorkspaceAgendaBoolHandler handle) {
@@ -125,7 +179,7 @@ void Agenda::copy_workspace(Workspace& out, const Workspace& in, bool share_only
   }
 } catch (std::exception& e) {
   throw std::runtime_error(var_string(
-      "Cannot get value from\n\n", in, "\ninto\n\n", out, "\n", e.what()));
+      "Cannot get value from\n\n", in, "\ninto\n\n", out, '\n', e.what()));
 }
 
 Workspace Agenda::copy_workspace(const Workspace& in) const {
@@ -140,7 +194,7 @@ void Agenda::execute(Workspace& ws) const try {
   }
 } catch (std::exception& e) {
   throw std::runtime_error(
-      var_string("Error executing agenda ", std::quoted(name), "\n", e.what()));
+      var_string("Error executing agenda ", std::quoted(name), '\n', e.what()));
 }
 
 bool Agenda::has_method(const std::string& method) const {
@@ -175,13 +229,47 @@ std::vector<std::string> split(const std::string& s, char c) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Agenda& a) {
-  os << "Agenda " << std::quoted(a.name) << ":\n";
-  for (auto& method : a.methods) {
-    const std::string m = var_string(method);
-    const auto ms = split(m, '\n');
-    for (auto& line : ms) {
-      os << "    " << line << "\n";
+  static const auto& wsa = workspace_agendas();
+
+  auto ptr = wsa.find(a.name);
+  const bool named = ptr != wsa.end();
+  const bool checked = a.checked;
+
+  os << "Agenda " << a.name;
+
+  if (checked or named) {
+    os << ":\n";
+
+    if (named) {
+      os << "  Output : ";
+      for (auto& o : ptr->second.output) {
+        os << o << ", ";
+      }
+      os << '\n';
+
+      os << "  Input  : ";
+      for (auto& i : ptr->second.input) {
+        os << i << ", ";
+      }
+    }
+
+    if (checked) {
+      if (named) {
+        os << '\n';
+      }
+
+      os << "  Share  : ";
+      for (auto& s : a.share) {
+        os << s << ", ";
+      }
+      os << '\n';
+
+      os << "  Copy   : ";
+      for (auto& c : a.copy) {
+        os << c << ", ";
+      }
     }
   }
+
   return os;
 }

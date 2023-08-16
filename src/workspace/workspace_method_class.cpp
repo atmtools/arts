@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
   } else {
     os << '(';
 
-    os << "out : ";
+    os << "o : ";
     bool first = true;
     for (auto& o : m.outargs) {
       if (not first) os << ", ";
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
       os << o;
     }
 
-    os << '\n' << std::string(m.name.size() + 1, ' ') << "in  : ";
+    os << '\n' << std::string(m.name.size() + 1, ' ') << "i : ";
     first = true;
     for (auto& o : m.inargs) {
       if (not first) os << ", ";
