@@ -8,8 +8,6 @@
 
 #include <numeric>
 #include <variant>
-#include "agenda_class.h"
-#include "agenda_record.h"
 #include "check_input.h"
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
@@ -17,5 +15,5 @@
 #include "file.h"
 #include "interpolation.h"
 #include "physics_funcs.h"
-#include "auto_md.h"
 
+#include <workspace.h>
