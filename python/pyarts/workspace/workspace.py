@@ -380,13 +380,15 @@ def _arts_agenda(f, ws):
 
     methods = _return_workspace_methods(func.body, workspace)
 
-    ag = _agenda_or(methods, func, srccod, getfile(f), getsourcelines(f)[-1])
+    fn = getfile(f)
+    ln = getsourcelines(f)[-1]
+    agenda = _agenda_or(methods, func, srccod, fn, ln)
 
     if ws:
-        ag.finalize()
-        setattr(ws, ag.name, ag)
+        agenda.finalize()
+        setattr(ws, agenda.name, agenda)
 
-    return ag
+    return agenda
 
 
 def arts_agenda(func=None, *, ws=None):
