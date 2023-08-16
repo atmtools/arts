@@ -8,6 +8,7 @@
 
 #include <numeric>
 #include <variant>
+
 #include "check_input.h"
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
