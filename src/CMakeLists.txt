@@ -67,7 +67,6 @@ add_library (artscore STATIC
   compile_time_tests.cc
   covariance_matrix.cc
   disort.cc
-  docserver.cc
   doit.cc
   fastem.cc
   predefined_absorption_models.cc
@@ -223,10 +222,6 @@ endif (NETCDF_FOUND)
 if (ENABLE_MPI)
   target_link_libraries (artscore PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
-
-if (ENABLE_DOCSERVER)
-  target_link_libraries (artscore PUBLIC MHD::MHD ${CMAKE_THREAD_LIBS_INIT})
-endif (ENABLE_DOCSERVER)
 
 if (OpenMP_CXX_FOUND)
   target_link_libraries (artscore PUBLIC OpenMP::OpenMP_CXX)
