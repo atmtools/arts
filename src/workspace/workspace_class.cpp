@@ -1,7 +1,6 @@
 #include "workspace_class.h"
 
 #include <iomanip>
-#include <ranges>
 #include <stdexcept>
 #include <type_traits>
 
@@ -87,7 +86,7 @@ std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
     std::vector<std::string> n;
     n.reserve(w.wsv.size());
     for (const auto& [name, _] : w.wsv) n.push_back(name);
-    std::ranges::sort(n);
+    std::sort(n.begin(), n.end());
     return n;
   }(ws);
 

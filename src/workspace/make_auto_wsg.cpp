@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <ranges>
 #include <vector>
 
 #include "workspace_groups.h"

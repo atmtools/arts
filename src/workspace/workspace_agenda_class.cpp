@@ -23,11 +23,11 @@ void Agenda::add(const Method& method) {
 }
 
 auto is_in(const std::vector<std::string>& seq) {
-  return [&seq](auto& str) { return std::ranges::find(seq, str) != seq.end(); };
+  return [&seq](auto& str) { return std::find(seq.begin(), seq.end(), str) != seq.end(); };
 }
 
 auto is_not_in(const std::vector<std::string>& seq) {
-  return [&seq](auto& str) { return std::ranges::find(seq, str) == seq.end(); };
+  return [&seq](auto& str) { return std::find(seq.begin(), seq.end(), str) == seq.end(); };
 }
 
 void Agenda::finalize() try {
@@ -46,9 +46,9 @@ void Agenda::finalize() try {
     const auto& outs = method.get_outs();
 
     for (auto& i : ins) {
-      if (auto ptr = std::ranges::find(must_in, i); ptr != must_in.end()) {
+      if (auto ptr = std::find(must_in.begin(), must_in.end(), i); ptr != must_in.end()) {
         must_in.erase(ptr);
-      } else if (std::ranges::any_of(must_out, Cmp::eq(i))) {
+      } else if (std::any_of(must_out.begin(), must_out.end(), Cmp::eq(i))) {
         throw std::runtime_error(
             var_string("method:\n",
                        method,
@@ -61,15 +61,15 @@ void Agenda::finalize() try {
     }
 
     for (auto& i : outs) {
-      if (auto ptr = std::ranges::find(must_out, i); ptr != must_out.end()) {
+      if (auto ptr = std::find(must_out.begin(), must_out.end(), i); ptr != must_out.end()) {
         must_out.erase(ptr);
       }
     }
 
-    std::ranges::copy_if(ins, std::back_inserter(copy), is_in(outs));
-    std::ranges::copy_if(ins, std::back_inserter(share), is_not_in(outs));
-    std::ranges::copy_if(outs, std::back_inserter(share), is_in(ins));
-    std::ranges::copy_if(outs, std::back_inserter(copy), is_not_in(ins));
+    std::copy_if(ins.begin(), ins.end(), std::back_inserter(copy), is_in(outs));
+    std::copy_if(ins.begin(), ins.end(), std::back_inserter(share), is_not_in(outs));
+    std::copy_if(outs.begin(), outs.end(), std::back_inserter(share), is_in(ins));
+    std::copy_if(outs.begin(), outs.end(), std::back_inserter(copy), is_not_in(ins));
   }
 
   if (must_in.size() or must_out.size()) {
@@ -98,9 +98,10 @@ void Agenda::finalize() try {
   }
 
   const auto remove_copies = [](std::vector<string>& seq) {
-    std::ranges::sort(seq);
-    auto [first, last] = std::ranges::unique(seq);
-    seq.erase(first, last);
+    auto first = seq.begin();
+    auto last = seq.end();
+    std::sort(first, last);
+    seq.erase(std::unique(first, last), last);
   };
   remove_copies(share);
   remove_copies(copy);
@@ -113,7 +114,7 @@ void Agenda::finalize() try {
 
   // Don't overlap
   for (auto& str : copy) {
-    if (auto ptr = std::ranges::find(share, str); ptr != share.end()) {
+    if (auto ptr = std::find(share.begin(), share.end(), str); ptr != share.end()) {
       share.erase(ptr);
     }
   }
