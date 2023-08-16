@@ -827,6 +827,8 @@ Wsv from(const std::variant<Ts...>& x) {
   }, x);
 }
 
+PyWsvValue from(const WsvValue& x);
+PyWsvValue from(const Wsv& x);
 PyWsvValue from(const std::shared_ptr<Wsv>& x);
 }  // namespace Python
 )--";
@@ -836,10 +838,18 @@ PyWsvValue from(const std::shared_ptr<Wsv>& x);
   cos << R"--(#include <py_auto_wsg.h>
 
 namespace Python {
-PyWsvValue from(const std::shared_ptr<Wsv>& x) {
+PyWsvValue from(const WsvValue& x) {
   return std::visit([](auto& arg) -> PyWsvValue {
     return arg;
-  }, x -> value);
+  }, x);
+}
+
+PyWsvValue from(const Wsv& x) {
+  return from(x.value);
+}
+
+PyWsvValue from(const std::shared_ptr<Wsv>& x) {
+  return from(*x);
 }
 }  // namespace Python
 )--";

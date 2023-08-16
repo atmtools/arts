@@ -15,11 +15,39 @@
 const auto& wsms = workspace_methods();
 
 std::ostream& operator<<(std::ostream& os, const Method& m) {
+  os << m.name;
+
   if (m.setval) {
-    os << "setting " << std::quoted(m.name);
+    std::string var = std::visit([](auto& v) { return var_string(*v); },
+                                 m.setval.value().value);
+    constexpr std::size_t maxsize = 50;
+    if (var.size() > maxsize) {
+      var = std::string(var.begin(), var.begin() + maxsize) + "...";
+    }
+    std::replace(var.begin(), var.end(), '\n', ' ');
+
+    os << " = " << var;
   } else {
-    os << "calling " << std::quoted(m.name);
+    os << '(';
+
+    os << "out : ";
+    bool first = true;
+    for (auto& o : m.outargs) {
+      if (not first) os << ", ";
+      first = false;
+      os << o;
+    }
+
+    os << '\n' << std::string(m.name.size() + 1, ' ') << "in  : ";
+    first = true;
+    for (auto& o : m.inargs) {
+      if (not first) os << ", ";
+      first = false;
+      os << o;
+    }
+    os << ')';
   }
+
   return os;
 }
 

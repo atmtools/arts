@@ -23,33 +23,6 @@ _InternalWorkspace = getattr(cxx, "_Workspace")
 Agenda = cxx.Agenda
 
 
-class DelayedAgenda:
-    """ Helper class to delay the parsing of an Agenda until a workspace exist
-    """
-    
-    def __init__(self, *args):
-        self.args = [[*args]]
-    def append_agenda_methods(self, other):
-        self.args.extend(other.args)
-    def __call__(self, ws):
-        a = cxx.Agenda(ws)
-        for args in self.args:
-            a.append_agenda_methods(continue_parser_function(ws, *args))
-        a.name = "<unknown>"
-        return a
-
-
-def Include(ws, path):
-    """ Parse and execute the .arts file at path onto the current workspace ws
-    
-    The Arts parser is invoked on the file at path.  The methods and commands
-    of this file are executed
-    """
-    if isinstance(path, Agenda):
-        path.execute(ws)
-    else:
-        Agenda(ws, path).execute(ws)
-
 def arts_agenda(func=None, *, ws=None, allow_callbacks=False, set_agenda=False):
     """
     Decorator to parse a Python method as ARTS agenda
@@ -339,6 +312,33 @@ you might call. Everything else is undefined behaviour. ;-)
     return agenda
 
 
+
+def _arts_agenda(func, ws):
+    """ Internal source code parser
+    """
+    srccod = getsource(func)
+    srccod = unindent(srccod)
+    srcast = parse(srccod)
+
+    assert len(srcast.body) == 1
+
+    code_body = srcast.body[0]
+    print(code_body)
+
+
+def arts_agenda(func, *, ws=None):
+    """
+    Creates a callback operator
+    """
+    def parser(fn):
+        return _arts_agenda(fn, ws)
+
+    if func is None:
+        return parser
+    else:
+        return _arts_agenda(func, ws)
+
+
 _group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
 _wsvs = cxx.globals.workspace_variables()
 
@@ -363,16 +363,12 @@ class Workspace(_InternalWorkspace):
 
     def __setattr__(self, attr, value):
         if self._has(attr):
-            if isinstance(value, DelayedAgenda):
-                value = value(self)
             self._set(attr, type(self._get(attr))(value))
         else:
             if attr in _wsvs:
                 super().__setattr__(attr, value)
             elif type(value) in _group_types:
                 self._set(attr, value)
-            elif isinstance(value, DelayedAgenda):
-                self._set(attr, value(self))
             else:
                 raise AttributeError(
                     f"'Workspace' object has no attribute '{attr}'")

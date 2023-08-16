@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include "debug.h"
 #include "workspace_class.h"
 #include "workspace_method_class.h"
 
@@ -142,15 +143,6 @@ void Agenda::execute(Workspace& ws) const try {
       var_string("Error executing agenda ", std::quoted(name), "\n", e.what()));
 }
 
-std::ostream& operator<<(std::ostream& os, const Agenda& a) {
-  os << "Agenda " << std::quoted(a.name) << ":\n";
-  os << "  Methods:\n";
-  for (auto& method : a.methods) {
-    os << "    " << method.get_name() << "\n";
-  }
-  return os;
-}
-
 bool Agenda::has_method(const std::string& method) const {
   for (auto& m : methods) {
     if (m.get_name() == method) {
@@ -166,3 +158,30 @@ Agenda::Agenda(std::string n,
                const std::vector<std::string>& c,
                bool check)
     : name(std::move(n)), methods(m), share(s), copy(c), checked(check) {}
+
+std::vector<std::string> split(const std::string& s, char c) {
+  std::vector<std::string> out;
+  std::string tmp;
+  for (auto& ch : s) {
+    if (ch == c) {
+      out.push_back(tmp);
+      tmp.clear();
+    } else {
+      tmp.push_back(ch);
+    }
+  }
+  out.push_back(tmp);
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& os, const Agenda& a) {
+  os << "Agenda " << std::quoted(a.name) << ":\n";
+  for (auto& method : a.methods) {
+    const std::string m = var_string(method);
+    const auto ms = split(m, '\n');
+    for (auto& line : ms) {
+      os << "    " << line << "\n";
+    }
+  }
+  return os;
+}

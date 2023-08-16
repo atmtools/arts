@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "auto_wsv.h"
+#include "workspace_class.h"
 
 extern Parameters parameters;
 namespace Python {
@@ -58,7 +59,12 @@ void py_auto_wsv(artsclass<Workspace>& ws);
 void py_auto_wsm(artsclass<Workspace>& ws);
 
 void py_workspace(artsclass<Workspace>& ws) try {
-  ws.def(py::init([]() { return Workspace{}; }))
+  ws.def(py::init([](bool with_defaults) {
+           if (with_defaults)
+             return std::make_shared<Workspace>(WorkspaceInitialization::FromGlobalDefaults);
+           return std::make_shared<Workspace>(WorkspaceInitialization::Empty);
+         }),
+         py::arg("with_defaults") = true)
       .def(py::init([](Workspace& w) { return w; }))
       .def("__copy__", [](Workspace& w) { return w; })
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w; })

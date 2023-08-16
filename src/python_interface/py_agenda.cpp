@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <parameters.h>
+#include <pybind11/cast.h>
 #include <memory>
 #include <type_traits>
+#include <unordered_map>
 
+#include "auto_wsg.h"
 #include "debug.h"
 #include "py_macros.h"
 #include "python_interface.h"
@@ -69,21 +72,54 @@ Example
   py::implicitly_convertible<std::function<void(Workspace&)>,
                              CallbackFunction>();
 
+  artsclass<Method>(m, "Method")
+      .def(py::init([](const std::string& n,
+                       const std::vector<std::string>& a,
+                       const std::unordered_map<std::string, std::string>& kw)
+                        -> Method {
+             return {n, a, kw};
+           }),
+           py::arg("name"),
+           py::arg("args") = std::vector<std::string>{},
+           py::arg("kwargs") = std::unordered_map<std::string, std::string>{},
+           py::doc("A named method with args and kwargs"))
+      .def(py::init([](const std::string& n, const PyWsvValue& v) -> Method {
+             return std::visit(
+                 [&](auto&& wsv) -> Method {
+                   return {n, Wsv{*wsv}, n.front() == '@'};
+                 },
+                 from(v).value);
+           }),
+           py::arg("name"),
+           py::arg("wsv"),
+           py::doc("A method that sets a workspace variable"))
+      .def_property_readonly(
+          "val",
+          [](const Method& method) -> std::variant<py::none, PyWsvValue> {
+            const auto& x = method.get_setval();
+            if (x) return from(x.value());
+            return py::none();
+          },
+          py::doc("The value (if any) of a set method"))
+      .def_property_readonly(
+          "name",
+          [](const Method& method) { return method.get_name(); },
+          py::doc("The name of the method"))
+      .def("__str__", [](const Method& method){return var_string(method);})
+      .doc() = "The method class of ARTS";
+
   artsclass<Agenda>(m, "Agenda")
-      .def(py::init([]() { return std::make_shared<Agenda>(); }), "Create empty")
+      .def(py::init([]() {
+    return std::make_shared<Agenda>(); }), "Create empty")
+      .def(py::init<std::string>(), py::arg("name"), "Create with name")
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .PythonInterfaceFileIO(Agenda)
       .def(
-          "add_workspace_method",
-          [](Agenda& a,
-             const char* name,
-             const py::args& args,
-             const py::kwargs& kwargs) {
-            //pass for now
-          },
-          py::arg("name").none(false),
+          "add",
+          &Agenda::add,
+          py::arg("method").none(false),
           R"--(
-Adds a named method to the Agenda
+Adds a method to the Agenda
 
 All workspace variables are defaulted, and all GIN with defaults
 create anonymous workspace variables.  All input that are not 
@@ -92,21 +128,6 @@ workspace variables are added to the workspace
 The input order takes priority over the named argument order,
 so Copy(a, out=b) will not even see the b variable.
 )--")
-      .def(
-          "add_callback_method",
-          [](Agenda& a, const CallbackFunction& f) {
-            a.add(Method("@", f, true));
-            a.add(Method("CallbackFunctionExecute", {"@"}));
-          },
-          py::doc(R"--(
-Adds a callback method to the Agenda
-
-Parameters
-----------
-    f : CallbackFunction
-        A method that takes ws and only ws as input
-)--"),
-          py::arg("f"))
       .def(
           "execute",
           [](Agenda& a, Workspace& ws) {
@@ -118,6 +139,10 @@ Parameters
           [](Agenda& a) {
             a.finalize();
           })
+      .def_property_readonly(
+          "name",
+          [](const Agenda& agenda) { return agenda.get_name(); },
+          py::doc("The name of the agenda"))
       .def("__repr__",
            [](Agenda& a) { return var_string("Agenda ", a.get_name()); })
       .def("__str__",
