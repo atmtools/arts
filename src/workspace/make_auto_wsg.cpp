@@ -62,9 +62,8 @@ void header(std::ostream& os) {
     os << "\n#include <" << file << ">\n\n";
   }
 
-  os << "template <typename T>\nconcept WorkspaceGroup =\n     std::is_same_v<T, "
-     << groups()[0] << ">";
-  for (auto& group : std::ranges::drop_view{groups(), 1}) {
+  os << "template <typename T>\nconcept WorkspaceGroup = false";
+  for (auto& group : groups()) {
     os << "\n  || std::is_same_v<T, " << group << ">";
   }
   os << "\n;\n\n";
@@ -87,10 +86,12 @@ void header(std::ostream& os) {
     os << "};\n\n";
   }
 
-  os << "using WsvValue = std::variant<\n  std::shared_ptr<" << groups()[0]
-     << ">";
-  for (auto& group : std::ranges::drop_view{groups(), 1}) {
-    os << ",\n  std::shared_ptr<" << group << ">";
+  os << "using WsvValue = std::variant<";
+  bool first = true;
+  for (auto& group : groups()) {
+    if (not first) os << ',';
+    first = false;
+    os << "\n  std::shared_ptr<" << group << ">";
   }
   os << ">;\n\n";
 
