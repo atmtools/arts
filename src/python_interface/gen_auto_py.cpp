@@ -163,6 +163,18 @@ std::vector<std::vector<std::string>> supergeneric_types(
 }
 
 std::string method_g_types(const std::string& type) {
+  if (type == "Any" or type.find(',') != type.npos) {
+    return "py::object";
+  }
+
+  return fix_type(type);
+}
+
+bool uses_variadic(const std::string& v) {
+  return [](const std::string& s) { return s.find(',') != s.npos; }(v);
+}
+
+std::string internal_type(const std::string& type) {
   if (type == "Any") {
     return "PyWsvValue";
   }
@@ -195,8 +207,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   }
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
-    os << ",\n    std::optional<" << method_g_types(wsm.gout_type[i]) << ">& _"
-       << wsm.gout[i];
+    os << ",\n    std::optional<" << method_g_types(wsm.gout_type[i]) << ">& _" << wsm.gout[i];
   }
 
   for (auto& t : wsm.in) {
@@ -205,8 +216,7 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
-    os << ",\n    const std::optional<const " << method_g_types(wsm.gin_type[i])
-       << ">& _" << wsm.gin[i];
+    os << ",\n    const std::optional<const " << method_g_types(wsm.gin_type[i]) << ">& _" << wsm.gin[i];
   }
 
   return os.str();
@@ -215,10 +225,6 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
 std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
   return std::ranges::count(wsm.gout_type, "Any") +
          std::ranges::count(wsm.gin_type, "Any");
-}
-
-bool uses_variadic(const std::string& v) {
-  return [](const std::string& s) { return s.find(',') != s.npos; }(v);
 }
 
 bool uses_variadic(const WorkspaceMethodInternalRecord& wsm) {
@@ -713,7 +719,7 @@ std::string method_error(const std::string& name,
   std::ostringstream os;
   os << "        throw std::runtime_error(var_string(";
   os << R"("Cannot execute method: \")" << name << R"(\"")";
-  os << "));\n";
+  os << ", \"\\n\\n\", e.what()));\n";
   return os.str();
 }
 
@@ -774,7 +780,11 @@ void groups(const std::string& fname) {
 #include <auto_wsg.h>
 #include <python_interface_value_type.h>
 
+#include <pybind11/pybind11.h>
+
 namespace Python {
+namespace py = pybind11;
+
 using PyWsvValue = std::variant<
   )--";
 
@@ -841,12 +851,16 @@ Wsv from(const std::variant<Ts...>& x) {
 PyWsvValue from(const WsvValue& x);
 PyWsvValue from(const Wsv& x);
 PyWsvValue from(const std::shared_ptr<Wsv>& x);
+
+Wsv from(const py::object& x);
 }  // namespace Python
 )--";
 
   std::ofstream cos(fname + ".cpp");
 
   cos << R"--(#include <py_auto_wsg.h>
+
+#include <pybind11/stl.h>
 
 namespace Python {
 PyWsvValue from(const WsvValue& x) {
@@ -861,6 +875,12 @@ PyWsvValue from(const Wsv& x) {
 
 PyWsvValue from(const std::shared_ptr<Wsv>& x) {
   return from(*x);
+}
+
+Wsv from(const py::object& x) {
+  if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+
+  return from(x.cast<PyWsvValue>());
 }
 }  // namespace Python
 )--";
