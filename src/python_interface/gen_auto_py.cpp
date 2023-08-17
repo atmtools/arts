@@ -235,12 +235,12 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
     if (wsm.gout_type[i] == "Any" or uses_variadic(wsm.gout_type[i])) {
-      os << "      Wsv " << wsm.gout[i] << " = _" << wsm.gout[i] << " ? from(_"
+      os << "        Wsv " << wsm.gout[i] << " = _" << wsm.gout[i] << " ? from(_"
          << wsm.gout[i]
          << R"(.value()) : throw std::runtime_error("Unknown output: \")"
          << wsm.gout[i] << "\\\"\");\n";
     } else {
-      os << "      auto& " << wsm.gout[i] << " = select_gout<"
+      os << "        auto& " << wsm.gout[i] << " = select_gout<"
          << wsm.gout_type[i] << ">(_" << wsm.gout[i] << ", \"" << wsm.gout[i]
          << "\");\n";
     }
@@ -257,23 +257,23 @@ std::string method_gin_selection(const std::string& name,
     const bool has_default = wsm.gin_value[i].has_value();
 
     if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
-      os << "      Wsv " << wsm.gin[i] << " = _" << wsm.gin[i]
+      os << "        Wsv " << wsm.gin[i] << " = _" << wsm.gin[i]
          << " ? from(_" << wsm.gin[i]
          << R"(.value()) : throw std::runtime_error("Unknown input: \")"
          << wsm.gin[i] << "\\\"\");\n";
     } else {
       if (has_default) {
-        os << "      static const auto _" << wsm.gin[i]
+        os << "        static const auto _" << wsm.gin[i]
            << "_default = []() { try { return workspace_methods().at(\"" << name
            << "\").defs.at(\"_" << wsm.gin[i] << "\").get<" << wsm.gin_type[i]
            << R"(>(); } catch(...) {throw std::runtime_error("DEV ERROR:\nFailed to initialize \")"
            << name << R"(\" default value \")" << wsm.gin[i]
            << "\\\"\"); } }();\n";
-        os << "      auto& " << wsm.gin[i] << " = select_gin<"
+        os << "        auto& " << wsm.gin[i] << " = select_gin<"
            << wsm.gin_type[i] << ">(_" << wsm.gin[i] << ", _" << wsm.gin[i]
            << "_default);\n";
       } else {
-        os << "      auto& " << wsm.gin[i] << " = select_gin<"
+        os << "        auto& " << wsm.gin[i] << " = select_gin<"
            << wsm.gin_type[i] << ">(_" << wsm.gin[i] << ", \"" << wsm.gin[i]
            << "\");\n";
       }
@@ -290,7 +290,7 @@ std::string method_argument_selection(
   std::ostringstream os;
 
   for (auto& t : wsm.out) {
-    os << "      auto& " << t << " = select_";
+    os << "        auto& " << t << " = select_";
     if (std::ranges::any_of(wsm.in, Cmp::eq(t))) {
       os << "in";
     }
@@ -301,7 +301,7 @@ std::string method_argument_selection(
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
-    os << "      auto& " << t << " = select_in<"<<wsvs.at(t).type<<">(_"
+    os << "        auto& " << t << " = select_in<"<<wsvs.at(t).type<<">(_"
        << t << ", _ws, \"" << t << "\");\n";
   }
 
@@ -317,20 +317,20 @@ std::string method_resolution_any(
   std::size_t i_any = 0;
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
     if (wsm.gout_type[i] == "Any") {
-      os << "      auto& _any" << ++i_any << " = " << wsm.gout[i] << ";\n";
+      os << "        auto& _any" << ++i_any << " = " << wsm.gout[i] << ";\n";
     }
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     if (wsm.gin_type[i] == "Any") {
-      os << "      auto& _any" << ++i_any << " = " << wsm.gin[i] << ";\n";
+      os << "        auto& _any" << ++i_any << " = " << wsm.gin[i] << ";\n";
     }
   }
   i_any = 1;
 
-  os << "      std::visit([&](auto& _t) {"
-        "\n        using _tT=std::remove_cvref_t<decltype(*_t)>;"
-        "\n        "
+  os << "        std::visit([&](auto& _t) {"
+        "\n          using _tT=std::remove_cvref_t<decltype(*_t)>;"
+        "\n          "
      << name << "<_tT>(";
 
   bool any = false;
@@ -396,7 +396,7 @@ std::string method_resolution_any(
     }
   }
 
-  os << ");\n        }, _any1.value);\n";
+  os << ");\n          }, _any1.value);\n";
 
   return os.str();
 }
@@ -429,16 +429,16 @@ std::string method_resolution_variadic(
   const std::vector<std::vector<std::string>> supergenerics =
       supergeneric_types(wsm);
   if (is_unique_variadic(wsm)) {
-    os << "      std::visit([&] (auto& _t) {"
-          "\n        using _tT=std::remove_cvref_t<decltype(_t)>;";
+    os << "        std::visit([&] (auto& _t) {"
+          "\n          using _tT=std::remove_cvref_t<decltype(_t)>;";
 
     std::string var = "";
-    os << "\n        if constexpr (false) {}";
+    os << "\n          if constexpr (false) {}";
     for (auto& generics : supergenerics) {
       std::size_t i_comma = 0;
       auto ungen = unfix(generics);
 
-      os << "\n        else if constexpr (std::is_same_v<_tT, " << ungen[0]
+      os << "\n          else if constexpr (std::is_same_v<_tT, " << ungen[0]
          << ">) " << name << "(";
 
       bool first = true;
@@ -507,7 +507,7 @@ std::string method_resolution_variadic(
 
       os << ");";
     }
-    os << "\n        else throw std::runtime_error(\"Bad combination in \\\"" << name << R"(\""); }, )" << var << ".value);\n";
+    os << "\n          else throw std::runtime_error(\"Bad combination in \\\"" << name << R"(\""); }, )" << var << ".value);\n";
   } else {
     os << "      ";
     for (auto& generics : supergenerics) {
@@ -533,7 +533,7 @@ std::string method_resolution_variadic(
           os << ">(" << wsm.gin[i] << ".value)";
         }
       }
-      os << ") {\n        " << name << '(';
+      os << ") {\n          " << name << '(';
 
       bool first = true;
       for (auto& t : wsm.out) {
@@ -590,12 +590,12 @@ std::string method_resolution_variadic(
         }
       }
 
-      os << ");\n      } else ";
+      os << ");\n        } else ";
     }
     os << "{\n";
-    os << R"(        throw std::runtime_error("Cannot call method \")" << name
+    os << R"(          throw std::runtime_error("Cannot call method \")" << name
        << "\\\" with the given arguments,\");\n";
-    os << "      }\n";
+    os << "        }\n";
   }
 
   return os.str();
@@ -605,7 +605,7 @@ std::string method_resolution_simple(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
-  os << "      " << name << "(";
+  os << "        " << name << "(";
 
   bool any = false;
   if (wsm.pass_workspace) {
@@ -684,7 +684,7 @@ std::string method_argument_documentation(
   for (auto& t : wsm.gout) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg_v(\"" << t << R"(", std::nullopt, "None").noconvert())";
+    os << "py::arg(\"" << t << "\").noconvert() = std::nullopt";
   }
 
   for (auto& t : wsm.in) {
@@ -697,18 +697,24 @@ std::string method_argument_documentation(
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     if (not first) os << ",\n    ";
     first = false;
-    os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, ";
     if (wsm.gin_value[i]) {
-      os << "R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i])
-         << ")-x-\"";
+      os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i]) << ")-x-\")";
     } else {
-      os << R"("None")";
+      os << "py::arg(\"" << wsm.gin[i] << "\") = std::nullopt";
     }
-    os << ")";
   }
 
   if (auto out = os.str(); out.size()) return out + ",\n    ";
   return "";
+}
+
+std::string method_error(const std::string& name,
+                         const WorkspaceMethodInternalRecord& wsm) {
+  std::ostringstream os;
+  os << "        throw std::runtime_error(var_string(";
+  os << R"("Cannot execute method: \")" << name << R"(\"")";
+  os << "));\n";
+  return os.str();
 }
 
 std::string method(const std::string& name,
@@ -718,10 +724,13 @@ std::string method(const std::string& name,
   os << "  ws.def(\"" << name << "\",";
   os << "[](";
   os << method_arguments(wsm);
-  os << ") -> void {\n";
+  os << ") -> void {\n      try {\n";
   os << method_argument_selection(name, wsm);
   os << method_resolution(name, wsm);
 
+  os << "      } catch (std::exception& e) {\n";
+  os << method_error(name, wsm);
+  os << "      }\n";
   os << "    },\n    " << method_argument_documentation(wsm) << "py::doc(R\""
      << method_docs(name) << "\"));\n\n";
   return os.str();
