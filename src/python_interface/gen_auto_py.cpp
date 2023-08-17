@@ -760,7 +760,9 @@ void groups(const std::string& fname) {
 
   std::ofstream hos(fname + ".h");
 
-  hos << R"--(#include <auto_wsg.h>
+  hos << R"--(#pragma once
+
+#include <auto_wsg.h>
 #include <python_interface_value_type.h>
 
 namespace Python {
