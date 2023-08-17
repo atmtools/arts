@@ -314,7 +314,7 @@ void RT4CalcWithRT4Surface(const Workspace& ws,
 
 #else /* ENABLE_RT4 */
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4Calc(Workspace& ws,
+void RT4Calc(const Workspace& ws,
              // WS Output:
              Tensor7& cloudbox_field,
              Vector& za_grid,
@@ -349,7 +349,7 @@ void RT4Calc(Workspace& ws,
   ARTS_USER_ERROR("This version of ARTS was compiled without RT4 support.");
 }
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RT4CalcWithRT4Surface(Workspace& ws,
+void RT4CalcWithRT4Surface(const Workspace& ws,
                            // WS Output:
                            Tensor7& cloudbox_field,
                            Vector& za_grid,
