@@ -74,6 +74,21 @@ void py_global(py::module_& m) try {
               "Return\n------\n:class:`dict`"
               "\n    Map of methods"));
 
+  artsclass<WorkspaceAgendaInternalRecord>(global,
+                                           "WorkspaceAgendaInternalRecord")
+      .def_readonly("desc", &WorkspaceAgendaInternalRecord::desc)
+      .def_readonly("output", &WorkspaceAgendaInternalRecord::output)
+      .def_readonly("input", &WorkspaceAgendaInternalRecord::input)
+      .def_readonly("array", &WorkspaceAgendaInternalRecord::array)
+      .doc() = "Agenda records used as workspace variables";
+
+  global.def(
+      "workspace_agendas",
+      []() { return internal_workspace_agendas(); },
+      py::doc("Get a copy of all workspace agendas\n\n"
+              "Return\n------\n:class:`dict`"
+              "\n    Map of agendas"));
+
   global.def(
       "get_isotopologues",
       [] { return Species::Isotopologues; },

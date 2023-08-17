@@ -10,7 +10,6 @@ API Reference
    pyarts.common
    pyarts.environment
    pyarts.hitran
-   pyarts.parser
    pyarts.plots
    pyarts.sensor
    pyarts.utils
