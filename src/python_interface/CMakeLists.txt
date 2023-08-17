@@ -25,7 +25,7 @@ endwhile()
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py PUBLIC artscore workspace)
+target_link_libraries(gen_auto_py PUBLIC workspace artscore)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
