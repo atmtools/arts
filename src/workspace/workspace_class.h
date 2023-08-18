@@ -68,13 +68,7 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable.
   template <WorkspaceGroup T>
-  [[nodiscard]] T& get(const std::string& name) const try {
-    return wsv.at(name) -> get<T>();
-  } catch (std::out_of_range&) {
-    throw std::runtime_error(var_string("Undefined workspace variable ", std::quoted(name)));
-  } catch (std::exception& e) {
-    throw std::runtime_error(var_string("Error getting workspace variable ", std::quoted(name), ":\n", e.what()));
-  }
+  [[nodiscard]] T& get(const std::string& name) const;
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
@@ -96,9 +90,7 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
-  [[nodiscard]] T& get_or(const std::string& name) {
-    return *share_or<T>(name);
-  }
+  [[nodiscard]] T& get_or(const std::string& name);
 
   [[nodiscard]] bool contains(const std::string& name) const;
 

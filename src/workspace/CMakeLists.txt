@@ -3,7 +3,7 @@ add_library(workspace_group STATIC
 )
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
-add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp
+add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
                    COMMAND make_auto_wsg > auto_wsg.h 2> auto_wsg.cpp
                    DEPENDS make_auto_wsg)
 target_link_libraries(make_auto_wsg PRIVATE workspace_group)
@@ -55,6 +55,7 @@ add_library(workspace STATIC
   workspace_method_class.cpp
   workspace_class.cpp
   ${ARTS_WORKSPACE_METHODS}
+  auto_workspace.cpp
   auto_wsv.cpp
   auto_wsm.cpp
   auto_wsa.cpp
