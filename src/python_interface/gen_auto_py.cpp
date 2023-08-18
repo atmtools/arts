@@ -963,22 +963,11 @@ concept PythonWorkspaceGroup =
 
   hos << R"--(;
 
-template <PythonWorkspaceGroup T>
-Wsv from(const std::shared_ptr<T>& x) {
-  Wsv out;
-  if constexpr (WorkspaceGroup<T>)
-    out.value = x;
-  else
-    out.value = x.val;
-  return out;
-}
+template <WorkspaceGroup T>
+Wsv from(const std::shared_ptr<T>& x);
 
 template <WorkspaceGroup T>
-Wsv from(const ValueHolder<T>& x) {
-  Wsv out;
-  out.value = x.val;
-  return out;
-}
+Wsv from(const ValueHolder<T>& x);
 
 template <typename T>
 concept Wsvable = requires (T x) {
@@ -1001,14 +990,10 @@ Wsv from(const py::object& x);
 std::string type(const py::object& x);
 
 template <WorkspaceGroup T>
-std::string type(const std::shared_ptr<T>&) {
-  return std::string(WorkspaceGroupInfo<T>::name);
-}
+std::string type(const std::shared_ptr<T>&);
 
 template <WorkspaceGroup T>
-std::string type(const ValueHolder<T>&) {
-  return std::string(WorkspaceGroupInfo<T>::name);
-}
+std::string type(const ValueHolder<T>&);
 }  // namespace Python
 )--";
 
@@ -1019,6 +1004,37 @@ std::string type(const ValueHolder<T>&) {
 #include <pybind11/stl.h>
 
 namespace Python {
+)--";
+
+for (auto& [group, wsg] : wsgs) {
+  cos << R"--(
+template <>
+Wsv from(const std::shared_ptr<)--" << group << R"--(>& x) {
+  Wsv out;
+  out.value = x;
+  return out;
+}
+
+template <>
+Wsv from(const ValueHolder<)--" << group << R"--(>& x) {
+  Wsv out;
+  out.value = x.val;
+  return out;
+}
+
+template <>
+std::string type<)--" << group << R"--(>(const std::shared_ptr<)--" << group << R"--(>&) {
+  return ")--" << group << R"--(";
+}
+
+template <>
+std::string type<)--" << group << R"--(>(const ValueHolder<)--" << group << R"--(>&) {
+  return ")--" << group << R"--(";
+}
+)--";
+}
+
+cos << R"--(
 PyWsvValue from(const WsvValue& x) {
   return std::visit([](auto& arg) -> PyWsvValue {
     return arg;

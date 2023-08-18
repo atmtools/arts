@@ -29,42 +29,30 @@ class Workspace {
 
   //! Copy the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, const T& data) {
-    set(name, std::make_shared<Wsv>(data));
-  }
+  void set(const std::string& name, const T& data);
 
   //! Move the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, T&& data) {
-    set(name, std::make_shared<Wsv>(std::move(data)));
-  }
+  void set(const std::string& name, T&& data);
 
   //! Borrows the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void set(const std::string& name, T* data) {
-    set(name, std::make_shared<Wsv>(data));
-  }
+  void set(const std::string& name, T* data);
 
   //! Overwrites a variable with another variable of the same type
   void overwrite(const std::string& name, const std::shared_ptr<Wsv>& data);
 
   //! Copy the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, const T& data) {
-    overwrite(name, std::make_shared<Wsv>(data));
-  }
+  void overwrite(const std::string& name, const T& data);
 
   //! Move the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, T&& data) {
-    overwrite(name, std::make_shared<Wsv>(std::move(data)));
-  }
+  void overwrite(const std::string& name, T&& data);
 
   //! Borrows the workspace variable with the given name to the given value.
   template <WorkspaceGroup T>
-  void overwrite(const std::string& name, T* data) {
-    overwrite(name, std::make_shared<Wsv>(data));
-  }
+  void overwrite(const std::string& name, T* data);
 
   //! Returns a type directly based on the name of the workspace variable.
   template <WorkspaceGroup T>
@@ -72,21 +60,7 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
-  [[nodiscard]] std::shared_ptr<T> share_or(const std::string& name) {
-    if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {
-      return ptr->second->template share<T>();
-    }
-
-    std::shared_ptr<Wsv> out;
-    if constexpr (std::is_same_v<T, Agenda>) {
-      out = std::make_shared<Wsv>(T{name});
-    } else {
-      out = std::make_shared<Wsv>(T{});
-    }
-
-    set(name, out);
-    return out->share_unsafe<T>();
-  }
+  [[nodiscard]] std::shared_ptr<T> share_or(const std::string& name);
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
