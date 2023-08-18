@@ -103,16 +103,16 @@ struct Wsv {
   WsvValue value;
 
   //! Move value into the workspace variable
-  template <WorkspaceGroup T> Wsv(T&& x) : value(std::make_shared<T>(std::move(x))) {}
+  template <WorkspaceGroup T> Wsv(T&& x);
 
   //! Copy value into the workspace variable
-  template <WorkspaceGroup T> Wsv(const T& x) : value(std::make_shared<T>(x)) {}
+  template <WorkspaceGroup T> Wsv(const T& x);
 
   //! Borrow value as workspace variable
-  template <WorkspaceGroup T> Wsv(T* x) : value(std::shared_ptr<T>(x, [](void*){})) {}
+  template <WorkspaceGroup T> Wsv(T* x);
 
   //! Share value as workspace variable
-  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x) : value(std::move(x)) {}
+  template <WorkspaceGroup T> Wsv(std::shared_ptr<T>&& x);
 
   //! Must declare destructor to avoid incomplete type error
   Wsv();
@@ -126,9 +126,9 @@ struct Wsv {
 
   [[nodiscard]] const std::string_view type_name() const;
 
-  [[nodiscard]] constexpr std::size_t index() const {return value.index();}
+  [[nodiscard]] std::size_t index() const;
 
-  [[nodiscard]] constexpr bool holds_same(const Wsv& other) const {return index() == other.index();}
+  [[nodiscard]] bool holds_same(const Wsv& other) const;
 
   template <WorkspaceGroup T>
   [[nodiscard]] bool holds() const;
@@ -169,6 +169,13 @@ Wsv::~Wsv() = default;
 
 )--";
 
+  for(auto &&group : groups()) {
+    os << "template <> Wsv::Wsv(" << group << "&& x) : value(std::make_shared<" << group << ">(std::move(x))) {}\n";
+    os << "template <> Wsv::Wsv(const " << group << "& x) : value(std::make_shared<" << group << ">(x)) {}\n";
+    os << "template <> Wsv::Wsv(" << group << "* x) : value(std::shared_ptr<" << group << ">(x, [](void*){})) {}\n";
+    os << "template <> Wsv::Wsv(std::shared_ptr<" << group << ">&& x) : value(std::move(x)) {}\n\n";
+  }
+
   os << "std::string_view name_wsg(const WsvValue& x) {\n  const static std::unordered_map<std::size_t, std::string> val {\n";
   for (auto& group : groups()) {
     os << "    {Wsv(" << group << "{}).index(), \"" << group << "\"}, \n";
@@ -188,6 +195,10 @@ Wsv::~Wsv() = default;
   os << R"--(  };
   return std::binary_search(val.begin(), val.end(), x);
 }
+
+std::size_t Wsv::index() const {return value.index();}
+
+bool Wsv::holds_same(const Wsv& other) const {return index() == other.index();}
 
 Wsv Wsv::copy() const {
   return std::visit([](const auto& val) -> Wsv {

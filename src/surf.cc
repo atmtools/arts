@@ -116,6 +116,28 @@ std::ostream &operator<<(std::ostream &os, const Field &surf) {
   return os;
 }
 
+// Allow copy and move set implicitly from all types
+Data &Data::operator=(const GriddedField2 &x) {
+  data = x;
+  return *this;
+}
+Data &Data::operator=(const Numeric &x) {
+  data = x;
+  return *this;
+}
+Data &Data::operator=(const FunctionalData &x) {
+  data = x;
+  return *this;
+}
+Data &Data::operator=(GriddedField2 &&x) {
+  data = std::move(x);
+  return *this;
+}
+Data &Data::operator=(FunctionalData &&x) {
+  data = std::move(x);
+  return *this;
+}
+
 String Data::data_type() const {
   if (std::holds_alternative<GriddedField2>(data))
     return "GriddedField2";
