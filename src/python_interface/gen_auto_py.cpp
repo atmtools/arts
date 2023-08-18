@@ -6,6 +6,7 @@
 #include <ostream>
 #include <sstream>
 
+#include "auto_wsv.h"
 #include "pydocs.h"
 
 std::vector<std::ofstream> autofiles(int n, const std::string& fname, const std::string& ftype) {
@@ -60,7 +61,7 @@ std::string variable(const std::string& name,
   if (wsv.default_value) {
     os << "\nDefault value\n"
           "-------------\n\n``"
-       << to_defval_str(*wsv.default_value, wsv.type) << "``\n\n";
+       << to_defval_str(*wsv.default_value) << "``\n\n";
   }
 
   os << variable_used_by(name) << '\n';
@@ -334,9 +335,10 @@ std::string method_resolution_any(
   }
   i_any = 1;
 
-  os << "        std::visit([&](auto& _t) {"
-        "\n          using _tT=std::remove_cvref_t<decltype(*_t)>;"
-        "\n          "
+  os << "        try {\n";
+  os << "          std::visit([&](auto& _t) {"
+        "\n           using _tT=std::remove_cvref_t<decltype(*_t)>;"
+        "\n            "
      << name << "<_tT>(";
 
   bool any = false;
@@ -403,6 +405,38 @@ std::string method_resolution_any(
   }
 
   os << ");\n          }, _any1.value);\n";
+  os << "        } catch (std::bad_variant_access&) {\n";
+
+    const auto* const spaces =
+        "                                              ";
+    os << R"(          throw std::runtime_error(var_string("Derived variadic arguments:\n",)";
+
+    for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+      auto& t = wsm.gout_type[i];
+      auto& v = wsm.gout[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+      auto& t = wsm.gin_type[i];
+      auto& v = wsm.gin[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    os << '\n'
+       << spaces
+       << "\"If the signature above give different types for any of these variable(s),\\n\",\n"
+       << spaces
+       << "\"then you need to specify the type of the variable(s) explicitly.\\n\",\n"
+       << spaces
+       << "\"Otherwise, the desired type combination is not available for this method.\"";
+    os << "));\n";
+
+  os << "        } catch (std::exception&) { throw; }\n";
 
   return os.str();
 }
@@ -513,7 +547,36 @@ std::string method_resolution_variadic(
 
       os << ");";
     }
-    os << "\n          else throw std::runtime_error(\"Bad combination in \\\"" << name << R"(\""); }, )" << var << ".value);\n";
+
+    const auto* const spaces =
+        "                                                    ";
+    os << "\n          else throw std::runtime_error(var_string(\"Derived variadic arguments:\\n\",";
+
+    for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+      auto& t = wsm.gout_type[i];
+      auto& v = wsm.gout[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+      auto& t = wsm.gin_type[i];
+      auto& v = wsm.gin[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    os << '\n'
+       << spaces
+       << "\"If the signature above give different types for any of these variable(s),\\n\",\n"
+       << spaces
+       << "\"then you need to specify the type of the variable(s) explicitly.\\n\",\n"
+       << spaces
+       << "\"Otherwise, the desired type combination is not available for this method.\"";
+    os << "));\n"
+          "        }, " << var << ".value);\n";
   } else {
     os << "      ";
     for (auto& generics : supergenerics) {
@@ -599,8 +662,35 @@ std::string method_resolution_variadic(
       os << ");\n        } else ";
     }
     os << "{\n";
-    os << R"(          throw std::runtime_error("Cannot call method \")" << name
-       << "\\\" with the given arguments,\");\n";
+
+    const auto* const spaces =
+        "                                               ";
+    os << "\n          throw std::runtime_error(var_string(\"Derived variadic arguments:\\n\",";
+
+    for (std::size_t i = 0; i < wsm.gout.size(); i++) {
+      auto& t = wsm.gout_type[i];
+      auto& v = wsm.gout[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+      auto& t = wsm.gin_type[i];
+      auto& v = wsm.gin[i];
+      if (uses_variadic(t) or t == "Any") {
+        os << '\n' << spaces << "\"" << v << " : \", " << v << ".type_name(), '\\n',";
+      }
+    }
+
+    os << '\n'
+       << spaces
+       << "\"If the signature above give different types for any of these variable(s),\\n\",\n"
+       << spaces
+       << "\"then you need to specify the type of the variable(s) explicitly.\\n\",\n"
+       << spaces
+       << "\"Otherwise, the desired type combination is not available for this method.\"";
+    os << "));\n";
     os << "        }\n";
   }
 
@@ -704,7 +794,7 @@ std::string method_argument_documentation(
     if (not first) os << ",\n    ";
     first = false;
     if (wsm.gin_value[i]) {
-      os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, R\"-x-(" << to_defval_str(*wsm.gin_value[i], wsm.gin_type[i]) << ")-x-\")";
+      os << "py::arg_v(\"" << wsm.gin[i] << "\", std::nullopt, R\"-x-(" << to_defval_str(*wsm.gin_value[i]) << ")-x-\")";
     } else {
       os << "py::arg(\"" << wsm.gin[i] << "\") = std::nullopt";
     }
@@ -717,9 +807,63 @@ std::string method_argument_documentation(
 std::string method_error(const std::string& name,
                          const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
-  os << "        throw std::runtime_error(var_string(";
-  os << R"("Cannot execute method: \")" << name << R"(\"")";
-  os << ", \"\\n\\n\", e.what()));\n";
+  os << "        throw std::runtime_error(\n          var_string(";
+  os << R"("Cannot execute method:\n\n",
+              ")";
+  os << name << '(';
+
+  const auto spaces = std::string(name.size() + 1, ' ');
+
+  bool first = true;
+  for (auto& t : wsm.out) {
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << workspace_variables().at(t).type;
+    os << R"(, defaults to self.)" << t << R"()-x-"),
+              ")";
+  }
+
+  for (auto& t : wsm.gout) {
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t
+       << R"(.value()) : std::string("NoneType"),
+              ")";
+  }
+
+  for (auto& t : wsm.in) {
+    if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << workspace_variables().at(t).type;
+    os << R"(, defaults to self.)" << t << R"()-x-"),
+              ")";
+  }
+
+  for (std::size_t i = 0; i < wsm.gin.size(); i++) {
+    auto& t = wsm.gin[i];
+    auto& v = wsm.gin_value[i];
+    auto& g = wsm.gin_type[i];
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()";
+    if (v) {
+      os << g << ", defaults to " << to_defval_str(*v);
+    } else {
+      os << "NoneType";
+    }
+    os << R"()-x-"),
+              ")";
+  }
+
+  os << ")\", ";
+  os << "\"\\n\\n\", e.what()));\n";
   return os.str();
 }
 
@@ -853,6 +997,18 @@ PyWsvValue from(const Wsv& x);
 PyWsvValue from(const std::shared_ptr<Wsv>& x);
 
 Wsv from(const py::object& x);
+
+std::string type(const py::object& x);
+
+template <WorkspaceGroup T>
+std::string type(const std::shared_ptr<T>&) {
+  return std::string(WorkspaceGroupInfo<T>::name);
+}
+
+template <WorkspaceGroup T>
+std::string type(const ValueHolder<T>&) {
+  return std::string(WorkspaceGroupInfo<T>::name);
+}
 }  // namespace Python
 )--";
 
@@ -881,6 +1037,12 @@ Wsv from(const py::object& x) {
   if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
 
   return from(x.cast<PyWsvValue>());
+}
+
+std::string type(const py::object& x) {
+  if (x.is_none()) return "NoneType";
+
+  return py::str(x.get_type()).cast<std::string>();
 }
 }  // namespace Python
 )--";

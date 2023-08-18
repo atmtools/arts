@@ -18,7 +18,7 @@ String method_docs(const String& name);
 
 String variable_used_by(const String& name);
 
-String to_defval_str(const Wsv& wsv, const String& group);
+String to_defval_str(const Wsv& wsv);
 
 namespace Python {
 String group_generics_inout(const String& group);

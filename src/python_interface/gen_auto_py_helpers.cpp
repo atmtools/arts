@@ -203,7 +203,9 @@ String compose_generic_groups(const String& grps) {
   return var_string("~pyarts.arts.", grps);
 }
 
-String to_defval_str(const Wsv& wsv, const String& group) {
+String to_defval_str(const Wsv& wsv) {
+  const auto& group = wsv.type_name();
+
   std::string out =
       std::visit([](auto& a) { return var_string(*a); }, wsv.value);
 
@@ -333,7 +335,7 @@ String method_docs(const String& name) try {
     const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval, method.gin_type[i]), "``")
+        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval), "``")
                    : ""};
     out += var_string('\n',
                       varname,
