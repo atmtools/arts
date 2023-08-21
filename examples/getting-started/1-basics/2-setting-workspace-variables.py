@@ -30,14 +30,6 @@ print("Should contain 3:           ", ws.ybatch_index)
 
 
 """
-Lastly, there exist a workspace method to set indices.  To-date, this is
-the only way to set the value of indices inside an Agenda.
-"""
-ws.IndexSet(ws.ybatch_index, 4)
-print("Should contain 4:           ", ws.ybatch_index)
-
-
-"""
 What follows are some examples of how to set other types of workspace
 variables.  The general rule is that you can set a workspace variable
 from any python object that has a corresponding ARTS type.  For
@@ -90,10 +82,10 @@ respective Workspace Group for more information on how to initialize them.
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
-assert np.isclose(ws.example_index.value.value, 2)
-assert np.isclose(ws.ybatch_index.value.value, 4)
-assert np.isclose(ws.g0.value.value, 9.81)
-assert ws.iy_unit.value == "avc"
-assert np.allclose(ws.f_grid.value, [4, 5, 6])
-assert np.allclose(ws.iy.value, [[5, 6], [7, 8]])
+assert np.isclose(ws.example_index.value, 2)
+assert np.isclose(ws.ybatch_index.value, 3)
+assert np.isclose(ws.g0.value, 9.81)
+assert ws.iy_unit == "avc"
+assert np.allclose(ws.f_grid, [4, 5, 6])
+assert np.allclose(ws.iy, [[5, 6], [7, 8]])
 # END TESTING
