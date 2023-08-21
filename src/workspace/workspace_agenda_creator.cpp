@@ -44,6 +44,11 @@ AgendaCreator& AgendaCreator::ignore(const std::string& name) {
   return *this;
 }
 
+Agenda&& AgendaCreator::finalize() && {
+  a.finalize(true);
+  return std::move(a);
+};
+
 Agenda get_iy_main_agenda(const std::string& option) {
   AgendaCreator agenda("iy_main_agenda");
 
@@ -125,7 +130,7 @@ Agenda get_iy_space_agenda(const std::string& option) {
   using enum Options::iy_space_agendaDefaultOptions;
   switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
     case CosmicBackground:
-      agenda.add("MatrixCBR", "iy", "stokes_dim", "f_grid");
+      agenda.add("MatrixCBR", "iy", "f_grid");
       break;
     case FINAL:
       break;

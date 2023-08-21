@@ -33,7 +33,7 @@ public:
     return add(name, std::vector<SetWsv>{std::forward<T>(v)...});
   }
 
-  Agenda&& finalize() && { a.finalize(); return std::move(a); }
+  Agenda&& finalize() &&;
 };
 
 Agenda get_iy_main_agenda(const std::string& option);

@@ -36,20 +36,20 @@ class Workspace(cxx._Workspace):
         return super().__getattribute__(attr)
 
     def __getattr__(self, attr):
-        if super()._has(attr):
-            return super()._get(attr)
+        if super().has(attr):
+            return super().get(attr)
 
         raise AttributeError(
             f"'Workspace' object has no attribute '{attr}'")
 
     def __setattr__(self, attr, value):
-        if self._has(attr):
-            self._set(attr, type(self._get(attr))(value))
+        if self.has(attr):
+            self.set(attr, type(self.get(attr))(value))
         else:
             if attr in _wsvs:
                 super().__setattr__(attr, value)
             elif type(value) in _group_types:
-                self._set(attr, value)
+                self.set(attr, value)
             else:
                 raise AttributeError(
                     f"'Workspace' object has no attribute '{attr}'")
@@ -57,8 +57,8 @@ class Workspace(cxx._Workspace):
     def __delattr__(self, attr):
         if attr == '__class__':
             raise AttributeError("You cannot delete __class__")
-        if self._has(attr):
-            self._set(attr, type(self._get(attr))())
+        if self.has(attr):
+            self.set(attr, type(self.get(attr))())
         else:
             raise AttributeError(
                 f"'Workspace' object has no attribute '{attr}'")

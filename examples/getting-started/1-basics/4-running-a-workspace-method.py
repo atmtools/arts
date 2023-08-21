@@ -19,17 +19,7 @@ print(type(ws.example_index), type(example_index))
 You can call workspace methods with named or unnamed arguments or any combination
 thereof that python accepts
 """
-ws.iy_space_agendaSet(ws.iy_space_agenda, "CosmicBackground") # Unnamed
-ws.iy_space_agendaSet(ws.iy_space_agenda, option="CosmicBackground") # Mixed
-ws.iy_space_agendaSet(option="CosmicBackground", iy_space_agenda=ws.iy_space_agenda) # Named
-
-
-"""
-All arguments that the method marks as output can be omitted.  The
-following are equivalent:
-"""
-ws.iy_space_agendaSet(ws.iy_space_agenda, option="CosmicBackground")
-ws.iy_space_agendaSet(option="CosmicBackground") # Omitted iy_space_agenda
+ws.iy_space_agendaSet(option="CosmicBackground")
 
 """
 All arguments that are marked as input must be provided.  An alternative

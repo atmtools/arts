@@ -35,7 +35,7 @@ std::string variable(const std::string& name,
   os << R"--(
     py::cpp_function([](Workspace& w) -> )--"
      << fix_type(wsv.type) << R"--( {
-      return w.share(")--" << name << R"--(") -> share_unsafe<)--" << wsv.type<< R"--(>();
+      return w.share_or<)--"<<wsv.type<<">(\"" << name << R"--(");
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
      << fix_type(wsv.type) << R"--( val) -> void {

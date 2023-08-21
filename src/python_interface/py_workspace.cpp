@@ -69,15 +69,15 @@ void py_workspace(artsclass<Workspace>& ws) try {
       .def("__copy__", [](Workspace& w) { return w; })
       .def("__deepcopy__", [](Workspace& w, py::dict&) { return w; })
       .def(
-          "_get",
+          "get",
           [](Workspace& w, const std::string& n) { return from(w.share(n)); },
           py::return_value_policy::reference_internal,
           py::keep_alive<0, 1>())
-      .def("_set",
+      .def("set",
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
              w.set(n, std::make_shared<Wsv>(from(x)));
            })
-      .def("_has",
+      .def("has",
            [](Workspace& w, const std::string& n) { return w.contains(n); });
 
   ws.def("__str__", [](const Workspace& w) {

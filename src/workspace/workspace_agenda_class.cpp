@@ -30,7 +30,7 @@ auto is_not_in(const std::vector<std::string>& seq) {
   return [&seq](auto& str) { return std::find(seq.begin(), seq.end(), str) == seq.end(); };
 }
 
-void Agenda::finalize() try {
+void Agenda::finalize(bool fix) try {
   static const auto& wsa = workspace_agendas();
 
   auto ag_ptr = wsa.find(name);
@@ -73,28 +73,33 @@ void Agenda::finalize() try {
   }
 
   if (must_in.size() or must_out.size()) {
-    std::ostringstream os;
-    os << "Agenda has unused variables:\nRequired output : ";
-    for (auto& o: ag_ptr->second.output) {
-      os << o << ", ";
-    }
+    if (fix) {
+      for (auto&v: must_in) methods.emplace_back("Ignore", std::vector<std::string>{v});
+      for (auto&v: must_out) methods.emplace_back("Touch", std::vector<std::string>{v});
+    } else {
+      std::ostringstream os;
+      os << "Agenda has unused variables:\nRequired output : ";
+      for (auto& o: ag_ptr->second.output) {
+        os << o << ", ";
+      }
 
-    os << "\nRequired input  : ";
-    for (auto& o: ag_ptr->second.input) {
-      os << o << ", ";
-    }
+      os << "\nRequired input  : ";
+      for (auto& o: ag_ptr->second.input) {
+        os << o << ", ";
+      }
 
-    os << "\nUnused output   : ";
-    for (auto& o: must_out) {
-      os << o << ", ";
-    }
+      os << "\nUnused output   : ";
+      for (auto& o: must_out) {
+        os << o << ", ";
+      }
 
-    os << "\nUnused input    : ";
-    for (auto& o: must_in) {
-      os << o << ", ";
+      os << "\nUnused input    : ";
+      for (auto& o: must_in) {
+        os << o << ", ";
+      }
+      os << "\nPlease Touch unused output and Ignore unused input if this is intentional.";
+      throw std::runtime_error(os.str());
     }
-    os << "\nPlease Touch unused output and Ignore unused input if this is intentional.";
-    throw std::runtime_error(os.str());
   }
 
   const auto remove_copies = [](std::vector<string>& seq) {

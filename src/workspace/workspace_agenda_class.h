@@ -28,7 +28,7 @@ public:
   void add(const Method& method);
 
   //! Must be called before named agendas, will deal with input and output variables for copy_workspace
-  void finalize();
+  void finalize(bool fix=false);
 
   //! Copies the required workspace variables from the agenda
   void copy_workspace(Workspace& out, const Workspace& in, bool share_only=false) const;
