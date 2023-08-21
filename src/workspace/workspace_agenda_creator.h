@@ -1,8 +1,8 @@
 #pragma once
 
-#include "workspace_agenda_class.h"
-
 #include "workspace_method_class.h"
+
+#include "workspace_agenda_class.h"
 
 struct SetWsv {
   std::string name;
@@ -17,6 +17,7 @@ struct SetWsv {
 
 class AgendaCreator {
   Agenda a;
+
 public:
   AgendaCreator(std::string name) : a(std::move(name)) {}
   AgendaCreator(AgendaCreator&&) = delete;
@@ -33,7 +34,7 @@ public:
     return add(name, std::vector<SetWsv>{std::forward<T>(v)...});
   }
 
-  Agenda&& finalize() &&;
+  Agenda finalize() &&;
 };
 
 Agenda get_iy_main_agenda(const std::string& option);

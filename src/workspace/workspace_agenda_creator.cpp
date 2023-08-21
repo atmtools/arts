@@ -44,9 +44,10 @@ AgendaCreator& AgendaCreator::ignore(const std::string& name) {
   return *this;
 }
 
-Agenda&& AgendaCreator::finalize() && {
-  a.finalize(true);
-  return std::move(a);
+Agenda AgendaCreator::finalize() && {
+  Agenda ag{std::move(a)};
+  ag.finalize(true);
+  return ag;
 };
 
 Agenda get_iy_main_agenda(const std::string& option) {
@@ -127,6 +128,8 @@ Agenda get_iy_loop_freqs_agenda(const std::string& option) {
 Agenda get_iy_space_agenda(const std::string& option) {
   AgendaCreator agenda("iy_space_agenda");
 
+std::cerr << "HELLO\n";
+
   using enum Options::iy_space_agendaDefaultOptions;
   switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
     case CosmicBackground:
@@ -135,8 +138,11 @@ Agenda get_iy_space_agenda(const std::string& option) {
     case FINAL:
       break;
   }
+std::cerr << "agenda done" << "\n";
+Agenda ag = std::move(agenda).finalize();
 
-  return std::move(agenda).finalize();
+std::cerr << "agenda moved" << "\n";
+  return ag;
 }
 
 Agenda get_iy_surface_agenda(const std::string& option) {

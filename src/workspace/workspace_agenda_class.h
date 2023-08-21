@@ -17,7 +17,13 @@ class Agenda {
   bool checked{false};
 
 public:
-  Agenda() = default;
+  Agenda();
+  Agenda(const Agenda&);
+  Agenda(Agenda&&) noexcept;
+  ~Agenda();
+  Agenda& operator=(const Agenda&);
+  Agenda& operator=(Agenda&&) noexcept;
+
   Agenda(std::string name);
   Agenda(std::string name,
          const std::vector<Method>& methods,

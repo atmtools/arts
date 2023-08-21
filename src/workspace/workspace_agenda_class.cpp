@@ -243,6 +243,9 @@ std::ostream& operator<<(std::ostream& os, const Agenda& a) {
 
   os << "Agenda " << a.name;
 
+  if (a.is_checked()) os << " (checked)";
+  else os << " (unchecked)";
+
   if (checked or named) {
     os << ":\n";
 
