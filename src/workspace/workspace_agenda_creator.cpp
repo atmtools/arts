@@ -126,6 +126,8 @@ Agenda get_iy_loop_freqs_agenda(const std::string& option) {
 }
 
 Agenda get_iy_space_agenda(const std::string& option) {
+  Agenda ag;
+  {
   AgendaCreator agenda("iy_space_agenda");
 
 std::cerr << "HELLO\n";
@@ -139,7 +141,8 @@ std::cerr << "HELLO\n";
       break;
   }
 std::cerr << "agenda done" << "\n";
-Agenda ag = std::move(agenda).finalize();
+ ag = std::move(agenda).finalize();
+}
 
 std::cerr << "agenda moved" << "\n";
   return ag;

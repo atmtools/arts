@@ -1,13 +1,14 @@
 #pragma once
 
+#include <optional>
 #include "workspace_method_class.h"
 
 #include "workspace_agenda_class.h"
 
 struct SetWsv {
   std::string name;
-  std::optional<std::string> other{};
-  std::optional<Wsv> wsv{};
+  std::optional<std::string> other{std::nullopt};
+  std::optional<Wsv> wsv{std::nullopt};
 
   SetWsv(std::string n);
   SetWsv(const char * const n) : name(n) {}

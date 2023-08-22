@@ -67,7 +67,7 @@ void header(std::ostream& os) {
     os << "\n  || std::is_same_v<T, " << group << ">";
   }
   os << "\n;\n\n";
-  os << "template <typename T>\nconcept ConstWorkspaceGroup = WorkspaceGroup<std::remove_const_t<T>>;\n\n";
+  os << "template <typename T>\nconcept QualifiedWorkspaceGroup = WorkspaceGroup<std::remove_cvref_t<T>>;\n\n";
 
   os << R"(template <typename T> struct WorkspaceGroupInfo {
   static constexpr std::string_view name = "<Unknown>";
@@ -174,7 +174,7 @@ Agenda& Agenda::operator=(const Agenda&) = default;
 Agenda& Agenda::operator=(Agenda&&) noexcept = default;
 Agenda::~Agenda() = default;
 
-Wsv::Wsv() = default;
+Wsv::Wsv() : value(std::make_shared<Any>()) {}
 Wsv::Wsv(const Wsv&) = default;
 Wsv::Wsv(Wsv&&) noexcept = default;
 Wsv& Wsv::operator=(const Wsv&) = default;
