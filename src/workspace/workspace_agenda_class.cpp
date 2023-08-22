@@ -19,7 +19,7 @@ Agenda::Agenda(std::string n) : name(std::move(n)), methods() {}
 void Agenda::add(const Method& method) {
   checked = false;
   method.add_defaults_to_agenda(*this);
-  methods.push_back(method);
+  methods.push_back(std::make_shared<Method>(method));
 }
 
 auto is_in(const std::vector<std::string>& seq) {
@@ -42,8 +42,8 @@ void Agenda::finalize(bool fix) try {
   auto must_in = ag_ptr->second.input;
 
   for (auto& method : methods) {
-    const auto& ins = method.get_ins();
-    const auto& outs = method.get_outs();
+    const auto& ins = method -> get_ins();
+    const auto& outs = method -> get_outs();
 
     for (auto& i : ins) {
       if (auto ptr = std::find(must_in.begin(), must_in.end(), i); ptr != must_in.end()) {
@@ -74,8 +74,8 @@ void Agenda::finalize(bool fix) try {
 
   if (must_in.size() or must_out.size()) {
     if (fix) {
-      for (auto&v: must_in) methods.emplace_back("Ignore", std::vector<std::string>{v});
-      for (auto&v: must_out) methods.emplace_back("Touch", std::vector<std::string>{v});
+      for (auto&v: must_in) methods.emplace_back(std::make_shared<Method>("Ignore", std::vector<std::string>{v}));
+      for (auto&v: must_out) methods.emplace_back(std::make_shared<Method>("Touch", std::vector<std::string>{v}));
     } else {
       std::ostringstream os;
       os << "Agenda has unused variables:\nRequired output : ";
@@ -196,7 +196,7 @@ Workspace Agenda::copy_workspace(const Workspace& in) const {
 
 void Agenda::execute(Workspace& ws) const try {
   for (auto& method : methods) {
-    method(ws);
+    method -> operator()(ws);
   }
 } catch (std::exception& e) {
   throw std::runtime_error(
@@ -205,7 +205,7 @@ void Agenda::execute(Workspace& ws) const try {
 
 bool Agenda::has_method(const std::string& method) const {
   for (auto& m : methods) {
-    if (m.get_name() == method) {
+    if (m -> get_name() == method) {
       return true;
     }
   }
@@ -213,7 +213,7 @@ bool Agenda::has_method(const std::string& method) const {
 }
 
 Agenda::Agenda(std::string n,
-               const std::vector<Method>& m,
+               const std::vector<std::shared_ptr<Method>>& m,
                const std::vector<std::string>& s,
                const std::vector<std::string>& c,
                bool check)

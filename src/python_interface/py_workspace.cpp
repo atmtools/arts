@@ -44,7 +44,7 @@ Agenda unpickle_agenda(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
   auto n = t[0].cast<std::string>();
-  auto m = t[1].cast<std::vector<Method>>();
+  auto m = t[1].cast<std::vector<shared_ptr<Method>>>();
   auto s = t[2].cast<std::vector<std::string>>();
   auto c = t[3].cast<std::vector<std::string>>();
   auto ch = t[4].cast<bool>();

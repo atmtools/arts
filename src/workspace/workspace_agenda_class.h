@@ -2,6 +2,7 @@
 
 #include <array.h>
 
+#include <memory>
 #include <ostream>
 #include <vector>
 
@@ -10,8 +11,8 @@ class Workspace;
 struct Wsv;
 
 class Agenda {
-  std::string name;
-  std::vector<Method> methods;
+  std::string name{};
+  std::vector<std::shared_ptr<Method>> methods{};
   std::vector<std::string> share{};
   std::vector<std::string> copy{};
   bool checked{false};
@@ -26,7 +27,7 @@ public:
 
   Agenda(std::string name);
   Agenda(std::string name,
-         const std::vector<Method>& methods,
+         const std::vector<std::shared_ptr<Method>>& methods,
          const std::vector<std::string>& share,
          const std::vector<std::string>& copy,
          bool checked);
@@ -53,7 +54,7 @@ public:
 
   [[nodiscard]] bool has_method(const std::string& method) const;
 
-  [[nodiscard]] const std::vector<Method>& get_methods() const {return methods;}
+  [[nodiscard]] const std::vector<std::shared_ptr<Method>>& get_methods() const {return methods;}
   [[nodiscard]] const std::vector<std::string>& get_share() const {return share;}
   [[nodiscard]] const std::vector<std::string>& get_copy() const {return copy;}
 
