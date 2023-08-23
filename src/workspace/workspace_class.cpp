@@ -39,7 +39,7 @@ void Workspace::set(const std::string& name,
         wsv_ptr != wsv_data.end() and wsv_ptr->second.type != data->type_name())
       throw wsv_ptr->second.type;
 
-    wsv[name] = std::make_shared<Wsv>(data->copy());
+    wsv[name] = data;
   } else {
     std::visit(
         [&data](auto& v) {

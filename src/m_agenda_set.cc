@@ -9,9 +9,7 @@ void iy_loop_freqs_agendaSet(Agenda& out, const String& option) {
 }
 
 void iy_space_agendaSet(Agenda& out, const String& option) {
-  std::cerr << "iy_space_agendaSet?" << std::endl;
   out = get_iy_space_agenda(option);
-  std::cerr << "iy_space_agendaSet: " << out << std::endl;
 }
 
 void iy_surface_agendaSet(Agenda& out, const String& option) {

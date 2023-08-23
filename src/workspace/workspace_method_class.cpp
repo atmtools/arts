@@ -53,7 +53,7 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
 Method::Method(const std::string& n,
                const std::vector<std::string>& a,
                const std::unordered_map<std::string, std::string>& kw) try
-    : name(n), outargs(wsms.at(name).out), inargs(wsms.at(name).in), func(wsms.at(name).func) {
+    : name(n), outargs(wsms.at(name).out), inargs(wsms.at(name).in) {
   const std::size_t nargout = outargs.size();
   const std::size_t nargin = inargs.size();
 
@@ -186,8 +186,10 @@ void Method::operator()(Workspace& ws) const try {
     else
       ws.set(name, std::make_shared<Wsv>(setval.value()));
   } else {
-    func(ws, outargs, inargs);
+    wsms.at(name).func(ws, outargs, inargs);
   }
+} catch (std::out_of_range&) {
+  throw std::runtime_error(var_string("No method named ", std::quoted(name)));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Error in method ", *this, "\n", e.what()));
@@ -212,6 +214,5 @@ Method::Method(const std::string& n,
     : name(n),
       outargs(outs),
       inargs(ins),
-      func(wsms.at(name).func),
       setval(wsv),
       overwrite_setval(overwrite) {}

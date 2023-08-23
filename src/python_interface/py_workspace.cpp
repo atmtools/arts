@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "auto_wsv.h"
+#include "workspace_agenda_class.h"
 #include "workspace_class.h"
 
 extern Parameters parameters;
@@ -44,7 +45,7 @@ Agenda unpickle_agenda(const py::tuple& t) {
   ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
 
   auto n = t[0].cast<std::string>();
-  auto m = t[1].cast<std::vector<shared_ptr<Method>>>();
+  auto m = t[1].cast<std::vector<Method>>();
   auto s = t[2].cast<std::vector<std::string>>();
   auto c = t[3].cast<std::vector<std::string>>();
   auto ch = t[4].cast<bool>();
@@ -76,6 +77,23 @@ void py_workspace(artsclass<Workspace>& ws) try {
       .def("set",
            [](Workspace& w, const std::string& n, const PyWsvValue& x) {
              w.set(n, std::make_shared<Wsv>(from(x)));
+
+             auto ptr = w.share(n);
+             if (ptr->holds<Agenda>()) {
+               auto& ag = ptr->get_unsafe<Agenda>();
+               if (not ag.is_checked()) {
+                 ag.set_name(n);
+                 ag.finalize();
+               }
+             } else if (ptr->holds<ArrayOfAgenda>()) {
+               auto& ags = ptr->get_unsafe<ArrayOfAgenda>();
+               for (auto& ag : ags) {
+                if (not ag.is_checked()) {
+                  ag.set_name(n);
+                  ag.finalize();
+                }
+               }
+             }
            })
       .def("has",
            [](Workspace& w, const std::string& n) { return w.contains(n); });

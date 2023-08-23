@@ -126,11 +126,7 @@ Agenda get_iy_loop_freqs_agenda(const std::string& option) {
 }
 
 Agenda get_iy_space_agenda(const std::string& option) {
-  Agenda ag;
-  {
   AgendaCreator agenda("iy_space_agenda");
-
-std::cerr << "HELLO\n";
 
   using enum Options::iy_space_agendaDefaultOptions;
   switch (Options::toiy_space_agendaDefaultOptionsOrThrow(option)) {
@@ -140,12 +136,8 @@ std::cerr << "HELLO\n";
     case FINAL:
       break;
   }
-std::cerr << "agenda done" << "\n";
- ag = std::move(agenda).finalize();
-}
-
-std::cerr << "agenda moved" << "\n";
-  return ag;
+  
+  return std::move(agenda).finalize();
 }
 
 Agenda get_iy_surface_agenda(const std::string& option) {

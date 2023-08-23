@@ -14,7 +14,6 @@ class Method {
 std::string name{};
 std::vector<std::string> outargs{};
 std::vector<std::string> inargs{};
-std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)> func{[](Workspace&, const std::vector<std::string>&, const std::vector<std::string>&){throw std::runtime_error("Method not implemented");}};
 std::optional<Wsv> setval{std::nullopt};
 bool overwrite_setval{false};
 
