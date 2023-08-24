@@ -35,15 +35,6 @@ add_custom_command (
 
 ########### next target ###############
 
-add_executable (arts main.cc)
-add_dependencies(check-deps arts)
-
-target_link_libraries (arts PRIVATE artscore)
-
-install (TARGETS arts RUNTIME DESTINATION bin)
-
-########### next target ###############
-
 set (ARTSCORE_EXTRA_SOURCES)
 if (NOT HAVE_GETOPT_H)
   list (APPEND ARTSCORE_EXTRA_SOURCES

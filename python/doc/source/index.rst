@@ -12,6 +12,7 @@ pyarts
    about
    installation
    getting.started
+   doc
    workspace
    pyarts
    examples

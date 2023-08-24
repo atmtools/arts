@@ -1,21 +1,21 @@
 #include "absorptionlines.h"
-#include "auto_md.h"
 #include "gui/plot.h"
 #include "linemixing.h"
 #include "lineshape.h"
-#include "messages.h"
 #include "physics_funcs.h"
 #include "predefined_absorption_models.h"
 
+#include <workspace.h>
+
 Vector VectorNLinSpaceConst(Numeric f0, Numeric f1, Index n) {
   Vector x;
-  VectorNLinSpace(x, n, f0, f1, Verbosity{});
+  VectorNLinSpace(x, n, f0, f1);
   return x;
 }
 
 Vector VectorNLogSpaceConst(Numeric f0, Numeric f1, Index n) {
   Vector x;
-  VectorNLogSpace(x, n, f0, f1, Verbosity{});
+  VectorNLogSpace(x, n, f0, f1);
   return x;
 }
   
@@ -69,7 +69,7 @@ int main() {
                        {Species::Species::Oxygen, Species::Species::Nitrogen}, QuantumNumberLocalState{"J 0 0", "N 0 0"}, metamodel);
   ss >> band;
   Index wigner_initialized;
-  Wigner6Init(wigner_initialized, 20000000, 250, Verbosity{});
+  Wigner6Init(wigner_initialized, 20000000, 250);
   
   // Initializing values
   constexpr Index nfreq = 100000;
@@ -78,8 +78,6 @@ int main() {
   const Numeric T=296;
   const Numeric H=50e-6;
   const Vector VMR = {0.2098, 1 - 0.2098};
-  PropagationMatrix mpm_abs(nfreq, 1);
-  ArrayOfPropagationMatrix dmpm_abs(0);
   ArrayOfMatrix dxsec, dsource, dphase;
   ArrayOfArrayOfSpeciesTag specs(2, ArrayOfSpeciesTag(1));
   specs[0][0] = SpeciesTag("O2");
@@ -118,17 +116,12 @@ int main() {
   absZ += Absorption::LineMixing::ecs_absorption(T, H, P, 1, VMR, ecs_data, f_grid, 
                                                         Zeeman::Polarization::SigmaPlus, band).abs;
   
-  // Line Mixing reimplementation of MPM19
-  Absorption::PredefinedModel::VMRS vmrs_predef;
-  vmrs_predef.O2 = 1;
-  Absorption::PredefinedModel::compute(mpm_abs, dmpm_abs, Species::Isotopologues[Species::find_species_index("O2", "MPM2020")], f_grid, P, T, vmrs_predef, ArrayOfRetrievalQuantity(0), {});
-  
   // Line by line calculations
   band.normalization = Absorption::NormalizationType::SFS;
   band.population = Absorption::PopulationType::LTE;
   LineShape::ComputeData com_lte(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com_lte(Vector(0), {rq}, false);
-  LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {},
+  LineShape::compute(com_lte, sparse_com_lte, band, {rq}, {}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
                      Zeeman::Polarization::None, Options::LblSpeedup::None, false);
   
@@ -137,14 +130,13 @@ int main() {
 //     VectorNLinSpaceConst(200, 350, 76), ecs_data,
 //     VectorNLogSpaceConst(1, 1'000'000'000'000, 101));
 //   WriteXML("ascii", data, "prestemp.xml", 0, "", "", "", Verbosity());
-  Verbosity v;
   Absorption::LineMixing::ecs_eigenvalue_adaptation(band,
                                                     VectorNLinSpaceConst(200, 350, 76),
                                                     ecs_data,
-                                                    Conversion::atm2pa(1), 2, false, false, v);
+                                                    Conversion::atm2pa(1), 2, false, false);
   LineShape::ComputeData com(f_grid, {rq}, false);
   LineShape::ComputeData sparse_com(Vector(0), {rq}, false);
-  LineShape::compute(com, sparse_com, band, {rq}, {},
+  LineShape::compute(com, sparse_com, band, {rq}, {}, {},
                      band.BroadeningSpeciesVMR(VMR, specs), {}, 1.0, 1.0, P, T, 0, 0,
                      Zeeman::Polarization::None, Options::LblSpeedup::None, false);
   
@@ -153,5 +145,5 @@ int main() {
   ARTSGUI::PlotConfig::Legend = {"Full", "MPM2020", "LBL", "FullZeeman", "Adapted"};
   ARTSGUI::PlotConfig::X = "Frequency [GHz]";
   ARTSGUI::PlotConfig::Y = "Absorption [1/m]";
-  ARTSGUI::plot(f_grid, abs.real(), f_grid, mpm_abs.Kjj(), f_grid, com_lte.F.real(), f_grid, absZ.real(), f_grid, com.F.real());
+  ARTSGUI::plot(f_grid, abs.real(), f_grid, com_lte.F.real(), f_grid, absZ.real(), f_grid, com.F.real());
 }

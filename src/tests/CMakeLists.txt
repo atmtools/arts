@@ -13,7 +13,8 @@ target_link_libraries (test_binaryio artscore)
 
 add_executable (test_gridded_fields
   ../gridded_fields.cc
-  test_gridded_fields.cc)
+  test_gridded_fields.cc
+  ../artstime.cc)
 
 target_link_libraries (test_gridded_fields matpack)
 
@@ -126,11 +127,6 @@ target_link_libraries (test_readpp artscore)
 
 add_executable (test_cia test_cia.cc ../cia.cc ../m_cia.cc)
 target_link_libraries (test_cia artscore)
-
-########### next testcase ###############
-
-add_executable (test_propagationmatrix test_propagationmatrix.cc)
-target_link_libraries (test_propagationmatrix artscore)
 
 ########### next testcase ###############
 
@@ -265,9 +261,3 @@ target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 #####
 add_executable(test_rng test_rng.cc ../artstime.cc)
 target_link_libraries(test_rng PUBLIC matpack)
-
-#####
-
-add_executable (test_atm test_atm.cc)
-target_link_libraries (test_atm PUBLIC artscore)
-

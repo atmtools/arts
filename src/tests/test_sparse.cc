@@ -284,9 +284,9 @@ void test45() {
 
   try {
     cout << "  Reading " << a << "...";
-    xml_read_from_file(a, A, Verbosity());
+    xml_read_from_file(a, A);
     cout << "done.\n  Reading " << b << "...";
-    xml_read_from_file(b, B, Verbosity());
+    xml_read_from_file(b, B);
     cout << "done.\n";
   } catch (const std::runtime_error &e) {
     cerr << e.what() << endl;
@@ -300,7 +300,7 @@ void test45() {
   //cout << "C=A*B:\n" << A << "\n";
   try {
     cout << "  Writing product to file: test45.xml...";
-    xml_write_to_file("test45.xml", C, FILE_TYPE_ASCII, 0, Verbosity());
+    xml_write_to_file("test45.xml", C, FILE_TYPE_ASCII, 0);
     cout << "done.\n";
   } catch (const std::runtime_error &e) {
     cerr << e.what() << endl;
@@ -315,7 +315,7 @@ void test46() {
 
   try {
     cout << "  Reading " << a << "...";
-    xml_read_from_file(a, A, Verbosity());
+    xml_read_from_file(a, A);
     cout << "done.\n";
   } catch (const std::runtime_error &e) {
     cerr << e.what() << endl;
@@ -328,7 +328,7 @@ void test46() {
 
   try {
     cout << "  Writing transpose(A) to file test46.xml" << endl;
-    xml_write_to_file("test46.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
+    xml_write_to_file("test46.xml", B, FILE_TYPE_ASCII, 0);
   } catch (const std::runtime_error &e) {
     cerr << e.what() << endl;
   }
@@ -403,9 +403,9 @@ Numeric test_xml_io(Index ntests, bool verbose) {
     Sparse A(m, n), B;
     String a("A.xml");
     random_fill_matrix(A, 10, false);
-    xml_write_to_file(a, A, FILE_TYPE_ASCII, 0, Verbosity());
-    xml_read_from_file(a, B, Verbosity());
-    xml_write_to_file("B.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
+    xml_write_to_file(a, A, FILE_TYPE_ASCII, 0);
+    xml_read_from_file(a, B);
+    xml_write_to_file("B.xml", B, FILE_TYPE_ASCII, 0);
 
     Numeric err =
         get_maximum_error(static_cast<Matrix>(B), static_cast<Matrix>(A), true);

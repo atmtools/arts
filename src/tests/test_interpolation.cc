@@ -3,7 +3,6 @@
 
 #include "array.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "interp.h"
@@ -13,6 +12,8 @@
 #include "matpack_math.h"
 #include "nonstd.h"
 #include "xml_io.h"
+
+#include <workspace.h>
 
 void test01() {
   cout << "Simple interpolation cases\n"
@@ -658,8 +659,8 @@ void test16() {
 void test17() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0, Constant::two_pi, verbosity);
+;
+  VectorNLinSpace(x, N, 0, Constant::two_pi);
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
@@ -680,8 +681,7 @@ void test17() {
 void test18() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, -180, 180, verbosity);
+  VectorNLinSpace(x, N, -180, 180);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(f);
   for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
@@ -707,8 +707,7 @@ struct zero_to_half {
 void test19() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0, 0.5, verbosity);
+  VectorNLinSpace(x, N, 0, 0.5);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -736,8 +735,7 @@ struct zero_dot_123_to_zero_dot_456 {
 void test20() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, -0.123, 0.456, verbosity);
+  VectorNLinSpace(x, N, -0.123, 0.456);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -759,8 +757,7 @@ void test20() {
 void test21() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0.05, 0.45, verbosity);
+  VectorNLinSpace(x, N, 0.05, 0.45);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -783,8 +780,7 @@ void test21() {
 void test22() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, Constant::two_pi, 0, verbosity);
+  VectorNLinSpace(x, N, Constant::two_pi, 0);
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
@@ -805,8 +801,7 @@ void test22() {
 void test23() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0.45, 0.05, verbosity);
+  VectorNLinSpace(x, N, 0.45, 0.05);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -829,8 +824,7 @@ void test23() {
 void test25() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 30, 150, verbosity);
+  VectorNLinSpace(x, N, 30, 150);
   Vector y = x;
   for (auto& f : y) f = 15*f*f + f*f*f;
   for (Numeric n = 0; n <= 180; n += 0.01) {
@@ -948,14 +942,14 @@ void test28() {
   using Conversion::cosd;
   
   // Old Grid of pressure, latitude, and longitude
-  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1, Verbosity()); 
-  Vector lat; VectorNLinSpace(lat, 5, -80, 80, Verbosity());
-  Vector lon; VectorNLinSpace(lon, 4, -170, 170, Verbosity());
+  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1); 
+  Vector lat; VectorNLinSpace(lat, 5, -80, 80);
+  Vector lon; VectorNLinSpace(lon, 4, -170, 170);
   
   // New Grids (pressure will be reduced)
   Vector newpre(1, pre[pre.nelem()/2]); 
-  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90, Verbosity());
-  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180, Verbosity());
+  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90);
+  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180);
   
   // Old Data given some values
   Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());

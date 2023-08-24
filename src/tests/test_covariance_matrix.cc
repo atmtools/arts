@@ -364,8 +364,8 @@ Numeric test_io(Index n_tests) {
     CovarianceMatrix covmat_1(random_covariance_matrix(rqs, jis)), covmat_2{};
     covmat_1.compute_inverse();
 
-    xml_write_to_file("test.xml", covmat_1, FILE_TYPE_ASCII, 0, Verbosity());
-    xml_read_from_file("test.xml", covmat_2, Verbosity());
+    xml_write_to_file("test.xml", covmat_1, FILE_TYPE_ASCII, 0);
+    xml_read_from_file("test.xml", covmat_2);
 
     Matrix A(covmat_1), B(covmat_2), C(covmat_1);
     e = std::max(e, get_maximum_error(A, B, true));
@@ -380,43 +380,37 @@ Numeric test_io(Index n_tests) {
 
 template <typename MatrixType>
 void covmat_seSet(CovarianceMatrix& covmat,
-                  const MatrixType& block,
-                  const Verbosity& /*v*/);
+                  const MatrixType& block);
 
 template <typename MatrixType>
 void covmat_sxSet(CovarianceMatrix& covmat,
-                  const MatrixType& block,
-                  const Verbosity& /*v*/);
+                  const MatrixType& block);
 
 template <typename MatrixType>
 void covmat_seAddBlock(CovarianceMatrix& covmat_se,
                        const MatrixType& block,
                        const Index& i,
-                       const Index& j,
-                       const Verbosity&);
+                       const Index& j);
 
 template <typename MatrixType>
 void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
                               const MatrixType& block,
                               const Index& i,
-                              const Index& j,
-                              const Verbosity&);
+                              const Index& j);
 
 template <typename MatrixType>
 void covmat_sxAddBlock(CovarianceMatrix& covmat_se,
                        const ArrayOfRetrievalQuantity& jq,
                        const MatrixType& block,
                        const Index& i,
-                       const Index& j,
-                       const Verbosity&);
+                       const Index& j);
 
 template <typename MatrixType>
 void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_se,
                               const ArrayOfRetrievalQuantity& jq,
                               const MatrixType& block,
                               const Index& i,
-                              const Index& j,
-                              const Verbosity&);
+                              const Index& j);
 
 /**
  * Test general functionality of CovarianceMatrix class.
@@ -430,43 +424,43 @@ void test_workspace_methods() {
 
   // covmat_seSet
 
-  covmat_seSet(covmat, A, Verbosity());
+  covmat_seSet(covmat, A);
   ARTS_ASSERT(covmat.ncols() == 10);
 
   // covmat_seAddBlock
 
-  covmat_seAddBlock(covmat, A_sparse, -1, -1, Verbosity());
+  covmat_seAddBlock(covmat, A_sparse, -1, -1);
   ARTS_ASSERT(covmat.ncols() == 20);
 
   try {
-    covmat_seAddBlock(covmat, A, 3, 3, Verbosity());
+    covmat_seAddBlock(covmat, A, 3, 3);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
-  covmat_seAddBlock(covmat, A, 0, 1, Verbosity());
+  covmat_seAddBlock(covmat, A, 0, 1);
 
-  covmat_seAddBlock(covmat, A, 2, 2, Verbosity());
+  covmat_seAddBlock(covmat, A, 2, 2);
 
   try {
-    covmat_seAddBlock(covmat, B, 1, 2, Verbosity());
+    covmat_seAddBlock(covmat, B, 1, 2);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
-  covmat_seAddInverseBlock(covmat, A, 0, 1, Verbosity());
+  covmat_seAddInverseBlock(covmat, A, 0, 1);
 
   try {
-    covmat_seAddInverseBlock(covmat, B, 3, 3, Verbosity());
+    covmat_seAddInverseBlock(covmat, B, 3, 3);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
   // covmat_sxSet
-  covmat_sxSet(covmat, A, Verbosity());
+  covmat_sxSet(covmat, A);
   ARTS_ASSERT(covmat.ncols() == 10);
 
   // covmat_sxAddBlock
@@ -485,20 +479,20 @@ void test_workspace_methods() {
   rqs.push_back(rq_1);
   rqs.push_back(rq_2);
 
-  covmat_sxAddBlock(covmat, rqs, A_sparse, -1, -1, Verbosity());
+  covmat_sxAddBlock(covmat, rqs, A_sparse, -1, -1);
 
   try {
-    covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1, Verbosity());
+    covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
-  covmat_sxAddBlock(covmat, rqs, C, 0, 1, Verbosity());
-  covmat_sxAddInverseBlock(covmat, rqs, A, 0, 0, Verbosity());
+  covmat_sxAddBlock(covmat, rqs, C, 0, 1);
+  covmat_sxAddInverseBlock(covmat, rqs, A, 0, 0);
 
   try {
-    covmat_sxAddInverseBlock(covmat, rqs, C, 1, 1, Verbosity());
+    covmat_sxAddInverseBlock(covmat, rqs, C, 1, 1);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
