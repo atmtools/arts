@@ -17,14 +17,14 @@ class Agenda {
   std::vector<std::string> copy{};
   bool checked{false};
 
+public:
+  Agenda(std::string name="not-a-name");
+
   Agenda(std::string name,
          const std::vector<Method>& methods,
          const std::vector<std::string>& share,
          const std::vector<std::string>& copy,
          bool checked);
-
-public:
-  Agenda(std::string name="not-a-name");
 
   void add(const Method& method);
 
