@@ -160,20 +160,6 @@ void implementation(std::ostream& os) {
 #include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
 
-Method::Method() = default;
-Method::Method(const Method&) = default;
-Method::Method(Method&&) noexcept = default;
-Method& Method::operator=(const Method&) = default;
-Method& Method::operator=(Method&&) noexcept = default;
-Method::~Method() = default;
-
-Agenda::Agenda() = default;
-Agenda::Agenda(const Agenda&) = default;
-Agenda::Agenda(Agenda&&) noexcept = default;
-Agenda& Agenda::operator=(const Agenda&) = default;
-Agenda& Agenda::operator=(Agenda&&) noexcept = default;
-Agenda::~Agenda() = default;
-
 Wsv::Wsv() : value(std::make_shared<Any>()) {}
 Wsv::Wsv(const Wsv&) = default;
 Wsv::Wsv(Wsv&&) noexcept = default;

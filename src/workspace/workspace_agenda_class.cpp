@@ -14,8 +14,6 @@
 #include "workspace_class.h"
 #include "workspace_method_class.h"
 
-Agenda::Agenda(std::string n) : name(std::move(n)), methods() {} 
-
 void Agenda::add(const Method& method) {
   checked = false;
   method.add_defaults_to_agenda(*this);

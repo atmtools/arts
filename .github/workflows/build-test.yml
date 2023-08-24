@@ -208,13 +208,13 @@ jobs:
         if: runner.os == 'Linux' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j2 arts
+          make -j2 artscore
 
       - name: Build ARTS (macOS)
         if: runner.os == 'macOS' && matrix.arts == 'yes'
         run: |
           cd cmake-build
-          make -j3 arts
+          make -j3 artscore
 
       - name: Build PYARTS (Linux)
         if: runner.os == 'Linux' && matrix.arts == 'yes'

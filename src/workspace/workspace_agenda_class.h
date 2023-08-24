@@ -12,25 +12,19 @@ struct Wsv;
 
 class Agenda {
   std::string name{};
-  std::vector<Method> methods{};
+  std::vector<Method> methods;
   std::vector<std::string> share{};
   std::vector<std::string> copy{};
   bool checked{false};
 
-public:
-  Agenda();
-  Agenda(const Agenda&);
-  Agenda(Agenda&&) noexcept;
-  ~Agenda();
-  Agenda& operator=(const Agenda&);
-  Agenda& operator=(Agenda&&) noexcept;
-
-  Agenda(std::string name);
   Agenda(std::string name,
          const std::vector<Method>& methods,
          const std::vector<std::string>& share,
          const std::vector<std::string>& copy,
          bool checked);
+
+public:
+  Agenda(std::string name="not-a-name");
 
   void add(const Method& method);
 

@@ -9,6 +9,7 @@ add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
 target_link_libraries(make_auto_wsg PRIVATE workspace_group)
 
 add_library(workspace_internals STATIC
+  workspace_agenda_class_default_constructor.cpp
   workspace_agendas.cpp
   workspace_methods.cpp
   workspace_variables.cpp
