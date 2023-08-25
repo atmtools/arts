@@ -24,7 +24,7 @@ jobs:
           - name: ubuntu-doc
             os: ubuntu-22.04
             compiler: clang
-            version: "15"
+            version: "16"
             doc: "yes"
             arts: "no"
             fortran: "no"
