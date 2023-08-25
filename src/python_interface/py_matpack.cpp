@@ -1,13 +1,58 @@
 #include <python_interface.h>
+#include <sys/_types/_ssize_t.h>
 
 #include <memory>
+#include <numeric>
 #include <type_traits>
 #include <vector>
 
+#include "matpack_constexpr.h"
 #include "py_macros.h"
 
 namespace Python {
 using Scalar = std::variant<Numeric, Index>;
+
+template <typename T, Index... sz>
+auto register_matpack_constant_data(py::module_& m, const char* const name)
+  requires(sizeof...(sz) > 0)
+{
+  using matpackT = matpack::matpack_constant_data<T, sz...>;
+  artsclass<matpackT> r(m, name, py::buffer_protocol());
+  r.def(py::init([]() { return std::make_shared<matpackT>(); }),
+        "Default constant data")
+      .def(py::init<std::array<T, (sz * ...)>>(), "Default constant data")
+      .PythonInterfaceCopyValue(matpackT)
+      .PythonInterfaceBasicRepresentation(matpackT)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](matpackT& x) -> py::buffer_info {
+        std::vector<ssize_t> shape{static_cast<ssize_t>(sz)...};
+        std::vector<ssize_t> strides(shape.size(),
+                                     static_cast<ssize_t>(sizeof(T)));
+        for (std::size_t j = 0; j < sizeof...(sz) - 1; j++) {
+          strides[j] *= std::reduce(
+              shape.begin() + j + 1, shape.end(), 1, std::multiplies<>());
+        }
+        return py::buffer_info(x.data.data(),
+                               sizeof(T),
+                               py::format_descriptor<T>::format(),
+                               sizeof...(sz),
+                               std::move(shape),
+                               std::move(strides));
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](matpackT& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](matpackT& x, matpackT& y) { x = y; },
+          py::doc(":class:`~numpy.ndarray` Data array"));
+  py::implicitly_convertible<std::array<T, (sz * ...)>, matpackT>();
+
+  return r;
+}
 
 template <typename T>
 void test_correct_size(const std::vector<T>& x) {
@@ -25,6 +70,8 @@ void test_correct_size(const std::vector<T>& x) {
 }
 
 void py_matpack(py::module_& m) try {
+  register_matpack_constant_data<Numeric, 3>(m, "Vector3").doc() = "A 3D vector";
+
   artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
              ARTS_USER_ERROR_IF(0 > a, "Bad offset")

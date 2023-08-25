@@ -52,8 +52,10 @@
                     ":class:`list` of full set of options available as strings")); \
     cls.doc() = "Options for " #opt_rename;                                        \
     for (auto& x : opt_namespace::enumtyps::opt_localname##Types) {                \
+      String str = toString(x);                                                    \
+      if (str == "None") str += "_";                                               \
       cls.def_property_readonly_static(                                            \
-          String(toString(x)).c_str(),                                             \
+          str.c_str(),                                                             \
           [x](py::object) { return x; },                                           \
           py::doc(":class:`~pyarts.options." #opt_rename                           \
                   "` static value as named"));                                     \

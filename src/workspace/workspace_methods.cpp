@@ -1510,7 +1510,7 @@ you have *rte_pos_losForwardToAltitude*.
 For each observation geometry specified by the combination of
 *sensor_pos* and *sensor_los*, the geometrical intersection with
 a latitude is determined. The intersections are described by the
-GOUT ``pos`` and *los.
+GOUT ``pos`` and ``los``.
 
 For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
 )--",
@@ -1558,7 +1558,7 @@ For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
 For each observation geometry specified by the combination of
 *sensor_pos* and *sensor_los*, the geometrical intersection with
 the surface is determined. The intersections are described by the
-GOUT ``pos`` and *los. For cases with no intersection, ``pos`` and ``los``
+GOUT ``pos`` and ``los``. For cases with no intersection, ``pos`` and ``los``
 are filled with NaN.
 
 If the surface elevation is constant, the intersections are found
@@ -7427,14 +7427,15 @@ The key field is used to determine the type of data that is added by input type.
 
 If the input is a String, the data is added to corresponding atmospheric data,
 these strings can be
-    "t"      - temperature
-    "p"      - pressure
-    "wind_u" - wind u component
-    "wind_v" - wind v component
-    "wind_w" - wind w component
-    "mag_u"  - mag u component
-    "mag_v"  - mag v component
-    "mag_w"  - mag w component
+
+- "t"      - temperature
+- "p"      - pressure
+- "wind_u" - wind u component
+- "wind_v" - wind v component
+- "wind_w" - wind w component
+- "mag_u"  - mag u component
+- "mag_v"  - mag v component
+- "mag_w"  - mag w component
 
 If the input is a QuantumIdentifier, it is assumed this is an energy level
 identifier for NLTE calculations.
@@ -7657,18 +7658,20 @@ all the files are expected to belong to that scenario by appedning the names.  F
 example, "scen.t.xml" if read_tp is true.
 
 If the flags evaluates true, they expect some files to exist in the basename
-    read_tp - ["t.xml", "p.xml", ]
-    read_mag - ["mag_u.xml", "mag_v.xml", "mag_w.xml", ]
-    read_wind - ["wind_u.xml", "wind_v.xml", "wind_w.xml", ]
-    read_specs - [See below]
-    read_nlte - "nlte.xml"
+
+- read_tp - ["t.xml", "p.xml", ]
+- read_mag - ["mag_u.xml", "mag_v.xml", "mag_w.xml", ]
+- read_wind - ["wind_u.xml", "wind_v.xml", "wind_w.xml", ]
+- read_specs - [See below]
+- read_nlte - "nlte.xml"
 
 If "read_specs" is true, then all the species of *abs_species* are read and the
 basename path is expected to contain a file with short-name version for each
 unique species.  Some examples:
-    abs_species=["H2O-161", "O2-66"], - ["H2O.xml", "O2.xml"]
-    abs_species=["H2O-161", "O2-66", "CO2-626"], - ["H2O.xml", "O2.xml", "CO2.xml"]
-    abs_species=["H2O-161", "O2-66", "O2-PWR98"], - ["H2O.xml", "O2.xml"]
+
+- abs_species=["H2O-161", "O2-66"], - ["H2O.xml", "O2.xml"]
+- abs_species=["H2O-161", "O2-66", "CO2-626"], - ["H2O.xml", "O2.xml", "CO2.xml"]
+- abs_species=["H2O-161", "O2-66", "O2-PWR98"], - ["H2O.xml", "O2.xml"]
 )--",
       .author = {"Richard Larsson"},
       .out = {"atm_field"},

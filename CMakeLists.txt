@@ -69,6 +69,7 @@ cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 option (NO_USER_ERRORS "Turn off all user error checking (reckless)" OFF)
 option (RELEASE_O2 "Use O2 instead of O3 in release mode" OFF)
+option (ARTS_SANITIZE "Turn on undefined behavior sanitizers" OFF)
 
 if (IGNORE_CONDA_PATH)
   # Avoid possible linker incompatibilities for
@@ -338,6 +339,11 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
   ARTS_ADD_COMPILER_FLAG (Wno-psabi)
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
+
+if (ARTS_SANITIZE)
+  ARTS_ADD_COMPILER_FLAG (fsanitize=undefined)
+  message(STATUS "Building with undefined behavior sanitizers")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Native")
     ARTS_ADD_COMPILER_FLAG (O3)

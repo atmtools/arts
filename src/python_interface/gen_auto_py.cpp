@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ostream>
 #include <sstream>
+#include <string>
 
 #include "auto_wsv.h"
 #include "pydocs.h"
@@ -886,8 +887,113 @@ std::string method(const std::string& name,
   return os.str();
 }
 
+std::string method(const std::string& name,
+                   const WorkspaceAgendaInternalRecord& wsm) {
+  const auto& wsvs = workspace_variables();
+
+  std::ostringstream os;
+
+  os << "  ws.def(\"" << name << "Execute\",";
+  os << "[](";
+  os << "\n    Workspace& _ws,";
+  for (auto& str: wsm.output) {
+    os << "\n    std::optional<" << fix_type(wsvs.at(str).type) << ">& _" << str << ",";
+  }
+  for (auto& str: wsm.input) {
+    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
+    os << "\n    const std::optional<const " << fix_type(wsvs.at(str).type) << ">& _" << str << ",";
+  }
+  os << "\n    const std::optional<const std::shared_ptr<";
+  if (wsm.array) os << "ArrayOf";
+  os << "Agenda>>& _" << name << ") -> void {\n      try {\n";
+
+  for (auto& str: wsm.output) {
+    os << "\n      auto& " << str << " = select_";
+    if (std::ranges::any_of(wsm.input, Cmp::eq(str))) {
+      os << "in";
+    }
+    os << "out<" << wsvs.at(str).type << ">(_" << str << ", _ws, \""<<str<<"\");";
+  }
+  for (auto& str : wsm.input) {
+    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
+    os << "\n      auto& " << str << " = select_in<" << wsvs.at(str).type
+       << ">(_" << str << ", _ws, \"" << str << "\");";
+  }
+  os << "\n      auto& " << name << " = select_in<";
+  if (wsm.array) os << "ArrayOf";
+  os << "Agenda>(_" << name << ", _ws, \"" << name << "\");";
+
+  os << "\n\n      " << name << "Execute(_ws,";
+  for (auto& str: wsm.output) {
+    os << "\n" << std::string(14+name.size(), ' ') << str << ",";
+  }
+  for (auto& str : wsm.input) {
+    if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
+    os << "\n" << std::string(14+name.size(), ' ') << str << ",";
+  }
+  os << "\n" << std::string(14+name.size(), ' ') << name << ");\n";
+
+  os << "      } catch (std::exception& e) {\n";
+  
+  os << "        throw std::runtime_error(\n          var_string(";
+  os << R"("Cannot execute method:\n\n",
+              ")";
+  os << name << "Execute" << '(';
+
+  const auto spaces = std::string(name.size() + 8, ' ');
+
+  bool first = true;
+  for (auto& t : wsm.output) {
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << workspace_variables().at(t).type;
+    os << R"(, defaults to self.)" << t << R"()-x-"),
+              ")";
+  }
+
+  for (auto& t : wsm.input) {
+    if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
+    if (not first) os << ",\\n" << spaces;
+    first = false;
+    os << t << " : \",\n              "
+       << "_" << t << " ? type(_" << t << R"(.value()) : std::string(R"-x-()"
+       << workspace_variables().at(t).type;
+    os << R"(, defaults to self.)" << t << R"()-x-"),
+              ")";
+  }
+
+  os << ",\\n" << spaces << name << " : ";
+  if (wsm.array) os << "ArrayOf";
+   os << "Agenda" << ")\", ";
+  os << "\"\\n\\n\", e.what()));\n";
+  
+  os << "      }\n";
+  os << "    },\n    ";
+
+  for (auto& t : wsm.output) {
+    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
+       << "\").noconvert(),\n    ";
+  }
+  for (auto& t : wsm.input) {
+    if (std::ranges::any_of(wsm.output, Cmp::eq(t))) continue;
+    os << "py::arg_v(\"" << t << "\", std::nullopt, \"self." << t
+       << "\"),\n    ";
+  }
+  os << "py::arg_v(\"" << name << "\", std::nullopt, \"self." << name
+     << "\"),\n    ";
+
+  os << "py::doc(R\"-x-(" << unwrap_stars(wsm.desc) << '\n'
+     << get_agenda_io(name) << name << " : ~pyarts.arts.";
+  if (wsm.array) os << "ArrayOf";
+  os << "Agenda\n    " << unwrap_stars(short_doc(name)) << "\n)-x-\"));\n\n";
+  return os.str();
+}
+
 void methods(const int nfiles) {
   const auto wsms = internal_workspace_methods();
+  const auto wsas = internal_workspace_agendas();
 
   auto ofs = autofiles(nfiles, "py_auto_wsm", "cpp");
 
@@ -906,6 +1012,11 @@ void py_auto_wsm_)--" << i << "(artsclass<Workspace>& ws [[maybe_unused]]) {\n";
 
   int ifile = 0;
   for (auto& [name, wsv] : wsms) {
+    select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
+  }
+
+  ifile = 0;
+  for (auto& [name, wsv] : wsas) {
     select_ofstream(ofs, ifile++) << method(name, wsv) << std::flush;
   }
 

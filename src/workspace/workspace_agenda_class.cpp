@@ -124,6 +124,8 @@ void Agenda::finalize(bool fix) try {
 
   std::erase_if(share, [](auto& str) { return str.front() == '_'; });
   std::erase_if(copy, [](auto& str) { return str.front() == '_'; });
+  std::erase_if(share, [](auto& str) { return str.front() == '@'; });
+  std::erase_if(copy, [](auto& str) { return str.front() == '@'; });
 
   checked = true;
 } catch (std::exception& e) {

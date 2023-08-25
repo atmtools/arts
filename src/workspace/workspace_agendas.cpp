@@ -49,12 +49,13 @@ a convergence test. The user can choose different convergence tests
 which are to be defined in this agenda.
 
 Possible workspace methods are:
- - *doit_conv_flagAbs*: Calculates the absolute differences 
-   for each Stokes component separately.
- - *doit_conv_flagAbsBT*: Same as above, but the convergence limit
-   can be specified in Kelvin BT (Rayleigh Jeans).
- - *doit_conv_flagLsq*: Least square convergence test. Not recommended
-   because result can be inaccurate.
+
+- *doit_conv_flagAbs*: Calculates the absolute differences 
+  for each Stokes component separately.
+- *doit_conv_flagAbsBT*: Same as above, but the convergence limit
+  can be specified in Kelvin BT (Rayleigh Jeans).
+- *doit_conv_flagLsq*: Least square convergence test. Not recommended
+  because result can be inaccurate.
 )--",
       .output = {"doit_conv_flag", "doit_iteration_counter"},
       .input = {"doit_conv_flag",

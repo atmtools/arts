@@ -27,7 +27,7 @@ std::shared_ptr<Wsv> Workspace::share(const std::string& name) const try {
 }
 
 std::shared_ptr<Wsv> Workspace::copy(const std::string& name) const {
-  return std::visit([](auto x){return std::make_shared<Wsv>(std::move(*x));}, share(name) -> value);
+  return std::make_shared<Wsv>(share(name) -> copy());
 }
 
 void Workspace::set(const std::string& name,

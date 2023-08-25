@@ -11,6 +11,7 @@
 #include <string>
 
 #include "auto_wsv.h"
+#include "workspace_agendas.h"
 #include "workspace_methods.h"
 
 const static auto wsm = internal_workspace_methods();
@@ -170,11 +171,13 @@ std::vector<std::vector<std::string>> overloads(
   std::vector<std::vector<std::string>> out;
 
   for (auto& str : wsmr.gout_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) out.push_back(split(str, ','));
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(',')))
+      out.push_back(split(str, ','));
   }
 
   for (auto& str : wsmr.gin_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) out.push_back(split(str, ','));
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(',')))
+      out.push_back(split(str, ','));
   }
 
   return out;
@@ -190,13 +193,17 @@ std::optional<WorkspaceMethodInternalRecord> make_overload(
 
   std::size_t ol_i = 0;
   for (std::size_t garg = 0; garg < owsmr.gout_type.size(); garg++) {
-    if (std::any_of(wsmr.gout_type[garg].begin(), wsmr.gout_type[garg].end(), Cmp::eq(','))) {
+    if (std::any_of(wsmr.gout_type[garg].begin(),
+                    wsmr.gout_type[garg].end(),
+                    Cmp::eq(','))) {
       owsmr.gout_type[garg] = ol[ol_i][i];
       ol_i++;
     }
   }
   for (std::size_t garg = 0; garg < owsmr.gin_type.size(); garg++) {
-    if (std::any_of(wsmr.gin_type[garg].begin(), wsmr.gin_type[garg].end(), Cmp::eq(','))) {
+    if (std::any_of(wsmr.gin_type[garg].begin(),
+                    wsmr.gin_type[garg].end(),
+                    Cmp::eq(','))) {
       owsmr.gin_type[garg] = ol[ol_i][i];
       ol_i++;
     }
@@ -311,13 +318,17 @@ void signature(std::ostream& os,
 
       std::size_t ol_i = 0;
       for (std::size_t garg = 0; garg < owsmr.gout_type.size(); garg++) {
-        if (std::any_of(wsmr.gout_type[garg].begin(), wsmr.gout_type[garg].end(), Cmp::eq(','))) {
+        if (std::any_of(wsmr.gout_type[garg].begin(),
+                        wsmr.gout_type[garg].end(),
+                        Cmp::eq(','))) {
           owsmr.gout_type[garg] = ol[ol_i][i];
           ol_i++;
         }
       }
       for (std::size_t garg = 0; garg < owsmr.gin_type.size(); garg++) {
-        if (std::any_of(wsmr.gin_type[garg].begin(), wsmr.gin_type[garg].end(), Cmp::eq(','))) {
+        if (std::any_of(wsmr.gin_type[garg].begin(),
+                        wsmr.gin_type[garg].end(),
+                        Cmp::eq(','))) {
           owsmr.gin_type[garg] = ol[ol_i][i];
           ol_i++;
         }
@@ -411,7 +422,8 @@ void call_function(std::ostream& os,
                    const std::string& name,
                    const WorkspaceMethodInternalRecord& wsmr) {
   if (has_any(wsmr)) {
-    const bool any_out = std::any_of(wsmr.gout_type.begin(), wsmr.gout_type.end(), Cmp::eq("Any"));
+    const bool any_out = std::any_of(
+        wsmr.gout_type.begin(), wsmr.gout_type.end(), Cmp::eq("Any"));
 
     const std::size_t first_any =
         any_out
@@ -442,8 +454,7 @@ void call_function(std::ostream& os,
     int out_count = 0;
     for (auto& str : wsmr.out) {
       os << comma(first, spaces) << "ws.get";
-      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0)
-        os << "_or";
+      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0) os << "_or";
       os << "<" << wsv.at(str).type << ">(out[" << out_count++
          << "]) /* out */";
     }
@@ -527,13 +538,17 @@ void call_function(std::ostream& os,
 
       std::size_t ol_i = 0;
       for (std::size_t garg = 0; garg < owsmr.gout_type.size(); garg++) {
-        if (std::any_of(wsmr.gout_type[garg].begin(), wsmr.gout_type[garg].end(), Cmp::eq(','))) {
+        if (std::any_of(wsmr.gout_type[garg].begin(),
+                        wsmr.gout_type[garg].end(),
+                        Cmp::eq(','))) {
           owsmr.gout_type[garg] = ol[ol_i][i];
           ol_i++;
         }
       }
       for (std::size_t garg = 0; garg < owsmr.gin_type.size(); garg++) {
-        if (std::any_of(wsmr.gin_type[garg].begin(), wsmr.gin_type[garg].end(), Cmp::eq(','))) {
+        if (std::any_of(wsmr.gin_type[garg].begin(),
+                        wsmr.gin_type[garg].end(),
+                        Cmp::eq(','))) {
           owsmr.gin_type[garg] = ol[ol_i][i];
           ol_i++;
         }
@@ -554,14 +569,18 @@ void call_function(std::ostream& os,
 
     bool final_first = true;
     for (std::size_t garg = 0; garg < wsmr.gout_type.size(); garg++) {
-      if (std::any_of(wsmr.gout_type[garg].begin(), wsmr.gout_type[garg].end(), Cmp::eq(','))) {
+      if (std::any_of(wsmr.gout_type[garg].begin(),
+                      wsmr.gout_type[garg].end(),
+                      Cmp::eq(','))) {
         if (not final_first) os << ", \", \", ";
         os << "ws.share(out[" << garg + wsmr.out.size() << "]) -> type_name()";
         final_first = false;
       }
     }
     for (std::size_t garg = 0; garg < wsmr.gin_type.size(); garg++) {
-      if (std::any_of(wsmr.gin_type[garg].begin(), wsmr.gin_type[garg].end(), Cmp::eq(','))) {
+      if (std::any_of(wsmr.gin_type[garg].begin(),
+                      wsmr.gin_type[garg].end(),
+                      Cmp::eq(','))) {
         if (not final_first) os << ", \", \", ";
         os << "ws.share(in[" << garg + wsmr.in.size() << "]) -> type_name()";
         final_first = false;
@@ -587,8 +606,7 @@ void call_function(std::ostream& os,
     int out_count = 0;
     for (auto& str : wsmr.out) {
       os << comma(first, spaces) << "ws.get";
-      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0)
-        os << "_or";
+      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0) os << "_or";
       os << "<" << wsv.at(str).type << ">(out[" << out_count++
          << "]) /* out */";
     }
@@ -672,6 +690,45 @@ void wsm_record(std::ostream& os,
   os << "\n";
 }
 
+void wsm_record(std::ostream& os,
+                const std::string& name,
+                const WorkspaceAgendaInternalRecord& wsmr) {
+  os << "    .out={";
+  bool first = true;
+  for (auto& str : wsmr.output) {
+    os << comma(first, "          ") << "\"" << str << "\"";
+  }
+  os << "},\n";
+  os << "    .in={";
+  first = true;
+  for (auto& str : wsmr.input) {
+    os << comma(first, "         ") << "\"" << str << "\"";
+  }
+  os << comma(first, "         ") << '\"' << name << '\"';
+  os << "},\n";
+  os << "    .defs={},\n";
+
+  os << "    .func=";
+  
+  os << "[](Workspace& ws, const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
+
+  os << "      " << name << "Execute(";
+  os << "ws";
+  for (std::size_t i=0; i<wsmr.output.size(); i++) {
+    os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get_or<"<< wsv.at(wsmr.output[i]).type <<">(out[" << i << "])";
+  }
+  for (std::size_t i=0; i<wsmr.input.size(); i++) {
+    if (std::ranges::any_of(wsmr.output, Cmp::eq(wsmr.input[i]))) continue;
+    os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get<"<< wsv.at(wsmr.input[i]).type <<">(out[" << i << "])";
+  }
+  os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get<";
+  if (wsmr.array) os << "ArrayOf";
+  os << "Agenda>(in.back())";
+  os << "\n      );";
+  os << "\n    }";
+  os << "\n";
+}
+
 std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
   return ofs[i % ofs.size()];
 }
@@ -715,6 +772,15 @@ void implementation(std::ostream& os, const int n) {
     i++;
   }
 
+  i = 0;
+  for (auto& [name, wsar]: internal_workspace_agendas()) {
+    select_ofstream(ofs, i)
+        << "WorkspaceMethodRecord _wsm_" << name << "Execute() {\n  return {\n";
+    wsm_record(select_ofstream(ofs, i), name, wsar);
+    select_ofstream(ofs, i) << "  };\n}\n\n";
+    i++;
+  }
+
   for (i = 0; i < n; i++) {
     select_ofstream(ofs, i)
         << "std::unordered_map<std::string, WorkspaceMethodRecord> get_workspace_methods"
@@ -727,6 +793,13 @@ void implementation(std::ostream& os, const int n) {
   for (auto& [name, wsmr] : wsm) {
     select_ofstream(ofs, i++)
         << "    { \"" << name << "\", _wsm_" << name << "()},\n";
+  }
+
+  i = 0;
+  for (auto& [name, wsar]: internal_workspace_agendas()) {
+    select_ofstream(ofs, i)
+        << "    { \"" << name << "Execute\", _wsm_" << name << "Execute()},\n";
+    i++;
   }
 
   for (auto& of : ofs)
@@ -749,9 +822,9 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
 )--";
 
   for (i = 0; i < n; i++) {
-    os << "    const std::unordered_map<std::string, WorkspaceMethodRecord> m" << i
-       << " = get_workspace_methods" << i << "();\n    const std::size_t n" << i
-       << " = m" << i << ".size();\n";
+    os << "    const std::unordered_map<std::string, WorkspaceMethodRecord> m"
+       << i << " = get_workspace_methods" << i << "();\n    const std::size_t n"
+       << i << " = m" << i << ".size();\n";
   }
   os << "\n    wsm.reserve(";
   for (i = 0; i < n; i++) {
@@ -763,20 +836,20 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
 )--";
   }
 
-    os << R"--(
+  os << R"--(
   }
   return wsm;
 }
 )--";
 }
 
-  int main(int argc, char** argv) {
-    if (scan_for_errors()) return 0;
+int main(int argc, char** argv) {
+  if (scan_for_errors()) return 0;
 
-    if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");
+  if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");
 
-    const int num_methods = std::stoi(argv[1]);
+  const int num_methods = std::stoi(argv[1]);
 
-    header(std::cout);
-    implementation(std::cerr, num_methods);
-  }
+  header(std::cout);
+  implementation(std::cerr, num_methods);
+}

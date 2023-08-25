@@ -24,8 +24,8 @@ AgendaCreator& AgendaCreator::add(const std::string& name,
 
   for (auto& wsv : v) {
     if (wsv.wsv) {
-      a.add(Method{"anon_" + wsv.name, wsv.wsv.value()});
-      kwargs[wsv.name] = "anon_" + wsv.name;
+      a.add(Method{"@" + wsv.name, wsv.wsv.value()});
+      kwargs[wsv.name] = "@" + wsv.name;
     } else if (wsv.other) {
       kwargs[wsv.name] = wsv.other.value();
     } else {
