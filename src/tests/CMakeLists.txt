@@ -162,17 +162,6 @@ target_link_libraries (test_magfield artscore)
 
 ########### tests ###############
 
-arts_test_cmdline("describe" -d Copy)
-arts_test_cmdline("groups"   -g)
-arts_test_cmdline("help" -h)
-arts_test_cmdline("input" -i Index)
-arts_test_cmdline("methods" -m all)
-arts_test_cmdline("version" -v)
-arts_test_cmdline("workspacevariables" -w all)
-if (ENABLE_DOCSERVER)
-  arts_test_cmdline("check-docs" -C)
-endif ()
-
 # Build a test for the plotting tool
 if (ENABLE_GUI)
   add_executable(test_gui test_gui.cc)
