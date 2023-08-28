@@ -71,24 +71,23 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
       } else {
         continue;
       }
-
       compute(ws, v, propmat_clearsky_agenda);
 
       v.tm = MuelmatVector(v.pm.nelem());
       v.aotm = MuelmatMatrix(v.jacobian_quantities.nelem(), v.pm.nelem());
       auto local_aotm = v.aotm;
-      Vector dr(jacobian_quantities.nelem(), 0);
-      for (Index i=0 ; i<v.tm.nelem(); i++) {
-        auto& t = v.tm[i];
-        auto&& dt1 = v.aotm[i];
-        auto&& dt2 = local_aotm[i];
-        auto& k1 = v.pm[i];
-        auto& k2 = v.pm[i];
-        auto&& dk1 = v.aopm[i];
-        auto&& dk2 = v.aopm[i];
-        auto& r = v.transmission_distance;
-        rtepack::two_level_exp(t, dt1, dt2, k1, k2, dk1, dk2, r, dr, dr);
-      }
+
+      const Vector local_dr(jacobian_quantities.nelem(), 0);
+      rtepack::two_level_exp(v.tm,
+                            v.aotm,
+                            local_aotm,
+                            v.pm,
+                            v.pm,
+                            v.aopm,
+                            v.aopm,
+                            v.transmission_distance,
+                            local_dr,
+                            local_dr);
 
       // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};

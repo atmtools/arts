@@ -4,18 +4,22 @@
 #include "rtepack_multitype.h"
 
 namespace rtepack {
-constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
+static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
+static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
 
-void two_level_exp(muelmat &t, muelmat_vector_view &dt1,
-                   muelmat_vector_view &dt2, const propmat &k1,
-                   const propmat &k2, const propmat_vector_const_view &dk1,
-                   const propmat_vector_const_view &dk2, const Numeric r,
+void two_level_exp(muelmat &t,
+                   muelmat_vector_view &dt1,
+                   muelmat_vector_view &dt2,
+                   const propmat &k1,
+                   const propmat &k2,
+                   const propmat_vector_const_view &dk1,
+                   const propmat_vector_const_view &dk2,
+                   const Numeric r,
                    const ExhaustiveConstVectorView &dr1,
                    const ExhaustiveConstVectorView &dr2) {
   const Index N = dk1.size();
   ARTS_ASSERT(N == dk2.size() and N == dr1.size() and N == dr2.size())
 
-  static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
   const Numeric a = -0.5 * r * (k1.A() + k2.A()),
                 b = -0.5 * r * (k1.B() + k2.B()),
                 c = -0.5 * r * (k1.C() + k2.C()),
@@ -74,7 +78,7 @@ void two_level_exp(muelmat &t, muelmat_vector_view &dt1,
     const Complex inv_x2y2 =
         both_zero
             ? 1.0
-            : 1.0 / (x2 + y2); // The first "1.0" is the trick for above limits
+            : 1.0 / (x2 + y2);  // The first "1.0" is the trick for above limits
     const Complex C0c = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
     const Complex C1c =
         either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
@@ -489,12 +493,14 @@ void two_level_exp(muelmat &t, muelmat_vector_view &dt1,
   }
 }
 
-void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
-                   muelmat_matrix_view dt2v,
+void two_level_exp(muelmat_vector_view &tv,
+                   muelmat_matrix_view &dt1v,
+                   muelmat_matrix_view &dt2v,
                    const propmat_vector_const_view &k1v,
                    const propmat_vector_const_view &k2v,
                    const propmat_matrix_const_view &dk1v,
-                   const propmat_matrix_const_view &dk2v, const Numeric rv,
+                   const propmat_matrix_const_view &dk2v,
+                   const Numeric rv,
                    const ExhaustiveConstVectorView &dr1v,
                    const ExhaustiveConstVectorView &dr2v) {
   const Index nf = tv.nelem();
@@ -513,7 +519,6 @@ void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
   ARTS_ASSERT(nq == dr2v.nelem());
 
   for (Index i = 0; i < nf; ++i) {
-    static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
     const Numeric a = -0.5 * rv * (k1v[i].A() + k2v[i].A()),
                   b = -0.5 * rv * (k1v[i].B() + k2v[i].B()),
                   c = -0.5 * rv * (k1v[i].C() + k2v[i].C()),
@@ -575,7 +580,7 @@ void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
           both_zero
               ? 1.0
               : 1.0 /
-                    (x2 + y2); // The first "1.0" is the trick for above limits
+                    (x2 + y2);  // The first "1.0" is the trick for above limits
       const Complex C0c = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
       const Complex C1c =
           either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
@@ -1017,14 +1022,19 @@ void two_level_exp(muelmat_vector_view tv, muelmat_matrix_view dt1v,
   }
 }
 
-void two_level_exp(muelmat_vector_view tv, const propmat_vector_const_view &k1v,
-                   const propmat_vector_const_view &k2v, const Numeric rv) {
+void two_level_exp_nopolar(muelmat_vector_view &tv,
+                           const propmat_vector_const_view &k1v,
+                           const propmat_vector_const_view &k2v,
+                           const Numeric rv) {
   ARTS_ASSERT(k2v.nelem() == k1v.nelem());
   ARTS_ASSERT(tv.nelem() == k1v.nelem());
 
-  std::transform(k1v.begin(), k1v.end(), k2v.begin(), tv.begin(),
+  std::transform(k1v.begin(),
+                 k1v.end(),
+                 k2v.begin(),
+                 tv.begin(),
                  [rv](const propmat &a, const propmat &b) {
                    return exp(-0.5 * rv * (a + b));
                  });
 }
-} // namespace rtepack
+}  // namespace rtepack
