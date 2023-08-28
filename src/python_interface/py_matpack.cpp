@@ -1,5 +1,4 @@
 #include <python_interface.h>
-#include <sys/_types/_ssize_t.h>
 
 #include <memory>
 #include <numeric>
