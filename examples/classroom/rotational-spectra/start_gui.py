@@ -50,4 +50,4 @@ ws.Touch(ws.jacobian_quantities)
 ws.lbl_checkedCalc()
 
 # Start the explorer
-ws.propmat_clearsky_agendaExecute()
+ws.propmat_clearsky_agendaGUI()
