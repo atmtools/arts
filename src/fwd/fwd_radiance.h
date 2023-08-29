@@ -2,21 +2,20 @@
 
 #include <ostream>
 
+#include "atm.h"
 #include "fwd_abs.h"
 
 namespace fwd::profile {
 struct spectral_radiance {
   Numeric refl;
   std::vector<Numeric> altitude;
-  std::vector<Numeric> temperature;  // FIXME: Should be AtmPoint...
+  std::vector<AtmPoint> atm_points;
   std::vector<full_absorption> models;
 
   spectral_radiance() = default;
 
   spectral_radiance(const Vector& z,
-                    const Vector& p,
-                    const Vector& t,
-                    const std::vector<Vector>& allvmrs,
+                    const std::vector<AtmPoint>& atm_points,
                     const ArrayOfArrayOfSpeciesTag& allspecs,
                     const PredefinedModelData& predef_data,
                     const ArrayOfCIARecord& cia_data,

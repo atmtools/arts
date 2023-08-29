@@ -39,9 +39,7 @@ ComplexVector single::at(const Vector& fs) const {
   return abs;
 }
 
-full::full(Numeric p,
-           Numeric t,
-           const Vector& vmrs,
+full::full(const AtmPoint& atm_point,
            const ArrayOfArrayOfSpeciesTag& allspecs,
            const std::vector<std::shared_ptr<CIARecord>>& cia,
            Numeric extrap,
@@ -52,12 +50,10 @@ full::full(Numeric p,
         const auto data = cia_get_data(cia, spec.Spec(), spec.cia_2nd_species);
         ARTS_USER_ERROR_IF(not data, "Cannot find CIA data for tag: ", spec)
 
-        const Numeric VMR1 =
-            vmrs[find_first_species(allspecs, data->Species(0))];
-        const Numeric VMR2 =
-            vmrs[find_first_species(allspecs, data->Species(1))];
+        const Numeric VMR1 = atm_point[data->Species(0)];
+        const Numeric VMR2 = atm_point[data->Species(1)];
 
-        models.emplace_back(p, t, VMR1, VMR2, data, extrap, robust);
+        models.emplace_back(atm_point.pressure, atm_point.temperature, VMR1, VMR2, data, extrap, robust);
       }
     }
   }

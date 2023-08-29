@@ -2,17 +2,16 @@
 
 #include <algorithm>
 
+#include "atm.h"
 #include "rtepack.h"
 
 namespace fwd::predef {
-full::full(Numeric p,
-           Numeric t,
-           const Vector& allvmrs,
+full::full(const AtmPoint& atm_point,
            const ArrayOfArrayOfSpeciesTag& allspecs,
            const std::shared_ptr<PredefinedModelData>& data)
-    : P(p),
-      T(t),
-      vmrs(Absorption::PredefinedModel::VMRS(allspecs, allvmrs)),
+    : P(atm_point.pressure),
+      T(atm_point.temperature),
+      vmrs(Absorption::PredefinedModel::VMRS(atm_point)),
       predefined_model_data(data) {
   for (auto& specs : allspecs) {
     for (auto& spec : specs) {

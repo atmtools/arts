@@ -1,4 +1,5 @@
 #include "fwd_lbl_mtckd_voigt.h"
+#include "atm.h"
 #include "fwd_lbl_algorithms.h"
 
 #include <algorithm>
@@ -11,37 +12,35 @@
 #include "linescaling.h"
 #include "lineshapemodel.h"
 #include "physics_funcs.h"
+#include "zeemandata.h"
 
 namespace fwd::lbl::mtckd {
-single::single(Numeric T,
-               Numeric P,
+single::single(const AtmPoint& atm_point,
                const SpeciesIsotopologueRatios& isotopologue_ratios,
-               const ArrayOfArrayOfSpeciesTag& allspecs,
-               const Vector& allvmrs,
                const AbsorptionLines& band,
-               Index line) {
+               Index iline,
+               Index ibroad) {
   using Constant::inv_sqrt_pi;
   using Conversion::hz2joule;
   using Conversion::kelvin2joule;
 
-  const Numeric QT = single_partition_function(T, band.Isotopologue());
+  const Numeric QT = single_partition_function(atm_point.temperature, band.Isotopologue());
   const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
 
-  const auto& ln = band.lines[line];
+  const auto& ln = band.lines[iline];
 
-  const auto X = band.ShapeParameters(
-      line, T, P, band.BroadeningSpeciesVMR(allvmrs, allspecs));
+  const auto X = band.ShapeParameters(iline, atm_point, ibroad);
 
   F0 = ln.F0 + X.D0;
-  invGD = 1.0 / (band.DopplerConstant(T) * F0);
+  invGD = 1.0 / (band.DopplerConstant(atm_point.temperature) * F0);
   z_imag = invGD * X.G0;
 
-  const Numeric selfvmr = band.SelfVMR(allvmrs, allspecs);
   const Numeric isotrat =
       isotopologue_ratios[band.quantumidentity.Isotopologue()];
+  const Numeric selfvmr = atm_point[band.Species()];
 
   scl = -inv_sqrt_pi * invGD * QT0 * isotrat * selfvmr * ln.I0 *
-        boltzman_ratio(T, band.T0, ln.E0) /
+        boltzman_ratio(atm_point.temperature, band.T0, ln.E0) /
         (F0 * std::expm1(-hz2joule(F0) / kelvin2joule(band.T0)) * QT);
 
   cutoff = at<true>(F0 + cutoff_freq);
@@ -56,36 +55,33 @@ bool single::is_valid(const AbsorptionLines& band) {
          not band.AnyLinemixing();
 }
 
-single_lm::single_lm(Numeric T,
-                     Numeric P,
+single_lm::single_lm(const AtmPoint& atm_point,
                      const SpeciesIsotopologueRatios& isotopologue_ratios,
-                     const ArrayOfArrayOfSpeciesTag& allspecs,
-                     const Vector& allvmrs,
                      const AbsorptionLines& band,
-                     Index line) {
+                     Index iline,
+                     Index ibroad) {
   using Constant::inv_sqrt_pi;
   using Conversion::hz2joule;
   using Conversion::kelvin2joule;
 
-  const Numeric QT = single_partition_function(T, band.Isotopologue());
+  const Numeric QT = single_partition_function(atm_point.temperature, band.Isotopologue());
   const Numeric QT0 = single_partition_function(band.T0, band.Isotopologue());
 
-  const auto& ln = band.lines[line];
+  const auto& ln = band.lines[iline];
 
-  const auto X = band.ShapeParameters(
-      line, T, P, band.BroadeningSpeciesVMR(allvmrs, allspecs));
+  const auto X = band.ShapeParameters(iline, atm_point, ibroad);
 
   F0 = ln.F0 + X.D0 + X.DV;
-  invGD = 1.0 / (band.DopplerConstant(T) * F0);
+  invGD = 1.0 / (band.DopplerConstant(atm_point.temperature) * F0);
   z_imag = invGD * X.G0;
 
-  const Numeric selfvmr = band.SelfVMR(allvmrs, allspecs);
   const Numeric isotrat =
       isotopologue_ratios[band.quantumidentity.Isotopologue()];
+  const Numeric selfvmr = atm_point[band.Species()];
 
-  scl = (-inv_sqrt_pi * invGD * QT0 * isotrat * selfvmr * ln.I0 *
-         boltzman_ratio(T, band.T0, ln.E0) /
-         (F0 * std::expm1(-hz2joule(F0) / kelvin2joule(band.T0)) * QT)) *
+  scl = -inv_sqrt_pi * invGD * QT0 * isotrat * selfvmr * ln.I0 *
+        boltzman_ratio(atm_point.temperature, band.T0, ln.E0) /
+        (F0 * std::expm1(-hz2joule(F0) / kelvin2joule(band.T0)) * QT) *
         Complex{1 + X.G, -X.Y};
 
   cutupp = at<true>(F0 + cutoff_freq);
@@ -112,21 +108,17 @@ std::size_t band::validity_count(
   return n;
 }
 
-band::band(Numeric t,
-           Numeric p,
+band::band(const AtmPoint& atm_point,
            const SpeciesIsotopologueRatios& isotopologue_ratios,
-           const ArrayOfArrayOfSpeciesTag& allspecs,
-           const Vector& allvmrs,
            const ArrayOfArrayOfAbsorptionLines& specbands)
-    : T(t), P(p) {
+    : T(atm_point.temperature), P(atm_point.pressure) {
   lines.reserve(validity_count(specbands));
 
   for (auto& bs : specbands) {
     for (auto& b : bs) {
       if (single::is_valid(b)) {
         for (std::size_t line = 0; line < b.lines.size(); ++line) {
-          lines.emplace_back(
-              t, P, isotopologue_ratios, allspecs, allvmrs, b, line);
+          lines.emplace_back(atm_point, isotopologue_ratios, b, line, -1);
         }
       }
     }
@@ -182,13 +174,10 @@ std::size_t band_lm::size() const {
                                [](const auto& b) { return b.size(); });
 }
 
-band_lm::band_lm(Numeric t,
-                 Numeric p,
-                 const SpeciesIsotopologueRatios& isotopologue_ratios,
-                 const ArrayOfArrayOfSpeciesTag& allspecs,
-                 const Vector& allvmrs,
-                 const ArrayOfArrayOfAbsorptionLines& specbands)
-    : T(t), P(p) {
+band_lm::band_lm(const AtmPoint& atm_point,
+           const SpeciesIsotopologueRatios& isotopologue_ratios,
+           const ArrayOfArrayOfAbsorptionLines& specbands)
+    : T(atm_point.temperature), P(atm_point.pressure) {
   bands.reserve(validity_count(specbands));
   for (auto& bs : specbands) {
     for (auto& b : bs) {
@@ -197,7 +186,7 @@ band_lm::band_lm(Numeric t,
         bands.back().reserve(b.lines.size());
         for (std::size_t line = 0; line < b.lines.size(); ++line) {
           bands.back().emplace_back(
-              t, P, isotopologue_ratios, allspecs, allvmrs, b, line);
+              atm_point, isotopologue_ratios, b, line, -1);
         }
       }
     }
@@ -240,15 +229,3 @@ ComplexVector band_lm::at(const Vector& f) const {
   return out;
 }
 }  // namespace fwd::lbl::mtckd
-
-static_assert(fwd::lbl::singleable<fwd::lbl::mtckd::single>,
-              "lbl::mtckd::single is not representative of a single line");
-
-static_assert(fwd::lbl::bandable<fwd::lbl::mtckd::band>,
-              "lbl::mtckd::single is not representative of a band of lines");
-
-static_assert(fwd::lbl::singleable<fwd::lbl::mtckd::single_lm>,
-              "lbl::mtckd::single is not representative of a single line");
-
-static_assert(fwd::lbl::bandable<fwd::lbl::mtckd::band_lm>,
-              "lbl::mtckd::single is not representative of a band of lines");

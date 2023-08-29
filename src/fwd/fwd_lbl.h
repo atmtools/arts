@@ -2,7 +2,6 @@
 
 #include <functional>
 
-#include "fwd_lbl_concepts.h"
 #include "fwd_lbl_mtckd_voigt.h"
 #include "matpack_concepts.h"
 
@@ -14,11 +13,8 @@ struct full {
 
   full() = default;
 
-  full(Numeric t,
-       Numeric p,
+  full(const AtmPoint& atm_point,
        const SpeciesIsotopologueRatios& isotopologue_ratios,
-       const ArrayOfArrayOfSpeciesTag& allspecs,
-       const Vector& allvmrs,
        const ArrayOfArrayOfAbsorptionLines& specbands);
 
   [[nodiscard]] std::size_t size() const;
@@ -29,7 +25,7 @@ struct full {
   void at_par(ExhaustiveComplexVectorView out, const Vector& fs) const;
   [[nodiscard]] ComplexVector at_par(const Vector& fs) const;
 
-  template <bandable bandable_t>
+  template <typename bandable_t>
   full& add(bandable_t&& model) {
     models.emplace_back(std::forward<bandable_t>(model));
     return *this;

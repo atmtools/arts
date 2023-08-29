@@ -15,9 +15,7 @@ struct full {
 
   full() = default;
 
-  full(Numeric p,
-       Numeric t,
-       const Vector& allvmrs,
+  full(const AtmPoint& atm_point,
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::shared_ptr<PredefinedModelData>& data);
 

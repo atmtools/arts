@@ -53,6 +53,13 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
   return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
+LineShape::Output Absorption::Lines::ShapeParameters(size_t k, const AtmPoint& atm_point, Index broadener) const {
+  if (broadener < 0) {
+    return ShapeParameters(k, atm_point.temperature, atm_point.pressure, BroadeningSpeciesVMR(atm_point));
+  }
+  return ShapeParameters(k, atm_point.temperature, atm_point.pressure, static_cast<std::size_t>(broadener));
+}
+
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
   auto &lineshape = lines[k].lineshape;

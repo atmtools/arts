@@ -552,6 +552,15 @@ struct Lines {
    * @return Line shape parameters
    */
   [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
+
+  /** Line shape parameters
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] atm_point As WSV
+   * @param[in] broadener The broadener (less than 0 means all)
+   * @return Line shape parameters
+   */
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, const AtmPoint& atm_point, Index broadener=-1) const;
   
   /** Line shape parameters temperature derivatives
    * 

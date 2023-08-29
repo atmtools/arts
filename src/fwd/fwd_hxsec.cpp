@@ -30,9 +30,8 @@ ComplexVector single::at(const Vector& fs) const {
   return abs;
 }
 
-full::full(Numeric p,
-       Numeric t,
-       const Vector& vmrs,
+full::full(
+       const AtmPoint& atm_point,
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::vector<std::shared_ptr<XsecRecord>>& xsec) {
   for (auto& specs : allspecs) {
@@ -41,10 +40,9 @@ full::full(Numeric p,
         const auto data = hitran_xsec_get_data(xsec, spec.Spec());
         ARTS_USER_ERROR_IF(not data, "Cannot find XSEC data for tag: ", spec)
 
-        const Numeric VMR =
-            vmrs[find_first_species(allspecs, spec.Spec())];
+        const Numeric VMR = atm_point[spec.Spec()];
 
-        models.emplace_back(p, t, VMR, data);
+        models.emplace_back(atm_point.pressure, atm_point.temperature, VMR, data);
       }
     }
   }
