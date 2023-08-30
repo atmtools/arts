@@ -6,6 +6,7 @@
 struct WorkspaceGroupRecord {
   std::string file;
   std::string desc;
+  bool value_type{false};
 };
 
 std::unordered_map<std::string, WorkspaceGroupRecord> internal_workspace_groups();

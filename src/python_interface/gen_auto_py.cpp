@@ -24,12 +24,14 @@ std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
 }
 
 std::string fix_type(const std::string& name) {
-  if ("Numeric" == name or "Index" == name) return name + "_";
+  const static auto& wsgs = internal_workspace_groups();
+  if (wsgs.at(name).value_type) return "ValueHolder<" + name + ">";
   return "std::shared_ptr<" + name + ">";
 }
 
 std::string variable(const std::string& name,
                      const WorkspaceVariableRecord& wsv) try {
+  const auto& wsgs = internal_workspace_groups();
   std::ostringstream os;
 
   os << "  ws.def_property(\"" << name << "\",";
@@ -41,7 +43,7 @@ std::string variable(const std::string& name,
     [](Workspace& w, )--"
      << fix_type(wsv.type) << R"--( val) -> void {
       w.set(")--" << name << R"--(", std::make_shared<Wsv>(std::move(val)--";
-      if (wsv.type == "Numeric" or wsv.type == "Index") os << ".val"; 
+      if (wsgs.at(wsv.type).value_type) os << ".val"; 
       os << R"--()));
 )--";
 
@@ -457,8 +459,8 @@ bool is_unique_variadic(const WorkspaceMethodInternalRecord& wsm) {
 
 std::vector<std::string> unfix(std::vector<std::string> a) {
   for (auto& b: a) {
-    if (b == "Numeric_") b = "std::shared_ptr<Numeric>";
-    if (b == "Index_") b = "std::shared_ptr<Index>";
+    if (b.starts_with("ValueHolder")) b = b.substr(12, b.size() - 13);
+    if (b.starts_with("std::shared_ptr")) b = b.substr(16, b.size() - 17);
   }
   return a;
 }
@@ -499,8 +501,7 @@ std::string method_resolution_variadic(
             os << "*_t";
             var = wsm.gout[i];
           } else {
-            os << "*std::get<" << ungen[i_comma] << ">(" << wsm.gout[i]
-               << ".value)";
+            os << wsm.gout[i] << ".get<" << ungen[i_comma] << ">()";
           }
           i_comma++;
         } else {
@@ -531,8 +532,7 @@ std::string method_resolution_variadic(
             os << "*_t";
             var = wsm.gin[i];
           } else {
-            os << "*std::get<" << ungen[i_comma] << ">(" << wsm.gin[i]
-               << ".value)";
+            os << wsm.gin[i] << ".get<" << ungen[i_comma] << ">()";
           }
           i_comma++;
         } else {
@@ -589,18 +589,14 @@ std::string method_resolution_variadic(
         auto& t = wsm.gout_type[i];
         if (t.find(',') != t.npos) {
           if (i_comma > 0) os << " and ";
-          os << "std::holds_alternative<";
-          os << ungen[i_comma++];
-          os << ">(" << wsm.gout[i] << ".value)";
+          os << wsm.gout[i] << ".holds<"<<ungen[i_comma++]<<">()";
         }
       }
       for (std::size_t i = 0; i < wsm.gin.size(); i++) {
         auto& t = wsm.gin_type[i];
         if (t.find(',') != t.npos) {
           if (i_comma > 0) os << " and ";
-          os << "std::holds_alternative<";
-          os << ungen[i_comma++];
-          os << ">(" << wsm.gin[i] << ".value)";
+          os << wsm.gin[i] << ".holds<"<<ungen[i_comma++]<<">()";
         }
       }
       os << ") {\n          " << name << '(';
@@ -619,8 +615,7 @@ std::string method_resolution_variadic(
 
         auto& t = wsm.gout_type[i];
         if (t.find(',') != t.npos) {
-          os << "**std::get_if<" << ungen[i_comma] << ">(&" << wsm.gout[i]
-             << ".value)";
+          os << wsm.gout[i] << ".get_unsafe<" << ungen[i_comma] << ">()";
           i_comma++;
         } else {
           os << wsm.gout[i];
@@ -646,8 +641,7 @@ std::string method_resolution_variadic(
 
         auto& t = wsm.gin_type[i];
         if (t.find(',') != t.npos) {
-          os << "**std::get_if<" << ungen[i_comma] << ">(&" << wsm.gin[i]
-             << ".value)";
+          os << wsm.gin[i] << ".get_unsafe<" << ungen[i_comma] << ">()";
           i_comma++;
         } else {
           os << wsm.gin[i];
@@ -1048,8 +1042,8 @@ using PyWsvValue = std::variant<
     if (not first) hos << ",\n    ";
     first = false;
     hos << "  ";
-    if (name == "Index" or name == "Numeric") {
-      hos << name << '_';
+    if (wsg.value_type) {
+      hos << "ValueHolder<" << name << '>';
     } else {
       hos << "std::shared_ptr<" << name << '>';
     }
@@ -1065,9 +1059,11 @@ concept PythonWorkspaceGroup =
   for (auto& [name, wsg] : wsgs) {
     if (not first) hos << "\n    || ";
     first = false;
-    hos << "std::is_same_v<T, " << name;
-    if (name == "Index" or name == "Numeric") {
-      hos << '_';
+    hos << "std::is_same_v<T, ";
+    if (wsg.value_type) {
+      hos << "ValueHolder<" << name << ">";
+    } else {
+      hos << name;
     }
     hos << '>';
   }

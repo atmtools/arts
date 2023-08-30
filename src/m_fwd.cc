@@ -40,7 +40,6 @@ ArrayOfAtmPoint extracND(const AtmField& atm_field,
 }
 
 void spectral_radiance_profile_operatorPlaneParallel(
-    Workspace& ws,
     SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
     const AtmField& atm_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -55,8 +54,6 @@ void spectral_radiance_profile_operatorPlaneParallel(
     const Vector& lat_grid,
     const Vector& lon_grid) {
   const Index n = z_grid.size();
-  const Index m = lat_grid.size();
-  const Index l = lon_grid.size();
 
   ARTS_USER_ERROR_IF(n == 0, "Must have z_grid.size() > 0")
   ARTS_USER_ERROR_IF(not std::ranges::is_sorted(z_grid),
@@ -78,7 +75,7 @@ void spectral_radiance_profile_operatorPlaneParallel(
                                       cia_robust);
 }
 
-    void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
+void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
         Tensor7& spectral_radiance_field,
         const SpectralRadianceProfileOperator&
             spectral_radiance_profile_operator,

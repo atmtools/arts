@@ -258,7 +258,8 @@ Both the data and the grid may be named
       .desc = "Wraps data required to use Hitran line mixing\n"};
 
   wsg_data["Index"] = {.file = "matpack.h",
-                       .desc = "A 64 bit signed integer type\n"};
+                       .desc = "A 64 bit signed integer type\n",
+                       .value_type = true};
 
   wsg_data["JacobianTarget"] = {
       .file = "jacobian.h",
@@ -284,7 +285,8 @@ relaxation matrix are set
                         .desc = "A 2 dimensional array of *Numeric*\n"};
 
   wsg_data["Numeric"] = {.file = "matpack.h",
-                         .desc = "IEEE 754 binary64 floating point number\n"};
+                         .desc = "IEEE 754 binary64 floating point number\n",
+                         .value_type = true};
 
   wsg_data["Ppath"] = {.file = "ppath_struct.h",
                        .desc = "Describes a propagation path\n"};
