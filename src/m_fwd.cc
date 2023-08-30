@@ -1,4 +1,3 @@
-#include <__algorithm/ranges_is_sorted.h>
 #include <fwd.h>
 #include <workspace.h>
 
