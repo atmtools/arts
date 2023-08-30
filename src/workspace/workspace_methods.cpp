@@ -7235,56 +7235,6 @@ The field must not be regular
 
   };
 
-  wsm_data["atm_fieldForSingleSpeciesNonOverlappingLines"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(NLTE field for a simple setup.
-
-This will solve for ``nlte_field`` in the input atmosphere.
-The solver depends on the lines not overlapping and that there
-is only a single species in the atmosphere.
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"atm_field"},
-
-          .in = {"atm_field",
-                 "abs_species",
-                 "abs_lines_per_species",
-                 "collision_coefficients",
-                 "collision_line_identifiers",
-                 "isotopologue_ratios",
-                 "iy_main_agenda",
-                 "ppath_agenda",
-                 "iy_space_agenda",
-                 "iy_surface_agenda",
-                 "iy_cloudbox_agenda",
-                 "propmat_clearsky_agenda",
-                 "surface_field",
-                 "nlte_do"},
-          .gin = {"df",
-                  "convergence_limit",
-                  "nz",
-                  "nf",
-                  "dampened",
-                  "iteration_limit"},
-          .gin_type =
-              {"Numeric", "Numeric", "Index", "Index", "Index", "Index"},
-          .gin_value = {std::nullopt,
-                        Numeric{1e-6},
-                        std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        Index{20}},
-          .gin_desc =
-              {R"--(relative frequency to line center)--",
-               R"--(max relative change in ratio of level to stop iterations)--",
-               R"--(number of zenith angles)--",
-               R"--(number of frequency grid-points per line)--",
-               R"--(use transmission dampening or not)--",
-               R"--(max number of iterations before defaul break of iterations)--"},
-          .pass_workspace = true,
-
-      };
-
   wsm_data["atm_fieldIGRF"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Use IGRF to compute the magnetic field at each point
 
@@ -11965,36 +11915,6 @@ in later versions
       .in = {"abs_lines_per_species", "abs_species", "isotopologue_ratios"},
 
   };
-
-  wsm_data["line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Computes the line irradiance and line transmission
-
-Presently only works for 1D atmospheres
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"line_irradiance", "line_transmission"},
-
-          .in = {"abs_species",
-                 "abs_lines_per_species",
-                 "atm_field",
-                 "surface_field",
-                 "ppath_agenda",
-                 "iy_main_agenda",
-                 "iy_space_agenda",
-                 "iy_surface_agenda",
-                 "iy_cloudbox_agenda",
-                 "propmat_clearsky_agenda"},
-          .gin = {"df", "nz", "nf", "r"},
-          .gin_type = {"Numeric", "Index", "Index", "Numeric"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Numeric{1.0}},
-          .gin_desc = {R"--(relative frequency to line center)--",
-                       R"--(number of zeniths)--",
-                       R"--(number of frequencies per line)--",
-                       R"--(Distance assumed when computing local (1-T))--"},
-          .pass_workspace = true,
-
-      };
 
   wsm_data["mblock_dlosFrom1dAntenna"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *mblock_dlos* based on a 1D gaussian antenna response.

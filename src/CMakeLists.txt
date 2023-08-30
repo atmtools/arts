@@ -121,7 +121,6 @@ add_library (artscore STATIC
   m_poslos.cc
   m_ppath.cc
   m_psd.cc
-  m_radiation_field.cc
   m_raw.cc
   m_reduce.cc
   m_refraction.cc

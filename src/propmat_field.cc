@@ -10,69 +10,13 @@
   * potentially coarser resolution.
 */
 
+#include <matpack.h>
+
 #include "propmat_field.h"
-#include "matpack_data.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "arts_omp.h"
-
-void field_of_propagation(const Workspace& ws,
-                          FieldOfPropmatVector& propmat_field,
-                          FieldOfStokvecVector& absorption_field,
-                          FieldOfStokvecVector& additional_source_field,
-                          const Vector& f_grid,
-                          const AtmField& atm_field,
-                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                          const Agenda& propmat_clearsky_agenda)
-{
-//  const Index nalt = atm_field.regularized_shape()[0];
-//  const Index nlat = atm_field.regularized_shape()[1];
-//  const Index nlon = atm_field.regularized_shape()[2];
-ARTS_USER_ERROR("ERROR")
-Index nalt, nlat, nlon;
-  const Index nq = jacobian_quantities.nelem();
-  const Index nf = f_grid.nelem();
-
-  ARTS_USER_ERROR_IF (nq,
-        "Does not support Jacobian calculations at this time");
-
-  // Compute variables
-  const Vector mag_field = Vector(3, 0);
-  const Vector los = Vector(2, 0);
-  const Vector tmp(0);
-  StokvecMatrix dS_dx(nq, nf);
-  PropmatMatrix dK_dx(nq, nf);
-
-  propmat_field = FieldOfPropmatVector(
-      nalt, nlat, nlon, PropmatVector(nf));
-  absorption_field =
-      FieldOfStokvecVector(nalt, nlat, nlon, StokvecVector(nf));
-  additional_source_field =
-      FieldOfStokvecVector(nalt, nlat, nlon, StokvecVector(nf));
-
-#pragma omp parallel for if (not arts_omp_in_parallel()) collapse(3)
-  for (Index i = 0; i < nalt; i++) {
-    for (Index j = 0; j < nlat; j++) {
-      for (Index k = 0; k < nlon; k++) {
-        ARTS_USER_ERROR("ERROR")
-        get_stepwise_clearsky_propmat(
-            ws,
-            propmat_field(i, j, k),
-            additional_source_field(i, j, k),
-            dK_dx,
-            dS_dx,
-            propmat_clearsky_agenda,
-            jacobian_quantities,
-            f_grid,
-            los,
-       AtmPoint{},  //   atm_field.at({atm_field.grid[0][i]}, {atm_field.grid[1][j]}, {atm_field.grid[2][k]})[0],
-            false);
-        absorption_field(i, j, k) = absvec(propmat_field(i, j, k));
-      }
-    }
-  }
-}
 
 FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
     const FieldOfPropmatVector& propmat_field, const Numeric& r)

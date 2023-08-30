@@ -121,9 +121,9 @@ void doit_conv_test_agendaSet(Agenda& out, const String& option) {
 }
 
 void ppvar_rtprop_agendaSet(Agenda& out, const String& option) {
-  //out = get_ppvar_rtprop_agenda(option);
+  out = get_ppvar_rtprop_agenda(option);
 }
 
 void rte_background_agendaSet(Agenda& out, const String& option) {
-  //out = get_rte_background_agenda(option);
+  out = get_rte_background_agenda(option);
 }

@@ -60,6 +60,21 @@ Agenda get_iy_main_agenda(const std::string& option) {
       agenda.add("iyEmissionStandard");
       agenda.set("geo_pos", Vector{});
       break;
+    case EmissionNew:
+      agenda.add("ppathCalc");
+      agenda.add("ppvar_atmFromPath");
+      agenda.add("ppvar_fFromPath");
+      agenda.add("RadiativePropertiesCalc");
+      agenda.add("background_transmittanceFromBack");
+      agenda.add("RadiationBackgroundCalc");
+      agenda.set("rt_integration_option", String{"Emission"});
+      agenda.add("ppvar_radCalc");
+      agenda.add("iyCopyPath");
+      agenda.add("diy_dxTransform");
+      agenda.add("iyUnitConversion");
+      agenda.add("iy_auxFromVars");
+      agenda.set("geo_pos", Vector{});
+      break;
     case EmissionPlaneParallel:
       agenda.add("ppathPlaneParallel");
       agenda.add("iyEmissionStandard");
@@ -179,6 +194,9 @@ Agenda get_ppath_agenda(const std::string& option) {
 
   using enum Options::ppath_agendaDefaultOptions;
   switch (Options::toppath_agendaDefaultOptionsOrThrow(option)) {
+    case Geometric:
+      agenda.add("ppathGeometric");
+      break;
     case FollowSensorLosPath:
       agenda.add("ppathStepByStep");
       break;
@@ -586,6 +604,41 @@ Agenda get_doit_conv_test_agenda(const std::string& option) {
 
   using enum Options::doit_conv_test_agendaDefaultOptions;
   switch (Options::todoit_conv_test_agendaDefaultOptionsOrThrow(option)) {
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+
+Agenda get_ppvar_rtprop_agenda(const std::string& option) {
+  AgendaCreator agenda("ppvar_rtprop_agenda");
+
+  using enum Options::ppvar_rtprop_agendaDefaultOptions;
+  switch (Options::toppvar_rtprop_agendaDefaultOptionsOrThrow(option)) {
+    case Propmat:
+      agenda.add("ppvar_propmatCalc");
+      agenda.add("ppvar_srcFromPropmat");
+      agenda.add("ppvar_tramatCalc");
+      agenda.add("ppvar_cumtramatForward");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_rte_background_agenda(const std::string& option) {
+  AgendaCreator agenda("rte_background_agenda");
+
+  using enum Options::rte_background_agendaDefaultOptions;
+  switch (Options::torte_background_agendaDefaultOptionsOrThrow(option)) {
+    case ByPath:
+      agenda.add("iyBackground");
+      agenda.add("background_radFromMatrix", "iy_mat=iy");
+      break;
     case FINAL:
       break;
   }
