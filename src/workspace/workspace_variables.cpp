@@ -1769,31 +1769,6 @@ Unit:  degrees
 )--",
                      .type = "Numeric"};
 
-  wsv_data["lat_true"] = {
-      .desc = R"--(Latitudinal geolocation for 1D and 2D data.
-
-The variables ``lat_grid`` and ``lon_grid`` contain true positions only
-for 3D. For 1D and 2D, the geographical position is given by
-*lat_true* and *lon_true*. Can be left empty when not used.
-Otherwise:
-
-   -
-     1D.
-     *lat_true* shall have length 1
-   -
-     2D.
-     Both *lat_true* and *lon_true* shall have a length matching
-     ``lat_grid``. That is, *lat_true* and *lon_true* shall not be
-     seen as grids, they are vectors giving the actual lat or lon
-     for each point corresponding to ``lat_grid``.
-
-Usage: Set by the user.
-
-Unit:  degrees
-)--",
-      .type = "Vector",
-      .default_value = Vector{}};
-
   wsv_data["lbl_checked"] = {
       .desc = R"--(Flag to check if the line-by-line calculations will work
 
@@ -1848,32 +1823,6 @@ Usage: Set by the user.
 Unit:  degrees
 )--",
                      .type = "Numeric"};
-
-  wsv_data["lon_true"] = {
-      .desc = R"--(Longitudinal geolocation for 1D and 2D data.
-
-The variables ``lat_grid`` and ``lon_grid`` contain true positions only
-for 3D. For 1D and 2D, the geographical position is given by
-*lat_true* and *lon_true*. Can be left empty when not used.
-Otherwise:
-
-   -
-    1D.
-    *lon_true* shall have length 1
-
-   -
-     2D.
-     Both *lat_true* and *lon_true* shall have a length matching
-     ``lat_grid``. That is, *lat_true* and *lon_true* shall not be
-     seen as grids, they are vectors giving the actual lat or lon
-     for each point corresponding to ``lat_grid``.
-
-Usage: Set by the user.
-
-Unit:  degrees
-)--",
-      .type = "Vector",
-      .default_value = Vector{}};
 
   wsv_data["mblock_dlos"] = {
       .desc =

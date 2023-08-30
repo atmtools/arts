@@ -692,7 +692,7 @@ void wsm_record(std::ostream& os,
 
 void wsm_record(std::ostream& os,
                 const std::string& name,
-                const WorkspaceAgendaInternalRecord& wsmr) {
+                const WorkspaceAgendaInternalRecord& wsmr) try {
   os << "    .out={";
   bool first = true;
   for (auto& str : wsmr.output) {
@@ -727,6 +727,8 @@ void wsm_record(std::ostream& os,
   os << "\n      );";
   os << "\n    }";
   os << "\n";
+} catch(...) {
+  throw std::runtime_error(var_string("Failure in: ", std::quoted(name)));
 }
 
 std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {

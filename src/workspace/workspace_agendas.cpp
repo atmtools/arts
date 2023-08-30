@@ -204,21 +204,6 @@ either be used directly, or serve as examples.
       .output = {"iy"},
       .input = {"f_grid", "rtp_pos", "rtp_los"}};
 
-  wsa_data["iy_independent_beam_approx_agenda"] = {
-      .desc = R"--(Agenda dedicated to *iyIndependentBeamApproximation*.
-
-If *iyIndependentBeamApproximation* is used, this agenda basically
-replaces *iy_main_agenda*. Accordingly, this agenda has exactly the
-same output as *iy_main_agenda*.
-)--",
-      .output = {"iy", "iy_aux", "ppath", "diy_dx"},
-      .input = {
-          "diy_dx",      "iy_agenda_call1", "iy_unit",    "iy_transmittance",
-          "iy_aux_vars", "iy_id",           "lat_true",   "lon_true",
-          "atm_field",   "surface_field",   "ppath_lmax", "ppath_lraytrace",
-          "cloudbox_on", "cloudbox_limits", "pnd_field",  "jacobian_do",
-          "f_grid",      "rte_pos",         "rte_los",    "rte_pos2"}};
-
   wsa_data["iy_loop_freqs_agenda"] = {
       .desc = R"--(Agenda dedicated to *iyLoopFrequencies*.
 

@@ -1094,33 +1094,6 @@ output and input can be the same variable.
 
   };
 
-  wsm_data["GriddedFieldLatLonRegrid"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interpolates the input field along the latitude and longitude dimensions
-to *lat_true* and *lon_true*.
-
-If the input longitude grid is outside of *lon_true* it will be shifted
-left or right by 360. If it covers 360 degrees, a cyclic interpolation
-will be performed.
-input and output fields can be the same variable.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type =
-          {"GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3"},
-      .gout_desc = {R"--(Regridded gridded field.)--"},
-      .in = {"lat_true", "lon_true"},
-      .gin = {"input", "interp_order"},
-      .gin_type =
-          {"GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3",
-           "Index"},
-      .gin_value = {std::nullopt, Index{1}},
-      .gin_desc = {R"--(Raw input gridded field.)--",
-                   R"--(Interpolation order.)--"},
-
-  };
-
   wsm_data["HydrotableCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a look-up table of scattering properties.
 
@@ -1353,31 +1326,6 @@ Linear interpolation is applied.
       .gout_type = {"AtmPoint"},
       .gout_desc = {R"--(Value obtained by the interpolation.)--"},
       .in = {"atm_field", "rtp_pos"},
-
-  };
-
-  wsm_data["InterpGriddedField2ToPosition"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Latitude and longitude interpolation of a GriddedField2.
-
-The default way to specify the position is by *rtp_pos*.
-
-The interpolation is done for the latitude and longitude in
-*rtp_pos*. The altitude in *rtp_pos* is completely ignored.
-Linear interpolation is applied.
-
-The input field (``gfield2``) is expected to have latitude and
-longitude as first and second dimension.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Value obtained by interpolation.)--"},
-      .in = {"lat_true", "lon_true", "rtp_pos"},
-      .gin = {"gfield2"},
-      .gin_type = {"GriddedField2"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Gridded field to interpolate.)--"},
 
   };
 
@@ -7825,178 +7773,6 @@ See *batch_atm_fields_compactAddConstant* and
 
       };
 
-  wsm_data["cloudbox_fieldDisort"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
-
-DISCLAIMER: There is a couple of known issues with the current
-implementation (see below). Use this WSM with care and only if
-these limitations/requirements are fulfilled. Results might be
-erroneous otherwise.
-
-DISORT provides the radiation field (*cloudbox_field*) from a scalar
-1D scattering solution assuming a plane-parallel atmosphere (flat
-Earth). Only totally randomly oriented particles are allowed.
-Refraction is not taken into account. Only Lambertian surface
-reflection is handled.
-
-``nstreams`` is the number of polar angles taken into account
-internally in the scattering solution, *za_grid* is the
-polar angle grid on which *cloudbox_field* is provided.
-``nstreams`` determines the angular resolution, hence the accuracy,
-of the scattering solution. The more anisotropic the bulk scattering
-matrix, the more streams are required. The computational burden
-increases approximately linearly with ``nstreams``. The default value
-(8) is sufficient for most microwave scattering calculations. It is
-likely insufficient for IR calculations involving ice clouds,
-though.
-
-Further, *za_grid* determines the resolution of the output
-radiation field. The size of *za_grid* has no practical
-impact on computation time in the case of Disort and higher
-resolution generally improves the interpolation results, hence
-larger *za_grid* are recommended. To ensure sufficient
-interpolation accuracy, we require a (hardcoded) minimum size of 38.
-
-Different sphericity levels are emulated here by embedding DISORT
-in different ways and using different output. The available options
-(from low to high sphericity level) are:
-
-- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox from ``cloudboxSetFullAtm``).
-- Cloudbox extends over a limited part of the atmosphere only
-  (e.g. by setting cloudbox from ``cloudboxSetAutomatically`` or ``cloudboxSetManually``).
-  Internally, DISORT is run over the whole atmosphere, but only the radiation field within
-  the cloudbox is passed on and used further in ARTS (e.g. by *yCalc*).
-
-Some auxiliary quantities can be obtained. Auxiliary
-quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Layer optical thickness"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
-- ``"Single scattering albedo"``: Matrix [f_grid, size of p_grid - 1] layer single" scattering albedo.
-- ``"Direct beam"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present 
-)--",
-      .author = {"Claudia Emde, Jana Mendrok", "Manfred Brath"},
-      .out = {"cloudbox_field", "disort_aux"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "propmat_clearsky_agenda",
-             "gas_scattering_agenda",
-             "pnd_field",
-             "atm_field",
-             "surface_field",
-             "lat_true",
-             "lon_true",
-             "abs_species",
-             "scat_data",
-             "suns",
-             "f_grid",
-             "za_grid",
-             "aa_grid",
-             "surface_skin_t",
-             "surface_scalar_reflectivity",
-             "gas_scattering_do",
-             "suns_do",
-             "disort_aux_vars"},
-      .gin = {"nstreams",
-              "Npfct",
-              "only_tro",
-              "quiet",
-              "emission",
-              "intensity_correction"},
-      .gin_type = {"Index", "Index", "Index", "Index", "Index", "Index"},
-      .gin_value =
-          {Index{8}, Index{181}, Index{0}, Index{0}, Index{1}, Index{1}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in DISORT solution (must be an even number).)--",
-           R"--(Number of angular grid points to calculate bulk phase function on (and derive Legendre polynomials from). If <0, the finest za_grid from scat_data will be used.)--",
-           R"--(Set to 1 if the scattering data is just of TRO type. Has effect only if Npfct > 3 or Npfct<0, but then leads to much faster calculations.)--",
-           R"--(Silence C Disort warnings.)--",
-           R"--(Enables blackbody emission. Set to zero, if no Emission e. g. like in visible regime for earth is needed)--",
-           R"--(Enables intensity correction. Importantant for low number of streams. Set to zero, if problems encounter or using a high number of streams (>30))--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["cloudbox_fieldDisortWithARTSSurface"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
-
-As *cloudbox_fieldDisort* but uses *surface_rtprop_agenda*.
-
-The Lambertian surface reflection is set by *surface_rtprop_agenda*.
-If the GIN inc_angle is inside of the range [0,90], the reflection is
-set according to the result of *surface_rtprop_agenda* for this incidence
-angle. Otherwise (default) is to call *surface_rtprop_agenda* for
-multiple angles, to estimate the hemispheric mean value.
-
-Some auxiliary quantities can be obtained. Auxiliary
-quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Layer optical thickness"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
-- ``"Single scattering albedo"``: Matrix [f_grid, size of p_grid - 1] layer single"scattering albedo.
-- ``"Direct beam"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present 
-)--",
-      .author = {"Claudia Emde, Jana Mendrok", "Manfred Brath"},
-      .out = {"cloudbox_field", "disort_aux"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "propmat_clearsky_agenda",
-             "surface_rtprop_agenda",
-             "gas_scattering_agenda",
-             "pnd_field",
-             "atm_field",
-             "surface_field",
-             "lat_true",
-             "lon_true",
-             "abs_species",
-             "scat_data",
-             "suns",
-             "f_grid",
-             "za_grid",
-             "aa_grid",
-             "gas_scattering_do",
-             "suns_do",
-             "disort_aux_vars"},
-      .gin = {"nstreams",
-              "Npfct",
-              "only_tro",
-              "quiet",
-              "emission",
-              "intensity_correction",
-              "inc_angle"},
-      .gin_type =
-          {"Index", "Index", "Index", "Index", "Index", "Index", "Numeric"},
-      .gin_value = {Index{8},
-                    Index{181},
-                    Index{0},
-                    Index{0},
-                    Index{1},
-                    Index{1},
-                    Numeric{-1}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in DISORT  solution (must be an even number).)--",
-           R"--(Number of angular grid points to calculate bulk phase function on (and derive Legendre polynomials from). If <0, the finest za_grid from scat_data will be used.)--",
-           R"--(Set to 1 if the scattering data is just of TRO type. Has effect only if Npfct > 3 or Npfct<0, but then leads to much faster calculations.)--",
-           R"--(Silence C Disort warnings.)--",
-           R"--(Enables blackbody emission. Set to zero, if no Emission e. g. like in visible regime for earth is needed)--",
-           R"--(Enables intensity correction. Importantant for low number of streams. Set to zero, if problems encounter or using a high number of streams (>30))--",
-           R"--(Incidence angle, see above.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["collision_coefficientsFromSplitFiles"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -9676,62 +9452,6 @@ of scattering.
 
   };
 
-  wsm_data["iyIndependentBeamApproximation"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Samples atmosphere along ppath and make 1D-type RT calculation.
-
-The main application of this method should be to apply 1D
-scattering solvers on 2D or 3D atmospheres. The 1D calculation
-is set up inside *iy_independent_beam_approx_agenda*.
-
-The method calculates the ppath until reaching the surface or the
-top-of-the atmosphere. If the sensor is inside the atmosphere the
-ppath is extended from the sensor vertically to cover the remaining
-part of the atmosphere. All atmospheric fields are interpolated to
-the obtain ppath, to form a 1D view of the atmosphere. This 1D
-atmosphere forms the input to *iy_independent_beam_approx_agenda*
-
-*lat_true* and *lon_true* for the 1D view is set to the intersection
-with the surface of the ppath described above.
-
-The function accepts that the input atmosphere is 1D, as well as
-that there is no active cloudbox.
-
-The constructed 1D atmosphere is exported if the GIN ``return_atm1d``
-is set to 1. The default then is to include all atmospheric fields,
-but ``vmr_field`` and *pnd_field* can be deselected by two of the GIN-s.
-The order of the fields is specified by the first grid in the structure
-member grids. If *atm_fields_compact* is denoted as A, then
-A.grids{0}{i} gives the name of field with index i.
-Each book in ``vmr_field`` and *pnd_field* is stored separately. For
-example, the first book in *pnd_field* is stored with the name
-"Scattering element 0".
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"},
-
-      .in = {"diy_dx",          "iy_id",
-             "f_grid",          "atm_field",
-             "cloudbox_on",     "cloudbox_limits",
-             "pnd_field",       "particle_masses",
-             "ppath_agenda",    "ppath_lmax",
-             "ppath_lraytrace", "iy_agenda_call1",
-             "iy_unit",         "iy_transmittance",
-             "rte_pos",         "rte_los",
-             "rte_pos2",        "jacobian_do",
-             "iy_aux_vars",     "iy_independent_beam_approx_agenda"},
-      .gin = {"return_atm1d", "skip_vmr", "skip_pnd", "return_masses"},
-      .gin_type = {"Index", "Index", "Index", "Index"},
-      .gin_value = {Index{0}, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {R"--(Flag to trigger that *atm_fields_compact* is filled. )--",
-           R"--(Flag to not include vmr data in *atm_fields_compact*.)--",
-           R"--(Flag to not include pnd data in *atm_fields_compact*.)--",
-           R"--(Flag to include particle category masses in *atm_fields_compact*.Conversion is done by *particle_masses*.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyLoopFrequencies"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Radiative transfer calculations one frequency at the time.
 
@@ -10242,23 +9962,6 @@ Options are:
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
-
-  wsm_data["iy_independent_beam_approx_agendaSet"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Sets *iy_independent_beam_approx_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"iy_independent_beam_approx_agenda"},
-
-          .gin = {"option"},
-          .gin_type = {"String"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Default agenda option (see description))--"},
-      };
 
   wsm_data["iy_loop_freqs_agendaSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *iy_loop_freqs_agenda* to a default value
@@ -17115,76 +16818,6 @@ Options are:
 
   };
 
-  wsm_data["spectral_irradiance_fieldDisort"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
-for running flux (irradiance) calculations
-
-It provides the irradiance field from a scalar
-1D scattering solution assuming a plane-parallel atmosphere (flat
-Earth). Only totally randomly oriented particles are allowed.
-Refraction is not taken into account. Only Lambertian surface
-reflection is handled.
-
-``nstreams`` is the number of polar angles taken into account
-internally in the scattering solution and for the angular integration.
-``nstreams`` determines the angular resolution, hence the accuracy,
-of the scattering solution. The more anisotropic the bulk scattering
-matrix, the more streams are required. The computational burden
-increases approximately linearly with ``nstreams``. The default value
-(6) is sufficient for most flux calculations.
-
-Some auxiliary quantities can be obtained. Auxiliary
-quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Layer optical thickness"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
-- ``"Single scattering albedo"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.
-- ``"Direct downward spectral irradiance"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. 
-- ``"dFdtau"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"spectral_irradiance_field", "disort_aux"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "propmat_clearsky_agenda",
-             "gas_scattering_agenda",
-             "pnd_field",
-             "atm_field",
-             "surface_field",
-             "lat_true",
-             "lon_true",
-             "abs_species",
-             "scat_data",
-             "suns",
-             "f_grid",
-             "surface_skin_t",
-             "surface_scalar_reflectivity",
-             "gas_scattering_do",
-             "suns_do",
-             "disort_aux_vars"},
-      .gin = {"nstreams",
-              "Npfct",
-              "only_tro",
-              "quiet",
-              "emission",
-              "intensity_correction"},
-      .gin_type = {"Index", "Index", "Index", "Index", "Index", "Index"},
-      .gin_value =
-          {Index{6}, Index{181}, Index{0}, Index{0}, Index{1}, Index{1}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in DISORT solution (must be an even number).)--",
-           R"--(Number of angular grid points to calculate bulk phase function on (and derive Legendre polynomials from). If <0, the finest za_grid from scat_data will be used.)--",
-           R"--(Set to 1 if the scattering data is just of TRO type. Has effect only if Npfct > 3 or Npfct<0, but then leads to much faster calculations.)--",
-           R"--(Silence C Disort warnings.)--",
-           R"--(Enables blackbody emission. Set to zero, if no  Emission e. g. like in visible regime for earth is needed)--",
-           R"--(Enables intensity correction. Importantant for low number of  streams. Set to zero, if problems encounter or using a high number  of streams (>30))--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["spectral_irradiance_fieldFromSpectralRadianceField"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -17253,58 +16886,6 @@ down to the surface.
           .pass_workspace = true,
 
       };
-
-  wsm_data["spectral_radiance_fieldDisortClearsky"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interface to the DISORT scattering solver (by Stamnes et al.).
-for running clear-sky cases.
-
-The method runs DISORT with *pnd_field* set to zero.
-
-Note that this version returns *spectral_radiance_field*, i.e.
-the solution for the full atmosphere. The standard *cloudbox_fieldDisort*
-only returns the field inside the cloudbox.
-
-Some auxiliary quantities can be obtained. Auxiliary
-quantities are selected by *disort_aux_vars* and returned by *disort_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Layer optical thickness"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.
-- ``"Single scattering albedo"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.
-- ``"Direct beam"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present 
-)--",
-      .author = {"Patrick Eriksson", "Manfred Brath"},
-      .out = {"spectral_radiance_field", "disort_aux"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "propmat_clearsky_agenda",
-             "gas_scattering_agenda",
-             "atm_field",
-             "surface_field",
-             "lat_true",
-             "lon_true",
-             "abs_species",
-             "suns",
-             "f_grid",
-             "za_grid",
-             "aa_grid",
-             "surface_skin_t",
-             "surface_scalar_reflectivity",
-             "gas_scattering_do",
-             "suns_do",
-             "disort_aux_vars"},
-      .gin = {"nstreams", "quiet", "emission", "intensity_correction"},
-      .gin_type = {"Index", "Index", "Index", "Index"},
-      .gin_value = {Index{8}, Index{0}, Index{1}, Index{1}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in DISORT solution (must be an even number).)--",
-           R"--(Silence C Disort warnings.)--",
-           R"--(Enables blackbody emission. Set to zero, if no  Emission e. g. like in visible regime for earth is needed)--",
-           R"--(Enables intensity correction. Importantant for low number of  streams. Set to zero, if problems encounter or using a high number  of streams (>30))--"},
-      .pass_workspace = true,
-
-  };
 
   wsm_data["spectral_radiance_fieldExpandCloudboxField"] =
       WorkspaceMethodInternalRecord{
@@ -18456,24 +18037,6 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
       .gin_value = {Index{0}},
       .gin_desc =
           {R"--(Set to 1 to use liquid saturation pressure at all temperatures.)--"},
-
-  };
-
-  wsm_data["wind_u_fieldIncludePlanetRotation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Maps the planet's rotation to an imaginary wind.
-
-This method is of relevance if the observation platform is not
-following the planet's rotation, and Doppler effects must be
-considered. Examples include full disk observations from another
-planet or a satellite not in orbit of the observed planet.
-
-The rotation of the planet is not causing any Doppler shift for
-1D and 2D simulations, and the method can only be used for 3D.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"atm_field"},
-
-      .in = {"atm_field", "surface_field", "planet_rotation_period"},
 
   };
 

@@ -95,7 +95,6 @@ add_library (artscore STATIC
   m_cloudbox.cc
   m_cloudradar.cc
   m_conversion.cc
-  m_disort.cc
   m_doit.cc
   m_extract.cc
   m_fluxes.cc
