@@ -9581,111 +9581,6 @@ incorporated by using *yCalc*
 
   };
 
-  wsm_data["iyClearsky"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Standard method for radiative transfer calculations with emission
-and a direct (solar) source
-.
-Designed to be part of *iy_main_agenda*. That is, only valid
-outside the cloudbox (no scattering). For details se the user guide.
-
-The possible choices for *iy_unit* are
-
-- ``"1"``: No conversion, i.e. [W/(m^2 Hz sr)] (radiance per frequency unit).
-- ``"RJBT"``: Conversion to Rayleigh-Jean brightness temperature.
-- ``"PlanckBT"``: Conversion to Planck brightness temperature.
-- ``"W/(m^2 m sr)"``: Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).
-- ``"W/(m^2 m-1 sr)"``: Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).
-
-Expressions applied and considerations for the unit conversion of
-radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.
-
-*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that
-no unit ocnversion is applied for internal iterative calls.
-
-Recognised choices for *rt_integration_option* are:
-
-- ``"first order"``: A first order integration is applied.
-- ``"second order"``: A second order integration is applied.
-- ``"default"``: Another way to select the first order option.
-
-Some auxiliary radiative transfer quantities can be obtained. Auxiliary
-quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Radiative background"``:
-    Index value flagging the radiative
-    background. The following coding is used: 0=space, 1=surface
-    and 2=cloudbox.
-- ``"Optical depth"``:
-    Scalar optical depth between the observation point
-    and the end of the present propagation path. Calculated based on
-    the (1,1)-element of the transmittance matrix (1-based indexing),
-    i.e. only fully valid for scalar RT.
-- ``"Direct radiation"``:
-    Stokes vector of direct radiation. It dimensions
-    are number of frequencies and ``stokes_dim``. If no sun is present 
-    in the line of sight, it is zero.
-- ``"Radiation Background"``:
-    Stokes vector of the radiation at start of
-    the propagation path. It dimensions are number of frequencies and
-    ``stokes_dim``.
-
-If nothing else is stated, only the first column of *iy_aux* is filled,
-i.e. the column matching Stokes element I, while remaing columns are
-are filled with zeros.
-
-IMPORTANT:
-    No jacobian calculation is supported when suns or gas     scattering is included! This will be implemented in a future version.
-)--",
-      .author = {"Patrick Eriksson",
-                 "Richard Larsson",
-                 "Oliver Lemke",
-                 "Manfred Brath"},
-      .out = {"iy",
-              "iy_aux",
-              "diy_dx",
-              "ppvar_atm",
-              "ppvar_f",
-              "ppvar_iy",
-              "ppvar_trans_cumulat",
-              "ppvar_trans_partial"},
-
-      .in = {"diy_dx",
-             "iy_id",
-             "f_grid",
-             "abs_species",
-             "atm_field",
-             "surface_field",
-             "ppath_lmax",
-             "ppath_lraytrace",
-             "cloudbox_on",
-             "gas_scattering_do",
-             "suns_do",
-             "iy_unit",
-             "iy_aux_vars",
-             "jacobian_do",
-             "jacobian_quantities",
-             "ppath",
-             "rte_pos2",
-             "suns",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "rt_integration_option",
-             "iy_main_agenda",
-             "iy_space_agenda",
-             "iy_surface_agenda",
-             "iy_cloudbox_agenda",
-             "gas_scattering_agenda",
-             "ppath_step_agenda",
-             "iy_agenda_call1",
-             "iy_transmittance",
-             "rte_alonglos_v"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyCopyPath"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Copies the radiative transfer properties to their matpack equivalents.
@@ -10111,53 +10006,6 @@ comments on variables and limitations.
 
   };
 
-  wsm_data["iySurfaceFlatReflectivityDirect"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(This method calculates the specular reflection at a flat 
-surface of the direct radiation with a predefined reflectivity matrix.
-
-This method is designed to be part of *iy_surface_agenda*
-
-Important this method calculates only the scattering of the direct
-(sun) radiation. No diffuse incoming radiation is considered
-
-This method has no jacobian capability
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"iy"},
-
-      .in = {"iy",
-             "rtp_pos",
-             "rtp_los",
-             "f_grid",
-             "abs_species",
-             "atm_field",
-             "surface_field",
-             "surface_reflectivity",
-             "pnd_field",
-             "dpnd_field_dx",
-             "scat_species",
-             "scat_data",
-             "ppath_lmax",
-             "ppath_lraytrace",
-             "ppath_inside_cloudbox_do",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "suns_do",
-             "gas_scattering_do",
-             "jacobian_do",
-             "jacobian_quantities",
-             "suns",
-             "rte_alonglos_v",
-             "iy_unit",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "gas_scattering_agenda",
-             "ppath_step_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iySurfaceFlatRefractiveIndex"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(This method calculates upwelling radiation for a specular flat surface.
@@ -10200,54 +10048,6 @@ Jacobian is supported only for Skin temperature
       .pass_workspace = true,
 
   };
-
-  wsm_data["iySurfaceFlatRefractiveIndexDirect"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(This method calculates the specular reflection at a flat 
-surface of the direct radiation.
-
-This method is designed to be part of *iy_surface_agenda*
-
-Important this method calculates only the scattering of the direct
-(sun) radiation. No diffuse incoming radiation is considered
-
-This method has no jacobian capability
-)--",
-          .author = {"Manfred Brath"},
-          .out = {"iy"},
-
-          .in = {"iy",
-                 "rtp_pos",
-                 "rtp_los",
-                 "f_grid",
-                 "abs_species",
-                 "atm_field",
-                 "surface_field",
-                 "surface_complex_refr_index",
-                 "pnd_field",
-                 "dpnd_field_dx",
-                 "scat_species",
-                 "scat_data",
-                 "ppath_lmax",
-                 "ppath_lraytrace",
-                 "ppath_inside_cloudbox_do",
-                 "cloudbox_on",
-                 "cloudbox_limits",
-                 "suns_do",
-                 "gas_scattering_do",
-                 "jacobian_do",
-                 "jacobian_quantities",
-                 "suns",
-                 "rte_alonglos_v",
-                 "iy_unit",
-                 "propmat_clearsky_agenda",
-                 "water_p_eq_agenda",
-                 "gas_scattering_agenda",
-                 "ppath_step_agenda"},
-
-          .pass_workspace = true,
-
-      };
 
   wsm_data["iySurfaceInit"] = WorkspaceMethodInternalRecord{
       .desc = R"--(This method initialize iy.
@@ -10313,51 +10113,6 @@ Jacobian is supported only for Skin temperature
       .gin_value = {Index{3}, Index{1}},
       .gin_desc = {R"--(Number of zenith angles.)--",
                    R"--(Number of azimuth angles)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["iySurfaceLambertianDirect"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(This method calculates the scattering of the direct radiation
-for a Lambertian surface.
-
-This method is designed to be part of *iy_surface_agenda*
-
-Important this method calculates only the scattering of the direct
-(sun) radiation. No diffuse incoming radiation is considered
-
-This method has no jacobian capability
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"iy"},
-
-      .in = {"iy",
-             "rtp_pos",
-             "f_grid",
-             "abs_species",
-             "atm_field",
-             "surface_field",
-             "surface_scalar_reflectivity",
-             "pnd_field",
-             "dpnd_field_dx",
-             "scat_species",
-             "scat_data",
-             "ppath_lmax",
-             "ppath_lraytrace",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "suns_do",
-             "gas_scattering_do",
-             "jacobian_do",
-             "jacobian_quantities",
-             "suns",
-             "rte_alonglos_v",
-             "iy_unit",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "gas_scattering_agenda",
-             "ppath_step_agenda"},
-
       .pass_workspace = true,
 
   };
@@ -10435,87 +10190,6 @@ by calling *iy_main_agenda*. See further AUG.
              "rte_pos2",
              "iy_unit",
              "iy_main_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["iyTransmissionStandard"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Standard method for handling transmission measurements.
-
-Designed to be part of *iy_main_agenda*. Treatment of the cloudbox
-is incorporated (that is, no need to define *iy_cloudbox_agenda*).
-
-The transmitter is assumed to be placed at the end of provided *ppath*.
-The transmitted signal is taken from *iy_transmitter*. This
-signal is propagated along the path, considering attenuation alone.
-That is, the result of the method (*iy*) is the output of
-*iy_transmitter* multiplied with the transmittance along the
-propagation path.
-
-As mentioned, the given *ppath* determines the position of the
-transmitter. For clear-sky and no modification of *ppath*, this
-means that the transitter will either be found at the surface or
-at the top-of-the-atmosphere. If you want to maintain this even with
-an active cloudbox, calculate *ppath* as::
-
-     ppathCalc( cloudbox_on=0 )
-
-Without setting cloudbox_on=0, the transmitter will end up inside or
-at the boundary of the cloudbox.
-
-Some auxiliary radiative transfer quantities can be obtained. Auxiliary
-quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Radiative background"``:
-    Index value flagging the radiative
-    background. The following coding is used: 0=space, 1=surface
-    and 2=cloudbox. The value is added to each column.
-- ``"Optical depth"``:
-    Scalar optical depth between the observation point
-    and the end of the present propagation path. Calculated based on
-    the (1,1)-element of the transmittance matrix (1-based indexing),
-    i.e. only fully valid for scalar RT. The value is added to each
-    column.
-
-IMPORTANT:
-    No jacobian calculation is supported when gas scattering is
-    included! This will be implemented in a future version.
-)--",
-      .author = {"Patrick Eriksson", "Richard Larsson"},
-      .out = {"iy",
-              "iy_aux",
-              "diy_dx",
-              "ppvar_atm",
-              "ppvar_pnd",
-              "ppvar_f",
-              "ppvar_iy",
-              "ppvar_trans_cumulat",
-              "ppvar_trans_partial"},
-
-      .in = {"diy_dx",
-             "f_grid",
-             "abs_species",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "gas_scattering_do",
-             "pnd_field",
-             "dpnd_field_dx",
-             "scat_species",
-             "scat_data",
-             "iy_aux_vars",
-             "jacobian_do",
-             "jacobian_quantities",
-             "ppath",
-             "iy_transmitter",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "gas_scattering_agenda",
-             "iy_agenda_call1",
-             "iy_transmittance",
-             "rte_alonglos_v"},
 
       .pass_workspace = true,
 
@@ -10599,7 +10273,7 @@ Options are:
 - ``"Transmission"``:
 
     1. Uses ``ppathCalc`` to set *ppath*
-    2. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    2. Uses ``iyTransmissionStandard`` to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
 )--",
       .author = {"Richard Larsson"},
       .out = {"iy_loop_freqs_agenda"},
@@ -10630,27 +10304,27 @@ Options are:
 - ``"Clearsky"``:
 
     1. Uses ``ppathCalc`` to set *ppath*
-    2. Uses *iyClearsky* to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
+    2. Uses ``iyClearsky`` to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also  to modify *diy_dx*
     3. Sets *geo_pos* to empty
 
 - ``"Transmission"``:
 
     1. Uses ``ppathCalc`` to set *ppath* using *cloudbox_on* = 0
-    2. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    2. Uses ``iyTransmissionStandard`` to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
     3. Sets *geo_pos* to empty
 
 - ``"TransmissionUnitUnpolIntensity"``:
 
     1. Uses *MatrixUnitIntensity* using out = *iy_transmitter*, and f =* f_grid*
     2. Uses ``ppathCalc`` to set *ppath* using *cloudbox_on* = 0
-    3. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    3. Uses ``iyTransmissionStandard`` to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
     4. Sets *geo_pos* to empty
 
 - ``"TransmissionUnitPolIntensity"``:
 
     1. Uses *iy_transmitterSinglePol* to set *iy_transmitter*
     2. Uses ``ppathCalc`` to set *ppath* using *cloudbox_on* = 0
-    3. Uses *iyTransmissionStandard* to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
+    3. Uses ``iyTransmissionStandard`` to set *iy*, *iy_aux*, ``ppvar_p``, ``ppvar_t``, ``ppvar_nlte``, ``ppvar_vmr``, ``ppvar_wind``, ``ppvar_mag``, *ppvar_f*, *ppvar_iy*, *ppvar_trans_cumulat*, and *ppvar_trans_partial*, and also to modify *diy_dx*
     4. Sets *geo_pos* to empty
 
 - ``"Freqloop"``:
@@ -10729,7 +10403,7 @@ Options are:
   wsm_data["iy_transmitterMultiplePol"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Transmitted signal having multiple polarisations.
 
-The method is intended to be used as possible input of *iyTransmissionStandard*.
+The method is intended to be used as possible input of ``iyTransmissionStandard``.
 It sets *iy_transmitter* to describe the transmitted signal/pulses.
 The polarisation state is taken from *instrument_pol*, where
 *instrument_pol* must contain an element for each frequency in *f_grid*.
@@ -10746,7 +10420,7 @@ as [1,1,0,0].
   wsm_data["iy_transmitterSinglePol"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Transmitted signal having a single polarisations.
 
-The method is intended to be used as possible input of *iyTransmissionStandard*.
+The method is intended to be used as possible input of ``iyTransmissionStandard``.
 It sets *iy_transmitter* to describe the transmitted signal/pulses.
 The polarisation state is taken from *instrument_pol*, where
 *instrument_pol* must contain a single value.
