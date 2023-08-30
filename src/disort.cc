@@ -790,7 +790,7 @@ void c_errmsg(const char* messag, int type) {
 #undef MAX_WARNINGS
 
 /** Verbosity enabled replacement for the original cdisort function. */
-int c_write_bad_var(int quiet, const char* varnam) {
+int c_write_bad_var(int quiet, const char*) {
   #if not ARTS_LGPL
   const int maxmsg = 50;
   static int nummsg = 0;
@@ -806,7 +806,7 @@ int c_write_bad_var(int quiet, const char* varnam) {
 }
 
 /** Verbosity enabled replacement for the original cdisort function. */
-int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
+int c_write_too_small_dim(int quiet, const char*, int) {
   if (quiet != QUIET) {
   }
 
@@ -921,7 +921,7 @@ void run_cdisort(const Workspace& ws,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& only_tro,
-                 const Index& quiet,
+                 const Index&,
                  const Index& emission,
                  const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
@@ -1247,9 +1247,7 @@ void run_cdisort(const Workspace& ws,
           } else if (umu0 > 1 - eps) {
             umu0 -= eps;
           }
-
-          const Numeric shift =
-              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+          
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
@@ -1359,7 +1357,7 @@ void run_cdisort_flux(const Workspace& ws,
                       const Index& nstreams,
                       const Index& Npfct,
                       const Index& only_tro,
-                      const Index& quiet,
+                      const Index&,
                       const Index& emission,
                       const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
@@ -1693,9 +1691,6 @@ void run_cdisort_flux(const Workspace& ws,
           } else if (umu0 > 1 - eps) {
             umu0 -= eps;
           }
-
-          const Numeric shift =
-              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
 
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
