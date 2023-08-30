@@ -17,9 +17,6 @@
 #define doit_h
 
 #include <workspace.h>
-#include "matpack_data.h"
-#include "ppath.h"
-#include "rtepack.h"
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.
 /*!
@@ -107,58 +104,6 @@ void cloud_fieldsCalc(const Workspace& ws,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field);
-
-//! Calculates RT in the cloudbox (1D)
-/*!
-  This function calculates RT in the cloudbox (1D) if the next intersected
-  level is an atmospheric level (in contrast to the surface).
-  It is used inside the functions cloud_ppath_update1DXXX.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field_mono Radiation field in cloudbox
-  \param[in]     propmat_clearsky_agenda Calculate gas absorption
-  \param[in]     ppath_step Propagation path step from one pressure level to the next
-  \param[in]     t_int Temperature values interpolated on propagation path points
-  \param[in]     vmr_list_int Interpolated volume mixing ratios
-  \param[in]     ext_mat_int Interpolated total particle extinction matrix
-  \param[in]     abs_vec_int Interpolated total particle absorption vector
-  \param[in]     sca_vec_int Interpolated total particle scattering vector
-  \param[in]     cloudbox_field_mono_int Interpolated radiances
-  \param[in]     p_int Interpolated pressure values
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     f_grid Frequency grid
-  \param[in]     f_index Frequency index of (monochromatic) scattering
-                 calculation
-  \param[in]     p_index Pressure index in *cloudbox_field_mono*
-  \param[in]     lat_index Latitude index
-  \param[in]     lon_index Longitude index
-  \param[in]     za_index Zenith angle index in *cloudbox_field_mono*
-  \param[in]     aa_index Azimuth angle index in *cloudbox_field_mono*
-
-  \author Claudia Emde
-  \date 2005-05-13
-*/
-void cloud_RT_no_background(const Workspace& ws,
-                            //Output
-                            Tensor6View cloudbox_field_mono,
-                            // Input
-                            const Agenda& propmat_clearsky_agenda,
-                            const Ppath& ppath_step,
-                            ConstVectorView t_int,
-                            ConstMatrixView vmr_list_int,
-                            ConstTensor3View ext_mat_int,
-                            ConstMatrixView abs_vec_int,
-                            ConstMatrixView sca_vec_int,
-                            ConstMatrixView cloudbox_field_mono_int,
-                            ConstVectorView p_int,
-                            const ArrayOfIndex& cloudbox_limits,
-                            ConstVectorView f_grid,
-                            const Index& f_index,
-                            const Index& p_index,
-                            const Index& lat_index,
-                            const Index& lon_index,
-                            const Index& za_index,
-                            const Index& aa_index);
 
 //! Calculates RT in the cloudbox
 /*!
