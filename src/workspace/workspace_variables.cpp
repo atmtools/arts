@@ -132,7 +132,7 @@ A typical example is for this to containt the Rosenkranz full
 absorption model species for water vapor and oxygen 
 ([\"H2O-PWR98\", \"O2-PWR93\"]).
 
-See user guide and online documentation of *abs_lookupCalc*
+See user guide and online documentation of ``abs_lookupCalc``
 for more details and usage examples.
 )--",
       .type = "ArrayOfArrayOfSpeciesTag"};
@@ -214,23 +214,6 @@ Values:
 )--",
       .type = "Index"};
 
-  wsv_data["abs_p"] = {
-      .desc =
-          R"--(List of pressures to be used for the calculation of absorption
-coefficients.
-
-This can be copied from the global ``p_grid``, but could also be
-different.
-
-Any absorption method should check that the length of this vector
-is the same as that of *abs_t*
-
-Dimension: [p_grid]
-
-Unit: Pa
-)--",
-      .type = "Vector"};
-
   wsv_data["abs_species"] = {.desc = R"--(Tag groups for gas absorption.
 
 This is an array of arrays of SpeciesTag tag definitions. It defines the
@@ -239,21 +222,6 @@ coefficients.  See online documentation of method *abs_speciesSet* for
 more detailed information how tag groups work and some examples.
 )--",
                              .type = "ArrayOfArrayOfSpeciesTag"};
-
-  wsv_data["abs_t"] = {
-      .desc =
-          R"--(List of temperatures to be used for the calculation of absorption
-coefficients.
-
-In contrast to the global ``t_field``, this is just a vector. Any
-absorption method should check that the length of this vector is the
-same as that of *abs_p*
-
-Dimension: [p_grid]
-
-Unit: K
-)--",
-      .type = "Vector"};
 
   wsv_data["abs_vec"] = {.desc = R"--(Total absorption vector.
 
@@ -292,13 +260,6 @@ Unit:        m^2 FIXME: really m2? not 1/m?
 Dimensions: [number of scattering elements, stokes_dim]
 )--",
       .type = "ArrayOfStokvecVector"};
-
-  wsv_data["abs_vmrs"] = {
-      .desc = R"--(The VMRs (unit of absolute number) on the abs_p grid.
-
-Dimensions: [tag_groups.nelem(), abs_p.nelem()]
-)--",
-      .type = "Matrix"};
 
   wsv_data["agenda_array_index"] = {
       .desc = R"--(Index of the current agenda in *ArrayOfAgenda*.
