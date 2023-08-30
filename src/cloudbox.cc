@@ -205,32 +205,6 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
       "Each *scat_data* entry must correspond to one entry in *scat_meta*.")
 }
 
-//! Check scattering data meta
-/*!
-  FIXME
-  
-  \param scat_meta_single scattering meta data
-  \param scat_meta_file filename of the data to be checked
-
-  \author Daniel Kreyling
-  \date 2010-12-02
-*/
-void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
-                              const String& scat_meta_file) {
-  /* this check is outdated. type now is free from!
-   however, we might want to have other things checked here!?
-   - which parameters at least are needed? -> radius, ...?
-   - ...
-  if  (scat_meta_single.type != "Ice" && scat_meta_single.type != "Water" && scat_meta_single.type != "Aerosol")
-  {
-	  ostringstream os; 
-	  os << "Type in " << scat_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
-	  throw runtime_error( os.str() );
-	}
-*/
-  //(more) checks need to be included
-}
-
 //! Check single scattering data
 /*!
   This function checks the self consistency of the data by checking the

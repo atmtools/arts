@@ -44,9 +44,6 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim);
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
                          const ArrayOfScatteringMetaData& scat_meta);
 
-void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single,
-                              const String& scat_meta_file);
-
 void chk_scat_data(const SingleScatteringData& scat_data);
 
 bool is_gp_inside_cloudbox(const GridPos& gp_p,

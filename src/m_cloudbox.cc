@@ -1330,9 +1330,6 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
       fail_msg.push_back(os.str());
     }
 
-    //FIXME: currently nothing is done in chk_scattering_meta_data!
-    chk_scattering_meta_data(smd, scat_meta_file);
-
 #pragma omp critical(ScatSpeciesScatAndMetaRead_assign_ssd)
     arr_ssd[i] = std::move(ssd);
 #pragma omp critical(ScatSpeciesScatAndMetaRead_assign_smd)
