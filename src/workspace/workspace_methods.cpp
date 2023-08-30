@@ -9556,104 +9556,6 @@ where
 
   };
 
-  wsm_data["iyRadarSingleScat"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Simulation of radar, restricted to single scattering.
-
-The WSM treats e.g. radar measurements of cloud and precipitation,
-on the condition that multiple scattering can be ignored. Beside
-the direct back-scattering, the two-way attenuation by gases and
-particles is considered. Surface scattering/clutter is ignored.
-
-The method could potentially be used for lidars, but multiple
-scattering poses here a must stronger constrain for the range of
-applications.
-
-The method shall be used with *yRadar*, NOT with *yCalc*.
-
-The *ppath* provided should be calculated including cloudbox interior::
-
-     ppathCalc( cloudbox_on=0 )
-
-The method returns the back-scattering for each point of *ppath*.
-Several frequencies can be treated in parallel. The size of *iy*
-is [ nf * np, stokes_dim ], where nf is the length of *f_grid* and
-np is the number of path points. The data are stored in blocks
-of [ np, stokes_dim ]. That is, all the results for the first
-frequency occupy the np first rows of *iy* etc.
-
-The polarisation state of the transmitted pulse is taken from
-*iy_transmitter*. If the radar transmits several polarisations at
-the same frequency, you need to handle this by using two frequencies
-in *f_grid*, but these can be almost identical.
-
-This method does not consider *iy_unit_radar*. Unit changes are instead
-applied in *yRadar*. The output of this method matches the option "1".
-
-The extinction due to particles can be scaled (by ``pext_scaling``),
-which could be of interest when e.g. characterising inversions or
-trying to compensate for ignored multiple scattering. The later is
-commented further for *particle_bulkpropRadarOnionPeeling*.
-
-For Jacobian calculations the default is to assume that the
-transmittance is unaffected by the retrieval quantities. This is
-done to save computational time, and should be a valid approximation
-for the single-scattering conditions. Set ``trans_in_jacobian`` to 1 to
-activate full Jacobian calculations.
-
-Some auxiliary radiative transfer quantities can be obtained. Auxiliary
-quantities are selected by *iy_aux_vars* and returned by *iy_aux*.
-Valid choices for auxiliary data are:
-
-- ``"Radiative background"``:
-    Index value flagging the radiative
-    background. The following coding is used: 0=space, 1=surface
-    and 2=cloudbox (the last case should not occur!). Only column
-    matching first Stokes element filled. Other columns are set to 0.
-- ``"Backscattering"``:
-    The unattenuated back-scattering. That is, as
-    *iy* but with no attenuated applied. Here all columns are filled.
-    By combing *iy* and this auxiliary variable, the total two-way
-    attenuation can be derived.
-- ``"Abs species extinction"``:
-    Extinction due to *abs_species* at each
-    ppath point, taken as the diagonal of the local extinction matrix.
-- ``"Particle extinction"``:
-    Extinction due to particles at each
-    ppath point, taken as the diagonal of the local extinction matrix.
-    The retunred values includes ``pext_scaling``
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"iy", "iy_aux", "diy_dx", "ppvar_atm", "ppvar_pnd", "ppvar_f"},
-
-      .in = {"f_grid",
-             "abs_species",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "pnd_field",
-             "dpnd_field_dx",
-             "scat_species",
-             "scat_data",
-             "scat_data_checked",
-             "iy_aux_vars",
-             "jacobian_do",
-             "jacobian_quantities",
-             "ppath",
-             "iy_transmitter",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "rte_alonglos_v"},
-      .gin = {"trans_in_jacobian", "pext_scaling", "t_interp_order"},
-      .gin_type = {"Index", "Numeric", "Index"},
-      .gin_value = {Index{0}, Numeric{1}, Index{1}},
-      .gin_desc =
-          {R"--(Flag determining if change in transmittance is considered in calculation of the Jacobian or not.)--",
-           R"--(Particle extinction is scaled with this value. A value inside [0,2]. Set it to 0 if you want to remove particle extinction totally.)--",
-           R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyReplaceFromAux"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Change of main output variable.
 
@@ -11706,7 +11608,7 @@ scattering in space-based observations, as shown by: Matrosov and
 Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation
 totally gives a too high compensating effect and the GIN
 ``atten_hyd_scaling`` allows to test intermediate compensations. This
-GIN matches the GIN pext_scaling of *iyRadarSingleScat*, but they
+GIN matches the GIN pext_scaling of ``iyRadarSingleScat``, but they
 have different default values. The default in this method follows the
 results for CloudSat in Matrosov and Battaglia. Please note that
 ``do_atten_hyd`` must be true to apply ``atten_hyd_scaling``.
@@ -18514,7 +18416,7 @@ Ignores NaNs in median calculations.
 The output format for *iy* when simulating radars and lidars differs
 from the standard one, and *yCalc* can not be used for such simulations.
 This method works largely as *yCalc*, but is tailored to handle the
-output from *iyRadarSingleScat*. Note that *iy_radar_agenda* replaces
+output from ``iyRadarSingleScat``. Note that *iy_radar_agenda* replaces
 *iy_main_agenda*.
 
 The method requires additional information about the sensor,

@@ -1238,7 +1238,6 @@ void VectorInsertGridPoints(  // WS Generic Output:
   // output in a temporary array.
   Array<Numeric> x;
   Index iig = 0, ip = 0;  // indices to ig and p
-  Index sk = 0;           // skip count
   while (iig < ig.nelem() && ip < p.nelem()) {
     if (p[ip] < ig[iig]) {
       x.push_back(p[ip]);
@@ -1248,7 +1247,6 @@ void VectorInsertGridPoints(  // WS Generic Output:
       ++iig;
     } else {
       ++ip;
-      ++sk;
     }
   }
 
