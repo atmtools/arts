@@ -24,15 +24,15 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "arts_omp.h"
 #include "atm.h"
-#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
 #include "file.h"
 #include "gridded_fields.h"
-#include "interpolation.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -45,11 +45,8 @@
 #include "special_interp.h"
 #include "species_tags.h"
 #include "xml_io.h"
-#include "arts_omp.h"
+#include <workspace.h>
 
-using GriddedFieldGrids::GFIELD3_P_GRID;
-using GriddedFieldGrids::GFIELD3_LAT_GRID;
-using GriddedFieldGrids::GFIELD3_LON_GRID;
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

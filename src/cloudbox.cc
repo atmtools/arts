@@ -556,28 +556,6 @@ void chk_scat_species_field(bool& empty_flag,
   }
 }
 
-//! Adjust uppermost and lowermost cloudy level for one scat_species_*_*_field.
-/*!
-
-  lower and upper levels have to be preinitialized before calling this function.
- 
-  \param[in,out] lower              lowermost level containing scattering particles
-  \param[in,out] upper              uppermost level containing scattering particles
-  \param[in]     scat_species_field scattering species field (e.g. mass density, mass
-                                    flux, total number density)
-  \param[in]     cloudbox_margin    flag whether to determine lowermost level or set to
-                                    surface
-
-  \author Daniel Kreyling, Jana Mendrok
-  \date   2015-02-09
-*/
-void find_cloudlimits(Index& lower,
-                      Index& upper,
-                      const Tensor3& scat_species_field,
-                      const Numeric& cloudbox_margin) {
-    ARTS_USER_ERROR ("Not yet available for 2D and 3D cases.")
-}
-
 /*! Parse atm_field_compact fieldname for species type
 
   \param  species_type  species indentifier (first part of field_name)

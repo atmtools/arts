@@ -66,11 +66,6 @@ void chk_scat_species_field(bool& empty_flag,
                             const Vector& lat_grid,
                             const Vector& lon_grid);
 
-void find_cloudlimits(Index& lower,
-                      Index& upper,
-                      const Tensor3& scat_species_field,
-                      const Numeric& cloudbox_margin);
-
 void parse_atmcompact_speciestype(String& species_type,
                                   const String& field_name,
                                   const String& delim);
