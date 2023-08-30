@@ -89,17 +89,17 @@ This agenda is called repeatedly in each DOIT iteration.
 The following methods can be used for calculating the 
 scattering integral field: 
 
--  *doit_scat_fieldCalc*: This method calculates the scattering 
+-  ``doit_scat_fieldCalc``: This method calculates the scattering 
    integral field by using the angular grids *za_grid* 
    and *aa_grid*, which are also used in the update of the 
    radiation field (*doit_rte_agenda*).
 
--  *doit_scat_fieldCalcLimb*: This method calculates the scattering 
+-  ``doit_scat_fieldCalcLimb``: This method calculates the scattering 
    integral field.  The difference to the previous method is that 
    the data is interpolated on equidistant angular grids. 
    Especially for limb, where a very fine zenith angle grid 
    resolution is required for the RT transfer part, this method 
-   is much faster than *doit_scat_fieldCalc*.
+   is much faster than ``doit_scat_fieldCalc``.
 )--",
       .output = {"doit_scat_field"},
       .input = {"doit_scat_field", "cloudbox_field_mono"}};
@@ -357,7 +357,7 @@ This agenda can be, for example, set up like this:
 1. ``AtmFieldsCalc``
 2. *abs_lookupAdapt*
 3. *DoitInit*
-4. *DoitGetIncoming*
+4. ``DoitGetIncoming``
 5. ``cloudbox_fieldSetClearsky``
 6. *DoitCalc*
 7. *yCalc*
