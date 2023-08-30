@@ -67,8 +67,7 @@ Agenda get_iy_main_agenda(const std::string& option) {
       agenda.add("RadiativePropertiesCalc");
       agenda.add("background_transmittanceFromBack");
       agenda.add("RadiationBackgroundCalc");
-      agenda.set("rt_integration_option", String{"Emission"});
-      agenda.add("ppvar_radCalc");
+      agenda.add("ppvar_radCalcEmission");
       agenda.add("iyCopyPath");
       agenda.add("diy_dxTransform");
       agenda.add("iyUnitConversion");

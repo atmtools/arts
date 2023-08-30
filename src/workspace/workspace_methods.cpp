@@ -9377,81 +9377,6 @@ incorporated by using *yCalc*
 
   };
 
-  wsm_data["iyEmissionHybrid"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Radiative transfer with emission and precalculated radiation field.
-
-This method works largely as ``iyEmissionStandard`` but incorporates
-scattering by a precalculated radiation field. It is so far limited
-to 1D calculations.
-
-The method integrates the source term along the propagation path. While
-``iyEmissionStandard`` only considers local thermal emission, this method
-also includes scattering into the line-of-sight in the source term.
-The scattering integral is solved with the precalculated field as incoming
-radiation. That is, this method extends the integration into the cloudbox,
-while ``iyEmissionStandard`` starts at the cloudbox boundary.
-
-The calculate radiance should be as exact as what is produced by the
-scattering solver used to calculate the precalculted radiation field,
-but the main reason to use this method is to obtain the Jacobian even
-in the presence of scattering. The Jacobian with respect to bulk scattering
-properties can be obtained, but it is approximate. This is the case as
-the incoming radiation field is treated as fixed in the calculation
-of the Jacobian. The impact of this approximation increases with the degree
-of scattering.
-)--",
-      .author = {"Patrick Eriksson", "Jana Mendrok", "Richard Larsson"},
-      .out = {"iy",
-              "iy_aux",
-              "diy_dx",
-              "ppvar_atm",
-              "ppvar_pnd",
-              "ppvar_f",
-              "ppvar_iy",
-              "ppvar_trans_cumulat",
-              "ppvar_trans_partial"},
-
-      .in = {"diy_dx",
-             "iy_id",
-             "f_grid",
-             "abs_species",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "pnd_field",
-             "dpnd_field_dx",
-             "scat_species",
-             "scat_data",
-             "iy_unit",
-             "iy_aux_vars",
-             "jacobian_do",
-             "jacobian_quantities",
-             "propmat_clearsky_agenda",
-             "water_p_eq_agenda",
-             "rt_integration_option",
-             "iy_main_agenda",
-             "iy_space_agenda",
-             "iy_surface_agenda",
-             "iy_cloudbox_agenda",
-             "iy_agenda_call1",
-             "iy_transmittance",
-             "ppath",
-             "rte_pos2",
-             "rte_alonglos_v",
-             "surface_field",
-             "cloudbox_field",
-             "za_grid"},
-      .gin = {"Naa_grid", "t_interp_order"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {Index{19}, Index{1}},
-      .gin_desc =
-          {R"--(Number of azimuth angles to consider in scattering source term integral.)--",
-           R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyLoopFrequencies"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Radiative transfer calculations one frequency at the time.
 
@@ -12491,26 +12416,6 @@ The values in ppvar_optical_depth are set to
              "jacobian_do"},
 
       .pass_workspace = true,
-
-  };
-
-  wsm_data["ppvar_radCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gets the radiation along the path.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_rad", "ppvar_drad"},
-
-      .in = {"background_rad",
-             "ppvar_src",
-             "ppvar_dsrc",
-             "ppvar_tramat",
-             "ppvar_cumtramat",
-             "ppvar_dtramat",
-             "ppvar_propmat",
-             "ppvar_dpropmat",
-             "ppvar_distance",
-             "ppvar_ddistance",
-             "rt_integration_option"},
 
   };
 
