@@ -14270,13 +14270,12 @@ The following methods are considered for addition:
 
 To perform absorption lookupo table calculation, call:
     1) *propmat_clearsky_agendaAuto*
-    2) ``abs_lookupCalc``  FIXME: WILL THROW WERID ERROR
+    2) ``abs_lookupCalc``  FIXME: HOW TO COMPUTE IT
     3) *propmat_clearsky_agendaAuto* (use_abs_lookup=1)
     4) Perform other calculations
 )--",
       .author = {"Richard Larsson"},
       .out = {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
-
       .in = {"abs_species", "abs_lines_per_species"},
       .gin = {"H",
               "T_extrapolfac",
@@ -14339,8 +14338,6 @@ To perform absorption lookupo table calculation, call:
            R"--(See *propmat_clearskyAddZeeman*)--",
            R"--(See *propmat_clearskyAddParticles*)--",
            R"--(Uses lookup calculations if true, ignores methods that can be part of the lookup table)--"},
-      .pass_workspace = true,
-
   };
 
   wsm_data["propmat_clearsky_agendaGUI"] = WorkspaceMethodInternalRecord{
@@ -14397,42 +14394,6 @@ This method should be called if you use a manual *propmat_clearsky_agenda*
           .in = {"abs_species", "propmat_clearsky_agenda"},
           .pass_workspace = true,
       };
-
-  wsm_data["propmat_clearsky_fieldCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculate (vector) gas absorption coefficients for all points in the
-atmosphere.
-
-This is useful in two different contexts:
-
-1. For testing and plotting gas absorption. (For RT calculations, gas
-   absorption is calculated or extracted locally, therefore there is no
-   need to calculate a global field. But this method is handy for easy
-   plotting of absorption vs. pressure, for example.)
-
-2. Inside the scattering region, monochromatic absorption is
-   pre-calculated for the entire atmospheric field.
-
-The calculation itself is performed by the
-*propmat_clearsky_agenda*.
-)--",
-      .author = {"Stefan Buehler, Richard Larsson"},
-      .out = {"propmat_clearsky_field"},
-
-      .in = {"atmfields_checked",
-             "f_grid",
-             "atm_field",
-             "abs_species",
-             "propmat_clearsky_agenda"},
-      .gin = {"doppler", "los"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {Vector{}, Vector{}},
-      .gin_desc =
-          {R"--(A vector of doppler shift values in Hz. Must either be empty or have same dimension as p_grid.)--",
-           R"--(Line of sight)--"},
-      .pass_workspace = true,
-
-  };
 
   wsm_data["psdAbelBoutle12"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Abel and Boutle [2012] particle size distribution for rain.

@@ -1025,8 +1025,6 @@ void WriteMolTau(  //WS Input
 #endif /* ENABLE_NETCDF */
 
 void propmat_clearsky_agendaAuto(// Workspace reference:
-    const Workspace& ws,
-    // WS Output:
     Agenda& propmat_clearsky_agenda,
     Index& propmat_clearsky_agenda_checked,
     // WS Input:

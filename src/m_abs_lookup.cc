@@ -31,9 +31,6 @@
 #include <rtepack.h>
 #include "species_tags.h"
 
-using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
-using GriddedFieldGrids::GFIELD4_P_GRID;
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& x) {
   x = GasAbsLookup();
@@ -336,12 +333,6 @@ void abs_speciesAdd(  // WS Output:
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
-  // Size of initial array
-  Index n_gs = abs_species.nelem();
-
-  // Temporary ArrayOfSpeciesTag
-  ArrayOfSpeciesTag temp;
-
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
   for (Index i = 0; i < names.nelem(); ++i) {
@@ -555,172 +546,6 @@ void propmat_clearskyAddFromLookup(
       }
     }
   }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearsky_fieldCalc(const Workspace& ws,
-                                // WS Output:
-                                Tensor7& propmat_clearsky_field,
-                                // WS Input:
-                                const Index& atmfields_checked,
-                                const Vector& f_grid,
-                                const AtmField& atm_field,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const Agenda& abs_agenda,
-                                // WS Generic Input:
-                                const Vector& doppler,
-                                const Vector& los) {
-  if (atmfields_checked != 1)
-    throw runtime_error(
-        "The atmospheric fields must be flagged to have "
-        "passed a consistency check (atmfields_checked=1).");
-
-  PropmatMatrix partial_abs;
-  StokvecMatrix partial_nlte;  // FIXME: This is not stored!
-  PropmatVector abs;
-  StokvecVector nlte;
-  Vector a_vmr_list;
-
-  // Get the number of species from the leading dimension of vmr_field:
-  const Index n_species = abs_species.nelem();
-
-  // Number of frequencies:
-  const Index n_frequencies = f_grid.nelem();
-//FIXME: MUST HAVE REGULAR FIELD
- Vector z_grid, lat_grid, lon_grid, p_grid;
- Tensor3 p_field, t_field;
- Tensor4 vmr_field;
-//const Vector& z_grid = atm_field.grid[0];
-//const Vector& lat_grid = atm_field.grid[1];
-//const Vector& lon_grid = atm_field.grid[2];
-
-  // Number of altitudes levels:
-  const Index n_altitudes = z_grid.nelem();
-
-  // Number of latitude grid points (must be at least one):
-  const Index n_latitudes = max(Index(1), lat_grid.nelem());
-
-  // Number of longitude grid points (must be at least one):
-  const Index n_longitudes = max(Index(1), lon_grid.nelem());
-
-  // Check that doppler is empty or matches p_grid
-  if (0 != doppler.nelem() && z_grid.nelem() != doppler.nelem()) {
-    ostringstream os;
-    os << "Variable doppler must either be empty, or match the dimension of "
-       << "p_grid.";
-    throw runtime_error(os.str());
-  }
-
-  propmat_clearsky_field.resize(n_species,
-                                n_frequencies,
-                                1,
-                                1,
-                                n_altitudes,
-                                n_latitudes,
-                                n_longitudes);
-  
-  // Fake jacobian_quantities to deal with partial absorption
-  ArrayOfRetrievalQuantity jacobian_quantities;
-  for (auto& species_list: abs_species) {
-    jacobian_quantities.emplace_back();
-    auto& rq = jacobian_quantities.back();
-    rq.Subtag(species_list.Name());
-    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
-    rq.Target().perturbation = 0.001;
-  }
-
-  String fail_msg;
-  bool failed = false;
-
-  // Make local copy of f_grid, so that we can apply Dopler if we want.
-  Vector this_f_grid = f_grid;
-
-  // Now we have to loop all points in the atmosphere:
-  if (n_altitudes)
-#pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
-                             n_altitudes >= arts_omp_get_max_threads()) \
-    firstprivate(this_f_grid) private(                              \
-        abs, nlte, partial_abs, partial_nlte, a_vmr_list)
-    for (Index ial = 0; ial < n_altitudes; ++ial)  // Altitude:  ial
-    {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region.
-      try {
-        Numeric a_altitude = z_grid[ial];
-
-        if (0 != doppler.nelem()) {
-          this_f_grid = f_grid;
-          this_f_grid += doppler[ial];
-        }
-
-        for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
-          for (Index ilo = 0; ilo < n_longitudes; ++ilo)  // Longitude: ilo
-          {
-            const AtmPoint atm_point = atm_field.at({z_grid[ial]}, {lat_grid[ila]}, {lon_grid[ilo]})[0];
-
-            // Execute agenda to calculate local absorption.
-            // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-            // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(ws,
-                                           abs,
-                                           nlte,
-                                           partial_abs,
-                                           partial_nlte,
-                                           jacobian_quantities,
-                                           {},
-                                           this_f_grid,
-                                           los,
-                                           atm_point,
-                                           abs_agenda);
-            
-            // Convert from derivative to absorption
-            for (Index ispec=0; ispec<partial_abs.nrows(); ispec++) {
-              partial_abs[ispec] *= a_vmr_list[ispec];
-            }
-
-            ARTS_USER_ERROR ("This method is not yet adapted for the new fully polarized ARTS")
-
-            // Verify, that the number of species in abs is
-            // constistent with vmr_field:
-            ARTS_USER_ERROR_IF (n_species != partial_abs.nrows(),
-                "The number of gas species in vmr_field is ", n_species,
-                ",\n"
-                "but the number of species returned by the agenda is ",
-                partial_abs.nrows(), ".")
-
-            // Verify, that the number of frequencies in abs is
-            // constistent with f_extent:
-            ARTS_USER_ERROR_IF (n_frequencies != abs.nelem(),
-                "The number of frequencies desired is ", n_frequencies,
-                ",\n"
-                "but the number of frequencies returned by the agenda is ",
-                abs.nelem(), ".")
-
-            // Store the result in output field.
-            // We have to transpose abs, because the dimensions of the
-            // two variables are:
-            // abs_field: [abs_species, f_grid, stokes, stokes, p_grid, lat_grid, lon_grid]
-            // abs:       [abs_species][f_grid, stokes, stokes]
-            for (Index i = 0; i < partial_abs.nrows(); i++) {
-              for (Index j = 0; j < partial_abs.ncols(); j++) {
-                propmat_clearsky_field(i, j, 0, 0, ial, ila, ilo) =
-                    partial_abs(i, j).A();
-              }
-            }
-          }
-      } catch (const std::runtime_error& e) {
-#pragma omp critical(propmat_clearsky_fieldCalc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
-        }
-      }
-    }
-
-  if (failed) throw runtime_error(fail_msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
