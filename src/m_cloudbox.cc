@@ -61,36 +61,6 @@ inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudboxOff(Workspace& ws,
-                 Index& cloudbox_on,
-                 Index& ppath_inside_cloudbox_do,
-                 ArrayOfIndex& cloudbox_limits,
-                 Agenda& iy_cloudbox_agenda,
-                 Tensor4& pnd_field,
-                 ArrayOfTensor4& dpnd_field_dx,
-                 ArrayOfString& scat_species,
-                 ArrayOfArrayOfSingleScatteringData& scat_data,
-                 ArrayOfArrayOfSingleScatteringData& scat_data_raw,
-                 Index& scat_data_checked,
-                 Matrix& particle_masses,
-                 const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  cloudbox_on = 0;
-  ppath_inside_cloudbox_do = 0;
-  cloudbox_limits.resize(0);
-  iy_cloudbox_agenda = Agenda("iy_cloudbox_agenda");
-  pnd_field.resize(0, 0, 0, 0);
-  // we need to size dpnd_field to be consistent with jacobian_quantities.
-  dpnd_field_dx.resize(jacobian_quantities.nelem());
-  scat_data.resize(0);
-  scat_species.resize(0);
-  // remove scat_data_raw resizing once all scat solvers have been convert to
-  // use of (new-type) scat_data
-  scat_data_raw.resize(0);
-  scat_data_checked = 0;
-  particle_masses.resize(0, 0);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetAutomatically(  // WS Output:
     //Workspace& /* ws */,
     Index& cloudbox_on,
