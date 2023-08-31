@@ -58,27 +58,6 @@ void telsemStandalone(Matrix &emis,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void telsemSurfaceTypeLandSea(Index &surface_type,
-                              const Vector &lat_grid,
-                              const Vector &lat_true,
-                              const Vector &lon_true,
-                              const Vector &rtp_pos,
-                              const TelsemAtlas &atlas) {
-  Numeric lat, lon;
-  pos2true_latlon(
-      lat, lon, lat_grid, lat_true, lon_true, rtp_pos);
-  chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
-  chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
-
-  Index cellnumber = atlas.calc_cellnum(lat, lon);
-  if (atlas.contains(cellnumber)) {
-    surface_type = 1;
-  } else {
-    surface_type = 0;
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void telsemAtlasLookup(Vector &emis,
                        const Numeric &lat,
                        const Numeric &lon,

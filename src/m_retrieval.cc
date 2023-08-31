@@ -1089,14 +1089,12 @@ void retrievalAddSurfaceQuantity(const Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalDefClose(const Workspace& ws,
-                       Index& jacobian_do,
+void retrievalDefClose(Index& jacobian_do,
                        Agenda& jacobian_agenda,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity &jacobian_quantities) {
-  jacobianClose(
-      ws, jacobian_do, jacobian_agenda, jacobian_quantities);
+  jacobianClose(jacobian_do, jacobian_agenda, jacobian_quantities);
 
   ArrayOfArrayOfIndex ji_t;
   bool any_affine;
@@ -1113,8 +1111,7 @@ void retrievalDefClose(const Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalDefInit(const Workspace& ws,
-                      CovarianceMatrix& covmat_se,
+void retrievalDefInit(CovarianceMatrix& covmat_se,
                       CovarianceMatrix& covmat_sx,
                       Sparse& covmat_block,
                       Sparse& covmat_inv_block,
@@ -1122,7 +1119,7 @@ void retrievalDefInit(const Workspace& ws,
                       Agenda& jacobian_agenda,
                       const Index &initialize_jacobian) {
   if (initialize_jacobian == 1) {
-    jacobianInit(ws, jacobian_quantities, jacobian_agenda);
+    jacobianInit(jacobian_quantities, jacobian_agenda);
   }
 
   covmat_block = Sparse();

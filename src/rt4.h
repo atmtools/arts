@@ -114,92 +114,6 @@ void get_rt4surf_props(  // Output
     ConstTensor3View surface_reflectivity,
     const GriddedField3& surface_complex_refr_index);
 
-//! Runs RT4
-/*!
-  Prepares actual input variables for RT4, runs it, and sorts the output into
-  cloudbox_field.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field Radiation field
-  \param[out]    za_grid Zenith angle grid
-  \param[in]     f_grid Frequency grid
-  \param[in]     p_grid Pressure rid
-  \param[in]     z_profile Profile of geometrical altitudes
-  \param[in]     t_profile Temperature profile
-  \param[in]     vmr_profiles VMR profiles
-  \param[in]     pnd_profiles PND profiles
-  \param[in]     scat_data Array of single scattering data
-  \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                 matrix
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     nummu Total number of single hemisphere angles with RT output.
-  \param[in]     nhza Number of single hemisphere additional angles with RT output.
-  \param[in]     ground_type Surface reflection type flag.
-  \param[in]     surface_skin_t Surface scalar temperature
-  \param[in]     ground_albedo Scalar surface albedo (for ground_type=L).
-  \param[in]     ground_reflec Vector surface relfectivity (for ground_type=S).
-  \param[in]     ground_index Surface complex refractive index (for ground_type=F).
-  \param[in]     surf_refl_mat Surface reflection matrix (for ground_type=A).
-  \param[in]     surf_emis_vec Surface emission vector (for ground_type=A).
-  \param[in]     surface_rtprop_agenda Provides radiative properties of the
-                 surface
-  \param[in]     surf_altitude Surface altitude (lowest level of z_field)
-  \param[in]     quad_type Quadrature method.
-  \param[in]     mu_values Quadrature angle cosines.
-  \param[in]     quad_weights Quadrature weights associated with mu_values.
-  \param[in]     auto_inc_nstreams Flag whether to internally increase nstreams
-  \param[in]     robust if auto_inc_nstreams>0,flag whether to not fail even if
-                 scattering matrix norm is not preserved when maximum stream
-                 number is reached
-  \param[in]     za_interp_order if auto_inc_nstreams>0, polar angle
-                 interpolation order
-  \param[in]     cos_za_interp if auto_inc_nstreams>0, flag whether to do polar
-                 angle interpolation in cosine (='mu') space
-  \param[in]     pfct_method Flag which method to apply to derive phase function
-  \param[in]     pfct_aa_grid_size Number of azimuthal angle grid points to
-                 consider in Fourier series decomposition of scattering matrix
-  \param[in]     pfct_threshold Requested scatter_matrix norm accuracy
-                 (in terms of single scat albedo).
-  \param[in]     max_delta_tau Maximum optical depth of infinitesimal layer
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
-void run_rt4(const Workspace& ws,
-             // Output
-             Tensor7& cloudbox_field,
-             Vector& za_grid,
-             // Input
-             ConstVectorView f_grid,
-             const AtmField& atm_field,
-             ConstMatrixView pnd_profiles,
-             const ArrayOfArrayOfSingleScatteringData& scat_data,
-             const ArrayOfArrayOfSpeciesTag& abs_species,
-             const Agenda& propmat_clearsky_agenda,
-             const ArrayOfIndex& cloudbox_limits,
-             const Index& nummu,
-             const Index& nhza,
-             const String& ground_type,
-             const Numeric& surface_skin_t,
-             ConstVectorView ground_albedo,
-             ConstTensor3View ground_reflec,
-             ConstComplexVectorView ground_index,
-             ConstTensor5View surf_refl_mat,
-             ConstTensor3View surf_emis_vec,
-             const Agenda& surface_rtprop_agenda,
-             const Numeric& surf_altitude,
-             const String& quad_type,
-             Vector& mu_values,
-             ConstVectorView quad_weights,
-             const Index& auto_inc_nstreams,
-             const Index& robust,
-             const Index& za_interp_order,
-             const Index& cos_za_interp,
-             const String& pfct_method,
-             const Index& pfct_aa_grid_size,
-             const Numeric& pfct_threshold,
-             const Numeric& max_delta_tau);
-
 //! Reset za_grid such that it is consistent with ARTS
 /*!
   Reset za_grid such that it is consistent with ARTS' za_grid
@@ -217,33 +131,6 @@ void za_grid_adjust(  // Output
     // Input
     ConstVectorView mu_values,
     const Index& nummu);
-
-//! Calculates layer averaged gaseous extinction
-/*!
-  Calculates layer averaged gaseous extinction (gas_extinct). This variable is
-  required as input for the RT4 subroutine.
-
-  \param[in,out]  ws Current workspace
-  \param[out]     gas_extinct Layer averaged gas extinction for all layers
-  \param[in]      propmat_clearsky_agenda propmat_clearsky_agenda calculates
-                  the absorption coefficient matrix
-  \param[in]      t_profile Temperature profile
-  \param[in]      vmr_profiles VMR profiles
-  \param[in]      p_grid Pressure grid
-  \param[in]      f_mono Frequency (single entry vector)
-
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
-void gas_optpropCalc(const Workspace& ws,
-                     //Output
-                     VectorView gas_extinct,
-                     //Input
-                     const Agenda& propmat_clearsky_agenda,
-                     ConstVectorView t_field,
-                     ConstMatrixView vmr_field,
-                     ConstVectorView p_grid,
-                     ConstVectorView f_mono);
 
 //! Calculates layer averaged particle extinction and absorption
 /*!

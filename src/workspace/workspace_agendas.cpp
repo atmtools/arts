@@ -68,7 +68,7 @@ Possible workspace methods are:
 
 This agenda includes for example the following methods:
 
-1. *DoitScatteringDataPrepare* 
+1. ``DoitScatteringDataPrepare`` 
 2. ``cloudbox_field_monoIterate``
 
 The result of the agenda is the radiation field inside the 
@@ -255,7 +255,7 @@ that can be used directly, or adapted for specific applications.
       .desc = R"--(Calculation of pointwise backscattering.
 
 This agenda has a similar role for *yRadar* as *iy_main_agenda*.
-for *yCalc*.
+for ``yCalc``.
 )--",
       .output = {"iy", "iy_aux", "ppath", "diy_dx", "geo_pos"},
       .input = {"iy_aux_vars",
@@ -345,7 +345,7 @@ This agenda can be, for example, set up like this:
 4. ``DoitGetIncoming``
 5. ``cloudbox_fieldSetClearsky``
 6. *DoitCalc*
-7. *yCalc*
+7. ``yCalc``
 )--",
       .output = {"y"},
       .input = {"atm_field",

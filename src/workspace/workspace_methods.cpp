@@ -666,37 +666,6 @@ BEFORE other WSMs that provide input to *DoitCalc*, e.g. before
 
   };
 
-  wsm_data["DoitScatteringDataPrepare"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Prepares single scattering data for a DOIT scattering calculation.
-
-First the scattering data is interpolated in frequency using
-*scat_data_monoCalc*. Then the phase matrix data is
-transformed or interpolated from the raw data to the laboratory frame
-for all possible combinations of the angles contained in the angular
-grids which are set in *DOAngularGridsSet*. The resulting phase
-matrices are stored in *pha_mat_sptDOITOpt*.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"pha_mat_sptDOITOpt",
-              "scat_data_mono",
-              "pha_mat_doit",
-              "aa_grid"},
-
-      .in = {"doit_za_grid_size",
-             "aa_grid",
-             "scat_data",
-             "scat_data_checked",
-             "f_index",
-             "atm_field",
-             "cloudbox_limits",
-             "pnd_field",
-             "pha_mat_spt_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["DoitWriteIterationFields"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Writes DOIT iteration fields.
 
@@ -1521,147 +1490,6 @@ with the value 0.
       .gout = {"dt"},
       .gout_type = {"Numeric"},
       .gout_desc = {R"--(Time in seconds between local and gmt)--"},
-
-  };
-
-  wsm_data["MCGeneral"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(A generalised 3D reversed Monte Carlo radiative algorithm, that
-allows for 2D antenna patterns, surface reflection and arbitrary
-sensor positions.
-
-The main output variables *y* and *mc_error* represent the
-Stokes vector integrated over the antenna function, and the
-estimated error in this vector, respectively.
-
-The WSV *mc_max_iter* describes the maximum number of 'photons'
-used in the simulation (more photons means smaller *mc_error*).
-*mc_std_err* is the desired value of mc_error. *mc_max_time* is
-the maximum allowed number of seconds for MCGeneral. The method
-will terminate once any of the max_iter, std_err, max_time
-criteria are met. If negative values are given for these
-parameters then it is ignored.
-
-The WSV *mc_min_iter* sets the minimum number of photons to apply
-before the condition set by *mc_std_err* is considered. Values
-of *mc_min_iter* below 100 are not accepted.
-
-Only "1" and "RJBT" are allowed for *iy_unit*. The value of
-*mc_error* follows the selection for *iy_unit* (both for in- and
-output.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"y",
-              "mc_iteration_count",
-              "mc_error",
-              "mc_points",
-              "mc_source_domain",
-              "mc_scat_order"},
-
-      .in = {"mc_antenna",
-             "f_grid",
-             "f_index",
-             "sensor_pos",
-             "sensor_los",
-             "ppath_step_agenda",
-             "ppath_lmax",
-             "ppath_lraytrace",
-             "iy_space_agenda",
-             "surface_rtprop_agenda",
-             "propmat_clearsky_agenda",
-             "surface_field",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "pnd_field",
-             "scat_data",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "iy_unit",
-             "mc_seed",
-             "mc_std_err",
-             "mc_max_time",
-             "mc_max_iter",
-             "mc_min_iter",
-             "mc_taustep_limit"},
-      .gin = {"l_mc_scat_order", "t_interp_order"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {Index{11}, Index{1}},
-      .gin_desc =
-          {R"--(The length to be given to *mc_scat_order*. Note that scattering orders equal and above this value will not be counted.)--",
-           R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["MCRadar"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(A radar 3D foward Monte Carlo radiative algorithm, that allows 
-for 2D antenna patterns and arbitrary sensor positions.
-Surface reflections are currently ignored.
-
-The main output variable *y* and *mc_error* represent the
-radar reflectivity integrated over the antenna function, and the
-estimated error in this vector, respectively.
-
-Unlike with yRadar, the range bins gives the boundaries of 
-the range bins as either round-trip time or distance from radar.
-
-The WSV *mc_y_tx* gives the polarization state of the 
-transmitter.
-
-The WSV *mc_max_scatorder* prescribes the maximum scattering 
-order to consider, after which 'photon'-tracing will be
-terminated. A value of one calculates only single scattering.
-
-The WSV *mc_max_iter* describes the maximum number of 'photons'
-used in the simulation (more photons means smaller *mc_error* ).
-The method will terminate once the max_iter criterium is met.
-If negative values are given for these parameters then it is
-ignored.
-
-Here "1" and "Ze" are the allowed options for *iy_unit_radar*.
-The value of *mc_error* follows the selection for *iy_unit_radar*
-(both for in- and output. See *yRadar* for details of the units.
-)--",
-      .author = {"Ian S. Adams"},
-      .out = {"y", "mc_error"},
-
-      .in = {"mc_antenna",
-             "f_grid",
-             "f_index",
-             "sensor_pos",
-             "sensor_los",
-             "ppath_lmax",
-             "ppath_step_agenda",
-             "ppath_lraytrace",
-             "propmat_clearsky_agenda",
-             "surface_field",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "pnd_field",
-             "scat_data",
-             "mc_y_tx",
-             "range_bins",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "iy_unit_radar",
-             "mc_max_scatorder",
-             "mc_seed",
-             "mc_max_iter"},
-      .gin = {"ze_tref", "k2", "t_interp_order"},
-      .gin_type = {"Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{273.15}, Numeric{-1}, Index{1}},
-      .gin_desc =
-          {R"--(Reference temperature for conversion to Ze.)--",
-           R"--(Reference dielectric factor.)--",
-           R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
-      .pass_workspace = true,
 
   };
 
@@ -2519,232 +2347,12 @@ Options are:
   };
 
   wsm_data["PrintWorkspace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Prints a list of the workspace variables.
+      .desc = R"--(Prints a list of the workspace variables to standard out.
+
+Each will have a short excerpt of the variable's content
 )--",
       .author = {"Oliver Lemke"},
-
-      .gin = {"only_allocated", "level"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {Index{1}, Index{1}},
-      .gin_desc =
-          {R"--(Flag for printing either all variables (0) or only allocated ones (1).)--",
-           R"--(Output level to use.)--"},
       .pass_workspace = true,
-
-  };
-
-  wsm_data["RT4Calc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interface to the PolRadTran RT4 scattering solver (by F. Evans).
-
-RT4 provides the radiation field (*cloudbox_field*) from a vector
-1D scattering solution assuming a plane-parallel atmosphere (flat
-Earth). It calculates up to two Stokes parameters (``stokes_dim`` <= 2),
-i.e., all azimuthally randomly oriented particles are allowed (this
-also includes macroscopically isotropic particles). Refraction is
-not taken into account.
-
-The scattering solution is internally obtained over the full
-(plane-parallel) atmosphere, i.e. not confined to the cloudbox.
-However, the radiation field output is limited to the cloudbox.
-This allows to consider clearsky RT through a non-spherical
-atmosphere outside the cloudbox improving the RT solution for
-non-plane-parallel media compared to the plain RT4 output.
-
-``nstreams`` is the number of polar angles taken into account
-internally in the scattering solution. That is, ``nstreams``
-determines the angular resolution, hence the accuracy, of the
-scattering solution. The more anisotropic the bulk scattering
-matrix, the more streams are required. The computational burden
-increases approximately with the third power of ``nstreams``.
-The default value (``nstreams`` = 16) was found to be sufficient for
-most microwave scattering calculations. It is likely insufficient
-for IR calculations involving ice clouds, though.
-
-Here, *za_grid* is NOT an input parameter, but output, and its
-size equals ``nstreams`` or ``nstreams`` + 2 (Gauss-Legendre and Double
-Gauss quadratures in case ``add_straight_angles`` = 1) (the reason is
-that the computational burden is high for additional angles,
-regardless whether they are quadrature angles or not; hence the
-quadrature angles supplemented with 0 and 180deg are considered to
-provide the best radiation field for a given effort).
-
-The ``auto_inc_nstreams`` feature can be used to increase the number
-of streams used internally in the scattering solution when found
-necessary.
-NOTE: this number-of-streams increase is only internally - the
-angular dimension of the output *cloudbox_field* is fixed to the
-``nstreams`` given as input to this WSM.
-
-Quadrature methods available are: 'L'obatto, 'G'auss-Legendre and
-'D'ouble Gauss quadrature.
-
-This WSM applies *surface_rtprop_agenda* to derive reflection
-matrix and surface emission vector that are directly feed into
-RT4's core solver (instead of their RT4-internal calculation as
-used by *RT4CalcWithRT4Surface*).
-
-Known issues of ARTS implementation:
-
-- TOA incoming radiation is so far assumed as blackbody cosmic
-  background (temperature taken from the ARTS-internal constant).
-
-The keyword ``pfct_method`` allows to choose how to extract the
-scattering matrix, by chosing one specific temperature grid point
-from the single scattering data: 'low' choses the lowest T-point,
-'high' the highest T-point, and 'median' the median T-point. As
-different scattering elements can have different temperature grids,
-the actual temperature value used can differ between the scattering
-elements. Note that this keyword solely affects the scattering matrix;
-extinction matrix and absorption vector are always interpolated to
-the actual temperature.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"cloudbox_field", "za_grid", "aa_grid"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "propmat_clearsky_agenda",
-             "surface_rtprop_agenda",
-             "pnd_field",
-             "atm_field",
-             "scat_data",
-             "abs_species",
-             "f_grid",
-             "surface_field"},
-      .gin = {"nstreams",
-              "pfct_method",
-              "quad_type",
-              "add_straight_angles",
-              "pfct_aa_grid_size",
-              "auto_inc_nstreams",
-              "robust",
-              "za_interp_order",
-              "cos_za_interp",
-              "max_delta_tau"},
-      .gin_type = {"Index",
-                   "String",
-                   "String",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Numeric"},
-      .gin_value = {Index{16},
-                    String("median"),
-                    String("D"),
-                    Index{1},
-                    Index{19},
-                    Index{0},
-                    Index{0},
-                    Index{1},
-                    Index{0},
-                    Numeric{1e-6}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in RT4 solution (must be an even number).)--",
-           R"--(Flag which method to apply to derive phase function (for available options see above).)--",
-           R"--(Flag which quadrature to apply in RT4 solution (for available options see above).)--",
-           R"--(Flag whether to include nadir and zenith as explicit directions (only effective for quad_type G and D).)--",
-           R"--(Number of azimuthal angle grid points to consider in Fourier series decomposition of scattering matrix (only applied for randomly oriented scattering elements))--",
-           R"--(Flag whether to internally increase nstreams (individually per frequency) if norm of (bulk) scattering matrix is not preserved properly. If 0, no adaptation is done. Else ``auto_inc_nstreams`` gives the maximum number of streams to increase to. Note that the output *cloudbox_field* remains with angular dimension of ``nstreams``, only the internal solution is adapted (and then interpolated to the lower-resolution output angular grid).)--",
-           R"--(For ``auto_inc_nstreams``>0, flag whether to not fail even if scattering matrix norm is not preserved when maximum stream number is reached. Internal RT4 calculations is then performed with nstreams=``auto_inc_nstreams``.)--",
-           R"--(For ``auto_inc_nstreams``>0, polar angle interpolation order for interpolation from internal increased stream to originally requested nstreams-ifield.)--",
-           R"--(For ``auto_inc_nstreams``>0, flag whether to do polar angle interpolation in cosine (='mu') space.)--",
-           R"--(Maximum optical depth of infinitesimal layer (where single scattering approximation is assumed to apply).)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["RT4CalcWithRT4Surface"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(As RT4Calc except for using RT4's proprietary surface type handling.
-
-This WSM is only indented for testing purposes.
-
-The following surface type/property methods are available and
-require the the following input:
-
-- 'L'ambertian: *surface_scalar_reflectivity*, *surface_skin_t*
-- 'F'resnel: *surface_complex_refr_index*, *surface_skin_t*
-- 'S'pecular: *surface_reflectivity*, *surface_skin_t*
-
-'L' and 'F' use proprietary RT4 methods, 'S' uses RT4's Fresnel
-methods modified to behave similar to ARTS'
-*surfaceFlatReflectivity*.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"cloudbox_field", "za_grid", "aa_grid"},
-
-      .in = {"atmfields_checked",
-             "atmgeom_checked",
-             "scat_data_checked",
-             "cloudbox_checked",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "propmat_clearsky_agenda",
-             "pnd_field",
-             "atm_field",
-             "scat_data",
-             "abs_species",
-             "f_grid",
-             "surface_field",
-             "surface_skin_t",
-             "surface_scalar_reflectivity",
-             "surface_reflectivity",
-             "surface_complex_refr_index"},
-      .gin = {"nstreams",
-              "pfct_method",
-              "ground_type",
-              "quad_type",
-              "add_straight_angles",
-              "pfct_aa_grid_size",
-              "auto_inc_nstreams",
-              "robust",
-              "za_interp_order",
-              "cos_za_interp",
-              "max_delta_tau"},
-      .gin_type = {"Index",
-                   "String",
-                   "String",
-                   "String",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Index",
-                   "Numeric"},
-      .gin_value = {Index{16},
-                    String("median"),
-                    String("A"),
-                    String("D"),
-                    Index{1},
-                    Index{19},
-                    Index{0},
-                    Index{0},
-                    Index{1},
-                    Index{0},
-                    Numeric{1e-6}},
-      .gin_desc =
-          {R"--(Number of polar angle directions (streams) in RT4 solution (must be an even number).)--",
-           R"--(Flag which method to apply to derive phase function (for available options see above).)--",
-           R"--(Flag which surface type/surface property method to use (for available options see above).)--",
-           R"--(Flag which quadrature to apply in RT4 solution (for available options see above).)--",
-           R"--(Flag whether to include nadir and zenith as explicit directions (only effective for quad_type G and D).)--",
-           R"--(Number of azimuthal angle grid points to consider in Fourier series decomposition of scattering matrix (only applied for randomly oriented scattering elements))--",
-           R"--(Flag whether to internally increase nstreams (individually per frequency) if norm of (bulk) scattering matrix is not preserved properly. If 0, no adaptation is done. Else ``auto_inc_nstreams`` gives the maximum number of streams to increase to.)--",
-           R"--(For ``auto_inc_nstreams``>0, flag whether to not fail even if scattering matrix norm is not preserved when maximum stream number is reached. Internal RT4 calculations is then performed with nstreams=``auto_inc_nstreams``.)--",
-           R"--(For ``auto_inc_nstreams``>0, polar angle interpolation order for interpolation from internal increased stream to originally requested nstreams-ifield.)--",
-           R"--(For ``auto_inc_nstreams``>0, flag whether to do polar angle interpolation in cosine (='mu') space.)--",
-           R"--(Maximum optical depth of infinitesimal layer (where single scattering approximation is assumed to apply).)--"},
-      .pass_workspace = true,
-
   };
 
   wsm_data["RT4Test"] = WorkspaceMethodInternalRecord{
@@ -9046,9 +8654,6 @@ Options are:
 )--",
       .author = {"Manfred Brath"},
       .out = {"gas_scattering_do", "gas_scattering_agenda"},
-
-      .pass_workspace = true,
-
   };
 
   wsm_data["gas_scattering_agendaSet"] = WorkspaceMethodInternalRecord{
@@ -9330,10 +8935,10 @@ specified position (*rte_pos*) and line-of-sight (*rte_pos*).
 See *iy* and associated variables for format of output.
 
 Please note that Jacobian type calculations not are supported.
-For this use *yCalc*.
+For this use ``yCalc``.
 
 No sensor characteristics are applied. These are most easily
-incorporated by using *yCalc*
+incorporated by using ``yCalc``
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"iy", "iy_aux", "ppath", "geo_pos"},
@@ -9405,82 +9010,6 @@ path for each individual frequency is calculated.
 
   };
 
-  wsm_data["iyMC"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Interface to Monte Carlo part for *iy_main_agenda*.
-
-Basically an interface to *MCGeneral* for doing monochromatic
-pencil beam calculations. This functions allows Monte Carlo (MC)
-calculations for sets of frequencies and sensor pos/los in a single
-run. Sensor responses can be included in the standard manner
-(through *yCalc*).
-
-This function does not apply the MC approach when it comes
-to sensor properties. These properties are not considered when
-tracking photons, which is done in *MCGeneral* (but then only for
-the antenna pattern).
-
-Output unit options  (*iy_unit*) exactly as for *MCGeneral*.
-
-The MC calculation errors are all assumed be uncorrelated and each
-have a normal distribution. These properties are of relevance when
-weighting the errors with the sensor repsonse matrix. The seed is
-reset for each call of *MCGeneral* to obtain uncorrelated errors.
-
-MC control arguments (mc_std_err, mc_max_time, mc_min_iter, mc_max_iter
-mc_taustep_limit) as for *MCGeneral*. The arguments are applied
-for each monochromatic pencil beam calculation individually.
-As for *MCGeneral*, the value of *mc_error* shall be adopted to
-*iy_unit*.
-
-The following auxiliary data can be obtained:
-
-- ``"Error (uncorrelated)"``:
-    Calculation error. Size: [nf,ns,1,1].
-    (The later part of the text string is required. It is used as
-    a flag to yCalc for how to apply the sensor data.)
-
-where
-
-- `nf`: Number of frequencies.
-- `ns`: Number of Stokes elements.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"iy", "iy_aux", "diy_dx"},
-
-      .in = {"iy_agenda_call1",
-             "iy_transmittance",
-             "rte_pos",
-             "rte_los",
-             "iy_aux_vars",
-             "jacobian_do",
-             "atm_field",
-             "surface_field",
-             "cloudbox_on",
-             "cloudbox_limits",
-             "f_grid",
-             "scat_data",
-             "iy_space_agenda",
-             "surface_rtprop_agenda",
-             "propmat_clearsky_agenda",
-             "ppath_step_agenda",
-             "ppath_lmax",
-             "ppath_lraytrace",
-             "pnd_field",
-             "iy_unit",
-             "mc_std_err",
-             "mc_max_time",
-             "mc_max_iter",
-             "mc_min_iter",
-             "mc_taustep_limit"},
-      .gin = {"t_interp_order"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {R"--(Interpolation order of temperature for scattering data (so far only applied in phase matrix, not in extinction and absorption.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyReplaceFromAux"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Change of main output variable.
 
@@ -9504,98 +9033,6 @@ Jacobian variables are not handled.
 
   };
 
-  wsm_data["iySurfaceFastem"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Usage of FASTEM for emissivity and reflectivity of water surfaces.
-
-This method allows usage of the FASTEM model inside
-*iy_surface_agenda*. The aim is to use FASTEM in the exact same
-way as done in RTTOV. For example, the transmittance for down-
-welling radiation is considered. RTTOV os just 1D. Here 2D and 3D
-are handled as the 1D case, the down-welling radiation is just
-calculated for the directuon matching specular reflection.
-
-The wind direction is given as the azimuth angle, counted
-clockwise from north (i.e. an easterly wind is at 90 deg).
-This matches the general definition of azimuth inside ARTS.
-For 1D and 2D, the wind direction must be adjusted to match the
-fact that the line-of-sight is locked to be at 0 deg (180 for 2D
-in the case of a negative zenith angle). For 3D, the true wind
-direction shall be used.
-
-FASTEM is called by *FastemStandAlone*. See that WSM for further
-comments on variables and limitations.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"iy", "diy_dx"},
-
-      .in = {"diy_dx",
-             "iy_transmittance",
-             "iy_id",
-             "jacobian_do",
-             "atm_field",
-             "cloudbox_on",
-             "f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "rte_pos2",
-             "iy_unit",
-             "iy_main_agenda",
-             "surface_skin_t"},
-      .gin = {"salinity", "wind_speed", "wind_direction", "fastem_version"},
-      .gin_type = {"Numeric", "Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{0.035}, std::nullopt, Numeric{0}, Index{6}},
-      .gin_desc = {R"--(Salinity, 0-1. That is, 3% is given as 0.03.)--",
-                   R"--(Wind speed.)--",
-                   R"--(Wind direction. See further above.)--",
-                   R"--(The version of FASTEM to use.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["iySurfaceFlatRefractiveIndex"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(This method calculates upwelling radiation for a specular flat surface.
-
-These are due to the reflection of the downgoing diffuse radiation and emission from
-the surface using a predefined reflectivity matrix. 
-
-This method is designed to be part of *iy_surface_agenda*
-
-Important this method calculates only the reflection of the diffuse
-downward radiation. No direct incoming radiation is considered
-
-Jacobian is supported only for Skin temperature
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"iy", "diy_dx", "dsurface_rmatrix_dx", "dsurface_emission_dx"},
-
-      .in = {"iy",
-             "diy_dx",
-             "dsurface_rmatrix_dx",
-             "dsurface_emission_dx",
-             "iy_transmittance",
-             "iy_id",
-             "jacobian_do",
-             "suns_do",
-             "atm_field",
-             "cloudbox_on",
-             "f_grid",
-             "surface_field",
-             "rtp_pos",
-             "rtp_los",
-             "rte_pos2",
-             "iy_unit",
-             "surface_complex_refr_index",
-             "surface_props_names",
-             "dsurface_names",
-             "jacobian_quantities",
-             "iy_main_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iySurfaceInit"] = WorkspaceMethodInternalRecord{
       .desc = R"--(This method initialize iy.
 
@@ -9607,60 +9044,6 @@ Its only prpose is to initialize *iy* properly within the
       .out = {"iy"},
 
       .in = {"f_grid"},
-
-  };
-
-  wsm_data["iySurfaceLambertian"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(This method calculates upwelling radiation for a lambertian surface.
-
-These are due to the scattering of the downgoing diffuse radiation and emission from
-the surface.
-This method works only for 1D or 3D atmospheres.
-For the integration over the zenith angles a gaussian quadrature with
-N_za angles is used.
-For 1D atmospheres N_aa is ignored. For 3D atmospheres without clouds
-azimuthal dependency can be neglected. N_aa = 1 is sufficient.
-For 3D atmospheres with cloudbox on azimuthal dependency needs to be 
-accounted. In that case the number of azimuth angles N_aa as a rule ofthumb should be set to 4*N_za.
-For the 1D case N_za downwelling streams and 3D case N_za*N_aa downwelling
-streams are calculated.
-
-This method is designed to be part of *iy_surface_agenda*
-
-Important this method calculates only the scattering of the diffuse
-downward radiation. No direct incoming radiation is considered
-
-Jacobian is supported only for Skin temperature
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"iy", "diy_dx"},
-
-      .in = {"iy",
-             "diy_dx",
-             "iy_transmittance",
-             "iy_id",
-             "jacobian_do",
-             "suns_do",
-             "atm_field",
-             "cloudbox_on",
-             "f_grid",
-             "surface_field",
-             "rtp_pos",
-             "rtp_los",
-             "rte_pos2",
-             "iy_unit",
-             "surface_scalar_reflectivity",
-             "surface_props_names",
-             "dsurface_names",
-             "jacobian_quantities",
-             "iy_main_agenda"},
-      .gin = {"N_za", "N_aa"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {Index{3}, Index{1}},
-      .gin_desc = {R"--(Number of zenith angles.)--",
-                   R"--(Number of azimuth angles)--"},
-      .pass_workspace = true,
 
   };
 
@@ -9768,8 +9151,7 @@ by calling *iy_main_agenda*. See further AUG.
 
       .in = {"iy_aux_vars",
              "background_transmittance",
-             "ppath",
-             "iy_agenda_call1"},
+             "ppath"},
 
   };
 
@@ -9865,7 +9247,7 @@ Options are:
 
 - ``"ScattMC"``:
 
-    1. Uses *iyMC* to set *iy*, *iy_aux*, and *diy_dx*
+    1. Uses ``iyMC`` to set *iy*, *iy_aux*, and *diy_dx*
     2. Sets *geo_pos* to empty
     3. Will *Ignore* the *diy_dx* agenda input
 )--",
@@ -10687,7 +10069,7 @@ latitude and longitude as outermost loop.
 
 The method handles two tasks:
 1. The retrieval transformations set by the user can not be applied
-onthe  Jacobian inside *yCalc*. Transformations are instead applied
+onthe  Jacobian inside ``yCalc``. Transformations are instead applied
 by calling this method.
 2. It applies required adjustments of the Jacoboan. So far there is
 only one possible adjustment. If any absorption species uses the "rel"
@@ -10792,38 +10174,6 @@ called by the user.
 
   };
 
-  wsm_data["jacobianCalcPointingZaRecalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates zenith angle pointing deviation jacobians by
-recalulation of *iyb*.
-
-This function is added to *jacobian_agenda* by
-jacobianAddPointingZa and should normally not be
-called by the user.
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "atm_field",
-             "cloudbox_on",
-             "f_grid",
-             "sensor_pos",
-             "sensor_los",
-             "transmitter_pos",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_time",
-             "iy_unit",
-             "iy_main_agenda",
-             "jacobian_quantities"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["jacobianCalcPolyfit"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculates jacobians for polynomial baseline fit.
 
@@ -10889,9 +10239,6 @@ No calculations are performed here.
       .out = {"jacobian_do", "jacobian_agenda"},
 
       .in = {"jacobian_agenda", "jacobian_quantities"},
-
-      .pass_workspace = true,
-
   };
 
   wsm_data["jacobianFromTwoY"] = WorkspaceMethodInternalRecord{
@@ -10951,9 +10298,6 @@ The Jacobian quantities are initialised to be empty.
 )--",
       .author = {"Mattias Ekstrom"},
       .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .pass_workspace = true,
-
   };
 
   wsm_data["jacobianOff"] = WorkspaceMethodInternalRecord{
@@ -10968,9 +10312,6 @@ Sets *jacobian_do* to 0.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"jacobian_do", "jacobian_agenda", "jacobian_quantities"},
-
-      .pass_workspace = true,
-
   };
 
   wsm_data["jacobianSetAffineTransformation"] = WorkspaceMethodInternalRecord{
@@ -10979,7 +10320,7 @@ Sets *jacobian_do* to 0.
 
 See *jacobianSetFuncTransformation* for  a general description of how
 retrieval transformations are defined. Transformations are not applied by
-methods such as *yCalc*. Instead, the method *jacobianAdjustAndTransform*
+methods such as ``yCalc``. Instead, the method *jacobianAdjustAndTransform*
 must be called to activate the transformations.
 
 The affine transformation is specified by a transformation matrix, A,
@@ -11019,7 +10360,7 @@ Default is to make no such tranformation at all.
 *jacobian_quantities*.
 
 See below for a general description of how retrieval transformations
-are defined. Transformations are not applied by methods such as *yCalc*.
+are defined. Transformations are not applied by methods such as ``yCalc``.
 Instead, the method *jacobianAdjustAndTransform* must be called to
 activate the transformations.
 
@@ -11609,32 +10950,6 @@ a maximum value to the hydrometeor attenuation.
 
   };
 
-  wsm_data["particle_bulkprop_fieldClip"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Clipping of ``particle_bulkprop_field``.
-
-The method allows you to apply hard limits the values of
-``particle_bulkprop_field``. All values, of the property selected,
-below ``limit_low``, are simply set to ``limit_low``. And the same
-is performed with respect to ``limit_high``. That is, the data in x
-for the retrieval quantity are forced to be inside the range
-[limit_low,limit_high].
-
-Setting species="ALL", is a shortcut for applying the limits on all
-properties.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"atm_field"},
-
-      .in = {"atm_field"},
-      .gin = {"bulkprop_name", "limit_low", "limit_high"},
-      .gin_type = {"String", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, -std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
-      .gin_desc = {R"--(Name of bulk property to consider, or "ALL".)--",
-                   R"--(Lower limit for clipping.)--",
-                   R"--(Upper limit for clipping.)--"},
-
-  };
-
   wsm_data["particle_fieldCleanup"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Removes unrealistically small or erroneous data from particle fields.
@@ -11784,7 +11099,7 @@ modification. The selection is as follows:
 In this function the phase matrix is extracted from
 *pha_mat_sptDOITOpt*. It can be used in the agenda
 *pha_mat_spt_agenda*. This method must be used in combination with
-*DoitScatteringDataPrepare*.
+``DoitScatteringDataPrepare``.
 
 Temperature is considered as described for *pha_mat_sptFromData*
 )--",
@@ -11951,39 +11266,6 @@ checks.
       .gin_desc = {R"--(Order of bin quadrature.)--"},
 
   };
-
-  wsm_data["pnd_fieldCalcFromParticleBulkProps"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Converts particle bulk property data to *pnd_field*.
-
-In short, the method combines *scat_species*, *pnd_agenda_array*,
-``particle_bulkprop_field`` and their associated variables to derive
-*pnd_field*.
-
-The method does nothing if cloudbox is inactive.
-
-Otherwise, cloudbox limits must be set before calling the method,
-and ``particle_bulkprop_field`` is checked to have non-zero elements
-just inside the cloudbox.
-)--",
-          .author = {"Patrick Eriksson, Jana Mendrok"},
-          .out = {"pnd_field", "dpnd_field_dx"},
-
-          .in = {"cloudbox_on",
-                 "cloudbox_limits",
-                 "scat_species",
-                 "scat_data",
-                 "scat_meta",
-                 "atm_field",
-                 "particle_bulkprop_names",
-                 "pnd_agenda_array",
-                 "pnd_agenda_array_input_names",
-                 "jacobian_do",
-                 "jacobian_quantities"},
-
-          .pass_workspace = true,
-
-      };
 
   wsm_data["pnd_fieldExpand1D"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.
@@ -13818,7 +13100,7 @@ two moment particle size distribution for cloud water, cloud ice,
 rain, snow, graupel and hail, which is used in the GEM model.
 
 WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
-to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.
+to *pnd_field* using ``pnd_fieldCalcFromParticleBulkProps``.
 Produces the particle size distribution values (dN/dD) and their
 derivates with respect to independent variables x by *dpnd_data_dx_names*
 over multiple particle sizes and atmospheric levels (or SWC/T
@@ -14375,7 +13657,7 @@ two moment particle size distribution for cloud water, cloud ice,
 rain, snow, graupel and hail, which is used in the ICON model.
 
 WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
-to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.
+to *pnd_field* using ``pnd_fieldCalcFromParticleBulkProps``.
 Produces the particle size distribution values (dN/dD) and their
 derivates with respect to independent variables x by *dpnd_data_dx_names*
 over multiple particle sizes and atmospheric levels (or SWC/T
@@ -15120,9 +14402,6 @@ are consistent with the Jacobian.
       .out = {"jacobian_do", "jacobian_agenda", "retrieval_checked"},
 
       .in = {"jacobian_agenda", "covmat_sx", "jacobian_quantities"},
-
-      .pass_workspace = true,
-
   };
 
   wsm_data["retrievalDefInit"] = WorkspaceMethodInternalRecord{
@@ -15148,8 +14427,6 @@ otherwise the quantities will be discarded.
       .gin_value = {Index{1}},
       .gin_desc =
           {R"--(Flag whether or not to (re)initialize Jacobian-related quantities. Set to 0 if Jacobian is already defined.)--"},
-      .pass_workspace = true,
-
   };
 
   wsm_data["retrievalErrorsExtract"] = WorkspaceMethodInternalRecord{
@@ -16645,102 +15922,6 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 
       };
 
-  wsm_data["spectral_radiance_fieldClearskyPlaneParallel"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Clear-sky radiance field of a plane parallel atmosphere.
-
-The method assumes a 1D flat planet. Radiances along each direction
-given by *za_grid* are calculated using ``ppathPlaneParallel``
-and ``iyEmissionStandard``.
-
-Surface properties are defined by *iy_surface_agenda*, i.e. there is no
-restriction to e.g. specular surfaces.
-
-Note that the variable *ppath_lmax* is considered, and that it can be
-critical for the accuracy for zenith angles close to 90 degrees. That
-is, using ppath_lmax=-1 is not recommended for this function.
-
-Information on transmittance is also provided by the GOUT ``trans_field``.
-For up-welling radiation (scat_za > 90), this variable holds the
-transmittance to space, for considered position and propagation direction.
-For down-welling radiation, ``trans_field`` holds instead the transmittance
-down to the surface.
-)--",
-          .author = {"Patrick Eriksson"},
-          .out = {"spectral_radiance_field"},
-          .gout = {"trans_field"},
-          .gout_type = {"Tensor3"},
-          .gout_desc =
-              {R"--(Dimensions: [f_grid,p_grid,za_grid]. See further above.)--"},
-          .in = {"propmat_clearsky_agenda",
-                 "water_p_eq_agenda",
-                 "iy_space_agenda",
-                 "iy_surface_agenda",
-                 "iy_cloudbox_agenda",
-                 "f_grid",
-                 "abs_species",
-                 "atm_field",
-                 "surface_field",
-                 "ppath_lmax",
-                 "rte_alonglos_v",
-                 "rt_integration_option",
-                 "za_grid"},
-          .gin = {"use_parallel_za"},
-          .gin_type = {"Index"},
-          .gin_value = {Index{1}},
-          .gin_desc =
-              {R"--(Flag to select parallelization over zenith angles.)--"},
-          .pass_workspace = true,
-
-      };
-
-  wsm_data["spectral_radiance_fieldExpandCloudboxField"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Uses and expands *cloudbox_field* to set *spectral_radiance_field*.
-
-The method demands that *cloudbox_field* starts at the first pressure
-level (i.e. cloudbox_limits[0] is 0). The method copies *cloudbox_field*
-to fill *spectral_radiance_field* up to the top of the cloudbox.
-
-To fill the remaning part of *spectral_radiance_field*, clear-sky
-calculations are performed largely in the same maner as done by
-*spectral_radiance_fieldClearskyPlaneParallel*. That is, clear-sky
-calculations are done for the upper part of the atmosphere, assuming
-a flat planet.
-
-Note that the cloud box constitutes the lower boundary for the later
-calculations, and *iy_cloudbox_agenda* must be set to perform an
-interpolation of the cloudbox field.
-)--",
-          .author = {"Patrick Eriksson"},
-          .out = {"spectral_radiance_field"},
-
-          .in = {"propmat_clearsky_agenda",
-                 "water_p_eq_agenda",
-                 "iy_space_agenda",
-                 "iy_surface_agenda",
-                 "iy_cloudbox_agenda",
-                 "f_grid",
-                 "abs_species",
-                 "atm_field",
-                 "surface_field",
-                 "cloudbox_on",
-                 "cloudbox_limits",
-                 "cloudbox_field",
-                 "ppath_lmax",
-                 "rte_alonglos_v",
-                 "rt_integration_option",
-                 "za_grid"},
-          .gin = {"use_parallel_za"},
-          .gin_type = {"Index"},
-          .gin_value = {Index{0}},
-          .gin_desc =
-              {R"--(Flag to select parallelization over zenith angles.)--"},
-          .pass_workspace = true,
-
-      };
-
   wsm_data["spectral_radiance_fieldPlaneParallelSpectralRadianceOperator"] =
       WorkspaceMethodInternalRecord{
           .desc = R"--(Create a *spectral_radiance_field*
@@ -16895,78 +16076,6 @@ Hence, a temperature of 0 means 0s the edges of the f_grid.
 
   };
 
-  wsm_data["sunsAddSingleFromGridAtLocation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extracts a sun spectrum measured at the given location
-adds it to *suns*.
-
-The method allows to obtain the sun spectrum by
-interpolation from a field of such data. 
-The sun spectrum is expected to be stored as
-irradiance.
-It is coverted to the irradiance at the suns photosphere.
-
-Unit:
-
-- GriddedField2: [W m-2 Hz-1]
-
-  - Vector *f_grid* [Hz]
-  - Vector ``stokes_dim`` [1]
-
-Dimensions: [f_grid, stokes_dim]
-
-This method performs an interpolation onto the f_grid.
-The point of *f_grid* that are outside the data frequency grid
-are initialized according to planck's law of the temperature variable.
-Hence, a temperature of 0 means 0s the edges of the f_grid.
-)--",
-      .author = {"Jon Petersen"},
-      .out = {"suns", "suns_do"},
-
-      .in = {"suns", "f_grid", "surface_field"},
-      .gin = {"sun_spectrum_raw",
-              "radius",
-              "distance",
-              "temperature",
-              "zenith",
-              "azimuth",
-              "description",
-              "location_latitude",
-              "location_longitude",
-              "location_altitude"},
-      .gin_type = {"GriddedField2",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "String",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric"},
-      .gin_value = {std::nullopt,
-                    Numeric{6.963242e8},
-                    Numeric{1.495978707e11},
-                    Numeric{-1},
-                    Numeric{0},
-                    Numeric{0},
-                    String("Sun spectrum from Griddedfield."),
-                    Numeric{0},
-                    Numeric{0},
-                    Numeric{1e5}},
-      .gin_desc =
-          {R"--(Raw data for monochromatic irradiance spectra. )--",
-           R"--(The radius of the sun in meter. Default is the radius of our Sun. )--",
-           R"--(The distance between the location and the  center of the sun in meter. Default value is set to 1 a.u. )--",
-           R"--(The temperature of the padding if the f_grid is outside the  sun spectrum data. Choose 0 for 0 at the edges or a effective temperature for a padding using plack's law. )--",
-           R"--(Zenith angle of the sun in the sky. )--",
-           R"--(Azimuthal angle of the sun in the sky. )--",
-           R"--(The description of the sun. )--",
-           R"--(The latitude of the sun spectrum measurement. )--",
-           R"--(The longitude of the sun spectrum measurement. )--",
-           R"--(The altitude of the sun spectrum measurement. )--"},
-
-  };
-
   wsm_data["sunsOff"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Turns all calculations with suns off 
 )--",
@@ -16987,46 +16096,6 @@ to hold blackbody radiation for a temperature of *surface_skin_t*.
       .out = {"surface_los", "surface_rmatrix", "surface_emission"},
 
       .in = {"f_grid", "rtp_pos", "rtp_los", "surface_point"},
-
-  };
-
-  wsm_data["surfaceFastem"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Usage of FASTEM together with MC and DOIT.
-
-The recommended way to use FASTEM is by *iySurfaceFastem*, but that
-is not always possible, such as when using MC and DOIT. This is the
-case as those scattering methods use *surface_rtprop_agenda*,
-while *iySurfaceFastem* fits with *iy_surface_agenda*. This WSM solves
-this by allowing FASTEM to be used inside *surface_rtprop_agenda*.
-
-However, FASTEM is here used in an approximative way. For a correct
-usage of FASTEM, the atmospheric transmittance shall be calculated
-for the position and direction of concern, but this is not possible
-together with DOIT and MC. Instead, the transmittance is an input
-to the method, and must either be pre-calculated or set to a
-representative value.
-
-See *iySurfaceFastem*, for further details on the special input
-arguments.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid", "rtp_pos", "rtp_los", "surface_skin_t"},
-      .gin = {"salinity",
-              "wind_speed",
-              "wind_direction",
-              "transmittance",
-              "fastem_version"},
-      .gin_type = {"Numeric", "Numeric", "Numeric", "Vector", "Index"},
-      .gin_value =
-          {Numeric{0.035}, std::nullopt, Numeric{0}, std::nullopt, Index{6}},
-      .gin_desc =
-          {R"--(Salinity, 0-1. That is, 3% is given as 0.03.)--",
-           R"--(Wind speed.)--",
-           R"--(Wind direction. See futher above.)--",
-           R"--(Transmittance along path of downwelling radiation. A vector with the same length as *f_grid*.)--",
-           R"--(The version of FASTEM to use.)--"},
 
   };
 
@@ -17176,46 +16245,6 @@ but 90-abs(surface_normal[0]).
       .gin_desc =
           {R"--(Number of downwelling streams.)--",
            R"--(Position of angle in *surface_los* inside ranges of zenith angle grid. See above.)--"},
-
-  };
-
-  wsm_data["surfaceMapToLinearPolarisation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Convert surface RT properties to a linear polarisation.
-
-The properties converted are *surface_emission* and *surface_rmatrix*.
-
-This method allows to set the surface properties to match a specific
-linear polarisation for scalar calculation (stokes_dim=1). If you want
-this, you have to call the method(s) setting up the surface RT
-properties with ``stokes_dim`` set to 2, 3 or 4. This Stokes dimension
-is below called local_stokes_dim.
-
-The polarisation to apply is selected by ``pol_angle``. This angle is
-defined as in *sensor_pol* (i.e. 0 and 90 equal V and H, respectively).
-
-If local_stokes_dim was set to 2, *surface_rmatrix* is assumed to have
-the structure:
-
-.. math:: 
-    \begin{array}{cc} (rv+rh)/2 & (rv-rh)/2 \\ (rv-rh)/2 & (rv+rh)/2 \end{array}
-
-while if local_stokes_dim was set to 3 or 4, the mapping involves
-several transformation matrices. The later case covers also couplings
-between V/H and +-45 deg, and the mapping is described in the ARTS
-theory guide, in section "Rotated modified Stokes vector".
-
-In general it should suffice to set local_stokes_dim to 2, that gives
-slightly faster calculations. A local_stokes_dim of 3 handles any case
-correctly.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_emission", "surface_rmatrix"},
-
-      .in = {"surface_emission", "surface_rmatrix"},
-      .gin = {"pol_angle"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Polarisation angle, see above.)--"},
 
   };
 
@@ -17809,7 +16838,7 @@ as input to some of the FASTEM methods.
 Options are:
 
 - ``"MK05"``:
-    1. Uses *water_p_eq_fieldMK05* to set *water_p_eq_field*
+    1. Uses ``water_p_eq_fieldMK05`` to set *water_p_eq_field*
 )--",
       .author = {"Richard Larsson"},
       .out = {"water_p_eq_agenda"},
@@ -17820,78 +16849,13 @@ Options are:
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["water_p_eq_fieldMK05"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates *water_p_eq_field* according to Murphy and Koop, 2005.
-
-Default is setting the saturation pressure to the one with respect
-to water at temperatures >= 0C, and to the one with respect to ice
-for <0C. The GIN ``only_liquid`` allows you to apply the liquid value
-at all temperatures.
-
-The saturation pressure with respect to liquid and ice water is
-calculated according to Eq. 10 and 7, respectively, of:
-Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of
-ice and supercooled water for atmospheric applications. Quarterly
-Journal of the Royal Meteorological Society, 131(608), 1539-1565.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"water_p_eq_field"},
-
-      .in = {"atm_field"},
-      .gin = {"only_liquid"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {R"--(Set to 1 to use liquid saturation pressure at all temperatures.)--"},
-
-  };
-
-  wsm_data["x2artsAtmAndSurf"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Maps *x* to atmospheric and surface variables.
-
-Maps OEM's state vector, *x*, to the matching ARTS variables. This
-method handles atmospheric and surface variables. If you retrieve
-other variables, make sure that you also call *x2artsSensor* and/or
-*x2artsSpectroscopy*.
-
-The following retrieval quantities are handled by this method:
-
- - Temperature
- - Absorption species
- - Scattering species
- - Winds
- - Surface variables
-
-Should only be used inside *inversion_iterate_agenda*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"atm_field", "surface_field"},
-
-      .in = {"atm_field",
-             "surface_field",
-             "jacobian_quantities",
-             "x",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "abs_species",
-             "cloudbox_on",
-             "cloudbox_checked",
-             "particle_bulkprop_names",
-             "surface_props_names",
-             "water_p_eq_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["x2artsSensor"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Maps *x* to sensor variables.
 
 Maps OEM's state vector, *x*, to the matching ARTS variables. This
 method handles variables associated with the sensor. If you retrieve
-other variables, make sure that you also call *x2artsAtmAndSurf*
-and/or *x2artsSpectroscopy*.
+other variables, make sure that you also call ``x2artsAtmAndSurf``
+and/or ``x2artsSpectroscopy``.
 
 The following retrieval quantities are handled by this method:
  - Pointing
@@ -17940,15 +16904,6 @@ correction.
 
   };
 
-  wsm_data["x2artsSpectroscopy"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Just defined to indicate a future extensiom.
-
-Don't call the method, it will just generate an error.
-)--",
-      .author = {"Patrick Eriksson"},
-
-  };
-
   wsm_data["xClip"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Clipping of the state vector.
 
@@ -17977,46 +16932,12 @@ Notice that limits must be specified in the unit used in *x*.
 
   };
 
-  wsm_data["xaStandard"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Standard function for creating *xa*.
-
-The method creates *xa* based on *jacobian_quantities* and the various
-atmospheric fields. In the case of scattering species, the data are
-taken from ``particle_bulkprop_field``. The following retrieval quantities
-are handled:
-
- - Temperature
- - Absorption species
- - Scattering species
- - Pointing
- - Polynomial baseline fit
- - Sinusoidal baseline fit
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"xa"},
-
-      .in = {"jacobian_quantities",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "atm_field",
-             "abs_species",
-             "cloudbox_on",
-             "cloudbox_checked",
-             "particle_bulkprop_names",
-             "surface_field",
-             "surface_props_names",
-             "water_p_eq_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["yApplySensorPol"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Extraction of arbitrary linear polarisation.
 
-This method shall be called after *yCalc* and then applies *sensor_pol*
-on the output of *yCalc*. See *sensor_pol* for definition of the
-polarisation responses. The *sensor_response* given to *yCalc* can not
+This method shall be called after ``yCalc`` and then applies *sensor_pol*
+on the output of ``yCalc``. See *sensor_pol* for definition of the
+polarisation responses. The *sensor_response* given to ``yCalc`` can not
 contain any polarisation response, it must maintain original Stokes
 elements. The value of ``stokes_dim`` must be >= 3.
 
@@ -18047,8 +16968,8 @@ set to the value matching the first Stokes element.
       .desc = R"--(Conversion of *y* to other spectral units.
 
 Any conversion to brightness temperature is normally made inside
-*yCalc*. This method makes it possible to also make this conversion
-after *yCalc*, but with restrictions for *jacobian* and with.
+``yCalc``. This method makes it possible to also make this conversion
+after ``yCalc``, but with restrictions for *jacobian* and with.
 respect to the n2-law of radiance.
 
 The conversion made inside ``iyEmissionStandard`` is mimiced
@@ -18068,7 +16989,7 @@ quantity that can not be handled is *jacobianAddPolyfit*. There
 are no automatic checks warning for incorrect usage!
 
 If you are using this method, *iy_unit* should be set to "1" when
-calling *yCalc*, and be changed before calling this method.
+calling ``yCalc``, and be changed before calling this method.
 
 Conversion of *y_aux* is not supported.
 )--",
@@ -18076,160 +16997,6 @@ Conversion of *y_aux* is not supported.
       .out = {"y", "jacobian"},
 
       .in = {"y", "jacobian", "y_f", "y_pol", "iy_unit"},
-
-  };
-
-  wsm_data["yCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculation of complete measurement vectors (y).
-
-The method performs radiative transfer calculations from a sensor
-perspective. Radiative transfer calculations are performed for
-monochromatic pencil beams, following *iy_main_agenda* and
-associated agendas. Obtained radiances are weighted together by
-*sensor_response*, to include the characteristics of the sensor.
-The measurement vector obtained can contain anything from a single
-frequency value to a series of measurement scans (each consisting
-of a series of spectra), all depending on the settings. Spectra
-and jacobians are calculated in parallel.
-
-The frequency, polarisation etc. for each measurement value is
-given by *y_f*, *y_pol*, *y_pos* and *y_los*.
-
-The content of *y_aux* follows *iy_aux_vars*. See the method selected
-for *iy_main_agenda* for allowed choices.
-
-The geo-positions (*y_geo*) are set based on *sensor_response*. When
-an antenna pattern is considered, there are several pencil beams,
-and thus also several goe-positions, associated with each value of *y*.
-The geo-position assigned to a value in *y* is the *geo_pos* of the pencil
-beam related to the highest value in *sensor_response*. This means that
-*mblock_dlos* must contain the bore-sight direction (0,0), if you
-want *y_geo* to exactly match the bore-sight direction.
-
-The Jacobian provided (*jacobian*) is adopted to selected retrieval
-units, but no transformations are applied. Transformations are
-included by calling *jacobianAdjustAndTransform*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out =
-          {"y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"},
-
-      .in = {"atmgeom_checked",
-             "atmfields_checked",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_checked",
-             "scat_data_checked",
-             "sensor_checked",
-             "f_grid",
-             "sensor_pos",
-             "sensor_los",
-             "transmitter_pos",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "iy_unit",
-             "iy_main_agenda",
-             "jacobian_agenda",
-             "jacobian_do",
-             "jacobian_quantities",
-             "iy_aux_vars"},
-
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["yCalcAppend"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Replaces *yCalc* if a measurement shall be appended to an
-existing one.
-
-The method works basically as *yCalc* but appends the results to
-existing data, instead of creating completely new *y* and its
-associated variables. This method is required if your measurement
-consists of data from two instruments using different observation
-techniques (corresponding to different iyCalc-methods). One such
-example is if emission and transmittance data are combined into a
-joint retrieval. The method can also be used to get around the
-constrain that *sensor_response* is required to be the same for
-all data.
-
-The new measurement is simply appended to the input *y*, and the
-other output variables are treated correspondingly. Data are
-appended "blindly" in *y_aux*. That is, data of different type
-are appended if *iy_aux_vars* differs between the two measurements,
-the data are appended strictly following the order. First variable
-of second measurement is appended to first variable of first
-measurement, and so on. The number of auxiliary variables can differ
-between the measurements. Missing data are set to zero.
-
-The set of retrieval quantities can differ between the two
-calculations. If an atmospheric quantity is part of both Jacobians,
-the same retrieval grids must be used in both cases.
-The treatment of instrument related Jacobians (baseline fits,
-pointing ...) follows the ``append_instrument_wfs`` argument.
-
-A difference to *yCalc* is that *jacobian_quantities* is both in-
-and output variable. The input version shall match the measurement
-to be calculated, while the output version matches the output *y*,
-the combined, measurements. A copies of *jacobian_quantities* of the
-first measurement must be made and shall be provided to the method
-as ``jacobian_quantities_copy``.
-
-As for *yCalc* Jacobian transformations are not handled, and the
-the input Jacobian shall not contain transformations. That is
-*jacobianAdjustAndTransform* shall be called after this method,
-when the complete Jacobian is at hand.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"y",
-              "y_f",
-              "y_pol",
-              "y_pos",
-              "y_los",
-              "y_aux",
-              "y_geo",
-              "jacobian",
-              "jacobian_quantities"},
-
-      .in = {"y",
-             "y_f",
-             "y_pol",
-             "y_pos",
-             "y_los",
-             "y_aux",
-             "y_geo",
-             "jacobian",
-             "atmgeom_checked",
-             "atmfields_checked",
-             "atm_field",
-             "cloudbox_on",
-             "cloudbox_checked",
-             "scat_data_checked",
-             "sensor_checked",
-             "f_grid",
-             "sensor_pos",
-             "sensor_los",
-             "transmitter_pos",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "iy_unit",
-             "iy_main_agenda",
-             "jacobian_agenda",
-             "jacobian_do",
-             "jacobian_quantities",
-             "iy_aux_vars"},
-      .gin = {"jacobian_quantities_copy", "append_instrument_wfs"},
-      .gin_type = {"ArrayOfRetrievalQuantity", "Index"},
-      .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Copy of *jacobian_quantities* of first measurement.)--",
-           R"--(Flag controlling if instrumental weighting functions are appended or treated as different retrieval quantities.)--"},
-      .pass_workspace = true,
 
   };
 
@@ -18316,11 +17083,11 @@ Ignores NaNs in median calculations.
   };
 
   wsm_data["yRadar"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Replaces *yCalc* for radar/lidar calculations.
+      .desc = R"--(Replaces ``yCalc`` for radar/lidar calculations.
 
 The output format for *iy* when simulating radars and lidars differs
-from the standard one, and *yCalc* can not be used for such simulations.
-This method works largely as *yCalc*, but is tailored to handle the
+from the standard one, and ``yCalc`` can not be used for such simulations.
+This method works largely as ``yCalc``, but is tailored to handle the
 output from ``iyRadarSingleScat``. Note that *iy_radar_agenda* replaces
 *iy_main_agenda*.
 
@@ -18400,7 +17167,7 @@ the clip value when Ze < 10^(dbze_min/10).
   wsm_data["ySimpleSpectrometer"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Converts *iy* to *y* assuming a fixed frequency resolution.
 
-This is a short-cut, avoiding *yCalc*, that can be used to convert
+This is a short-cut, avoiding ``yCalc``, that can be used to convert
 monochromatic pencil beam data to spectra with a fixed resolution.
 
 The method mimics a spectrometer with rectangular response
@@ -18522,13 +17289,13 @@ The method performs the following:
 Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start*
 and *ybatch_n* must be set before calling this method.
 Further, *ybatch_calc_agenda* is expected to produce a
-spectrum and should accordingly include a call of *yCalc*
+spectrum and should accordingly include a call of ``yCalc``
 (or asimilar method).
 
 The input variable *ybatch_start* is set to a default of zero.
 
 Jacobians are also collected, and stored in output variable *ybatch_jacobians*. 
-(This will be empty if *yCalc* produces empty Jacobians.)
+(This will be empty if ``yCalc`` produces empty Jacobians.)
 
 See the user guide for further practical examples.
 )--",

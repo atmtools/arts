@@ -61,23 +61,6 @@ void adapt_stepwise_partial_derivatives(
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight);
 
-/** Ensures that the zenith and azimuth angles of a line-of-sight vector are
-    inside defined ranges.
-
-    This function should not be used blindly, just when you know that the
-    out-of-bounds values are obtained by an OK operation. As when making a
-    disturbance calculation where e.g. the zenith angle is shifted with a small
-    value. This function then handles the case when the original zenith angle
-    is 0 or 180 and the disturbance then moves the angle outside the defined
-    range. 
-
-    @param[in,out]   los              LOS vector, defined as e.g. rte_los.
-
-    @author Patrick Eriksson 
-    @date   2012-04-11
- */
-void adjust_los(VectorView los);
-
 /** Performs conversion from radiance to other units, as well as applies
     refractive index to fulfill the n2-law of radiance.
 
@@ -144,94 +127,6 @@ void apply_iy_unit2(Tensor3View J,
     @date   2012-04-05
  */
 void bending_angle1d(Numeric& alpha, const Ppath& ppath);
-
-/** Defocusing for arbitrary geometry (zenith angle part only)
-
-    Estimates the defocusing loss factor by calculating two paths with zenith
-    angle off-sets. The distance between the two path at the optical path
-    length between the transmitter and the receiver, divided with the
-    corresponding distance for free space propagation, gives the defocusing
-    loss. 
-
-    The azimuth (gain) factor is not calculated. The path calculations are here
-    done starting from the transmitter, which is the reversed direction
-    compared to the ordinary path calculations starting at the receiver.
-    
-    @param[in,out]  ws                The workspace.
-    @param[out]   dlf                 Defocusing loss factor (1 for no loss)
-    @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    p_grid              As the WSV with the same name.
-    @param[in]    lat_grid            As the WSV with the same name.
-    @param[in]    lon_grid            As the WSV with the same name.
-    @param[in]    z_field             As the WSV with the same name.
-    @param[in]    f_grid              As the WSV with the same name.
-    @param[in]    refellipsoid        As the WSV with the same name.
-    @param[in]    z_surface           As the WSV with the same name.
-    @param[in]    ppath               As the WSV with the same name.
-    @param[in]    ppath_lmax          As the WSV with the same name.
-    @param[in]    ppath_lraytrace     As the WSV with the same name.
-    @param[in]    dza                 Size of angular shift to apply.
-
-    @author Patrick Eriksson 
-    @date   2012-04-11
- */
-void defocusing_general(const Workspace& ws,
-                        Numeric& dlf,
-                        const Agenda& ppath_step_agenda,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const Tensor3& z_field,
-                        const Vector& f_grid,
-                        const Vector& refellipsoid,
-                        const Matrix& z_surface,
-                        const Ppath& ppath,
-                        const Numeric& ppath_lmax,
-                        const Numeric& ppath_lraytrace,
-                        const Numeric& dza);
-
-/** Calculates defocusing for limb measurements between two satellites.
-
-    The expressions used assume a 1D atmosphere, and can only be applied on
-    limb sounding geometry. The function works for 2D and 3D and should give 
-    OK estimates. Both the zenith angle (loss) and azimuth angle (gain) terms
-    are considered.
-
-    The expressions is taken from Kursinski et al., The GPS radio occultation
-    technique, TAO, 2000.
-
-    @param[in,out]  ws                The workspace.
-    @param[out]   dlf                 Defocusing loss factor (1 for no loss)
-    @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    p_grid              As the WSV with the same name.
-    @param[in]    lat_grid            As the WSV with the same name.
-    @param[in]    lon_grid            As the WSV with the same name.
-    @param[in]    z_field             As the WSV with the same name.
-    @param[in]    f_grid              As the WSV with the same name.
-    @param[in]    refellipsoid        As the WSV with the same name.
-    @param[in]    z_surface           As the WSV with the same name.
-    @param[in]    ppath               As the WSV with the same name.
-    @param[in]    ppath_lmax          As the WSV with the same name.
-    @param[in]    ppath_lraytrace     As the WSV with the same name.
-    @param[in]    dza                 Size of angular shift to apply.
-
-    @author Patrick Eriksson 
-    @date   2012-04-11
- */
-void defocusing_sat2sat(const Workspace& ws,
-                        Numeric& dlf,
-                        const Agenda& ppath_step_agenda,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const Tensor3& z_field,
-                        const Vector& f_grid,
-                        const Vector& refellipsoid,
-                        const Matrix& z_surface,
-                        const Ppath& ppath,
-                        const Numeric& ppath_lmax,
-                        const Numeric& ppath_lraytrace,
-                        const Numeric& dza);
 
 /** Calculates the dot product between a field and a LOS
 
@@ -552,32 +447,6 @@ void get_stepwise_transmission_matrix(
     const Numeric& dr_dT_far = 0,
     const Index& it = -1);
 
-/** Performs calculations for one measurement block, on iy-level
- * 
- * FIXMEDOC@Patrick This function lacks all documentation
- * 
- * The parameters mainly matches WSVs.
- */
-void iyb_calc(const Workspace& ws,
-              Vector& iyb,
-              ArrayOfVector& iyb_aux,
-              ArrayOfMatrix& diyb_dx,
-              Matrix& geo_pos_matrix,
-              const Index& imblock,
-              const AtmField& atm_field,
-              const Index& cloudbox_on,
-              const Vector& f_grid,
-              const Matrix& sensor_pos,
-              const Matrix& sensor_los,
-              const Matrix& transmitter_pos,
-              const Matrix& mblock_dlos,
-              const String& iy_unit,
-              const Agenda& iy_main_agenda,
-              const Index& j_analytical_do,
-              const ArrayOfRetrievalQuantity& jacobian_quantities,
-              const ArrayOfArrayOfIndex& jacobian_indices,
-              const ArrayOfString& iy_aux_vars);
-
 /** Multiplicates iy_transmittance with transmissions.
 
     That is, a multiplication of *iy_transmittance* with another
@@ -715,28 +584,6 @@ void mueller_rotation(Matrix& L,
 */
 void mueller_stokes2modif(Matrix& Cm);
 
-/** Determines the true alt and lon for an "ARTS position"
-
-    The function disentangles if the geographical position shall be taken from
-    lat_grid and lon_grid, or lat_true and lon_true.
-
-    @param[out]   lat             True latitude.
-    @param[out]   lon             True longitude.
-    @param[in]   lat_grid         As the WSV.
-    @param[in]   lat_true         As the WSV.
-    @param[in]   lon_true         As the WSV.
-    @param[in]   pos              A position, as defined for rt calculations.
-
-    @author Patrick Eriksson 
-    @date   2011-07-15
-*/
-void pos2true_latlon(Numeric& lat,
-                     Numeric& lon,
-                     const ConstVectorView& lat_grid,
-                     const ConstVectorView& lat_true,
-                     const ConstVectorView& lon_true,
-                     const ConstVectorView& pos);
-
 /** This function fixes the last steps to made on the Jacobian in some
     radiative transfer WSMs. The method applies iy_transmittance, maps from
     ppath to the retrieval grids and applies non-standard Jacobian units.
@@ -780,43 +627,6 @@ void rtmethods_unit_conversion(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Index& j_analytical_do,
     const String& iy_unit);
-
-/** Performs calculations for one measurement block, on y-level
- *
- * The parameters mainly matches WSVs.
- */
-void yCalc_mblock_loop_body(bool& failed,
-                            String& fail_msg,
-                            ArrayOfArrayOfVector& iyb_aux_array,
-                            const Workspace& ws,
-                            Vector& y,
-                            Vector& y_f,
-                            ArrayOfIndex& y_pol,
-                            Matrix& y_pos,
-                            Matrix& y_los,
-                            Matrix& y_geo,
-                            Matrix& jacobian,
-                            const AtmField& atm_field,
-                            const Index& cloudbox_on,
-                            const Vector& f_grid,
-                            const Matrix& sensor_pos,
-                            const Matrix& sensor_los,
-                            const Matrix& transmitter_pos,
-                            const Matrix& mblock_dlos,
-                            const Sparse& sensor_response,
-                            const Vector& sensor_response_f,
-                            const ArrayOfIndex& sensor_response_pol,
-                            const Matrix& sensor_response_dlos,
-                            const String& iy_unit,
-                            const Agenda& iy_main_agenda,
-                            const Agenda& jacobian_agenda,
-                            const Index& jacobian_do,
-                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                            const ArrayOfArrayOfIndex& jacobian_indices,
-                            const ArrayOfString& iy_aux_vars,
-                            const Index& mblock_index,
-                            const Index& n1y,
-                            const Index& j_analytical_do);
 
 /** Calculates factor to convert back-scattering to Ze
 

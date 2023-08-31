@@ -118,35 +118,8 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
     @author Patrick Eriksson 
     @date   2018-09-01
  */
-void surface_props_check(const Vector& lat_grid,
-                         const Vector& lon_grid,
-                         const SurfaceField& surface_field,
+void surface_props_check(const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names);
-
-/**
-    Peforms an interpolation of *surface_props_data* 
-
-    The function assumes that the intrpolatin gives a single value. The vector
-    *v* must have lenght 1. 
-
-    @param[in] v                    Interpolated value
-    @param[in] vname                Name of surface variable to interpolate       
-    @param[in] gp_lat               Pre-calculatd latitude grid positions
-    @param[in] gp_lon               Pre-calculatd longitude grid positions
-    @param[in] itw                  Pre-calculatd interpolation weight
-    @param[in] surface_props_data   As the WVS with the same name.
-    @param[in] surface_props_names  As the WVS with the same name.
-
-    @author Patrick Eriksson 
-    @date   2018-09-01
- */
-void surface_props_interp(Vector& v,
-                          const String& vname,
-                          const ArrayOfGridPos& gp_lat,
-                          const ArrayOfGridPos& gp_lon,
-                          const Matrix& itw,
-                          const SurfaceField& surface_field,
-                          const ArrayOfString& surface_props_names);
 
 /**
     Peforms basic checks of the dsurface variables

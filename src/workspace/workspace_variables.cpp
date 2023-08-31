@@ -1598,7 +1598,7 @@ Dimensions:
 The agenda *iy_main_agenda* can be used recursively and this flag
 is used to tell the methods inside the agenda which is the primary
 call. This is handled automatically for methods using
-*iy_main_agenda*, such as *yCalc*, but the user must set this
+*iy_main_agenda*, such as ``yCalc``, but the user must set this
 variable to 1 if the agenda is called directly inside the control
 file (which should be a rare case).
 )--",
@@ -1626,7 +1626,7 @@ are stored in the order given in *iy_aux_vars*).
 
 The possible choices vary between the methods. See the WSM you select
 for *iy_main_agenda* for the complete set of choices. Please not that
-if the calculations are done through *yCalc*, you can not select
+if the calculations are done through ``yCalc``, you can not select
 along-the-path variables.
 )--",
       .type = "ArrayOfString",
@@ -1660,7 +1660,7 @@ files as: WriteXMLIndexed(output_file_format,iy_id,in,filename,9)
 
 Setting of *iy_id* is not yet supported together with scattering
 calculations. The value of iy_id then differs, it is either set to 0
-or keeps its value set by *yCalc*.
+or keeps its value set by ``yCalc``.
 )--",
                        .type = "Index",
                        .default_value = Index{0}};
@@ -1704,7 +1704,7 @@ This variable allows that the unit of the output radiance/intensity
 is changed. The possible choices differ between the radiative
 methods, including not considering the variable at all.
 Accordingly, for details see the radiative method you have selected
-(e.g., ``iyEmissionStandard``, *iyMC* and the like).
+(e.g., ``iyEmissionStandard``, ``iyMC`` and the like).
 )--",
       .type = "String",
       .default_value = String{"1"}};
@@ -2283,7 +2283,7 @@ Dimensions: [za_grid, aa_grid, stokes_dim, stokes_dim]
 
 This workspace variable represents the actual physical phase
 matrix (averaged over all scattering elements) for given incident and 
-propagation directions. It is calculated in the method *DoitScatteringDataPrepare*.
+propagation directions. It is calculated in the method ``DoitScatteringDataPrepare``.
 
 See ARTS user guide (AUG) for further information.
 
@@ -2416,7 +2416,7 @@ scattering elements being read in the WSMs
 *ScatElementsPndAndScatAdd* or *ScatSpeciesPndAndScatAdd* and
 interpolated to the calculation grids ``p_grid``, ``lat_grid``, and
 ``lon_grid`` inside the cloudbox. An alternative method to create
-*pnd_field* is *pnd_fieldCalcFromParticleBulkProps*.
+*pnd_field* is ``pnd_fieldCalcFromParticleBulkProps``.
 
 Total number and order of scattering elements in *pnd_field* and (the
 flattened) *scat_data* has to be identical.
@@ -2425,7 +2425,7 @@ Note: To ensure that no particles exist outside the cloudbox,
 *pnd_field* is required to be 0 at its outer limits (corresponding
 to the *cloudbox_limits*).
 
-Usage:      Set by user or output of *pnd_fieldCalcFromParticleBulkProps*
+Usage:      Set by user or output of ``pnd_fieldCalcFromParticleBulkProps``
 
 Unit:        m^-3
 
@@ -3235,7 +3235,7 @@ Corresponding to *scat_data*, it is organized in terms of scattering
 species (i.e., one sub-array per scattering species holding one
 *scat_meta_single* instance per scattering element assigned to this
 scattering species). It is primarily used for particle size and shape
-distribution calculations using *pnd_fieldCalcFromParticleBulkProps*.
+distribution calculations using ``pnd_fieldCalcFromParticleBulkProps``.
 It is also applied for deducing microphysical characterizations of
 scattering species, e.g., by *particle_massesFromMetaData*.
 
@@ -3277,7 +3277,7 @@ the following structure with individual elements separated by dashes:
   content), RR (rain rate), and SR (snow rate).
 - particle size distribution [*String*]:
   the size distribution function/parametrization to apply. For
-  currently possible PSDs see *pnd_fieldCalcFromParticleBulkProps*.
+  currently possible PSDs see ``pnd_fieldCalcFromParticleBulkProps``.
 
 Example: [''IWC-MH97'', ''LWC-H98_STCO'', ...]
 )--",
@@ -4251,7 +4251,7 @@ with sensor properties in the same way as for *y*.
 
 See also *iy_aux_vars*.
 
-Usage:      Output of *yCalc*.
+Usage:      Output of ``yCalc``.
 
 Dimensions: [quantity][ element of y ]
 )--",

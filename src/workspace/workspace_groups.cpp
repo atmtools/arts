@@ -279,7 +279,7 @@ relaxation matrix are set
 )--"};
 
   wsg_data["MCAntenna"] = {.file = "mc_antenna.h",
-                           .desc = "An antenna object used by *MCGeneral*\n"};
+                           .desc = "An antenna object used by ``MCGeneral``\n"};
 
   wsg_data["Matrix"] = {.file = "matpack.h",
                         .desc = "A 2 dimensional array of *Numeric*\n"};

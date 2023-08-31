@@ -46,8 +46,7 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(const Workspace& ws_in,
-                   Index& jacobian_do,
+void jacobianClose(Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Make sure that the array is not empty
@@ -60,20 +59,18 @@ void jacobianClose(const Workspace& ws_in,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(const Workspace& ws,
-                  ArrayOfRetrievalQuantity& jacobian_quantities,
+void jacobianInit(ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda) {
   jacobian_quantities.resize(0);
   jacobian_agenda = Agenda("jacobian_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(const Workspace& ws, 
-                 Index& jacobian_do,
+void jacobianOff(Index& jacobian_do,
                  Agenda& jacobian_agenda,
                  ArrayOfRetrievalQuantity& jacobian_quantities) {
   jacobian_do = 0;
-  jacobianInit(ws, jacobian_quantities, jacobian_agenda);
+  jacobianInit(jacobian_quantities, jacobian_agenda);
 }
 
 //----------------------------------------------------------------------------
@@ -628,121 +625,6 @@ void jacobianCalcPointingZaInterp(
   const Index row0 = rowind.offset;
 
   // Handle pointing "jitter" seperately
-  if (rq.Grids()[0][0] == -1)          // Not all values are set here,
-  {                                    // but should already have been
-    ARTS_ASSERT(lg == sensor_los.nrows());  // set to 0
-    ARTS_ASSERT(rq.Grids()[0][mblock_index] == -1);
-    jacobian(rowind, it + mblock_index) = dy;
-  }
-
-  // Polynomial representation
-  else {
-    Vector w;
-    for (Index c = 0; c < lg; c++) {
-      ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
-      //
-      polynomial_basis_func(w, time_vector(sensor_time), c);
-      //
-      for (Index i = 0; i < n1y; i++) {
-        jacobian(row0 + i, it + c) = w[mblock_index] * dy[i];
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcPointingZaRecalc(
-    const Workspace& ws,
-    Matrix& jacobian,
-    const Index& mblock_index,
-    const Vector& iyb _U_,
-    const Vector& yb,
-    const AtmField& atm_field,              
-    const Index& cloudbox_on,
-    const Vector& f_grid,
-    const Matrix& sensor_pos,
-    const Matrix& sensor_los,
-    const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos,
-    const Sparse& sensor_response,
-    const ArrayOfTime& sensor_time,
-    const String& iy_unit,
-    const Agenda& iy_main_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  // Set some useful variables.
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-
-  // Find the retrieval quantity related to this method.
-  // This works since the combined MainTag and Subtag is individual.
-  bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithRecalc) {
-      bool any_affine;
-      ArrayOfArrayOfIndex jacobian_indices;
-      jac_ranges_indices(
-          jacobian_indices, any_affine, jacobian_quantities, true);
-      //
-      found = true;
-      rq = jacobian_quantities[n];
-      ji = jacobian_indices[n];
-    }
-  }
-  if (!found) {
-    throw runtime_error(
-        "There is no such pointing retrieval quantity defined.\n");
-  }
-
-  // Get "dy", by calling iyb_calc with shifted sensor_los.
-  //
-  const Index n1y = sensor_response.nrows();
-  Vector dy(n1y);
-  {
-    Vector iyb2;
-    Matrix los = sensor_los;
-    Matrix geo_pos;
-    ArrayOfVector iyb_aux;
-    ArrayOfMatrix diyb_dx;
-
-    los(joker, 0) += rq.Target().perturbation;
-
-    iyb_calc(ws,
-             iyb2,
-             iyb_aux,
-             diyb_dx,
-             geo_pos,
-             mblock_index,
-             atm_field,
-             cloudbox_on,
-             f_grid,
-             sensor_pos,
-             los,
-             transmitter_pos,
-             mblock_dlos,
-             iy_unit,
-             iy_main_agenda,
-             0,
-             ArrayOfRetrievalQuantity(),
-             ArrayOfArrayOfIndex(),
-             ArrayOfString());
-
-    // Apply sensor and take difference
-    //
-    mult(dy, sensor_response, iyb2);
-    //
-    for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
-    }
-  }
-
-  //--- Create jacobians ---
-
-  const Index lg = rq.Grids()[0].nelem();
-  const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.offset;
-
-  // Handle "jitter" seperately
   if (rq.Grids()[0][0] == -1)          // Not all values are set here,
   {                                    // but should already have been
     ARTS_ASSERT(lg == sensor_los.nrows());  // set to 0
@@ -1824,147 +1706,3 @@ void jacobianFromYbatch(Matrix& jacobian,
   }
   jacobian /= pert_size;
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
-                                    const Vector& p_grid,
-                                    const Vector& lat_grid,
-                                    const Vector& lon_grid,
-                                    const ArrayOfString& particle_bulkprop_names,
-                                    const String& particle_type,
-                                    const Vector& p_ret_grid,
-                                    const Vector& lat_ret_grid,
-                                    const Vector& lon_ret_grid,
-                                    const Index& pert_index,
-                                    const Numeric& pert_size,
-                                    const String& pert_mode) {
-  // Locate particle_type among particle_bulkprop_names
-  Index iq = find_first(particle_bulkprop_names, particle_type);
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = particle_bulkprop_field(iq,joker,joker,joker);
-  AtmFieldPerturb(perturbed_field,
-                  original_field,
-                  p_ret_grid,
-                  lat_ret_grid,
-                  lon_ret_grid,
-                  pert_index,
-                  pert_size,
-                  pert_mode);
-  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
-                                            const Vector& p_grid,
-                                            const Vector& lat_grid,
-                                            const Vector& lon_grid,
-                                            const ArrayOfString& particle_bulkprop_names,
-                                            const String& particle_type,
-                                            const Index& pert_index,
-                                            const Numeric& pert_size,
-                                            const String& pert_mode) {
-  // Locate particle_type among particle_bulkprop_names
-  Index iq = find_first(particle_bulkprop_names, particle_type);
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = particle_bulkprop_field(iq,joker,joker,joker);
-  AtmFieldPerturbAtmGrids(perturbed_field,
-                          p_grid,
-                          lat_grid,
-                          lon_grid,
-                          original_field,
-                          pert_index,
-                          pert_size,
-                          pert_mode);
-  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldPerturb(Tensor4& vmr_field,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const String& species,
-                      const Vector& p_ret_grid,
-                      const Vector& lat_ret_grid,
-                      const Vector& lon_ret_grid,
-                      const Index& pert_index,
-                      const Numeric& pert_size,
-                      const String& pert_mode) {
-  // Locate vmr_species among abs_species
-  Index iq = -1;
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-      iq = i;
-      break;
-    }
-  }
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << species << " in *abs_species*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = vmr_field(iq,joker,joker,joker);
-  AtmFieldPerturb(perturbed_field,
-                  original_field,
-                  p_ret_grid,
-                  lat_ret_grid,
-                  lon_ret_grid,
-                  pert_index,
-                  pert_size,
-                  pert_mode);
-  vmr_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
-                              const Vector& p_grid,
-                              const Vector& lat_grid,
-                              const Vector& lon_grid,
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const String& species,
-                              const Index& pert_index,
-                              const Numeric& pert_size,
-                              const String& pert_mode) {
-  // Locate vmr_species among abs_species
-  Index iq = -1;
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-      iq = i;
-      break;
-    }
-  }
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << species << " in *abs_species*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = vmr_field(iq,joker,joker,joker);
-  AtmFieldPerturbAtmGrids(perturbed_field,
-                          p_grid,
-                          lat_grid,
-                          lon_grid,
-                          original_field,
-                          pert_index,
-                          pert_size,
-                          pert_mode);
-  vmr_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-

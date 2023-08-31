@@ -51,16 +51,8 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 void INCLUDE() {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PrintWorkspace(  // Workspace reference
-    const Workspace& ws,
-    // Keywords:
-    const Index& only_allocated,
-    const Index& level) {
-  ostringstream os;
-
-  os << ws;
-  if (level) std::cerr << os.str() << '\n';
-  else std::cout << os.str() << '\n';
+void PrintWorkspace(const Workspace& ws) {
+  std::cout << ws << '\n';
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

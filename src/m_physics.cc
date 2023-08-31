@@ -83,37 +83,3 @@ void MatrixUnitIntensity(  // WS Output:
     m(i, 0) = 1.0;
   }
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
-                          const AtmField& atm_field,
-                          const Index& only_liquid) {
-  // FIXME: REQUIRES REGULAR GRIDS
-  Vector z_grid, lat_grid, lon_grid;
-  Tensor3 t_field, p_field, wind_u_field;
-  ARTS_USER_ERROR("ERROR")
-//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-
-  const Index n1 = t_field.npages();
-  const Index n2 = t_field.nrows();
-  const Index n3 = t_field.ncols();
-
-  water_p_eq_field.resize(n1, n2, n3);
-
-  for (Index i = 0; i < n1; i++) {
-    for (Index j = 0; j < n2; j++) {
-      for (Index k = 0; k < n3; k++) {
-        const Numeric t = t_field(i, j, k);
-        if (t > TEMP_0_C || only_liquid) {
-          water_p_eq_field(i, j, k) =
-              exp(54.842763 - 6763.22 / t - 4.21 * log(t) + 0.000367 * t +
-                  tanh(0.0415 * (t - 218.8)) *
-                      (53.878 - 1331.22 / t - 9.44523 * log(t) + 0.014025 * t));
-        } else {
-          water_p_eq_field(i, j, k) =
-              exp(9.550426 - 5723.265 / t + 3.53068 * log(t) - 0.00728332 * t);
-        }
-      }
-    }
-  }
-}

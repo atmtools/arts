@@ -67,9 +67,6 @@ void get_scattered_sunsource(const Workspace& ws,
   Index ns = transmitted_sunlight.ncols();
   Index nf = f_grid.nelem();
 
-  //allocate and resize
-  StokvecVector scattered_sunlight_temp(1, ns);
-
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {

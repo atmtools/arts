@@ -121,9 +121,7 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
         surface_rmatrix(3, 3) = c;
 }
 
-void surface_props_check(const Vector& lat_grid,
-                         const Vector& lon_grid,
-                         const SurfaceField& surface_field,
+void surface_props_check(const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names) {
   // Check sizes
   ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() != surface_props_names.nelem(),
@@ -150,29 +148,6 @@ void surface_props_check(const Vector& lat_grid,
         "    name: ", surface_props_names[i])
     }
   }
-}
-
-void surface_props_interp(Vector& v,
-                          const String& vname,
-                          const ArrayOfGridPos& gp_lat,
-                          const ArrayOfGridPos& gp_lon,
-                          const Matrix& itw,
-                          const SurfaceField& surface_field,
-                          const ArrayOfString& surface_props_names) {
-  ARTS_ASSERT(v.nelem() == 1);
-
-  const auto key = SurfacePropertyTag{vname};
-
-  ARTS_USER_ERROR_IF (not surface_field.contains(key),
-                      "The following property was requested\n"
-                      "   ", std::quoted(vname), '\n',
-                      "but it could not be found")
-
-      ARTS_ASSERT(false, "We must have lat and lon...")
-      /*
-  for (Index i=0; i<lat.nelem(); i++){
-    v[i] = surface_field.single_value(key, lat[i], lon[i]);
-  }*/
 }
 
 void dsurface_check(const ArrayOfString& surface_props_names,
