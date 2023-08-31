@@ -22,6 +22,7 @@
 
 // Extras
 #include "mc_interp.h"
+#include "operators.h"
 #include "template_partfun.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
@@ -134,6 +135,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 
 TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
+TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 
 //=== rtepack types ========================================================
 

@@ -11,7 +11,7 @@ struct SetWsv {
   std::optional<Wsv> wsv{std::nullopt};
 
   SetWsv(std::string n);
-  SetWsv(const char * const n) : name(n) {}
+  SetWsv(const char * const n) : SetWsv(std::string{n}) {}
   SetWsv(std::string n, WorkspaceGroup auto v) : name(std::move(n)), wsv(std::move(v)) {}
   SetWsv(std::string n, std::string v) : name(std::move(n)), other(std::move(v)) {}
 };

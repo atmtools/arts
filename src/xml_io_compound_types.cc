@@ -2614,3 +2614,18 @@ void xml_write_to_stream(ostream&,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
+
+//=== NumericUnaryOperator =========================================
+
+void xml_read_from_stream(istream&,
+                          NumericUnaryOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const NumericUnaryOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}

@@ -77,6 +77,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_surf.cpp
     py_fwd.cpp
     py_cia.cpp
+    py_operators.cpp
 
     pydocs.cpp
     gen_auto_py_helpers.cpp

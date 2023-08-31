@@ -4533,5 +4533,10 @@ Unit:  m
 )--",
                           .type = "Numeric"};
 
+  wsv_data["water_equivalent_pressure_operator"] = {
+      .desc = R"--(The water equivalent pressure operator.
+)--",
+      .type = "NumericUnaryOperator"};
+
   return wsv_data;
 }

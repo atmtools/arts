@@ -12,7 +12,9 @@
   ===========================================================================*/
 
 #include <workspace.h>
+#include "atm.h"
 #include "check_input.h"
+#include "debug.h"
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "ppath.h"
@@ -226,6 +228,20 @@ void ppathCheckInsideGrids(const Ppath& ppath,
                          last(longitude_grid));
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathClampAltitude(Ppath& ppath,
+                        const SurfaceField& surface_field,
+                        const AtmField& atm_field) {
+  //for (auto& [alt, lat, lon] : ppath.pos) {
+  for (auto&& pos : ppath.pos) {
+    Numeric& alt = pos[0];
+    const Numeric lat = pos[1];
+    const Numeric lon = pos[2];
+    const Numeric z_toa = atm_field.top_of_atmosphere;
+    const Numeric z_surf = surface_field.single_value(Surf::Key::h, lat, lon);
+    alt = std::clamp(alt, z_surf, z_toa);
+  }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathGeometric(Ppath& ppath,
@@ -379,11 +395,7 @@ void ppathGeometric(Ppath& ppath,
                    include_specular_ppath);
 
     ppath_extend(ppath, ppath2);
-  } 
-
-  // FIXME: PPATH BUG FIX SHOULD BE ELSEWHERE; IT CURRENTLY CAN RETURN A POSITION ABOVE THE TOP OF THE ATMOSPHERE
-  constexpr Numeric z_boa = 0.0;
-  for (auto&& pos: ppath.pos) pos[0] = std::clamp(pos[0], z_boa, z_toa);
+  }
 }
 
 

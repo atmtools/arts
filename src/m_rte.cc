@@ -669,35 +669,6 @@ void ppvar_cumtramatReverse(ArrayOfMuelmatVector &ppvar_cumtramat,
   ppvar_cumtramat = reverse_cumulative_transmission(ppvar_tramat);
 }
 
-void RadiativePropertiesCalc(
-    const Workspace &ws, ArrayOfPropmatVector &ppvar_propmat,
-    ArrayOfPropmatMatrix &ppvar_dpropmat,
-    ArrayOfStokvecVector &ppvar_src,
-    ArrayOfStokvecMatrix &ppvar_dsrc,
-    ArrayOfMuelmatVector &ppvar_tramat,
-    ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat,
-    Vector &ppvar_distance, ArrayOfArrayOfVector &ppvar_ddistance,
-    ArrayOfMuelmatVector &ppvar_cumtramat, const Ppath &ppath,
-    const ArrayOfAtmPoint &ppvar_atm, const ArrayOfVector &ppvar_f,
-    const Index &jacobian_do, const Agenda &ppvar_rtprop_agenda) {
-  ppvar_rtprop_agendaExecute(
-      ws, ppvar_propmat, ppvar_dpropmat, ppvar_src, ppvar_dsrc, ppvar_tramat,
-      ppvar_dtramat, ppvar_distance, ppvar_ddistance, ppvar_cumtramat, ppath,
-      ppvar_atm, ppvar_f, jacobian_do, ppvar_rtprop_agenda);
-}
-
-void RadiationBackgroundCalc(const Workspace &ws, StokvecVector &background_rad,
-                             ArrayOfTensor3 &diy_dx, const Ppath &ppath,
-                             const AtmField &atm_field, const Vector &f_grid,
-                             const Tensor3 &iy_transmittance,
-                             const MuelmatVector &background_transmittance,
-                             const Index &jacobian_do,
-                             const Agenda &rte_background_agenda) {
-  rte_background_agendaExecute(
-      ws, background_rad, diy_dx, ppath, atm_field, f_grid, iy_transmittance,
-      background_transmittance, jacobian_do, rte_background_agenda);
-}
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyLoopFrequencies(const Workspace& ws,
                        Matrix& iy,

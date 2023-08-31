@@ -23,6 +23,7 @@
 #include "arts.h"
 #include "arts_constants.h"
 #include <workspace.h>
+#include "atm.h"
 #include "check_input.h"
 #include "debug.h"
 #include "matpack_complex.h"
@@ -151,6 +152,27 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                      surface_point.elevation,
                      " m.\nThe rtp_pos altitude is: ",
                      alt, " m.\n")
+}
+
+void surface_pointFromAtm(SurfacePoint& surface_point,
+                          const AtmField& atm_field,
+                          const Vector& rtp_pos) {
+  surface_point = SurfacePoint{};
+  surface_point.elevation = rtp_pos[0];
+  surface_point.normal = {0, 0};
+  
+  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t),
+                     "\"atm_field\" has no temperature field")
+  surface_point.temperature =
+      atm_field[Atm::Key::t].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]);
+  
+  if (atm_field.has(Atm::Key::wind_u) and atm_field.has(Atm::Key::wind_v) and
+      atm_field.has(Atm::Key::wind_w)) {
+    surface_point.wind = {
+        atm_field[Atm::Key::wind_u].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]),
+        atm_field[Atm::Key::wind_v].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]),
+        atm_field[Atm::Key::wind_w].at(rtp_pos[0], rtp_pos[1], rtp_pos[2])};
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

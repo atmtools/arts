@@ -487,5 +487,12 @@ of this term multiplied by a negative distance.
   wsg_data["ArrayOfArrayOfStokvecMatrix"] = {
       .file = "rtepack.h", .desc = "A list of *ArrayOfStokvecMatrix*.\n"};
 
+  wsg_data["NumericUnaryOperator"]  = {
+      .file = "operators.h", .desc = R"--(A simple functional type.
+
+This type will work as a function pointer that takes a single *Numeric*
+to produce another *Numeric*.
+)--"};
+
   return wsg_data;
 }

@@ -13,19 +13,15 @@ ws = pyarts.Workspace()
 # is computed from the lowest atmospheric temperature,
 # and when the path tracing hits the top of the atmosphere,
 # the cosmic background is used as emission source.
-ws.iy_main_agendaSet(option="Emission")
+ws.iy_main_agendaSet(option="GeometricEmission")#
 ws.iy_surface_agendaSet(option="UseSurfaceRtprop")
 ws.surface_rtprop_agendaSet(option="Blackbody_SurfTFromt_field")
 ws.iy_space_agendaSet(option="CosmicBackground")
 
-# The path tracing is done step-by-step following a geometric path
-ws.ppath_agendaSet(option="FollowSensorLosPath")
-ws.ppath_step_agendaSet(option="GeometricPath")
-
 # We might have to compute the Jacobian for the retrieval
 # of relative humidity, so we need to set the agenda for
 # that.
-ws.water_p_eq_agendaSet(option="MK05")
+ws.water_equivalent_pressure_operatorMK05()
 
 # The geometry of our planet, and several other properties, are
 # set to those of Earth.
@@ -34,24 +30,13 @@ ws.PlanetSet(option="Earth")
 # Our output unit is Planc brightness temperature
 ws.iy_unit = "PlanckBT"
 
-# We do not care about polarization in this example
-ws.stokes_dim = 1
-
-# The atmosphere is assumed 1-dimensional
-ws.atmosphere_dim = 1
-
 # We have one sensor position in space, looking down, and one
 # sensor position at the surface, looking up.
 ws.sensor_pos = [[300e3], [0]]
 ws.sensor_los = [[180], [0]]
 
-# The dimensions of the problem are defined by a 1-dimensional pressure grid
-ws.p_grid = np.logspace(5.01, -1)
-ws.lat_grid = []
-ws.lon_grid = []
-
 # The surface is at 0-meters altitude
-ws.z_surface = [[0.0]]
+ws.surface_fieldEarth()
 
 # Our sensor sees 10 frequency bins between 40 and 120 GHz
 NF = 10

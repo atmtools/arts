@@ -43,6 +43,7 @@ void py_atm(py::module_& m);
 void py_surf(py::module_ &m);
 void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
+void py_operators(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -122,6 +123,7 @@ PYBIND11_MODULE(arts, m) try {
   py_surf(m);
   py_fwd(m);
   py_cia(m);
+  py_operators(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(ws);

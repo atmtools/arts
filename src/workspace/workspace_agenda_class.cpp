@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include "compare.h"
 #include "debug.h"
 #include "workspace_class.h"
 #include "workspace_method_class.h"
@@ -46,27 +47,43 @@ void Agenda::finalize(bool fix) try {
     for (auto& i : ins) {
       if (auto ptr = std::find(must_in.begin(), must_in.end(), i); ptr != must_in.end()) {
         must_in.erase(ptr);
-      } else if (std::any_of(must_out.begin(), must_out.end(), Cmp::eq(i))) {
+      } else if (std::ranges::any_of(must_out, Cmp::eq(i)) and std::ranges::none_of(copy, Cmp::eq(i))) {
         throw std::runtime_error(
-            var_string("method:\n",
+            var_string("The method:\n",
                        method,
-                       "\nvariable: ",
+                       "\nThe variable: ",
                        std::quoted(i),
                        '\n',
-                       "Despite being an output of the agenda, "
-                       "the variable is first encountered as an input to a method"));
+                       "Despite being a pure output of the agenda, "
+                       "the variable is first encountered as an input to the method"));
       }
     }
 
     for (auto& i : outs) {
+      if (std::ranges::any_of(must_in, Cmp::eq(i))) {
+        throw std::runtime_error(
+            var_string("The method:\n",
+                       method,
+                       "\nThe variable: ",
+                       std::quoted(i),
+                       '\n',
+                       "Despite being a pure input of the agenda, "
+                       "the variable is first encountered as a pure output to the method"));
+      }
+
       if (auto ptr = std::find(must_out.begin(), must_out.end(), i); ptr != must_out.end()) {
         must_out.erase(ptr);
       }
     }
 
+    // INOUT
     std::copy_if(ins.begin(), ins.end(), std::back_inserter(copy), is_in(outs));
-    std::copy_if(ins.begin(), ins.end(), std::back_inserter(share), is_not_in(outs));
     std::copy_if(outs.begin(), outs.end(), std::back_inserter(share), is_in(ins));
+
+    // IN
+    std::copy_if(ins.begin(), ins.end(), std::back_inserter(share), is_not_in(outs));
+
+    // OUT
     std::copy_if(outs.begin(), outs.end(), std::back_inserter(copy), is_not_in(ins));
   }
 
@@ -122,6 +139,7 @@ void Agenda::finalize(bool fix) try {
     }
   }
 
+  // Erase _ and @, as these are reserved for internal use (defaults and setters, respectively)
   std::erase_if(share, [](auto& str) { return str.front() == '_'; });
   std::erase_if(copy, [](auto& str) { return str.front() == '_'; });
   std::erase_if(share, [](auto& str) { return str.front() == '@'; });

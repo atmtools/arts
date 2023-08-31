@@ -237,8 +237,7 @@ The include-file 'agendas.arts' predefines some typical alternatives
 that can be used directly, or adapted for specific applications.
 )--",
       .output = {"iy", "iy_aux", "ppath", "diy_dx", "geo_pos"},
-      .input = {"diy_dx",
-                "iy_agenda_call1",
+      .input = {"iy_agenda_call1",
                 "iy_transmittance",
                 "iy_aux_vars",
                 "iy_id",

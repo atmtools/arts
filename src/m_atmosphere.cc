@@ -1666,10 +1666,10 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void InterpAtmFieldToPosition(AtmPoint& outvalue,
+void InterpAtmFieldToPosition(AtmPoint& atm_point,
                               const AtmField& atm_field,
                               const Vector& rtp_pos) {
-  outvalue = atm_field.at({rtp_pos[0]}, {rtp_pos[1]}, {rtp_pos[2]})[0];
+  atm_point = atm_field.at({rtp_pos[0]}, {rtp_pos[1]}, {rtp_pos[2]})[0];
 }
 
 // A small help function

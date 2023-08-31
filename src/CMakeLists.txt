@@ -5,6 +5,7 @@ add_subdirectory(predefined)
 add_subdirectory(python_interface)
 add_subdirectory(rtepack)
 add_subdirectory(workspace)
+add_subdirectory(operators)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -113,6 +114,7 @@ add_library (artscore STATIC
   m_nc.cc
   m_nlte.cc
   m_oem.cc
+  m_operators.cc
   m_optproperties.cc
   m_partfun.cc
   m_physics.cc

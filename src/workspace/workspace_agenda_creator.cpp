@@ -55,62 +55,20 @@ Agenda get_iy_main_agenda(const std::string& option) {
 
   using enum Options::iy_main_agendaDefaultOptions;
   switch (Options::toiy_main_agendaDefaultOptionsOrThrow(option)) {
-    case Emission:
-      agenda.add("ppathCalc");
-      agenda.add("iyEmissionStandard");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case EmissionNew:
-      agenda.add("ppathCalc");
+    case GeometricEmission:
+      agenda.add("ppathGeometric");
+      agenda.add("ppathClampAltitude");
       agenda.add("ppvar_atmFromPath");
       agenda.add("ppvar_fFromPath");
-      agenda.add("RadiativePropertiesCalc");
+      agenda.add("ppvar_rtprop_agendaExecute");
       agenda.add("background_transmittanceFromBack");
-      agenda.add("RadiationBackgroundCalc");
+      agenda.add("rte_background_agendaExecute");
       agenda.add("ppvar_radCalcEmission");
       agenda.add("iyCopyPath");
       agenda.add("diy_dxTransform");
       agenda.add("iyUnitConversion");
       agenda.add("iy_auxFromVars");
       agenda.set("geo_pos", Vector{});
-      break;
-    case EmissionPlaneParallel:
-      agenda.add("ppathPlaneParallel");
-      agenda.add("iyEmissionStandard");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case Clearsky:
-      agenda.add("ppathCalc");
-      agenda.add("iyClearsky");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case Transmission:
-      agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
-      agenda.add("iyTransmissionStandard");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case TransmissionUnitUnpolIntensity:
-      agenda.add(
-          "MatrixUnitIntensity", "iy_transmitter", "stokes_dim", "f_grid");
-      agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
-      agenda.add("iyTransmissionStandard");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case TransmissionUnitPolIntensity:
-      agenda.add("iy_transmitterSinglePol");
-      agenda.add("ppathCalc", SetWsv{"cloudbox_on", Index{0}});
-      agenda.add("iyTransmissionStandard");
-      agenda.set("geo_pos", Vector{});
-      break;
-    case Freqloop:
-      agenda.add("iyLoopFrequencies");
-      agenda.set("geo_pos", Vector{});
-      agenda.ignore("diy_dx");
-      break;
-    case ScattMC:
-      agenda.add("iyMC");
-      agenda.set("geo_pos", Vector{});
-      agenda.ignore("diy_dx");
       break;
     case FINAL:
       break;
@@ -314,46 +272,35 @@ Agenda get_surface_rtprop_agenda(const std::string& option) {
   using enum Options::surface_rtprop_agendaDefaultOptions;
   switch (Options::tosurface_rtprop_agendaDefaultOptionsOrThrow(option)) {
     case Blackbody_SurfTFromt_surface:
-      agenda.add("InterpSurfaceFieldToPosition",
-                 "output=surface_skin_t",
-                 "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition");
       agenda.add("surfaceBlackbody");
       break;
     case Blackbody_SurfTFromt_field:
-      agenda.add(
-          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
+      agenda.add("surface_pointFromAtm");
       agenda.add("surfaceBlackbody");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
-      agenda.add("InterpSurfaceFieldToPosition",
-                 "output=surface_skin_t",
-                 "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_NoPol_ReflFix_SurfTFromt_field:
       agenda.add("specular_losCalc");
-      agenda.add(
-          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
+      agenda.add("surface_pointFromAtm");
       agenda.add("surfaceFlatScalarReflectivity");
       break;
     case Specular_WithPol_ReflFix_SurfTFromt_surface:
       agenda.add("specular_losCalc");
-      agenda.add("InterpSurfaceFieldToPosition",
-                 "output=surface_skin_t",
-                 "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition");
       agenda.add("surfaceFlatReflectivity");
       break;
     case lambertian_ReflFix_SurfTFromt_surface:
-      agenda.add("InterpSurfaceFieldToPosition",
-                 "output=surface_skin_t",
-                 "field=t_surface");
+      agenda.add("InterpSurfaceFieldToPosition");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;
     case lambertian_ReflFix_SurfTFromt_field:
-      agenda.add(
-          "InterpAtmFieldToPosition", "output=surface_skin_t", "field=t_field");
+      agenda.add("surface_pointFromAtm");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
       break;

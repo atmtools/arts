@@ -1289,13 +1289,23 @@ The default way to specify the position is by *rtp_pos*.
 
 Linear interpolation is applied.
 )--",
-      .author = {"Patrick Eriksson"},
+      .author = {"Richard Larsson"},
 
-      .gout = {"out"},
-      .gout_type = {"AtmPoint"},
-      .gout_desc = {R"--(Value obtained by the interpolation.)--"},
+      .out = {"atm_point"},
       .in = {"atm_field", "rtp_pos"},
 
+  };
+
+  wsm_data["surface_pointFromAtm"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Extracts a surface point from an atmospheric field
+
+The elevation is from *rtp_pos*, the normal points straight up, and
+the atmosphere must contain the temperature.  If the wind is present,
+it is also extracted.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"surface_point"},
+      .in = {"atm_field", "rtp_pos"},
   };
 
   wsm_data["InterpSurfaceFieldToPosition"] = WorkspaceMethodInternalRecord{
@@ -2433,24 +2443,6 @@ species and a single frequency (the one of the radar).
 
   };
 
-  wsm_data["RadiationBackgroundCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Wraps executing *rte_background_agenda*.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"background_rad", "diy_dx"},
-
-      .in = {"ppath",
-             "atm_field",
-             "f_grid",
-             "iy_transmittance",
-             "background_transmittance",
-             "jacobian_do",
-             "rte_background_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["RadiationFieldSpectralIntegrate"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Integrates fields like *spectral_irradiance_field* or *spectral_radiance_field* over frequency.
@@ -2471,30 +2463,6 @@ is also removed.
       .gin_value = {std::nullopt},
       .gin_desc =
           {R"--(Field similar to spectral irradiance field, spectral radiance field)--"},
-
-  };
-
-  wsm_data["RadiativePropertiesCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Wraps executing *ppvar_rtprop_agenda*.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_propmat",
-              "ppvar_dpropmat",
-              "ppvar_src",
-              "ppvar_dsrc",
-              "ppvar_tramat",
-              "ppvar_dtramat",
-              "ppvar_distance",
-              "ppvar_ddistance",
-              "ppvar_cumtramat"},
-
-      .in = {"ppath",
-             "ppvar_atm",
-             "ppvar_f",
-             "jacobian_do",
-             "ppvar_rtprop_agenda"},
-
-      .pass_workspace = true,
 
   };
 
@@ -11320,6 +11288,22 @@ combination of latitude and longitude grids.
 
   };
 
+  wsm_data["ppathClampAltitude"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Helper function to constrain the altitude to a domain
+
+This function ensures that the altitude position of the propagation
+path is neither above the top of the atmosphere nor below the surface.
+
+If the altitude is outside this domain, it is clamped.
+
+A call to this method is required only if the chosen *ppath* algorithm
+is inaccurate at determining the altitude position at the borders.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ppath"},
+      .in = {"ppath", "surface_field", "atm_field"},
+  };
+
   wsm_data["ppathGeometric"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Geometric propagation path with fixed step length.
 
@@ -17225,6 +17209,28 @@ Options are:
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
+  };
+
+  wsm_data["water_equivalent_pressure_operatorMK05"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Calculate equivalent water pressure according to Murphy and Koop, 2005
+
+Default is setting the saturation pressure to the one with respect
+to water at temperatures >= 0C, and to the one with respect to ice
+for <0C. The GIN ``only_liquid`` allows you to apply the liquid value
+at all temperatures.
+
+The saturation pressure with respect to liquid and ice water is
+calculated according to Eq. 10 and 7, respectively, of:
+Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of
+ice and supercooled water for atmospheric applications. Quarterly
+Journal of the Royal Meteorological Society, 131(608), 1539-1565.
+)--",
+    .author = {"Patrick Eriksson", "Richard Larsson"},
+    .out = {"water_equivalent_pressure_operator"},
+    .gin = {"only_liquid"},
+    .gin_type = {"Index"},
+    .gin_value = {Index{0}},
+    .gin_desc = {"Set to 1 to use liquid saturation pressure at all temperatures"}
   };
 
   return wsm_data;
