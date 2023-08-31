@@ -254,7 +254,7 @@ that can be used directly, or adapted for specific applications.
   wsa_data["iy_radar_agenda"] = {
       .desc = R"--(Calculation of pointwise backscattering.
 
-This agenda has a similar role for *yRadar* as *iy_main_agenda*.
+This agenda has a similar role for ``yRadar`` as *iy_main_agenda*.
 for ``yCalc``.
 )--",
       .output = {"iy", "iy_aux", "ppath", "diy_dx", "geo_pos"},

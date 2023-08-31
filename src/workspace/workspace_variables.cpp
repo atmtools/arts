@@ -4230,7 +4230,7 @@ in the following way, from the innermost to the outermost loop
 -   Measurement block
 
 With sensor response included, the order can be differ. As output
-of *yRadar*, the order will also be different.
+of ``yRadar``, the order will also be different.
 
 Usage: Output from radiative transfer calculations considering sensor response.
 

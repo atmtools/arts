@@ -17,47 +17,6 @@ inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void telsemStandalone(Matrix &emis,
-                      const Numeric &lat,
-                      const Numeric &lon,
-                      const Numeric &theta,
-                      const Vector &f,
-                      const TelsemAtlas &atlas,
-                      const Numeric &d_max) {
-  chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
-  chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
-
-  Index cellnumber = atlas.calc_cellnum(lat, lon);
-  // Check if cell is in atlas.
-  if (!atlas.contains(cellnumber)) {
-    ARTS_USER_ERROR_IF (d_max <= 0.0,
-          "Given coordinates are not contained in "
-          " TELSEM atlas. To enable nearest neighbor"
-          "interpolation set *d_max* to a positive "
-          "value.");
-    cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
-    Numeric lat_nn, lon_nn;
-    std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
-    Numeric d;// = sphdist(lat, lon, lat_nn, lon_nn);
-    ARTS_USER_ERROR("ERROR")
-    ARTS_USER_ERROR_IF (d > d_max,
-      "Distance of nearest neighbor exceeds provided limit (",
-      d, " > ", d_max, ").")
-  }
-
-  Index class1 = atlas.get_class1(cellnumber);
-  Index class2 = atlas.get_class2(cellnumber);
-  Vector emis_v = atlas.get_emis_v(cellnumber);
-  Vector emis_h = atlas.get_emis_h(cellnumber);
-
-  emis.resize(f.nelem(), 2);
-  for (Index i = 0; i < f.nelem(); ++i) {
-    std::tie(emis(i, 0), emis(i, 1)) =
-        atlas.emis_interp(theta, f[i] * 1e-9, class1, class2, emis_v, emis_h);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void telsemAtlasLookup(Vector &emis,
                        const Numeric &lat,
                        const Numeric &lon,

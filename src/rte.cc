@@ -236,26 +236,6 @@ void apply_iy_unit2(Tensor3View J,
   }
 }
 
-void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
-  Numeric theta;
-  if (ppath.dim < 3) {
-    theta = abs(ppath.start_pos[1] - ppath.end_pos[1]);
-  } else {
-    // theta = sphdist(ppath.start_pos[1],
-    //                 ppath.start_pos[2],
-    //                 ppath.end_pos[1],
-    //                 ppath.end_pos[2]);
-    ARTS_USER_ERROR("ERROR")
-  }
-
-  // Eq 17 in Kursinski et al., TAO, 2000:
-  alpha = ppath.start_los[0] - ppath.end_los[0] + theta;
-
-  // This as
-  // phi_r = 180 - ppath.end_los[0]
-  // phi_t = ppath.start_los[0]
-}
-
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,

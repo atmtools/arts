@@ -208,15 +208,6 @@ class TelsemAtlas {
      */
   Index calc_cellnum(Numeric lat, Numeric lon) const;
 
-  /*! Compute the cellnumber of closest cell contained in atlas.
-     *
-     * @param[in] lat The latitude coordinate for which to compute the
-     *                containing cell.
-     * @param[out] lon The longitude coordinates for which to compute the
-     *                 containing cell.
-     */
-  Index calc_cellnum_nearest_neighbor(Numeric lat, Numeric lon) const;
-
   /*! Compute corrdinates of a given cell.
      *
      * @param[in] cellnum The cell number for which to compute the coordinates.

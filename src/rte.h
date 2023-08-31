@@ -107,27 +107,6 @@ void apply_iy_unit2(Tensor3View J,
                     const Numeric& n,
                     const ArrayOfIndex& i_pol);
 
-/** Calculates the bending angle for a 1D atmosphere.
-
-    The expression used assumes a 1D atmosphere, that allows the bending angle
-    to be calculated by start and end LOS. This is an approximation for 2D and
-    3D, but a very small one and the function should in general be OK also for
-    2D and 3D.
-
-    The expression is taken from Kursinski et al., The GPS radio occultation
-    technique, TAO, 2000.
-    
-    FIXMEDOC@Patrick, if this function only returns a numeric, have it defined as "Numeric bending_angle1d(ppath)" since this is better code.
-
-    @param[in]   ppath   Propagation path.
-
-    @return     alpha   Bending angle
-
-    @author Patrick Eriksson 
-    @date   2012-04-05
- */
-void bending_angle1d(Numeric& alpha, const Ppath& ppath);
-
 /** Calculates the dot product between a field and a LOS
 
     The line-of-sight shall be given as in the ppath structure (i.e. the

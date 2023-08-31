@@ -2379,7 +2379,7 @@ data files converted to arts-xml). Output written to (xml-)file.
       .desc = R"--(Creates a radar inversion table.
 
 This method is tailored to make inversion tables that fit
-*particle_bulkpropRadarOnionPeeling*. See that method for
+``particle_bulkpropRadarOnionPeeling``. See that method for
 format of the table.
 
 The method needs to be called twice to form a complete table,
@@ -2427,8 +2427,8 @@ species and a single frequency (the one of the radar).
            R"--(Temperature grid to use for the table.)--",
            R"--(A water content value that gives a dBZe smaller than first value of ``dbze_grid``.)--",
            R"--(A water content value that gives a dBZe larger than last value of ``dbze_grid``.)--",
-           R"--(Reference temperature for conversion to Ze. See further *yRadar*.)--",
-           R"--(Reference dielectric factor. See further *yRadar*.)--"},
+           R"--(Reference temperature for conversion to Ze. See further ``yRadar``.)--",
+           R"--(Reference dielectric factor. See further ``yRadar``.)--"},
       .pass_workspace = true,
 
   };
@@ -7943,27 +7943,6 @@ Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
 
   };
 
-  wsm_data["dlosDiffOfLos"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Derives the difference betwenn zenith and azimuth angles.
-
-Determines the difference between a set of angles (``other_los``)
-and a reference direction (``ref_los``). This method reverses the
-addition made by *sensor_losAddLosAndDlos*.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gdlos"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Derived differences in line-of-sight.)--"},
-
-      .gin = {"ref_los", "other_los"},
-      .gin_type = {"Vector", "Matrix"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Reference line-of-sight (a single los).)--",
-                   R"--(Other line-of-sights (can be multiple los).)--"},
-
-  };
-
   wsm_data["dlosGauss"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Gives a *dlos* suitable for a circular Gaussian response.
 
@@ -10810,143 +10789,6 @@ interpolation is done anymore.
 )--",
       .author = {"Oliver Lemke"},
       .out = {"output_file_format"},
-
-  };
-
-  wsm_data["particle_bulkpropRadarOnionPeeling"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Inverts radar reflectivities by in an onion peeling manner.
-
-The method assumes space-based measurements and invert one altitude
-at the time, based on a pre-calculated inversion table (``invtable``)
-and starting at the top of the atmosphere. If attenuation is
-completely ignored, the table is effectively used as a look-up table
-to map dBZe to hydrometeor values. The method considers attenuation
-by default, where extinction due to hydrometeors is taken from the
-table and the one due to *abs_species* is obtained by
-*propmat_clearsky_agenda*.
-
-The inversion table consists of two GriddedField3. The first field
-shall match liquid hydrometeors and is applied for temperatures above
-``t_phase``. The second field is applied for lower temperatures and
-shall thus correspond to ice hydrometeors.
-
-The size of each field is (2,ndb,nt). The two page dimensions match
-the hydrometeor property to retrieve and extinction, respectively.
-The table shall hold the 10-logarithm of the property, such as
-log10(IWC). ndb is the number of dBZe values in the table and nt
-the number of temperatures. The table is interpolated in temperature
-in a nearest neighbour fashion, while in a linear interpolation is
-applied in the dBZe dimension.
-
-The field of radar reflectivities (``dBZe``) shall cover the complete
-atmosphere and then match e.g. ``t_field`` in size. The observation
-geometry is here specified by giving the incidence angle for each
-profile of dBZe values (by ``incangles``). A flat Earth approximation
-is applied inside the method.
-
-All values below ``dbze_noise`` are treated as pure noise and
-``particle_bulkprop_field`` is set to zero for these positions.
-The comparison to ``dbze_noise`` is done with uncorrected values.
-
-Further, all values at altitudes below z_surface + h_clutter are
-assumed to be surface clutter and are rejected. If ``fill_clutter``
-is set to 1, the retrieval just above the clutter zone is assumed
-valid also below and is copied to all altitudes below (also for
-altitudes below the surface).
-
-Unfiltered clutter can cause extremely high retrived water contents.
-The GIN ``wc_max`` defines an upper limit for reasonable water contents.
-Retrievals ending up above this value are set to zero. Values below
-``wc_max`` but above ``wc_clip``, are set to ``wc_clip``.
-
-Significant radar echos (>dbze_noise and above clutter zone) are
-assumed to match liquid hydrometeors for temperatures >= ``t_phase``
-and ice ones for lower temperatures.
-
-Default is to consider attenuation of both hydrometeors and absorption
-species. These two sources to attenuation can be ignored by setting
-``do_atten_hyd`` and ``do_atten_abs`` to zero, respectively.
-
-Default is to consider hydrometeor attenuation, but there could be
-two reasons to ignore it. It can cause a "run away" effect in the
-retrievals. Ignoring it can also compensate for impact of multiple
-scattering in space-based observations, as shown by: Matrosov and
-Battaglia, GRL, 2009. However, ignoring the hydrometeor attenuation
-totally gives a too high compensating effect and the GIN
-``atten_hyd_scaling`` allows to test intermediate compensations. This
-GIN matches the GIN pext_scaling of ``iyRadarSingleScat``, but they
-have different default values. The default in this method follows the
-results for CloudSat in Matrosov and Battaglia. Please note that
-``do_atten_hyd`` must be true to apply ``atten_hyd_scaling``.
-
-Even with ``atten_hyd_scaling`` below 1, there could be a run-away in
-the estimated attenuation, and ``atten_hyd_max`` stops this by setting
-a maximum value to the hydrometeor attenuation.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"atm_field", "particle_bulkprop_names"},
-
-      .in = {"atm_field",
-             "surface_field",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "f_grid",
-             "propmat_clearsky_agenda",
-             "scat_species"},
-      .gin = {"invtable",
-              "incangles",
-              "dBZe",
-              "dbze_noise",
-              "h_clutter",
-              "fill_clutter",
-              "t_phase",
-              "wc_max",
-              "wc_clip",
-              "do_atten_abs",
-              "do_atten_hyd",
-              "atten_hyd_scaling",
-              "atten_hyd_max"},
-      .gin_type = {"ArrayOfGriddedField3",
-                   "Matrix",
-                   "Tensor3",
-                   "Numeric",
-                   "Matrix",
-                   "Index",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index",
-                   "Index",
-                   "Numeric",
-                   "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{-99},
-                    std::nullopt,
-                    Index{0},
-                    Numeric{273.15},
-                    Numeric{10e-3},
-                    Numeric{5e-3},
-                    Index{1},
-                    Index{1},
-                    Numeric{0.5},
-                    Numeric{3}},
-      .gin_desc =
-          {R"--(Inversion table, see above.)--",
-           R"--(Incidence angles.)--",
-           R"--(Field of radar reflectivities, in dBZe.)--",
-           R"--(Noise level. See above.)--",
-           R"--(Height of clutter zone. Either same size as ``z_surface`` or a single value. In the later case, that value is applied at all positions.)--",
-           R"--(Flag to fill clutter zone, by copying retrieval just above it.)--",
-           R"--(Phase boundary temperature. See above.)--",
-           R"--(Max reasonable water content)--",
-           R"--(Clip value for water content retrievals.)--",
-           R"--(Flag to consider attenuation due to hydrometeors.)--",
-           R"--(Flag to consider attenuation due to absorption species.)--",
-           R"--(Hydrometeor attenuation scaling factor.)--",
-           R"--(Hydrometeor attenuation not allowed to pass this value [dB].)--"},
-      .pass_workspace = true,
 
   };
 
@@ -14977,23 +14819,6 @@ is set to 1.
 
   };
 
-  wsm_data["sensor_losAddLosAndDlos"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds zenith and azimuth angles.
-
-Adds up a line-of-sights (ref_los), with relative angle off-sets
-(dlos).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_los"},
-
-      .gin = {"ref_los", "gdlos"},
-      .gin_type = {"Vector", "Matrix"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Reference line-of-sight (a single los).)--",
-                   R"--(Change in line-of-sight (can be multiple dlos).)--"},
-
-  };
-
   wsm_data["sensor_losGeometricToPosition"] = WorkspaceMethodInternalRecord{
       .desc = R"--(The geometric line-of-sight to a point.
 
@@ -17079,88 +16904,6 @@ Ignores NaNs in median calculations.
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Range plus-minus the median of unmasked values)--"},
-
-  };
-
-  wsm_data["yRadar"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Replaces ``yCalc`` for radar/lidar calculations.
-
-The output format for *iy* when simulating radars and lidars differs
-from the standard one, and ``yCalc`` can not be used for such simulations.
-This method works largely as ``yCalc``, but is tailored to handle the
-output from ``iyRadarSingleScat``. Note that *iy_radar_agenda* replaces
-*iy_main_agenda*.
-
-The method requires additional information about the sensor,
-regarding its recieving properties. First of all, recieved
-polarisation states are taken from *instrument_pol_array*. Note
-that this WSV allows to define several measured polarisations
-for each transmitted signal. For example, it is possible to
-simulate transmittance of V and measuring backsacttered V and H.
-
-Secondly, the range averaging is described by *range_bins*. These
-bins can either be specified in altitude or two-way travel time.
-In both case, the edges of the range bins shall be specified.
-All data (including auxiliary variables) are returned as the
-average inside the bins. If a bin is totally outside the model
-atmosphere, NaN is returned.
-
-The options for *iy_unit_radar* are:
-
-- ``"1"``:
-    Backscatter coefficient. Unit is 1/(m*sr). At zero
-    attenuation, this equals the scattering matrix value for
-    the backward direction. See further AUG.
-- ``"Ze"``: Equivalent reflectivity. Unit is mm^6/m^3. Conversion formula is given below.
-- ``"dBZe"``: 10*log10(Ze/Z0), where Z0 is 1 mm^6/m^3.
-
-The conversion from backscatter coefficient to Ze is::
-
-  Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma)
-
-where sum(sigma) = 4 * pi * b, and b is the backscatter coefficient.
-
-The reference dielectric factor can either specified directly by
-the argument ``k2``. For example, to mimic the CloudSat data, ``k2``
-shall be set to 0.75 (citaion needed). If ``k2`` is set to be 
-negative (which is defualt), k2 is calculated as::
-
-  k2 = abs( (n^2-1)/(n^2+2) )^2
-
-where n is the refractive index of liquid water at temperature
-``ze_tref`` and the frequency of the radar, calculated by the MPM93
-parameterization.
-
-A lower limit for dBZe is applied (``dbze_min``). The main reason is to
-handle the fact that dBZe is not defined for Ze=0, and dBZe is set to
-the clip value when Ze < 10^(dbze_min/10).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out =
-          {"y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"},
-
-      .in = {"atmgeom_checked",
-             "atmfields_checked",
-             "iy_unit_radar",
-             "iy_aux_vars",
-             "f_grid",
-             "cloudbox_on",
-             "cloudbox_checked",
-             "sensor_pos",
-             "sensor_los",
-             "sensor_checked",
-             "jacobian_do",
-             "jacobian_quantities",
-             "iy_radar_agenda",
-             "instrument_pol_array",
-             "range_bins"},
-      .gin = {"ze_tref", "k2", "dbze_min"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {Numeric{273.15}, Numeric{-1}, Numeric{-99}},
-      .gin_desc = {R"--(Reference temperature for conversion to Ze.)--",
-                   R"--(Reference dielectric factor.)--",
-                   R"--(Clip value for dBZe.)--"},
-      .pass_workspace = true,
 
   };
 
