@@ -96,9 +96,6 @@ internal_workspace_groups() {
   wsg_data["ArrayOfIndex"] = {.file = "matpack.h",
                               .desc = "A list of *Index*\n"};
 
-  wsg_data["ArrayOfJacobianTarget"] = {.file = "jacobian.h",
-                                       .desc = "A list of *JacobianTarget*\n"};
-
   wsg_data["ArrayOfMatrix"] = {.file = "matpack.h",
                                .desc = "A list of *Matrix*\n"};
 
@@ -261,10 +258,6 @@ Both the data and the grid may be named
                        .desc = "A 64 bit signed integer type\n",
                        .value_type = true};
 
-  wsg_data["JacobianTarget"] = {
-      .file = "jacobian.h",
-      .desc = "A single target of a partial derivative computation\n"};
-
   wsg_data["MapOfErrorCorrectedSuddenData"] = {
       .file = "linemixing.h",
       .desc =
@@ -387,9 +380,6 @@ if it is contained in the Atlas and NAN otherwise.
 
   wsg_data["Tensor7"] = {.file = "matpack.h",
                          .desc = "A 7 dimensional array of *Numeric*\n"};
-
-  wsg_data["Timer"] = {.file = "timer_struct.h",
-                       .desc = "Represents a clock\n"};
 
   wsg_data["Time"] = {.file = "artstime.h", .desc = R"(Represents a time stamp
 )"};

@@ -4,51 +4,6 @@
 
 namespace Python {
 void py_time(py::module_& m) try {
-  py::class_<std::clock_t>(m, "clock_t")
-      .def(py::init([]() { return std::clock(); }), "Default clock")
-      .def(py::pickle([](const clock_t& self) { return py::make_tuple(self); },
-                      [](const py::tuple& t) {
-                        ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-                        return clock_t{t[0].cast<clock_t>()};
-                      })).doc() = "The C++ standard clock type";
-
-  artsclass<Timer>(m, "Timer")
-      .def(py::init([]() { return std::make_shared<Timer>(); }), "Empty timer")
-      .PythonInterfaceCopyValue(Timer)
-      .PythonInterfaceWorkspaceVariableConversion(Timer)
-      .PythonInterfaceFileIO(Timer)
-      .def("__repr__", [](Timer&) { return "Timer"; })
-      .def_readwrite("running", &Timer::running, ":class:`bool`")
-      .def_readwrite("finished", &Timer::finished, ":class:`bool`")
-      .def_readwrite("cputime_start", &Timer::cputime_start, ":class:`~pyarts.arts.clock_t`")
-      .def_readwrite("realtime_start", &Timer::realtime_start, ":class:`~pyarts.arts.clock_t`")
-      .def_readwrite("cputime_end", &Timer::cputime_end, ":class:`~pyarts.arts.clock_t`")
-      .def_readwrite("realtime_end", &Timer::realtime_end, ":class:`~pyarts.arts.clock_t`")
-      .def(py::pickle(
-          [](const Timer& self) {
-            return py::make_tuple(self.running,
-                                  self.finished,
-                                  self.cputime_start,
-                                  self.realtime_start,
-                                  self.cputime_end,
-                                  self.realtime_end
-            );
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-
-            auto out = std::make_shared<Timer>();
-            out->running = t[0].cast<bool>();
-            out->finished = t[1].cast<bool>();
-            out->cputime_start = t[2].cast<std::clock_t>();
-            out->realtime_start = t[3].cast<std::chrono::time_point<std::chrono::high_resolution_clock>>();
-            out->cputime_end = t[4].cast<std::clock_t>();
-            out->realtime_end = t[5].cast<std::chrono::time_point<std::chrono::high_resolution_clock>>();
-
-            return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(Timer);
-
   artsclass<Time>(m, "Time")
       .def(py::init([]() { return std::make_shared<Time>(); }), "Current time")
       .def(py::init([](std::chrono::system_clock::time_point nt) {

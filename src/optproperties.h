@@ -60,7 +60,7 @@ enum ParticleSSDMethod {
    It is listed as a sub-entry to "data structures".  
 */
 struct SingleScatteringData {
-  PType ptype;
+  PType ptype{PTYPE_GENERAL};
   String description;
   Vector f_grid;
   Vector T_grid;

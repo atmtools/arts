@@ -556,18 +556,3 @@ void xml_write_to_stream(ostream& os_xml,
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
-
-// FIXME: These should be implemented, sooner or later...
-
-void xml_read_from_stream(istream&,
-                          Timer&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR_IF(true, "Method not implemented!");
-}
-
-void xml_write_to_stream(ostream&,
-                         const Timer&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR_IF(true, "Method not implemented!");
-}

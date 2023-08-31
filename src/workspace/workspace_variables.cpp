@@ -1752,17 +1752,6 @@ Usage: Quantities are added by the jacobianAdd WSMs.
 )--",
       .type = "ArrayOfRetrievalQuantity"};
 
-  wsv_data["jacobian_targets"] = {
-      .desc =
-          R"--(The partial derivatives that are computed for the Jacobian matrix.
-
-An array of jacobian targets for which the Jacobians are
-calculated.
-
-Usage: Input to absorption agendas.
-)--",
-      .type = "ArrayOfJacobianTarget"};
-
   wsv_data["lat"] = {.desc = R"--(A latitude.
 
 Unit:  degrees
@@ -4080,11 +4069,6 @@ TESSEM2 neural network parameters for vertical polarization.
   wsv_data["time"] = {.desc = R"--(A UTC time point.
 )--",
                       .type = "Time"};
-
-  wsv_data["timer"] = {
-      .desc = R"--(Stores the starting time for time measurements.
-)--",
-      .type = "Timer"};
 
   wsv_data["time_grid"] = {.desc = R"--(A grid of times.  Should be increasing
 )--",

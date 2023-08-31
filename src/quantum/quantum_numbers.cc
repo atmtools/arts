@@ -1042,7 +1042,7 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   auto n = count_items(s);
   auto specname = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
-  ARTS_USER_ERROR_IF(isotopologue_index < 0, "Bad species in: ", s)
+  if(isotopologue_index < 0) return;
 
   if (version == v) {
     if (n > 1) val = ValueList(s.substr(specname.length() + 1));

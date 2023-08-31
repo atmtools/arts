@@ -71,31 +71,8 @@ void StringJoin(String& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void timerStart(  // WS Output
-    Timer& timer) {
-  timer.cputime_start = std::clock();
-  timer.realtime_start = std::chrono::high_resolution_clock::now();
-
-  timer.running = true;
-  timer.finished = false;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void timerStop(  // WS Input
-    Timer& timer) {
-  ARTS_USER_ERROR_IF(!timer.running,
-                     "Timer error: Unable to stop timer that's not running.");
-
-  timer.realtime_end = std::chrono::high_resolution_clock::now();
-  timer.cputime_end = std::clock();
-
-  timer.running = false;
-  timer.finished = true;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void Error(const String& msg) {
-  ARTS_USER_ERROR ( msg);
+  ARTS_USER_ERROR(msg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

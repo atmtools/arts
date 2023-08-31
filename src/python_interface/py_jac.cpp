@@ -12,7 +12,6 @@ void py_jac(py::module_& m) try {
       .def(py::init([]() { return std::make_shared<JacobianTarget>(); }), "Default target")
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
-      .PythonInterfaceFileIO(JacobianTarget)
       .PythonInterfaceBasicRepresentation(JacobianTarget)
       .PythonInterfaceReadWriteData(JacobianTarget, type, ":class:`~pyarts.arts.options.JacobianType` Type of target")
       .PythonInterfaceReadWriteData(JacobianTarget, atm, ":class:`~pyarts.arts.options.JacobianAtm` Type of atmospheric target")
@@ -45,11 +44,8 @@ void py_jac(py::module_& m) try {
             out -> species_id = t[9].cast<Species::Species>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(JacobianTarget);
-
-  PythonInterfaceWorkspaceArray(JacobianTarget);
-
+          })).doc() = "A jacobian target";
+  
   artsclass<RetrievalQuantity>(m, "RetrievalQuantity")
       .def(py::init([]() { return std::make_shared<RetrievalQuantity>(); }), "Empty quantity")
       .def(py::pickle(

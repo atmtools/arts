@@ -2544,17 +2544,31 @@ void xml_write_to_stream(ostream&,
   ARTS_USER_ERROR("Method not implemented!");
 }
 
-void xml_read_from_stream(istream&,
-                          Any&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_read_from_stream(istream& is_xml,
+                          Any& a,
+                          bifstream*) {
+  a = Any{};
+
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("Any");
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/Any");
 }
 
-void xml_write_to_stream(ostream&,
+void xml_write_to_stream(ostream& os_xml,
                          const Any&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
+                         bofstream*,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Any");
+  open_tag.write_to_stream(os_xml);
+  close_tag.set_name("/Any");
+  close_tag.write_to_stream(os_xml);
 }
 
 void xml_read_from_stream(istream&,
@@ -2572,32 +2586,100 @@ void xml_write_to_stream(ostream&,
 
 //=== MCAntenna ================================================
 
-void xml_read_from_stream(istream&,
-                          MCAntenna&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_read_from_stream(istream& is_xml,
+                          MCAntenna& m,
+                          bifstream* pbifs) {
+
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("MCAntenna");
+
+  Index n;
+  xml_read_from_stream(is_xml, n, pbifs);
+  m.atype = static_cast<AntennaType>(n);
+  xml_read_from_stream(is_xml, m.sigma_aa, pbifs);
+  xml_read_from_stream(is_xml, m.sigma_za, pbifs);
+  xml_read_from_stream(is_xml, m.aa_grid, pbifs);
+  xml_read_from_stream(is_xml, m.za_grid, pbifs);
+  xml_read_from_stream(is_xml, m.G_lookup, pbifs);
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/MCAntenna");
 }
 
-void xml_write_to_stream(ostream&,
-                         const MCAntenna&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_write_to_stream(ostream& os_xml,
+                         const MCAntenna& m,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("MCAntenna");
+  open_tag.write_to_stream(os_xml);
+
+  const Index n = static_cast<Index>(m.atype);
+  xml_write_to_stream(os_xml, n, pbofs, "");
+  xml_write_to_stream(os_xml, m.sigma_aa, pbofs, "");
+  xml_write_to_stream(os_xml, m.sigma_za, pbofs, "");
+  xml_write_to_stream(os_xml, m.aa_grid, pbofs, "");
+  xml_write_to_stream(os_xml, m.za_grid, pbofs, "");
+  xml_write_to_stream(os_xml, m.G_lookup, pbofs, "");
+
+  close_tag.set_name("/MCAntenna");
+  close_tag.write_to_stream(os_xml);
 }
 
 //=== TessemNN ================================================
 
-void xml_read_from_stream(istream&,
-                          TessemNN&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_read_from_stream(istream& is_xml,
+                          TessemNN& t,
+                          bifstream* pbifs) {
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("TessemNN");
+
+  xml_read_from_stream(is_xml, t.nb_inputs, pbifs);
+  xml_read_from_stream(is_xml, t.nb_outputs, pbifs);
+  xml_read_from_stream(is_xml, t.nb_cache, pbifs);
+  xml_read_from_stream(is_xml, t.b1, pbifs);
+  xml_read_from_stream(is_xml, t.b2, pbifs);
+  xml_read_from_stream(is_xml, t.w1, pbifs);
+  xml_read_from_stream(is_xml, t.w2, pbifs);
+  xml_read_from_stream(is_xml, t.x_min, pbifs);
+  xml_read_from_stream(is_xml, t.x_max, pbifs);
+  xml_read_from_stream(is_xml, t.y_min, pbifs);
+  xml_read_from_stream(is_xml, t.y_max, pbifs);
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/TessemNN");
 }
 
-void xml_write_to_stream(ostream&,
-                         const TessemNN&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_write_to_stream(ostream& os_xml,
+                         const TessemNN& t,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("TessemNN");
+  open_tag.write_to_stream(os_xml);
+
+  xml_write_to_stream(os_xml, t.nb_inputs, pbofs, "");
+  xml_write_to_stream(os_xml, t.nb_outputs, pbofs, "");
+  xml_write_to_stream(os_xml, t.nb_cache, pbofs, "");
+  xml_write_to_stream(os_xml, t.b1, pbofs, "");
+  xml_write_to_stream(os_xml, t.b2, pbofs, "");
+  xml_write_to_stream(os_xml, t.w1, pbofs, "");
+  xml_write_to_stream(os_xml, t.w2, pbofs, "");
+  xml_write_to_stream(os_xml, t.x_min, pbofs, "");
+  xml_write_to_stream(os_xml, t.x_max, pbofs, "");
+  xml_write_to_stream(os_xml, t.y_min, pbofs, "");
+  xml_write_to_stream(os_xml, t.y_max, pbofs, "");
+
+  close_tag.set_name("/TessemNN");
+  close_tag.write_to_stream(os_xml);
 }
 
 //=== CallbackFunction =========================================

@@ -174,7 +174,6 @@ add_library (artscore STATIC
   surface.cc
   telsem.cc
   tessem.cc
-  timings.cc
   tmatrix.cc
   variousZZZ.cc
   wigner_functions.cc
