@@ -246,9 +246,9 @@ void propmat_clearskyAddCIA(  // WS Output:
   check_abs_species(abs_species);
   ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows(),
+  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nq,
       "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nf,
+  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.ncols() not_eq nf,
       "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
