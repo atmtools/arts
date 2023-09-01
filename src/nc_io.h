@@ -9,8 +9,7 @@
   \brief This file contains basic functions to handle NetCDF data files.
 */
 
-#ifndef nc_io_h
-#define nc_io_h
+#pragma once
 
 #include <netcdf.h>
 #include <workspace.h>
@@ -117,5 +116,3 @@ bool nca_put_var(const int ncid, const int varid, const Matrix& m);
 bool nca_put_var(const int ncid, const int varid, const Tensor4& t);
 
 void nca_error(const int err, const std::string_view msg);
-
-#endif /* nc_io_h */
