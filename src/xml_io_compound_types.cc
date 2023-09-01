@@ -10,26 +10,20 @@
 */
 
 #include "arts.h"
-#include "atm.h"
 #include "cloudbox.h"
+#include "compare.h"
 #include "debug.h"
-#include "fwd.h"
-#include "gridded_fields.h"
-#include "isotopologues.h"
-#include "mystring.h"
-#include "ppath_struct.h"
-#include "predefined/predef_data.h"
-#include "quantum_numbers.h"
-#include "species_tags.h"
-#include "surf.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
+
 #include <iomanip>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
 #include <variant>
+
+#include <workspace.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -2523,26 +2517,182 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== Wsv ================================================
 
-////////////////////////////////////////////////////////////////////////////
-//   Dummy funtion for groups for which
-//   IO function have not yet been implemented
-////////////////////////////////////////////////////////////////////////////
+void xml_read_from_stream(istream& is_xml,
+                          Wsv& wsv,
+                          bifstream* pbifs) {
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("Wsv");
 
-// FIXME: These should be implemented, sooner or later...
+  String type;
+  open_tag.get_attribute_value("type", type);
 
-void xml_read_from_stream(istream&,
-                          Agenda&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
+  wsv = Wsv::from_named_type(type);
+  std::visit([&](auto& x) { xml_read_from_stream(is_xml, *x, pbifs); }, wsv.value);
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/Wsv");
 }
 
-void xml_write_to_stream(ostream&,
-                         const Agenda&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
+void xml_write_to_stream(ostream& os_xml,
+                         const Wsv& wsv,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Wsv");
+  open_tag.add_attribute("type", wsv.type_name());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  std::visit([&](auto& x) { xml_write_to_stream(os_xml, *x, pbofs, ""); }, wsv.value);
+
+  close_tag.set_name("/Wsv");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
 }
+
+//=== Method ================================================
+
+void xml_read_from_stream(istream& is_xml,
+                          Method& m,
+                          bifstream* pbifs) {
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("Method");
+
+  String name;
+  open_tag.get_attribute_value("name", name);
+
+  String type;
+  open_tag.get_attribute_value("type", type);
+
+  if (type == "call") {
+    ArrayOfString args_;
+    xml_read_from_stream(is_xml, args_, pbifs);
+    
+    // FIXME: if you see this when ArrayOfString is already a std::vector<std::string>...
+    const std::vector<std::string> args{args_.begin(), args_.end()};
+    m = Method{name, args};
+  } else if (type == "value") {
+    Index overwrite;
+    open_tag.get_attribute_value("overwrite", overwrite);
+
+    Wsv wsv;
+    xml_read_from_stream(is_xml, wsv, pbifs);
+
+    m = Method{name, wsv, static_cast<bool>(overwrite)};
+  } else {
+    ARTS_USER_ERROR("Bad type: ", std::quoted(type))
+  }
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/Method");
+}
+
+void xml_write_to_stream(ostream& os_xml,
+                         const Method& m,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Method");
+  open_tag.add_attribute("name", m.get_name());
+
+  const bool is_value = static_cast<bool>(m.get_setval());
+
+  if (is_value) {
+    open_tag.add_attribute("type", "value");
+    open_tag.add_attribute("overwrite", static_cast<Index>(m.overwrite()));
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    
+    xml_write_to_stream(os_xml, m.get_setval().value(), pbofs, "");
+  } else {
+    open_tag.add_attribute("type", "call");
+    open_tag.write_to_stream(os_xml);
+    os_xml << '\n';
+    
+    ArrayOfString args;
+    for (const auto& a : m.get_outs()) {
+      args.emplace_back(a);
+    }
+    for (const auto& a : m.get_ins()) {
+      if (std::ranges::any_of(args, Cmp::eq(a))) continue;
+      args.emplace_back(a);
+    }
+
+    xml_write_to_stream(os_xml, args, pbofs, "");
+  }
+
+  close_tag.set_name("/Method");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+//=== Agenda ================================================
+
+void xml_read_from_stream(istream& is_xml,
+                          Agenda& a,
+                          bifstream* pbifs) {
+  ArtsXMLTag open_tag;
+  open_tag.read_from_stream(is_xml);
+  open_tag.check_name("Agenda");
+
+  a = [&open_tag](){
+    String x;
+    open_tag.get_attribute_value("name", x);
+    return Agenda{x};
+  }();
+
+  const Index size = [&open_tag](){
+    Index x;
+    open_tag.get_attribute_value("size", x);
+    return x;
+  }();
+
+  for (Index i=0; i<size; i++) {
+    Method m;
+    xml_read_from_stream(is_xml, m, pbifs);
+    a.add(m);
+  }
+
+  a.finalize(true);
+
+  ArtsXMLTag close_tag;
+  close_tag.read_from_stream(is_xml);
+  close_tag.check_name("/Agenda");
+}
+
+void xml_write_to_stream(ostream& os_xml,
+                         const Agenda& a,
+                         bofstream* pbofs,
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("Agenda");
+  open_tag.add_attribute("name", a.get_name());
+  open_tag.add_attribute("size", static_cast<Index>(a.get_methods().size()));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (const auto& m : a.get_methods()) {
+    xml_write_to_stream(os_xml, m, pbofs, "");
+  }
+
+  close_tag.set_name("/Agenda");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+//=== Any ================================================
 
 void xml_read_from_stream(istream& is_xml,
                           Any& a,
@@ -2569,19 +2719,6 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   close_tag.set_name("/Any");
   close_tag.write_to_stream(os_xml);
-}
-
-void xml_read_from_stream(istream&,
-                          SpectralRadianceProfileOperator&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR("Method not implemented!");
-}
-
-void xml_write_to_stream(ostream&,
-                         const SpectralRadianceProfileOperator&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR("Method not implemented!");
 }
 
 //=== MCAntenna ================================================
@@ -2618,7 +2755,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("MCAntenna");
   open_tag.write_to_stream(os_xml);
 
-  const Index n = static_cast<Index>(m.atype);
+  const auto n = static_cast<Index>(m.atype);
   xml_write_to_stream(os_xml, n, pbofs, "");
   xml_write_to_stream(os_xml, m.sigma_aa, pbofs, "");
   xml_write_to_stream(os_xml, m.sigma_za, pbofs, "");
@@ -2682,6 +2819,16 @@ void xml_write_to_stream(ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+
+////////////////////////////////////////////////////////////////////////////
+//   Dummy funtion for groups for which
+//   IO function have not yet been implemented
+////////////////////////////////////////////////////////////////////////////
+
+// NOTE: These cannot be fixed by adding the missing functions, because
+//       they cannot be completely restructured by the data they own.
+//       If you need them to be, consider a redesign of them
+
 //=== CallbackFunction =========================================
 
 void xml_read_from_stream(istream&,
@@ -2707,6 +2854,21 @@ void xml_read_from_stream(istream&,
 
 void xml_write_to_stream(ostream&,
                          const NumericUnaryOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== SpectralRadianceProfileOperator =========================================
+
+void xml_read_from_stream(istream&,
+                          SpectralRadianceProfileOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(ostream&,
+                         const SpectralRadianceProfileOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");

@@ -276,7 +276,7 @@ bool get_parameters(int argc, char **argv) {
         iss >> std::dec >> parameters.numthreads;
         if (iss.bad() || !iss.eof()) {
           cerr << "Argument to --numthreads (-n) must be an integer!\n";
-          arts_exit();
+          std::exit(EXIT_FAILURE);
         }
         break;
       }
@@ -297,7 +297,7 @@ bool get_parameters(int argc, char **argv) {
         // reach the end of is (second condition).
         if (iss.bad() || !iss.eof()) {
           cerr << "Argument to --reporting (-r) must be an integer!\n";
-          arts_exit();
+          std::exit(EXIT_FAILURE);
         }
         break;
       }
@@ -341,7 +341,7 @@ bool get_parameters(int argc, char **argv) {
       case 'U':
         cerr << "This version of ARTS was compiled without documentation "
                 "server support.\n";
-        arts_exit();
+        std::exit(EXIT_FAILURE);
         break;
 #endif // ENABLE_DOCSERVER
       case 'v':

@@ -1267,7 +1267,7 @@ void VectorInsertGridPoints(  // WS Generic Output:
   } else {
     // We should never be here.
     ARTS_ASSERT(false);
-    arts_exit();
+    std::exit(EXIT_FAILURE);
   }
 
   // Ok, x should now contain the new grid.

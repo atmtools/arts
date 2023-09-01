@@ -50,6 +50,9 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
   return os;
 }
 
+
+Method::Method() : name("this-is-not-a-method") {}
+
 Method::Method(const std::string& n,
                const std::vector<std::string>& a,
                const std::unordered_map<std::string, std::string>& kw) try

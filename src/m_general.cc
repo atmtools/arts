@@ -77,7 +77,7 @@ void Error(const String& msg) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Exit() {
-  arts_exit(EXIT_SUCCESS);
+  std::exit(EXIT_SUCCESS);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

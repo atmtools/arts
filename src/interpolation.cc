@@ -2821,7 +2821,7 @@ Numeric interp_poly(ConstVectorView x,
       ya[2] = y[N_x];
     } else {
       ARTS_ASSERT(false);
-      arts_exit();
+      std::exit(EXIT_FAILURE);
     }
 
     polint(y_int, dy_int, xa, ya, 3, x_i);

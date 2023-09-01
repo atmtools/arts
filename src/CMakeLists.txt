@@ -46,7 +46,6 @@ add_library (artscore STATIC
   ${ARTSCORE_EXTRA_SOURCES}
   absorption.cc
   absorptionlines.cc
-  arts.cc
   arts_omp.cc
   artstime.cc
   atm.cc
