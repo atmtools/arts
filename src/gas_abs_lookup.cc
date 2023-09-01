@@ -46,8 +46,8 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
     // frequency grids are sorted in GasAbsLookup::Adapt, so we can
     // use the fact here.
 
-    while (abs(new_grid[i] - old_grid[j]) >
-           max(abs(new_grid[i]), abs(old_grid[j])) * DBL_EPSILON) {
+    while (std::abs(new_grid[i] - old_grid[j]) >
+           std::max(std::abs(new_grid[i]), std::abs(old_grid[j])) * DBL_EPSILON) {
       ++j;
       if (j >= n_old_grid) {
         std::ostringstream os;

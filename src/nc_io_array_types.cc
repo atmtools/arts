@@ -10,10 +10,6 @@
 
 */
 
-#include "arts.h"
-
-#ifdef ENABLE_NETCDF
-
 #include "nc_io.h"
 #include "nc_io_types.h"
 
@@ -222,5 +218,3 @@ void nca_write_to_file(const int ncid,
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_NC_READ_WRITE_FILE_DUMMY
-
-#endif /* ENABLE_NETCDF */

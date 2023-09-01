@@ -1177,7 +1177,7 @@ void chk_atm_field(const String& x_name,
               , "Difference: ", std::setprecision(16)
               , x(ip, ir, ic) - x(ip, ir, 0), "\n"
               , "Epsilon   : "
-              , 4 * DBL_EPSILON * max(x(ip, ir, ic), x(ip, ir, 0)))
+              , 4 * DBL_EPSILON * std::max(x(ip, ir, ic), x(ip, ir, 0)))
         }
       }
     }

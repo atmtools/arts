@@ -1443,7 +1443,7 @@ void integration_bin_by_vecmult(VectorView h,
       if (x1 < x_g[i]) {
         const Numeric r = 1.0 / (x_g[i] - x_g[i - 1]);
         const Numeric y1 = r * (x1 - x_g[i - 1]);
-        const Numeric dx = min(x2, x_g[i]) - x1;
+        const Numeric dx = std::min(x2, x_g[i]) - x1;
         const Numeric y2 = y1 + r * dx;
         h[i] = 0.5 * dx * (y1 + y2);
       } else {
@@ -1454,7 +1454,7 @@ void integration_bin_by_vecmult(VectorView h,
       if (x2 > x_g[i]) {
         const Numeric r = 1.0 / (x_g[i + 1] - x_g[i]);
         const Numeric y2 = r * (x_g[i + 1] - x2);
-        const Numeric dx = x2 - max(x1, x_g[i]);
+        const Numeric dx = x2 - std::max(x1, x_g[i]);
         const Numeric y1 = y2 + r * dx;
         h[i] += 0.5 * dx * (y1 + y2);
       }

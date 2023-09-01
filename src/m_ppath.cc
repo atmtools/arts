@@ -578,14 +578,14 @@ void ppathRefracted(const Workspace& ws,
         // are also commented below this function
         //
         if (do_horizontal_gradients) {
-          const Numeric sinza = sin(DEG2RAD * los0[0]);
-          const Numeric cosza = cos(DEG2RAD * los0[0]);
-          const Numeric sinaa = sin(DEG2RAD * los0[1]);
-          const Numeric cosaa = cos(DEG2RAD * los0[1]);
+          const Numeric sinza = std::sin(DEG2RAD * los0[0]);
+          const Numeric cosza = std::cos(DEG2RAD * los0[0]);
+          const Numeric sinaa = std::sin(DEG2RAD * los0[1]);
+          const Numeric cosaa = std::cos(DEG2RAD * los0[1]);
           const Numeric r = norm2( ecef0 );
           const Numeric dndlatp =  dndlat / r;
           // Make sure that we don't divide with zero (if lat = +-90)
-          const Numeric dndlonp =  dndlon / (r * max(cos(DEG2RAD * pos0[1]), 1e-6));
+          const Numeric dndlonp =  dndlon / (r * std::max(std::cos(DEG2RAD * pos0[1]), 1e-6));
           const Numeric fac = (RAD2DEG * l_rt / n_real);
           //
           los0[0] += fac * (-sinza * dndz +

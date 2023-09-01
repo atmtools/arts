@@ -10,10 +10,6 @@
 
 */
 
-#include "arts.h"
-
-#ifdef ENABLE_NETCDF
-
 #include "exceptions.h"
 #include "file.h"
 #include "nc_io.h"
@@ -51,11 +47,11 @@ void nca_filename(String &filename, const String &varname) {
 void nca_filename_with_index(String &filename, const Index &file_index,
                              const String &varname) {
   if ("" == filename) {
-    ostringstream os;
+    std::ostringstream os;
     os << varname << "." << file_index << ".nc";
     filename = os.str();
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << filename << "." << file_index << ".nc";
     filename = os.str();
   }
@@ -616,5 +612,3 @@ void nca_error(const int e, const std::string_view s) {
 // implementation of nca_write_to_file and nca_read_from_file have to be known.
 
 #include "nc_io_instantiation.h"
-
-#endif /* ENABLE_NETCDF */

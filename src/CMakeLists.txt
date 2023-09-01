@@ -14,7 +14,6 @@ if (NETCDF_FOUND)
     nc_io_basic_types.cc
     nc_io_compound_types.cc
     )
-
 endif (NETCDF_FOUND)
 
 if (ENABLE_MPI)
