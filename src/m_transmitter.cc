@@ -15,7 +15,6 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include <workspace.h>
@@ -44,7 +43,7 @@ void iy_transmitterMultiplePol(Matrix& iy_transmitter,
   const Index nf = f_grid.nelem();
 
   if (instrument_pol.nelem() != nf)
-    throw runtime_error(
+    throw std::runtime_error(
         "The length of *f_grid* and the number of elements "
         "in *instrument_pol* must be equal.");
 
@@ -62,7 +61,7 @@ void iy_transmitterSinglePol(Matrix& iy_transmitter,
   const Index nf = f_grid.nelem();
 
   if (instrument_pol.nelem() != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The number of elements in *instrument_pol* must be 1.");
 
   iy_transmitter.resize(nf, 4);

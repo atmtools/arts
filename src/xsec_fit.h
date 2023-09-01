@@ -10,10 +10,9 @@
 #define HITRAN_XSEC_H
 
 #include "array.h"
-#include "arts.h"
 #include "bifstream.h"
 #include "gridded_fields.h"
-#include "matpack_data.h"
+#include <matpack.h>
 #include "mystring.h"
 #include "species.h"
 

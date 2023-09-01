@@ -11,7 +11,7 @@
 */
 
 #include "xml_io_base.h"
-#include "arts.h"
+
 #include "bifstream.h"
 #include "bofstream.h"
 #include "file.h"
@@ -69,14 +69,14 @@ void XMLTag::add_attribute(const String& aname, String value) {
   \param value Attribute value
 */
 void XMLTag::add_attribute(const String& aname, const Index& value) {
-  ostringstream v;
+  std::ostringstream v;
 
   v << value;
   add_attribute(aname, v.str());
 }
 
 void XMLTag::add_attribute(const String& aname, const Numeric& value) {
-  ostringstream v;
+  std::ostringstream v;
   xml_set_stream_precision(v);
   v << value;
   add_attribute(aname, v.str());
@@ -151,7 +151,7 @@ void XMLTag::get_attribute_value(const String& aname, String& value) {
 */
 void XMLTag::get_attribute_value(const String& aname, Index& value) {
   String attribute_value;
-  istringstream strstr("");
+  std::istringstream strstr("");
 
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
@@ -164,7 +164,7 @@ void XMLTag::get_attribute_value(const String& aname, Index& value) {
 
 void XMLTag::get_attribute_value(const String& aname, Numeric& value) {
   String attribute_value;
-  istringstream strstr("");
+  std::istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
@@ -181,10 +181,10 @@ void XMLTag::get_attribute_value(const String& aname, Numeric& value) {
 
   \param is Input stream
 */
-void XMLTag::read_from_stream(istream& is) {
+void XMLTag::read_from_stream(std::istream& is) {
   String token;
-  stringbuf tag;
-  istringstream sstr("");
+  std::stringbuf tag;
+  std::istringstream sstr("");
   XMLAttribute attr;
   char ch = 0;
 
@@ -293,7 +293,7 @@ void XMLTag::read_from_stream(istream& is) {
 
   \param os Output stream
 */
-void XMLTag::write_to_stream(ostream& os) {
+void XMLTag::write_to_stream(std::ostream& os) {
   os << "<" << name;
 
   auto it = attribs.begin();
@@ -330,23 +330,23 @@ FileType string2filetype(const String& file_format) {
   \param file Output filestream
   \param name Filename
 */
-void xml_open_output_file(ofstream& file, const String& name) {
+void xml_open_output_file(std::ofstream& file, const String& name) {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
   // that the last operation has failed, but the stream is still
   // valid. We don't want either to happen!
   // FIXME: This does not yet work in  egcs-2.91.66, try again later.
-  file.exceptions(ios::badbit | ios::failbit);
+  file.exceptions(std::ios::badbit | std::ios::failbit);
 
   // c_str explicitly converts to c String.
   try {
     file.open(name.c_str());
   } catch (const std::exception&) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Cannot open output file: " << name << '\n'
        << "Maybe you don't have write access "
        << "to the directory or the file?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // See if the file is ok.
@@ -355,11 +355,11 @@ void xml_open_output_file(ofstream& file, const String& name) {
   // get here if there really was a problem, because of the exception
   // thrown by open().)
   if (!file) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Cannot open output file: " << name << '\n'
        << "Maybe you don't have write access "
        << "to the directory or the file?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -378,7 +378,7 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   // that the last operation has failed, but the stream is still
   // valid. We don't want either to happen!
   // FIXME: This does not yet work in  egcs-2.91.66, try again later.
-  file.exceptions(ios::badbit | ios::failbit);
+  file.exceptions(std::ios::badbit | std::ios::failbit);
 
   // c_str explicitly converts to c String.
   String nname = name;
@@ -389,12 +389,12 @@ void xml_open_output_file(ogzstream& file, const String& name) {
 
   try {
     file.open(nname.c_str());
-  } catch (const ios::failure&) {
-    ostringstream os;
+  } catch (const std::ios::failure&) {
+    std::ostringstream os;
     os << "Cannot open output file: " << nname << '\n'
        << "Maybe you don't have write access "
        << "to the directory or the file?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // See if the file is ok.
@@ -403,11 +403,11 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   // get here if there really was a problem, because of the exception
   // thrown by open().)
   if (!file) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Cannot open output file: " << nname << '\n'
        << "Maybe you don't have write access "
        << "to the directory or the file?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -420,33 +420,33 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(ifstream& ifs,
+void xml_open_input_file(std::ifstream& ifs,
                          const String& name) {
 
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  ifs.exceptions(ios::badbit);
+  ifs.exceptions(std::ios::badbit);
 
   // c_str explicitly converts to c String.
   try {
     ifs.open(name.c_str());
-  } catch (const ios::failure&) {
-    ostringstream os;
+  } catch (const std::ios::failure&) {
+    std::ostringstream os;
     os << "Cannot open input file: " << name << '\n'
        << "Maybe the file does not exist?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
   // g++ stream exceptions work properly.
   if (!ifs) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Cannot open input file: " << name << '\n'
        << "Maybe the file does not exist?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -465,26 +465,26 @@ void xml_open_input_file(igzstream& ifs,
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  ifs.exceptions(ios::badbit);
+  ifs.exceptions(std::ios::badbit);
 
   // c_str explicitly converts to c String.
   try {
     ifs.open(name.c_str());
-  } catch (const ios::failure&) {
-    ostringstream os;
+  } catch (const std::ios::failure&) {
+    std::ostringstream os;
     os << "Cannot open input file: " << name << '\n'
        << "Maybe the file does not exist?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
   // g++ stream exceptions work properly.
   if (!ifs) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Cannot open input file: " << name << '\n'
        << "Maybe the file does not exist?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -502,10 +502,10 @@ void xml_open_input_file(igzstream& ifs,
   \param str_error Error description
 */
 void xml_parse_error(const String& str_error) {
-  ostringstream os;
+  std::ostringstream os;
   os << "XML parse error: " << str_error << '\n'
      << "Check syntax of XML file\n";
-  throw runtime_error(os.str());
+  throw std::runtime_error(os.str());
 }
 
 //! Throws XML parser runtime error
@@ -517,13 +517,13 @@ void xml_parse_error(const String& str_error) {
   \param str_error  Error description
 */
 void xml_data_parse_error(XMLTag& tag, const String& str_error) {
-  ostringstream os;
+  std::ostringstream os;
   os << "XML data parse error: Error reading ";
   tag.write_to_stream(os);
   os << str_error << "\n"
      << "Check syntax of XML file. A possible cause is that the file "
      << "contains NaN or Inf values.\n";
-  throw runtime_error(os.str());
+  throw std::runtime_error(os.str());
 }
 
 //! Reads XML header and root tag
@@ -536,12 +536,12 @@ void xml_data_parse_error(XMLTag& tag, const String& str_error) {
   \param ntype  Numeric type
   \param etype  Endian type
 */
-void xml_read_header_from_stream(istream& is,
+void xml_read_header_from_stream(std::istream& is,
                                  FileType& ftype,
                                  NumericType& ntype,
                                  EndianType& etype) {
   char str[6];
-  stringbuf strbuf;
+  std::stringbuf strbuf;
   XMLTag tag;
   String strtype;
 
@@ -549,7 +549,7 @@ void xml_read_header_from_stream(istream& is,
 
   is.get(str, 6, ' ');
 
-  if (string(str) != "<?xml") {
+  if (std::string(str) != "<?xml") {
     xml_parse_error(
         "Input file is not a valid xml file "
         "(<?xml not found)");
@@ -584,10 +584,10 @@ void xml_read_header_from_stream(istream& is,
   if (strtype == "") {
     etype = ENDIAN_TYPE_LITTLE;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "  Error: Unknown endian type \"" << strtype
        << "\" specified in XML file.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Check numeric type
@@ -599,10 +599,10 @@ void xml_read_header_from_stream(istream& is,
   } else if (strtype == "") {
     ntype = NUMERIC_TYPE_DOUBLE;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "  Error: Unknown numeric type \"" << strtype
        << "\" specified in XML file.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -612,7 +612,7 @@ void xml_read_header_from_stream(istream& is,
 
   \param is  Input stream
 */
-void xml_read_footer_from_stream(istream& is) {
+void xml_read_footer_from_stream(std::istream& is) {
   XMLTag tag;
 
   tag.read_from_stream(is);
@@ -624,7 +624,7 @@ void xml_read_footer_from_stream(istream& is) {
   \param os     Output stream
   \param ftype  File type
 */
-void xml_write_header_to_stream(ostream& os,
+void xml_write_header_to_stream(std::ostream& os,
                                 FileType ftype) {
   XMLTag tag;
 
@@ -652,16 +652,16 @@ void xml_write_header_to_stream(ostream& os,
 /*!
   \param os Output stream
 */
-void xml_write_footer_to_stream(ostream& os) {
+void xml_write_footer_to_stream(std::ostream& os) {
   XMLTag tag;
 
   tag.set_name("/arts");
   tag.write_to_stream(os);
 
-  os << endl;
+  os << std::endl;
 }
 
-void xml_set_stream_precision(ostream& os) {
+void xml_set_stream_precision(std::ostream& os) {
   // Determine the precision, depending on whether Numeric is double
   // or float:
   int precision;
@@ -675,7 +675,7 @@ void xml_set_stream_precision(ostream& os) {
 #endif
 #endif
 
-  os << setprecision(precision);
+  os << std::setprecision(precision);
 }
 
 //! Get the content of an xml tag as a string

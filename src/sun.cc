@@ -20,7 +20,6 @@
 #include "matpack_data.h"
 #include "physics_funcs.h"
 #include "geodetic.h"
-#include "arts.h"
 #include "surf.h"
 
 using Constant::pi;

@@ -45,7 +45,7 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
 
   std::ifstream is;
 
-  ostringstream month_ss;
+  std::ostringstream month_ss;
   if (month < 10) {
     month_ss << 0;
   }
@@ -91,7 +91,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
   telsem_atlases.resize(12);
   for (Index i = 1; i <= 12; i++) {
     std::ifstream is;
-    ostringstream month;
+    std::ostringstream month;
     if (i < 10) month << 0;
     month << i;
     String this_filename = filename_pattern;

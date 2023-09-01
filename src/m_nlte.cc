@@ -7,7 +7,6 @@
  */
 
 #include "absorption.h"
-#include "arts.h"
 #include "atm.h"
 #include <workspace.h>
 #include "debug.h"

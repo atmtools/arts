@@ -4,7 +4,6 @@
 
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
-#include "arts.h"
 #include <workspace.h>
 #include "geodetic.h"
 #include "sun.h"

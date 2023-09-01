@@ -11,7 +11,6 @@
 */
 
 #include "absorptionlines.h"
-#include "arts.h"
 #include "debug.h"
 #include "species_tags.h"
 #include <workspace.h>
@@ -35,7 +34,7 @@
   \param agpos   ArrayOfGridPos return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ArrayOfGridPos& agpos,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -53,11 +52,11 @@ void xml_read_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, agpos[n], pbifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfGridPos: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -71,7 +70,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ArrayOfGridPos& agpos,
                          bofstream* pbofs,
                          const String& name) {
@@ -104,7 +103,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param arq       ArrayOfRetrievalQuantity return value
   \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ArrayOfRetrievalQuantity& arq,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -122,11 +121,11 @@ void xml_read_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, arq[n], pbifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfRetrievalQuantity: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -140,7 +139,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ArrayOfRetrievalQuantity& arq,
                          bofstream* pbofs,
                          const String& name) {
@@ -173,7 +172,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param astag   ArrayOfSpeciesTag return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ArrayOfSpeciesTag& astag,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -191,11 +190,11 @@ void xml_read_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, astag[n], pbifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfSpeciesTag: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -209,7 +208,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ArrayOfSpeciesTag& astag,
                          bofstream* pbofs,
                          const String& name) {
@@ -243,7 +242,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param astar   astar return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ArrayOfSun& astar,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -262,11 +261,11 @@ void xml_read_from_stream(istream& is_xml,
       xml_read_from_stream(is_xml, astar[n], pbifs);
     }
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfSun: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -280,7 +279,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ArrayOfSun& astar,
                          bofstream* pbofs,
                          const String& name) {
@@ -315,7 +314,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
   \param tag      XML tag object
 */
-void xml_parse_from_stream(istream& is_xml,
+void xml_parse_from_stream(std::istream& is_xml,
                            ArrayOfString& astring,
                            bifstream* pbifs,
                            XMLTag& tag) {
@@ -331,11 +330,11 @@ void xml_parse_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, astring[n], pbifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfString: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -347,7 +346,7 @@ void xml_parse_from_stream(istream& is_xml,
  * \param axd        ArrayOfXsecData return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ArrayOfXsecRecord& axd,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -365,11 +364,11 @@ void xml_read_from_stream(istream& is_xml,
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, axd[n], pbifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading ArrayOfXsecRecord: "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -383,7 +382,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ArrayOfXsecRecord& axd,
                          bofstream* pbofs,
                          const String& name) {

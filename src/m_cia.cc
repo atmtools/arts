@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <iomanip>
 #include "absorption.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include <workspace.h>
 #include "cia.h"
@@ -550,7 +549,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
   // Check that all CIA tags from abs_species are present in the
   // XML file
 
-  vector<String> missing_tags;
+  std::vector<String> missing_tags;
 
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
@@ -574,7 +573,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
   }
 
   if (missing_tags.size()) {
-    ostringstream os;
+    std::ostringstream os;
     bool first = true;
 
     os << "Error: The following CIA tag(s) are missing in input file: ";

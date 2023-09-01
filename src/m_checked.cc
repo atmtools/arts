@@ -13,7 +13,6 @@
   file auto_md.h.
 */
 
-#include "arts.h"
 #include "arts_conversions.h"
 #include "atm.h"
 #include <workspace.h>
@@ -90,7 +89,7 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
   // Check that z_field has strictly increasing pages.
   for (Index row = 0; row < z_field.nrows(); row++) {
     for (Index col = 0; col < z_field.ncols(); col++) {
-      ostringstream os;
+      std::ostringstream os;
       os << "z_field (for latitude nr " << row << " and longitude nr " << col
          << ")";
       chk_if_increasing(os.str(), z_field(joker, row, col));
@@ -141,13 +140,13 @@ void atmgeom_checkedCalc(Index& atmgeom_checked,
     // Scale to change over 100 km
     maxgrad *= 100.0/111.0;
     if (maxgrad > max500hpa_gradient) {
-      ostringstream os;
+      std::ostringstream os;
       os << "A check of the altitude of the " << p_grid[ip]/100
          << " hPa level has been made.\nThe maximum gradient found matches "
          << maxgrad << " m/100km, that exceeds\nthe set limit of "
          << max500hpa_gradient << " m/100km (by GIN *max500hpa_gradient*).\n"
          << "Please check the smoothness of *z_field*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
   
@@ -240,7 +239,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
       // ssd.f_grid.nelem() switched off, as usage in scatt solvers so far
       // doesn't allow this. see FIXME at start.).
       {
-        ostringstream bs1, bs2;
+        std::ostringstream bs1, bs2;
         bs1 << "Frequency dimension of ";
         //bs2 << " must be either one or ssd.f_grid.nelem() (=" << nf_se << "),\n"
         bs2 << " must be ssd.f_grid.nelem() (=" << nf_se << "),\n"
@@ -260,7 +259,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
       // check that the temp dimension of K and a is ssd.T_grid.nelem(). For Z
       // it might be ssd.T_grid.nelem() or 1.
       {
-        ostringstream bs1, bs2;
+        std::ostringstream bs1, bs2;
         Index nt_se = scat_data[i_ss][i_se].T_grid.nelem();
         bs1 << "Temperature dimension of ";
         //bs2 << " must be either one or ssd.T_grid.nelem(),\n"

@@ -21,6 +21,8 @@
 #ifdef ARTS_GUI_ENABLED
 #include <gui/propmat.h>
 
+using namespace std::chrono_literals;
+
 namespace PropmatClearskyAgendaGUI {
 void compute(const Workspace& ws,
              ARTSGUI::PropmatClearsky::ComputeValues& v,

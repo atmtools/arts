@@ -7,7 +7,6 @@
 
 */
 
-#include "arts.h"
 #include <workspace.h>
 #include "xsec_fit.h"
 #include "jacobian.h"
@@ -279,8 +278,8 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
                              f_grid,
                              current_p,
                              current_t);
-        } catch (runtime_error& e) {
-          ostringstream os;
+        } catch (std::runtime_error& e) {
+          std::ostringstream os;
           os << "Problem with HITRAN cross section species "
              << this_species.Name() << " at pressure level " << ip << " ("
              << abs_p[ip] / 100. << " hPa):\n"

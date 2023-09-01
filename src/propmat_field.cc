@@ -85,6 +85,7 @@ void emission_from_propmat_field(
       two_level_exp_nopolar(lyr_tra[ip], K_past, K_this, ppath.lstep[ip - 1]);
     rtepack::source::level_nlte_and_scattering(src_rad[ip], K_this, a, S, B);
 
+    using std::swap;
     swap(K_past, K_this);
   }
 

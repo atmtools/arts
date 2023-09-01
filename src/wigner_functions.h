@@ -83,6 +83,7 @@ std::pair<Rational, Rational> wigner3j_limits([[maybe_unused]] const Rational a=
                                               [[maybe_unused]] const Rational d=0,
                                               [[maybe_unused]] const Rational e=0) {
   static_assert(pos < 7 and pos > 0, "Only valid for pos := 1, 2, 3, 4, 5, and 6");
+  using std::swap;
   
   if constexpr (pos == 1 or pos == 2) {
     const Rational maxX = b - a;

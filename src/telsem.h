@@ -255,12 +255,12 @@ class TelsemAtlas {
                                           const ConstVectorView &eh) const;
 
   friend std::ostream &operator<<(std::ostream &os, const TelsemAtlas &ta);
-  friend void xml_write_to_stream(ostream &,
+  friend void xml_write_to_stream(std::ostream &,
                                   const TelsemAtlas &,
                                   bofstream *,
                                   const String &);
 
-  friend void xml_read_from_stream(istream &,
+  friend void xml_read_from_stream(std::istream &,
                                    TelsemAtlas &,
                                    bifstream *);
 

@@ -22,19 +22,19 @@
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bofstream : public binostream, public ofstream {
+class bofstream : public binostream, public std::ofstream {
  public:
-  bofstream() : ofstream() {}
+  bofstream() : std::ofstream() {}
 
   explicit bofstream(const char* name,
-                     ios::openmode mode = ios::out | ios::trunc | ios::binary)
-      : ofstream(name, mode) {}
+                     std::ios::openmode mode = std::ios::out | std::ios::trunc | std::ios::binary)
+      : std::ofstream(name, mode) {}
 
-  void seek(long spos, Offset offs) override final;
-  streampos pos() override final;
+  void seek(long spos, Offset offs) final;
+  std::streampos pos() final;
 
-  void putByte(bofstream::Byte b) override final;
-  void putRaw(const char* c, streamsize n) override final { this->write(c, n); }
+  void putByte(bofstream::Byte b) final;
+  void putRaw(const char* c, std::streamsize n) final { this->write(c, n); }
 };
 
 /* Overloaded output operators */

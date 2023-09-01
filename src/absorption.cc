@@ -12,7 +12,6 @@
 */
 
 #include "absorption.h"
-#include "arts.h"
 #include "arts_conversions.h"
 #include "file.h"
 #include "linescaling.h"

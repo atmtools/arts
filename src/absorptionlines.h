@@ -688,21 +688,21 @@ struct Lines {
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat3Stream(istream& is);
+SingleLineExternal ReadFromArtscat3Stream(std::istream& is);
 
 /** Read from ARTSCAT-4
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat4Stream(istream& is);
+SingleLineExternal ReadFromArtscat4Stream(std::istream& is);
 
 /** Read from ARTSCAT-5
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat5Stream(istream& is);
+SingleLineExternal ReadFromArtscat5Stream(std::istream& is);
 
 /** Read from LBLRTM
  * 
@@ -760,7 +760,7 @@ SingleLineExternal ReadFromArtscat5Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromLBLRTMStream(istream& is);
+SingleLineExternal ReadFromLBLRTMStream(std::istream& is);
 
 /** Read from newer HITRAN
  *
@@ -816,7 +816,7 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromHitran2004Stream(istream& is);
+SingleLineExternal ReadFromHitran2004Stream(std::istream& is);
 
 /** Read from HITRAN online
  * 
@@ -831,7 +831,7 @@ SingleLineExternal ReadFromHitran2004Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
 */ 
-SingleLineExternal ReadFromHitranOnlineStream(istream& is);
+SingleLineExternal ReadFromHitranOnlineStream(std::istream& is);
 
 /** Read from HITRAN before 2004
  * 
@@ -840,7 +840,7 @@ SingleLineExternal ReadFromHitranOnlineStream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromHitran2001Stream(istream& is);
+SingleLineExternal ReadFromHitran2001Stream(std::istream& is);
 
 /** Read from JPL
  * 
@@ -886,7 +886,7 @@ SingleLineExternal ReadFromHitran2001Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromJplStream(istream& is);
+SingleLineExternal ReadFromJplStream(std::istream& is);
 
 /** Splits a list of lines into proper Lines
  * 

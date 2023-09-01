@@ -13,9 +13,7 @@
   \date 2003-08-14
   */
 
-#include "arts.h"
-#include "grids.h"
-#include "matpack_data.h"
+#include <matpack.h>
 
 namespace GSL::Integration {
 bool GaussLegendre(Vector &x, Vector &w, Index n);

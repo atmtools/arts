@@ -19,8 +19,6 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts.h"
-
 #include <chrono>
 #include <cstdlib>
 #include <ratio>

@@ -18,7 +18,6 @@
   ===========================================================================*/
 
 #include <workspace.h>
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
@@ -102,7 +101,7 @@ void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -121,7 +120,7 @@ void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -140,7 +139,7 @@ void surface_fieldMars(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -160,7 +159,7 @@ void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -219,7 +218,7 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -8,7 +8,7 @@ concept array_of_group = WorkspaceGroup<std::remove_cvref_t<T>> and
                          WorkspaceGroup<std::remove_cvref_t<decltype(T{}[0])>>;
 
 template <array_of_group T>
-void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
+void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
   const static String subtype =
       WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
 
@@ -27,12 +27,12 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
     for (n = 0; n < nelem; n++)
       xml_read_from_stream(is_xml, at[n], pbifs);
   } catch (const std::runtime_error &e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading "
        << WorkspaceGroupInfo<std::remove_cvref_t<T>>::name << ": "
        << "\n Element: " << n << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -45,7 +45,7 @@ void xml_read(istream &is_xml, T &at, bifstream *pbifs) try {
 }
 
 template <array_of_group T>
-void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
+void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
                const String &name) try {
   const static String subtype =
       WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
@@ -79,11 +79,11 @@ void xml_write(ostream &os_xml, const T &at, bofstream *pbofs,
 
 //! Helper macro for when both Array<T> and T are ARTS groups
 #define TMPL_XML_READ_WRITE_STREAM_ARRAY(T)                                    \
-  void xml_read_from_stream(istream &is_xml, T &at, bifstream *pbifs) {        \
+  void xml_read_from_stream(std::istream &is_xml, T &at, bifstream *pbifs) {        \
     xml_read(is_xml, at, pbifs);                                               \
   }                                                                            \
                                                                                \
-  void xml_write_to_stream(ostream &os_xml, const T &at, bofstream *pbofs,     \
+  void xml_write_to_stream(std::ostream &os_xml, const T &at, bofstream *pbofs,     \
                            const String &name) {                               \
     xml_write(os_xml, at, pbofs, name);                                        \
   }

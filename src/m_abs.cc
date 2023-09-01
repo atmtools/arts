@@ -18,7 +18,6 @@
 #include "absorptionlines.h"
 #include <workspace.h>
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "artstime.h"

@@ -289,7 +289,7 @@ bool is_singular(ConstMatrixView A) {
     }
     // Due to numerical precision the values can deviate from 0.0
     if (big < precision) {
-      throw runtime_error("Matrix is singular.");
+      throw std::runtime_error("Matrix is singular.");
       return true;
     }
   }
@@ -337,7 +337,7 @@ bool is_diagonal(ConstMatrixView A) {
 bool is_same_within_epsilon(const Numeric& a,
                             const Numeric& b,
                             const Numeric& epsilon) {
-  return abs(a - b) <= epsilon * max(abs(a), abs(b));
+  return std::abs(a - b) <= epsilon * std::max(std::abs(a), std::abs(b));
 }
 
 //! Check if the given longitude grid is cyclic.

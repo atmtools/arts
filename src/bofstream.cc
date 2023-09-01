@@ -11,6 +11,8 @@
 */
 
 #include "bofstream.h"
+#include "debug.h"
+
 #include <fstream>
 #include <stdexcept>
 
@@ -22,23 +24,23 @@ void bofstream::seek(long spos, Offset offs) {
 
   switch (offs) {
     case Set:
-      this->seekp(spos, ios::beg);
+      this->seekp(spos, std::ios::beg);
       break;
     case Add:
-      this->seekp(spos, ios::cur);
+      this->seekp(spos, std::ios::cur);
       break;
     case End:
-      this->seekp(spos, ios::end);
+      this->seekp(spos, std::ios::end);
       break;
   }
 }
 
-streampos bofstream::pos() {
+std::streampos bofstream::pos() {
   if (!in) {
     err = NotOpen;
     return 0;
   }
-  return streamoff(this->tellp());
+  return std::streamoff(this->tellp());
 }
 
 void bofstream::putByte(bofstream::Byte b) {

@@ -1174,7 +1174,7 @@ void chk_atm_field(const String& x_name,
               , "degrees in the longitude direction, but the field "
               , "seems to deviate between first and last longitude "
               , "point. The field must be \"cyclic\".\n"
-              , "Difference: ", setprecision(16)
+              , "Difference: ", std::setprecision(16)
               , x(ip, ir, ic) - x(ip, ir, 0), "\n"
               , "Epsilon   : "
               , 4 * DBL_EPSILON * max(x(ip, ir, ic), x(ip, ir, 0)))

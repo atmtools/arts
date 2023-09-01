@@ -13,7 +13,6 @@
 
 #include "absorption.h"
 #include <workspace.h>
-#include "arts.h"
 #include "arts_omp.h"
 #include "atm.h"
 #include "check_input.h"
@@ -108,20 +107,20 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
         // calculations
         if ("icecloud-" == thisname.substr(0, 9) ||
             "rain-" == thisname.substr(0, 5)) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Tag " << thisname << " not allowed in absorption "
              << "lookup tables.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
 
         // If we get here, then the tag was neither in the
         // posivitive nor in the negative list. We through a
         // runtime error.
-        ostringstream os;
+        std::ostringstream os;
         os << "Unknown whether tag " << thisname
            << " is a nonlinear species (i.e. uses h2o_abs) or not.\n"
            << "Cannot set abs_nls automatically.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     }
   }
@@ -298,11 +297,11 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   }
 
   if (std::isinf(maxdev)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Perturbation upper limit is infinity (likely due to the reference\n"
        << "profile being 0 at at least one pressure level). Can not work\n"
        << "with that.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // We divide the interval between mindev and maxdev, so that the
@@ -436,7 +435,7 @@ void propmat_clearskyAddFromLookup(
 
   // Check if the table has been adapted:
   if (1 != abs_lookup_is_adapted)
-    throw runtime_error(
+    throw std::runtime_error(
         "Gas absorption lookup table must be adapted,\n"
         "use method abs_lookupAdapt.");
 

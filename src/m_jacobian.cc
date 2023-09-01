@@ -13,7 +13,6 @@
 #include <cmath>
 #include <string>
 #include "absorption.h"
-#include "arts.h"
 #include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
@@ -51,7 +50,7 @@ void jacobianClose(Index& jacobian_do,
                    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Make sure that the array is not empty
   if (jacobian_quantities.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
   jacobian_agenda.finalize();
@@ -110,12 +109,12 @@ void jacobianAddAbsSpecies(const Workspace&,
   // Check that mode is correct
   if (mode != "vmr" && mode != "nd" && mode != "rel" && mode != "rh" &&
       mode != "q") {
-    throw runtime_error(
+    throw std::runtime_error(
         "The retrieval mode can only be \"vmr\", \"nd\", "
         "\"rel\", \"rh\" or \"q\".");
   }
   if ((mode == "rh" || mode == "q") && species.substr(0, 3) != "H2O") {
-    throw runtime_error(
+    throw std::runtime_error(
         "Retrieval modes \"rh\" and \"q\" can only be applied "
         "on species starting with H2O.");
   }
@@ -152,31 +151,31 @@ void jacobianAddFreqShift(const Workspace& ws _U_,
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of frequency shift is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of frequencies
-  if (df <= 0) throw runtime_error("The argument *df* must be > 0.");
+  if (df <= 0) throw std::runtime_error("The argument *df* must be > 0.");
   if (df > 1e6)
-    throw runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
+    throw std::runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
   const Index nf = f_grid.nelem();
   if (nf < 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "Frequency shifts and *f_grid* of length 1 can "
         "not be combined.");
   const Numeric maxdf = f_grid[nf - 1] - f_grid[nf - 2];
   if (df > maxdf) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The value of *df* is too big with respect to spacing of "
        << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
        << "between the two last elements of *f_grid*.\n"
        << "This spacing is   : " << maxdf / 1e3 << " kHz\n"
        << "The value of df is: " << df / 1e3 << " kHz";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -226,16 +225,16 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such frequency retrieval quantity defined.\n");
   }
 
   // Check that sensor_response is consistent with yb and iyb
   //
   if (sensor_response.nrows() != yb.nelem())
-    throw runtime_error("Mismatch in size between *sensor_response* and *yb*.");
+    throw std::runtime_error("Mismatch in size between *sensor_response* and *yb*.");
   if (sensor_response.ncols() != iyb.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "Mismatch in size between *sensor_response* and *iyb*.");
 
   // Get disturbed (part of) y
@@ -294,27 +293,27 @@ void jacobianAddFreqStretch(const Workspace& ws _U_,
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of df
-  if (df <= 0) throw runtime_error("The argument *df* must be > 0.");
+  if (df <= 0) throw std::runtime_error("The argument *df* must be > 0.");
   if (df > 1e6)
-    throw runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
+    throw std::runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
   const Index nf = f_grid.nelem();
   const Numeric maxdf = f_grid[nf - 1] - f_grid[nf - 2];
   if (df > maxdf) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The value of *df* is too big with respect to spacing of "
        << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
        << "between the two last elements of *f_grid*.\n"
        << "This spacing is   : " << maxdf / 1e3 << " kHz\n"
        << "The value of df is: " << df / 1e3 << " kHz";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -371,16 +370,16 @@ void jacobianCalcFreqStretch(
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such frequency retrieval quantity defined.\n");
   }
 
   // Check that sensor_response is consistent with yb and iyb
   //
   if (sensor_response.nrows() != yb.nelem())
-    throw runtime_error("Mismatch in size between *sensor_response* and *yb*.");
+    throw std::runtime_error("Mismatch in size between *sensor_response* and *yb*.");
   if (sensor_response.ncols() != iyb.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "Mismatch in size between *sensor_response* and *iyb*.");
 
   // Get disturbed (part of) y
@@ -460,35 +459,35 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
                            const Numeric& dza) {
   // Check that poly_order is -1 or positive
   if (poly_order < -1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The polynomial order has to be positive or -1 for gitter.");
 
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it].Target().isPointing()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of dza
-  if (dza <= 0) throw runtime_error("The argument *dza* must be > 0.");
+  if (dza <= 0) throw std::runtime_error("The argument *dza* must be > 0.");
   if (dza > 0.1)
-    throw runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
+    throw std::runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
 
   // Check that sensor_time is consistent with sensor_pos
   if (sensor_time.nelem() != sensor_pos.nrows()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The WSV *sensor_time* must be defined for every "
        << "measurement block.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Do not allow that *poly_order* is not too large compared to *sensor_time*
   if (poly_order > sensor_time.nelem() - 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "The polynomial order can not be >= length of *sensor_time*.");
   }
 
@@ -501,7 +500,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
     jacobian_agenda.add({"jacobianCalcPointingZaInterp"});
   } else
-    throw runtime_error(
+    throw std::runtime_error(
       R"(Possible choices for *calcmode* are "recalc" and "interp".)");
   rq.Target().perturbation = dza;
 
@@ -533,13 +532,13 @@ void jacobianCalcPointingZaInterp(
     const ArrayOfTime& sensor_time,
     const ArrayOfRetrievalQuantity& jacobian_quantities) {
   if (mblock_dlos.nrows() < 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "The method demands that *mblock_dlos* has "
         "more than one row.");
 
   if (!(is_increasing(mblock_dlos(joker, 0)) ||
         is_decreasing(mblock_dlos(joker, 0))))
-    throw runtime_error(
+    throw std::runtime_error(
         "The method demands that the zenith angles in "
         "*mblock_dlos* are sorted (increasing or decreasing).");
 
@@ -563,7 +562,7 @@ void jacobianCalcPointingZaInterp(
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such pointing retrieval quantity defined.\n");
   }
 
@@ -664,15 +663,15 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
                         const Index& no_mblock_variation) {
   // Check that poly_order is >= 0
   if (poly_order < 0)
-    throw runtime_error("The polynomial order has to be >= 0.");
+    throw std::runtime_error("The polynomial order has to be >= 0.");
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Sensor::Polyfit) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -708,7 +707,7 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
   // Each polynomial coeff. is treated as a retrieval quantity
   //
   for (Index i = 0; i <= poly_order; i++) {
-    ostringstream sstr;
+    std::ostringstream sstr;
     sstr << "Coefficient " << i;
     rq.Subtag(sstr.str());
 
@@ -741,7 +740,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   ArrayOfIndex ji;
   bool found = false;
   Index iq;
-  ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Polyfit &&
@@ -751,7 +750,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no Polyfit jacobian defined, in general "
         "or for the selected polynomial coefficient.\n");
   }
@@ -825,11 +824,11 @@ void jacobianAddScatSpecies(const Workspace&,
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The combintaion of\n   scattering species: " << species
          << "\n   retrieval quantity: " << quantity
          << "\nis already included in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -864,15 +863,15 @@ void jacobianAddSinefit(const Workspace& ws _U_,
   const Index np = period_lengths.nelem();
 
   // Check that poly_order is >= 0
-  if (np == 0) throw runtime_error("No sinusoidal periods has benn given.");
+  if (np == 0) throw std::runtime_error("No sinusoidal periods has benn given.");
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Sensor::Sinefit) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -908,7 +907,7 @@ void jacobianAddSinefit(const Workspace& ws _U_,
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
   for (Index i = 0; i < np; i++) {
-    ostringstream sstr;
+    std::ostringstream sstr;
     sstr << "Period " << i;
     rq.Subtag(sstr.str());
 
@@ -941,7 +940,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   ArrayOfIndex ji;
   bool found = false;
   Index iq;
-  ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "Period " << period_index;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Sinefit &&
@@ -951,7 +950,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no Sinefit jacobian defined, in general "
         "or for the selected period length.\n");
   }
@@ -1029,10 +1028,10 @@ void jacobianAddSurfaceQuantity(const Workspace&,
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
-      ostringstream os;
+      std::ostringstream os;
       os << quantity << " is already included as a surface variable "
          << "in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -1065,9 +1064,9 @@ void jacobianAddTemperature(const Workspace&,
   // We only check the main tag.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Atm::Temperature) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -1078,10 +1077,10 @@ void jacobianAddTemperature(const Workspace&,
   } else if (hse == "off") {
     subtag = "HSE off";
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The keyword for hydrostatic equilibrium can only be set to\n"
        << "\"on\" or \"off\"\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -1335,7 +1334,7 @@ void jacobianAddNLTE(const Workspace&,
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The NLTE identifier:\n"
          << energy_level_identity << "\nis already included in "
          << "*jacobian_quantities*.";
@@ -1390,7 +1389,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
   if (species == "electrons") {
     for (Index it = 0; it < jq.nelem(); it++) {
       if (jq[it] == Jacobian::Atm::Electrons) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
@@ -1400,7 +1399,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
   } else if (species == "particulates") {
     for (Index it = 0; it < jq.nelem(); it++) {
       if (jq[it] == Jacobian::Atm::Particulates) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
@@ -1408,7 +1407,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
     rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
     
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown special species jacobian: \"" << species
        << "\"\nPlease see *jacobianAddSpecialSpecies* for viable options.";
     throw std::runtime_error(os.str());
@@ -1470,7 +1469,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
                                      const Matrix& transformation_matrix,
                                      const Vector& offset_vector) {
   if (jqs.empty()) {
-    runtime_error(
+    std::runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
         "transformation to.");
   }
@@ -1478,11 +1477,11 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
   Index nelem = jqs.back().Grids().nelem();
 
   if (!(nelem == transformation_matrix.nrows())) {
-    runtime_error(
+    std::runtime_error(
         "Dimension of transformation matrix incompatible with retrieval grids.");
   }
   if (!(nelem == offset_vector.nelem())) {
-    runtime_error(
+    std::runtime_error(
         "Dimension of offset vector incompatible with retrieval grids.");
   }
 
@@ -1496,7 +1495,7 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
                                    const Numeric& z_min,
                                    const Numeric& z_max) {
   if (jqs.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
         "transformation to.");
 
@@ -1509,7 +1508,7 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 
   if (transformation_func == "atanh") {
     if (z_max <= z_min)
-      throw runtime_error(
+      throw std::runtime_error(
           "For option atanh, the GIN *z_max* must be set and be > z_min.");
     pars.resize(2);
     pars[0] = z_min;
@@ -1518,11 +1517,11 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
     pars.resize(1);
     pars[0] = z_min;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Valid options for *transformation_func* are:\n"
        << "\"none\", \"log\", \"log10\" and \"atanh\"\n"
        << "But found: \"" << transformation_func << "\"";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   jqs.back().SetTransformationFunc(transformation_func);
@@ -1567,11 +1566,11 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
 
   // Now we can chec *pert_index*
   if (pert_index<0){
-    throw runtime_error("Bad *pert_index*. It is negative.");
+    throw std::runtime_error("Bad *pert_index*. It is negative.");
   }
   const Index n_tot = n_p * n_lat * n_lon;
   if (pert_index >= n_tot){
-    throw runtime_error("Bad *pert_index*. It is too high with respect "
+    throw std::runtime_error("Bad *pert_index*. It is too high with respect "
                         "to length of retrieval grids.");
   }    
   
@@ -1586,7 +1585,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
     x[pert_index] += pert_size;
   }
   else{
-    throw runtime_error("Bad *pert_mode*. Allowed choices are: "
+    throw std::runtime_error("Bad *pert_mode*. Allowed choices are: "
                         """absolute"" and ""relative"".");
   }
   
@@ -1632,10 +1631,10 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
                 lon_grid,
                 false );
   if (pert_index<0){
-    throw runtime_error("Bad *pert_index*. It is negative.");
+    throw std::runtime_error("Bad *pert_index*. It is negative.");
   }
   if (pert_index >= n_p * n_lat * n_lon){
-    throw runtime_error("Bad *pert_index*. It is too high with respect "
+    throw std::runtime_error("Bad *pert_index*. It is too high with respect "
                         "to length of atmospheric grids.");
   }    
 
@@ -1681,7 +1680,7 @@ void jacobianFromTwoY(Matrix& jacobian,
                     const Numeric& pert_size) {
   const Index n = y.nelem();
   if( y_pert.nelem() != n ){
-    throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
+    throw std::runtime_error("Inconsistency in length of *y_pert* and *y*.");
   }
   jacobian = ExhaustiveConstMatrixView{y_pert};
   jacobian -= ExhaustiveConstMatrixView{y};
@@ -1697,7 +1696,7 @@ void jacobianFromYbatch(Matrix& jacobian,
   const Index l = ybatch.nelem();
   if (l>0){
       if( ybatch[0].nelem() != n )
-        throw runtime_error("Inconsistency in length of y and ybatch[0].");
+        throw std::runtime_error("Inconsistency in length of y and ybatch[0].");
     }
   jacobian.resize(n,l);
   for (Index i=0; i<l; i++) {

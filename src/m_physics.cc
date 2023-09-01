@@ -18,7 +18,6 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts.h"
 #include "arts_constants.h"
 #include <workspace.h>
 #include "check_input.h"
@@ -41,7 +40,7 @@ void MatrixCBR(  // WS Output:
     const Vector& f) {
   const Index n = f.nelem();
 
-  if (n == 0) throw runtime_error("The given frequency vector is empty.");
+  if (n == 0) throw std::runtime_error("The given frequency vector is empty.");
 
   m.resize(n, 4);
   m = 0;
@@ -58,7 +57,7 @@ void MatrixPlanck(  // WS Output:
     const Numeric& t) {
   const Index n = f.nelem();
 
-  if (n == 0) throw runtime_error("The given frequency vector is empty.");
+  if (n == 0) throw std::runtime_error("The given frequency vector is empty.");
 
   m.resize(n, 4);
   m = 0;
@@ -74,7 +73,7 @@ void MatrixUnitIntensity(  // WS Output:
     const Vector& f) {
   const Index n = f.nelem();
 
-  if (n == 0) throw runtime_error("The given frequency vector is empty.");
+  if (n == 0) throw std::runtime_error("The given frequency vector is empty.");
 
   m.resize(n, 4);
   m = 0;

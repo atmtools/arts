@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include "arts.h"
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
@@ -272,10 +271,10 @@ bool get_parameters(int argc, char **argv) {
         parameters.methods = optarg;
         break;
       case 'n': {
-        istringstream iss(optarg);
+        std::istringstream iss(optarg);
         iss >> std::dec >> parameters.numthreads;
         if (iss.bad() || !iss.eof()) {
-          cerr << "Argument to --numthreads (-n) must be an integer!\n";
+          std::cerr << "Argument to --numthreads (-n) must be an integer!\n";
           std::exit(EXIT_FAILURE);
         }
         break;
@@ -288,7 +287,7 @@ bool get_parameters(int argc, char **argv) {
         break;
       case 'r': {
         //      cout << "optarg = " << optarg << endl;
-        istringstream iss(optarg);
+        std::istringstream iss(optarg);
         iss >> parameters.reporting;
         ws(iss);
         // This if statement should cover all cases: If there is
@@ -296,7 +295,7 @@ bool get_parameters(int argc, char **argv) {
         // there is something else behind the integer, ws does not
         // reach the end of is (second condition).
         if (iss.bad() || !iss.eof()) {
-          cerr << "Argument to --reporting (-r) must be an integer!\n";
+          std::cerr << "Argument to --reporting (-r) must be an integer!\n";
           std::exit(EXIT_FAILURE);
         }
         break;
@@ -307,10 +306,10 @@ bool get_parameters(int argc, char **argv) {
         break;
       case 's': {
         if (optarg) {
-          istringstream iss(optarg);
+          std::istringstream iss(optarg);
           iss >> std::dec >> parameters.docserver;
           if (iss.bad() || !iss.eof()) {
-            cerr << "Argument to --docserver (-s) must be an integer!\n";
+            std::cerr << "Argument to --docserver (-s) must be an integer!\n";
             arts_exit();
           }
         } else
@@ -319,10 +318,10 @@ bool get_parameters(int argc, char **argv) {
       }
       case 'S': {
         if (optarg) {
-          istringstream iss(optarg);
+          std::istringstream iss(optarg);
           iss >> std::dec >> parameters.docserver;
           if (iss.bad() || !iss.eof()) {
-            cerr << "Argument to --docdaemon (-S) must be an integer!\n";
+            std::cerr << "Argument to --docdaemon (-S) must be an integer!\n";
             arts_exit();
           }
         } else
@@ -339,7 +338,7 @@ bool get_parameters(int argc, char **argv) {
       case 's': [[fallthrough]];
       case 'S': [[fallthrough]];
       case 'U':
-        cerr << "This version of ARTS was compiled without documentation "
+        std::cerr << "This version of ARTS was compiled without documentation "
                 "server support.\n";
         std::exit(EXIT_FAILURE);
         break;

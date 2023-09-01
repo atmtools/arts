@@ -10,7 +10,6 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "atm.h"

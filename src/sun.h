@@ -17,7 +17,6 @@
 #include <matpack.h>
 #include <rtepack.h>
 
-#include "arts.h"
 #include "atm.h"
 #include "gridded_fields.h"
 #include "jacobian.h"

@@ -51,7 +51,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
   if (N_aa_grid > 1)
     nlinspace(aa_grid, -180, 180, N_aa_grid);
   else if (N_aa_grid < 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "N_aa_grid must be > 0 (even for 1D).";
     throw std::runtime_error(os.str());
   } else {
@@ -60,9 +60,9 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
   }
 
   if (N_za_grid % 2 == 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "N_za_grid must be even.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Index nph = N_za_grid / 2;
@@ -153,7 +153,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     za_grid_weights = reverse(w);
 
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The selected grid type is not implemented";
     throw std::runtime_error(os.str());
   }
@@ -321,7 +321,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
                                      const Vector& f_grid,
                                      const Tensor5& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nshelves()) {
-    throw runtime_error(
+    throw std::runtime_error(
         "The length of f_grid does not match with\n"
         " the first dimension of the spectral_radiation_field");
   }
@@ -357,7 +357,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
                                      const Vector& f_grid,
                                      const Tensor7& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nlibraries()) {
-    throw runtime_error(
+    throw std::runtime_error(
         "The length of f_grid does not match with\n"
         " the first dimension of the spectral_radiation_field");
   }
@@ -475,11 +475,11 @@ void spectral_radiance_fieldCopyCloudboxField(
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor7& cloudbox_field) {
-  throw runtime_error("This method can only be used for 1D calculations.\n");
+  throw std::runtime_error("This method can only be used for 1D calculations.\n");
   if (!cloudbox_on)
-    throw runtime_error("Cloudbox is off. This is not handled by this method.");
+    throw std::runtime_error("Cloudbox is off. This is not handled by this method.");
   if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem() - 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The cloudbox must cover all pressure levels "
         "to use this method.");
 

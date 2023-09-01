@@ -7,7 +7,6 @@
  */
 
 #include "jacobian.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "atm.h"
 #include <workspace.h>
@@ -20,7 +19,7 @@
 inline constexpr Numeric NAT_LOG_TEN=Constant::ln_10;
 inline constexpr Numeric PI=Constant::pi;
 
-ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
+std::ostream& operator<<(std::ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Target   = " << ot.Target()
             << "\n       Sub  tag = " << ot.Subtag()
             << "\n           Mode = " << ot.Mode();
@@ -132,6 +131,7 @@ void transform_jacobian(Matrix& jacobian,
         jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
       }
     }
+    using std::swap;
     swap(jacobian_t, jacobian);
   }
 }
@@ -209,6 +209,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x_t[col_range_t] = x[col_range];
       }
     }
+    using std::swap;
     swap(x, x_t);
   }
 }
@@ -245,6 +246,7 @@ void transform_x_back(Vector& x_t,
         x[col_range] = x_t[col_range_t];
       }
     }
+    using std::swap;
     swap(x_t, x);
   }
 
@@ -541,7 +543,7 @@ ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacob
   ===========================================================================*/
 
 bool check_retrieval_grids(ArrayOfVector& grids,
-                           ostringstream& os,
+                           std::ostringstream& os,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
@@ -651,7 +653,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 }
 
 bool check_retrieval_grids(ArrayOfVector& grids,
-                           ostringstream& os,
+                           std::ostringstream& os,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
                            const Vector& lat_retr,

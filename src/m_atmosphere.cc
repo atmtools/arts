@@ -28,7 +28,6 @@
 #include "species_tags.h"
 #include "absorption.h"
 #include <workspace.h>
-#include "arts.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "geodetic.h"

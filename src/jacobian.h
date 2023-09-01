@@ -510,7 +510,7 @@ class RetrievalQuantity {
   [[nodiscard]] const Matrix& Transformation() const { return transformation_matrix; }
   [[nodiscard]] const Vector& Offset() const { return offset_vector; }
 
-  friend ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
+  friend std::ostream& operator<<(std::ostream& os, const RetrievalQuantity& ot);
 
  private:
   String msubtag;
@@ -642,7 +642,7 @@ void transform_x_back(Vector& x_t,
    @date   2005-05-11
  */
 bool check_retrieval_grids(ArrayOfVector& grids,
-                           ostringstream& os,
+                           std::ostringstream& os,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
@@ -681,7 +681,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
    @date   2005-05-11
  */
 bool check_retrieval_grids(ArrayOfVector& grids,
-                           ostringstream& os,
+                           std::ostringstream& os,
                            const Vector& lat_grid,
                            const Vector& lon_grid,
                            const Vector& lat_retr,

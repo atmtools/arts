@@ -20,7 +20,7 @@
 #ifndef H_BINIO_BINIO
 #define H_BINIO_BINIO
 
-#include "arts.h"
+#include <ios>
 
 /***** Configuration *****/
 

@@ -479,10 +479,9 @@ Numeric min_geq(const Numeric n1,
   } else if (n2<limit) {
     if (n1<limit)
       return limit-1;
-    else
-      return n1;
+    return n1;
   } else {
-    return min(n1,n2);
+    return std::min(n1,n2);
   }
 }
 
@@ -491,10 +490,9 @@ Index n_int_between(const Numeric x, const Numeric y) {
   if (y > x) {
     n = Index(std::ceil(y)) - Index(std::floor(x)) - 1;
     return n > 0 ? n : 0;
-  } else {
-    n = Index(std::ceil(x)) - Index(std::floor(y)) - 1;
-    return n > 0 ? -n : 0;
   }
+  n = Index(std::ceil(x)) - Index(std::floor(y)) - 1;
+  return n > 0 ? -n : 0;
 }
 
 Index int_at_step(const Numeric gp, const Index step) {

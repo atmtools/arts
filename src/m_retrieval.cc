@@ -24,7 +24,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
 
   if (!covmat_block.empty()) {
     if ((n_gps == extent) && (n_gps == covmat_block.ncols())) {
-      std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
+      std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_block);
       covmat.add_correlation(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
@@ -37,7 +37,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
   if (!covmat_inv_block.empty()) {
     if ((n_gps == covmat_inv_block.nrows()) &&
         (n_gps == covmat_inv_block.ncols())) {
-      std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_inv_block);
+      std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_inv_block);
       covmat.add_correlation_inverse(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
@@ -56,10 +56,10 @@ void add_scalar_variance(CovarianceMatrix& covmat,
   Index start = covmat.nrows();
   Index extent = 1;
   Range range(start, extent);
-  std::shared_ptr<Matrix> mat = make_shared<Matrix>(1, 1);
+  std::shared_ptr<Matrix> mat = std::make_shared<Matrix>(1, 1);
   mat->operator()(0, 0) = var;
   covmat.add_correlation(Block(range, range, std::make_pair(i, i), mat));
-  mat = make_shared<Matrix>(1, 1);
+  mat = std::make_shared<Matrix>(1, 1);
   mat->operator()(0, 0) = 1.0 / var;
   covmat.add_correlation_inverse(
       Block(range, range, std::make_pair(i, i), mat));
@@ -331,7 +331,7 @@ void covmat1D(MatrixType& block,
   } else if (fname == "gau") {
     f = f_gau;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << fname << " is not a known function name. Supported names"
        << "are: exp, lin, gau.";
     std::runtime_error(os.str());
@@ -625,7 +625,7 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
   Index col_extent = ji[jj][1] - ji[jj][0] + 1;
   Range col_range(col_start, col_extent);
 
-  std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block);
+  std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
   covmat_sx.add_correlation(
       Block(row_range, col_range, std::make_pair(ii, jj), mat));
 }
@@ -703,7 +703,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
   Index col_extent = ji[jj][1] - ji[jj][0] + 1;
   Range col_range(col_start, col_extent);
 
-  std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block_inv);
+  std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block_inv);
   covmat_sx.add_correlation_inverse(
       Block(row_range, col_range, std::make_pair(ii, jj), mat));
 }

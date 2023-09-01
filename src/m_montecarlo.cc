@@ -15,7 +15,6 @@
 #include <ctime>
 #include <fstream>
 #include <stdexcept>
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include <workspace.h>

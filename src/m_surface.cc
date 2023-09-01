@@ -20,7 +20,6 @@
 #include <cmath>
 #include <iomanip>
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include <workspace.h>
 #include "atm.h"
@@ -79,7 +78,7 @@ void FastemStandAlone(Matrix& emissivity,
   emissivity.resize(nf, 4);
   reflectivity.resize(nf, 4);
 
-  const Numeric t = max(surface_skin_t, Numeric(270));
+  const Numeric t = std::max(surface_skin_t, Numeric(270));
 
   for (Index i = 0; i < nf; i++) {
     if (f_grid[i] > 250e9)
@@ -225,23 +224,23 @@ void iySurfaceRtpropAgenda(const Workspace& ws,
   if (nlos)  // if 0, blackbody ground and not all checks are needed
   {
     if (surface_los.ncols() != rtp_los.nelem())
-      throw runtime_error("Number of columns in *surface_los* is not correct.");
+      throw std::runtime_error("Number of columns in *surface_los* is not correct.");
     if (nlos != surface_rmatrix.nbooks())
-      throw runtime_error(
+      throw std::runtime_error(
           "Mismatch in size of *surface_los* and *surface_rmatrix*.");
     if (surface_rmatrix.npages() != nf)
-      throw runtime_error(
+      throw std::runtime_error(
           "Mismatch in size of *surface_rmatrix* and *f_grid*.");
     if (surface_rmatrix.nrows() != 4 ||
         surface_rmatrix.ncols() != 4)
-      throw runtime_error(
+      throw std::runtime_error(
           "Wrong size *surface_rmatrix*.");
   }
   if (surface_emission.ncols() != 4)
-    throw runtime_error(
+    throw std::runtime_error(
         "Wrong size *surface_emission*.");
   if (surface_emission.nrows() != nf)
-    throw runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
+    throw std::runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
 
   // Variable to hold down-welling radiation
   Tensor3 I(nlos, nf, 4);
@@ -304,13 +303,13 @@ void iySurfaceRtpropAgenda(const Workspace& ws,
       }
 
       if (iy.ncols() != 4 || iy.nrows() != nf) {
-        ostringstream os;
+        std::ostringstream os;
         os << "The size of *iy* returned from *" << iy_main_agenda.get_name()
            << "* is\n"
            << "not correct:\n"
            << "  expected size = [" << nf << "," << 4 << "]\n"
            << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       I(ilos, joker, joker) = iy;
@@ -356,23 +355,23 @@ void iySurfaceRtpropCalc(const Workspace& ws,
   if (nlos)  // if 0, blackbody ground and not all checks are needed
   {
     if (surface_los.ncols() != rtp_los.nelem())
-      throw runtime_error("Number of columns in *surface_los* is not correct.");
+      throw std::runtime_error("Number of columns in *surface_los* is not correct.");
     if (nlos != surface_rmatrix.nbooks())
-      throw runtime_error(
+      throw std::runtime_error(
           "Mismatch in size of *surface_los* and *surface_rmatrix*.");
     if (surface_rmatrix.npages() != nf)
-      throw runtime_error(
+      throw std::runtime_error(
           "Mismatch in size of *surface_rmatrix* and *f_grid*.");
     if (surface_rmatrix.nrows() != 4 ||
         surface_rmatrix.ncols() != 4)
-      throw runtime_error(
+      throw std::runtime_error(
           "Wrong size *surface_rmatrix*.");
   }
   if (surface_emission.ncols() != 4)
-    throw runtime_error(
+    throw std::runtime_error(
         "Wrong size *surface_emission*.");
   if (surface_emission.nrows() != nf)
-    throw runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
+    throw std::runtime_error("Mismatch in size of *surface_emission* and f_grid*.");
 
   // Variable to hold down-welling radiation
   Tensor3 I(nlos, nf, 4);
@@ -434,13 +433,13 @@ void iySurfaceRtpropCalc(const Workspace& ws,
       }
 
       if (iy.ncols() != 4 || iy.nrows() != nf) {
-        ostringstream os;
+        std::ostringstream os;
         os << "The size of *iy* returned from *" << iy_main_agenda.get_name()
            << "* is\n"
            << "not correct:\n"
            << "  expected size = [" << nf << "," << 4 << "]\n"
            << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       I(ilos, joker, joker) = iy;
@@ -457,12 +456,12 @@ void iySurfaceRtpropCalc(const Workspace& ws,
       // Error if derivatives not calculated
       // Or should we accept this?
       if (dsurface_emission_dx[i].empty() || dsurface_rmatrix_dx[i].empty()) {
-        ostringstream os;
+        std::ostringstream os;
         os << "The derivatives for surface quantity: " << dsurface_names[i]
            << "\nwere not calculated by *iy_surface_agenda*.\n"
            << "That is, *dsurface_emission_dx* and/or *dsurface_rmatrix_dx*\n"
            << "are empty.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       } else {
         // Find index among jacobian quantities
         Index ihit = -1;
@@ -588,8 +587,8 @@ void surfaceTessem(Matrix& surface_los,
     tessem_prop_nn(e_h, net_h, in);
     tessem_prop_nn(e_v, net_v, in);
 
-    surface_rv_rh(i, 0) = min(max(1 - e_v[0], (Numeric)0), (Numeric)1);
-    surface_rv_rh(i, 1) = min(max(1 - e_h[0], (Numeric)0), (Numeric)1);
+    surface_rv_rh(i, 0) = std::min(std::max(1 - e_v[0], (Numeric)0), (Numeric)1);
+    surface_rv_rh(i, 1) = std::min(std::max(1 - e_h[0], (Numeric)0), (Numeric)1);
   }
 
   surfaceFlatRvRh(surface_los,
@@ -744,24 +743,24 @@ void surfaceFlatRvRh(Matrix& surface_los,
   const Index nf = f_grid.nelem();
 
   if (surface_rv_rh.ncols() != 2) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of columns in *surface_rv_rh* must be two,\n"
        << "but the actual number of columns is " << surface_rv_rh.ncols()
        << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (surface_rv_rh.nrows() != nf && surface_rv_rh.nrows() != 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of rows in *surface_rv_rh* should\n"
        << "match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << nf
        << "\n rows in *surface_rv_rh* : " << surface_rv_rh.nrows() << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (min(surface_rv_rh) < 0 || max(surface_rv_rh) > 1) {
-    throw runtime_error("All values in *surface_rv_rh* must be inside [0,1].");
+    throw std::runtime_error("All values in *surface_rv_rh* must be inside [0,1].");
   }
 
   surface_los.resize(1, specular_los.nelem());
@@ -818,18 +817,18 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
 
   if (surface_scalar_reflectivity.nelem() != nf &&
       surface_scalar_reflectivity.nelem() != 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of elements in *surface_scalar_reflectivity* should\n"
        << "match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << nf
        << "\n length of *surface_scalar_reflectivity* : "
        << surface_scalar_reflectivity.nelem() << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (min(surface_scalar_reflectivity) < 0 ||
       max(surface_scalar_reflectivity) > 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "All values in *surface_scalar_reflectivity* must be inside [0,1].");
   }
 
@@ -881,18 +880,18 @@ void surfaceLambertianSimple(Matrix& surface_los,
 
   if (surface_scalar_reflectivity.nelem() != nf &&
       surface_scalar_reflectivity.nelem() != 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of elements in *surface_scalar_reflectivity* should\n"
        << "match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << nf
        << "\n length of *surface_scalar_reflectivity* : "
        << surface_scalar_reflectivity.nelem() << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (min(surface_scalar_reflectivity) < 0 ||
       max(surface_scalar_reflectivity) > 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "All values in *surface_scalar_reflectivity* must be inside [0,1].");
   }
 
@@ -1125,7 +1124,7 @@ void transmittanceFromIy_aux(Vector& transmittance,
   }
 
   if (ihit < 0)
-    throw runtime_error("No element in *iy_aux* holds optical depths.");
+    throw std::runtime_error("No element in *iy_aux* holds optical depths.");
 
   const Index n = iy_aux[ihit].nrows();
 

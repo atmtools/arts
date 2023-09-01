@@ -21,7 +21,6 @@
 #include <stdexcept>
 
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "atm.h"
 #include "check_input.h"
@@ -444,8 +443,8 @@ void pndFromPsd(Matrix& pnd_data,
   Numeric max0 = 0, max1 = 0;
   for (Index ip = 0; ip < np; ip++)  //loop over pressure levels
   {
-    max0 = max(abs(pnd_data(ip, intarr[0])), max0);
-    max1 = max(abs(pnd_data(ip, intarr[ng - 1])), max1);
+    max0 = std::max(std::abs(pnd_data(ip, intarr[0])), max0);
+    max1 = std::max(std::abs(pnd_data(ip, intarr[ng - 1])), max1);
   }
 
   Numeric contrib;

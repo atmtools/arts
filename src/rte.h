@@ -18,17 +18,8 @@
   ===========================================================================*/
 
 #include <workspace.h>
-#include "arts.h"
-#include "atm.h"
-#include "jacobian.h"
-#include "matpack_data.h"
-#include "matpack_complex.h"
-#include "optproperties.h"
+
 #include "ppath.h"
-#include "rtepack.h"
-
-
-class Workspace;
 
 /*===========================================================================
   === Functions in rte.cc

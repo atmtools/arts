@@ -21,7 +21,6 @@
 #include "gridded_fields.h"
 using namespace std;
 
-#include "arts.h"
 #include "arts_omp.h"
 #include <workspace.h>
 #include "math_funcs.h"

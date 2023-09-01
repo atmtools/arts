@@ -21,7 +21,6 @@
 #include <stdexcept>
 #include <workspace.h>
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
@@ -130,7 +129,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
   doit_iteration_counter += 1;
 
   if (doit_iteration_counter > max_iterations) {
-    ostringstream out;
+    std::ostringstream out;
     out << "Method does not converge (number of iterations \n"
         << "is > " << max_iterations << "). Either the cloud "
         << "particle number density \n"
@@ -141,7 +140,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
         << "*cloudbox_field* might be wrong.\n";
     if (throw_nonconv_error != 0) {
       // FIXME: OLE: Remove this later
-      //          ostringstream os;
+      //          std::ostringstream os;
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
@@ -247,7 +246,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
 
   //Numeric max_diff_bt = 0.;
   if (doit_iteration_counter > max_iterations) {
-    ostringstream out;
+    std::ostringstream out;
     out << "At frequency " << f_grid[f_index] << " GHz \n"
         << "method does not converge (number of iterations \n"
         << "is > " << max_iterations << "). Either the particle"
@@ -259,7 +258,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
         << "*cloudbox_field* might be wrong.\n";
     if (throw_nonconv_error != 0) {
       // FIXME: OLE: Remove this later
-      //          ostringstream os;
+      //          std::ostringstream os;
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
@@ -370,7 +369,7 @@ void doit_conv_flagLsq(  //WS Output:
   doit_iteration_counter += 1;
 
   if (doit_iteration_counter > max_iterations) {
-    ostringstream out;
+    std::ostringstream out;
     out << "Method does not converge (number of iterations \n"
         << "is > " << max_iterations << "). Either the"
         << " particle number density \n"
@@ -380,7 +379,7 @@ void doit_conv_flagLsq(  //WS Output:
         << "optimized zenith angle grid. \n";
     if (throw_nonconv_error != 0) {
       // FIXME: OLE: Remove this later
-      //          ostringstream os;
+      //          std::ostringstream os;
       //          os << "Error in DOIT calculation:\n"
       //             << out.str();
       //          throw runtime_error( os.str() );
@@ -606,7 +605,7 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
   // cloudbox
   Vector p_grid_cloudbox {p_grid[Range(
       cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)]};
-  ostringstream os;
+  std::ostringstream os;
   os << "There is a problem with the pressure grid interpolation";
   chk_interpolation_grids(os.str(), p_grid, p_grid_orig);
 
@@ -658,7 +657,7 @@ void OptimizeDoitPressureGrid(
   Numeric tau_scat_max_internal = tau_scat_max;
   ArrayOfSingleScatteringData& scat_data_local = scat_data_mono[0];
   p_grid_orig = p_grid;
-  vector<Numeric> z_grid_new;
+  std::vector<Numeric> z_grid_new;
   Vector ext_mat(cloudbox_limits[1] - cloudbox_limits[0] + 1);
   Vector abs_vec(cloudbox_limits[1] - cloudbox_limits[0] + 1);
   Vector scat_vec(cloudbox_limits[1] - cloudbox_limits[0] + 1);
@@ -824,7 +823,7 @@ void OptimizeDoitPressureGrid(
                            1);
   ArrayOfGridPos Z_gp(z_grid.nelem());
   Matrix itw_z(Z_gp.nelem(), 2);
-  ostringstream os;
+  std::ostringstream os;
   os << "At the current frequency " << f_grid[f_index]
      << " there was an error while interpolating the fields to the new z_field";
   chk_interpolation_grids(os.str(), z_field(joker, 0, 0), z_grid);
@@ -912,7 +911,7 @@ void DoitWriteIterationFields(  //WS input
   // If the number of iterations is less than a number specified in the
   // keyword *iterations*, this number will be ignored.
 
-  ostringstream os;
+  std::ostringstream os;
   os << "doit_iteration_f" << f_index << "_i" << doit_iteration_counter;
 
   // All iterations for all frequencies are written to files
@@ -1085,7 +1084,7 @@ void DoitCalc(const Workspace& ws,
       }
 
       try {
-        ostringstream os;
+        std::ostringstream os;
         os << "Frequency: " << f_grid[f_index] / 1e9 << " GHz \n";
 
         Tensor6 cloudbox_field_mono_local{
@@ -1099,9 +1098,9 @@ void DoitCalc(const Workspace& ws,
             cloudbox_field_mono_local;
       } catch (const std::exception& e) {
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
-        ostringstream os;
+        std::ostringstream os;
         os << "Error for f_index = " << f_index << " (" << f_grid[f_index]
-           << " Hz)" << endl
+           << " Hz)" << std::endl
            << e.what();
 #pragma omp critical(DoitCalc_fail)
         {

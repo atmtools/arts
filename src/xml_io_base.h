@@ -15,7 +15,6 @@
 
 #include <memory>
 
-#include "arts.h"
 #include "xml_io_general_types.h"
 
 #ifdef ENABLE_ZLIB
@@ -86,9 +85,9 @@ class XMLTag {
    */
   void get_attribute_value(const String& aname, Numeric& value);
   
-  void read_from_stream(istream& is);
+  void read_from_stream(std::istream& is);
 
-  void write_to_stream(ostream& os);
+  void write_to_stream(std::ostream& os);
   
   /** Returns if the attribute exists or not
    * 
@@ -110,15 +109,15 @@ void xml_parse_error(const String& str_error);
 
 void xml_data_parse_error(XMLTag& tag, const String& str_error);
 
-void xml_set_stream_precision(ostream& os);
+void xml_set_stream_precision(std::ostream& os);
 
 void parse_xml_tag_content_as_string(std::istream& is_xml, String& content);
 
 void xml_parse_from_stream(
-    istream &, Vector &, bifstream *, XMLTag &);
+    std::istream &, Vector &, bifstream *, XMLTag &);
 
 void xml_parse_from_stream(
-    istream &, ArrayOfString &, bifstream *, XMLTag &);
+    std::istream &, ArrayOfString &, bifstream *, XMLTag &);
 
 FileType string2filetype(const String& file_format);
 
@@ -136,7 +135,7 @@ FileType string2filetype(const String& file_format);
   \param ntype  Numeric type
   \param etype  Endian type
 */
-void xml_read_header_from_stream(istream& is,
+void xml_read_header_from_stream(std::istream& is,
                                  FileType& ftype,
                                  NumericType& ntype,
                                  EndianType& etype);
@@ -147,21 +146,21 @@ void xml_read_header_from_stream(istream& is,
 
   \param is  Input stream
 */
-void xml_read_footer_from_stream(istream& is);
+void xml_read_footer_from_stream(std::istream& is);
 
 //! Writes XML header and root tag
 /*!
   \param os     Output stream
   \param ftype  File type
 */
-void xml_write_header_to_stream(ostream& os,
+void xml_write_header_to_stream(std::ostream& os,
                                 FileType ftype);
 
 //! Write closing root tag
 /*!
   \param os Output stream
 */
-void xml_write_footer_to_stream(ostream& os);
+void xml_write_footer_to_stream(std::ostream& os);
 
 //! Open file for XML input
 /*!
@@ -170,7 +169,7 @@ void xml_write_footer_to_stream(ostream& os);
   \param ifs   Input filestream
   \param name  Filename
 */
-void xml_open_input_file(ifstream& ifs,
+void xml_open_input_file(std::ifstream& ifs,
                          const String& name);
 
 //! Open file for XML output
@@ -180,7 +179,7 @@ void xml_open_input_file(ifstream& ifs,
   \param file Output filestream
   \param name Filename
 */
-void xml_open_output_file(ofstream& file, const String& name);
+void xml_open_output_file(std::ofstream& file, const String& name);
 
 #ifdef ENABLE_ZLIB
 
@@ -221,7 +220,7 @@ template <typename T>
 void xml_read_from_file_base(const String& filename,
                         T& type) {
   // Open input stream:
-  std::unique_ptr<istream> ifs;
+  std::unique_ptr<std::istream> ifs;
   if (filename.nelem() > 2 &&
       filename.substr(filename.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
@@ -238,9 +237,9 @@ void xml_read_from_file_base(const String& filename,
   }
 #endif /* ENABLE_ZLIB */
   else {
-    ifs = std::make_unique<ifstream>();
+    ifs = std::make_unique<std::ifstream>();
     xml_open_input_file(
-        *static_cast<ifstream*>(ifs.get()), filename);
+        *static_cast<std::ifstream*>(ifs.get()), filename);
   }
 
   // No need to check for error, because xml_open_input_file throws a
@@ -264,9 +263,9 @@ void xml_read_from_file_base(const String& filename,
     }
     xml_read_footer_from_stream(*ifs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading file: " << filename << '\n' << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -284,7 +283,7 @@ template <typename T>
 void xml_write_to_file_base(const String& filename,
                             const T& type,
                             const FileType ftype) {
-  std::unique_ptr<ostream> ofs;
+  std::unique_ptr<std::ostream> ofs;
 
   if (ftype == FILE_TYPE_ZIPPED_ASCII)
 #ifdef ENABLE_ZLIB
@@ -300,8 +299,8 @@ void xml_write_to_file_base(const String& filename,
   }
 #endif /* ENABLE_ZLIB */
   else {
-    ofs = std::make_unique<ofstream>();
-    xml_open_output_file(*static_cast<ofstream*>(ofs.get()), filename);
+    ofs = std::make_unique<std::ofstream>();
+    xml_open_output_file(*static_cast<std::ofstream*>(ofs.get()), filename);
   }
 
   try {
@@ -316,9 +315,9 @@ void xml_write_to_file_base(const String& filename,
 
     xml_write_footer_to_stream(*ofs);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error writing file: " << filename << '\n' << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 

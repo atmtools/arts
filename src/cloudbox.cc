@@ -22,7 +22,6 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 #include <limits>
 #include <stdexcept>
 
-#include "arts.h"
 #include "check_input.h"
 #include "lin_alg.h"
 #include "logic.h"
@@ -249,11 +248,11 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
        " the last value of the azimuth angle grid in the single"
        " scattering properties data must be 180.")
 
-  ostringstream os_pha_mat;
+  std::ostringstream os_pha_mat;
   os_pha_mat << "pha_mat ";
-  ostringstream os_ext_mat;
+  std::ostringstream os_ext_mat;
   os_ext_mat << "ext_mat ";
-  ostringstream os_abs_vec;
+  std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
 
   switch (scat_data_single.ptype) {
@@ -485,7 +484,7 @@ void bin_quadweights(Vector& w, const Vector& x, const Index& order) {
   ARTS_ASSERT(is_increasing(x));
 
   if (order == 0) {
-    w[0] = min(x[1] - x[0],
+    w[0] = std::min(x[1] - x[0],
                0.5 * (x[1] + x[0]));  // the latter is the half distance
                                       // from x0 to x1 plus the distance
                                       // to 0, ie 0.5(x1-x0)+x0.

@@ -22,7 +22,6 @@
   ===========================================================================*/
 #include <cmath>
 #include <stdexcept>
-#include "arts.h"
 #include "atm.h"
 #include "check_input.h"
 #include "cloudbox.h"

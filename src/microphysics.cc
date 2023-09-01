@@ -25,7 +25,6 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 #include <limits>
 #include <stdexcept>
 
-#include "arts.h"
 #include "check_input.h"
 #include "cloudbox.h"
 #include "lin_alg.h"
@@ -91,9 +90,9 @@ void derive_scat_species_a_and_b(Numeric& a,
 
   for (Index i = 0; i < nse; i++) {
     if (std::isnan(x[i]))
-      throw runtime_error("NaN found in selected size grid data.");
+      throw std::runtime_error("NaN found in selected size grid data.");
     if (std::isnan(mass[i]))
-      throw runtime_error("NaN found among particle mass data.");
+      throw std::runtime_error("NaN found among particle mass data.");
 
     if (x[i] >= x_fit_start && x[i] <= x_fit_end) {
       x_unsorted[nsev] = x[i];
@@ -103,7 +102,7 @@ void derive_scat_species_a_and_b(Numeric& a,
   }
 
   if (nsev < 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "Less than two size points found in the range "
         "[x_fit_start,x_fit_end]. It is then not possible "
         "to determine the a and b parameters.");

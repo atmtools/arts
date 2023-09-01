@@ -17,7 +17,7 @@ void ReaderNetCDF(  // WS Generic Input:
 #ifdef ENABLE_NETCDF
   nca_read_from_file(f, v);
 #else
-  throw runtime_error(
+  throw std::runtime_error(
       "This version of ARTS was compiled without NetCDF support.");
 #endif
 }
@@ -38,7 +38,7 @@ void WriterNetCDF(  // WS Generic Input:
 
   nca_write_to_file(filename, v);
 #else
-  throw runtime_error(
+  throw std::runtime_error(
       "This version of ARTS was compiled without NetCDF support.");
 #endif
 }
@@ -61,7 +61,7 @@ void WriterNetCDFIndexed(  //WS Input:
 
   WriteNetCDF(v, filename, v_name, f_name);
 #else
-  throw runtime_error(
+  throw std::runtime_error(
       "This version of ARTS was compiled without NetCDF support.");
 #endif
 }

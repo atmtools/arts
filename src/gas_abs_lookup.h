@@ -64,10 +64,10 @@ class GasAbsLookup {
   }
 
   // IO functions must be friends:
-  friend void xml_read_from_stream(istream& is_xml,
+  friend void xml_read_from_stream(std::istream& is_xml,
                                    GasAbsLookup& gal,
                                    bifstream* pbifs);
-  friend void xml_write_to_stream(ostream& os_xml,
+  friend void xml_write_to_stream(std::ostream& os_xml,
                                   const GasAbsLookup& gal,
                                   bofstream* pbofs,
                                   const String& name);
@@ -150,7 +150,7 @@ class GasAbsLookup {
   /** Absorption cross sections */
   Tensor4& Xsec() {return xsec;}
 
-  friend ostream& operator<<(ostream& os, const GasAbsLookup& gal);
+  friend std::ostream& operator<<(std::ostream& os, const GasAbsLookup& gal);
   
  private:
   //! The species tags for which the table is valid.

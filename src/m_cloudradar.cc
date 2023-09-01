@@ -14,7 +14,6 @@
 #include <stdexcept>
 
 
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "atm.h"
@@ -176,7 +175,7 @@ void RadarOnionPeelingTableCalc(
   for (Index t=0; t<nt; t++) {
     if (!is_increasing(D(0,joker,t))) {
       for (Index w=0; w<nwc; w++) {
-        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
       }
       ARTS_USER_ERROR (
         "A case found of non-increasing dBZe.\n"
@@ -184,7 +183,7 @@ void RadarOnionPeelingTableCalc(
     }
     if (D(0,0,t) > dbze_grid[0]) {
       for (Index w=0; w<nwc; w++) {
-        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
       }
       ARTS_USER_ERROR (
         "A case found where start of dbze_grid not covered.\n"
@@ -192,7 +191,7 @@ void RadarOnionPeelingTableCalc(
     }
     if (D(0,nwc-1,t) < dbze_grid[ndb-1]) {
       for (Index w=0; w<nwc; w++) {
-        cout << wc_grid[w] << " " << D(0,w,t) << endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
       }
       ARTS_USER_ERROR (
         "A case found where end of dbze_grid not covered.\n"

@@ -118,7 +118,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   gsl_poly_complex_workspace *w;
 
   if (n == 0) {
-    cerr << "matrix size n must be positive integer" << endl;
+    std::cerr << "matrix size n must be positive integer" << std::endl;
 
     return (NULL);
   }
@@ -126,7 +126,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   w = (gsl_poly_complex_workspace *)malloc(sizeof(gsl_poly_complex_workspace));
 
   if (w == 0) {
-    cerr << "failed to allocate space for struct" << endl;
+    std::cerr << "failed to allocate space for struct" << std::endl;
 
     return (NULL);
   }
@@ -140,7 +140,7 @@ static gsl_poly_complex_workspace *gsl_poly_complex_workspace_alloc(size_t n) {
   if (w->matrix == 0) {
     free(w); /* error in constructor, avoid memory leak */
 
-    cerr << "failed to allocate space for workspace matrix" << endl;
+    std::cerr << "failed to allocate space for workspace matrix" << std::endl;
 
     return (NULL);
   }
@@ -447,25 +447,25 @@ static int gsl_poly_complex_solve(const double *a,
   double *m;
 
   if (n == 0) {
-    cerr << "number of terms must be a positive integer" << endl;
+    std::cerr << "number of terms must be a positive integer" << std::endl;
 
     return (GSL_FAILURE);
   }
 
   if (n == 1) {
-    cerr << "cannot solve for only one term" << endl;
+    std::cerr << "cannot solve for only one term" << std::endl;
 
     return (GSL_FAILURE);
   }
 
   if (a[n - 1] == 0) {
-    cerr << "leading term of polynomial must be non-zero" << endl;
+    std::cerr << "leading term of polynomial must be non-zero" << std::endl;
 
     return (GSL_FAILURE);
   }
 
   if (w->nc != n - 1) {
-    cerr << "size of workspace does not match polynomial" << endl;
+    std::cerr << "size of workspace does not match polynomial" << std::endl;
 
     return (GSL_FAILURE);
   }
@@ -479,7 +479,7 @@ static int gsl_poly_complex_solve(const double *a,
   status = qr_companion(m, n - 1, z);
 
   if (status) {
-    //cerr << "root solving qr method failed to converge" << endl;
+    //std::cerr << "root solving qr method failed to converge" << std::endl;
 
     return (GSL_FAILURE);
   }

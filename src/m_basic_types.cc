@@ -232,38 +232,38 @@ void MatrixExtractFromTensor3(
     const String& direction) {
   if (direction == "page") {
     if (index >= t3.npages()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the page range of the Matrix.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     m.resize(t3.nrows(), t3.ncols());
     m = t3(index, joker, joker);
   } else if (direction == "row") {
     if (index >= t3.nrows()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index << " is outside the row range of the Matrix.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     m.resize(t3.npages(), t3.ncols());
     m = t3(joker, index, joker);
   } else if (direction == "column") {
     if (index >= t3.ncols()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the column range of the Matrix.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     m.resize(t3.npages(), t3.nrows());
     m = t3(joker, joker, index);
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Keyword *direction* must be either *page* or *row* or *column*,"
        << "but you gave: " << direction << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -275,11 +275,11 @@ void MatrixMatrixMultiply(  // WS Generic Output:
     const Matrix& X) {
   // Check that dimensions are right, M.ncols() must match X.nrows():
   if (M.ncols() != X.nrows()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Matrix dimensions must be consistent!\n"
        << "Matrix1.ncols() = " << M.ncols() << "\n"
        << "Matrix2.nrows() = " << X.nrows();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Temporary for the result:
@@ -314,7 +314,7 @@ void Matrix2ColFromVectors(  // WS Generic Output:
   const Index nv = v1.nelem();
 
   if (v2.nelem() != nv)
-    throw runtime_error("Vectors must be of the same size.");
+    throw std::runtime_error("Vectors must be of the same size.");
 
   m.resize(nv, 2);
   m(joker, 0) = v1;
@@ -331,7 +331,7 @@ void Matrix3ColFromVectors(  // WS Generic Output:
   const Index nv = v1.nelem();
 
   if (v3.nelem() != nv || v2.nelem() != nv)
-    throw runtime_error("Vectors must be of the same size.");
+    throw std::runtime_error("Vectors must be of the same size.");
 
   m.resize(nv, 3);
   m(joker, 0) = v1;
@@ -359,7 +359,7 @@ void Matrix2RowFromVectors(  // WS Generic Output:
   const Index nv = v1.nelem();
 
   if (v2.nelem() != nv)
-    throw runtime_error("Vectors must be of the same size.");
+    throw std::runtime_error("Vectors must be of the same size.");
 
   m.resize(2, nv);
   m(0, joker) = v1;
@@ -376,7 +376,7 @@ void Matrix3RowFromVectors(  // WS Generic Output:
   const Index nv = v1.nelem();
 
   if (v3.nelem() != nv || v2.nelem() != nv)
-    throw runtime_error("Vectors must be of the same size.");
+    throw std::runtime_error("Vectors must be of the same size.");
 
   m.resize(3, nv);
   m(0, joker) = v1;
@@ -465,10 +465,10 @@ void NumericFromVector(Numeric& out,
   else if (op == "mean")
     out = mean(in);
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Your choice, *op* = \"" << op << "\", is not recognised.\n"
        << R"(Valid options are: "first", "last", "max", "min" and "mean".)";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -523,11 +523,11 @@ void SparseSparseMultiply(  // WS Generic Output:
     const Sparse& X) {
   // Check that dimensions are right, M.ncols() must match X.nrows():
   if (M.ncols() != X.nrows()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Matrix dimensions must be consistent!\n"
        << "Matrix1.ncols() = " << M.ncols() << "\n"
        << "Matrix2.nrows() = " << X.nrows();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Temporary for the result:
@@ -641,49 +641,49 @@ void Tensor3ExtractFromTensor4(
     const String& direction) {
   if (direction == "book") {
     if (index >= t4.nbooks()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the book range of the Tensor4.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     t3.resize(t4.npages(), t4.nrows(), t4.ncols());
     t3 = t4(index, joker, joker, joker);
   } else if (direction == "page") {
     if (index >= t4.npages()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the pages range of the Tensor4.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     t3.resize(t4.nbooks(), t4.nrows(), t4.ncols());
     t3 = t4(joker, index, joker, joker);
   } else if (direction == "row") {
     if (index >= t4.nrows()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the row range of the Tensor4.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     t3.resize(t4.npages(), t4.nbooks(), t4.ncols());
     t3 = t4(joker, joker, index, joker);
   } else if (direction == "column") {
     if (index >= t4.ncols()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the column range of the Tensor4.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     t3.resize(t4.npages(), t4.nbooks(), t4.nrows());
     t3 = t4(joker, joker, joker, index);
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Keyword *direction* must be either *page*, *book*, *row* or *column*,"
        << "but you gave: " << direction << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -840,7 +840,7 @@ void Trapz(
     const Vector& y) {
   const Index n = x.nelem();
   if (y.nelem() != n) 
-    throw runtime_error("The vectors *x* and *y* must have the same length.");
+    throw std::runtime_error("The vectors *x* and *y* must have the same length.");
     
   out = 0;
   for (Index i=1; i<n; i++)
@@ -946,7 +946,7 @@ void VectorAddElementwise(Vector& c,
   }
 
   else
-    throw runtime_error(
+    throw std::runtime_error(
         "The vector *b* must have length 1 or match *a* in length.");
 }
 
@@ -981,7 +981,7 @@ void VectorSubtractElementwise(Vector& c,
   }
 
   else
-    throw runtime_error(
+    throw std::runtime_error(
         "The vector *b* must have length 1 or match *a* in length.");
 }
 
@@ -1016,7 +1016,7 @@ void VectorMultiplyElementwise(Vector& c,
   }
 
   else
-    throw runtime_error(
+    throw std::runtime_error(
         "The vector *b* must have length 1 or match *a* in length.");
 }
 
@@ -1051,7 +1051,7 @@ void VectorDivideElementwise(Vector& c,
   }
 
   else
-    throw runtime_error(
+    throw std::runtime_error(
         "The vector *b* must have length 1 or match *a* in length.");
 }
 
@@ -1122,28 +1122,28 @@ void VectorExtractFromMatrix(
     const String& direction) {
   if (direction == "row") {
     if (index >= m.nrows()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index << " is outside the row range of the Matrix.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     v.resize(m.ncols());
     v = m(index, joker);
   } else if (direction == "column") {
     if (index >= m.ncols()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The index " << index
          << " is outside the column range of the Matrix.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     v.resize(m.nrows());
     v = m(joker, index);
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Keyword *direction* must be either *row* or *column*,"
        << "but you gave: " << direction << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1217,12 +1217,12 @@ void VectorInsertGridPoints(  // WS Generic Output:
     // Copy dummy back to ig vector:
     ig = dummy;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The input Vector must be either\n"
        << "strictly increasing or strictly decreasing,\n"
        << "but this is not the case.\n";
     os << "The vector contains:\n" << ig;
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Sort also the vector of points to insert in increasing order:
@@ -1307,11 +1307,11 @@ void VectorMatrixMultiply(  // WS Generic Output:
     const Vector& x) {
   // Check that dimensions are right, x must match columns of M:
   if (M.ncols() != x.nelem()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Matrix and vector dimensions must be consistent!\n"
        << "Matrix.ncols() = " << M.ncols() << "\n"
        << "Vector.nelem() = " << x.nelem();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Temporary for the result:
@@ -1332,11 +1332,11 @@ void VectorSparseMultiply(  // WS Generic Output:
     const Vector& x) {
   // Check that dimensions are right, x must match columns of M:
   if (M.ncols() != x.nelem()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Sparse and vector dimensions must be consistent!\n"
        << "Sparse.ncols() = " << M.ncols() << "\n"
        << "Vector.nelem() = " << x.nelem();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Temporary for the result:
@@ -1354,7 +1354,7 @@ void VectorNLinSpace(Vector& x,
                      const Index& n,
                      const Numeric& start,
                      const Numeric& stop) {
-  if (n < 2) throw runtime_error("The number of points must be > 1.");
+  if (n < 2) throw std::runtime_error("The number of points must be > 1.");
   nlinspace(x, start, stop, n);
 }
 
@@ -1384,9 +1384,9 @@ void VectorNLogSpace(Vector& x,
                      const Index& n,
                      const Numeric& start,
                      const Numeric& stop) {
-  if (n < 2) throw runtime_error("The number of points must be > 1.");
+  if (n < 2) throw std::runtime_error("The number of points must be > 1.");
   if ((start <= 0) || (stop <= 0))
-    throw runtime_error("Only positive numbers are allowed.");
+    throw std::runtime_error("Only positive numbers are allowed.");
 
   nlogspace(x, start, stop, n);
 }
@@ -1433,10 +1433,10 @@ void VectorReshapeMatrix(Vector& v,
       }
     }
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Keyword *direction* must be either *row* or *column*,"
        << "but you gave: " << direction << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1471,27 +1471,27 @@ void Compare(const Numeric& var1,
     if (std::isnan(var1) && std::isnan(var2)) {
       maxdiff = 0;
     } else if (std::isnan(var1)) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Nan found in " << var1name << ", but there is no "
          << "NaN at same position in " << var2name << ".\nThis "
          << "is not allowed.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     } else {
-      ostringstream os;
+      std::ostringstream os;
       os << "Nan found in " << var2name << ", but there is no "
          << "NaN at same position in " << var1name << ".\nThis "
          << "is not allowed.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << endl
-       << "but the value deviates with:  " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to: " << maxabsdiff << std::endl
+       << "but the value deviates with:  " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1507,10 +1507,10 @@ void Compare(const Vector& var1,
   const Index n = var1.nelem();
 
   if (var2.nelem() != n) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " (" << n << ") and " << var2name << " (" << var2.nelem()
        << ") do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1521,17 +1521,17 @@ void Compare(const Vector& var1,
       if (std::isnan(var1[i]) && std::isnan(var2[i])) {
         diff = 0;
       } else if (std::isnan(var1[i])) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Nan found in " << var1name << ", but there is no "
            << "NaN at same position in " << var2name << ".\nThis "
            << "is not allowed.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       } else {
-        ostringstream os;
+        std::ostringstream os;
         os << "Nan found in " << var2name << ", but there is no "
            << "NaN at same position in " << var1name << ".\nThis "
            << "is not allowed.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     }
 
@@ -1541,12 +1541,12 @@ void Compare(const Vector& var1,
   }
 
   if (std::isnan(maxdiff) || abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << endl
-       << "but the vectors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to: " << maxabsdiff << std::endl
+       << "but the vectors deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1563,11 +1563,11 @@ void Compare(const Matrix& var1,
   const Index ncols = var1.ncols();
 
   if (var2.nrows() != nrows || var2.ncols() != ncols) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " (" << nrows << "," << ncols << ") and " << var2name
        << " (" << var2.nrows() << "," << var2.ncols()
        << ") do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1580,17 +1580,17 @@ void Compare(const Matrix& var1,
         if (std::isnan(var1(r, c)) && std::isnan(var2(r, c))) {
           diff = 0;
         } else if (std::isnan(var1(r, c))) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Nan found in " << var1name << ", but there is no "
              << "NaN at same position in " << var2name << ".\nThis "
              << "is not allowed.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         } else {
-          ostringstream os;
+          std::ostringstream os;
           os << "Nan found in " << var2name << ", but there is no "
              << "NaN at same position in " << var1name << ".\nThis "
              << "is not allowed.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
       }
 
@@ -1601,12 +1601,12 @@ void Compare(const Matrix& var1,
   }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the matrices deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the matrices deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1625,9 +1625,9 @@ void Compare(const Tensor3& var1,
 
   if (var2.ncols() != ncols || var2.nrows() != nrows ||
       var2.npages() != npages) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1641,17 +1641,17 @@ void Compare(const Tensor3& var1,
           if (std::isnan(var1(p, r, c)) && std::isnan(var2(p, r, c))) {
             diff = 0;
           } else if (std::isnan(var1(p, r, c))) {
-            ostringstream os;
+            std::ostringstream os;
             os << "Nan found in " << var1name << ", but there is no "
                << "NaN at same position in " << var2name << ".\nThis "
                << "is not allowed.";
-            throw runtime_error(os.str());
+            throw std::runtime_error(os.str());
           } else {
-            ostringstream os;
+            std::ostringstream os;
             os << "Nan found in " << var2name << ", but there is no "
                << "NaN at same position in " << var1name << ".\nThis "
                << "is not allowed.";
-            throw runtime_error(os.str());
+            throw std::runtime_error(os.str());
           }
         }
 
@@ -1661,12 +1661,12 @@ void Compare(const Tensor3& var1,
       }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the tensors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the tensors deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1686,9 +1686,9 @@ void Compare(const Tensor4& var1,
 
   if (var2.ncols() != ncols || var2.nrows() != nrows ||
       var2.npages() != npages || var2.nbooks() != nbooks) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1703,17 +1703,17 @@ void Compare(const Tensor4& var1,
             if (std::isnan(var1(b, p, r, c)) && std::isnan(var2(b, p, r, c))) {
               diff = 0;
             } else if (std::isnan(var1(b, p, r, c))) {
-              ostringstream os;
+              std::ostringstream os;
               os << "Nan found in " << var1name << ", but there is no "
                  << "NaN at same position in " << var2name << ".\nThis "
                  << "is not allowed.";
-              throw runtime_error(os.str());
+              throw std::runtime_error(os.str());
             } else {
-              ostringstream os;
+              std::ostringstream os;
               os << "Nan found in " << var2name << ", but there is no "
                  << "NaN at same position in " << var1name << ".\nThis "
                  << "is not allowed.";
-              throw runtime_error(os.str());
+              throw std::runtime_error(os.str());
             }
           }
 
@@ -1723,12 +1723,12 @@ void Compare(const Tensor4& var1,
         }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the tensors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the tensors deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1750,9 +1750,9 @@ void Compare(const Tensor5& var1,
   if (var2.ncols() != ncols || var2.nrows() != nrows ||
       var2.npages() != npages || var2.nbooks() != nbooks ||
       var2.nshelves() != nshelves) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1770,17 +1770,17 @@ void Compare(const Tensor5& var1,
                   std::isnan(var2(s, b, p, r, c))) {
                 diff = 0;
               } else if (std::isnan(var1(s, b, p, r, c))) {
-                ostringstream os;
+                std::ostringstream os;
                 os << "Nan found in " << var1name << ", but there is no "
                    << "NaN at same position in " << var2name << ".\nThis "
                    << "is not allowed.";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               } else {
-                ostringstream os;
+                std::ostringstream os;
                 os << "Nan found in " << var2name << ", but there is no "
                    << "NaN at same position in " << var1name << ".\nThis "
                    << "is not allowed.";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
             }
 
@@ -1790,12 +1790,12 @@ void Compare(const Tensor5& var1,
           }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the tensors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the tensors deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1820,9 +1820,9 @@ void Compare(const Tensor7& var1,
       var2.npages() != npages || var2.nbooks() != nbooks ||
       var2.nshelves() != nshelves || var2.nvitrines() != nvitrines ||
       var2.nlibraries() != nlibraries) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " and " << var2name << " do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -1843,17 +1843,17 @@ void Compare(const Tensor7& var1,
                       std::isnan(var2(l, v, s, b, p, r, c))) {
                     diff = 0;
                   } else if (std::isnan(var1(l, v, s, b, p, r, c))) {
-                    ostringstream os;
+                    std::ostringstream os;
                     os << "Nan found in " << var1name << ", but there is no "
                        << "NaN at same position in " << var2name << ".\nThis "
                        << "is not allowed.";
-                    throw runtime_error(os.str());
+                    throw std::runtime_error(os.str());
                   } else {
-                    ostringstream os;
+                    std::ostringstream os;
                     os << "Nan found in " << var2name << ", but there is no "
                        << "NaN at same position in " << var1name << ".\nThis "
                        << "is not allowed.";
-                    throw runtime_error(os.str());
+                    throw std::runtime_error(os.str());
                   }
                 }
 
@@ -1863,12 +1863,12 @@ void Compare(const Tensor7& var1,
               }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the tensors deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the tensors deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1882,18 +1882,18 @@ void Compare(const ArrayOfVector& var1,
              const String&,
              const String&) {
   if (var1.nelem() != var2.nelem()) {
-    ostringstream os;
-    os << "The two arrays do not have the same size." << endl
-       << var1name << " nelem: " << var1.nelem() << endl
-       << var2name << " nelem: " << var2.nelem() << endl;
-    throw runtime_error(os.str());
+    std::ostringstream os;
+    os << "The two arrays do not have the same size." << std::endl
+       << var1name << " nelem: " << var1.nelem() << std::endl
+       << var2name << " nelem: " << var2.nelem() << std::endl;
+    throw std::runtime_error(os.str());
   }
 
   bool failed = false;
-  ostringstream fail_msg;
+  std::ostringstream fail_msg;
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
-      ostringstream vn1, vn2;
+      std::ostringstream vn1, vn2;
       vn1 << var1name << "[" << i << "]";
       vn2 << var2name << "[" << i << "]";
       Compare(var1[i],
@@ -1906,13 +1906,13 @@ void Compare(const ArrayOfVector& var1,
               "");
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << endl
-               << e.what() << endl
-               << "Mismatch at array index: " << i << endl;
+      fail_msg << std::endl
+               << e.what() << std::endl
+               << "Mismatch at array index: " << i << std::endl;
     }
   }
 
-  if (failed) throw runtime_error(fail_msg.str());
+  if (failed) throw std::runtime_error(fail_msg.str());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1925,18 +1925,18 @@ void Compare(const ArrayOfMatrix& var1,
              const String&,
              const String&) {
   if (var1.nelem() != var2.nelem()) {
-    ostringstream os;
-    os << "The two arrays do not have the same size." << endl
-       << var1name << " nelem: " << var1.nelem() << endl
-       << var2name << " nelem: " << var2.nelem() << endl;
-    throw runtime_error(os.str());
+    std::ostringstream os;
+    os << "The two arrays do not have the same size." << std::endl
+       << var1name << " nelem: " << var1.nelem() << std::endl
+       << var2name << " nelem: " << var2.nelem() << std::endl;
+    throw std::runtime_error(os.str());
   }
 
   bool failed = false;
-  ostringstream fail_msg;
+  std::ostringstream fail_msg;
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
-      ostringstream vn1, vn2;
+      std::ostringstream vn1, vn2;
       vn1 << var1name << "[" << i << "]";
       vn2 << var2name << "[" << i << "]";
       Compare(var1[i],
@@ -1949,13 +1949,13 @@ void Compare(const ArrayOfMatrix& var1,
               "");
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << endl
-               << e.what() << endl
-               << "Mismatch at array index: " << i << endl;
+      fail_msg << std::endl
+               << e.what() << std::endl
+               << "Mismatch at array index: " << i << std::endl;
     }
   }
 
-  if (failed) throw runtime_error(fail_msg.str());
+  if (failed) throw std::runtime_error(fail_msg.str());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1968,18 +1968,18 @@ void Compare(const ArrayOfTensor7& var1,
              const String&,
              const String&) {
   if (var1.nelem() != var2.nelem()) {
-    ostringstream os;
-    os << "The two arrays do not have the same size." << endl
-       << var1name << " nelem: " << var1.nelem() << endl
-       << var2name << " nelem: " << var2.nelem() << endl;
-    throw runtime_error(os.str());
+    std::ostringstream os;
+    os << "The two arrays do not have the same size." << std::endl
+       << var1name << " nelem: " << var1.nelem() << std::endl
+       << var2name << " nelem: " << var2.nelem() << std::endl;
+    throw std::runtime_error(os.str());
   }
 
   bool failed = false;
-  ostringstream fail_msg;
+  std::ostringstream fail_msg;
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
-      ostringstream vn1, vn2;
+      std::ostringstream vn1, vn2;
       vn1 << var1name << "[" << i << "]";
       vn2 << var2name << "[" << i << "]";
       Compare(var1[i],
@@ -1992,13 +1992,13 @@ void Compare(const ArrayOfTensor7& var1,
               "");
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << endl
-               << e.what() << endl
-               << "Mismatch at array index: " << i << endl;
+      fail_msg << std::endl
+               << e.what() << std::endl
+               << "Mismatch at array index: " << i << std::endl;
     }
   }
 
-  if (failed) throw runtime_error(fail_msg.str());
+  if (failed) throw std::runtime_error(fail_msg.str());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2012,18 +2012,18 @@ void Compare(const GriddedField3& var1,
              const String&) {
   for (Index i = 0; i < var1.get_dim(); i++) {
     if (var1.get_grid_size(i) != var2.get_grid_size(i)) {
-      ostringstream os;
+      std::ostringstream os;
       os << var1name << " and " << var2name << " grid " << i
          << " do not have the same size: " << var1.get_grid_size(i)
          << " != " << var2.get_grid_size(i);
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     if (var1.get_grid_name(i) != var2.get_grid_name(i)) {
-      ostringstream os;
+      std::ostringstream os;
       os << var1name << " and " << var2name << " grid " << i
          << " do not have the same name: " << var1.get_grid_name(i)
          << " != " << var2.get_grid_name(i);
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -2050,11 +2050,11 @@ void Compare(const Sparse& var1,
   const Index ncols = var1.ncols();
 
   if (var2.nrows() != nrows || var2.ncols() != ncols) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << " (" << nrows << "," << ncols << ") and " << var2name
        << " (" << var2.nrows() << "," << var2.ncols()
        << ") do not have the same size.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   Numeric maxdiff = 0.0;
@@ -2067,17 +2067,17 @@ void Compare(const Sparse& var1,
         if (std::isnan(var1(r, c)) && std::isnan(var2(r, c))) {
           diff = 0;
         } else if (std::isnan(var1(r, c))) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Nan found in " << var1name << ", but there is no "
              << "NaN at same position in " << var2name << ".\nThis "
              << "is not allowed.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         } else {
-          ostringstream os;
+          std::ostringstream os;
           os << "Nan found in " << var2name << ", but there is no "
              << "NaN at same position in " << var1name << ".\nThis "
              << "is not allowed.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
       }
 
@@ -2088,12 +2088,12 @@ void Compare(const Sparse& var1,
   }
 
   if (abs(maxdiff) > maxabsdiff) {
-    ostringstream os;
+    std::ostringstream os;
     os << var1name << "-" << var2name << " FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << endl
-       << "but the matrices deviate with: " << maxdiff << endl;
-    throw runtime_error(os.str());
+    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
+       << "but the matrices deviate with: " << maxdiff << std::endl;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -2182,16 +2182,16 @@ inline void _cr_internal_(const Numeric& var1,
   if (var1 not_eq 0. and var2 not_eq 0.) {
     const Numeric absreldiff = abs(var1 / var2 - 1);
     if (absreldiff > maxabsreldiff) {
-      ostringstream os;
+      std::ostringstream os;
       os << var1name << "-" << var2name << " FAILED!\n";
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to: " << maxabsreldiff * 100.0 << "%"
-         << endl
+         << std::endl
          << "but the input deviate with: " << absreldiff * 100.0 << "%\n" 
          << "If you compare non-scalar variables, the reported deviation is\n"
          << "the first one found violating the criterion. The maximum\n"
          << "difference can be higher.\n";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 }

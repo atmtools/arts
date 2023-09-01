@@ -132,7 +132,7 @@ void Append(  // WS Generic Output:
     out = in_ref;
   } else if (direction == "leading") {
     if (out.ncols() != in_ref.ncols())
-      throw runtime_error(
+      throw std::runtime_error(
           "Input and output matrix must have the same number of columns.");
 
     out.resize(dummy.nrows() + in_ref.nrows(), dummy.ncols());
@@ -144,7 +144,7 @@ void Append(  // WS Generic Output:
           in_ref;
   } else if (direction == "trailing") {
     if (out.nrows() != in_ref.nrows())
-      throw runtime_error(
+      throw std::runtime_error(
           "Input and output matrix must have the same number of rows.");
 
     out.resize(dummy.nrows(), dummy.ncols() + in_ref.ncols());
@@ -155,7 +155,7 @@ void Append(  // WS Generic Output:
       out(Range(0, in_ref.nrows()), Range(dummy.ncols(), in_ref.ncols())) =
           in_ref;
   } else
-    throw runtime_error(R"(Dimension must be either "leading" or "trailing".)");
+    throw std::runtime_error(R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Matrix/Vector */
@@ -175,7 +175,7 @@ void Append(  // WS Generic Output:
       out = ExhaustiveMatrixView{in};
     } else {
       if (out.ncols() != in.nelem())
-        throw runtime_error(
+        throw std::runtime_error(
             "Number of elements in the input Vector has to match "
             "the number of columns in the output Matrix.");
 
@@ -189,7 +189,7 @@ void Append(  // WS Generic Output:
       out = transpose(ExhaustiveMatrixView{in});
     } else if (in.nelem()) {
       if (out.nrows() != in.nelem() && out.nrows() && out.ncols())
-        throw runtime_error(
+        throw std::runtime_error(
             "Number of elements in the input Vector has to match "
             "the number of rows in the output Matrix.");
 
@@ -199,7 +199,7 @@ void Append(  // WS Generic Output:
           ExhaustiveMatrixView{in};
     }
   } else
-    throw runtime_error(R"(Dimension must be either "leading" or "trailing".)");
+    throw std::runtime_error(R"(Dimension must be either "leading" or "trailing".)");
 }
 
 /* Implementation for Vector/Numeric */
@@ -242,7 +242,7 @@ void Append(  // WS Generic Output:
     out(0, joker, joker) = in;
   } else {
     if (out.nrows() != in.nrows() || out.ncols() != in.ncols())
-      throw runtime_error(
+      throw std::runtime_error(
           "Number of rows and columns in the input Matrix have to match\n"
           "the number of rows and columns in the output Tensor3.");
 
@@ -279,7 +279,7 @@ void Append(  // WS Generic Output:
   Tensor3 dummy = out;
 
   if (out.nrows() != in_ref.nrows() || out.ncols() != in_ref.ncols())
-    throw runtime_error(
+    throw std::runtime_error(
         "Tensor3 append is performed in pages dimension.\n"
         "All other dimensions (rows, columns) must have identical\n"
         "sizes in In and Out Tensor.");
@@ -315,7 +315,7 @@ void Append(  // WS Generic Output:
   } else {
     if (out.npages() != in.npages() || out.nrows() != in.nrows() ||
         out.ncols() != in.ncols())
-      throw runtime_error(
+      throw std::runtime_error(
           "Dimensions of input Tensor3 have to match corresponding\n"
           "dimensions in the output Tensor4.");
 
@@ -358,7 +358,7 @@ void Append(  // WS Generic Output:
 
   if (out.npages() != in_ref.npages() || out.nrows() != in_ref.nrows() ||
       out.ncols() != in_ref.ncols())
-    throw runtime_error(
+    throw std::runtime_error(
         "Tensor4 append is performed in books dimension.\n"
         "All other dimensions (pages, rows, columns) must have identical\n"
         "sizes in In and Out Tensor.");
@@ -391,7 +391,7 @@ void Append(  // WS Generic Output:
     const String& /* in_name */,
     const String& /* direction_name */) {
   // String stream for easy string operations:
-  ostringstream os;
+  std::ostringstream os;
 
   os << out << in;
 

@@ -21,7 +21,6 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include <workspace.h>
@@ -68,28 +67,28 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
   chk_if_in_range("antenna_dim", antenna_dim, 1, 2);
   //
   if (sensor_pos.ncols() != 3)
-    throw runtime_error(
+    throw std::runtime_error(
         "The number of columns of sensor_pos must be "
         "equal to the atmospheric dimensionality.");
   if (3 <= 2 && sensor_los.ncols() != 1)
-    throw runtime_error("For 1D and 2D, sensor_los shall have one column.");
+    throw std::runtime_error("For 1D and 2D, sensor_los shall have one column.");
   if (3 == 3 && sensor_los.ncols() != 2)
-    throw runtime_error("For 3D, sensor_los shall have two columns.");
+    throw std::runtime_error("For 3D, sensor_los shall have two columns.");
   if (sensor_los.nrows() != nmblock) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of rows of sensor_pos and sensor_los must be "
        << "identical, but sensor_pos has " << nmblock << " rows,\n"
        << "while sensor_los has " << sensor_los.nrows() << " rows.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (antenna_dim == 2 && 3 < 3) {
-    throw runtime_error("If *antenna_dim* is 2, *3* must be 3.");
+    throw std::runtime_error("If *antenna_dim* is 2, *3* must be 3.");
   }
-  if (antenna_dlos.empty()) throw runtime_error("*antenna_dlos* is empty.");
+  if (antenna_dlos.empty()) throw std::runtime_error("*antenna_dlos* is empty.");
   if (antenna_dlos.ncols() < 1 || antenna_dlos.ncols() > 2)
-    throw runtime_error("*antenna_dlos* must have one or 2 columns.");
+    throw std::runtime_error("*antenna_dlos* must have one or 2 columns.");
   if (3 < 3 && antenna_dlos.ncols() == 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "*antenna_dlos* can only have two columns for 3D atmosphers.");
 
   // Claculate new sensor_pos and sensor_los
@@ -355,28 +354,28 @@ void f_gridFromSensorAMSU(  // WS Output:
 
   // There must be at least one channel:
   if (n_chan < 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "There must be at least one channel.\n"
        << "(The vector *lo* must have at least one element.)";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Is number of LOs consistent in all input variables?
   if ((f_backend.nelem() != lo.nelem()) ||
       (backend_channel_response.nelem() != lo.nelem())) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Variables *lo_multi*, *f_backend_multi* and *backend_channel_response_multi*\n"
        << "must have same number of elements (number of LOs).";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Is number of bands consistent for each LO?
   for (Index i = 0; i < f_backend.nelem(); ++i)
     if (f_backend[i].nelem() != backend_channel_response[i].nelem()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
          << "must have same number of bands for each LO.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
   // Start the actual work.
@@ -482,10 +481,10 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
 
   // There must be at least one channel:
   if (numChan < 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "There must be at least one channel.\n"
        << "(The vector *lo* must have at least one element.)";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Start the actual work.
@@ -612,9 +611,9 @@ void f_gridFromSensorHIRS(  // WS Output:
     const Numeric& spacing) {
   // Check input
   if (spacing <= 0) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Expected positive spacing. Found spacing to be: " << spacing << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   // Call subfunction to get channel boundaries. Also does input
   // consistency checking for us.
@@ -721,7 +720,7 @@ void f_gridMetMM(
       throw std::runtime_error("*freq_spacing must be > 0.");
 
     if (this_fnumber == 0) {
-      ostringstream os;
+      std::ostringstream os;
       os << "*freq_number* must be -1 or greater zero:"
          << "freq_number[" << ch << "] = " << this_fnumber;
       std::runtime_error(os.str());
@@ -892,7 +891,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   const Index nin = nf * npol * nlos;
 
   // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -915,11 +914,11 @@ void sensor_responseAntenna(Sparse& sensor_response,
   }
 
   // Basic checks of antenna_dlos
-  if (antenna_dlos.empty()) throw runtime_error("*antenna_dlos* is empty.");
+  if (antenna_dlos.empty()) throw std::runtime_error("*antenna_dlos* is empty.");
   if (antenna_dlos.ncols() < 1 || antenna_dlos.ncols() > 2)
-    throw runtime_error("*antenna_dlos* must have one or 2 columns.");
+    throw std::runtime_error("*antenna_dlos* must have one or 2 columns.");
   if (3 < 3 && antenna_dlos.ncols() == 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "*antenna_dlos* can only have two columns for 3D atmosphers.");
 
   // We allow angles in antenna_los to be unsorted
@@ -1039,9 +1038,9 @@ void sensor_responseAntenna(Sparse& sensor_response,
     // sub-functions
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // And finally check if grids and data size match
   antenna_response.checksize_strict();
@@ -1084,7 +1083,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
     }
 
     else {
-      throw runtime_error( "Unrecognised choice for *option_2d*." );
+      throw std::runtime_error( "Unrecognised choice for *option_2d*." );
     }
   }
   
@@ -1128,7 +1127,7 @@ void sensor_responseBackend(
   const Index nin = nf * npol * nlos;
 
   // Initialise an output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -1168,9 +1167,9 @@ void sensor_responseBackend(
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message (before error message gets too long).
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   Numeric f_dlow = 0.0;
   Numeric f_dhigh = 0.0;
@@ -1200,8 +1199,8 @@ void sensor_responseBackend(
     Numeric f2 =
         (max(sensor_response_f_grid) - f_backend[i]) - last(bchr_f_grid);
     //
-    f_dlow = min(f_dlow, f1);
-    f_dhigh = min(f_dhigh, f2);
+    f_dlow = std::min(f_dlow, f1);
+    f_dhigh = std::min(f_dhigh, f2);
   }
 
   if (f_dlow < 0) {
@@ -1219,9 +1218,9 @@ void sensor_responseBackend(
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // Call the core function
   //
@@ -1335,11 +1334,11 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
                                   const Numeric& w1,
                                   const Numeric& w2) {
   if (sensor_response_dlos_grid.nrows() != 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "This method requires that the number of observation directions is 2.");
 
   if (sensor_response_pol_grid.nelem() != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "This method handles (so far) only single polarisation cases.");
 
   const Index n = sensor_response_f_grid.nelem();
@@ -1390,24 +1389,24 @@ void sensor_responseFrequencySwitching(
     const ArrayOfIndex& sensor_response_pol_grid,
     const Matrix& sensor_response_dlos_grid) {
   if (sensor_response_dlos_grid.nrows() != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "This method requires that the number of observation directions is 1.");
 
   if (sensor_response_pol_grid.nelem() != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "This method handles (so far) only single polarisation cases.");
 
   const Index n = sensor_response_f_grid.nelem();
   const Index n2 = n / 2;
 
   if (sensor_response.nrows() != n)
-    throw runtime_error(
+    throw std::runtime_error(
         "Assumptions of method are not fulfilled, "
         "considering number of rows in *sensor_response* "
         "and length of *sensor_response_f_grid*.");
 
   if (!is_multiple(n, 2))
-    throw runtime_error(
+    throw std::runtime_error(
         "There is an odd number of total frequencies, "
         "which is not consistent with the assumptions of "
         "the method.");
@@ -1459,7 +1458,7 @@ void sensor_responseIF2RF(  // WS Output:
   // For this we use the variable f_lim, given in Hz.
   Numeric f_lim = 30e9;
   if (max(sensor_response_f_grid) > f_lim)
-    throw runtime_error("The frequencies seem to already be given in RF.");
+    throw std::runtime_error("The frequencies seem to already be given in RF.");
 
   // Lower band
   if (sideband_mode == "lower") {
@@ -1477,7 +1476,7 @@ void sensor_responseIF2RF(  // WS Output:
 
   // Unknown option
   else {
-    throw runtime_error(
+    throw std::runtime_error(
         "Only allowed options for *sideband _mode* are \"lower\" and \"upper\".");
   }
 }
@@ -1501,7 +1500,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
   const Index nin = nf * npol * nlos;
 
   // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -1527,9 +1526,9 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // New frequency grid
   //
@@ -1613,16 +1612,16 @@ void sensor_responseInit(Sparse& sensor_response,
 
   // mblock_dlos
   if (mblock_dlos.empty())
-    throw runtime_error("*mblock_dlos* is empty.");
+    throw std::runtime_error("*mblock_dlos* is empty.");
   if (mblock_dlos.ncols() > 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "The maximum number of columns in *mblock_dlos* is two.");
   if (3 < 3) {
     if (mblock_dlos.ncols() != 1)
-      throw runtime_error(
+      throw std::runtime_error(
           "For 1D and 2D *mblock_dlos* must have exactly one column.");
     if (antenna_dim == 2)
-      throw runtime_error(
+      throw std::runtime_error(
           "2D antennas (antenna_dim=2) can only be "
           "used with 3D atmospheres.");
   }
@@ -1712,7 +1711,7 @@ void sensor_responseMixer(Sparse& sensor_response,
       sideband_response.get_numeric_grid(GFIELD1_F_GRID);
 
   // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -1781,9 +1780,9 @@ void sensor_responseMixer(Sparse& sensor_response,
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   //Call the core function
   //
@@ -1940,7 +1939,7 @@ void sensor_responseMetMM(
 
     // With polarisation
     if (mm_pol.nelem() != nchannels) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Length of *met_mm_polarisation* (" << mm_pol.nelem()
          << ") must match\n"
          << "number of channels in *met_mm_backend* (" << nchannels << ").";
@@ -2010,7 +2009,7 @@ void sensor_responseMixerBackendPrecalcWeights(
   const Index nout = nout_f * npol * nlos;
 
   // Initialise an output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -2074,8 +2073,8 @@ void sensor_responseMixerBackendPrecalcWeights(
     }
   }
 
-  // If errors where found throw runtime_error with the collected error
-  if (error_found) throw runtime_error(os.str());
+  // If errors where found throw std::runtime_error with the collected error
+  if (error_found) throw std::runtime_error(os.str());
 
   // Create response matrix
   //
@@ -2149,7 +2148,7 @@ void sensor_responseMultiMixerBackend(
   const Index nlo = lo_multi.nelem();
 
   // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -2188,9 +2187,9 @@ void sensor_responseMultiMixerBackend(
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message. Data for each mixer and reciever chain are checked below.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // Variables for data to be appended
   Array<Sparse> sr;
@@ -2232,12 +2231,12 @@ void sensor_responseMultiMixerBackend(
                              f_backend_multi[ilo],
                              backend_channel_response_multi[ilo],
                              sensor_norm);
-    } catch (const runtime_error& e) {
-      ostringstream os2;
+    } catch (const std::runtime_error& e) {
+      std::ostringstream os2;
       os2 << "Error when dealing with receiver/mixer chain (1-based index) "
           << ilo + 1 << ":\n"
           << e.what();
-      throw runtime_error(os2.str());
+      throw std::runtime_error(os2.str());
     }
 
     // Store in temporary arrays
@@ -2315,7 +2314,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
   const Index nlos = sensor_response_dlos_grid.nrows();
 
   // Initialise an output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   Index nfz = nf * nlos;
@@ -2342,9 +2341,9 @@ void sensor_responsePolarisation(Sparse& sensor_response,
     os << "The WSV *instrument_pol* can not be empty.\n";
     error_found = true;
   }
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message (before it gets too long)
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // Check polarisation data more in detail
   for (Index i = 0; i < npol && !error_found; i++) {
@@ -2360,13 +2359,13 @@ void sensor_responsePolarisation(Sparse& sensor_response,
       error_found = true;
     }
   }
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message (before it gets too long)
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // Normalisation weight to apply
   Numeric w = 0.5;
@@ -2434,7 +2433,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
 
   //---------------------------------------------------------------------------
   // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -2467,9 +2466,9 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
     }
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message.
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
   //---------------------------------------------------------------------------
 
   // Set up complete the H matrix for applying rotation
@@ -2543,10 +2542,10 @@ void sensor_responseGenericAMSU(  // WS Output:
   // (All in Hz.)
   //
   if (5 > sensor_description_amsu.ncols()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Input variable sensor_description_amsu must have atleast five columns, but it has "
        << sensor_description_amsu.ncols() << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   ConstVectorView lo_multi = sensor_description_amsu(Range(joker), 0);
@@ -2594,10 +2593,10 @@ void sensor_responseGenericAMSU(  // WS Output:
     //totNumPb += (int)numPB[i];
 
     if (numPB[i] > 4) {
-      ostringstream os;
+      std::ostringstream os;
       os << "This function does currently not support more than 4 passbands per channel"
          << numPB[i] << ".";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -2883,10 +2882,10 @@ void sensor_responseSimpleAMSU(  // WS Output:
     const Numeric& spacing) {
   // Check that sensor_description_amsu has the right dimension:
   if (3 != sensor_description_amsu.ncols()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Input variable sensor_description_amsu must have three columns, but it has "
        << sensor_description_amsu.ncols() << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Number of instrument channels:
@@ -2999,7 +2998,7 @@ void WMRFSelectChannels(  // WS Output:
     // WS Input:
     const ArrayOfIndex& wmrf_channels) {
   // For error messages:
-  ostringstream os;
+  std::ostringstream os;
 
   // Some checks of input parameters:
 
@@ -3013,7 +3012,7 @@ void WMRFSelectChannels(  // WS Output:
        << "f_backend.nelem()    = " << f_backend.nelem() << "\n"
        << "wmrf_weights.ncols() = " << wmrf_weights.ncols() << "\n"
        << "f_grid.nelem()       = " << f_grid.nelem();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // wmrf_channels must be strictly increasing (no repetitions).
@@ -3076,7 +3075,7 @@ void WMRFSelectChannels(  // WS Output:
   if (selection.nelem() == f_grid.nelem()) {
     // No frequencies were removed, I can return the original grid.
   } else if (selection.nelem() == 0) {
-    throw runtime_error("No frequencies found for any selected channels.\n");
+    throw std::runtime_error("No frequencies found for any selected channels.\n");
   } else {
   }
 
@@ -3114,7 +3113,7 @@ void sensor_responseWMRF(  // WS Output:
   const Index nin = nf * npol * nlos;
 
   // Initialise output stream for runtime errors and a flag for errors
-  ostringstream os;
+  std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
@@ -3162,9 +3161,9 @@ void sensor_responseWMRF(  // WS Output:
     error_found = true;
   }
 
-  // If errors where found throw runtime_error with the collected error
+  // If errors where found throw std::runtime_error with the collected error
   // message (before error message gets too long).
-  if (error_found) throw runtime_error(os.str());
+  if (error_found) throw std::runtime_error(os.str());
 
   // Ok, now the actual work.
 
@@ -3280,35 +3279,35 @@ void yApplySensorPol(Vector& y,
   const Index n2 = nm * nc;
 
   // Check consistency of input data
-  if (y.empty()) throw runtime_error("Input *y* is empty. Use *yCalc*");
+  if (y.empty()) throw std::runtime_error("Input *y* is empty. Use *yCalc*");
   if (y_f.nelem() != n1)
-    throw runtime_error("Lengths of input *y* and *y_f* are inconsistent.");
+    throw std::runtime_error("Lengths of input *y* and *y_f* are inconsistent.");
   if (y_pol.nelem() != n1)
-    throw runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
+    throw std::runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
   if (y_pos.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
+    throw std::runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
   if (y_los.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_los* are inconsistent.");
+    throw std::runtime_error("Sizes of input *y* and *y_los* are inconsistent.");
   if (y_geo.nrows() != n1)
-    throw runtime_error("Sizes of input *y* and *y_geo* are inconsistent.");
+    throw std::runtime_error("Sizes of input *y* and *y_geo* are inconsistent.");
   if (jacobian_do) {
     if (jacobian.nrows() != n1)
-      throw runtime_error("Sizes of *y* and *jacobian* are inconsistent.");
+      throw std::runtime_error("Sizes of *y* and *jacobian* are inconsistent.");
   }
 
   // Checks associated with the Stokes vector
   if (n1 < 4)
-    throw runtime_error("Length of input *y* smaller than *4*.");
+    throw std::runtime_error("Length of input *y* smaller than *4*.");
   for (Index i = 0; i < 4; i++) {
     if (y_pol[i] != i + 1)
-      throw runtime_error(
+      throw std::runtime_error(
           "*y* must hold Stokes element values. Data in "
           "*y_pol* indicates that this is not the case.");
   }
 
   // Checks of sensor_pos
   if (sensor_pos.nrows() != nm)
-    throw runtime_error(
+    throw std::runtime_error(
         "Different number of rows in *sensor_pos* and *sensor_pol*.");
   ARTS_USER_ERROR_IF(n2 * 4 != n1,
         "Number of columns in *sensor_pol* not consistent with "

@@ -115,19 +115,19 @@ void Select(  // WS Generic Output:
 
   for (Index i = 0; i < needleind.nelem(); i++) {
     if (haystack.nrows() <= needleind[i]) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The input matrix only has " << haystack.nrows()
          << " rows. But one of the needle indexes is " << needleind[i] << "."
-         << endl;
+         << std::endl;
       os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     
     if (needleind[i] < 0) {
-      ostringstream os;
-      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      std::ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << std::endl;
       os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     
 

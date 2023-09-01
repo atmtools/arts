@@ -14,9 +14,8 @@
   ===========================================================================*/
 
 #include "arts_conversions.h"
-#include "arts.h"
-#include "matpack_data.h"
-#include "matpack_complex.h"
+
+#include <matpack.h>
 
 /*===========================================================================
   === Functions in physics_funcs.h

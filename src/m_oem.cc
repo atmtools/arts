@@ -25,7 +25,6 @@
 #include <stdexcept>
 #include <string>
 #include "array.h"
-#include "arts.h"
 #include "arts_omp.h"
 #include "atm.h"
 #include <workspace.h>
@@ -371,10 +370,10 @@ void OEM(const Workspace& ws,
     oem_diagnostics[0] = 99;
     //
     if (display_progress) {
-      cout << "\n   No OEM inversion, too high start cost:\n"
-           << "        Set limit : " << max_start_cost << endl
-           << "      Found value : " << cost_start << endl
-           << endl;
+      std::cout << "\n   No OEM inversion, too high start cost:\n"
+           << "        Set limit : " << max_start_cost << std::endl
+           << "      Found value : " << cost_start << std::endl
+           << std::endl;
     }
   }
   // Otherwise do inversion
@@ -463,7 +462,7 @@ void OEM(const Workspace& ws,
         SaDiag.add_correlation_inverse(Block(Range(0, n),
                                              Range(0, n),
                                              std::make_pair(0, 0),
-                                             make_shared<Sparse>(diagonal)));
+                                             std::make_shared<Sparse>(diagonal)));
         oem::CovarianceMatrix SaInvLM = inv(oem::CovarianceMatrix(SaDiag));
 	oem::LM lm(SaInvLM, s);
 
@@ -490,7 +489,7 @@ void OEM(const Workspace& ws,
         SaDiag.add_correlation_inverse(Block(Range(0, n),
                                              Range(0, n),
                                              std::make_pair(0, 0),
-                                             make_shared<Sparse>(diagonal)));
+                                             std::make_shared<Sparse>(diagonal)));
 	oem::LM_CG lm(SaDiag, cg);
 
         lm.set_maximum_iterations((unsigned int)max_iter);

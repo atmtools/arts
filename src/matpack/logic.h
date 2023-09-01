@@ -9,7 +9,7 @@
 #ifndef logic_h
 #define logic_h
 
-#include "arts.h"
+#include <array.h>
 #include "matpack_data.h"
 
 bool is_bool(const Index& x);

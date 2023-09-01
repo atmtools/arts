@@ -9,7 +9,6 @@
   \brief This file contains basic functions to handle XML data files.
 */
 
-#include "arts.h"
 #include "cloudbox.h"
 #include "compare.h"
 #include "debug.h"
@@ -37,7 +36,7 @@
   \param irecord  CIARecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           CIARecord& cr,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -56,14 +55,14 @@ void xml_read_from_stream(istream& is_xml,
   species2 = Species::fromShortName(molecule2);
 
   if (not good_enum(species1)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown species (1st molecule) in CIARecord: " << molecule1;
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (not good_enum(species2)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown species (2nd molecule) in CIARecord: " << molecule2;
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   cr.SetSpecies(species1, species2);
@@ -81,7 +80,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const CIARecord& cr,
                          bofstream* pbofs,
                          const String& name _U_) {
@@ -107,7 +106,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param covmat    CovarianceMatrix
   \param pbifs     Pointer to binary file stream. NULL for ASCII output.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           CovarianceMatrix& covmat,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -184,7 +183,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Unused
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const CovarianceMatrix& covmat,
                          bofstream* pbofs,
                          const String& name _U_) {
@@ -271,7 +270,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gal     GasAbsLookup return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GasAbsLookup& gal,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -300,7 +299,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GasAbsLookup& gal,
                          bofstream* pbofs,
                          const String& name) {
@@ -342,7 +341,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField& gfield,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -379,7 +378,7 @@ void xml_read_from_stream(istream& is_xml,
             s + "* found.");
       }
     } else {
-      ostringstream os;
+      std::ostringstream os;
       os << "Grids must be of type *Vector* or *ArrayOfString*\n"
          << "but tag <" + tag.get_name() + "> found.";
       if (tag.get_name() == "ArrayOfString")
@@ -395,7 +394,7 @@ void xml_read_from_stream(istream& is_xml,
   \param gfield  GriddedField with the grids
   \param pbofs   Pointer to binary output stream. NULL in case of ASCII file.
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField& gfield,
                          bofstream* pbofs,
                          const String& /* name */) {
@@ -431,7 +430,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField1 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField1& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -459,7 +458,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField1& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -491,7 +490,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField2 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField2& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -519,7 +518,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField2& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -551,7 +550,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField3 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField3& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -579,7 +578,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField3& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -611,7 +610,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField4 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField4& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -639,7 +638,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField4& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -671,7 +670,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField5 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField5& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -699,7 +698,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField5& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -731,7 +730,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gfield  GriddedField6 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GriddedField6& gfield,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -759,7 +758,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GriddedField6& gfield,
                          bofstream* pbofs,
                          const String& name) {
@@ -791,7 +790,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param gpos    GridPos return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           GridPos& gpos,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -814,7 +813,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const GridPos& gpos,
                          bofstream* pbofs,
                          const String& name) {
@@ -847,7 +846,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param hitran   HitranRelaxationMatrixData return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           HitranRelaxationMatrixData& hitran,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -885,7 +884,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const HitranRelaxationMatrixData& hitran,
                          bofstream* pbofs,
                          const String& name) {
@@ -929,7 +928,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param ppath   Ppath return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Ppath& ppath,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -970,7 +969,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Ppath& ppath,
                          bofstream* pbofs,
                          const String& name) {
@@ -1036,7 +1035,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param qi      QuantumIdentifier return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           QuantumIdentifier& qi,
                           bifstream* pbifs _U_) {
   static_assert(QuantumIdentifier::version == 1);
@@ -1061,11 +1060,11 @@ void xml_read_from_stream(istream& is_xml,
     parse_xml_tag_content_as_string(is_xml, qi_str);
     qi = QuantumIdentifier(qi_str, version);
   } catch (const std::runtime_error& e) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error reading QuantumIdentifier: "
        << "\n"
        << e.what();
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   tag.read_from_stream(is_xml);
@@ -1079,7 +1078,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const QuantumIdentifier& qi,
                          bofstream* pbofs _U_,
                          const String& name) {
@@ -1097,7 +1096,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   close_tag.set_name("/QuantumIdentifier");
   close_tag.write_to_stream(os_xml);
-  os_xml << endl;
+  os_xml << std::endl;
 }
 
 //=== RetrievalQuantity =========================================
@@ -1108,7 +1107,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param rq      RetrievalQuantity return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           RetrievalQuantity& rq,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1141,7 +1140,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const RetrievalQuantity& rq,
                          bofstream* pbofs,
                          const String& name) {
@@ -1171,7 +1170,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param ssdata  SingleScatteringData return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SingleScatteringData& ssdata,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1194,14 +1193,14 @@ void xml_read_from_stream(istream& is_xml,
     xml_read_from_stream(is_xml, ptype, pbifs);
     if (ptype != PTYPE_GENERAL && ptype != PTYPE_TOTAL_RND &&
         ptype != PTYPE_AZIMUTH_RND) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Ptype value (" << ptype << ") is wrong."
          << "It must be \n"
          << PTYPE_TOTAL_RND << " - totally randomly oriented particles,\n"
          << PTYPE_AZIMUTH_RND
          << " - azimuthally randomly oriented particles, or\n"
          << PTYPE_GENERAL << " - arbitrary oriented particles.\n";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     ssdata.ptype = PType(ptype);
   }
@@ -1212,17 +1211,17 @@ void xml_read_from_stream(istream& is_xml,
   /* Verify that we have a good coverage for the za grid */
   if ((ssdata.za_grid[0] > 1) ||
       ssdata.za_grid[ssdata.za_grid.nelem() - 1] < 179) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Missing data in xml-stream. Expected za_grid: [0, 180]. "
        << "Found za_grid: [" << ssdata.za_grid[0] << ", "
        << ssdata.za_grid[ssdata.za_grid.nelem() - 1] << "]";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   xml_read_from_stream(is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream(is_xml, ssdata.pha_mat_data, pbifs);
   if (ssdata.pha_mat_data.nlibraries() != ssdata.f_grid.nelem()) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Number of frequencies in f_grid and pha_mat_data "
         "not matching!!!");
   }
@@ -1247,7 +1246,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SingleScatteringData& ssdata,
                          bofstream* pbofs,
                          const String& name) {
@@ -1284,7 +1283,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param smdata  ScatteringMetaData return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           ScatteringMetaData& smdata,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1295,10 +1294,10 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("version", version);
 
   if (version != "3") {
-    ostringstream os;
+    std::ostringstream os;
     os << "Only ScatteringMetaData version 3 can be handled. "
        << "Versions 1 and 2 are obsolete.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   xml_read_from_stream(is_xml, smdata.description, pbifs);
@@ -1321,7 +1320,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const ScatteringMetaData& smdata,
                          bofstream* pbofs,
                          const String& name) {
@@ -1355,7 +1354,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SLIData2& slidata,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1371,7 +1370,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/SLIData2");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SLIData2& slidata,
                          bofstream* pbofs,
                          const String& name) {
@@ -1399,7 +1398,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param sap      SpeciesIsotopologueRatios return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SpeciesIsotopologueRatios& iso_rat,
                           bifstream* pbifs) {
   ARTS_USER_ERROR_IF(pbifs, "No support for binary IO for (SpeciesIsotopologueRatios)")
@@ -1420,7 +1419,7 @@ void xml_read_from_stream(istream& is_xml,
     is_xml >> name >> double_imanip() >> val;
     
     if (is_xml.fail()) {
-      ostringstream os;
+      std::ostringstream os;
       os << " near "
       << "\n  Element: " << n;
       xml_data_parse_error(tag, os.str());
@@ -1444,7 +1443,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SpeciesIsotopologueRatios& iso_rat,
                          bofstream* pbofs,
                          const String& name)
@@ -1480,11 +1479,11 @@ void xml_write_to_stream(ostream& os_xml,
 */
 /*  param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
                  Ignored because SpeciesTag is always stored in ASCII format.*/
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SpeciesTag& stag,
                           bifstream* /* pbifs */) {
   ArtsXMLTag tag;
-  stringbuf strbuf;
+  std::stringbuf strbuf;
   char dummy;
 
   tag.read_from_stream(is_xml);
@@ -1533,7 +1532,7 @@ void xml_read_from_stream(istream& is_xml,
 */
 /*  param pbofs   Pointer to binary file stream. NULL for ASCII output.
                  Ignore because SpeciesTag is always stored in ASCII format. */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SpeciesTag& stag,
                          bofstream* /* pbofs */,
                          const String& name) {
@@ -1559,7 +1558,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param sun    Sun return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Sun& sun,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1585,7 +1584,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Sun& sun,
                          bofstream* pbofs,
                          const String& name) {
@@ -1617,7 +1616,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param pm         TelsemAtlas return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           TelsemAtlas& ta,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1648,7 +1647,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const TelsemAtlas& ta,
                          bofstream* pbofs,
                          const String& name) {
@@ -1685,7 +1684,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param xd         XsecData return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           XsecRecord& xd,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -1701,7 +1700,7 @@ void xml_read_from_stream(istream& is_xml,
 
   const Species::Species species = Species::fromShortName(species_name);
   if (not good_enum(species)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "  Unknown species in XsecRecord: " << species_name;
     throw std::runtime_error(os.str());
   }
@@ -1732,7 +1731,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const XsecRecord& xd,
                          bofstream* pbofs,
                          const String& name) {
@@ -1780,7 +1779,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param rvb        MapOfErrorCorrectedSuddenData return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           MapOfErrorCorrectedSuddenData& rvb,
                           bifstream* pbifs) {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
@@ -1842,7 +1841,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const MapOfErrorCorrectedSuddenData& rvb,
                          bofstream* pbofs,
                          const String& name) {
@@ -1890,7 +1889,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param pmd        PredefinedModelData return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           PredefinedModelData& pmd,
                           bifstream* pbifs) {
   ARTS_USER_ERROR_IF(pbifs, "No binary data")
@@ -1944,7 +1943,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const PredefinedModelData& pmd,
                          bofstream* pbofs,
                          const String& name) {
@@ -1999,7 +1998,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 
 //=== AtmField =========================================
-void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
+void xml_read_from_stream_helper(std::istream &is_xml, Atm::KeyVal &key_val,
                                  Atm::Data &data, bifstream *pbifs) {
   data = Atm::Data{}; // overwrite
 
@@ -2066,7 +2065,7 @@ void xml_read_from_stream_helper(istream &is_xml, Atm::KeyVal &key_val,
  * \param atm        AtmField return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           AtmField& atm,
                           bifstream* pbifs) {
   atm = AtmField{};  // overwrite
@@ -2092,7 +2091,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/AtmField");
 }
 
-void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
+void xml_write_to_stream_helper(std::ostream &os_xml, const Atm::KeyVal &key,
                                 const Atm::Data &data, bofstream *pbofs) {
   ArtsXMLTag open_data_tag;
   open_data_tag.set_name("AtmData");
@@ -2142,7 +2141,7 @@ void xml_write_to_stream_helper(ostream &os_xml, const Atm::KeyVal &key,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const AtmField& atm,
                          bofstream* pbofs,
                          const String& name) {
@@ -2178,7 +2177,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param atm        AtmPoint return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           AtmPoint& atm,
                           bifstream* pbifs) {
   atm = AtmPoint{};  // overwrite
@@ -2225,7 +2224,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const AtmPoint& atm,
                          bofstream* pbofs,
                          const String& name) {
@@ -2265,7 +2264,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 
 //=== SurfaceField =========================================
-void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
+void xml_read_from_stream_helper(std::istream &is_xml, Surf::KeyVal &key_val,
                                  Surf::Data &data, bifstream *pbifs) {
   data = Surf::Data{}; // overwrite
 
@@ -2328,7 +2327,7 @@ void xml_read_from_stream_helper(istream &is_xml, Surf::KeyVal &key_val,
  * \param surf       SurfaceField return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SurfaceField& surf,
                           bifstream* pbifs) {
   surf = SurfaceField{};  // overwrite
@@ -2352,7 +2351,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/SurfaceField");
 }
 
-void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
+void xml_write_to_stream_helper(std::ostream &os_xml, const Surf::KeyVal &key,
                                 const Surf::Data &data, bofstream *pbofs) {
   ArtsXMLTag open_data_tag;
   open_data_tag.set_name("SurfaceData");
@@ -2399,7 +2398,7 @@ void xml_write_to_stream_helper(ostream &os_xml, const Surf::KeyVal &key,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SurfaceField& surf,
                          bofstream* pbofs,
                          const String& name) {
@@ -2434,7 +2433,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param surf       SurfacePoint return value
  * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           SurfacePoint& surf,
                           bifstream* pbifs) {
   surf = SurfacePoint{};  // overwrite
@@ -2479,7 +2478,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
  * \param name       Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const SurfacePoint& surf,
                          bofstream* pbofs,
                          const String& name) {
@@ -2519,7 +2518,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== Wsv ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Wsv& wsv,
                           bifstream* pbifs) {
   ArtsXMLTag open_tag;
@@ -2537,7 +2536,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/Wsv");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Wsv& wsv,
                          bofstream* pbofs,
                          const String&) {
@@ -2558,7 +2557,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== Method ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Method& m,
                           bifstream* pbifs) {
   ArtsXMLTag open_tag;
@@ -2595,7 +2594,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/Method");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Method& m,
                          bofstream* pbofs,
                          const String&) {
@@ -2638,7 +2637,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== Agenda ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Agenda& a,
                           bifstream* pbifs) {
   ArtsXMLTag open_tag;
@@ -2670,7 +2669,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/Agenda");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Agenda& a,
                          bofstream* pbofs,
                          const String&) {
@@ -2694,7 +2693,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== Any ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Any& a,
                           bifstream*) {
   a = Any{};
@@ -2708,7 +2707,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/Any");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Any&,
                          bofstream*,
                          const String&) {
@@ -2723,7 +2722,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== MCAntenna ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           MCAntenna& m,
                           bifstream* pbifs) {
 
@@ -2745,7 +2744,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/MCAntenna");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const MCAntenna& m,
                          bofstream* pbofs,
                          const String&) {
@@ -2769,7 +2768,7 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== TessemNN ================================================
 
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           TessemNN& t,
                           bifstream* pbifs) {
   ArtsXMLTag open_tag;
@@ -2793,7 +2792,7 @@ void xml_read_from_stream(istream& is_xml,
   close_tag.check_name("/TessemNN");
 }
 
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const TessemNN& t,
                          bofstream* pbofs,
                          const String&) {
@@ -2831,13 +2830,13 @@ void xml_write_to_stream(ostream& os_xml,
 
 //=== CallbackFunction =========================================
 
-void xml_read_from_stream(istream&,
+void xml_read_from_stream(std::istream&,
                           CallbackFunction&,
                           bifstream* /* pbifs */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
 
-void xml_write_to_stream(ostream&,
+void xml_write_to_stream(std::ostream&,
                          const CallbackFunction&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
@@ -2846,13 +2845,13 @@ void xml_write_to_stream(ostream&,
 
 //=== NumericUnaryOperator =========================================
 
-void xml_read_from_stream(istream&,
+void xml_read_from_stream(std::istream&,
                           NumericUnaryOperator&,
                           bifstream* /* pbifs */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
 
-void xml_write_to_stream(ostream&,
+void xml_write_to_stream(std::ostream&,
                          const NumericUnaryOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
@@ -2861,13 +2860,13 @@ void xml_write_to_stream(ostream&,
 
 //=== SpectralRadianceProfileOperator =========================================
 
-void xml_read_from_stream(istream&,
+void xml_read_from_stream(std::istream&,
                           SpectralRadianceProfileOperator&,
                           bifstream* /* pbifs */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
 
-void xml_write_to_stream(ostream&,
+void xml_write_to_stream(std::ostream&,
                          const SpectralRadianceProfileOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {

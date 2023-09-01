@@ -18,7 +18,6 @@
 #include <random>
 #include <stdexcept>
 
-#include "arts.h"
 #include "arts_constants.h"
 #include "check_input.h"
 #include "cloudbox.h"
@@ -98,7 +97,7 @@ void psd_cloudice_MH97(Vector& psd,
   // Calculate IWC in each mode
   Numeric a = 0.252 + sig_a;  //g/m^3
   Numeric b1 = 0.837 + sig_b1;
-  Numeric IWCs100 = min(ciwc, a * pow(ciwc, b1));
+  Numeric IWCs100 = std::min(ciwc, a * std::pow(ciwc, b1));
   Numeric IWCl100 = ciwc - IWCs100;
 
   // Gamma distribution component (small mode)
@@ -191,13 +190,13 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
 
   // Additional (basic) checks
   if (nin < 1 || nin > 4)
-    throw runtime_error(
+    throw std::runtime_error(
         "The number of columns in *pnd_agenda_input* must "
         "be 2, 3 or 4.");
   if (scat_species_a <= 0)
-    throw runtime_error("*scat_species_a* should be > 0.");
+    throw std::runtime_error("*scat_species_a* should be > 0.");
   if (scat_species_b <= 0 || scat_species_b >= 5)
-    throw runtime_error("*scat_species_b* should be > 0 and < 5.");
+    throw std::runtime_error("*scat_species_b* should be > 0 and < 5.");
 
   // Check and determine dependent and fixed parameters
   const Index n0_depend = (Index)n0 == -999;
@@ -206,12 +205,12 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
   const Index ga_depend = (Index)ga == -999;
   //
   if (n0_depend + mu_depend + la_depend + ga_depend != 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "Two (but only two) of n0, mu, la and ga must be NaN, "
         "to flag that these parameters are the ones dependent of "
         "mass content and mean particle size.");
   if (mu_depend || ga_depend)
-    throw runtime_error(
+    throw std::runtime_error(
         "Sorry, mu and la are not yet allowed to be a "
         "dependent parameter.");
   //
@@ -221,7 +220,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
   const Index ga_fixed = (Index) !(ga_depend || std::isnan(ga));
   //
   if (nin + n0_fixed + mu_fixed + la_fixed + ga_fixed != 4)
-    throw runtime_error(
+    throw std::runtime_error(
         "This PSD has four free parameters. This means that "
         "the number\nof columns in *pnd_agenda_input* and the "
         "number of numerics\n(i.e. not -999 or NaN) and among "
@@ -303,7 +302,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
     // Extract "something"
     ext_pars[1] = pnd_agenda_input(ip, ext_i_pai[1]);
     if (ext_pars[1] <= 0) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Negative or zero " << something << " found in a position where "
          << "this is not allowed.";
       if (ndx)
@@ -323,11 +322,11 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
       if (picky) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Method called with a temperature of " << t << " K.\n"
            << "This is outside the specified allowed range: [ max(0.," << t_min
            << "), " << t_max << " ]";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       } else {
         continue;
       }  // If here, we are ready with this point!
@@ -343,7 +342,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
       if (n0_depend && la_depend) {
         mub1 = mgd_pars[1] + scat_species_b + 1;
         if (mub1 <= 0)
-          throw runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
+          throw std::runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
         eterm = mub1 / mgd_pars[3];
         // Start by deriving la
         gterm = tgamma(eterm);
@@ -363,7 +362,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
       if (n0_depend && la_depend) {
         mub1 = mgd_pars[1] + scat_species_b + 1;
         if (mub1 <= 0)
-          throw runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
+          throw std::runtime_error("Bad MGD parameter detected: mu + b + 1 <= 0");
         eterm = mub1 / mgd_pars[3];
         // Start by deriving la
         scfac2 = (mgd_pars[1] + 1 + scat_species_b - 0.327 * mgd_pars[3]) /
@@ -384,7 +383,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
       if (n0_depend && la_depend) {
         mu1 = mgd_pars[1] + 1;
         if (mu1 <= 0)
-          throw runtime_error("Bad MGD parameter detected: mu + 1 <= 0");
+          throw std::runtime_error("Bad MGD parameter detected: mu + 1 <= 0");
         eterm = (mgd_pars[1] + scat_species_b + 1) / mgd_pars[3];
         gterm = tgamma(eterm);
         // Start by deriving la
@@ -404,7 +403,7 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
       if (n0_depend && la_depend) {
         mu1 = mgd_pars[1] + 1;
         if (mu1 <= 0)
-          throw runtime_error("Bad MGD parameter detected: mu + 1 <= 0");
+          throw std::runtime_error("Bad MGD parameter detected: mu + 1 <= 0");
         eterm = (mgd_pars[1] + scat_species_b + 1) / mgd_pars[3];
         gterm = tgamma(eterm);
         // Start by deriving la
@@ -427,9 +426,9 @@ void psd_mgd_mass_and_something(Matrix& psd_data,
 
     // Now when all four MGD parameters are set, check that la and ga are OK
     if (mgd_pars[2] <= 0)
-      throw runtime_error("Bad MGD parameter detected: la <= 0");
+      throw std::runtime_error("Bad MGD parameter detected: la <= 0");
     if (mgd_pars[3] <= 0)
-      throw runtime_error("Bad MGD parameter detected: ga <= 0");
+      throw std::runtime_error("Bad MGD parameter detected: ga <= 0");
 
     // Calculate PSD and derivatives
     Matrix jac_data(4, nsi);
@@ -605,28 +604,28 @@ void psd_mono_common(Matrix& psd_data,
 
   // Extra checks for this PSD
   const Index nss = scat_meta.nelem();
-  if (nss == 0) throw runtime_error("*scat_meta* is empty!");
+  if (nss == 0) throw std::runtime_error("*scat_meta* is empty!");
   if (nss < species_index + 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Selected scattering species index is " << species_index
        << " but this "
        << "is not allowed since *scat_meta* has only " << nss << " elements.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (scat_meta[species_index].nelem() != 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "This method only works with scattering species consisting of a\n"
        << "single element, but your data do not match this demand.\n"
        << "Selected scattering species index is " << species_index << ".\n"
        << "This species has " << scat_meta[species_index].nelem()
        << " elements.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   //
   if (pnd_agenda_input.ncols() != 1)
-    throw runtime_error("*pnd_agenda_input* must have one column.");
+    throw std::runtime_error("*pnd_agenda_input* must have one column.");
   if (nsi != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "This method demands that length of *psd_size_grid* is 1.");
 
   // Extract particle mass
@@ -648,11 +647,11 @@ void psd_mono_common(Matrix& psd_data,
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
       if (picky) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Method called with a temperature of " << t << " K.\n"
            << "This is outside the specified allowed range: [ max(0.," << t_min
            << "), " << t_max << " ]";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       } else {
         continue;
       }  // If here, we are ready with this point!
@@ -728,38 +727,38 @@ void psd_mgd_smm_common(Matrix& psd_data,
 
   // All PSDs are defined in terms of hydrometeor mass content
   if (pnd_agenda_input.ncols() != 1)
-    throw runtime_error("*pnd_agenda_input* must have one column.");
+    throw std::runtime_error("*pnd_agenda_input* must have one column.");
 
   // Extra checks for rain PSDs which should be consistent with
   // spherical liquid drops
   if (psd_name == "Abel12" || psd_name == "Wang16"){
     if (scat_species_b < 2.9 || scat_species_b > 3.1) {
-      ostringstream os;
+      std::ostringstream os;
       os << "This PSD treats rain, using Dveq as size grid.\n"
 	 << "This means that *scat_species_b* should be close to 3,\n"
 	 << "but it is outside of the tolerated range of [2.9,3.1].\n"
 	 << "Your value of *scat_species_b* is: " << scat_species_b;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     if (scat_species_a < 500 || scat_species_a > 540) {
-      ostringstream os;
+      std::ostringstream os;
       os << "This PSD treats rain, using Dveq as size grid.\n"
 	 << "This means that *scat_species_a* should be close to 520,\n"
 	 << "but it is outside of the tolerated range of [500,540].\n"
 	 << "Your value of *scat_species_a* is: " << scat_species_a;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
   // Extra checks for graupel/hail PSDs which assume constant effective density
   //
   if (psd_name == "Field19"){
     if (scat_species_b < 2.8 || scat_species_b > 3.2) {
-      ostringstream os;
+      std::ostringstream os;
       os << "This PSD treats graupel, assuming a constant effective density.\n"
 	 << "This means that *scat_species_b* should be close to 3,\n"
 	 << "but it is outside of the tolerated range of [2.8,3.2].\n"
 	 << "Your value of *scat_species_b* is: " << scat_species_b;
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -776,11 +775,11 @@ void psd_mgd_smm_common(Matrix& psd_data,
     // Outside of [t_min,tmax]?
     if (t < t_min || t > t_max) {
       if (picky) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Method called with a temperature of " << t << " K.\n"
            << "This is outside the specified allowed range: [ max(0.," << t_min
            << "), " << t_max << " ]";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       } else {
         continue;
       }  // If here, we are ready with this point!
@@ -1019,9 +1018,9 @@ void psd_SB06(Vector& psd,
     xmin = 4.2e-15;
     xmax = 2.6e-10;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "You use a wrong tag! ";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   M0 = N_tot;
@@ -1157,9 +1156,9 @@ void psd_MY05(Vector& psd,
     alpha = 523.5988;  //[kg]
     beta = 3;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "You use a wrong tag! ";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   M0 = N_tot;

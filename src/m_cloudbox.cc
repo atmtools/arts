@@ -21,7 +21,6 @@
 #include <stdexcept>
 
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "arts_omp.h"
@@ -293,7 +292,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
 
       try {
         find_xml_file(scat_meta_file);
-      } catch (const runtime_error&) {
+      } catch (const std::runtime_error&) {
       }
 
       if (file_exists(scat_meta_file)) {
@@ -357,7 +356,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
         xml_read_from_file(scat_meta_file, smd);
       }
     } catch (const std::exception& e) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Run-time error reading scattering data : \n" << e.what();
 #pragma omp critical(ybatchCalc_push_fail_msg)
       fail_msg.push_back(os.str());
@@ -558,7 +557,7 @@ void ScatSpeciesExtendTemperature(  //WS Output:
 
         // copy grids and other descriptive data that is to remain identical
         ssdn.ptype = ssdo.ptype;
-        ostringstream description;
+        std::ostringstream description;
         description << ssdo.description;  // here just copy. we append further
                                           // info below if applicable.
         ssdn.f_grid = ssdo.f_grid;

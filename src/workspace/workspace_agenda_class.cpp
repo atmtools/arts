@@ -34,7 +34,7 @@ void Agenda::finalize(bool fix) try {
 
   auto ag_ptr = wsa.find(name);
   if (ag_ptr == wsa.end()) {
-    throw std::runtime_error("Only pre-compiled agendas may be finalized and thus live on the workspace");
+    return;
   }
 
   auto must_out = ag_ptr->second.output;
@@ -117,7 +117,7 @@ void Agenda::finalize(bool fix) try {
     }
   }
 
-  const auto remove_copies = [](std::vector<string>& seq) {
+  const auto remove_copies = [](std::vector<std::string>& seq) {
     auto first = seq.begin();
     auto last = seq.end();
     std::sort(first, last);
