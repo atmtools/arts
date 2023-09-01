@@ -1445,8 +1445,6 @@ void run_cdisort_flux(Workspace& ws,
   Numeric umu0 = 0.;
   //local azimuth angle of sun
   Numeric phi0 = 0.;
-  //Intensity of incident sun beam
-  Numeric fbeam = 0.;
 
   if (suns_do) {
     umu0 = Conversion::cosd(sun_rte_los[0]);
@@ -1503,21 +1501,12 @@ void run_cdisort_flux(Workspace& ws,
   //Set number of legendre terms
   Index Nlegendre = nstreams + 1;
 
-  /* Allocate memory */
-  c_disort_state_alloc(&ds);
-  c_disort_out_alloc(&ds, &out);
-
   // Looking direction of solar beam
   ds.bc.umu0 = umu0;
   ds.bc.phi0 = phi0;
 
   // Intensity of bottom-boundary isotropic illumination
   ds.bc.fluor = 0.;
-
-  // fill up temperature array
-  if  (ds.flag.planck==TRUE){
-    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
-  }
 
   //
   Index N_lev= p_grid.nelem();
@@ -1541,23 +1530,11 @@ void run_cdisort_flux(Workspace& ws,
   //Allocate
   Matrix ext_bulk_par(1, ds.nlyr + 1), abs_bulk_par(1, ds.nlyr + 1);
   Tensor3 pha_bulk_par(1, ds.nlyr + 1, nang);
-  Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
   Tensor3 pmom(1, ds.nlyr, Nlegendre);
-  Vector f_grid_i(1);
   Matrix ssalb(1, ds.nlyr);
   Matrix ext_bulk_gas_i(1, ds.nlyr + 1);
   Matrix dtauc(1, ds.nlyr);
 
-  Matrix sca_coeff_gas_layer;
-  Matrix sca_bulk_par_layer;
-  Matrix sca_coeff_gas_level;
-  Matrix pmom_gas;
-  if (gas_scattering_do) {
-    sca_bulk_par_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_layer.resize(1, ds.nlyr);
-    sca_coeff_gas_level.resize(1, ds.nlyr + 1);
-    pmom_gas.resize(ds.nlyr, Nlegendre);
-  }
   Matrix dFdtau(nf, N_lev, 0);
   Matrix deltatau(nf, N_lev, 0);
   Matrix snglsctalbedo(nf, N_lev, 0);
@@ -1569,8 +1546,23 @@ void run_cdisort_flux(Workspace& ws,
     nlinspace(pfct_angs, 0, 180, nang);
   }
 
+  WorkspaceOmpParallelCopyGuard wss{ws};
   // start loop over all frequencies
+#pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
+    firstprivate(wss, ds, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, pha_bulk_par, umu0, pmom, ssalb, dtauc, out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
+    Vector f_grid_i(1);
+
+    //Intensity of incident sun beam
+    Numeric fbeam = 0.;
+
+    /* Allocate memory */
+    c_disort_state_alloc(&ds);
+    c_disort_out_alloc(&ds, &out);
+    // fill up temperature array
+    if (ds.flag.planck == TRUE) {
+      for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+    }
 
     f_grid_i=f_grid[f_index];
 
@@ -1609,6 +1601,7 @@ void run_cdisort_flux(Workspace& ws,
         get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
       }
       //get phase function
+      Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
       get_pfct(
           pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
@@ -1624,6 +1617,10 @@ void run_cdisort_flux(Workspace& ws,
       // gas scattering
 
       // layer averaged particle scattering coefficient
+      Matrix sca_coeff_gas_layer(1, ds.nlyr);
+      Matrix sca_bulk_par_layer(1, ds.nlyr);
+      Matrix sca_coeff_gas_level(1, ds.nlyr + 1);
+      Matrix pmom_gas(ds.nlyr, Nlegendre);
       get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
 
       // call gas_scattering_properties
@@ -1631,7 +1628,7 @@ void run_cdisort_flux(Workspace& ws,
       sca_coeff_gas_level=0;
       pmom_gas=0;
 
-      get_gas_scattering_properties(ws,
+      get_gas_scattering_properties(wss,
                                     sca_coeff_gas_layer,
                                     sca_coeff_gas_level,
                                     pmom_gas,
@@ -1786,6 +1783,9 @@ void run_cdisort_flux(Workspace& ws,
       dFdtau(f_index, k) = dFdtau(f_index, k + 1);
     }
 
+    /* Free allocated memory */
+    c_disort_out_free(&ds, &out);
+    c_disort_state_free(&ds);
   }
 
   // Allocate aux data
@@ -1821,12 +1821,6 @@ void run_cdisort_flux(Workspace& ws,
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
   }
-
-
-
-  /* Free allocated memory */
-  c_disort_out_free(&ds, &out);
-  c_disort_state_free(&ds);
 
   #else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
