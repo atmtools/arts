@@ -125,7 +125,7 @@ target_link_libraries (test_readpp artscore)
 
 ########### next testcase ###############
 
-add_executable (test_cia test_cia.cc ../cia.cc ../m_cia.cc)
+add_executable (test_cia test_cia.cc)
 target_link_libraries (test_cia artscore)
 
 ########### next testcase ###############
@@ -189,7 +189,7 @@ add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
 # Test that the implentation for predefined models are complete
 add_executable(test_predefined test_predefined.cc)
-target_link_libraries(test_predefined artscore)
+target_link_libraries(test_predefined artscore jacobian)
 add_dependencies(check-deps test_predefined)
 add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################

@@ -11,12 +11,17 @@
 #include <random>
 #include <utility>
 
-#include "array.h"
-#include "covariance_matrix.h"
-#include "jacobian.h"
-#include "lin_alg.h"
+#include <array.h>
+
+#include <covariance_matrix.h>
+
+#include <jacobian.h>
+
+#include <matpack.h>
+
 #include "test_utils.h"
-#include "xml_io.h"
+
+#include <xml_io.h>
 
 // Type alias describing a retrieval setup for testing.
 using RetrievalData = std::tuple<ArrayOfRetrievalQuantity, ArrayOfArrayOfIndex>;
