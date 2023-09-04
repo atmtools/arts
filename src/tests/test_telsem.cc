@@ -11,7 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "arts.h"
 #include "telsem.h"
 
 /** Test reading of TELSEM emissivity interpolation

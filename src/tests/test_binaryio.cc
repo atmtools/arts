@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "arts.h"
 #include "matpack_data.h"
 #include "xml_io.h"
 
@@ -22,7 +21,7 @@ int main(int /* argc */, char* /* argv */[]) {
 
   xml_read_from_file("outfile.xml", w);
 
-  cout << w << endl;
+  std::cout << w << std::endl;
 
   return (EXIT_SUCCESS);
 }

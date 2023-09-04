@@ -14,7 +14,7 @@ void readppheader(bifstream& is, PPHeader& pph) {
   for (int j = 0; j < 65 && is.good(); j++) {
     pph[j] = is.readInt(4);
 #ifdef VERBOSE
-    cout << j << " " << pph[j] << " " << is.error() << endl;
+    std::cout << j << " " << pph[j] << " " << is.error() << std::endl;
 #endif
   }
 }
@@ -28,14 +28,14 @@ void readppdata(bifstream& is, PPHeader& pph, Vector& v) {
   }
 
   if (!is.good()) {
-    cerr << "Error: " << is.error() << endl;
+    std::cerr << "Error: " << is.error() << std::endl;
   }
 }
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    cerr << "Usage: " << argv[0] << " PPFILE [MAXFIELDS]" << endl;
-    exit(EXIT_FAILURE);
+    std::cerr << "Usage: " << argv[0] << " PPFILE [MAXFIELDS]" << std::endl;
+    std::exit(EXIT_FAILURE);
   }
 
   long maxfields = -1;
@@ -58,23 +58,23 @@ int main(int argc, char* argv[]) {
 
       readppheader(is, pph);
       if ((e = is.error())) {
-        cerr << "Reading " << field << ". header failed with error " << e
-             << endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Reading " << field << ". header failed with error " << e
+             << std::endl;
+        std::exit(EXIT_FAILURE);
       } else {
-        cout << "Field # " << setw(5) << field << " -- STASH code " << setw(5)
-             << pph[42] << " -- PP code " << setw(4) << pph[23] << " -- PP VCT "
-             << setw(3) << pph[26] << endl;
+        std::cout << "Field # " << std::setw(5) << field << " -- STASH code " << std::setw(5)
+             << pph[42] << " -- PP code " << std::setw(4) << pph[23] << " -- PP VCT "
+             << std::setw(3) << pph[26] << std::endl;
       }
 
       readppdata(is, pph, v);
       if ((e = is.error())) {
-        cerr << "Reading " << field << ". data failed with error " << e << endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Reading " << field << ". data failed with error " << e << std::endl;
+        std::exit(EXIT_FAILURE);
       }
     }
   } else {
-    cerr << "Error reading from " << argv[1] << endl;
+    std::cerr << "Error reading from " << argv[1] << std::endl;
     return (EXIT_FAILURE);
   }
 
