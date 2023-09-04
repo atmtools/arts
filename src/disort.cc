@@ -25,9 +25,7 @@
 #include "debug.h"
 
 #if not ARTS_LGPL
-extern "C" {
 #include "cdisort.h"
-}
 #endif
 
 #include "disort.h"
