@@ -56,14 +56,6 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
 };
 
 std::string fix_newlines(std::string x) {
-  constexpr auto old = "\n\n\n";
-  constexpr auto new_ = "\n\n";
-  auto ptr = x.find(old);
-  while (ptr not_eq x.npos) {
-    x.replace(ptr, 3, new_);
-    ptr = x.find(old);
-  }
-
   while (x.back() == '\n') x.pop_back();
   x.push_back('\n');
   return x;
@@ -160,7 +152,7 @@ Parameters
                       "**\n");
   }
 
-  return writer.size() ? out : "";
+  return writer.size() ? out + "\n\n" : "";
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));

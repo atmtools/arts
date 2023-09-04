@@ -1388,7 +1388,7 @@ For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
 For each observation geometry specified by the combination of
 *sensor_pos* and *sensor_los*, the geometrical intersection with
 a longitude is determined. The intersections are described by the
-GOUT ``pos`` and *los.
+GOUT ``pos`` and ``los``.
 
 For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
 )--",
@@ -11183,12 +11183,13 @@ the expected value, otherwise 0 will be applied.
 The radiative background and number of points can be checked in the same
 way, but here there are no tolarance values and the expected values are
 strings. The following coding is used for the radiative background:
-  "Undefined"
-  "Space"
-  "Surface"
-  "Cloudbox"
-  "Transmitter"
-  "StopDistance" - Start point determined by overall length criterion
+
+- "Undefined"
+- "Space"
+- "Surface"
+- "Cloudbox"
+- "Transmitter"
+- "StopDistance" - Start point determined by overall length criterion
 )--",
       .author = {"Patrick Eriksson"},
 
