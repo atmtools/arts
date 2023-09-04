@@ -14,9 +14,9 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "enums.h"
-#include "jacobian.h"
+#include <jacobian.h>
 #include "lineshapemodel.h"
-#include "matpack_concepts.h"
+#include <matpack.h>
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "zeemandata.h"

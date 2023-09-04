@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "../atm.h"
-#include "../species_tags.h"
-#include "../xsec_fit.h"
+#include <atm.h>
+#include <species_tags.h>
+#include <xsec_fit.h>
 
 namespace fwd::hxsec {
 struct single {

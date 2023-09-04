@@ -656,3 +656,9 @@ void sub(Sparse& A, const Sparse& B, const Sparse& C) {
 
   A.matrix = B.matrix - C.matrix;
 }
+
+Range get_rowindex_for_mblock(const Sparse& sensor_response,
+                              const Index& mblock_index) {
+  const Index n1y = sensor_response.nrows();
+  return Range(n1y * mblock_index, n1y);
+}

@@ -70,7 +70,6 @@ add_library (artscore STATIC
   xsec_fit.cc
   igrf13.cc
   interpolation.cc
-  jacobian.cc
   jpl_species.cc
   legendre.cc
   linemixing.cc
@@ -150,7 +149,6 @@ add_library (artscore STATIC
   nlte.cc
   optproperties.cc
   parameters.cc
-  partfun.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -165,8 +163,6 @@ add_library (artscore STATIC
   sensor.cc
   sourcetext.cc
   special_interp.cc
-  species_info.cc
-  species_tags.cc
   sun.cc
   surf.cc
   surface.cc
@@ -196,7 +192,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species predef xmliobase wigner Faddeeva workspace quantum)
+target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species_tags predef xmliobase wigner Faddeeva workspace quantum jacobian)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)
@@ -255,10 +251,8 @@ target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
 
 ########################################################################################
 
-add_library(species STATIC
-            isotopologues.cc
-            )
-target_link_libraries(species PUBLIC auto_partfun)
+add_subdirectory(spec)
+add_subdirectory(jac)
 
 ########################################################################################
 

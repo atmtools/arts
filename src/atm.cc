@@ -15,13 +15,9 @@
 #include "debug.h"
 #include "gridded_fields.h"
 #include "grids.h"
-#include "interp.h"
 #include "interpolation.h"
-#include "matpack_algo.h"
-#include "matpack_concepts.h"
-#include "matpack_data.h"
-#include "matpack_iter.h"
-#include "matpack_view.h"
+
+#include <matpack.h>
 
 namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {

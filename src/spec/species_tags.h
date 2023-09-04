@@ -4,11 +4,11 @@
 #include <algorithm>
 #include <set>
 
-#include "array.h"
-#include "enums.h"
-#include "isotopologues.h"
-#include "matpack_data.h"
-#include "mystring.h"
+#include <enums.h>
+#include <isotopologues.h>
+#include <matpack.h>
+#include <mystring.h>
+
 #include "species.h"
 
 namespace Species {

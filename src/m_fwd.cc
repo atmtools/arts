@@ -4,40 +4,9 @@
 #include <algorithm>
 
 #include "atm.h"
+#include "atm_path.h"
 #include "debug.h"
 #include "matpack_data.h"
-
-ArrayOfAtmPoint extracND(const AtmField& atm_field,
-                         const Vector& z_grid,
-                         const Vector& lat_grid,
-                         const Vector& lon_grid) {
-  const Index n = z_grid.size();
-  const Index m = lat_grid.size();
-  const Index l = lon_grid.size();
-
-  ArrayOfAtmPoint atm_point(n);
-  if (m == l and n == m) {
-    atm_field.at(atm_point, z_grid, lat_grid, lon_grid);
-  } else if (m == 1 and l == 1) {
-    atm_field.at(atm_point,
-                 z_grid,
-                 Vector(n, lat_grid.front()),
-                 Vector(n, lon_grid.front()));
-  } else if (m == n and l == 1) {
-    atm_field.at(atm_point, z_grid, lat_grid, Vector(n, lon_grid.front()));
-  } else if (m == 1 and l == n) {
-    atm_field.at(atm_point, z_grid, Vector(n, lat_grid.front()), lon_grid);
-  } else {
-    ARTS_USER_ERROR(
-        "lat_grid and lon_grid must either be of size 1 or of size z_grid.size()\nz_grid: ",
-        z_grid,
-        "\nlat_grid: ",
-        lat_grid,
-        "\nlon_grid: ",
-        lon_grid)
-  }
-  return atm_point;
-}
 
 void spectral_radiance_profile_operatorPlaneParallel(
     SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
@@ -60,7 +29,7 @@ void spectral_radiance_profile_operatorPlaneParallel(
                      "z_grid must be sorted in ascending order\nz_grid: ",
                      z_grid)
 
-  const ArrayOfAtmPoint ppvar_atm = extracND(atm_field, z_grid, lat_grid, lon_grid);
+  const ArrayOfAtmPoint ppvar_atm = extract1D(atm_field, z_grid, lat_grid, lon_grid);
 
   spectral_radiance_profile_operator =
       SpectralRadianceProfileOperator(z_grid,

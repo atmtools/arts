@@ -9,20 +9,14 @@
 #ifndef jacobian_h
 #define jacobian_h
 
-#include "arts_conversions.h"
-#include "arts_options.h"
-#include "array.h"
-#include "bifstream.h"
-#include "enums.h"
-#include "interpolation.h"
-#include "logic.h"
-#include "matpack_arrays.h"
-#include "matpack_data.h"
-#include "matpack_sparse.h"
-#include "mystring.h"
-#include "ppath_struct.h"
-#include "quantum_numbers.h"  
-#include "species_tags.h"
+#include <arts_conversions.h>
+#include <arts_options.h>
+#include <ppath_struct.h>
+
+#include <matpack.h>
+#include <quantum_numbers.h>
+#include <species_tags.h>
+
 #include <algorithm>
 #include <iostream>
 #include <map>

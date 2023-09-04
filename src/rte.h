@@ -242,19 +242,6 @@ void get_ppath_f(Matrix& ppath_f,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind);
 
-/** Returns the "range" of *y* corresponding to a measurement block
-
-    @param[in]   sensor_response    As the WSV.
-    @param[in]   mblock_index       Index of the measurement block.
-
-    @return  The range.
-
-    @author Patrick Eriksson 
-    @date   2009-10-16
- */
-Range get_rowindex_for_mblock(const Sparse& sensor_response,
-                              const Index& imblock);
-
 /** Get the blackbody radiation at propagation path point
  * 
  * @param[in,out] B Blackbody radiation at propagation path point

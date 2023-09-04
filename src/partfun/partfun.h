@@ -1,11 +1,13 @@
 #ifndef partfun_h
 #define partfun_h
 
-#include "auto_partfun.h"
+#include <auto_partfun.h>
 
-#include "enums.h"
-#include "isotopologues.h"
-#include "matpack_data.h"
+#include <enums.h>
+
+#include <isotopologues.h>
+
+#include <matpack.h>
 
 namespace PartitionFunctions {
 

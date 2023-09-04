@@ -2,9 +2,12 @@
 #include <gridded_fields.h>
 #include <isotopologues.h>
 #include <species.h>
-#include <template_partfun.h>
+
+#include "template_partfun.h"
+
 #include <xml_io_base.h>
-#include <xml_io_partfun.h>
+
+#include "xml_io_partfun.h"
 
 #include <cstdlib>
 #include <exception>
@@ -41,7 +44,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
   using enum PartitionFunctions::Type;
   switch (data.type) {
     case Interp:
-      os << "static constexpr std::array<Numeric, " << n << "> data{";
+      os << "static inline constexpr std::array<Numeric, " << n << "> data{";
       for (Index i = 0; i < n; i++) {
         if (i % cutline == 0) {
           os << '\n';
@@ -50,7 +53,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
       }
       os << "};\n\n";
 
-      os << "static constexpr std::array<Numeric, " << n << "> grid{";
+      os << "static inline constexpr std::array<Numeric, " << n << "> grid{";
       for (Index i = 0; i < n; i++) {
         if (i % cutline == 0) {
           os << '\n';
@@ -60,7 +63,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
       os << "};\n";
       break;
     case Coeff:
-      os << "static constexpr std::array<Numeric, " << n << "> coeff{";
+      os << "static inline constexpr std::array<Numeric, " << n << "> coeff{";
       for (Index i = 0; i < n; i++) {
         if (i % cutline == 0) {
           os << '\n';
@@ -70,7 +73,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
       os << "};\n";
       break;
     case StaticInterp:
-        os << "static constexpr std::array<Numeric, " << n << "> data{";
+        os << "static inline constexpr std::array<Numeric, " << n << "> data{";
         for (Index i = 0; i < n; i++) {
           if (i % cutline == 0) {
             os << '\n';
@@ -79,8 +82,8 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
         }
         os << "};\n\n";
 
-        os << "constexpr Numeric dT = " << data.data(0, 0) << ";\n";
-        os << "constexpr Numeric T0 = " << data.data(1, 0) - data.data(0, 0) << ";\n";
+        os << "static constexpr inline Numeric dT = " << data.data(0, 0) << ";\n";
+        os << "static constexpr inline Numeric T0 = " << data.data(1, 0) - data.data(0, 0) << ";\n";
       break;
     case FINAL:
       throw std::logic_error("invalid");

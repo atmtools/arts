@@ -7,14 +7,9 @@
  */
 
 #include "jacobian.h"
-#include "arts_constants.h"
-#include "atm.h"
-#include <workspace.h>
-#include "check_input.h"
-#include "lin_alg.h"
-#include "physics_funcs.h"
-#include "rte.h"
-#include "special_interp.h"
+
+#include <check_input.h>
+#include <physics_funcs.h>
 
 inline constexpr Numeric NAT_LOG_TEN=Constant::ln_10;
 inline constexpr Numeric PI=Constant::pi;

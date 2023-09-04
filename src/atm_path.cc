@@ -1,17 +1,12 @@
 #include "atm_path.h"
-#include "arts_constants.h"
-#include "arts_conversions.h"
-#include "atm.h"
-#include <workspace.h>
-#include "gridded_fields.h"
-#include "matpack_concepts.h"
-#include "matpack_view.h"
-#include "species_tags.h"
 
 #include <algorithm>
 #include <array>
 #include <memory>
 #include <vector>
+#include "debug.h"
+
+#include <arts_conversions.h>
 
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
                                  const Ppath &ppath) {
@@ -78,73 +73,71 @@ ArrayOfVector forward_path_freq(const Vector &main_freq, const Ppath &ppath,
   return path_freq;
 }
 
-/** Returns a unique z_grid and the positions of these values in the original path
- * 
- * @param ppath As WSV
- * @return std::pair<Vector, ArrayOfArrayOfIndex> z_grid, list of positions
- */
-std::pair<Vector, ArrayOfArrayOfIndex> unique_z_grid(const Ppath& ppath) {
-  const Vector z{ppath.pos(joker, 0)};
-  
-  Vector z_grid{z};
-  std::sort(z_grid.begin(), z_grid.end());
-  z_grid = Vector{std::vector<Numeric>{z_grid.begin(), std::unique(z_grid.begin(), z_grid.end())}};
+void extract1D(ArrayOfAtmPoint &atm_path,
+               const AtmField &atm_field,
+               const Vector &z_grid,
+               const Vector &lat_grid,
+               const Vector &lon_grid) {
+  const Index n = atm_path.nelem();
 
-  ArrayOfArrayOfIndex pos(z_grid.nelem());
-  if (z.nelem() == z_grid.nelem()) {
-    // The grid is completely sorted with unique altitudes
+  const auto correct_size = [n](const auto &x) {
+    const Index m = x->nelem();
+    return m == 1 or m == n;
+  };
+  const std::array<const Vector *, 3> d{&z_grid, &lat_grid, &lon_grid};
+  ARTS_USER_ERROR_IF(not std::ranges::all_of(d, correct_size),
+                     "All grids must be 1- or n-long"
+                     "\nz_grid: ",
+                     z_grid,
+                     "\nlat_grid: ",
+                     lat_grid,
+                     "\nlon_grid: ",
+                     lon_grid)
 
-    if (z_grid.front() == z.front()) {
-      for (Index i=0; i<pos.nelem(); i++) {
-        pos[i] = ArrayOfIndex{i};
-      }
+  std::array<std::shared_ptr<Vector>, 3> grids;
+  for (Index i = 0; i < 3; ++i) {
+    if (d[i]->size() == 1) {
+      grids[i] =
+          std::shared_ptr<Vector>(const_cast<Vector *>(d[i]), [](void *) {});
     } else {
-      for (Index i=0; i<pos.nelem(); i++) {
-        pos[i] = ArrayOfIndex{pos.nelem() - i - 1};
-      }
-    }
-  } else {
-    // There are multiple values for some altitudes
-
-    for (Index i=0; i<pos.nelem(); i++) {
-      for (Index j=0; j<z_grid.nelem(); j++) {
-        if (z[j] == z_grid[i]) pos[i].push_back(j);
-      }
+      grids[i] = std::make_shared<Vector>(n, (*d[i])[0]);
     }
   }
 
-  return {z_grid, pos};
+  atm_field.at(atm_path,
+               *const_cast<const Vector *const>(grids[0].get()),
+               *const_cast<const Vector *const>(grids[1].get()),
+               *const_cast<const Vector *const>(grids[2].get()));
 }
 
-AtmField forward_1d_atm_field(const ArrayOfAtmPoint& atm_path, const Ppath& ppath) {
-  ARTS_ASSERT(atm_path.nelem() == ppath.np);
-  ARTS_ASSERT(atm_path.nelem() > 0);
+ArrayOfAtmPoint extract1D(const AtmField& atm_field,
+                          const Vector& z_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid) {
+  const Index n = z_grid.size();
+  const Index m = lat_grid.size();
+  const Index l = lon_grid.size();
 
-  const auto [z, pos] = unique_z_grid(ppath);
-  AtmField atm;
-  atm.top_of_atmosphere = z.back();
-
-  const auto keys = atm_path.front().keys();
-
-  GriddedField3 data;
-  data.data.resize(z.nelem(), 1, 1);
-  data.set_grid_name(0, "Altitude");
-  data.set_grid_name(1, "Latitude");
-  data.set_grid_name(2, "Longitude");
-  data.get_numeric_grid(0) = z;
-  data.get_numeric_grid(1) = {0.0};
-  data.get_numeric_grid(2) = {0.0};
-
-  for (auto& key: keys) {
-    for (Index i=0; i<z.nelem(); i++) {
-      data.data(i, 0, 0) = atm_path[pos[i][0]][key] / static_cast<Numeric>(pos[i].nelem());
-      for (Index j=1; j<pos[i].nelem(); j++) {
-        data.data(i, 0, 0) += atm_path[pos[i][j]][key] / static_cast<Numeric>(pos[i].nelem());
-      }
-    }
-
-    atm[key] = data;
+  ArrayOfAtmPoint atm_point(std::max({n, m, l}));
+  if (m == l and n == m) {
+    atm_field.at(atm_point, z_grid, lat_grid, lon_grid);
+  } else if (m == 1 and l == 1) {
+    atm_field.at(atm_point,
+                 z_grid,
+                 Vector(n, lat_grid.front()),
+                 Vector(n, lon_grid.front()));
+  } else if (m == n and l == 1) {
+    atm_field.at(atm_point, z_grid, lat_grid, Vector(n, lon_grid.front()));
+  } else if (m == 1 and l == n) {
+    atm_field.at(atm_point, z_grid, Vector(n, lat_grid.front()), lon_grid);
+  } else {
+    ARTS_USER_ERROR(
+        "lat_grid and lon_grid must either be of size 1 or of size z_grid.size()\nz_grid: ",
+        z_grid,
+        "\nlat_grid: ",
+        lat_grid,
+        "\nlon_grid: ",
+        lon_grid)
   }
-
-  return atm;
+  return atm_point;
 }

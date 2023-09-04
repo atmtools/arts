@@ -535,12 +535,6 @@ void get_ppath_f(Matrix& ppath_f,
   }
 }
 
-Range get_rowindex_for_mblock(const Sparse& sensor_response,
-                              const Index& mblock_index) {
-  const Index n1y = sensor_response.nrows();
-  return Range(n1y * mblock_index, n1y);
-}
-
 void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
                                       const ConstVectorView &ppath_f_grid,
                                       const Numeric &ppath_temperature,

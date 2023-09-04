@@ -147,6 +147,19 @@ void transpose(Sparse& A, const Sparse& B);
 
 void id_mat(Sparse& A);
 
+/** Returns the "range" of *y* corresponding to a measurement block
+
+    @param[in]   sensor_response    As the WSV.
+    @param[in]   mblock_index       Index of the measurement block.
+
+    @return  The range.
+
+    @author Patrick Eriksson 
+    @date   2009-10-16
+ */
+Range get_rowindex_for_mblock(const Sparse& sensor_response,
+                              const Index& imblock);
+
 /** An array of sparse matrices. */
 using ArrayOfSparse = Array<Sparse>;
 

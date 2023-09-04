@@ -8,10 +8,14 @@
 #include <string_view>
 #include <system_error>
 
-#include "debug.h"
-#include "isotopologues.h"
-#include "nonstd.h"
-#include "partfun.h"
+#include <debug.h>
+
+#include <isotopologues.h>
+
+#include <nonstd.h>
+
+#include <partfun.h>
+
 #include "species.h"
 
 namespace Species {

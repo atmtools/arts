@@ -180,8 +180,8 @@ target_link_libraries (test_isotope species matpack)
 
 ########################################################################################
 # Test that the builtin partition functions are complete
-add_executable(test_partfun test_partfun.cc ../partfun.cc)
-target_link_libraries(test_partfun artscore)
+add_executable(test_partfun test_partfun.cc)
+target_link_libraries(test_partfun artscore partfun)
 add_dependencies(check-deps test_partfun)
 add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################

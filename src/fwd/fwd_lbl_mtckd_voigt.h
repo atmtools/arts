@@ -1,15 +1,17 @@
 #pragma once
 
 #include <Faddeeva/Faddeeva.hh>
+
 #include <algorithm>
 #include <cmath>
 #include <ratio>
 #include <vector>
 
-#include "absorptionlines.h"
-#include "lineshapemodel.h"
-#include "matpack_concepts.h"
-#include "species_tags.h"
+#include <absorptionlines.h>
+
+#include <matpack.h>
+
+#include <species_tags.h>
 
 namespace fwd::lbl::mtckd {
 static constexpr Numeric cutoff_freq = 750e9;
