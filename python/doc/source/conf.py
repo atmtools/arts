@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Typhon documentation build configuration file, created by
+# Pyarts documentation build configuration file, created by
 # sphinx-quickstart on Mon Oct  5 12:51:17 2015.
 #
 # This file is execfile()d with the current directory set to its
