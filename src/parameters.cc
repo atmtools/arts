@@ -310,7 +310,7 @@ bool get_parameters(int argc, char **argv) {
           iss >> std::dec >> parameters.docserver;
           if (iss.bad() || !iss.eof()) {
             std::cerr << "Argument to --docserver (-s) must be an integer!\n";
-            arts_exit();
+            std::exit(EXIT_FAILURE);
           }
         } else
           parameters.docserver = -1;
@@ -322,7 +322,7 @@ bool get_parameters(int argc, char **argv) {
           iss >> std::dec >> parameters.docserver;
           if (iss.bad() || !iss.eof()) {
             std::cerr << "Argument to --docdaemon (-S) must be an integer!\n";
-            arts_exit();
+            std::exit(EXIT_FAILURE);
           }
         } else
           parameters.docserver = -1;
