@@ -9,6 +9,7 @@ namespace Python {
 
 void py_global(py::module_& m) try {
   auto global = m.def_submodule("globals");
+  global.doc() = "Global settings and data";
 
   artsclass<Parameters>(global, "parameters")
       .def_readwrite_static(
