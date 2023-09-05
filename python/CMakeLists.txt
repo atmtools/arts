@@ -35,26 +35,20 @@ add_custom_target(pyarts-package
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts_cpp
   COMMENT "Building ARTS python package.")
-set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/controlfiles)
-add_custom_target(python_conversion_controlfiles
-  COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py --nofail ${CONTROLFILE_DIR} -o controlfiles
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS pyarts
-  COMMENT "Converting *.arts controlfiles to Python")
 set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/tests)
 add_custom_target(python_conversion_tests
   COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
-  COMMENT "Converting *.arts controlfiles to Python")
+  COMMENT "Converting ${CONTROLFILE_DIR}/.../*.arts controlfiles to Python")
 set(CONTROLFILE_DIR ${ARTS_SOURCE_DIR}/examples)
 add_custom_target(python_conversion_examples
   COMMAND ${ARTS_PYTHON_INTERPRETER} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS pyarts
-  COMMENT "Converting *.arts controlfiles to Python")
+  COMMENT "Converting ${CONTROLFILE_DIR}/.../*.arts controlfiles to Python")
 add_custom_target(python_conversion
-  DEPENDS python_conversion_controlfiles python_conversion_tests python_conversion_examples
+  DEPENDS python_conversion_tests python_conversion_examples
   COMMENT "Converting *.arts controlfiles to Python")
 
 add_custom_target(pyarts_tests
