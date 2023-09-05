@@ -114,6 +114,8 @@ Example
       .def(py::init<std::string>(), py::arg("name"), "Create with name")
       .PythonInterfaceWorkspaceVariableConversion(Agenda)
       .PythonInterfaceFileIO(Agenda)
+      .def("__copy__", [](const Agenda& x) -> std::shared_ptr<Agenda>{return std::make_shared<Agenda>(x);})
+      .def("__deepcopy__", [](const Agenda& x, py::dict&) -> std::shared_ptr<Agenda>{return std::make_shared<Agenda>(x);})
       .def(
           "add",
           &Agenda::add,
