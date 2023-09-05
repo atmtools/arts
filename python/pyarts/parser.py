@@ -9,12 +9,14 @@ from textwrap import indent
 
 from lark import Lark, Transformer, Token
 
-import pyarts.arts.globals as global_data
+from pyarts.arts.globals import workspace_methods, workspace_variables, \
+    workspace_groups
+from pyarts.workspace.global_data import convert
 
 
-workspace_methods = global_data.workspace_methods()
-workspace_variables = global_data.workspace_variables()
-group_names = list(global_data.workspace_groups().keys())
+workspace_methods = workspace_methods()
+workspace_variables = workspace_variables()
+group_names = list(workspace_groups().keys())
 
 
 grammar = r"""
@@ -169,7 +171,7 @@ class WSMCall:
         for n in self.wsm_gins:
             if not n in self.kwargs:
                 i = self.wsm.g_in.index(n)
-                args.append(global_data.convert(self.wsm.g_in_types[i], self.wsm.g_in_default[i]))
+                args.append(convert(self.wsm.g_in_types[i], self.wsm.g_in_default[i]))
             else:
                 args.append(self.kwargs[n])
 
@@ -206,7 +208,7 @@ class WSMCall:
 
         if name in self.wsm_ins:
             v = workspace_variables[name]
-            value_converted = global_data.convert(v.group, value)
+            value_converted = convert(v.group, value)
             if not value_converted is None:
                 value = value_converted
 
@@ -214,7 +216,7 @@ class WSMCall:
             if len(self.wsm.g_in_types) == 1:
                 g = group_names[self.wsm.g_in_types[0]]
 
-                value_converted = global_data.convert(g, value)
+                value_converted = convert(g, value)
                 if not value_converted is None:
                     value = value_converted
         return value
