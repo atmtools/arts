@@ -7,7 +7,7 @@ add_library (cdisort STATIC
 add_executable(disotest
   cdisort.cc
   locate.c
-  disotest.c)
+  disotest.cc)
 
   target_link_libraries(disotest m)
   
