@@ -16,7 +16,29 @@ void py_basic(py::module_& m) try {
       .PythonInterfaceCopyValue(String)
       .PythonInterfaceWorkspaceVariableConversion(String)
       .PythonInterfaceFileIO(String)
-      .PythonInterfaceIndexItemAccess(String)
+      .def(
+          "__getitem__",
+          [](String& x, Index i) -> char {
+            i = negative_clamp(i, x.nelem());
+            if (x.nelem() <= i or i < 0)
+              throw std::out_of_range(var_string("Bad index access: ",
+                                                 i,
+                                                 " in object of size [0, ",
+                                                 x.size(),
+                                                 ")"));
+            return x[i];
+          })
+      .def("__setitem__",
+           [](String& x, Index i, char y) {
+             i = negative_clamp(i, x.nelem());
+             if (x.nelem() <= i or i < 0)
+               throw std::out_of_range(var_string("Bad index access: ",
+                                                  i,
+                                                  " in object of size [0, ",
+                                                  x.size(),
+                                                  ")"));
+             x[i] = y;
+           })
       .def(
           "__repr__",
           [](const String& s) { return var_string(std::quoted(s)); },
@@ -48,7 +70,30 @@ be accessed without copy using element-wise access operators)--");
       .PythonInterfaceFileIO(ArrayOfIndex)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfIndex)
       .PythonInterfaceBasicRepresentation(ArrayOfIndex)
-      .PythonInterfaceArrayDefault(Index)
+      .def(
+          "__getitem__",
+          [](ArrayOfIndex& x, Index i) -> Index {
+            i = negative_clamp(i, x.nelem());
+            if (x.nelem() <= i or i < 0)
+              throw std::out_of_range(var_string("Bad index access: ",
+                                                 i,
+                                                 " in object of size [0, ",
+                                                 x.size(),
+                                                 ")"));
+            return x[i];
+          })
+      .def("__setitem__",
+           [](ArrayOfIndex& x, Index i, Index y) {
+             i = negative_clamp(i, x.nelem());
+             if (x.nelem() <= i or i < 0)
+               throw std::out_of_range(var_string("Bad index access: ",
+                                                  i,
+                                                  " in object of size [0, ",
+                                                  x.size(),
+                                                  ")"));
+             x[i] = y;
+           })
+      .PythonInterfaceArrayDefaultNoAccess(Index)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
         return py::buffer_info(x.data(),
@@ -274,7 +319,30 @@ be accessed without copy using element-wise access operators)--");
   artsclass<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       // .PythonInterfaceFileIO(ArrayOfNumeric)
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
-      .PythonInterfaceArrayDefault(Numeric)
+      .def(
+          "__getitem__",
+          [](ArrayOfNumeric& x, Index i) -> Numeric {
+            i = negative_clamp(i, x.nelem());
+            if (x.nelem() <= i or i < 0)
+              throw std::out_of_range(var_string("Bad index access: ",
+                                                 i,
+                                                 " in object of size [0, ",
+                                                 x.size(),
+                                                 ")"));
+            return x[i];
+          })
+      .def("__setitem__",
+           [](ArrayOfNumeric& x, Index i, Numeric y) {
+             i = negative_clamp(i, x.nelem());
+             if (x.nelem() <= i or i < 0)
+               throw std::out_of_range(var_string("Bad index access: ",
+                                                  i,
+                                                  " in object of size [0, ",
+                                                  x.size(),
+                                                  ")"));
+             x[i] = y;
+           })
+      .PythonInterfaceArrayDefaultNoAccess(Numeric)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](ArrayOfNumeric& x) -> py::buffer_info {
         return py::buffer_info(x.data(),

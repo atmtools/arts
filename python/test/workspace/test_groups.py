@@ -43,10 +43,6 @@ class test:
     @staticmethod
     def array_of_array(x):
         assert len(x) > 0
-        print(x)
-        print(type(x))
-        print(x[0])
-        print(x[0][0])
         y = type(x)([[x[0][0]]])
         assert len(y) == 1
         assert len(y[0]) == 1
@@ -111,29 +107,6 @@ class TestGroups:
             / ls.F(line.F0).real,
             0.5,
         )
-
-    def testAgenda(self):
-        ws = Workspace()
-        ws.x = [4]
-
-        x = cxx.Agenda()
-
-        def test(ws):
-            ws.x = [2]
-            print("in python:", ws.x.value)
-            ws.x = [1]
-
-        # Note that the actual output order here depends on your stream buffer
-        # the values counting down is all that matters for
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_workspace_method("VectorSet", ws.x, [3])
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_callback_method(test)
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_workspace_method("Print", "Done!", 0)
-        x.name = "test_agenda"
-        x.check(ws)
-        x.execute(ws)
 
     def testAny(self):
         cxx.Any()
@@ -269,24 +242,6 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-    def testArrayOfArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfArrayOfPropagationMatrix(
-            [cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])]
-        )
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
-    def testArrayOfArrayOfRadiationVector(self):
-        x = cxx.ArrayOfArrayOfRadiationVector(
-            [cxx.ArrayOfRadiationVector([cxx.RadiationVector()])]
-        )
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
     def testArrayOfArrayOfScatteringMetaData(self):
         x = cxx.ArrayOfArrayOfScatteringMetaData()
         test.io(x, delete=True)
@@ -304,15 +259,6 @@ class TestGroups:
 
         x = cxx.ArrayOfArrayOfSpeciesTag(["H2O", "H2O-PWR98"])
         assert len(x) == 2
-
-    def testArrayOfArrayOfStokesVector(self):
-        x = cxx.ArrayOfArrayOfStokesVector(
-            [cxx.ArrayOfStokesVector([cxx.StokesVector()])]
-        )
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
 
     def testArrayOfArrayOfString(self):
         x = cxx.ArrayOfArrayOfString([["OI"]])
@@ -352,15 +298,6 @@ class TestGroups:
 
     def testArrayOfArrayOfTime(self):
         x = cxx.ArrayOfArrayOfTime(1, cxx.ArrayOfTime(1, cxx.Time()))
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
-    def testArrayOfArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfArrayOfTransmissionMatrix(
-            [cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])]
-        )
-
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
@@ -416,11 +353,6 @@ class TestGroups:
         np.array(x, copy=False)[:] = 1
         assert np.all(np.array(x) == 1)
 
-    def testArrayOfJacobianTarget(self):
-        x = cxx.ArrayOfJacobianTarget(1, cxx.JacobianTarget())
-        # test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfMatrix(self):
         x = cxx.ArrayOfMatrix([[[1, 2, 3]]])
         test.io(x, delete=True)
@@ -437,18 +369,8 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfQuantumIdentifier(self):
         x = cxx.ArrayOfQuantumIdentifier(["H2O-161 J 1 1"])
-        test.io(x, delete=True)
-        test.array(x)
-
-    def testArrayOfRadiationVector(self):
-        x = cxx.ArrayOfRadiationVector([cxx.RadiationVector()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -480,7 +402,6 @@ class TestGroups:
 
     def testArrayOfSun(self):
         ws = Workspace()
-        ws.stokes_dim = 1
         ws.f_grid = [1e9, 2e9, 3e9]
 
         ws.sunsAddSingleBlackbody(
@@ -491,7 +412,7 @@ class TestGroups:
             longitude=45,
         )
 
-        sun = ws.suns.value[0]
+        sun = ws.suns[0]
 
         assert sun.radius == 20
         assert sun.distance == 2000
@@ -502,11 +423,6 @@ class TestGroups:
         assert np.isclose(sun.spectrum[2, 0], 4.34338e-17, atol=1e-25)
 
         x = cxx.ArrayOfSun(1, cxx.Sun())
-        test.io(x, delete=True)
-        test.array(x)
-
-    def testArrayOfStokesVector(self):
-        x = cxx.ArrayOfStokesVector(1, cxx.StokesVector())
         test.io(x, delete=True)
         test.array(x)
 
@@ -598,11 +514,6 @@ class TestGroups:
 
         assert x.as_datetime[-1] == datetime.datetime(2020, 1, 29, 0, 0)
 
-    def testArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfVector(self):
         x = cxx.ArrayOfVector([[1, 2, 3]])
         test.io(x, delete=True)
@@ -622,29 +533,12 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testCallbackFunction(self):
-        def oi(ws):
-            print("oi")
-            ws.atmosphere_dim = 3
-
-        x = cxx.CallbackFunction(oi)
-
-        ws = Workspace()
-        assert not ws.atmosphere_dim.init
-        x(ws)
-        assert ws.atmosphere_dim.init
-        assert ws.atmosphere_dim.value.value == 3
-
     def testCIARecord(self):
         x = cxx.CIARecord()
         test.io(x, delete=True)
 
     def testCovarianceMatrix(self):
         x = cxx.CovarianceMatrix()
-        test.io(x, delete=True)
-
-    def testEnergyLevelMap(self):
-        x = cxx.EnergyLevelMap()
         test.io(x, delete=True)
 
     def testGasAbsLookup(self):
@@ -737,30 +631,9 @@ class TestGroups:
         x = cxx.PredefinedModelData()
         test.io(x, delete=True)
 
-    def testPropagationMatrix(self):
-        x = cxx.PropagationMatrix(100, 4, 4, 4)
-        test.io(x, delete=True)
-
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data)[:] = 1
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data, copy=False)[:] = 1
-        assert np.all(np.array(x.data) == 1)
-
     def testQuantumIdentifier(self):
         x = cxx.QuantumIdentifier("O2-66 v 0 0")
         test.io(x, delete=True)
-
-    def testRadiationVector(self):
-        x = cxx.RadiationVector(10, 4)
-        test.io(x, delete=True)
-
-        assert np.all(x[0] == 0)
-
-        x[0][:] = 2
-        assert np.all(x[0] == 2)
 
     def testRational(self):
         x = cxx.Rational()
@@ -803,18 +676,6 @@ class TestGroups:
     def testSpeciesIsotopologueRatios(self):
         x = cxx.SpeciesIsotopologueRatios()
         test.io(x, delete=True)
-
-    def testStokesVector(self):
-        x = cxx.StokesVector(50, 4)
-        test.io(x, delete=True)
-
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data)[:] = 1
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data, copy=False)[:] = 1
-        assert np.all(np.array(x.data) == 1)
 
     def testString(self):
         x = cxx.String("ho")
@@ -930,15 +791,6 @@ class TestGroups:
         x = cxx.Time()
         test.io(x, delete=True)
 
-    def testTransmissionMatrix(self):
-        x = cxx.TransmissionMatrix(10, 4)
-        test.io(x, delete=True)
-
-        assert np.all(x[0] == np.diag([1, 1, 1, 1]))
-
-        x[0][:] = 2
-        assert np.all(x[0] == 2)
-
     def testVector(self):
         x = cxx.Vector([1, 2, 3])
         test.io(x, delete=True)
@@ -975,9 +827,7 @@ class TestGroups:
         test.io(x, delete=True)
         x[cxx.ArrayOfSpeciesTag("N2")] = test_fun
         x.top_of_atmosphere = 2.5
-        x.regularize([1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7])
         test.io(x, delete=True)
-        assert [3, 7, 3] == x.regularized_shape()
 
     def testAtmPoint(self):
         x = cxx.AtmPoint()
@@ -995,67 +845,9 @@ class TestGroups:
     def testNumericUnaryOperator(self):
         def sqrt(n):
             return np.sqrt(n)
-        x = cxx.NumericUnaryOperator(sqrt)
-        l = [1,2,3,4,5,6,7,8,9]
-        assert np.allclose(np.sqrt(l) - x(l), 0)
-
-    def test_pickle(self):
-        ws = Workspace()
-        x = list(cxx.globals.get_WsvGroupMap().keys())
-
-        for i in range(len(x)):
-            if x[i] == "CallbackFunction":
-                continue
-            elif x[i] == "Agenda":
-                continue  # Cannot unpickle a standalone Agenda
-            elif x[i] == "SpectralRadianceProfileOperator":
-                continue  # Cannot unpickle SpectralRadianceProfileOperator
-            elif x[i] == "ArrayOfAgenda":
-                continue  # Cannot unpickle a standalone ArrayOfAgenda
-            else:
-                exec(f"ws.v{i} = cxx.{x[i]}()")
-
-            print(f"Pickling the workspace after adding a {x[i]}")
-
-            with open("test.pcl", "wb") as f:
-                pickle.dump(ws, f)
-
-            with open("test.pcl", "rb") as f:
-                ws2 = pickle.load(f)
-
-        assert (
-            ws.number_of_initialized_variables()
-            == ws2.number_of_initialized_variables()
-        ), (
-            "Must be able to fully init a workspace containing no "
-            + "CallbackFunction"
-        )
-
-        ws.testing = cxx.Index(3)
-
-        @arts_agenda(ws=ws, set_agenda=True)
-        def test_agenda(ws):
-            ws.Print(ws.testing, 0)
-
-        with open("ws.pcl", "wb") as f:
-            pickle.dump(ws, f)
-
-        with open("ws.pcl", "rb") as f:
-            ws2 = pickle.load(f)
-
-        print(ws)
-        print()
-        print(ws2)
-
-        print(
-            "Predicted working output:\n\n3\n3\n3\n2\n\nActual",
-            "output (if streams are synchronized):\n",
-        )
-        ws.test_agenda.value.execute(ws)
-        ws2.test_agenda.value.execute(ws2)
-        ws2.testing = 2
-        ws.test_agenda.value.execute(ws)
-        ws2.test_agenda.value.execute(ws2)
+        f = cxx.NumericUnaryOperator(sqrt)
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        assert np.allclose(np.sqrt(x) - f(x), 0)
 
     def test_xml(self):
         ignore_groups = [
@@ -1065,7 +857,7 @@ class TestGroups:
             "SingleScatteringData",
         ]
 
-        groups = list(globals.workspace_groups().keys())
+        groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
 
         for group in ignore_groups:
@@ -1123,7 +915,7 @@ class TestGroups:
     def test_print(self):
         ignore_groups = []
 
-        groups = list(globals.workspace_groups().keys())
+        groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
 
         for group in ignore_groups:
@@ -1174,7 +966,7 @@ class TestGroups:
     def test_copy(self):
         ignore_groups = ["NumericUnaryOperator"]
 
-        groups = list(globals.workspace_groups().keys())
+        groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
 
         for group in ignore_groups:
@@ -1230,7 +1022,7 @@ class TestGroups:
     def test_construct_empty(self):
         ignore_groups = []
 
-        groups = list(globals.workspace_groups().keys())
+        groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
 
         fail = []
@@ -1261,4 +1053,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.testArrayOfArrayOfIndex()
+    x.test_xml()

@@ -44,7 +44,10 @@ class Workspace(cxx._Workspace):
 
     def __setattr__(self, attr, value):
         if self.has(attr):
-            self.set(attr, type(self.get(attr))(value))
+            t = type(self.get(attr))
+            if not isinstance(value, t):
+                value = t(value)
+            self.set(attr, value)
         else:
             if attr in _wsvs:
                 super().__setattr__(attr, value)

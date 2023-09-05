@@ -76,7 +76,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   def("__len__", [](const Type& x) { return x.nelem(); })                   \
       .def(                                                                 \
           "__getitem__",                                                    \
-          [](Type& x, Index i) -> decltype(x[i])& {                         \
+          [](Type& x, Index i) -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {                         \
             i = negative_clamp(i, x.nelem());                               \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
@@ -84,7 +84,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                                                  " in object of size [0, ", \
                                                  x.size(),                  \
                                                  ")"));                     \
-            return x[i];                                                    \
+            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(&x[i], [](void*){});                                                    \
           },                                                                \
           py::return_value_policy::reference_internal,                      \
           py::keep_alive<0, 1>())                                           \
@@ -99,8 +99,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                                                  x.size(),                  \
                                                  ")"));                     \
             x[i] = std::move(y);                                            \
-          },                                                                \
-          py::return_value_policy::reference_internal)
+          })
 
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
@@ -155,9 +154,8 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
  * len(x)
  * for a in x: DO_SOMETHING(a)
  */
-#define PythonInterfaceArrayDefault(BaseType)                                  \
-  PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
-      .PythonInterfaceArrayEquality(Array<BaseType>)                           \
+#define PythonInterfaceArrayDefaultNoAccess(BaseType)                          \
+  PythonInterfaceArrayEquality(Array<BaseType>)                                \
       .PythonInterfaceCopyValue(Array<BaseType>)                               \
       .def(py::init([]() { return std::make_shared<Array<BaseType>>(); }),     \
            py::doc("Empty array"))                                             \
@@ -239,6 +237,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return std::make_shared<Array<BaseType>>(                          \
                 t[0].cast<std::vector<BaseType>>());                           \
           }))
+
+#define PythonInterfaceArrayDefault(BaseType)                                  \
+  PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
+      .PythonInterfaceArrayDefaultNoAccess(BaseType)
 
 #define PythonInterfaceCommonMath(Type) \
   def(py::self + Type())                \

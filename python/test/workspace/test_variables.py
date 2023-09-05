@@ -88,7 +88,7 @@ class TestVariables:
         self.ws.matrix_variable = pyarts.arts.Matrix()
         m = np.random.rand(10, 10)
         self.ws.matrix_variable = m
-        assert all(self.ws.matrix_variable.value.value.ravel() == m.ravel())
+        assert all(self.ws.matrix_variable.value.ravel() == m.ravel())
 
     def test_sparse_transfer(self):
         """
@@ -128,7 +128,7 @@ class TestVariables:
         self.ws.array_of_index = pyarts.arts.ArrayOfIndex()
         self.ws.array_of_index = pyarts.arts.ArrayOfIndex()
         with pytest.raises(Exception):
-            self.ws.array_of_index = pyarts.arts.Vector()
+            self.ws.array_of_index = pyarts.arts.Numeric()
 
     def test_variable_set_empty(self):
         """
@@ -186,4 +186,4 @@ class TestVariables:
 if __name__ == "__main__":
     ta = TestVariables()
     ta.setup_method()
-    ta.test_covariance_matrix()
+    ta.test_creation()
