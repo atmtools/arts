@@ -132,17 +132,21 @@ so Copy(a, out=b) will not even see the b variable.
           "execute",
           [](Agenda& a, Workspace& ws) {
             a.execute(ws);
-          },
-          "Executes the agenda as if it was the main agenda")
+          }, py::arg("ws"),
+          "Executes the agenda on the provided workspace")
       .def(
           "finalize",
-          [](Agenda& a) {
-            a.finalize();
-          })
+          [](Agenda& a, bool fix) {
+            a.finalize(fix);
+          }, py::arg("fix") = false, "Finalize the agenda, making it possible to use it in the workspace")
       .def_property_readonly(
           "name",
           [](const Agenda& agenda) { return agenda.get_name(); },
           py::doc("The name of the agenda"))
+      .def_property_readonly(
+          "methods",
+          [](const Agenda& agenda) { return agenda.get_methods(); },
+          py::doc("The methods of the agenda"))
       .def("__repr__",
            [](Agenda& a) { return var_string("Agenda ", a.get_name()); })
       .def("__str__",
@@ -170,7 +174,7 @@ so Copy(a, out=b) will not even see the b variable.
               '"',
               '\n')
         }
-        return va;
+        return std::make_shared<ArrayOfAgenda>(va);
       }), "Create from :class:`list`")
       .def("__repr__", [](ArrayOfAgenda&) { return "ArrayOfAgenda"; })
       .def("__str__",

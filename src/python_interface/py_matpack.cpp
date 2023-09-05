@@ -1,11 +1,18 @@
+#include <pybind11/cast.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pytypes.h>
 #include <python_interface.h>
 
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <numeric>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
 #include "matpack_constexpr.h"
+#include "matpack_iter.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -16,10 +23,46 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
   requires(sizeof...(sz) > 0)
 {
   using matpackT = matpack::matpack_constant_data<T, sz...>;
+  using arrT = py::array_t<T, py::array::forcecast>;
+
+  static constexpr std::size_t dim = sizeof...(sz);
+  static constexpr std::size_t size = (sz * ...);
+  static constexpr std::array<Index, dim> shape = matpackT::shape();
+
   artsclass<matpackT> r(m, name, py::buffer_protocol());
   r.def(py::init([]() { return std::make_shared<matpackT>(); }),
         "Default constant data")
-      .def(py::init<std::array<T, (sz * ...)>>(), "Default constant data")
+      .def(py::init([](const arrT& x) -> std::shared_ptr<matpackT> {
+             if (static_cast<std::size_t>(x.ndim()) != dim) {
+               throw std::runtime_error(
+                   var_string("Bad rank: ", dim, " vs ", x.ndim()));
+             }
+
+             std::array<Index, dim> arr_shape;
+             for (std::size_t i = 0; i < dim; i++) {
+               arr_shape[i] = static_cast<Index>(x.shape(i));
+             }
+
+             if (arr_shape != shape) {
+               throw std::runtime_error(
+                   var_string("Bad shape: ",
+                              matpack::shape_help<dim>(shape),
+                              " vs ",
+                              matpack::shape_help<dim>(arr_shape)));
+             }
+
+             return std::make_shared<matpackT>(
+                 x.template cast<std::array<T, size>>());
+           }),
+           "Cast from numeric :class:`~numpy.array`")
+      .def(py::init([](const py::list& x) {
+             return py::cast<matpackT>(x.cast<arrT>());
+           }),
+           "Cast from :class:`list`")
+      .def(py::init([](const py::array& x) {
+             return py::cast<matpackT>(x.cast<arrT>());
+           }),
+           "Cast from any :class:`~numpy.array`")
       .PythonInterfaceCopyValue(matpackT)
       .PythonInterfaceBasicRepresentation(matpackT)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
@@ -48,7 +91,9 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
               py::keep_alive<0, 1>()),
           [](matpackT& x, matpackT& y) { x = y; },
           py::doc(":class:`~numpy.ndarray` Data array"));
-  py::implicitly_convertible<std::array<T, (sz * ...)>, matpackT>();
+  py::implicitly_convertible<arrT, matpackT>();
+  py::implicitly_convertible<py::list, matpackT>();
+  py::implicitly_convertible<py::array, matpackT>();
 
   return r;
 }

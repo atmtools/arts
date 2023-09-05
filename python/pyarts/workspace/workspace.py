@@ -364,7 +364,7 @@ def _agenda_or(methods, func, src, fn, lineno):
     return agenda
 
 
-def _arts_agenda(f, ws):
+def _arts_agenda(f, ws, fix):
     """Internal source code parser"""
     srccod = getsource(f)
     srccod = unindent(srccod)
@@ -385,24 +385,33 @@ def _arts_agenda(f, ws):
     agenda = _agenda_or(methods, func, srccod, fn, ln)
 
     if ws:
-        agenda.finalize()
+        agenda.finalize(fix)
         setattr(ws, agenda.name, agenda)
 
     return agenda
 
 
-def arts_agenda(func=None, *, ws=None):
+def arts_agenda(func=None, *, ws=None, fix=False):
     """
     Creates an agenda
+    
+    If ws is passed, the agenda is also finalized.  If not, it is still not
+    clear that the agenda is valid
 
-    Warning:
-        This decorator executes all code only during compilation of the Agenda.
+    Parameters
+    ----------
+    func : function
+        The function to be turned into an Agenda
+    ws : ~pyarts.workspace.Workspace, optional
+        The workspace to put this onto after finalization, defaults to None
+    fix : bool, optional
+        Whether to fix missing input/output in finalization, defaults to False
     """
 
     def parser(fn):
-        return _arts_agenda(fn, ws)
+        return _arts_agenda(fn, ws, fix)
 
     if func is None:
         return parser
     else:
-        return _arts_agenda(func, ws)
+        return _arts_agenda(func, ws, fix)
