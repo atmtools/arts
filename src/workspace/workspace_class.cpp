@@ -19,7 +19,7 @@ Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   }
 }
 
-std::shared_ptr<Wsv> Workspace::share(const std::string& name) const try {
+const std::shared_ptr<Wsv>& Workspace::share(const std::string& name) const try {
   return wsv.at(name);
 } catch (std::out_of_range&) {
   throw std::runtime_error(

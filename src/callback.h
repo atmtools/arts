@@ -5,12 +5,17 @@ class Workspace;
 
 #include <functional>
 #include <ostream>
-#include <stdexcept>
+#include <string>
+#include <vector>
 
-struct CallbackFunction : public std::function<void(const Workspace&)> {
-  CallbackFunction() : std::function<void(const Workspace&)>([](const Workspace&) {throw std::runtime_error("Not a function yet");}) {}
-  CallbackFunction(std::function<void(const Workspace&)> x);
-  friend std::ostream& operator<<(std::ostream& os, const CallbackFunction&);
+struct CallbackOperator {
+  std::function<void(Workspace&)> callback;
+  std::vector<std::string> inputs;
+  std::vector<std::string> outputs;
+
+  void operator()(Workspace& ws) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const CallbackOperator&);
 };
 
 #endif

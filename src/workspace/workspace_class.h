@@ -19,7 +19,7 @@ class Workspace {
   Workspace(WorkspaceInitialization how_to_initialize = WorkspaceInitialization::FromGlobalDefaults);
 
   //! Returns a shared pointer to the workspace variable with the given name.
-  [[nodiscard]] std::shared_ptr<Wsv> share(const std::string& name) const;
+  [[nodiscard]] const std::shared_ptr<Wsv>& share(const std::string& name) const;
 
   //! Returns a copy of the workspace variable with the given name.
   [[nodiscard]] std::shared_ptr<Wsv> copy(const std::string& name) const;
@@ -60,7 +60,7 @@ class Workspace {
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>
-  [[nodiscard]] std::shared_ptr<T> share_or(const std::string& name);
+  [[nodiscard]] const std::shared_ptr<T>& share_or(const std::string& name);
 
   //! Returns a type directly based on the name of the workspace variable, creating it in-place if it is not there
   template <WorkspaceGroup T>

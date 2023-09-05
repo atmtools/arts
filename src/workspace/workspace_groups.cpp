@@ -173,7 +173,7 @@ Holds an the record data in a gridded field with grids of temperature and freque
 units of m^5 molec^(-2)
 )--"};
 
-  wsg_data["CallbackFunction"] = {
+  wsg_data["CallbackOperator"] = {
       .file = "callback.h",
       .desc = "Used to inject custom code into *Agenda*\n"};
 

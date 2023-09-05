@@ -45,32 +45,16 @@ std::filesystem::path correct_include_path(
 }
 
 void py_agenda(py::module_& m) try {
-  artsclass<CallbackFunction>(m, "CallbackFunction")
-      .def(py::init([]() { return std::make_shared<CallbackFunction>(); }), py::doc("Initialize as empty call"))
-      .PythonInterfaceCopyValue(CallbackFunction)
+  artsclass<CallbackOperator>(m, "CallbackOperator")
+      .def(py::init([]() { return std::make_shared<CallbackOperator>(); }), py::doc("Initialize as empty call"))
+      .PythonInterfaceCopyValue(CallbackOperator)
       .def(py::init([](const std::function<void(const Workspace&)>& f) {
-        return std::make_shared<CallbackFunction>(f);
+        return std::make_shared<CallbackOperator>(f);
       }), py::doc("Initialize from python callable"))
       .def(
           "__call__",
-          [](CallbackFunction& f, Workspace& ws) { f(ws); })
-      .PythonInterfaceWorkspaceDocumentationExtra(CallbackFunction, R"(
-
-An instance of this object can be called taking only an
-instance of the workspace as input.
-
-Example
--------
->>> import pyarts
->>> def print_ws(ws):
->>>     print(ws.iy_unit.value)
->>> ws = pyarts.workspace.Workspace()
->>> cb = pyarts.arts.CallbackFunction(print_ws)
->>> cb(ws)
-1
-)");
-  py::implicitly_convertible<std::function<void(Workspace&)>,
-                             CallbackFunction>();
+          [](CallbackOperator& f, Workspace& ws) { f(ws); })
+      .PythonInterfaceWorkspaceDocumentation(CallbackOperator);
 
   artsclass<Method>(m, "Method")
       .def(py::init([](const std::string& n,

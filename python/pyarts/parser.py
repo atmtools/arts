@@ -9,12 +9,13 @@ from textwrap import indent
 
 from lark import Lark, Transformer, Token
 
-import pyarts.workspace.global_data as global_data
+import pyarts.arts.globals as global_data
 
 
-workspace_methods = global_data.get_raw_method_map()
-workspace_variables = global_data.get_variables_map()
-group_names =  [str(x.name) for x in global_data.cxx.globals.get_wsv_groups()]
+workspace_methods = global_data.workspace_methods()
+workspace_variables = global_data.workspace_variables()
+group_names = list(global_data.workspace_groups().keys())
+
 
 grammar = r"""
     controlfile : statement*
@@ -127,10 +128,9 @@ class WSMCall:
 
         self.wsm = workspace_methods[name]
 
-        self.wsm_outs = [global_data.get_variable_name(m) for m in self.wsm.outs]
+        self.wsm_outs = list(self.wsm.outs)
         self.wsm_gouts = list(self.wsm.g_out)
-        self.wsm_ins = [global_data.get_variable_name(m) for m in self.wsm.ins \
-                        if not m in self.wsm.outs]
+        self.wsm_ins = [m for m in list(self.wsm.ins) if not m in self.wsm.outs]
         self.wsm_gins = list(self.wsm.g_in)
         self.arg_names = self.wsm_outs + self.wsm_gouts + self.wsm_ins + self.wsm_gins
 

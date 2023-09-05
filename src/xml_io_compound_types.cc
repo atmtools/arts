@@ -2828,16 +2828,16 @@ void xml_write_to_stream(std::ostream& os_xml,
 //       they cannot be completely restructured by the data they own.
 //       If you need them to be, consider a redesign of them
 
-//=== CallbackFunction =========================================
+//=== CallbackOperator =========================================
 
 void xml_read_from_stream(std::istream&,
-                          CallbackFunction&,
+                          CallbackOperator&,
                           bifstream* /* pbifs */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
 
 void xml_write_to_stream(std::ostream&,
-                         const CallbackFunction&,
+                         const CallbackOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");

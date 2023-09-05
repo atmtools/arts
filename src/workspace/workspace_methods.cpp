@@ -391,13 +391,13 @@ The CIA tags shown are in the same format as needed by *abs_speciesSet*.
 
   };
 
-  wsm_data["CallbackFunctionExecute"] = WorkspaceMethodInternalRecord{
+  wsm_data["CallbackOperatorExecute"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Execute any code in Arts
 )--",
       .author = {"Richard Larsson"},
 
       .gin = {"function"},
-      .gin_type = {"CallbackFunction"},
+      .gin_type = {"CallbackOperator"},
       .gin_value = {std::nullopt},
       .gin_desc =
           {R"--(This will execute as "function(current workspace);")--"},

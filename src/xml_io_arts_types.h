@@ -132,7 +132,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 
 //=== Not storable Types ===================================================
 
-TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
+TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 
