@@ -68,7 +68,9 @@ void py_workspace(artsclass<Workspace>& ws) try {
          py::arg("with_defaults") = true)
       .def(py::init([](Workspace& w) { return w; }))
       .def("__copy__", [](Workspace& w) { return w; })
-      .def("__deepcopy__", [](Workspace& w, py::dict&) { return w; })
+      .def("__deepcopy__", [](Workspace& w, py::dict&) { 
+        return w.deepcopy(); 
+      })
       .def(
           "get",
           [](Workspace& w, const std::string& n) { return from(w.share(n)); },
@@ -96,7 +98,8 @@ void py_workspace(artsclass<Workspace>& ws) try {
              }
            })
       .def("has",
-           [](Workspace& w, const std::string& n) { return w.contains(n); });
+           [](Workspace& w, const std::string& n) { return w.contains(n); })
+      .def("swap", [](Workspace& w1, Workspace& w2) { using std::swap; swap(w1, w2); }, py::arg("other"));
 
   ws.def("__str__", [](const Workspace& w) {
     return var_string(w);

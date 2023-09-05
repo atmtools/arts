@@ -75,4 +75,6 @@ class Workspace {
   [[nodiscard]] auto end() const { return wsv.end(); }
 
   void init(const std::string& name);
+
+  [[nodiscard]] Workspace deepcopy() const;
 };

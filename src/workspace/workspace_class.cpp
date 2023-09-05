@@ -118,3 +118,11 @@ void Workspace::init(const std::string& name) try {
   throw std::runtime_error(
       var_string("Undefined workspace variable ", std::quoted(name)));
 }
+
+Workspace Workspace::deepcopy() const {
+  Workspace ws = *this;
+  for (auto& [_, value] : ws.wsv) {
+    value = std::make_shared<Wsv>(value->copy());
+  }
+  return ws;
+}
