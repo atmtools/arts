@@ -1,3 +1,4 @@
+#include "callback.h"
 #include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
 
@@ -180,14 +181,29 @@ Method::Method(std::string n, const Wsv& wsv, bool overwrite)
                                         std::quoted(name),
                                         " to empty value"));
   }
+
+  if (wsv.holds<CallbackOperator>()) {
+    const auto& cb = wsv.get_unsafe<CallbackOperator>();
+    outargs = cb.outputs;
+    inargs = cb.inputs;
+  } else {
+    outargs = {n};
+  }
 }
 
 void Method::operator()(Workspace& ws) const try {
   if (setval) {
-    if (overwrite_setval)
-      ws.overwrite(name, std::make_shared<Wsv>(setval.value()));
-    else
+    if (overwrite_setval) {
+      const Wsv& wsv = setval.value();
+      if (wsv.holds<CallbackOperator>()) {
+        const auto& cb = wsv.get_unsafe<CallbackOperator>();
+        cb(ws);
+      } else {
+        ws.overwrite(name, std::make_shared<Wsv>(setval.value()));
+      }
+    } else {
       ws.set(name, std::make_shared<Wsv>(setval.value()));
+    }
   } else {
     wsms.at(name).func(ws, outargs, inargs);
   }
