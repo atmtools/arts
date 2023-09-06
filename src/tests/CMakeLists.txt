@@ -150,23 +150,10 @@ target_link_libraries(test_hitran artscore)
 
 ########### next testcase ###############
 
-if (ENABLE_GUI)
-  add_executable (test_lineshape test_lineshape.cc)
-  target_link_libraries (test_lineshape artscore)
-endif ()
-
-########### next testcase ###############
-
 add_executable (test_magfield test_magfield.cc)
 target_link_libraries (test_magfield artscore)
 
 ########### tests ###############
-
-# Build a test for the plotting tool
-if (ENABLE_GUI)
-  add_executable(test_gui test_gui.cc)
-  target_link_libraries(test_gui PUBLIC artscore)
-endif()
 
 ########################################################################################
 add_executable(test_species_tags test_species_tags.cc)
@@ -200,11 +187,6 @@ add_executable (linemixing_jmh linemixing_jmh.cc)
 target_link_libraries(linemixing_jmh artscore)
 
 ########### next testcase ###############
-
-if (ENABLE_GUI)
-add_executable (calc_predef predefined.cc)
-target_link_libraries(calc_predef artscore)
-endif()
 
 add_executable (arts_qn arts_quantum_numbers.cc)
 target_link_libraries(arts_qn species xmliobase quantum)
