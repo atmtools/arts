@@ -166,9 +166,7 @@ were thought or found to be useful. (See variable list below.).
       .gin_value = {std::nullopt, String("leading")},
       .gin_desc =
           {R"--(The variable to append.)--",
-           R"--(Where to append. Could be either the "leading" or "trailing" dimension.)--"},
-
-      .pass_names = true};
+           R"--(Where to append. Could be either the "leading" or "trailing" dimension.)--"}};
 
   wsm_data["ArrayOfGriddedFieldGetNames"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Get the names of all GriddedFields stored in an Array.
@@ -436,9 +434,7 @@ is consistent with an old, reference, value.
       .gin_desc = {R"--(A first variable)--",
                    R"--(A second variable)--",
                    R"--(Threshold for maximum absolute difference.)--",
-                   R"--(Additional error message.)--"},
-
-      .pass_names = true};
+                   R"--(Additional error message.)--"}};
 
   wsm_data["CompareRelative"] = WorkspaceMethodInternalRecord{
       .desc =
@@ -472,9 +468,7 @@ That is, ``var2`` is taken as the reference value.
       .gin_desc = {R"--(A first variable)--",
                    R"--(A second variable)--",
                    R"--(Threshold for maximum relative difference.)--",
-                   R"--(Additional error message.)--"},
-
-      .pass_names = true};
+                   R"--(Additional error message.)--"}};
 
   wsm_data["Copy"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Copy a workspace variable.
@@ -502,9 +496,7 @@ methods).
       .gin = {"input"},
       .gin_type = {"Any"},
       .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Source variable.)--"},
-
-      .pass_names = true};
+      .gin_desc = {R"--(Source variable.)--"}};
 
   wsm_data["DOAngularGridsSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets the angular grids for Discrete Ordinate type scattering
@@ -2890,9 +2882,7 @@ from <basename>.<variable_name>.nc.
       .gin = {"filename"},
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Name of the NetCDF file.)--"},
-
-      .pass_names = true};
+      .gin_desc = {R"--(Name of the NetCDF file.)--"}};
 
   wsm_data["ReadSplitARTSCAT"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Reads several old ArrayOfLineRecord ARTSCAT file
@@ -2980,9 +2970,7 @@ also look for files with an added .xml, .xml.gz and .gz extension
       .gin = {"filename"},
       .gin_type = {"String"},
       .gin_value = {String("")},
-      .gin_desc = {R"--(Name of the XML file.)--"},
-
-      .pass_names = true};
+      .gin_desc = {R"--(Name of the XML file.)--"}};
 
   wsm_data["ReadXMLIndexed"] = WorkspaceMethodInternalRecord{
       .desc = R"--(As *ReadXML*, but reads indexed file names.
@@ -3007,9 +2995,7 @@ extension. Omitting filename works as for *ReadXML*.
       .gin_value = {String(""), Index{0}},
       .gin_desc =
           {R"--(File name. See above.)--",
-           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
-
-      .pass_names = true};
+           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
 
   wsm_data["ReadXsecData"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Reads HITRAN Crosssection coefficients
@@ -4574,9 +4560,7 @@ to <basename>.<variable_name>.nc.
            "String"},
       .gin_value = {std::nullopt, String("")},
       .gin_desc = {R"--(Variable to be saved.)--",
-                   R"--(Name of the NetCDF file.)--"},
-
-      .pass_names = true};
+                   R"--(Name of the NetCDF file.)--"}};
 
   wsm_data["WriteNetCDFIndexed"] = WorkspaceMethodInternalRecord{
       .desc = R"--(As *WriteNetCDF*, but creates indexed file names.
@@ -4595,9 +4579,7 @@ to <basename>.<variable_name>.nc.
            "String"},
       .gin_value = {std::nullopt, String("")},
       .gin_desc = {R"--(Variable to be saved.)--",
-                   R"--(Name of the NetCDF file.)--"},
-
-      .pass_names = true};
+                   R"--(Name of the NetCDF file.)--"}};
 
   wsm_data["WriteXML"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Writes a workspace variable to an XML file.
@@ -4618,9 +4600,7 @@ appended to the filename if the file already exists.
       .gin_desc =
           {R"--(Variable to be saved.)--",
            R"--(Name of the XML file.)--",
-           R"--(0: Overwrite existing files, 1: Use unique filenames)--"},
-
-      .pass_names = true};
+           R"--(0: Overwrite existing files, 1: Use unique filenames)--"}};
 
   wsm_data["WriteXMLIndexed"] = WorkspaceMethodInternalRecord{
       .desc = R"--(As *WriteXML*, but creates indexed file names.
@@ -4643,9 +4623,7 @@ extension. Omitting filename works as for *WriteXML*.
       .gin_desc =
           {R"--(Workspace variable to be saved.)--",
            R"--(File name. See above.)--",
-           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
-
-      .pass_names = true};
+           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
 
   wsm_data["abs_cia_dataAddCIARecord"] = WorkspaceMethodInternalRecord{
       .desc =

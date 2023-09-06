@@ -22,16 +22,12 @@
 template <WorkspaceGroup T>
 void ReadXML(  // WS Generic Output:
     T& v,
-    // WS Generic Output Names:
-    const String& v_name,
     // WS Generic Input:
-    const String& f,
-    // WS Generic Input Names:
-    const String& f_name _U_) {
+    const String& f) {
   String filename = f;
 
   // Create default filename if empty
-  filename_xml(filename, v_name);
+  filename_xml(filename);
 
   xml_read_from_file(filename, v);
 }
@@ -40,20 +36,15 @@ void ReadXML(  // WS Generic Output:
 template <WorkspaceGroup T>
 void ReadXMLIndexed(  // WS Generic Output:
     T& v,
-    // WS Generic Output Names:
-    const String& v_name,
     // WS Input:
     const Index& file_index,
     // WS Generic Input:
     const String& f,
-    const Index& digits,
-    // WS Generic Input Names:
-    const String& f_name _U_,
-    const String& digits_name _U_) {
+    const Index& digits) {
   String filename = f;
 
   // Create default filename if empty
-  filename_xml_with_index(filename, file_index, v_name, digits);
+  filename_xml_with_index(filename, file_index, digits);
 
   xml_read_from_file(filename, v);
 }
@@ -65,11 +56,7 @@ void WriteXML(  //WS Input:
     // WS Generic Input:
     const T& v,
     const String& f,
-    const Index& no_clobber,
-    // WS Generic Input Names:
-    const String& v_name,
-    const String& f_name _U_,
-    const String& no_clobber_name _U_)
+    const Index& no_clobber)
 
 {
   // If MPI is enabled make sure only master process performs the write.
@@ -89,7 +76,7 @@ void WriteXML(  //WS Input:
   String filename = f;
 
   // Create default filename if empty
-  filename_xml(filename, v_name);
+  filename_xml(filename);
 
   const FileType ftype = string2filetype(file_format);
 
@@ -115,17 +102,13 @@ void WriteXMLIndexed(  //WS Input:
     // WS Generic Input:
     const T& v,
     const String& f,
-    const Index& digits,
-    // WS Generic Input Names:
-    const String& v_name,
-    const String& f_name,
-    const String& digits_name _U_) {
+    const Index& digits) {
   String filename = f;
 
   // Create default filename if empty
-  filename_xml_with_index(filename, file_index, v_name, digits);
+  filename_xml_with_index(filename, file_index, digits);
 
-  WriteXML(file_format, v, filename, 0, v_name, f_name, "");
+  WriteXML(file_format, v, filename, 0);
 }
 
 #endif  // m_xml_h

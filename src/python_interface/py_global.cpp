@@ -63,7 +63,6 @@ void py_global(py::module_& m) try {
       .def_readonly("gin_type", &WorkspaceMethodInternalRecord::gin_type)
       .def_readonly("gin_desc", &WorkspaceMethodInternalRecord::gin_desc)
       .def_readonly("gin_value", &WorkspaceMethodInternalRecord::gin_value)
-      .def_readonly("pass_names", &WorkspaceMethodInternalRecord::pass_names)
       .def_readonly("pass_workspace",
                     &WorkspaceMethodInternalRecord::pass_workspace)
       .def_readonly("desc", &WorkspaceMethodInternalRecord::desc);

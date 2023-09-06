@@ -18,11 +18,10 @@
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void nca_filename(String& filename, const String& varname);
+void nca_filename(const String& filename);
 
 void nca_filename_with_index(String& filename,
-                             const Index& file_index,
-                             const String& varname);
+                             const Index& file_index);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files

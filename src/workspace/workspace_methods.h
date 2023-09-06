@@ -20,7 +20,6 @@ struct WorkspaceMethodInternalRecord {
   std::vector<std::optional<Wsv>> gin_value{};
   std::vector<std::string> gin_desc{};
   bool pass_workspace{false};
-  bool pass_names{false};
 };
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord> internal_workspace_methods();

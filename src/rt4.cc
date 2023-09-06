@@ -969,12 +969,12 @@ void rt4_test(Tensor4& out_rad,
   Tensor5 sca_data;
   Tensor4 ext_data;
   Tensor3 abs_data;
-  ReadXML(height, "height", datapath + "z.xml", "");
-  ReadXML(temperatures, "temperatures", datapath + "T.xml", "");
-  ReadXML(gas_extinct, "gas_extinct", datapath + "abs_gas.xml", "");
-  ReadXML(abs_data, "abs_data", datapath + "abs_par.xml", "");
-  ReadXML(ext_data, "ext_data", datapath + "ext_par.xml", "");
-  ReadXML(sca_data, "sca_data", datapath + "sca_par.xml", "");
+  ReadXML(height, datapath + "z.xml");
+  ReadXML(temperatures, datapath + "T.xml");
+  ReadXML(gas_extinct, datapath + "abs_gas.xml");
+  ReadXML(abs_data, datapath + "abs_par.xml");
+  ReadXML(ext_data, datapath + "ext_par.xml");
+  ReadXML(sca_data, datapath + "sca_par.xml");
   Index num_layers = height.nelem() - 1;
   Index num_scatlayers = 3;
   Vector scatlayers(num_layers, 0.);

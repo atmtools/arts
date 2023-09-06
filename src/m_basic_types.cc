@@ -1460,11 +1460,7 @@ void ArrayOfTimeSetConstant(ArrayOfTime& x,
 void Compare(const Numeric& var1,
              const Numeric& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   Numeric maxdiff = var1 - var2;
 
   if (std::isnan(var1) || std::isnan(var2)) {
@@ -1472,14 +1468,14 @@ void Compare(const Numeric& var1,
       maxdiff = 0;
     } else if (std::isnan(var1)) {
       std::ostringstream os;
-      os << "Nan found in " << var1name << ", but there is no "
-         << "NaN at same position in " << var2name << ".\nThis "
+      os << "Nan found in var1, but there is no "
+         << "NaN at same position in var2.\nThis "
          << "is not allowed.";
       throw std::runtime_error(os.str());
     } else {
       std::ostringstream os;
-      os << "Nan found in " << var2name << ", but there is no "
-         << "NaN at same position in " << var1name << ".\nThis "
+      os << "Nan found in var2, but there is no "
+         << "NaN at same position in var1.\nThis "
          << "is not allowed.";
       throw std::runtime_error(os.str());
     }
@@ -1487,7 +1483,7 @@ void Compare(const Numeric& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to: " << maxabsdiff << std::endl
        << "but the value deviates with:  " << maxdiff << std::endl;
@@ -1499,16 +1495,12 @@ void Compare(const Numeric& var1,
 void Compare(const Vector& var1,
              const Vector& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index n = var1.nelem();
 
   if (var2.nelem() != n) {
     std::ostringstream os;
-    os << var1name << " (" << n << ") and " << var2name << " (" << var2.nelem()
+    os << "var1 (" << n << ") and var2 (" << var2.nelem()
        << ") do not have the same size.";
     throw std::runtime_error(os.str());
   }
@@ -1522,14 +1514,14 @@ void Compare(const Vector& var1,
         diff = 0;
       } else if (std::isnan(var1[i])) {
         std::ostringstream os;
-        os << "Nan found in " << var1name << ", but there is no "
-           << "NaN at same position in " << var2name << ".\nThis "
+        os << "Nan found in var1, but there is no "
+           << "NaN at same position in var2.\nThis "
            << "is not allowed.";
         throw std::runtime_error(os.str());
       } else {
         std::ostringstream os;
-        os << "Nan found in " << var2name << ", but there is no "
-           << "NaN at same position in " << var1name << ".\nThis "
+        os << "Nan found in var2, but there is no "
+           << "NaN at same position in var1.\nThis "
            << "is not allowed.";
         throw std::runtime_error(os.str());
       }
@@ -1542,7 +1534,7 @@ void Compare(const Vector& var1,
 
   if (std::isnan(maxdiff) || abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to: " << maxabsdiff << std::endl
        << "but the vectors deviate with: " << maxdiff << std::endl;
@@ -1554,17 +1546,13 @@ void Compare(const Vector& var1,
 void Compare(const Matrix& var1,
              const Matrix& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index nrows = var1.nrows();
   const Index ncols = var1.ncols();
 
   if (var2.nrows() != nrows || var2.ncols() != ncols) {
     std::ostringstream os;
-    os << var1name << " (" << nrows << "," << ncols << ") and " << var2name
+    os << "var1 (" << nrows << "," << ncols << ") and var2"
        << " (" << var2.nrows() << "," << var2.ncols()
        << ") do not have the same size.";
     throw std::runtime_error(os.str());
@@ -1581,14 +1569,14 @@ void Compare(const Matrix& var1,
           diff = 0;
         } else if (std::isnan(var1(r, c))) {
           std::ostringstream os;
-          os << "Nan found in " << var1name << ", but there is no "
-             << "NaN at same position in " << var2name << ".\nThis "
+          os << "Nan found in var1, but there is no "
+             << "NaN at same position in var2.\nThis "
              << "is not allowed.";
           throw std::runtime_error(os.str());
         } else {
           std::ostringstream os;
-          os << "Nan found in " << var2name << ", but there is no "
-             << "NaN at same position in " << var1name << ".\nThis "
+          os << "Nan found in var2, but there is no "
+             << "NaN at same position in var1.\nThis "
              << "is not allowed.";
           throw std::runtime_error(os.str());
         }
@@ -1602,7 +1590,7 @@ void Compare(const Matrix& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the matrices deviate with: " << maxdiff << std::endl;
@@ -1614,11 +1602,7 @@ void Compare(const Matrix& var1,
 void Compare(const Tensor3& var1,
              const Tensor3& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index ncols = var1.ncols();
   const Index nrows = var1.nrows();
   const Index npages = var1.npages();
@@ -1626,7 +1610,7 @@ void Compare(const Tensor3& var1,
   if (var2.ncols() != ncols || var2.nrows() != nrows ||
       var2.npages() != npages) {
     std::ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
+    os << "var1 and var2 do not have the same size.";
     throw std::runtime_error(os.str());
   }
 
@@ -1642,14 +1626,14 @@ void Compare(const Tensor3& var1,
             diff = 0;
           } else if (std::isnan(var1(p, r, c))) {
             std::ostringstream os;
-            os << "Nan found in " << var1name << ", but there is no "
-               << "NaN at same position in " << var2name << ".\nThis "
+            os << "Nan found in var1, but there is no "
+               << "NaN at same position in var2.\nThis "
                << "is not allowed.";
             throw std::runtime_error(os.str());
           } else {
             std::ostringstream os;
-            os << "Nan found in " << var2name << ", but there is no "
-               << "NaN at same position in " << var1name << ".\nThis "
+            os << "Nan found in var2, but there is no "
+               << "NaN at same position in var1.\nThis "
                << "is not allowed.";
             throw std::runtime_error(os.str());
           }
@@ -1662,7 +1646,7 @@ void Compare(const Tensor3& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the tensors deviate with: " << maxdiff << std::endl;
@@ -1674,11 +1658,7 @@ void Compare(const Tensor3& var1,
 void Compare(const Tensor4& var1,
              const Tensor4& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index ncols = var1.ncols();
   const Index nrows = var1.nrows();
   const Index npages = var1.npages();
@@ -1687,7 +1667,7 @@ void Compare(const Tensor4& var1,
   if (var2.ncols() != ncols || var2.nrows() != nrows ||
       var2.npages() != npages || var2.nbooks() != nbooks) {
     std::ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
+    os << "var1 and var2 do not have the same size.";
     throw std::runtime_error(os.str());
   }
 
@@ -1704,14 +1684,14 @@ void Compare(const Tensor4& var1,
               diff = 0;
             } else if (std::isnan(var1(b, p, r, c))) {
               std::ostringstream os;
-              os << "Nan found in " << var1name << ", but there is no "
-                 << "NaN at same position in " << var2name << ".\nThis "
+              os << "Nan found in var1, but there is no "
+                 << "NaN at same position in var2.\nThis "
                  << "is not allowed.";
               throw std::runtime_error(os.str());
             } else {
               std::ostringstream os;
-              os << "Nan found in " << var2name << ", but there is no "
-                 << "NaN at same position in " << var1name << ".\nThis "
+              os << "Nan found in var2, but there is no "
+                 << "NaN at same position in var1.\nThis "
                  << "is not allowed.";
               throw std::runtime_error(os.str());
             }
@@ -1724,7 +1704,7 @@ void Compare(const Tensor4& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the tensors deviate with: " << maxdiff << std::endl;
@@ -1736,11 +1716,7 @@ void Compare(const Tensor4& var1,
 void Compare(const Tensor5& var1,
              const Tensor5& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index ncols = var1.ncols();
   const Index nrows = var1.nrows();
   const Index npages = var1.npages();
@@ -1751,7 +1727,7 @@ void Compare(const Tensor5& var1,
       var2.npages() != npages || var2.nbooks() != nbooks ||
       var2.nshelves() != nshelves) {
     std::ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
+    os << "var1 and var2 do not have the same size.";
     throw std::runtime_error(os.str());
   }
 
@@ -1771,14 +1747,14 @@ void Compare(const Tensor5& var1,
                 diff = 0;
               } else if (std::isnan(var1(s, b, p, r, c))) {
                 std::ostringstream os;
-                os << "Nan found in " << var1name << ", but there is no "
-                   << "NaN at same position in " << var2name << ".\nThis "
+                os << "Nan found in var1, but there is no "
+                   << "NaN at same position in var2.\nThis "
                    << "is not allowed.";
                 throw std::runtime_error(os.str());
               } else {
                 std::ostringstream os;
-                os << "Nan found in " << var2name << ", but there is no "
-                   << "NaN at same position in " << var1name << ".\nThis "
+                os << "Nan found in var2, but there is no "
+                   << "NaN at same position in var1.\nThis "
                    << "is not allowed.";
                 throw std::runtime_error(os.str());
               }
@@ -1791,7 +1767,7 @@ void Compare(const Tensor5& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the tensors deviate with: " << maxdiff << std::endl;
@@ -1803,11 +1779,7 @@ void Compare(const Tensor5& var1,
 void Compare(const Tensor7& var1,
              const Tensor7& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index ncols = var1.ncols();
   const Index nrows = var1.nrows();
   const Index npages = var1.npages();
@@ -1821,7 +1793,7 @@ void Compare(const Tensor7& var1,
       var2.nshelves() != nshelves || var2.nvitrines() != nvitrines ||
       var2.nlibraries() != nlibraries) {
     std::ostringstream os;
-    os << var1name << " and " << var2name << " do not have the same size.";
+    os << "var1 and var2 do not have the same size.";
     throw std::runtime_error(os.str());
   }
 
@@ -1844,14 +1816,14 @@ void Compare(const Tensor7& var1,
                     diff = 0;
                   } else if (std::isnan(var1(l, v, s, b, p, r, c))) {
                     std::ostringstream os;
-                    os << "Nan found in " << var1name << ", but there is no "
-                       << "NaN at same position in " << var2name << ".\nThis "
+                    os << "Nan found in var1, but there is no "
+                       << "NaN at same position in var2.\nThis "
                        << "is not allowed.";
                     throw std::runtime_error(os.str());
                   } else {
                     std::ostringstream os;
-                    os << "Nan found in " << var2name << ", but there is no "
-                       << "NaN at same position in " << var1name << ".\nThis "
+                    os << "Nan found in var2, but there is no "
+                       << "NaN at same position in var1.\nThis "
                        << "is not allowed.";
                     throw std::runtime_error(os.str());
                   }
@@ -1864,7 +1836,7 @@ void Compare(const Tensor7& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the tensors deviate with: " << maxdiff << std::endl;
@@ -1876,16 +1848,12 @@ void Compare(const Tensor7& var1,
 void Compare(const ArrayOfVector& var1,
              const ArrayOfVector& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   if (var1.nelem() != var2.nelem()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << var1name << " nelem: " << var1.nelem() << std::endl
-       << var2name << " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.nelem() << std::endl
+       << "var2" " nelem: " << var2.nelem() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1894,16 +1862,12 @@ void Compare(const ArrayOfVector& var1,
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
       std::ostringstream vn1, vn2;
-      vn1 << var1name << "[" << i << "]";
-      vn2 << var2name << "[" << i << "]";
+      vn1 << "var1[" << i << "]";
+      vn2 << "var2" "[" << i << "]";
       Compare(var1[i],
               var2[i],
               maxabsdiff,
-              error_message,
-              vn1.str(),
-              vn2.str(),
-              "",
-              "");
+              error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -1919,16 +1883,12 @@ void Compare(const ArrayOfVector& var1,
 void Compare(const ArrayOfMatrix& var1,
              const ArrayOfMatrix& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   if (var1.nelem() != var2.nelem()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << var1name << " nelem: " << var1.nelem() << std::endl
-       << var2name << " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.nelem() << std::endl
+       << "var2" " nelem: " << var2.nelem() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1937,16 +1897,12 @@ void Compare(const ArrayOfMatrix& var1,
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
       std::ostringstream vn1, vn2;
-      vn1 << var1name << "[" << i << "]";
-      vn2 << var2name << "[" << i << "]";
+      vn1 << "var1[" << i << "]";
+      vn2 << "var2" "[" << i << "]";
       Compare(var1[i],
               var2[i],
               maxabsdiff,
-              error_message,
-              vn1.str(),
-              vn2.str(),
-              "",
-              "");
+              error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -1962,16 +1918,12 @@ void Compare(const ArrayOfMatrix& var1,
 void Compare(const ArrayOfTensor7& var1,
              const ArrayOfTensor7& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   if (var1.nelem() != var2.nelem()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << var1name << " nelem: " << var1.nelem() << std::endl
-       << var2name << " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.nelem() << std::endl
+       << "var2" " nelem: " << var2.nelem() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1980,16 +1932,12 @@ void Compare(const ArrayOfTensor7& var1,
   for (Index i = 0; i < var1.nelem(); i++) {
     try {
       std::ostringstream vn1, vn2;
-      vn1 << var1name << "[" << i << "]";
-      vn2 << var2name << "[" << i << "]";
+      vn1 << "var1[" << i << "]";
+      vn2 << "var2" "[" << i << "]";
       Compare(var1[i],
               var2[i],
               maxabsdiff,
-              error_message,
-              vn1.str(),
-              vn2.str(),
-              "",
-              "");
+              error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -2005,22 +1953,18 @@ void Compare(const ArrayOfTensor7& var1,
 void Compare(const GriddedField3& var1,
              const GriddedField3& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   for (Index i = 0; i < var1.get_dim(); i++) {
     if (var1.get_grid_size(i) != var2.get_grid_size(i)) {
       std::ostringstream os;
-      os << var1name << " and " << var2name << " grid " << i
+      os << "var1 and var2 grid " << i
          << " do not have the same size: " << var1.get_grid_size(i)
          << " != " << var2.get_grid_size(i);
       throw std::runtime_error(os.str());
     }
     if (var1.get_grid_name(i) != var2.get_grid_name(i)) {
       std::ostringstream os;
-      os << var1name << " and " << var2name << " grid " << i
+      os << "var1 and var2 grid " << i
          << " do not have the same name: " << var1.get_grid_name(i)
          << " != " << var2.get_grid_name(i);
       throw std::runtime_error(os.str());
@@ -2030,28 +1974,20 @@ void Compare(const GriddedField3& var1,
   Compare(var1.data,
           var2.data,
           maxabsdiff,
-          error_message,
-          var1name,
-          var2name,
-          "",
-          "");
+          error_message);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Compare(const Sparse& var1,
              const Sparse& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   const Index nrows = var1.nrows();
   const Index ncols = var1.ncols();
 
   if (var2.nrows() != nrows || var2.ncols() != ncols) {
     std::ostringstream os;
-    os << var1name << " (" << nrows << "," << ncols << ") and " << var2name
+    os << "var1 (" << nrows << "," << ncols << ") and var2"
        << " (" << var2.nrows() << "," << var2.ncols()
        << ") do not have the same size.";
     throw std::runtime_error(os.str());
@@ -2068,14 +2004,14 @@ void Compare(const Sparse& var1,
           diff = 0;
         } else if (std::isnan(var1(r, c))) {
           std::ostringstream os;
-          os << "Nan found in " << var1name << ", but there is no "
-             << "NaN at same position in " << var2name << ".\nThis "
+          os << "Nan found in var1, but there is no "
+             << "NaN at same position in var2.\nThis "
              << "is not allowed.";
           throw std::runtime_error(os.str());
         } else {
           std::ostringstream os;
-          os << "Nan found in " << var2name << ", but there is no "
-             << "NaN at same position in " << var1name << ".\nThis "
+          os << "Nan found in var2, but there is no "
+             << "NaN at same position in var1.\nThis "
              << "is not allowed.";
           throw std::runtime_error(os.str());
         }
@@ -2089,7 +2025,7 @@ void Compare(const Sparse& var1,
 
   if (abs(maxdiff) > maxabsdiff) {
     std::ostringstream os;
-    os << var1name << "-" << var2name << " FAILED!\n";
+    os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
     os << "Max allowed deviation set to : " << maxabsdiff << std::endl
        << "but the matrices deviate with: " << maxdiff << std::endl;
@@ -2101,89 +2037,53 @@ void Compare(const Sparse& var1,
 void Compare(const SingleScatteringData& var1,
              const SingleScatteringData& var2,
              const Numeric& maxabsdiff,
-             const String& error_message,
-             const String& var1name,
-             const String& var2name,
-             const String&,
-             const String&) {
+             const String& error_message) {
   if (var1.ptype != var2.ptype) {
     std::ostringstream os;
     os << "The particle types don't match: " << std::endl
-       << var1name << " = " << PTypeToString(var1.ptype) << ", " << var2name
+       << "var1 = " << PTypeToString(var1.ptype) << ", var2"
        << " = " << PTypeToString(var2.ptype) << std::endl;
     throw std::runtime_error(os.str());
   }
   Compare(var1.f_grid,
           var2.f_grid,
           maxabsdiff,
-          error_message,
-          var1name + ".f_grid",
-          var2name + ".f_grid",
-          "",
-          "");
+          error_message);
   Compare(var1.T_grid,
           var2.T_grid,
           maxabsdiff,
-          error_message,
-          var1name + ".T_grid",
-          var2name + ".T_grid",
-          "",
-          "");
+          error_message);
   Compare(var1.za_grid,
           var2.za_grid,
           maxabsdiff,
-          error_message,
-          var1name + ".za_grid",
-          var2name + ".za_grid",
-          "",
-          "");
+          error_message);
   Compare(var1.aa_grid,
           var2.aa_grid,
           maxabsdiff,
-          error_message,
-          var1name + ".aa_grid",
-          var2name + ".aa_grid",
-          "",
-          "");
+          error_message);
   Compare(var1.pha_mat_data,
           var2.pha_mat_data,
           maxabsdiff,
-          error_message,
-          var1name + ".pha_mat_data",
-          var2name + ".pha_mat_data",
-          "",
-          "");
+          error_message);
   Compare(var1.ext_mat_data,
           var2.ext_mat_data,
           maxabsdiff,
-          error_message,
-          var1name + ".ext_mat_data",
-          var2name + ".ext_mat_data",
-          "",
-          "");
+          error_message);
   Compare(var1.abs_vec_data,
           var2.abs_vec_data,
           maxabsdiff,
-          error_message,
-          var1name + ".abs_vec_data",
-          var2name + ".abs_vec_data",
-          "",
-          "");
+          error_message);
 }
 
 inline void _cr_internal_(const Numeric& var1,
                           const Numeric& var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   if (var1 not_eq 0. and var2 not_eq 0.) {
     const Numeric absreldiff = abs(var1 / var2 - 1);
     if (absreldiff > maxabsreldiff) {
       std::ostringstream os;
-      os << var1name << "-" << var2name << " FAILED!\n";
+      os << "var1-var2 FAILED!\n";
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to: " << maxabsreldiff * 100.0 << "%"
          << std::endl
@@ -2199,11 +2099,7 @@ inline void _cr_internal_(const Numeric& var1,
 inline void _cr_internal_(const ConstVectorView var1,
                           const ConstVectorView var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nelem();
   if (var2.nelem() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2211,21 +2107,13 @@ inline void _cr_internal_(const ConstVectorView var1,
     _cr_internal_(var1[i],
                   var2[i],
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstMatrixView var1,
                           const ConstMatrixView var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nrows();
   if (var2.nrows() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2233,21 +2121,13 @@ inline void _cr_internal_(const ConstMatrixView var1,
     _cr_internal_(var1(i, joker),
                   var2(i, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstTensor3View var1,
                           const ConstTensor3View var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.npages();
   if (var2.npages() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2255,21 +2135,13 @@ inline void _cr_internal_(const ConstTensor3View var1,
     _cr_internal_(var1(i, joker, joker),
                   var2(i, joker, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstTensor4View var1,
                           const ConstTensor4View var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nbooks();
   if (var2.nbooks() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2277,21 +2149,13 @@ inline void _cr_internal_(const ConstTensor4View var1,
     _cr_internal_(var1(i, joker, joker, joker),
                   var2(i, joker, joker, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstTensor5View var1,
                           const ConstTensor5View var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nshelves();
   if (var2.nshelves() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2299,21 +2163,13 @@ inline void _cr_internal_(const ConstTensor5View var1,
     _cr_internal_(var1(i, joker, joker, joker, joker),
                   var2(i, joker, joker, joker, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstTensor6View var1,
                           const ConstTensor6View var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nvitrines();
   if (var2.nvitrines() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2321,21 +2177,13 @@ inline void _cr_internal_(const ConstTensor6View var1,
     _cr_internal_(var1(i, joker, joker, joker, joker, joker),
                   var2(i, joker, joker, joker, joker, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 inline void _cr_internal_(const ConstTensor7View var1,
                           const ConstTensor7View var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nlibraries();
   if (var2.nlibraries() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
@@ -2343,22 +2191,14 @@ inline void _cr_internal_(const ConstTensor7View var1,
     _cr_internal_(var1(i, joker, joker, joker, joker, joker, joker),
                   var2(i, joker, joker, joker, joker, joker, joker),
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 template <class T>
 inline void _cr_internal_(const Array<T>& var1,
                           const Array<T>& var2,
                           const Numeric& maxabsreldiff,
-                          const String& error_message,
-                          const String& var1name,
-                          const String& var2name,
-                          const String&,
-                          const String&) {
+                          const String& error_message) {
   const Index n = var1.nelem();
   if (var2.nelem() not_eq n)
     throw std::runtime_error("Cannot compare arrays of different length");
@@ -2366,387 +2206,207 @@ inline void _cr_internal_(const Array<T>& var1,
     _cr_internal_(var1[i],
                   var2[i],
                   maxabsreldiff,
-                  error_message,
-                  var1name,
-                  var2name,
-                  "",
-                  "");
+                  error_message);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CompareRelative(const Numeric& var1,
                      const Numeric& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Vector& var1,
                      const Vector& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Matrix& var1,
                      const Matrix& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Tensor3& var1,
                      const Tensor3& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Tensor4& var1,
                      const Tensor4& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Tensor5& var1,
                      const Tensor5& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Tensor6& var1,
                      const Tensor6& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const Tensor7& var1,
                      const Tensor7& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfVector& var1,
                      const ArrayOfVector& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfMatrix& var1,
                      const ArrayOfMatrix& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfTensor3& var1,
                      const ArrayOfTensor3& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfTensor4& var1,
                      const ArrayOfTensor4& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfTensor5& var1,
                      const ArrayOfTensor5& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfTensor6& var1,
                      const ArrayOfTensor6& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfTensor7& var1,
                      const ArrayOfTensor7& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfVector& var1,
                      const ArrayOfArrayOfVector& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfMatrix& var1,
                      const ArrayOfArrayOfMatrix& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor3& var1,
                      const ArrayOfArrayOfTensor3& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor4& var1,
                      const ArrayOfArrayOfTensor4& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor5& var1,
                      const ArrayOfArrayOfTensor5& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor6& var1,
                      const ArrayOfArrayOfTensor6& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor7& var1,
                      const ArrayOfArrayOfTensor7& var2,
                      const Numeric& maxabsreldiff,
-                     const String& error_message,
-                     const String& var1name,
-                     const String& var2name,
-                     const String&,
-                     const String&) {
+                     const String& error_message) {
   _cr_internal_(var1,
                 var2,
                 maxabsreldiff,
-                error_message,
-                var1name,
-                var2name,
-                "",
-                "");
+                error_message);
 }
 
 void PrintPhysicalConstants() {

@@ -271,14 +271,6 @@ void docstring(std::ostream& os, const WorkspaceMethodInternalRecord& wsmr) {
     os << "  @param[out] " << wsmr.gout[i] << " " << wsmr.gout_desc[i] << '\n';
   }
 
-  if (wsmr.pass_names) {
-    for (const auto& o : wsmr.gout) {
-      os << "  @param[in] " << '_' << o << "_name"
-         << " "
-         << "Name of " << o << '\n';
-    }
-  }
-
   for (auto& str : wsmr.in) {
     if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
           return str == var;
@@ -289,14 +281,6 @@ void docstring(std::ostream& os, const WorkspaceMethodInternalRecord& wsmr) {
 
   for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
     os << "  @param[in] " << wsmr.gin[i] << " " << wsmr.gin_desc[i] << '\n';
-  }
-
-  if (wsmr.pass_names) {
-    for (const auto& i : wsmr.gin) {
-      os << "  @param[in] " << '_' << i << "_name"
-         << " "
-         << "Name of " << i << '\n';
-    }
   }
 
   os << " */\n";
@@ -360,12 +344,6 @@ void signature(std::ostream& os,
        << wsmr.gout[i];
   }
 
-  if (wsmr.pass_names) {
-    for (const auto& o : wsmr.gout) {
-      os << comma(first, spaces) << "const String& " << '_' << o << "_name";
-    }
-  }
-
   for (auto& str : wsmr.in) {
     if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
           return str == var;
@@ -377,13 +355,6 @@ void signature(std::ostream& os,
   for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
     os << comma(first, spaces) << "const " << any(wsmr.gin_type[i]) << "& "
        << wsmr.gin[i];
-  }
-
-  if (wsmr.pass_names) {
-    for (const auto& i : wsmr.gin) {
-      os << comma(first, spaces) << "const String"
-         << "& " << '_' << i << "_name";
-    }
   }
 
   os << ");\n";
@@ -476,14 +447,6 @@ void call_function(std::ostream& os,
       }
     }
 
-    if (wsmr.pass_names) {
-      out_count -= static_cast<int>(wsmr.gout.size());
-      for (std::size_t k = 0; k < wsmr.gout.size(); k++) {
-        os << comma(first, spaces) << "out[" << out_count++
-           << "] /* gout name */";
-      }
-    }
-
     int in_count = 0;
     for (auto& str : wsmr.in) {
       if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
@@ -510,13 +473,6 @@ void call_function(std::ostream& os,
       } else {
         os << comma(first, spaces) << "ws.get<" << wsmr.gin_type[i] << ">(in["
            << in_count++ << "]) /* gin */";
-      }
-    }
-
-    if (wsmr.pass_names) {
-      in_count -= static_cast<int>(wsmr.gin.size());
-      for (std::size_t k = 0; k < wsmr.gin.size(); k++) {
-        os << comma(first, spaces) << "in[" << in_count++ << "] /* gin name */";
       }
     }
 
@@ -616,14 +572,6 @@ void call_function(std::ostream& os,
          << ">(out[" << out_count++ << "]) /* gout */";
     }
 
-    if (wsmr.pass_names) {
-      out_count -= static_cast<int>(wsmr.gout.size());
-      for (std::size_t k = 0; k < wsmr.gout.size(); k++) {
-        os << comma(first, spaces) << "out[" << out_count++
-           << "] /* gout name */";
-      }
-    }
-
     int in_count = 0;
     for (auto& str : wsmr.in) {
       if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
@@ -639,13 +587,6 @@ void call_function(std::ostream& os,
     for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
       os << comma(first, spaces) << "ws.get<" << wsmr.gin_type[i] << ">(in["
          << in_count++ << "]) /* gin */";
-    }
-
-    if (wsmr.pass_names) {
-      in_count -= static_cast<int>(wsmr.gin.size());
-      for (std::size_t k = 0; k < wsmr.gin.size(); k++) {
-        os << comma(first, spaces) << "in[" << in_count++ << "] /* gin name */";
-      }
     }
 
     os << "\n      );\n    }";

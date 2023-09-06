@@ -20,39 +20,9 @@
 template <WorkspaceGroup T>
 void Copy(  // WS Generic Output:
     T& out,
-    const String& /* out_name */,
     // WS Generic Input:
-    const T& in,
-    const String& /* in_name */) {
+    const T& in) {
   out = in;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template <>
-inline void Copy<Agenda>(// WS Generic Output:
-                         Agenda& out,
-                         const String& out_name,
-                         // WS Generic Input:
-                         const Agenda& in,
-                         const String& /* in_name */) {
-  out = in;
-  out.set_name(out_name);
-  out.finalize();
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template <>
-inline void Copy<ArrayOfAgenda>(// WS Generic Output:
-                                ArrayOfAgenda& out,
-                                const String& out_name,
-                                // WS Generic Input:
-                                const ArrayOfAgenda& in,
-                                const String& /* in_name */) {
-  out = in;
-  for (auto& it : out) {
-    it.set_name(out_name);
-    it.finalize();
-  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

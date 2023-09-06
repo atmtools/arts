@@ -2,12 +2,9 @@
 
 void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const ArrayOfSpeciesTag& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   const ArrayOfSpeciesTag* in_pnt;
   ArrayOfSpeciesTag in_copy;
 
@@ -28,12 +25,9 @@ void Append(  // WS Generic Output:
 /* Implementation for array types to append single element */
 void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const SpeciesTag& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   // Append in to end of out:
   out.push_back(in);
 }
@@ -42,15 +36,11 @@ void Append(  // WS Generic Output:
 void Append(
     // WS Generic Output:
     ArrayOfAgenda& out,
-    const String& out_name,
     // WS Generic Input:
     const Agenda& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_nam */) {
+    const String& direction _U_) {
   // Append in to end of out:
   auto& newag = out.emplace_back(in);
-  newag.set_name(out_name);
   newag.finalize();
 }
 
@@ -58,16 +48,12 @@ void Append(
 void Append(
     // WS Generic Output:
     ArrayOfAgenda& out,
-    const String& out_name,
     // WS Generic Input:
     const ArrayOfAgenda& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_nam */) {
+    const String& direction _U_) {
   // Append in to end of out:
   for (const auto& it : in) {
     auto& newag = out.emplace_back(it);
-    newag.set_name(out_name);
     newag.finalize();
   }
 }
@@ -75,12 +61,9 @@ void Append(
 /* Implementation for Vector */
 void Append(  // WS Generic Output:
     Vector& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Vector& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   const Vector* in_pnt;
   Vector in_copy;
 
@@ -108,12 +91,9 @@ void Append(  // WS Generic Output:
 /* Implementation for Matrix */
 void Append(  // WS Generic Output:
     Matrix& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Matrix& in,
-    const String& direction,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction) {
   const Matrix* in_pnt;
   Matrix in_copy;
 
@@ -161,12 +141,9 @@ void Append(  // WS Generic Output:
 /* Implementation for Matrix/Vector */
 void Append(  // WS Generic Output:
     Matrix& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Vector& in,
-    const String& direction,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction) {
   // Get backup of out:
   Matrix dummy = out;
 
@@ -205,12 +182,9 @@ void Append(  // WS Generic Output:
 /* Implementation for Vector/Numeric */
 void Append(  // WS Generic Output:
     Vector& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Numeric& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   // Get backup of out:
   Vector dummy = out;
 
@@ -227,13 +201,10 @@ void Append(  // WS Generic Output:
 /* Implementation for Tensor3/Matrix */
 void Append(  // WS Generic Output:
     Tensor3& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Matrix& in,
     //            const String& direction,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   // Get backup of out:
   Tensor3 dummy = out;
 
@@ -257,13 +228,10 @@ void Append(  // WS Generic Output:
 /* Implementation for Tensor3 */
 void Append(  // WS Generic Output:
     Tensor3& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Tensor3& in,
     //            const String& direction,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   const Tensor3* in_pnt;
   Tensor3 in_copy;
 
@@ -299,13 +267,10 @@ void Append(  // WS Generic Output:
 /* Implementation for Tensor4/Tensor3 */
 void Append(  // WS Generic Output:
     Tensor4& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Tensor3& in,
     //            const String& direction,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   // Get backup of out:
   Tensor4 dummy = out;
 
@@ -335,13 +300,10 @@ void Append(  // WS Generic Output:
 /* Implementation for Tensor4 */
 void Append(  // WS Generic Output:
     Tensor4& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const Tensor4& in,
     //            const String& direction,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   const Tensor4* in_pnt;
   Tensor4 in_copy;
 
@@ -384,12 +346,9 @@ void Append(  // WS Generic Output:
 /* Implementation for String */
 void Append(  // WS Generic Output:
     String& out,
-    const String& /* out_name */,
     // WS Generic Input:
     const String& in,
-    const String& direction _U_,
-    const String& /* in_name */,
-    const String& /* direction_name */) {
+    const String& direction _U_) {
   // String stream for easy string operations:
   std::ostringstream os;
 
@@ -400,20 +359,14 @@ void Append(  // WS Generic Output:
 
 #define self_append(Arr)              \
   void Append(Arr& x,                 \
-              const String&,          \
               const Arr& y,           \
-              const String&,          \
-              const String&,          \
               const String&) {        \
     for (auto& z : y) x.push_back(z); \
   }
 
 #define once_append(Val)       \
   void Append(Array<Val>& x,   \
-              const String&,   \
               const Val& y,    \
-              const String&,   \
-              const String&,   \
               const String&) { \
     x.push_back(y);            \
   }

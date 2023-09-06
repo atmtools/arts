@@ -29,10 +29,8 @@
 
  \author Oliver Lemke
 */
-void nca_filename(String &filename, const String &varname) {
-  if ("" == filename) {
-    filename = varname + ".nc";
-  }
+void nca_filename(const String &filename) {
+  ARTS_USER_ERROR_IF ("" == filename, "Filename is empty.")
 }
 
 //! Gives the default filename, with file index, for the NetCDF formats.
@@ -45,17 +43,12 @@ void nca_filename(String &filename, const String &varname) {
 
  \author Oliver Lemke
 */
-void nca_filename_with_index(String &filename, const Index &file_index,
-                             const String &varname) {
-  if ("" == filename) {
-    std::ostringstream os;
-    os << varname << "." << file_index << ".nc";
-    filename = os.str();
-  } else {
-    std::ostringstream os;
-    os << filename << "." << file_index << ".nc";
-    filename = os.str();
-  }
+void nca_filename_with_index(String &filename, const Index &file_index) {
+  ARTS_USER_ERROR_IF ("" == filename, "Filename is empty.");
+
+  std::ostringstream os;
+  os << filename << "." << file_index << ".nc";
+  filename = os.str();
 }
 
 //! Define NetCDF dimension.

@@ -109,11 +109,10 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void filename_xml(String& filename, const String& varname);
+void filename_xml(const String& filename);
 
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
-                             const String& varname,
                              const Index& digits = 0);
 
 ////////////////////////////////////////////////////////////////////////////

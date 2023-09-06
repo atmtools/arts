@@ -13,6 +13,7 @@
 #include "xml_io.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "debug.h"
 #include "file.h"
 #include "parameters.h"
 
@@ -175,10 +176,8 @@ void xml_data_parse_error(ArtsXMLTag& tag, String str_error) {
   \param filename filename
   \param varname variable name
 */
-void filename_xml(String& filename, const String& varname) {
-  if ("" == filename) {
-    filename = varname + ".xml";
-  }
+void filename_xml(const String& filename) {
+  ARTS_USER_ERROR_IF(filename == "", "Must have filename")
 }
 
 //! Gives the default filename, with file index, for the XML formats.
@@ -187,22 +186,11 @@ void filename_xml(String& filename, const String& varname) {
 
   \param[out] filename   filename
   \param[in]  file_index Index appended to the filename
-  \param[in]  varname    variable name
   \param[in]  digits     Width for padding with zeros
 */
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
-                             const String& varname,
                              const Index& digits) {
-  if ("" == filename) {
-    std::ostringstream os;
-    os << varname << "." << std::setw((int)digits)
-       << std::setfill('0') << file_index << ".xml";
-    filename = os.str();
-  } else {
-    std::ostringstream os;
-    os << filename << "." << std::setw((int)digits) << std::setfill('0')
-       << file_index << ".xml";
-    filename = os.str();
-  }
+  ARTS_USER_ERROR_IF ("" == filename, "Must have filename")
+  var_string(filename, ".", std::setw((int)digits), std::setfill('0'), file_index, ".xml");
 }

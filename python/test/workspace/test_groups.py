@@ -851,7 +851,7 @@ class TestGroups:
 
     def test_xml(self):
         ignore_groups = [
-            "CallbackFunction",
+            "CallbackOperator",
             "NumericUnaryOperator",
             "SpectralRadianceProfileOperator",
             "SingleScatteringData",
@@ -1053,4 +1053,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_xml()
+    x.test_construct_empty()

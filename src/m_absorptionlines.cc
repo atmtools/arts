@@ -765,7 +765,7 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
     
     WriteXML(output_format, lines,
              true_basename + name + ".xml",
-             0, "", "", "");
+             0);
   }
 }
 

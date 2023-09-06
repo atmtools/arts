@@ -372,12 +372,6 @@ std::string method_resolution_any(
     }
   }
 
-  if (wsm.pass_names) {
-    for (auto& t: wsm.gout) {
-      os << ", \"" << t << "\"";
-    }
-  }
-
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (any) os << ", ";
@@ -398,12 +392,6 @@ std::string method_resolution_any(
       i_any++;
     } else {
       os << t;
-    }
-  }
-
-  if (wsm.pass_names) {
-    for (auto& t: wsm.gin) {
-      os << ", \"" << t << "\"";
     }
   }
 
@@ -509,12 +497,6 @@ std::string method_resolution_variadic(
         }
       }
 
-      if (wsm.pass_names) {
-        for (auto& t: wsm.gout) {
-          os << ", \"" << t << "\"";
-        }
-      }
-
       for (auto& t : wsm.in) {
         if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
         if (not first) os << ", ";
@@ -537,12 +519,6 @@ std::string method_resolution_variadic(
           i_comma++;
         } else {
           os << wsm.gin[i];
-        }
-      }
-
-      if (wsm.pass_names) {
-        for (auto& t: wsm.gin) {
-          os << ", \"" << t << "\"";
         }
       }
 
@@ -622,12 +598,6 @@ std::string method_resolution_variadic(
         }
       }
 
-      if (wsm.pass_names) {
-        for (auto& t: wsm.gout) {
-          os << ", \"" << t << "\"";
-        }
-      }
-
       for (auto& t : wsm.in) {
         if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
         if (not first) os << ", ";
@@ -645,12 +615,6 @@ std::string method_resolution_variadic(
           i_comma++;
         } else {
           os << wsm.gin[i];
-        }
-      }
-
-      if (wsm.pass_names) {
-        for (auto& t: wsm.gin) {
-          os << ", \"" << t << "\"";
         }
       }
 
@@ -716,12 +680,6 @@ std::string method_resolution_simple(
     os << t;
   }
 
-  if (wsm.pass_names) {
-    for (auto& t: wsm.gout) {
-      os << ", \"" << t << "\"";
-    }
-  }
-
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     if (any) os << ", ";
@@ -733,12 +691,6 @@ std::string method_resolution_simple(
     if (any) os << ", ";
     any = true;
     os << t;
-  }
-
-  if (wsm.pass_names) {
-    for (auto& t: wsm.gin) {
-      os << ", \"" << t << "\"";
-    }
   }
 
   return os.str() + ");\n";
