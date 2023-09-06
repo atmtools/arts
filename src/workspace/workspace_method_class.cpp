@@ -15,19 +15,33 @@
 const auto& wsms = workspace_methods();
 
 std::ostream& operator<<(std::ostream& os, const Method& m) {
-  os << m.name;
-
   if (m.setval) {
-    std::string var = std::visit([](auto& v) { return var_string(*v); },
-                                 m.setval.value().value);
-    constexpr std::size_t maxsize = 50;
-    if (var.size() > maxsize) {
-      var = std::string(var.begin(), var.begin() + maxsize) + "...";
-    }
-    std::replace(var.begin(), var.end(), '\n', ' ');
+    const Wsv& wsv = m.setval.value();
+    if (wsv.holds<CallbackOperator>()) {
+      const CallbackOperator& cb = wsv.get_unsafe<CallbackOperator>();
+      os << '[';
+      for (auto& var: cb.outputs) {
+        os << var << ", ";
+      }
+      os << "] = " << m.name << '(';
+      for (auto& var: cb.inputs) {
+        os << var << ", ";
+      }
+      os << ')';
+    } else {
+      os << m.name;
+      std::string var = std::visit([](auto& v) { return var_string(*v); },
+                                  wsv.value);
+      constexpr std::size_t maxsize = 50;
+      if (var.size() > maxsize) {
+        var = std::string(var.begin(), var.begin() + maxsize) + "...";
+      }
+      std::replace(var.begin(), var.end(), '\n', ' ');
 
-    os << " = " << var;
+      os << " = " << var;
+    }
   } else {
+    os << m.name;
     os << '(';
 
     os << "o : ";

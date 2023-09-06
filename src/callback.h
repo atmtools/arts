@@ -9,9 +9,9 @@ class Workspace;
 #include <vector>
 
 struct CallbackOperator {
-  std::function<void(Workspace&)> callback;
-  std::vector<std::string> inputs;
-  std::vector<std::string> outputs;
+  std::function<void(Workspace&)> callback{};
+  std::vector<std::string> inputs{};
+  std::vector<std::string> outputs{};
 
   void operator()(Workspace& ws) const;
 

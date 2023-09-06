@@ -2,6 +2,7 @@
 #include <parameters.h>
 #include <pybind11/cast.h>
 #include <memory>
+#include <stdexcept>
 #include <type_traits>
 #include <unordered_map>
 
@@ -46,14 +47,17 @@ std::filesystem::path correct_include_path(
 
 void py_agenda(py::module_& m) try {
   artsclass<CallbackOperator>(m, "CallbackOperator")
-      .def(py::init([]() { return std::make_shared<CallbackOperator>(); }), py::doc("Initialize as empty call"))
+      .def(py::init([](const std::function<void(Workspace&)>& f,
+                       const std::vector<std::string>& i,
+                       const std::vector<std::string>& o) {
+             return std::make_shared<CallbackOperator>(f, i, o);
+           }),
+           py::arg("f") = std::function<void(Workspace&)>([](Workspace&) { throw std::runtime_error("No-op"); }),
+           py::arg("inputs")=std::vector<std::string>{},
+           py::arg("outputs")=std::vector<std::string>{},
+           py::doc("Initialize as structured call"))
       .PythonInterfaceCopyValue(CallbackOperator)
-      .def(py::init([](const std::function<void(const Workspace&)>& f) {
-        return std::make_shared<CallbackOperator>(f);
-      }), py::doc("Initialize from python callable"))
-      .def(
-          "__call__",
-          [](CallbackOperator& f, Workspace& ws) { f(ws); })
+      .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); })
       .PythonInterfaceWorkspaceDocumentation(CallbackOperator);
 
   artsclass<Method>(m, "Method")

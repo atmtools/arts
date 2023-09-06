@@ -139,7 +139,6 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  m_callback.cc
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc

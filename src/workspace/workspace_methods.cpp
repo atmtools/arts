@@ -389,20 +389,6 @@ The CIA tags shown are in the same format as needed by *abs_speciesSet*.
 
   };
 
-  wsm_data["CallbackOperatorExecute"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Execute any code in Arts
-)--",
-      .author = {"Richard Larsson"},
-
-      .gin = {"function"},
-      .gin_type = {"CallbackOperator"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(This will execute as "function(current workspace);")--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["CheckUnique"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Checks that *abs_lines* contains only unique absorption lines
 )--",
