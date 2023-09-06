@@ -187,7 +187,7 @@ Method::Method(std::string n, const Wsv& wsv, bool overwrite)
     outargs = cb.outputs;
     inargs = cb.inputs;
   } else {
-    outargs = {n};
+    outargs = {name};
   }
 }
 
@@ -199,7 +199,7 @@ void Method::operator()(Workspace& ws) const try {
         const auto& cb = wsv.get_unsafe<CallbackOperator>();
         cb(ws);
       } else {
-        ws.overwrite(name, std::make_shared<Wsv>(setval.value()));
+        ws.overwrite(name, std::make_shared<Wsv>(wsv));
       }
     } else {
       ws.set(name, std::make_shared<Wsv>(setval.value()));
