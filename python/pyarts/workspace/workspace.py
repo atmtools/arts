@@ -92,16 +92,16 @@ def _get_attrs(expr):
     return expr.value.id, expr.attr
 
 
-def _eval(expr):
+def _eval(expr, state):
     """
     Return a value of an expression
     """
     return eval(
-        compile(Expression(body=expr), "<arts_agenda>", "eval"), globals()
+        compile(Expression(body=expr), "<arts_agenda>", "eval"), state
     )
 
 
-def _assign_parser(expr, ws):
+def _assign_parser(expr, ws, state):
     """
     Creates the method that assings a value to the workspace by copy or set
 
@@ -156,7 +156,7 @@ def _assign_parser(expr, ws):
 
     tmp = Workspace(False)
     try:
-        setattr(tmp, output_target, _eval(value))
+        setattr(tmp, output_target, _eval(value, state))
     except Exception as e:
         return f"Exception: {e}"
 
@@ -299,21 +299,21 @@ def _expr_parser(expr, ws):
     return "Unknown expression value"
 
 
-def _method_parser(expr, ws):
+def _method_parser(expr, ws, state):
     """
     Parse the agenda method list.  We can only have assignments and expressions
     """
     if isinstance(expr, Expr):
         return _expr_parser(expr.value, ws)
     if isinstance(expr, Assign):
-        return _assign_parser(expr, ws)
+        return _assign_parser(expr, ws, state)
     if isinstance(expr, Return):
         return "Cannot return from an Agenda"
 
     return "Unknown expression encountered parsing method"
 
 
-def _return_workspace_methods(code_body, ws):
+def _return_workspace_methods(code_body, ws, state):
     """
     Core workspace method interpreter returning a list of Method and str
 
@@ -323,7 +323,7 @@ def _return_workspace_methods(code_body, ws):
     out = []
 
     for expr in code_body:
-        out.append(_method_parser(expr, ws))
+        out.append(_method_parser(expr, ws, state))
 
     return out
 
@@ -381,7 +381,8 @@ def _arts_agenda(f, ws, fix):
     workspace = _return_workspace_argname(func)
     assert workspace is not None, "Must have a workspace variable"
 
-    methods = _return_workspace_methods(func.body, workspace)
+    state = f.__globals__
+    methods = _return_workspace_methods(func.body, workspace, state)
 
     fn = getfile(f)
     ln = getsourcelines(f)[-1]

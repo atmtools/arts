@@ -57,6 +57,7 @@ void py_agenda(py::module_& m) try {
            py::arg("outputs")=std::vector<std::string>{},
            py::doc("Initialize as structured call"))
       .PythonInterfaceCopyValue(CallbackOperator)
+      .PythonInterfaceBasicRepresentation(CallbackOperator)
       .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); })
       .PythonInterfaceWorkspaceDocumentation(CallbackOperator);
 

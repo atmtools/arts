@@ -25,7 +25,6 @@ def safe_set(ws, attr, val):
 
 
 def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
-
     def fn(ws):
         try:
             out = func(*[ws.get(x) for x in ins])
