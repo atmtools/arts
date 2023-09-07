@@ -152,7 +152,7 @@ def _assign_parser(expr, ws, state):
         input_obj, input_target = _get_attrs(value)
 
         if input_obj == output_obj:
-            return Method("Copy", [output_target, input_target])
+            return Method("Copy", [output_target, input_target], {})
 
     tmp = Workspace(False)
     try:
@@ -398,10 +398,65 @@ def _arts_agenda(f, ws, fix):
 
 def arts_agenda(func=None, *, ws=None, fix=False):
     """
-    Creates an agenda
+    Creates an agenda by parsing the supported expressions into
+    Workspace Method calls.
 
-    If ws is passed, the agenda is also finalized.  If not, it is still not
-    clear that the agenda is valid
+    Examples (All are equivalent):
+        .. code-block:: python3
+           :caption: Creating a default Agenda
+
+           from pyarts.workspace import Workspace, arts_agenda
+
+           @arts_agenda
+           def propmat_clearsky_agenda(ws):
+               ws.propmat_clearskyInit()
+               ws.propmat_clearskyAddLines()
+               ws.Ignore(ws.rtp_los)
+
+           ws = Workspace()
+           ws.propmat_clearsky_agenda = propmat_clearsky_agenda
+
+        .. code-block:: python3
+           :caption: Setting an agenda to a workspace directly
+
+           from pyarts.workspace import Workspace, arts_agenda
+
+           ws = Workspace()
+
+           @arts_agenda(ws=ws)
+           def propmat_clearsky_agenda(ws):
+               ws.propmat_clearskyInit()
+               ws.propmat_clearskyAddLines()
+               ws.Ignore(ws.rtp_los)
+
+        .. code-block:: python3
+           :caption: Setting an Agenda while skippong some housekeeping
+
+           from pyarts.workspace import Workspace, arts_agenda
+
+           ws = Workspace()
+
+           @arts_agenda(ws=ws, fix=True)
+           def propmat_clearsky_agenda(ws):
+               ws.propmat_clearskyInit()
+               ws.propmat_clearskyAddLines()
+
+    We support some additional functionality of python beyond just
+    calling workspace methods, but not many more :)
+
+    If you want to set a variable, this can be done using a simple
+    assignment operator
+
+    .. code-block:: python3
+       :caption: Assigning a variable
+    
+       from pyarts.workspace import Workspace, arts_agenda
+    
+       ws = Workspace()
+    
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearsky = []
 
     Parameters
     ----------

@@ -207,16 +207,14 @@ Method::Method(std::string n, const Wsv& wsv, bool overwrite)
 
 void Method::operator()(Workspace& ws) const try {
   if (setval) {
-    if (overwrite_setval) {
-      const Wsv& wsv = setval.value();
-      if (wsv.holds<CallbackOperator>()) {
-        const auto& cb = wsv.get_unsafe<CallbackOperator>();
-        cb(ws);
-      } else {
-        ws.overwrite(name, std::make_shared<Wsv>(wsv));
-      }
+    if (const Wsv& wsv = setval.value(); wsv.holds<CallbackOperator>()) {
+      wsv.get_unsafe<CallbackOperator>()(ws);
     } else {
-      ws.set(name, std::make_shared<Wsv>(setval.value()));
+      if (overwrite_setval) {
+        ws.overwrite(name, std::make_shared<Wsv>(wsv.copy()));
+      } else {
+        ws.set(name, std::make_shared<Wsv>(wsv.copy()));
+      }
     }
   } else {
     wsms.at(name).func(ws, outargs, inargs);

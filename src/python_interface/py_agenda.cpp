@@ -69,8 +69,8 @@ void py_agenda(py::module_& m) try {
              return {n, a, kw};
            }),
            py::arg("name"),
-           py::arg("args") = std::vector<std::string>{},
-           py::arg("kwargs") = std::unordered_map<std::string, std::string>{},
+           py::arg("args"),
+           py::arg("kwargs"),
            py::doc("A named method with args and kwargs"))
       .def(py::init([](const std::string& n, const PyWsvValue& v) -> Method {
              return std::visit(
