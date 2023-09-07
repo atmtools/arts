@@ -192,11 +192,12 @@ class _NamedArg:
     """
     Internal type used to name arguments that live on the workspace
     """
+
     def __init__(self, s):
         self.arg = s
 
 
-def _call_arg_value(arg, ws):
+def _call_arg_value(arg, ws, state):
     """
     Get the value of an argument or its name
     """
@@ -204,10 +205,10 @@ def _call_arg_value(arg, ws):
         inws, intarget = _get_attrs(arg)
         if inws == ws:
             return _NamedArg(intarget)
-    return _eval(arg)
+    return _eval(arg, state)
 
 
-def _call_args_parser(call, margs, ws):
+def _call_args_parser(call, margs, ws, state):
     """
     Parse all positional arguments of a user-defined method and fill out
     the dict required by the method constructor
@@ -218,11 +219,11 @@ def _call_args_parser(call, margs, ws):
     out = {}
     for i in range(len(call.args)):
         arg = call.args[i]
-        out[margs[i]] = _call_arg_value(arg, ws)
+        out[margs[i]] = _call_arg_value(arg, ws, state)
     return out
 
 
-def _call_keywords_parser(kwargs, mdict, call, ws):
+def _call_keywords_parser(kwargs, mdict, call, ws, state):
     """
     Parse and append all named arguments of a user-defined method
     """
@@ -236,14 +237,14 @@ def _call_keywords_parser(kwargs, mdict, call, ws):
             if arg not in mdict:
                 return f'Unknown argument "{arg}"'
 
-            kwargs[arg] = _call_arg_value(keyword.value, ws)
+            kwargs[arg] = _call_arg_value(keyword.value, ws, state)
 
         return kwargs
     except Exception as e:
         return f"Error parsing keyword: {e}"
 
 
-def _expr_call_parser(call, ws):
+def _expr_call_parser(call, ws, state):
     """
     Evaluate the call as an ARTS method.  If this is not an ARTS method,
     the CallbackOperator should be copied onto the workspace and the
@@ -256,11 +257,11 @@ def _expr_call_parser(call, ws):
 
     mdict = _method_args(func)
 
-    args = _call_args_parser(call, list(mdict.keys()), ws)
+    args = _call_args_parser(call, list(mdict.keys()), ws, state)
     if isinstance(args, str):
         return args
 
-    kwargs = _call_keywords_parser(args, mdict, call, ws)
+    kwargs = _call_keywords_parser(args, mdict, call, ws, state)
     if isinstance(kwargs, str):
         return kwargs
 
@@ -287,12 +288,12 @@ def _expr_call_parser(call, ws):
     return methods
 
 
-def _expr_parser(expr, ws):
+def _expr_parser(expr, ws, state):
     """
     An expression is bad unless it is a call, in which case it is forwarded
     """
     if isinstance(expr, Call):
-        return _expr_call_parser(expr, ws)
+        return _expr_call_parser(expr, ws, state)
     if isinstance(expr, Name):
         return f"Meaningless name.  Did you mean {ws}.{expr.id} = ...?"
 
@@ -304,7 +305,7 @@ def _method_parser(expr, ws, state):
     Parse the agenda method list.  We can only have assignments and expressions
     """
     if isinstance(expr, Expr):
-        return _expr_parser(expr.value, ws)
+        return _expr_parser(expr.value, ws, state)
     if isinstance(expr, Assign):
         return _assign_parser(expr, ws, state)
     if isinstance(expr, Return):
@@ -398,7 +399,7 @@ def _arts_agenda(f, ws, fix):
 def arts_agenda(func=None, *, ws=None, fix=False):
     """
     Creates an agenda
-    
+
     If ws is passed, the agenda is also finalized.  If not, it is still not
     clear that the agenda is valid
 
