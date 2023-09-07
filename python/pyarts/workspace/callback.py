@@ -20,8 +20,7 @@ def safe_set(ws, attr, val):
     elif type(val) in _group_types:
         ws.set(attr, val)
     else:
-        raise RuntimeError(f"'{attr}' is not on Workspace, and "
-                           f"{type(val)} is not a Workspace Group")
+        setattr(ws, attr, val)
 
 
 def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
@@ -43,7 +42,6 @@ def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
                 f"{fnstr}"
                 f"\n\nThe callback is:\nInput: {ins}\nOutput: {outs}"
             )
-
     return cxx.CallbackOperator(fn, ins, outs)
 
 

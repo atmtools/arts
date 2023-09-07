@@ -9,7 +9,7 @@ class Workspace;
 #include <vector>
 
 struct CallbackOperator {
-  std::function<void(Workspace&)> callback{};
+  std::function<void(const std::shared_ptr<Workspace>&)> callback{};
   std::vector<std::string> inputs{};
   std::vector<std::string> outputs{};
 

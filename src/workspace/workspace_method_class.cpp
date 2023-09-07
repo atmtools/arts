@@ -19,11 +19,10 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
     const Wsv& wsv = m.setval.value();
     if (wsv.holds<CallbackOperator>()) {
       const CallbackOperator& cb = wsv.get_unsafe<CallbackOperator>();
-      os << '[';
       for (auto& var: cb.outputs) {
         os << var << ", ";
       }
-      os << "] = " << m.name << '(';
+      os << " := " << m.name << '(';
       for (auto& var: cb.inputs) {
         os << var << ", ";
       }

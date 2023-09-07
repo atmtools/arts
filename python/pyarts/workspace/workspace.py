@@ -18,6 +18,7 @@ from pyarts.workspace.utility import unindent as unindent
 from pyarts.arts.globals import workspace_methods, workspace_variables
 from pyarts.arts import Agenda, Method
 import pyarts.arts as cxx
+from pyarts.workspace.callback import callback_operator
 
 
 _group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
@@ -39,8 +40,7 @@ class Workspace(cxx._Workspace):
         if super().has(attr):
             return super().get(attr)
 
-        raise AttributeError(
-            f"'Workspace' object has no attribute '{attr}'")
+        raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
 
     def __setattr__(self, attr, value):
         if self.has(attr):
@@ -55,16 +55,18 @@ class Workspace(cxx._Workspace):
                 self.set(attr, value)
             else:
                 raise AttributeError(
-                    f"'Workspace' object has no attribute '{attr}'")
+                    f"'Workspace' object has no attribute '{attr}'"
+                )
 
     def __delattr__(self, attr):
-        if attr == '__class__':
+        if attr == "__class__":
             raise AttributeError("You cannot delete __class__")
         if self.has(attr):
             self.set(attr, type(self.get(attr))())
         else:
             raise AttributeError(
-                f"'Workspace' object has no attribute '{attr}'")
+                f"'Workspace' object has no attribute '{attr}'"
+            )
 
     def __copy__(self):
         x = super().__copy__()
@@ -96,9 +98,7 @@ def _eval(expr, state):
     """
     Return a value of an expression
     """
-    return eval(
-        compile(Expression(body=expr), "<arts_agenda>", "eval"), state
-    )
+    return eval(compile(Expression(body=expr), "<arts_agenda>", "eval"), state)
 
 
 def _assign_parser(expr, ws, state):
@@ -250,42 +250,55 @@ def _expr_call_parser(call, ws, state):
     the CallbackOperator should be copied onto the workspace and the
     CallbackOperatorExecute method should be executed (WIP)
     """
-    myws, func = _get_attrs(call.func)
 
-    if myws != ws:
-        return f"Bad workspace {myws}, expected {ws}"
+    if hasattr(call.func, "value") and hasattr(call.func, "attr"):
+        myws, func = _get_attrs(call.func)
 
-    mdict = _method_args(func)
+        if myws != ws:
+            return f"Bad workspace {myws}, expected {ws}"
 
-    args = _call_args_parser(call, list(mdict.keys()), ws, state)
-    if isinstance(args, str):
-        return args
+        mdict = _method_args(func)
 
-    kwargs = _call_keywords_parser(args, mdict, call, ws, state)
-    if isinstance(kwargs, str):
-        return kwargs
+        args = _call_args_parser(call, list(mdict.keys()), ws, state)
+        if isinstance(args, str):
+            return args
 
-    methods = []
-    call_kwargs = {}
-    for k in kwargs:
-        kw = kwargs[k]
-        t = eval(f"cxx.{mdict[k]}")
+        kwargs = _call_keywords_parser(args, mdict, call, ws, state)
+        if isinstance(kwargs, str):
+            return kwargs
+
+        methods = []
+        call_kwargs = {}
+        for k in kwargs:
+            kw = kwargs[k]
+            t = eval(f"cxx.{mdict[k]}")
+            try:
+                if isinstance(kw, _NamedArg):
+                    call_kwargs[k] = f"{kw.arg}"
+                else:
+                    methods.append(Method(f"@{k}", t(kw)))
+                    call_kwargs[k] = f"@{k}"
+            except Exception as e:
+                return (
+                    f"\n{e}\n\n"
+                    f"Failed to parse {'positional' if k in args else 'named'}"
+                    f' argument "{k}"'
+                    f" (arg nr.: {1 + list(kwargs.keys()).index(k)})"
+                )
+
+        methods.append(Method(func, [], call_kwargs))
+        return methods
+    else:
         try:
-            if isinstance(kw, _NamedArg):
-                call_kwargs[k] = f"{kw.arg}"
-            else:
-                methods.append(Method(f"@{k}", t(kw)))
-                call_kwargs[k] = f"@{k}"
-        except Exception as e:
-            return (
-                f"\n{e}\n\n"
-                f"Failed to parse {'positional' if k in args else 'named'}"
-                f' argument "{k}"'
-                f" (arg nr.: {1 + list(kwargs.keys()).index(k)})"
+            assert (
+                len(call.args) == 0 and len(call.keywords) == 0
+            ), "Cannot pass arguments to callback operators"
+            return Method(
+                unparse(call.func),
+                callback_operator(eval(unparse(call.func), state)),
             )
-
-    methods.append(Method(func, [], call_kwargs))
-    return methods
+        except Exception as e:
+            return f"{e}"
 
 
 def _expr_parser(expr, ws, state):
@@ -401,62 +414,96 @@ def arts_agenda(func=None, *, ws=None, fix=False):
     Creates an agenda by parsing the supported expressions into
     Workspace Method calls.
 
-    Examples (All are equivalent):
-        .. code-block:: python3
-           :caption: Creating a default Agenda
+    Examples
+    --------
 
-           from pyarts.workspace import Workspace, arts_agenda
+    These all produce the same Agenda, with minor modifications on how
+    it is stored.
 
-           @arts_agenda
-           def propmat_clearsky_agenda(ws):
-               ws.propmat_clearskyInit()
-               ws.propmat_clearskyAddLines()
-               ws.Ignore(ws.rtp_los)
+    .. code-block:: python
+       :caption: Creating a basic Agenda
 
-           ws = Workspace()
-           ws.propmat_clearsky_agenda = propmat_clearsky_agenda
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
 
-        .. code-block:: python3
-           :caption: Setting an agenda to a workspace directly
+       @arts_agenda
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+           ws.Ignore(ws.rtp_los)
 
-           from pyarts.workspace import Workspace, arts_agenda
+       ws = Workspace()
+       ws.propmat_clearsky_agenda = propmat_clearsky_agenda
 
-           ws = Workspace()
+    .. code-block:: python
+       :caption: Setting an agenda to a workspace directly
 
-           @arts_agenda(ws=ws)
-           def propmat_clearsky_agenda(ws):
-               ws.propmat_clearskyInit()
-               ws.propmat_clearskyAddLines()
-               ws.Ignore(ws.rtp_los)
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
 
-        .. code-block:: python3
-           :caption: Setting an Agenda while skippong some housekeeping
+       ws = Workspace()
 
-           from pyarts.workspace import Workspace, arts_agenda
+       @arts_agenda(ws=ws)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+           ws.Ignore(ws.rtp_los)
 
-           ws = Workspace()
+    .. code-block:: python
+       :caption: Setting an Agenda while skipping some housekeeping
 
-           @arts_agenda(ws=ws, fix=True)
-           def propmat_clearsky_agenda(ws):
-               ws.propmat_clearskyInit()
-               ws.propmat_clearskyAddLines()
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+
+    .. code-block:: python
+       :caption: Using custom values
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines(ws.propmat_clearsky,  # By pos
+                                       lines_sparse_df=0)  # By name
+
+    Additional options
+    ------------------
 
     We support some additional functionality of python beyond just
-    calling workspace methods, but not many more :)
+    calling workspace methods.
 
-    If you want to set a variable, this can be done using a simple
-    assignment operator
+    .. code-block:: python
+       :caption: Assigning or copying a variable using python syntax
 
-    .. code-block:: python3
-       :caption: Assigning a variable
-    
-       from pyarts.workspace import Workspace, arts_agenda
-    
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
        ws = Workspace()
-    
+
        @arts_agenda(ws=ws, fix=True)
        def propmat_clearsky_agenda(ws):
            ws.propmat_clearsky = []
+           ws.x = ws.f_grid
+
+    .. code-block:: python
+       :caption: Using callback operators to execute code in python
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       def fun(f_grid):
+           x = f_grid
+           return x
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           fun()  # This will set x to f_grid
 
     Parameters
     ----------

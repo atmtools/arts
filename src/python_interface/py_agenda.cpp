@@ -47,12 +47,12 @@ std::filesystem::path correct_include_path(
 
 void py_agenda(py::module_& m) try {
   artsclass<CallbackOperator>(m, "CallbackOperator")
-      .def(py::init([](const std::function<void(Workspace&)>& f,
+      .def(py::init([](const std::function<void(const std::shared_ptr<Workspace>&)>& f,
                        const std::vector<std::string>& i,
                        const std::vector<std::string>& o) {
              return std::make_shared<CallbackOperator>(f, i, o);
            }),
-           py::arg("f") = std::function<void(Workspace&)>([](Workspace&) { throw std::runtime_error("No-op"); }),
+           py::arg("f") = std::function<void(const std::shared_ptr<Workspace>&)>([](const std::shared_ptr<Workspace>&) { throw std::runtime_error("No-op"); }),
            py::arg("inputs")=std::vector<std::string>{},
            py::arg("outputs")=std::vector<std::string>{},
            py::doc("Initialize as structured call"))
