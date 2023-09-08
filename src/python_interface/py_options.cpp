@@ -4,14 +4,13 @@
 #include "ppath_struct.h"
 
 #include "py_macros.h"
-#include "py_auto_interface.h"
-#include "python_interface.h"
+#include <python_interface.h>
 
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)             \
   [&]() {                                                                          \
     auto cls =                                                                     \
-        py::class_<opt_namespace::opt_localname>(opt, #opt_rename)                 \
+        artsclass<opt_namespace::opt_localname>(opt, #opt_rename)                  \
             .def(py::init([]() { return opt_namespace::opt_localname{}; }),        \
                  "Default value")                                                  \
             .def(py::init([](const std::string& s) {                               \
@@ -53,8 +52,10 @@
                     ":class:`list` of full set of options available as strings")); \
     cls.doc() = "Options for " #opt_rename;                                        \
     for (auto& x : opt_namespace::enumtyps::opt_localname##Types) {                \
+      String str = toString(x);                                                    \
+      if (str == "None") str += "_";                                               \
       cls.def_property_readonly_static(                                            \
-          String(toString(x)).c_str(),                                             \
+          str.c_str(),                                                             \
           [x](py::object) { return x; },                                           \
           py::doc(":class:`~pyarts.options." #opt_rename                           \
                   "` static value as named"));                                     \
@@ -67,7 +68,7 @@
 #define DeclareOption(opt_namespace, opt_localname) \
   DeclareOptionRenamed(opt_localname, opt_namespace, opt_localname)
 namespace Python {
-void py_options(py::module_& m) {
+void py_options(py::module_& m) try {
   auto opt = m.def_submodule("options");
   opt.doc() = "Various named options of Arts";
 
@@ -140,5 +141,7 @@ void py_options(py::module_& m) {
 
   // Species enums
   DeclareOptionRenamed(SpeciesTagType, Species, TagType)
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize options\n", e.what()));
 }
 }  // namespace Python

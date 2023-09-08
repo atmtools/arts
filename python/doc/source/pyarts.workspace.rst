@@ -24,11 +24,6 @@ pyarts.workspace.workspace
 .. autosummary::
    :toctree: stubs
 
-   DelayedAgenda
-   Include
-   parse_function
-   continue_parser_function
-
 pyarts.workspace.utility
 ------------------------
 
@@ -50,8 +45,5 @@ pyarts.workspace.global_data
 
 .. autosummary::
    :toctree: stubs
-
-   get_raw_method_map
-   get_variables_map
-   get_variable_name
+   
    convert

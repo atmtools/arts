@@ -1,7 +1,5 @@
 #include <predefined/predef.h>
-#include <py_auto_interface.h>
-#include <pybind11/cast.h>
-#include <pybind11/pytypes.h>
+#include <python_interface.h>
 
 #include "predefined/predef_data.h"
 #include "py_macros.h"
@@ -9,10 +7,10 @@
 namespace Python {
 void internalCKDMT400(
     py::module_& m) {
-  py::class_<Absorption::PredefinedModel::MT_CKD400::WaterData>(
+  artsclass<Absorption::PredefinedModel::MT_CKD400::WaterData>(
       m, "MTCKD400WaterData")
       .def(py::init([]() {
-             return std::make_unique<
+             return std::make_shared<
                  Absorption::PredefinedModel::MT_CKD400::WaterData>();
            }),
            "Default water data")
@@ -48,7 +46,7 @@ void internalCKDMT400(
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            auto out = std::make_unique<Absorption::PredefinedModel::MT_CKD400::WaterData>();
+            auto out = std::make_shared<Absorption::PredefinedModel::MT_CKD400::WaterData>();
             out->self_absco_ref = t[0].cast<std::vector<double>>();
             out->for_absco_ref = t[1].cast<std::vector<double>>();
             out->wavenumbers = t[2].cast<std::vector<double>>();
@@ -527,7 +525,6 @@ abs_coef : ~pyarts.arts.Vector
     Absorption coefficients
 )--"));
 }
-
 
 void internalTRE05(py::module_& m) {
   m.def(
@@ -1077,14 +1074,14 @@ abs_coef : ~pyarts.arts.Vector
 )--"));
 }
 
-void py_predefined(py::module_& m) {
+void py_predefined(py::module_& m) try {
   //! The predef python namespace where all INTERNAL data lives
   auto predef = m.def_submodule("predef");
   predef.doc() = "Contains predefined absorption models";
 
   //! ARTS Workspace class, must live on the main (m) namespace
-  py::class_<PredefinedModelData>(m, "PredefinedModelData")
-      .def(py::init([]() { return std::make_unique<PredefinedModelData>(); }), "Default model data")
+  artsclass<PredefinedModelData>(m, "PredefinedModelData")
+      .def(py::init([]() { return std::make_shared<PredefinedModelData>(); }), "Default model data")
       .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
       .PythonInterfaceFileIO(PredefinedModelData)
       .PythonInterfaceCopyValue(PredefinedModelData)
@@ -1119,7 +1116,7 @@ water_data : ~pyarts.arts.predef.MTCKD400WaterData
           [](const PredefinedModelData& t) { return py::make_tuple(t.data); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            auto out = std::make_unique<PredefinedModelData>();;
+            auto out = std::make_shared<PredefinedModelData>();;
             out->data = t[0].cast<PredefinedModelData::DataMap>();
             return out;
           }))
@@ -1138,5 +1135,7 @@ water_data : ~pyarts.arts.predef.MTCKD400WaterData
   internalTRE05(predef);
   internalELL07(predef);
   internalSTANDARD(predef);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize predefined\n", e.what()));
 }
 }  // namespace Python

@@ -16,15 +16,16 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "array.h"
 #include "arts_constants.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "arts_conversions.h"
 #include "rtepack.h"
 #include "species_tags.h"
+
+#include "special_interp.h"
 
 #if not ARTS_LGPL
 extern "C" {
@@ -85,51 +86,51 @@ void check_disort_input(  // Input
     ConstVectorView za_grid,
     const Index& nstreams) {
   if (!cloudbox_on) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Cloudbox is off, no scattering calculations to be"
         "performed.");
   }
 
   if (atmfields_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
   if (atmgeom_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
   if (cloudbox_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The cloudbox must be flagged to have "
         "passed a consistency check (cloudbox_checked=1).");
   if (scat_data_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
   if (3 != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "For running DISORT, atmospheric dimensionality "
         "must be 1.\n");
 
   if (cloudbox_limits.nelem() != 2 * 3)
-    throw runtime_error(
+    throw std::runtime_error(
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
         "be 6");
 
   if (cloudbox_limits[0] != 0) {
-    ostringstream os;
+    std::ostringstream os;
     os << "DISORT calculations currently only possible with "
        << "lower cloudbox limit\n"
        << "at 0th atmospheric level "
        << "(assumes surface there, ignoring z_surface).\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (scat_data.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "No single scattering data present.\n"
         "See documentation of WSV *scat_data* for options to "
         "make single scattering data available.\n");
@@ -140,10 +141,10 @@ void check_disort_input(  // Input
   // number of directions in both hemispheres is required. horizontal direction
   // (90deg) can not be covered in a plane-parallel atmosphere.
   if (nstreams / 2 * 2 != nstreams) {
-    ostringstream os;
+    std::ostringstream os;
     os << "DISORT requires an even number of streams, but yours is " << nstreams
        << ".\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Zenith angle grid.
@@ -156,24 +157,24 @@ void check_disort_input(  // Input
   // set the threshold fairly high since calculation costs for a higher number
   // of angles are negligible.
   if (nza < 20) {
-    ostringstream os;
+    std::ostringstream os;
     os << "We require size of za_grid to be >= 20, to ensure a\n"
        << "reasonable interpolation of the calculated cloudbox field.\n"
        << "Note that for DISORT additional computation costs for\n"
        << "larger numbers of angles are negligible.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (za_grid[0] != 0. || za_grid[nza - 1] != 180.)
-    throw runtime_error("The range of *za_grid* must [0 180].");
+    throw std::runtime_error("The range of *za_grid* must [0 180].");
 
   if (!is_increasing(za_grid))
-    throw runtime_error("*za_grid* must be increasing.");
+    throw std::runtime_error("*za_grid* must be increasing.");
 
   Index i = 1;
   while (za_grid[i] <= 90) {
     if (za_grid[i] == 90)
-      throw runtime_error("*za_grid* is not allowed to contain the value 90");
+      throw std::runtime_error("*za_grid* is not allowed to contain the value 90");
     i++;
   }
 
@@ -183,13 +184,13 @@ void check_disort_input(  // Input
     for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
   if (!all_totrand) {
-    ostringstream os;
+    std::ostringstream os;
     os << "DISORT can only handle scattering elements of type "
        << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
        << "but at least one element of other type (" << PTYPE_AZIMUTH_RND << "="
        << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL << "="
        << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -200,22 +201,22 @@ void check_disort_irradiance_input(  // Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& nstreams) {
   if (atmfields_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
 
   if (atmgeom_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The atmospheric geometry must be flagged to have "
         "passed a consistency check (atmgeom_checked=1).");
 
   if (scat_data_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The scat_data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
   if (scat_data.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "No single scattering data present.\n"
         "See documentation of WSV *scat_data* for options to "
         "make single scattering data available.\n");
@@ -226,10 +227,10 @@ void check_disort_irradiance_input(  // Input
   // number of directions in both hemispheres is required. horizontal direction
   // (90deg) can not be covered in a plane-parallel atmosphere.
   if (nstreams / 2 * 2 != nstreams) {
-    ostringstream os;
+    std::ostringstream os;
     os << "DISORT requires an even number of streams, but yours is " << nstreams
        << ".\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // DISORT can only handle randomly oriented particles.
@@ -238,13 +239,13 @@ void check_disort_irradiance_input(  // Input
     for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
   if (!all_totrand) {
-    ostringstream os;
+    std::ostringstream os;
     os << "DISORT can only handle scattering elements of type "
        << PTYPE_TOTAL_RND << " (" << PTypeToString(PTYPE_TOTAL_RND) << "),\n"
        << "but at least one element of other type (" << PTYPE_AZIMUTH_RND << "="
        << PTypeToString(PTYPE_AZIMUTH_RND) << " or " << PTYPE_GENERAL << "="
        << PTypeToString(PTYPE_GENERAL) << ") is present.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -273,30 +274,30 @@ void get_disortsurf_props(  // Output
     ConstVectorView surface_scalar_reflectivity) {
   // temperature of surface
   if (surface_skin_t < 0. || surface_skin_t > 1000.) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Surface temperature has been set or derived as " << btemp << " K,\n"
        << "which is not considered a meaningful value.\n"
        << "For surface method 'L', *surface_skin_t* needs to\n"
        << "be set and passed explicitly. Maybe you didn't do this?";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   btemp = surface_skin_t;
 
   // surface albedo
   if (surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
       surface_scalar_reflectivity.nelem() != 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of elements in *surface_scalar_reflectivity*\n"
        << "should match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << f_grid.nelem()
        << "\n length of *surface_scalar_reflectivity* : "
        << surface_scalar_reflectivity.nelem() << "\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if (min(surface_scalar_reflectivity) < 0 ||
       max(surface_scalar_reflectivity) > 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "All values in *surface_scalar_reflectivity*"
         " must be inside [0,1].");
   }
@@ -309,7 +310,7 @@ void get_disortsurf_props(  // Output
       albedo[f_index] = surface_scalar_reflectivity[0];
 }
 
-void get_gasoptprop(Workspace& ws,
+void get_gasoptprop(const Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
@@ -350,7 +351,7 @@ void get_gasoptprop(Workspace& ws,
   }
 }
 
-void get_gas_scattering_properties(Workspace& ws,
+void get_gas_scattering_properties(const Workspace& ws,
                                    MatrixView sca_coeff_gas,
                                    MatrixView sca_coeff_gas_level,
                                    MatrixView pfct_gas,
@@ -396,7 +397,7 @@ void get_gas_scattering_properties(Workspace& ws,
     #define A(i,j)           a[i-1+(j-1)*lda]
 
     // gas scattering (phase) function
-    N_polys = min(Nl, sca_fct_temp.nelem());
+    N_polys = std::min(Nl, sca_fct_temp.nelem());
     for (Index k = 0; k < N_polys; k++) {
       pmom_gas_level( ip, k) = sca_fct_temp[k];
     }
@@ -555,11 +556,11 @@ void get_angs(Vector& pfct_angs,
         }
     pfct_angs = scat_data[this_ss][this_se].za_grid;
   } else if (Npfct < min_nang) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Number of requested angular grid points (Npfct=" << Npfct
        << ") is insufficient.\n"
        << "At least " << min_nang << " points required.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   } else {
     nlinspace(pfct_angs, 0, 180, nang);
   }
@@ -711,14 +712,14 @@ void get_pmom(Tensor3View pmom,
           }
 
           if (abs(pint / 2. - 1.) > pfct_threshold) {
-            ostringstream os;
+            std::ostringstream os;
             os << "Phase function normalization deviates from expected value by\n"
                << 1e2 * pint / 2. - 1e2 << "(allowed: " << pfct_threshold * 1e2
                << "%).\n"
                << "Occurs at layer #" << il << " and frequency #" << f_index
                << ".\n"
                << "Something is wrong with your scattering data. Check!\n";
-            throw runtime_error(os.str());
+            throw std::runtime_error(os.str());
           }
 
           // for the rest, rescale pfct to norm 2
@@ -789,7 +790,7 @@ void c_errmsg(const char* messag, int type) {
 #undef MAX_WARNINGS
 
 /** Verbosity enabled replacement for the original cdisort function. */
-int c_write_bad_var(int quiet, const char* varnam) {
+int c_write_bad_var(int quiet, const char*) {
   #if not ARTS_LGPL
   const int maxmsg = 50;
   static int nummsg = 0;
@@ -805,7 +806,7 @@ int c_write_bad_var(int quiet, const char* varnam) {
 }
 
 /** Verbosity enabled replacement for the original cdisort function. */
-int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
+int c_write_too_small_dim(int quiet, const char*, int) {
   if (quiet != QUIET) {
   }
 
@@ -892,7 +893,7 @@ void reduced_1datm(Vector& p,
   }
 }
 
-void run_cdisort(Workspace& ws,
+void run_cdisort(const Workspace& ws,
                  Tensor7& cloudbox_field,
                  ArrayOfMatrix& disort_aux,
                  ConstVectorView f_grid,
@@ -920,7 +921,7 @@ void run_cdisort(Workspace& ws,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& only_tro,
-                 const Index& quiet,
+                 const Index&,
                  const Index& emission,
                  const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
@@ -1246,9 +1247,7 @@ void run_cdisort(Workspace& ws,
           } else if (umu0 > 1 - eps) {
             umu0 -= eps;
           }
-
-          const Numeric shift =
-              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
+          
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
@@ -1332,7 +1331,7 @@ void run_cdisort(Workspace& ws,
   #endif
 }
 
-void run_cdisort_flux(Workspace& ws,
+void run_cdisort_flux(const Workspace& ws,
                       Tensor5& spectral_irradiance_field,
                       ArrayOfMatrix& disort_aux,
                       ConstVectorView f_grid,
@@ -1358,7 +1357,7 @@ void run_cdisort_flux(Workspace& ws,
                       const Index& nstreams,
                       const Index& Npfct,
                       const Index& only_tro,
-                      const Index& quiet,
+                      const Index&,
                       const Index& emission,
                       const Index& intensity_correction) {
   // Create an atmosphere starting at z_surface
@@ -1693,9 +1692,6 @@ void run_cdisort_flux(Workspace& ws,
             umu0 -= eps;
           }
 
-          const Numeric shift =
-              abs(Conversion::acosd(umu0) - Conversion::acosd(ds.bc.umu0));
-
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
@@ -1799,7 +1795,7 @@ void run_cdisort_flux(Workspace& ws,
   #endif
 }
 
-void surf_albedoCalc(Workspace& ws,
+void surf_albedoCalc(const Workspace& ws,
                      //Output
                      VectorView albedo,
                      Numeric& btemp,
@@ -1832,15 +1828,13 @@ void surf_albedoCalc(Workspace& ws,
   // the agenda anyway (can) provide output for full f_grid at once and as we
   // have to apply the same inter/extrapolation to all the frequencies).
 
-  chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
-
   const Index nf = f_grid.nelem();
   Index frza = 0;
   while (frza < scat_za_grid.nelem() && scat_za_grid[frza] < 90.) frza++;
   if (frza == scat_za_grid.nelem()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "No upwelling direction found in scat_za_grid.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   const Index nrza = scat_za_grid.nelem() - frza;
   //cout << nrza << " upwelling directions found, starting from element #"
@@ -1871,20 +1865,20 @@ void surf_albedoCalc(Workspace& ws,
                                  rtp_los,
                                  surface_rtprop_agenda);
     if (surface_los.nrows() > 1) {
-      ostringstream os;
+      std::ostringstream os;
       os << "For this method, *surface_rtprop_agenda* must be set up to\n"
          << "return zero or one direction in *surface_los*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     if (rza == 0)
       btemp = surface_point.temperature;
     else if (surface_point.temperature != btemp) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Something went wrong.\n"
          << "  *surface_rtprop_agenda* returned different surface_skin_t\n"
          << "  for different LOS.\n";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     // Nothing to do if no surface_los (which means blackbody surface)
     // as dir_refl_coeff already set to 0    
@@ -1896,10 +1890,10 @@ void surf_albedoCalc(Workspace& ws,
   }
 
   if (btemp < 0. || btemp > 1000.) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Surface temperature has been derived as " << btemp << " K,\n"
        << "which is not considered a meaningful value.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // now integrate/average the (reflected-)direction dependent power reflection
@@ -1912,27 +1906,27 @@ void surf_albedoCalc(Workspace& ws,
   // angle grid point. we probably also want to check, that we don't
   // 'extrapolate' too much.
   if (is_same_within_epsilon(scat_za_grid[frza], 90., 1e-6)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Looks like scat_za_grid contains the 90deg direction,\n"
        << "which it shouldn't for running Disort.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   Numeric za_extrapol = (scat_za_grid[frza] - 90.) /
                         (scat_za_grid[frza + 1] - scat_za_grid[frza]);
   const Numeric ok_extrapol = 0.5;
   if ((za_extrapol - ok_extrapol) > 1e-6) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Extrapolation range from shallowest scat_za_grid point\n"
        << "to horizon is too big.\n"
        << "  Allowed extrapolation factor is 0.5.\n  Yours is " << za_extrapol
        << ", which is " << za_extrapol - 0.5 << " too big.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (!is_same_within_epsilon(
           scat_za_grid[scat_za_grid.nelem() - 1], 180., 1e-6)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Looks like last point in scat_za_grid is not 180deg.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   surf_int_grid[0] = 90.;
@@ -1962,16 +1956,16 @@ void surf_albedoCalc(Workspace& ws,
   for (Index f_index = 0; f_index < nf; f_index++) {
     albedo[f_index] = sum(dir_refl_coeff(joker, f_index));
     if (albedo[f_index] < 0 || albedo[f_index] > 1.) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Something went wrong: Albedo must be inside [0,1],\n"
          << "  but is not at freq #" << f_index << " , where it is "
          << albedo[f_index] << ".\n";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 }
 
-void surf_albedoCalcSingleAngle(Workspace& ws,
+void surf_albedoCalcSingleAngle(const Workspace& ws,
                                 //Output
                                 VectorView albedo,
                                 Numeric& btemp,
@@ -2000,10 +1994,10 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
                                surface_rtprop_agenda);
   
   if (surface_los.nrows() > 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "For this method, *surface_rtprop_agenda* must be set up to\n"
        << "return zero or one direction in *surface_los*.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   if (surface_los.empty()) {
     albedo = 0;  // Blackbody assumed if no surface_los
@@ -2013,10 +2007,10 @@ void surf_albedoCalcSingleAngle(Workspace& ws,
 
   btemp = surface_point.temperature;
   if (btemp < 0. || btemp > 1000.) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Surface temperature has been derived as " << btemp << " K,\n"
        << "which is not considered a meaningful value.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 

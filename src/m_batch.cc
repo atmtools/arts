@@ -21,9 +21,8 @@
 #include "gridded_fields.h"
 using namespace std;
 
-#include "arts.h"
 #include "arts_omp.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "math_funcs.h"
 #include "physics_funcs.h"
 #include "rte.h"
@@ -41,7 +40,7 @@ using GriddedFieldGrids::GFIELD3_P_GRID;
 /* Workspace method: Doxygen documentation will be auto-generated 
 
    2008-07-21 Stefan Buehler */
-void ForLoop(Workspace& ws,
+void ForLoop(const Workspace& ws,
              // WS Input:
              const Agenda& forloop_agenda,
              // Control Parameters:
@@ -54,7 +53,7 @@ void ForLoop(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(Workspace& ws,
+void ybatchCalc(const Workspace& ws,
                 // WS Output:
                 ArrayOfVector& ybatch,
                 ArrayOfArrayOfVector& ybatch_aux,
@@ -95,10 +94,7 @@ void ybatchCalc(Workspace& ws,
   // Go through the batch:
 
   if (ybatch_n) {
-  WorkspaceOmpParallelCopyGuard wss{ws};
-
-#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(wss)
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && ybatch_n > 1)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -119,7 +115,7 @@ void ybatchCalc(Workspace& ws,
         ArrayOfVector y_aux;
         Matrix jacobian;
 
-        ybatch_calc_agendaExecute(wss,
+        ybatch_calc_agendaExecute(ws,
                                   y,
                                   y_aux,
                                   jacobian,
@@ -202,224 +198,7 @@ void ybatchCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfiles(Workspace& ws,
-                       //Output
-                       ArrayOfVector& ybatch,
-                       //Input
-                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const Agenda& met_profile_calc_agenda,
-                       const Vector& f_grid,
-                       const Matrix& met_amsu_data,
-                       const Matrix& sensor_pos,
-                       const SurfaceField& surface_field,
-                       const ArrayOfArrayOfSingleScatteringData& scat_data,
-                       //Keyword
-                       const Index& nelem_z_grid,
-                       const String& met_profile_path,
-                       const String& met_profile_pnd_path) {
-  AtmField atm_field;
-  ArrayOfGriddedField3 pnd_field_raw;
-  Vector z_grid;
-  Matrix sensor_los;
-  Index cloudbox_on;
-  ArrayOfIndex cloudbox_limits;
-  Vector y;
-  Index no_profiles = met_amsu_data.nrows();
-
-  //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
-  //holds the scattering elements.
-  // Number of scattering elements:
-  const Index N_se = TotalNumberOfElements(scat_data);
-
-  pnd_field_raw.resize(N_se);
-
-  // The satellite zenith angle is read in from the amsu data
-  // and converted to arts sensor_los
-  ConstVectorView sat_za_from_data = met_amsu_data(Range(joker), 3);
-
-  sensor_los.resize(1, 1);
-
-  // The lat and lon are extracted to get the proper file names of
-  // profiles
-  ConstVectorView lat = met_amsu_data(Range(joker), 0);
-  ConstVectorView lon = met_amsu_data(Range(joker), 1);
-
-  // The spectra .
-  y.resize(f_grid.nelem());
-
-  // The batch spectra.
-  ybatch.resize(no_profiles);
-
-  // Loop over the number of profiles.
-  for (Index i = 0; i < no_profiles; ++i) {
-    ostringstream lat_os, lon_os;
-
-    Index lat_prec = 3;
-    if (lat[i] < 0) lat_prec--;
-    if (abs(lat[i]) >= 10) {
-      lat_prec--;
-      if (abs(lat[i]) >= 100) lat_prec--;
-    }
-
-    lat_os.setf(ios::showpoint | ios::fixed);
-    lat_os << setprecision((int)lat_prec) << lat[i];
-
-    Index lon_prec = 4;
-    if (lon[i] < 0) lon_prec--;
-    if (abs(lon[i]) >= 10) {
-      lon_prec--;
-      if (abs(lon[i]) >= 100) lon_prec--;
-    }
-    lon_os.setf(ios::showpoint | ios::fixed);
-    lon_os << setprecision((int)lon_prec) << lon[i];
-
-    sensor_los(0, 0) =
-        180.0 - (asin(surface_field.ellipsoid[0] * sin(sat_za_from_data[i] * DEG2RAD) /
-                      sensor_pos(0, 0))) *
-                    RAD2DEG;
-
-    //Reads the t_field_raw from file
-    GriddedField3 gf3;
-    xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
-                           ".lon_" + lon_os.str() + ".t.xml",
-                       gf3);
-    atm_field[Atm::Key::t] = gf3;
-
-    //Reads the z_field_raw from file
-    xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
-                           ".lon_" + lon_os.str() + ".p.xml",
-                       gf3);
-    atm_field[Atm::Key::p] = gf3;
-
-    //Reads the humidity from file - it is only an ArrayofTensor3
-    xml_read_from_file(met_profile_path + "profile.lat_" + lat_os.str() +
-                           ".lon_" + lon_os.str() + ".H2O.xml",
-                       gf3);
-    atm_field[abs_species[0]] = gf3;
-
-    //Reads the pnd_field_raw for one scattering element
-    //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
-
-    //xml_read_from_file(met_profile_pnd_path +"reff100_newformat/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
-
-    xml_read_from_file(met_profile_pnd_path + "lwc_reff15/profile.lat_" +
-                           lat_os.str() + ".lon_" + lon_os.str() + ".pnd15.xml",
-                       pnd_field_raw[0]);
-    //Write the profile number into a file.
-    // xml_write_to_file("profile_number.xml", i);
-
-    // Set z_surface from lowest level of z_field
-    SurfaceField sf2=surface_field;
-    sf2[Surf::Key::h] = atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(0)[0];;
-
-    /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
-     array is for species.
-     
-     The oxygen and nitrogen VMRs are set to constant values of 0.209
-     and 0.782, respectively and are used along with humidity field 
-     to generate *vmr_field_raw*.*/
-
-    /*The second element of the species.  The first 3 Tensors in the
-    array are the same .  They are pressure grid, latitude grid and
-    longitude grid.  The third tensor which is the vmr is set to a 
-    constant value of 0.782, corresponding to N2.*/
-
-    atm_field[abs_species[1]] = 0.782;  //vmr of N2
-
-    /*the third element of the species.  the first 3 Tensors in the
-    array are the same .  They are pressure grid, latitude grid and
-    longitude grid.  The third tensor which is the vmr is set to a 
-    constant value of 0.209, corresponding to O2.*/
-    atm_field[abs_species[2]] = 0.209;  //vmr of O2
-
-    const Vector& tfr_z_grid =
-        atm_field[Atm::Key::t].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
-    // N_p is the number of elements in the pressure grid
-    Index N_p = tfr_z_grid.nelem();
-
-    //Making a p_grid with the first and last element taken from the profile.
-    VectorNLogSpace(
-        z_grid, nelem_z_grid, tfr_z_grid[0], tfr_z_grid[N_p - 1]);
-
-    /*To set the cloudbox limits, the lower and upper cloudbox limits
-    are to be set.  The lower cloudbox limit is set to the lowest
-    pressure level.  The upper level is the highest level where the 
-    ice water content is non-zero.*/
-    Numeric cl_grid_min, cl_grid_max;
-
-    //Lower limit = lowest altitude level of the original grid.
-    //Could it be the interpolated p_grid? FIXME STR
-    cl_grid_min = tfr_z_grid[0];
-
-    // A counter for non-zero ice content
-    Index level_counter = 0;
-
-    // Loop over all pressure levels
-    for (Index ip = 0; ip < N_p; ++ip) {
-      //Checking for non-zero ice content. 0.001 is a threshold for
-      //ice water content.
-      // if((pnd_field_raw[0].data()(ip, 0, 0) > 0.001) || (pnd_field_raw[1](ip, 0, 0) > 0.001))
-      if (pnd_field_raw[0].data(ip, 0, 0) > 0.001) {
-        ++level_counter;
-        //if non-zero ice content is found, it is set to upper
-        //cloudbox limit. Moreover, we take one level higher
-        // than the upper limit because we want the upper limit
-        //to have 0 pnd.
-        cl_grid_max = tfr_z_grid[ip + 1];
-      }
-    }
-
-    //cloudbox limits have dimensions 2*3
-    cloudbox_limits.resize(3 * 2);
-
-    //if there is no cloud in the considered profile, still we
-    //need to set the upper limit. I here set the first level
-    //for the upper cloudbox limit.
-    if (level_counter == 0) {
-      cl_grid_max = z_grid[1];
-    }
-
-    //Cloudbox is set.
-    ARTS_ASSERT(false)
-    /*
-    cloudboxSetManually(cloudbox_on,
-                        cloudbox_limits,
-                        z_grid,
-                        lat_grid,
-                        lon_grid,
-                        cl_grid_min,
-                        cl_grid_max,
-                        0,
-                        0,
-                        0,
-                        0);
-*/
-    /*executing the met_profile_calc_agenda
-    Agenda communication variables are
-    Output of met_profile_calc_agenda : y
-    Input to met_profile_calc_agenda  : t_field_raw,
-    z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
-    sensor_los, cloudbox_on, cloudbox_limits, z_surface, */
-
-    met_profile_calc_agendaExecute(ws,
-                                   y,
-                                   atm_field,
-                                   pnd_field_raw,
-                                   sensor_los,
-                                   cloudbox_on,
-                                   cloudbox_limits,
-                                   sf2,
-                                   met_profile_calc_agenda);
-
-    //putting in the spectra *y* for each profile, thus assigning y
-    //to the ith row of ybatch
-    ybatch[i] = y;
-
-  }  // closing the loop over profile basenames
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfilesClear(Workspace& ws,
+void ybatchMetProfilesClear(const Workspace& ws,
                             //Output
                             ArrayOfVector& ybatch,
                             //Input
@@ -583,7 +362,7 @@ void ybatchMetProfilesClear(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DOBatchCalc(Workspace& ws,
+void DOBatchCalc(const Workspace& ws,
                  ArrayOfTensor7& dobatch_cloudbox_field,
                  ArrayOfTensor5& dobatch_radiance_field,
                  ArrayOfTensor4& dobatch_irradiance_field,
@@ -617,11 +396,9 @@ void DOBatchCalc(Workspace& ws,
 
   // Go through the batch:
 
-  if (ybatch_n) {
-  WorkspaceOmpParallelCopyGuard wss{ws};
-  
+  if (ybatch_n) {  
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel() && \
-                                               ybatch_n > 1) firstprivate(wss)
+                                               ybatch_n > 1)
     for (Index ybatch_index = first_ybatch_index; ybatch_index < ybatch_n;
          ybatch_index++) {
       Index l_job_counter;  // Thread-local copy of job counter.
@@ -643,7 +420,7 @@ void DOBatchCalc(Workspace& ws,
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
-        dobatch_calc_agendaExecute(wss,
+        dobatch_calc_agendaExecute(ws,
                                    cloudbox_field,
                                    radiance_field,
                                    irradiance_field,

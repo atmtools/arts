@@ -10,7 +10,7 @@ struct ConstantDummy {};
 
 #define PythonInterfaceConstant(name) constants.attr(#name) = Constant::name;
 
-void py_constants(py::module_& m) {
+void py_constants(py::module_& m) try {
   auto constants = m.def_submodule("constants", R"--(Contain copies of constants of Arts internals
 )--");
 
@@ -19,5 +19,7 @@ void py_constants(py::module_& m) {
   PythonInterfaceConstant(h);
   PythonInterfaceConstant(h_bar);
   PythonInterfaceConstant(k);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize constant\n", e.what()));
 }
 }  // namespace Python

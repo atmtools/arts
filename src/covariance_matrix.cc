@@ -514,7 +514,7 @@ Vector CovarianceMatrix::diagonal() const {
   Vector diag(nrows());
   for (const Block &b : correlations_) {
     Index i, j;
-    tie(i, j) = b.get_indices();
+    std::tie(i, j) = b.get_indices();
 
     if (i == j) {
       diag[b.get_row_range()] = b.diagonal();
@@ -529,7 +529,7 @@ Vector CovarianceMatrix::inverse_diagonal() const {
   Vector diag(nrows());
   for (const Block &b : inverses_) {
     Index i, j;
-    tie(i, j) = b.get_indices();
+    std::tie(i, j) = b.get_indices();
 
     if (i == j) {
       diag[b.get_row_range()] = b.diagonal();
@@ -618,7 +618,7 @@ std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &covmat) {
   os << "Blocks:" << std::endl;
   for (const Block &b : covmat.correlations_) {
     Index i, j;
-    tie(i, j) = b.get_indices();
+    std::tie(i, j) = b.get_indices();
     os << "\ti = " << i << ", j = " << j << ": "
        << b.get_row_range().extent;
     os << " x " << b.get_column_range().extent;

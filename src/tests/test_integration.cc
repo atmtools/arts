@@ -13,7 +13,6 @@
 #include <stdexcept>
 
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "logic.h"
@@ -92,14 +91,14 @@ Numeric test_x_fixedstep(int vsize, int frequency);
 
 int main(int argc, char* argv[]) {
   if (argc == 1) {
-    cerr << argv[0] << " requires one parameter" << endl;
+    std::cerr << argv[0] << " requires one parameter" << std::endl;
     exit(1);
   }
 
-  cout << "Uebergabewert von argv : " << argv[1] << endl;
+  std::cout << "Uebergabewert von argv : " << argv[1] << std::endl;
 
   int frequency = (int)strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
-  cout << "Wert von frequency    : " << frequency << endl;
+  std::cout << "Wert von frequency    : " << frequency << std::endl;
 
   //  test_x(1801, 0.1, frequency);
   //  test_x_fixedstep(1801, frequency);
@@ -128,7 +127,7 @@ void init_x(int vsize,
             int frequency,
             Vector& Integrand,
             Vector& Theta) {
-  cout << "----------------init_x---------------\n";
+  std::cout << "----------------init_x---------------\n";
 
   //  Integrand.resize(vsize); // function to be integrated
   //  Theta.resize(vsize);     // Theta values
@@ -139,14 +138,14 @@ void init_x(int vsize,
   //Theta is between 0 and 180
   for (int i = 0; i < Theta.nelem(); i++) Theta[i] = (float)i * stepsize;
 
-  cout << "function Y = X" << endl
-       << "vsize = " << vsize << endl
-       << "stepsize = " << stepsize << endl
-       << "frequency = " << frequency << endl
+  std::cout << "function Y = X" << std::endl
+       << "vsize = " << vsize << std::endl
+       << "stepsize = " << stepsize << std::endl
+       << "frequency = " << frequency << std::endl
        << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.nelem() - 1] << endl
+       << Integrand[Integrand.nelem() - 1] << std::endl
        << "Theta: von " << Theta[0] << " bis " << Theta[Theta.nelem() - 1]
-       << endl;
+       << std::endl;
 }
 
 //! init_xy
@@ -159,7 +158,7 @@ void init_xy(float stepsize,
              Matrix& Integrand,
              Vector& za_grid,
              Vector& aa_grid) {
-  cout << ">>>>>-----------init_xy---------------\n";
+  std::cout << ">>>>>-----------init_xy---------------\n";
   Index n_za = za_grid.nelem();
   Index n_aa = aa_grid.nelem();
 
@@ -173,20 +172,20 @@ void init_xy(float stepsize,
   //aa_grid (Phi) is between 0 and 360
   for (Index i = 0; i < n_aa; i++) aa_grid[i] = (float)i * stepsize;
 
-  cout << "function x^2 + y^2 + z^2 = 1" << endl
-       << "n_za = " << n_za << endl
-       << "n_aa = " << n_aa << endl
-       << "stepsize = " << stepsize << endl
-       << "frequency = " << frequency << endl
+  std::cout << "function x^2 + y^2 + z^2 = 1" << std::endl
+       << "n_za = " << n_za << std::endl
+       << "n_aa = " << n_aa << std::endl
+       << "stepsize = " << stepsize << std::endl
+       << "frequency = " << frequency << std::endl
        << "Integrand(*,0): von " << Integrand(0, 0) << " bis "
-       << Integrand(n_za - 1, 0) << endl
+       << Integrand(n_za - 1, 0) << std::endl
        << "Integrand(0,*): von " << Integrand(0, 0) << " bis "
-       << Integrand(0, n_aa - 1) << endl
+       << Integrand(0, n_aa - 1) << std::endl
        << "za_grid (Theta): von " << za_grid[0] << " bis "
-       << za_grid[za_grid.nelem() - 1] << endl
+       << za_grid[za_grid.nelem() - 1] << std::endl
        << "aa_grid (Phi)  : von " << aa_grid[0] << " bis "
-       << aa_grid[aa_grid.nelem() - 1] << endl;
-  cout << "---------------init_xy---------------<<<<<\n";
+       << aa_grid[aa_grid.nelem() - 1] << std::endl;
+  std::cout << "---------------init_xy---------------<<<<<\n";
 }
 
 //! AngIntegrate_trapezoid_original
@@ -223,7 +222,7 @@ Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
         0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * (za_grid[i + 1] - za_grid[i]);
   }
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 //! AngIntegrate_trapezoid_opt
@@ -260,7 +259,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
         0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * (za_grid[i + 1] - za_grid[i]);
   }
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -299,7 +298,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
     res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * stepsize;
   }
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -343,7 +342,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
   res += res1[n - 1];
   res *= 0.5 * DEG2RAD * stepsize;
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -389,7 +388,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
   res += res1[n - 1];
   res *= 0.5 * DEG2RAD * stepsize;
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -411,7 +410,7 @@ Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
            (za_grid[i + 1] - za_grid[i]);
   }
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -426,18 +425,18 @@ Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
   ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
-  // cout << "Stepsize: " << stepsize << endl;
+  // std::cout << "Stepsize: " << stepsize << std::endl;
   res += (Integrand[0] * sin(za_grid[0] * DEG2RAD));
   for (Index i = 1; i < n - 1; ++i) {
     res += (Integrand[i] * sin(za_grid[i] * DEG2RAD) * 2);
-    // cout << i << endl;
+    // std::cout << i << std::endl;
   }
   res += ((Integrand[n - 1] * sin(za_grid[n - 1] * DEG2RAD)));
-  // cout << n-1 << endl;
+  // std::cout << n-1 << std::endl;
   // normally ther would be a 2* here, but it's already in the equations above
   res *= PI * DEG2RAD * stepsize;
 
-  //cout<<res<<"\n";
+  //std::cout<<res<<"\n";
   return res;
 }
 
@@ -454,7 +453,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(ConstVectorView Integrand,
     \return The resulting integral
 */
 Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
-  cout << ">>>>>-----------test_xy---------------\n";
+  std::cout << ">>>>>-----------test_xy---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -466,8 +465,8 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_original(Integrand, za_grid, aa_grid);
@@ -478,15 +477,15 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_xy----------<<<<<\n";
 
   return result;
@@ -505,7 +504,7 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
     \return The resulting integral
 */
 Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
-  cout << ">>>>>-----------test_xy_opt---------------\n";
+  std::cout << ">>>>>-----------test_xy_opt---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -517,8 +516,8 @@ Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_opt(Integrand, za_grid, aa_grid);
@@ -529,15 +528,15 @@ Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_xy_opt----------<<<<<\n";
 
   return result;
@@ -559,7 +558,7 @@ Numeric test_xy_fixedstep(int z_size,
                           int a_size,
                           float stepsize,
                           int frequency) {
-  cout << ">>>>>-----------test_xy_fixedstep---------------\n";
+  std::cout << ">>>>>-----------test_xy_fixedstep---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -571,8 +570,8 @@ Numeric test_xy_fixedstep(int z_size,
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result =
@@ -584,16 +583,16 @@ Numeric test_xy_fixedstep(int z_size,
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_xy_fixedstep----------<<<<<\n";
 
   return result;
@@ -615,7 +614,7 @@ Numeric test_xy_fixedstep_opt(int z_size,
                               int a_size,
                               float stepsize,
                               int frequency) {
-  cout << ">>>>>-----------test_xy_fixedstep_opt---------------\n";
+  std::cout << ">>>>>-----------test_xy_fixedstep_opt---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -627,8 +626,8 @@ Numeric test_xy_fixedstep_opt(int z_size,
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_fixedstep_opt(
@@ -640,16 +639,16 @@ Numeric test_xy_fixedstep_opt(int z_size,
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_xy_fixedstep_opt----------<<<<<\n";
 
   return result;
@@ -671,7 +670,7 @@ Numeric test_xy_fixedstep_opt2(int z_size,
                                int a_size,
                                float stepsize,
                                int frequency) {
-  cout << ">>>>>-----------test_xy_fixedstep_opt2---------------\n";
+  std::cout << ">>>>>-----------test_xy_fixedstep_opt2---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -683,8 +682,8 @@ Numeric test_xy_fixedstep_opt2(int z_size,
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_fixedstep_opt2(
@@ -696,16 +695,16 @@ Numeric test_xy_fixedstep_opt2(int z_size,
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_xy_fixedstep_opt2----------<<<<<\n";
 
   return result;
@@ -729,7 +728,7 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
                                          int a_size,
                                          float stepsize,
                                          int frequency) {
-  cout << ">>>>>-----------test_AngIntegrate_trapezoid_opti---------------\n";
+  std::cout << ">>>>>-----------test_AngIntegrate_trapezoid_opti---------------\n";
   Matrix Integrand(z_size, a_size);  // function to be integrated
   Vector za_grid(z_size);            // zenith (Theta) values
   Vector aa_grid(a_size);            // azimuth (Phi) values
@@ -743,17 +742,17 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
   //grid_stepsize[0] = -1;
   //grid_stepsize[1] = -1;
 
-  //  cout << za_grid << endl;
-  //  cout << grid_stepsize[0] << endl;
-  //  cout << grid_stepsize[1] << endl;
+  //  std::cout << za_grid << std::endl;
+  //  std::cout << grid_stepsize[0] << std::endl;
+  //  std::cout << grid_stepsize[1] << std::endl;
 
   Numeric result = 0;
 
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  //  cout << "Sekunden : " << start.tv_sec << endl
-  //   << "Milisekunden: " << start.tv_usec << endl;
+  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
+  //   << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result =
@@ -765,16 +764,16 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "z_size         : " << z_size << endl
-       << "a_size         : " << a_size << endl
-       << "1 is           : " << result / (4 * PI) << endl
-       << "The result is  : " << result << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "z_size         : " << z_size << std::endl
+       << "a_size         : " << a_size << std::endl
+       << "1 is           : " << result / (4 * PI) << std::endl
+       << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "----------------test_AngIntegrate_trapezoid_opti----------<<<<<\n";
 
   return result;
@@ -792,7 +791,7 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
     \return The resulting integral
 */
 Numeric test_x(int vsize, float stepsize, int frequency) {
-  cout << ">>>>>-----------test_x---------------\n";
+  std::cout << ">>>>>-----------test_x---------------\n";
   Vector Integrand(vsize);  // function to be integrated
   Vector Theta(vsize);      // Theta values
 
@@ -803,8 +802,8 @@ Numeric test_x(int vsize, float stepsize, int frequency) {
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  cout << "Sekunden : " << start.tv_sec << endl
-       << "Milisekunden: " << start.tv_usec << endl;
+  std::cout << "Sekunden : " << start.tv_sec << std::endl
+       << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_original(Integrand, Theta);
@@ -818,15 +817,15 @@ Numeric test_x(int vsize, float stepsize, int frequency) {
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "number of steps: " << vsize << endl
-       << "1 is           : " << PI / PI << endl
-       << "The result is  : " << result / PI << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "number of steps: " << vsize << std::endl
+       << "1 is           : " << PI / PI << std::endl
+       << "The result is  : " << result / PI << std::endl
        << "The error is   : " << error * 100 << "%\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "---------------test_x-----------<<<<<\n";
 
   return result;
@@ -842,8 +841,8 @@ Numeric test_x(int vsize, float stepsize, int frequency) {
     \return The resulting integral
 */
 Numeric test_x_fixedstep(int vsize, int frequency) {
-  cout << ">>>>>-----------test_x_fixedstep---------------\n";
-  cout.precision(12);
+  std::cout << ">>>>>-----------test_x_fixedstep---------------\n";
+  std::cout.precision(12);
   Vector Integrand(vsize);  // function to be integrated
   Vector Theta(vsize);      // Theta values
 
@@ -851,25 +850,25 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
   stepsize =
       180.0 /
       (vsize - 1);  // attention this only works with eaqually spaced intervals
-  cout << "Neue berechnete Stepsize: " << stepsize << endl;
+  std::cout << "Neue berechnete Stepsize: " << stepsize << std::endl;
 
   for (int i = 0; i < Integrand.nelem(); i++) Integrand[i] = i * stepsize;
 
   //Theta is between 0 and 180
   for (int i = 0; i < Theta.nelem(); i++) Theta[i] = i * stepsize;
 
-  cout << "Integrand: von " << Integrand[0] << " bis "
-       << Integrand[Integrand.nelem() - 1] << endl
+  std::cout << "Integrand: von " << Integrand[0] << " bis "
+       << Integrand[Integrand.nelem() - 1] << std::endl
        << "Theta: von " << Theta[0] << " bis " << Theta[Theta.nelem() - 1]
-       << endl;
+       << std::endl;
 
   Numeric result = 0;
 
   struct timeval start;
   struct timeval ende;
   gettimeofday(&start, NULL);
-  cout << "Sekunden : " << start.tv_sec << endl
-       << "Milisekunden: " << start.tv_usec << endl;
+  std::cout << "Sekunden : " << start.tv_sec << std::endl
+       << "Milisekunden: " << start.tv_usec << std::endl;
 
   for (int i = 0; i < frequency; i++)
     result = AngIntegrate_trapezoid_fixedstep(Integrand, Theta, stepsize);
@@ -883,15 +882,15 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
 
   double diffs = (double)(ende.tv_sec - start.tv_sec) +
                  (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
-  cout.precision(15);
-  cout << diffs << endl;
-  cout << "stepsize is    : " << stepsize << endl
-       << "number of steps: " << vsize << endl
-       << "1 is          : " << PI / PI << endl
-       << "The result is  : " << result / PI << endl
+  std::cout.precision(15);
+  std::cout << diffs << std::endl;
+  std::cout << "stepsize is    : " << stepsize << std::endl
+       << "number of steps: " << vsize << std::endl
+       << "1 is          : " << PI / PI << std::endl
+       << "The result is  : " << result / PI << std::endl
        << "The error is   : " << error * 100 << "%\n"
-       << "Number of loops: " << frequency << endl
-       << "elapsed time   : " << diffs << "s" << endl
+       << "Number of loops: " << frequency << std::endl
+       << "elapsed time   : " << diffs << "s" << std::endl
        << "---------------test_x_fixedstep----------<<<<<\n";
 
   return result;

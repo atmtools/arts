@@ -13,6 +13,7 @@
 #ifndef BIFSTREAM_H_INCLUDED
 #define BIFSTREAM_H_INCLUDED
 
+#include <cstdint>
 #include <fstream>
 
 #include "binio.h"
@@ -23,13 +24,13 @@
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bifstream final : public binistream, public ifstream {
+class bifstream final : public binistream, public std::ifstream {
  public:
-  bifstream() : ifstream() {}
+  bifstream() : std::ifstream() {}
 
   explicit bifstream(const char* name,
-                     ios::openmode mode = ios::in | ios::binary)
-      : ifstream(name, mode) {
+                     std::ios::openmode mode = std::ios::in | std::ios::binary)
+      : std::ifstream(name, mode) {
     // Open a second file descriptor for fast array reading
     if (!(this->mfilep = fopen(name, "rb"))) {
       ARTS_USER_ERROR("Failed to open ", name);
@@ -43,16 +44,16 @@ class bifstream final : public binistream, public ifstream {
   }
 
   void seek(long spos, Offset offs) final;
-  streampos pos() final;
+  std::streampos pos() final;
 
   bifstream::Byte getByte() final;
-  void getRaw(char* c, streamsize n) final {
+  void getRaw(char* c, std::streamsize n) final {
     if (n <= 8) {
       this->read(c, n);
     } else {
       fseek(mfilep, this->tellg(), SEEK_SET);
       size_t nread = fread(c, sizeof(char), n, mfilep);
-      ARTS_USER_ERROR_IF((streamsize)nread != n,
+      ARTS_USER_ERROR_IF((std::streamsize)nread != n,
                          "Unexpectedly reached end of binary input file.");
       seek(nread, Add);
     }

@@ -41,7 +41,7 @@ setup(
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     url="https://github.com/atmtools/arts",
-    author="The Typhon developers",
+    author="The Arts developers",
     author_email="arts.mi@lists.uni-hamburg.de",
     license="MIT",
     classifiers=[

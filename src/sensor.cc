@@ -17,10 +17,9 @@
 #include <cmath>
 #include <list>
 #include <stdexcept>
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "logic.h"
 #include "matpack_data.h"
@@ -658,7 +657,7 @@ void mixer_matrix(Sparse& H,
 
   // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
-  list<Numeric> l_mixer;
+  std::list<Numeric> l_mixer;
   for (Index i = 0; i < f_grid.nelem(); i++) {
     if (fabs(f_grid[i] - lo) >= lim_low && fabs(f_grid[i] - lo) <= lim_high) {
       l_mixer.push_back(fabs(f_grid[i] - lo));
@@ -669,7 +668,7 @@ void mixer_matrix(Sparse& H,
   l_mixer.unique();
   f_mixer.resize((Index)l_mixer.size());
   Index e = 0;
-  for (list<Numeric>::iterator li = l_mixer.begin(); li != l_mixer.end();
+  for (auto li = l_mixer.begin(); li != l_mixer.end();
        li++) {
     f_mixer[e] = *li;
     e++;
@@ -1283,7 +1282,7 @@ void integration_func_by_vecmult(VectorView h,
   // Create a reference grid vector, x_ref that containing the values
   // of x_f and x_g strictly sorted. Only g points inside the f range
   // are of concern.
-  list<Numeric> l_x;
+  std::list<Numeric> l_x;
   for (Index it = 0; it < nf; it++) {
     l_x.push_back(x_f[it]);
   }
@@ -1297,7 +1296,7 @@ void integration_func_by_vecmult(VectorView h,
   //
   Vector x_ref(l_x.size());
   Index e = 0;
-  for (list<Numeric>::iterator li = l_x.begin(); li != l_x.end(); li++) {
+  for (auto li = l_x.begin(); li != l_x.end(); li++) {
     x_ref[e] = *li;
     e++;
   }
@@ -1419,20 +1418,20 @@ void integration_bin_by_vecmult(VectorView h,
       if (limit1 < x_g[1]) {
         inside = true;
         x1 = limit1;
-        x2 = min(limit2, x_g[1]);
+        x2 = std::min(limit2, x_g[1]);
       }
     } else if (i == ng - 1) {
       if (limit2 > x_g[ng - 2]) {
         inside = true;
-        x1 = max(limit1, x_g[ng - 2]);
+        x1 = std::max(limit1, x_g[ng - 2]);
         x2 = limit2;
       }
     } else {
       if ((limit1 < x_g[i + 1] && limit2 > x_g[i - 1]) ||
           (limit2 > x_g[i - 1] && limit1 < x_g[i + 1])) {
         inside = true;
-        x1 = max(limit1, x_g[i - 1]);
-        x2 = min(limit2, x_g[i + 1]);
+        x1 = std::max(limit1, x_g[i - 1]);
+        x2 = std::min(limit2, x_g[i + 1]);
       }
     }
 
@@ -1444,7 +1443,7 @@ void integration_bin_by_vecmult(VectorView h,
       if (x1 < x_g[i]) {
         const Numeric r = 1.0 / (x_g[i] - x_g[i - 1]);
         const Numeric y1 = r * (x1 - x_g[i - 1]);
-        const Numeric dx = min(x2, x_g[i]) - x1;
+        const Numeric dx = std::min(x2, x_g[i]) - x1;
         const Numeric y2 = y1 + r * dx;
         h[i] = 0.5 * dx * (y1 + y2);
       } else {
@@ -1455,7 +1454,7 @@ void integration_bin_by_vecmult(VectorView h,
       if (x2 > x_g[i]) {
         const Numeric r = 1.0 / (x_g[i + 1] - x_g[i]);
         const Numeric y2 = r * (x_g[i + 1] - x2);
-        const Numeric dx = x2 - max(x1, x_g[i]);
+        const Numeric dx = x2 - std::max(x1, x_g[i]);
         const Numeric y1 = y2 + r * dx;
         h[i] += 0.5 * dx * (y1 + y2);
       }

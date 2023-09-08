@@ -1,29 +1,16 @@
 #include <fwd.h>
+#include <workspace.h>
 
 #include <algorithm>
 
-#include "agenda_set.h"
-#include "auto_md.h"
+#include "atm.h"
+#include "atm_path.h"
 #include "debug.h"
-#include "rte.h"
+#include "matpack_data.h"
 
-/*
 void spectral_radiance_profile_operatorPlaneParallel(
-    Workspace& ws,
     SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
-    const Tensor3& z_field,
-    const Numeric& ppath_lmax,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Tensor3& t_field,
-    const EnergyLevelMap& nlte_field,
-    const Tensor4& vmr_field,
-    const Tensor3& wind_u_field,
-    const Tensor3& wind_v_field,
-    const Tensor3& wind_w_field,
-    const Tensor3& mag_u_field,
-    const Tensor3& mag_v_field,
-    const Tensor3& mag_w_field,
+    const AtmField& atm_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const PredefinedModelData& predefined_model_data,
     const ArrayOfCIARecord& abs_cia_data,
@@ -32,61 +19,21 @@ void spectral_radiance_profile_operatorPlaneParallel(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& cia_extrap,
     const Index& cia_robust,
-    const Verbosity& verbosity) {
-  const Agenda ppath_agenda =
-      AgendaManip::get_ppath_agenda(ws, "PlaneParallel");
+    const Vector& z_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid) {
+  const Index n = z_grid.size();
 
-  Vector rte_pos{max(z_field) + 10};
-  Vector rte_los{180};
+  ARTS_USER_ERROR_IF(n == 0, "Must have z_grid.size() > 0")
+  ARTS_USER_ERROR_IF(not std::ranges::is_sorted(z_grid),
+                     "z_grid must be sorted in ascending order\nz_grid: ",
+                     z_grid)
 
-  Ppath ppath;
-  ppath_agendaExecute(ws,
-                      ppath,
-                      ppath_lmax,
-                      ppath_lmax,
-                      rte_pos,
-                      rte_los,
-                      {},
-                      0,
-                      0,
-                      {},
-                      ppath_agenda);
-
-  Vector ppvar_p, ppvar_t;
-  EnergyLevelMap ppvar_nlte;
-  Matrix ppvar_vmr, ppvar_wind, ppvar_mag;
-  get_ppath_atmvars(ppvar_p,
-                    ppvar_t,
-                    ppvar_nlte,
-                    ppvar_vmr,
-                    ppvar_wind,
-                    ppvar_mag,
-                    ppath,
-                    atmosphere_dim,
-                    p_grid,
-                    t_field,
-                    nlte_field,
-                    vmr_field,
-                    wind_u_field,
-                    wind_v_field,
-                    wind_w_field,
-                    mag_u_field,
-                    mag_v_field,
-                    mag_w_field);
-
-  const Vector z = reverse(Vector{ppath.pos(joker, 0)});
-  const Vector p = reverse(ppvar_p);
-  const Vector t = reverse(ppvar_t);
-
-  ppvar_vmr = transpose(ppvar_vmr);
-  std::vector<Vector> allvmrs{ppvar_vmr.begin(), ppvar_vmr.end()};
-  std::reverse(allvmrs.begin(), allvmrs.end());
+  const ArrayOfAtmPoint ppvar_atm = extract1D(atm_field, z_grid, lat_grid, lon_grid);
 
   spectral_radiance_profile_operator =
-      SpectralRadianceProfileOperator(z,
-                                      p,
-                                      t,
-                                      allvmrs,
+      SpectralRadianceProfileOperator(z_grid,
+                                      ppvar_atm,
                                       abs_species,
                                       predefined_model_data,
                                       abs_cia_data,
@@ -94,17 +41,15 @@ void spectral_radiance_profile_operatorPlaneParallel(
                                       isotopologue_ratios,
                                       abs_lines_per_species,
                                       cia_extrap,
-                                      cia_robust,
-                                      verbosity);
+                                      cia_robust);
 }
 
-*/
-
 void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
-    Tensor7& spectral_radiance_field,
-    const SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
-    const Vector& f_grid,
-    const Vector& za_grid) {
+        Tensor7& spectral_radiance_field,
+        const SpectralRadianceProfileOperator&
+            spectral_radiance_profile_operator,
+        const Vector& f_grid,
+        const Vector& za_grid) {
   const Index n = f_grid.size();
   const Index m = za_grid.size();
 

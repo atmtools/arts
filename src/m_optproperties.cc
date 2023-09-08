@@ -19,10 +19,9 @@
 #include <cfloat>
 #include <cmath>
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "exceptions.h"
 #include "interpolation.h"
@@ -73,13 +72,13 @@ void pha_mat_sptFromData(  // Output:
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
   if (N_se_total != pnd_field.nbooks()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Total number of scattering elements in scat_data "
        << "inconsistent with size of pnd_field.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
-  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // checks the same as the std::runtime_error above. Still, we keep it to be on the
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
@@ -91,11 +90,11 @@ void pha_mat_sptFromData(  // Output:
   // Unsafe, however, remain when ReadXML is used directly or if scat_data(_raw) is
   // (partly) produced from scat_data_singleTmatrix.
   if (scat_data[0][0].f_grid.nelem() < 2) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
        << "but frequency interpolable data (*scat_data* with >=2 freq points) "
        << "is expected here.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   const Index N_ss = scat_data.nelem();
@@ -157,7 +156,7 @@ void pha_mat_sptFromData(  // Output:
 
         if (ti < 0)  // temperature interpolation
         {
-          ostringstream os;
+          std::ostringstream os;
           os << "In pha_mat_sptFromData.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -263,13 +262,13 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   const Index N_se_total = TotalNumberOfElements(scat_data_mono);
 
   if (N_se_total != pnd_field.nbooks()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Total number of scattering elements in scat_data_mono "
        << "inconsistent with size of pnd_field.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   // as pha_mat_spt is typically initiallized from pnd_field, this theoretically
-  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // checks the same as the std::runtime_error above. Still, we keep it to be on the
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
@@ -314,10 +313,10 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
   if (scat_data_mono[0][0].f_grid.nelem() > 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create equidistant zenith angle grid
@@ -327,7 +326,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   const Index N_ss = scat_data_mono.nelem();
 
   if (4 > 4 || 4 < 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "The dimension of the stokes vector \n"
         "must be 1,2,3 or 4");
   }
@@ -371,7 +370,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
             ti = nT / 2;
           }
         } else {
-          ostringstream os;
+          std::ostringstream os;
           os << "In pha_mat_sptFromDataDOITOpt.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -460,11 +459,11 @@ void opt_prop_sptFromData(  // Output and Input:
   // Unsafe, however, remain when ReadXML is used directly or if scat_data(_raw) is
   // (partly) produced from scat_data_singleTmatrix.
   if (scat_data[0][0].f_grid.nelem() < 2) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
        << "but frequency interpolable data (*scat_data* with >=2 freq points) "
        << "is expected here.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Phase matrix in laboratory coordinate system. Dimensions:
@@ -512,7 +511,7 @@ void opt_prop_sptFromData(  // Output and Input:
         Vector itw;
 
         if (T_DATAGRID.nelem() > 1) {
-          ostringstream os;
+          std::ostringstream os;
           os << "In opt_prop_sptFromData.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -644,7 +643,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
   if (scat_data_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
@@ -694,7 +693,7 @@ void opt_prop_sptFromScat_data(  // Output and Input:
         GridPos t_gp;
         Vector itw;
         if (EXT_MAT_DATA.nbooks() > 1 || ABS_VEC_DATA.nbooks() > 1) {
-          ostringstream os;
+          std::ostringstream os;
           os << "In opt_prop_sptFromScat_data.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -826,10 +825,10 @@ void opt_prop_bulkCalc(  // Output and Input:
   Index N_se = abs_vec_spt.nelem();
 
   if (ext_mat_spt.nelem() not_eq N_se) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
        << "does not agree.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   ext_mat = PropmatVector(1, Propmat{0, 0, 0, 0, 0, 0, 0});
@@ -978,19 +977,19 @@ void scat_dataCheck(  //Input:
             for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
               if (EXT_MAT_DATA(f, t, zai, aai, 0) < 0 ||
                   ABS_VEC_DATA(f, t, zai, aai, 0) < 0) {
-                ostringstream os;
+                std::ostringstream os;
                 os << "Scatt. species #" << i_ss << " element #" << i_se
                    << " contains negative K11 or a1 at f#" << f << ", T#" << t
                    << ", za#" << zai << ", aa#" << aai << "\n";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
               if (EXT_MAT_DATA(f, t, zai, aai, 0) <
                   ABS_VEC_DATA(f, t, zai, aai, 0)) {
-                ostringstream os;
+                std::ostringstream os;
                 os << "Scatt. species #" << i_ss << " element #" << i_se
                    << " has K11<a1 at f#" << f << ", T#" << t << ", za#" << zai
                    << ", aa#" << aai << "\n";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
             }
             // Since allowing pha_mat to have a single T entry only (while
@@ -1001,13 +1000,13 @@ void scat_dataCheck(  //Input:
               for (Index zas = 0; zas < PHA_MAT_DATA.nshelves(); zas++)
                 for (Index aas = 0; aas < PHA_MAT_DATA.nbooks(); aas++)
                   if (PHA_MAT_DATA(f, t, zas, aas, zai, aai, 0) < 0) {
-                    ostringstream os;
+                    std::ostringstream os;
                     os << "Scatt. species #" << i_ss << " element #" << i_se
                        << " contains negative Z11 at f#" << f << ", T#" << t
                        << " (of " << nTpha << "), za_sca#" << zas << ", aa_sca#"
                        << aas << ", za_inc#" << zai << ", aa_inc#" << aai
                        << "\n";
-                    throw runtime_error(os.str());
+                    throw std::runtime_error(os.str());
                   }
             }
           }
@@ -1027,21 +1026,21 @@ void scat_dataCheck(  //Input:
             for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
               for (Index st = 0; st < ABS_VEC_DATA.ncols(); st++)
                 if (std::isnan(ABS_VEC_DATA(f, t, zai, aai, st))) {
-                  ostringstream os;
+                  std::ostringstream os;
                   os << "Scatt. species #" << i_ss << " element #" << i_se
                      << " contains NaN in abs_vec at f#" << f << ", T#" << t
                      << ", za#" << zai << ", aa#" << aai << ", stokes #" << st
                      << "\n";
-                  throw runtime_error(os.str());
+                  throw std::runtime_error(os.str());
                 }
               for (Index st = 0; st < EXT_MAT_DATA.ncols(); st++)
                 if (std::isnan(EXT_MAT_DATA(f, t, zai, aai, st))) {
-                  ostringstream os;
+                  std::ostringstream os;
                   os << "Scatt. species #" << i_ss << " element #" << i_se
                      << " contains NaN in ext_mat at f#" << f << ", T#" << t
                      << ", za#" << zai << ", aa#" << aai << ", stokes #" << st
                      << "\n";
-                  throw runtime_error(os.str());
+                  throw std::runtime_error(os.str());
                 }
             }
             Index nTpha = PHA_MAT_DATA.nvitrines();
@@ -1051,14 +1050,14 @@ void scat_dataCheck(  //Input:
                   for (Index st = 0; st < PHA_MAT_DATA.ncols(); st++)
                     if (std::isnan(
                             PHA_MAT_DATA(f, t, zas, aas, zai, aai, st))) {
-                      ostringstream os;
+                      std::ostringstream os;
                       os << "Scatt. species #" << i_ss << " element #" << i_se
                          << " contains NaN in pha_mat at f#" << f << ", T#" << t
                          << " (of " << nTpha << "), za_sca#" << zas
                          << ", aa_sca#" << aas << ", za_inc#" << zai
                          << ", aa_inc#" << aai << ", stokes #"
                          << "\n";
-                      throw runtime_error(os.str());
+                      throw std::runtime_error(os.str());
                     }
             }
           }
@@ -1088,7 +1087,7 @@ void scat_dataCheck(  //Input:
                   // below equivalent to the above
                   // (it's actually the (absolute) albedo deviation!)
                   if (abs(Csca - Csca_data) / Cext_data > threshold) {
-                    ostringstream os;
+                    std::ostringstream os;
                     os << "  Deviations in scat_data too large:\n"
                        << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                        << " at nominal (actual) albedo of "
@@ -1097,7 +1096,7 @@ void scat_dataCheck(  //Input:
                        << "  Check entry for scattering element " << i_se
                        << " of scattering species " << i_ss << " at " << f
                        << ".frequency and " << t << ".temperature!\n";
-                    throw runtime_error(os.str());
+                    throw std::runtime_error(os.str());
                   }
                 }
               }
@@ -1122,7 +1121,7 @@ void scat_dataCheck(  //Input:
                     // below equivalent to the above
                     // (it's actually the (absolute) albedo deviation!)
                     if (abs(Csca - Csca_data) / Cext_data > threshold) {
-                      ostringstream os;
+                      std::ostringstream os;
                       os << "  Deviations in scat_data too large:\n"
                          << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                          << " at nominal (actual) albedo of "
@@ -1132,7 +1131,7 @@ void scat_dataCheck(  //Input:
                          << " of scattering species " << i_ss << " at " << f
                          << ". frequency, " << t << ". temperature, and " << iza
                          << ". incident polar angle!\n";
-                      throw runtime_error(os.str());
+                      throw std::runtime_error(os.str());
                     }
                   }
                 }
@@ -1146,194 +1145,10 @@ void scat_dataCheck(  //Input:
     }
   } else if (check_type.toupper() == "SANE") {
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Invalid value for argument *check_type*: '" << check_type << "'.\n";
     os << "Valid values are 'all' or 'none'.";
-    throw runtime_error(os.str());
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void DoitScatteringDataPrepare(
-    Workspace& ws,  //Output:
-    ArrayOfTensor7& pha_mat_sptDOITOpt,
-    ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-    Tensor7& pha_mat_doit,
-    //Output and Input:
-    Vector& aa_grid,
-    //Input:
-    const Index& doit_za_grid_size,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& scat_data_checked,
-    const Index& f_index,
-    const AtmField& atm_field,
-    const ArrayOfIndex& cloudbox_limits,
-    const Tensor4& pnd_field,
-    const Agenda& pha_mat_spt_agenda) {
-  // FIXME: REQUIRES REGULAR GRIDS
-  Vector z_grid, lat_grid, lon_grid;
-  Tensor3 t_field, p_field, wind_u_field;
-  ARTS_USER_ERROR("ERROR")
-//const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
-
-  if (scat_data_checked != 1)
-    throw runtime_error(
-        "The scattering data must be flagged to have "
-        "passed a consistency check (scat_data_checked=1).");
-
-  // Number of azimuth angles.
-  const Index Naa = aa_grid.nelem();
-  Vector grid_stepsize(2);
-  grid_stepsize[0] = 180. / (Numeric)(doit_za_grid_size - 1);
-  //grid_stepsize[1] = 360./(Numeric)(Naa - 1);
-
-  // Initialize variable *pha_mat_spt*
-  Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
-                            doit_za_grid_size,
-                            aa_grid.nelem(),
-                            4,
-                            4,
-                            0.);
-  Tensor4 pha_mat_local(doit_za_grid_size, Naa, 4, 4, 0.);
-  Tensor6 pha_mat_local_out(cloudbox_limits[1] - cloudbox_limits[0] + 1,
-                            doit_za_grid_size,
-                            doit_za_grid_size,
-                            Naa,
-                            4,
-                            4,
-                            0.);
-
-  // Interpolate all the data in frequency
-  scat_data_monoExtract(scat_data_mono, scat_data, f_index);
-
-  // For 1D calculation the scat_aa dimension is not required:
-  Index N_aa_sca;
-  if (3 == 1)
-    N_aa_sca = 1;
-  else
-    N_aa_sca = aa_grid.nelem();
-
-  Vector za_grid;
-  nlinspace(za_grid, 0, 180, doit_za_grid_size);
-
-  ARTS_ASSERT(scat_data.nelem() == scat_data_mono.nelem());
-
-  const Index N_ss = scat_data.nelem();
-  // FIXME: We need this still as a workspace variable because pha_mat_spt_agenda
-  // contains a WS method that requires it as input
-  pha_mat_sptDOITOpt.resize(TotalNumberOfElements(scat_data));
-
-  Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
-
-    for (Index i_se = 0; i_se < N_se; i_se++) {
-      Index N_T = scat_data_mono[i_ss][i_se].T_grid.nelem();
-      pha_mat_sptDOITOpt[i_se_flat].resize(N_T,
-                                           doit_za_grid_size,
-                                           N_aa_sca,
-                                           doit_za_grid_size,
-                                           aa_grid.nelem(),
-                                           4,
-                                           4);
-
-      //    Initialize:
-      pha_mat_sptDOITOpt[i_se_flat] = 0.;
-
-      // Calculate all scattering angles for all combinations of incoming
-      // and scattered directions and interpolation.
-      for (Index t_idx = 0; t_idx < N_T; t_idx++) {
-        // These are the scattered directions as called in *scat_field_calc*
-        for (Index za_sca_idx = 0; za_sca_idx < doit_za_grid_size;
-             za_sca_idx++) {
-          for (Index aa_sca_idx = 0; aa_sca_idx < N_aa_sca; aa_sca_idx++) {
-            // Integration is performed over all incoming directions
-            for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
-                 za_inc_idx++) {
-              for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
-                   aa_inc_idx++) {
-                pha_matTransform(
-                    pha_mat_sptDOITOpt[i_se_flat](t_idx,
-                                                  za_sca_idx,
-                                                  aa_sca_idx,
-                                                  za_inc_idx,
-                                                  aa_inc_idx,
-                                                  joker,
-                                                  joker),
-                    scat_data_mono[i_ss][i_se].pha_mat_data(
-                        0, t_idx, joker, joker, joker, joker, joker),
-                    scat_data_mono[i_ss][i_se].za_grid,
-                    scat_data_mono[i_ss][i_se].aa_grid,
-                    scat_data_mono[i_ss][i_se].ptype,
-                    za_sca_idx,
-                    aa_sca_idx,
-                    za_inc_idx,
-                    aa_inc_idx,
-                    za_grid,
-                    aa_grid);
-              }
-            }
-          }
-        }
-      }
-
-      i_se_flat++;
-    }
-  }
-  // Interpolate phase matrix to current grid
-  pha_mat_doit.resize(cloudbox_limits[1] - cloudbox_limits[0] + 1,
-                      doit_za_grid_size,
-                      N_aa_sca,
-                      doit_za_grid_size,
-                      Naa,
-                      4,
-                      4);
-  pha_mat_doit = 0;
-
-  if (3 == 1) {
-    Index aa_index_local = 0;
-
-    // Get pha_mat at the grid positions
-    // Since 3 = 1, there is no loop over lat and lon grids
-    for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
-         p_index++) {
-      Numeric rtp_temperature_local =
-          t_field(p_index + cloudbox_limits[0], 0, 0);
-      //There is only loop over zenith angle grid ; no azimuth angle grid.
-      for (Index za_index_local = 0;
-           za_index_local < doit_za_grid_size;
-           za_index_local++) {
-        // Dummy index
-        Index index_zero = 0;
-
-        // Calculate the phase matrix of individual scattering elements
-        pha_mat_spt_agendaExecute(ws,
-                                  pha_mat_spt_local,
-                                  za_index_local,
-                                  index_zero,
-                                  index_zero,
-                                  p_index,
-                                  aa_index_local,
-                                  rtp_temperature_local,
-                                  pha_mat_spt_agenda);
-
-        // Sum over all scattering elements
-        pha_matCalc(pha_mat_local,
-                    pha_mat_spt_local,
-                    pnd_field,
-                    p_index,
-                    0,
-                    0);
-        pha_mat_doit(
-            p_index, za_index_local, 0, joker, joker, joker, joker) =
-            pha_mat_local;
-      }
-    }
-
-    // Set incoming azimuth grid scattering to zero, because there is no
-    // no azimuth dependcy for 1d atmospheres
-    aa_grid.resize(1);
-    aa_grid = 0;
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -1362,13 +1177,13 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
         if (!is_same_within_epsilon(scat_data_raw[i_ss][i_se].f_grid[0],
                                     f_grid[0],
                                     2 * DBL_EPSILON)) {
-          ostringstream os;
+          std::ostringstream os;
           os << "There is a problem with the grids for the following "
              << "interpolation:\n"
              << which_interpolation << "\n"
              << "If original grid has only 1 element, the new grid must also have\n"
              << "only a single element and hold the same value as the original grid.";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
 
       // check with extrapolation
@@ -1544,10 +1359,10 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
   // Check that species i_ss exists at all in scat_data
   const Index nss = scat_data.nelem();
   if (nss <= i_ss) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Can not T-reduce scattering species #" << i_ss << ".\n"
        << "*scat_data* contains only " << nss << " scattering species.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Loop over the included scattering elements
@@ -1555,11 +1370,11 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
     // At very first check validity of the scatt elements ptype (so far we only
     // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
     if (PART_TYPE != PTYPE_TOTAL_RND and PART_TYPE != PTYPE_AZIMUTH_RND) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Only ptypes " << PTYPE_TOTAL_RND << " and " << PTYPE_AZIMUTH_RND
          << " can be handled.\n"
          << "Scattering element #" << i_se << " has ptype " << PART_TYPE << ".";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     // If ssd.T_grid already has only a single point, we do nothing.
@@ -1571,12 +1386,12 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       // pha_mat only. complete ssd T-reduce should have been sorted away
       // already above).
       if (PHA_MAT_DATA.nvitrines() != nT) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Single scattering data of scat element #" << i_se
            << " of scat species #" << i_ss << "\n"
            << "seems to have undergone some temperature grid manipulation in\n"
            << "*pha_mat_data* already. That can not be done twice!";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       // Check that ext_mat and abs_vec have the same temp dimensions as T_grid.
@@ -1585,7 +1400,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       ARTS_ASSERT(EXT_MAT_DATA.nbooks() == nT and ABS_VEC_DATA.nbooks() == nT);
 
       // Check that T_grid is consistent with requested interpolation order
-      ostringstream ost;
+      std::ostringstream ost;
       ost << "Scattering data temperature interpolation for\n"
           << "scat element #" << i_se << " of scat species #" << i_ss << ".";
       chk_interpolation_grids(ost.str(), T_DATAGRID, T, interp_order);
@@ -1739,14 +1554,14 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
             // c) check pha mat norm vs. sca xs from ext-abs at T_interpol (as
             // albedo dev check)
             if (abs(Csca - Csca_data) / Cext_data > threshold) {
-              ostringstream os;
+              std::ostringstream os;
               os << "  Deviations in T-reduced scat_data too large:\n"
                  << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                  << " at nominal (actual) albedo of " << Csca_data / Cext_data
                  << " (" << Csca / Cext_data << ").\n"
                  << "  Problem occurs for scattering element #" << i_se
                  << " at " << f << ".frequency!\n";
-              throw runtime_error(os.str());
+              throw std::runtime_error(os.str());
             }
             Numeric norm_dev = (Csca - Csca) / Cext_data;
 
@@ -1759,11 +1574,11 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
               Numeric xs_dev = (Csca - Csca_data) / Cext_data;
               if (abs(norm_dev + (Csca - Csca_data) / Cext_data) >
                   this_threshold)
-                cout << "Accumulated deviation (abs(" << norm_dev << "+"
+                std::cout << "Accumulated deviation (abs(" << norm_dev << "+"
                      << xs_dev << ")=" << abs(norm_dev + xs_dev)
                      << " exceeding threshold (" << this_threshold << ").\n";
               if (abs(Csca - Csca_data) / Cext_data > this_threshold) {
-                ostringstream os;
+                std::ostringstream os;
                 os << "  " << errmsg << "\n"
                    << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                    << " at nominal (actual) albedo of " << Csca_data / Cext_data
@@ -1771,7 +1586,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                    << "  Problem occurs for scattering element #" << i_se
                    << " at " << f << ".frequency and " << t
                    << ".temperature!\n";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
             }
           }
@@ -1807,7 +1622,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
               // c) check pha mat norm vs. sca xs from ext-abs at T_interpol (as
               // albedo dev check)
               if (abs(Csca - Csca_data) / Cext_data > threshold) {
-                ostringstream os;
+                std::ostringstream os;
                 os << "  Deviations in T-reduced scat_data too large:\n"
                    << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                    << " at nominal (actual) albedo of " << Csca_data / Cext_data
@@ -1815,7 +1630,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                    << "  Problem occurs for scattering element #" << i_se
                    << " at " << f << ".frequency, and " << iza
                    << ". incident polar angle!\n";
-                throw runtime_error(os.str());
+                throw std::runtime_error(os.str());
               }
 
               // d) Ensure that T-reduced data is consistent/representative of all data.
@@ -1825,7 +1640,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                 Cext_data = EXT_MAT_DATA(f, t, 0, 0, 0);
                 Csca_data = Cext_data - ABS_VEC_DATA(f, t, 0, 0, 0);
                 if (abs(Csca - Csca_data) / Cext_data > this_threshold) {
-                  ostringstream os;
+                  std::ostringstream os;
                   os << "  " << errmsg << "\n"
                      << "  scat dev [%] " << 1e2 * Csca / Csca_data - 1e2
                      << " at nominal (actual) albedo of "
@@ -1835,7 +1650,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
                      << " at " << f << ".frequency and " << t
                      << ".temperature, and " << iza
                      << ". incident polar angle!\n";
-                  throw runtime_error(os.str());
+                  throw std::runtime_error(os.str());
                 }
               }
             }
@@ -2090,10 +1905,10 @@ void opt_prop_sptFromMonoData(  // Output and Input:
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
   if (scat_data_mono[0][0].f_grid.nelem() > 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Initialisation
@@ -2134,7 +1949,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
         ConstVectorView t_grid = scat_data_mono[i_ss][i_se].T_grid;
 
         if (t_grid.nelem() > 1) {
-          ostringstream os;
+          std::ostringstream os;
           os << "In opt_prop_sptFromMonoData.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -2235,13 +2050,13 @@ void pha_mat_sptFromMonoData(  // Output:
 
   const Index N_se_total = TotalNumberOfElements(scat_data_mono);
   if (N_se_total != pnd_field.nbooks()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Total number of scattering elements in *scat_data_mono* "
        << "inconsistent with size of pnd_field.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   // as pha_mat_spt is typically initialized from pnd_field, this theoretically
-  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // checks the same as the std::runtime_error above. Still, we keep it to be on the
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
@@ -2255,10 +2070,10 @@ void pha_mat_sptFromMonoData(  // Output:
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
   if (scat_data_mono[0][0].f_grid.nelem() > 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   GridPos T_gp = {0, {0, 1}}, Tred_gp;
@@ -2299,7 +2114,7 @@ void pha_mat_sptFromMonoData(  // Output:
             ti = nT / 2;
           }
         } else {
-          ostringstream os;
+          std::ostringstream os;
           os << "In pha_mat_sptFromMonoData.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -2387,20 +2202,20 @@ void pha_mat_sptFromScat_data(  // Output:
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
   if (scat_data_checked != 1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
   // Determine total number of scattering elements
   const Index N_se_total = TotalNumberOfElements(scat_data);
   if (N_se_total != pnd_field.nbooks()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Total number of scattering elements in scat_data "
        << "inconsistent with size of pnd_field.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
   // as pha_mat_spt is typically initialized from pnd_field, this theoretically
-  // checks the same as the runtime_error above. Still, we keep it to be on the
+  // checks the same as the std::runtime_error above. Still, we keep it to be on the
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
@@ -2458,7 +2273,7 @@ void pha_mat_sptFromScat_data(  // Output:
             this_T_index = PHA_MAT_DATA.nvitrines() / 2;
           }
         } else {
-          ostringstream os;
+          std::ostringstream os;
           os << "In pha_mat_sptFromScat_data.\n"
              << "The temperature grid of the scattering data does not\n"
              << "cover the atmospheric temperature at cloud location.\n"
@@ -2632,7 +2447,7 @@ void ScatSpeciesMerge(  //WS Output:
     this_part.T_grid[0] = t_field(sp, 0, 0);
 
     ScatteringMetaData& this_meta = scat_meta_merged[0][sp];
-    ostringstream os;
+    std::ostringstream os;
     os << "Merged scattering element of cloudbox-level #" << sp;
     this_meta.description = os.str();
     this_meta.source = "ARTS internal";
@@ -2712,7 +2527,7 @@ void ScatSpeciesMerge(  //WS Output:
         {
           Numeric temperature = this_part.T_grid[0];
           if (orig_part.T_grid.nelem() > 1) {
-            ostringstream os;
+            std::ostringstream os;
             os << "The temperature grid of the scattering data "
                << "does not cover the\n"
                << "atmospheric temperature at cloud location. "
@@ -2862,20 +2677,20 @@ void ExtractFromMetaSingleScatSpecies(
     const String& meta_name,
     const Index &scat_species_index) {
   if (scat_species_index < 0) {
-    ostringstream os;
+    std::ostringstream os;
     os << "scat_species_index can't be <0!";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   const Index nss = scat_meta.nelem();
 
   // check that scat_meta actually has at least scat_species_index elements
   if (!(nss > scat_species_index)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Can not extract data for scattering species #" << scat_species_index
        << "\n"
        << "because scat_meta has only " << nss << " elements.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   const Index nse = scat_meta[scat_species_index].nelem();
@@ -2892,9 +2707,9 @@ void ExtractFromMetaSingleScatSpecies(
       meta_param[i] =
           scat_meta[scat_species_index][i].diameter_area_equ_aerodynamical;
     else {
-      ostringstream os;
+      std::ostringstream os;
       os << "Meta parameter \"" << meta_name << "\"is unknown.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 }

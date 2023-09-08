@@ -13,8 +13,7 @@
 #include <cmath>
 #include <string>
 #include "absorption.h"
-#include "arts.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "arts_conversions.h"
@@ -25,6 +24,7 @@
 #include "matpack_math.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "special_interp.h"
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -45,35 +45,31 @@ void jacobianCalcDoNothing(Matrix& jacobian _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianClose(Workspace& ws_in,
-                   Index& jacobian_do,
+void jacobianClose(Index& jacobian_do,
                    Agenda& jacobian_agenda,
                    const ArrayOfRetrievalQuantity& jacobian_quantities) {
   // Make sure that the array is not empty
   if (jacobian_quantities.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "No retrieval quantities has been added to *jacobian_quantities*.");
 
-  jacobian_agenda.check(ws_in);
+  jacobian_agenda.finalize();
   jacobian_do = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianInit(Workspace& ws,
-                  ArrayOfRetrievalQuantity& jacobian_quantities,
+void jacobianInit(ArrayOfRetrievalQuantity& jacobian_quantities,
                   Agenda& jacobian_agenda) {
   jacobian_quantities.resize(0);
-  jacobian_agenda = Agenda{ws};
-  jacobian_agenda.set_name("jacobian_agenda");
+  jacobian_agenda = Agenda("jacobian_agenda");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianOff(Workspace& ws, 
-                 Index& jacobian_do,
+void jacobianOff(Index& jacobian_do,
                  Agenda& jacobian_agenda,
                  ArrayOfRetrievalQuantity& jacobian_quantities) {
   jacobian_do = 0;
-  jacobianInit(ws, jacobian_quantities, jacobian_agenda);
+  jacobianInit(jacobian_quantities, jacobian_agenda);
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +77,7 @@ void jacobianOff(Workspace& ws,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddAbsSpecies(Workspace&,
+void jacobianAddAbsSpecies(const Workspace&,
                            ArrayOfRetrievalQuantity& jq,
                            Agenda& jacobian_agenda,
                            const Vector& rq_p_grid,
@@ -113,12 +109,12 @@ void jacobianAddAbsSpecies(Workspace&,
   // Check that mode is correct
   if (mode != "vmr" && mode != "nd" && mode != "rel" && mode != "rh" &&
       mode != "q") {
-    throw runtime_error(
+    throw std::runtime_error(
         "The retrieval mode can only be \"vmr\", \"nd\", "
         "\"rel\", \"rh\" or \"q\".");
   }
   if ((mode == "rh" || mode == "q") && species.substr(0, 3) != "H2O") {
-    throw runtime_error(
+    throw std::runtime_error(
         "Retrieval modes \"rh\" and \"q\" can only be applied "
         "on species starting with H2O.");
   }
@@ -139,7 +135,7 @@ void jacobianAddAbsSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add(Method{"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -147,7 +143,7 @@ void jacobianAddAbsSpecies(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqShift(Workspace& ws _U_,
+void jacobianAddFreqShift(const Workspace& ws _U_,
                           ArrayOfRetrievalQuantity& jacobian_quantities,
                           Agenda& jacobian_agenda,
                           const Vector& f_grid,
@@ -155,31 +151,31 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of frequency shift is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of frequencies
-  if (df <= 0) throw runtime_error("The argument *df* must be > 0.");
+  if (df <= 0) throw std::runtime_error("The argument *df* must be > 0.");
   if (df > 1e6)
-    throw runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
+    throw std::runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
   const Index nf = f_grid.nelem();
   if (nf < 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "Frequency shifts and *f_grid* of length 1 can "
         "not be combined.");
   const Numeric maxdf = f_grid[nf - 1] - f_grid[nf - 2];
   if (df > maxdf) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The value of *df* is too big with respect to spacing of "
        << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
        << "between the two last elements of *f_grid*.\n"
        << "This spacing is   : " << maxdf / 1e3 << " kHz\n"
        << "The value of df is: " << df / 1e3 << " kHz";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -197,7 +193,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcFreqShift", "");
+  jacobian_agenda.add(Method{"jacobianCalcFreqShift"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -229,16 +225,16 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such frequency retrieval quantity defined.\n");
   }
 
   // Check that sensor_response is consistent with yb and iyb
   //
   if (sensor_response.nrows() != yb.nelem())
-    throw runtime_error("Mismatch in size between *sensor_response* and *yb*.");
+    throw std::runtime_error("Mismatch in size between *sensor_response* and *yb*.");
   if (sensor_response.ncols() != iyb.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "Mismatch in size between *sensor_response* and *iyb*.");
 
   // Get disturbed (part of) y
@@ -289,7 +285,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqStretch(Workspace& ws _U_,
+void jacobianAddFreqStretch(const Workspace& ws _U_,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
                             const Vector& f_grid,
@@ -297,27 +293,27 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of df
-  if (df <= 0) throw runtime_error("The argument *df* must be > 0.");
+  if (df <= 0) throw std::runtime_error("The argument *df* must be > 0.");
   if (df > 1e6)
-    throw runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
+    throw std::runtime_error("The argument *df* is not allowed to exceed 1 MHz.");
   const Index nf = f_grid.nelem();
   const Numeric maxdf = f_grid[nf - 1] - f_grid[nf - 2];
   if (df > maxdf) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The value of *df* is too big with respect to spacing of "
        << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
        << "between the two last elements of *f_grid*.\n"
        << "This spacing is   : " << maxdf / 1e3 << " kHz\n"
        << "The value of df is: " << df / 1e3 << " kHz";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -335,7 +331,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcFreqStretch", "");
+  jacobian_agenda.add(Method{"jacobianCalcFreqStretch"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -374,16 +370,16 @@ void jacobianCalcFreqStretch(
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such frequency retrieval quantity defined.\n");
   }
 
   // Check that sensor_response is consistent with yb and iyb
   //
   if (sensor_response.nrows() != yb.nelem())
-    throw runtime_error("Mismatch in size between *sensor_response* and *yb*.");
+    throw std::runtime_error("Mismatch in size between *sensor_response* and *yb*.");
   if (sensor_response.ncols() != iyb.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "Mismatch in size between *sensor_response* and *iyb*.");
 
   // Get disturbed (part of) y
@@ -453,7 +449,7 @@ void jacobianCalcFreqStretch(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPointingZa(Workspace& ws _U_,
+void jacobianAddPointingZa(const Workspace& ws _U_,
                            ArrayOfRetrievalQuantity& jacobian_quantities,
                            Agenda& jacobian_agenda,
                            const Matrix& sensor_pos,
@@ -463,35 +459,35 @@ void jacobianAddPointingZa(Workspace& ws _U_,
                            const Numeric& dza) {
   // Check that poly_order is -1 or positive
   if (poly_order < -1)
-    throw runtime_error(
+    throw std::runtime_error(
         "The polynomial order has to be positive or -1 for gitter.");
 
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
     if (jacobian_quantities[it].Target().isPointing()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
   // Checks of dza
-  if (dza <= 0) throw runtime_error("The argument *dza* must be > 0.");
+  if (dza <= 0) throw std::runtime_error("The argument *dza* must be > 0.");
   if (dza > 0.1)
-    throw runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
+    throw std::runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
 
   // Check that sensor_time is consistent with sensor_pos
   if (sensor_time.nelem() != sensor_pos.nrows()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The WSV *sensor_time* must be defined for every "
        << "measurement block.\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Do not allow that *poly_order* is not too large compared to *sensor_time*
   if (poly_order > sensor_time.nelem() - 1) {
-    throw runtime_error(
+    throw std::runtime_error(
         "The polynomial order can not be >= length of *sensor_time*.");
   }
 
@@ -499,12 +495,12 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   RetrievalQuantity rq;
   if (calcmode == "recalc") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
-    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
+    jacobian_agenda.add({"jacobianCalcPointingZaRecalc"});
   } else if (calcmode == "interp") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
-    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
+    jacobian_agenda.add({"jacobianCalcPointingZaInterp"});
   } else
-    throw runtime_error(
+    throw std::runtime_error(
       R"(Possible choices for *calcmode* are "recalc" and "interp".)");
   rq.Target().perturbation = dza;
 
@@ -536,13 +532,13 @@ void jacobianCalcPointingZaInterp(
     const ArrayOfTime& sensor_time,
     const ArrayOfRetrievalQuantity& jacobian_quantities) {
   if (mblock_dlos.nrows() < 2)
-    throw runtime_error(
+    throw std::runtime_error(
         "The method demands that *mblock_dlos* has "
         "more than one row.");
 
   if (!(is_increasing(mblock_dlos(joker, 0)) ||
         is_decreasing(mblock_dlos(joker, 0))))
-    throw runtime_error(
+    throw std::runtime_error(
         "The method demands that the zenith angles in "
         "*mblock_dlos* are sorted (increasing or decreasing).");
 
@@ -566,7 +562,7 @@ void jacobianCalcPointingZaInterp(
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no such pointing retrieval quantity defined.\n");
   }
 
@@ -650,127 +646,12 @@ void jacobianCalcPointingZaInterp(
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcPointingZaRecalc(
-    Workspace& ws,
-    Matrix& jacobian,
-    const Index& mblock_index,
-    const Vector& iyb _U_,
-    const Vector& yb,
-    const AtmField& atm_field,              
-    const Index& cloudbox_on,
-    const Vector& f_grid,
-    const Matrix& sensor_pos,
-    const Matrix& sensor_los,
-    const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos,
-    const Sparse& sensor_response,
-    const ArrayOfTime& sensor_time,
-    const String& iy_unit,
-    const Agenda& iy_main_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities) {
-  // Set some useful variables.
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-
-  // Find the retrieval quantity related to this method.
-  // This works since the combined MainTag and Subtag is individual.
-  bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithRecalc) {
-      bool any_affine;
-      ArrayOfArrayOfIndex jacobian_indices;
-      jac_ranges_indices(
-          jacobian_indices, any_affine, jacobian_quantities, true);
-      //
-      found = true;
-      rq = jacobian_quantities[n];
-      ji = jacobian_indices[n];
-    }
-  }
-  if (!found) {
-    throw runtime_error(
-        "There is no such pointing retrieval quantity defined.\n");
-  }
-
-  // Get "dy", by calling iyb_calc with shifted sensor_los.
-  //
-  const Index n1y = sensor_response.nrows();
-  Vector dy(n1y);
-  {
-    Vector iyb2;
-    Matrix los = sensor_los;
-    Matrix geo_pos;
-    ArrayOfVector iyb_aux;
-    ArrayOfMatrix diyb_dx;
-
-    los(joker, 0) += rq.Target().perturbation;
-
-    iyb_calc(ws,
-             iyb2,
-             iyb_aux,
-             diyb_dx,
-             geo_pos,
-             mblock_index,
-             atm_field,
-             cloudbox_on,
-             f_grid,
-             sensor_pos,
-             los,
-             transmitter_pos,
-             mblock_dlos,
-             iy_unit,
-             iy_main_agenda,
-             0,
-             ArrayOfRetrievalQuantity(),
-             ArrayOfArrayOfIndex(),
-             ArrayOfString());
-
-    // Apply sensor and take difference
-    //
-    mult(dy, sensor_response, iyb2);
-    //
-    for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Target().perturbation;
-    }
-  }
-
-  //--- Create jacobians ---
-
-  const Index lg = rq.Grids()[0].nelem();
-  const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  const Index row0 = rowind.offset;
-
-  // Handle "jitter" seperately
-  if (rq.Grids()[0][0] == -1)          // Not all values are set here,
-  {                                    // but should already have been
-    ARTS_ASSERT(lg == sensor_los.nrows());  // set to 0
-    ARTS_ASSERT(rq.Grids()[0][mblock_index] == -1);
-    jacobian(rowind, it + mblock_index) = dy;
-  }
-
-  // Polynomial representation
-  else {
-    Vector w;
-    for (Index c = 0; c < lg; c++) {
-      ARTS_ASSERT(Numeric(c) == rq.Grids()[0][c]);
-      //
-      polynomial_basis_func(w, time_vector(sensor_time), c);
-      //
-      for (Index i = 0; i < n1y; i++) {
-        jacobian(row0 + i, it + c) = w[mblock_index] * dy[i];
-      }
-    }
-  }
-}
-
 //----------------------------------------------------------------------------
 // Polynomial baseline fits:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPolyfit(Workspace& ws _U_,
+void jacobianAddPolyfit(const Workspace& ws _U_,
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -782,15 +663,15 @@ void jacobianAddPolyfit(Workspace& ws _U_,
                         const Index& no_mblock_variation) {
   // Check that poly_order is >= 0
   if (poly_order < 0)
-    throw runtime_error("The polynomial order has to be >= 0.");
+    throw std::runtime_error("The polynomial order has to be >= 0.");
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Sensor::Polyfit) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -826,7 +707,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   // Each polynomial coeff. is treated as a retrieval quantity
   //
   for (Index i = 0; i <= poly_order; i++) {
-    ostringstream sstr;
+    std::ostringstream sstr;
     sstr << "Coefficient " << i;
     rq.Subtag(sstr.str());
 
@@ -838,7 +719,8 @@ void jacobianAddPolyfit(Workspace& ws _U_,
     jq.push_back(rq);
 
     // Add pointing method to the jacobian agenda
-    jacobian_agenda.append("jacobianCalcPolyfit", i);
+    jacobian_agenda.add(Method{"my_poly_coeff", i});
+    jacobian_agenda.add(Method{"jacobianCalcPolyfit", {}, {{"poly_coeff", "my_poly_coeff"}}});
   }
 }
 
@@ -858,7 +740,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   ArrayOfIndex ji;
   bool found = false;
   Index iq;
-  ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Polyfit &&
@@ -868,7 +750,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no Polyfit jacobian defined, in general "
         "or for the selected polynomial coefficient.\n");
   }
@@ -929,7 +811,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddScatSpecies(Workspace&,
+void jacobianAddScatSpecies(const Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
                             const Vector& rq_p_grid,
@@ -942,11 +824,11 @@ void jacobianAddScatSpecies(Workspace&,
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The combintaion of\n   scattering species: " << species
          << "\n   retrieval quantity: " << quantity
          << "\nis already included in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -960,7 +842,7 @@ void jacobianAddScatSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -968,7 +850,7 @@ void jacobianAddScatSpecies(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSinefit(Workspace& ws _U_,
+void jacobianAddSinefit(const Workspace& ws _U_,
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -981,15 +863,15 @@ void jacobianAddSinefit(Workspace& ws _U_,
   const Index np = period_lengths.nelem();
 
   // Check that poly_order is >= 0
-  if (np == 0) throw runtime_error("No sinusoidal periods has benn given.");
+  if (np == 0) throw std::runtime_error("No sinusoidal periods has benn given.");
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Sensor::Sinefit) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -1025,7 +907,7 @@ void jacobianAddSinefit(Workspace& ws _U_,
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
   for (Index i = 0; i < np; i++) {
-    ostringstream sstr;
+    std::ostringstream sstr;
     sstr << "Period " << i;
     rq.Subtag(sstr.str());
 
@@ -1037,7 +919,8 @@ void jacobianAddSinefit(Workspace& ws _U_,
     jq.push_back(rq);
 
     // Add pointing method to the jacobian agenda
-    jacobian_agenda.append("jacobianCalcSinefit", i);
+    jacobian_agenda.add(Method{"my_period_index", i});
+    jacobian_agenda.add(Method{"jacobianCalcSinefit", {}, {{"period_index", "my_period_index"}}});
   }
 }
 
@@ -1057,7 +940,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   ArrayOfIndex ji;
   bool found = false;
   Index iq;
-  ostringstream sstr;
+  std::ostringstream sstr;
   sstr << "Period " << period_index;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Sinefit &&
@@ -1067,7 +950,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
     }
   }
   if (!found) {
-    throw runtime_error(
+    throw std::runtime_error(
         "There is no Sinefit jacobian defined, in general "
         "or for the selected period length.\n");
   }
@@ -1136,7 +1019,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSurfaceQuantity(Workspace&,
+void jacobianAddSurfaceQuantity(const Workspace&,
                                 ArrayOfRetrievalQuantity& jq,
                                 Agenda& jacobian_agenda,
                                 const Vector& rq_lat_grid,
@@ -1145,10 +1028,10 @@ void jacobianAddSurfaceQuantity(Workspace&,
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
-      ostringstream os;
+      std::ostringstream os;
       os << quantity << " is already included as a surface variable "
          << "in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -1162,7 +1045,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
   jq.push_back(rq);
 
   // Add dummy
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1170,7 +1053,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddTemperature(Workspace&,
+void jacobianAddTemperature(const Workspace&,
                             ArrayOfRetrievalQuantity& jq,
                             Agenda& jacobian_agenda,
                             const Vector& rq_p_grid,
@@ -1181,9 +1064,9 @@ void jacobianAddTemperature(Workspace&,
   // We only check the main tag.
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Atm::Temperature) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -1194,10 +1077,10 @@ void jacobianAddTemperature(Workspace&,
   } else if (hse == "off") {
     subtag = "HSE off";
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "The keyword for hydrostatic equilibrium can only be set to\n"
        << "\"on\" or \"off\"\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -1210,7 +1093,7 @@ void jacobianAddTemperature(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1218,7 +1101,7 @@ void jacobianAddTemperature(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddWind(Workspace&,
+void jacobianAddWind(const Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
                      const Vector& rq_p_grid,
@@ -1260,7 +1143,7 @@ void jacobianAddWind(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1268,7 +1151,7 @@ void jacobianAddWind(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddMagField(Workspace&,
+void jacobianAddMagField(const Workspace&,
                          ArrayOfRetrievalQuantity& jq,
                          Agenda& jacobian_agenda,
                          const Vector& rq_p_grid,
@@ -1310,7 +1193,7 @@ void jacobianAddMagField(Workspace&,
   jq.push_back(rq);
 
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1318,7 +1201,7 @@ void jacobianAddMagField(Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddShapeCatalogParameter(Workspace&,
+void jacobianAddShapeCatalogParameter(const Workspace&,
                                       ArrayOfRetrievalQuantity& jq,
                                       Agenda& jacobian_agenda,
                                       const QuantumIdentifier& line_identity,
@@ -1348,13 +1231,12 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Append and do housekeeping
   jq.push_back(rq);
-  jacobian_agenda.append("jacobianCalcDoNothing",
-                         TokVal());  // old code activation
+  jacobian_agenda.add({"jacobianCalcDoNothing"});  // old code activation
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddShapeCatalogParameters(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     const ArrayOfQuantumIdentifier& line_identities,
@@ -1386,7 +1268,7 @@ void jacobianAddShapeCatalogParameters(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddBasicCatalogParameter(Workspace&,
+void jacobianAddBasicCatalogParameter(const Workspace&,
                                       ArrayOfRetrievalQuantity& jq,
                                       Agenda& jacobian_agenda,
                                       const QuantumIdentifier& catalog_identity,
@@ -1418,12 +1300,12 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddBasicCatalogParameters(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfRetrievalQuantity& jq,
     Agenda& jacobian_agenda,
     const ArrayOfQuantumIdentifier& catalog_identities,
@@ -1440,7 +1322,7 @@ void jacobianAddBasicCatalogParameters(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddNLTE(Workspace&,
+void jacobianAddNLTE(const Workspace&,
                      ArrayOfRetrievalQuantity& jq,
                      Agenda& jacobian_agenda,
                      const Vector& rq_p_grid,
@@ -1452,7 +1334,7 @@ void jacobianAddNLTE(Workspace&,
   for (Index it = 0; it < jq.nelem(); it++) {
     if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The NLTE identifier:\n"
          << energy_level_identity << "\nis already included in "
          << "*jacobian_quantities*.";
@@ -1469,10 +1351,10 @@ void jacobianAddNLTE(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
-void jacobianAddNLTEs(Workspace& ws,
+void jacobianAddNLTEs(const Workspace& ws,
                       ArrayOfRetrievalQuantity& jq,
                       Agenda& jacobian_agenda,
                       const Vector& rq_p_grid,
@@ -1492,7 +1374,7 @@ void jacobianAddNLTEs(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSpecialSpecies(Workspace&,
+void jacobianAddSpecialSpecies(const Workspace&,
                                ArrayOfRetrievalQuantity& jq,
                                Agenda& jacobian_agenda,
                                const Vector& rq_p_grid,
@@ -1507,7 +1389,7 @@ void jacobianAddSpecialSpecies(Workspace&,
   if (species == "electrons") {
     for (Index it = 0; it < jq.nelem(); it++) {
       if (jq[it] == Jacobian::Atm::Electrons) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
@@ -1517,7 +1399,7 @@ void jacobianAddSpecialSpecies(Workspace&,
   } else if (species == "particulates") {
     for (Index it = 0; it < jq.nelem(); it++) {
       if (jq[it] == Jacobian::Atm::Particulates) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
@@ -1525,7 +1407,7 @@ void jacobianAddSpecialSpecies(Workspace&,
     rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
     
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown special species jacobian: \"" << species
        << "\"\nPlease see *jacobianAddSpecialSpecies* for viable options.";
     throw std::runtime_error(os.str());
@@ -1534,7 +1416,7 @@ void jacobianAddSpecialSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
+  jacobian_agenda.add({"jacobianCalcDoNothing"});
 }
 
 //----------------------------------------------------------------------------
@@ -1587,7 +1469,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
                                      const Matrix& transformation_matrix,
                                      const Vector& offset_vector) {
   if (jqs.empty()) {
-    runtime_error(
+    std::runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
         "transformation to.");
   }
@@ -1595,11 +1477,11 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
   Index nelem = jqs.back().Grids().nelem();
 
   if (!(nelem == transformation_matrix.nrows())) {
-    runtime_error(
+    std::runtime_error(
         "Dimension of transformation matrix incompatible with retrieval grids.");
   }
   if (!(nelem == offset_vector.nelem())) {
-    runtime_error(
+    std::runtime_error(
         "Dimension of offset vector incompatible with retrieval grids.");
   }
 
@@ -1613,7 +1495,7 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
                                    const Numeric& z_min,
                                    const Numeric& z_max) {
   if (jqs.empty())
-    throw runtime_error(
+    throw std::runtime_error(
         "Jacobian quantities is empty, so there is nothing to add the "
         "transformation to.");
 
@@ -1626,7 +1508,7 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 
   if (transformation_func == "atanh") {
     if (z_max <= z_min)
-      throw runtime_error(
+      throw std::runtime_error(
           "For option atanh, the GIN *z_max* must be set and be > z_min.");
     pars.resize(2);
     pars[0] = z_min;
@@ -1635,11 +1517,11 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
     pars.resize(1);
     pars[0] = z_min;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Valid options for *transformation_func* are:\n"
        << "\"none\", \"log\", \"log10\" and \"atanh\"\n"
        << "But found: \"" << transformation_func << "\"";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   jqs.back().SetTransformationFunc(transformation_func);
@@ -1684,11 +1566,11 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
 
   // Now we can chec *pert_index*
   if (pert_index<0){
-    throw runtime_error("Bad *pert_index*. It is negative.");
+    throw std::runtime_error("Bad *pert_index*. It is negative.");
   }
   const Index n_tot = n_p * n_lat * n_lon;
   if (pert_index >= n_tot){
-    throw runtime_error("Bad *pert_index*. It is too high with respect "
+    throw std::runtime_error("Bad *pert_index*. It is too high with respect "
                         "to length of retrieval grids.");
   }    
   
@@ -1703,7 +1585,7 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
     x[pert_index] += pert_size;
   }
   else{
-    throw runtime_error("Bad *pert_mode*. Allowed choices are: "
+    throw std::runtime_error("Bad *pert_mode*. Allowed choices are: "
                         """absolute"" and ""relative"".");
   }
   
@@ -1749,10 +1631,10 @@ void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
                 lon_grid,
                 false );
   if (pert_index<0){
-    throw runtime_error("Bad *pert_index*. It is negative.");
+    throw std::runtime_error("Bad *pert_index*. It is negative.");
   }
   if (pert_index >= n_p * n_lat * n_lon){
-    throw runtime_error("Bad *pert_index*. It is too high with respect "
+    throw std::runtime_error("Bad *pert_index*. It is too high with respect "
                         "to length of atmospheric grids.");
   }    
 
@@ -1798,7 +1680,7 @@ void jacobianFromTwoY(Matrix& jacobian,
                     const Numeric& pert_size) {
   const Index n = y.nelem();
   if( y_pert.nelem() != n ){
-    throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
+    throw std::runtime_error("Inconsistency in length of *y_pert* and *y*.");
   }
   jacobian = ExhaustiveConstMatrixView{y_pert};
   jacobian -= ExhaustiveConstMatrixView{y};
@@ -1814,7 +1696,7 @@ void jacobianFromYbatch(Matrix& jacobian,
   const Index l = ybatch.nelem();
   if (l>0){
       if( ybatch[0].nelem() != n )
-        throw runtime_error("Inconsistency in length of y and ybatch[0].");
+        throw std::runtime_error("Inconsistency in length of y and ybatch[0].");
     }
   jacobian.resize(n,l);
   for (Index i=0; i<l; i++) {
@@ -1823,147 +1705,3 @@ void jacobianFromYbatch(Matrix& jacobian,
   }
   jacobian /= pert_size;
 }
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
-                                    const Vector& p_grid,
-                                    const Vector& lat_grid,
-                                    const Vector& lon_grid,
-                                    const ArrayOfString& particle_bulkprop_names,
-                                    const String& particle_type,
-                                    const Vector& p_ret_grid,
-                                    const Vector& lat_ret_grid,
-                                    const Vector& lon_ret_grid,
-                                    const Index& pert_index,
-                                    const Numeric& pert_size,
-                                    const String& pert_mode) {
-  // Locate particle_type among particle_bulkprop_names
-  Index iq = find_first(particle_bulkprop_names, particle_type);
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = particle_bulkprop_field(iq,joker,joker,joker);
-  AtmFieldPerturb(perturbed_field,
-                  original_field,
-                  p_ret_grid,
-                  lat_ret_grid,
-                  lon_ret_grid,
-                  pert_index,
-                  pert_size,
-                  pert_mode);
-  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
-                                            const Vector& p_grid,
-                                            const Vector& lat_grid,
-                                            const Vector& lon_grid,
-                                            const ArrayOfString& particle_bulkprop_names,
-                                            const String& particle_type,
-                                            const Index& pert_index,
-                                            const Numeric& pert_size,
-                                            const String& pert_mode) {
-  // Locate particle_type among particle_bulkprop_names
-  Index iq = find_first(particle_bulkprop_names, particle_type);
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = particle_bulkprop_field(iq,joker,joker,joker);
-  AtmFieldPerturbAtmGrids(perturbed_field,
-                          p_grid,
-                          lat_grid,
-                          lon_grid,
-                          original_field,
-                          pert_index,
-                          pert_size,
-                          pert_mode);
-  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldPerturb(Tensor4& vmr_field,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const String& species,
-                      const Vector& p_ret_grid,
-                      const Vector& lat_ret_grid,
-                      const Vector& lon_ret_grid,
-                      const Index& pert_index,
-                      const Numeric& pert_size,
-                      const String& pert_mode) {
-  // Locate vmr_species among abs_species
-  Index iq = -1;
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-      iq = i;
-      break;
-    }
-  }
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << species << " in *abs_species*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = vmr_field(iq,joker,joker,joker);
-  AtmFieldPerturb(perturbed_field,
-                  original_field,
-                  p_ret_grid,
-                  lat_ret_grid,
-                  lon_ret_grid,
-                  pert_index,
-                  pert_size,
-                  pert_mode);
-  vmr_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
-                              const Vector& p_grid,
-                              const Vector& lat_grid,
-                              const Vector& lon_grid,
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const String& species,
-                              const Index& pert_index,
-                              const Numeric& pert_size,
-                              const String& pert_mode) {
-  // Locate vmr_species among abs_species
-  Index iq = -1;
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
-      iq = i;
-      break;
-    }
-  }
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << species << " in *abs_species*.\n";
-    throw std::runtime_error(os.str());
-  }
-
-  Tensor3 original_field, perturbed_field;
-  original_field = vmr_field(iq,joker,joker,joker);
-  AtmFieldPerturbAtmGrids(perturbed_field,
-                          p_grid,
-                          lat_grid,
-                          lon_grid,
-                          original_field,
-                          pert_index,
-                          pert_size,
-                          pert_mode);
-  vmr_field(iq,joker,joker,joker) = perturbed_field;
-}
-
-

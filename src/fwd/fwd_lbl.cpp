@@ -8,16 +8,13 @@
 
 template <Index... ints>
 std::vector<fwd::lbl::band_models> all_models(
-    Numeric t,
-    Numeric p,
+    const AtmPoint& atm_point,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const ArrayOfArrayOfSpeciesTag& allspecs,
-    const Vector& allvmrs,
     const ArrayOfArrayOfAbsorptionLines& specbands,
     std::integer_sequence<Index, ints...>) {
   std::vector<fwd::lbl::band_models> out{
       std::variant_alternative_t<ints, fwd::lbl::band_models>(
-          t, p, isotopologue_ratios, allspecs, allvmrs, specbands)...};
+          atm_point, isotopologue_ratios, specbands)...};
   out.erase(
       std::remove_if(out.begin(),
                      out.end(),
@@ -29,17 +26,11 @@ std::vector<fwd::lbl::band_models> all_models(
   return out;
 }
 
-fwd::lbl::full::full(Numeric t,
-                     Numeric p,
+fwd::lbl::full::full(const AtmPoint& atm_point,
                      const SpeciesIsotopologueRatios& isotopologue_ratios,
-                     const ArrayOfArrayOfSpeciesTag& allspecs,
-                     const Vector& allvmrs,
                      const ArrayOfArrayOfAbsorptionLines& specbands)
-    : models(all_models(t,
-                        p,
+    : models(all_models(atm_point,
                         isotopologue_ratios,
-                        allspecs,
-                        allvmrs,
                         specbands,
                         std::make_integer_sequence<
                             Index,
@@ -97,6 +88,3 @@ void fwd::lbl::full::at_par(ExhaustiveComplexVectorView out,
     out[i] = at(fs[i]);
   }
 }
-
-static_assert(fwd::lbl::bandable<fwd::lbl::full>,
-              "lbl::mtckd::single is not representative of a band of lines");

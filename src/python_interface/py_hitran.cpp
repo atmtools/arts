@@ -1,11 +1,9 @@
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/pybind11.h>
+#include <python_interface.h>
 
 #include <hitran_species.h>
 
 namespace Python {
-void py_hitran(py::module_ &m) {
+void py_hitran(py::module_ &m) try {
   auto hit = m.def_submodule("hitran");
   hit.doc() = "Helpers to interface with HITRAN";
 
@@ -46,5 +44,7 @@ Return
 :class:`float`
     Atmospheric ratio of isotopologue
 )--"));
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize hitran\n", e.what()));
 }
 }  // namespace Python

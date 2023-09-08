@@ -22,7 +22,6 @@
 #include <cmath>
 #include <stdexcept>
 #include "array.h"
-#include "arts.h"
 #include "check_input.h"
 #include "arts_conversions.h"
 #include "interpolation.h"
@@ -321,7 +320,7 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
 
 
   if (nTin > 1) {
-    this_T_interp_order = min(t_interp_order, nTin - 1);
+    this_T_interp_order = std::min(t_interp_order, nTin - 1);
 
     // we need to check T-grid exceedance. and catch these cases (because T
     // is assumed to correspond to a location and T-exceedance is ok when pnd=0
@@ -419,7 +418,7 @@ void opt_prop_1ScatElem(  //Output
   /*
   if( ssd.ptype != PTYPE_TOTAL_RND and ssd.ptype != PTYPE_AZIMUTH_RND )
   {
-    ostringstream os;
+    std::ostringstream os;
     os << "Only ptypes " << PTYPE_TOTAL_RND << " and " << PTYPE_AZIMUTH_RND
        << " can be handled.\n"
        << "Encountered scattering element with ptype " << ssd.ptype
@@ -1971,12 +1970,12 @@ void pha_mat_labCalc(  //Output:
   }
 }
 
-ostream& operator<<(ostream& os, const SingleScatteringData& /*ssd*/) {
+std::ostream& operator<<(std::ostream& os, const SingleScatteringData& /*ssd*/) {
   os << "SingleScatteringData: Output operator not implemented";
   return os;
 }
 
-ostream& operator<<(ostream& os, const ScatteringMetaData& /*ssd*/) {
+std::ostream& operator<<(std::ostream& os, const ScatteringMetaData& /*ssd*/) {
   os << "ScatteringMetaData: Output operator not implemented";
   return os;
 }
@@ -2129,11 +2128,11 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
       "does not contain 90 degree grid point.")
 
   // 2) Are data sizes correct?
-  ostringstream os_pha_mat;
+  std::ostringstream os_pha_mat;
   os_pha_mat << "pha_mat ";
-  ostringstream os_ext_mat;
+  std::ostringstream os_ext_mat;
   os_ext_mat << "ext_mat ";
-  ostringstream os_abs_vec;
+  std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
   chk_size(os_pha_mat.str(),
            ssd.pha_mat_data,

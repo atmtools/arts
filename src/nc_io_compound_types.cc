@@ -12,11 +12,8 @@
 
 #include "config.h"
 
-#ifdef ENABLE_NETCDF
-
 #include <cstring>
 
-#include "arts.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
 
@@ -154,5 +151,3 @@ TMPL_NC_READ_WRITE_FILE_DUMMY(Agenda)
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_NC_READ_WRITE_FILE_DUMMY
-
-#endif /* ENABLE_NETCDF */

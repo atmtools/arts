@@ -14,8 +14,28 @@
 #include "debug.h"
 #include "matpack_data.h"
 #include "matpack_eigen.h"
-#include "species_info.h"
 #include "wigner_functions.h"
+
+constexpr Numeric get_lande_spin_constant(
+    const Species::Species species) noexcept {
+  switch (species) {
+    case Species::fromShortName("O2"):
+      return 2.002064;
+    case Species::fromShortName("NO"):
+      return 2.00071;
+    case Species::fromShortName("OH"):
+      return 2.00089;
+    case Species::fromShortName("ClO"):
+      return 2.00072;
+    case Species::fromShortName("SO"):
+      return 2.002106;
+    default:
+      break;
+  }
+  return 2.00231930436182;
+}
+
+constexpr Numeric get_lande_lambda_constant() noexcept { return 1.0; }
 
 Zeeman::SplittingData SimpleG(const Quantum::Number::ValueList& qns,
                               const Numeric& GS,

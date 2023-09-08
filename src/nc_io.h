@@ -9,40 +9,29 @@
   \brief This file contains basic functions to handle NetCDF data files.
 */
 
-#include "arts.h"
-
-#ifdef ENABLE_NETCDF
-
-#ifndef nc_io_h
-#define nc_io_h
+#pragma once
 
 #include <netcdf.h>
-
-#include "exceptions.h"
-#include "mystring.h"
-#include "species_tags.h"
+#include <workspace.h>
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void nca_filename(String& filename, const String& varname);
+void nca_filename(const String& filename);
 
 void nca_filename_with_index(String& filename,
-                             const Index& file_index,
-                             const String& varname);
+                             const Index& file_index);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-void nca_read_from_file(const String& filename,
-                        T& type);
+void nca_read_from_file(const String& filename, T& type);
 
 template <typename T>
-void nca_write_to_file(const String& filename,
-                       const T& type);
+void nca_write_to_file(const String& filename, const T& type);
 
 /*void nc_read_var(const int ncf, const int **ncvar,
                   const Index dims, const String& name);*/
@@ -68,42 +57,56 @@ int nca_def_Matrix(const int ncid, const String& name, const Matrix& m);
 
 int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t);
 
-Index nca_get_dim(const int ncid, const String &name,
+Index nca_get_dim(const int ncid,
+                  const String& name,
                   const bool noerror = false);
 
 void nca_get_data(const int ncid, const String& name, int* data);
 
-void nca_get_data(const int ncid, const String &name, long *data);
+void nca_get_data(const int ncid, const String& name, long* data);
 
-void nca_get_data(const int ncid, const String &name, long long *data);
+void nca_get_data(const int ncid, const String& name, long long* data);
 
-void nca_get_data(const int ncid, const String &name, Numeric *data);
+void nca_get_data(const int ncid, const String& name, Numeric* data);
 
-void nca_get_data(const int ncid, const String &name, size_t start,
-                  size_t count, Numeric *data);
+void nca_get_data(const int ncid,
+                  const String& name,
+                  size_t start,
+                  size_t count,
+                  Numeric* data);
 
-void nca_get_data(const int ncid, const String &name, char *data);
+void nca_get_data(const int ncid, const String& name, char* data);
 
-void nca_get_data(const int ncid, const String &name,
-                               ArrayOfIndex &aoi, const bool noerror);
+void nca_get_data(const int ncid,
+                  const String& name,
+                  ArrayOfIndex& aoi,
+                  const bool noerror);
 
-void nca_get_data(const int ncid, const String &name,
-                  ArrayOfArrayOfSpeciesTag &aast, const bool noerror);
+void nca_get_data(const int ncid,
+                  const String& name,
+                  ArrayOfArrayOfSpeciesTag& aast,
+                  const bool noerror);
 
-void nca_get_data(const int ncid, const String &name, Vector &v,
+void nca_get_data(const int ncid,
+                  const String& name,
+                  Vector& v,
                   const bool noerror = false);
 
-void nca_get_data(const int ncid, const String &name, Matrix &m,
+void nca_get_data(const int ncid,
+                  const String& name,
+                  Matrix& m,
                   const bool noerror = false);
 
-void nca_get_data(const int ncid, const String &name, Tensor4 &m,
+void nca_get_data(const int ncid,
+                  const String& name,
+                  Tensor4& m,
                   const bool noerror = false);
 
-void nca_put_var(const int ncid, const int varid, const long *ind_arr);
+void nca_put_var(const int ncid, const int varid, const long* ind_arr);
 
-void nca_put_var(const int ncid, const int varid, const long long*ind_arr);
+void nca_put_var(const int ncid, const int varid, const long long* ind_arr);
 
-bool nca_put_var(const int ncid, const int varid, const ArrayOfIndex &a);
+bool nca_put_var(const int ncid, const int varid, const ArrayOfIndex& a);
 
 bool nca_put_var(const int ncid, const int varid, const Vector& v);
 
@@ -112,7 +115,3 @@ bool nca_put_var(const int ncid, const int varid, const Matrix& m);
 bool nca_put_var(const int ncid, const int varid, const Tensor4& t);
 
 void nca_error(const int err, const std::string_view msg);
-
-#endif /* nc_io_h */
-
-#endif /* ENABLE_NETCDF */

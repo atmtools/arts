@@ -21,7 +21,6 @@
 #include "arts_constants.h"
 #include "species_tags.h"
 #include "absorption.h"
-#include "arts.h"
 #include "check_input.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -63,7 +62,7 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
 
   if (ife < 0) {
     if (demand_vmr_value) {
-      throw runtime_error(
+      throw std::runtime_error(
           "Free electrons not found in *abs_species* and "
           "contribution to refractive index can not be calculated.");
     }
@@ -76,16 +75,16 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
       // to ionospheric and tropospheric effects for signal frequencies
       // above 100 HMHz, Bull. Goed., 1984.
       if (f_grid[0] < 100e6) {
-        throw runtime_error(
+        throw std::runtime_error(
             "All frequencies must be >= 100 MHz, but "
             "this is not the case.");
       }
       if (edensity * k / (f_grid[0] * f_grid[0]) > 0.25) {
-        ostringstream os;
+        std::ostringstream os;
         os << "All frequencies must at least be twice the plasma frequency.\n"
            << "For this particular point, the plasma frequency is: "
            << sqrt(edensity * k) / 1e6 << " MHz.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       const Numeric f = (f_grid[0] + last(f_grid)) / 2.0;
@@ -127,7 +126,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
                                    const Numeric& k2,
                                    const Numeric& k3) {
   if (abs_species.nelem() != rtp_vmr.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");
 
@@ -136,7 +135,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
 
   Numeric e;
   if (firstH2O < 0)
-    //throw runtime_error(
+    //throw std::runtime_error(
     //   "Water vapour is a required (must be a tag group in *abs_species*)." );
     e = 0.;
   else
@@ -199,7 +198,7 @@ void refr_index_airMicrowavesGeneral(
 
   // Checks
   if (abs_species.nelem() != rtp_vmr.nelem())
-    throw runtime_error(
+    throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");
   /*
@@ -261,11 +260,11 @@ void refr_index_airMicrowavesGeneral(
   /*
   if ( abs(ref_spec_vmr_sum-1) > 0.1 )
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "Error: The total VMR of all your defined refractive\n"
              << "species is " << ref_spec_vmr_sum
              << ", more than 10% " << "different from 1.\n";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
   */
 

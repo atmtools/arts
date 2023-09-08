@@ -15,7 +15,7 @@
 
 #include "atm.h"
 #include "field.h"
-#include "workspace_ng.h"
+#include <workspace.h>
 
 class Agenda;
 class Workspace;
@@ -23,30 +23,6 @@ class Workspace;
 using FieldOfMuelmatVector = Field3D<MuelmatVector>;
 using FieldOfPropmatVector = Field3D<PropmatVector>;
 using FieldOfStokvecVector = Field3D<StokvecVector>;
-
-/** Creates a field of propagation matrices, absorption vectors, and source vectors
- * 
- * @param[in] ws A workspace
- * @param[out] propmat_field A 3D field of propagation matrices
- * @param[out] absorption_field A 3D field of absorption vectors
- * @param[out] additional_source_field A 3D field of source vectors
- * @param[in] f_grid As WSV
- * @param[in] p_grid As WSV
- * @param[in] z_field As WSV
- * @param[in] t_field As WSV
- * @param[in] nlte_field As WSV
- * @param[in] vmr_field As WSV
- * @param[in] jacobian_quantities As WSV
- * @param[in] propmat_clearsky_agenda As WSA
- */
-void field_of_propagation(Workspace& ws,
-                          FieldOfPropmatVector& propmat_field,
-                          FieldOfStokvecVector& absorption_field,
-                          FieldOfStokvecVector& additional_source_field,
-                          const Vector& f_grid,
-                          const AtmField& atm_field,
-                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                          const Agenda& propmat_clearsky_agenda);
 
 /** Get a field of transmission matrices from the propagation matrix field
  * 
@@ -86,7 +62,7 @@ FieldOfMuelmatVector transmat_field_calc_from_propmat_field(
  * @param[in] surface_props_data As WSV
  */
 void emission_from_propmat_field(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfStokvecVector& lvl_rad,
     ArrayOfStokvecVector& src_rad,
     ArrayOfMuelmatVector& lyr_tra,

@@ -7,12 +7,12 @@
 
 */
 
-#include "arts.h"
-#include "global_data.h"
+#include <workspace.h>
 #include "xsec_fit.h"
 #include "jacobian.h"
 #include "m_xml.h"
 #include "physics_funcs.h"
+#include "arts_omp.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
@@ -41,7 +41,7 @@ void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
                           String(Species::toShortName(species_name)) + ".xml"};
 
     try {
-      ReadXML(xsec_coeffs, "", filename, "");
+      xml_read_from_file(filename, xsec_coeffs);
 
       xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
@@ -278,8 +278,8 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
                              f_grid,
                              current_p,
                              current_t);
-        } catch (runtime_error& e) {
-          ostringstream os;
+        } catch (std::runtime_error& e) {
+          std::ostringstream os;
           os << "Problem with HITRAN cross section species "
              << this_species.Name() << " at pressure level " << ip << " ("
              << abs_p[ip] / 100. << " hPa):\n"

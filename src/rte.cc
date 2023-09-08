@@ -15,7 +15,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "geodetic.h"
@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include "arts_omp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
@@ -73,15 +74,6 @@ void adapt_stepwise_partial_derivatives(
       }
     }
   }
-}
-
-void adjust_los(VectorView los) {
-    // If any of the angles out-of-bounds, use cart2zaaa to resolve
-    if (abs(los[0] - 90) > 90 || abs(los[1]) > 180) {
-      Numeric dx, dy, dz;
-//      zaaa2cart(dx, dy, dz, los[0], los[1]);
-  //    cart2zaaa(los[0], los[1], dx, dy, dz);
-    ARTS_USER_ERROR("ERROR")}
 }
 
 void apply_iy_unit(MatrixView iy,
@@ -244,370 +236,6 @@ void apply_iy_unit2(Tensor3View J,
   }
 }
 
-void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
-  Numeric theta;
-  if (ppath.dim < 3) {
-    theta = abs(ppath.start_pos[1] - ppath.end_pos[1]);
-  } else {
-    // theta = sphdist(ppath.start_pos[1],
-    //                 ppath.start_pos[2],
-    //                 ppath.end_pos[1],
-    //                 ppath.end_pos[2]);
-    ARTS_USER_ERROR("ERROR")
-  }
-
-  // Eq 17 in Kursinski et al., TAO, 2000:
-  alpha = ppath.start_los[0] - ppath.end_los[0] + theta;
-
-  // This as
-  // phi_r = 180 - ppath.end_los[0]
-  // phi_t = ppath.start_los[0]
-}
-
-/** Just to avoid duplicatuion of code in *defocusing_general*.
-   
-    rte_los is mainly an input, but is also returned "adjusted" (with zenith
-    and azimuth angles inside defined ranges) 
- 
-    @param[out]   pos                 Position of ppath at optical distance lo0
-    @param[in,out]   rte_los          Direction for transmitted signal 
-                                      (disturbed from nominal value)
-    @param[out]   rte_pos             Position of transmitter.
-    @param[out]   background          Raditaive background of ppath.
-    @param[in]    lo0                 Optical path length between transmitter 
-                                      and receiver.
-    @param[in]    ppath_step_agenda   As the WSV with the same name.
-    @param[in]    p_grid              As the WSV with the same name.
-    @param[in]    lat_grid            As the WSV with the same name.
-    @param[in]    lon_grid            As the WSV with the same name.
-    @param[in]    z_field             As the WSV with the same name.
-    @param[in]    f_grid              As the WSV with the same name.
-    @param[in]    refellipsoid        As the WSV with the same name.
-    @param[in]    z_surface           As the WSV with the same name.
-
-    @author Patrick Eriksson 
-    @date   2012-04-11
- */
-void defocusing_general_sub(Workspace& ws,
-                            Vector& pos,
-                            Vector& rte_los,
-                            Index& background,
-                            const Vector& rte_pos,
-                            const Numeric& lo0,
-                            const Agenda& ppath_step_agenda,
-                            const Numeric& ppath_lmax,
-                            const Numeric& ppath_lraytrace,
-                            const Vector& p_grid,
-                            const Vector& lat_grid,
-                            const Vector& lon_grid,
-                            const Tensor3& z_field,
-                            const Vector& f_grid,
-                            const Vector& refellipsoid,
-                            const Matrix& z_surface) {
-  // Special treatment of 1D around zenith/nadir
-  // (zenith angles outside [0,180] are changed by *adjust_los*)
-  bool invert_lat = false;
-
-  // Handle cases where angles have moved out-of-bounds due to disturbance
-  adjust_los(rte_los);
-
-  // Calculate the ppath for disturbed rte_los
-  Ppath ppx;
-  //
-  // ppath_calc(ws,
-  //            ppx,
-  //            ppath_step_agenda,
-  //            p_grid,
-  //            lat_grid,
-  //            lon_grid,
-  //            z_field,
-  //            f_grid,
-  //            refellipsoid,
-  //            z_surface,
-  //            0,
-  //            ArrayOfIndex(0),
-  //            rte_pos,
-  //            rte_los,
-  //            ppath_lmax,
-  //            ppath_lraytrace,
-  //            false,);
-  // //
-  // background = ppath_what_background(ppx);
-  ARTS_USER_ERROR("ERROR")
-
-  // Calcualte cumulative optical path for ppx
-  Vector lox(ppx.np);
-  Index ilast = ppx.np - 1;
-  lox[0] = ppx.end_lstep;
-  for (Index i = 1; i <= ilast; i++) {
-    lox[i] =
-        lox[i - 1] + ppx.lstep[i - 1] * (ppx.nreal[i - 1] + ppx.nreal[i]) / 2.0;
-  }
-
-  pos.resize(3);
-
-  // Reciever at a longer distance (most likely out in space):
-  if (lox[ilast] < lo0) {
-    const Numeric dl = lo0 - lox[ilast];
-      // Numeric x, y, z, dx, dy, dz;
-      // poslos2cart(x,
-      //             y,
-      //             z,
-      //             dx,
-      //             dy,
-      //             dz,
-      //             ppx.r[ilast],
-      //             ppx.pos(ilast, 1),
-      //             ppx.pos(ilast, 2),
-      //             ppx.los(ilast, 0),
-      //             ppx.los(ilast, 1));
-      // cart2sph(pos[0],
-      //          pos[1],
-      //          pos[2],
-      //          x + dl * dx,
-      //          y + dl * dy,
-      //          z + dl * dz,
-      //          ppx.pos(ilast, 1),
-      //          ppx.pos(ilast, 2),
-      //          ppx.los(ilast, 0),
-      //          ppx.los(ilast, 1));
-      ARTS_USER_ERROR("ERROR")
-  }
-
-  // Interpolate to lo0
-  else {
-    GridPos gp;
-    Vector itw(2);
-    gridpos(gp, lox, lo0);
-    interpweights(itw, gp);
-    //
-    pos[0] = interp(itw, ppx.r, gp);
-    pos[1] = interp(itw, ppx.pos(joker, 1), gp);
-    pos[2] = interp(itw, ppx.pos(joker, 2), gp);
-  }
-
-  if (invert_lat) {
-    pos[1] = -pos[1];
-  }
-}
-
-void defocusing_general(Workspace& ws,
-                        Numeric& dlf,
-                        const Agenda& ppath_step_agenda,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const Tensor3& z_field,
-                        const Vector& f_grid,
-                        const Vector& refellipsoid,
-                        const Matrix& z_surface,
-                        const Ppath& ppath,
-                        const Numeric& ppath_lmax,
-                        const Numeric& ppath_lraytrace,
-                        const Numeric& dza) {
-  // Optical and physical path between transmitter and reciver
-  Numeric lo = ppath.start_lstep + ppath.end_lstep;
-  Numeric lp = lo;
-  for (Index i = 0; i <= ppath.np - 2; i++) {
-    lp += ppath.lstep[i];
-    lo += ppath.lstep[i] * (ppath.nreal[i] + ppath.nreal[i + 1]) / 2.0;
-  }
-  // Extract rte_pos and rte_los
-  const Vector rte_pos{ppath.start_pos[Range(0, 3)]};
-  //
-  Vector rte_los0(2), rte_los;
-  mirror_los(rte_los, ppath.start_los);
-  rte_los0 = rte_los[Range(0, 2)];
-
-  // A new ppath with positive zenith angle off-set
-  //
-  Vector pos1;
-  Index backg1;
-  //
-  rte_los = rte_los0;
-  rte_los[0] += dza;
-  //
-  defocusing_general_sub(ws,
-                         pos1,
-                         rte_los,
-                         backg1,
-                         rte_pos,
-                         lo,
-                         ppath_step_agenda,
-                         ppath_lmax,
-                         ppath_lraytrace,
-                         p_grid,
-                         lat_grid,
-                         lon_grid,
-                         z_field,
-                         f_grid,
-                         refellipsoid,
-                         z_surface);
-
-  // Same thing with negative zenit angle off-set
-  Vector pos2;
-  Index backg2;
-  //
-  rte_los = rte_los0;  // Use rte_los0 as rte_los can have been "adjusted"
-  rte_los[0] -= dza;
-  //
-  defocusing_general_sub(ws,
-                         pos2,
-                         rte_los,
-                         backg2,
-                         rte_pos,
-                         lo,
-                         ppath_step_agenda,
-                         ppath_lmax,
-                         ppath_lraytrace,
-                         p_grid,
-                         lat_grid,
-                         lon_grid,
-                         z_field,
-                         f_grid,
-                         refellipsoid,
-                         z_surface);
-
-  // Calculate distance between pos1 and 2, and derive the loss factor
-  // All appears OK:
-  if (backg1 == backg2) {
-    Numeric l12;
-  //    distance3D(l12, pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]);
-    ARTS_USER_ERROR("ERROR")
-    //
-    dlf = lp * 2 * Conversion::deg2rad(1) * dza / l12;
-  }
-  // If different backgrounds, then only use the second calculation
-  else {
-    Numeric l12;
-      // const Numeric r = refell2r(refellipsoid, ppath.end_pos[1]);
-      // distance3D(l12,
-      //            r + ppath.end_pos[0],
-      //            ppath.end_pos[1],
-      //            ppath.end_pos[2],
-      //            pos2[0],
-      //            pos2[1],
-      //            pos2[2]);
-    ARTS_USER_ERROR("ERROR")
-    //
-    dlf = lp * Conversion::deg2rad(1) * dza / l12;
-  }
-}
-
-void defocusing_sat2sat(Workspace& ws,
-                        Numeric& dlf,
-                        const Agenda& ppath_step_agenda,
-                        const Vector& p_grid,
-                        const Vector& lat_grid,
-                        const Vector& lon_grid,
-                        const Tensor3& z_field,
-                        const Vector& f_grid,
-                        const Vector& refellipsoid,
-                        const Matrix& z_surface,
-                        const Ppath& ppath,
-                        const Numeric& ppath_lmax,
-                        const Numeric& ppath_lraytrace,
-                        const Numeric& dza) {
-  ARTS_USER_ERROR_IF (ppath.end_los[0] < 90 || ppath.start_los[0] > 90,
-        "The function *defocusing_sat2sat* can only be used "
-        "for limb sounding geometry.");
-
-  // Index of tangent point
-  Index it;
-  //find_tanpoint(it, ppath);
-  ARTS_USER_ERROR("ERROR")
-  ARTS_ASSERT(it >= 0);
-
-  // Length between tangent point and transmitter/reciver
-  Numeric lt = ppath.start_lstep, lr = ppath.end_lstep;
-  for (Index i = it; i <= ppath.np - 2; i++) {
-    lt += ppath.lstep[i];
-  }
-  for (Index i = 0; i < it; i++) {
-    lr += ppath.lstep[i];
-  }
-
-  // Bending angle and impact parameter for centre ray
-  Numeric alpha0, a0;
-  bending_angle1d(alpha0, ppath);
-  alpha0 *= Conversion::deg2rad(1);
-  a0 = ppath.constant;
-
-  // Azimuth loss term (Eq 18.5 in Kursinski et al.)
-  const Numeric lf = lr * lt / (lr + lt);
-  const Numeric alt = 1 / (1 - alpha0 * lf / refellipsoid[0]);
-
-  // Calculate two new ppaths to get dalpha/da
-  Numeric alpha1, a1, alpha2, a2, dada;
-  Ppath ppt;
-  Vector rte_pos{ppath.end_pos[Range(0, 3)]};
-  Vector rte_los{ppath.end_los};
-  //
-  rte_los[0] -= dza;
-  adjust_los(rte_los);
-ARTS_USER_ERROR("ERROR")
-  // ppath_calc(ws,
-  //            ppt,
-  //            ppath_step_agenda,
-  //            p_grid,
-  //            lat_grid,
-  //            lon_grid,
-  //            z_field,
-  //            f_grid,
-  //            refellipsoid,
-  //            z_surface,
-  //            0,
-  //            ArrayOfIndex(0),
-  //            rte_pos,
-  //            rte_los,
-  //            ppath_lmax,
-  //            ppath_lraytrace,
-  //            false,);
-  bending_angle1d(alpha2, ppt);
-  alpha2 *= Conversion::deg2rad(1);
-  a2 = ppt.constant;
-  //
-  rte_los[0] += 2 * dza;
-  adjust_los(rte_los);
-  // ppath_calc(ws,
-  //            ppt,
-  //            ppath_step_agenda,
-  //            p_grid,
-  //            lat_grid,
-  //            lon_grid,
-  //            z_field,
-  //            f_grid,
-  //            refellipsoid,
-  //            z_surface,
-  //            0,
-  //            ArrayOfIndex(0),
-  //            rte_pos,
-  //            rte_los,
-  //            ppath_lmax,
-  //            ppath_lraytrace,
-  //            false,);
-  ARTS_USER_ERROR("ERROR")
-  // This path can hit the surface. And we need to check if ppt is OK.
-  // (remember this function only deals with sat-to-sat links and OK
-  // background here is be space)
-  // Otherwise use the centre ray as the second one.
-  // if (ppath_what_background(ppt) == 1) {
-  //   bending_angle1d(alpha1, ppt);
-  //   alpha1 *= Conversion::deg2rad(1);
-  //   a1 = ppt.constant;
-  //   dada = (alpha2 - alpha1) / (a2 - a1);
-  // } else {
-  //   dada = (alpha2 - alpha0) / (a2 - a0);
-  // }
-  ARTS_USER_ERROR("ERROR")
-
-  // Zenith loss term (Eq 18 in Kursinski et al.)
-  const Numeric zlt = 1 / (1 - dada * lf);
-
-  // Total defocusing loss
-  dlf = zlt * alt;
-}
-
 Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
@@ -628,7 +256,7 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
 
-void get_iy(Workspace& ws,
+void get_iy(const Workspace& ws,
             Matrix& iy,
             const Index& cloudbox_on,
             const Vector& f_grid,
@@ -669,7 +297,7 @@ void get_iy(Workspace& ws,
                         iy_main_agenda);
 }
 
-void get_iy_of_background(Workspace& ws,
+void get_iy_of_background(const Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
                           const Tensor3& iy_transmittance,
@@ -709,14 +337,12 @@ void get_iy_of_background(Workspace& ws,
     case Space:  //--- Space ----------------------------------------------------
     {
       agenda_name = "iy_space_agenda";
-      chk_not_empty(agenda_name, iy_space_agenda);
       iy_space_agendaExecute(ws, iy, f_grid, rtp_pos, rtp_los, iy_space_agenda);
     } break;
 
     case Surface:  //--- The surface -----------------------------------------------
     {
       agenda_name = "iy_surface_agenda";
-      chk_not_empty(agenda_name, iy_surface_agenda);
       //
       const Index los_id = iy_id % (Index)1000;
       Index iy_id_new = iy_id + (Index)9 * los_id;
@@ -756,7 +382,6 @@ void get_iy_of_background(Workspace& ws,
 
     case Cloudbox: {//--- Cloudbox boundary or interior ------------------------------
       agenda_name = "iy_cloudbox_agenda";
-      chk_not_empty(agenda_name, iy_cloudbox_agenda);
       iy_cloudbox_agendaExecute(
           ws, iy, f_grid, rtp_pos, rtp_los, iy_cloudbox_agenda);
     } break;
@@ -910,12 +535,6 @@ void get_ppath_f(Matrix& ppath_f,
   }
 }
 
-Range get_rowindex_for_mblock(const Sparse& sensor_response,
-                              const Index& mblock_index) {
-  const Index n1y = sensor_response.nrows();
-  return Range(n1y * mblock_index, n1y);
-}
-
 void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
                                       const ConstVectorView &ppath_f_grid,
                                       const Numeric &ppath_temperature,
@@ -953,7 +572,7 @@ void get_stepwise_blackbody_radiation(
 }
 
 void get_stepwise_clearsky_propmat(
-    Workspace &ws, PropmatVector &K, StokvecVector &S,
+    const Workspace &ws, PropmatVector &K, StokvecVector &S,
     PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
     const Agenda &propmat_clearsky_agenda,
     const ArrayOfRetrievalQuantity &jacobian_quantities,
@@ -1069,10 +688,6 @@ void get_stepwise_scattersky_propmat(
                 ext_mat_ssbulk,
                 abs_vec_ssbulk,
                 ptype_ssbulk);
-
-  const Index nf_ssd = abs_vec_bulk.nbooks();  // number of freqs in extracted
-                                               // optprops. if 1, we need to
-                                               // duplicate the ext/abs output.
 
   for (Index iv = 0; iv < nf; iv++) {
     ap[iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
@@ -1273,272 +888,6 @@ void get_stepwise_scattersky_source(
   }  // for iv
 }
 
-void iyb_calc_body(bool& failed,
-                   String& fail_msg,
-                   ArrayOfArrayOfMatrix& iy_aux_array,
-                   Workspace& ws,
-                   Ppath& ppath,
-                   Vector& iyb,
-                   ArrayOfMatrix& diyb_dx,
-                   Vector& geo_pos,
-                   const Index& mblock_index,
-                   const AtmField& atm_field,
-                   const Index& cloudbox_on,
-                   const Matrix& sensor_pos,
-                   const Matrix& sensor_los,
-                   const Matrix& transmitter_pos,
-                   const Matrix& mblock_dlos,
-                   const String& iy_unit,
-                   const Agenda& iy_main_agenda,
-                   const Index& j_analytical_do,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfArrayOfIndex& jacobian_indices,
-                   const Vector& f_grid,
-                   const ArrayOfString& iy_aux_vars,
-                   const Index& ilos,
-                   const Index& nf) {
-  // The try block here is necessary to correctly handle
-  // exceptions inside the parallel region.
-  try {
-    //--- LOS of interest
-    //
-    Vector los(sensor_los.ncols());
-    //
-    los = sensor_los(mblock_index, joker);
-    if (mblock_dlos.ncols() == 1) {
-      los[0] += mblock_dlos(ilos, 0);
-      adjust_los(los);
-    } else {
-      // add_za_aa(los[0],
-      //           los[1],
-      //           los[0],
-      //           los[1],
-      //           mblock_dlos(ilos, 0),
-      //           mblock_dlos(ilos, 1));
-      ARTS_USER_ERROR("ERROR")
-    }
-
-    //--- rtp_pos 1 and 2
-    //
-    Vector rtp_pos, rtp_pos2(0);
-    //
-    rtp_pos = sensor_pos(mblock_index, joker);
-    if (!transmitter_pos.empty()) {
-      rtp_pos2 = transmitter_pos(mblock_index, joker);
-    }
-
-    // Calculate iy and associated variables
-    //
-    Matrix iy;
-    ArrayOfTensor3 diy_dx;
-    Tensor3 iy_transmittance(0, 0, 0);
-    const Index iy_agenda_call1 = 1;
-    const Index iy_id =
-        (Index)1e6 * (mblock_index + 1) + (Index)1e3 * (ilos + 1);
-    //
-    iy_main_agendaExecute(ws,
-                          iy,
-                          iy_aux_array[ilos],
-                          ppath,
-                          diy_dx,
-                          geo_pos,
-                          iy_agenda_call1,
-                          iy_transmittance,
-                          iy_aux_vars,
-                          iy_id,
-                          iy_unit,
-                          cloudbox_on,
-                          j_analytical_do,
-                          f_grid,
-                          atm_field,
-                          rtp_pos,
-                          los,
-                          rtp_pos2,
-                          iy_main_agenda);
-
-    // Start row in iyb etc. for present LOS
-    //
-    const Index row0 = ilos * nf * 4;
-
-    // Jacobian part
-    //
-    if (j_analytical_do) {
-      FOR_ANALYTICAL_JACOBIANS_DO2(
-          for (Index ip = 0;
-               ip < jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1;
-               ip++) {
-            for (Index is = 0; is < 4; is++) {
-              diyb_dx[iq](Range(row0 + is, nf, 4), ip) =
-                  diy_dx[iq](ip, joker, is);
-            }
-          })
-    }
-
-    // iy : copy to iyb
-    for (Index is = 0; is < 4; is++) {
-      iyb[Range(row0 + is, nf, 4)] = iy(joker, is);
-    }
-
-  }  // End try
-
-  catch (const std::exception& e) {
-#pragma omp critical(iyb_calc_fail)
-    {
-      fail_msg = e.what();
-      failed = true;
-    }
-  }
-}
-
-void iyb_calc(Workspace& ws,
-              Vector& iyb,
-              ArrayOfVector& iyb_aux,
-              ArrayOfMatrix& diyb_dx,
-              Matrix& geo_pos_matrix,
-              const Index& mblock_index,
-              const AtmField& atm_field,
-              const Index& cloudbox_on,
-              const Vector& f_grid,
-              const Matrix& sensor_pos,
-              const Matrix& sensor_los,
-              const Matrix& transmitter_pos,
-              const Matrix& mblock_dlos,
-              const String& iy_unit,
-              const Agenda& iy_main_agenda,
-              const Index& j_analytical_do,
-              const ArrayOfRetrievalQuantity& jacobian_quantities,
-              const ArrayOfArrayOfIndex& jacobian_indices,
-              const ArrayOfString& iy_aux_vars) {
-  // Sizes
-  const Index nf = f_grid.nelem();
-  const Index nlos = mblock_dlos.nrows();
-  const Index niyb = nf * nlos * 4;
-  // Set up size of containers for data of 1 measurement block.
-  // (can not be made below due to parallalisation)
-  iyb.resize(niyb);
-  //
-  if (j_analytical_do) {
-    diyb_dx.resize(jacobian_indices.nelem());
-    FOR_ANALYTICAL_JACOBIANS_DO2(diyb_dx[iq].resize(
-        niyb, jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1);)
-  } else {
-    diyb_dx.resize(0);
-  }
-  // Assume empty geo_pos.
-  geo_pos_matrix.resize(nlos, 5);
-  geo_pos_matrix = NAN;
-
-  // For iy_aux we don't know the number of quantities, and we have to store
-  // all outout
-  ArrayOfArrayOfMatrix iy_aux_array(nlos);
-
-  String fail_msg;
-  bool failed = false;
-  if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
-    WorkspaceOmpParallelCopyGuard wss{ws};
-
-    // Start of actual calculations
-#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(wss)
-    for (Index ilos = 0; ilos < nlos; ilos++) {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-
-      Ppath ppath;
-      Vector geo_pos;
-      iyb_calc_body(failed,
-                    fail_msg,
-                    iy_aux_array,
-                    wss,
-                    ppath,
-                    iyb,
-                    diyb_dx,
-                    geo_pos,
-                    mblock_index,
-                    atm_field,
-                    cloudbox_on,
-                    sensor_pos,
-                    sensor_los,
-                    transmitter_pos,
-                    mblock_dlos,
-                    iy_unit,
-                    iy_main_agenda,
-                    j_analytical_do,
-                    jacobian_quantities,
-                    jacobian_indices,
-                    f_grid,
-                    iy_aux_vars,
-                    ilos,
-                    nf);
-
-      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
-
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-    }
-  } else {
-    for (Index ilos = 0; ilos < nlos; ilos++) {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-
-      Ppath ppath;
-      Vector geo_pos;
-      iyb_calc_body(failed,
-                    fail_msg,
-                    iy_aux_array,
-                    ws,
-                    ppath,
-                    iyb,
-                    diyb_dx,
-                    geo_pos,
-                    mblock_index,
-                    atm_field,
-                    cloudbox_on,
-                    sensor_pos,
-                    sensor_los,
-                    transmitter_pos,
-                    mblock_dlos,
-                    iy_unit,
-                    iy_main_agenda,
-                    j_analytical_do,
-                    jacobian_quantities,
-                    jacobian_indices,
-                    f_grid,
-                    iy_aux_vars,
-                    ilos,
-                    nf);
-
-      if (geo_pos.nelem()) geo_pos_matrix(ilos, joker) = geo_pos;
-
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
-    }
-  }
-
-  ARTS_USER_ERROR_IF (failed,
-                      "Run-time error in function: iyb_calc\n", fail_msg);
-
-  // Compile iyb_aux
-  //
-  const Index nq = iy_aux_array[0].nelem();
-  iyb_aux.resize(nq);
-  //
-  for (Index q = 0; q < nq; q++) {
-    iyb_aux[q].resize(niyb);
-    //
-    for (Index ilos = 0; ilos < nlos; ilos++) {
-      const Index row0 = ilos * nf * 4;
-      for (Index iv = 0; iv < nf; iv++) {
-        const Index row1 = row0 + iv * 4;
-        const Index i1 = min(iv, iy_aux_array[ilos][q].nrows() - 1);
-        for (Index is = 0; is < 4; is++) {
-          Index i2 = min(is, iy_aux_array[ilos][q].ncols() - 1);
-          iyb_aux[q][row1 + is] = iy_aux_array[ilos][q](i1, i2);
-        }
-      }
-    }
-  }
-}
-
 void iy_transmittance_mult(Tensor3& iy_trans_total,
                           const ConstTensor3View& iy_trans_old,
                           const ConstTensor3View& iy_trans_new) {
@@ -1651,19 +1000,8 @@ void mueller_stokes2modif(Matrix& Cm) {
         Cm(3,3) = 1;   
 }
 
-void pos2true_latlon(Numeric& lat,
-                     Numeric& lon,
-                     const ConstVectorView& lat_grid,
-                     const ConstVectorView& lat_true,
-                     const ConstVectorView& lon_true,
-                     const ConstVectorView& pos) {
-  ARTS_ASSERT(pos.nelem() == 3);
-  lat = pos[1];
-  lon = pos[2];
-}
-
 void rtmethods_jacobian_finalisation(
-    Workspace& ws,
+    const Workspace& ws,
     ArrayOfTensor3& diy_dx,
     ArrayOfTensor3& diy_dpath,
     const Index& nf,
@@ -1844,139 +1182,6 @@ void rtmethods_unit_conversion(
   for (Index ip = 0; ip < ppath.np; ip++) {
     apply_iy_unit(
         ppvar_iy(joker, joker, ip), iy_unit, f_grid, ppath.nreal[ip], i_pol);
-  }
-}
-
-void yCalc_mblock_loop_body(bool& failed,
-                            String& fail_msg,
-                            ArrayOfArrayOfVector& iyb_aux_array,
-                            Workspace& ws,
-                            Vector& y,
-                            Vector& y_f,
-                            ArrayOfIndex& y_pol,
-                            Matrix& y_pos,
-                            Matrix& y_los,
-                            Matrix& y_geo,
-                            Matrix& jacobian,
-                            const AtmField& atm_field,
-                            const Index& cloudbox_on,
-                            const Vector& f_grid,
-                            const Matrix& sensor_pos,
-                            const Matrix& sensor_los,
-                            const Matrix& transmitter_pos,
-                            const Matrix& mblock_dlos,
-                            const Sparse& sensor_response,
-                            const Vector& sensor_response_f,
-                            const ArrayOfIndex& sensor_response_pol,
-                            const Matrix& sensor_response_dlos,
-                            const String& iy_unit,
-                            const Agenda& iy_main_agenda,
-                            const Agenda& jacobian_agenda,
-                            const Index& jacobian_do,
-                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                            const ArrayOfArrayOfIndex& jacobian_indices,
-                            const ArrayOfString& iy_aux_vars,
-                            const Index& mblock_index,
-                            const Index& n1y,
-                            const Index& j_analytical_do) {
-  try {
-    // Calculate monochromatic pencil beam data for 1 measurement block
-    //
-    Vector iyb, iyb_error, yb(n1y);
-    ArrayOfMatrix diyb_dx;
-    Matrix geo_pos_matrix;
-    //
-    iyb_calc(ws,
-             iyb,
-             iyb_aux_array[mblock_index],
-             diyb_dx,
-             geo_pos_matrix,
-             mblock_index,
-             atm_field,
-             cloudbox_on,
-             f_grid,
-             sensor_pos,
-             sensor_los,
-             transmitter_pos,
-             mblock_dlos,
-             iy_unit,
-             iy_main_agenda,
-             j_analytical_do,
-             jacobian_quantities,
-             jacobian_indices,
-             iy_aux_vars);
-
-    // Apply sensor response matrix on iyb, and put into y
-    //
-    const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-    const Index row0 = rowind.offset;
-    //
-    mult(yb, sensor_response, iyb);
-    //
-    y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
-
-    // Fill information variables. And search for NaNs in *y*.
-    //
-    for (Index i = 0; i < n1y; i++) {
-      const Index ii = row0 + i;
-      ARTS_USER_ERROR_IF (std::isnan(y[ii]),
-                          "One or several NaNs found in *y*.");
-      y_f[ii] = sensor_response_f[i];
-      y_pol[ii] = sensor_response_pol[i];
-      y_pos(ii, joker) = sensor_pos(mblock_index, joker);
-      y_los(ii, joker) = sensor_los(mblock_index, joker);
-      y_los(ii, 0) += sensor_response_dlos(i, 0);
-      if (sensor_response_dlos.ncols() > 1) {
-        y_los(ii, 1) += sensor_response_dlos(i, 1);
-      }
-    }
-
-    // Apply sensor response matrix on diyb_dx, and put into jacobian
-    // (that is, analytical jacobian part)
-    //
-    if (j_analytical_do) {
-      FOR_ANALYTICAL_JACOBIANS_DO2(
-          mult(jacobian(rowind,
-                        Range(jacobian_indices[iq][0],
-                              jacobian_indices[iq][1] -
-                                  jacobian_indices[iq][0] + 1)),
-               sensor_response,
-               diyb_dx[iq]);)
-    }
-
-    // Calculate remaining parts of *jacobian*
-    //
-    if (jacobian_do) {
-      jacobian_agendaExecute(
-          ws, jacobian, mblock_index, iyb, yb, jacobian_agenda);
-    }
-
-    // Handle geo-positioning
-    if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
-    {
-      // We set geo_pos based on the max value in sensor_response
-      const Index nfs = f_grid.nelem() * 4;
-      for (Index i = 0; i < n1y; i++) {
-        Index jmax = -1;
-        Numeric rmax = -99e99;
-        for (Index j = 0; j < sensor_response.ncols(); j++) {
-          if (sensor_response(i, j) > rmax) {
-            rmax = sensor_response(i, j);
-            jmax = j;
-          }
-        }
-        const auto jhit = Index(floor(jmax / nfs));
-        y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
-      }
-    }
-  }
-
-  catch (const std::exception& e) {
-#pragma omp critical(yCalc_fail)
-    {
-      fail_msg = e.what();
-      failed = true;
-    }
   }
 }
 

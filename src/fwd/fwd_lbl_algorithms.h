@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fwd_lbl_concepts.h"
+#include <matpack.h>
 
 namespace fwd::lbl {
 namespace internal {
@@ -17,7 +17,6 @@ namespace internal {
 constexpr Complex sumup(const std::forward_iterator auto& first,
                         const std::forward_iterator auto& last,
                         Numeric f)
-  requires(singleable<decltype(*first)> and singleable<decltype(*last)>)
 {
   return std::transform_reduce(
       first, last, Complex{0, 0}, std::plus<>{}, [f](const auto& l) {
@@ -32,7 +31,7 @@ constexpr Complex sumup(const std::forward_iterator auto& first,
  * @param f A frequency
  * @return constexpr Complex Some sort of absorption coefficient
  */
-constexpr Complex sumup(const list_singleable auto& lines, Numeric f) {
+constexpr Complex sumup(const auto& lines, Numeric f) {
   return internal::sumup(lines.begin(), lines.end(), f);
 }
 
@@ -43,7 +42,7 @@ constexpr Complex sumup(const list_singleable auto& lines, Numeric f) {
  * @param fc A cutoff frequency
  * @return constexpr Complex Some sort of absorption coefficient
  */
-constexpr Complex sumup(const list_singleable auto& lines,
+constexpr Complex sumup(const auto& lines,
                         Numeric f,
                         Numeric fc) {
   const auto first = std::lower_bound(

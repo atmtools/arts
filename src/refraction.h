@@ -15,9 +15,7 @@
 #ifndef refraction_h
 #define refraction_h
 
-#include "agenda_class.h"
-#include "arts.h"
-#include "matpack_data.h"
+#include <workspace.h>
 
 void complex_n_water_liebe93(Matrix& complex_n,
                              const Vector& f_grid,
@@ -26,96 +24,6 @@ void complex_n_water_liebe93(Matrix& complex_n,
 void complex_n_ice_matzler06(Matrix& complex_n,
                              const Vector& f_grid,
                              const Numeric& t);
-
-void get_refr_index_1d(Workspace& ws,
-                       Numeric& refr_index,
-                       Numeric& refr_index_group,
-                       const Agenda& refr_index_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r);
-
-void get_refr_index_2d(Workspace& ws,
-                       Numeric& refr_index,
-                       Numeric& refr_index_group,
-                       const Agenda& refr_index_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView lat_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r,
-                       const Numeric& lat);
-
-void get_refr_index_3d(Workspace& ws,
-                       Numeric& refr_index,
-                       Numeric& refr_index_group,
-                       const Agenda& refr_index_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView lat_grid,
-                       ConstVectorView lon_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r,
-                       const Numeric& lat,
-                       const Numeric& lon);
-
-void refr_gradients_1d(Workspace& ws,
-                       Numeric& refr_index_air,
-                       Numeric& refr_index_air_group,
-                       Numeric& dndr,
-                       const Agenda& refr_index_air_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r);
-
-void refr_gradients_2d(Workspace& ws,
-                       Numeric& refr_index,
-                       Numeric& refr_index_group,
-                       Numeric& dndr,
-                       Numeric& dndlat,
-                       const Agenda& refr_index_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView lat_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r,
-                       const Numeric& lat);
-
-void refr_gradients_3d(Workspace& ws,
-                       Numeric& refr_index,
-                       Numeric& refr_index_group,
-                       Numeric& dndr,
-                       Numeric& dndlat,
-                       Numeric& dndlon,
-                       const Agenda& refr_index_agenda,
-                       ConstVectorView p_grid,
-                       ConstVectorView lat_grid,
-                       ConstVectorView lon_grid,
-                       ConstVectorView refellipsoid,
-                       ConstTensor3View z_field,
-                       ConstTensor3View t_field,
-                       ConstTensor4View vmr_field,
-                       ConstVectorView f_grid,
-                       const Numeric& r,
-                       const Numeric& lat,
-                       const Numeric& lon);
 
 /** Refractive index of water and steam for the optical and near infrared \n
  *

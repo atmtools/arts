@@ -1,11 +1,11 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 
 namespace Python {
-void py_telsem(py::module_& m) {
-  py::class_<TelsemAtlas>(m, "TelsemAtlas")
-      .def(py::init([]() { return std::make_unique<TelsemAtlas>(); }), "Empty atlas")
+void py_telsem(py::module_& m) try {
+  artsclass<TelsemAtlas>(m, "TelsemAtlas")
+      .def(py::init([]() { return std::make_shared<TelsemAtlas>(); }), "Empty atlas")
       .PythonInterfaceCopyValue(TelsemAtlas)
       .PythonInterfaceWorkspaceVariableConversion(TelsemAtlas)
       .PythonInterfaceFileIO(TelsemAtlas)
@@ -30,7 +30,7 @@ void py_telsem(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 14, "Invalid state!")
             
-            auto out = std::make_unique<TelsemAtlas>();
+            auto out = std::make_shared<TelsemAtlas>();
             out->DataCount() = t[0].cast<Index>();
             out->ChannelCount() = t[1].cast<Index>();
             out->Name() = t[2].cast<String>();
@@ -51,5 +51,7 @@ void py_telsem(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
 
   PythonInterfaceWorkspaceArray(TelsemAtlas);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));
 }
 }  // namespace Python

@@ -146,21 +146,18 @@ inputs required to initialize the propagation matrix
 ws.jacobian_quantities = []  # No derivatives
 ws.select_abs_species = []  # All species
 ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
-ws.rtp_mag = []  # No magnetic field
 ws.rtp_los = []  # No particular LOS
-ws.rtp_pressure = 1e5  # At 1 bar
-ws.rtp_temperature = 295  # At room temperature
-ws.rtp_nlte = pyarts.arts.EnergyLevelMap()  # No NLTE
-ws.rtp_vmr = [0.21]  # At 21% atmospheric Oxygen
-ws.stokes_dim = 1  # Unpolarized
+ws.atm_point.temperature = 295  # At room temperature
+ws.atm_point.pressure = 1e5  # At 1 bar
+ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
 
 # Call the agenda with inputs above
-ws.AgendaExecute(a=ws.propmat_clearsky_agenda)
+ws.propmat_clearsky_agendaExecute()
 
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
-plt.semilogy(ws.f_grid.value / 1e9, ws.propmat_clearsky.value.data.flatten())
+plt.semilogy(ws.f_grid.value / 1e9, ws.propmat_clearsky)
 plt.xlabel("Frequency [GHz]")
 plt.ylabel("Absorption [1/m]")
 plt.title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
@@ -172,11 +169,11 @@ be safely ignored
 
 """
 # Save test results
-# ws.propmat_clearsky.value.data.savexml("lines_test_result.xml", type="zascii")
+# ws.propmat_clearsky.savexml("lines_test_result.xml", type="ascii")
 
 # test that we are still OK
-propmat_clearsky_agenda = pyarts.arts.Tensor4()
-propmat_clearsky_agenda.readxml("lines_test_result.xml")
+propmat_clearsky_agenda = \
+    pyarts.arts.PropmatVector.fromxml("lines_test_result.xml")
 assert np.allclose(
-    propmat_clearsky_agenda, ws.propmat_clearsky.value.data
+    propmat_clearsky_agenda, ws.propmat_clearsky
 ), "O2 Absorption has changed"

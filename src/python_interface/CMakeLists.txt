@@ -1,7 +1,6 @@
 ########################################################################################
-# Generate list of files to be generated
 if (NOT NUM_PYARTS_WSM)
-    set(NUM_PYARTS_WSM 5)
+    set(NUM_PYARTS_WSM 10)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
 
@@ -10,68 +9,42 @@ if (NOT NUM_PYARTS_WSV)
 endif()
 message(STATUS "Using ${NUM_PYARTS_WSV} python interface automatic workspace variable files (-DNUM_PYARTS_WSV=N to change)")
 
-if (NOT NUM_PYARTS_WSC)
-    set(NUM_PYARTS_WSC 3)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSC} python interface automatic workspace create method files (-DNUM_PYARTS_WSC=N to change)")
-
-if (NOT NUM_PYARTS_WSG)
-    set(NUM_PYARTS_WSG 3)
-endif()
-message(STATUS "Using ${NUM_PYARTS_WSG} python interface automatic workspace generic method files (-DNUM_PYARTS_WSG=N to change)")
-
 set(PYARTS_WORKSPACE_METHODS "")
 list(LENGTH PYARTS_WORKSPACE_METHODS N)
 while (N LESS NUM_PYARTS_WSM)
-    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_workspace_split_methods_${N}.cc")
+    list(APPEND PYARTS_WORKSPACE_METHODS "py_auto_wsm_${N}.cpp")
     list(LENGTH PYARTS_WORKSPACE_METHODS N)
 endwhile()
 
 set(PYARTS_WORKSPACE_VARS "")
 list(LENGTH PYARTS_WORKSPACE_VARS N)
 while (N LESS NUM_PYARTS_WSV)
-    list(APPEND PYARTS_WORKSPACE_VARS "py_auto_workspace_split_vars_${N}.cc")
+    list(APPEND PYARTS_WORKSPACE_VARS "py_auto_wsv_${N}.cpp")
     list(LENGTH PYARTS_WORKSPACE_VARS N)
 endwhile()
-
-set(PYARTS_WORKSPACE_CREATE "")
-list(LENGTH PYARTS_WORKSPACE_CREATE N)
-while (N LESS NUM_PYARTS_WSC)
-    list(APPEND PYARTS_WORKSPACE_CREATE "py_auto_workspace_split_create_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_CREATE N)
-endwhile()
-
-set(PYARTS_WORKSPACE_GEN "")
-list(LENGTH PYARTS_WORKSPACE_GEN N)
-while (N LESS NUM_PYARTS_WSG)
-    list(APPEND PYARTS_WORKSPACE_GEN "py_auto_workspace_split_generic_${N}.cc")
-    list(LENGTH PYARTS_WORKSPACE_GEN N)
-endwhile()
-
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py PUBLIC methods artscore)
+target_link_libraries(gen_auto_py PUBLIC workspace)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
-add_custom_command(OUTPUT py_auto_interface.h
-                          py_auto_interface.cc
-                          py_auto_workspace.cc
-                          ${PYARTS_WORKSPACE_METHODS}
-                          ${PYARTS_WORKSPACE_VARS}
-                          ${PYARTS_WORKSPACE_GEN}
-                          ${PYARTS_WORKSPACE_CREATE}
-                   COMMAND gen_auto_py ${NUM_PYARTS_WSM} ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSC} ${NUM_PYARTS_WSG}
+add_custom_command(OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp
+                   COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
                    DEPENDS gen_auto_py)
+
 ########################################################################################
 
 ########### pybind11 class interface
 pybind11_add_module(pyarts_cpp THIN_LTO
+    ${PYARTS_WORKSPACE_METHODS}
+    ${PYARTS_WORKSPACE_VARS}
+    py_auto_wsg.cpp
+    py_auto_interface.cpp
+
     py_module.cpp
     py_matpack.cpp
     py_basic.cpp
-    py_docserver.cpp
     py_ppath.cpp
     py_griddedfield.cpp
     py_time.cpp
@@ -104,24 +77,17 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_surf.cpp
     py_fwd.cpp
     py_cia.cpp
+    py_operators.cpp
 
     pydocs.cpp
     gen_auto_py_helpers.cpp
-
-    py_auto_interface.h
-    py_auto_interface.cc
-    py_auto_workspace.cc
-    ${PYARTS_WORKSPACE_METHODS}
-    ${PYARTS_WORKSPACE_VARS}
-    ${PYARTS_WORKSPACE_GEN}
-    ${PYARTS_WORKSPACE_CREATE}
 )
 
 if (ENABLE_PCH)
   target_precompile_headers(pyarts_cpp PRIVATE python_interface.h)
 endif()
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC artscore)
+target_link_libraries(pyarts_cpp PUBLIC workspace)
 target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

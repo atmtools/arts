@@ -1,12 +1,7 @@
 
 #include <memory>
 
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 
@@ -17,19 +12,19 @@
 
 namespace Python {
 
-void py_atm(py::module_ &m) {
-  py::class_<Atm::Data>(m, "AtmData")
-      .def(py::init([]() { return std::make_unique<Atm::Data>(); }))
+void py_atm(py::module_ &m) try {
+  artsclass<Atm::Data>(m, "AtmData")
+      .def(py::init([]() { return std::make_shared<Atm::Data>(); }))
       .def(py::init([](const GriddedField3 &x) {
-        return std::make_unique<Atm::Data>(x);
+        return std::make_shared<Atm::Data>(x);
       }))
       .def(py::init(
-          [](const Numeric &x) { return std::make_unique<Atm::Data>(x); }))
+          [](const Numeric &x) { return std::make_shared<Atm::Data>(x); }))
       .def(py::init([](const Index &x) {
-        return std::make_unique<Atm::Data>(static_cast<Numeric>(x));
+        return std::make_shared<Atm::Data>(static_cast<Numeric>(x));
       }))
       .def(py::init([](const Atm::FunctionalData &x) {
-        return std::make_unique<Atm::Data>(x);
+        return std::make_shared<Atm::Data>(x);
       }))
       .def_readwrite("data", &Atm::Data::data)
       .def_readwrite("alt_upp", &Atm::Data::alt_upp)
@@ -46,7 +41,7 @@ void py_atm(py::module_ &m) {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            auto out = std::make_unique<Atm::Data>();
+            auto out = std::make_shared<Atm::Data>();
             out->data = t[0].cast<Atm::FieldData>();
             out->alt_low = t[1].cast<Atm::Extrapolation>();
             out->alt_upp = t[2].cast<Atm::Extrapolation>();
@@ -61,12 +56,12 @@ void py_atm(py::module_ &m) {
   py::implicitly_convertible<Index, Atm::Data>();
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
 
-  auto pnt = py::class_<AtmPoint>(m, "AtmPoint").def(py::init([] {
-    return std::make_unique<AtmPoint>();
+  auto pnt = artsclass<AtmPoint>(m, "AtmPoint").def(py::init([] {
+    return std::make_shared<AtmPoint>();
   }));
 
-  auto fld = py::class_<AtmField>(m, "AtmField").def(py::init([] {
-    return std::make_unique<AtmField>();
+  auto fld = artsclass<AtmField>(m, "AtmField").def(py::init([] {
+    return std::make_shared<AtmField>();
   }));
 
   pnt.def_readwrite("temperature", &AtmPoint::temperature)
@@ -125,7 +120,7 @@ void py_atm(py::module_ &m) {
             auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<AtmPoint>();
+            auto out = std::make_shared<AtmPoint>();
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
                   [&](auto &&key) -> Numeric & { return out->operator[](key); },
@@ -189,7 +184,7 @@ void py_atm(py::module_ &m) {
             auto v = t[1].cast<std::vector<Atm::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<AtmField>();
+            auto out = std::make_shared<AtmField>();
             out->top_of_atmosphere = t[2].cast<Numeric>();
 
             for (std::size_t i = 0; i < k.size(); i++)
@@ -204,5 +199,7 @@ void py_atm(py::module_ &m) {
       .PythonInterfaceWorkspaceDocumentation(AtmField);
 
   PythonInterfaceWorkspaceArray(AtmPoint);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
 }
 } // namespace Python

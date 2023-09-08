@@ -1,13 +1,9 @@
 #ifndef py_macros_h
 #define py_macros_h
 
-#include <debug.h>
-#include <global_data.h>
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <xml_io.h>
+#include <python_interface.h>
 
+#include <xml_io.h>
 #include <functional>
 
 #include "python_interface_value_type.h"
@@ -80,7 +76,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   def("__len__", [](const Type& x) { return x.nelem(); })                   \
       .def(                                                                 \
           "__getitem__",                                                    \
-          [](Type& x, Index i) -> decltype(x[i])& {                         \
+          [](Type& x, Index i) -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {                         \
             i = negative_clamp(i, x.nelem());                               \
             if (x.nelem() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
@@ -88,9 +84,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                                                  " in object of size [0, ", \
                                                  x.size(),                  \
                                                  ")"));                     \
-            return as_ref(x[i]);                                            \
+            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(&x[i], [](void*){});                                                    \
           },                                                                \
-          py::return_value_policy::reference_internal)                      \
+          py::return_value_policy::reference_internal,                      \
+          py::keep_alive<0, 1>())                                           \
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \
@@ -102,8 +99,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                                                  x.size(),                  \
                                                  ")"));                     \
             x[i] = std::move(y);                                            \
-          },                                                                \
-          py::return_value_policy::reference_internal)
+          })
 
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
@@ -158,20 +154,19 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
  * len(x)
  * for a in x: DO_SOMETHING(a)
  */
-#define PythonInterfaceArrayDefault(BaseType)                                  \
-  PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
-      .PythonInterfaceArrayEquality(Array<BaseType>)                           \
+#define PythonInterfaceArrayDefaultNoAccess(BaseType)                          \
+  PythonInterfaceArrayEquality(Array<BaseType>)                                \
       .PythonInterfaceCopyValue(Array<BaseType>)                               \
-      .def(py::init([]() { return std::make_unique<Array<BaseType>>(); }),     \
+      .def(py::init([]() { return std::make_shared<Array<BaseType>>(); }),     \
            py::doc("Empty array"))                                             \
       .def(py::init([](Index n, const BaseType& v) {                           \
-             return std::make_unique<Array<BaseType>>(n, v);                   \
+             return std::make_shared<Array<BaseType>>(n, v);                   \
            }),                                                                 \
            py::arg("size"),                                                    \
            py::arg("cval"),                                                    \
            py::doc("Sized same-value array"))                                  \
       .def(py::init([](const std::vector<BaseType>& v) {                       \
-             return std::make_unique<Array<BaseType>>(v);                      \
+             return std::make_shared<Array<BaseType>>(v);                      \
            }),                                                                 \
            py::arg("arr"),                                                     \
            py::doc("Array from :class:`list`"))                                \
@@ -239,9 +234,13 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           },                                                                   \
           [](const py::tuple& t) {                                             \
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")                \
-            return std::make_unique<Array<BaseType>>(                          \
+            return std::make_shared<Array<BaseType>>(                          \
                 t[0].cast<std::vector<BaseType>>());                           \
           }))
+
+#define PythonInterfaceArrayDefault(BaseType)                                  \
+  PythonInterfaceIndexItemAccess(Array<BaseType>)                              \
+      .PythonInterfaceArrayDefaultNoAccess(BaseType)
 
 #define PythonInterfaceCommonMath(Type) \
   def(py::self + Type())                \
@@ -288,20 +287,12 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(py::self > py::self)
 
 #define PythonInterfaceWorkspaceVariableConversion(Type)                       \
-  def(py::init([](const Type &x) { return std::make_unique<Type>(x); }),       \
-      py::arg("val"), py::doc("Copy instance"))                                \
-      .def(py::init([](const WorkspaceVariable *w) {                           \
-             Type &v = *w;                                                     \
-             return std::make_unique<Type>(v);                                 \
-           }),                                                                 \
-           py::arg("wsv").none(false).noconvert(),                             \
-           py::doc("Automatic conversion from a workspace variable"))
+  def(py::init([](const Type &x) { return std::make_shared<Type>(x); }),       \
+      py::arg("val"), py::doc("Copy instance"))
 
 //! Place at the end!
 #define PythonInterfaceWorkspaceDocumentation(Type)                           \
-  doc() = unwrap_stars(var_string(global_data::wsv_groups                     \
-                                      .at(global_data::WsvGroupMap.at(#Type)) \
-                                      .desc,                                  \
+  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
                                   '\n',                                       \
                                   group_generics_inout(#Type),                \
                                   group_workspace_types(#Type)))              \
@@ -309,15 +300,12 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
 
 //! Place at the end!  Add a few line-breaks to fit in extra documentation!
 #define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)               \
-  doc() =                                                                     \
-      unwrap_stars(var_string(global_data::wsv_groups                         \
-                                      .at(global_data::WsvGroupMap.at(#Type)) \
-                                      .desc +                                 \
+  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
                                   extra,                                      \
-                              '\n',                                           \
-                              group_generics_inout(#Type),                    \
-                              group_workspace_types(#Type)))                  \
-          .c_str()
+                                  '\n',                                       \
+                                  group_generics_inout(#Type),                \
+                                  group_workspace_types(#Type)))              \
+              .c_str()
 
 /*! The workspace array interface
 
@@ -332,7 +320,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 */
 #define PythonInterfaceWorkspaceArray(BaseType)                               \
   auto auto_impl_name##BaseType =                                             \
-      py::class_<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);                  \
+      artsclass<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);                   \
   auto_impl_name##BaseType.PythonInterfaceWorkspaceDocumentationExtra(        \
       ArrayOf##BaseType,                                                      \
       "\n\nIt aims to be compatible with :class:`list` of :class:`" #BaseType \
@@ -384,7 +372,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
             auto grids =                                                        \
                 t[3].cast<std::vector<std::variant<Vector, ArrayOfString>>>();  \
                                                                                 \
-            auto out = std::make_unique<Type>(name);                            \
+            auto out = std::make_shared<Type>(name);                            \
             out->data = data;                                                   \
             for (Index i = 0; i < out->get_dim(); i++) {                        \
               out->set_grid_name(i, grid_names[i]);                             \

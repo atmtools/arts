@@ -1,350 +1,35 @@
 import os
 import sys
-from ast import parse, Call, Name, Expression, Expr, FunctionDef, \
-    Starred, Module, Str
-from inspect import getsource, getclosurevars, ismodule, isclass
-from copy import copy
-from typing import Callable
-
-import pyarts.arts as cxx
+from ast import (
+    parse,
+    Expr,
+    Call,
+    Name,
+    Assign,
+    Return,
+    Attribute,
+    literal_eval,
+    FunctionDef,
+    Expression,
+    unparse,
+)
+from inspect import getsource, getsourcelines, getfile
 from pyarts.workspace.utility import unindent as unindent
+from pyarts.arts.globals import workspace_methods, workspace_variables
+from pyarts.arts import Agenda, Method
+import pyarts.arts as cxx
+from pyarts.workspace.callback import callback_operator
 
 
-# Set the default basename of Arts
-try:
-    filename = sys.modules["__main__"].__file__
-    basename, _ = os.path.splitext(os.path.basename(filename))
-    cxx.globals.parameters.out_basename = basename
-except:
-    pass
+_group_types = [eval(f"cxx.{x}") for x in list(cxx.globals.workspace_groups())]
+_wsvs = cxx.globals.workspace_variables()
 
 
-_InternalWorkspace = getattr(cxx, "_Workspace")
-Agenda = cxx.Agenda
-
-
-class DelayedAgenda:
-    """ Helper class to delay the parsing of an Agenda until a workspace exist
-    """
-    
-    def __init__(self, *args):
-        self.args = [[*args]]
-    def append_agenda_methods(self, other):
-        self.args.extend(other.args)
-    def __call__(self, ws):
-        a = cxx.Agenda(ws)
-        for args in self.args:
-            a.append_agenda_methods(continue_parser_function(ws, *args))
-        a.name = "<unknown>"
-        return a
-
-
-def Include(ws, path):
-    """ Parse and execute the .arts file at path onto the current workspace ws
-    
-    The Arts parser is invoked on the file at path.  The methods and commands
-    of this file are executed
-    """
-    if isinstance(path, Agenda):
-        path.execute(ws)
-    else:
-        Agenda(ws, path).execute(ws)
-
-def arts_agenda(func=None, *, ws=None, allow_callbacks=False, set_agenda=False):
-    """
-    Decorator to parse a Python method as ARTS agenda
-
-    This decorator can be used to define ARTS agendas using python function
-    syntax. The function should have one arguments which is assumed to be a
-    :class:`Workspace` instance. All expressions inside the function must be calls to
-    ARTS WSMs. The function definition results in an Agenda object that can
-    be copied into an ARTS agenda.
-
-    Example::
-
-        ws = pyarts.workspace.Workspace()
-
-        @pyarts.workspace.arts_agenda(ws=ws)
-        def iy_main_agenda_clearsky(ws):
-            ws.ppathCalc()
-            ws.iyClearsky()
-            ws.VectorSet(ws.geo_pos, [])
-
-        ws.iy_main_agenda = iy_main_agenda_clearsky
-
-    Or, by passing `set_agenda=True`, write the agenda directly to the workspace
-    (allowing initiating automatic checking if the agenda is a defined
-    workspace agenda)::
-
-        ws = pyarts.workspace.Workspace()
-
-        @pyarts.workspace.arts_agenda(ws=ws, set_agenda=True)
-        def iy_main_agenda(ws):
-            ws.ppathCalc()
-            ws.iyClearsky()
-            ws.VectorSet(ws.geo_pos, [])
-
-    When the decorator is used with the `allow_callbacks` keyword argument
-    set to True, arbitrary Python code can be executed within the callback.
-    Note, however, that ARTS ignores exceptions occurring within the
-    callback, so care must be taken that potentially silenced errors
-    don't interfere with simulation results.
-
-    .. warning::
-
-       Using `allow_callbacks=True` breaks the Agenda input-output control.
-       It is therefore considered undefined behavior if you manipulate
-       workspace variables that are neither in- nor output of the Agenda using
-       callbacks.  *Do this at your own risk*.
-
-    Example::
-
-        ws = pyarts.workspace.Workspace()
-
-        @pyarts.workspace.arts_agenda(ws=ws, allow_callbacks=True)
-        def python_agenda(ws):
-            print("Python says 'hi'.")
-
-    A special `INCLUDE(path)` directive can be part of the function definitions
-    to use the Arts parser of .arts files to be invoked on the file.
-    All methods and invokations that are part of the .arts file are
-    appended in place to the agenda
-
-    To predefine an agenda before a workspace is created, for instance for use with
-    multiple workspaces later, use the :class:`DelayedAgenda` class.
-    A :class:`DelayedAgenda` is created by omitting the ws keyword argument::
-
-        @pyarts.workspace.arts_agenda
-        def iy_main_agenda_clearsky(ws):
-            ws.ppathCalc()
-            ws.iyClearsky()
-            ws.VectorSet(ws.geo_pos, [])
-
-        ws = pyarts.workspace.Workspace()
-        ws.iy_main_agenda = iy_main_agenda_clearsky
-    """
-
-    def agenda_decorator(func):
-        return parse_function(func, ws, allow_callbacks=allow_callbacks, set_agenda=set_agenda)
-    
-    if func is None:
-        return agenda_decorator
-    else:
-        return parse_function(func, ws, False, False)
-
-
-def parse_function(func, arts, allow_callbacks, set_agenda):
-    """
-    Parse python method as ARTS agenda
-
-    Args:
-        func: The function object to parse.
-        allow_callbacks: Whether to allow callbacks in the agenda.
-
-    Return:
-        An 'Agenda' object containing the code in the given function.
-    """
-
-    source = getsource(func)
-    source = unindent(source)
-    ast = parse(source)
-
-    context = copy(func.__globals__)
-    dellist = []
-    for key in context:
-        if key.startswith("__"):
-            continue
-        if (not ismodule(context[key]) and
-            not isclass(context[key]) and
-            not isinstance(context[key], Callable)):
-            dellist.append(key)
-    for key in dellist:
-        del context[key]
-
-    nls, _, _, _ = getclosurevars(func)
-    context.update(nls)
-    
-    if arts is None:
-        return DelayedAgenda(context, ast, allow_callbacks, set_agenda)
-    return continue_parser_function(arts, context, ast, allow_callbacks, set_agenda)
-
-
-def continue_parser_function(arts, context, ast, allow_callbacks, set_agenda):
-    assert isinstance(arts, _InternalWorkspace), f"Expects Workspace, got {type(arts)}"
-
-    func_ast = ast.body[0]
-    if not isinstance(func_ast, FunctionDef):
-        raise Exception("ARTS agenda definition can only decorate function definitions.")
-    
-    args = func_ast.args.args
-
-    try:
-        arg_name = func_ast.args.args[0].arg
-    except:
-        raise Exception("Agenda definition needs workspace arguments.")
-    
-    context.update({arg_name : arts})
-    
-    #
-    # Helper functions
-    #
-    callback_body = []
-    def callback_make_fun(body):
-        """
-        Helper function that creates a wrapper function around
-        python code to be executed withing an ARTS agenda.
-        """
-        if sys.version_info >= (3, 8):
-            # https://bugs.python.org/issue35894#msg334808
-            m = Module(body, [])
-        else:
-            m = Module(body)
-        
-        def callback(ws):
-            # FIXME: Is mutex required here?
-            context[arg_name].swap(ws)  # FIXME:  This is required, of course
-            eval(compile(m , "<unknown>", 'exec'), context)
-            context[arg_name].swap(ws)  # FIXME: But is this required or thrown away?
-        return callback
-
-    def eval_argument(expr):
-        """
-        Evaluate argument of workspace method call.
-        """
-        if not hasattr(expr, "lineno"):
-            setattr(expr, "lineno", 0)
-        try:
-            ret = eval(compile(Expression(expr), "<unknown>", 'eval'), context)
-        except NameError:
-            try:
-                from ast import unparse
-                errstr = f"the local Python variable `{unparse(expr)}`"
-            except ImportError:
-                errstr = "a local Python variable"
-            raise NameError(
-                f"You seem to want to pass {errstr} into a WSM.\n"
-                "This breaks scoping rules. You can only pass literals into WSMs."
-            )
-        return ret
-
-    illegal_statement_exception = Exception("""
-Pure ARTS agenda definitions may only contain calls to WSMs of
-the workspace argument '{arg_name}' or INCLUDE statements.
-If you want to allow Python callbacks you need to use
-the '@arts_agenda' decorator with the 'allow_callbacks'
-keyword argument set to 'True'.
-
-WARNING: This will break the Agenda input-output control.
-To ensure proper scoping, you need to explicitly `ws.Touch`
-every WSV you modify. That includes output variables from WSMs
-you might call. Everything else is undefined behaviour. ;-)
-""")
-
-    workspace_methods = [str(x.name) for x in cxx.globals.get_md_data()]
-    agenda = Agenda(arts)
-    
-    for e in func_ast.body:
-        if not isinstance(e, Expr):
-            if allow_callbacks:
-                callback_body += [e]
-                continue
-            else:
-                raise illegal_statement_exception
-        else:
-            call = e.value
-
-        if not isinstance(call, Call):
-            if isinstance(call, Str):
-                continue
-            elif allow_callbacks:
-                callback_body += [e]
-                continue
-            else:
-                raise illegal_statement_exception
-        
-        # Include statement
-        if type(call.func) == Name:
-            if call.func.id != "INCLUDE":
-                if allow_callbacks:
-                    callback_body += [e]
-                else:
-                    raise illegal_statement_exception
-            else:
-                args = []
-                for a in call.args:
-                    args.append(eval_argument(a))
-                    include_agenda =  Agenda(arts, *args)
-
-                    if len(callback_body) > 0:
-                        agenda.add_callback_method(callback_make_fun(callback_body))
-                        callback_body = []
-
-                    agenda.append_agenda_methods(include_agenda)
-        else:
-            att = call.func.value
-            if not hasattr(att, 'id') or not att.id == arg_name:
-                callback_body += [e]
-                continue
-
-            # Extract method name.
-            name = call.func.attr
-            # m is not a workspace method
-            if name not in workspace_methods:
-                if allow_callbacks:
-                    callback_body += [e]
-                    continue
-                else:
-                    raise ValueError(
-                        f"{name} is not a know ARTS WSM."
-                    )
-
-            args = []
-            kwargs = dict()
-
-            for a in call.args:
-                # Handle starred expression
-                if type(a) == Starred:
-                    bs = eval_argument(a.value)
-                    for b in bs:
-                        args.append(b)
-                else:
-                    args.append(eval_argument(a))
-
-            # Extract keyword arguments
-            for k in call.keywords:
-                if k.arg is None:
-                    d = eval(compile(Expression(k.value), "<unknown>", 'eval'),
-                             context)
-                    kwargs.update(d)
-                else:
-                    kwargs[k.arg] = eval(compile(Expression(k.value),
-                                                 "<unknown>", 'eval'),
-                                         context)
-
-            # Add function to agenda
-            if len(callback_body) > 0:
-                agenda.add_callback_method(callback_make_fun(callback_body))
-                callback_body = []
-            
-            agenda.add_workspace_method(name, *args, **kwargs)
-
-    # Check if there's callback code left to add to the agenda.
-    if len(callback_body) > 0:
-        agenda.add_callback_method(callback_make_fun(callback_body))
-        callback_body = []
-    
-    agenda.name = func_ast.name
-    if set_agenda: setattr(arts, func_ast.name, agenda)
-    return agenda
-
-
-_group_types = [eval(f"cxx.{x.name}") for x in list(cxx.globals.get_wsv_groups())]
-
-
-class Workspace(_InternalWorkspace):
+class Workspace(cxx._Workspace):
     """
     A wrapper for the C++ workspace object
     """
+
     def __getattribute__(self, attr):
         if attr.startswith("__"):
             object.__getattribute__(self, attr)
@@ -352,34 +37,36 @@ class Workspace(_InternalWorkspace):
         return super().__getattribute__(attr)
 
     def __getattr__(self, attr):
-        if super()._hasattr_check_(attr):
-            return super()._getattr_unchecked_(attr)
+        if super().has(attr):
+            return super().get(attr)
 
-        raise AttributeError(
-            f"'Workspace' object has no attribute '{attr}'")
+        raise AttributeError(f"'Workspace' object has no attribute '{attr}'")
 
     def __setattr__(self, attr, value):
-        if self._hasattr_check_(attr):
-            if isinstance(value, DelayedAgenda):
-                value = value(self)
-
-            self._getattr_unchecked_(attr).initialize_if_not()
-            self._getattr_unchecked_(attr).value = type(
-                self._getattr_unchecked_(attr).value)(value)
+        if self.has(attr):
+            t = type(self.get(attr))
+            if not isinstance(value, t):
+                value = t(value)
+            self.set(attr, value)
         else:
-            if type(value) in _group_types:
-                self._setattr_unchecked_(attr, value)
-            elif isinstance(value, DelayedAgenda):
-                self._setattr_unchecked_(attr, value(self))
+            if attr in _wsvs:
+                super().__setattr__(attr, value)
+            elif type(value) in _group_types:
+                self.set(attr, value)
             else:
                 raise AttributeError(
-                    f"'Workspace' object has no attribute '{attr}'")
+                    f"'Workspace' object has no attribute '{attr}'"
+                )
 
     def __delattr__(self, attr):
-        if attr == '__class__':
+        if attr == "__class__":
             raise AttributeError("You cannot delete __class__")
-
-        getattr(self, attr).delete_level()
+        if self.has(attr):
+            self.set(attr, type(self.get(attr))())
+        else:
+            raise AttributeError(
+                f"'Workspace' object has no attribute '{attr}'"
+            )
 
     def __copy__(self):
         x = super().__copy__()
@@ -398,3 +85,440 @@ class Workspace(_InternalWorkspace):
 
     def __setstate__(self, d):
         super().__setstate__(d["Workspace"])
+
+
+def _get_attrs(expr):
+    """
+    Return the name and the value of an attribute
+    """
+    return expr.value.id, expr.attr
+
+
+def _eval(expr, state):
+    """
+    Return a value of an expression
+    """
+    return eval(compile(Expression(body=expr), "<arts_agenda>", "eval"), state)
+
+
+def _assign_parser(expr, ws, state):
+    """
+    Creates the method that assings a value to the workspace by copy or set
+
+    The current global state is used when RHS is a Name or a Call,
+    otherwise literal evaluation is performed to return the value
+
+    Currently set up to handle:
+
+    1) ws.LHS = RHS
+    2) ws.LHS = ws.RHS
+    3) ws.LHS = <literal>
+    4) ws.LHS = <call>
+
+    where LHS is any workspace variable.  Named or not.
+
+    RHS has the following limitations:
+
+    1) RHS must be a value in globals(), its value is parsed and copied.
+       The copied value must be possible to assign to LHS.  So if LHS is
+       an existing workspace variable, RHS can construct it.  Otherwise,
+       RHS must be a workspace group.
+    2) None, the assignment will fail upon execution of the method if the two
+       workspace variables are of different workspace groups.
+    3) <literal> is the catch-all.  If nothing else works, the <literal>
+       expression is evaluated at the end to try and evaluate its value before
+       returning the method.
+    4) Any function call that has a single return value.  The function call
+       lives in the globals().  The return value has the same limitation as RHS
+       in case 1).
+    """
+    output_target = expr.targets
+
+    if len(output_target) != 1:
+        return "Can only assign to a single target at a time"
+
+    output_target = output_target[0]
+    if not isinstance(output_target, Attribute):
+        return "Can only assign to attributes"
+
+    output_obj, output_target = _get_attrs(output_target)
+
+    if output_obj != ws:
+        return f"Cannot assign to object {output_obj}, did you mean {ws}?"
+
+    value = expr.value
+
+    if isinstance(value, Attribute):
+        input_obj, input_target = _get_attrs(value)
+
+        if input_obj == output_obj:
+            return Method("Copy", [output_target, input_target], {})
+
+    tmp = Workspace(False)
+    try:
+        setattr(tmp, output_target, _eval(value, state))
+    except Exception as e:
+        return f"Exception: {e}"
+
+    return Method(output_target, getattr(tmp, output_target))
+
+
+def _method_args(name):
+    """
+    Return all arguments and their types of a method in order of appearance
+    """
+    m = workspace_methods().get(name)
+    if m is None:
+        return f"Unknown method '{m}'"
+    out = {}
+
+    for i in m.output:
+        out[i] = workspace_variables()[i].type
+
+    for i, t in zip(m.gout, m.gout_type):
+        out[i] = t
+
+    for i in m.input:
+        if i not in out:
+            out[i] = workspace_variables()[i].type
+
+    for i, t in zip(m.gin, m.gin_type):
+        out[i] = t
+
+    return out
+
+
+class _NamedArg:
+    """
+    Internal type used to name arguments that live on the workspace
+    """
+
+    def __init__(self, s):
+        self.arg = s
+
+
+def _call_arg_value(arg, ws, state):
+    """
+    Get the value of an argument or its name
+    """
+    if isinstance(arg, Attribute):
+        inws, intarget = _get_attrs(arg)
+        if inws == ws:
+            return _NamedArg(intarget)
+    return _eval(arg, state)
+
+
+def _call_args_parser(call, margs, ws, state):
+    """
+    Parse all positional arguments of a user-defined method and fill out
+    the dict required by the method constructor
+    """
+    if len(margs) < len(call.args):
+        return "Too many inputs"
+
+    out = {}
+    for i in range(len(call.args)):
+        arg = call.args[i]
+        out[margs[i]] = _call_arg_value(arg, ws, state)
+    return out
+
+
+def _call_keywords_parser(kwargs, mdict, call, ws, state):
+    """
+    Parse and append all named arguments of a user-defined method
+    """
+    try:
+        for keyword in call.keywords:
+            arg = keyword.arg
+
+            if arg in kwargs:
+                return f'Duplicate argument for "{arg}"'
+
+            if arg not in mdict:
+                return f'Unknown argument "{arg}"'
+
+            kwargs[arg] = _call_arg_value(keyword.value, ws, state)
+
+        return kwargs
+    except Exception as e:
+        return f"Error parsing keyword: {e}"
+
+
+def _expr_call_parser(call, ws, state):
+    """
+    Evaluate the call as an ARTS method.  If this is not an ARTS method,
+    the CallbackOperator should be copied onto the workspace and the
+    CallbackOperatorExecute method should be executed (WIP)
+    """
+
+    if hasattr(call.func, "value") and hasattr(call.func, "attr"):
+        myws, func = _get_attrs(call.func)
+
+        if myws != ws:
+            return f"Bad workspace {myws}, expected {ws}"
+
+        mdict = _method_args(func)
+
+        args = _call_args_parser(call, list(mdict.keys()), ws, state)
+        if isinstance(args, str):
+            return args
+
+        kwargs = _call_keywords_parser(args, mdict, call, ws, state)
+        if isinstance(kwargs, str):
+            return kwargs
+
+        methods = []
+        call_kwargs = {}
+        for k in kwargs:
+            kw = kwargs[k]
+            t = eval(f"cxx.{mdict[k]}")
+            try:
+                if isinstance(kw, _NamedArg):
+                    call_kwargs[k] = f"{kw.arg}"
+                else:
+                    methods.append(Method(f"@{k}", t(kw)))
+                    call_kwargs[k] = f"@{k}"
+            except Exception as e:
+                return (
+                    f"\n{e}\n\n"
+                    f"Failed to parse {'positional' if k in args else 'named'}"
+                    f' argument "{k}"'
+                    f" (arg nr.: {1 + list(kwargs.keys()).index(k)})"
+                )
+
+        methods.append(Method(func, [], call_kwargs))
+        return methods
+    else:
+        try:
+            assert (
+                len(call.args) == 0 and len(call.keywords) == 0
+            ), "Cannot pass arguments to callback operators"
+            return Method(
+                unparse(call.func),
+                callback_operator(eval(unparse(call.func), state)),
+            )
+        except Exception as e:
+            return f"{e}"
+
+
+def _expr_parser(expr, ws, state):
+    """
+    An expression is bad unless it is a call, in which case it is forwarded
+    """
+    if isinstance(expr, Call):
+        return _expr_call_parser(expr, ws, state)
+    if isinstance(expr, Name):
+        return f"Meaningless name.  Did you mean {ws}.{expr.id} = ...?"
+
+    return "Unknown expression value"
+
+
+def _method_parser(expr, ws, state):
+    """
+    Parse the agenda method list.  We can only have assignments and expressions
+    """
+    if isinstance(expr, Expr):
+        return _expr_parser(expr.value, ws, state)
+    if isinstance(expr, Assign):
+        return _assign_parser(expr, ws, state)
+    if isinstance(expr, Return):
+        return "Cannot return from an Agenda"
+
+    return "Unknown expression encountered parsing method"
+
+
+def _return_workspace_methods(code_body, ws, state):
+    """
+    Core workspace method interpreter returning a list of Method and str
+
+    If any str is there, the parsing failed and a future test will produce
+    the appropriate error message
+    """
+    out = []
+
+    for expr in code_body:
+        out.append(_method_parser(expr, ws, state))
+
+    return out
+
+
+def _return_workspace_argname(ast_code):
+    """
+    Returns the name of the workspace
+    """
+    args = ast_code.args
+    if len(args.args) == 1:
+        arg = args.args[0]
+        return arg.arg
+    return None
+
+
+def _agenda_or(methods, func, src, fn, lineno):
+    """
+    Returns an agenda or deal with the error
+    """
+    agenda = Agenda(func.name)
+
+    for i in range(len(methods)):
+        if isinstance(methods[i], Method):
+            agenda.add(methods[i])
+        elif isinstance(methods[i], list):
+            for m in methods[i]:
+                agenda.add(m)
+        elif isinstance(methods[i], str):
+            raise SyntaxError(
+                f"In agenda decorator parsing:\n{src}\n\n"
+                f'Bad expression "{unparse(func.body[i])}"\n{methods[i]}',
+                (fn, lineno + func.body[i].lineno - 1, 0, 0),
+            )
+        else:
+            raise SyntaxError(
+                f"In agenda decorator parsing:\n{src}\n\n"
+                "Error: Cannot understand code",
+                (fn, lineno + func.body[i].lineno - 1, 0, 0),
+            )
+
+    return agenda
+
+
+def _arts_agenda(f, ws, fix):
+    """Internal source code parser"""
+    srccod = getsource(f)
+    srccod = unindent(srccod)
+    srcast = parse(srccod)
+
+    assert len(srcast.body) == 1, "Not parsable"
+
+    func = srcast.body[0]
+    assert isinstance(func, FunctionDef), "Not a function definition"
+
+    workspace = _return_workspace_argname(func)
+    assert workspace is not None, "Must have a workspace variable"
+
+    state = f.__globals__
+    methods = _return_workspace_methods(func.body, workspace, state)
+
+    fn = getfile(f)
+    ln = getsourcelines(f)[-1]
+    agenda = _agenda_or(methods, func, srccod, fn, ln)
+
+    if ws:
+        agenda.finalize(fix)
+        setattr(ws, agenda.name, agenda)
+
+    return agenda
+
+
+def arts_agenda(func=None, *, ws=None, fix=False):
+    """
+    Creates an agenda by parsing the supported expressions into
+    Workspace Method calls.
+
+    Examples
+    --------
+
+    These all produce the same Agenda, with minor modifications on how
+    it is stored.
+
+    .. code-block:: python
+       :caption: Creating a basic Agenda
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       @arts_agenda
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+           ws.Ignore(ws.rtp_los)
+
+       ws = Workspace()
+       ws.propmat_clearsky_agenda = propmat_clearsky_agenda
+
+    .. code-block:: python
+       :caption: Setting an agenda to a workspace directly
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+           ws.Ignore(ws.rtp_los)
+
+    .. code-block:: python
+       :caption: Setting an Agenda while skipping some housekeeping
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines()
+
+    .. code-block:: python
+       :caption: Using custom values
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearskyInit()
+           ws.propmat_clearskyAddLines(ws.propmat_clearsky,  # By pos
+                                       lines_sparse_df=0)  # By name
+
+    Additional options
+    ------------------
+
+    We support some additional functionality of python beyond just
+    calling workspace methods.
+
+    .. code-block:: python
+       :caption: Assigning or copying a variable using python syntax
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           ws.propmat_clearsky = []
+           ws.x = ws.f_grid
+
+    .. code-block:: python
+       :caption: Using callback operators to execute code in python
+
+       from pyarts.workspace import Workspace, arts_agenda, callback_operator
+
+       def fun(f_grid):
+           x = f_grid
+           return x
+
+       ws = Workspace()
+
+       @arts_agenda(ws=ws, fix=True)
+       def propmat_clearsky_agenda(ws):
+           fun()  # This will set x to f_grid
+
+    Parameters
+    ----------
+    func : function
+        The function to be turned into an Agenda
+    ws : ~pyarts.workspace.Workspace, optional
+        The workspace to put this onto after finalization, defaults to None
+    fix : bool, optional
+        Whether to fix missing input/output in finalization, defaults to False
+    """
+
+    def parser(fn):
+        return _arts_agenda(fn, ws, fix)
+
+    if func is None:
+        return parser
+    else:
+        return _arts_agenda(func, ws, fix)

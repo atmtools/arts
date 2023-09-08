@@ -10,11 +10,10 @@
 #include "array.h"
 #include "arts_omp.h"
 #include "artstime.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "enums.h"
 #include "file.h"
-#include "global_data.h"
 #include "lineshapemodel.h"
 #include "m_xml.h"
 #include "quantum_numbers.h"
@@ -198,9 +197,9 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   Index nelem;
   
   // ARTSCAT data
-  shared_ptr<istream> ifs = nullptr;
+  std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
-  istream& is_xml = *ifs;
+  std::istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
@@ -231,7 +230,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
         "The ARTS line file you are trying to read does not contain a valid version tag.\n"
         "Probably it was created with an older version of ARTS that used different units.")
     } else {
-      istringstream is(version.substr(8));
+      std::istringstream is(version.substr(8));
       is >> artscat_version;
     }
     
@@ -331,9 +330,9 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   Index nelem;
   
   // ARTSCAT data
-  shared_ptr<istream> ifs = nullptr;
+  std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
-  istream& is_xml = *ifs;
+  std::istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
@@ -356,7 +355,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       "The ARTS line file you are trying to read does not contain a valid version tag.\n"
       "Probably it was created with an older version of ARTS that used different units.")
   } else {
-    istringstream is(version.substr(8));
+    std::istringstream is(version.substr(8));
     is >> artscat_version;
   }
   
@@ -529,7 +528,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   const Options::HitranType hitran_version = Options::toHitranTypeOrThrow(hitran_type);
   
   // Hitran data
-  ifstream is;
+  std::ifstream is;
   open_input_file(is, hitran_file);
 
   ArrayOfAbsorptionLines local_bands(0);
@@ -617,7 +616,7 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
   // LBLRTM data
-  ifstream is;
+  std::ifstream is;
   open_input_file(is, lblrtm_file);
   
   std::vector<Absorption::SingleLineExternal> v(0);
@@ -682,7 +681,7 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
   // LBLRTM data
-  ifstream is;
+  std::ifstream is;
   open_input_file(is, jpl_file);
   
   std::vector<Absorption::SingleLineExternal> v(0);
@@ -766,7 +765,7 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
     
     WriteXML(output_format, lines,
              true_basename + name + ".xml",
-             0, "", "", "");
+             0);
   }
 }
 

@@ -198,7 +198,7 @@ void MCAntenna::draw_los(VectorView sampled_rte_los,
   }
 }
 
-ostream& operator<<(ostream& os, const MCAntenna&) {
+std::ostream& operator<<(std::ostream& os, const MCAntenna&) {
   os << "MCAntenna: Output operator not implemented";
   return os;
 }

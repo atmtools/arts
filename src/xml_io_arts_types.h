@@ -18,10 +18,11 @@
 #include <stdexcept>
 
 // All workspace groups are known by the agenda class through tokval.h
-#include "agenda_class.h"
+#include <workspace.h>
 
 // Extras
 #include "mc_interp.h"
+#include "operators.h"
 #include "template_partfun.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
@@ -38,7 +39,6 @@
 TMPL_XML_READ_WRITE_STREAM(PartitionFunctionsData)
 TMPL_XML_READ_WRITE_STREAM(JacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(Rational)
-TMPL_XML_READ_WRITE_STREAM(Timer)
 TMPL_XML_READ_WRITE_STREAM(Time)
 TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
 
@@ -132,8 +132,9 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 
 //=== Not storable Types ===================================================
 
-TMPL_XML_READ_WRITE_STREAM(CallbackFunction)
+TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
+TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 
 //=== rtepack types ========================================================
 

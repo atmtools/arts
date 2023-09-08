@@ -16,7 +16,6 @@
 #ifndef sensor_h
 #define sensor_h
 
-#include "arts.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "math_funcs.h"

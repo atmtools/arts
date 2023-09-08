@@ -101,7 +101,7 @@ binistream::Int binistream::readInt(unsigned int size) {
   // Check if 'size' doesn't exceed our system's biggest type.
   if (size > sizeof(Int)) {
     err |= Unsupported;
-    throw runtime_error(
+    throw std::runtime_error(
         "The size of the integer to be read exceeds our system's biggest type");
     return 0;
   }
@@ -280,7 +280,7 @@ void binostream::writeInt(Int val, unsigned int size) {
   // Check if 'size' doesn't exceed our system's biggest type.
   if (size > sizeof(Int)) {
     err |= Unsupported;
-    throw runtime_error(
+    throw std::runtime_error(
         "The size of the integer to be stored exceeds our system's biggest type");
     return;
   }

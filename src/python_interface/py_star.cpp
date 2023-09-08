@@ -1,12 +1,12 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 
 
 namespace Python {
-void py_star(py::module_& m) {
-  py::class_<Sun>(m, "Sun")
-      .def(py::init([]() { return std::make_unique<Sun>(); }), "Empty sun")
+void py_star(py::module_& m) try {
+  artsclass<Sun>(m, "Sun")
+      .def(py::init([]() { return std::make_shared<Sun>(); }), "Empty sun")
       .PythonInterfaceCopyValue(Sun)
 //      .PythonInterfaceWorkspaceVariableConversion(Sun)
       .PythonInterfaceBasicRepresentation(Sun)
@@ -28,7 +28,7 @@ void py_star(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
-            return std::make_unique<Sun>(Sun{t[0].cast<String>(),
+            return std::make_shared<Sun>(Sun{t[0].cast<String>(),
                              t[1].cast<Matrix>(),
                              t[2].cast<Numeric>(),
                              t[3].cast<Numeric>(),
@@ -42,5 +42,7 @@ temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";
 
   PythonInterfaceWorkspaceArray(Sun);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }
 }  // namespace Python

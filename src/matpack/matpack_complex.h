@@ -6,6 +6,8 @@
 #include <complex>
 #include <type_traits>
 
+using namespace std::complex_literals;
+
 //! Helper struct that is guaranteed by the C++ standard to represent the memory
 //! layout of a Complex
 template <typename T> struct ComplexLayout {

@@ -1,16 +1,17 @@
 #pragma once
 
 #include <Faddeeva/Faddeeva.hh>
+
 #include <algorithm>
 #include <cmath>
 #include <ratio>
 #include <vector>
 
-#include "absorptionlines.h"
-#include "fwd_lbl_concepts.h"
-#include "lineshapemodel.h"
-#include "matpack_concepts.h"
-#include "species_tags.h"
+#include <absorptionlines.h>
+
+#include <matpack.h>
+
+#include <species_tags.h>
 
 namespace fwd::lbl::mtckd {
 static constexpr Numeric cutoff_freq = 750e9;
@@ -22,13 +23,11 @@ struct single {
   Numeric z_imag{};
   Complex cutoff{};
 
-  single(Numeric T,
-         Numeric P,
+  single(const AtmPoint& atm_point,
          const SpeciesIsotopologueRatios& isotopologue_ratios,
-         const ArrayOfArrayOfSpeciesTag& allspecs,
-         const Vector& allvmrs,
          const AbsorptionLines& band,
-         Index line);
+         Index iline,
+         Index ibroad);
 
   // This times numdens * f * (1 - exp(hf / kT)) is the absorption coeff
   template <bool no_cutoff = false>
@@ -51,13 +50,11 @@ struct single_lm {
   Complex cutupp{};
   Complex cutlow{};
 
-  single_lm(Numeric T,
-            Numeric P,
+  single_lm(const AtmPoint& atm_point,
             const SpeciesIsotopologueRatios& isotopologue_ratios,
-            const ArrayOfArrayOfSpeciesTag& allspecs,
-            const Vector& allvmrs,
             const AbsorptionLines& band,
-            Index line);
+            Index iline,
+            Index ibroad);
 
   [[nodiscard]] constexpr Complex cutoff(Numeric f) const {
     f = std::clamp<Numeric>(0.5 + (f - F0) / (2 * cutoff_freq), 0.0, 1.0);
@@ -85,11 +82,8 @@ struct band {
 
   band() = default;
 
-  band(Numeric T,
-       Numeric P,
+  band(const AtmPoint& atm_point,
        const SpeciesIsotopologueRatios& isotopologue_ratios,
-       const ArrayOfArrayOfSpeciesTag& allspecs,
-       const Vector& allvmrs,
        const ArrayOfArrayOfAbsorptionLines& specbands);
 
   [[nodiscard]] static std::size_t validity_count(
@@ -108,11 +102,8 @@ struct band_lm {
 
   band_lm() = default;
 
-  band_lm(Numeric T,
-          Numeric P,
+  band_lm(const AtmPoint& atm_point,
           const SpeciesIsotopologueRatios& isotopologue_ratios,
-          const ArrayOfArrayOfSpeciesTag& allspecs,
-          const Vector& allvmrs,
           const ArrayOfArrayOfAbsorptionLines& specbands);
 
   [[nodiscard]] static std::size_t validity_count(

@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "covariance_matrix.h"
 #include "jacobian.h"
 
@@ -24,7 +24,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
 
   if (!covmat_block.empty()) {
     if ((n_gps == extent) && (n_gps == covmat_block.ncols())) {
-      std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
+      std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_block);
       covmat.add_correlation(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
@@ -37,7 +37,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
   if (!covmat_inv_block.empty()) {
     if ((n_gps == covmat_inv_block.nrows()) &&
         (n_gps == covmat_inv_block.ncols())) {
-      std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_inv_block);
+      std::shared_ptr<Sparse> mat = std::make_shared<Sparse>(covmat_inv_block);
       covmat.add_correlation_inverse(
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
@@ -56,10 +56,10 @@ void add_scalar_variance(CovarianceMatrix& covmat,
   Index start = covmat.nrows();
   Index extent = 1;
   Range range(start, extent);
-  std::shared_ptr<Matrix> mat = make_shared<Matrix>(1, 1);
+  std::shared_ptr<Matrix> mat = std::make_shared<Matrix>(1, 1);
   mat->operator()(0, 0) = var;
   covmat.add_correlation(Block(range, range, std::make_pair(i, i), mat));
-  mat = make_shared<Matrix>(1, 1);
+  mat = std::make_shared<Matrix>(1, 1);
   mat->operator()(0, 0) = 1.0 / var;
   covmat.add_correlation_inverse(
       Block(range, range, std::make_pair(i, i), mat));
@@ -149,12 +149,13 @@ void covmatDiagonal(MatrixType& block,
   insert_elements(block_inv, n, n, indices, indices, elements_inv);
 }
 
-template void covmatDiagonal(Matrix& block,
-                             Matrix& block_inv,
-                             const Vector& vars);
-template void covmatDiagonal(Sparse& block,
-                             Sparse& block_inv,
-                             const Vector& vars);
+void covmatDiagonal(Matrix& block, Matrix& block_inv, const Vector& vars) {
+  covmatDiagonal<Matrix>(block, block_inv, vars);
+}
+
+void covmatDiagonal(Sparse& block, Sparse& block_inv, const Vector& vars) {
+  covmatDiagonal<Sparse>(block, block_inv, vars);
+}
 
 template <typename MatrixType>
 void covmat1DMarkov(MatrixType& block,
@@ -220,19 +221,23 @@ void covmat1DMarkov(MatrixType& block,
   insert_elements(block_inv, n, n, row_indices, column_indices, elements);
 }
 
-template void covmat1DMarkov(Matrix& block,
-                             Matrix& block_inv,
-                             const Vector& grid,
-                             const Vector& sigma,
-                             const Numeric& lc,
-                             const Numeric& /*co*/);
+void covmat1DMarkov(Matrix& block,
+                    Matrix& block_inv,
+                    const Vector& grid,
+                    const Vector& sigma,
+                    const Numeric& lc,
+                    const Numeric& /*co*/) {
+  covmat1DMarkov<Matrix>(block, block_inv, grid, sigma, lc, 0.0);
+}
 
-template void covmat1DMarkov(Sparse& block,
-                             Sparse& block_inv,
-                             const Vector& grid,
-                             const Vector& sigma,
-                             const Numeric& lc,
-                             const Numeric& /*co*/);
+void covmat1DMarkov(Sparse& block,
+                    Sparse& block_inv,
+                    const Vector& grid,
+                    const Vector& sigma,
+                    const Numeric& lc,
+                    const Numeric& /*co*/) {
+  covmat1DMarkov<Sparse>(block, block_inv, grid, sigma, lc, 0.0);
+}
 
 template <typename MatrixType>
 void covmat1D(MatrixType& block,
@@ -326,7 +331,7 @@ void covmat1D(MatrixType& block,
   } else if (fname == "gau") {
     f = f_gau;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << fname << " is not a known function name. Supported names"
        << "are: exp, lin, gau.";
     std::runtime_error(os.str());
@@ -353,25 +358,29 @@ void covmat1D(MatrixType& block,
   insert_elements(block, m, n, row_indices, column_indices, elements);
 }
 
-template void covmat1D(Matrix& block,
-                       const Vector& grid1,
-                       const Vector& grid2,
-                       const Vector& sigma1,
-                       const Vector& sigma2,
-                       const Vector& lc1,
-                       const Vector& lc2,
-                       const Numeric& co,
-                       const String& fname);
+void covmat1D(Matrix& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname) {
+  covmat1D<Matrix>(block, grid1, grid2, sigma1, sigma2, lc1, lc2, co, fname);
+}
 
-template void covmat1D(Sparse& block,
-                       const Vector& grid1,
-                       const Vector& grid2,
-                       const Vector& sigma1,
-                       const Vector& sigma2,
-                       const Vector& lc1,
-                       const Vector& lc2,
-                       const Numeric& co,
-                       const String& fname);
+void covmat1D(Sparse& block,
+              const Vector& grid1,
+              const Vector& grid2,
+              const Vector& sigma1,
+              const Vector& sigma2,
+              const Vector& lc1,
+              const Vector& lc2,
+              const Numeric& co,
+              const String& fname) {
+  covmat1D<Sparse>(block, grid1, grid2, sigma1, sigma2, lc1, lc2, co, fname);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Manipulation of covmat_se and covmat_sx
@@ -444,15 +453,19 @@ void covmat_seAddBlock(CovarianceMatrix& covmat_se,
   }
 }
 
-template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
-                                const Matrix& block,
-                                const Index& i,
-                                const Index& j);
+void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                       const Matrix& block,
+                       const Index& i,
+                       const Index& j) {
+  covmat_seAddBlock<Matrix>(covmat_se, block, i, j);
+}
 
-template void covmat_seAddBlock(CovarianceMatrix& covmat_se,
-                                const Sparse& block,
-                                const Index& i,
-                                const Index& j);
+void covmat_seAddBlock(CovarianceMatrix& covmat_se,
+                       const Sparse& block,
+                       const Index& i,
+                       const Index& j) {
+  covmat_seAddBlock<Sparse>(covmat_se, block, i, j);
+}
 
 template <typename MatrixType>
 void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
@@ -489,15 +502,19 @@ void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
       Block(row_range, column_range, std::make_pair(ii, jj), mat));
 }
 
-template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
-                                       const Matrix& block,
-                                       const Index& i,
-                                       const Index& j);
+void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                              const Matrix& block,
+                              const Index& i,
+                              const Index& j) {
+  covmat_seAddInverseBlock<Matrix>(covmat_se, block, i, j);
+}
 
-template void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
-                                       const Sparse& block,
-                                       const Index& i,
-                                       const Index& j);
+void covmat_seAddInverseBlock(CovarianceMatrix& covmat_se,
+                              const Sparse& block,
+                              const Index& i,
+                              const Index& j) {
+  covmat_seAddInverseBlock<Sparse>(covmat_se, block, i, j);
+}
 
 template <typename MatrixType>
 void setCovarianceMatrix(CovarianceMatrix& covmat, const MatrixType& block) {
@@ -526,14 +543,17 @@ void covmat_seSet(CovarianceMatrix& covmat,
   setCovarianceMatrix(covmat, block);
 }
 
-template void covmat_seSet(CovarianceMatrix& covmat,
-                           const CovarianceMatrix& );
+void covmat_seSet(CovarianceMatrix& covmat, const CovarianceMatrix& x) {
+  covmat_seSet<CovarianceMatrix>(covmat, x);
+}
 
-template void covmat_seSet(CovarianceMatrix& covmat,
-                           const Matrix& );
+void covmat_seSet(CovarianceMatrix& covmat, const Matrix& x) {
+  covmat_seSet<Matrix>(covmat, x);
+}
 
-template void covmat_seSet(CovarianceMatrix& covmat,
-                           const Sparse& );
+void covmat_seSet(CovarianceMatrix& covmat, const Sparse& x) {
+  covmat_seSet<Sparse>(covmat, x);
+}
 
 template <typename MatrixType>
 void covmat_sxSet(CovarianceMatrix& covmat,
@@ -541,14 +561,17 @@ void covmat_sxSet(CovarianceMatrix& covmat,
   setCovarianceMatrix(covmat, block);
 }
 
-template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const CovarianceMatrix& );
+void covmat_sxSet(CovarianceMatrix& covmat, const CovarianceMatrix& x) {
+  covmat_sxSet<CovarianceMatrix>(covmat, x);
+}
 
-template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const Matrix& );
+void covmat_sxSet(CovarianceMatrix& covmat, const Matrix& x) {
+  covmat_sxSet<Matrix>(covmat, x);
+}
 
-template void covmat_sxSet(CovarianceMatrix& covmat,
-                           const Sparse& );
+void covmat_sxSet(CovarianceMatrix& covmat, const Sparse& x) {
+  covmat_sxSet<Sparse>(covmat, x);
+}
 
 template <typename MatrixType>
 void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
@@ -602,22 +625,26 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
   Index col_extent = ji[jj][1] - ji[jj][0] + 1;
   Range col_range(col_start, col_extent);
 
-  std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block);
+  std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block);
   covmat_sx.add_correlation(
       Block(row_range, col_range, std::make_pair(ii, jj), mat));
 }
 
-template void covmat_sxAddBlock(CovarianceMatrix&,
-                                const ArrayOfRetrievalQuantity&,
-                                const Matrix&,
-                                const Index&,
-                                const Index&);
+void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
+                       const ArrayOfRetrievalQuantity& jq,
+                       const Matrix& block,
+                       const Index& i,
+                       const Index& j) {
+  covmat_sxAddBlock<Matrix>(covmat_sx, jq, block, i, j);
+}
 
-template void covmat_sxAddBlock(CovarianceMatrix&,
-                                const ArrayOfRetrievalQuantity&,
-                                const Sparse&,
-                                const Index&,
-                                const Index&);
+void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
+                       const ArrayOfRetrievalQuantity& jq,
+                       const Sparse& block,
+                       const Index& i,
+                       const Index& j) {
+  covmat_sxAddBlock<Sparse>(covmat_sx, jq, block, i, j);
+}
 
 template <typename MatrixType>
 void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
@@ -676,22 +703,26 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
   Index col_extent = ji[jj][1] - ji[jj][0] + 1;
   Range col_range(col_start, col_extent);
 
-  std::shared_ptr<MatrixType> mat = make_shared<MatrixType>(block_inv);
+  std::shared_ptr<MatrixType> mat = std::make_shared<MatrixType>(block_inv);
   covmat_sx.add_correlation_inverse(
       Block(row_range, col_range, std::make_pair(ii, jj), mat));
 }
 
-template void covmat_sxAddInverseBlock(CovarianceMatrix&,
-                                       const ArrayOfRetrievalQuantity&,
-                                       const Matrix&,
-                                       const Index&,
-                                       const Index&);
+void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
+                              const ArrayOfRetrievalQuantity& jq,
+                              const Matrix& block_inv,
+                              const Index& i,
+                              const Index& j) {
+  covmat_sxAddInverseBlock<Matrix>(covmat_sx, jq, block_inv, i, j);
+}
 
-template void covmat_sxAddInverseBlock(CovarianceMatrix&,
-                                       const ArrayOfRetrievalQuantity&,
-                                       const Sparse&,
-                                       const Index&,
-                                       const Index&);
+void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
+                              const ArrayOfRetrievalQuantity& jq,
+                              const Sparse& block_inv,
+                              const Index& i,
+                              const Index& j) {
+  covmat_sxAddInverseBlock<Sparse>(covmat_sx, jq, block_inv, i, j);
+}
 
 void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
                                   const CovarianceMatrix& covmat_sx) {
@@ -705,7 +736,7 @@ void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
 // retrievalAdd Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-void retrievalAddAbsSpecies(Workspace& ws,
+void retrievalAddAbsSpecies(const Workspace& ws,
                             CovarianceMatrix& covmat_sx,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
@@ -734,7 +765,7 @@ void retrievalAddAbsSpecies(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddFreqShift(Workspace& ws,
+void retrievalAddFreqShift(const Workspace& ws,
                            CovarianceMatrix& covmat_sx,
                            ArrayOfRetrievalQuantity& jacobian_quantities,
                            Agenda& jacobian_agenda,
@@ -752,7 +783,7 @@ void retrievalAddFreqShift(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddFreqStretch(Workspace& ws,
+void retrievalAddFreqStretch(const Workspace& ws,
                              CovarianceMatrix& covmat_sx,
                              ArrayOfRetrievalQuantity& jacobian_quantities,
                              Agenda& jacobian_agenda,
@@ -770,7 +801,7 @@ void retrievalAddFreqStretch(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddCatalogParameter(Workspace& ws,
+void retrievalAddCatalogParameter(const Workspace& ws,
                                   CovarianceMatrix& covmat_sx,
                                   ArrayOfRetrievalQuantity& jacobian_quantities,
                                   Agenda& jacobian_agenda,
@@ -786,7 +817,7 @@ void retrievalAddCatalogParameter(Workspace& ws,
 }
 
 void retrievalAddCatalogParameters(
-    Workspace& ws,
+    const Workspace& ws,
     CovarianceMatrix& covmat_sx,
     ArrayOfRetrievalQuantity& jacobian_quantities,
     Agenda& jacobian_agenda,
@@ -807,7 +838,7 @@ void retrievalAddCatalogParameters(
                       covmat_inv_block);
 }
 
-void retrievalAddMagField(Workspace& ws,
+void retrievalAddMagField(const Workspace& ws,
                           CovarianceMatrix& covmat_sx,
                           ArrayOfRetrievalQuantity& jacobian_quantities,
                           Agenda& jacobian_agenda,
@@ -834,7 +865,7 @@ void retrievalAddMagField(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddPointingZa(Workspace& ws,
+void retrievalAddPointingZa(const Workspace& ws,
                             CovarianceMatrix& covmat_sx,
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
@@ -861,7 +892,7 @@ void retrievalAddPointingZa(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddPolyfit(Workspace& ws,
+void retrievalAddPolyfit(const Workspace& ws,
                          CovarianceMatrix& covmat_sx,
                          ArrayOfRetrievalQuantity& jacobian_quantities,
                          Agenda& jacobian_agenda,
@@ -895,7 +926,7 @@ void retrievalAddPolyfit(Workspace& ws,
   }
 }
 
-void retrievalAddScatSpecies(Workspace& ws,
+void retrievalAddScatSpecies(const Workspace& ws,
                              CovarianceMatrix& covmat_sx,
                              ArrayOfRetrievalQuantity& jacobian_quantities,
                              Agenda& jacobian_agenda,
@@ -922,7 +953,7 @@ void retrievalAddScatSpecies(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddSinefit(Workspace& ws,
+void retrievalAddSinefit(const Workspace& ws,
                          CovarianceMatrix& covmat_sx,
                          ArrayOfRetrievalQuantity& jacobian_quantities,
                          Agenda& jacobian_agenda,
@@ -956,7 +987,7 @@ void retrievalAddSinefit(Workspace& ws,
   }
 }
 
-void retrievalAddSpecialSpecies(Workspace& ws,
+void retrievalAddSpecialSpecies(const Workspace& ws,
                                 CovarianceMatrix& covmat_sx,
                                 ArrayOfRetrievalQuantity& jacobian_quantities,
                                 Agenda& jacobian_agenda,
@@ -981,7 +1012,7 @@ void retrievalAddSpecialSpecies(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddWind(Workspace& ws,
+void retrievalAddWind(const Workspace& ws,
                       CovarianceMatrix& covmat_sx,
                       ArrayOfRetrievalQuantity& jacobian_quantities,
                       Agenda& jacobian_agenda,
@@ -1008,7 +1039,7 @@ void retrievalAddWind(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddTemperature(Workspace& ws,
+void retrievalAddTemperature(const Workspace& ws,
                              CovarianceMatrix& covmat_sx,
                              ArrayOfRetrievalQuantity& jacobian_quantities,
                              Agenda& jacobian_agenda,
@@ -1033,7 +1064,7 @@ void retrievalAddTemperature(Workspace& ws,
                       covmat_inv_block);
 }
 
-void retrievalAddSurfaceQuantity(Workspace& ws,
+void retrievalAddSurfaceQuantity(const Workspace& ws,
                                  CovarianceMatrix& covmat_sx,
                                  ArrayOfRetrievalQuantity& jacobian_quantities,
                                  Agenda& jacobian_agenda,
@@ -1058,14 +1089,12 @@ void retrievalAddSurfaceQuantity(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalDefClose(Workspace& ws,
-                       Index& jacobian_do,
+void retrievalDefClose(Index& jacobian_do,
                        Agenda& jacobian_agenda,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity &jacobian_quantities) {
-  jacobianClose(
-      ws, jacobian_do, jacobian_agenda, jacobian_quantities);
+  jacobianClose(jacobian_do, jacobian_agenda, jacobian_quantities);
 
   ArrayOfArrayOfIndex ji_t;
   bool any_affine;
@@ -1082,8 +1111,7 @@ void retrievalDefClose(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void retrievalDefInit(Workspace& ws,
-                      CovarianceMatrix& covmat_se,
+void retrievalDefInit(CovarianceMatrix& covmat_se,
                       CovarianceMatrix& covmat_sx,
                       Sparse& covmat_block,
                       Sparse& covmat_inv_block,
@@ -1091,7 +1119,7 @@ void retrievalDefInit(Workspace& ws,
                       Agenda& jacobian_agenda,
                       const Index &initialize_jacobian) {
   if (initialize_jacobian == 1) {
-    jacobianInit(ws, jacobian_quantities, jacobian_agenda);
+    jacobianInit(jacobian_quantities, jacobian_agenda);
   }
 
   covmat_block = Sparse();

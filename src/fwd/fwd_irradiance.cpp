@@ -4,14 +4,13 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "atm.h"
 #include "debug.h"
 #include "matpack_view.h"
 
 namespace fwd::profile {
 irradiance::irradiance(const Vector& z,
-                       const Vector& p,
-                       const Vector& t,
-                       const std::vector<Vector>& allvmrs,
+                       const ArrayOfAtmPoint& atm_points,
                        const ArrayOfArrayOfSpeciesTag& allspecs,
                        const PredefinedModelData& predef_data,
                        const ArrayOfCIARecord& cia_data,
@@ -21,9 +20,7 @@ irradiance::irradiance(const Vector& z,
                        Numeric cia_extrap,
                        Index cia_robust)
     : rad(z,
-          p,
-          t,
-          allvmrs,
+          atm_points,
           allspecs,
           predef_data,
           cia_data,

@@ -188,26 +188,11 @@ struct Data {
   [[nodiscard]] String data_type() const;
 
   // Allow copy and move set implicitly from all types
-  Data &operator=(const GriddedField2 &x) {
-    data = x;
-    return *this;
-  }
-  Data &operator=(const Numeric &x) {
-    data = x;
-    return *this;
-  }
-  Data &operator=(const FunctionalData &x) {
-    data = x;
-    return *this;
-  }
-  Data &operator=(GriddedField2 &&x) {
-    data = std::move(x);
-    return *this;
-  }
-  Data &operator=(FunctionalData &&x) {
-    data = std::move(x);
-    return *this;
-  }
+  Data &operator=(const GriddedField2 &x);
+  Data &operator=(const Numeric &x);
+  Data &operator=(const FunctionalData &x);
+  Data &operator=(GriddedField2 &&x);
+  Data &operator=(FunctionalData &&x);
 
   template <typename T> [[nodiscard]] T get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);

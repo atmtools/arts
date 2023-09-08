@@ -19,7 +19,7 @@
 #include <cmath>
 #include <stdexcept>
 #include "array.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "logic.h"
 
@@ -607,30 +607,6 @@ void chk_size(const String& x_name,
 }
 
 /*===========================================================================
-  === Functions for Agendas
-  ===========================================================================*/
-
-//! chk_not_empty
-/*! 
-    Checks that an agenda is not empty.
-
-    The function gives an error message if the agenda is empty.
-
-    \param    x_name   The name of the agenda.
-    \param    x        A variable of type Agenda.
-
-    \author Patrick Eriksson 
-    \date   2002-08-20
-*/
-void chk_not_empty(const String& x_name, const Agenda& x) {
-  ARTS_USER_ERROR_IF (x.nelem() == 0,
-      "The agenda *", x_name, "* is empty.\nIt is not allowed \n"
-      , "that an empty agenda that is actually used.\n"
-      , "Empty agendas are only created of methods setting dummy values \n"
-      , "to variables.")
-}
-
-/*===========================================================================
   === Functions for interpolation grids
   ===========================================================================*/
 
@@ -1198,10 +1174,10 @@ void chk_atm_field(const String& x_name,
               , "degrees in the longitude direction, but the field "
               , "seems to deviate between first and last longitude "
               , "point. The field must be \"cyclic\".\n"
-              , "Difference: ", setprecision(16)
+              , "Difference: ", std::setprecision(16)
               , x(ip, ir, ic) - x(ip, ir, 0), "\n"
               , "Epsilon   : "
-              , 4 * DBL_EPSILON * max(x(ip, ir, ic), x(ip, ir, 0)))
+              , 4 * DBL_EPSILON * std::max(x(ip, ir, ic), x(ip, ir, 0)))
         }
       }
     }

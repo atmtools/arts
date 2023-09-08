@@ -215,7 +215,8 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   template <bool c>
   using inner_view = typename mut_view_type::template inner_view<c>;
 
-  std::array<T, sz> data{};
+  using data_t = std::array<T, sz>;
+  data_t data{};
 
   [[nodiscard]] explicit constexpr operator matpack_data<T, N>() const {
     if constexpr (N == 1)
@@ -392,6 +393,24 @@ template <typename T, Index... alldim> struct matpack_constant_data {
     return os << mv.view();
   }
 };
+
+template <Index i, typename T, Index N>
+matpack_view<T, 1, false, true> vector_view(std::vector<matpack_constant_data<T, N>>& x) requires(i >= 0 and i < N) {
+  if (x.size() > 0) {
+    static_assert(sizeof(typename matpack_constant_data<T, N>::data_t) == sizeof(T) * N);
+    return matpack_view<T, 2, false, false>(x.data() -> data.data(), {static_cast<Index>(x.size()), N})(joker, i);
+  }
+  return {};
+}
+
+template <Index i, typename T, Index N>
+matpack_view<T, 1, true, true> vector_view(const std::vector<matpack_constant_data<T, N>>& x) requires(i >= 0 and i < N) {
+  if (x.size() > 0) {
+    static_assert(sizeof(typename matpack_constant_data<T, N>::data_t) == sizeof(T) * N);
+    return matpack_view<T, 2, true, false>(const_cast<T*>(x.data() -> data.data()), {static_cast<Index>(x.size()), N})(joker, i);
+  }
+  return {};
+}
 } // namespace matpack
 
 using Vector2 = matpack::matpack_constant_data<Numeric, 2>;

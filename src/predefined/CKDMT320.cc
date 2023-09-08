@@ -41,12 +41,12 @@ constexpr Numeric SL296_ckd_mt_320_v1 = -20.0;
 constexpr Numeric SL296_ckd_mt_320_v2 = 20000.0;
 constexpr Numeric SL296_ckd_mt_320_dv = 10.0;
 constexpr int SL296_ckd_mt_320_npt = 2003;
-constexpr Numeric SL260_ckd_mt_320_v1 = -20.0;
-constexpr Numeric SL260_ckd_mt_320_v2 = 20000.0;
-constexpr Numeric SL260_ckd_mt_320_dv = 10.0;
-constexpr int SL260_ckd_mt_320_npt = 2003;
+// constexpr Numeric SL260_ckd_mt_320_v1 = -20.0;
+// constexpr Numeric SL260_ckd_mt_320_v2 = 20000.0;
+// constexpr Numeric SL260_ckd_mt_320_dv = 10.0;
+// constexpr int SL260_ckd_mt_320_npt = 2003;
 constexpr Numeric FH2O_ckd_mt_320_v1 = -20.0;
-constexpr Numeric FH2O_ckd_mt_320_v2 = 20000.0;
+// constexpr Numeric FH2O_ckd_mt_320_v2 = 20000.0;
 constexpr Numeric FH2O_ckd_mt_320_dv = 10.0;
 constexpr int FH2O_ckd_mt_320_npt = 2003;
 

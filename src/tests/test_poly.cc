@@ -11,8 +11,8 @@ int main(void) {
 
   int status = poly_root_solve(s, v);
 
-  cout << status << endl;
-  cout << s << endl;
+  std::cout << status << std::endl;
+  std::cout << s << std::endl;
 
   return (0);
 }

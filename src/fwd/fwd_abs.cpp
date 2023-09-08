@@ -2,9 +2,7 @@
 
 namespace fwd {
 full_absorption::full_absorption(
-    Numeric p,
-    Numeric t,
-    const Vector& allvmrs,
+    const AtmPoint& atm_point,
     const ArrayOfArrayOfSpeciesTag& allspecs,
     const std::shared_ptr<PredefinedModelData>& predef_data,
     const std::vector<std::shared_ptr<CIARecord>>& cia_data,
@@ -13,10 +11,10 @@ full_absorption::full_absorption(
     const ArrayOfArrayOfAbsorptionLines& lbl_data,
     Numeric cia_extrap,
     Index cia_robust)
-    : cia(p, t, allvmrs, allspecs, cia_data, cia_extrap, cia_robust),
-      predef(p, t, allvmrs, allspecs, predef_data),
-      lbl(t, p, isotopologue_ratios, allspecs, allvmrs, lbl_data),
-      hxsec(p, t, allvmrs, allspecs, hxsec_data) {}
+    : cia(atm_point, allspecs, cia_data, cia_extrap, cia_robust),
+      predef(atm_point, allspecs, predef_data),
+      lbl(atm_point, isotopologue_ratios, lbl_data),
+      hxsec(atm_point, allspecs, hxsec_data) {}
 
 Complex full_absorption::at(Numeric f) const {
   return cia.at(f) + predef.at(f) + lbl.at(f) + hxsec.at(f);

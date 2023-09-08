@@ -5,7 +5,7 @@
 namespace Python {
 namespace py = pybind11;
 
-void py_physics(py::module_& m) {
+void py_physics(py::module_& m) try {
   auto physics = m.def_submodule("physics");
   physics.doc() = R"--(Contains simple physics functions in arts
 )--";
@@ -29,5 +29,7 @@ Returns
   n : Numeric or numpy.ndarray
     Number density [1/m³]
 )--"));
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize physics\n", e.what()));
 }
 }  // namespace Python

@@ -3,7 +3,7 @@ import sys
 
 
 def sort_ignore_case(entities):
-    sorted = [str(e.name) for e in entities]
+    sorted = [str(e) for e in entities]
     sorted.sort(key=lambda x: x.lower())
     return sorted
 
@@ -15,7 +15,7 @@ def _hlist_num_cols(v):
 def agendas():
     existing = pyarts.workspace.Workspace().__dir__()
 
-    vars = sort_ignore_case(pyarts.arts.globals.get_agenda_data())
+    vars = sort_ignore_case(list(pyarts.arts.globals.workspace_agendas().keys()))
     txt = f""".. hlist::
     :columns: {_hlist_num_cols(vars)}
 
@@ -29,7 +29,7 @@ def agendas():
 def variables():
     existing = pyarts.workspace.Workspace().__dir__()
 
-    vars = sort_ignore_case(pyarts.arts.globals.get_wsv_data())
+    vars = sort_ignore_case(list(pyarts.arts.globals.workspace_variables().keys()))
     txt = f""".. hlist::
     :columns: {_hlist_num_cols(vars)}
 
@@ -43,7 +43,7 @@ def variables():
 def groups():
     existing = pyarts.arts.__dir__()
 
-    vars = sort_ignore_case(pyarts.arts.globals.get_wsv_groups())
+    vars = sort_ignore_case(list(pyarts.arts.globals.workspace_groups().keys()))
     txt = f""".. hlist::
     :columns: {_hlist_num_cols(vars)}
 
@@ -57,7 +57,7 @@ def groups():
 def methods():
     existing = pyarts.workspace.Workspace().__dir__()
 
-    vars = sort_ignore_case(pyarts.arts.globals.get_md_data_raw())
+    vars = sort_ignore_case(list(pyarts.arts.globals.workspace_methods().keys()))
     txt = f""".. hlist::
     :columns: {_hlist_num_cols(vars)}
 

@@ -4,12 +4,19 @@
 class Workspace;
 
 #include <functional>
+#include <memory>
 #include <ostream>
+#include <string>
+#include <vector>
 
-struct CallbackFunction : public std::function<void(Workspace&)> {
-  CallbackFunction();
-  CallbackFunction(std::function<void(Workspace&)> x);
-  friend std::ostream& operator<<(std::ostream& os, const CallbackFunction&);
+struct CallbackOperator {
+  std::function<void(const std::shared_ptr<Workspace>&)> callback{};
+  std::vector<std::string> inputs{};
+  std::vector<std::string> outputs{};
+
+  void operator()(Workspace& ws) const;
+
+  friend std::ostream& operator<<(std::ostream& os, const CallbackOperator&);
 };
 
 #endif

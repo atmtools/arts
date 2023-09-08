@@ -1,12 +1,7 @@
 
 #include <memory>
 
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 
@@ -17,19 +12,19 @@
 
 namespace Python {
 
-void py_surf(py::module_ &m) {
-  py::class_<Surf::Data>(m, "SurfData")
-      .def(py::init([]() { return std::make_unique<Surf::Data>(); }))
+void py_surf(py::module_ &m) try {
+  artsclass<Surf::Data>(m, "SurfData")
+      .def(py::init([]() { return std::make_shared<Surf::Data>(); }))
       .def(py::init([](const GriddedField2 &x) {
-        return std::make_unique<Surf::Data>(x);
+        return std::make_shared<Surf::Data>(x);
       }))
       .def(py::init(
-          [](const Numeric &x) { return std::make_unique<Surf::Data>(x); }))
+          [](const Numeric &x) { return std::make_shared<Surf::Data>(x); }))
       .def(py::init([](const Index &x) {
-        return std::make_unique<Surf::Data>(static_cast<Numeric>(x));
+        return std::make_shared<Surf::Data>(static_cast<Numeric>(x));
       }))
       .def(py::init([](const Surf::FunctionalData &x) {
-        return std::make_unique<Surf::Data>(x);
+        return std::make_shared<Surf::Data>(x);
       }))
       .def_readwrite("data", &Surf::Data::data)
       .def_readwrite("lat_upp", &Surf::Data::lat_upp)
@@ -44,7 +39,7 @@ void py_surf(py::module_ &m) {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            auto out = std::make_unique<Surf::Data>();
+            auto out = std::make_shared<Surf::Data>();
             out->data = t[0].cast<Surf::FieldData>();
             out->lat_low = t[3].cast<Surf::Extrapolation>();
             out->lat_upp = t[4].cast<Surf::Extrapolation>();
@@ -58,12 +53,12 @@ void py_surf(py::module_ &m) {
   py::implicitly_convertible<Index, Surf::Data>();
   py::implicitly_convertible<Surf::FunctionalData, Surf::Data>();
 
-  auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint").def(py::init([] {
-    return std::make_unique<SurfacePoint>();
+  auto pnt = artsclass<SurfacePoint>(m, "SurfacePoint").def(py::init([] {
+    return std::make_shared<SurfacePoint>();
   }));
 
-  auto fld = py::class_<SurfaceField>(m, "SurfaceField").def(py::init([] {
-    return std::make_unique<SurfaceField>();
+  auto fld = artsclass<SurfaceField>(m, "SurfaceField").def(py::init([] {
+    return std::make_shared<SurfaceField>();
   }));
 
   pnt.def_readwrite("temperature", &SurfacePoint::temperature)
@@ -101,7 +96,7 @@ void py_surf(py::module_ &m) {
             auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<SurfacePoint>();
+            auto out = std::make_shared<SurfacePoint>();
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
                   [&](auto &&key) -> Numeric & { return out->operator[](key); },
@@ -143,7 +138,7 @@ void py_surf(py::module_ &m) {
             auto v = t[1].cast<std::vector<Surf::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
-            auto out = std::make_unique<SurfaceField>();
+            auto out = std::make_shared<SurfaceField>();
 
             for (std::size_t i = 0; i < k.size(); i++)
               std::visit(
@@ -155,5 +150,7 @@ void py_surf(py::module_ &m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(SurfaceField);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize surf\n", e.what()));
 }
 } // namespace Python

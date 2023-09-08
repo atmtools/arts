@@ -9,7 +9,8 @@
 #ifndef ppath_h
 #define ppath_h
 
-#include "agenda_class.h"
+
+#include <workspace.h>
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "surf.h"
@@ -150,7 +151,7 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
     @author Patrick Eriksson
     @date   2023-01-08
 */
-void refracted_link_basic(Workspace& ws,
+void refracted_link_basic(const Workspace& ws,
                           Ppath& ppath,
                           const Agenda& refr_index_air_ZZZ_agenda,
                           const Numeric& ppath_lstep,

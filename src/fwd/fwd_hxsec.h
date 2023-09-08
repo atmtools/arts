@@ -2,8 +2,9 @@
 
 #include <memory>
 
-#include "../species_tags.h"
-#include "../xsec_fit.h"
+#include <atm.h>
+#include <species_tags.h>
+#include <xsec_fit.h>
 
 namespace fwd::hxsec {
 struct single {
@@ -29,9 +30,7 @@ struct full {
 
   full() = default;
 
-  full(Numeric p,
-       Numeric t,
-       const Vector& vmrs,
+  full(const AtmPoint& atm_point,
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::vector<std::shared_ptr<XsecRecord>>& xsec);
 

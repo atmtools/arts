@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 import pyarts.arts as cxx
 from pyarts.workspace import Workspace, arts_agenda
+from copy import copy, deepcopy
 
 
 class test:
@@ -56,38 +57,11 @@ class test:
         return True
 
 
-list_of_groups = [x.name for x in cxx.globals.get_wsv_groups()]
+list_of_groups = list(cxx.globals.workspace_groups().keys())
 special_groups = ["CallbackFunction", "Any", "SpectralRadianceProfileOperator"]
 
 
 class TestGroups:
-    def test_if_test_exist(self):
-        for g in list_of_groups:
-            assert hasattr(self, f"test{g}"), f"Lacking test for {g}"
-
-    def test_if_group_fulfill_basic_contracts(self):
-        ws = Workspace()
-
-        for g in list_of_groups:
-            if g in special_groups:
-                continue
-
-            if g == "Agenda":
-                x = eval("cxx.{}(ws)".format(g))
-            else:
-                x = eval("cxx.{}()".format(g))
-            eval("ws.{}Create('{}__1', '', x)".format(g, g))
-            exec("ws.{}__2 = x".format(g))
-            assert hasattr(
-                x, "readxml"
-            ), f"Workspace group {g} lacks an xml reading routine!"
-            assert hasattr(
-                x, "savexml"
-            ), f"Workspace group {g} lacks an xml saving routine!"
-            assert x.__doc__ != "Missing description" and len(
-                x.__doc__
-            ), f"{g} lacks documentation"
-
     def testAbsorptionLines(self):
         lineshapemodel = cxx.LineShapeModel(
             [
@@ -134,29 +108,6 @@ class TestGroups:
             0.5,
         )
 
-    def testAgenda(self):
-        ws = Workspace()
-        ws.x = [4]
-
-        x = cxx.Agenda(ws)
-
-        def test(ws):
-            ws.x = [2]
-            print("in python:", ws.x.value)
-            ws.x = [1]
-
-        # Note that the actual output order here depends on your stream buffer
-        # the values counting down is all that matters for
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_workspace_method("VectorSet", ws.x, [3])
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_callback_method(test)
-        x.add_workspace_method("Print", ws.x, 0)
-        x.add_workspace_method("Print", "Done!", 0)
-        x.name = "test_agenda"
-        x.check(ws)
-        x.execute(ws)
-
     def testAny(self):
         cxx.Any()
 
@@ -194,8 +145,7 @@ class TestGroups:
         test.array(x)
 
     def testArrayOfAgenda(self):
-        ws = Workspace()
-        y = cxx.Agenda(ws)
+        y = cxx.Agenda()
         x = cxx.ArrayOfAgenda([y])
 
         test.array(x)
@@ -230,29 +180,34 @@ class TestGroups:
 
         x = cxx.ArrayOfAbsorptionLines([x])
 
-        x = cxx.ArrayOfArrayOfAbsorptionLines(
-            [x])
+        x = cxx.ArrayOfArrayOfAbsorptionLines([x])
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
 
     def testArrayOfArrayOfGriddedField1(self):
-        x = cxx.ArrayOfArrayOfGriddedField1([cxx.ArrayOfGriddedField1([cxx.GriddedField1()])])
+        x = cxx.ArrayOfArrayOfGriddedField1(
+            [cxx.ArrayOfGriddedField1([cxx.GriddedField1()])]
+        )
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
 
     def testArrayOfArrayOfGriddedField2(self):
-        x = cxx.ArrayOfArrayOfGriddedField2([cxx.ArrayOfGriddedField2([cxx.GriddedField2()])])
+        x = cxx.ArrayOfArrayOfGriddedField2(
+            [cxx.ArrayOfGriddedField2([cxx.GriddedField2()])]
+        )
 
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
 
     def testArrayOfArrayOfGriddedField3(self):
-        x = cxx.ArrayOfArrayOfGriddedField3([cxx.ArrayOfGriddedField3([cxx.GriddedField3()])])
+        x = cxx.ArrayOfArrayOfGriddedField3(
+            [cxx.ArrayOfGriddedField3([cxx.GriddedField3()])]
+        )
 
         test.io(x, delete=True)
         test.array(x)
@@ -287,22 +242,6 @@ class TestGroups:
         np.array(x[0][0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 0)
 
-    def testArrayOfArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfArrayOfPropagationMatrix(
-            [cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])])
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
-    def testArrayOfArrayOfRadiationVector(self):
-        x = cxx.ArrayOfArrayOfRadiationVector(
-            [cxx.ArrayOfRadiationVector([cxx.RadiationVector()])])
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
     def testArrayOfArrayOfScatteringMetaData(self):
         x = cxx.ArrayOfArrayOfScatteringMetaData()
         test.io(x, delete=True)
@@ -320,13 +259,6 @@ class TestGroups:
 
         x = cxx.ArrayOfArrayOfSpeciesTag(["H2O", "H2O-PWR98"])
         assert len(x) == 2
-
-    def testArrayOfArrayOfStokesVector(self):
-        x = cxx.ArrayOfArrayOfStokesVector([cxx.ArrayOfStokesVector([cxx.StokesVector()])])
-
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
 
     def testArrayOfArrayOfString(self):
         x = cxx.ArrayOfArrayOfString([["OI"]])
@@ -366,14 +298,6 @@ class TestGroups:
 
     def testArrayOfArrayOfTime(self):
         x = cxx.ArrayOfArrayOfTime(1, cxx.ArrayOfTime(1, cxx.Time()))
-        test.io(x, delete=True)
-        test.array(x)
-        test.array_of_array(x)
-
-    def testArrayOfArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfArrayOfTransmissionMatrix(
-            [cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])])
-
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
@@ -429,11 +353,6 @@ class TestGroups:
         np.array(x, copy=False)[:] = 1
         assert np.all(np.array(x) == 1)
 
-    def testArrayOfJacobianTarget(self):
-        x = cxx.ArrayOfJacobianTarget(1, cxx.JacobianTarget())
-        # test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfMatrix(self):
         x = cxx.ArrayOfMatrix([[[1, 2, 3]]])
         test.io(x, delete=True)
@@ -450,18 +369,8 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfPropagationMatrix(self):
-        x = cxx.ArrayOfPropagationMatrix([cxx.PropagationMatrix()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfQuantumIdentifier(self):
         x = cxx.ArrayOfQuantumIdentifier(["H2O-161 J 1 1"])
-        test.io(x, delete=True)
-        test.array(x)
-
-    def testArrayOfRadiationVector(self):
-        x = cxx.ArrayOfRadiationVector([cxx.RadiationVector()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -493,14 +402,17 @@ class TestGroups:
 
     def testArrayOfSun(self):
         ws = Workspace()
-        ws.stokes_dim = 1
         ws.f_grid = [1e9, 2e9, 3e9]
 
         ws.sunsAddSingleBlackbody(
-            radius=20, distance=2000, temperature=5000, latitude=10, longitude=45
+            radius=20,
+            distance=2000,
+            temperature=5000,
+            latitude=10,
+            longitude=45,
         )
 
-        sun = ws.suns.value[0]
+        sun = ws.suns[0]
 
         assert sun.radius == 20
         assert sun.distance == 2000
@@ -514,20 +426,12 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfStokesVector(self):
-        x = cxx.ArrayOfStokesVector(1, cxx.StokesVector())
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfString(self):
         x = cxx.ArrayOfString(["OI"])
         test.io(x, delete=True)
         test.array(x)
 
         x = cxx.ArrayOfString(["OI", cxx.String("AI")])
-
-    def testArrayOfTelsemAtlas(self):
-        cxx.ArrayOfTelsemAtlas()
 
     def testArrayOfTensor3(self):
         x = cxx.ArrayOfTensor3([[[[1, 2, 3]]]])
@@ -610,11 +514,6 @@ class TestGroups:
 
         assert x.as_datetime[-1] == datetime.datetime(2020, 1, 29, 0, 0)
 
-    def testArrayOfTransmissionMatrix(self):
-        x = cxx.ArrayOfTransmissionMatrix([cxx.TransmissionMatrix()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfVector(self):
         x = cxx.ArrayOfVector([[1, 2, 3]])
         test.io(x, delete=True)
@@ -634,29 +533,12 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testCallbackFunction(self):
-        def oi(ws):
-            print("oi")
-            ws.atmosphere_dim = 3
-
-        x = cxx.CallbackFunction(oi)
-
-        ws = Workspace()
-        assert not ws.atmosphere_dim.init
-        x(ws)
-        assert ws.atmosphere_dim.init
-        assert ws.atmosphere_dim.value.value == 3
-
     def testCIARecord(self):
         x = cxx.CIARecord()
         test.io(x, delete=True)
 
     def testCovarianceMatrix(self):
         x = cxx.CovarianceMatrix()
-        test.io(x, delete=True)
-
-    def testEnergyLevelMap(self):
-        x = cxx.EnergyLevelMap()
         test.io(x, delete=True)
 
     def testGasAbsLookup(self):
@@ -693,7 +575,6 @@ class TestGroups:
 
     def testHitranRelaxationMatrixData(self):
         x = cxx.HitranRelaxationMatrixData()
-
         test.io(x, delete=True)
 
     def testIndex(self):
@@ -703,10 +584,6 @@ class TestGroups:
         assert x.value == 0
         x.value = x + 3
         assert x.value == 3
-
-    def testJacobianTarget(self):
-        cxx.JacobianTarget()
-        # test.io(x, delete=True)
 
     def testMapOfErrorCorrectedSuddenData(self):
         x = cxx.MapOfErrorCorrectedSuddenData()
@@ -738,10 +615,6 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-    def testMCAntenna(self):
-        cxx.MCAntenna()
-        # test.io(x, delete=True)
-
     def testNumeric(self):
         x = cxx.Numeric(0)
         test.io(x, delete=True)
@@ -758,30 +631,9 @@ class TestGroups:
         x = cxx.PredefinedModelData()
         test.io(x, delete=True)
 
-    def testPropagationMatrix(self):
-        x = cxx.PropagationMatrix(100, 4, 4, 4)
-        test.io(x, delete=True)
-
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data)[:] = 1
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data, copy=False)[:] = 1
-        assert np.all(np.array(x.data) == 1)
-
     def testQuantumIdentifier(self):
         x = cxx.QuantumIdentifier("O2-66 v 0 0")
         test.io(x, delete=True)
-
-    def testRadiationVector(self):
-        x = cxx.RadiationVector(10, 4)
-        test.io(x, delete=True)
-
-        assert np.all(x[0] == 0)
-
-        x[0][:] = 2
-        assert np.all(x[0] == 2)
 
     def testRational(self):
         x = cxx.Rational()
@@ -817,10 +669,6 @@ class TestGroups:
         x = cxx.ScatteringMetaData()
         test.io(x, delete=True)
 
-    def testSingleScatteringData(self):
-        cxx.SingleScatteringData()
-        # test.io(x, delete=True)
-
     def testSparse(self):
         x = cxx.Sparse()
         test.io(x, delete=True)
@@ -828,18 +676,6 @@ class TestGroups:
     def testSpeciesIsotopologueRatios(self):
         x = cxx.SpeciesIsotopologueRatios()
         test.io(x, delete=True)
-
-    def testStokesVector(self):
-        x = cxx.StokesVector(50, 4)
-        test.io(x, delete=True)
-
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data)[:] = 1
-        assert np.all(np.array(x.data) == 0)
-
-        np.array(x.data, copy=False)[:] = 1
-        assert np.all(np.array(x.data) == 1)
 
     def testString(self):
         x = cxx.String("ho")
@@ -951,25 +787,9 @@ class TestGroups:
         x *= 2
         assert np.all(np.array(x) == 4)
 
-    def testTessemNN(self):
-        cxx.TessemNN()
-        # test.io(x, delete=True)
-
     def testTime(self):
         x = cxx.Time()
         test.io(x, delete=True)
-
-    def testTimer(self):
-        cxx.Timer()
-
-    def testTransmissionMatrix(self):
-        x = cxx.TransmissionMatrix(10, 4)
-        test.io(x, delete=True)
-
-        assert np.all(x[0] == np.diag([1, 1, 1, 1]))
-
-        x[0][:] = 2
-        assert np.all(x[0] == 2)
 
     def testVector(self):
         x = cxx.Vector([1, 2, 3])
@@ -992,92 +812,245 @@ class TestGroups:
 
         assert x @ x == 48
 
-    def testVerbosity(self):
-        cxx.Verbosity()
-    
     def testAtmField(self):
         x = cxx.AtmField()
-        x["wind_u"] = 3.
+        x["wind_u"] = 3.0
         x[cxx.ArrayOfSpeciesTag("O2")] = cxx.GriddedField3(
-            [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]], np.random.rand(3, 7, 3))
+            [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
+            np.random.rand(3, 7, 3),
+        )
 
-        def test_fun(a, b, c): return float(a+b+c)
+        def test_fun(a, b, c):
+            return float(a + b + c)
+
         x[cxx.ArrayOfSpeciesTag("N2")] = test_fun
         test.io(x, delete=True)
         x[cxx.ArrayOfSpeciesTag("N2")] = test_fun
         x.top_of_atmosphere = 2.5
-        x.regularize([1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7])
         test.io(x, delete=True)
-        assert [3, 7, 3] == x.regularized_shape()
-    
+
     def testAtmPoint(self):
         x = cxx.AtmPoint()
-        x["wind_u"] = 3.
+        x["wind_u"] = 3.0
         x[cxx.ArrayOfSpeciesTag("O2")] = 0.21
         x[cxx.ArrayOfSpeciesTag("N2")] = 0.79
         test.io(x, delete=True)
-    
+
     def testVibrationalEnergyLevels(self):
         x = cxx.VibrationalEnergyLevels({"H2O-161": 3, "O2-66": 0.21})
-        x["H2O-162"] = 5.
+        x["H2O-162"] = 5.0
         x["O2-68"] = 0.0021
         test.io(x, delete=True)
-        
-    def testSpectralRadianceProfileOperator(self):
-        cxx.SpectralRadianceProfileOperator()
 
-    def test_pickle(self):
-        ws = Workspace()
-        x = list(cxx.globals.get_WsvGroupMap().keys())
+    def testNumericUnaryOperator(self):
+        def sqrt(n):
+            return np.sqrt(n)
+        f = cxx.NumericUnaryOperator(sqrt)
+        x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        assert np.allclose(np.sqrt(x) - f(x), 0)
 
-        for i in range(len(x)):
-            if x[i] == "CallbackFunction":
+    def test_xml(self):
+        ignore_groups = [
+            "CallbackOperator",
+            "NumericUnaryOperator",
+            "SpectralRadianceProfileOperator",
+            "SingleScatteringData",
+        ]
+
+        groups = list(cxx.globals.workspace_groups().keys())
+        groups.sort()
+
+        for group in ignore_groups:
+            if group not in groups:
+                raise Exception(f"Ignored group {group} is not in workspace")
+
+        fail = []
+        for group in groups:
+            if group in ignore_groups:
+                print(f"Skipping group {group}")
                 continue
-            elif x[i] == "Agenda":
-                continue  # Cannot unpickle a standalone Agenda
-            elif x[i] == "SpectralRadianceProfileOperator":
-                continue  # Cannot unpickle SpectralRadianceProfileOperator
-            elif x[i] == "ArrayOfAgenda":
-                continue  # Cannot unpickle a standalone ArrayOfAgenda
-            else:
-                exec(f"ws.v{i} = cxx.{x[i]}()")
 
-            print(f"Pickling the workspace after adding a {x[i]}")
+            try:
+                t = eval(f"cxx.{group}")
+                print(f"Testing group {group}")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, does not exist:\n{e}\n\n")
+                continue
 
-            with open("test.pcl", "wb") as f:
-                pickle.dump(ws, f)
+            try:
+                x = t()
+                print(f"  Can init as {group}()")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot init:\n{e}\n\n")
+                continue
 
-            with open("test.pcl", "rb") as f:
-                ws2 = pickle.load(f)
+            try:
+                x.savexml("test.xml")
+                print(f"  Can save as xml ({group}.savexml())")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot save:\n{e}\n\n")
+                continue
 
-        assert ws.number_of_initialized_variables() == ws2.number_of_initialized_variables(), \
-            "Must be able to fully init a workspace containing no CallbackFunction"
+            try:
+                x.readxml("test.xml")
+                print(f"  Can read as xml ({group}.readxml())")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot read:\n{e}\n\n")
+                continue
 
-        ws.testing = cxx.Index(3)
+            try:
+                t.fromxml("test.xml")
+                print(f"  Can init ax xml ({group}.fromxml())")
+            except Exception as e:
+                fail.append(
+                    f"\n\nFailed {group}, cannot init from file:\n{e}\n\n"
+                )
+                continue
 
-        @arts_agenda(ws=ws, set_agenda=True)
-        def test_agenda(ws):
-            ws.Print(ws.testing, 0)
+        if len(fail) > 0:
+            for g in fail:
+                print(g)
+            raise Exception(f"There are {len(fail)} tests failing")
 
-        with open("ws.pcl", "wb") as f:
-            pickle.dump(ws, f)
+    def test_print(self):
+        ignore_groups = []
 
-        with open("ws.pcl", "rb") as f:
-            ws2 = pickle.load(f)
+        groups = list(cxx.globals.workspace_groups().keys())
+        groups.sort()
 
-        print(ws)
-        print()
-        print(ws2)
+        for group in ignore_groups:
+            if group not in groups:
+                raise Exception(f"Ignored group {group} is not in workspace")
 
-        print("Predicted working output:\n\n3\n3\n3\n2\n\nActual output (if streams are synchronized):\n")
-        ws.test_agenda.value.execute(ws)
-        ws2.test_agenda.value.execute(ws2)
-        ws2.testing = 2
-        ws.test_agenda.value.execute(ws)
-        ws2.test_agenda.value.execute(ws2)
+        fail = []
+        for group in groups:
+            if group in ignore_groups:
+                print(f"Skipping group {group}")
+                continue
+
+            try:
+                t = eval(f"cxx.{group}")
+                print(f"Testing group {group}")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, does not exist:\n{e}\n\n")
+                continue
+
+            try:
+                x = t()
+                print(f"  Can init as {group}()")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot init:\n{e}\n\n")
+                continue
+
+            try:
+                print(x)
+                print(f"  Can print (print({group}()))")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot print:\n{e}\n\n")
+                continue
+
+            try:
+                assert isinstance(
+                    repr(x), str
+                ), f"repr not a str but {type(repr(x))}"
+                print(f"  Can repr (isinstance(repr({group}()), str))")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot repr:\n{e}\n\n")
+                continue
+
+        if len(fail) > 0:
+            for g in fail:
+                print(g)
+            raise Exception(f"There are {len(fail)} tests failing")
+
+    def test_copy(self):
+        ignore_groups = ["NumericUnaryOperator"]
+
+        groups = list(cxx.globals.workspace_groups().keys())
+        groups.sort()
+
+        for group in ignore_groups:
+            if group not in groups:
+                raise Exception(f"Ignored group {group} is not in workspace")
+
+        fail = []
+        for group in groups:
+            if group in ignore_groups:
+                print(f"Skipping group {group}")
+                continue
+
+            try:
+                t = eval(f"cxx.{group}")
+                print(f"Testing group {group}")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, does not exist:\n{e}\n\n")
+                continue
+
+            try:
+                x = t()
+                print(f"  Can init as {group}()")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot init:\n{e}\n\n")
+                continue
+
+            try:
+                y = t(x)
+                print(f"  Can copy init (x = {group}({group}()))")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot copy init:\n{e}\n\n")
+                continue
+
+            try:
+                y = copy(x)
+                print(f"  Can copy init (x = copy({group}()))")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot copy:\n{e}\n\n")
+                continue
+
+            try:
+                y = deepcopy(x)
+                print(f"  Can copy init (x = deepcopy({group}()))")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot deepcopy:\n{e}\n\n")
+                continue
+
+        if len(fail) > 0:
+            for g in fail:
+                print(g)
+            raise Exception(f"There are {len(fail)} tests failing")
+
+    def test_construct_empty(self):
+        ignore_groups = []
+
+        groups = list(cxx.globals.workspace_groups().keys())
+        groups.sort()
+
+        fail = []
+        for group in groups:
+            if group in ignore_groups:
+                print(f"Skipping group {group}")
+                continue
+
+            try:
+                t = eval(f"cxx.{group}")
+                print(f"Testing group {group}")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, does not exist:\n{e}\n\n")
+                continue
+
+            try:
+                x = t()
+                print(f"  Can init as {group}()")
+            except Exception as e:
+                fail.append(f"\n\nFailed {group}, cannot init:\n{e}\n\n")
+                continue
+
+        if len(fail) > 0:
+            for g in fail:
+                print(g)
+            raise Exception(f"There are {len(fail)} tests failing")
 
 
 if __name__ == "__main__":
     x = TestGroups()
-    b = x.testVibrationalEnergyLevels()
-    b = x.testArrayOfArrayOfAbsorptionLines()
+    x.test_construct_empty()

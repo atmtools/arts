@@ -17,11 +17,9 @@
   === External declarations
   ===========================================================================*/
 
-#include "agenda_set.h"
-#include "arts.h"
+#include <workspace.h>
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "matpack_data.h"
 #include "surf.h"
@@ -103,7 +101,7 @@ void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -122,7 +120,7 @@ void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -141,7 +139,7 @@ void surface_fieldMars(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -161,7 +159,7 @@ void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -220,7 +218,7 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
   }
 
   else
-    throw runtime_error("Unknown selection for input argument *model*.");
+    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -235,7 +233,7 @@ void surface_fieldInit(SurfaceField &surface_field, const Numeric &r_equatorial,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PlanetSet(Workspace &ws, Agenda &g0_agenda, SurfaceField &surface_field,
+void PlanetSet(Agenda &g0_agenda, SurfaceField &surface_field,
                Numeric &molarmass_dry_air, Numeric &planet_rotation_period,
                const String &option) {
   surface_field = {};
@@ -274,5 +272,5 @@ void PlanetSet(Workspace &ws, Agenda &g0_agenda, SurfaceField &surface_field,
     break;
   }
 
-  g0_agenda = AgendaManip::get_g0_agenda(ws, option);
+  g0_agenda = get_g0_agenda(option);
 }

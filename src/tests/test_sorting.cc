@@ -2,8 +2,6 @@
 #include <ctime>
 #include <iostream>
 
-#include "arts.h"
-
 #if HAVE_UNISTD_H
 #include <sys/types.h>
 #include <unistd.h>
@@ -28,12 +26,12 @@ void testVector() {
   v[8] = 5.5;
   v[9] = 10.01;
 
-  cout << "Vector before sort:     " << v << endl;
+  std::cout << "Vector before sort:     " << v << std::endl;
   get_sorted_indexes(i, v);
-  cout << "Index array after sort: " << i << endl;
-  cout << "Sorted Vector:         ";
-  for (Index j = 0; j < v.nelem(); j++) cout << " " << setw(3) << v[i[j]];
-  cout << endl << endl;
+  std::cout << "Index array after sort: " << i << std::endl;
+  std::cout << "Sorted Vector:         ";
+  for (Index j = 0; j < v.nelem(); j++) std::cout << " " << std::setw(3) << v[i[j]];
+  std::cout << std::endl << std::endl;
 }
 
 #ifdef _POSIX_VERSION
@@ -53,22 +51,22 @@ void testArray() {
   a[8] = 5;
   a[9] = 10;
 
-  cout << "Array before sort:      " << a << endl;
+  std::cout << "Array before sort:      " << a << std::endl;
   get_sorted_indexes(i, a);
-  cout << "Index array after sort: " << i << endl;
-  cout << "Sorted Array:          ";
-  for (Index j = 0; j < a.nelem(); j++) cout << " " << setw(3) << a[i[j]];
-  cout << endl << endl;
+  std::cout << "Index array after sort: " << i << std::endl;
+  std::cout << "Sorted Array:          ";
+  for (Index j = 0; j < a.nelem(); j++) std::cout << " " << std::setw(3) << a[i[j]];
+  std::cout << std::endl << std::endl;
 }
 
 void profileVector(Index n) {
-  cout << "Creating Vector with random numbers" << endl;
+  std::cout << "Creating Vector with random numbers" << std::endl;
 
   srandom((unsigned int)time(NULL));
   Vector v(n);
   for (Index i = 0; i < n; i++) v[i] = Numeric(random());
 
-  cout << "Now sorting" << endl;
+  std::cout << "Now sorting" << std::endl;
   ArrayOfIndex i;
   get_sorted_indexes(i, v);
 }
@@ -79,8 +77,8 @@ int main(void) {
   testVector();
   testArray();
 #else
-  cerr << "This test is only available when compiled with POSIX support."
-       << endl;
+  std::cerr << "This test is only available when compiled with POSIX support."
+       << std::endl;
 #endif
 
   //  profileVector (100 * 100 * 20 * 20);

@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "array.h"
-#include "arts.h"
 #include "arts_omp.h"
 #include "lapack.h"
 #include "logic.h"

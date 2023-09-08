@@ -1,9 +1,4 @@
-#include <py_auto_interface.h>
-#include <pybind11/cast.h>
-#include <pybind11/functional.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
+#include <python_interface.h>
 
 #include <functional>
 #include <optional>
@@ -32,7 +27,7 @@ struct GriddedField {
 
 using VectorOrArrayOfString = std::variant<Vector, ArrayOfString>;
 
-void py_griddedfield(py::module_& m) {
+void py_griddedfield(py::module_& m) try {
   m.add_object("_cleanupGriddedField", py::capsule([]() {
                  details::GriddedField::extract_slice = details::three_args;
                  details::GriddedField::refine_grid = details::five_args;
@@ -41,7 +36,7 @@ void py_griddedfield(py::module_& m) {
                  details::GriddedField::from_xarray = details::two_args;
                }));
 
-  py::class_<details::GriddedField>(m, "_detailsGriddedField")
+  artsclass<details::GriddedField>(m, "_detailsGriddedField")
       .def_readwrite_static("extract_slice",
                             &details::GriddedField::extract_slice)
       .def_readwrite_static("refine_grid", &details::GriddedField::refine_grid)
@@ -49,7 +44,7 @@ void py_griddedfield(py::module_& m) {
       .def_readwrite_static("to_dict", &details::GriddedField::to_dict)
       .def_readwrite_static("from_xarray", &details::GriddedField::from_xarray);
 
-  py::class_<GriddedField>(m, "_GriddedField")
+  artsclass<GriddedField>(m, "_GriddedField")
       .def_property_readonly(
           "dim",
           [](GriddedField& gf) { return gf.get_dim(); },
@@ -147,15 +142,15 @@ void py_griddedfield(py::module_& m) {
           py::arg("type") = py::str("linear"))
       .doc() = "Base class for gridding fields of data";
 
-  py::class_<GriddedField1, GriddedField>(m, "GriddedField1")
-      .def(py::init([]() { return std::make_unique<GriddedField1>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField1>(s); }), "Empty named field")
+  artsclass<GriddedField1, GriddedField>(m, "GriddedField1")
+      .def(py::init([]() { return std::make_shared<GriddedField1>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField1>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 1>& grids,
                        const Vector& data,
                        const std::optional<std::array<String, 1>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 1;
-             auto out = std::make_unique<GriddedField1>(name);
+             auto out = std::make_shared<GriddedField1>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -175,15 +170,15 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField1)
       .PythonInterfaceWorkspaceDocumentation(GriddedField1);
 
-  py::class_<GriddedField2, GriddedField>(m, "GriddedField2")
-      .def(py::init([]() { return std::make_unique<GriddedField2>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField2>(s); }), "Empty named field")
+  artsclass<GriddedField2, GriddedField>(m, "GriddedField2")
+      .def(py::init([]() { return std::make_shared<GriddedField2>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField2>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 2>& grids,
                        const Matrix& data,
                        const std::optional<std::array<String, 2>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 2;
-             auto out = std::make_unique<GriddedField2>(name);
+             auto out = std::make_shared<GriddedField2>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -203,15 +198,15 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField2)
       .PythonInterfaceWorkspaceDocumentation(GriddedField2);
 
-  py::class_<GriddedField3, GriddedField>(m, "GriddedField3")
-      .def(py::init([]() { return std::make_unique<GriddedField3>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField3>(s); }), "Empty named field")
+  artsclass<GriddedField3, GriddedField>(m, "GriddedField3")
+      .def(py::init([]() { return std::make_shared<GriddedField3>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField3>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 3>& grids,
                        const Tensor3& data,
                        const std::optional<std::array<String, 3>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 3;
-             auto out = std::make_unique<GriddedField3>(name);
+             auto out = std::make_shared<GriddedField3>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -231,15 +226,15 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField3)
       .PythonInterfaceWorkspaceDocumentation(GriddedField3);
 
-  py::class_<GriddedField4, GriddedField>(m, "GriddedField4")
-      .def(py::init([]() { return std::make_unique<GriddedField4>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField4>(s); }), "Empty named field")
+  artsclass<GriddedField4, GriddedField>(m, "GriddedField4")
+      .def(py::init([]() { return std::make_shared<GriddedField4>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField4>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 4>& grids,
                        const Tensor4& data,
                        const std::optional<std::array<String, 4>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 4;
-             auto out = std::make_unique<GriddedField4>(name);
+             auto out = std::make_shared<GriddedField4>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -259,15 +254,15 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField4)
       .PythonInterfaceWorkspaceDocumentation(GriddedField4);
 
-  py::class_<GriddedField5, GriddedField>(m, "GriddedField5")
-      .def(py::init([]() { return std::make_unique<GriddedField5>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField5>(s); }), "Empty named field")
+  artsclass<GriddedField5, GriddedField>(m, "GriddedField5")
+      .def(py::init([]() { return std::make_shared<GriddedField5>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField5>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 5>& grids,
                        const Tensor5& data,
                        const std::optional<std::array<String, 5>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 5;
-             auto out = std::make_unique<GriddedField5>(name);;
+             auto out = std::make_shared<GriddedField5>(name);;
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -287,15 +282,15 @@ void py_griddedfield(py::module_& m) {
       .PythonInterfaceGriddedField(GriddedField5)
       .PythonInterfaceWorkspaceDocumentation(GriddedField5);
 
-  py::class_<GriddedField6, GriddedField>(m, "GriddedField6")
-      .def(py::init([]() { return std::make_unique<GriddedField6>(); }), "Empty field")
-      .def(py::init([](const String& s) { return std::make_unique<GriddedField6>(s); }), "Empty named field")
+  artsclass<GriddedField6, GriddedField>(m, "GriddedField6")
+      .def(py::init([]() { return std::make_shared<GriddedField6>(); }), "Empty field")
+      .def(py::init([](const String& s) { return std::make_shared<GriddedField6>(s); }), "Empty named field")
       .def(py::init([](const std::array<VectorOrArrayOfString, 6>& grids,
                        const Tensor6& data,
                        const std::optional<std::array<String, 6>>& gridnames,
                        const String& name) {
              constexpr std::size_t n = 6;
-             auto out = std::make_unique<GriddedField6>(name);
+             auto out = std::make_shared<GriddedField6>(name);
              for (std::size_t i = 0; i < n; i++)
                std::visit([&](auto&& g) { out->set_grid(i, g); }, grids[i]);
              if (gridnames.has_value())
@@ -346,5 +341,7 @@ void py_griddedfield(py::module_& m) {
       }), "Initialize from lists");
   py::implicitly_convertible<std::vector<std::vector<GriddedField3>>,
                              ArrayOfArrayOfGriddedField3>();
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));
 }
 }  // namespace Python

@@ -14,8 +14,6 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include "arts.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -57,9 +55,9 @@ void filename_ascii(String& filename, const String& varname) {
    @param     name Name of the file to open
    @author    Stefan Buehler
    @version   1
-   @exception ios_base::failure Could for example mean that the
+   @exception std::ios_base::failure Could for example mean that the
                       directory is read only. */
-void open_output_file(ofstream& file, const std::string_view name) {
+void open_output_file(std::ofstream& file, const std::string_view name) {
   String ename = add_basedir(name);
 
   try {
@@ -68,7 +66,7 @@ void open_output_file(ofstream& file, const std::string_view name) {
     // that the last operation has failed, but the stream is still
     // valid. We don't want either to happen!
     // FIXME: This does not yet work in  egcs-2.91.66, try again later.
-    file.exceptions(ios::badbit | ios::failbit);
+    file.exceptions(std::ios::badbit | std::ios::failbit);
 
     file.open(ename.c_str());
 
@@ -89,11 +87,11 @@ void open_output_file(ofstream& file, const std::string_view name) {
  Closes the file. If it is empty, the file is deleted.
  @param     file File pointer 
  @author    Oliver Lemke
- @exception ios_base::failure Could for example mean that the
+ @exception std::ios_base::failure Could for example mean that the
  directory is read only. */
-void cleanup_output_file(ofstream& file, const std::string_view name) {
+void cleanup_output_file(std::ofstream& file, const std::string_view name) {
   if (file.is_open()) {
-    streampos fpos = file.tellp();
+    std::streampos fpos = file.tellp();
     file.close();
     if (!fpos) std::filesystem::remove(expand_path(name).c_str());
   }
@@ -106,8 +104,8 @@ void cleanup_output_file(ofstream& file, const std::string_view name) {
    @param     name Name of the file to open
    @author    Stefan Buehler
    @version   1
-   @exception ios_base::failure Somehow the file cannot be opened. */
-void open_input_file(ifstream& file, const std::string_view name) {
+   @exception std::ios_base::failure Somehow the file cannot be opened. */
+void open_input_file(std::ifstream& file, const std::string_view name) {
   String ename{expand_path(name)};
 
   // Command line parameters which give us the include search path.
@@ -125,7 +123,7 @@ void open_input_file(ifstream& file, const std::string_view name) {
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  file.exceptions(ios::badbit);
+  file.exceptions(std::ios::badbit);
 
   // c_str explicitly converts to c String.
   file.open(ename.c_str());
@@ -148,7 +146,7 @@ void open_input_file(ifstream& file, const std::string_view name) {
    @exception IOError Some error occured during the read
    @version   1
    @author Stefan Buehler */
-ArrayOfString read_text_from_stream(istream& is) {
+ArrayOfString read_text_from_stream(std::istream& is) {
   ArrayOfString text;
   String linebuffer;
 
@@ -184,7 +182,7 @@ ArrayOfString read_text_from_stream(istream& is) {
    \author Stefan Buehler */
 ArrayOfString read_text_from_file(const std::string_view name) {
   ArrayOfString text{};
-  ifstream ifs;
+  std::ifstream ifs;
 
   // Open input stream:
   open_input_file(ifs, name);
@@ -496,7 +494,7 @@ String make_filename_unique(const std::string_view filename, const String& exten
   }
 
   Index filenumber = 0;
-  ostringstream newfilename;
+  std::ostringstream newfilename;
   newfilename << basename << extensionname;
 
   while (file_exists(newfilename.str()) ||

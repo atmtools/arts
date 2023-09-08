@@ -1,10 +1,10 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "mc_antenna.h"
 #include "py_macros.h"
 
 namespace Python {
-void py_mcantenna(py::module_& m) {
+void py_mcantenna(py::module_& m) try {
   py::enum_<AntennaType>(m, "AntennaType")
       .value("ANTENNA_TYPE_PENCIL_BEAM", AntennaType::ANTENNA_TYPE_PENCIL_BEAM, "As pencil beam")
       .value("ANTENNA_TYPE_GAUSSIAN", AntennaType::ANTENNA_TYPE_GAUSSIAN, "As gaussian beam")
@@ -20,8 +20,8 @@ void py_mcantenna(py::module_& m) {
             return static_cast<AntennaType>(t[0].cast<Index>());
           }));  // NOTE: Cannot add docstring to py::enum_ (python 3.10.10, macOS)
 
-  py::class_<MCAntenna>(m, "MCAntenna")
-      .def(py::init([]() { return std::make_unique<MCAntenna>(); }), "Default Monte Carlo antenna")
+  artsclass<MCAntenna>(m, "MCAntenna")
+      .def(py::init([]() { return std::make_shared<MCAntenna>(); }), "Default Monte Carlo antenna")
       .PythonInterfaceCopyValue(MCAntenna)
       .PythonInterfaceWorkspaceVariableConversion(MCAntenna)
       .PythonInterfaceFileIO(MCAntenna)
@@ -44,7 +44,7 @@ void py_mcantenna(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 6, "Invalid state!")
 
-            auto out = std::make_unique<MCAntenna>();
+            auto out = std::make_shared<MCAntenna>();
             out->atype = t[0].cast<AntennaType>();
             out->sigma_aa = t[1].cast<Numeric>();
             out->sigma_za = t[2].cast<Numeric>();
@@ -54,5 +54,7 @@ void py_mcantenna(py::module_& m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(MCAntenna);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize mcantenna\n", e.what()));
 }
 }  // namespace Python

@@ -9,8 +9,8 @@
 #ifndef interpolation_h
 #define interpolation_h
 
-#include "arts.h"
-#include "matpack_data.h"
+#include <matpack.h>
+
 #include "mystring.h"
 
 //! Structure to store a grid position.
@@ -58,7 +58,7 @@ struct GridPos {
   std::array<Numeric, 2> fd; /*!< Fractional distance to next point
                                     (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
 
-  friend ostream& operator<<(ostream& os, const GridPos& gp);
+  friend std::ostream& operator<<(std::ostream& os, const GridPos& gp);
 };
 
 //! An Array of grid positions.

@@ -513,6 +513,7 @@ void relaxation_matrix_offdiagonal(MatrixView W,
   Rational li = l2.upp();
   Rational lf = l2.low();
   
+  using std::swap;
   const bool swap_order = li > lf;
   if (swap_order) swap(li, lf);
   const int sgn = iseven(li + lf + 1) ? -1 : 1;

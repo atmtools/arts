@@ -241,8 +241,6 @@ void chk_size(const String& x_name,
               const Index& r,
               const Index& c);
 
-void chk_not_empty(const String& x_name, const Agenda& x);
-
 void chk_interpolation_grids_loose(Index& ing_min,
                                    Index& ing_max,
                                    const String& which_interpolation,

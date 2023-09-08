@@ -11,8 +11,10 @@
   === External declarations
   ===========================================================================*/
 
-#include "auto_md.h"
+#include <workspace.h>
+#include "atm.h"
 #include "check_input.h"
+#include "debug.h"
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "ppath.h"
@@ -226,6 +228,20 @@ void ppathCheckInsideGrids(const Ppath& ppath,
                          last(longitude_grid));
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathClampAltitude(Ppath& ppath,
+                        const SurfaceField& surface_field,
+                        const AtmField& atm_field) {
+  //for (auto& [alt, lat, lon] : ppath.pos) {
+  for (auto&& pos : ppath.pos) {
+    Numeric& alt = pos[0];
+    const Numeric lat = pos[1];
+    const Numeric lon = pos[2];
+    const Numeric z_toa = atm_field.top_of_atmosphere;
+    const Numeric z_surf = surface_field.single_value(Surf::Key::h, lat, lon);
+    alt = std::clamp(alt, z_surf, z_toa);
+  }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathGeometric(Ppath& ppath,
@@ -379,16 +395,12 @@ void ppathGeometric(Ppath& ppath,
                    include_specular_ppath);
 
     ppath_extend(ppath, ppath2);
-  } 
-
-  // FIXME: PPATH BUG FIX SHOULD BE ELSEWHERE; IT CURRENTLY CAN RETURN A POSITION ABOVE THE TOP OF THE ATMOSPHERE
-  constexpr Numeric z_boa = 0.0;
-  for (auto&& pos: ppath.pos) pos[0] = std::clamp(pos[0], z_boa, z_toa);
+  }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathRefracted(Workspace& ws,
+void ppathRefracted(const Workspace& ws,
                     Ppath& ppath,
                     const Agenda& refr_index_air_ZZZ_agenda,
                     const Vector& rte_pos,
@@ -566,14 +578,14 @@ void ppathRefracted(Workspace& ws,
         // are also commented below this function
         //
         if (do_horizontal_gradients) {
-          const Numeric sinza = sin(DEG2RAD * los0[0]);
-          const Numeric cosza = cos(DEG2RAD * los0[0]);
-          const Numeric sinaa = sin(DEG2RAD * los0[1]);
-          const Numeric cosaa = cos(DEG2RAD * los0[1]);
+          const Numeric sinza = std::sin(DEG2RAD * los0[0]);
+          const Numeric cosza = std::cos(DEG2RAD * los0[0]);
+          const Numeric sinaa = std::sin(DEG2RAD * los0[1]);
+          const Numeric cosaa = std::cos(DEG2RAD * los0[1]);
           const Numeric r = norm2( ecef0 );
           const Numeric dndlatp =  dndlat / r;
           // Make sure that we don't divide with zero (if lat = +-90)
-          const Numeric dndlonp =  dndlon / (r * max(cos(DEG2RAD * pos0[1]), 1e-6));
+          const Numeric dndlonp =  dndlon / (r * std::max(std::cos(DEG2RAD * pos0[1]), 1e-6));
           const Numeric fac = (RAD2DEG * l_rt / n_real);
           //
           los0[0] += fac * (-sinza * dndz +

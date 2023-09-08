@@ -14,9 +14,9 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "enums.h"
-#include "jacobian.h"
+#include <jacobian.h>
 #include "lineshapemodel.h"
-#include "matpack_concepts.h"
+#include <matpack.h>
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "zeemandata.h"
@@ -552,6 +552,15 @@ struct Lines {
    * @return Line shape parameters
    */
   [[nodiscard]] LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT;
+
+  /** Line shape parameters
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] atm_point As WSV
+   * @param[in] broadener The broadener (less than 0 means all)
+   * @return Line shape parameters
+   */
+  [[nodiscard]] LineShape::Output ShapeParameters(size_t k, const AtmPoint& atm_point, Index broadener=-1) const;
   
   /** Line shape parameters temperature derivatives
    * 
@@ -679,21 +688,21 @@ struct Lines {
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat3Stream(istream& is);
+SingleLineExternal ReadFromArtscat3Stream(std::istream& is);
 
 /** Read from ARTSCAT-4
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat4Stream(istream& is);
+SingleLineExternal ReadFromArtscat4Stream(std::istream& is);
 
 /** Read from ARTSCAT-5
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromArtscat5Stream(istream& is);
+SingleLineExternal ReadFromArtscat5Stream(std::istream& is);
 
 /** Read from LBLRTM
  * 
@@ -751,7 +760,7 @@ SingleLineExternal ReadFromArtscat5Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromLBLRTMStream(istream& is);
+SingleLineExternal ReadFromLBLRTMStream(std::istream& is);
 
 /** Read from newer HITRAN
  *
@@ -807,7 +816,7 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromHitran2004Stream(istream& is);
+SingleLineExternal ReadFromHitran2004Stream(std::istream& is);
 
 /** Read from HITRAN online
  * 
@@ -822,7 +831,7 @@ SingleLineExternal ReadFromHitran2004Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
 */ 
-SingleLineExternal ReadFromHitranOnlineStream(istream& is);
+SingleLineExternal ReadFromHitranOnlineStream(std::istream& is);
 
 /** Read from HITRAN before 2004
  * 
@@ -831,7 +840,7 @@ SingleLineExternal ReadFromHitranOnlineStream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromHitran2001Stream(istream& is);
+SingleLineExternal ReadFromHitran2001Stream(std::istream& is);
 
 /** Read from JPL
  * 
@@ -877,7 +886,7 @@ SingleLineExternal ReadFromHitran2001Stream(istream& is);
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
-SingleLineExternal ReadFromJplStream(istream& is);
+SingleLineExternal ReadFromJplStream(std::istream& is);
 
 /** Splits a list of lines into proper Lines
  * 

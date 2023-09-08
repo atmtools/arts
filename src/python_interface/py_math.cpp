@@ -6,7 +6,7 @@
 namespace Python {
 namespace py = pybind11;
 
-void py_math(py::module_& m) {
+void py_math(py::module_& m) try {
   auto math = m.def_submodule("math");
   math.doc() = "Contains select mathematics from Arts internal functions";
 
@@ -175,5 +175,7 @@ Returns
 w6 : float
     The value
 )--"));
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize math\n", e.what()));
 }
 }  // namespace Python

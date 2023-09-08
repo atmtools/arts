@@ -49,14 +49,14 @@ void diameter_maxFromDiameter_volume_equ(Numeric& diameter_max,
     const Numeric D = pow((volume * 4 * aspect_ratio) / PI, 1. / 3.);
     const Numeric L = D / aspect_ratio;
     diameter_max = pow(pow(D, 2) + pow(L, 2), 1. / 2.);
-    diameter_aspect_area_max = max(D, pow(4 / PI * D * L, 1. / 2.));
+    diameter_aspect_area_max = std::max(D, std::pow(4 / PI * D * L, 1. / 2.));
   }
 
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown particle shape: " << shape << "\n"
        << "Must be spheroidal or cylindrical";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 }
 
@@ -84,10 +84,10 @@ void diameter_volume_equFromDiameter_max(Numeric& diameter_volume_equ,
   }
 
   else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown particle shape: " << shape << "\n"
        << "Must be spheroidal or cylindrical";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   diameter_volume_equ = pow((6. * volume) / PI, 1. / 3.);
@@ -116,7 +116,7 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
 
   // Set description
   {
-    ostringstream os;
+    std::ostringstream os;
     os << "T-matrix calculation for a " << shape << " particle, with "
        << "diameter_volume_equ = " << 1e6 * diameter_volume_equ << "um and "
        << "aspect ratio = " << aspect_ratio << ".";
@@ -133,21 +133,21 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
     // that given data_za_grid fulfills this requirement
     if (!(is_same_within_epsilon(data_za_grid[0], 0., 2 * DBL_EPSILON) &&
           is_same_within_epsilon(last(data_za_grid), 180., 2 * DBL_EPSILON))) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Zenith angle (=scattering angle) grid needs to include\n"
          << "0 deg and 180 deg as first and last grid points, respectively.\n"
          << "At least one of them does not fit.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     Index nza = data_za_grid.nelem();
     Numeric dza = 180. / ((Numeric)nza - 1.);
     for (Index iza = 1; iza < nza; iza++) {
       if (!(is_same_within_epsilon(
               data_za_grid[iza], (Numeric)iza * dza, 2 * DBL_EPSILON))) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Input zenith angle grid *data_za_grid* is required to be\n"
            << "equidistant for randomly oriented particles, but it is not.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     }
   }
@@ -163,24 +163,24 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
     // 0-180 degrees.
     if (scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
         data_aa_grid.nelem() == 0) {
-      ostringstream os;
+      std::ostringstream os;
       os << "For ptype = \"azimuthally_random\""
          << " the azimuth angle grid can not be empty.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && data_aa_grid[0] != 0.) {
-      ostringstream os;
+      std::ostringstream os;
       os << "For ptype = \"azimuthally_random\""
          << " the first value of the aa grid must be 0.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     if (scat_data_single.ptype == PTYPE_AZIMUTH_RND &&
         last(data_aa_grid) != 180.) {
-      ostringstream os;
+      std::ostringstream os;
       os << "For ptype = \"azimuthally_random\""
          << " the last value of the aa grid must be 180.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     scat_data_single.aa_grid = data_aa_grid;
@@ -195,7 +195,7 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
       /*      do not throw error, but slightly increase aspect ratio to value
  *      recommended by original tmatrix code such that numerical issues are
  *      avoided.
-        throw runtime_error( "For spheroidal particles, the aspect ratio "
+        throw std::runtime_error( "For spheroidal particles, the aspect ratio "
                              "is not allowed to be exactly 1 (due to "
                              "numerical problems)." );
 */
@@ -203,10 +203,10 @@ void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
   } else if (shape == "cylindrical") {
     np = -2;
   } else {
-    ostringstream os;
+    std::ostringstream os;
     os << "Unknown particle shape: " << shape << "\n"
        << "Must be \"spheroidal\" or \"cylindrical\".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Interpolate refractive index to relevant grids

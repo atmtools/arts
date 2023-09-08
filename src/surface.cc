@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iomanip>
 #include "atm.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "matpack_complex.h"
@@ -30,7 +30,6 @@
 #include "physics_funcs.h"
 #include "surf.h"
 #include "variousZZZ.h"
-#include "workspace_ng.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
@@ -122,9 +121,7 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
         surface_rmatrix(3, 3) = c;
 }
 
-void surface_props_check(const Vector& lat_grid,
-                         const Vector& lon_grid,
-                         const SurfaceField& surface_field,
+void surface_props_check(const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names) {
   // Check sizes
   ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() != surface_props_names.nelem(),
@@ -153,29 +150,6 @@ void surface_props_check(const Vector& lat_grid,
   }
 }
 
-void surface_props_interp(Vector& v,
-                          const String& vname,
-                          const ArrayOfGridPos& gp_lat,
-                          const ArrayOfGridPos& gp_lon,
-                          const Matrix& itw,
-                          const SurfaceField& surface_field,
-                          const ArrayOfString& surface_props_names) {
-  ARTS_ASSERT(v.nelem() == 1);
-
-  const auto key = SurfacePropertyTag{vname};
-
-  ARTS_USER_ERROR_IF (not surface_field.contains(key),
-                      "The following property was requested\n"
-                      "   ", std::quoted(vname), '\n',
-                      "but it could not be found")
-
-      ARTS_ASSERT(false, "We must have lat and lon...")
-      /*
-  for (Index i=0; i<lat.nelem(); i++){
-    v[i] = surface_field.single_value(key, lat[i], lon[i]);
-  }*/
-}
-
 void dsurface_check(const ArrayOfString& surface_props_names,
                     const ArrayOfString& dsurface_names,
                     const ArrayOfTensor4 dsurface_rmatrix_dx,
@@ -200,150 +174,6 @@ void dsurface_check(const ArrayOfString& surface_props_names,
         "but this string could not be found in *surface_props_names*.\n"
         "This is likely due to incorrect choice of quantity when\n"
         " calling *jacobianAddSurfaceQuantity*.")
-  }
-}
-
-
-void surface_get_incoming_direct(
-    Workspace& ws,
-    Matrix& iy_incoming,
-    Index& stars_visible,
-    Vector& specular_los,
-    const Vector& rtp_pos,
-    const Vector& rtp_los,
-    const Vector& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const AtmField& atm_field,
-    const SurfaceField& surface_field,
-    const Tensor4& pnd_field,
-    const ArrayOfTensor4& dpnd_field_dx,
-    const ArrayOfString& scat_species,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Numeric& ppath_lmax,
-    const Numeric& ppath_lraytrace,
-    const Index& ppath_inside_cloudbox_do,
-    const Index& cloudbox_on,
-    const ArrayOfIndex& cloudbox_limits,
-    const Index& gas_scattering_do,
-    const Index& jacobian_do,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfSun& suns,
-    const Numeric& rte_alonglos_v,
-    const Agenda& propmat_clearsky_agenda,
-    const Agenda& water_p_eq_agenda,
-    const Agenda& gas_scattering_agenda,
-    const Agenda& ppath_step_agenda) {
-ARTS_USER_ERROR("ERROR")
-//  const Vector& z_grid = atm_field.grid[0];
-  //const Vector& lat_grid = atm_field.grid[1];
-//  const Vector& lon_grid = atm_field.grid[2];
-  //const auto& p_field = atm_field[Atm::Key::p].get<const Tensor3&>();
-Vector z_grid, lat_grid, lon_grid;
-Tensor3 p_field;
-
-  //Allocate
-  Vector surface_normal;
-  Matrix iy_sun_toa;
-
-  //get specular line of sight
-  ARTS_ASSERT(false)
-    /*specular_losCalcOld(specular_los,
-                   surface_normal,
-                   rtp_pos,
-                   rtp_los,
-                   lat_grid,
-                   lon_grid,
-                   refellipsoid,
-                   z_surface,
-                   0,
-                   );*/
-
-  //calculate propagation path from the surface to the space in line of sight
-  Ppath ppath;
-  ARTS_ASSERT(false)
-  // FIXME: THIS FUNCTION SWITCHES Z AND P AROUND BECAUSE OF MISMATCH IN OLD/NEW PPATH...
-  /*
-  ppath_calc(ws,
-             ppath,
-             ppath_step_agenda,
-             3,
-             z_grid,
-             lat_grid,
-             lon_grid,
-             p_field,
-             f_grid,
-             refellipsoid,
-             surface_field,
-             cloudbox_on,
-             cloudbox_limits,
-             rtp_pos,
-             specular_los,
-             ppath_lmax,
-             ppath_lraytrace,
-             ppath_inside_cloudbox_do,
-             );*/
-
-
-  //get the incoming spectral radiance of the sun at toa. If there is no in
-  //line of sight, then iy_sun_toa is simply zero and we are finished. No further
-  //calculations needed.
-  stars_visible=0;
-  get_sun_background(iy_sun_toa,
-                      stars_visible,
-                      suns,
-                      ppath,
-                      f_grid,
-                      surface_field.ellipsoid);
-
-  if (stars_visible){
-
-    //dummy variables needed for the output and input of iyTransmission
-    ArrayOfMatrix iy_aux_dummy;
-    ArrayOfString iy_aux_vars_dummy;
-    ArrayOfAtmPoint ppvar_atm_dummy;
-    Matrix ppvar_pnd_dummy;
-    ArrayOfVector ppvar_f_dummy;
-    Tensor3 ppvar_iy_dummy;
-    Tensor4 ppvar_trans_cumulat_dummy;
-    Tensor4 ppvar_trans_partial_dummy;
-    ArrayOfTensor3 diy_incoming_dummy;
-
-    //Calculate the transmitted radiation from toa to the surface
-    iyTransmissionStandard(ws,
-                           iy_incoming,
-                           iy_aux_dummy,
-                           diy_incoming_dummy,
-                           ppvar_atm_dummy,
-                           ppvar_pnd_dummy,
-                           ppvar_f_dummy,
-                           ppvar_iy_dummy,
-                           ppvar_trans_cumulat_dummy,
-                           ppvar_trans_partial_dummy,
-                           f_grid,
-                           abs_species,
-                           atm_field,
-                           cloudbox_on,
-                           cloudbox_limits,
-                           gas_scattering_do,
-                           pnd_field,
-                           dpnd_field_dx,
-                           scat_species,
-                           scat_data,
-                           iy_aux_vars_dummy,
-                           jacobian_do,
-                           jacobian_quantities,
-                           ppath,
-                           iy_sun_toa,
-                           propmat_clearsky_agenda,
-                           water_p_eq_agenda,
-                           gas_scattering_agenda,
-                           1,
-                           Tensor3(),
-                           rte_alonglos_v);
-
-  } else {
-    iy_incoming.resize(f_grid.nelem(),4);
-    iy_incoming=0;
   }
 }
 

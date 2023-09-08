@@ -81,14 +81,6 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   )
 endmacro()
 
-macro (ARTS_TEST_CMDLINE TESTNAME OPTIONS)
-  set(ARTS arts)
-  add_test(
-    NAME cmdline.${TESTNAME}
-    COMMAND ${ARTS} ${OPTIONS} ${ARGN}
-    )
-endmacro (ARTS_TEST_CMDLINE TESTNAME OPTIONS)
-
 macro (ARTS_TEST_CTLFILE_DEPENDS TESTNAME DEPENDNAME)
   set_tests_properties(
     ctlfile.${TESTNAME}
@@ -117,7 +109,7 @@ macro (SETUP_ARTS_CHECKS)
 
   add_custom_target(check
     COMMAND ${CTEST_ARGS}
-    -R '\(^ctlfile|^pytest|^pyarts|^doc|^cmdline|^cpp\)'
+    -R '\(^ctlfile|^pytest|^pyarts|^doc||^cpp\)'
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-pyarts

@@ -4,6 +4,8 @@ add_subdirectory(partfun)
 add_subdirectory(predefined)
 add_subdirectory(python_interface)
 add_subdirectory(rtepack)
+add_subdirectory(workspace)
+add_subdirectory(operators)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -12,7 +14,6 @@ if (NETCDF_FOUND)
     nc_io_basic_types.cc
     nc_io_compound_types.cc
     )
-
 endif (NETCDF_FOUND)
 
 if (ENABLE_MPI)
@@ -34,82 +35,6 @@ add_custom_command (
 
 ########### next target ###############
 
-add_executable (arts main.cc)
-add_dependencies(check-deps arts)
-
-target_link_libraries (arts PRIVATE artscore)
-
-install (TARGETS arts RUNTIME DESTINATION bin)
-
-########### next target ###############
-
-add_executable (make_workspace_memory_handler_cc
-                make_workspace_memory_handler_cc.cc
-                arts.cc
-                groups.cc
-                file.cc
-                parameters.cc)
-target_link_libraries(make_workspace_memory_handler_cc PRIVATE matpack)
-add_custom_command (
-        OUTPUT workspace_memory_handler.cc
-        COMMAND make_workspace_memory_handler_cc
-        DEPENDS make_workspace_memory_handler_cc
-        )
-add_custom_target (BuildAutoSources DEPENDS auto_md.h
-                   auto_md.cc tokval.h)
-
-########### next target ###############
-
-add_executable (make_auto_md_h
-        agenda_record.cc
-        arts.cc
-        file.cc
-        make_auto_md_h.cc
-        parameters.cc
-        )
-
-target_link_libraries (make_auto_md_h PRIVATE methods matpack)
-
-add_custom_command (
-        OUTPUT auto_md.h
-        COMMAND make_auto_md_h
-        DEPENDS make_auto_md_h
-)
-
-########### next target ###############
-
-add_executable (make_auto_md_cc
-        agenda_record.cc
-        arts.cc
-        file.cc
-        make_auto_md_cc.cc
-        parameters.cc
-        )
-
-target_link_libraries (make_auto_md_cc PRIVATE methods matpack)
-
-add_custom_command (
-        OUTPUT auto_md.cc
-        COMMAND make_auto_md_cc
-        DEPENDS make_auto_md_cc
-        )
-
-########### next target ###############
-
-add_executable (make_default_gins
-        make_default_gins.cc
-        )
-
-target_link_libraries (make_default_gins PRIVATE methods)
-
-add_custom_command (
-        OUTPUT default_gins.cc default_gins.h
-        COMMAND make_default_gins
-        DEPENDS make_default_gins
-        )
-
-########### next target ###############
-
 set (ARTSCORE_EXTRA_SOURCES)
 if (NOT HAVE_GETOPT_H)
   list (APPEND ARTSCORE_EXTRA_SOURCES
@@ -117,15 +42,9 @@ if (NOT HAVE_GETOPT_H)
 endif (NOT HAVE_GETOPT_H)
 
 add_library (artscore STATIC
-        auto_md.h
-        auto_md.cc
   ${ARTSCORE_EXTRA_SOURCES}
   absorption.cc
   absorptionlines.cc
-  agenda_class.cc
-  agenda_record.cc
-  agenda_set.cc
-  arts.cc
   arts_omp.cc
   artstime.cc
   atm.cc
@@ -137,9 +56,7 @@ add_library (artscore STATIC
   cloudbox.cc
   compile_time_tests.cc
   covariance_matrix.cc
-  default_gins.cc
   disort.cc
-  docserver.cc
   doit.cc
   fastem.cc
   predefined_absorption_models.cc
@@ -153,7 +70,6 @@ add_library (artscore STATIC
   xsec_fit.cc
   igrf13.cc
   interpolation.cc
-  jacobian.cc
   jpl_species.cc
   legendre.cc
   linemixing.cc
@@ -164,8 +80,8 @@ add_library (artscore STATIC
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
-  m_agenda.cc
   m_agenda_set.cc
+  m_append.cc
   m_array.cc
   m_artstime.cc
   m_atmosphere.cc
@@ -176,10 +92,12 @@ add_library (artscore STATIC
   m_cia.cc
   m_cloudbox.cc
   m_cloudradar.cc
-  m_disort.cc
+  m_conversion.cc
   m_doit.cc
+  m_extract.cc
   m_fluxes.cc
   m_fwd.cc
+  m_gridded_fields.cc
   m_predefined_absorption_models.cc
   m_propmat.cc
   m_gas_scattering.cc
@@ -190,8 +108,10 @@ add_library (artscore STATIC
   m_linemixing.cc
   m_microphysics.cc
   m_montecarlo.cc
+  m_nc.cc
   m_nlte.cc
   m_oem.cc
+  m_operators.cc
   m_optproperties.cc
   m_partfun.cc
   m_physics.cc
@@ -199,14 +119,16 @@ add_library (artscore STATIC
   m_poslos.cc
   m_ppath.cc
   m_psd.cc
-  m_radiation_field.cc
   m_raw.cc
+  m_reduce.cc
   m_refraction.cc
   m_retrieval.cc
   m_rt4.cc
   m_rte.cc
   m_retrieval.cc
+  m_select.cc
   m_sensor.cc
+  m_sizes.cc
   m_sun.cc
   m_surf.cc
   m_surface.cc
@@ -217,7 +139,6 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  m_callback.cc
   math_funcs.cc
   mc_antenna.cc
   mc_interp.cc
@@ -227,16 +148,12 @@ add_library (artscore STATIC
   nlte.cc
   optproperties.cc
   parameters.cc
-  parser.cc
-  partfun.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
   ppath_struct.cc
   propmat_field.cc
   psd.cc
-  quantum_numbers.cc
-  quantum_term_symbol.cc
   radiation_field.cc
   raw.cc
   refraction.cc
@@ -245,21 +162,14 @@ add_library (artscore STATIC
   sensor.cc
   sourcetext.cc
   special_interp.cc
-  species_info.cc
-  species_tags.cc
   sun.cc
   surf.cc
   surface.cc
   telsem.cc
   tessem.cc
-  timings.cc
   tmatrix.cc
-  tokval_io.cc
   variousZZZ.cc
   wigner_functions.cc
-  workspace_ng.cc
-  workspace_memory_handler.cc
-  wsv_aux_operator.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
@@ -281,7 +191,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun methods matpack cdisort species predef xmliobase wigner Faddeeva)
+target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species_tags predef xmliobase wigner Faddeeva workspace quantum jacobian)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)
@@ -295,10 +205,6 @@ endif (NETCDF_FOUND)
 if (ENABLE_MPI)
   target_link_libraries (artscore PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
-
-if (ENABLE_DOCSERVER)
-  target_link_libraries (artscore PUBLIC MHD::MHD ${CMAKE_THREAD_LIBS_INIT})
-endif (ENABLE_DOCSERVER)
 
 if (OpenMP_CXX_FOUND)
   target_link_libraries (artscore PUBLIC OpenMP::OpenMP_CXX)
@@ -342,47 +248,18 @@ set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
 target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
 
-########### next target ###############
-
-add_library (methods STATIC
-        methods.cc
-        tokval.cc
-
-        agendas.cc
-        agenda_record.cc
-        methods_aux.cc
-        groups.cc
-        workspace.cc
-        wsv_aux.cc
-        )
-
-set_source_files_properties (methods.cc PROPERTIES COMPILE_FLAGS "-O0")
-target_link_libraries(methods PUBLIC matpack predef species fwd)
-
 ########################################################################################
 
-add_library(species STATIC
-            isotopologues.cc
-            )
-target_link_libraries(species PUBLIC auto_partfun)
+add_subdirectory(spec)
+add_subdirectory(jac)
 
 ########################################################################################
-
-########### variant tokval
-add_executable (make_tokval make_tokval.cc groups.cc)
-target_link_libraries(make_tokval PRIVATE matpack)
-add_custom_command(OUTPUT tokval.h tokval.cc
-                   COMMAND make_tokval
-                   DEPENDS make_tokval)
 
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
   set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET make_auto_md_cc PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET make_auto_md_h PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET methods PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
@@ -394,3 +271,5 @@ add_subdirectory(tests)
 
 add_subdirectory(fwd)
 target_link_libraries(artscore PUBLIC fwd)
+
+add_subdirectory(quantum)

@@ -28,18 +28,18 @@
   ArrayOfIndex dx2in(ndx);                                                     \
                                                                                \
   if (pnd_agenda_input.ncols() != nin)                                         \
-    throw runtime_error(                                                       \
+    throw std::runtime_error(                                                       \
         "Length of *pnd_agenda_input_names* and number of "                    \
         "columns in *pnd_agenda_input* must be equal.");                       \
   if (ndx) {                                                                   \
     if (ndx > nin)                                                             \
-      throw runtime_error(                                                     \
+      throw std::runtime_error(                                                     \
           "The length of *dpnd_data_dx_names* can not "                        \
           "exceed the one of *pnd_agenda_input_names*.");                      \
     for (Index i = 0; i < ndx; i++) {                                          \
       dx2in[i] = find_first(pnd_agenda_input_names, dpnd_data_dx_names[i]);    \
       if (dx2in[i] < 0) {                                                      \
-        ostringstream os;                                                      \
+        std::ostringstream os;                                                      \
         os << "dpnd_data_dx_names[" << i << "] is " << dpnd_data_dx_names[i]   \
            << "\nThis string could not be found in *pnd_agenda_input_names*."; \
         throw std::runtime_error(os.str());                                    \

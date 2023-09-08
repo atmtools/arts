@@ -11,7 +11,6 @@
 */
 
 #include "absorptionlines.h"
-#include "arts.h"
 #include "debug.h"
 #include "isotopologues.h"
 #include "quantum_numbers.h"
@@ -32,7 +31,7 @@
   \param jt      JacobianTarget return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           JacobianTarget& jt,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -90,7 +89,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const JacobianTarget& jt,
                          bofstream* pbofs,
                          const String& name) {
@@ -137,7 +136,7 @@ void xml_write_to_stream(ostream& os_xml,
  * \param rational  Rational return value
  * \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Rational& rational,
                           bifstream* pbifs) {
   ArtsXMLTag tag;
@@ -168,7 +167,7 @@ void xml_read_from_stream(istream& is_xml,
  * \param pbofs    Pointer to binary file stream. NULL for ASCII output.
  * \param name     Optional name attribute
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Rational& rational,
                          bofstream* pbofs,
                          const String& name) {
@@ -198,7 +197,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param t       Time return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Time& t,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
@@ -227,7 +226,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Time& t,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -255,7 +254,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param al      AbsorptionLines return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           AbsorptionLines& al,
                           bifstream* pbifs) {
   static_assert(AbsorptionLines::version == 2, "The reading routine expects version 1 of the absorption lines data type to work");
@@ -401,14 +400,14 @@ void xml_read_from_stream(istream& is_xml,
   if (pbifs) {
     al.read(*pbifs);
      if (pbifs->fail()) {
-       ostringstream os;
+       std::ostringstream os;
        os << "AbsorptionLines has wrong dimensions";
        xml_data_parse_error(tag, os.str());
      }
   } else {
     is_xml >> al;
     if (is_xml.fail()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "AbsorptionLines has wrong dimensions";
       xml_data_parse_error(tag, os.str());
     }
@@ -428,7 +427,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const AbsorptionLines& al,
                          bofstream* pbofs,
                          const String&) {
@@ -488,7 +487,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param vib     VibrationalEnergyLevels return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           VibrationalEnergyLevels& vib,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
@@ -522,7 +521,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const VibrationalEnergyLevels& vib,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -556,18 +555,3 @@ void xml_write_to_stream(ostream& os_xml,
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
-
-// FIXME: These should be implemented, sooner or later...
-
-void xml_read_from_stream(istream&,
-                          Timer&,
-                          bifstream* /* pbifs */) {
-  ARTS_USER_ERROR_IF(true, "Method not implemented!");
-}
-
-void xml_write_to_stream(ostream&,
-                         const Timer&,
-                         bofstream* /* pbofs */,
-                         const String& /* name */) {
-  ARTS_USER_ERROR_IF(true, "Method not implemented!");
-}

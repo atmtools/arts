@@ -13,7 +13,6 @@
 #include <numeric>
 
 #include "absorption.h"
-#include "arts.h"
 #include "check_input.h"
 #include "debug.h"
 #include "interpolation.h"

@@ -10,10 +10,6 @@
 
 */
 
-#include "arts.h"
-
-#ifdef ENABLE_NETCDF
-
 #include "nc_io.h"
 #include "nc_io_types.h"
 
@@ -212,17 +208,15 @@ void nca_write_to_file(const int ncid, const Vector& v) {
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
-#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                    \
-  void nca_write_to_file(const int, const what &) {         \
-    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
-  }                                                                            \
-  void nca_read_from_file(const int, what &) {              \
-    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!");      \
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                               \
+  void nca_write_to_file(const int, const what&) {                        \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!"); \
+  }                                                                       \
+  void nca_read_from_file(const int, what&) {                             \
+    ARTS_USER_ERROR("NetCDF support not yet implemented for this type!"); \
   }
 
 //==========================================================================
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_NC_READ_WRITE_FILE_DUMMY
-
-#endif /* ENABLE_NETCDF */

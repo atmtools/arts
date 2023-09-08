@@ -7,3 +7,4 @@ Contains many ways to manipulate the workspace object
 """
 
 from pyarts.workspace.workspace import Workspace, arts_agenda # noqa
+from pyarts.workspace.callback import callback_operator # noqa

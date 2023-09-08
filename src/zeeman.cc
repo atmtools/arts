@@ -16,7 +16,6 @@
 #include "linescaling.h"
 #include "lineshape.h"
 #include "nlte.h"
-#include "species_info.h"
 
 void zeeman_on_the_fly(
     PropmatVector& propmat_clearsky,

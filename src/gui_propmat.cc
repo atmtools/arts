@@ -8,23 +8,23 @@
 #include <stdexcept>
 #include <thread>
 
-#include "agenda_class.h"
+#include <workspace.h>
 #include "artstime.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "debug.h"
 #include "jacobian.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "rtepack.h"
 #include "species_tags.h"
-#include "workspace_ng.h"
 
 #ifdef ARTS_GUI_ENABLED
 #include <gui/propmat.h>
 
+using namespace std::chrono_literals;
+
 namespace PropmatClearskyAgendaGUI {
-void compute(Workspace& ws,
+void compute(const Workspace& ws,
              ARTSGUI::PropmatClearsky::ComputeValues& v,
              const Agenda& propmat_clearsky_agenda) {
   propmat_clearsky_agendaExecute(ws,
@@ -42,7 +42,7 @@ void compute(Workspace& ws,
 
 bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          ARTSGUI::PropmatClearsky::Control& ctrl,
-         Workspace& ws,
+         const Workspace& ws,
          const Agenda& propmat_clearsky_agenda,
          ArrayOfRetrievalQuantity& jacobian_quantities,
          ArrayOfSpeciesTag& select_abs_species,
@@ -73,24 +73,23 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
       } else {
         continue;
       }
-
       compute(ws, v, propmat_clearsky_agenda);
 
       v.tm = MuelmatVector(v.pm.nelem());
       v.aotm = MuelmatMatrix(v.jacobian_quantities.nelem(), v.pm.nelem());
       auto local_aotm = v.aotm;
-      Vector dr(jacobian_quantities.nelem(), 0);
-      for (Index i=0 ; i<v.tm.nelem(); i++) {
-        auto& t = v.tm[i];
-        auto&& dt1 = v.aotm[i];
-        auto&& dt2 = local_aotm[i];
-        auto& k1 = v.pm[i];
-        auto& k2 = v.pm[i];
-        auto&& dk1 = v.aopm[i];
-        auto&& dk2 = v.aopm[i];
-        auto& r = v.transmission_distance;
-        rtepack::two_level_exp(t, dt1, dt2, k1, k2, dk1, dk2, r, dr, dr);
-      }
+
+      const Vector local_dr(jacobian_quantities.nelem(), 0);
+      rtepack::two_level_exp(v.tm,
+                            v.aotm,
+                            local_aotm,
+                            v.pm,
+                            v.pm,
+                            v.aopm,
+                            v.aopm,
+                            v.transmission_distance,
+                            local_dr,
+                            local_dr);
 
       // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};
@@ -112,7 +111,7 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
 
-void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
+void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                                 const Agenda& propmat_clearsky_agenda [[maybe_unused]],
                                 const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
                                 const Index& load [[maybe_unused]]) {
@@ -134,16 +133,16 @@ void propmat_clearsky_agendaGUI(Workspace& ws [[maybe_unused]],
 
   // Set some defaults
   if (load) {
-    if (auto* val = ws.get<Vector>("f_grid")) f_grid = *val;
-    if (auto* val = ws.get<Vector>("rtp_los")) rtp_los = *val;
-    if (auto* val = ws.get<AtmPoint>("atm_point")) atm_point = *val;
+    if (ws.contains("f_grid")) f_grid = ws.get<Vector>("f_grid");
+    if (ws.contains("rtp_los")) rtp_los = ws.get<Vector>("rtp_los");
+    if (ws.contains("atm_point")) atm_point = ws.get<AtmPoint>("atm_point");
   }
 
   auto success = std::async(std::launch::async,
                             &PropmatClearskyAgendaGUI::run,
                             std::ref(res),
                             std::ref(ctrl),
-                            std::ref(ws),
+                            std::cref(ws),
                             std::cref(propmat_clearsky_agenda),
                             std::ref(jacobian_quantities),
                             std::ref(select_abs_species),

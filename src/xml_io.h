@@ -13,7 +13,6 @@
 #ifndef xml_io_h
 #define xml_io_h
 
-#include "arts.h"
 #include "xml_io_base.h"
 #include "xml_io_arts_types.h"
 #include <type_traits>
@@ -87,10 +86,10 @@ class ArtsXMLTag : public XMLTag {
 ////////////////////////////////////////////////////////////////////////////
 
 void xml_parse_from_stream(
-    istream &, Vector &, bifstream *, ArtsXMLTag &);
+    std::istream &, Vector &, bifstream *, ArtsXMLTag &);
 
 void xml_parse_from_stream(
-    istream &, ArrayOfString &, bifstream *, ArtsXMLTag &);
+    std::istream &, ArrayOfString &, bifstream *, ArtsXMLTag &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -103,18 +102,17 @@ void xml_parse_from_stream(
  * \param[out] ifs Pointer to input file stream
  * \param[in]  filename Input filename
  */
-void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
+void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
                                   const String& filename);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void filename_xml(String& filename, const String& varname);
+void filename_xml(const String& filename);
 
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
-                             const String& varname,
                              const Index& digits = 0);
 
 ////////////////////////////////////////////////////////////////////////////
@@ -154,7 +152,7 @@ void xml_write_to_file(const String& filename,
                        const Index no_clobber) {
   String efilename{add_basedir(filename)};
 
-  std::unique_ptr<ostream> ofs;
+  std::unique_ptr<std::ostream> ofs;
 
   if (no_clobber) efilename = make_filename_unique(efilename, ".xml");
 

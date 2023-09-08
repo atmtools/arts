@@ -18,12 +18,12 @@
 #include "enums.h"
 #include "fieldmap.h"
 #include "gridded_fields.h"
-#include "matpack_concepts.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
+
 #include "quantum_numbers.h"
 #include "species.h"
 #include "species_tags.h"
+
+#include <matpack.h>
 
 //! A type to name particulates (and let them be type-independent)
 struct ParticulatePropertyTag {

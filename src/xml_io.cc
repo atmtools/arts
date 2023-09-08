@@ -11,9 +11,9 @@
 */
 
 #include "xml_io.h"
-#include "arts.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "debug.h"
 #include "file.h"
 #include "parameters.h"
 
@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNumberType>& value) {
-  ostringstream v;
+  std::ostringstream v;
   
   if(value.size() == 0)
     v << "";
@@ -37,7 +37,7 @@ void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNum
 }
 
 void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpecies& value, const bool self, const bool bath) {
-  ostringstream v;
+  std::ostringstream v;
   
   if(self)
     v << LineShape::self_broadening;
@@ -63,7 +63,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpecies& value,
   bath=false;
   
   String attribute_value;
-  istringstream strstr("");
+  std::istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
   if (attribute_value.nelem() == 0) return;
@@ -98,7 +98,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
   value.resize(0);
   
   String attribute_value;
-  istringstream strstr("");
+  std::istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
   if (attribute_value.nelem() == 0) return;
@@ -116,7 +116,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
   }
 }
 
-void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
+void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
                                   const String& filename) {
   String xml_file = filename;
   find_xml_file(xml_file);
@@ -125,21 +125,21 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
   {
-    ifs = std::shared_ptr<istream>(new igzstream());
+    ifs = std::shared_ptr<std::istream>(new igzstream());
     xml_open_input_file(
         *(static_cast<igzstream*>(ifs.get())), xml_file);
   }
 #else
   {
-    throw runtime_error(
+    throw std::runtime_error(
         "This arts version was compiled without zlib support.\n"
         "Thus zipped xml files cannot be read.");
   }
 #endif /* ENABLE_ZLIB */
   else {
-    ifs = shared_ptr<istream>(new ifstream());
+    ifs = std::shared_ptr<std::istream>(new std::ifstream());
     xml_open_input_file(
-        *(static_cast<ifstream*>(ifs.get())), xml_file);
+        *(static_cast<std::ifstream*>(ifs.get())), xml_file);
   }
 }
 
@@ -156,13 +156,13 @@ void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
   \param str_error  Error description
 */
 void xml_data_parse_error(ArtsXMLTag& tag, String str_error) {
-  ostringstream os;
+  std::ostringstream os;
   os << "XML data parse error: Error reading ";
   tag.write_to_stream(os);
   os << str_error << "\n"
      << "Check syntax of XML file. A possible cause is that the file "
      << "contains NaN or Inf values.\n";
-  throw runtime_error(os.str());
+  throw std::runtime_error(os.str());
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -176,10 +176,8 @@ void xml_data_parse_error(ArtsXMLTag& tag, String str_error) {
   \param filename filename
   \param varname variable name
 */
-void filename_xml(String& filename, const String& varname) {
-  if ("" == filename) {
-    filename = varname + ".xml";
-  }
+void filename_xml(const String& filename) {
+  ARTS_USER_ERROR_IF(filename == "", "Must have filename")
 }
 
 //! Gives the default filename, with file index, for the XML formats.
@@ -188,22 +186,11 @@ void filename_xml(String& filename, const String& varname) {
 
   \param[out] filename   filename
   \param[in]  file_index Index appended to the filename
-  \param[in]  varname    variable name
   \param[in]  digits     Width for padding with zeros
 */
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
-                             const String& varname,
                              const Index& digits) {
-  if ("" == filename) {
-    ostringstream os;
-    os << varname << "." << std::setw((int)digits)
-       << std::setfill('0') << file_index << ".xml";
-    filename = os.str();
-  } else {
-    ostringstream os;
-    os << filename << "." << std::setw((int)digits) << std::setfill('0')
-       << file_index << ".xml";
-    filename = os.str();
-  }
+  ARTS_USER_ERROR_IF ("" == filename, "Must have filename")
+  var_string(filename, ".", std::setw((int)digits), std::setfill('0'), file_index, ".xml");
 }

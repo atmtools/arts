@@ -22,7 +22,6 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 #include <limits>
 #include <stdexcept>
 
-#include "arts.h"
 #include "check_input.h"
 #include "lin_alg.h"
 #include "logic.h"
@@ -205,32 +204,6 @@ void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
       "Each *scat_data* entry must correspond to one entry in *scat_meta*.")
 }
 
-//! Check scattering data meta
-/*!
-  FIXME
-  
-  \param scat_meta_single scattering meta data
-  \param scat_meta_file filename of the data to be checked
-
-  \author Daniel Kreyling
-  \date 2010-12-02
-*/
-void chk_scattering_meta_data(const ScatteringMetaData& scat_meta_single _U_,
-                              const String& scat_meta_file) {
-  /* this check is outdated. type now is free from!
-   however, we might want to have other things checked here!?
-   - which parameters at least are needed? -> radius, ...?
-   - ...
-  if  (scat_meta_single.type != "Ice" && scat_meta_single.type != "Water" && scat_meta_single.type != "Aerosol")
-  {
-	  ostringstream os; 
-	  os << "Type in " << scat_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
-	  throw runtime_error( os.str() );
-	}
-*/
-  //(more) checks need to be included
-}
-
 //! Check single scattering data
 /*!
   This function checks the self consistency of the data by checking the
@@ -275,11 +248,11 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
        " the last value of the azimuth angle grid in the single"
        " scattering properties data must be 180.")
 
-  ostringstream os_pha_mat;
+  std::ostringstream os_pha_mat;
   os_pha_mat << "pha_mat ";
-  ostringstream os_ext_mat;
+  std::ostringstream os_ext_mat;
   os_ext_mat << "ext_mat ";
-  ostringstream os_abs_vec;
+  std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
 
   switch (scat_data_single.ptype) {
@@ -511,7 +484,7 @@ void bin_quadweights(Vector& w, const Vector& x, const Index& order) {
   ARTS_ASSERT(is_increasing(x));
 
   if (order == 0) {
-    w[0] = min(x[1] - x[0],
+    w[0] = std::min(x[1] - x[0],
                0.5 * (x[1] + x[0]));  // the latter is the half distance
                                       // from x0 to x1 plus the distance
                                       // to 0, ie 0.5(x1-x0)+x0.
@@ -580,28 +553,6 @@ void chk_scat_species_field(bool& empty_flag,
       }
     }
   }
-}
-
-//! Adjust uppermost and lowermost cloudy level for one scat_species_*_*_field.
-/*!
-
-  lower and upper levels have to be preinitialized before calling this function.
- 
-  \param[in,out] lower              lowermost level containing scattering particles
-  \param[in,out] upper              uppermost level containing scattering particles
-  \param[in]     scat_species_field scattering species field (e.g. mass density, mass
-                                    flux, total number density)
-  \param[in]     cloudbox_margin    flag whether to determine lowermost level or set to
-                                    surface
-
-  \author Daniel Kreyling, Jana Mendrok
-  \date   2015-02-09
-*/
-void find_cloudlimits(Index& lower,
-                      Index& upper,
-                      const Tensor3& scat_species_field,
-                      const Numeric& cloudbox_margin) {
-    ARTS_USER_ERROR ("Not yet available for 2D and 3D cases.")
 }
 
 /*! Parse atm_field_compact fieldname for species type

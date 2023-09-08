@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "../atm.h"
 #include "../cia.h"
 #include "matpack_concepts.h"
 #include "species_tags.h"
@@ -35,9 +36,7 @@ struct full {
 
   full() = default;
 
-  full(Numeric p,
-       Numeric t,
-       const Vector& vmrs,
+  full(const AtmPoint& atm_point,
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::vector<std::shared_ptr<CIARecord>>& cia,
        Numeric extrap = {},

@@ -1,13 +1,12 @@
 //! File contains ways to manipulate the propagation matrix
 
-#include "agenda_class.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "debug.h"
 #include "jacobian.h"
 #include "species_tags.h"
 
 void propmat_clearskyAddScaledSpecies(  // Workspace reference:
-    Workspace& ws,
+    const Workspace& ws,
     // WS Output:
     PropmatVector& propmat_clearsky,
     StokvecVector& nlte_source,

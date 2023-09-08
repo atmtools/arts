@@ -1,4 +1,6 @@
+#include <matpack.h>
 #include <mystring.h>
+#include <workspace.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -10,35 +12,21 @@
 #include "array.h"
 #include "compare.h"
 #include "debug.h"
-#include "global_data.h"
-#include "matpack_constexpr.h"
 #include "nonstd.h"
 #include "python_interface/pydocs.h"
-#include "workspace.h"
-#include "workspace_global_data.h"
+#include "workspace_agendas.h"
 
 String as_pyarts(const String& x) {
-  static bool once = false;
-  if (not once) {
-    define_wsv_groups();
-    define_wsv_data();
-    define_wsv_map();
-    define_md_data_raw();
-    define_md_raw_map();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_agenda_data();
-    define_agenda_map();
-    once = true;
-  }
+  const static auto& wsgs = internal_workspace_groups();
+  const static auto& wsvs = workspace_variables();
+  const static auto& wsms = workspace_methods();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
 
-  if (found_in(global_data::WsvGroupMap))
-    return var_string(":class:`~pyarts.arts.", x, '`');
-  if (found_in(global_data::MdRawMap))
+  if (found_in(wsgs)) return var_string(":class:`~pyarts.arts.", x, '`');
+  if (found_in(wsms))
     return var_string(":func:`~pyarts.workspace.Workspace.", x, '`');
-  if (found_in(global_data::WsvMap))
+  if (found_in(wsvs))
     return var_string(":attr:`~pyarts.workspace.Workspace.", x, '`');
 
   throw std::invalid_argument(var_string(
@@ -66,6 +54,12 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
 
   return str_toupper(lhs) < str_toupper(rhs);
 };
+
+std::string fix_newlines(std::string x) {
+  while (x.back() == '\n') x.pop_back();
+  x.push_back('\n');
+  return x;
+}
 
 String unwrap_stars(String x) {
   const auto find = [&](auto p) {
@@ -103,20 +97,9 @@ String unwrap_stars(String x) {
   return x;
 }
 
-String get_agenda_io(const String& x) {
-  static bool once = false;
-  if (not once) {
-    define_wsv_groups();
-    define_wsv_data();
-    define_wsv_map();
-    define_md_data_raw();
-    define_md_raw_map();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_agenda_data();
-    define_agenda_map();
-    once = true;
-  }
+String get_agenda_io(const String& x) try {
+  const static auto& wsas = internal_workspace_agendas();
+  const static auto& wsvs = workspace_variables();
 
   String out{R"(
 Parameters
@@ -130,34 +113,27 @@ Parameters
     String name;
   };
 
-  auto& ag = global_data::agenda_data[global_data::AgendaMap.at(x)];
-  auto& out_ind = ag.Out();
-  auto& in_ind = ag.In();
+  auto& ag = wsas.at(x);
+  auto& out_ind = ag.output;
+  auto& in_ind = ag.input;
 
-  const auto output = [&](const Index ind) {
-    return std::any_of(out_ind.begin(), out_ind.end(), Cmp::eq(ind));
+  const auto output = [&](const std::string& ind) {
+    return std::ranges::any_of(out_ind, Cmp::eq(ind));
   };
 
-  const auto input = [&](const Index ind) {
-    return std::any_of(in_ind.begin(), in_ind.end(), Cmp::eq(ind));
+  const auto input = [&](const std::string& ind) {
+    return std::ranges::any_of(in_ind, Cmp::eq(ind));
   };
 
   std::vector<AgendaIO> writer;
+  writer.reserve(out_ind.size());
   for (auto& var : out_ind) {
-    writer.emplace_back(AgendaIO{
-        input(var),
-        true,
-        global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
-        global_data::wsv_data[var].Name()});
+    writer.emplace_back(AgendaIO{input(var), true, wsvs.at(var).type, var});
   }
 
   for (auto& var : in_ind) {
     if (not output(var))
-      writer.emplace_back(AgendaIO{
-          true,
-          false,
-          global_data::wsv_groups[global_data::wsv_data[var].Group()].name,
-          global_data::wsv_data[var].Name()});
+      writer.emplace_back(AgendaIO{true, false, wsvs.at(var).type, var});
   }
 
   constexpr matpack::matpack_constant_data<std::string_view, 2, 2> inout{
@@ -167,7 +143,8 @@ Parameters
                       " : ~pyarts.arts.",
                       var.group,
                       '\n',
-                      "    ", unwrap_stars(short_doc(var.name)),
+                      "    ",
+                      unwrap_stars(short_doc(var.name)),
                       " See :attr:`~pyarts.workspace.Workspace.",
                       var.name,
                       "` **",
@@ -175,7 +152,10 @@ Parameters
                       "**\n");
   }
 
-  return writer.size() ? out : "";
+  return writer.size() ? out + "\n\n" : "";
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));
 }
 
 String until_first_newline(const String& x) {
@@ -184,32 +164,16 @@ String until_first_newline(const String& x) {
   return out;
 }
 
-String short_doc(const String& x) {
-  static bool once = false;
-  if (not once) {
-    define_wsv_groups();
-    define_wsv_data();
-    define_wsv_map();
-    define_md_data_raw();
-    define_md_raw_map();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_agenda_data();
-    define_agenda_map();
-    once = true;
-  }
+String short_doc(const String& x) try {
+  const static auto& wsgs = internal_workspace_groups();
+  const static auto& wsvs = workspace_variables();
+  const static auto& wsms = internal_workspace_methods();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
 
-  if (found_in(global_data::WsvGroupMap))
-    return until_first_newline(
-        global_data::wsv_groups[global_data::WsvGroupMap.at(x)].desc);
-  if (found_in(global_data::MdRawMap))
-    return until_first_newline(
-        global_data::md_data_raw[global_data::MdRawMap.at(x)].Description());
-  if (found_in(global_data::WsvMap))
-    return until_first_newline(
-        global_data::wsv_data[global_data::WsvMap.at(x)].Description());
+  if (found_in(wsgs)) return until_first_newline(wsgs.at(x).desc);
+  if (found_in(wsms)) return until_first_newline(wsms.at(x).desc);
+  if (found_in(wsvs)) return until_first_newline(wsvs.at(x).desc);
 
   throw std::invalid_argument(var_string(
       std::quoted(x),
@@ -218,38 +182,25 @@ String short_doc(const String& x) {
       x,
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Could not get short doc for ", std::quoted(x), ":\n", e.what()));
 }
 
 void remove_trailing(String& x, char n) {
   while (x.ends_with(n)) x.pop_back();
 }
 
-String compose_generic_groups(Index grp, const ArrayOfIndex& inds) {
-  if (inds.nelem() == 0)
-    return var_string("~pyarts.arts.", global_data::wsv_groups[grp].name);
-
-  String out;
-  for (auto i : inds)
-    out +=
-        var_string("~pyarts.arts.", global_data::wsv_groups[i].name, " or ");
-
-  // Remove trailing " or "
-  out.pop_back();
-  out.pop_back();
-  out.pop_back();
-  out.pop_back();
-  return out;
+String compose_generic_groups(const String& grps) {
+  return var_string("~pyarts.arts.", grps);
 }
 
-String to_defval_str(const String& x, const String& group) {
-  std::string out = var_string(x);
+String to_defval_str(const Wsv& wsv) {
+  const auto& group = wsv.type_name();
 
-  auto pos = out.find('\n');
-  while (pos not_eq out.npos) {
-    out.replace(pos, 1, " ");
-    pos = out.find('\n');
-  }
-  
+  std::string out =
+      std::visit([](auto& a) { return var_string(*a); }, wsv.value);
+
   while (out.front() == ' ') out.erase(out.begin());
   while (out.back() == ' ') out.pop_back();
 
@@ -281,36 +232,24 @@ String to_defval_str(const String& x, const String& group) {
 }
 
 String method_docs(const String& name) try {
-  static bool once = false;
-  if (not once) {
-    define_wsv_groups();
-    define_wsv_data();
-    define_wsv_map();
-    define_md_data_raw();
-    define_md_raw_map();
-    expand_md_data_raw_to_md_data();
-    define_md_map();
-    define_agenda_data();
-    define_agenda_map();
-    once = true;
-  }
+  const static auto& wsms = internal_workspace_methods();
+  const static auto& wsvs = workspace_variables();
 
   //! WARNING: Raw method
-  const auto& method = global_data::md_data_raw[global_data::MdRawMap.at(name)];
+  const auto& method = wsms.at(name);
   String out;
 
   const auto is_output = [&](auto ind) {
-    return std::any_of(method.Out().begin(), method.Out().end(), Cmp::eq(ind));
+    return std::ranges::any_of(method.out, Cmp::eq(ind));
   };
   const auto is_input = [&](auto ind) {
-    return std::any_of(method.In().begin(), method.In().end(), Cmp::eq(ind));
+    return std::ranges::any_of(method.in, Cmp::eq(ind));
   };
   const auto is_ginput = [&](auto& ind) {
-    return std::any_of(method.GIn().begin(), method.GIn().end(), Cmp::eq(ind));
+    return std::ranges::any_of(method.gin, Cmp::eq(ind));
   };
   const auto is_goutput = [&](auto& ind) {
-    return std::any_of(
-        method.GOut().begin(), method.GOut().end(), Cmp::eq(ind));
+    return std::ranges::any_of(method.gout, Cmp::eq(ind));
   };
   const auto fix = [&] {
     remove_trailing(out, '\n');
@@ -318,21 +257,20 @@ String method_docs(const String& name) try {
   };
 
   out = "--(";
-  out += unwrap_stars(method.Description());
+  out += unwrap_stars(method.desc);
   fix();
 
   out += "\nAuthor(s):";
-  for (auto& author : method.Authors()) out += " " + author + ", ";
+  for (auto& author : method.author) out += " " + author + ", ";
   out.pop_back();  // Remove ' '
   out.pop_back();  // Remove ','
   fix();
 
   out += "\nParameters\n----------";
-  for (auto i : method.Out()) {
-    const String io = is_input(i) ? "INOUT" : "OUT";
-    const auto& wsv = global_data::wsv_data[i];
-    const auto& varname = wsv.Name();
-    const auto& grpname = global_data::wsv_groups[wsv.Group()];
+  for (auto& varname : method.out) {
+    const String io = is_input(varname) ? "INOUT" : "OUT";
+    const auto& wsv = wsvs.at(varname);
+    const auto& grpname = wsv.type;
     out += var_string('\n',
                       varname,
                       " : ~pyarts.arts.",
@@ -348,28 +286,26 @@ String method_docs(const String& name) try {
                       "]**");
   }
 
-  for (Index i = 0; i < method.GOut().nelem(); i++) {
-    const auto& varname = method.GOut()[i];
+  for (std::size_t i = 0; i < method.gout.size(); i++) {
+    const auto& varname = method.gout[i];
     const String io = is_ginput(varname) ? "INOUT" : "OUT";
-    const auto& grpname =
-        compose_generic_groups(method.GOutType()[i], method.GOutSpecType()[i]);
+    const auto& grpname = compose_generic_groups(method.gout_type[i]);
     out += var_string('\n',
                       varname,
                       " : ",
                       grpname,
                       "\n    ",
-                      unwrap_stars(until_first_newline(method.GOutDescription()[i])),
+                      unwrap_stars(until_first_newline(method.gout_desc[i])),
                       " **[",
                       io,
                       "]**");
   }
 
-  for (auto i : method.In()) {
-    if (is_output(i)) continue;
+  for (auto varname : method.in) {
+    if (is_output(varname)) continue;
 
-    const auto& wsv = global_data::wsv_data[i];
-    const auto& varname = wsv.Name();
-    const auto& grpname = global_data::wsv_groups[wsv.Group()];
+    const auto& wsv = wsvs.at(varname);
+    const auto& grpname = wsv.type;
     out += var_string('\n',
                       varname,
                       " : ~pyarts.arts.",
@@ -383,23 +319,23 @@ String method_docs(const String& name) try {
                       "`` **[IN]**");
   }
 
-  for (Index i = 0; i < method.GIn().nelem(); i++) {
-    const auto& varname = method.GIn()[i];
+  for (std::size_t i = 0; i < method.gin.size(); i++) {
+    const auto& varname = method.gin[i];
     if (is_goutput(varname)) continue;
-    const auto& grpname =
-        compose_generic_groups(method.GInType()[i], method.GInSpecType()[i]);
-    const auto& defval = method.GInDefault()[i];
-    const bool has_defval = defval not_eq NODEF;
+    const auto& grpname = compose_generic_groups(method.gin_type[i]);
+    const auto& defval = method.gin_value[i];
+    const bool has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
     const String optval{
-        has_defval ? var_string(" Defaults to ``", to_defval_str(defval, global_data::wsv_groups[method.GInType()[i]].name), "``") : ""};
+        has_defval ? var_string(" Defaults to ``", to_defval_str(*defval), "``")
+                   : ""};
     out += var_string('\n',
                       varname,
                       " : ",
                       grpname,
                       opt,
                       "\n    ",
-                      unwrap_stars(until_first_newline(method.GInDescription()[i])),
+                      unwrap_stars(until_first_newline(method.gin_desc[i])),
                       optval,
                       " **[IN]**");
   }
@@ -409,8 +345,97 @@ String method_docs(const String& name) try {
   out += ")--";
 
   return out;
-} catch (std::out_of_range &e) {
+} catch (std::out_of_range& e) {
   throw std::runtime_error(var_string("Cannot find: ", std::quoted(name)));
-} catch (std::exception &e) {
-  throw std::runtime_error(var_string("Error in method_docs(", name, "): ", e.what()));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Error in method_docs(", name, "): ", e.what()));
+}
+
+String variable_used_by(const String& name) {
+  const static auto& wsms = internal_workspace_methods();
+  const static auto& wsas = internal_workspace_agendas();
+
+  struct wsv_io {
+    std::vector<String> wsm_out;
+    std::vector<String> wsm_in;
+    std::vector<String> ag_out;
+    std::vector<String> ag_in;
+  };
+
+  wsv_io usedocs;
+  for (auto& [mname, method] : wsms) {
+    if (std::ranges::any_of(method.out, Cmp::eq(name)))
+      usedocs.wsm_out.emplace_back(mname);
+
+    if (std::ranges::any_of(method.in, Cmp::eq(name)))
+      usedocs.wsm_in.emplace_back(mname);
+  }
+
+  for (auto& [aname, agenda] : wsas) {
+    if (std::ranges::any_of(agenda.output, Cmp::eq(name)))
+      usedocs.ag_out.emplace_back(aname);
+
+    if (std::ranges::any_of(agenda.input, Cmp::eq(name)))
+      usedocs.ag_in.emplace_back(aname);
+  }
+
+  String val;
+  if (usedocs.wsm_out.size()) {
+    val += var_string("\n\nWorkspace methods that can generate ",
+                      name,
+                      "\n",
+                      String(36 + name.size(), '-'),
+                      "\n\n.. hlist::",
+                      "\n    :columns: ",
+                      hlist_num_cols(usedocs.wsm_out),
+                      "\n");
+    for (auto& m : usedocs.wsm_out)
+      val += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+    val += "\n";
+  }
+
+  if (usedocs.wsm_in.size()) {
+    val += var_string("\n\nWorkspace methods that require ",
+                      name,
+                      "\n",
+                      String(31 + name.size(), '-'),
+                      "\n\n.. hlist::",
+                      "\n    :columns: ",
+                      hlist_num_cols(usedocs.wsm_in),
+                      "\n");
+    for (auto& m : usedocs.wsm_in)
+      val += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+    val += "\n";
+  }
+
+  if (usedocs.ag_out.size()) {
+    val += var_string("\n\nWorkspace agendas that can generate ",
+                      name,
+                      "\n",
+                      String(36 + name.size(), '-'),
+                      "\n\n.. hlist::",
+                      "\n    :columns: ",
+                      hlist_num_cols(usedocs.ag_out),
+                      "\n");
+    for (auto& m : usedocs.ag_out)
+      val += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    val += "\n";
+  }
+
+  if (usedocs.ag_in.size()) {
+    val += var_string("\n\nWorkspace agendas that require ",
+                      name,
+                      "\n",
+                      String(31 + name.size(), '-'),
+                      "\n\n.. hlist::",
+                      "\n    :columns: ",
+                      hlist_num_cols(usedocs.ag_in),
+                      "\n");
+    for (auto& m : usedocs.ag_in)
+      val += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    val += "\n";
+  }
+
+  return val;
 }

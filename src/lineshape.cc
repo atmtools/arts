@@ -2072,7 +2072,7 @@ SparseLimitRange linear_sparse_limited_range(
    * a guarantee.  Their start/end points ignore this restriction
    * but have been defined to not contain anything extra
    */
-  Index const beg_lr =
+  const Index beg_lr =
       std::distance(it0s, itlc); /*while (beg_lr % 2) --beg_lr;*/
   Index end_lr = std::distance(it0s, itls);
   while (end_lr % 2)
@@ -2080,7 +2080,7 @@ SparseLimitRange linear_sparse_limited_range(
   Index beg_ur = std::distance(it0s, itus);
   while (beg_ur % 2)
     ++beg_ur;
-  Index const end_ur =
+  const Index end_ur =
       std::distance(it0s, ituc); /*while (end_ur % 2) ++end_ur;*/
 
   // Find new limits
@@ -3430,8 +3430,10 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
           }
         }
       }
-      std::remove_if(derivs.begin(), derivs.end(),
-                     [](Derivatives &dd) { return dd.deriv == nullptr; });
+      [[maybe_unused]] const auto _ =
+          std::remove_if(derivs.begin(), derivs.end(), [](Derivatives &dd) {
+            return dd.deriv == nullptr;
+          });
 
       // Call cut off loop with or without sparsity
       switch (speedup_type) {
@@ -3510,8 +3512,10 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
             }
           }
         }
-        std::remove_if(derivs.begin(), derivs.end(),
-                      [](Derivatives &dd) { return dd.deriv == nullptr; });
+        [[maybe_unused]] const auto _ =
+            std::remove_if(derivs.begin(), derivs.end(), [](Derivatives &dd) {
+              return dd.deriv == nullptr;
+            });
 
         // The line shape strength rescaled by VMR of the broadener
         const auto ls_str = IntensityCalculator(T, QT, QT0, dQTdT, r,

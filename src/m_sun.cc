@@ -4,8 +4,7 @@
 
 #include "matpack_concepts.h"
 #include "physics_funcs.h"
-#include "arts.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "geodetic.h"
 #include "sun.h"
 #include "surf.h"
@@ -92,96 +91,6 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
   new_sun.distance = distance;
   new_sun.latitude = latitude;
   new_sun.longitude = longitude;
-
-  // set flag
-  suns_do = 1;
-
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sunsAddSingleFromGridAtLocation(
-                         ArrayOfSun &suns,
-                         Index &suns_do,
-                         // Inputs:
-                         const Vector &f_grid,
-                         const SurfaceField &surface_field,
-                         const GriddedField2 &sun_spectrum_raw,
-                         const Numeric &radius,
-                         const Numeric &distance,
-                         const Numeric &temperature,
-                         const Numeric &zenith,
-                         const Numeric &azimuth,
-                         const String &description,
-                         const Numeric &location_latitude,
-                         const Numeric &location_longitude,
-                         const Numeric &location_altitude) {
-
-  // some sanity checks
-  ARTS_USER_ERROR_IF (distance<radius,
-                      "The distance to the center of the sun (",distance," m) \n"
-                      "is smaller than the radius of the sun (", radius," m )")
-  ARTS_USER_ERROR_IF (location_altitude<0.,
-                      "The altitude of the solar spectrum should be positiv,\n"
-                      "but is ",location_altitude," m) ")
-
-  // from local position to global position
-  Numeric toa_altitude = location_altitude;// + refell2r(refellipsoid, location_latitude);
-  ARTS_USER_ERROR("ERROR")
-
-  Numeric sun_altitude, sun_latitude, sun_longitude;
-  if (zenith){// < ANGTOL){
-    ARTS_USER_ERROR("ERROR")
-    sun_altitude = distance + toa_altitude;
-    sun_latitude = location_latitude;
-    sun_longitude = location_longitude;
-  } else if (zenith){// > 180 - ANGTOL) {
-    ARTS_USER_ERROR("ERROR")
-    sun_altitude = distance - toa_altitude;
-    sun_latitude = -location_latitude;
-    sun_longitude = location_longitude + 180 - 360.0 * Numeric(round((location_longitude - 0.0) / 360.0));
-  } else {
-    Numeric x, y, z, dx, dy, dz;
-    ARTS_USER_ERROR("ERROR")
-   // poslos2cart(x,
-     //           y,
-       //         z,
-         //       dx,
-           //     dy,
-             //   dz,
-               // toa_altitude,
-   //             location_latitude,
-     //           location_longitude,
-       //         zenith,
-         //       azimuth);
-
- //   cart2sph(sun_altitude, 
-   //         sun_latitude,
-     //       sun_longitude,
-       //     x+distance*dx,
-         //   y+distance*dy,
-           // z+distance*dz,
-     //       location_latitude,
-       //     location_longitude,
-         //   zenith, azimuth);
-  }
-
-
-  // Geometric scaling factor, scales the sun spectral irradiance at the given
-  // location to the spectral irradiance of the suns surface.
-  Numeric scale_factor = (radius*radius + distance*distance)/
-                         (radius*radius);
-
-  // init sun
-  Sun& new_sun = suns.emplace_back();
-
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);
-  new_sun.spectrum *= scale_factor; // scale to sun surface
-
-  new_sun.description = description;
-  new_sun.radius = radius;
-  new_sun.distance = sun_altitude;
-  new_sun.latitude = sun_latitude;
-  new_sun.longitude = sun_longitude;
 
   // set flag
   suns_do = 1;

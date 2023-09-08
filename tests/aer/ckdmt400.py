@@ -8,7 +8,7 @@ x_h2o=1e-2
 
 ws = pyarts.workspace.Workspace()
 ws.ReadXML(ws.predefined_model_data, "model/mt_ckd_4.0/H2O.xml")
-data = ws.predefined_model_data.value
+data = ws.predefined_model_data
 
 self_abs400 = pyarts.arts.predef.get_self_h2o_ckdmt400(f, p, t, x_h2o, data)
 

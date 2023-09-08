@@ -16,10 +16,7 @@
 #ifndef doit_h
 #define doit_h
 
-#include "agenda_class.h"
-#include "matpack_data.h"
-#include "ppath.h"
-#include "rtepack.h"
+#include <workspace.h>
 
 //! Solves monochromatic VRTE for an atmospheric slab with constant conditions.
 /*!
@@ -96,7 +93,7 @@ void rte_step_doit_replacement(  //Output and Input:
   \author Claudia Emde
   \date 2002-06-03
 */
-void cloud_fieldsCalc(Workspace& ws,
+void cloud_fieldsCalc(const Workspace& ws,
                       // Output:
                       Tensor5View ext_mat_field,
                       Tensor4View abs_vec_field,
@@ -107,331 +104,6 @@ void cloud_fieldsCalc(Workspace& ws,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field);
-
-//! Calculates radiation field along a propagation path step for specified
-//! zenith direction and pressure level.
-/*!
-
-  This function is used in the sequential update and called inside a loop over
-  the pressure grid.
-  In the function the intersection point of the propagation path with the
-  next layer is calculated and all atmospheric properties are
-  interpolated an the intersection point. Then a radiative transfer step is
-  performed.
-
-  \param[in,out] ws Current Workspace
-  \param[out]   i_field Updated radiation field inside the cloudbox.
-  \param[in]    p_index Pressure index
-  \param[in]    za_index Index for proagation direction
-  \param[in]    za_grid Zenith angle grid
-  \param[in]    cloudbox_limits The limits of the cloud box
-  \param[in]    scat_field Scattered field
-  \param[in]    propmat_clearsky_agenda calculates the absorption coefficient
-                matrix
-  \param[in]    vmr_field VMR field
-  \param[in]    ppath_step_agenda Calculation of a propagation path step
-  \param[in]    ppath_lmax Maximum length between points describing propagation
-                paths
-  \param[in]    ppath_lraytrace Maximum length of ray tracing steps when
-                determining propagation paths
-  \param[in]    p_grid Pressure grid
-  \param[in]    z_field Field of geometrical altitudes
-  \param[in]    refellipsoid Reference ellipsoid
-  \param[in]    t_field Atmospheric temperature field
-  \param[in]    f_grid The frequency grid for monochromatic pencil beam
-                calculations
-  \param[in]    f_index Frequency index
-  \param[in]    ext_mat_field Extinction matrix field
-  \param[in]    abs_vec_field Absorption matrix field
-  \param[in]    surface_rtprop_agenda Provides radiative properties of the surface
-  \param[in]    scat_za_interp Flag for interplation method in zenith angle
-                dimension
-
-  \author Claudia Emde
-  \date 2003-06-04
-*/
-void cloud_ppath_update1D(Workspace& ws,
-                          // Input and output
-                          Tensor6View cloudbox_field_mono,
-                          // ppath_step_agenda:
-                          const Index& p_index,
-                          const Index& za_index,
-                          ConstVectorView za_grid,
-                          const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View doit_scat_field,
-                          // Calculate scalar gas absorption:
-                          const Agenda& propmat_clearsky_agenda,
-                          const AtmField& atm_field,
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          // Propagation path calculation:
-                          const Agenda& ppath_step_agenda,
-                          const Numeric& ppath_lmax,
-                          const Numeric& ppath_lraytrace,
-                          const Vector2 refellipsoid,
-                          // Calculate thermal emission:
-                          ConstVectorView f_grid,
-                          const Index& f_index,
-                          //particle optical properties
-                          ConstTensor5View ext_mat_field,
-                          ConstTensor4View abs_vec_field,
-                          const Agenda& surface_rtprop_agenda,
-                          //const Agenda& surface_rtprop_agenda,
-                          const Index& scat_za_interp);
-
-//! Calculation of radiation field along a propagation path step for specified
-//! zenith direction and pressure level.
-/*!
-  Basically the same as cloud_ppath_update1D, the only difference is that
-  i_field_old is always used as incoming Stokes vector.
-
-  \param[in,out] ws Current Workspace
-  \param[out]   cloudbox_field_mono Updated radiation field inside the cloudbox.
-  \param[in]    p_index Pressure index
-  \param[in]    za_index Index for propagation direction
-  \param[in]    za_grid Zenith angle grid
-  \param[in]    cloudbox_limits The limits of the cloud box
-  \param[in]    cloudbox_field_mono_old Radiation field inside the cloudbox from
-                previous iteration step
-  \param[in]    doit_scat_field Scattered field
-  \param[in]    propmat_clearsky_agenda calculates the absorption coefficient
-                matrix
-  \param[in]    vmr_field VMR field
-  \param[in]    ppath_step_agenda Calculation of a propagation path step
-  \param[in]    ppath_lmax Maximum length between points describing propagation
-                paths
-  \param[in]    ppath_lraytrace Maximum length of ray tracing steps when
-                determining propagation paths
-  \param[in]    p_grid Pressure grid
-  \param[in]    z_field Field of geometrical altitudes
-  \param[in]    refellipsoid Reference ellipsoid
-  \param[in]    t_field Atmospheric temperature field
-  \param[in]    f_grid The frequency grid for monochromatic pencil beam
-                calculations
-  \param[in]    f_index Frequency index
-  \param[in]    ext_mat_field Extinction matrix field
-  \param[in]    abs_vec_field Absorption matrix field
-  \param[in]    surface_rtprop_agenda Provides radiative properties of the surface
-  \param[in]    scat_za_interp Flag for interplation method in zenith angle
-                dimension
-
-  \author Claudia Emde
-  \date 2005-05-04
-*/
-void cloud_ppath_update1D_noseq(Workspace& ws,
-                                // Input and output
-                                Tensor6View cloudbox_field_mono,
-                                // ppath_step_agenda:
-                                const Index& p_index,
-                                const Index& za_index,
-                                ConstVectorView za_grid,
-                                const ArrayOfIndex& cloudbox_limits,
-                                ConstTensor6View cloudbox_field_mono_old,
-                                ConstTensor6View doit_scat_field,
-                                // Calculate scalar gas absorption:
-                                const Agenda& propmat_clearsky_agenda,
-                                ConstTensor4View vmr_field,
-                                // Gas absorption:
-                                // Propagation path calculation:
-                                const Agenda& ppath_step_agenda,
-                                const Numeric& ppath_lmax,
-                                const Numeric& ppath_lraytrace,
-                                ConstVectorView p_grid,
-                                ConstTensor3View z_field,
-                                const Vector2 refellipsoid,
-                                // Calculate thermal emission:
-                                ConstTensor3View t_field,
-                                ConstVectorView f_grid,
-                                // used for surface ?
-                                const Index& f_index,
-                                //particle optical properties
-                                ConstTensor5View ext_mat_field,
-                                ConstTensor4View abs_vec_field,
-                                const Agenda& surface_rtprop_agenda,
-                                const Index& scat_za_interp);
-
-//! Radiative transfer calculation inside cloudbox for planeparallel case.
-/*!
-  This function calculates the radiation field along a line of sight. This
-  function is used for the sequential update of the radiation field and
-  called inside a loop over the pressure grid.
-
-  The function gets all the atmospheric points on the pressure grid.
-  Then a radiative transfer step is
-  performed using the stokes vector as output and input. The inermediate
-  Stokes vectors are stored in the WSV cloudbox_field_mono.
-
-  \param[in,out] ws Current Workspace
-  \param[out]    cloudbox_field_mono Updated radiation field inside the cloudbox.
-
-  \param[in]     p_index Pressure index
-  \param[in]     za_index Index for propagation direction
-  \param[in]     za_grid Zenith angle grid
-  \param[in]     cloudbox_limits The limits of the cloud box
-  \param[in]     scat_field Scattered field.
-  \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                 matrix
-  \param[in]     vmr_field VMR field
-  \param[in]     p_grid Pressure grid
-  \param[in]     z_field Field of geometrical altitudes
-  \param[in]     t_field Atmospheric temperature field
-  \param[in]     f_grid The frequency grid for monochromatic pencil beam
-                 calculations
-  \param[in]     f_index Frequency index
-  \param[in]     ext_mat_field Extinction matrix field
-  \param[in]     abs_vec_field Absorption matrix field
-
-  \author Sreerekha Ravi
-  \date 2003-11-17
-*/
-void cloud_ppath_update1D_planeparallel(Workspace& ws,
-                                        Tensor6View cloudbox_field_mono,
-                                        // ppath_step_agenda:
-                                        const Index& p_index,
-                                        const Index& za_index,
-                                        ConstVectorView za_grid,
-                                        const ArrayOfIndex& cloudbox_limits,
-                                        ConstTensor6View scat_field,
-                                        // Calculate scalar gas absorption:
-                                        const Agenda& propmat_clearsky_agenda,
-                                        ConstTensor4View vmr_field,
-                                        // Gas absorption:
-                                        // Propagation path calculation:
-                                        ConstVectorView z_grid,
-                                        ConstTensor3View p_field,
-                                        // Calculate thermal emission:
-                                        ConstTensor3View t_field,
-                                        ConstVectorView f_grid,
-                                        const Index& f_index,
-                                        //particle opticla properties
-                                        ConstTensor5View ext_mat_field,
-                                        ConstTensor4View abs_vec_field);
-
-//! Radiative transfer calculation along a path inside the cloudbox (3D).
-/*!
-  This function calculates the radiation field along a propagation path
-  step for a specified zenith direction. This function is used for the
-  sequential update if the radiation field and called inside a loop over
-  the pressure grid.
-  In the function the intersection point of the propagation path with the
-  next layer is calculated and all atmospheric properties are
-  interpolated an the intersection point. Then a radiative transfer step is
-  performed using the stokes vector as output and input. The inermediate
-  Stokes vectors are stored in the WSV cloudbox_field_mono.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field_mono Updated radiation field inside the cloudbox.
-  \param[in]     p_index Pressure index
-  \param[in]     lat_index Latitude index
-  \param[in]     lon_index Longitude index
-  \param[in]     za_index Index for propagation zenith direction
-  \param[in]     aa_index Index for propagation azimuth direction
-  \param[in]     za_grid Zenith angle grid
-  \param[in]     aa_grid Azimuth angle grid
-  \param[in]     cloudbox_limits The limits of the cloud box
-  \param[in]     doit_scat_field Scattered field.
-  \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                 matrix
-  \param[in]     vmr_field VMR field
-  \param[in]     ppath_step_agenda Calculation of a propagation path step
-  \param[in]     ppath_lmax Maximum length between points describing propagation
-                 paths
-  \param[in]     ppath_lraytrace Maximum length of ray tracing steps when
-                 determining propagation paths
-  \param[in]     p_grid Pressure grid
-  \param[in]     lat_grid Latidue grid
-  \param[in]     lon_grid Longitude grid
-  \param[in]     z_field Field of geometrical altitudes
-  \param[in]     refellipsoid Reference ellipsoid
-  \param[in]     t_field Atmospheric temperature field
-  \param[in]     f_grid The frequency grid for monochromatic pencil beam
-                 calculations
-  \param[in]     f_index Frequency index
-  \param[in]     ext_mat_field Extinction matrix field
-  \param[in]     abs_vec_field Absorption matrix field
-
-  \author Claudia Emde
-  \date 2003-06-04
-*/
-void cloud_ppath_update3D(Workspace& ws,
-                          Tensor6View cloudbox_field_mono,
-                          // ppath_step_agenda:
-                          const Index& p_index,
-                          const Index& lat_index,
-                          const Index& lon_index,
-                          const Index& za_index,
-                          const Index& aa_index,
-                          ConstVectorView za_grid,
-                          ConstVectorView aa_grid,
-                          const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View doit_scat_field,
-                          // Calculate scalar gas absorption:
-                          const Agenda& propmat_clearsky_agenda,
-                          const AtmField& atm_field,
-                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                          // Propagation path calculation:
-                          const Agenda& ppath_step_agenda,
-                          const Numeric& ppath_lmax,
-                          const Numeric& ppath_lraytrace,
-                          const Vector2 refellipsoid,
-                          // Calculate thermal emission:
-                          ConstVectorView f_grid,
-                          const Index& f_index,
-                          //particle optical properties
-                          ConstTensor5View ext_mat_field,
-                          ConstTensor4View abs_vec_field,
-                          const Index&);
-
-//! Calculates RT in the cloudbox (1D)
-/*!
-  This function calculates RT in the cloudbox (1D) if the next intersected
-  level is an atmospheric level (in contrast to the surface).
-  It is used inside the functions cloud_ppath_update1DXXX.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field_mono Radiation field in cloudbox
-  \param[in]     propmat_clearsky_agenda Calculate gas absorption
-  \param[in]     ppath_step Propagation path step from one pressure level to the next
-  \param[in]     t_int Temperature values interpolated on propagation path points
-  \param[in]     vmr_list_int Interpolated volume mixing ratios
-  \param[in]     ext_mat_int Interpolated total particle extinction matrix
-  \param[in]     abs_vec_int Interpolated total particle absorption vector
-  \param[in]     sca_vec_int Interpolated total particle scattering vector
-  \param[in]     cloudbox_field_mono_int Interpolated radiances
-  \param[in]     p_int Interpolated pressure values
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     f_grid Frequency grid
-  \param[in]     f_index Frequency index of (monochromatic) scattering
-                 calculation
-  \param[in]     p_index Pressure index in *cloudbox_field_mono*
-  \param[in]     lat_index Latitude index
-  \param[in]     lon_index Longitude index
-  \param[in]     za_index Zenith angle index in *cloudbox_field_mono*
-  \param[in]     aa_index Azimuth angle index in *cloudbox_field_mono*
-
-  \author Claudia Emde
-  \date 2005-05-13
-*/
-void cloud_RT_no_background(Workspace& ws,
-                            //Output
-                            Tensor6View cloudbox_field_mono,
-                            // Input
-                            const Agenda& propmat_clearsky_agenda,
-                            const Ppath& ppath_step,
-                            ConstVectorView t_int,
-                            ConstMatrixView vmr_list_int,
-                            ConstTensor3View ext_mat_int,
-                            ConstMatrixView abs_vec_int,
-                            ConstMatrixView sca_vec_int,
-                            ConstMatrixView cloudbox_field_mono_int,
-                            ConstVectorView p_int,
-                            const ArrayOfIndex& cloudbox_limits,
-                            ConstVectorView f_grid,
-                            const Index& f_index,
-                            const Index& p_index,
-                            const Index& lat_index,
-                            const Index& lon_index,
-                            const Index& za_index,
-                            const Index& aa_index);
 
 //! Calculates RT in the cloudbox
 /*!
@@ -455,7 +127,7 @@ void cloud_RT_no_background(Workspace& ws,
   \date 2005-05-13
 
 */
-void cloud_RT_surface(Workspace& ws,
+void cloud_RT_surface(const Workspace& ws,
                       //Output
                       Tensor6View cloudbox_field_mono,
                       //Input
@@ -592,7 +264,7 @@ void za_gridOpt(  //Output:
   \author Oliver Lemke
   \date 2013-01-17
 */
-void doit_scat_fieldNormalize(Workspace& ws,
+void doit_scat_fieldNormalize(const Workspace& ws,
                               Tensor6& doit_scat_field,
                               const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,

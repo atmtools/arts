@@ -22,23 +22,23 @@ void bifstream::seek(long spos, Offset offs) {
 
   switch (offs) {
     case Set:
-      this->seekg(spos, ios::beg);
+      this->seekg(spos, std::ios::beg);
       break;
     case Add:
-      this->seekg(spos, ios::cur);
+      this->seekg(spos, std::ios::cur);
       break;
     case End:
-      this->seekg(spos, ios::end);
+      this->seekg(spos, std::ios::end);
       break;
   }
 }
 
-streampos bifstream::pos() {
+std::streampos bifstream::pos() {
   if (!in) {
     err = NotOpen;
     return 0;
   }
-  return streampos(this->tellg());
+  return std::streampos(this->tellg());
 }
 
 bifstream::Byte bifstream::getByte() {
@@ -47,11 +47,11 @@ bifstream::Byte bifstream::getByte() {
     iread = this->get();
     if (iread == EOF) err |= Eof;
     return (Byte)iread;
-  } else {
-    err |= NotOpen;
-    throw runtime_error("Reading from binary file failed");
-    return 0;
   }
+  
+  err |= NotOpen;
+  throw std::runtime_error("Reading from binary file failed");
+  return 0;
 }
 
 /* Overloaded input operators */

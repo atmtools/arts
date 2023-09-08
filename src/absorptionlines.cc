@@ -53,6 +53,13 @@ LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
   return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
+LineShape::Output Absorption::Lines::ShapeParameters(size_t k, const AtmPoint& atm_point, Index broadener) const {
+  if (broadener < 0) {
+    return ShapeParameters(k, atm_point.temperature, atm_point.pressure, BroadeningSpeciesVMR(atm_point));
+  }
+  return ShapeParameters(k, atm_point.temperature, atm_point.pressure, static_cast<std::size_t>(broadener));
+}
+
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
   auto &lineshape = lines[k].lineshape;
@@ -114,7 +121,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
   return out;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -157,7 +164,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
   }
 
   // read the arts identifier String
-  istringstream icecream(line);
+  std::istringstream icecream(line);
 
   String artsid;
   icecream >> artsid;
@@ -247,7 +254,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -289,7 +296,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   }
 
   // read the arts identifier String
-  istringstream icecream(line);
+  std::istringstream icecream(line);
 
   String artsid;
   icecream >> artsid;
@@ -342,7 +349,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
 
@@ -384,7 +391,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   }
 
   // read the arts identifier String
-  istringstream icecream(line);
+  std::istringstream icecream(line);
 
   try {
     String artsid;
@@ -558,7 +565,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
-    istream& is) {
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -822,7 +829,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
-    istream& is) {
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -1093,7 +1100,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
-    istream& is) {
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -1331,7 +1338,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
@@ -1920,7 +1927,7 @@ Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf,
   return +sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1, 1, 1, Ji, Jf, N);
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;

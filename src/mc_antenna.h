@@ -14,8 +14,7 @@
 #ifndef mc_antenna_h
 #define mc_antenna_h
 
-#include "arts.h"
-#include "matpack_data.h"
+#include <matpack.h>
 #include "rng.h"
 #include <cmath>
 #include <stdexcept>
@@ -130,7 +129,7 @@ struct MCAntenna {
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
 
-  friend ostream& operator<<(ostream& os, const MCAntenna& mca);
+  friend std::ostream& operator<<(std::ostream& os, const MCAntenna& mca);
 };
 
 /** rotmat_enu.

@@ -31,20 +31,20 @@ ws.propmat_clearsky_agendaAuto()
 
 # Arts setup (No NLTE, no polarization, and standard isotopologue ratios)
 ws.nlte_do = 0
-ws.stokes_dim = 1
 ws.isotopologue_ratiosInitFromBuiltin()
 
 # Settings (Standard atmosphere midlatitude-summer)
-ws.Touch(ws.jacobian_quantities)
-ws.Touch(ws.select_abs_species)
-ws.Touch(ws.rtp_nlte)
-ws.rtp_mag = [10e-6, 20e-6, 40e-6]
 ws.rtp_los = [45, 45]
-ws.rtp_pressure = 110000
-ws.rtp_temperature = 2.942000e+02
 ws.f_grid = np.linspace(1e9, 3e12, 1000)
-ws.rtp_vmr = [1.000869e-09, 1.000869e-14,
-              2.850472e-06, 1.501303e-07, 3.019448e-08]
+ws.atm_point.temperature = 2.942000e+02
+ws.atm_point.pressure = ws.rtp_pressure = 110000
+ws.atm_point[ws.abs_species[0]] = 1.000869e-09
+ws.atm_point[ws.abs_species[1]] = 1.000869e-14
+ws.atm_point[ws.abs_species[2]] = 2.850472e-06
+ws.atm_point[ws.abs_species[3]] = 1.501303e-07
+ws.atm_point[ws.abs_species[4]] = 3.019448e-08
+ws.atm_point.mag = [10e-6, 20e-6, 40e-6]
+ws.Touch(ws.jacobian_quantities)
 
 # Check that the calculations are OK
 ws.lbl_checkedCalc()

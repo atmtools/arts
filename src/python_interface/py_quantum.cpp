@@ -1,4 +1,4 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 #include <quantum_numbers.h>
 #include <quantum_term_symbol.h>
 
@@ -7,11 +7,11 @@
 #include <pybind11/operators.h>
 
 namespace Python {
-void py_quantum(py::module_& m) {
-  py::class_<QuantumNumberValue>(m, "QuantumNumberValue")
-      .def(py::init([]() { return std::make_unique<QuantumNumberValue>(); }), "Default value")
+void py_quantum(py::module_& m) try {
+  artsclass<QuantumNumberValue>(m, "QuantumNumberValue")
+      .def(py::init([]() { return std::make_shared<QuantumNumberValue>(); }), "Default value")
       .def(py::init(
-          [](const std::string& s) { return std::make_unique<QuantumNumberValue>(s); }), "From :class:`str`")
+          [](const std::string& s) { return std::make_shared<QuantumNumberValue>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(QuantumNumberValue)
       .PythonInterfaceBasicRepresentation(QuantumNumberValue)
       .def_readwrite("type", &QuantumNumberValue::type, ":class:`~pyarts.arts.options.QuantumNumberType` Type of number")
@@ -37,14 +37,14 @@ void py_quantum(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<QuantumNumberValue>(t[0].cast<std::string>());
+            return std::make_shared<QuantumNumberValue>(t[0].cast<std::string>());
           })).doc() = "A single quantum number with a value";
   py::implicitly_convertible<std::string, QuantumNumberValue>();
 
-  py::class_<QuantumNumberValueList>(m, "QuantumNumberValueList")
-      .def(py::init([]() { return std::make_unique<QuantumNumberValueList>(); }), "Default list")
+  artsclass<QuantumNumberValueList>(m, "QuantumNumberValueList")
+      .def(py::init([]() { return std::make_shared<QuantumNumberValueList>(); }), "Default list")
       .def(py::init(
-          [](const std::string& s) { return std::make_unique<QuantumNumberValueList>(s); }), "From :class:`str`")
+          [](const std::string& s) { return std::make_shared<QuantumNumberValueList>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(QuantumNumberValueList)
       .def("get",
            [](QuantumNumberValueList& x, QuantumNumberType y) {
@@ -76,12 +76,12 @@ qn : ~pyarts.arts.QuantumNumberValue
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_unique<QuantumNumberValueList>(t[0].cast<std::string>());
+            return std::make_shared<QuantumNumberValueList>(t[0].cast<std::string>());
           })).doc() = "A list of unique :class:`~pyarts.arts.QuantumNumberValue`";
   py::implicitly_convertible<std::string, QuantumNumberValueList>();
 
-  py::class_<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
-      .def(py::init([]() { return std::make_unique<QuantumNumberLocalState>(); }), "Default state")
+  artsclass<QuantumNumberLocalState>(m, "QuantumNumberLocalState")
+      .def(py::init([]() { return std::make_shared<QuantumNumberLocalState>(); }), "Default state")
       .def(py::init([](const std::string& str) {
         auto out = QuantumNumberLocalState{};
         out.val = QuantumNumberValueList{str};
@@ -101,16 +101,16 @@ qn : ~pyarts.arts.QuantumNumberValue
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            auto out = std::make_unique<QuantumNumberLocalState>();
+            auto out = std::make_shared<QuantumNumberLocalState>();
             out->val = t[0].cast<QuantumNumberValueList>();
             return out;
           })).doc() = "A local state of quantum numbers";
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
-  py::class_<QuantumIdentifier>(m, "QuantumIdentifier")
-      .def(py::init([]() { return std::make_unique<QuantumIdentifier>(); }), "Default ID")
+  artsclass<QuantumIdentifier>(m, "QuantumIdentifier")
+      .def(py::init([]() { return std::make_shared<QuantumIdentifier>(); }), "Default ID")
       .def(py::init(
-          [](const std::string& s) { return std::make_unique<QuantumIdentifier>(s); }), "From :class:`str`")
+          [](const std::string& s) { return std::make_shared<QuantumIdentifier>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(QuantumIdentifier)
       .PythonInterfaceWorkspaceVariableConversion(QuantumIdentifier)
       .PythonInterfaceFileIO(QuantumIdentifier)
@@ -142,7 +142,7 @@ symbol : str
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_unique<QuantumIdentifier>();
+            auto out = std::make_shared<QuantumIdentifier>();
 
             out->isotopologue_index = t[0].cast<Index>();
             out->val = t[1].cast<Quantum::Number::ValueList>();
@@ -153,5 +153,7 @@ symbol : str
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
   PythonInterfaceWorkspaceArray(QuantumIdentifier);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }
 }  // namespace Python

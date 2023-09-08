@@ -9,12 +9,15 @@ from textwrap import indent
 
 from lark import Lark, Transformer, Token
 
-import pyarts.workspace.global_data as global_data
+from pyarts.arts.globals import workspace_methods, workspace_variables, \
+    workspace_groups
+from pyarts.workspace.global_data import convert
 
 
-workspace_methods = global_data.get_raw_method_map()
-workspace_variables = global_data.get_variables_map()
-group_names =  [str(x.name) for x in global_data.cxx.globals.get_wsv_groups()]
+workspace_methods = workspace_methods()
+workspace_variables = workspace_variables()
+group_names = list(workspace_groups().keys())
+
 
 grammar = r"""
     controlfile : statement*
@@ -127,10 +130,9 @@ class WSMCall:
 
         self.wsm = workspace_methods[name]
 
-        self.wsm_outs = [global_data.get_variable_name(m) for m in self.wsm.outs]
+        self.wsm_outs = list(self.wsm.outs)
         self.wsm_gouts = list(self.wsm.g_out)
-        self.wsm_ins = [global_data.get_variable_name(m) for m in self.wsm.ins \
-                        if not m in self.wsm.outs]
+        self.wsm_ins = [m for m in list(self.wsm.ins) if not m in self.wsm.outs]
         self.wsm_gins = list(self.wsm.g_in)
         self.arg_names = self.wsm_outs + self.wsm_gouts + self.wsm_ins + self.wsm_gins
 
@@ -169,7 +171,7 @@ class WSMCall:
         for n in self.wsm_gins:
             if not n in self.kwargs:
                 i = self.wsm.g_in.index(n)
-                args.append(global_data.convert(self.wsm.g_in_types[i], self.wsm.g_in_default[i]))
+                args.append(convert(self.wsm.g_in_types[i], self.wsm.g_in_default[i]))
             else:
                 args.append(self.kwargs[n])
 
@@ -206,7 +208,7 @@ class WSMCall:
 
         if name in self.wsm_ins:
             v = workspace_variables[name]
-            value_converted = global_data.convert(v.group, value)
+            value_converted = convert(v.group, value)
             if not value_converted is None:
                 value = value_converted
 
@@ -214,7 +216,7 @@ class WSMCall:
             if len(self.wsm.g_in_types) == 1:
                 g = group_names[self.wsm.g_in_types[0]]
 
-                value_converted = global_data.convert(g, value)
+                value_converted = convert(g, value)
                 if not value_converted is None:
                     value = value_converted
         return value

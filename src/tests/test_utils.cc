@@ -6,7 +6,6 @@
 
 #include "test_utils.h"
 #include <cmath>
-#include "arts.h"
 #include "lin_alg.h"
 #include "matpack_sparse.h"
 #include "matpack_math.h"
@@ -83,7 +82,7 @@ void random_fill_matrix(Sparse& A, Numeric range, bool positive) {
 
   Rand<Numeric> random_number(positive ? 0 : -range, range);
 
-  Index nelem = max(m, n);
+  Index nelem = std::max(m, n);
 
   for (Index i = 0; i < nelem; i++) {
     Index m1, n1;
@@ -116,7 +115,7 @@ void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
 
   Rand<Numeric> random_number(positive ? 0 : -range, range);
 
-  Index nelem = max(m, n);
+  Index nelem = std::max(m, n);
 
   for (Index i = 0; i < nelem; i++) {
     Index m1, n1;
@@ -281,7 +280,7 @@ Range random_range(Index n) {
 Numeric get_maximum_error(ConstVectorView v1,
                           ConstVectorView v2,
                           bool relative) {
-  Index n = min(v1.nelem(), v2.nelem());
+  Index n = std::min(v1.nelem(), v2.nelem());
 
   Numeric max = 0.0, err = 0.0;
 
@@ -319,8 +318,8 @@ Numeric get_maximum_error(ConstVectorView v1,
 Numeric get_maximum_error(ConstMatrixView A1,
                           ConstMatrixView A2,
                           bool relative) {
-  Index m = min(A1.nrows(), A2.nrows());
-  Index n = min(A1.ncols(), A2.ncols());
+  Index m = std::min(A1.nrows(), A2.nrows());
+  Index n = std::min(A1.ncols(), A2.ncols());
 
   Numeric max = 0.0, err = 0.0;
 
@@ -348,8 +347,8 @@ Numeric get_maximum_error(ConstMatrixView A1,
 Numeric get_maximum_error(ConstComplexMatrixView A1,
                           ConstComplexMatrixView A2,
                           bool relative) {
-  Index m = min(A1.nrows(), A2.nrows());
-  Index n = min(A1.ncols(), A2.ncols());
+  Index m = std::min(A1.nrows(), A2.nrows());
+  Index n = std::min(A1.ncols(), A2.ncols());
 
   Numeric max = 0.0, err = 0.0;
 

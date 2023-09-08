@@ -29,7 +29,7 @@
   === External declarations
   ===========================================================================*/
 
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "geodetic.h"
 #include "lin_alg.h"
@@ -46,28 +46,6 @@ inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void dlosDiffOfLos(Matrix& dlos,
-                   const Vector& ref_los,
-                   const Matrix& other_los)
-{
-  chk_rte_los("ref_los", ref_los);
-  chk_sensor_los("other_los", other_los);
-
-  const Index nlos = other_los.nrows();
-  dlos.resize(nlos, 2);
-
-  for (Index i = 0; i < nlos; i++) {
-    ARTS_USER_ERROR("ERROR")
-//    diff_za_aa(dlos(i, 0),
-  //             dlos(i, 1),
-    //           ref_los[0],
-      //         ref_los[1],
-        //       other_los(i, 0),
-          //     other_los(i, 1));
-  }
-}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -226,7 +204,7 @@ void rte_losGeometricToPosition(Vector& rte_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losRefractedToPosition(Workspace& ws,
+void rte_losRefractedToPosition(const Workspace& ws,
                                 Vector& rte_los,
                                 Ppath& ppath,
                                 const Agenda& refr_index_air_ZZZ_agenda,
@@ -376,28 +354,6 @@ void rte_pos_losEndOfPpath(Vector& rte_pos,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losAddLosAndDlos(Matrix& sensor_los,
-                             const Vector& ref_los,
-                             const Matrix& dlos)
-{
-  chk_rte_los("ref_los", ref_los);
-  ARTS_USER_ERROR_IF (dlos.ncols() != 2, "*dlos* must have two columns.");
-
-  const Index nlos = dlos.nrows();
-  sensor_los.resize(nlos, 2);
-
-  for (Index i = 0; i < nlos; i++)
-  ARTS_USER_ERROR("ERROR")
- //   add_za_aa(sensor_los(i, 0),
-   //           sensor_los(i, 1),
-     //         ref_los[0],
-       //       ref_los[1],
-         //     dlos(i, 0),
-           //   dlos(i, 1));
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricToPosition(Matrix& sensor_los,
                                    const SurfaceField& surface_field,
                                    const Matrix& sensor_pos,
@@ -448,7 +404,7 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPosition(Workspace& ws,
+void sensor_losRefractedToPosition(const Workspace& ws,
                                    Matrix& sensor_los,
                                    const Agenda& refr_index_air_ZZZ_agenda,
                                    const Numeric& ppath_lstep,
@@ -499,7 +455,7 @@ void sensor_losRefractedToPosition(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPositions(Workspace& ws,
+void sensor_losRefractedToPositions(const Workspace& ws,
                                     Matrix& sensor_los,
                                     const Agenda& refr_index_air_ZZZ_agenda,
                                     const Numeric& ppath_lstep,

@@ -10,7 +10,6 @@
 
 */
 
-#include "arts.h"
 #include "xml_io_base.h"
 #include "double_imanip.h"
 
@@ -26,7 +25,7 @@
   \param index   Index return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Index& index,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -57,7 +56,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Index& index,
                          bofstream* pbofs,
                          const String& name) {
@@ -87,7 +86,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param matrix  Matrix return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Matrix& matrix,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -107,7 +106,7 @@ void xml_read_from_stream(istream& is_xml,
       for (Index c = 0; c < ncols; c++) {
         is_xml >> double_imanip() >> matrix(r, c);
         if (is_xml.fail()) {
-          ostringstream os;
+          std::ostringstream os;
           os << " near "
              << "\n  Row   : " << r << "\n  Column: " << c;
           xml_data_parse_error(tag, os.str());
@@ -127,7 +126,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Matrix& matrix,
                          bofstream* pbofs,
                          const String& name) {
@@ -175,7 +174,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param numeric  Numeric return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Numeric& numeric,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -206,7 +205,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Numeric& numeric,
                          bofstream* pbofs,
                          const String& name) {
@@ -238,7 +237,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param sparse  Sparse return value
   \param pbifs   Pointer to binary input stream, NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Sparse& sparse,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -262,7 +261,7 @@ void xml_read_from_stream(istream& is_xml,
     if (pbifs) {
       *pbifs >> rowind[i];
       if (pbifs->fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Row index: " << i;
         xml_data_parse_error(tag, os.str());
@@ -270,7 +269,7 @@ void xml_read_from_stream(istream& is_xml,
     } else {
       is_xml >> rowind[i];
       if (is_xml.fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Row index: " << i;
         xml_data_parse_error(tag, os.str());
@@ -287,7 +286,7 @@ void xml_read_from_stream(istream& is_xml,
     if (pbifs) {
       *pbifs >> colind[i];
       if (pbifs->fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Column index: " << i;
         xml_data_parse_error(tag, os.str());
@@ -295,7 +294,7 @@ void xml_read_from_stream(istream& is_xml,
     } else {
       is_xml >> colind[i];
       if (is_xml.fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Column index: " << i;
         xml_data_parse_error(tag, os.str());
@@ -314,7 +313,7 @@ void xml_read_from_stream(istream& is_xml,
     for (Index i = 0; i < nnz; i++) {
       is_xml >> double_imanip() >> data[i];
       if (is_xml.fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Data element: " << i;
         xml_data_parse_error(tag, os.str());
@@ -337,7 +336,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Sparse& sparse,
                          bofstream* pbofs,
                          const String& name) {
@@ -432,7 +431,7 @@ void xml_write_to_stream(ostream& os_xml,
 */
 /*  param pbifs  Pointer to binary input stream. NULL in case of ASCII file.
                  Ignored because strings are always stored in ASCII format. */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           String& str,
                           bifstream* /* pbifs */) {
   XMLTag tag;
@@ -467,7 +466,7 @@ void xml_read_from_stream(istream& is_xml,
   if (dummy == '"') {
     str = "";
   } else {
-    stringbuf strbuf;
+    std::stringbuf strbuf;
 
     is_xml.get(strbuf, '"');
     if (is_xml.fail()) {
@@ -491,7 +490,7 @@ void xml_read_from_stream(istream& is_xml,
 */
 /*  param pbofs   Pointer to binary file stream. NULL for ASCII output.
                  Ignored because strings are always in ASCII format. */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const String& str,
                          bofstream* /* pbofs */,
                          const String& name) {
@@ -518,7 +517,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Tensor3& tensor,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -540,7 +539,7 @@ void xml_read_from_stream(istream& is_xml,
         for (Index c = 0; c < ncols; c++) {
           is_xml >> double_imanip() >> tensor(p, r, c);
           if (is_xml.fail()) {
-            ostringstream os;
+            std::ostringstream os;
             os << " near "
                << "\n  Page  : " << p << "\n  Row   : " << r
                << "\n  Column: " << c;
@@ -562,7 +561,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Tensor3& tensor,
                          bofstream* pbofs,
                          const String& name) {
@@ -611,7 +610,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Tensor4& tensor,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -636,7 +635,7 @@ void xml_read_from_stream(istream& is_xml,
           for (Index c = 0; c < ncols; c++) {
             is_xml >> double_imanip() >> tensor(b, p, r, c);
             if (is_xml.fail()) {
-              ostringstream os;
+              std::ostringstream os;
               os << " near "
                  << "\n  Book  : " << b << "\n  Page  : " << p
                  << "\n  Row   : " << r << "\n  Column: " << c;
@@ -659,7 +658,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Tensor4& tensor,
                          bofstream* pbofs,
                          const String& name) {
@@ -711,7 +710,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Tensor5& tensor,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -738,7 +737,7 @@ void xml_read_from_stream(istream& is_xml,
             for (Index c = 0; c < ncols; c++) {
               is_xml >> double_imanip() >> tensor(s, b, p, r, c);
               if (is_xml.fail()) {
-                ostringstream os;
+                std::ostringstream os;
                 os << " near "
                    << "\n  Shelf : " << s << "\n  Book  : " << b
                    << "\n  Page  : " << p << "\n  Row   : " << r
@@ -763,7 +762,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Tensor5& tensor,
                          bofstream* pbofs,
                          const String& name) {
@@ -818,7 +817,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Tensor6& tensor,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -848,7 +847,7 @@ void xml_read_from_stream(istream& is_xml,
               for (Index c = 0; c < ncols; c++) {
                 is_xml >> double_imanip() >> tensor(v, s, b, p, r, c);
                 if (is_xml.fail()) {
-                  ostringstream os;
+                  std::ostringstream os;
                   os << " near "
                      << "\n  Vitrine: " << v << "\n  Shelf  : " << s
                      << "\n  Book   : " << b << "\n  Page   : " << p
@@ -874,7 +873,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Tensor6& tensor,
                          bofstream* pbofs,
                          const String& name) {
@@ -932,7 +931,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Tensor7& tensor,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -964,7 +963,7 @@ void xml_read_from_stream(istream& is_xml,
                 for (Index c = 0; c < ncols; c++) {
                   is_xml >> double_imanip() >> tensor(l, v, s, b, p, r, c);
                   if (is_xml.fail()) {
-                    ostringstream os;
+                    std::ostringstream os;
                     os << " near "
                        << "\n  Library: " << l << "\n  Vitrine: " << v
                        << "\n  Shelf  : " << s << "\n  Book   : " << b
@@ -992,7 +991,7 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Tensor7& tensor,
                          bofstream* pbofs,
                          const String& name) {
@@ -1054,7 +1053,7 @@ void xml_write_to_stream(ostream& os_xml,
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
   \param tag     XML tag object
 */
-void xml_parse_from_stream(istream& is_xml,
+void xml_parse_from_stream(std::istream& is_xml,
                            Vector& vector,
                            bifstream* pbifs,
                            XMLTag& tag) {
@@ -1069,7 +1068,7 @@ void xml_parse_from_stream(istream& is_xml,
     for (Index n = 0; n < nelem; n++) {
       is_xml >> double_imanip() >> vector[n];
       if (is_xml.fail()) {
-        ostringstream os;
+        std::ostringstream os;
         os << " near "
            << "\n  Element: " << n;
         xml_data_parse_error(tag, os.str());
@@ -1084,7 +1083,7 @@ void xml_parse_from_stream(istream& is_xml,
   \param vector  Vector return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Vector& vector,
                           bifstream* pbifs) {
   XMLTag tag;
@@ -1105,14 +1104,14 @@ void xml_read_from_stream(istream& is_xml,
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Vector& vector,
                          bofstream* pbofs,
                          const String& name) {
   XMLTag open_tag;
   XMLTag close_tag;
   Index n = vector.nelem();
-  ostringstream v;
+  std::ostringstream v;
 
   // Convert nelem to string
   v << n;

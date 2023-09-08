@@ -9,7 +9,6 @@
  * Zeeman effect calculations are implemented in this file
  */
 
-#include "global_data.h"
 #include "zeeman.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */

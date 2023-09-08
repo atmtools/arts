@@ -1,16 +1,16 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "py_macros.h"
 
 #include <ppath_struct.h>
 
 namespace Python {
-void py_ppath(py::module_& m) {
-  py::class_<GridPos>(m, "GridPos")
-      .def(py::init([]() { return std::make_unique<GridPos>(); }), "Empty position")
+void py_ppath(py::module_& m) try {
+  artsclass<GridPos>(m, "GridPos")
+      .def(py::init([]() { return std::make_shared<GridPos>(); }), "Empty position")
       .PythonInterfaceCopyValue(GridPos)
       .PythonInterfaceWorkspaceVariableConversion(GridPos)
-      .def(py::init([](Index i, std::array<Numeric, 2> x) { return std::make_unique<GridPos>(GridPos{i, x}); }), "Complete position")
+      .def(py::init([](Index i, std::array<Numeric, 2> x) { return std::make_shared<GridPos>(GridPos{i, x}); }), "Complete position")
       .PythonInterfaceFileIO(GridPos)
       .PythonInterfaceBasicRepresentation(GridPos)
       .def_readwrite("idx", &GridPos::idx, ":class:`~pyarts.arts.Index` Index in a grid")
@@ -21,17 +21,17 @@ void py_ppath(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            return std::make_unique<GridPos>(GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()});
+            return std::make_shared<GridPos>(GridPos{t[0].cast<Index>(), t[1].cast<std::array<Numeric, 2>>()});
           }))
       .PythonInterfaceWorkspaceDocumentation(GridPos);
 
-  py::class_<ArrayOfGridPos>(m, "ArrayOfGridPos")
+  artsclass<ArrayOfGridPos>(m, "ArrayOfGridPos")
       .PythonInterfaceArrayDefault(GridPos)
       .PythonInterfaceBasicRepresentation(ArrayOfGridPos).doc() = "List of :class:`~pyarts.arts.GridPos`";
   py::implicitly_convertible<std::vector<GridPos>, ArrayOfGridPos>();
 
-  py::class_<Ppath>(m, "Ppath")
-      .def(py::init([]() { return std::make_unique<Ppath>(); }), "Empty path")
+  artsclass<Ppath>(m, "Ppath")
+      .def(py::init([]() { return std::make_shared<Ppath>(); }), "Empty path")
       .PythonInterfaceCopyValue(Ppath)
       .PythonInterfaceWorkspaceVariableConversion(Ppath)
       .def("__repr__", [](Ppath&) { return "Ppath"; })
@@ -102,5 +102,7 @@ void py_ppath(py::module_& m) {
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 
   PythonInterfaceWorkspaceArray(Ppath);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));
 }
 }  // namespace Python

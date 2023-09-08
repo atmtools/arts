@@ -17,9 +17,7 @@
 namespace fwd::profile {
 spectral_radiance::spectral_radiance(
     const Vector& z,
-    const Vector& p,
-    const Vector& t,
-    const std::vector<Vector>& allvmrs,
+    const std::vector<AtmPoint>& atm_points_,
     const ArrayOfArrayOfSpeciesTag& allspecs,
     const PredefinedModelData& predef_data,
     const ArrayOfCIARecord& cia_data,
@@ -28,7 +26,7 @@ spectral_radiance::spectral_radiance(
     const ArrayOfArrayOfAbsorptionLines& lbl_data,
     Numeric cia_extrap,
     Index cia_robust)
-    : refl(0), altitude(z.begin(), z.end()), temperature(t.begin(), t.end()) {
+    : refl(0), altitude(z.begin(), z.end()), atm_points(atm_points_.begin(), atm_points_.end()) {
   const std::vector<std::shared_ptr<CIARecord>> cia_records = [&]() {
     std::vector<std::shared_ptr<CIARecord>> ciar;
     ciar.reserve(cia_data.size());
@@ -50,36 +48,21 @@ spectral_radiance::spectral_radiance(
 
   const std::size_t n = altitude.size();
   const std::size_t m = allspecs.size();
-  ARTS_USER_ERROR_IF(n not_eq static_cast<std::size_t>(p.size()),
-                     "Size mismatch: altitude and pressure (",
-                     n,
-                     " vs ",
-                     p.size(),
-                     ')')
-  ARTS_USER_ERROR_IF(n not_eq temperature.size(),
-                     "Size mismatch: altitude and temperature (",
-                     n,
-                     " vs ",
-                     t.size(),
-                     ')')
-  ARTS_USER_ERROR_IF(n not_eq allvmrs.size(),
+  
+  ARTS_USER_ERROR_IF(n == 0, "Must have some atmospheric size")
+
+  ARTS_USER_ERROR_IF(n not_eq atm_points.size(),
                      "Size mismatch: altitude and vmr (",
                      n,
                      " vs ",
-                     allvmrs.size(),
+                     atm_points.size(),
                      ')')
-  ARTS_USER_ERROR_IF(
-      std::any_of(allvmrs.begin(),
-                  allvmrs.end(),
-                  [m](auto& vmr) {
-                    return static_cast<std::size_t>(vmr.size()) not_eq m;
-                  }),
-      "Size mismatch: species and vmr")
+                     
   ARTS_USER_ERROR_IF(m not_eq lbl_data.size(),
                      "Size mismatch: species and absorption lines data")
+
   ARTS_USER_ERROR_IF(not std::is_sorted(altitude.begin(), altitude.end()),
                      "Altitude must be sorted in ascending order")
-  ARTS_USER_ERROR_IF(n == 0, "Must have some atmospheric size: [\n")
 
   String error_msg;
   models.resize(n);
@@ -87,9 +70,7 @@ spectral_radiance::spectral_radiance(
   for (std::size_t i = 0; i < n; ++i) {
     if (error_msg.size()) continue;
     try {
-      models[i] = full_absorption(p[i],
-                                  t[i],
-                                  allvmrs[i],
+      models[i] = full_absorption(atm_points[i],
                                   allspecs,
                                   predef_model_data,
                                   cia_records,
@@ -130,15 +111,15 @@ ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView rad,
 
   const bool looking_down = za > 90;
   if (looking_down) {
-    const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, temperature.front());
+    const Numeric Bbg = refl == 1.0 ? 0.0 : planck(f, atm_points.front().temperature);
     const Numeric Ibg = refl == 0.0 ? 0.0 : planar(rad, f, 180 - za)[0];
     rad[0] = lerp(Bbg, Ibg, refl);
 
     Numeric abs_past = models.front().at(f).real();
-    Numeric B_past = planck(f, temperature.front());
+    Numeric B_past = planck(f, atm_points.front().temperature);
     for (size_t i = 1; i < n; ++i) {
       const Numeric abs_this = models[i].at(f).real();
-      const Numeric B_this = planck(f, temperature[i]);
+      const Numeric B_this = planck(f, atm_points[i].temperature);
       const Numeric B = midpoint(B_past, B_this);
       const Numeric T = exp(-z_scl * midpoint(abs_this, abs_past) *
                             (altitude[i] - altitude[i - 1]));
@@ -151,10 +132,10 @@ ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView rad,
     rad[n - 1] = planck(f, Tcmb);
 
     Numeric abs_past = models.back().at(f).real();
-    Numeric B_past = planck(f, temperature.back());
+    Numeric B_past = planck(f, atm_points.back().temperature);
     for (size_t i = n - 2; i < n; --i) {  // wraps around
       const Numeric abs_this = models[i].at(f).real();
-      const Numeric B_this = planck(f, temperature[i]);
+      const Numeric B_this = planck(f, atm_points[i].temperature);
       const Numeric B = midpoint(B_past, B_this);
       const Numeric T = exp(-z_scl * midpoint(abs_this, abs_past) *
                             (altitude[i + 1] - altitude[i]));

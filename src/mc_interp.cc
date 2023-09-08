@@ -44,7 +44,7 @@ Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
 //  ARTS_ASSERT(nx1>0);
 //}
 
-ostream& operator<<(ostream& os, const SLIData2& /* sli */) {
+std::ostream& operator<<(std::ostream& os, const SLIData2& /* sli */) {
   os << "SLIData2    : Output operator not implemented";
   return os;
 }

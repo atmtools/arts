@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "arts.h"
 #include "matpack_data.h"
 #include "xml_io.h"
 
@@ -15,14 +14,14 @@ int main(int /* argc */, char* /* argv */[]) {
         for (Index l = 0; l < 4; l++)
           v(i, j, k, l) = double(i * 4 * 4 * 4 + j * 4 * 4 + k * 4 + l);
 
-  xml_write_to_file("outfile.xml", v, FILE_TYPE_BINARY, 0, Verbosity());
+  xml_write_to_file("outfile.xml", v, FILE_TYPE_BINARY, 0);
 
   // Read binary file
   Tensor4 w;
 
-  xml_read_from_file("outfile.xml", w, Verbosity());
+  xml_read_from_file("outfile.xml", w);
 
-  cout << w << endl;
+  std::cout << w << std::endl;
 
   return (EXIT_SUCCESS);
 }

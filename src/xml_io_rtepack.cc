@@ -12,7 +12,7 @@
  *  \param pm      Propmat return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Propmat& pm,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
@@ -36,7 +36,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Propmat& pm,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -67,7 +67,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      Stokvec return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Stokvec& pm,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
@@ -91,7 +91,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const Stokvec& pm,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -123,7 +123,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      Muelmat return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream& is_xml,
+void xml_read_from_stream(std::istream& is_xml,
                           Muelmat& pm,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
@@ -150,7 +150,7 @@ void xml_read_from_stream(istream& is_xml,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream &os_xml, const Muelmat &pm,
+void xml_write_to_stream(std::ostream &os_xml, const Muelmat &pm,
                          bofstream *pbofs [[maybe_unused]], const String &) {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -189,7 +189,7 @@ void xml_write_to_stream(ostream &os_xml, const Muelmat &pm,
  *  \param pm      PropmatVector return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, PropmatVector &pmv,
+void xml_read_from_stream(std::istream &is_xml, PropmatVector &pmv,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -218,7 +218,7 @@ void xml_read_from_stream(istream &is_xml, PropmatVector &pmv,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const PropmatVector& pmv,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -254,7 +254,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      StokvecVector return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, StokvecVector &pmv,
+void xml_read_from_stream(std::istream &is_xml, StokvecVector &pmv,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -282,7 +282,7 @@ void xml_read_from_stream(istream &is_xml, StokvecVector &pmv,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const StokvecVector& pmv,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -316,7 +316,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      MuelmatVector return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, MuelmatVector &pmv,
+void xml_read_from_stream(std::istream &is_xml, MuelmatVector &pmv,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -347,7 +347,7 @@ void xml_read_from_stream(istream &is_xml, MuelmatVector &pmv,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const MuelmatVector& pmv,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -391,7 +391,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      PropmatVector return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, PropmatMatrix &pmm,
+void xml_read_from_stream(std::istream &is_xml, PropmatMatrix &pmm,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -423,7 +423,7 @@ void xml_read_from_stream(istream &is_xml, PropmatMatrix &pmm,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const PropmatMatrix& pmm,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -462,7 +462,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      StokvecMatrix return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, StokvecMatrix &pmm,
+void xml_read_from_stream(std::istream &is_xml, StokvecMatrix &pmm,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -493,7 +493,7 @@ void xml_read_from_stream(istream &is_xml, StokvecMatrix &pmm,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const StokvecMatrix& pmm,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {
@@ -531,7 +531,7 @@ void xml_write_to_stream(ostream& os_xml,
  *  \param pm      MuelmatMatrix return value
  *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
  */
-void xml_read_from_stream(istream &is_xml, MuelmatMatrix &pmm,
+void xml_read_from_stream(std::istream &is_xml, MuelmatMatrix &pmm,
                           bifstream *pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
 
@@ -565,7 +565,7 @@ void xml_read_from_stream(istream &is_xml, MuelmatMatrix &pmm,
  *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
  *  \param name    Optional name attribute (ignored)
  */
-void xml_write_to_stream(ostream& os_xml,
+void xml_write_to_stream(std::ostream& os_xml,
                          const MuelmatMatrix& pmm,
                          bofstream* pbofs [[maybe_unused]],
                          const String&) {

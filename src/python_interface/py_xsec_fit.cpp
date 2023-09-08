@@ -25,7 +25,7 @@ struct XsecRecord {
 };
 }  // namespace details
 
-void py_xsec(py::module_& m) {
+void py_xsec(py::module_& m) try {
   m.add_object("_cleanupXsecRecord", py::capsule([]() {
                  details::XsecRecord::to_xarray = details::one_arg;
                  details::XsecRecord::from_xarray = details::two_args;
@@ -34,7 +34,7 @@ void py_xsec(py::module_& m) {
                  details::XsecRecord::__eq__ = details::two_args;
                }));
 
-  py::class_<details::XsecRecord>(m, "_detailsXsecRecord")
+  artsclass<details::XsecRecord>(m, "_detailsXsecRecord")
       .def_readwrite_static("to_xarray",
                             &details::XsecRecord::to_xarray,
                             "Convert to :class:`xarray.DataArray`")
@@ -43,8 +43,8 @@ void py_xsec(py::module_& m) {
       .def_readwrite_static("from_netcdf", &details::XsecRecord::from_netcdf)
       .def_readwrite_static("__eq__", &details::XsecRecord::__eq__);
 
-  py::class_<XsecRecord>(m, "XsecRecord")
-      .def(py::init([]() { return std::make_unique<XsecRecord>(); }))
+  artsclass<XsecRecord>(m, "XsecRecord")
+      .def(py::init([]() { return std::make_shared<XsecRecord>(); }))
       .PythonInterfaceCopyValue(XsecRecord)
       // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
       .PythonInterfaceFileIO(XsecRecord)
@@ -138,7 +138,7 @@ Returns
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
 
-            auto out = std::make_unique<XsecRecord>();
+            auto out = std::make_shared<XsecRecord>();
             out->SetVersion(t[0].cast<Index>());
             out->SetSpecies(t[1].cast<Species::Species>());
             out->FitMinPressures() = t[2].cast<Vector>();
@@ -183,5 +183,7 @@ Returns
 )--";
 
   PythonInterfaceWorkspaceArray(XsecRecord);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));
 }
 }  // namespace Python

@@ -78,7 +78,7 @@ const Numeric FD_TOL = 1.5e-3;
 
   \return The output stream.
 */
-ostream& operator<<(ostream& os, const GridPos& gp) {
+std::ostream& operator<<(std::ostream& os, const GridPos& gp) {
   os << gp.idx << " " << gp.fd[0] << " " << gp.fd[1] << "\n";
   return os;
 }
@@ -2821,7 +2821,7 @@ Numeric interp_poly(ConstVectorView x,
       ya[2] = y[N_x];
     } else {
       ARTS_ASSERT(false);
-      arts_exit();
+      std::exit(EXIT_FAILURE);
     }
 
     polint(y_int, dy_int, xa, ya, 3, x_i);

@@ -3,7 +3,6 @@
 
 #include "array.h"
 #include "arts_conversions.h"
-#include "auto_md.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "interp.h"
@@ -14,93 +13,95 @@
 #include "nonstd.h"
 #include "xml_io.h"
 
+#include <workspace.h>
+
 void test01() {
-  cout << "Simple interpolation cases\n"
+  std::cout << "Simple interpolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
   Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
   Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
-  cout << "og:\n" << og << "\n";
-  cout << "ng:\n" << ng << "\n";
+  std::cout << "og:\n" << og << "\n";
+  std::cout << "ng:\n" << ng << "\n";
 
   // To store the grid positions:
   ArrayOfGridPos gp(ng.nelem());
 
   gridpos(gp, og, ng);
-  cout << "gp:\n" << gp << "\n";
+  std::cout << "gp:\n" << gp << "\n";
 
-  cout << "1D:\n"
+  std::cout << "1D:\n"
        << "---\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 2);
     interpweights(itw, gp);
 
-    cout << "itw:\n" << itw << "\n";
+    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Vector of(og.nelem(), 0);
     of[2] = 10;  // 0, 0, 10, 0, 0
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Blue 2D:\n"
+  std::cout << "Blue 2D:\n"
        << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 4);
     interpweights(itw, gp, gp);
 
-    cout << "itw:\n" << itw << "\n";
+    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Matrix of(og.nelem(), og.nelem(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Blue 6D:\n"
+  std::cout << "Blue 6D:\n"
        << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
-    //    cout << "itw:\n" << itw << "\n";
+    //    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Index n = og.nelem();
     Tensor6 of(n, n, n, n, n, n, 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
-    //    cout << "of:\n" << of << "\n";
+    //    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Green 2D:\n"
+  std::cout << "Green 2D:\n"
        << "---------\n";
   {
     // To store interpolation weights:
@@ -108,24 +109,24 @@ void test01() {
     interpweights(itw, gp, gp);
 
     for (Index i = 0; i < itw.ncols(); ++i)
-      cout << "itw " << i << ":\n"
+      std::cout << "itw " << i << ":\n"
            << itw(Range(joker), Range(joker), i) << "\n";
 
     // Original field:
     Matrix of(og.nelem(), og.nelem(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Matrix nf(ng.nelem(), ng.nelem());
 
     interp(nf, itw, of, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Green 6D:\n"
+  std::cout << "Green 6D:\n"
        << "---------\n";
   {
     // To store interpolation weights:
@@ -138,7 +139,7 @@ void test01() {
                og.nelem(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
-    cout << "Middle slice of of:\n"
+    std::cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
@@ -147,13 +148,13 @@ void test01() {
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
-    cout << "Last slice of nf:\n"
+    std::cout << "Last slice of nf:\n"
          << nf(4, 4, 4, 4, Range(joker), Range(joker)) << "\n";
   }
 }
 
 void test02(Index n) {
-  cout << "Test whether for loop or iterator are quicker\n"
+  std::cout << "Test whether for loop or iterator are quicker\n"
        << "a) for loop\n"
        << "---------------------------------------------\n";
 
@@ -162,7 +163,7 @@ void test02(Index n) {
 }
 
 void test03(Index n) {
-  cout << "Test whether for loop or iterator are quicker\n"
+  std::cout << "Test whether for loop or iterator are quicker\n"
        << "b) iterator\n"
        << "---------------------------------------------\n";
 
@@ -177,7 +178,7 @@ void test03(Index n) {
 // the for loop if compiler optimization is enabled.
 
 void test04() {
-  cout << "Green type interpolation of all pages of a Tensor3\n";
+  std::cout << "Green type interpolation of all pages of a Tensor3\n";
 
   // The original Tensor is called a, the new one n.
 
@@ -223,138 +224,138 @@ void test04() {
     // grid positions are re-used.
   }
 
-  cout << "Original field:\n";
+  std::cout << "Original field:\n";
   for (Index i = 0; i < a.npages(); ++i)
-    cout << "page " << i << ":\n" << a(i, Range(joker), Range(joker)) << "\n";
+    std::cout << "page " << i << ":\n" << a(i, Range(joker), Range(joker)) << "\n";
 
-  cout << "Interpolated field:\n";
+  std::cout << "Interpolated field:\n";
   for (Index i = 0; i < n.npages(); ++i)
-    cout << "page " << i << ":\n" << n(i, Range(joker), Range(joker)) << "\n";
+    std::cout << "page " << i << ":\n" << n(i, Range(joker), Range(joker)) << "\n";
 }
 
 void test05() {
-  cout << "Very simple interpolation case\n";
+  std::cout << "Very simple interpolation case\n";
 
   Vector og=uniform_grid(1, 5, +1);    // 1, 2, 3, 4, 5
   Vector ng=uniform_grid(2, 5, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0
 
-  cout << "Original grid:\n" << og << "\n";
-  cout << "New grid:\n" << ng << "\n";
+  std::cout << "Original grid:\n" << og << "\n";
+  std::cout << "New grid:\n" << ng << "\n";
 
   // To store the grid positions:
   ArrayOfGridPos gp(ng.nelem());
 
   gridpos(gp, og, ng);
-  cout << "Grid positions:\n" << gp;
+  std::cout << "Grid positions:\n" << gp;
 
   // To store interpolation weights:
   Matrix itw(gp.nelem(), 2);
   interpweights(itw, gp);
 
-  cout << "Interpolation weights:\n" << itw << "\n";
+  std::cout << "Interpolation weights:\n" << itw << "\n";
 
   // Original field:
   Vector of(og.nelem(), 0);
   of[2] = 10;  // 0, 0, 10, 0, 0
 
-  cout << "Original field:\n" << of << "\n";
+  std::cout << "Original field:\n" << of << "\n";
 
   // Interpolated field:
   Vector nf(ng.nelem());
 
   interp(nf, itw, of, gp);
 
-  cout << "New field:\n" << nf << "\n";
+  std::cout << "New field:\n" << nf << "\n";
 }
 
 void test06() {
-  cout << "Simple extrapolation cases\n"
+  std::cout << "Simple extrapolation cases\n"
        << "--------------------------\n";
   //  Vector og(5,5,-1);                // 5,4,3,2,1
   Vector og=uniform_grid(1, 5, +1);               // 1, 2, 3, 4, 5
   Vector ng{0.9, 1.5, 3, 4.5, 5.1};  // 0.9, 1.5, 3, 4.5, 5.1
 
-  cout << "og:\n" << og << "\n";
-  cout << "ng:\n" << ng << "\n";
+  std::cout << "og:\n" << og << "\n";
+  std::cout << "ng:\n" << ng << "\n";
 
   // To store the grid positions:
   ArrayOfGridPos gp(ng.nelem());
 
   gridpos(gp, og, ng);
-  cout << "gp:\n" << gp << "\n";
+  std::cout << "gp:\n" << gp << "\n";
 
-  cout << "1D:\n"
+  std::cout << "1D:\n"
        << "---\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 2);
     interpweights(itw, gp);
 
-    cout << "itw:\n" << itw << "\n";
+    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Vector of(og.nelem(), 0);
     for (Index i = 0; i < og.nelem(); ++i)
       of[i] = (Numeric)(10 * (i + 1));  // 10, 20, 30, 40, 50
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Blue 2D:\n"
+  std::cout << "Blue 2D:\n"
        << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 4);
     interpweights(itw, gp, gp);
 
-    cout << "itw:\n" << itw << "\n";
+    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Matrix of(og.nelem(), og.nelem(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Blue 6D:\n"
+  std::cout << "Blue 6D:\n"
        << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
-    //    cout << "itw:\n" << itw << "\n";
+    //    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
     Index n = og.nelem();
     Tensor6 of(n, n, n, n, n, n, 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
-    //    cout << "of:\n" << of << "\n";
+    //    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Vector nf(ng.nelem());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Green 2D:\n"
+  std::cout << "Green 2D:\n"
        << "---------\n";
   {
     // To store interpolation weights:
@@ -362,24 +363,24 @@ void test06() {
     interpweights(itw, gp, gp);
 
     for (Index i = 0; i < itw.ncols(); ++i)
-      cout << "itw " << i << ":\n"
+      std::cout << "itw " << i << ":\n"
            << itw(Range(joker), Range(joker), i) << "\n";
 
     // Original field:
     Matrix of(og.nelem(), og.nelem(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
-    cout << "of:\n" << of << "\n";
+    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
     Matrix nf(ng.nelem(), ng.nelem());
 
     interp(nf, itw, of, gp, gp);
 
-    cout << "nf:\n" << nf << "\n";
+    std::cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "Green 6D:\n"
+  std::cout << "Green 6D:\n"
        << "---------\n";
   {
     // To store interpolation weights:
@@ -392,7 +393,7 @@ void test06() {
                og.nelem(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
-    cout << "Middle slice of of:\n"
+    std::cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
@@ -401,7 +402,7 @@ void test06() {
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
-    cout << "Last slice of nf:\n"
+    std::cout << "Last slice of nf:\n"
          << nf(4, 4, 4, 4, Range(joker), Range(joker)) << "\n";
   }
 }
@@ -658,8 +659,8 @@ void test16() {
 void test17() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0, Constant::two_pi, verbosity);
+;
+  VectorNLinSpace(x, N, 0, Constant::two_pi);
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
@@ -680,8 +681,7 @@ void test17() {
 void test18() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, -180, 180, verbosity);
+  VectorNLinSpace(x, N, -180, 180);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(f);
   for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
@@ -707,8 +707,7 @@ struct zero_to_half {
 void test19() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0, 0.5, verbosity);
+  VectorNLinSpace(x, N, 0, 0.5);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -736,8 +735,7 @@ struct zero_dot_123_to_zero_dot_456 {
 void test20() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, -0.123, 0.456, verbosity);
+  VectorNLinSpace(x, N, -0.123, 0.456);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -759,8 +757,7 @@ void test20() {
 void test21() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0.05, 0.45, verbosity);
+  VectorNLinSpace(x, N, 0.05, 0.45);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -783,8 +780,7 @@ void test21() {
 void test22() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, Constant::two_pi, 0, verbosity);
+  VectorNLinSpace(x, N, Constant::two_pi, 0);
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
@@ -805,8 +801,7 @@ void test22() {
 void test23() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 0.45, 0.05, verbosity);
+  VectorNLinSpace(x, N, 0.45, 0.05);
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
@@ -829,8 +824,7 @@ void test23() {
 void test25() {
   const Index N = 500;
   Vector x(N);
-  Verbosity verbosity;
-  VectorNLinSpace(x, N, 30, 150, verbosity);
+  VectorNLinSpace(x, N, 30, 150);
   Vector y = x;
   for (auto& f : y) f = 15*f*f + f*f*f;
   for (Numeric n = 0; n <= 180; n += 0.01) {
@@ -948,14 +942,14 @@ void test28() {
   using Conversion::cosd;
   
   // Old Grid of pressure, latitude, and longitude
-  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1, Verbosity()); 
-  Vector lat; VectorNLinSpace(lat, 5, -80, 80, Verbosity());
-  Vector lon; VectorNLinSpace(lon, 4, -170, 170, Verbosity());
+  Vector pre; VectorNLogSpace(pre, 10, 1e5, 1e-1); 
+  Vector lat; VectorNLinSpace(lat, 5, -80, 80);
+  Vector lon; VectorNLinSpace(lon, 4, -170, 170);
   
   // New Grids (pressure will be reduced)
   Vector newpre(1, pre[pre.nelem()/2]); 
-  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90, Verbosity());
-  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180, Verbosity());
+  Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90);
+  Vector newlon; VectorNLinSpace(newlon, 3, -180, 180);
   
   // Old Data given some values
   Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());

@@ -63,11 +63,15 @@ ArrayOfVector forward_path_freq(const Vector & f_grid, const Ppath &ppath,
                                 const ArrayOfAtmPoint &ppvar_atm,
                                 const Numeric rte_alonglos_v);
 
-/** Turns an atmospheric path into a 1D regularized atmospheric field
- * 
- * @param[in] ppvar_atm As WSV
- * @param[in] ppath As WSV 
- * @return AtmField As atm_field WSV
+/** Extracts a 1D atmospheric "path" from a 3D atmospheric field
+ *
+ * @param[in] atm_field As WSV
+ * @param[in] z_grid An altitude grid (or 1-long vector for single altitude)
+ * @param[in] lat_grid A latitude grid (or 1-long vector for single latitude)
+ * @param[in] lon_grid A longitude grid (or 1-long vector for single longitude)
+ * @return ArrayOfAtmPoint A "path" through the 3D atmospheric field
  */
-AtmField forward_1d_atm_field(const ArrayOfAtmPoint &ppvar_atm,
-                              const Ppath &ppath);
+ArrayOfAtmPoint extract1D(const AtmField &atm_field,
+                          const Vector &z_grid,
+                          const Vector &lat_grid = {0},
+                          const Vector &lon_grid = {0});

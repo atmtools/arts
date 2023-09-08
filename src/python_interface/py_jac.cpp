@@ -1,4 +1,4 @@
-#include <py_auto_interface.h>
+#include <python_interface.h>
 
 #include "jacobian.h"
 #include "py_macros.h"
@@ -7,12 +7,11 @@
 #include "species_tags.h"
 
 namespace Python {
-void py_jac(py::module_& m) {
-  py::class_<JacobianTarget>(m, "JacobianTarget")
-      .def(py::init([]() { return std::make_unique<JacobianTarget>(); }), "Default target")
+void py_jac(py::module_& m) try {
+  artsclass<JacobianTarget>(m, "JacobianTarget")
+      .def(py::init([]() { return std::make_shared<JacobianTarget>(); }), "Default target")
       .PythonInterfaceCopyValue(JacobianTarget)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTarget)
-      .PythonInterfaceFileIO(JacobianTarget)
       .PythonInterfaceBasicRepresentation(JacobianTarget)
       .PythonInterfaceReadWriteData(JacobianTarget, type, ":class:`~pyarts.arts.options.JacobianType` Type of target")
       .PythonInterfaceReadWriteData(JacobianTarget, atm, ":class:`~pyarts.arts.options.JacobianAtm` Type of atmospheric target")
@@ -31,7 +30,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 10, "Invalid state!")
             
-            auto out = std::make_unique<JacobianTarget>();
+            auto out = std::make_shared<JacobianTarget>();
             
             out -> type = t[0].cast<Jacobian::Type>();
             out -> atm = t[1].cast<Jacobian::Atm>();
@@ -45,13 +44,10 @@ void py_jac(py::module_& m) {
             out -> species_id = t[9].cast<Species::Species>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(JacobianTarget);
-
-  PythonInterfaceWorkspaceArray(JacobianTarget);
-
-  py::class_<RetrievalQuantity>(m, "RetrievalQuantity")
-      .def(py::init([]() { return std::make_unique<RetrievalQuantity>(); }), "Empty quantity")
+          })).doc() = "A jacobian target";
+  
+  artsclass<RetrievalQuantity>(m, "RetrievalQuantity")
+      .def(py::init([]() { return std::make_shared<RetrievalQuantity>(); }), "Empty quantity")
       .def(py::pickle(
           [](const RetrievalQuantity& self) {
             return py::make_tuple(self.SubTag(),
@@ -67,7 +63,7 @@ void py_jac(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
 
-            auto out = std::make_unique<RetrievalQuantity>();
+            auto out = std::make_shared<RetrievalQuantity>();
 
             out->SubTag() = t[0].cast<String>();
             out->SubSubTag() = t[1].cast<String>();
@@ -83,5 +79,7 @@ void py_jac(py::module_& m) {
           })).doc() = "A retrieval quantity";
 
   PythonInterfaceWorkspaceArray(RetrievalQuantity);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));
 }
 }  // namespace Python

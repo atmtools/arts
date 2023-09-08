@@ -13,11 +13,6 @@
   the standard OMP function names.
 */
 
-#include "arts.h"
-
-#include <iostream>
-using namespace std;
-
 #include "arts_omp.h"
 
 //! Wrapper for omp_get_max_threads.

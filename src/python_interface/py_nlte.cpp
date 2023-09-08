@@ -1,9 +1,6 @@
 
 #include <memory>
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/pybind11.h>
+#include <python_interface.h>
 #include <vector>
 
 #include "debug.h"
@@ -12,12 +9,12 @@
 #include "quantum_numbers.h"
 
 namespace Python {
-void py_nlte(py::module_& m) {
-  py::class_<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
+void py_nlte(py::module_& m) try {
+  artsclass<VibrationalEnergyLevels>(m, "VibrationalEnergyLevels")
       .def(py::init(
-          []() { return std::make_unique<VibrationalEnergyLevels>(); }))
+          []() { return std::make_shared<VibrationalEnergyLevels>(); }))
       .def(py::init([](std::map<QuantumIdentifier, Numeric> &in) {
-        auto out = std::make_unique<VibrationalEnergyLevels>();
+        auto out = std::make_shared<VibrationalEnergyLevels>();
         for (auto &x : in) {
           out->operator[](x.first) = x.second;
         }
@@ -56,7 +53,7 @@ void py_nlte(py::module_& m) {
             const auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(v.size() != qn.size(), "Invalid size!")
 
-            auto out = std::make_unique<VibrationalEnergyLevels>();
+            auto out = std::make_shared<VibrationalEnergyLevels>();
             for (std::size_t i = 0; i < v.size(); i++) {
               out->operator[](qn[i]) = v[i];
             }
@@ -67,5 +64,7 @@ void py_nlte(py::module_& m) {
       .PythonInterfaceBasicRepresentation(VibrationalEnergyLevels)
       .PythonInterfaceFileIO(VibrationalEnergyLevels)
       .PythonInterfaceWorkspaceDocumentation(VibrationalEnergyLevels);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize nlte\n", e.what()));
 }
 }  // namespace Python

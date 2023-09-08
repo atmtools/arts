@@ -11,9 +11,7 @@ struct irradiance {
   irradiance() = default;
 
   irradiance(const Vector& z,
-             const Vector& p,
-             const Vector& t,
-             const std::vector<Vector>& allvmrs,
+             const ArrayOfAtmPoint& atm_points,
              const ArrayOfArrayOfSpeciesTag& allspecs,
              const PredefinedModelData& predef_data,
              const ArrayOfCIARecord& cia_data,

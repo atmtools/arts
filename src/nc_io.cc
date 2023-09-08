@@ -10,14 +10,11 @@
 
 */
 
-#include "arts.h"
-
-#ifdef ENABLE_NETCDF
-
 #include "exceptions.h"
 #include "file.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
+#include "nc_io_instantiation.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file name
@@ -32,10 +29,8 @@
 
  \author Oliver Lemke
 */
-void nca_filename(String &filename, const String &varname) {
-  if ("" == filename) {
-    filename = varname + ".nc";
-  }
+void nca_filename(const String &filename) {
+  ARTS_USER_ERROR_IF ("" == filename, "Filename is empty.")
 }
 
 //! Gives the default filename, with file index, for the NetCDF formats.
@@ -48,85 +43,12 @@ void nca_filename(String &filename, const String &varname) {
 
  \author Oliver Lemke
 */
-void nca_filename_with_index(String &filename, const Index &file_index,
-                             const String &varname) {
-  if ("" == filename) {
-    ostringstream os;
-    os << varname << "." << file_index << ".nc";
-    filename = os.str();
-  } else {
-    ostringstream os;
-    os << filename << "." << file_index << ".nc";
-    filename = os.str();
-  }
-}
+void nca_filename_with_index(String &filename, const Index &file_index) {
+  ARTS_USER_ERROR_IF ("" == filename, "Filename is empty.");
 
-//! Reads a variable from a NetCDF file
-/*!
- \param[in]  filename    NetCDF filename
- \param[out] type        Input variable
-
- \author Oliver Lemke
-*/
-template <typename T>
-void nca_read_from_file(const String &filename, T &type) {
-  String efilename = expand_path(filename);
-
-  bool fail = false;
-  String fail_msg;
-#pragma omp critical(netcdf__critical_region)
-  {
-    int ncid;
-    if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid)) {
-      fail = true;
-      fail_msg = "Error opening file. Does it exists?";
-    } else {
-      try {
-        nca_read_from_file(ncid, type);
-      } catch (const std::runtime_error &e) {
-        fail = true;
-        fail_msg = e.what();
-      }
-      nc_close(ncid);
-    }
-  }
-
-  if (fail)
-    ARTS_USER_ERROR("Error reading file: ", efilename, '\n', fail_msg);
-}
-
-//! Writes a variable to a NetCDF file
-/*!
- \param[in]  filename    NetCDF filename
- \param[in]  type        Output variable
-
- \author Oliver Lemke
-*/
-template <typename T>
-void nca_write_to_file(const String &filename, const T &type) {
-  String efilename = add_basedir(filename);
-
-  bool fail = false;
-  String fail_msg;
-#pragma omp critical(netcdf__critical_region)
-  {
-    int ncid;
-    if (nc_create(efilename.c_str(), NC_CLOBBER | NC_NETCDF4, &ncid)) {
-      fail = true;
-      fail_msg = "Error opening file for writing.";
-    } else {
-      try {
-        nca_write_to_file(ncid, type);
-      } catch (const std::runtime_error &e) {
-        fail = true;
-        fail_msg = e.what();
-      }
-      nc_close(ncid);
-    }
-  }
-
-  if (fail)
-    ARTS_USER_ERROR("Error writing file: ", efilename, '\n', fail_msg);
+  std::ostringstream os;
+  os << filename << "." << file_index << ".nc";
+  filename = os.str();
 }
 
 //! Define NetCDF dimension.
@@ -614,7 +536,3 @@ void nca_error(const int e, const std::string_view s) {
 
 // We can't do the instantiation at the beginning of this file, because the
 // implementation of nca_write_to_file and nca_read_from_file have to be known.
-
-#include "nc_io_instantiation.h"
-
-#endif /* ENABLE_NETCDF */

@@ -93,11 +93,11 @@ void cia_interpolation(VectorView result,
   // The frequency grid has to have enough points for this interpolation
   // order, otherwise throw a runtime error.
   if (data_f_grid.nelem() < f_order + 1) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Not enough frequency grid points in CIA data.\n"
        << "You have only " << data_f_grid.nelem() << " grid points.\n"
        << "But need at least " << f_order + 1 << ".";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // For T we have to be adaptive, since sometimes there is only one T in
@@ -140,7 +140,7 @@ void cia_interpolation(VectorView result,
         return;
       } else {
         // Re-throw the exception.
-        throw runtime_error(e.what());
+        throw std::runtime_error(e.what());
       }
     }
   }
@@ -269,7 +269,7 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
  \return os
  */
 void CIARecord::ReadFromCIA(const String& filename) {
-  ifstream is;
+  std::ifstream is;
 
   open_input_file(is, filename);
 
@@ -295,7 +295,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
   Index nline = 0;
 
   mdata.resize(0);
-  istringstream istr;
+  std::istringstream istr;
 
   while (is) {
     String line;
@@ -307,21 +307,21 @@ void CIARecord::ReadFromCIA(const String& filename) {
     if (is.eof()) continue;
 
     if (line.nelem() < 100) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << endl
-         << "Header line unexpectedly short: " << endl
+         << filename << std::endl
+         << "Header line unexpectedly short: " << std::endl
          << line;
 
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     if (is.bad()) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << endl;
+         << filename << std::endl;
 
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     line.erase(0, 20);
@@ -340,11 +340,11 @@ void CIARecord::ReadFromCIA(const String& filename) {
 
     if (!istr || std::isnan(set_temp) || std::isnan(set_wave_min) ||
         std::isnan(set_wave_max)) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << endl;
+         << filename << std::endl;
 
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     // If the min/max wave numbers of this set are different from the
@@ -362,13 +362,13 @@ void CIARecord::ReadFromCIA(const String& filename) {
       cia.resize(0);
     }
     if (npoints != set_npoints) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << endl
+         << filename << std::endl
          << "Inconsistent number of data points. Expected " << npoints
          << ", got " << set_npoints;
 
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     temp.push_back(set_temp);
@@ -388,12 +388,12 @@ void CIARecord::ReadFromCIA(const String& filename) {
       istr >> w >> c;
 
       if (std::isnan(w) || std::isnan(c) || is.bad() || istr.bad()) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Error in line " << nline << " reading CIA catalog file "
-           << filename << ":" << endl
+           << filename << ":" << std::endl
            << line;
 
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       // Convert wavenumbers to Herz:
@@ -408,11 +408,11 @@ void CIARecord::ReadFromCIA(const String& filename) {
   }
 
   if (is.bad()) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Error in line " << nline << " reading CIA catalog file " << filename
-       << endl;
+       << std::endl;
 
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   AppendDataset(freq, Vector{temp}, cia);
@@ -459,7 +459,7 @@ void CIARecord::AppendDataset(const CIARecord& c2) {
  \param[in]      cr  CIARecord.
  \return os
  */
-ostream& operator<<(ostream& os, const CIARecord& /* cr */) {
-  os << "CIARecord output operator not yet implemented." << endl;
+std::ostream& operator<<(std::ostream& os, const CIARecord& /* cr */) {
+  os << "CIARecord output operator not yet implemented." << std::endl;
   return os;
 }

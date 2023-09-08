@@ -42,15 +42,7 @@ ENUMCLASS(SortingOption, char, ByFrequency, ByEinstein)
 /** Options for setting iy_main_agenda */
 ENUMCLASS(iy_main_agendaDefaultOptions,
           char,
-          Emission,
-          EmissionNew,
-          EmissionPlaneParallel,
-          Clearsky,
-          Transmission,
-          TransmissionUnitUnpolIntensity,
-          TransmissionUnitPolIntensity,
-          Freqloop,
-          ScattMC)
+          GeometricEmission)
 
 /** Options for setting iy_loop_freqs_agenda */
 ENUMCLASS(iy_loop_freqs_agendaDefaultOptions,

@@ -1,15 +1,13 @@
 #include <fwd.h>
-#include <py_auto_interface.h>
-#include <pybind11/attr.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
+
+#include <python_interface.h>
 
 #include "debug.h"
 #include "py_macros.h"
 
 namespace Python {
-void py_fwd(py::module_& m) {
-  py::class_<SpectralRadianceProfileOperator>(m, "SpectralRadianceProfileOperator")
+void py_fwd(py::module_& m) try {
+  artsclass<SpectralRadianceProfileOperator>(m, "SpectralRadianceProfileOperator")
       .def(py::init<>(), "From nothing")
       .PythonInterfaceCopyValue(SpectralRadianceProfileOperator)
       .PythonInterfaceWorkspaceVariableConversion(SpectralRadianceProfileOperator)
@@ -61,5 +59,7 @@ prof : ~pyarts.arts.Matrix
 )--"))
     .def_readonly("altitude", &SpectralRadianceProfileOperator::altitude, py::doc(R"--(Altitude grid [m])--"))
       .PythonInterfaceWorkspaceDocumentation(SpectralRadianceProfileOperator);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize fwd\n", e.what()));
 }
 }  // namespace Python

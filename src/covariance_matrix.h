@@ -366,10 +366,10 @@ class CovarianceMatrix {
   friend MatrixView operator+=(MatrixView, const CovarianceMatrix &);
   friend void add_inv(MatrixView, const CovarianceMatrix &);
 
-  friend void xml_read_from_stream(istream &,
+  friend void xml_read_from_stream(std::istream &,
                                    CovarianceMatrix &,
                                    bifstream *);
-  friend void xml_write_to_stream(ostream &,
+  friend void xml_write_to_stream(std::ostream &,
                                   const CovarianceMatrix &,
                                   bofstream *,
                                   const String &);

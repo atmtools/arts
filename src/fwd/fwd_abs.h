@@ -14,9 +14,7 @@ struct full_absorption {
 
   full_absorption() = default;
 
-  full_absorption(Numeric p,
-                  Numeric t,
-                  const Vector& allvmrs,
+  full_absorption(const AtmPoint& atm_point,
                   const ArrayOfArrayOfSpeciesTag& allspecs,
                   const std::shared_ptr<PredefinedModelData>& predef_data,
                   const std::vector<std::shared_ptr<CIARecord>>& cia_data,

@@ -1,9 +1,4 @@
-#include <py_auto_interface.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/eigen.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
+#include <python_interface.h>
 
 #include <type_traits>
 #include <variant>
@@ -12,9 +7,9 @@
 #include "py_macros.h"
 
 namespace Python {
-void py_rte(py::module_& m) {
-  py::class_<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init([]() { return std::make_unique<LagrangeInterpolation>(); }), "Default interpolation")
+void py_rte(py::module_& m) try {
+  artsclass<LagrangeInterpolation>(m, "LagrangeInterpolation")
+      .def(py::init([]() { return std::make_shared<LagrangeInterpolation>(); }), "Default interpolation")
       .PythonInterfaceCopyValue(LagrangeInterpolation)
       .def(py::pickle(
           [](const LagrangeInterpolation& self) {
@@ -23,7 +18,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
-            auto out = std::make_unique<LagrangeInterpolation>();
+            auto out = std::make_shared<LagrangeInterpolation>();
 
             out->pos = t[0].cast<Index>();
             out->lx = t[1].cast<Array<Numeric>>();
@@ -31,15 +26,15 @@ void py_rte(py::module_& m) {
             return out;
           })).doc() = "Interpolation object";
 
-  py::class_<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
+  artsclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .PythonInterfaceArrayDefault(LagrangeInterpolation)
       .PythonInterfaceBasicRepresentation(ArrayOfLagrangeInterpolation)
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
   py::implicitly_convertible<std::vector<LagrangeInterpolation>,
                              ArrayOfLagrangeInterpolation>();
 
-  py::class_<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init([]() { return std::make_unique<GasAbsLookup>(); }), "Default lookup")
+  artsclass<GasAbsLookup>(m, "GasAbsLookup")
+      .def(py::init([]() { return std::make_shared<GasAbsLookup>(); }), "Default lookup")
       .PythonInterfaceCopyValue(GasAbsLookup)
       .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
       .PythonInterfaceFileIO(GasAbsLookup)
@@ -77,7 +72,7 @@ void py_rte(py::module_& m) {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 11, "Invalid state!")
 
-            auto out = std::make_unique<GasAbsLookup>();
+            auto out = std::make_shared<GasAbsLookup>();
 
             out->Species() = t[0].cast<ArrayOfArrayOfSpeciesTag>();
             out->NonLinearSpecies() = t[1].cast<ArrayOfIndex>();
@@ -94,5 +89,7 @@ void py_rte(py::module_& m) {
             return out;
           }))
       .PythonInterfaceWorkspaceDocumentation(GasAbsLookup);
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize rte\n", e.what()));
 }
 }  // namespace Python

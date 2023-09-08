@@ -46,14 +46,14 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
     // frequency grids are sorted in GasAbsLookup::Adapt, so we can
     // use the fact here.
 
-    while (abs(new_grid[i] - old_grid[j]) >
-           max(abs(new_grid[i]), abs(old_grid[j])) * DBL_EPSILON) {
+    while (std::abs(new_grid[i] - old_grid[j]) >
+           std::max(std::abs(new_grid[i]), std::abs(old_grid[j])) * DBL_EPSILON) {
       ++j;
       if (j >= n_old_grid) {
-        ostringstream os;
+        std::ostringstream os;
         os << "Cannot find new frequency " << i << " (" << new_grid[i]
            << "Hz) in the lookup table frequency grid.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     }
 
@@ -121,23 +121,23 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // Species:
   if (0 == n_species) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The lookup table should have at least one species.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Nonlinear species:
   // They should be unique ...
   if (!is_unique(nonlinear_species)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The table must not have duplicate nonlinear species.\n"
        << "Value of *nonlinear_species*: " << nonlinear_species;
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // ... and pointing at valid species.
   for (Index i = 0; i < n_nls; ++i) {
-    ostringstream os;
+    std::ostringstream os;
     os << "nonlinear_species[" << i << "]";
     chk_if_in_range(os.str(), nonlinear_species[i], 0, n_species - 1);
   }
@@ -165,10 +165,10 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     chk_vector_length("nls_pert", nls_pert, 0);
   } else {
     if (0 == n_nls_pert) {
-      ostringstream os;
+      std::ostringstream os;
       os << "The vector nls_pert should contain the perturbations\n"
          << "for the nonlinear species, but it is empty.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -228,9 +228,9 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // The list of current species should not be empty:
   if (0 == n_current_species) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The list of current species should not be empty.";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // The grid of current frequencies should be monotonically sorted:
@@ -255,10 +255,10 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
         // Set to -1 to flag that this needs special handling later on.
         i_current_species[i] = -1;
       } else {
-        ostringstream os;
+        std::ostringstream os;
         os << "Species " << current_species[i].Name()
            << " is missing in absorption lookup table.";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     }
   }
@@ -518,9 +518,9 @@ void GasAbsLookup::Extract(Matrix& sga,
     // the table. The reason is that it is somewhat awkward to check
     // for this in other places.
     if (h2o_index == -1) {
-      ostringstream os;
+      std::ostringstream os;
       os << "With nonlinear species, at least one species must be a H2O species.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -555,10 +555,10 @@ void GasAbsLookup::Extract(Matrix& sga,
 
   // Make sure that log_p_grid is initialized:
   if (log_p_grid.nelem() != n_p_grid) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The lookup table internal variable log_p_grid is not initialized.\n"
        << "Use the abs_lookupAdapt method!";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // Verify that we have enough pressure, temperature,humdity, and frequency grid points
@@ -568,48 +568,48 @@ void GasAbsLookup::Extract(Matrix& sga,
   // runtime errors.
 
   if ((n_p_grid < p_interp_order + 1)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of pressure grid points in the table (" << n_p_grid
        << ") is not enough for the desired order of interpolation ("
        << p_interp_order << ").";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if ((n_nls_pert != 0) && (n_nls_pert < h2o_interp_order + 1)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of humidity perturbation grid points in the table ("
        << n_nls_pert
        << ") is not enough for the desired order of interpolation ("
        << h2o_interp_order << ").";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if ((n_t_pert != 0) && (n_t_pert < t_interp_order + 1)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of temperature perturbation grid points in the table ("
        << n_t_pert << ") is not enough for the desired order of interpolation ("
        << t_interp_order << ").";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   if ((n_f_grid < f_interp_order + 1)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "The number of frequency grid points in the table (" << n_f_grid
        << ") is not enough for the desired order of interpolation ("
        << f_interp_order << ").";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // 3. Checks on the input variables:
 
   // Check that abs_vmrs has the right dimension:
   if (!is_size(abs_vmrs, n_species)) {
-    ostringstream os;
+    std::ostringstream os;
     os << "Number of species in lookup table does not match number\n"
        << "of species for which you want to extract absorption.\n"
        << "Have you used abs_lookupAdapt? Or did you miss to add\n"
        << "some VRM fields (e.g. for free electrons or particles)?\n";
-    throw runtime_error(os.str());
+    throw std::runtime_error(os.str());
   }
 
   // 4. Set up some things we will need later on:
@@ -642,23 +642,23 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Check first f_grid element:
       if (abs(f_grid[0] - new_f_grid[0]) > allowed_f_margin)
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "First frequency in f_grid inconsistent with lookup table.\n"
            << "f_grid[0]        = " << f_grid[0] << "\n"
            << "new_f_grid[0] = " << new_f_grid[0] << ".";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
 
       // Check last f_grid element:
       if (abs(f_grid[n_f_grid - 1] - new_f_grid[n_new_f_grid - 1]) > allowed_f_margin)
       {
-        ostringstream os;
+        std::ostringstream os;
         os << "Last frequency in f_grid inconsistent with lookup table.\n"
            << "f_grid[n_f_grid-1]              = " << f_grid[n_f_grid - 1]
            << "\n"
            << "new_f_grid[n_new_f_grid-1] = " << new_f_grid[n_new_f_grid - 1]
            << ".";
-        throw runtime_error(os.str());
+        throw std::runtime_error(os.str());
       }
     } else if (n_new_f_grid == 1) {
       flag = &flag_local;
@@ -667,39 +667,39 @@ void GasAbsLookup::Extract(Matrix& sga,
       // Check that we really are on a frequency grid point, for safety's sake.
       if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin)
       {
-	ostringstream os;
+	std::ostringstream os;
 	os << "Cannot find a matching lookup table frequency for frequency "
 	   << new_f_grid[0] << ".\n"
 	   << "(This check has not been properly tested, so perhaps this is\n"
 	   << "a false alarm. Check for this in file gas_abs_lookup.cc.)";
-	throw runtime_error(os.str());
+	throw std::runtime_error(os.str());
       }
     } else {
-      ostringstream os;
+      std::ostringstream os;
       os << "With f_interp_order 0 the frequency grid has to have the same\n"
          << "size as in the lookup table, or exactly one element.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   } else {
     const Numeric f_min = f_grid[0] - 0.5 * (f_grid[1] - f_grid[0]);
     const Numeric f_max = f_grid[n_f_grid - 1] +
                           0.5 * (f_grid[n_f_grid - 1] - f_grid[n_f_grid - 2]);
     if (new_f_grid[0] < f_min) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Problem with gas absorption lookup table.\n"
          << "At least one frequency is outside the range covered by the lookup table.\n"
          << "Your new frequency value is " << new_f_grid[0] << " Hz.\n"
          << "The allowed range is " << f_min << " to " << f_max << " Hz.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
     if (new_f_grid[n_new_f_grid - 1] > f_max) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Problem with gas absorption lookup table.\n"
          << "At least one frequency is outside the range covered by the lookup table.\n"
          << "Your new frequency value is " << new_f_grid[n_new_f_grid - 1]
          << " Hz.\n"
          << "The allowed range is " << f_min << " to " << f_max << " Hz.";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
 
     // We do have real frequency interpolation (f_interp_order!=0).
@@ -732,7 +732,7 @@ void GasAbsLookup::Extract(Matrix& sga,
     const Numeric p_min = p_grid[n_p_grid - 1] -
                           0.5 * (p_grid[n_p_grid - 2] - p_grid[n_p_grid - 1]);
     if ((p > p_max) || (p < p_min)) {
-      ostringstream os;
+      std::ostringstream os;
       os << "Problem with gas absorption lookup table.\n"
          << "Pressure p is outside the range covered by the lookup table.\n"
          << "Your p value is " << p << " Pa.\n"
@@ -740,7 +740,7 @@ void GasAbsLookup::Extract(Matrix& sga,
          << "The pressure grid range in the table is " << p_grid[n_p_grid - 1]
          << " to " << p_grid[0] << ".\n"
          << "We allow a bit of extrapolation, but NOT SO MUCH!";
-      throw runtime_error(os.str());
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -814,14 +814,14 @@ void GasAbsLookup::Extract(Matrix& sga,
     //        if ( (vmrs_ref(si,pi) == 0) &&
     //            (abs_vmrs[si]    != 0) )
     //        {
-    //          ostringstream os;
+    //          std::ostringstream os;
     //          os << "Reference VMR profile is zero, you cannot extract\n"
     //          << "Absorption for this species.\n"
     //          << "Species: " << si
     //          << " (" << get_species_name(species[si]) << ")\n"
     //          << "Lookup table pressure level: " << pi
     //          << " (" <<  p_grid[pi] << " Pa).";
-    //          throw runtime_error( os.str() );
+    //          throw std::runtime_error( os.str() );
     //        }
 
     // Index into p_grid:
@@ -871,7 +871,7 @@ void GasAbsLookup::Extract(Matrix& sga,
             t_pert[n_t_pert - 1] +
             extpolfac * (t_pert[n_t_pert - 1] - t_pert[n_t_pert - 2]);
         if ((T_offset > t_max) || (T_offset < t_min)) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Problem with gas absorption lookup table.\n"
              << "Temperature T is outside the range covered by the lookup table.\n"
              << "Your temperature was " << T << " K at a pressure of " << p
@@ -881,7 +881,7 @@ void GasAbsLookup::Extract(Matrix& sga,
              << "The temperature perturbation grid range in the table is "
              << t_pert[0] << " to " << t_pert[n_t_pert - 1] << ".\n"
              << "We allow a bit of extrapolation, but NOT SO MUCH!";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
       }
 
@@ -926,7 +926,7 @@ void GasAbsLookup::Extract(Matrix& sga,
             extpolfac * (nls_pert[n_nls_pert - 1] - nls_pert[n_nls_pert - 2]);
 
         if ((VMR_frac > x_max) || (VMR_frac < x_min)) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Problem with gas absorption lookup table.\n"
              << "VMR for H2O (species " << h2o_index
              << ") is outside the range covered by the lookup table.\n"
@@ -939,7 +939,7 @@ void GasAbsLookup::Extract(Matrix& sga,
              << "The fractional VMR perturbation grid range in the table is "
              << nls_pert[0] << " to " << nls_pert[n_nls_pert - 1] << ".\n"
              << "We allow a bit of extrapolation, but NOT SO MUCH!";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
       }
 
@@ -977,11 +977,11 @@ void GasAbsLookup::Extract(Matrix& sga,
       // stored in the lookup table. For those the result is set to 0.
       if (species[si].Zeeman() or species[si].FreeElectrons() or species[si].Particles()) {
         if (do_VMR) {
-          ostringstream os;
+          std::ostringstream os;
           os << "Problem with gas absorption lookup table.\n"
              << "VMR interpolation is not allowed for species \""
              << species[si][0].Name() << "\"";
-          throw runtime_error(os.str());
+          throw std::runtime_error(os.str());
         }
         res = 0.;
         fpi++;
@@ -1078,7 +1078,7 @@ const Vector& GasAbsLookup::GetFgrid() const { return f_grid; }
 const Vector& GasAbsLookup::GetPgrid() const { return p_grid; }
 
 /** Output operatior for GasAbsLookup. */
-ostream& operator<<(ostream& os, const GasAbsLookup& /* gal */) {
+std::ostream& operator<<(std::ostream& os, const GasAbsLookup& /* gal */) {
   os << "GasAbsLookup: Output operator not implemented";
   return os;
 }

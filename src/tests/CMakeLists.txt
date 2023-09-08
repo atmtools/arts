@@ -13,7 +13,8 @@ target_link_libraries (test_binaryio artscore)
 
 add_executable (test_gridded_fields
   ../gridded_fields.cc
-  test_gridded_fields.cc)
+  test_gridded_fields.cc
+  ../artstime.cc)
 
 target_link_libraries (test_gridded_fields matpack)
 
@@ -124,13 +125,8 @@ target_link_libraries (test_readpp artscore)
 
 ########### next testcase ###############
 
-add_executable (test_cia test_cia.cc ../cia.cc ../m_cia.cc)
+add_executable (test_cia test_cia.cc)
 target_link_libraries (test_cia artscore)
-
-########### next testcase ###############
-
-add_executable (test_propagationmatrix test_propagationmatrix.cc)
-target_link_libraries (test_propagationmatrix artscore)
 
 ########### next testcase ###############
 
@@ -154,34 +150,10 @@ target_link_libraries(test_hitran artscore)
 
 ########### next testcase ###############
 
-if (ENABLE_GUI)
-  add_executable (test_lineshape test_lineshape.cc)
-  target_link_libraries (test_lineshape artscore)
-endif ()
-
-########### next testcase ###############
-
 add_executable (test_magfield test_magfield.cc)
 target_link_libraries (test_magfield artscore)
 
 ########### tests ###############
-
-arts_test_cmdline("describe" -d Copy)
-arts_test_cmdline("groups"   -g)
-arts_test_cmdline("help" -h)
-arts_test_cmdline("input" -i Index)
-arts_test_cmdline("methods" -m all)
-arts_test_cmdline("version" -v)
-arts_test_cmdline("workspacevariables" -w all)
-if (ENABLE_DOCSERVER)
-  arts_test_cmdline("check-docs" -C)
-endif ()
-
-# Build a test for the plotting tool
-if (ENABLE_GUI)
-  add_executable(test_gui test_gui.cc)
-  target_link_libraries(test_gui PUBLIC artscore)
-endif()
 
 ########################################################################################
 add_executable(test_species_tags test_species_tags.cc)
@@ -195,8 +167,8 @@ target_link_libraries (test_isotope species matpack)
 
 ########################################################################################
 # Test that the builtin partition functions are complete
-add_executable(test_partfun test_partfun.cc ../partfun.cc)
-target_link_libraries(test_partfun artscore)
+add_executable(test_partfun test_partfun.cc)
+target_link_libraries(test_partfun artscore partfun)
 add_dependencies(check-deps test_partfun)
 add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
@@ -204,7 +176,7 @@ add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
 # Test that the implentation for predefined models are complete
 add_executable(test_predefined test_predefined.cc)
-target_link_libraries(test_predefined artscore)
+target_link_libraries(test_predefined artscore jacobian)
 add_dependencies(check-deps test_predefined)
 add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
@@ -216,13 +188,8 @@ target_link_libraries(linemixing_jmh artscore)
 
 ########### next testcase ###############
 
-if (ENABLE_GUI)
-add_executable (calc_predef predefined.cc)
-target_link_libraries(calc_predef artscore)
-endif()
-
-add_executable (arts_qn arts_quantum_numbers.cc ../quantum_numbers.cc)
-target_link_libraries(arts_qn species xmliobase)
+add_executable (arts_qn arts_quantum_numbers.cc)
+target_link_libraries(arts_qn species xmliobase quantum)
 
 ########################################################################################
 # Test OpenMP
@@ -265,9 +232,3 @@ target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 #####
 add_executable(test_rng test_rng.cc ../artstime.cc)
 target_link_libraries(test_rng PUBLIC matpack)
-
-#####
-
-add_executable (test_atm test_atm.cc)
-target_link_libraries (test_atm PUBLIC artscore)
-

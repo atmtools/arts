@@ -16,16 +16,11 @@
 #include "test_utils.h"
 #include "xml_io.h"
 
-using std::cout;
-using std::endl;
-using std::max;
-using std::setw;
-
 void test3() {
   Sparse M(10, 15);
 
   /*
-  cout << "M.nrows(), M.ncols() = "
+  std::cout << "M.nrows(), M.ncols() = "
        << M.nrows() << ", " << M.ncols() << "\n";
   */
   for (Index i = 3; i < 10; ++i) M.rw(i, i) = (Numeric)i + 1;
@@ -33,7 +28,7 @@ void test3() {
   M.rw(0, 1) = 2;
   M.rw(0, 2) = 3;
 
-  cout << "\nM = \n" << M;
+  std::cout << "\nM = \n" << M;
 
   /*
   // Test Sparse matrix-Matrix multiplication
@@ -42,7 +37,7 @@ void test3() {
   // C = 2;
 
   mult(A, M, C(Range(joker), Range(joker)));
-  cout << "\nA = \n" << A << "\n";
+  std::cout << "\nA = \n" << A << "\n";
 
   */
 
@@ -57,14 +52,14 @@ void test3() {
 
   //   mult(A,M,C);
 
-  //   cout << "\nA = \n" << A;
+  //   std::cout << "\nA = \n" << A;
 
   /*
   // Test transpose
   Sparse B(15,10);
 
   transpose(B,M);
-  cout << "\nM' = \n" << B;
+  std::cout << "\nM' = \n" << B;
   */
 
   /*
@@ -72,9 +67,9 @@ void test3() {
   Sparse S(M);
   S.rw(2,0) = 5;
 
-  cout << "\nS(2,0) = " << S.ro(2,0) << "\n";
+  std::cout << "\nS(2,0) = " << S.ro(2,0) << "\n";
 
-  cout << "\nS = \n" << S;
+  std::cout << "\nS = \n" << S;
   */
 
   /*
@@ -84,13 +79,13 @@ void test3() {
 
   mult(y[Range(1,10,2)], S, x[Range(1,15,2)]);
 
-  cout << "\ny = \n" << y << "\n";
+  std::cout << "\ny = \n" << y << "\n";
   */
 }
 
 // void test38()
 // {
-//   cout << "Test sparse matrix - sparse matrix multiplication\n";
+//   std::cout << "Test sparse matrix - sparse matrix multiplication\n";
 
 //   Sparse B(757,2271);
 //   Sparse C(B.ncols(),B.ncols());
@@ -110,9 +105,9 @@ void test3() {
 
 //   mult(A,B,C);
 
-//   cout << "\n(Sparse) A = \n" << A;
-//   cout << "\n(Sparse) B = \n" << B;
-//   cout << "\n(Sparse) C = \n" << C;
+//   std::cout << "\n(Sparse) A = \n" << A;
+//   std::cout << "\n(Sparse) B = \n" << B;
+//   std::cout << "\n(Sparse) C = \n" << C;
 
 //   Matrix a(5,15), b(5,15), c(15,15);
 
@@ -130,12 +125,12 @@ void test3() {
 
 //   mult(a,b,c);
 
-//   //cout << "\n(Full) a = \n" << a << "\n";
+//   //std::cout << "\n(Full) a = \n" << a << "\n";
 
-// //  cout << "\n(Sparse) B = \n" << B << "\n";
-// //  cout << "\n(Full) b = \n" << b << "\n";
-// //  cout << "\n(Sparse) C = \n" << C << "\n";
-// //  cout << "\n(Full) c = \n" << c << "\n";
+// //  std::cout << "\n(Sparse) B = \n" << B << "\n";
+// //  std::cout << "\n(Full) b = \n" << b << "\n";
+// //  std::cout << "\n(Sparse) C = \n" << C << "\n";
+// //  std::cout << "\n(Full) c = \n" << c << "\n";
 
 // }
 
@@ -154,71 +149,71 @@ void test3() {
 //       i=0;
 //   }
 
-//   cout << "\nB = \n" << B;
+//   std::cout << "\nB = \n" << B;
 
 //   transpose(Bt,B);
 
-//   cout << "\ntranspose(B) = \n" << Bt << "\n";
+//   std::cout << "\ntranspose(B) = \n" << Bt << "\n";
 // }
 
 void test40() {
-  cout << "Testing the new simplified Sparse matrices:\n";
+  std::cout << "Testing the new simplified Sparse matrices:\n";
 
   Sparse A(3, 3);
-  cout << "Empty A: " << A << "\n";
+  std::cout << "Empty A: " << A << "\n";
 
   A.rw(0, 0) = 11;
   A.rw(1, 1) = 22;
   A.rw(2, 2) = 33;
-  cout << "Diagonal A:\n" << A << "\n";
+  std::cout << "Diagonal A:\n" << A << "\n";
 
   Vector b=uniform_grid(1, 3, 1), c(3);
-  cout << "b:\n" << b << "\n";
+  std::cout << "b:\n" << b << "\n";
 
   mult(c, A, b);
-  cout << "c = A*b (should be [11,44,99]):\n" << c << "\n";
+  std::cout << "c = A*b (should be [11,44,99]):\n" << c << "\n";
 
   Matrix D(3, 2);
   D(joker, 0) = b;
   D(joker, 1) = b;
   D(joker, 1) *= 2;
-  cout << "D:\n" << D << "\n";
+  std::cout << "D:\n" << D << "\n";
 
   Matrix E(3, 2);
   mult(E, A, D);
-  cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << E << "\n";
+  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << E << "\n";
 }
 
 void test41() {
-  cout << "Testing transpose for the new simplified sparse matrices:\n";
+  std::cout << "Testing transpose for the new simplified sparse matrices:\n";
 
   Sparse B(4, 5);
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
-  cout << "B:\n" << B << "\n";
+  std::cout << "B:\n" << B << "\n";
 
   Sparse A(5, 4);
 
   transpose(A, B);
 
-  cout << "A:\n" << A << "\n";
+  std::cout << "A:\n" << A << "\n";
 
-  cout << "Testing with a fully occupied matrix:\n";
+  std::cout << "Testing with a fully occupied matrix:\n";
 
   for (Index ri = 0; ri < 4; ri++)
     for (Index ci = 0; ci < 5; ci++) {
       B.rw(ri, ci) = (Numeric)(ri * 10 + ci);
     }
 
-  cout << "B:\n" << B << "\n";
+  std::cout << "B:\n" << B << "\n";
   transpose(A, B);
-  cout << "A:\n" << A << "\n";
+  std::cout << "A:\n" << A << "\n";
 }
 
 void test42() {
-  cout << "Testing sparse-sparse matrix multiplication:\n";
+  std::cout << "Testing sparse-sparse matrix multiplication:\n";
 
   Sparse B(4, 5);
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
@@ -229,35 +224,35 @@ void test42() {
   transpose(Bt, B);
   mult(A, B, Bt);
 
-  cout << "A:\n" << A << "\n";
+  std::cout << "A:\n" << A << "\n";
 }
 
 void test43() {
-  cout << "Testing sparse copying:\n";
+  std::cout << "Testing sparse copying:\n";
 
   Sparse B(4, 5);
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
-  cout << "B:\n" << B << "\n";
+  std::cout << "B:\n" << B << "\n";
 
   Sparse A;
 
   A = B;
 
-  cout << "A:\n" << A << "\n";
+  std::cout << "A:\n" << A << "\n";
 
   for (Index i = 0; i < 100; ++i) {
     B.rw(0, 0) += 1;
     A = B;
   }
 
-  cout << "A now:\n" << A << "\n";
+  std::cout << "A now:\n" << A << "\n";
 }
 
 void test44() {
-  cout << "Test to insert row in sparse:\n";
+  std::cout << "Test to insert row in sparse:\n";
 
   Vector v(5, 10);
 
@@ -266,16 +261,16 @@ void test44() {
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
-  cout << "B[" << B.nrows() << "," << B.ncols() << "]:\n" << B << "\n";
-  cout << "v:\n" << v << "\n";
+  std::cout << "B[" << B.nrows() << "," << B.ncols() << "]:\n" << B << "\n";
+  std::cout << "v:\n" << v << "\n";
 
   B.insert_row(3, v);
 
-  cout << "B (after insertion):\n" << B << "\n";
+  std::cout << "B (after insertion):\n" << B << "\n";
 }
 
 void test45() {
-  cout << "Test Sparse-Sparse multiplication reading matrices from xml "
+  std::cout << "Test Sparse-Sparse multiplication reading matrices from xml "
           "files:\n";
 
   Sparse A, B;
@@ -283,87 +278,87 @@ void test45() {
   String b = "backend.xml";
 
   try {
-    cout << "  Reading " << a << "...";
-    xml_read_from_file(a, A, Verbosity());
-    cout << "done.\n  Reading " << b << "...";
-    xml_read_from_file(b, B, Verbosity());
-    cout << "done.\n";
+    std::cout << "  Reading " << a << "...";
+    xml_read_from_file(a, A);
+    std::cout << "done.\n  Reading " << b << "...";
+    xml_read_from_file(b, B);
+    std::cout << "done.\n";
   } catch (const std::runtime_error &e) {
-    cerr << e.what() << endl;
+    std::cerr << e.what() << std::endl;
   }
 
   Sparse C(B.nrows(), A.ncols());
-  cout << "  Performing multiplication...";
+  std::cout << "  Performing multiplication...";
   mult(C, B, A);
-  cout << "done.\n";
+  std::cout << "done.\n";
 
-  //cout << "C=A*B:\n" << A << "\n";
+  //std::cout << "C=A*B:\n" << A << "\n";
   try {
-    cout << "  Writing product to file: test45.xml...";
-    xml_write_to_file("test45.xml", C, FILE_TYPE_ASCII, 0, Verbosity());
-    cout << "done.\n";
+    std::cout << "  Writing product to file: test45.xml...";
+    xml_write_to_file("test45.xml", C, FILE_TYPE_ASCII, 0);
+    std::cout << "done.\n";
   } catch (const std::runtime_error &e) {
-    cerr << e.what() << endl;
+    std::cerr << e.what() << std::endl;
   }
 }
 
 void test46() {
-  cout << "Test transpose with large matrix read from xml file:\n";
+  std::cout << "Test transpose with large matrix read from xml file:\n";
 
   Sparse A;
   String a = "backend.xml";
 
   try {
-    cout << "  Reading " << a << "...";
-    xml_read_from_file(a, A, Verbosity());
-    cout << "done.\n";
+    std::cout << "  Reading " << a << "...";
+    xml_read_from_file(a, A);
+    std::cout << "done.\n";
   } catch (const std::runtime_error &e) {
-    cerr << e.what() << endl;
+    std::cerr << e.what() << std::endl;
   }
 
-  //cout << "A:\n" << A << endl;
+  //std::cout << "A:\n" << A << std::endl;
 
   Sparse B(A.ncols(), A.nrows());
   transpose(B, A);
 
   try {
-    cout << "  Writing transpose(A) to file test46.xml" << endl;
-    xml_write_to_file("test46.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
+    std::cout << "  Writing transpose(A) to file test46.xml" << std::endl;
+    xml_write_to_file("test46.xml", B, FILE_TYPE_ASCII, 0);
   } catch (const std::runtime_error &e) {
-    cerr << e.what() << endl;
+    std::cerr << e.what() << std::endl;
   }
 
-  //cout << "transpose(A):\n" << B << endl;
+  //std::cout << "transpose(A):\n" << B << std::endl;
 }
 
 void test47() {
-  cout << "Test make Identity matrix:\n";
+  std::cout << "Test make Identity matrix:\n";
 
   Sparse A;
 
   A.resize(5, 5);
   id_mat(A);
 
-  cout << "A:\n" << A << endl;
+  std::cout << "A:\n" << A << std::endl;
 }
 
 void test48() {
-  cout << "Test absolute values of sparse matrix:\n";
+  std::cout << "Test absolute values of sparse matrix:\n";
 
   Sparse B(4, 5);
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = -(Numeric)i * 0.5;
-  cout << "B:\n" << B << endl;
+  std::cout << "B:\n" << B << std::endl;
 
   Sparse A(B);
   abs(A, B);
 
-  cout << "abs(B):\n" << A << endl;
+  std::cout << "abs(B):\n" << A << std::endl;
 }
 
 void test49() {
-  cout << "Testing sparse adding:\n";
+  std::cout << "Testing sparse adding:\n";
 
   Sparse B(4, 5);
   Index rb[] = {1, 3};
@@ -375,22 +370,22 @@ void test49() {
   Index cc[] = {0, 1, 2};
   for (Index i = 0; i < 3; i++) {
     C.rw(rc[i], cc[i]) = (Numeric)(i + 1);
-    cout << C.rw(rc[i], cc[i]) << endl;
+    std::cout << C.rw(rc[i], cc[i]) << std::endl;
   }
 
-  cout << "B:\n" << B << "\n";
-  cout << "C:\n" << C << "\n";
+  std::cout << "B:\n" << B << "\n";
+  std::cout << "C:\n" << C << "\n";
 
   Sparse A;
   add(A, B, C);
-  cout << "A=B+C:\n" << A << "\n";
+  std::cout << "A=B+C:\n" << A << "\n";
   Sparse D;
   sub(D, B, C);
-  cout << "D=B-C:\n" << D << "\n";
+  std::cout << "D=B-C:\n" << D << "\n";
 }
 
 Numeric test_xml_io(Index ntests, bool verbose) {
-  if (verbose) cout << "Testing xml IO." << endl << endl;
+  if (verbose) std::cout << "Testing xml IO." << std::endl << std::endl;
 
   Index n, m;
 
@@ -403,17 +398,17 @@ Numeric test_xml_io(Index ntests, bool verbose) {
     Sparse A(m, n), B;
     String a("A.xml");
     random_fill_matrix(A, 10, false);
-    xml_write_to_file(a, A, FILE_TYPE_ASCII, 0, Verbosity());
-    xml_read_from_file(a, B, Verbosity());
-    xml_write_to_file("B.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
+    xml_write_to_file(a, A, FILE_TYPE_ASCII, 0);
+    xml_read_from_file(a, B);
+    xml_write_to_file("B.xml", B, FILE_TYPE_ASCII, 0);
 
     Numeric err =
         get_maximum_error(static_cast<Matrix>(B), static_cast<Matrix>(A), true);
     if (err > err_max) err_max = err;
 
     if (verbose)
-      cout << "Test " << i << ": "
-           << "Max. Rel. Error = " << err << endl;
+      std::cout << "Test " << i << ": "
+           << "Max. Rel. Error = " << err << std::endl;
   }
 
   return err_max;
@@ -442,7 +437,7 @@ Numeric test_insert_row(Index ntests, bool verbose) {
   Matrix A;
   Sparse A_sparse;
 
-  if (verbose) cout << endl << "Testing insert_row:" << endl << endl;
+  if (verbose) std::cout << std::endl << "Testing insert_row:" << std::endl << std::endl;
   ;
 
   for (Index i = 0; i < ntests; i++) {
@@ -459,7 +454,7 @@ Numeric test_insert_row(Index ntests, bool verbose) {
     A_sparse.resize(m, n);
     if ((A_sparse.nrows() != m) || (A_sparse.ncols() != n)) {
       if (verbose) {
-        cout << "FAILED: Resize failed." << endl;
+        std::cout << "FAILED: Resize failed." << std::endl;
         return 1.0;
       }
     }
@@ -472,8 +467,8 @@ Numeric test_insert_row(Index ntests, bool verbose) {
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << endl;
-      cout << "Maximum relative error: " << err << endl;
+      std::cout << std::endl;
+      std::cout << "Maximum relative error: " << err << std::endl;
     }
   }
 
@@ -485,7 +480,7 @@ Numeric test_insert_row(Index ntests, bool verbose) {
 
   Test the creation of sparse identity matrices using Sparse::make_I(...).
   For each test, a randomly sized sparse matrix is created and set to the
-  identity matrix. The result is compared to the result of the dense couterpart
+  identity matrix. The result is compared to the result of the dense std::couterpart
   identity(...). ntests sets the number of tests to be performed. Also tests
   if the matrix was correctly resized. If the resize fails the function returns
   1.0.
@@ -503,7 +498,7 @@ Numeric test_identity(Index ntests, bool verbose) {
   Matrix A;
   Sparse A_sparse;
 
-  if (verbose) cout << endl << "Testing sparse identity:" << endl << endl;
+  if (verbose) std::cout << std::endl << "Testing sparse identity:" << std::endl << std::endl;
 
   for (Index i = 0; i < ntests; i++) {
     Index n = (std::rand() % 1000) + 1;
@@ -513,7 +508,7 @@ Numeric test_identity(Index ntests, bool verbose) {
 
     if ((A_sparse.nrows() != n) || (A_sparse.ncols() != n)) {
       if (verbose) {
-        cout << endl << "FAILED: Resize failed." << endl;
+        std::cout << std::endl << "FAILED: Resize failed." << std::endl;
         return 1.0;
       }
     }
@@ -525,7 +520,7 @@ Numeric test_identity(Index ntests, bool verbose) {
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << "\t Maximum relative error: " << err << endl;
+      std::cout << "\t Maximum relative error: " << err << std::endl;
     }
   }
 
@@ -552,8 +547,8 @@ Numeric test_sparse_construction(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse matrix construction and conversion:" << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse matrix construction and conversion:" << std::endl;
   }
 
   for (Index i = 0; i < ntests; i++) {
@@ -567,8 +562,8 @@ Numeric test_sparse_construction(Index m, Index n, Index ntests, bool verbose) {
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << "Test No.: " << setw(5) << i;
-      cout << " Maximum rel. error: " << err_max << endl;
+      std::cout << "Test No.: " << std::setw(5) << i;
+      std::cout << " Maximum rel. error: " << err_max << std::endl;
     }
   }
   return err_max;
@@ -598,11 +593,11 @@ Numeric test_sparse_unary_operations(Index m,
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse unary operations:" << endl << endl;
-    cout << setw(5) << "Test " << setw(15) << "Construction";
-    cout << setw(15) << "abs" << setw(15) << "transpose" << endl;
-    cout << std::string(55, '-') << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse unary operations:" << std::endl << std::endl;
+    std::cout << std::setw(5) << "Test " << std::setw(15) << "Construction";
+    std::cout << std::setw(15) << "abs" << std::setw(15) << "transpose" << std::endl;
+    std::cout << std::string(55, '-') << std::endl;
   }
 
   for (Index i = 0; i < ntests; i++) {
@@ -617,7 +612,7 @@ Numeric test_sparse_unary_operations(Index m,
     Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(5) << i << setw(15) << err;
+    if (verbose) std::cout << std::setw(5) << i << std::setw(15) << err;
 
     // abs
 
@@ -632,7 +627,7 @@ Numeric test_sparse_unary_operations(Index m,
     err = get_maximum_error(static_cast<Matrix>(B_sparse), B, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(15) << err;
+    if (verbose) std::cout << std::setw(15) << err;
 
     // transpose
 
@@ -641,7 +636,7 @@ Numeric test_sparse_unary_operations(Index m,
     err = get_maximum_error(static_cast<Matrix>(C_sparse), transpose(A), true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(15) << err << endl;
+    if (verbose) std::cout << std::setw(15) << err << std::endl;
   }
   return err_max;
 }
@@ -670,13 +665,13 @@ Numeric test_dense_sparse_multiplication(Index m,
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse multiplication:" << endl << endl;
-    cout << setw(5) << "Test " << setw(5) << "m1" << setw(5) << "m2";
-    cout << setw(10) << "c_stride" << setw(5) << "n1" << setw(5) << "n2";
-    cout << setw(10) << setw(10) << "r_stride" << setw(15) << "A = B x C";
-    cout << setw(18) << "A^T = C^T x B^T" << endl;
-    cout << std::string(80, '-') << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse multiplication:" << std::endl << std::endl;
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
+    std::cout << std::setw(18) << "A^T = C^T x B^T" << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
   }
 
   Matrix A(m, n);
@@ -698,15 +693,15 @@ Numeric test_dense_sparse_multiplication(Index m,
     c_stride = (rand() % 10) + 1;
     r_stride = (rand() % 10) + 1;
 
-    c_stride = min(dn, c_stride);
-    r_stride = min(dm, r_stride);
+    c_stride = std::min(dn, c_stride);
+    r_stride = std::min(dm, r_stride);
     dn = dn / c_stride;
     dm = dm / r_stride;
 
     if (verbose) {
-      cout << setw(5) << i << setw(5) << m1 << setw(5) << dm;
-      cout << setw(10) << r_stride << setw(5) << n1 << setw(5) << dn;
-      cout << setw(10) << c_stride;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
+      std::cout << std::setw(10) << r_stride << std::setw(5) << n1 << std::setw(5) << dn;
+      std::cout << std::setw(10) << c_stride;
     }
 
     MatrixView A_view = A(Range(m1, dm, r_stride), joker);
@@ -730,7 +725,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err;
+      std::cout << std::setw(15) << err;
     }
 
     //
@@ -760,7 +755,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err << endl;
+      std::cout << std::setw(15) << err << std::endl;
     }
   }
   return err_max;
@@ -790,13 +785,13 @@ Numeric test_sparse_dense_multiplication(Index m,
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse multiplication:" << endl << endl;
-    cout << setw(5) << "Test " << setw(5) << "m1" << setw(5) << "m2";
-    cout << setw(10) << "c_stride" << setw(5) << "n1" << setw(5) << "n2";
-    cout << setw(10) << setw(10) << "r_stride" << setw(15) << "A = B x C";
-    cout << setw(18) << "A^T = C^T x B^T" << endl;
-    cout << std::string(80, '-') << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse multiplication:" << std::endl << std::endl;
+    std::cout << std::setw(5) << "Test " << std::setw(5) << "m1" << std::setw(5) << "m2";
+    std::cout << std::setw(10) << "c_stride" << std::setw(5) << "n1" << std::setw(5) << "n2";
+    std::cout << std::setw(10) << std::setw(10) << "r_stride" << std::setw(15) << "A = B x C";
+    std::cout << std::setw(18) << "A^T = C^T x B^T" << std::endl;
+    std::cout << std::string(80, '-') << std::endl;
   }
 
   Matrix C(m, n);
@@ -819,13 +814,13 @@ Numeric test_sparse_dense_multiplication(Index m,
     r_stride = (rand() % 10) + 1;
 
     if (verbose) {
-      cout << setw(5) << i << setw(5) << m1 << setw(5) << dm;
-      cout << setw(10) << c_stride << setw(5) << n1 << setw(5) << dn;
-      cout << setw(10) << r_stride;
+      std::cout << std::setw(5) << i << std::setw(5) << m1 << std::setw(5) << dm;
+      std::cout << std::setw(10) << c_stride << std::setw(5) << n1 << std::setw(5) << dn;
+      std::cout << std::setw(10) << r_stride;
     }
 
-    c_stride = min(dn, c_stride);
-    r_stride = min(dm, r_stride);
+    c_stride = std::min(dn, c_stride);
+    r_stride = std::min(dm, r_stride);
     dn = dn / c_stride;
     dm = dm / r_stride;
 
@@ -851,7 +846,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err;
+      std::cout << std::setw(15) << err;
     }
 
     //
@@ -880,7 +875,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err << endl;
+      std::cout << std::setw(15) << err << std::endl;
     }
   }
   return err_max;
@@ -917,12 +912,12 @@ Numeric test_sparse_multiplication(Index m,
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse multiplication:" << endl << endl;
-    cout << setw(5) << "Test " << setw(15) << "sparse-sparse";
-    cout << setw(15) << "sparse-dense" << setw(15) << "matrix-vector";
-    cout << "transposed matrix-vector";
-    cout << endl << std::string(80, '-') << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse multiplication:" << std::endl << std::endl;
+    std::cout << std::setw(5) << "Test " << std::setw(15) << "sparse-sparse";
+    std::cout << std::setw(15) << "sparse-dense" << std::setw(15) << "matrix-vector";
+    std::cout << "transposed matrix-vector";
+    std::cout << std::endl << std::string(80, '-') << std::endl;
   }
 
   for (Index i = 0; i < ntests; i++) {
@@ -949,7 +944,7 @@ Numeric test_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(5) << i << setw(15) << err;
+      std::cout << std::setw(5) << i << std::setw(15) << err;
     }
 
     // Sparse-dense
@@ -960,7 +955,7 @@ Numeric test_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err;
+      std::cout << std::setw(15) << err;
     }
 
     // Matrix-vector
@@ -971,7 +966,7 @@ Numeric test_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err;
+      std::cout << std::setw(15) << err;
     }
 
     // transposed Matrix-vector
@@ -982,7 +977,7 @@ Numeric test_sparse_multiplication(Index m,
     if (err > err_max) err_max = err;
 
     if (verbose) {
-      cout << setw(15) << err << endl;
+      std::cout << std::setw(15) << err << std::endl;
     }
   }
   return err_max;
@@ -1010,12 +1005,12 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
   Numeric err_max = 0.0;
 
   if (verbose) {
-    cout << endl;
-    cout << "Testing sparse arithmetic:" << endl << endl;
-    cout << setw(5) << "Test " << setw(15) << "Addition";
-    cout << setw(15) << "Multiplication" << setw(15) << "Subtraction";
-    cout << setw(15) << "Scaling" << endl;
-    cout << std::string(70, '-') << endl;
+    std::cout << std::endl;
+    std::cout << "Testing sparse arithmetic:" << std::endl << std::endl;
+    std::cout << std::setw(5) << "Test " << std::setw(15) << "Addition";
+    std::cout << std::setw(15) << "Multiplication" << std::setw(15) << "Subtraction";
+    std::cout << std::setw(15) << "Scaling" << std::endl;
+    std::cout << std::string(70, '-') << std::endl;
   }
 
   for (Index i = 0; i < ntests; i++) {
@@ -1037,7 +1032,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     Numeric err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(5) << i << setw(15) << err;
+    if (verbose) std::cout << std::setw(5) << i << std::setw(15) << err;
 
     // Addition
 
@@ -1052,7 +1047,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(15) << err;
+    if (verbose) std::cout << std::setw(15) << err;
 
     // Subtraction
 
@@ -1068,7 +1063,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(15) << err;
+    if (verbose) std::cout << std::setw(15) << err;
 
     // Scaling
 
@@ -1084,7 +1079,7 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
-    if (verbose) cout << setw(15) << err << endl;
+    if (verbose) std::cout << std::setw(15) << err << std::endl;
   }
   return err_max;
 }
@@ -1105,61 +1100,61 @@ int main() {
 
   Numeric err;
 
-  cout << "Testing sparse arithmetic: ";
+  std::cout << "Testing sparse arithmetic: ";
   err = test_sparse_arithmetic(1000, 1000, 100, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing xml IO: ";
+  std::cout << "Testing xml IO: ";
   err = test_xml_io(100, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing identity matrix: ";
+  std::cout << "Testing identity matrix: ";
   err = test_identity(1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing inserting of rows: ";
+  std::cout << "Testing inserting of rows: ";
   err = test_insert_row(1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing abs(...) and transpose(...): ";
+  std::cout << "Testing abs(...) and transpose(...): ";
   err = test_sparse_unary_operations(1000, 1000, 1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing multiplication: ";
+  std::cout << "Testing multiplication: ";
   err = test_sparse_multiplication(1000, 1000, 1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing sparse-dense multiplication: ";
+  std::cout << "Testing sparse-dense multiplication: ";
   err = test_sparse_dense_multiplication(1000, 1000, 1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
-  cout << "Testing dense-sparse multiplication: ";
+  std::cout << "Testing dense-sparse multiplication: ";
   err = test_dense_sparse_multiplication(1000, 1000, 1000, false);
   if (err < 1e-11)
-    cout << "PASSED" << endl;
+    std::cout << "PASSED" << std::endl;
   else
-    cout << "FAILED (Error: " << err << ")" << endl;
+    std::cout << "FAILED (Error: " << err << ")" << std::endl;
 
   return 0;
 }

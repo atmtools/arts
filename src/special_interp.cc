@@ -45,7 +45,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "math_funcs.h"
 #include "special_interp.h"
@@ -678,13 +678,6 @@ void complex_n_interp(MatrixView n_real,
   chk_griddedfield_gridname(complex_n, gfield_fID, "Frequency");
   chk_griddedfield_gridname(complex_n, gfield_tID, "Temperature");
   chk_griddedfield_gridname(complex_n, gfield_compID, "Complex");
-  //
-  if (complex_n.data.ncols() != 2) {
-    ostringstream os;
-    os << "The data in *" << varname
-       << "* must have exactly two pages. One page "
-       << "each\nfor the real and imaginary part of the complex refractive index.";
-  }
 
   // Frequency and temperature grid sizes
   const Index nf_in = complex_n.data.npages();

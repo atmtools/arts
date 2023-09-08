@@ -15,7 +15,6 @@
 #ifndef mc_interp_h
 #define mc_interp_h
 #include "array.h"
-#include "arts.h"
 #include "interpolation.h"
 #include "matpack_data.h"
 #include "optproperties.h"
@@ -45,7 +44,7 @@ class SLIData2 {
   //checks that it is not empty
   //void check() const;
 
-  friend ostream& operator<<(ostream& os, const SLIData2& sli);
+  friend std::ostream& operator<<(std::ostream& os, const SLIData2& sli);
 };
 
 /** interp.

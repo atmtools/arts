@@ -16,7 +16,7 @@ namespace py = pybind11;
           " (:class:`~float` or :class:`~list` or :class:`~numpy.ndarray`): " from \
           "\n\nReturn\n------\n:class:`~float` or :class:`~list` or :class:`~numpy.ndarray`\n    " to))
 
-void py_conversions(py::module_& m) {
+void py_conversions(py::module_& m) try {
   auto convert = m.def_submodule("convert");
   convert.doc() = R"--(Contains several unit conversion functions used in Arts
 
@@ -34,5 +34,7 @@ These all should work with any array-like type
   PythonInterfaceConvert(kaycm_per_atm2hz_per_pa, Numeric, "CGS line shape parameter [cm-1/atm]", "Line shape parameter [Hz/Pa]", "lsm_cgs");
   PythonInterfaceConvert(joule2kaycm, Numeric, "Energy [J]", "CGS Energy [cm-1]", "j");
   PythonInterfaceConvert(kaycm2joule, Numeric, "CGS Energy [cm-1]", "Energy [J]", "v");
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize convert\n", e.what()));
 }
 }  // namespace Python

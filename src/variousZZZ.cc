@@ -24,7 +24,7 @@
  */
 
 #include "arts_conversions.h"
-#include "auto_md.h"
+#include <workspace.h>
 #include "check_input.h"
 #include "geodetic.h"
 #include "gridded_fields.h"
@@ -288,7 +288,7 @@ void refr_index_and_its_gradients(Numeric& refr_index_air,
                                   Numeric& dndz,
                                   Numeric& dndlat,
                                   Numeric& dndlon,
-                                  Workspace& ws,
+                                  const Workspace& ws,
                                   const Agenda& refr_index_air_agenda,
                                   ConstVectorView pos,
                                   const bool& do_horizontal_gradients,

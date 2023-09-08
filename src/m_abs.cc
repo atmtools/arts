@@ -16,20 +16,16 @@
 
 #include "absorption.h"
 #include "absorptionlines.h"
-#include "agenda_class.h"
-#include "agenda_set.h"
+#include <workspace.h>
 #include "array.h"
-#include "arts.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
 #include "artstime.h"
 #include "atm.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "debug.h"
 #include "depr.h"
 #include "file.h"
-#include "global_data.h"
 #include "hitran_species.h"
 #include "jacobian.h"
 #include "lineshape.h"
@@ -37,7 +33,6 @@
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
-#include "methods.h"
 #include "montecarlo.h"
 #include "nlte.h"
 #include "optproperties.h"
@@ -1029,8 +1024,6 @@ void WriteMolTau(  //WS Input
 #endif /* ENABLE_NETCDF */
 
 void propmat_clearsky_agendaAuto(// Workspace reference:
-    Workspace& ws,
-    // WS Output:
     Agenda& propmat_clearsky_agenda,
     Index& propmat_clearsky_agenda_checked,
     // WS Input:
@@ -1052,11 +1045,9 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
     const Numeric& theta,
     const Index& use_abs_as_ext,
     const Index& use_abs_lookup_ind) {
-  using namespace AgendaManip;
-
   propmat_clearsky_agenda_checked = 0;  // In case of crash
 
-  AgendaCreator agenda(ws, "propmat_clearsky_agenda");
+  AgendaCreator agenda("propmat_clearsky_agenda");
 
   // Use bool because logic is easier
   const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
@@ -1148,6 +1139,6 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
   }
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda = agenda.finalize();
+  propmat_clearsky_agenda = std::move(agenda).finalize();
   propmat_clearsky_agenda_checked = 1;
 }

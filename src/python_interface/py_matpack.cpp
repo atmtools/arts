@@ -1,16 +1,102 @@
-#include <py_auto_interface.h>
-#include <pybind11/eigen.h>
+#include <pybind11/cast.h>
 #include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
+#include <python_interface.h>
 
+#include <array>
+#include <cstddef>
+#include <memory>
+#include <numeric>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
+#include "matpack_constexpr.h"
+#include "matpack_iter.h"
 #include "py_macros.h"
 
 namespace Python {
 using Scalar = std::variant<Numeric, Index>;
+
+template <typename T, Index... sz>
+auto register_matpack_constant_data(py::module_& m, const char* const name)
+  requires(sizeof...(sz) > 0)
+{
+  using matpackT = matpack::matpack_constant_data<T, sz...>;
+  using arrT = py::array_t<T, py::array::forcecast>;
+
+  static constexpr std::size_t dim = sizeof...(sz);
+  static constexpr std::size_t size = (sz * ...);
+  static constexpr std::array<Index, dim> shape = matpackT::shape();
+
+  artsclass<matpackT> r(m, name, py::buffer_protocol());
+  r.def(py::init([]() { return std::make_shared<matpackT>(); }),
+        "Default constant data")
+      .def(py::init([](const arrT& x) -> std::shared_ptr<matpackT> {
+             if (static_cast<std::size_t>(x.ndim()) != dim) {
+               throw std::runtime_error(
+                   var_string("Bad rank: ", dim, " vs ", x.ndim()));
+             }
+
+             std::array<Index, dim> arr_shape;
+             for (std::size_t i = 0; i < dim; i++) {
+               arr_shape[i] = static_cast<Index>(x.shape(i));
+             }
+
+             if (arr_shape != shape) {
+               throw std::runtime_error(
+                   var_string("Bad shape: ",
+                              matpack::shape_help<dim>(shape),
+                              " vs ",
+                              matpack::shape_help<dim>(arr_shape)));
+             }
+
+             return std::make_shared<matpackT>(
+                 x.template cast<std::array<T, size>>());
+           }),
+           "Cast from numeric :class:`~numpy.array`")
+      .def(py::init([](const py::list& x) {
+             return py::cast<matpackT>(x.cast<arrT>());
+           }),
+           "Cast from :class:`list`")
+      .def(py::init([](const py::array& x) {
+             return py::cast<matpackT>(x.cast<arrT>());
+           }),
+           "Cast from any :class:`~numpy.array`")
+      .PythonInterfaceCopyValue(matpackT)
+      .PythonInterfaceBasicRepresentation(matpackT)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](matpackT& x) -> py::buffer_info {
+        std::vector<ssize_t> shape{static_cast<ssize_t>(sz)...};
+        std::vector<ssize_t> strides(shape.size(),
+                                     static_cast<ssize_t>(sizeof(T)));
+        for (std::size_t j = 0; j < sizeof...(sz) - 1; j++) {
+          strides[j] *= std::reduce(
+              shape.begin() + j + 1, shape.end(), 1, std::multiplies<>());
+        }
+        return py::buffer_info(x.data.data(),
+                               sizeof(T),
+                               py::format_descriptor<T>::format(),
+                               sizeof...(sz),
+                               std::move(shape),
+                               std::move(strides));
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](matpackT& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](matpackT& x, matpackT& y) { x = y; },
+          py::doc(":class:`~numpy.ndarray` Data array"));
+  py::implicitly_convertible<arrT, matpackT>();
+  py::implicitly_convertible<py::list, matpackT>();
+  py::implicitly_convertible<py::array, matpackT>();
+
+  return r;
+}
 
 template <typename T>
 void test_correct_size(const std::vector<T>& x) {
@@ -27,12 +113,14 @@ void test_correct_size(const std::vector<T>& x) {
   }
 }
 
-void py_matpack(py::module_& m) {
-  py::class_<Range>(m, "Range")
+void py_matpack(py::module_& m) try {
+  register_matpack_constant_data<Numeric, 3>(m, "Vector3").doc() = "A 3D vector";
+
+  artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
              ARTS_USER_ERROR_IF(0 > a, "Bad offset")
              ARTS_USER_ERROR_IF(0 > b, "Bad extent")
-             return std::make_unique<Range>(a, b, c);
+             return std::make_shared<Range>(a, b, c);
            }),
            py::arg("offset"),
            py::arg("extent"),
@@ -45,15 +133,15 @@ void py_matpack(py::module_& m) {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
-            return std::make_unique<Range>(
+            return std::make_shared<Range>(
                 t[0].cast<Index>(), t[1].cast<Index>(), t[2].cast<Index>());
           })).doc() = "A range, used to select parts of a matpack type";
 
 
-  py::class_<Vector>(m, "Vector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Vector>(); }), "Default vector")
+  artsclass<Vector>(m, "Vector", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Vector>(); }), "Default vector")
       .def(py::init([](const std::vector<Scalar>& v) {
-             auto out = std::make_unique<Vector>(v.size());;
+             auto out = std::make_shared<Vector>(v.size());;
              for (size_t i = 0; i < v.size(); i++)
                out->operator[](i) = std::visit(
                    [](auto&& x) { return static_cast<Numeric>(x); }, v[i]);
@@ -96,13 +184,13 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Matrix>(m, "Matrix", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Matrix>(); }), "Default matrix")
+  artsclass<Matrix>(m, "Matrix", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Matrix>(); }), "Default matrix")
       .def(py::init([](const std::vector<std::vector<Scalar>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
              auto n2 = n1 > 0 ? v[0].size() : 0;
-             auto out = std::make_unique<Matrix>(n1, n2);
+             auto out = std::make_shared<Matrix>(n1, n2);
              for (size_t i = 0; i < n1; i++) {
                for (size_t j = 0; j < n2; j++) {
                  out->operator()(i, j) = std::visit(
@@ -154,14 +242,14 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Tensor3>(m, "Tensor3", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor3>(); }), "Default tensor")
+  artsclass<Tensor3>(m, "Tensor3", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Tensor3>(); }), "Default tensor")
       .def(py::init([](const std::vector<std::vector<std::vector<Scalar>>>& v) {
              test_correct_size(v);
              auto n1 = v.size();
              auto n2 = n1 > 0 ? v[0].size() : 0;
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
-             auto out = std::make_unique<Tensor3>(n1, n2, n3);
+             auto out = std::make_shared<Tensor3>(n1, n2, n3);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -215,8 +303,8 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Tensor4>(m, "Tensor4", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor4>(); }), "Default tensor")
+  artsclass<Tensor4>(m, "Tensor4", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Tensor4>(); }), "Default tensor")
       .def(py::init([](const std::vector<
                         std::vector<std::vector<std::vector<Scalar>>>>& v) {
              test_correct_size(v);
@@ -224,7 +312,7 @@ via x.value
              auto n2 = n1 > 0 ? v[0].size() : 0;
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
              auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
-             auto out = std::make_unique<Tensor4>(n1, n2, n3, n4);
+             auto out = std::make_shared<Tensor4>(n1, n2, n3, n4);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -283,8 +371,8 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Tensor5>(m, "Tensor5", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor5>(); }), "Default tensor")
+  artsclass<Tensor5>(m, "Tensor5", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Tensor5>(); }), "Default tensor")
       .def(py::init([](const std::vector<std::vector<
                            std::vector<std::vector<std::vector<Scalar>>>>>& v) {
              test_correct_size(v);
@@ -293,7 +381,7 @@ via x.value
              auto n3 = n2 > 0 ? v[0][0].size() : 0;
              auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
              auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
-             auto out = std::make_unique<Tensor5>(n1, n2, n3, n4, n5);
+             auto out = std::make_shared<Tensor5>(n1, n2, n3, n4, n5);
              for (size_t i1 = 0; i1 < n1; i1++) {
                for (size_t i2 = 0; i2 < n2; i2++) {
                  for (size_t i3 = 0; i3 < n3; i3++) {
@@ -357,8 +445,8 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Tensor6>(m, "Tensor6", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor6>(); }), "Default tensor")
+  artsclass<Tensor6>(m, "Tensor6", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Tensor6>(); }), "Default tensor")
       .def(
           py::init([](const std::vector<std::vector<std::vector<
                           std::vector<std::vector<std::vector<Scalar>>>>>>& v) {
@@ -369,7 +457,7 @@ via x.value
             auto n4 = n3 > 0 ? v[0][0][0].size() : 0;
             auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
             auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
-            auto out = std::make_unique<Tensor6>(n1, n2, n3, n4, n5, n6);
+            auto out = std::make_shared<Tensor6>(n1, n2, n3, n4, n5, n6);
             for (size_t i1 = 0; i1 < n1; i1++) {
               for (size_t i2 = 0; i2 < n2; i2++) {
                 for (size_t i3 = 0; i3 < n3; i3++) {
@@ -439,8 +527,8 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::class_<Tensor7>(m, "Tensor7", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<Tensor7>(); }), "Default tensor")
+  artsclass<Tensor7>(m, "Tensor7", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<Tensor7>(); }), "Default tensor")
       .def(py::init(
                [](const std::vector<std::vector<std::vector<std::vector<
                       std::vector<std::vector<std::vector<Scalar>>>>>>>& v) {
@@ -452,7 +540,7 @@ via x.value
                  auto n5 = n4 > 0 ? v[0][0][0][0].size() : 0;
                  auto n6 = n5 > 0 ? v[0][0][0][0][0].size() : 0;
                  auto n7 = n6 > 0 ? v[0][0][0][0][0][0].size() : 0;
-                 auto out = std::make_unique<Tensor7>(n1, n2, n3, n4, n5, n6, n7);
+                 auto out = std::make_shared<Tensor7>(n1, n2, n3, n4, n5, n6, n7);
                  for (size_t i1 = 0; i1 < n1; i1++) {
                    for (size_t i2 = 0; i2 < n2; i2++) {
                      for (size_t i3 = 0; i3 < n3; i3++) {
@@ -587,7 +675,7 @@ via x.value
   py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
                              ArrayOfArrayOfTensor6>();
 
-  py::class_<Rational>(m, "Rational")
+  artsclass<Rational>(m, "Rational")
       .def(py::init([](Index n, Index d) {
              ARTS_USER_ERROR_IF(d < 1, "Must be positive")
              return Rational(n, d);
@@ -596,7 +684,7 @@ via x.value
            py::arg("d") = 1, py::doc("Default rational"))
       .PythonInterfaceCopyValue(Rational)
       .PythonInterfaceWorkspaceVariableConversion(Rational)
-      .def(py::init([](const String& s) { return std::make_unique<Rational>(s); }), "From :class:`str`")
+      .def(py::init([](const String& s) { return std::make_shared<Rational>(s); }), "From :class:`str`")
       .def(py::init([](Numeric n) { return Rational(std::to_string(n)); }), "From :class:`float`")
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
@@ -613,13 +701,13 @@ via x.value
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
-            return std::make_unique<Rational>(t[0].cast<Index>(), t[1].cast<Index>());
+            return std::make_shared<Rational>(t[0].cast<Index>(), t[1].cast<Index>());
           }))
       .PythonInterfaceWorkspaceDocumentation(Rational);
   py::implicitly_convertible<Index, Rational>();
 
-  py::class_<ComplexVector>(m, "ComplexVector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_unique<ComplexVector>(); }), "Default vector")
+  artsclass<ComplexVector>(m, "ComplexVector", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<ComplexVector>(); }), "Default vector")
       .PythonInterfaceCopyValue(ComplexVector)
       .PythonInterfaceBasicRepresentation(ComplexVector)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
@@ -649,5 +737,7 @@ via x.value
           }))
       .doc() = R"--(Holds complex vector data.
 )--";
+} catch(std::exception& e) {
+  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));
 }
 }  // namespace Python

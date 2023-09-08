@@ -16,14 +16,69 @@
 
 #include <cfloat>
 #include <stdexcept>
+
 #include "nc_io.h"
 #include "nc_io_types.h"
 
-#define TMPL_NC_READ_WRITE_FILE(what)                \
-  template void nca_write_to_file<what>(             \
-      const String&, const what&); \
-  template void nca_read_from_file<what>(            \
-      const String&, what&);
+#include <workspace.h>
+
+template <WorkspaceGroup T>
+void nca_write_to_file(const String& filename, const T& type) {
+  String efilename = add_basedir(filename);
+
+  bool fail = false;
+  String fail_msg;
+#pragma omp critical(netcdf__critical_region)
+  {
+    int ncid;
+    if (nc_create(efilename.c_str(), NC_CLOBBER | NC_NETCDF4, &ncid)) {
+      fail = true;
+      fail_msg = "Error opening file for writing.";
+    } else {
+      try {
+        nca_write_to_file(ncid, type);
+      } catch (const std::runtime_error &e) {
+        fail = true;
+        fail_msg = e.what();
+      }
+      nc_close(ncid);
+    }
+  }
+
+  if (fail)
+    ARTS_USER_ERROR("Error writing file: ", efilename, '\n', fail_msg);
+}
+
+template <WorkspaceGroup T>
+void nca_read_from_file(const String &filename, T &type) {
+  String efilename = expand_path(filename);
+
+  bool fail = false;
+  String fail_msg;
+#pragma omp critical(netcdf__critical_region)
+  {
+    int ncid;
+    if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid)) {
+      fail = true;
+      fail_msg = "Error opening file. Does it exists?";
+    } else {
+      try {
+        nca_read_from_file(ncid, type);
+      } catch (const std::runtime_error &e) {
+        fail = true;
+        fail_msg = e.what();
+      }
+      nc_close(ncid);
+    }
+  }
+
+  if (fail)
+    ARTS_USER_ERROR("Error reading file: ", efilename, '\n', fail_msg);
+}
+
+#define TMPL_NC_READ_WRITE_FILE(what)                                \
+  template void nca_write_to_file<what>(const String&, const what&); \
+  template void nca_read_from_file<what>(const String&, what&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for NetCDF streams
