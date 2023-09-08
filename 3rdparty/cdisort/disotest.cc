@@ -165,10 +165,8 @@ void disort_test01(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
-  extern void
-    c_disort(),c_errmsg(),c_getmom();
 
   ds.accur = 0.;
   ds.flag.prnt[0]=TRUE, ds.flag.prnt[1]=FALSE, ds.flag.prnt[2]=FALSE, ds.flag.prnt[3]=FALSE, ds.flag.prnt[4]=TRUE;
@@ -345,7 +343,7 @@ void disort_test02(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas,iod,iss;
 
   ds.accur = 0.;
@@ -498,7 +496,7 @@ void disort_test03(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
 
   ds.accur = 0.;
@@ -622,7 +620,7 @@ void disort_test04(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
 
   ds.accur = 0.;
@@ -815,7 +813,7 @@ void disort_test05(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
 
   ds.accur = 0.;
@@ -942,7 +940,7 @@ void disort_test06(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
 
   ds.accur = 0.;
@@ -1363,7 +1361,7 @@ void disort_test07(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas;
 
   ds.accur = 0.;
@@ -1698,7 +1696,7 @@ void disort_test08(void)
     ds;
   disort_output
     out,good;
-  register int
+  int
     icas,lc;
 
   ds.accur = 0.;
@@ -1839,7 +1837,7 @@ void disort_test08(void)
 
 void disort_test09(void)
 {
-  register int
+  int
     icas,lc,k;
   const int
     ncase = 1;
@@ -2074,7 +2072,7 @@ void disort_test09(void)
 
 void disort_test10(void)
 {
-  register int
+  int
     lc;
   double
     gg;
@@ -2221,7 +2219,7 @@ void disort_test10(void)
 
 void disort_test11(void)
 {
-  register int
+  int
     lc;
   disort_state
     ds_good,ds_out;
@@ -2354,7 +2352,7 @@ void disort_test11(void)
 
 void disort_test12(void)
 {
-  register int
+  int
     lc;
   double
     gg;
@@ -2492,7 +2490,7 @@ void disort_test12(void)
 
 void disort_test13(void)
 {
-  register int
+  int
     lc;
   double
     gg;
@@ -2686,7 +2684,7 @@ void disort_test13(void)
 
 void disort_test14(void)
 {
-  register int
+  int
     lc;
   double
      radius,
@@ -2875,12 +2873,8 @@ void print_test(disort_state  *ds_calc,
                 disort_state  *ds_good,
                 disort_output *good)
 {
-  register int
+  int
     iu,j,lu,numbad;
-  extern void
-    c_errmsg();
-  extern double
-    c_ratio();
   double
     flxmax,umax,fnoise,unoise,
     rat1,rat2,rat3,rat4,

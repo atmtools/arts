@@ -396,13 +396,13 @@
 void c_disort(disort_state  *ds,
 	      disort_output *out)
 {
-  static int
+  thread_local static int
     self_tested = -1;
   int
     prntu0[2],
     corint,deltam,scat_yes,compare,lyrcut,needdeltam,
     iq,iu,j,kconv,l,lc,lev,lu,mazim,naz,ncol,ncos,ncut,nn;
-  static int
+  thread_local static int
     callnum=1;
   int
     ipvt[ds->nstr*ds->nlyr],
@@ -1085,12 +1085,12 @@ double c_bidir_reflectivity ( double       wvnmlo,
   double
     ans, rmu, flxalb;
 
-  static double
+  thread_local static double
     badmu, swvnmlo, swvnmhi, srho0, sk,
     stheta, ssigma, st1, st2, sscale;
 
 #if HAVE_BRDF
-    static double
+    thread_local static double
     siso, svol, sgeo;
 #endif
 
@@ -1466,7 +1466,7 @@ void c_getmom(int    iphas,
     0.00082,0.00077,0.00059,0.00055,0.00043,0.00040,0.00031,0.00029,0.00023,0.00021,0.00017,0.00015,
     0.00012,0.00011,0.00009,0.00008,0.00006,0.00006,0.00005,0.00004,0.00004,0.00003,0.00003,0.00002,
     0.00002,0.00002,0.00001,0.00001,0.00001,0.00001,0.00001,0.00001,0.00001,0.00001};
-  register int
+  int
     k;
 
   /* 
@@ -2221,9 +2221,9 @@ void c_intensity_components(disort_state *ds,
                             disort_pair  *plk,
                             double       *uum)
 {
-  register int
+  int
     iq,jq,lu,lyu;
-  register double
+  double
     zint;
 
   /*
@@ -2328,7 +2328,7 @@ void c_fluxes(disort_state  *ds,
               disort_pair   *fl,
               double        *u0c)
 {
-  register int
+  int
     iq,jq,lu,lyu;
   double
     ang1,ang2,dirint,
@@ -2545,7 +2545,7 @@ void c_intensity_correction(disort_state  *ds,
                             double        *taucpr,
                             double        *utaupr)
 {
-  register int
+  int
     iu,jp,k,lc,ltau,lu;
   double
     ctheta,dtheta,duims,pl,plm1,plm2,
@@ -2680,14 +2680,14 @@ double c_secondary_scat(disort_state *ds,
                         int           layru,
                         double       *tauc)
 {
-  register int
+  int
     k,lyr;
   const double
     tiny = 1.e-4;
   double
     dtau,fbar,gbar,pl,plm1,plm2,pspike,
     stau,umu0p,wbar;
-  register double
+  double
     tmp;
 
   /*
@@ -2839,7 +2839,7 @@ void c_new_intensity_correction(disort_state  *ds,
 				double        *taucpr,
 				double        *utaupr)
 {
-  register int
+  int
     iu,jp,k,lc,ltau,lu;
   double
     ctheta,dtheta,duims,pl,plm1,plm2,
@@ -3246,7 +3246,7 @@ double c_new_secondary_scat(disort_state *ds,
 			    int          *neg_phas,
 			    double        norm_phas)
 {
-  register int
+  int
     lyr;
   const double
     tiny = 1.e-4;
@@ -3510,7 +3510,7 @@ void c_disort_set(disort_state *ds,
                   double       *taucpr,
                   double       *utaupr)
 {
-  register int
+  int
     iq,iu,k,lc,lu;
   const double
     abscut = 10.;
@@ -3793,7 +3793,7 @@ void c_set_matrix(disort_state *ds,
     mi9m2  = 9*mi-2,
     nnlyri = ds->nstr*ds->nlyr,
     nn     = ds->nstr/2;
-  register int
+  int
     iq,irow,jcol,jq,k,lc,lda,ncd,nncol,nshift;
   double
     expa,sum;
@@ -3946,7 +3946,7 @@ double c_single_scat(double   dither,
                      double   utau,
                      double   fbeam)
 {
-  register int
+  int
     lyr;
   double
     ans,exp0,exp1;
@@ -4070,7 +4070,7 @@ void c_solve_eigen(disort_state *ds,
 {
   int
     ier;
-  register int
+  int
     iq,jq,kq,l;
   double
     alpha,beta,gpmigm,gpplgm,sum;
@@ -4253,7 +4253,7 @@ void c_solve0(disort_state *ds,
               double       *zzg,
               disort_pair  *plk)
 {
-  register int
+  int
     ipnt,iq,it,jq,lc,ncd;
   double
     rcond,sum,diff;
@@ -4596,13 +4596,13 @@ void c_surface_bidir(disort_state *ds,
                      double       *rmu,
 		     int           callnum)
 {
-  static int
+  thread_local static int
     pass1 = TRUE;
-  register int
+  int
     iq,iu,jg,jq,k;
   double
     dref,sum;
-  static double
+  thread_local static double
     gmu[NMUG],gwt[NMUG];
   
   if (pass1) {
@@ -4755,7 +4755,7 @@ void c_interp_eigenvec(disort_state *ds,
                        double       *ylmc,
                        double       *ylmu)
 {
-  register int
+  int
     iq,iu,jq,l;
   double
     sum;
@@ -4855,7 +4855,7 @@ void c_interp_source(disort_state   *ds,
 		     double         *zgu,
                      disort_pair    *zu)
 {
-  register int
+  int
     iq,iu,jq;
   double
     fact,psum,psum0,psum1,sum,sum0,sum1;
@@ -5008,7 +5008,7 @@ void c_interp_coefficients_beam_source(disort_state   *ds,
 				       double         *ylm0,
 				       double         *ylmu)
 {
-  register int 
+  int 
     iu,k;
   double 
     deltat,sum,q0a,q2a,q0,q2;
@@ -5092,11 +5092,11 @@ void c_set_coefficients_beam_source(disort_state *ds,
 				    double       *zj)
 {
 
-  register int 
+  int 
     iq,k;
   double 
     deltat,sum,q0a,q2a,q0,q2;
-  static double
+  thread_local static double
     big;
 
   big    = sqrt(DBL_MAX)/1.e+10;
@@ -5200,7 +5200,7 @@ void c_upbeam(disort_state *ds,
               double       *zj,
               double       *zz)
 {
-  register int
+  int
     iq,jq,k;
   double
     rcond,sum;
@@ -5297,7 +5297,7 @@ void c_upbeam_pseudo_spherical(disort_state *ds,
 			       double       *zbeama)
 {
 
-  register int
+  int
     iq,jq;
   double
     rcond,rmin;
@@ -5426,7 +5426,7 @@ void c_upbeam_general_source(disort_state *ds,
 			     double       *zjg,
 			     double       *zzg)
 {
-  register int
+  int
     iq,jq;
   double
     rcond;
@@ -5513,7 +5513,7 @@ void c_upisot(disort_state *ds,
               disort_pair  *zee,
               disort_pair  *plk)
 {
-  register int
+  int
     iq,jq;
   double
     rcond;
@@ -5670,7 +5670,7 @@ void c_user_intensities(disort_state   *ds,
                         disort_pair    *plk,
                         double         *uum)
 {
-  register int
+  int
     negumu,
     iq,iu,jq,lc,lu,lyrend,lyrstr,lyu;
   double
@@ -6028,7 +6028,7 @@ void c_check_inputs(disort_state *ds,
 {
   int
     inperr = FALSE;
-  register int
+  int
     irmu,iu,j,k,lc,lu, nu;
   double
     flxalb,rmu,umumin;
@@ -6259,13 +6259,13 @@ double c_dref(double       wvnmlo,
 	      disort_brdf *brdf,
 	      int          callnum )
 {
-  static int
+  thread_local static int
     pass1 = TRUE;
-  register int
+  int
     jg,k;
   double
     ans,sum;
-  static double
+  thread_local static double
     gmu[NMUG],gwt[NMUG];
 
   if (pass1) {
@@ -6355,9 +6355,9 @@ void c_legendre_poly(int     nmu,
                      double *mu,
                      double *ylm)
 {
-  register int
+  int
     i,l;
-  register double
+  double
     tmp1,tmp2;
 
   if (m == 0) {
@@ -6482,11 +6482,11 @@ double c_planck_func1(double wnumlo,
                       double wnumhi,
                       double t)
 {
-  register int
+  int
     i,k,m,mmax,n,smallv;
   int
     converged;
-  static int
+  thread_local static int
     initialized = FALSE;
   const double
     vcp[7] = {10.25,5.7,3.9,2.9,2.3,1.9,0.0};
@@ -6494,7 +6494,7 @@ double c_planck_func1(double wnumlo,
     del,ex,exm,hh,mv,oldval,
     val,val0,vsq,d[2],p[2],v[2],
     ans;
-  static double
+  thread_local static double
     vmax,sigdpi,conc;
 
   if (!initialized) {
@@ -6633,7 +6633,7 @@ double c_planck_func1(double wnumlo,
 void c_print_avg_intensities(disort_state *ds,
 			     disort_output *out)
 {
-  register int
+  int
     iu,iumax,iumin,
     lenfmt,lu,np,npass;
 
@@ -6689,7 +6689,7 @@ void c_print_inputs(disort_state *ds,
                     double       *tauc,
                     double       *taucpr)
 {
-  register int
+  int
     iq,iu,j,k,lc,lu;
 
   fprintf(stdout,"\n\n"
@@ -6885,7 +6885,7 @@ void c_print_inputs(disort_state *ds,
 void c_print_intensities(disort_state  *ds,
                          disort_output *out)
 {
-  register int
+  int
     iu,j,jmax,jmin,lenfmt,lu,np,npass;
 
   if (ds->nphi < 1) {
@@ -6978,14 +6978,14 @@ void c_gaussian_quadrature(int    m,
                            double *gmu,
                            double *gwt)
 {
-  static int
+  thread_local static int
     initialized = FALSE;
-  register int
+  int
     iter,k,lim,nn,np1;
   double
     cona,t,en,nnp1,p=0,p2pri,pm1,pm2,ppr,
     prod,tmp,x,xi;
-  static double
+  thread_local static double
     tol;
 
   if (!initialized) {
@@ -7096,9 +7096,9 @@ void c_gaussian_quadrature(int    m,
 double c_ratio(double a,
              double b)
 {
-  static int
+  thread_local static int
     initialized = FALSE;
-  static double
+  thread_local static double
     tiny,huge,powmax,powmin;
   double
     ans,absa,absb,powa,powb;
@@ -7458,7 +7458,7 @@ void c_albtrans(disort_state  *ds,
 {
   int
     lyrcut,ncol;
-  register int
+  int
     iq,iu,l,lc,mazim,ncd,ncut;
   double
     delm0,rcond,sgn,sphalb,sphtrn;
@@ -7664,7 +7664,7 @@ void c_albtrans_intensity(disort_state *ds,
                           double       *taucpr,
                           double       *wk)
 {
-  register int
+  int
     iq,iu,iumax,iumin,lc,lu;
   double
     denom,dtau,exp1,exp2,expn,mu,palint,sgn,utaupr[2];
@@ -7750,7 +7750,7 @@ void c_albtrans_intensity(disort_state *ds,
 void c_print_albtrans(disort_state  *ds,
                       disort_output *out)
 {
-  register int
+  int
     iu;
 
   fprintf(stdout,"\n\n\n *******  Flux Albedo and/or Transmissivity of entire medium  ********\n");
@@ -7813,7 +7813,7 @@ void c_solve1(disort_state *ds,
               double       *b,
               double       *ll)
 {
-  register int
+  int
     i,ipnt,iq,lc,ncd;
 
   memset(b,0,ds->nstr*ds->nlyr*sizeof(double));
@@ -7895,7 +7895,7 @@ void c_albtrans_spherical(disort_state *ds,
                           double       *sflup,
                           double       *sfldn)
 {
-  register int
+  int
     iq,jq;
   double
     zint;
@@ -7949,7 +7949,7 @@ void c_albtrans_spherical(disort_state *ds,
 void c_errmsg(const char *messag,
               int   type)
 {
-  static int
+  thread_local static int
     warning_limit = FALSE,
     num_warnings  = 0;
 
@@ -7990,7 +7990,7 @@ int c_write_bad_var(int   quiet,
 {
   const int
     maxmsg = 50;
-  static int
+  thread_local static int
     nummsg = 0;
 
   nummsg++;
@@ -8159,7 +8159,7 @@ void c_sgbco(double *abd,
 {
   int
     info;
-  register int
+  int
     is,j,ju,k,kb,kp1,l,la,lm,lz,m,mm;
   double
     anorm,ek,s,sm,t,wk,wkm,ynorm;
@@ -8368,7 +8368,7 @@ void c_sgbfa(double *abd,
              int    *ipvt,
              int    *info)
 {
-  register int
+  int
     i0,j,j0,j1,ju,jz,k,kp1,l,lm,m,mm,nm1;
   double
     t;
@@ -8502,7 +8502,7 @@ void c_sgbsl(double *abd,
              double *b,
              int     job)
 {
-  register int
+  int
     k,kb,l,la,lb,lm,m,nm1;
   double
     t;
@@ -8618,7 +8618,7 @@ void c_sgeco(double *a,
 {
   int
     info;
-  register int
+  int
     j,k,kb,kp1,l;
   double
     anorm,ek,s,sm,t,wk,wkm,ynorm;
@@ -8793,7 +8793,7 @@ void c_sgefa(double *a,
              int    *ipvt,
              int    *info)
 {
-  register int
+  int
     j,k,kp1,l,nm1;
   double
     t;
@@ -8896,7 +8896,7 @@ void c_sgesl(double *a,
              double *b,
              int     job)
 {
-  register int
+  int
     k,kb,l,nm1;
   double
     t;
@@ -8968,7 +8968,7 @@ void c_sgesl(double *a,
 double c_sasum(int     n,
              double *sx)
 {
-  register int
+  int
     i,m;
   double
     ans;
@@ -9025,7 +9025,7 @@ void c_saxpy(int     n,
              double *sx,
              double *sy)
 {
-  register int
+  int
     i,m;
 
   if (n <= 0 || sa == 0.) {
@@ -9077,7 +9077,7 @@ double c_sdot(int     n,
               double *sx,
               double *sy)
 {
-  register int
+  int
     i,m;
   double
     ans;
@@ -9131,7 +9131,7 @@ void c_sscal(int    n,
              double  sa,
              double *sx)
 {
-  register int
+  int
     i,m;
 
   if (n <= 0) {
@@ -9176,7 +9176,7 @@ void c_sscal(int    n,
 int c_isamax(int     n,
              double *sx)
 {
-  register int
+  int
     ans=0,i;
   double
    smax,xmag;
@@ -9578,7 +9578,7 @@ void c_twostr(disort_state  *ds,
               int           *ierror,
               double         radius)
 {
-  register int
+  int
     lc,ierr;
   int
     lyrcut,iret,ncut,nn;
@@ -9756,7 +9756,7 @@ double c_chapman(int     lc,
                  double  zenang,
                  double  r)
 {
-  register int
+  int
     id,j;
   double
     zenrad,xp,xpsinz,
@@ -9833,7 +9833,7 @@ double c_chapman_simpler(int     lc,
                  double  zenang,
                  double  r)
 {
-  register int
+  int
     id,j;
   double
     zenrad,xp,xpsinz,
@@ -10098,11 +10098,11 @@ void c_twostr_fluxes(disort_state  *ds,
                      double        *u0c,
                      disort_pair   *fl)
 {
-  register int
+  int
     lu,lyu;
   double
     fdntot,fnet,plsorc,dirint;
-  register double
+  double
     fact1,fact2;
 
   if (ds->flag.prnt[1]) {
@@ -10233,11 +10233,11 @@ void c_twostr_solns(disort_state *ds,
                     double       *rr,
                     twostr_xyz   *ts)
 {
-  register int
+  int
     lc;
-  static int
+  thread_local static int
     initialized = FALSE;
-  static double
+  thread_local static double
     big,large,small,little;
   double
     q_1,q_2,qq,q0a,q0,q1a,q2a,q1,q2,
@@ -10487,7 +10487,7 @@ void c_twostr_print_inputs(disort_state *ds,
                            double       *tauc,
                            double       *taucpr)
 {
-  register int
+  int
     lu,lc;
 
   fprintf(stdout,"\n\n"
@@ -10626,9 +10626,9 @@ void c_twostr_set(disort_state *ds,
                   double       *tplanck,
                   double       *utaupr)
 {
-  static int
+  thread_local static int
     firstpass = TRUE;
-  register int
+  int
     lc,lu,lev;
   double
     zenang,abstau,chtau_tmp,f,tempc,taup,
@@ -10838,11 +10838,11 @@ void c_twostr_solve_bc(disort_state *ds,
 {
   int
     info;
-  register int
+  int
     irow,lc,nloop,nrow,job;
   double
     wk0,wk1,wk,rpp1_m,rp_m,rpp1_p,rp_p,sum,refflx;
-  register double
+  double
     fact1,fact2,fact3,fact4;
 
   /*
@@ -11056,9 +11056,9 @@ double c_planck_func2(double wnumlo,
                       double wnumhi,
                       double t)
 {
-  register int
+  int
     m,n,smallv,k,i,mmax;
-  static int
+  thread_local static int
     initialized = FALSE;
   double
     ans,del,val,val0,oldval,exm,
@@ -11066,7 +11066,7 @@ double c_planck_func2(double wnumlo,
     d[2],p[2],v[2];
   const double
     vcp[7] = {10.25,5.7,3.9,2.9,2.3,1.9,0.0};
-  static double
+  thread_local static double
     sigdpi,vmax,conc,c1;
 
   if (!initialized) {
@@ -11517,7 +11517,7 @@ void c_twostr_out_free(disort_state  *ds,
 
 double *c_dbl_vector(int  nl, 
 		     int  nh,
-		     char *name)
+		     const char *name)
 {
   unsigned int  
     len_safe;
@@ -11557,7 +11557,7 @@ double *c_dbl_vector(int  nl,
 
 int *c_int_vector(int  nl, 
 		  int  nh,
-		  char *name)
+		  const char *name)
 {
   unsigned int  
     len_safe;

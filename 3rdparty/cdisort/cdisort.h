@@ -1251,10 +1251,10 @@ void c_twostr_out_free(disort_state  *ds,
 
 double *c_dbl_vector(int  nl, 
                      int  nh,
-		     char *name);
+		     const char *name);
 int *c_int_vector(int  nl, 
 		  int  nh,
-		  char *name);
+		  const char *name);
 
 void print_test(disort_state  *ds_calc,
                 disort_output *calc,

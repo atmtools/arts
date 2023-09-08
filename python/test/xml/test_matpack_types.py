@@ -11,7 +11,18 @@ import numpy as np
 from scipy import sparse
 import pytest
 
-from pyarts import xml
+from pyarts import arts, xml
+
+
+def _get_matpack_type_by_dim(n):
+    if n == 1:
+        artstypename = 'Vector'
+    elif n == 2:
+        artstypename = 'Matrix'
+    elif n > 2:
+        artstypename = f'Tensor{n}'
+
+    return getattr(arts, artstypename)
 
 
 def _create_tensor(n):
@@ -27,24 +38,8 @@ def _create_tensor(n):
         np.ndarray: n-dimensional tensor
 
     """
-    return np.arange(2 ** n).reshape(2 * np.ones(n).astype(int))
-
-
-def _create_complex_tensor(n):
-    """Create a complex tensor of dimension n.
-
-    Create a complex tensor with n dimensions with two entries in each
-    dimension. The tensor is filled with increasing integers starting with 0.
-
-    Args:
-        n (int): number of dimensions
-
-    Returns:
-        np.ndarray: n-dimensional tensor
-
-    """
-    return np.arange(2 ** n,
-                     dtype=np.complex128).reshape(2 * np.ones(n).astype(int))
+    artstype = _get_matpack_type_by_dim(n)
+    return artstype(np.arange(2**n).reshape(2 * np.ones(n).astype(int)))
 
 
 def _create_empty_tensor(n):
@@ -59,7 +54,8 @@ def _create_empty_tensor(n):
         np.ndarray: n-dimensional tensor
 
     """
-    return np.ndarray((0,) * n)
+    artstype = _get_matpack_type_by_dim(n)
+    return artstype(np.ndarray((0,) * n))
 
 
 class TestLoad:
@@ -121,9 +117,9 @@ class TestLoad:
 
     def test_load_arrayofstring(self):
         """Load reference XML file for ARTS type ArrayOfString."""
-        reference = ['a', 'bb', 'ccc']
+        reference = arts.ArrayOfString(['a', 'bb', 'ccc'])
         test_data = xml.load(self.ref_dir + 'arrayofstring.xml')
-        assert np.array_equal(test_data, reference)
+        assert test_data == reference
 
     def test_load_arrayofvector(self):
         """Load reference XML file for ARTS type ArrayOfVector."""
@@ -133,8 +129,8 @@ class TestLoad:
 
     def test_load_comment(self):
         """Load reference XML file storing only a comment."""
-        test_data = xml.load(self.ref_dir + 'comment.xml')
-        assert test_data is None
+        with pytest.raises(RuntimeError):
+            xml.load(self.ref_dir + 'comment.xml')
 
     def test_load_arrayofindex_with_comment(self):
         """Load reference XML file for ARTS type ArrayOfIndex with comment."""
@@ -169,7 +165,7 @@ class TestSave:
     @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
     def test_save_index(self, inttype):
         """Save Index to file, read it and compare the results."""
-        reference = inttype(0)
+        reference = arts.Index(inttype(0))
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert test_data == reference
@@ -184,20 +180,6 @@ class TestSave:
     def test_save_vector_binary(self):
         """Save Vector to binary file, read it and compare the results."""
         reference = _create_tensor(1)
-        xml.save(reference, self.f, format='binary')
-        test_data = xml.load(self.f)
-        assert np.array_equal(test_data, reference)
-
-    def test_save_complex_vector(self):
-        """Save complex Vector to file, read it and compare the results."""
-        reference = _create_complex_tensor(1)
-        xml.save(reference, self.f)
-        test_data = xml.load(self.f)
-        assert np.array_equal(test_data, reference)
-
-    def test_save_complex_vector_binary(self):
-        """Save complex Vector to file, read it and compare the results."""
-        reference = _create_complex_tensor(1)
         xml.save(reference, self.f, format='binary')
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
@@ -230,24 +212,10 @@ class TestSave:
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
 
-    def test_save_complex_matrix(self):
-        """Save complex Matrix to file, read it and compare the results."""
-        reference = _create_complex_tensor(2)
-        xml.save(reference, self.f)
-        test_data = xml.load(self.f)
-        assert np.array_equal(test_data, reference)
-
-    def test_save_complex_matrix_binary(self):
-        """Save complex Matrix to file, read it and compare the results."""
-        reference = _create_complex_tensor(2)
-        xml.save(reference, self.f, format='binary')
-        test_data = xml.load(self.f)
-        assert np.array_equal(test_data, reference)
-
     @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
     def test_save_arrayofindex(self, inttype):
         """Save ArrayOfIndex to file, read it and compare the results."""
-        reference = [inttype(i) for i in [1., 2., 3.]]
+        reference = arts.ArrayOfIndex([inttype(i) for i in [1., 2., 3.]])
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
@@ -255,21 +223,21 @@ class TestSave:
     @pytest.mark.parametrize("inttype", (int, np.int32, np.int64))
     def test_save_arrayofindex_binary(self, inttype):
         """Save ArrayOfIndex to binary file, read it and compare the result."""
-        reference = [inttype(i) for i in [1., 2., 3.]]
+        reference = arts.ArrayOfIndex([inttype(i) for i in [1., 2., 3.]])
         xml.save(reference, self.f, format='binary')
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
 
     def test_save_arrayofstring(self):
         """Save ArrayOfString to file, read it and compare the results."""
-        reference = ['a', 'bb', 'ccc']
+        reference = arts.ArrayOfString(['a', 'bb', 'ccc'])
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
-        assert np.array_equal(test_data, reference)
+        assert test_data == reference
 
     def test_save_arrayofvector(self):
         """Save ArrayOfIndex to file, read it and compare the results."""
-        reference = [np.arange(1), np.arange(1)]
+        reference = arts.ArrayOfVector([np.arange(1), np.arange(1)])
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
@@ -277,7 +245,7 @@ class TestSave:
     def test_save_gzip(self):
         """Test writing/reading of gzipped files."""
         f = self.f + '.gz'
-        ref = np.arange(10)
+        ref = arts.Vector(np.arange(10))
 
         xml.save(ref, f)
 

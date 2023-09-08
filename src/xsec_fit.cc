@@ -18,6 +18,21 @@
 #include "interpolation.h"
 #include "physics_funcs.h"
 
+
+void RemoveNegativeXsec(Vector& xsec) {
+  Numeric sum_xsec{};
+  Numeric sum_xsec_non_negative{};
+  for (auto& x : xsec) {
+    sum_xsec += x;
+    if (x < 0.) x = 0.;
+    sum_xsec_non_negative += x;
+  }
+
+  if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) {
+    xsec *= sum_xsec / sum_xsec_non_negative;
+  }
+}
+
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
@@ -25,11 +40,10 @@ String XsecRecord::SpeciesName() const {
 }
 
 void XsecRecord::SetVersion(const Index version) {
-  if (version != 2) {
-    ARTS_USER_ERROR("Invalid version, only 2 supported")
+  if (version != mversion) {
+    ARTS_USER_ERROR(
+        "Invalid version ", version, ", only version ", mversion, " supported")
   }
-
-  mversion = version;
 }
 
 void XsecRecord::Extract(VectorView result,
@@ -165,20 +179,6 @@ void XsecRecord::CalcXsec(VectorView xsec,
 //     xsec_dp[i] = coeffs[P01] + 2. * coeffs[P02] * pressure;
 //   }
 // }
-
-void XsecRecord::RemoveNegativeXsec(VectorView xsec) const {
-  Numeric sum_xsec{};
-  Numeric sum_xsec_non_negative{};
-  for (auto& x : xsec) {
-    sum_xsec += x;
-    if (x < 0.) x = 0.;
-    sum_xsec_non_negative += x;
-  }
-
-  if (sum_xsec > 0. && sum_xsec != sum_xsec_non_negative) {
-    xsec *= sum_xsec / sum_xsec_non_negative;
-  }
-}
 
 /** Get the index in xsec_fit_data for the given species.
 

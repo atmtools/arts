@@ -104,20 +104,17 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
 #define PythonInterfaceBasicRepresentation(Type)       \
   def(                                                 \
       "__str__",                                       \
-      [](const Type& x) { return var_string(x); },     \
-      py::is_operator())                               \
+      [](const Type& x) { return var_string(x); })     \
       .def(                                            \
           "__repr__",                                  \
-          [](const Type& x) { return var_string(x); }, \
-          py::is_operator())
+          [](const Type& x) { return var_string(x); })
 
 #define PythonInterfaceCopyValue(Type)                                  \
   def(                                                                  \
-      "__copy__", [](Type& t) -> Type { return t; }, py::is_operator()) \
+      "__copy__", [](Type& t) -> Type { return t; })                    \
       .def(                                                             \
           "__deepcopy__",                                               \
-          [](Type& t, py::dict&) -> Type { return t; },                 \
-          py::is_operator())
+          [](Type& t, py::dict&) -> Type { return t; })
 
 #define PythonInterfaceArrayEquality(Type)                              \
   def(                                                                  \
@@ -333,14 +330,12 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           "__repr__",                                                         \
           [](const py::object& arr) {                                         \
             return py::list{arr}.attr("__repr__")();                          \
-          },                                                                  \
-          py::is_operator())                                                  \
+          })                                                                  \
       .def(                                                                   \
           "__str__",                                                          \
           [](const py::object& arr) {                                         \
             return py::list{arr}.attr("__str__")();                           \
-          },                                                                  \
-          py::is_operator())                                                  \
+          })                                                                  \
       .PythonInterfaceArrayDefault(BaseType)                                  \
       .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 
@@ -438,14 +433,12 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
           "__getitem__",                                                        \
           [](py::object& g, py::object& i) {                                    \
             return g.attr("data").attr("value").attr("__getitem__")(i);         \
-          },                                                                    \
-          py::is_operator())                                                    \
+          })                                                                    \
       .def(                                                                     \
           "__setitem__",                                                        \
           [](py::object& g, py::object& i, py::object& n) {                     \
             g.attr("data").attr("value").attr("__setitem__")(i, n);             \
-          },                                                                    \
-          py::is_operator())                                                    \
+          })                                                                    \
       .def(                                                                     \
           "get",                                                                \
           [](Type& g,                                                           \
@@ -532,7 +525,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   def(                                                             \
       #ATTR,                                                       \
       [](py::object& x) { return x.attr("value").attr(#ATTR)(); }, \
-      py::is_operator(), "As for :class:`numpy.ndarray`")
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceValueOperator(ATTR)     \
   def(                                         \
@@ -540,7 +533,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       [](py::object& x, py::object& y) {       \
         return x.attr("value").attr(#ATTR)(y); \
       },                                       \
-      py::is_operator(), "As for :class:`numpy.ndarray`")
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceTwoValueOperator(ATTR)           \
   def(                                                  \
@@ -548,7 +541,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       [](py::object& x, py::object& y, py::object& z) { \
         return x.attr("value").attr(#ATTR)(y, z);       \
       },                                                \
-      py::is_operator(), "As for :class:`numpy.ndarray`")
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceInternalValueOperator(ATTR) \
   def(                                             \
@@ -557,7 +550,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
         x.attr("value").attr(#ATTR)(y);            \
         return x;                                  \
       },                                           \
-      py::is_operator(), "As for :class:`numpy.ndarray`")
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceInternalTwoValueOperator(ATTR)   \
   def(                                                  \
@@ -566,7 +559,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
         x.attr("value").attr(#ATTR)(y, z);              \
         return x;                                       \
       },                                                \
-      py::is_operator(), "As for :class:`numpy.ndarray`")
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceNumpyValueProperties \
   PythonInterfaceSelfAttribute(ndim)        \

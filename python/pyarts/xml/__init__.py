@@ -9,9 +9,8 @@ import itertools
 import os
 from os.path import isfile, join, basename, splitext, dirname
 import tempfile
+from pyarts import arts
 
-from . import read
-from . import write
 
 __all__ = [
     'load',
@@ -50,39 +49,42 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
     if parents:
         os.makedirs(dirname(filename), exist_ok=True)
 
+    if format == "ascii" and filename.endswith('.gz'):
+        format = "zascii"
+    var.savexml(filename, format)
+
+
+def _get_arts_type_from_file(filename):
+    def get_next_tag(context):
+        event, elem = next(context)
+        while elem.tag == "comment":
+            event, elem = next(context)
+        return event, elem
+
     if filename.endswith('.gz'):
-        if format != 'ascii':
-            raise RuntimeError(
-                'For zipped files, the output format must be "ascii"')
         xmlopen = gzip.open
     else:
         xmlopen = open
 
-    if hasattr(var, "savexml"):
-        if format == "ascii" and filename.endswith('.gz'):
-            format = "zascii"
-        var.savexml(filename, format)
-        return
+    import xml.etree.ElementTree as ET
 
-    with xmlopen(filename, mode='wt', encoding='UTF-8') as fp:
-        if format == 'binary':
-            with open(filename + '.bin', mode='wb') as binaryfp:
-                axw = write.ARTSXMLWriter(fp, precision=precision,
-                                          binaryfp=binaryfp)
-                axw.write_header()
-                if comment is not None:
-                    axw.write_comment(comment)
-                axw.write_xml(var)
-                axw.write_footer()
-        elif format == 'ascii':
-            axw = write.ARTSXMLWriter(fp, precision=precision)
-            axw.write_header()
-            if comment is not None:
-                axw.write_comment(comment)
-            axw.write_xml(var)
-            axw.write_footer()
-        else:
-            raise RuntimeError('Unknown output format "{}".'.format(format))
+    tag = ""
+    with xmlopen(filename, 'rb') as fp:
+        try:
+            context = ET.iterparse(fp, events=('start',))
+            event, elem = get_next_tag(context)
+            while elem.tag == "comment":
+                event, elem = get_next_tag(context)
+            if elem.tag != "arts":
+                raise RuntimeError(f"File {filename} does not start with arts tag")
+            event, elem = get_next_tag(context)
+            while elem.tag == "Array":
+                tag += "ArrayOf"
+                event, elem = get_next_tag(context)
+            tag += elem.tag
+        except StopIteration:
+            raise RuntimeError(f"No ARTS type found in file {filename}")
+    return tag
 
 
 def load(filename, search_arts_path=True):
@@ -125,35 +127,12 @@ def load(filename, search_arts_path=True):
         else:
             filename += '.gz'
 
-    if filename.endswith('.gz'):
-        xmlopen = gzip.open
-    else:
-        xmlopen = open
+    artstype = _get_arts_type_from_file(filename)
+    print(artstype)
 
-    binaryfilename = filename + '.bin'
-    artstag = None
-    try:
-        with xmlopen(filename, 'rb') as fp:
-            if isfile(binaryfilename):
-                with open(binaryfilename, 'rb',) as binaryfp:
-                    root = read.parse(fp, binaryfp).getroot()
-                    artstag = root[0].tag
-                    return root.value()
-            else:
-                root = read.parse(fp).getroot()
-                artstag = root[0].tag
-                return root.value()
-    except RuntimeError:
-        if artstag == "Array" and len(root) and 'type' in root[0].attrib:
-            artstag = f"ArrayOf{root[0].attrib['type']}"  # Fix for arrays
-        
-        import pyarts.arts as native_classes
-        if hasattr(native_classes, artstag) and hasattr(
-                getattr(native_classes, artstag), "readxml"):
-            ret = getattr(native_classes, artstag)()
-            ret.readxml(filename)
-            return ret
-        raise
+    ret = getattr(arts, artstype)()
+    ret.readxml(filename)
+    return ret
 
 
 def load_directory(directory, exclude=None):

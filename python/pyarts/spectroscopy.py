@@ -5,7 +5,7 @@
 import numpy as np
 from scipy import interpolate
 
-import pyarts.constants as constants
+import pyarts.arts.constants as constants
 
 
 __all__ = [
@@ -54,8 +54,8 @@ def doppler_broadening(t, f0, m):
         hwhm (like temperature): Half-width half-maximum [Hertz/invcm]
     """
 
-    return np.sqrt(2 * constants.boltzmann * t * np.log(2) /
-                   (m * constants.speed_of_light**2)) * f0
+    return np.sqrt(2 * constants.k * t * np.log(2) /
+                   (m * constants.c**2)) * f0
 
 
 def boltzmann_level(elow, t, t0):
@@ -81,7 +81,7 @@ def boltzmann_level(elow, t, t0):
     .. math::
         S(T) = S(T_0)K_1K_2 \\frac{Q(T_0)}{Q(T)}
     """
-    return np.exp(elow * (t - t0) / (constants.boltzmann * t * t0))
+    return np.exp(elow * (t - t0) / (constants.k * t * t0))
 
 
 def stimulated_emission(f0, t, t0):
@@ -106,5 +106,5 @@ def stimulated_emission(f0, t, t0):
     .. math::
         S(T) = S(T_0)K_1K_2 \\frac{Q(T_0)}{Q(T)}
     """
-    return (1. - np.exp(- constants.planck * f0/(constants.boltzmann * t))) / \
-        (1. - np.exp(- constants.planck * f0/(constants.boltzmann * t0)))
+    return (1. - np.exp(- constants.h * f0/(constants.k * t))) / \
+        (1. - np.exp(- constants.h * f0/(constants.k * t0)))

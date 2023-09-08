@@ -1706,8 +1706,6 @@ void xml_read_from_stream(std::istream& is_xml,
   }
   xd.SetSpecies(species);
 
-  ARTS_USER_ERROR_IF(version != 2, "Only XsecRecord version 2 is supported")
-
   xml_read_from_stream(is_xml, xd.FitMinPressures(), pbifs);
   xml_read_from_stream(is_xml, xd.FitMaxPressures(), pbifs);
   xml_read_from_stream(is_xml, xd.FitMinTemperatures(), pbifs);

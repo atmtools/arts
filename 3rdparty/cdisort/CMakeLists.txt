@@ -1,13 +1,13 @@
 if(NOT ENABLE_ARTS_LGPL)
 add_library (cdisort STATIC
-  cdisort.c
+  cdisort.cc
   locate.c
 )
 
 add_executable(disotest
-  cdisort.c
+  cdisort.cc
   locate.c
-  disotest.c)
+  disotest.cc)
 
   target_link_libraries(disotest m)
   
