@@ -221,7 +221,7 @@ void xml_read_from_file_base(const String& filename,
                         T& type) {
   // Open input stream:
   std::unique_ptr<std::istream> ifs;
-  if (filename.nelem() > 2 &&
+  if (filename.size() > 2 &&
       filename.substr(filename.length() - 3, 3) == ".gz")
 #ifdef ENABLE_ZLIB
   {

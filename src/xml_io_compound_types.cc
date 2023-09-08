@@ -1962,7 +1962,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   for (auto& key : keys) {
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("Data");
-    internal_open_tag.add_attribute("key", toString(key));
+    internal_open_tag.add_attribute("key", String{toString(key)});
 
     auto sizes = pmd.data_size(key);
     internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
@@ -2102,12 +2102,12 @@ void xml_write_to_stream_helper(std::ostream &os_xml, const Atm::KeyVal &key,
     
     open_data_tag.add_attribute("key", var_string(key_val));
     open_data_tag.add_attribute("type", data.data_type());
-    open_data_tag.add_attribute("alt_low", toString(data.alt_low));
-    open_data_tag.add_attribute("alt_upp", toString(data.alt_upp));
-    open_data_tag.add_attribute("lat_low", toString(data.lat_low));
-    open_data_tag.add_attribute("lat_upp", toString(data.lat_upp));
-    open_data_tag.add_attribute("lon_low", toString(data.lon_low));
-    open_data_tag.add_attribute("lon_upp", toString(data.lon_upp));
+    open_data_tag.add_attribute("alt_low", String{toString(data.alt_low)});
+    open_data_tag.add_attribute("alt_upp", String{toString(data.alt_upp)});
+    open_data_tag.add_attribute("lat_low", String{toString(data.lat_low)});
+    open_data_tag.add_attribute("lat_upp", String{toString(data.lat_upp)});
+    open_data_tag.add_attribute("lon_low", String{toString(data.lon_low)});
+    open_data_tag.add_attribute("lon_upp", String{toString(data.lon_upp)});
     open_data_tag.write_to_stream(os_xml);
     os_xml << '\n';
 
@@ -2361,10 +2361,10 @@ void xml_write_to_stream_helper(std::ostream &os_xml, const Surf::KeyVal &key,
     
     open_data_tag.add_attribute("key", var_string(key_val));
     open_data_tag.add_attribute("type", data.data_type());
-    open_data_tag.add_attribute("lat_low", toString(data.lat_low));
-    open_data_tag.add_attribute("lat_upp", toString(data.lat_upp));
-    open_data_tag.add_attribute("lon_low", toString(data.lon_low));
-    open_data_tag.add_attribute("lon_upp", toString(data.lon_upp));
+    open_data_tag.add_attribute("lat_low", String{toString(data.lat_low)});
+    open_data_tag.add_attribute("lat_upp", String{toString(data.lat_upp)});
+    open_data_tag.add_attribute("lon_low", String{toString(data.lon_low)});
+    open_data_tag.add_attribute("lon_upp", String{toString(data.lon_upp)});
     open_data_tag.write_to_stream(os_xml);
     os_xml << '\n';
 
@@ -2542,7 +2542,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   ArtsXMLTag close_tag;
 
   open_tag.set_name("Wsv");
-  open_tag.add_attribute("type", wsv.type_name());
+  open_tag.add_attribute("type", String{wsv.type_name()});
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 

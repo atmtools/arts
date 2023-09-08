@@ -10,7 +10,7 @@ void SourceText::AppendFile(const String& name) {
 }
 
 void SourceText::AdvanceChar() {
-  if (mColumn < mText[mLine].nelem() - 1) {
+  if (mColumn < mText[mLine].size() - 1) {
     ++mColumn;
   } else {
     mLineBreak = true;
@@ -24,7 +24,7 @@ void SourceText::AdvanceChar() {
         ++mLine;
         mColumn = 0;
       }
-    } while (1 > mText[mLine].nelem());  // Skip empty lines.
+    } while (1 > mText[mLine].size());  // Skip empty lines.
   }
 }
 
@@ -37,7 +37,7 @@ void SourceText::AdvanceLine() {
     } else {
       ++mLine;
     }
-  } while (1 > mText[mLine].nelem());  // Skip empty lines.
+  } while (1 > mText[mLine].size());  // Skip empty lines.
 }
 
 const String& SourceText::File() {
@@ -62,7 +62,7 @@ void SourceText::Init() {
     throw Eot("Empty text!", this->File(), this->Line(), this->Column());
   } else {
     // Skip empty lines:
-    while (1 > mText[mLine].nelem()) {
+    while (1 > mText[mLine].size()) {
       if (mLine >= mText.nelem() - 1) {
         throw Eot("", this->File(), this->Line(), this->Column());
       } else {
@@ -89,7 +89,7 @@ Index SourceText::GetSourceLine(const Index line) {
 
 std::ostream& operator<<(std::ostream& os, const SourceText& text) {
   for (Index i = 0; i < text.mText.nelem(); ++i)
-    os << i << "(" << text.mText[i].nelem() << ")"
+    os << i << "(" << text.mText[i].size() << ")"
        << ": " << text.mText[i] << '\n';
   return (os);
 }

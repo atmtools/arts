@@ -360,7 +360,7 @@ bool get_parameters(int argc, char **argv) {
   // Get them one by one.
   while (optind < argc) {
     String dummy = argv[optind];
-    if (dummy.nelem()) parameters.controlfiles.push_back(dummy);
+    if (dummy.size()) parameters.controlfiles.push_back(dummy);
     optind++;
   }
 
@@ -393,12 +393,12 @@ bool get_parameters(int argc, char **argv) {
   parameters.includepath.insert(parameters.includepath.begin(), ".");
   parameters.datapath.insert(parameters.datapath.begin(), ".");
 
-  if (parameters.outdir.nelem())
+  if (parameters.outdir.size())
     parameters.datapath.insert(parameters.datapath.begin(), parameters.outdir);
 
   if (parameters.controlfiles.nelem()) {
     const String cfdirname{get_dirname(parameters.controlfiles[0])};
-    if (cfdirname.nelem()) parameters.includepath.push_back(cfdirname);
+    if (cfdirname.size()) parameters.includepath.push_back(cfdirname);
   }
 
   return false;

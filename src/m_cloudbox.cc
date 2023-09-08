@@ -128,7 +128,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
         scat_data_files[i],
         scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]);
 
-    if (pnd_field_files[i].nelem() < 1) {
+    if (pnd_field_files[i].size() < 1) {
     } else {
       xml_read_from_file(pnd_field_files[i],
                          pnd_field_raw[pnd_field_raw.nelem() - 1]);
@@ -234,7 +234,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
             .f_grid,
         f_grid);
 
-    if (pnd_field_files[i].nelem() < 1) {
+    if (pnd_field_files[i].size() < 1) {
     } else {
       try {
         xml_read_from_file(pnd_field_files[i],
@@ -287,7 +287,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     String scat_meta_file;
 
     if (i == 0) {
-      scat_data_files[i].split(strarr, ".xml");
+      split(strarr, scat_data_files[i], ".xml");
       scat_meta_file = strarr[0] + ".meta.xml";
 
       try {
@@ -301,7 +301,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
         meta_naming_conv = 1;
       } else {
         try {
-          scat_data_files[i].split(strarr, "scat_data");
+          split(strarr, scat_data_files[i], "scat_data");
           ARTS_USER_ERROR_IF (strarr.nelem() < 2,
                 "Splitting scattering data filename up at 'scat_data' also failed.");
           scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
@@ -341,16 +341,16 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     try {
       xml_read_from_file(scat_data_files[i], ssd);
 
-      scat_data_files[i].split(strarr, ".xml");
+      split(strarr, scat_data_files[i], ".xml");
       scat_meta_file = strarr[0] + ".meta.xml";
 
       if (meta_naming_conv == 1) {
-        scat_data_files[i].split(strarr, ".xml");
+        split(strarr, scat_data_files[i], ".xml");
         scat_meta_file = strarr[0] + ".meta.xml";
 
         xml_read_from_file(scat_meta_file, smd);
       } else {
-        scat_data_files[i].split(strarr, "scat_data");
+        split(strarr, scat_data_files[i], "scat_data");
         scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
         xml_read_from_file(scat_meta_file, smd);

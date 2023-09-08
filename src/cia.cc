@@ -240,7 +240,7 @@ String CIARecord::MoleculeName(const Index i) const {
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return Species::toShortName(mspecies[i]);
+  return String{Species::toShortName(mspecies[i])};
 }
 
 // Documentation in header file.
@@ -306,7 +306,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
     getline(is, line);
     if (is.eof()) continue;
 
-    if (line.nelem() < 100) {
+    if (line.size() < 100) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
          << filename << std::endl

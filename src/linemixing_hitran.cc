@@ -1984,7 +1984,7 @@ void read(HitranRelaxationMatrixData& hitran,
           const ModeOfLineMixing mode)
 {
   String newbase = basedir;
-  if (newbase.nelem() == 0)
+  if (newbase.size() == 0)
     newbase = ".";
   
   CommonBlock cmn;

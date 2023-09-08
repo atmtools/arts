@@ -139,7 +139,7 @@ void abs_speciesDefineAllInScenario(  // WS Output:
   tgs.resize(0);
 
   for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
-    const String specname = Species::toShortName(Species::Species(i));
+    const String specname{Species::toShortName(Species::Species(i))};
 
     String filename = basename;
     if (basename.length() && basename[basename.length() - 1] != '/')

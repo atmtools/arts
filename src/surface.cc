@@ -137,7 +137,7 @@ void surface_props_check(const SurfaceField& surface_field,
                        "No ", std::quoted(name), " field in surface_field")
 
   for (Index i = 0; i < surface_props_names.nelem(); i++) {
-    ARTS_USER_ERROR_IF (surface_props_names[i].nelem() == 0,
+    ARTS_USER_ERROR_IF (surface_props_names[i].size() == 0,
       "Element ", i, " (0-based) of *surface_props_names* is empty.")
     for (Index j = i + 1; j < surface_props_names.nelem(); j++) {
       ARTS_USER_ERROR_IF (surface_props_names[j] == surface_props_names[i],

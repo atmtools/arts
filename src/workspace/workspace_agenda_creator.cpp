@@ -39,7 +39,7 @@ AgendaCreator& AgendaCreator::add(const std::string& name,
 }
 
 AgendaCreator& AgendaCreator::ignore(const std::string& name) {
-  a.add(Method{"Ignore", {name}});
+  a.add(Method{"Ignore", {name}, {}});
 
   return *this;
 }

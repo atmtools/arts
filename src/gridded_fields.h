@@ -128,7 +128,7 @@ String metaErrorData(const GriddedFieldType& gf) {
   os << CHECK_ERROR_BOILERPLATE;
   for (Index i = 0; i < N; i++) {
     os << "Grid";
-    if (gf.get_grid_name(i).nelem()) os << " (" << gf.get_grid_name(i) << ")";
+    if (gf.get_grid_name(i).size()) os << " (" << gf.get_grid_name(i) << ")";
     os << " = " << gf.get_grid_size(i) << "\n";
   }
   os << "Data =";

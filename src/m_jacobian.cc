@@ -1248,15 +1248,21 @@ void jacobianAddShapeCatalogParameters(
     throw std::runtime_error("Must have at least 1-long lists for all GINs");
 
   ArrayOfString vars;
-  if (variables[0] == "ALL")
-    vars = ArrayOfString(LineShape::enumstrs::VariableNames);
-  else
+  if (variables[0] == "ALL") {
+    std::transform(LineShape::enumstrs::VariableNames.begin(),
+                   LineShape::enumstrs::VariableNames.end(),
+                   std::back_inserter(vars),
+                   [](const auto& s) { return String{s}; });
+  } else
     vars = variables;
 
   ArrayOfString coeffs;
-  if (coefficients[0] == "ALL")
-    coeffs = ArrayOfString(Options::enumstrs::LineShapeCoeffNames);
-  else
+  if (coefficients[0] == "ALL") {
+    std::transform(Options::enumstrs::LineShapeCoeffNames.begin(),
+                   Options::enumstrs::LineShapeCoeffNames.end(),
+                   std::back_inserter(coeffs),
+                   [](const auto& s) { return String{s}; });
+    } else
     coeffs = coefficients;
 
   for (auto& l : line_identities)

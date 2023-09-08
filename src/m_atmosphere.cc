@@ -1180,7 +1180,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
   // are removed.
   for (Index f = 0; f < field_names.nelem(); f++) {
     fn_upper = field_names[f];
-    fn_upper.toupper();
+    toupper(fn_upper);
     //cout << "fieldname[" << f << "]: " << fn_upper;
     if (fn_upper != "IGNORE") {
       f_1.push_back(f);
@@ -1604,7 +1604,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 
   // Extracting the required abs_species fields:
   for (Index j = 0; j < nsa; ++j) {
-    const String as_name = Species::toShortName(abs_species[j][0].Spec());
+    const String as_name{Species::toShortName(abs_species[j][0].Spec())};
     found = false;
     Index i = 0;
     String species_type;

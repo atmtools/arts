@@ -18,8 +18,7 @@ struct ValueHolder {
   using common_type = std::common_type_t<type, T>;
 
   ValueHolder() : val(std::make_shared<type>()) {}
-  ValueHolder(const ValueHolder& other)
-      : val(std::make_shared<type>(*other.val)) {}
+  ValueHolder(const ValueHolder& other) : val(std::make_shared<type>(*other.val)) {}
   ValueHolder(ValueHolder&&) noexcept = default;
   ValueHolder& operator=(const ValueHolder& other) {
     val = std::make_shared<type>(*other.val);
@@ -44,94 +43,6 @@ struct ValueHolder {
   operator const type&() const noexcept { return *val; }
   operator std::shared_ptr<type>&() noexcept { return val; }
   operator const std::shared_ptr<type>&() const noexcept { return val; }
-
-  friend std::ostream& operator<<(std::ostream& os, ValueHolder x) {
-    return os << *x.val;
-  }
-
-  ValueHolder operator-() const noexcept { return -*val; }
-  ValueHolder operator+() const noexcept { return *val; }
-
-  template <typename T>
-  friend auto operator<=>(ValueHolder a, ValueHolder<T> b) noexcept {
-    return static_cast<common_type<T>>(*a.val) <=>
-           static_cast<common_type<T>>(*b.val);
-  }
-  template <typename T>
-  friend auto operator+(ValueHolder a, ValueHolder<T> b) noexcept {
-    return static_cast<common_type<T>>(*a.val) +
-           static_cast<common_type<T>>(*b.val);
-  }
-  template <typename T>
-  friend auto operator-(ValueHolder a, ValueHolder<T> b) noexcept {
-    return static_cast<common_type<T>>(*a.val) -
-           static_cast<common_type<T>>(*b.val);
-  }
-  template <typename T>
-  friend auto operator*(ValueHolder a, ValueHolder<T> b) noexcept {
-    return static_cast<common_type<T>>(*a.val) *
-           static_cast<common_type<T>>(*b.val);
-  }
-  template <typename T>
-  friend auto operator/(ValueHolder a, ValueHolder<T> b) noexcept {
-    return static_cast<common_type<T>>(*a.val) /
-           static_cast<common_type<T>>(*b.val);
-  }
-
-  friend auto operator<=>(std::floating_point auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) <=>
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator+(std::floating_point auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) +
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator-(std::floating_point auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) -
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator*(std::floating_point auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) *
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator/(std::floating_point auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) /
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-
-  friend auto operator<=>(std::integral auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) <=>
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator+(std::integral auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) +
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator-(std::integral auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) -
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator*(std::integral auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) *
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-  friend auto operator/(std::integral auto a, ValueHolder b) noexcept {
-    return static_cast<common_type<decltype(a)>>(a) /
-           static_cast<common_type<decltype(a)>>(*b.val);
-  }
-
-  ValueHolder& operator+=(auto x) noexcept {
-    return operator=(*val + static_cast<type>(x));
-  }
-  ValueHolder& operator-=(auto x) noexcept {
-    return operator=(*val - static_cast<type>(x));
-  }
-  ValueHolder& operator*=(auto x) noexcept {
-    return operator=(*val* static_cast<type>(x));
-  }
-  ValueHolder& operator/=(auto x) noexcept {
-    return operator=(*val / static_cast<type>(x));
-  }
 };
 
 // Set the type and ensure they are correct
