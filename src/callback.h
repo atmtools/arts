@@ -4,6 +4,7 @@
 class Workspace;
 
 #include <functional>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>

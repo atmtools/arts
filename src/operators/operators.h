@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <ostream>
+
 #include "debug.h"
 
 #include <matpack.h>

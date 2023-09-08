@@ -13,6 +13,7 @@
 #ifndef BOFSTREAM_H_INCLUDED
 #define BOFSTREAM_H_INCLUDED
 
+#include <cstdint>
 #include <fstream>
 
 #include "binio.h"

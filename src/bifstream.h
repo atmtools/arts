@@ -13,6 +13,7 @@
 #ifndef BIFSTREAM_H_INCLUDED
 #define BIFSTREAM_H_INCLUDED
 
+#include <cstdint>
 #include <fstream>
 
 #include "binio.h"

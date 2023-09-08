@@ -1,9 +1,10 @@
 #include "callback.h"
 #include "compare.h"
 
-#include <workspace.h>
 #include <exception>
 #include <stdexcept>
+
+#include <workspace.h>
 
 std::ostream& operator<<(std::ostream& os, const CallbackOperator& op) {
   os << "CallbackOperator\nInputs: [";

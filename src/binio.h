@@ -20,6 +20,7 @@
 #ifndef H_BINIO_BINIO
 #define H_BINIO_BINIO
 
+#include <cstdint>
 #include <ios>
 
 /***** Configuration *****/
