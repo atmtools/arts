@@ -20,6 +20,7 @@
 #include "array.h"
 #include "arts_constants.h"
 #include "atm.h"
+#include "arts_omp.h"
 #include "check_input.h"
 #include "arts_conversions.h"
 #include "rtepack.h"
@@ -1513,10 +1514,9 @@ void run_cdisort_flux(const Workspace& ws,
     nlinspace(pfct_angs, 0, 180, nang);
   }
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
   // start loop over all frequencies
 #pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
-    firstprivate(wss, ds, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, pha_bulk_par, umu0, pmom, ssalb, dtauc, out)
+    firstprivate(ds, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, pha_bulk_par, umu0, pmom, ssalb, dtauc, out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     Vector f_grid_i(1);
 
@@ -1595,7 +1595,7 @@ void run_cdisort_flux(const Workspace& ws,
       sca_coeff_gas_level=0;
       pmom_gas=0;
 
-      get_gas_scattering_properties(wss,
+      get_gas_scattering_properties(ws,
                                     sca_coeff_gas_layer,
                                     sca_coeff_gas_level,
                                     pmom_gas,
