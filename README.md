@@ -19,10 +19,10 @@ For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please read below.
 
 
-Building ARTS
--------------
+Dependencies
+------------
 
-Build Prerequisites:
+Build Prerequisites (provided by mambaforge):
 
 - gcc/g++ >=11 (or llvm/clang >=13)
 - cmake (>=3.18)
@@ -53,48 +53,52 @@ To build the documentation you also need:
 - graphviz (optional)
 
 
-Using cmake
------------
+Building ARTS
+-------------
 
-Here are the steps to use cmake to build ARTS:
+The following instructions assume that you are using mambaforge as a build environment.  The installer is available at
+[the project's Github page](https://github.com/conda-forge/miniforge#mambaforge).
+
+Use the provided `environment-dev-{linux,mac}.yml` files to create a conda
+environment with all required dependencies. The environment will be called
+`pyarts-dev`:
+
+Linux:
+```
+mamba env create -f environment-dev-linux.yml
+```
+
+macOS:
+```
+mamba env create -f environment-dev-mac.yml
+```
+
+Here are the steps to use `cmake` to build ARTS.
 
 ```
+mamba activate pyarts-dev
 cd arts
-mkdir build
-cd build
-cmake ..
-make
+cmake --preset=default-gcc-mamba  # On macOS use default-clang-mamba
+cmake --build build -jX
 ```
 
-If you only want to build the arts executable you can just run 'make arts'
-instead of 'make'.
-
-If you have a multi-core processor or multiprocessor machine, don't forget
-to use the -j option to speed up the compilation:
-
-```
-make -jX
-```
-
-Where X is the number of parallel build processes.
-X=(Number of Cores)+1 gives you usually the fastest compilation time.
+X is the number of parallel build processes.
+**X=Number of Cores** gives you usually the fastest compilation time.
 
 WARNING: The compilation is very memory intensive. If you have 16GB of RAM,
-don't use more than 4-6 cores. With 8GB, don't use more than 1-2 cores.
+don't use more than 6-8 cores. With 8GB, don't use more than 2-3 cores.
 
-
-Developer install of the PyARTS Python package:
-
-```
-cd python
-python3 -m pip install --user -e .
-```
-
-You only have to do the package install once. If the ARTS source has changed,
-update the PyARTS package by running:
+Development install of the PyARTS Python package:
 
 ```
-make -jX pyarts
+python3 -m pip install --user -e build/python
+```
+
+You only have to do the python package install once.
+If the ARTS source has changed, update the PyARTS package by running:
+
+```
+cmake --build build -jX --target pyarts
 ```
 
 
@@ -104,12 +108,16 @@ Build configurations
 By default, ARTS is built in release mode with optimizations enabled and
 assertions and debugging symbols turned off.
 
+Whenever you change the configuration, remove your build directory first:
+
+```
+rm -rf build
+```
+
 To build with assertions and debugging symbols use:
 
 ```
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-make clean
-make
+cmake --preset=default-gcc-mamba -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
 
 This configuration offers a good balance between performance and debugging
@@ -119,17 +127,7 @@ cases, the full debug configuration can be enabled. Note that ARTS runs a lot
 slower in this configuration:
 
 ```
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-make clean
-make
-```
-
-The following commands can be used to switch back to release configuration:
-
-```
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make clean
-make
+cmake --preset=default-gcc-mamba -DCMAKE_BUILD_TYPE=Debug
 ```
 
 
@@ -142,9 +140,8 @@ the previous sections. Then, run the following commands inside your build
 directory:
 
 ```
-make pyarts
-cd python
-python3 -m pip install --user -e .
+cmake --build build --target pyarts
+python3 -m pip install --user -e build/python
 ```
 
 This will not mess with your system's Python installation.
@@ -152,37 +149,43 @@ A link to the pyarts package is created in your home directory, usually
 `$HOME/.local/lib/python3.X/site-packages/pyarts.egg-link`.
 
 You don't need to reinstall the package with pip after updating ARTS.
-You only need to run `make pyarts` again.
+You only need to run `cmake --build build --target pyarts` again.
 
 
 Tests
 -----
 
-'make check' will run several test cases to ensure that ARTS is working
-properly. Use 'make check-all' to run all available controlfiles, including
-computation time-intensive ones.
+'cmake --build build --target check' will run several test cases to ensure that
+ARTS is working properly. Use 'check-all' to run all available controlfiles,
+including computation time-intensive ones.
 
 Some tests depend on the arts-xml-data package. cmake automatically looks if it
 is available in the same location as ARTS itself. If necessary, a custom path
-can be specified:
+can be specified.
 
 ```
-cmake -DARTS_XML_DATA_PATH=/home/myname/arts-xml-data ..
+cmake --preset=default-gcc-mamba -DARTS_XML_DATA_PATH=/home/myname/arts-xml-data
 ```
 
 If arts-xml-data cannot be found, those tests are ignored.
 
-By default, the tests are executed serially.
-If you want to run them concurrently, you can use:
+By default, 4 tests are executed in parallel.
+If you change the number of concurrently run test, you can add this option to your `cmake --preset=....` call:
 
 ```
-cmake -DTEST_JOBS=X ..
+-DTEST_JOBS=X
 ```
 
 X is the number of tests that should be started in parallel.
 
 You can also use the ctest command directly to run the tests:
 
+First, change to the `build` directory:
+```
+cd build
+```
+
+This runs all test with 4 jobs concurrently:
 ```
 ctest -j4
 ```
@@ -218,9 +221,7 @@ To squeeze out every last drop of performance, you can also build a version
 specifically optimized for your machine's processor:
 
 ```
-cmake -DCMAKE_BUILD_TYPE=Native ..
-make clean
-make
+-DCMAKE_BUILD_TYPE=Native
 ```
 
 This option should make the executable slightly faster, more so on better
@@ -232,23 +233,27 @@ complex computations are IEEE incompatible running this mode of build.
 Optional features
 -----------------
 
-To include features that rely on Fortran code located in the 3rdparty
-subdirectory use:
+Features that rely on Fortran code located in the 3rdparty
+subdirectory are enabled by default, but can be disabled by passing the
+following option to the `cmake --preset=...` command:
 
 ```
-cmake -DENABLE_FORTRAN=1 -DCMAKE_Fortran_COMPILER=gfortran ..
+-DENABLE_FORTRAN=0
 ```
 
-This enables Disort, Fastem and Tmatrix.
+This disables Disort, Fastem and Tmatrix.
 
 If necessary, certain Fortran modules can be selectively disabled:
 
 ```
-cmake -DENABLE_FORTRAN=1 -DNO_DISORT=1 ..
-cmake -DENABLE_FORTRAN=1 -DNO_TMATRIX=1 ..
+-DNO_DISORT=1
+```
+or
+```
+-DENABLE_FORTRAN=1 -DNO_TMATRIX=1
 ```
 
-IMPORTANT: Only gfortran and Intel Fortran are currently supported.
+IMPORTANT: Only gfortran is currently supported.
 Also, a 64-bit system is required (size of long type must be 8 bytes).
 
 
@@ -256,15 +261,16 @@ Enable NetCDF: The basic matpack types can be read from NetCDF files, if NetCDF
 support is enabled:
 
 ```
-cmake -DENABLE_NETCDF=1 ..
+cmake --preset=default-gcc-mamba -DENABLE_NETCDF=1
 ```
 
 Precompiled headers: PCH can speed up builds significantly. However, it hampers
 the ability for ccache to properly skip unnecessary compilations, potentially
-increasing rebuild times.
+increasing rebuild times. Tests have shown that it only speeds up the build
+considerably for Clang, but not for GCC.
 
 ```
-cmake -DENABLE_PCH=1 ..
+cmake --preset=default-clang-mamba -DENABLE_PCH=1 ..
 ```
 
 If you enable PCH and also use ccache, you need to set the `CCACHE_SLOPPINESS`
@@ -278,133 +284,21 @@ export CCACHE_SLOPPINESS=pch_defines,time_macros
 Disabling features
 ------------------
 
-Disable assertions:
-```
-cmake -DNO_ASSERT=1 ..
-```
+Disable assertions: `-DNO_ASSERT=1`
 
-Disable OpenMP:
-```
-cmake -DNO_OPENMP=1 ..
-```
+Disable OpenMP: `-DNO_OPENMP=1`
 
-Disable the built-in documentation server:
-```
-cmake -DNO_DOCSERVER=1 ..
-```
-
-Treat warnings as errors:
-```
-cmake -DWERROR=1 ..
-```
-
-
-TMatrix precision
------------------
-
-By default, ARTS uses double-precision for the T-matrix calculations.
-When using the Intel compiler, quad-precision can be enable with cmake:
-
-```
-cmake -DENABLE_FORTRAN=1 -DENABLE_TMATRIX_QUAD=1 ..
-```
-
-Note that quad-precision is software emulated. T-matrix calculations will
-around 10x slower.
+Disable the built-in documentation server: `-DNO_DOCSERVER=1`
 
 
 ccache support
 --------------
 
-To utilize ccache when available use:
-
-```
-cmake -DENABLE_CCACHE=1 ..
+The build utilizes ccache automatically when available, it can be
+turned of with the option `-DENABLE_CCACHE=1`
 ```
 
 For details see https://ccache.samba.org/
-
-
-LLVM/Clang compiler
--------------------
-
-If you want to compile with the LLVM/Clang compiler[1], start with an empty
-build directory and run:
-
-```
-cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-```
-
-You might also have to explicitly pick the right Fortran compiler since clang
-doesn't have one:
-
-```
-cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
--DENABLE_FORTRAN=1 -DCMAKE_Fortran_COMPILER=gfortran ..
-```
-
-Note that at this point, on OS X the default Apple Clang compiler does not
-support OpenMP. Other versions of Clang support it via libomp.
-
-[1] http://clang.llvm.org
-[2] http://libcxx.llvm.org
-
-
-Intel compiler (DPC++)
-----------------------
-
-If you want to compile with the Intel compiler[1], start with an empty build
-directory and run:
-
-```
-cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx ..
-```
-
-With Intel Fortran:
-
-```
-cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
--DCMAKE_Fortran_COMPILER=ifort -DENABLE_FORTRAN=1 ..
-```
-
-Compilation has only been tested with
-Intel(R) oneAPI DPC++/IFORT Compiler 2021.1.
-
-Note that the Intel C++ Classic Compiler (icc/icpc) is not supported by ARTS.
-
-[1] http://software.intel.com/c-compilers
-
-
-macOS / Xcode
------------
-
-If you're on a Mac and have the Apple Xcode development environment installed,
-you can generate a project file and use Xcode to build ARTS:
-
-```
-cmake -G Xcode ..
-open ARTS.xcodeproj
-```
-
-
-Custom Python Interpreter
--------------------------
-
-A Python interpreter different from the default one found in PATH can be
-selected by:
-
-cmake -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python3 ..
-
-
-Experimental features (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
---------------------------------------------------------------
-
-Enable C++20 (only for compatibility testing, do not use C++20 features in your
-code, you need CMake >=3.12):
-
-```
-cmake -DENABLE_CXX20=1 ..
-```
 
 
 Valgrind profiling
@@ -450,11 +344,11 @@ The [Performance Counters for Linux](https://perf.wiki.kernel.org/) offer a
 convenient way to profile any program with basically no runtime overhead.
 Profiling works for all configurations (Debug, RelWithDebInfo and Release). To
 ensure that the calltree can be analyzed correctly, compile ARTS with frame
-pointers. This has minimal impact on performance:
+pointers. This has minimal impact on performance. Use the following preset to
+enable this setting:
 
 ```
-cmake -DCMAKE_C_FLAGS="-fno-omit-frame-pointer" \
-      -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer" ..
+cmake --preset=perf-gcc-mamba
 ```
 
 Prepend the perf command to your arts call to record callgraph information:

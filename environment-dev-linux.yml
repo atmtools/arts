@@ -1,0 +1,43 @@
+name: pyarts-dev
+dependencies:
+        - python=3.10
+        - binutils
+        - build
+        - ccache
+        - clang
+        - clangxx
+        - cmake
+        - docutils
+        - gcc
+        - gfortran
+        - glew
+        - glfw
+        - gmp
+        - gxx
+        - lark-parser
+        - libclang
+        - libcxx
+        - libmicrohttpd
+        - llvm-openmp
+        - matplotlib
+        - netcdf4
+        - numpy
+        - pkg-config
+        - pytest
+        - scipy
+        - sphinx>=6
+        - sphinx_rtd_theme
+        - xarray
+        - zlib
+        - mesa-libgl-devel-cos7-x86_64
+        - libselinux-cos7-x86_64
+        - libglvnd-glx-cos7-x86_64
+        - libxext-cos7-x86_64
+        - libxdamage-cos7-x86_64
+        - libxcb-cos7-x86_64
+        - libxfixes-cos7-x86_64
+        - libxxf86vm-cos7-x86_64
+        - libxau-cos7-x86_64
+        - expat-cos7-x86_64
+channels:
+        - conda-forge
