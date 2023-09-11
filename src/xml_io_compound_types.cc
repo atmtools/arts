@@ -19,7 +19,9 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 
 #include <workspace.h>
@@ -2572,9 +2574,8 @@ void xml_read_from_stream(std::istream& is_xml,
     ArrayOfString args_;
     xml_read_from_stream(is_xml, args_, pbifs);
     
-    // FIXME: if you see this when ArrayOfString is already a std::vector<std::string>...
     const std::vector<std::string> args{args_.begin(), args_.end()};
-    m = Method{name, args};
+    m = Method{name, args, std::unordered_map<std::string, std::string>{}};
   } else if (type == "value") {
     Index overwrite;
     open_tag.get_attribute_value("overwrite", overwrite);

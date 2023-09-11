@@ -288,3 +288,8 @@ class TestSave:
         xml.save(reference, self.f)
         test_data = xml.load(self.f)
         assert np.array_equal(test_data, reference)
+
+if __name__ == "__main__":
+    x = TestSave()
+    x.f = "tmp.xml"
+    x.test_save_index(int)

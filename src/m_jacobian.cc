@@ -135,7 +135,7 @@ void jacobianAddAbsSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add(Method{"jacobianCalcDoNothing"});
+  jacobian_agenda.add(Method{"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -193,7 +193,7 @@ void jacobianAddFreqShift(const Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.add(Method{"jacobianCalcFreqShift"});
+  jacobian_agenda.add(Method{"jacobianCalcFreqShift", std::vector<std::string>{}, {}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -331,7 +331,7 @@ void jacobianAddFreqStretch(const Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.add(Method{"jacobianCalcFreqStretch"});
+  jacobian_agenda.add(Method{"jacobianCalcFreqStretch", std::vector<std::string>{}, {}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -495,10 +495,10 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
   RetrievalQuantity rq;
   if (calcmode == "recalc") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
-    jacobian_agenda.add({"jacobianCalcPointingZaRecalc"});
+    jacobian_agenda.add({"jacobianCalcPointingZaRecalc", std::vector<std::string>{}, {}});
   } else if (calcmode == "interp") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
-    jacobian_agenda.add({"jacobianCalcPointingZaInterp"});
+    jacobian_agenda.add({"jacobianCalcPointingZaInterp", std::vector<std::string>{}, {}});
   } else
     throw std::runtime_error(
       R"(Possible choices for *calcmode* are "recalc" and "interp".)");
@@ -842,7 +842,7 @@ void jacobianAddScatSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -1045,7 +1045,7 @@ void jacobianAddSurfaceQuantity(const Workspace&,
   jq.push_back(rq);
 
   // Add dummy
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -1093,7 +1093,7 @@ void jacobianAddTemperature(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -1143,7 +1143,7 @@ void jacobianAddWind(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -1193,7 +1193,7 @@ void jacobianAddMagField(const Workspace&,
   jq.push_back(rq);
 
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------
@@ -1231,7 +1231,7 @@ void jacobianAddShapeCatalogParameter(const Workspace&,
 
   // Append and do housekeeping
   jq.push_back(rq);
-  jacobian_agenda.add({"jacobianCalcDoNothing"});  // old code activation
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});  // old code activation
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1306,7 +1306,7 @@ void jacobianAddBasicCatalogParameter(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1357,7 +1357,7 @@ void jacobianAddNLTE(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 void jacobianAddNLTEs(const Workspace& ws,
@@ -1422,7 +1422,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing"});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
 }
 
 //----------------------------------------------------------------------------

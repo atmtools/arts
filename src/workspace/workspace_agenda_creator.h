@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+
 #include "workspace_method_class.h"
 
 #include "workspace_agenda_class.h"
@@ -13,7 +14,7 @@ struct SetWsv {
   SetWsv(std::string n);
   SetWsv(const char * const n) : SetWsv(std::string{n}) {}
   SetWsv(std::string n, WorkspaceGroup auto v) : name(std::move(n)), wsv(std::move(v)) {}
-  SetWsv(std::string n, std::string v) : name(std::move(n)), other(std::move(v)) {}
+  SetWsv(std::string n, const char * v) : name(std::move(n)), other(v) {}
 };
 
 class AgendaCreator {
