@@ -30,68 +30,19 @@ void binary_ops(auto& class_) {
       return py::object(*x.val);
   };
 
-  const std::vector<std::pair<const char* const, const char* const>>
-      maths_op_pairs{
-          {"__add__", "__radd__"},
-          {"__sub__", "__rsub__"},
-          {"__mul__", "__rmul__"},
-          {"__div__", "__rdiv__"},
-          {"__matmul__", "__rmatmul__"},
-          {"__truediv__", "__rtruediv__"},
-          {"__floordiv__", "__rfloordiv__"},
-          {"__divmod__", "__rdivmod__"},
-          {"__mod__", "__rmod__"},
-          {"__pow__", "__rpow__"},
-          {"__lshift__", "__rlshift__"},
-          {"__rshift__", "__rrshift__"},
-          {"__and__", "__rand__"},
-          {"__xor__", "__rxor__"},
-          {"__or__", "__ror__"},
-      };
-
-  for (auto& x : maths_op_pairs) {
-    const auto& op = x.first;
-    const auto& rop = x.second;
-
-    class_.def(
-        op,
-        [op](const ValueHolder<T>& a, const ValueHolder<T>& b) {
-          return copycast(a).attr(op)(copycast(b));
-        },
-        py::is_operator());
-
-    class_.def(
-        rop,
-        [rop](const ValueHolder<T>& a, const ValueHolder<T>& b) {
-          return copycast(a).attr(rop)(copycast(b));
-        },
-        py::is_operator());
-
-    class_.def(
-        op,
-        [op](const ValueHolder<T>& a, const py::object& b) {
-          return copycast(a).attr(op)(b);
-        },
-        py::is_operator());
-
-    class_.def(
-        rop,
-        [rop](const ValueHolder<T>& a, const py::object& b) {
-          return copycast(a).attr(rop)(b);
-        },
-        py::is_operator());
-  }
-
-  const std::array cmp_ops{
-      "__lt__",
-      "__le__",
-      "__eq__",
-      "__ne__",
-      "__gt__",
-      "__ge__",
+  constexpr std::array binops{
+      "__add__",      "__radd__",      "__sub__",     "__rsub__",
+      "__mul__",      "__rmul__",      "__div__",     "__rdiv__",
+      "__matmul__",   "__rmatmul__",   "__truediv__", "__rtruediv__",
+      "__floordiv__", "__rfloordiv__", "__divmod__",  "__rdivmod__",
+      "__mod__",      "__rmod__",      "__pow__",     "__rpow__",
+      "__lshift__",   "__rlshift__",   "__rshift__",  "__rrshift__",
+      "__and__",      "__rand__",      "__xor__",     "__rxor__",
+      "__or__",       "__ror__",       "__lt__",      "__le__",
+      "__eq__",       "__ne__",        "__gt__",      "__ge__",
   };
 
-  for (auto& op : cmp_ops) {
+  for (auto& op : binops) {
     class_.def(
         op,
         [op](const ValueHolder<T>& a, const ValueHolder<T>& b) {
