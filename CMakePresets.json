@@ -1,0 +1,109 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base-default",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "1",
+        "CMAKE_INSTALL_PREFIX": "$env{HOME}/arts_install",
+        "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
+        "ENABLE_ARTS_LGPL": "0",
+        "ENABLE_FORTRAN": "1",
+        "ENABLE_GUI": "0",
+        "ENABLE_NETCDF": "0",
+        "ENABLE_PCH": "0",
+        "FASTWIGNER": "0",
+        "NO_FASTEM": "0",
+        "NO_OPENMP": "0",
+        "NO_RT4": "0",
+        "NO_TMATRIX": "0",
+        "SPHINX_JOBS": "4",
+        "TEST_JOBS": "4"
+      }
+    },
+    {
+      "name": "default-gcc-mamba",
+      "inherits": "base-default",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/g++",
+        "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/gcc",
+        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
+      },
+      "environment": {
+        "CFLAGS": "-isystem $env{CONDA_PREFIX}/include",
+        "CPPFLAGS": "$env{CFLAGS}",
+        "CXXFLAGS": "$env{CFLAGS}",
+        "FFLAGS": "$env{CFLAGS}",
+        "LDFLAGS": "-L$env{CONDA_PREFIX}/lib -Wl,-rpath,$env{CONDA_PREFIX}/lib"
+      }
+    },
+    {
+      "name": "perf-gcc-mamba",
+      "inherits": "default-gcc-mamba",
+      "environment": {
+        "CFLAGS": "-isystem $env{CONDA_PREFIX}/include -fno-omit-frame-pointer",
+        "CXXFLAGS": "$env{CFLAGS}"
+      }
+    },
+    {
+      "name": "default-clang-mamba",
+      "inherits": "default-gcc-mamba",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
+        "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
+        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran",
+        "ENABLE_PCH": "1"
+      }
+    },
+    {
+      "name": "mac-gcc13-hb-mamba",
+      "inherits": "default-gcc-mamba",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-13",
+        "CMAKE_CXX_COMPILER": "g++-13",
+        "CMAKE_Fortran_COMPILER": "gfortran-13",
+        "ENABLE_PCH": "0"
+      }
+    },
+    {
+      "name": "macm1-clang-hb-mamba",
+      "inherits": "default-gcc-mamba",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+        "CMAKE_Fortran_COMPILER": "gfortran-13",
+        "ENABLE_PCH": "1"
+      }
+    },
+    {
+      "name": "macintel-clang-hb-mamba",
+      "inherits": "default-gcc-mamba",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/local/opt/llvm/bin/clang++",
+        "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang",
+        "CMAKE_Fortran_COMPILER": "gfortran-13"
+      }
+    },
+    {
+      "name": "levante-gcc-mamba",
+      "inherits": "base-default",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/g++",
+        "CMAKE_Fortran_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/gfortran",
+        "CMAKE_PREFIX_PATH": "",
+        "BLAS_blas_LIBRARY": "/sw/spack-levante/openblas-0.3.18-mzclcq/lib/libopenblas.so"
+      }
+    }
+  ]
+}

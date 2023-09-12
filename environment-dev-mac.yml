@@ -1,0 +1,29 @@
+name: pyarts-dev
+dependencies:
+        - python=3.10
+        - build
+        - ccache
+        - clang
+        - clangxx
+        - cmake
+        - docutils
+        - gfortran
+        - glew
+        - glfw
+        - lark-parser
+        - libclang
+        - libcxx
+        - libmicrohttpd
+        - llvm-openmp
+        - matplotlib
+        - netcdf4
+        - numpy
+        - pkg-config
+        - pytest
+        - scipy
+        - sphinx>=6
+        - sphinx_rtd_theme
+        - xarray
+        - zlib
+channels:
+        - conda-forge
