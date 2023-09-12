@@ -101,8 +101,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   
   // Type information
-  open_tag.add_attribute("Type", jt.TargetType());
-  open_tag.add_attribute("SubType", jt.TargetSubType());
+  open_tag.add_attribute("Type", String{jt.TargetType()});
+  open_tag.add_attribute("SubType", String{jt.TargetSubType()});
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
@@ -447,11 +447,11 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("version", al.version);
   open_tag.add_attribute("id", var_string(al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
-  open_tag.add_attribute("cutofftype", Absorption::toString(al.cutoff));
-  open_tag.add_attribute("mirroringtype", Absorption::toString(al.mirroring));
-  open_tag.add_attribute("populationtype", Absorption::toString(al.population));
-  open_tag.add_attribute("normalizationtype", Absorption::toString(al.normalization));
-  open_tag.add_attribute("lineshapetype", LineShape::toString(al.lineshapetype));
+  open_tag.add_attribute("cutofftype", String{Absorption::toString(al.cutoff)});
+  open_tag.add_attribute("mirroringtype", String{Absorption::toString(al.mirroring)});
+  open_tag.add_attribute("populationtype", String{Absorption::toString(al.population)});
+  open_tag.add_attribute("normalizationtype", String{Absorption::toString(al.normalization)});
+  open_tag.add_attribute("lineshapetype", String{LineShape::toString(al.lineshapetype)});
   open_tag.add_attribute("T0", al.T0);
   open_tag.add_attribute("cutofffreq", al.cutofffreq);
   open_tag.add_attribute("linemixinglimit", al.linemixinglimit);

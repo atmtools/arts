@@ -20,6 +20,9 @@ using Numeric = NUMERIC;
 //! The base integer type of matpack
 using Index = INDEX;
 
+//! The base unsigned integer type of matpack
+using Size = std::size_t;
+
 using Complex = std::complex<Numeric>;
 
 //! A type that denotes all values should be accessed

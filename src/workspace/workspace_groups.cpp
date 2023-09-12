@@ -337,7 +337,8 @@ This is still a work in progress, and the interface will change in the future
       .desc =
           "Contains a list of isotopologue ratios for all defined species\n"};
 
-  wsg_data["String"] = {.file = "mystring.h", .desc = "Basic string type\n"};
+  wsg_data["String"] = {
+      .file = "mystring.h", .desc = "Basic string type\n", .value_type = true};
 
   wsg_data["SurfaceField"] = {
       .file = "surf.h",

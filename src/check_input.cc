@@ -1721,17 +1721,17 @@ void chk_griddedfield_gridname(const GriddedField& gf,
                                const String& gridname) {
   ARTS_USER_ERROR_IF (gf.get_dim() - 1 < gridindex,
     "Grid index ", gridindex, " exceeds dimension of GriddedField",
-    (gf.get_name().nelem()) ? var_string(" \"", gf.get_name(), "\"") : var_string())
+    (gf.get_name().size()) ? var_string(" \"", gf.get_name(), "\"") : var_string())
 
   String gfgridnameupper = gf.get_grid_name(gridindex);
-  gfgridnameupper.toupper();
+  toupper(gfgridnameupper);
 
   String gridnameupper = gridname;
-  gridnameupper.toupper();
+  toupper(gridnameupper);
 
   ARTS_USER_ERROR_IF (gfgridnameupper != gridnameupper,
     "Name of grid ", gridindex, " in GriddedField",
-    (gf.get_name().nelem()) ? var_string(" \"", gf.get_name(), "\"") : var_string(),
+    (gf.get_name().size()) ? var_string(" \"", gf.get_name(), "\"") : var_string(),
     " is \"", gf.get_grid_name(gridindex), "\".\n"
       , "The expected name is \"", gridname, "\".")
 }

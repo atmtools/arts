@@ -1144,9 +1144,9 @@ void psdSeifertBeheng06(Matrix& psd_data,
   ArrayOfIndex input_idx = {-1, -1};
 
   for (Index i = 0; i < nin; i++) {
-    if ((Index)pnd_agenda_input_names[i].find("mass_density") != String::npos) {
+    if (pnd_agenda_input_names[i].find("mass_density") != String::npos) {
       input_idx[0] = i;  //mass density index
-    } else if ((Index)pnd_agenda_input_names[i].find("number_density") !=
+    } else if (pnd_agenda_input_names[i].find("number_density") !=
                String::npos) {
       input_idx[1] = i;  //number density index
     }
@@ -1161,9 +1161,9 @@ void psdSeifertBeheng06(Matrix& psd_data,
   ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
 
   for (Index i = 0; i < ndx; i++) {
-    if ((Index)dpnd_data_dx_names[i].find("mass_density") != String::npos) {
+    if (dpnd_data_dx_names[i].find("mass_density") != String::npos) {
       dpnd_data_dx_idx[0] = i;  //mass density index
-    } else if ((Index)dpnd_data_dx_names[i].find("number_density") !=
+    } else if (dpnd_data_dx_names[i].find("number_density") !=
                String::npos) {
       dpnd_data_dx_idx[1] = i;  //number density index
     }
@@ -1262,9 +1262,9 @@ void psdMilbrandtYau05(Matrix& psd_data,
   ArrayOfIndex input_idx = {-1, -1};
 
   for (Index i = 0; i < nin; i++) {
-    if ((Index)pnd_agenda_input_names[i].find("mass_density") != String::npos) {
+    if (pnd_agenda_input_names[i].find("mass_density") != String::npos) {
       input_idx[0] = i;  //mass density index
-    } else if ((Index)pnd_agenda_input_names[i].find("number_density") !=
+    } else if (pnd_agenda_input_names[i].find("number_density") !=
                String::npos) {
       input_idx[1] = i;  //number density index
     }
@@ -1279,10 +1279,9 @@ void psdMilbrandtYau05(Matrix& psd_data,
   ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
 
   for (Index i = 0; i < ndx; i++) {
-    if ((Index)dpnd_data_dx_names[i].find("mass_density") != String::npos) {
+    if (dpnd_data_dx_names[i].find("mass_density") != String::npos) {
       dpnd_data_dx_idx[0] = i;  //mass density index
-    } else if ((Index)dpnd_data_dx_names[i].find("number_density") !=
-               String::npos) {
+    } else if (dpnd_data_dx_names[i].find("number_density") != String::npos) {
       dpnd_data_dx_idx[1] = i;  //number density index
     }
   }

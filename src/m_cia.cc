@@ -599,7 +599,7 @@ void CIAInfo(  // Generic Input:
 
     ArrayOfString species_names;
 
-    cia_tags[i].split(species_names, "-");
+    split(species_names, cia_tags[i], "-");
 
     ARTS_USER_ERROR_IF (species_names.nelem() != 2,
       "ERROR: Cannot parse CIA tag: ", cia_tags[i])

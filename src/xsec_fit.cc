@@ -36,7 +36,7 @@ void RemoveNegativeXsec(Vector& xsec) {
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return Species::toShortName(mspecies);
+  return String{Species::toShortName(mspecies)};
 }
 
 void XsecRecord::SetVersion(const Index version) {

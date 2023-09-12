@@ -139,7 +139,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
 
   // Order of elements for line shape
   const auto shapeparams =
-      LegacyLineFunctionData::lineshapetag2variablesvector(toString(mtype));
+      LegacyLineFunctionData::lineshapetag2variablesvector(String{toString(mtype)});
 
   // The second tag should give the line mixing scheme
   data >> s;
@@ -582,7 +582,7 @@ String ModelShape2MetaData(const Model& m) {
 }
 
 Model MetaData2ModelShape(const String& s) {
-  if (s.nelem() == 0) return {};
+  if (s.size() == 0) return {};
 
   const auto& names = enumstrs::VariableNames;
 

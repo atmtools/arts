@@ -1065,7 +1065,7 @@ void scat_dataCheck(  //Input:
     }
   }
 
-  if (check_type.toupper() == "ALL") {
+  if (toupper(check_type) == "ALL") {
     // Loop over the included scattering species
     for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
       const Index N_se = scat_data[i_ss].nelem();
@@ -1143,7 +1143,7 @@ void scat_dataCheck(  //Input:
             }
           }
     }
-  } else if (check_type.toupper() == "SANE") {
+  } else if (toupper(check_type) == "SANE") {
   } else {
     std::ostringstream os;
     os << "Invalid value for argument *check_type*: '" << check_type << "'.\n";

@@ -383,7 +383,7 @@ void xml_open_output_file(ogzstream& file, const String& name) {
   // c_str explicitly converts to c String.
   String nname = name;
 
-  if (nname.nelem() < 3 || nname.substr(nname.length() - 3, 3) != ".gz") {
+  if (nname.size() < 3 || nname.substr(nname.length() - 3, 3) != ".gz") {
     nname += ".gz";
   }
 

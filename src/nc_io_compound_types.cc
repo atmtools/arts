@@ -58,7 +58,7 @@ void nca_write_to_file(const int ncid,
   int species_count_varid;
 
   ArrayOfIndex species_count(gal.species.nelem());
-  Index species_max_strlen = 0;
+  Size species_max_strlen = 0;
   char* species_strings = nullptr;
 
   ARTS_USER_ERROR_IF(!gal.species.nelem(),
@@ -71,8 +71,8 @@ void nca_write_to_file(const int ncid,
     species_count[nspecies] = nspecies_nelem;
 
     for (const auto &it : gal.species[nspecies])
-      if (it.Name().nelem() > species_max_strlen)
-        species_max_strlen = it.Name().nelem();
+      if (it.Name().size() > species_max_strlen)
+        species_max_strlen = it.Name().size();
   }
   species_max_strlen++;
 

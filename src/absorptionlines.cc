@@ -151,7 +151,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(std::istream& 
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // @ as first character marks catalogue entry
     char c;
@@ -283,7 +283,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(std::istream& 
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // @ as first character marks catalogue entry
     char c;
@@ -378,7 +378,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // @ as first character marks catalogue entry
     char c;
@@ -599,12 +599,12 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // If the catalogue is in dos encoding, throw away the
     // additional carriage return
-    if (line[line.nelem() - 1] == 13) {
-      line.erase(line.nelem() - 1, 1);
+    if (line[line.size() - 1] == 13) {
+      line.erase(line.size() - 1, 1);
     }
 
     mo = 0;
@@ -863,12 +863,12 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // If the catalogue is in dos encoding, throw away the
     // additional carriage return
-    if (line[line.nelem() - 1] == 13) {
-      line.erase(line.nelem() - 1, 1);
+    if (line[line.size() - 1] == 13) {
+      line.erase(line.size() - 1, 1);
     }
 
     mo = 0;
@@ -1134,12 +1134,12 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // If the catalogue is in dos encoding, throw away the
     // additional carriage return
-    if (line[line.nelem() - 1] == 13) {
-      line.erase(line.nelem() - 1, 1);
+    if (line[line.size() - 1] == 13) {
+      line.erase(line.size() - 1, 1);
     }
 
     mo = 0;
@@ -1372,12 +1372,12 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(std::istream& is
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // If the catalogue is in dos encoding, throw away the
     // additional carriage return
-    if (line[line.nelem() - 1] == 13) {
-      line.erase(line.nelem() - 1, 1);
+    if (line[line.size() - 1] == 13) {
+      line.erase(line.size() - 1, 1);
     }
 
     mo = 0;
@@ -1957,7 +1957,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
     // calling getline. In that case the previous eof() was still false
     // because eof() evaluates only to true if one tries to read after the
     // end of the file. The following check catches this.
-    if (line.nelem() == 0 && is.eof()) return data;
+    if (line.size() == 0 && is.eof()) return data;
 
     // Because of the fixed FORTRAN format, we need to break up the line
     // explicitly in apropriate pieces. Not elegant, but works!

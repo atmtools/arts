@@ -93,7 +93,7 @@ void cleanup_output_file(std::ofstream& file, const std::string_view name) {
   if (file.is_open()) {
     std::streampos fpos = file.tellp();
     file.close();
-    if (!fpos) std::filesystem::remove(expand_path(name).c_str());
+    if (!fpos) std::filesystem::remove(expand_path(String{name}).c_str());
   }
 }
 
@@ -106,7 +106,7 @@ void cleanup_output_file(std::ofstream& file, const std::string_view name) {
    @version   1
    @exception std::ios_base::failure Somehow the file cannot be opened. */
 void open_input_file(std::ifstream& file, const std::string_view name) {
-  String ename{expand_path(name)};
+  String ename{expand_path(String{name})};
 
   // Command line parameters which give us the include search path.
   extern const Parameters parameters;
@@ -210,7 +210,7 @@ ArrayOfString read_text_from_file(const std::string_view name) {
 
     @author Stefan Buehler */
 void replace_all(String& s, const std::string_view what, const std::string_view with) {
-  Index j = s.find(what);
+  Size j = s.find(what);
   while (j != s.npos) {
     s.replace(j, 1, with);
     j = s.find(what, j + with.size());
@@ -228,7 +228,7 @@ void replace_all(String& s, const std::string_view what, const std::string_view 
   @author Oliver Lemke
 */
 int check_newline(const std::string_view s) {
-  String d = s;
+  String d = String{s};
   int result = 0;
 
   // Remove all whitespaces except \n
@@ -283,7 +283,7 @@ bool find_file(ArrayOfString& matches,
                const ArrayOfString& paths,
                const ArrayOfString& extensions) {
   bool exists = false;
-  std::string efilename{expand_path(filename)};
+  std::string efilename{expand_path(String{filename})};
 
   // filename contains full path
   if (!paths.nelem() || std::filesystem::path(efilename).is_absolute()) {
@@ -410,9 +410,9 @@ String expand_path(String path) {
  */
 String add_basedir(const std::string_view path) {
   extern const Parameters parameters;
-  String expanded_path{expand_path(path)};
+  String expanded_path{expand_path(String{path})};
 
-  if (parameters.outdir.nelem() && path.length() && path[0] != '/') {
+  if (parameters.outdir.size() && path.length() && path[0] != '/') {
     expanded_path = parameters.outdir + '/' + expanded_path;
   }
 
@@ -432,8 +432,7 @@ String get_dirname(const std::string_view path) {
   String dirname{};
   if (!path.length()) return dirname;
 
-  ArrayOfString fileparts;
-  String{path}.split(fileparts, "/");
+  const ArrayOfString fileparts = split(String{path}, "/");
   if (path[0] == '/') dirname = "/";
   if (fileparts.nelem() > 1) {
     for (Index i = 0; i < fileparts.nelem() - 1; i++) {
@@ -481,7 +480,7 @@ ArrayOfString list_directory(const std::string_view dirname) {
  */
 
 String make_filename_unique(const std::string_view filename, const String& extension) {
-  String basename = filename;
+  String basename = String{filename};
   String extensionname;
 
   // Split filename into base and extension

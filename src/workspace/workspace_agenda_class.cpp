@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -89,8 +90,8 @@ void Agenda::finalize(bool fix) try {
 
   if (must_in.size() or must_out.size()) {
     if (fix) {
-      for (auto&v: must_in) methods.emplace_back("Ignore", std::vector<std::string>{v});
-      for (auto&v: must_out) methods.emplace_back("Touch", std::vector<std::string>{v});
+      for (auto&v: must_in) methods.emplace_back("Ignore", std::vector<std::string>{v}, std::unordered_map<std::string, std::string>{});
+      for (auto&v: must_out) methods.emplace_back("Touch", std::vector<std::string>{v}, std::unordered_map<std::string, std::string>{});
     } else {
       std::ostringstream os;
       os << "Agenda has unused variables:\nRequired output : ";

@@ -581,9 +581,9 @@ class TestGroups:
         x = cxx.Index(0)
         test.io(x, delete=True)
 
-        assert x.value == 0
-        x.value = x + 3
-        assert x.value == 3
+        assert x == 0
+        x = x + 3
+        assert x == 3
 
     def testMapOfErrorCorrectedSuddenData(self):
         x = cxx.MapOfErrorCorrectedSuddenData()
@@ -619,9 +619,10 @@ class TestGroups:
         x = cxx.Numeric(0)
         test.io(x, delete=True)
 
-        assert x.value == 0
-        x.value = x + 2
-        assert x.value == 2
+        assert x == 0., f"{x} cannot evaluate as equal to 0."
+        assert x == 0, f"{x} cannot evaluate as equal to 0"
+        x = x + 2
+        assert x == 2
 
     def testPpath(self):
         x = cxx.Ppath()
@@ -683,10 +684,7 @@ class TestGroups:
 
         assert "ho" == x
         assert "h" == x[0]
-
-        x[1] = "i"
-        assert "hi" == x
-        assert hash("hi") == hash(x)
+        assert hash("ho") == hash(x)
 
     def testTelsemAtlas(self):
         x = cxx.TelsemAtlas()
@@ -1053,4 +1051,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.test_construct_empty()
+    x.testArrayOfString()

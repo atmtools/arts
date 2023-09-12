@@ -34,9 +34,9 @@ constexpr int isdigit(int ch) noexcept {
  * The int-interface is kept from the standard
  * 
  * @param[in] x a character
- * @return 1 if x is a space
+ * @return true if x is a space
  */
-constexpr int isspace(int ch) noexcept {
+constexpr bool isspace(unsigned char ch) noexcept {
   return ch == ' ' or ch == '\n' or ch == '\r' or ch == '\t' or ch == '\f' or
          ch == '\v';
 }

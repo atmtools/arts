@@ -19,7 +19,7 @@ bool overwrite_setval{false};
 
 public:
 Method();
-Method(const std::string& name, const std::vector<std::string>& args={}, const std::unordered_map<std::string, std::string>& kwargs={});
+Method(const std::string& name, const std::vector<std::string>& args, const std::unordered_map<std::string, std::string>& kwargs);
 Method(std::string name, const Wsv& wsv, bool=false);
 Method(const std::string& name, const std::vector<std::string>& ins, const std::vector<std::string>& outs, const std::optional<Wsv>& wsv, bool overwrite);
 

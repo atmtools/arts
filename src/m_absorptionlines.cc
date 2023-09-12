@@ -1643,7 +1643,7 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
 {
   Index parameter_switch = -1;
 
-  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+  ARTS_USER_ERROR_IF (parameter_name.size() == 0,
                       "parameter_name is empty.\n");
   
   if (parameter_name == "Central Frequency" or
@@ -1766,7 +1766,7 @@ void abs_linesBaseParameterMatchingLines(ArrayOfAbsorptionLines& abs_lines,
                                          const Numeric& x) {
   Index parameter_switch = -1;
 
-  ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
+  ARTS_USER_ERROR_IF(parameter_name.size() == 0, "parameter_name is empty.\n");
 
   if (parameter_name == "Central Frequency" or parameter_name == "Line Center")
     parameter_switch = 0;
@@ -1941,7 +1941,7 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
 {
   Index parameter_switch = -1;
   
-  ARTS_USER_ERROR_IF (parameter_name.nelem() == 0,
+  ARTS_USER_ERROR_IF (parameter_name.size() == 0,
                       "parameter_name is empty.\n");
   if (parameter_name == "Statistical Weight")
     parameter_switch = 1;
@@ -2045,7 +2045,7 @@ void abs_linesBaseParameterMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
                                          const Numeric& x) {
   Index parameter_switch = -1;
 
-  ARTS_USER_ERROR_IF(parameter_name.nelem() == 0, "parameter_name is empty.\n");
+  ARTS_USER_ERROR_IF(parameter_name.size() == 0, "parameter_name is empty.\n");
   if (parameter_name == "Statistical Weight")
     parameter_switch = 1;
   else if (parameter_name == "Zeeman Coefficient")

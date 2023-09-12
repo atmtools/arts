@@ -279,7 +279,7 @@ void scat_data_checkedCalc(Index& scat_data_checked,
     }
   }
 
-  if (check_level.toupper() != "NONE") {
+  if (toupper(check_level) != "NONE") {
     // handing over to scat_dataCheck which checks whether
     // 1) scat_data containing any NaN?
     // 2) any negative values in Z11, K11, or a1?

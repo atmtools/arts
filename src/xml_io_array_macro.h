@@ -9,8 +9,8 @@ concept array_of_group = WorkspaceGroup<std::remove_cvref_t<T>> and
 
 template <array_of_group T>
 void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
-  const static String subtype =
-      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
+  const static String subtype{
+      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name};
 
   ArtsXMLTag tag;
   Index nelem;
@@ -47,8 +47,8 @@ void xml_read(std::istream &is_xml, T &at, bifstream *pbifs) try {
 template <array_of_group T>
 void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
                const String &name) try {
-  const static String subtype =
-      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name;
+  const static String subtype{
+      WorkspaceGroupInfo<std::remove_cvref_t<decltype(T{}[0])>>::name};
 
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;

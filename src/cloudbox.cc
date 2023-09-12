@@ -175,7 +175,7 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
   Index nelem = 2;
 
   for (Index k = 0; k < scat_species.nelem(); k++) {
-    scat_species[k].split(strarr, delim);
+    split(strarr, scat_species[k], delim);
     ARTS_USER_ERROR_IF (strarr.nelem() < nelem,
          "Individual strings in scat_species must contain at least ", nelem,
          " elements,\n"
@@ -573,7 +573,7 @@ void parse_atmcompact_speciestype(  //WS Output:
   ArrayOfString strarr;
 
   // split field_name string at '-' and write to ArrayOfString
-  field_name.split(strarr, delim);
+  split(strarr, field_name, delim);
 
   // first entry is species type
   // (i.e. "abs_species" or "scat_species". or "T" or "z", which are ignored.)
@@ -604,7 +604,7 @@ void parse_atmcompact_speciesname(  //WS Output:
   ArrayOfString strarr;
 
   // split field_name string at '-' and write to ArrayOfString
-  field_name.split(strarr, delim);
+  split(strarr, field_name, delim);
 
   // second entry is species name
   // (e.g. "H2O, "O3" etc. for abs_species or "IWC", "LWC" etc. for scat_species)
@@ -635,7 +635,7 @@ void parse_atmcompact_scattype(  //WS Output:
   ArrayOfString strarr;
 
   // split field_name string at '-' and write to ArrayOfString
-  field_name.split(strarr, delim);
+  split(strarr, field_name, delim);
 
   // third entry is type of scat_species field
   // (e.g. "mass_density", "mass_flux", "number_density")
@@ -666,7 +666,7 @@ void parse_partfield_name(  //WS Output:
   ArrayOfString strarr;
 
   // split scat_species string at delim and write to ArrayOfString
-  part_string.split(strarr, delim);
+  split(strarr, part_string, delim);
 
   //first entry is scattering species field name (e.g. "IWC", "LWC" etc.)
   if (strarr.size() > 0 && part_string[0] != delim[0]) {

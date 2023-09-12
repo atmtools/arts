@@ -24,11 +24,11 @@ std::ostream& operator<<(std::ostream& os, ValueDescription x) {
 }
 
 String Value::str_upp() const noexcept {
-  if (ValueType::S == common_value_type(type)) return qn.upp.s.val();
+  if (ValueType::S == common_value_type(type)) return String{qn.upp.s.val()};
   return var_string(upp());
 }
 String Value::str_low() const noexcept {
-  if (ValueType::S == common_value_type(type)) return qn.low.s.val();
+  if (ValueType::S == common_value_type(type)) return String{qn.low.s.val()};
   return var_string(low());
 }
 
@@ -85,7 +85,7 @@ std::pair<std::string_view, String> fix_legacy(std::string_view key,
     goto error;
   }
 
-  if (key == "Hund") return {"config", val};
+  if (key == "Hund") return {"config", String{val}};
 
   if (key == "kronigParity") {
     if (val == "e") return {key, "e"};
@@ -95,7 +95,7 @@ std::pair<std::string_view, String> fix_legacy(std::string_view key,
     goto error;
   }
 
-  return {key, val};
+  return {key, String{val}};
 
 error:
   ARTS_USER_ERROR("Cannot read combination ", key, ' ', val)

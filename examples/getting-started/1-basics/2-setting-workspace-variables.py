@@ -82,9 +82,9 @@ respective Workspace Group for more information on how to initialize them.
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
-assert np.isclose(ws.example_index.value, 2)
-assert np.isclose(ws.ybatch_index.value, 3)
-assert np.isclose(ws.g0.value, 9.81)
+assert np.isclose(ws.example_index, 2)
+assert np.isclose(ws.ybatch_index, 3)
+assert np.isclose(ws.g0, 9.81)
 assert ws.iy_unit == "avc"
 assert np.allclose(ws.f_grid, [4, 5, 6])
 assert np.allclose(ws.iy, [[5, 6], [7, 8]])
