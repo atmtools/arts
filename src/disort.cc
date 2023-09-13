@@ -112,7 +112,7 @@ void check_disort_input(  // Input
         "For running DISORT, atmospheric dimensionality "
         "must be 1.\n");
 
-  if (cloudbox_limits.nelem() != 2 * 3)
+  if (cloudbox_limits.size() != 2 * 3)
     throw std::runtime_error(
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
@@ -179,8 +179,8 @@ void check_disort_input(  // Input
 
   // DISORT can only handle randomly oriented particles.
   bool all_totrand = true;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
   if (!all_totrand) {
     std::ostringstream os;
@@ -234,8 +234,8 @@ void check_disort_irradiance_input(  // Input
 
   // DISORT can only handle randomly oriented particles.
   bool all_totrand = true;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND) all_totrand = false;
   if (!all_totrand) {
     std::ostringstream os;
@@ -314,7 +314,7 @@ void get_gasoptprop(const Workspace& ws,
                     const Agenda& propmat_clearsky_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
                     const Vector& f_grid) {
-  const Index Np = ppvar_atm.nelem();
+  const Index Np = ppvar_atm.size();
 
   ARTS_ASSERT(ext_bulk_gas.nrows() == f_grid.nelem());
   ARTS_ASSERT(ext_bulk_gas.ncols() == Np);
@@ -542,8 +542,8 @@ void get_angs(Vector& pfct_angs,
   if (Npfct < 0) {
     Index this_ss = 0, this_se = 0;
     // determine nang and pfct_angs from scat_data with finest za_grid
-    for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
-      for (Index i_se = scat_data[i_ss].nelem() - 1; i_se >= 0; i_se--)
+    for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++)
+      for (Index i_se = scat_data[i_ss].size() - 1; i_se >= 0; i_se--)
         // considering scat elems within one species mostly sorted from small to
         // large sizes with large sizes corresponding to large za_grid. that is,
         // starting searching from back should trigger if-clause (and variable
@@ -1052,7 +1052,7 @@ void run_cdisort(const Workspace& ws,
     for (Index ip=0; ip<p_grid.nelem(); ip++) {
       atm[ip].pressure = p_grid[ip];
       atm[ip].temperature = t_profile[ip];
-      for (Index ispec=0; ispec<specs.nelem(); ispec++) {
+      for (Index ispec=0; ispec<specs.size(); ispec++) {
         atm[ip][specs[ispec]] = vmr_profiles(ispec, ip);
       }
     }
@@ -1112,8 +1112,8 @@ void run_cdisort(const Workspace& ws,
 
         Index iflat = 0;
 
-        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-          const Index nse = scat_data[iss].nelem();
+        for (Index iss = 0; iss < scat_data.size(); iss++) {
+          const Index nse = scat_data[iss].size();
           ext_abs_pfun_from_tro(ext_bulk_par,
                                 abs_bulk_par,
                                 pha_bulk_par,
@@ -1294,10 +1294,10 @@ void run_cdisort(const Workspace& ws,
   }
 
   // Allocate aux data
-  disort_aux.resize(disort_aux_vars.nelem());
+  disort_aux.resize(disort_aux_vars.size());
   // Allocate and set (if possible here) iy_aux
   Index cnt=-1;
-  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+  for (Index i = 0; i < disort_aux_vars.size(); i++) {
 
 
     if (disort_aux_vars[i] == "Layer optical thickness"){
@@ -1481,7 +1481,7 @@ void run_cdisort_flux(const Workspace& ws,
     for (Index ip=0; ip<p.nelem(); ip++) {
       atm[ip].pressure = p[ip];
       atm[ip].temperature = t[ip];
-      for (Index ispec=0; ispec<specs.nelem(); ispec++) {
+      for (Index ispec=0; ispec<specs.size(); ispec++) {
         atm[ip][specs[ispec]] = vmr(ispec, ip);
       }
     }
@@ -1542,8 +1542,8 @@ void run_cdisort_flux(const Workspace& ws,
 
         Index iflat = 0;
 
-        for (Index iss = 0; iss < scat_data.nelem(); iss++) {
-          const Index nse = scat_data[iss].nelem();
+        for (Index iss = 0; iss < scat_data.size(); iss++) {
+          const Index nse = scat_data[iss].size();
           ext_abs_pfun_from_tro(ext_bulk_par,
                                 abs_bulk_par,
                                 pha_bulk_par,
@@ -1749,10 +1749,10 @@ void run_cdisort_flux(const Workspace& ws,
   }
 
   // Allocate aux data
-  disort_aux.resize(disort_aux_vars.nelem());
+  disort_aux.resize(disort_aux_vars.size());
   // Allocate and set (if possible here) iy_aux
   Index cnt=-1;
-  for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
+  for (Index i = 0; i < disort_aux_vars.size(); i++) {
 
 
     if (disort_aux_vars[i] == "Layer optical thickness"){

@@ -305,8 +305,8 @@ auto value_holder_list_artsclass(py::module_& m,
       "pop",
       [](Array<T>& x, Index i) {
         if (x.size() < 1) throw std::out_of_range("pop from empty list");
-        i = negative_clamp(i, x.nelem());
-        if (x.nelem() <= i or i < 0)
+        i = negative_clamp(i, x.size());
+        if (x.size() <= i or i < 0)
           throw std::out_of_range(var_string("pop index out of range"));
         std::rotate(x.begin() + i, x.begin() + 1 + i, x.end());
         T copy = std::move(x.back());
@@ -323,8 +323,8 @@ auto value_holder_list_artsclass(py::module_& m,
       "__getitem__",
       [](Array<T>& x, Index i) -> ValueHolder<T> {
         if (x.size() < 1) throw std::out_of_range("pop from empty list");
-        i = negative_clamp(i, x.nelem());
-        if (x.nelem() <= i or i < 0)
+        i = negative_clamp(i, x.size());
+        if (x.size() <= i or i < 0)
           throw std::out_of_range(var_string("pop index out of range"));
         return std::shared_ptr<T>(&x[i], [](void*) {});
       },
@@ -333,16 +333,16 @@ auto value_holder_list_artsclass(py::module_& m,
 
   out.def("__setitem__", [](Array<T>& x, Index i, const T& y) {
     if (x.size() < 1) throw std::out_of_range("pop from empty list");
-    i = negative_clamp(i, x.nelem());
-    if (x.nelem() <= i or i < 0)
+    i = negative_clamp(i, x.size());
+    if (x.size() <= i or i < 0)
       throw std::out_of_range(var_string("pop index out of range"));
     x[i] = y;
   });
 
   out.def("__setitem__", [](Array<T>& x, Index i, const ValueHolder<T>& y) {
     if (x.size() < 1) throw std::out_of_range("pop from empty list");
-    i = negative_clamp(i, x.nelem());
-    if (x.nelem() <= i or i < 0)
+    i = negative_clamp(i, x.size());
+    if (x.size() <= i or i < 0)
       throw std::out_of_range(var_string("pop index out of range"));
     x[i] = y;
   });
@@ -441,7 +441,7 @@ auto value_holder_list_artsclass(py::module_& m,
       .def(
           "insert",
           [](Array<T>& x, Index i, ValueHolder<T> y) {
-            auto pos = (i < x.nelem() and i >= 0) ? x.begin() + i : x.end();
+            auto pos = (i < x.size() and i >= 0) ? x.begin() + i : x.end();
             x.insert(pos, std::move(y));
           },
           "Insert a value into the array");
@@ -530,7 +530,7 @@ void py_basic(py::module_& m) try {
                                sizeof(Index),
                                py::format_descriptor<Index>::format(),
                                1,
-                               {x.nelem()},
+                               {x.size()},
                                {sizeof(Index)});
       })
       .def_property(
@@ -552,8 +552,8 @@ void py_basic(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(ArrayOfNumeric)
       .def("__getitem__",
            [](ArrayOfNumeric& x, Index i) -> Numeric {
-             i = negative_clamp(i, x.nelem());
-             if (x.nelem() <= i or i < 0)
+             i = negative_clamp(i, x.size());
+             if (x.size() <= i or i < 0)
                throw std::out_of_range(var_string("Bad index access: ",
                                                   i,
                                                   " in object of size [0, ",
@@ -563,8 +563,8 @@ void py_basic(py::module_& m) try {
            })
       .def("__setitem__",
            [](ArrayOfNumeric& x, Index i, Numeric y) {
-             i = negative_clamp(i, x.nelem());
-             if (x.nelem() <= i or i < 0)
+             i = negative_clamp(i, x.size());
+             if (x.size() <= i or i < 0)
                throw std::out_of_range(var_string("Bad index access: ",
                                                   i,
                                                   " in object of size [0, ",
@@ -579,7 +579,7 @@ void py_basic(py::module_& m) try {
                                sizeof(Numeric),
                                py::format_descriptor<Numeric>::format(),
                                1,
-                               {x.nelem()},
+                               {x.size()},
                                {sizeof(Numeric)});
       })
       .def_property("value",

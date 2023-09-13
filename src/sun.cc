@@ -64,7 +64,7 @@ void get_scattered_sunsource(const Workspace& ws,
 
   //some basic quantities
   Index ns = transmitted_sunlight.ncols();
-  Index nf = f_grid.nelem();
+  Index nf = f_grid.size();
 
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
@@ -79,16 +79,16 @@ void get_scattered_sunsource(const Workspace& ws,
 Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
                           const Vector &f_grid,
                           const Numeric &temperature){
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Vector data_f_grid = sun_spectrum_raw.get_numeric_grid(0);
   const Numeric data_fmin = data_f_grid[0];
-  const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
+  const Numeric data_fmax = data_f_grid[data_f_grid.size() - 1];
 
     // Result array
-  Matrix int_data(f_grid.nelem(), 4, 0.);
+  Matrix int_data(f_grid.size(), 4, 0.);
 
   const Numeric* f_grid_begin = f_grid.unsafe_data_handle();
-  const Numeric* f_grid_end = f_grid_begin + f_grid.nelem();
+  const Numeric* f_grid_end = f_grid_begin + f_grid.size();
   const Index i_fstart = std::distance(
       f_grid_begin, std::lower_bound(f_grid_begin, f_grid_end, data_fmin));
   const Index i_fstop =
@@ -144,10 +144,10 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
 
   {
     // Find frequency grid positions:
-    ArrayOfGridPos f_gp(f_grid_active.nelem());
+    ArrayOfGridPos f_gp(f_grid_active.size());
     gridpos(f_gp, data_f_grid_active, f_grid_active, 0);
 
-    Matrix itw(f_gp.nelem(), 2);
+    Matrix itw(f_gp.size(), 2);
     interpweights(itw, f_gp);
 
     for(int i=0; i < 4; i++){

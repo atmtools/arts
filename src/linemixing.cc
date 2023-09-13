@@ -775,9 +775,9 @@ EcsReturn ecs_absorption(const Numeric T,
   auto [absorption, work] = ecs_absorption_impl(T, H, P, this_vmr, vmrs, ecs_data, f_grid, zeeman_polarization, band);
   
   // Start as original, so remove new and divide with the negative to get forward derivative
-  ArrayOfComplexVector jacobian(jacobian_quantities.nelem(), absorption);
+  ArrayOfComplexVector jacobian(jacobian_quantities.size(), absorption);
   
-  for (Index i=0; i<jacobian_quantities.nelem(); i++) {
+  for (Size i=0; i<jacobian_quantities.size(); i++) {
     auto& vec = jacobian[i];
     auto& target = jacobian_quantities[i].Target();
     
@@ -812,9 +812,11 @@ EcsReturn ecs_absorption(const Numeric T,
           this_vmr_copy += dvmr;
           if (band.selfbroadening) vmrs_copy[0] += dvmr;  // First value is self if band has self broadener
         } else {
-          for (Index j=band.selfbroadening; j<band.broadeningspecies.nelem()-band.bathbroadening; j++) {
-            if (band.broadeningspecies[j] == target.qid.Species()) {
-              vmrs_copy[j] += dvmr;
+          if (band.broadeningspecies.size()) {
+            for (Index j=band.selfbroadening; j<band.broadeningspecies.size()-band.bathbroadening; j++) {
+              if (band.broadeningspecies[j] == target.qid.Species()) {
+                vmrs_copy[j] += dvmr;
+              }
             }
           }
         }
@@ -1513,7 +1515,7 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
 
 std::ostream& operator<<(std::ostream& os,
                          const ErrorCorrectedSuddenData& rbd) {
-  for (Index i = 0; i < rbd.data.nelem(); i++) {
+  for (Index i = 0; i < rbd.data.size(); i++) {
     if (i) os << '\n';
     os << rbd.data[i];
   }

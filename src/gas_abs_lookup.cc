@@ -16,6 +16,8 @@
 #include "matpack_data.h"
 #include "physics_funcs.h"
 
+#include <array_ostream.h>
+
 //! Find positions of new grid points in old grid.
 /*! 
   Throw a runtime error if the frequencies of the new grid are not
@@ -96,11 +98,11 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
 void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
                          ConstVectorView current_f_grid) {
   // Some constants we will need:
-  const Index n_current_species = current_species.nelem();
+  const Index n_current_species = current_species.size();
   const Index n_current_f_grid = current_f_grid.nelem();
 
-  const Index n_species = species.nelem();
-  const Index n_nls = nonlinear_species.nelem();
+  const Index n_species = species.size();
+  const Index n_nls = nonlinear_species.size();
   const Index n_nls_pert = nls_pert.nelem();
   const Index n_f_grid = f_grid.nelem();
   const Index n_p_grid = p_grid.nelem();
@@ -349,7 +351,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
   // Vector of perturbations for the VMRs of the nonlinear species:
   // (Should stay empty if we have no nonlinear species)
-  if (0 != new_table.nonlinear_species.nelem()) {
+  if (0 != new_table.nonlinear_species.size()) {
     //      new_table.nls_pert.resize( n_nls_pert );
     new_table.nls_pert = nls_pert;
   }
@@ -479,10 +481,10 @@ void GasAbsLookup::Extract(Matrix& sga,
   // 1. Obtain some properties of the lookup table:
 
   // Number of gas species in the table:
-  const Index n_species = species.nelem();
+  const Index n_species = species.size();
 
   // Number of nonlinear species:
-  const Index n_nls = nonlinear_species.nelem();
+  const Index n_nls = nonlinear_species.size();
 
   // Number of frequencies in the table:
   const Index n_f_grid = f_grid.nelem();
@@ -1060,7 +1062,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // with the total number density n, times the VMR of the
   // species:
   for (Index si = 0; si < n_species; ++si) {
-    if (select_abs_species.nelem()) {
+    if (select_abs_species.size()) {
       if (species[si] == select_abs_species)
         sga(si, Range(joker)) *= (n * abs_vmrs[si]);
       else

@@ -38,7 +38,7 @@ void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
         jis[i][0] = 0;
       }
       const RetrievalQuantity& jq = jqs[i];
-      jis[i][1] = jis[i][0] + jq.nelem() - 1;
+      jis[i][1] = jis[i][0] + jq.size() - 1;
       if (jq.HasAffine()) {
         any_affine = true;
       }
@@ -59,7 +59,7 @@ void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
         jis[i][1] = jis[i][0] + jq.TransformationMatrix().ncols() - 1;
         any_affine = true;
       } else {
-        jis[i][1] = jis[i][0] + jq.nelem() - 1;
+        jis[i][1] = jis[i][0] + jq.size() - 1;
       }
     }
   }
@@ -301,7 +301,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
   if (ppath.np > 1)  // Otherwise nothing to do here
   {
     // Altitude
-    Index nr1 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[0].nelem();
+    Index nr1 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[0].size();
     ArrayOfGridPos gp_h(ppath.np);
     if (nr1 > 1) {
       gridpos(gp_h, jacobian_quantity.Grids()[0], ppath.pos(joker, 0), extpolfac);
@@ -314,7 +314,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     Index nr2 = 1;
     ArrayOfGridPos gp_lat;
     gp_lat.resize(ppath.np);
-    nr2 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[1].nelem();
+    nr2 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[1].size();
     if (nr2 > 1) {
       gridpos(gp_lat,
               jacobian_quantity.Grids()[1],
@@ -327,7 +327,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
 
     // Longitude
     ArrayOfGridPos gp_lon;
-    Index nr3 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[2].nelem();
+    Index nr3 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[2].size();
     gp_lon.resize(ppath.np);
     if (nr3 > 1) {
       gridpos(gp_lon,
@@ -402,8 +402,8 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const RetrievalQuantity& jacobian_quantity,
                             ConstMatrixView diy_dpos,
                             ConstVectorView rtp_pos) {
-  ARTS_ASSERT(jacobian_quantity.Grids().nelem() == 2);
-  ARTS_ASSERT(rtp_pos.nelem() == 3);
+  ARTS_ASSERT(jacobian_quantity.Grids().size() == 2);
+  ARTS_ASSERT(rtp_pos.size() == 3);
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -414,7 +414,7 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
   ArrayOfGridPos gp_lat;
   {
     gp_lat.resize(1);
-    nr1 = jacobian_quantity.Grids()[0].nelem();
+    nr1 = jacobian_quantity.Grids()[0].size();
     if (nr1 > 1) {
       gridpos(gp_lat,
               jacobian_quantity.Grids()[0],
@@ -429,7 +429,7 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
   // Longitude
   ArrayOfGridPos gp_lon;
     gp_lon.resize(1);
-    if (jacobian_quantity.Grids()[1].nelem() > 1) {
+    if (jacobian_quantity.Grids()[1].size() > 1) {
       gridpos(gp_lon,
               jacobian_quantity.Grids()[1],
               Vector(1, rtp_pos[2]),
@@ -549,9 +549,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  ARTS_ASSERT(grids.nelem() == dim);
+  ARTS_ASSERT(grids.size() == dim);
 
-  if (p_retr.nelem() == 0) {
+  if (p_retr.size() == 0) {
     os << "The grid vector *" << p_retr_name << "* is empty,"
        << " at least one pressure level\n"
        << "should be specified.";
@@ -560,7 +560,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
     os << "The pressure grid vector *" << p_retr_name << "* is not a\n"
        << "strictly decreasing vector, which is required.";
     return false;
-  } else if (p_grid.nelem() == 1 and p_grid.nelem() == p_retr.nelem()) {
+  } else if (p_grid.size() == 1 and p_grid.size() == p_retr.size()) {
     if (p_grid[0] not_eq p_retr[0]) {
       os << "Mismatching 1-long grids for " << p_retr_name;
       return false;
@@ -569,9 +569,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
     // Necessary repeat but grids are OK
     grids[0] = p_retr;
   } else if (log(p_retr[0]) > 1.5 * log(p_grid[0]) - 0.5 * log(p_grid[1]) ||
-             log(p_retr[p_retr.nelem() - 1]) <
-                 1.5 * log(p_grid[p_grid.nelem() - 1]) -
-                     0.5 * log(p_grid[p_grid.nelem() - 2])) {
+             log(p_retr[p_retr.size() - 1]) <
+                 1.5 * log(p_grid[p_grid.size() - 1]) -
+                     0.5 * log(p_grid[p_grid.size() - 2])) {
     os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
        << "corresponding atmospheric grid.";
     return false;
@@ -582,7 +582,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 
   if (dim >= 2) {
     // If 2D and 3D atmosphere, check latitude grid
-    if (lat_retr.nelem() == 0) {
+    if (lat_retr.size() == 0) {
       os << "The grid vector *" << lat_retr_name << "* is empty,"
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
@@ -591,7 +591,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
       os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
          << "strictly increasing vector, which is required.";
       return false;
-    } else if (lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem()) {
+    } else if (lat_grid.size() == 1 and lat_grid.size() == lat_retr.size()) {
       if (lat_grid[0] not_eq lat_retr[0]) {
         os << "Mismatching 1-long grids for " << lat_retr_name;
         return false;
@@ -600,9 +600,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
       // Necessary repeat but grids are OK
       grids[1] = lat_retr;
     } else if (lat_retr[0] < 1.5 * lat_grid[0] - 0.5 * lat_grid[1] ||
-               lat_retr[lat_retr.nelem() - 1] >
-                   1.5 * lat_grid[lat_grid.nelem() - 1] -
-                       0.5 * lat_grid[lat_grid.nelem() - 2]) {
+               lat_retr[lat_retr.size() - 1] >
+                   1.5 * lat_grid[lat_grid.size() - 1] -
+                       0.5 * lat_grid[lat_grid.size() - 2]) {
       os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
       return false;
@@ -612,7 +612,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
     }
     if (dim == 3) {
       // For 3D atmosphere check longitude grid
-      if (lon_retr.nelem() == 0) {
+      if (lon_retr.size() == 0) {
         os << "The grid vector *" << lon_retr_name << "* is empty,"
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
@@ -621,8 +621,8 @@ bool check_retrieval_grids(ArrayOfVector& grids,
         os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
            << "strictly increasing vector, which is required.";
         return false;
-      } else if (lon_grid.nelem() == 1 and
-                 lon_grid.nelem() == lon_retr.nelem()) {
+      } else if (lon_grid.size() == 1 and
+                 lon_grid.size() == lon_retr.size()) {
         if (lon_grid[0] not_eq lon_retr[0]) {
           os << "Mismatching 1-long grids for " << lon_retr_name;
           return false;
@@ -631,9 +631,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
         // Necessary repeat but grids are OK
         grids[2] = lon_retr;
       } else if (lon_retr[0] < 1.5 * lon_grid[0] - 0.5 * lon_grid[1] ||
-                 lon_retr[lon_retr.nelem() - 1] >
-                     1.5 * lon_grid[lon_grid.nelem() - 1] -
-                         0.5 * lon_grid[lon_grid.nelem() - 2]) {
+                 lon_retr[lon_retr.size() - 1] >
+                     1.5 * lon_grid[lon_grid.size() - 1] -
+                         0.5 * lon_grid[lon_grid.size() - 2]) {
         os << "The grid vector *" << lon_retr_name
            << "* is not covered by the\n"
            << "corresponding atmospheric grid.";
@@ -656,7 +656,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  ARTS_ASSERT(grids.nelem() == max(dim - 1, Index(1)));
+  ARTS_ASSERT(grids.size() == max(dim - 1, Index(1)));
 
   if (dim == 1) {
     // Here we only need to create a length 1 dummy grid
@@ -666,7 +666,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 
   if (dim >= 2) {
     // If 2D and 3D atmosphere, check latitude grid
-    if (lat_retr.nelem() == 0) {
+    if (lat_retr.size() == 0) {
       os << "The grid vector *" << lat_retr_name << "* is empty,"
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
@@ -675,7 +675,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
       os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
          << "strictly increasing vector, which is required.";
       return false;
-    } else if (lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem()) {
+    } else if (lat_grid.size() == 1 and lat_grid.size() == lat_retr.size()) {
       if (lat_grid[0] not_eq lat_retr[0]) {
         os << "Mismatching 1-long grids for " << lat_retr_name;
         return false;
@@ -684,9 +684,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
       // Necessary repeat but grids are OK
       grids[0] = lat_retr;
     } else if (lat_retr[0] < 1.5 * lat_grid[0] - 0.5 * lat_grid[1] ||
-               lat_retr[lat_retr.nelem() - 1] >
-                   1.5 * lat_grid[lat_grid.nelem() - 1] -
-                       0.5 * lat_grid[lat_grid.nelem() - 2]) {
+               lat_retr[lat_retr.size() - 1] >
+                   1.5 * lat_grid[lat_grid.size() - 1] -
+                       0.5 * lat_grid[lat_grid.size() - 2]) {
       os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
       return false;
@@ -697,7 +697,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 
     if (dim == 3) {
       // For 3D atmosphere check longitude grid
-      if (lon_retr.nelem() == 0) {
+      if (lon_retr.size() == 0) {
         os << "The grid vector *" << lon_retr_name << "* is empty,"
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
@@ -706,8 +706,8 @@ bool check_retrieval_grids(ArrayOfVector& grids,
         os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
            << "strictly increasing vector, which is required.";
         return false;
-      } else if (lon_grid.nelem() == 1 and
-                 lon_grid.nelem() == lon_retr.nelem()) {
+      } else if (lon_grid.size() == 1 and
+                 lon_grid.size() == lon_retr.size()) {
         if (lon_grid[0] not_eq lon_retr[0]) {
           os << "Mismatching 1-long grids for " << lon_retr_name;
           return false;
@@ -716,9 +716,9 @@ bool check_retrieval_grids(ArrayOfVector& grids,
         // Necessary repeat but grids are OK
         grids[1] = lon_retr;
       } else if (lon_retr[0] < 1.5 * lon_grid[0] - 0.5 * lon_grid[1] ||
-                 lon_retr[lon_retr.nelem() - 1] >
-                     1.5 * lon_grid[lon_grid.nelem() - 1] -
-                         0.5 * lon_grid[lon_grid.nelem() - 2]) {
+                 lon_retr[lon_retr.size() - 1] >
+                     1.5 * lon_grid[lon_grid.size() - 1] -
+                         0.5 * lon_grid[lon_grid.size() - 2]) {
         os << "The grid vector *" << lon_retr_name
            << "* is not covered by the\n"
            << "corresponding atmospheric grid.";
@@ -747,11 +747,11 @@ void jacobian_type_extrapol(ArrayOfGridPos& gp) {
 void polynomial_basis_func(Vector& b,
                            const Vector& x,
                            const Index& poly_coeff) {
-  const Index l = x.nelem();
+  const Index l = x.size();
 
   ARTS_ASSERT(l > poly_coeff);
 
-  if (b.nelem() != l) b.resize(l);
+  if (b.size() != l) b.resize(l);
 
   if (poly_coeff == 0) {
     b = 1.0;
@@ -791,7 +791,7 @@ void calcBaselineFit(Vector& y_baseline,
 
   // Size and check of sensor_response
   //
-  const Index nf = sensor_response_f_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
   const Size npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
 
@@ -815,9 +815,9 @@ void calcBaselineFit(Vector& y_baseline,
 
   // Compute baseline
   ArrayOfVector jg = rq.Grids();
-  const Index n1 = jg[1].nelem();
-  const Index n2 = jg[2].nelem();
-  const Index n3 = jg[3].nelem();
+  const Index n1 = jg[1].size();
+  const Index n2 = jg[2].size();
+  const Index n3 = jg[3].size();
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
   const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[rq_index][0];

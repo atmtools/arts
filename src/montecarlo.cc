@@ -455,8 +455,8 @@ void cloud_atm_vars_by_gp(VectorView pressure,
                           ConstTensor3View t_field_cloud,
                           ConstTensor4View vmr_field_cloud,
                           ConstTensor4View pnd_field) {
-  Index np = gp_p.nelem();
-  ARTS_ASSERT(pressure.nelem() == np);
+  Index np = gp_p.size();
+  ARTS_ASSERT(pressure.size() == np);
   Index ns = vmr_field_cloud.nbooks();
   Index N_se = pnd_field.nbooks();
   ArrayOfGridPos gp_p_cloud = gp_p;
@@ -633,10 +633,10 @@ bool is_anyptype_nonTotRan(
     const ArrayOfArrayOfSingleScatteringData& scat_data) {
   bool is_anyptype_nonTotRan = false;
   for (Index i_ss = 0;
-       is_anyptype_nonTotRan == false && i_ss < scat_data.nelem();
+       is_anyptype_nonTotRan == false && i_ss < scat_data.size();
        i_ss++) {
     for (Index i_se = 0;
-         is_anyptype_nonTotRan == false && i_se < scat_data[i_ss].nelem();
+         is_anyptype_nonTotRan == false && i_se < scat_data[i_ss].size();
          i_se++) {
       if (scat_data[i_ss][i_se].ptype > PTYPE_TOTAL_RND) {
         is_anyptype_nonTotRan = true;
@@ -665,7 +665,7 @@ void Sample_los(VectorView new_rte_los,
   mirror_los(sca_dir, rte_los);
 
   // Rejection method http://en.wikipedia.org/wiki/Rejection_sampling
-  Index np = pnd_vec.nelem();
+  Index np = pnd_vec.size();
   ARTS_ASSERT(TotalNumberOfElements(scat_data) == np);
   for (Index i = 0; i < np; i++) {
     Z11max += Z11maxvector[i] * pnd_vec[i];

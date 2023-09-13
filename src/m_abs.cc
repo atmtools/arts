@@ -61,21 +61,21 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     const ArrayOfAbsorptionLines& abs_lines,
     const ArrayOfArrayOfSpeciesTag& abs_species) {
   // Size is set but inner size will now change from the original definition of species tags...
-  abs_lines_per_species.resize(abs_species.nelem());
+  abs_lines_per_species.resize(abs_species.size());
 
   // The inner arrays need to be emptied, because they may contain lines
   // from a previous calculation
   for (auto& lines : abs_lines_per_species) lines.resize(0);
 
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
-  for (Index ilines = 0; ilines < abs_lines.nelem(); ilines++) {
+  for (Index ilines = 0; ilines < abs_lines.size(); ilines++) {
     AbsorptionLines lines = abs_lines[ilines];
     
     // Skip empty lines
     if (lines.NumLines() == 0) continue;
 
     // Loop all the tags
-    for (Index i = 0; i < abs_species.nelem() and lines.NumLines(); i++) {
+    for (Index i = 0; i < abs_species.size() and lines.NumLines(); i++) {
       for (auto& this_tag : abs_species[i]) {
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
         if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
@@ -215,7 +215,7 @@ void propmat_clearskyInit(  //WS Output
     const Vector& f_grid,
     const Index& propmat_clearsky_agenda_checked) {
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.nelem();
+  const Index nq = jacobian_quantities.size();
 
   ARTS_USER_ERROR_IF(
       !propmat_clearsky_agenda_checked,
@@ -263,7 +263,7 @@ void propmat_clearskyAddFaraday(
     const AtmPoint& atm_point,
     const Vector& rtp_los) {
   Index ife = -1;
-  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
+  for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
@@ -274,7 +274,7 @@ void propmat_clearskyAddFaraday(
                      "Faraday rotation can not be calculated.");
 
   // Allow early exit for lookup table calculations
-  if (select_abs_species.nelem() and select_abs_species not_eq abs_species[ife]) return;
+  if (select_abs_species.size() and select_abs_species not_eq abs_species[ife]) return;
 
   // All the physical constants joined into one static constant:
   // (abs as e defined as negative)
@@ -326,7 +326,7 @@ void propmat_clearskyAddFaraday(
       propmat_clearsky[iv].U() += r;
 
       // The Jacobian loop
-      for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+      for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
         if (is_frequency_parameter(jacobian_quantities[iq]))
           dpropmat_clearsky_dx(iq, iv) += -2.0 * ne * r / f_grid[iv];
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
@@ -359,7 +359,7 @@ void propmat_clearskyAddParticles(
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& use_abs_as_ext) {
-  ARTS_USER_ERROR_IF(select_abs_species.nelem(), R"--(
+  ARTS_USER_ERROR_IF(select_abs_species.size(), R"--(
   We do not yet support select_abs_species for lookup table calculations
   )--")
 
@@ -376,7 +376,7 @@ void propmat_clearskyAddParticles(
 
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
-  for (Index sp = 0; sp < abs_species.nelem(); sp++) {
+  for (Index sp = 0; sp < abs_species.size(); sp++) {
     if (abs_species[sp].Particles()) {
       np++;
     }
@@ -416,7 +416,7 @@ void propmat_clearskyAddParticles(
   const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
   const Numeric dT = temperature_perturbation(jacobian_quantities);
 
-  const Index na = abs_species.nelem();
+  const Index na = abs_species.size();
   Vector rtp_los_back;
   mirror_los(rtp_los_back, rtp_los);
 
@@ -466,8 +466,8 @@ void propmat_clearskyAddParticles(
   // to the position of the particle type entries in abs_species.
   Index sp = 0;
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       // forward to next particle entry in abs_species
       while (sp < na && not abs_species[sp].Particles()) sp++;
       internal_propmat = 0.0;
@@ -528,9 +528,9 @@ void propmat_clearskyAddParticles(
       }
 
       // For number density derivatives
-      if (jacobian_quantities.nelem()) rtp_vmr_sum += atm_point[abs_species[sp]];
+      if (jacobian_quantities.size()) rtp_vmr_sum += atm_point[abs_species[sp]];
 
-      for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+      for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
         const auto& deriv = jacobian_quantities[iq];
 
         if (not deriv.propmattype()) continue;
@@ -582,7 +582,7 @@ void propmat_clearskyAddParticles(
   }
 
   if (rtp_vmr_sum != 0.0) {
-    for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+    for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
       const auto& deriv = jacobian_quantities[iq];
 
       if (not deriv.propmattype()) continue;
@@ -654,8 +654,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Index& robust) {
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.nelem();
-  const Index ns = abs_species.nelem();
+  const Index nq = jacobian_quantities.size();
+  const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
@@ -706,13 +706,13 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   if (arts_omp_in_parallel()) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_abs_species.nelem() and
+      if (select_abs_species.size() and
           select_abs_species not_eq abs_species[ispecies])
         continue;
 
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman() or
+          not abs_lines_per_species[ispecies].size())
         continue;
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(com,
@@ -737,7 +737,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
   } else {  // In parallel
     const Index nbands = [](auto& lines) {
       Index n = 0;
-      for (auto& abs_lines : lines) n += abs_lines.nelem();
+      for (auto& abs_lines : lines) n += abs_lines.size();
       return n;
     }(abs_lines_per_species);
 
@@ -755,13 +755,13 @@ void propmat_clearskyAddLines(  // Workspace reference:
       const auto [ispecies, iband] =
           flat_index(i, abs_species, abs_lines_per_species);
           
-      if (select_abs_species.nelem() and
+      if (select_abs_species.size() and
           select_abs_species not_eq abs_species[ispecies])
         continue;
 
       // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].nelem())
+      if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman() or
+          not abs_lines_per_species[ispecies].size())
         continue;
 
       auto& band = abs_lines_per_species[ispecies][iband];

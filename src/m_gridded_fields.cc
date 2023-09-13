@@ -18,8 +18,8 @@ void ArrayOfGriddedFieldGetNamers(  // WS Generic Output:
     // WS Generic Input:
     const Array<T>& aogf) {
   // Return the name of the given GriddedField.
-  names.resize(aogf.nelem());
-  for (Index i = 0; i < aogf.nelem(); i++) {
+  names.resize(aogf.size());
+  for (Index i = 0; i < aogf.size(); i++) {
     names[i] = aogf[i].get_name();
   }
 }

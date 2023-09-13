@@ -190,7 +190,7 @@ void cia_interpolation(VectorView result,
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
                     const Species::Species sp2) {
-  for (Index i = 0; i < cia_data.nelem(); i++)
+  for (Size i = 0; i < cia_data.size(); i++)
     if ((cia_data[i].Species(0) == sp1 && cia_data[i].Species(1) == sp2) ||
         (cia_data[i].Species(0) == sp2 && cia_data[i].Species(1) == sp1))
       return i;

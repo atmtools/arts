@@ -51,7 +51,7 @@ void RadarOnionPeelingTableCalc(
     const Numeric& k2)
 {
   // Some index and sizes
-  const Index nss = scat_data.nelem();
+  const Index nss = scat_data.size();
   const Index ndb = dbze_grid.nelem();
   const Index nt = t_grid.nelem();
   const Index iss = i_species;
@@ -69,15 +69,15 @@ void RadarOnionPeelingTableCalc(
   ARTS_USER_ERROR_IF (nss != 2,
                       "*scat_data* must contain data for exactly two "
                       "scattering species.");
-  ARTS_USER_ERROR_IF (scat_species.nelem() != nss,
+  ARTS_USER_ERROR_IF (scat_species.size() != nss,
         "*scat_data* and *scat_species* are inconsistent in size.");
-  ARTS_USER_ERROR_IF (scat_meta.nelem() != nss,
+  ARTS_USER_ERROR_IF (scat_meta.size() != nss,
         "*scat_data* and *scat_meta* are inconsistent in size.");
-  ARTS_USER_ERROR_IF (scat_data[iss].nelem() != scat_meta[iss].nelem(),
+  ARTS_USER_ERROR_IF (scat_data[iss].size() != scat_meta[iss].size(),
                       "*scat_data* and *scat_meta* have inconsistent sizes.");
   ARTS_USER_ERROR_IF (scat_data[iss][0].f_grid.nelem() != 1,
                       "*scat_data* should just contain one frequency.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].nelem() != 1,
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].size() != 1,
                       "The PSD applied must be of 1-moment type.");
   
   // Allocate
@@ -87,14 +87,14 @@ void RadarOnionPeelingTableCalc(
   invtable[iss].resize(2, ndb, nt);
   invtable[iss].data = 0;
   invtable[iss].set_grid_name(0, "Radiative properties");
-  invtable[iss].set_grid(0, {"Log of water content","Extinction"});
+  invtable[iss].set_grid(0, ArrayOfString{"Log of water content","Extinction"});
   invtable[iss].set_grid_name(1, "Radar reflectivity");
   invtable[iss].set_grid(1, dbze_grid);
   invtable[iss].set_grid_name(2, "Temperature");
   invtable[iss].set_grid(2, t_grid);  
 
   // Determine back-scattering and extinction on t_grid, at each size
-  const Index nse = scat_data[iss].nelem();
+  const Index nse = scat_data[iss].size();
   Matrix b(nt,nse), e(nt,nse);
   {
     Matrix itw(nt,2);

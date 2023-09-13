@@ -2,11 +2,11 @@
 
 #include <exception>
 
-#define NELEM_GET(T)                                             \
-  void nelemGet(Index& nelem, const T& x) { nelem = x.nelem(); } \
-  void IndexSetToLast(Index& last, const T& x) {                 \
-    nelemGet(last, x);                                           \
-    last--;                                                      \
+#define NELEM_GET(T)                                          \
+  void nelemGet(Index& size, const T& x) { size = x.size(); } \
+  void IndexSetToLast(Index& last, const T& x) {              \
+    nelemGet(last, x);                                        \
+    last--;                                                   \
   }
 
 NELEM_GET(ArrayOfAbsorptionLines);

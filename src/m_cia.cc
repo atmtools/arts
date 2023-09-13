@@ -45,8 +45,8 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
   {
     // Check that all parameters that should have the number of tag
     // groups as a dimension are consistent:
-    const Index n_tgs = abs_species.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
+    const Index n_tgs = abs_species.size();
+    const Index n_xsec = abs_xsec_per_species.size();
     const Index nr_vmrs = abs_vmrs.nrows();
     //    const Index n_cia    = abs_cia_data.nelem();
 
@@ -111,10 +111,10 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.nelem(); ii++) {
+  for (Index ii = 0; ii < abs_species_active.size(); ii++) {
     const Index i = abs_species_active[ii];
 
-    for (Index s = 0; s < abs_species[i].nelem(); s++) {
+    for (Index s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a CIA tag
@@ -198,7 +198,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
           for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
             this_xsec(iv, ip) += n * xsec_temp[iv];
-            for (Index iq = 0; iq < jacobian_quantities.nelem();
+            for (Index iq = 0; iq < jacobian_quantities.size();
                  iq++) {
               const auto& deriv = jacobian_quantities[iq];
             
@@ -238,8 +238,8 @@ void propmat_clearskyAddCIA(  // WS Output:
     const Index& ignore_errors) {
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.nelem();
-  const Index ns = abs_species.nelem();
+  const Index nq = jacobian_quantities.size();
+  const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
@@ -301,17 +301,17 @@ void propmat_clearskyAddCIA(  // WS Output:
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_abs_species.nelem() and
+    if (select_abs_species.size() and
         select_abs_species not_eq abs_species[ispecies])
       continue;
 
     // Skip it if there are no species or there is Zeeman requested
-    if (not abs_species[ispecies].nelem() or abs_species[ispecies].Zeeman())
+    if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman())
       continue;
 
     // Go through the tags in the current tag group to see if they
     // are continuum tags:
-    for (Index s = 0; s < abs_species[ispecies].nelem(); ++s) {
+    for (Index s = 0; s < abs_species[ispecies].size(); ++s) {
       const SpeciesTag& this_species = abs_species[ispecies][s];
 
       // Check if this is a CIA tag
@@ -387,7 +387,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv].A() +=
               nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
-          for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+          for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
             const auto& deriv = jacobian_quantities[iq];
 
             if (not deriv.propmattype()) continue;
@@ -471,8 +471,8 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    for (Index iso = 0; iso < abs_species[sp].nelem(); iso++) {
+  for (Index sp = 0; sp < abs_species.size(); sp++) {
+    for (Index iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       ArrayOfString cia_names;
@@ -496,10 +496,10 @@ void abs_cia_dataReadFromCIA(  // WS Output:
       ArrayOfString checked_dirs;
 
       bool found = false;
-      for (Index fname = 0; !found && fname < cia_names.nelem(); fname++) {
+      for (Index fname = 0; !found && fname < cia_names.size(); fname++) {
         String cia_name = cia_names[fname];
 
-        for (Index dir = 0; !found && dir < subfolders.nelem(); dir++) {
+        for (Index dir = 0; !found && dir < subfolders.size(); dir++) {
           ArrayOfString files;
           checked_dirs.push_back(catalogpath + "/" + subfolders[dir] +
                                  cia_name + "/");
@@ -509,13 +509,13 @@ void abs_cia_dataReadFromCIA(  // WS Output:
             continue;
           }
 
-          for (Index i = files.nelem() - 1; i >= 0; i--) {
+          for (Index i = files.size() - 1; i >= 0; i--) {
             if (files[i].find(cia_name) != 0 ||
                 files[i].rfind(".cia") != files[i].length() - 4) {
               files.erase(files.begin() + i);
             }
           }
-          if (files.nelem()) {
+          if (files.size()) {
             CIARecord ciar;
 
             found = true;
@@ -554,8 +554,8 @@ void abs_cia_dataReadFromXML(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Index sp = 0; sp < abs_species.nelem(); sp++) {
-    for (Index iso = 0; iso < abs_species[sp].nelem(); iso++) {
+  for (Index sp = 0; sp < abs_species.size(); sp++) {
+    for (Index iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       Index cia_index = cia_get_index(abs_cia_data,
@@ -594,14 +594,14 @@ void CIAInfo(  // Generic Input:
     const ArrayOfString& cia_tags) {
   ArrayOfArrayOfSpeciesTag species_tags;
 
-  for (Index i = 0; i < cia_tags.nelem(); i++) {
+  for (Index i = 0; i < cia_tags.size(); i++) {
     ArrayOfSpeciesTag this_species_tag;
 
     ArrayOfString species_names;
 
     split(species_names, cia_tags[i], "-");
 
-    ARTS_USER_ERROR_IF (species_names.nelem() != 2,
+    ARTS_USER_ERROR_IF (species_names.size() != 2,
       "ERROR: Cannot parse CIA tag: ", cia_tags[i])
 
     this_species_tag.push_back(

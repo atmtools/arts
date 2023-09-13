@@ -398,10 +398,10 @@ class RetrievalQuantity {
    * 
    * @return The number of elements if each grid represents a dimension
    */
-  [[nodiscard]] Index nelem() const {
+  [[nodiscard]] Index size() const {
     Index i = 1;
     for (Size j = 0; j < mgrids.size(); ++j) {
-      i *= mgrids[j].nelem();
+      i *= mgrids[j].size();
     }
     return i;
   }

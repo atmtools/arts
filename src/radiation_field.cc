@@ -20,7 +20,7 @@ Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> &F,
                                  const Vector& f) {
   Numeric val = 0.0;
 
-  const Index n = f.nelem();
+  const Index n = f.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) * (F[i].real() + F[i + 1].real());
 
@@ -31,7 +31,7 @@ Numeric test_integrate_zenith(const Vector& cosza,
                               const Array<Index>& sorted_index) {
   Numeric val = 0.0;
 
-  const Index n = cosza.nelem();
+  const Index n = cosza.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (cosza[sorted_index[i]] - cosza[sorted_index[i + 1]]);
 
@@ -43,7 +43,7 @@ Numeric integrate_convolved(const StokvecVector& I,
                             const Vector& f) {
   Numeric val = 0.0;
 
-  const Index n = f.nelem();
+  const Index n = f.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) *
            (I[i].I() * F[i].real() + I[i + 1].I() * F[i + 1].real());
@@ -56,7 +56,7 @@ Numeric integrate_convolved(const MuelmatVector& T,
                             const Vector& f) {
   Numeric val = 0.0;
 
-  const Index n = f.nelem();
+  const Index n = f.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.5 * (f[i + 1] - f[i]) *
            (T[i](0, 0) * F[i].real() + T[i + 1](0, 0) * F[i + 1].real());
@@ -69,7 +69,7 @@ Numeric integrate_zenith(const ConstVectorView& j,
                          const Array<Index>& sorted_index) {
   Numeric val = 0.0;
 
-  const Index n = cosza.nelem();
+  const Index n = cosza.size();
   for (Index i = 0; i < n - 1; i++)
     val += 0.25 * (cosza[sorted_index[i]] - cosza[sorted_index[i + 1]]) *
            (j[sorted_index[i]] + j[sorted_index[i + 1]]);
@@ -105,12 +105,12 @@ void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
   cosza.resize(nalt);
   for (Index i = 0; i < nalt; i++) {
     Vector& data = cosza[i];
-    data.resize(zeniths_array[i].nelem());
+    data.resize(zeniths_array[i].size());
 
-    for (Index j = 0; j < data.nelem(); j++) data[j] = zeniths_array[i][j];
+    for (Index j = 0; j < data.size(); j++) data[j] = zeniths_array[i][j];
     get_sorted_indexes(sorted_index[i], data);
 
-    for (Index j = 0; j < data.nelem(); j++)
+    for (Index j = 0; j < data.size(); j++)
       data[j] = Conversion::cosd(data[j]);
   }
 }

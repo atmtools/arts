@@ -35,8 +35,9 @@ fwd::lbl::full::full(const AtmPoint& atm_point,
                         std::make_integer_sequence<
                             Index,
                             std::variant_size_v<lbl::band_models>>{})) {
-  ARTS_USER_ERROR_IF(size() not_eq static_cast<std::size_t>(nelem(specbands)),
-                     "Size mismatch between specbands and models");
+  ARTS_USER_ERROR_IF(
+      size() not_eq static_cast<std::size_t>(Absorption::size(specbands)),
+      "Size mismatch between specbands and models");
 }
 
 Complex fwd::lbl::full::at(Numeric f) const {

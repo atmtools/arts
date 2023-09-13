@@ -136,10 +136,10 @@ void antenna_responseGaussian(GriddedField4& r,
                               const Numeric& grid_width,
                               const Index& grid_npoints,
                               const Index& do_2d) {
-  const Index nf = f_points.nelem();
+  const Index nf = f_points.size();
   ARTS_USER_ERROR_IF (nf == 0, "*f_points* is empty.");  
-  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
-  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+  ARTS_USER_ERROR_IF (fwhm.size() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.size() != nf,
                       "*f_points* and *fwhm* must have the same length.");  
   ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
 
@@ -291,10 +291,10 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
                                       const Vector& fwhm,
                                       const Numeric& grid_width,
                                       const Index& grid_npoints) {
-  const Index nf = f_backend.nelem();
+  const Index nf = f_backend.size();
   ARTS_USER_ERROR_IF (nf == 0, "*f_backend* is empty.");  
-  ARTS_USER_ERROR_IF (fwhm.nelem() == 0, "*fwhm* is empty.");  
-  ARTS_USER_ERROR_IF (fwhm.nelem() != nf,
+  ARTS_USER_ERROR_IF (fwhm.size() == 0, "*fwhm* is empty.");  
+  ARTS_USER_ERROR_IF (fwhm.size() != nf,
                       "*f_backend* and *fwhm* must have the same length.");  
   ARTS_USER_ERROR_IF (grid_npoints < 2, "*grid_npoints* must be > 1.");
   
@@ -347,8 +347,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   // Find out how many channels we have in total:
   // f_backend is an array of vectors, containing the band frequencies for each Mixer.
   Index n_chan = 0;
-  for (Index i = 0; i < f_backend.nelem(); ++i)
-    for (Index s = 0; s < f_backend[i].nelem(); ++s) ++n_chan;
+  for (Index i = 0; i < f_backend.size(); ++i)
+    for (Index s = 0; s < f_backend[i].size(); ++s) ++n_chan;
 
   // Checks on input quantities:
 
@@ -361,8 +361,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   }
 
   // Is number of LOs consistent in all input variables?
-  if ((f_backend.nelem() != lo.nelem()) ||
-      (backend_channel_response.nelem() != lo.nelem())) {
+  if ((f_backend.size() != lo.size()) ||
+      (backend_channel_response.size() != lo.size())) {
     std::ostringstream os;
     os << "Variables *lo_multi*, *f_backend_multi* and *backend_channel_response_multi*\n"
        << "must have same number of elements (number of LOs).";
@@ -370,8 +370,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   }
 
   // Is number of bands consistent for each LO?
-  for (Index i = 0; i < f_backend.nelem(); ++i)
-    if (f_backend[i].nelem() != backend_channel_response[i].nelem()) {
+  for (Index i = 0; i < f_backend.size(); ++i)
+    if (f_backend[i].size() != backend_channel_response[i].size()) {
       std::ostringstream os;
       os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
          << "must have same number of bands for each LO.";
@@ -392,8 +392,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   // Counts position inside the flat arrays during construction:
   Index j = 0;
 
-  for (Index i = 0; i < f_backend.nelem(); ++i)
-    for (Index s = 0; s < f_backend[i].nelem(); ++s) {
+  for (Index i = 0; i < f_backend.size(); ++i)
+    for (Index s = 0; s < f_backend[i].size(); ++s) {
       const GriddedField1& this_grid = backend_channel_response[i][s];
       const Numeric this_f_backend = f_backend[i][s];
 
@@ -431,7 +431,7 @@ void f_gridFromSensorAMSU(  // WS Output:
   // can use the STL push_back function.
   std::vector<Numeric> f_grid_array;
 
-  for (Index i = 0; i < fmin.nelem(); ++i) {
+  for (Index i = 0; i < fmin.size(); ++i) {
     // Band width:
     const Numeric bw = fmax[i] - fmin[i];
 
@@ -468,14 +468,14 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
     const Vector& verbosityVect) {
   Index numFpoints = 0;
   // Calculate the total number of frequency points
-  for (Index idx = 0; idx < backend_channel_response_multi.nelem(); ++idx) {
-    for (Index idy = 0; idy < backend_channel_response_multi[idx].nelem();
+  for (Index idx = 0; idx < backend_channel_response_multi.size(); ++idx) {
+    for (Index idy = 0; idy < backend_channel_response_multi[idx].size();
          ++idy) {
       numFpoints += backend_channel_response_multi[idx][idy].get_grid_size(0);
     }
   }
 
-  Index numChan = backend_channel_response_multi.nelem();  // number of channels
+  Index numChan = backend_channel_response_multi.size();  // number of channels
 
   // Checks on input quantities:
 
@@ -502,8 +502,8 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
   Vector VerbosityValVect(numFpoints);
   Index VerbVectIdx = 0;
 
-  for (Index i = 0; i < f_backend_multi.nelem(); ++i) {
-    for (Index ii = 0; ii < f_backend_multi[i].nelem(); ++ii) {
+  for (Index i = 0; i < f_backend_multi.size(); ++i) {
+    for (Index ii = 0; ii < f_backend_multi[i].size(); ++ii) {
       const GriddedField1& this_grid = backend_channel_response_multi[i][ii];
       const Numeric this_f_backend = f_backend_multi[i][ii];
       // Signal passband :
@@ -551,14 +551,14 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
   // can use the STL push_back function.
   std::vector<Numeric> f_grid_array;
 
-  for (Index i = 0; i < fmin.nelem(); ++i) {
+  for (Index i = 0; i < fmin.size(); ++i) {
     // Bandwidth:
     const Numeric bw = fmax[i] - fmin[i];
     Numeric npf = ceil(bw / spacing);  // Set a default value
 
     // How many grid intervals do I need?
     Index verbIdx = 0;
-    if (verbosityVect.nelem() > 0) {
+    if (verbosityVect.size() > 0) {
       // find the grid needed for the particular part of passband
       for (Index ii = 0; ii < VerbVectIdx; ++ii) {
         if ((FminVerbosityVect[ii] >= fmin[i]) &&
@@ -634,7 +634,7 @@ void f_gridFromSensorHIRS(  // WS Output:
   // can use the STL push_back function.
   std::vector<Numeric> f_grid_array;
 
-  for (Index i = 0; i < fmin.nelem(); ++i) {
+  for (Index i = 0; i < fmin.size(); ++i) {
     // Band width:
     const Numeric bw = fmax[i] - fmin[i];
 
@@ -680,12 +680,12 @@ void f_gridMetMM(
   //
   chk_met_mm_backend(mm_back);
   //
-  if (freq_spacing.nelem() != 1 && freq_spacing.nelem() != nchannels)
+  if (freq_spacing.size() != 1 && freq_spacing.size() != nchannels)
     throw std::runtime_error(
         "Length of *freq_spacing* vector must be either 1 or correspond\n"
         "to the number of rows in *met_mm_backend*.");
   //
-  if (freq_number.nelem() != 1 && freq_number.nelem() != nchannels)
+  if (freq_number.size() != 1 && freq_number.size() != nchannels)
     throw std::runtime_error(
         "Length of *freq_number* array must be either 1 or correspond\n"
         "to the number of rows in *met_mm_backend*.");
@@ -712,9 +712,9 @@ void f_gridMetMM(
     const Numeric bandwidth = mm_back(ch, 3);
 
     const Index this_fnumber =
-        (freq_number.nelem() == 1) ? freq_number[0] : freq_number[ch];
+        (freq_number.size() == 1) ? freq_number[0] : freq_number[ch];
     const Numeric this_spacing =
-        (freq_spacing.nelem() == 1) ? freq_spacing[0] : freq_spacing[ch];
+        (freq_spacing.size() == 1) ? freq_spacing[0] : freq_spacing[ch];
 
     if (this_spacing <= 0)
       throw std::runtime_error("*freq_spacing must be > 0.");
@@ -841,7 +841,7 @@ void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
 
   // za grid for response
   ConstVectorView r_za_grid = antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
-  const Index nr = r_za_grid.nelem();
+  const Index nr = r_za_grid.size();
 
   // Cumulative integral of response (factor /2 skipped, but does not matter)
   Vector cumtrapz(nr);
@@ -885,8 +885,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
   chk_if_bool("sensor_norm", sensor_norm);
 
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -895,7 +895,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -926,7 +926,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   // Checks of antenna_response polarisation dimension
   //
   const Index lpolgrid =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
   //
   if (lpolgrid != 1 && lpolgrid != npol) {
     os << "The number of polarisation in *antenna_response* must be 1 or 4).\n";
@@ -946,7 +946,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   f_dlow = min(sensor_response_f_grid) - aresponse_f_grid[0];
   f_dhigh = last(aresponse_f_grid) - max(sensor_response_f_grid);
   //
-  if (aresponse_f_grid.nelem() > 1) {
+  if (aresponse_f_grid.size() > 1) {
     if (f_dlow < 0) {
       os << "The frequency grid of *antenna_response is too narrow. It must\n"
          << "cover all considered frequencies (*f_grid*), if the length\n"
@@ -972,7 +972,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   //
   chk_if_increasing("za_grid of *antenna_response*", aresponse_za_grid);
   //
-  if (aresponse_za_grid.nelem() < 2) {
+  if (aresponse_za_grid.size() < 2) {
     os << "The zenith angle grid of *antenna_response* must have >= 2 values.\n";
     error_found = true;
   }
@@ -983,7 +983,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
       antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
   //
   if (antenna_dim == 1) {
-    if (aresponse_aa_grid.nelem() != 1) {
+    if (aresponse_aa_grid.size() != 1) {
       os << "The azimuthal dimension of *antenna_response* must be 1 if\n"
          << "*antenna_dim* equals 1.\n";
       error_found = true;
@@ -991,7 +991,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   } else {
     chk_if_increasing("aa_grid of antenna_response", aresponse_aa_grid);
     //
-    if (aresponse_za_grid.nelem() < 2) {
+    if (aresponse_za_grid.size() < 2) {
       os << "The zenith angle grid of *antenna_response* must have >= 2\n"
          << "values.\n";
       error_found = true;
@@ -1061,7 +1061,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   else {
 
     if (option_2d == "interp_response" ) {
-      ARTS_USER_ERROR_IF (solid_angles.nelem() != sensor_response_dlos_grid.nrows(),
+      ARTS_USER_ERROR_IF (solid_angles.size() != sensor_response_dlos_grid.nrows(),
           "Length of *solid_angles* not matching number of dlos.");  
       antenna2d_interp_response(hantenna,
                                 antenna_dim,
@@ -1121,8 +1121,8 @@ void sensor_responseBackend(
     const ArrayOfGriddedField1& backend_channel_response,
     const Index& sensor_norm) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -1131,7 +1131,7 @@ void sensor_responseBackend(
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -1159,9 +1159,9 @@ void sensor_responseBackend(
 
   // Check number of columns in backend_channel_response
   //
-  const Index nrp = backend_channel_response.nelem();
+  const Index nrp = backend_channel_response.size();
   //
-  if (nrp != 1 && nrp != f_backend.nelem()) {
+  if (nrp != 1 && nrp != f_backend.size()) {
     os << "The WSV *backend_channel_response* must have 1 or n elements,\n"
        << "where n is the length of *f_backend*.\n";
     error_found = true;
@@ -1175,12 +1175,12 @@ void sensor_responseBackend(
   Numeric f_dhigh = 0.0;
 
   Index freq_full = nrp > 1;
-  for (Index i = 0; i < f_backend.nelem(); i++) {
+  for (Index i = 0; i < f_backend.size(); i++) {
     const Index irp = i * freq_full;
     ConstVectorView bchr_f_grid =
         backend_channel_response[irp].get_numeric_grid(GFIELD1_F_GRID);
 
-    if (bchr_f_grid.nelem() != backend_channel_response[irp].data.nelem()) {
+    if (bchr_f_grid.size() != backend_channel_response[irp].data.size()) {
       os << "Mismatch in size of grid and data in element " << i
          << "\nof *sideband_response*.\n";
       error_found = true;
@@ -1337,11 +1337,11 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
     throw std::runtime_error(
         "This method requires that the number of observation directions is 2.");
 
-  if (sensor_response_pol_grid.nelem() != 1)
+  if (sensor_response_pol_grid.size() != 1)
     throw std::runtime_error(
         "This method handles (so far) only single polarisation cases.");
 
-  const Index n = sensor_response_f_grid.nelem();
+  const Index n = sensor_response_f_grid.size();
 
   // Form H matrix representing beam switching
   Sparse Hbswitch(n, 2 * n);
@@ -1365,7 +1365,7 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
 
   // Update sensor_response_za_grid
   const Vector zaaa{sensor_response_dlos_grid(1, joker)};
-  sensor_response_dlos_grid.resize(1, zaaa.nelem());
+  sensor_response_dlos_grid.resize(1, zaaa.size());
   sensor_response_dlos_grid(0, joker) = zaaa;
 
   // Set aux variables
@@ -1392,11 +1392,11 @@ void sensor_responseFrequencySwitching(
     throw std::runtime_error(
         "This method requires that the number of observation directions is 1.");
 
-  if (sensor_response_pol_grid.nelem() != 1)
+  if (sensor_response_pol_grid.size() != 1)
     throw std::runtime_error(
         "This method handles (so far) only single polarisation cases.");
 
-  const Index n = sensor_response_f_grid.nelem();
+  const Index n = sensor_response_f_grid.size();
   const Index n2 = n / 2;
 
   if (sensor_response.nrows() != n)
@@ -1494,8 +1494,8 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
                               const Index& polyorder,
                               const Index& nfill) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -1504,7 +1504,7 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -1646,7 +1646,7 @@ void sensor_responseInit(Sparse& sensor_response,
 
   //Set response matrix to identity matrix
   //
-  const Index n = sensor_response_f.nelem();
+  const Index n = sensor_response_f.size();
   //
   //
   sensor_response.resize(n, n);
@@ -1701,8 +1701,8 @@ void sensor_responseMixer(Sparse& sensor_response,
                           const GriddedField1& sideband_response,
                           const Index& sensor_norm) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -1715,7 +1715,7 @@ void sensor_responseMixer(Sparse& sensor_response,
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -1735,11 +1735,11 @@ void sensor_responseMixer(Sparse& sensor_response,
   }
 
   // Checks of sideband_response, partly in combination with lo
-  if (sbresponse_f_grid.nelem() != sideband_response.data.nelem()) {
+  if (sbresponse_f_grid.size() != sideband_response.data.size()) {
     os << "Mismatch in size of grid and data in *sideband_response*.\n";
     error_found = true;
   }
-  if (sbresponse_f_grid.nelem() < 2) {
+  if (sbresponse_f_grid.size() < 2) {
     os << "At least two data points must be specified in "
        << "*sideband_response*.\n";
     error_found = true;
@@ -1849,7 +1849,7 @@ void sensor_responseMetMM(
   chk_if_bool("use_antenna", use_antenna);
   chk_if_bool("mirror_dza", mirror_dza);
 
-  if (mm_ant.nelem())
+  if (mm_ant.size())
     throw std::runtime_error(
         "So far inclusion of antenna pattern is NOT supported and\n"
         "*met_mm_antenna* must be empty.\n");
@@ -1929,8 +1929,8 @@ void sensor_responseMetMM(
                                             channel2fgrid_weights);
 
   // Construct complete sensor_response matrix
-  const Index num_f = f_grid.nelem();
-  const Index nchannels = f_backend.nelem();
+  const Index num_f = f_grid.size();
+  const Index nchannels = f_backend.size();
   sensor_response = Sparse(nchannels * antenna_dlos_local.nrows(),
                            num_f * 4 * antenna_dlos_local.nrows());
 
@@ -1938,9 +1938,9 @@ void sensor_responseMetMM(
   sensor_response_pol_grid[0] = 1;
 
     // With polarisation
-    if (mm_pol.nelem() != nchannels) {
+    if (mm_pol.size() != nchannels) {
       std::ostringstream os;
-      os << "Length of *met_mm_polarisation* (" << mm_pol.nelem()
+      os << "Length of *met_mm_polarisation* (" << mm_pol.size()
          << ") must match\n"
          << "number of channels in *met_mm_backend* (" << nchannels << ").";
       throw std::runtime_error(os.str());
@@ -2001,9 +2001,9 @@ void sensor_responseMixerBackendPrecalcWeights(
     const ArrayOfArrayOfIndex& channel2fgrid_indexes,
     const ArrayOfVector& channel2fgrid_weights) {
   // Some sizes
-  const Index nin_f = sensor_response_f_grid.nelem();
-  const Index nout_f = f_backend.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nin_f = sensor_response_f_grid.size();
+  const Index nout_f = f_backend.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nin_f * npol * nlos;
   const Index nout = nout_f * npol * nlos;
@@ -2013,7 +2013,7 @@ void sensor_responseMixerBackendPrecalcWeights(
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -2044,24 +2044,24 @@ void sensor_responseMixerBackendPrecalcWeights(
   }
 
   // frequency index and weights
-  if (channel2fgrid_indexes.nelem() != nout_f) {
+  if (channel2fgrid_indexes.size() != nout_f) {
     os << "The first size of *channel2fgrid_indexes* an length of *f_backend* "
        << "must be equal.\n";
     error_found = true;
   }
-  if (channel2fgrid_weights.nelem() != channel2fgrid_indexes.nelem()) {
+  if (channel2fgrid_weights.size() != channel2fgrid_indexes.size()) {
     os << "Leading sizes of *channel2fgrid_indexes* and "
        << "*channel2fgrid_weights* differ.\n";
     error_found = true;
   }
   for (Index i = 0; i < nout_f; i++) {
-    if (channel2fgrid_indexes[i].nelem() != channel2fgrid_weights[i].nelem()) {
+    if (channel2fgrid_indexes[i].size() != channel2fgrid_weights[i].size()) {
       os << "Mismatch in size between *channel2fgrid_indexes* and "
          << "*channel2fgrid_weights*, found for array/vector with "
          << "index " << i << ".\n";
       error_found = true;
     }
-    for (Index j = 0; j < channel2fgrid_indexes[i].nelem(); j++) {
+    for (Index j = 0; j < channel2fgrid_indexes[i].size(); j++) {
       if (channel2fgrid_indexes[i][j] < 0 ||
           channel2fgrid_indexes[i][j] >= nin_f) {
         os << "At least one value in *channel2fgrid_indexes* is either "
@@ -2084,7 +2084,7 @@ void sensor_responseMixerBackendPrecalcWeights(
     for (Index ifr = 0; ifr < nout_f; ifr++) {
       // The summation vector for 1 polarisation and 1 viewing direction
       Vector w1(nin_f, 0.0);
-      for (Index j = 0; j < channel2fgrid_indexes[ifr].nelem(); j++) {
+      for (Index j = 0; j < channel2fgrid_indexes[ifr].size(); j++) {
         w1[channel2fgrid_indexes[ifr][j]] = channel2fgrid_weights[ifr][j];
       }
 
@@ -2141,18 +2141,18 @@ void sensor_responseMultiMixerBackend(
     const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
     const Index& sensor_norm) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
-  const Index nlo = lo_multi.nelem();
+  const Index nlo = lo_multi.size();
 
   // Initialise a output stream for runtime errors and a flag for errors
   std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -2166,22 +2166,22 @@ void sensor_responseMultiMixerBackend(
 
   // Check that response data are consistent with respect to number of
   // mixer/reciever chains.
-  if (sideband_response_multi.nelem() != nlo) {
+  if (sideband_response_multi.size() != nlo) {
     os << "Inconsistency in length between *lo_mixer* and "
        << "*sideband_response_multi*.\n";
     error_found = true;
   }
-  if (sideband_mode_multi.nelem() != nlo) {
+  if (sideband_mode_multi.size() != nlo) {
     os << "Inconsistency in length between *lo_mixer* and "
        << "*sideband_mode_multi*.\n";
     error_found = true;
   }
-  if (f_backend_multi.nelem() != nlo) {
+  if (f_backend_multi.size() != nlo) {
     os << "Inconsistency in length between *lo_mixer* and "
        << "*f_backend_multi*.\n";
     error_found = true;
   }
-  if (backend_channel_response_multi.nelem() != nlo) {
+  if (backend_channel_response_multi.size() != nlo) {
     os << "Inconsistency in length between *lo_mixer* and "
        << "*backend_channel_response_multi*.\n";
     error_found = true;
@@ -2243,7 +2243,7 @@ void sensor_responseMultiMixerBackend(
     sr.push_back(sr1);
     srfgrid.push_back(srfgrid1);
     //
-    cumsumf[ilo + 1] = cumsumf[ilo] + srfgrid1.nelem();
+    cumsumf[ilo + 1] = cumsumf[ilo] + srfgrid1.size();
   }
 
   // Append data to create sensor_response_f_grid
@@ -2252,7 +2252,7 @@ void sensor_responseMultiMixerBackend(
   sensor_response_f_grid.resize(nfnew);
   //
   for (Index ilo = 0; ilo < nlo; ilo++) {
-    for (Index i = 0; i < srfgrid[ilo].nelem(); i++) {
+    for (Index i = 0; i < srfgrid[ilo].size(); i++) {
       sensor_response_f_grid[cumsumf[ilo] + i] = srfgrid[ilo][i];
     }
   }
@@ -2260,7 +2260,7 @@ void sensor_responseMultiMixerBackend(
   // Append data to create total sensor_response
   //
   const Index ncols = sr[0].ncols();
-  const Index npolnew = sensor_response_pol_grid.nelem();
+  const Index npolnew = sensor_response_pol_grid.size();
   const Index nfpolnew = nfnew * npolnew;
   //
   sensor_response.resize(nlos * nfpolnew, ncols);
@@ -2308,9 +2308,9 @@ void sensor_responsePolarisation(Sparse& sensor_response,
                                  const String& iy_unit,
                                  const ArrayOfIndex& instrument_pol) {
   // Some sizes
-  const Index nnew = instrument_pol.nelem();
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nnew = instrument_pol.size();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
 
   // Initialise an output stream for runtime errors and a flag for errors
@@ -2328,7 +2328,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
   }
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -2385,7 +2385,7 @@ void sensor_responsePolarisation(Sparse& sensor_response,
       /* Old code, matching older version of stokes2pol
           Index p = instrument_pol[in] - 1;
           //
-          for( Index iv=0; iv<pv[p].nelem(); iv++ )
+          for( Index iv=0; iv<pv[p].size(); iv++ )
             { hrow[col+iv] = pv[p][iv]; }
           */
       stokes2pol(
@@ -2426,8 +2426,8 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
                                    const Matrix& sensor_response_dlos_grid,
                                    const Vector& stokes_rotation) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -2445,7 +2445,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
   }
 
   // Check special stuff for this method
-  if (stokes_rotation.nelem() != nlos) {
+  if (stokes_rotation.size() != nlos) {
     os << "Incorrect number of angles in *stokes_rotation*. The length\n"
        << "of this matrix must match *sensor_response_dlos_grid*.\n";
     error_found = true;
@@ -2690,7 +2690,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       }
     }
     // Are any passbands overlapping?
-    for (Index ii = 2; ii < (f_range.nelem() - 2); ++ii) {
+    for (Index ii = 2; ii < (f_range.size() - 2); ++ii) {
       if (((b_resp.data[ii - 1] == 1) && (b_resp.data[ii] == 0) &&
            (b_resp.data[ii + 1] == 0) && (b_resp.data[ii + 2] == 1))) {
         if ((f_range[ii] >= f_range[ii + 1]))  // Overlapping passbands
@@ -2779,7 +2779,7 @@ void sensor_responseGenericAMSU(  // WS Output:
       antenna_dim,
       sensor_norm);
 
-  Index numLO = lo_multi.nelem();
+  Index numLO = lo_multi.size();
   // Variables for data to be appended
   // Based on code from m_sensor->sensor_responseMultiMixerBackend()
   Array<Sparse> sr;
@@ -2812,7 +2812,7 @@ void sensor_responseGenericAMSU(  // WS Output:
     sr.push_back(sr1);
     srfgrid.push_back(srfgrid1);
     //
-    cumsumf[idxLO + 1] = cumsumf[idxLO] + srfgrid1.nelem();
+    cumsumf[idxLO + 1] = cumsumf[idxLO] + srfgrid1.size();
   }
 
   // Append data to create sensor_response_f_grid
@@ -2821,13 +2821,13 @@ void sensor_responseGenericAMSU(  // WS Output:
   sensor_response_f_grid.resize(nfnew);
   //
   for (Index ilo = 0; ilo < numLO; ilo++) {
-    for (Index i = 0; i < srfgrid[ilo].nelem(); i++) {
+    for (Index i = 0; i < srfgrid[ilo].size(); i++) {
       sensor_response_f_grid[cumsumf[ilo] + i] = srfgrid[ilo][i];
     }
   }
 
   const Index ncols = sr[0].ncols();
-  const Index npolnew = sensor_response_pol_grid.nelem();
+  const Index npolnew = sensor_response_pol_grid.size();
   const Index nfpolnew = nfnew * npolnew;
   //
   sensor_response.resize(nlos * nfpolnew, ncols);
@@ -3004,14 +3004,14 @@ void WMRFSelectChannels(  // WS Output:
 
   // wmrf_weights must have same number of rows as f_backend, and same
   // number of columns as f_grid.
-  if ((wmrf_weights.nrows() != f_backend.nelem()) ||
-      (wmrf_weights.ncols() != f_grid.nelem())) {
+  if ((wmrf_weights.nrows() != f_backend.size()) ||
+      (wmrf_weights.ncols() != f_grid.size())) {
     os << "The WSV *wmrf_weights* must have same number of rows as\n"
        << "*f_backend*, and same number of columns as *f_grid*.\n"
        << "wmrf_weights.nrows() = " << wmrf_weights.nrows() << "\n"
-       << "f_backend.nelem()    = " << f_backend.nelem() << "\n"
+       << "f_backend.size()    = " << f_backend.size() << "\n"
        << "wmrf_weights.ncols() = " << wmrf_weights.ncols() << "\n"
-       << "f_grid.nelem()       = " << f_grid.nelem();
+       << "f_grid.size()       = " << f_grid.size();
     throw std::runtime_error(os.str());
   }
 
@@ -3024,13 +3024,13 @@ void WMRFSelectChannels(  // WS Output:
     os << "Min(wmrf_channels) must be >= 0, but it is " << min(wmrf_channels)
        << ".";
   }
-  if (max(wmrf_channels) >= f_backend.nelem()) {
+  if (max(wmrf_channels) >= f_backend.size()) {
     os << "Max(wmrf_channels) must be less than the total number of channels.\n"
        << "(We use zero-based indexing!)\n"
        << "The actual value you have is " << max(wmrf_channels) << ".";
   }
 
-  if (wmrf_channels.nelem() == f_backend.nelem()) {
+  if (wmrf_channels.size() == f_backend.size()) {
     // No channels to be removed, I can return the original grid.
   } else {
   }
@@ -3054,12 +3054,12 @@ void WMRFSelectChannels(  // WS Output:
   ArrayOfIndex selection;
   // Make sure that selection does not have to be reallocated along
   // the way. (This is purely to improve performance a bit.)
-  selection.reserve(f_grid.nelem());
+  selection.reserve(f_grid.size());
 
   // Go through f_grid, and check for each frequency whether it is in
   // the set of WMRF frequencies for any of the channels.
-  ARTS_ASSERT(wmrf_weights.nrows() == f_backend.nelem());
-  ARTS_ASSERT(wmrf_weights.ncols() == f_grid.nelem());
+  ARTS_ASSERT(wmrf_weights.nrows() == f_backend.size());
+  ARTS_ASSERT(wmrf_weights.ncols() == f_grid.size());
   for (Index fi = 0; fi < wmrf_weights.ncols(); ++fi) {
     Index i;
     for (i = 0; i < wmrf_weights.nrows(); ++i) {
@@ -3072,9 +3072,9 @@ void WMRFSelectChannels(  // WS Output:
     }
   }
 
-  if (selection.nelem() == f_grid.nelem()) {
+  if (selection.size() == f_grid.size()) {
     // No frequencies were removed, I can return the original grid.
-  } else if (selection.nelem() == 0) {
+  } else if (selection.size() == 0) {
     throw std::runtime_error("No frequencies found for any selected channels.\n");
   } else {
   }
@@ -3107,8 +3107,8 @@ void sensor_responseWMRF(  // WS Output:
     const Sparse& wmrf_weights,
     const Vector& f_backend) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index nin = nf * npol * nlos;
 
@@ -3117,7 +3117,7 @@ void sensor_responseWMRF(  // WS Output:
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.nelem() != nin) {
+  if (sensor_response_f.size() != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
@@ -3140,11 +3140,11 @@ void sensor_responseWMRF(  // WS Output:
   //
   const Index nrw = wmrf_weights.nrows();
   //
-  if (nrw != f_backend.nelem()) {
+  if (nrw != f_backend.size()) {
     os << "The WSV *wmrf_weights* must have as many rows\n"
        << "as *f_backend* has elements.\n"
        << "wmrf_weights.nrows() = " << nrw << "\n"
-       << "f_backend.nelem()    = " << f_backend.nelem() << "\n";
+       << "f_backend.size()    = " << f_backend.size() << "\n";
     error_found = true;
   }
 
@@ -3152,11 +3152,11 @@ void sensor_responseWMRF(  // WS Output:
   //
   const Index ncw = wmrf_weights.ncols();
   //
-  if (ncw != sensor_response_f_grid.nelem()) {
+  if (ncw != sensor_response_f_grid.size()) {
     os << "The WSV *wmrf_weights* must have as many columns\n"
        << "as *sensor_response_f_grid* has elements.\n"
        << "wmrf_weights.ncols()           = " << ncw << "\n"
-       << "sensor_response_f_grid.nelem() = " << sensor_response_f_grid.nelem()
+       << "sensor_response_f_grid.size() = " << sensor_response_f_grid.size()
        << "\n";
     error_found = true;
   }
@@ -3240,7 +3240,7 @@ void ySimpleSpectrometer(Vector& y,
                          sensor_norm);
 
   // Some sizes
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index n = sensor_response.nrows();
 
   // Convert iy to a vector
@@ -3273,16 +3273,16 @@ void yApplySensorPol(Vector& y,
                      const Matrix& sensor_pos,
                      const Matrix& sensor_pol) {
   // Some sizes
-  const Index n1 = y.nelem();
+  const Index n1 = y.size();
   const Index nm = sensor_pol.nrows();
   const Index nc = sensor_pol.ncols();
   const Index n2 = nm * nc;
 
   // Check consistency of input data
   if (y.empty()) throw std::runtime_error("Input *y* is empty. Use *yCalc*");
-  if (y_f.nelem() != n1)
+  if (y_f.size() != n1)
     throw std::runtime_error("Lengths of input *y* and *y_f* are inconsistent.");
-  if (y_pol.nelem() != n1)
+  if (y_pol.size() != n1)
     throw std::runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
   if (y_pos.nrows() != n1)
     throw std::runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
@@ -3330,7 +3330,7 @@ void yApplySensorPol(Vector& y,
   y_pos.resize(n2, y_pos1.ncols());
   y_los.resize(n2, y_los1.ncols());
   y_geo.resize(n2, y_geo1.ncols());
-  for (Index a = 0; a < y_aux.nelem(); a++) y_aux[a].resize(n2);
+  for (Index a = 0; a < y_aux.size(); a++) y_aux[a].resize(n2);
   if (jacobian_do) {
     jacobian.resize(n2, jacobian1.ncols());
   }
@@ -3361,7 +3361,7 @@ void yApplySensorPol(Vector& y,
       y_pos(iout, joker) = y_pos1(iin, joker);
       y_los(iout, joker) = y_los1(iin, joker);
       y_geo(iout, joker) = y_geo1(iin, joker);
-      for (Index a = 0; a < y_aux.nelem(); a++) y_aux[a][iout] = y_aux1[a][iin];
+      for (Index a = 0; a < y_aux.size(); a++) y_aux[a][iout] = y_aux1[a][iin];
     }
   }
 }

@@ -91,12 +91,12 @@ void opt_prop_Bulk(    //Output
     const ArrayOfTensor5& ext_mat_ss,  // [nss](nf,nT,ndir,nst,nst)
     const ArrayOfTensor4& abs_vec_ss,  // [nss](nf,nT,ndir,nst)
     const ArrayOfIndex& ptypes_ss) {
-  ARTS_ASSERT(ext_mat_ss.nelem() == abs_vec_ss.nelem());
+  ARTS_ASSERT(ext_mat_ss.size() == abs_vec_ss.size());
 
   ext_mat = ext_mat_ss[0];
   abs_vec = abs_vec_ss[0];
 
-  for (Index i_ss = 1; i_ss < ext_mat_ss.nelem(); i_ss++) {
+  for (Index i_ss = 1; i_ss < ext_mat_ss.size(); i_ss++) {
     ext_mat += ext_mat_ss[i_ss];
     abs_vec += abs_vec_ss[i_ss];
   }
@@ -143,13 +143,13 @@ void opt_prop_ScatSpecBulk(   //Output
   ARTS_ASSERT(t_ok.ncols() == pnds.ncols());
   ARTS_ASSERT(TotalNumberOfElements(ext_mat_se) == pnds.nrows());
   ARTS_ASSERT(TotalNumberOfElements(abs_vec_se) == pnds.nrows());
-  ARTS_ASSERT(ext_mat_se.nelem() == abs_vec_se.nelem());
+  ARTS_ASSERT(ext_mat_se.size() == abs_vec_se.size());
 
   const Index nT = pnds.ncols();
   const Index nf = abs_vec_se[0][0].nbooks();
   const Index nDir = abs_vec_se[0][0].nrows();
 
-  const Index nss = ext_mat_se.nelem();
+  const Index nss = ext_mat_se.size();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
   ptype.resize(nss);
@@ -159,7 +159,7 @@ void opt_prop_ScatSpecBulk(   //Output
   Index i_se_flat = 0;
 
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
-    ARTS_ASSERT(ext_mat_se[i_ss].nelem() == abs_vec_se[i_ss].nelem());
+    ARTS_ASSERT(ext_mat_se[i_ss].size() == abs_vec_se[i_ss].size());
     ARTS_ASSERT(nT == ext_mat_se[i_ss][0].nbooks());
     ARTS_ASSERT(nT == abs_vec_se[i_ss][0].npages());
 
@@ -168,7 +168,7 @@ void opt_prop_ScatSpecBulk(   //Output
     abs_vec[i_ss].resize(nf, nT, nDir, 4);
     abs_vec[i_ss] = 0.;
 
-    for (Index i_se = 0; i_se < ext_mat_se[i_ss].nelem(); i_se++) {
+    for (Index i_se = 0; i_se < ext_mat_se[i_ss].size(); i_se++) {
       ARTS_ASSERT(nT == ext_mat_se[i_ss][i_se].nbooks());
       ARTS_ASSERT(nT == abs_vec_se[i_ss][i_se].npages());
 
@@ -251,10 +251,10 @@ void opt_prop_NScatElems(            //Output
     //f_end = f_start+nf;
   }
 
-  const Index nT = T_array.nelem();
+  const Index nT = T_array.size();
   const Index nDir = dir_array.nrows();
 
-  const Index nss = scat_data.nelem();
+  const Index nss = scat_data.size();
   ext_mat.resize(nss);
   abs_vec.resize(nss);
   ptypes.resize(nss);
@@ -264,7 +264,7 @@ void opt_prop_NScatElems(            //Output
   Index i_se_flat = 0;
 
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
-    Index nse = scat_data[i_ss].nelem();
+    Index nse = scat_data[i_ss].size();
     ext_mat[i_ss].resize(nse);
     abs_vec[i_ss].resize(nse);
     ptypes[i_ss].resize(nse);
@@ -313,8 +313,8 @@ ArrayOfLagrangeInterpolation ssd_tinterp_parameters(  //Output
     ConstVectorView T_grid,
     const Vector& T_array,
     const Index& t_interp_order) {
-  const Index nTin = T_grid.nelem();
-  const Index nTout = T_array.nelem();
+  const Index nTin = T_grid.size();
+  const Index nTout = T_array.size();
 
   this_T_interp_order = -1;
 
@@ -432,13 +432,13 @@ void opt_prop_1ScatElem(  //Output
   const Index nf = ext_mat.nshelves();
   ARTS_ASSERT(abs_vec.nbooks() == nf);
   if (nf > 1) {
-    ARTS_ASSERT(nf == ssd.f_grid.nelem());
+    ARTS_ASSERT(nf == ssd.f_grid.size());
   }
 
-  const Index nTout = T_array.nelem();
+  const Index nTout = T_array.size();
   ARTS_ASSERT(ext_mat.nbooks() == nTout);
   ARTS_ASSERT(abs_vec.npages() == nTout);
-  ARTS_ASSERT(t_ok.nelem() == nTout);
+  ARTS_ASSERT(t_ok.size() == nTout);
 
   const Index nDir = dir_array.nrows();
   ARTS_ASSERT(ext_mat.npages() == nDir);
@@ -452,7 +452,7 @@ void opt_prop_1ScatElem(  //Output
   // Determine T-interpol order as well as interpol positions and weights (they
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
-  const Index nTin = ssd.T_grid.nelem();
+  const Index nTin = ssd.T_grid.size();
   Index this_T_interp_order;
   const auto T_lag =  ssd_tinterp_parameters(t_ok,
                                              this_T_interp_order,
@@ -719,7 +719,7 @@ void pha_mat_Bulk(     //Output
     const ArrayOfIndex& ptypes_ss) {
   pha_mat = pha_mat_ss[0];
 
-  for (Index i_ss = 1; i_ss < pha_mat_ss.nelem(); i_ss++)
+  for (Index i_ss = 1; i_ss < pha_mat_ss.size(); i_ss++)
     pha_mat += pha_mat_ss[i_ss];
 
   ptype = max(ptypes_ss);
@@ -767,7 +767,7 @@ void pha_mat_ScatSpecBulk(    //Output
   const Index npDir = pha_mat_se[0][0].nbooks();
   const Index niDir = pha_mat_se[0][0].npages();
 
-  const Index nss = pha_mat_se.nelem();
+  const Index nss = pha_mat_se.size();
   pha_mat.resize(nss);
   ptype.resize(nss);
   Tensor5 pha_tmp;
@@ -780,7 +780,7 @@ void pha_mat_ScatSpecBulk(    //Output
     pha_mat[i_ss].resize(nf, nT, npDir, niDir, 4, 4);
     pha_mat[i_ss] = 0.;
 
-    for (Index i_se = 0; i_se < pha_mat_se[i_ss].nelem(); i_se++) {
+    for (Index i_se = 0; i_se < pha_mat_se[i_ss].size(); i_se++) {
       ARTS_ASSERT(nT == pha_mat_se[i_ss][i_se].nshelves());
 
       for (Index Tind = 0; Tind < nT; Tind++) {
@@ -860,11 +860,11 @@ void pha_mat_NScatElems(             //Output
     //f_end = f_start+nf;
   }
 
-  const Index nT = T_array.nelem();
+  const Index nT = T_array.size();
   const Index npDir = pdir_array.nrows();
   const Index niDir = idir_array.nrows();
 
-  const Index nss = scat_data.nelem();
+  const Index nss = scat_data.size();
   pha_mat.resize(nss);
   ptypes.resize(nss);
 
@@ -873,7 +873,7 @@ void pha_mat_NScatElems(             //Output
   Index i_se_flat = 0;
 
   for (Index i_ss = 0; i_ss < nss; i_ss++) {
-    Index nse = scat_data[i_ss].nelem();
+    Index nse = scat_data[i_ss].size();
     pha_mat[i_ss].resize(nse);
     ptypes[i_ss].resize(nse);
 
@@ -934,12 +934,12 @@ void pha_mat_1ScatElem(   //Output
 
   const Index nf = pha_mat.nvitrines();
   if (nf > 1) {
-    ARTS_ASSERT(nf == ssd.f_grid.nelem());
+    ARTS_ASSERT(nf == ssd.f_grid.size());
   }
 
-  const Index nTout = T_array.nelem();
+  const Index nTout = T_array.size();
   ARTS_ASSERT(pha_mat.nshelves() == nTout);
-  ARTS_ASSERT(t_ok.nelem() == nTout);
+  ARTS_ASSERT(t_ok.size() == nTout);
 
   const Index npDir = pdir_array.nrows();
   ARTS_ASSERT(pha_mat.nbooks() == npDir);
@@ -954,7 +954,7 @@ void pha_mat_1ScatElem(   //Output
   // Determine T-interpol order as well as interpol positions and weights (they
   // are the same for all directions (and freqs), ie it is sufficient to
   // calculate them once).
-  const Index nTin = ssd.T_grid.nelem();
+  const Index nTin = ssd.T_grid.size();
   Index this_T_interp_order;
   const auto T_lag = ssd_tinterp_parameters(t_ok,
                                             this_T_interp_order,
@@ -1241,7 +1241,7 @@ void abs_vecTransform(  //Output and Input
     const PType& ptype,
     const Numeric& za_sca _U_,
     const Numeric& aa_sca _U_) {
-  ARTS_ASSERT(abs_vec_lab.nelem() == 1);
+  ARTS_ASSERT(abs_vec_lab.size() == 1);
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1322,7 +1322,7 @@ void ext_matTransform(  //Output and Input
     const PType& ptype,
     const Numeric& za_sca,
     const Numeric& aa_sca _U_) {
-  ARTS_ASSERT(ext_mat_lab.nelem() == 1);
+  ARTS_ASSERT(ext_mat_lab.size() == 1);
 
   switch (ptype) {
     case PTYPE_GENERAL: {
@@ -1461,7 +1461,7 @@ void pha_matTransform(  //Output
       //but it is compressed a little.  Details elsewhere.
       {
         ARTS_ASSERT(pha_mat_data.ncols() == 16);
-        ARTS_ASSERT(pha_mat_data.npages() == za_datagrid.nelem());
+        ARTS_ASSERT(pha_mat_data.npages() == za_datagrid.size());
         Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
                            (aa_sca - aa_inc > 180) *
                                360;  //delta_aa corresponds to the "books"
@@ -1672,7 +1672,7 @@ void ext_matFromabs_vec(  //Output
     ConstVectorView abs_vec) {
   ARTS_ASSERT(ext_mat.nrows() == 4);
   ARTS_ASSERT(ext_mat.ncols() == 4);
-  ARTS_ASSERT(abs_vec.nelem() == 4);
+  ARTS_ASSERT(abs_vec.size() == 4);
 
   // first: diagonal elements
   for (Index is = 0; is < 4; is++) {
@@ -2001,7 +2001,7 @@ void opt_prop_sum_propmat_clearsky(  //Output:
     StokvecVector& abs_vec,
     //Input:
     const PropmatVector& propmat_clearsky) {
-   const Index freq_dim = propmat_clearsky.nelem();
+   const Index freq_dim = propmat_clearsky.size();
 
   // old abs_vecInit
   abs_vec.resize(freq_dim);
@@ -2116,7 +2116,7 @@ String PTypeToString(const PType& ptype) {
 void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // First check that input fulfills requirements on older data formats:
   // 1) Is za_grid symmetric and includes 90deg?
-  Index nza = ssd.za_grid.nelem();
+  Index nza = ssd.za_grid.size();
   for (Index i = 0; i < nza / 2; i++) {
     ARTS_USER_ERROR_IF (!is_same_within_epsilon(
             180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * DBL_EPSILON),
@@ -2136,27 +2136,27 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   os_abs_vec << "abs_vec ";
   chk_size(os_pha_mat.str(),
            ssd.pha_mat_data,
-           ssd.f_grid.nelem(),
-           ssd.T_grid.nelem(),
-           ssd.za_grid.nelem(),
-           ssd.aa_grid.nelem(),
-           ssd.za_grid.nelem() / 2 + 1,
+           ssd.f_grid.size(),
+           ssd.T_grid.size(),
+           ssd.za_grid.size(),
+           ssd.aa_grid.size(),
+           ssd.za_grid.size() / 2 + 1,
            1,
            16);
 
   chk_size(os_ext_mat.str(),
            ssd.ext_mat_data,
-           ssd.f_grid.nelem(),
-           ssd.T_grid.nelem(),
-           ssd.za_grid.nelem() / 2 + 1,
+           ssd.f_grid.size(),
+           ssd.T_grid.size(),
+           ssd.za_grid.size() / 2 + 1,
            1,
            3);
 
   chk_size(os_abs_vec.str(),
            ssd.abs_vec_data,
-           ssd.f_grid.nelem(),
-           ssd.T_grid.nelem(),
-           ssd.za_grid.nelem() / 2 + 1,
+           ssd.f_grid.size(),
+           ssd.T_grid.size(),
+           ssd.za_grid.size() / 2 + 1,
            1,
            2);
 
@@ -2165,7 +2165,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   Tensor5 tmpT5 = ssd.abs_vec_data;
   ssd.abs_vec_data.resize(tmpT5.nshelves(),
                           tmpT5.nbooks(),
-                          ssd.za_grid.nelem(),
+                          ssd.za_grid.size(),
                           tmpT5.nrows(),
                           tmpT5.ncols());
   ssd.abs_vec_data(joker, joker, Range(0, nza / 2 + 1), joker, joker) = tmpT5;
@@ -2177,7 +2177,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   tmpT5 = ssd.ext_mat_data;
   ssd.ext_mat_data.resize(tmpT5.nshelves(),
                           tmpT5.nbooks(),
-                          ssd.za_grid.nelem(),
+                          ssd.za_grid.size(),
                           tmpT5.nrows(),
                           tmpT5.ncols());
   ssd.ext_mat_data(joker, joker, Range(0, nza / 2 + 1), joker, joker) = tmpT5;
@@ -2191,7 +2191,7 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                           tmpT7.nvitrines(),
                           tmpT7.nshelves(),
                           tmpT7.nbooks(),
-                          ssd.za_grid.nelem(),
+                          ssd.za_grid.size(),
                           tmpT7.nrows(),
                           tmpT7.ncols());
   ssd.pha_mat_data(
@@ -2302,13 +2302,13 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
                            ConstVectorView sa_grid,
                            const Index f_index) {
   // Sizes
-  const Index nse = scat_data.nelem();
-  [[maybe_unused]] const Index nt = T_grid.nelem();
-  const Index nsa = sa_grid.nelem();
+  const Index nse = scat_data.size();
+  [[maybe_unused]] const Index nt = T_grid.size();
+  const Index nsa = sa_grid.size();
   const Index ncl = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index nf;
   if (f_index == -1) {
-    nf = scat_data[0].f_grid.nelem();
+    nf = scat_data[0].f_grid.size();
   } else {
     nf = 1;
   }
@@ -2320,7 +2320,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   ARTS_ASSERT(pfun_data.npages() == nf);
   ARTS_ASSERT(pfun_data.nrows() == nt);
   ARTS_ASSERT(pfun_data.ncols() == nsa);
-  ARTS_ASSERT(cloudbox_limits.nelem() == 2);
+  ARTS_ASSERT(cloudbox_limits.size() == 2);
   ARTS_ASSERT(pnd_data.nrows() == nse);
   ARTS_ASSERT(pnd_data.ncols() == ncl);
 
@@ -2332,7 +2332,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
       if (scat_data[ie].ptype != PTYPE_TOTAL_RND)
         all_totrand = false;
 
-      if (scat_data[ie].T_grid.nelem() == 1) {
+      if (scat_data[ie].T_grid.size() == 1) {
         temp_const = true;
       }
     }
@@ -2351,7 +2351,7 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
   // Loop scattering elements
   for (Index ie = 0; ie < nse; ie++) {
     // Allowed temperature range
-    const Index last = scat_data[ie].T_grid.nelem() - 1;
+    const Index last = scat_data[ie].T_grid.size() - 1;
     const Numeric tmin = 1.5*scat_data[ie].T_grid[0] -
       0.5*scat_data[ie].T_grid[1];
     const Numeric tmax = 1.5*scat_data[ie].T_grid[last] -

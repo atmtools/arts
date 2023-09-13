@@ -102,8 +102,8 @@ class CmpArrayOfNumeric {
 template <class base>
 Index TotalNumberOfElements(const Array<Array<base> >& aa) {
   Index N_aa = 0;
-  for (Index i = 0; i < aa.nelem(); i++) {
-    N_aa += aa[i].nelem();
+  for (Size i = 0; i < aa.size(); i++) {
+    N_aa += aa[i].size();
   }
 
   return N_aa;
@@ -119,7 +119,7 @@ Index FlattenedIndex(const Array<Array<base> >& aa,
 
   Index N = 0;
   for (Size i = 0; i < outer; i++) {
-    N += aa[i].nelem();
+    N += aa[i].size();
   }
 
   return N + inner;

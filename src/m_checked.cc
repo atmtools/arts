@@ -197,9 +197,9 @@ void scat_data_checkedCalc(Index& scat_data_checked,
   if (f_grid.nelem() > 1) chk_if_increasing("f_grid", f_grid);
 
   Index nf = f_grid.nelem();
-  Index N_ss = scat_data.nelem();
+  Index N_ss = scat_data.size();
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    Index N_se = scat_data[i_ss].nelem();
+    Index N_se = scat_data[i_ss].size();
     for (Index i_se = 0; i_se < N_se; i_se++) {
       // For each scattering element (se) check that se's f_grid is either
       // identical to f_grid or contains a single entry only. In the latter
@@ -304,20 +304,20 @@ void lbl_checkedCalc(Index& lbl_checked,
   
   lbl_checked = false;
   
-  ARTS_USER_ERROR_IF (abs_lines_per_species.nelem() not_eq abs_species.nelem(),
+  ARTS_USER_ERROR_IF (abs_lines_per_species.size() not_eq abs_species.size(),
       "abs_lines_per_species and abs_species must have same length.\n"
       "Instead len(abs_lines_per_species) = ",
-      abs_lines_per_species.nelem(),
+      abs_lines_per_species.size(),
       " and len(abs_species) = ",
-      abs_species.nelem(),
+      abs_species.size(),
       '\n')
   
-  for (Index i=0; i<abs_species.nelem(); i++) {
+  for (Index i=0; i<abs_species.size(); i++) {
     auto& specs = abs_species[i];
     auto& lines = abs_lines_per_species[i];
     
-    if (not specs.nelem()) {
-      if (not lines.nelem()) {
+    if (not specs.size()) {
+      if (not lines.size()) {
         continue;
       }
       ARTS_USER_ERROR ( "Lines for non-existent species discovered!\n");
@@ -610,13 +610,13 @@ void sensor_checkedCalc(Index& sensor_checked,
 
   // Sensor aux variables
   //
-  ARTS_USER_ERROR_IF (n1y != sensor_response_f.nelem() || n1y != sensor_response_pol.nelem() ||
+  ARTS_USER_ERROR_IF (n1y != sensor_response_f.nelem() || n1y != sensor_response_pol.size() ||
       n1y != sensor_response_dlos.nrows(),
       "Sensor auxiliary variables do not have the correct size.\n"
       "The following variables should all have same size:\n"
       "length of y for one block     : ", n1y, "\n"
       "sensor_response_f.nelem()     : ", sensor_response_f.nelem(),
-      "\nsensor_response_pol.nelem() : ", sensor_response_pol.nelem(),
+      "\nsensor_response_pol.nelem() : ", sensor_response_pol.size(),
       "\nsensor_response_dlos.nrows(): ", sensor_response_dlos.nrows(),
       "\n")
 

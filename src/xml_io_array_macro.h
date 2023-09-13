@@ -58,12 +58,12 @@ void xml_write(std::ostream &os_xml, const T &at, bofstream *pbofs,
     open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", subtype);
-  open_tag.add_attribute("nelem", at.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(at.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < at.nelem(); n++)
+  for (Index n = 0; n < at.size(); n++)
     xml_write_to_stream(os_xml, at[n], pbofs, "");
 
   close_tag.set_name("/Array");

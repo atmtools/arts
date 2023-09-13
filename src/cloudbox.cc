@@ -72,7 +72,7 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
 */
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file) {
-  for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
+  for (Index i = 0; i < pnd_field_raw.size(); i++) {
     chk_pnd_data(pnd_field_raw[i], pnd_field_file);
   }
 }
@@ -105,7 +105,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
   Numeric p, lat, lon, v;
   Index n, p_i, lat_i, lon_i;
   // For any non-zero point, verify we're outside the cloudbox
-  for (n = 0; n < pnd_field_raw.nelem(); n++) {
+  for (n = 0; n < pnd_field_raw.size(); n++) {
     for (p_i = 0; p_i < pnd_field_raw[n].data.npages(); p_i++) {
       for (lat_i = 0; lat_i < pnd_field_raw[n].data.nrows(); lat_i++) {
         for (lon_i = 0; lon_i < pnd_field_raw[n].data.ncols(); lon_i++) {
@@ -172,15 +172,15 @@ void chk_pnd_field_raw_only_in_cloudbox(
 */
 void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
   ArrayOfString strarr;
-  Index nelem = 2;
+  Size nelem = 2;
 
-  for (Index k = 0; k < scat_species.nelem(); k++) {
+  for (Size k = 0; k < scat_species.size(); k++) {
     split(strarr, scat_species[k], delim);
-    ARTS_USER_ERROR_IF (strarr.nelem() < nelem,
+    ARTS_USER_ERROR_IF (strarr.size() < nelem,
          "Individual strings in scat_species must contain at least ", nelem,
          " elements,\n"
          "but entry #", k, " contains only the following ",
-         strarr.nelem(), ":\n",
+         strarr.size(), ":\n",
          strarr, "\n")
   }
 }
@@ -198,7 +198,7 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
 
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
                          const ArrayOfScatteringMetaData& scat_meta) {
-  ARTS_USER_ERROR_IF (scat_data.nelem() != scat_meta.nelem(),
+  ARTS_USER_ERROR_IF (scat_data.size() != scat_meta.size(),
       "The number of elements in in current scat_species'  *scat_data* and "
       "*scat_meta* do not match.\n"
       "Each *scat_data* entry must correspond to one entry in *scat_meta*.")

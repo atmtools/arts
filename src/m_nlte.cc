@@ -71,17 +71,17 @@ void collision_coefficientsFromSplitFiles(
   check_collision_line_identifiers(collision_line_identifiers);
 
   // Inner array size has to be this constantly
-  const Index n = collision_line_identifiers.nelem();
+  const Index n = collision_line_identifiers.size();
 
   // Set species dimensions and fill the array
-  collision_coefficients.resize(abs_species.nelem());
-  for (Index i = 0; i < collision_coefficients.nelem(); i++) {
+  collision_coefficients.resize(abs_species.size());
+  for (Index i = 0; i < collision_coefficients.size(); i++) {
     ArrayOfGriddedField1 aogf1;
 
     // Read the file for a species and check that the size is correct of the array
     filename = tmp_basename + String(Species::toShortName(abs_species[i].Species())) + ".xml";
     xml_read_from_file(filename, aogf1);
-    ARTS_USER_ERROR_IF (aogf1.nelem() not_eq n,
+    ARTS_USER_ERROR_IF (aogf1.size() not_eq n,
           "Mismatch between collision_line_identifiers and some collision_coefficients");
     collision_coefficients[i] = aogf1;
   }

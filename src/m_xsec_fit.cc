@@ -66,14 +66,14 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     const Numeric& force_t) {
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.nelem() not_eq f_grid.nelem(),
+      propmat_clearsky.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   ARTS_USER_ERROR_IF(
-    dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.nelem()
+    dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.size()
     or
-    dpropmat_clearsky_dx.ncols() not_eq f_grid.nelem(),
+    dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
@@ -91,13 +91,13 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
   if (do_freq_jac) {
-    dfreq.resize(f_grid.nelem());
+    dfreq.resize(f_grid.size());
     dfreq = f_grid;
     dfreq += df;
-    dxsec_temp_dF.resize(f_grid.nelem());
+    dxsec_temp_dF.resize(f_grid.size());
   }
   if (do_temp_jac) {
-    dxsec_temp_dT.resize(f_grid.nelem());
+    dxsec_temp_dT.resize(f_grid.size());
   }
   // Jacobian overhead END
 
@@ -107,20 +107,20 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   // Allocate a vector with dimension frequencies for constructing our
   // cross-sections before adding them (more efficient to allocate this here
   // outside of the loops)
-  Vector xsec_temp(f_grid.nelem(), 0.);
+  Vector xsec_temp(f_grid.size(), 0.);
 
   ArrayOfString fail_msg;
   bool do_abort = false;
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (select_abs_species.nelem() and abs_species[i] not_eq select_abs_species)
+  for (Index i = 0; i < abs_species.size(); i++) {
+    if (select_abs_species.size() and abs_species[i] not_eq select_abs_species)
       continue;
 
     const Numeric vmr = atm_point[abs_species[i]];
 
-    for (Index s = 0; s < abs_species[i].nelem(); s++) {
+    for (Index s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
@@ -155,12 +155,12 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
     if (!do_jac) {
       xsec_temp *= nd * vmr;
-      for (Index iv=0; iv<f_grid.nelem(); iv++) propmat_clearsky[iv].A() += xsec_temp[iv];
+      for (Index iv=0; iv<f_grid.size(); iv++) propmat_clearsky[iv].A() += xsec_temp[iv];
     } else {
       Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
-      for (Index f = 0; f < f_grid.nelem(); f++) {
+      for (Index f = 0; f < f_grid.size(); f++) {
         propmat_clearsky[f].A() += xsec_temp[f] * nd * vmr;
-        for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+        for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
 
           if (!deriv.propmattype()) continue;
@@ -203,8 +203,8 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
   {
     // Check that all parameters that should have the number of tag
     // groups as a dimension are consistent:
-    const Index n_tgs = abs_species.nelem();
-    const Index n_xsec = abs_xsec_per_species.nelem();
+    const Index n_tgs = abs_species.size();
+    const Index n_xsec = abs_xsec_per_species.size();
 
     ARTS_USER_ERROR_IF(
         n_tgs != n_xsec,
@@ -222,8 +222,8 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
   {
     // Check that all parameters that should have the the dimension of p_grid
     // are consistent:
-    const Index n_p = abs_p.nelem();
-    const Index n_t = abs_t.nelem();
+    const Index n_p = abs_p.size();
+    const Index n_t = abs_t.size();
 
     ARTS_USER_ERROR_IF(
         n_p != n_t,
@@ -238,7 +238,7 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
   // Allocate a vector with dimension frequencies for constructing our
   // cross-sections before adding them (more efficient to allocate this here
   // outside of the loops)
-  Vector xsec_temp(f_grid.nelem(), 0.);
+  Vector xsec_temp(f_grid.size(), 0.);
 
   ArrayOfString fail_msg;
   bool do_abort = false;
@@ -246,10 +246,10 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.nelem(); ii++) {
+  for (Index ii = 0; ii < abs_species_active.size(); ii++) {
     const Index i = abs_species_active[ii];
 
-    for (Index s = 0; s < abs_species[i].nelem(); s++) {
+    for (Index s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
@@ -265,9 +265,9 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
       Matrix& this_xsec = abs_xsec_per_species[i];
 
       // Loop over pressure:
-#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
+#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.size() >= 1) \
     firstprivate(xsec_temp)
-      for (Index ip = 0; ip < abs_p.nelem(); ip++) {
+      for (Index ip = 0; ip < abs_p.size(); ip++) {
         if (do_abort) continue;
         const Numeric current_p = force_p < 0 ? abs_p[ip] : force_p;
         const Numeric current_t = force_t < 0 ? abs_t[ip] : force_t;

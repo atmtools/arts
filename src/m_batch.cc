@@ -183,7 +183,7 @@ void ybatchCalc(const Workspace& ws,
     }
   }
 
-  if (fail_msg.nelem()) {
+  if (fail_msg.size()) {
     ostringstream os;
 
     if (!do_abort) os << "\nError messages from failed batch cases:\n";
@@ -466,7 +466,7 @@ void DOBatchCalc(const Workspace& ws,
     }
   }
 
-  if (fail_msg.nelem()) {
+  if (fail_msg.size()) {
     ostringstream os;
 
     if (!do_abort) os << "\nError messages from failed batch cases:\n";

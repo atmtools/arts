@@ -62,18 +62,18 @@ void HydrotableCalc(const Workspace& ws,
                     const Vector& wc_grid)
 {
   // Sizes
-  const Index nss = scat_data.nelem(); 
+  const Index nss = scat_data.size(); 
   const Index nf = f_grid.nelem();
   const Index nt = T_grid.nelem();
   const Index nw = wc_grid.nelem();
 
-  ARTS_USER_ERROR_IF (pnd_agenda_array.nelem() != nss,
+  ARTS_USER_ERROR_IF (pnd_agenda_array.size() != nss,
         "*scat_data* and *pnd_agenda_array* are inconsistent "
         "in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.nelem() != nss,
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.size() != nss,
         "*scat_data* and *pnd_agenda_array_input_names* are "
         "inconsistent in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].nelem() != 1,
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].size() != 1,
         "This method requires one-moment PSDs, but *pnd_agenda_array_input_names* "
         "for the selected scattering species does not have length one.");
   ARTS_USER_ERROR_IF (!scat_data_checked,
@@ -163,8 +163,8 @@ void particle_massesFromMetaDataSingleCategory(
   particle_masses.resize(np_total, 1);
 
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_meta.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
+  for (Index i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
+    for (Index i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
           scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
           "A presumably incorrect value found for "
@@ -184,13 +184,13 @@ void particle_massesFromMetaData(  //WS Output:
     // WS Input:
     const ArrayOfArrayOfScatteringMetaData& scat_meta) {
   // resize particle_masses to required diemsions and properly initialize values
-  particle_masses.resize(TotalNumberOfElements(scat_meta), scat_meta.nelem());
+  particle_masses.resize(TotalNumberOfElements(scat_meta), scat_meta.size());
   particle_masses = 0.;
 
   // calculate and set particle_masses
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_meta.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
+  for (Index i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
+    for (Index i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
           scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
           "A presumably incorrect value found for "
@@ -326,10 +326,10 @@ void pndFromPsd(Matrix& pnd_data,
         "*scat_data* must have passed a consistency check"
         " (scat_data_checked=1).\n"
         "Alternatively, use *pndFromPsdBasic*.");
-  ARTS_USER_ERROR_IF (scat_index >= scat_data.nelem(),
+  ARTS_USER_ERROR_IF (scat_index >= scat_data.size(),
         "*scat_index* exceeds the number of available"
         " scattering species.");
-  ARTS_USER_ERROR_IF (scat_data[scat_index].nelem() != ng,
+  ARTS_USER_ERROR_IF (scat_data[scat_index].size() != ng,
         "Number of scattering elements in this scattering"
         " species (*scat_index*) inconsistent with length of"
         " *pnd_size_grid*.");
@@ -555,14 +555,14 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
                              const Numeric& x_fit_end,
                              const Index& do_only_x) {
   // Checks
-  const Index nss = scat_meta.nelem();
+  const Index nss = scat_meta.size();
   ARTS_USER_ERROR_IF (nss == 0, "*scat_meta* is empty!");
   ARTS_USER_ERROR_IF (nss < species_index + 1,
       "Selected scattering species index is ", species_index,
       " but this "
       "is not allowed since *scat_meta* has only ", nss, " elements.")
   //
-  const Index nse = scat_meta[species_index].nelem();
+  const Index nse = scat_meta[species_index].size();
   ARTS_USER_ERROR_IF (nse < 2,
         "The scattering species must have at least two "
         "elements to use this method.");

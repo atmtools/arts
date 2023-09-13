@@ -1272,14 +1272,14 @@ void VectorInsertGridPoints(  // WS Generic Output:
 
   // Ok, x should now contain the new grid.
 
-  og.resize(x.nelem());
+  og.resize(x.size());
 
   // Copy to result vector, turn around if necessary.
   if (ascending)
-    for (Index i = 0; i < x.nelem(); ++i) og[i] = x[i];  // Just copy.
+    for (Index i = 0; i < x.size(); ++i) og[i] = x[i];  // Just copy.
   else
-    for (Index i = 0; i < x.nelem(); ++i)
-      og[i] = x[x.nelem() - 1 - i];  // Copy in reverse order.
+    for (Index i = 0; i < x.size(); ++i)
+      og[i] = x[x.size() - 1 - i];  // Copy in reverse order.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1453,7 +1453,7 @@ void ArrayOfTimeSetConstant(ArrayOfTime& x,
                        const Index& n,
                        const Time& value) {
   x.resize(n);
-  x = value;
+  x = ArrayOfTime{1, value};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1849,17 +1849,17 @@ void Compare(const ArrayOfVector& var1,
              const ArrayOfVector& var2,
              const Numeric& maxabsdiff,
              const String& error_message) {
-  if (var1.nelem() != var2.nelem()) {
+  if (var1.size() != var2.size()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.nelem() << std::endl
-       << "var2" " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.size() << std::endl
+       << "var2" " nelem: " << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.nelem(); i++) {
+  for (Index i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
@@ -1884,17 +1884,17 @@ void Compare(const ArrayOfMatrix& var1,
              const ArrayOfMatrix& var2,
              const Numeric& maxabsdiff,
              const String& error_message) {
-  if (var1.nelem() != var2.nelem()) {
+  if (var1.size() != var2.size()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.nelem() << std::endl
-       << "var2" " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.size() << std::endl
+       << "var2" " nelem: " << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.nelem(); i++) {
+  for (Index i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
@@ -1919,17 +1919,17 @@ void Compare(const ArrayOfTensor7& var1,
              const ArrayOfTensor7& var2,
              const Numeric& maxabsdiff,
              const String& error_message) {
-  if (var1.nelem() != var2.nelem()) {
+  if (var1.size() != var2.size()) {
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.nelem() << std::endl
-       << "var2" " nelem: " << var2.nelem() << std::endl;
+       << "var1 nelem: " << var1.size() << std::endl
+       << "var2" " nelem: " << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.nelem(); i++) {
+  for (Index i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
@@ -2199,8 +2199,8 @@ inline void _cr_internal_(const Array<T>& var1,
                           const Array<T>& var2,
                           const Numeric& maxabsreldiff,
                           const String& error_message) {
-  const Index n = var1.nelem();
-  if (var2.nelem() not_eq n)
+  const Index n = var1.size();
+  if (var2.size() not_eq n)
     throw std::runtime_error("Cannot compare arrays of different length");
   for (Index i = 0; i < n; i++)
     _cr_internal_(var1[i],

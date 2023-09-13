@@ -55,7 +55,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
   }
 
   else {
-    for (Index i = 0; i < abs_species.nelem(); i++) {
+    for (Index i = 0; i < abs_species.size(); i++) {
       if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
         iq = i;
         break;
@@ -75,7 +75,7 @@ void xClip(Vector& x,
            const Numeric& limit_low,
            const Numeric& limit_high) {
   // Sizes
-  const Index nq = jacobian_quantities.nelem();
+  const Index nq = jacobian_quantities.size();
 
   ARTS_USER_ERROR_IF (ijq < -1, "Argument *ijq* must be >= -1.");
   ARTS_USER_ERROR_IF (ijq >= nq,
@@ -138,7 +138,7 @@ void x2artsSensor(const Workspace& ws,
   transform_x_back(x_t, jacobian_quantities);
 
   // Main sizes
-  const Index nq = jacobian_quantities.nelem();
+  const Index nq = jacobian_quantities.size();
 
   // Jacobian indices
   ArrayOfArrayOfIndex ji;
@@ -177,7 +177,7 @@ void x2artsSensor(const Workspace& ws,
       }
       // Polynomial representation
       else {
-        ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_time.nelem(),
+        ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_time.size(),
               "Sizes of *sensor_los* and *sensor_time* do not match.");
         Vector w;
         for (Index c = 0; c < np; c++) {
@@ -220,7 +220,7 @@ void x2artsSensor(const Workspace& ws,
       if (!yb_set) {
         yb_set = true;
         Index y_size = sensor_los.nrows() * sensor_response_f_grid.nelem() *
-                       sensor_response_pol_grid.nelem() *
+                       sensor_response_pol_grid.size() *
                        sensor_response_dlos_grid.nrows();
         y_baseline.resize(y_size);
         y_baseline = 0;

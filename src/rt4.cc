@@ -85,7 +85,7 @@ void check_rt4_input(  // Output
     "at 0th atmospheric level"
     " (assumes surface there, ignoring z_surface).\n")
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
+  ARTS_USER_ERROR_IF (cloudbox_limits.size() != 6,
         "*cloudbox_limits* is a vector which contains the"
         " upper and lower limit of the cloud for all"
         " atmospheric dimensions. So its dimension must"
@@ -133,8 +133,8 @@ void check_rt4_input(  // Output
 
   // RT4 can only completely or azimuthally randomly oriented particles.
   bool no_arb_ori = true;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++)
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++)
+  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++)
+    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND &&
           scat_data[i_ss][i_se].ptype != PTYPE_AZIMUTH_RND)
         no_arb_ori = false;
@@ -203,7 +203,7 @@ void get_rt4surf_props(  // Output
     "Surface temperature is set to ", surface_skin_t, " K,\n"
     "which is not considered a meaningful value.\n")
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   if (ground_type == "L")  // RT4's proprietary Lambertian
   {
@@ -212,18 +212,18 @@ void get_rt4surf_props(  // Output
           "All values in *surface_scalar_reflectivity* must be inside [0,1].")
 
     // surface albedo
-    if (surface_scalar_reflectivity.nelem() == f_grid.nelem())
+    if (surface_scalar_reflectivity.size() == f_grid.size())
       ground_albedo = surface_scalar_reflectivity;
-    else if (surface_scalar_reflectivity.nelem() == 1)
+    else if (surface_scalar_reflectivity.size() == 1)
       ground_albedo += surface_scalar_reflectivity[0];
     else {
       ARTS_USER_ERROR_IF(true,
       "For Lambertian surface reflection, the number of elements in\n"
       "*surface_scalar_reflectivity* needs to match the length of\n"
       "*f_grid* or be 1."
-      "\n length of *f_grid* : ", f_grid.nelem(),
+      "\n length of *f_grid* : ", f_grid.size(),
       "\n length of *surface_scalar_reflectivity* : ",
-      surface_scalar_reflectivity.nelem(), "\n")
+      surface_scalar_reflectivity.size(), "\n")
     }
 
   } else if (ground_type == "S")  // RT4's 'proprietary' Specular
@@ -240,7 +240,7 @@ void get_rt4surf_props(  // Output
           "All r11 values in *surface_reflectivity* must be inside [0,1].");
 
     // surface reflectivity
-    if (surface_reflectivity.npages() == f_grid.nelem())
+    if (surface_reflectivity.npages() == f_grid.size())
       if (ref_sto < 4)
         ground_reflec(joker, Range(0, ref_sto), Range(0, ref_sto)) =
             surface_reflectivity;
@@ -261,7 +261,7 @@ void get_rt4surf_props(  // Output
         "For specular surface reflection, the number of elements in\n"
         "*surface_reflectivity* needs to match the length of\n"
         "*f_grid* or be 1."
-        "\n length of *f_grid* : ", f_grid.nelem(),
+        "\n length of *f_grid* : ", f_grid.size(),
         "\n length of *surface_reflectivity* : ",
         surface_reflectivity.npages(), "\n")
     }
@@ -313,14 +313,14 @@ void par_optpropCalc(Tensor5View emis_vector,
   emis_vector = 0.;
 
   const Index Np_cloud = pnd_profiles.ncols();
-  const Index nummu = za_grid.nelem() / 2;
+  const Index nummu = za_grid.size() / 2;
 
   ARTS_ASSERT(emis_vector.nbooks() == Np_cloud - 1);
   ARTS_ASSERT(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
   Vector T_array{t_profile[Range(cloudbox_limits[0], Np_cloud)]};
-  Matrix dir_array(za_grid.nelem(), 2, 0.);
+  Matrix dir_array(za_grid.size(), 2, 0.);
   dir_array(joker, 0) = za_grid;
 
   // making output containers
@@ -416,7 +416,7 @@ void sca_optpropCalc(  //Output
 
   const Index N_se = pnd_profiles.nrows();
   const Index Np_cloud = pnd_profiles.ncols();
-  const Index nza_rt = za_grid.nelem();
+  const Index nza_rt = za_grid.size();
 
   ARTS_ASSERT(scatter_matrix.nvitrines() == Np_cloud - 1);
 
@@ -452,17 +452,17 @@ void sca_optpropCalc(  //Output
   //
   // FIXME: are the stokes component assignments correct? for totally random?
   // and azimuthally random? (as they are done differently...)
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       SingleScatteringData ssd = scat_data[i_ss][i_se];
       Index this_f_index = (ssd.pha_mat_data.nlibraries() == 1 ? 0 : f_index);
       Index i_pfct;
       if (pfct_method == "low")
         i_pfct = 0;
       else if (pfct_method == "high")
-        i_pfct = ssd.T_grid.nelem() - 1;
+        i_pfct = ssd.T_grid.size() - 1;
       else if( pfct_method=="median" )
-        i_pfct = ssd.T_grid.nelem() / 2;
+        i_pfct = ssd.T_grid.size() / 2;
       else {
         ARTS_USER_ERROR_IF(true,
           "*pfct_method* must be \"low\", \"high\" or \"median\"." );
@@ -502,8 +502,8 @@ void sca_optpropCalc(  //Output
               ssd.abs_vec_data(this_f_index, i_pfct, 0, 0, 0);
         }
       } else if (ssd.ptype == PTYPE_AZIMUTH_RND) {
-        Index nza_se = ssd.za_grid.nelem();
-        Index naa_se = ssd.aa_grid.nelem();
+        Index nza_se = ssd.za_grid.size();
+        Index naa_se = ssd.aa_grid.size();
         Tensor4 pha_mat_int(nza_se, nza_se, 4, 4, 0.);
         ConstVectorView za_datagrid = ssd.za_grid;
         ConstVectorView aa_datagrid = ssd.aa_grid;
@@ -779,8 +779,8 @@ void surf_optpropCalc(const Workspace& ws,
   // atmospheric optical property prep part within the frequency loop further
   // below).
 
-  const Index nf = f_grid.nelem();
-  const Index nummu = za_grid.nelem() / 2;
+  const Index nf = f_grid.size();
+  const Index nummu = za_grid.size() / 2;
   const String B_unit = "R";
 
   // Local input of surface_rtprop_agenda.
@@ -846,7 +846,7 @@ void surf_optpropCalc(const Workspace& ws,
     // as we are rescaling surface_rmatrix within here, we need to keep its
     // original normalization for later renormalization. Create the container
     // here, fill in below.
-    Vector R_arts(f_grid.nelem(), 0.);
+    Vector R_arts(f_grid.size(), 0.);
 
     if (nsl > 1)  // non-blackbody, non-specular reflection
     {
@@ -975,7 +975,7 @@ void rt4_test(Tensor4& out_rad,
   ReadXML(abs_data, datapath + "abs_par.xml");
   ReadXML(ext_data, datapath + "ext_par.xml");
   ReadXML(sca_data, datapath + "sca_par.xml");
-  Index num_layers = height.nelem() - 1;
+  Index num_layers = height.size() - 1;
   Index num_scatlayers = 3;
   Vector scatlayers(num_layers, 0.);
   scatlayers[3] = 1.;

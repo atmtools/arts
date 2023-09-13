@@ -36,8 +36,8 @@ class SourceText {
 
   /** Check if the current position reached the end. */
   bool reachedEot() {
-    return (mLine >= mText.nelem() ||
-            (mLine == mText.nelem() - 1 && mColumn >= mText[mLine].size()));
+    return (mLine >= mText.size() ||
+            (mLine == mText.size() - 1 && mColumn >= mText[mLine].size()));
   }
 
   /** Advance position pointer by one character. Sets mLineBreak if a

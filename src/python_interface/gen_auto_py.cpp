@@ -1054,7 +1054,14 @@ std::string type(const std::shared_ptr<T>&);
 template <WorkspaceGroup T>
 std::string type(const ValueHolder<T>&);
 }  // namespace Python
+
 )--";
+
+  for (auto& [group, wsg] : wsgs) {
+    if (group.starts_with("ArrayOf")) {
+      hos << "PYBIND11_MAKE_OPAQUE(std::shared_ptr<" << group << ">);\n";
+    }
+  }
 
   std::ofstream cos(fname + ".cpp");
 

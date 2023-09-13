@@ -682,9 +682,6 @@ class Model {
    */
   [[nodiscard]] bool OK(Type type, bool self, bool bath,
           const std::size_t nspecies) const noexcept;
-
-  /** Number of species in Model */
-  [[nodiscard]] Index nelem() const noexcept { return Index(mdata.size()); }
   
   /** Number of species in Model */
   [[nodiscard]] Index size() const { return Index(mdata.size()); }
@@ -857,7 +854,7 @@ namespace LegacyLineFunctionData {
 /** Length per variable for temperature model */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
-constexpr Index temperaturemodel2legacynelem(TemperatureModel type) noexcept {
+constexpr Index temperaturemodel2legacysize(TemperatureModel type) noexcept {
   switch (type) {
     case TemperatureModel::None:
       return 0;
@@ -910,7 +907,7 @@ LegacyLineMixingData::TypeLM string2typelm(String type);
 /** Line mixing types to number */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
-constexpr Index typelm2nelem(LegacyLineMixingData::TypeLM type) {
+constexpr Index typelm2size(LegacyLineMixingData::TypeLM type) {
   switch (type) {
     case TypeLM::LM_NONE:  // The standard case
       return 0;
@@ -958,7 +955,7 @@ Index self_listed(const QuantumIdentifier& qid,
 /** Pressure broadening types to number of elements */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreturn-type"
-constexpr Index typepb2nelem(LegacyPressureBroadeningData::TypePB type)  {
+constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type)  {
   switch (type) {
     case TypePB::PB_NONE:
       return 0;

@@ -158,7 +158,7 @@ void py_matpack(py::module_& m) try {
                                sizeof(Numeric),
                                py::format_descriptor<Numeric>::format(),
                                1,
-                               {x.nelem()},
+                               {x.size()},
                                {sizeof(Numeric)});
       })
       .def_property("value",
@@ -716,7 +716,7 @@ via x.value
                                sizeof(Complex),
                                py::format_descriptor<Complex>::format(),
                                1,
-                               {x.nelem()},
+                               {x.size()},
                                {sizeof(Complex)});
       })
       .def_property("value",

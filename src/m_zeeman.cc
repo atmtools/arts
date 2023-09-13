@@ -32,9 +32,9 @@ void propmat_clearskyAddZeeman(
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
     const Numeric& manual_zeeman_eta) {
-  if (abs_lines_per_species.nelem() == 0) return;
+  if (abs_lines_per_species.size() == 0) return;
   
-  ARTS_USER_ERROR_IF((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag),
+  ARTS_USER_ERROR_IF((ppath_los.size() not_eq 2) and (not manual_zeeman_tag),
     "Only for 2D *ppath_los* or a manual magnetic field");
   
   ARTS_USER_ERROR_IF(not lbl_checked,
@@ -68,8 +68,8 @@ void propmat_clearskyAddZeeman(
 void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                  const ArrayOfQuantumIdentifier& qid,
                                  const Vector& gs) {
-  ARTS_USER_ERROR_IF (qid.nelem() not_eq gs.nelem(), "Inputs not matching in size");
-  for (Index i=0; i<qid.nelem(); i++) {
+  ARTS_USER_ERROR_IF (qid.size() not_eq gs.size(), "Inputs not matching in size");
+  for (Index i=0; i<qid.size(); i++) {
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
     
@@ -90,7 +90,7 @@ void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_
                                                 const ArrayOfQuantumIdentifier& qid,
                                                 const Vector& gs) {
   for (auto& abs_lines: abs_lines_per_species) {
-    for (Index i=0; i<qid.nelem(); i++) {
+    for (Index i=0; i<qid.size(); i++) {
       abs_linesZeemanCoefficients(abs_lines, qid, gs);
     }
   }

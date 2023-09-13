@@ -177,7 +177,7 @@ void heating_ratesFromIrradiance(Tensor3 &heating_rates,
                                  const Tensor3 &specific_heat_capacity,
                                  const Numeric &g0) {
   const Vector p_grid = [&] {
-    Vector out(ppvar_atm.nelem());
+    Vector out(ppvar_atm.size());
     std::transform(ppvar_atm.begin(), ppvar_atm.end(), out.begin(),
                    [](auto &point) { return point.pressure; });
     return out;

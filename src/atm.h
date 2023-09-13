@@ -187,7 +187,7 @@ public:
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
-  [[nodiscard]] Index nelem() const;
+  [[nodiscard]] Index size() const;
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;

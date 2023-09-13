@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <string>
+#include <unordered_map>
 #include "absorption.h"
 #include <workspace.h>
 #include "check_input.h"
@@ -89,7 +90,7 @@ void jacobianAddAbsSpecies(const Workspace&,
   QuantumIdentifier qi;
   if (not for_species_tag) {
     ArrayOfSpeciesTag test(species);
-    if (test.nelem() not_eq 1)
+    if (test.size() not_eq 1)
       throw std::runtime_error(
           "Trying to add a species as a species tag of multiple species.\n"
           "This is not supported.  Please give just a single species instead.\n"
@@ -98,7 +99,7 @@ void jacobianAddAbsSpecies(const Workspace&,
   }
 
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species,
       "The gas species:\n", species, "\nis already included in *jacobian_quantities*.")
     ARTS_USER_ERROR_IF (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi,
@@ -135,7 +136,7 @@ void jacobianAddAbsSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add(Method{"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add(Method{"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -149,7 +150,7 @@ void jacobianAddFreqShift(const Workspace& ws _U_,
                           const Vector& f_grid,
                           const Numeric& df) {
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
+  for (Index it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
       std::ostringstream os;
       os << "Fit of frequency shift is already included in\n"
@@ -193,7 +194,7 @@ void jacobianAddFreqShift(const Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.add(Method{"jacobianCalcFreqShift", std::vector<std::string>{}, {}});
+  jacobian_agenda.add(Method{"jacobianCalcFreqShift", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -212,7 +213,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
+  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyShift) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -291,7 +292,7 @@ void jacobianAddFreqStretch(const Workspace& ws _U_,
                             const Vector& f_grid,
                             const Numeric& df) {
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
+  for (Index it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
       std::ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
@@ -331,7 +332,7 @@ void jacobianAddFreqStretch(const Workspace& ws _U_,
   jacobian_quantities.push_back(rq);
 
   // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.add(Method{"jacobianCalcFreqStretch", std::vector<std::string>{}, {}});
+  jacobian_agenda.add(Method{"jacobianCalcFreqStretch", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -357,7 +358,7 @@ void jacobianCalcFreqStretch(
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
+  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyStretch) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -425,7 +426,7 @@ void jacobianCalcFreqStretch(
     polynomial_basis_func(w, sensor_response_f_grid, 1);
     //
     const Index nf = sensor_response_f_grid.nelem();
-    const Index npol = sensor_response_pol_grid.nelem();
+    const Index npol = sensor_response_pol_grid.size();
     const Index nlos = sensor_response_dlos_grid.nrows();
     //
     for (Index l = 0; l < nlos; l++) {
@@ -463,7 +464,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
         "The polynomial order has to be positive or -1 for gitter.");
 
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
+  for (Index it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it].Target().isPointing()) {
       std::ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
@@ -478,7 +479,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
     throw std::runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
 
   // Check that sensor_time is consistent with sensor_pos
-  if (sensor_time.nelem() != sensor_pos.nrows()) {
+  if (sensor_time.size() != sensor_pos.nrows()) {
     std::ostringstream os;
     os << "The WSV *sensor_time* must be defined for every "
        << "measurement block.\n";
@@ -486,7 +487,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
   }
 
   // Do not allow that *poly_order* is not too large compared to *sensor_time*
-  if (poly_order > sensor_time.nelem() - 1) {
+  if (poly_order > sensor_time.size() - 1) {
     throw std::runtime_error(
         "The polynomial order can not be >= length of *sensor_time*.");
   }
@@ -495,10 +496,10 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
   RetrievalQuantity rq;
   if (calcmode == "recalc") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
-    jacobian_agenda.add({"jacobianCalcPointingZaRecalc", std::vector<std::string>{}, {}});
+    jacobian_agenda.add({"jacobianCalcPointingZaRecalc", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
   } else if (calcmode == "interp") {
     rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
-    jacobian_agenda.add({"jacobianCalcPointingZaInterp", std::vector<std::string>{}, {}});
+    jacobian_agenda.add({"jacobianCalcPointingZaInterp", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
   } else
     throw std::runtime_error(
       R"(Possible choices for *calcmode* are "recalc" and "interp".)");
@@ -549,7 +550,7 @@ void jacobianCalcPointingZaInterp(
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
+  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithInterp) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -666,7 +667,7 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
     throw std::runtime_error("The polynomial order has to be >= 0.");
 
   // Check that polyfit is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Sensor::Polyfit) {
       std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
@@ -688,7 +689,7 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.size(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
@@ -742,7 +743,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   Index iq;
   std::ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
-  for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
+  for (iq = 0; iq < jacobian_quantities.size() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Polyfit &&
         jacobian_quantities[iq].Subtag() == sstr.str()) {
       found = true;
@@ -758,7 +759,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   // Size and check of sensor_response
   //
   const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
 
   // Make a vector with values to distribute over *jacobian*
@@ -821,7 +822,7 @@ void jacobianAddScatSpecies(const Workspace&,
                             const String& quantity) {
   // Check that this species+quantity combination is not already included in
   // the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
       std::ostringstream os;
@@ -842,7 +843,7 @@ void jacobianAddScatSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -866,7 +867,7 @@ void jacobianAddSinefit(const Workspace& ws _U_,
   if (np == 0) throw std::runtime_error("No sinusoidal periods has benn given.");
 
   // Check that polyfit is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Sensor::Sinefit) {
       std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
@@ -888,7 +889,7 @@ void jacobianAddSinefit(const Workspace& ws _U_,
   if (no_pol_variation)
     grids[1] = Vector(1, 1);
   else
-    grids[1] = uniform_grid(0, sensor_response_pol_grid.nelem(), 1);
+    grids[1] = uniform_grid(0, sensor_response_pol_grid.size(), 1);
   if (no_los_variation)
     grids[2] = Vector(1, 1);
   else
@@ -942,7 +943,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   Index iq;
   std::ostringstream sstr;
   sstr << "Period " << period_index;
-  for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
+  for (iq = 0; iq < jacobian_quantities.size() && !found; iq++) {
     if (jacobian_quantities[iq] == Jacobian::Sensor::Sinefit &&
         jacobian_quantities[iq].Subtag() == sstr.str()) {
       found = true;
@@ -958,7 +959,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   // Size and check of sensor_response
   //
   const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
 
   // Make vectors with values to distribute over *jacobian*
@@ -1026,7 +1027,7 @@ void jacobianAddSurfaceQuantity(const Workspace&,
                                 const Vector& rq_lon_grid,
                                 const String& quantity) {
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
       std::ostringstream os;
       os << quantity << " is already included as a surface variable "
@@ -1045,7 +1046,7 @@ void jacobianAddSurfaceQuantity(const Workspace&,
   jq.push_back(rq);
 
   // Add dummy
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -1062,7 +1063,7 @@ void jacobianAddTemperature(const Workspace&,
                             const String& hse) {
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Atm::Temperature) {
       std::ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
@@ -1093,7 +1094,7 @@ void jacobianAddTemperature(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -1130,7 +1131,7 @@ void jacobianAddWind(const Workspace&,
   }
 
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
       "The wind component:\n", component, "\n"
       "is already included in *jacobian_quantities*.")
@@ -1143,7 +1144,7 @@ void jacobianAddWind(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -1180,7 +1181,7 @@ void jacobianAddMagField(const Workspace&,
   }
   
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
                         "The magnetic component:\n", component, "\n"
                         "is already included in *jacobian_quantities*.")
@@ -1193,7 +1194,7 @@ void jacobianAddMagField(const Workspace&,
   jq.push_back(rq);
 
   // Add gas species method to the jacobian agenda
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -1231,7 +1232,7 @@ void jacobianAddShapeCatalogParameter(const Workspace&,
 
   // Append and do housekeeping
   jq.push_back(rq);
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});  // old code activation
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});  // old code activation
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1243,8 +1244,8 @@ void jacobianAddShapeCatalogParameters(
     const ArrayOfString& species,
     const ArrayOfString& variables,
     const ArrayOfString& coefficients) {
-  if (not(line_identities.nelem() or species.nelem() or variables.nelem() or
-          coefficients.nelem()))
+  if (not(line_identities.size() or species.size() or variables.size() or
+          coefficients.size()))
     throw std::runtime_error("Must have at least 1-long lists for all GINs");
 
   ArrayOfString vars;
@@ -1294,7 +1295,7 @@ void jacobianAddBasicCatalogParameter(const Workspace&,
   }
   
   // Check that this is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (rq.Target().sameTargetType(jq[it].Target()),
       "The catalog identifier:\n",
       catalog_identity, " for ID: ", catalog_identity, "\n"
@@ -1306,7 +1307,7 @@ void jacobianAddBasicCatalogParameter(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1337,7 +1338,7 @@ void jacobianAddNLTE(const Workspace&,
                      const QuantumIdentifier& energy_level_identity,
                      const Numeric& dx) {
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
+  for (Index it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
       std::ostringstream os;
@@ -1357,7 +1358,7 @@ void jacobianAddNLTE(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 void jacobianAddNLTEs(const Workspace& ws,
@@ -1393,7 +1394,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {
-    for (Index it = 0; it < jq.nelem(); it++) {
+    for (Index it = 0; it < jq.size(); it++) {
       if (jq[it] == Jacobian::Atm::Electrons) {
         std::ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
@@ -1403,7 +1404,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
     rq.Target(Jacobian::Target(Jacobian::Atm::Electrons));
 
   } else if (species == "particulates") {
-    for (Index it = 0; it < jq.nelem(); it++) {
+    for (Index it = 0; it < jq.size(); it++) {
       if (jq[it] == Jacobian::Atm::Particulates) {
         std::ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
@@ -1422,7 +1423,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, {}});
+  jacobian_agenda.add({"jacobianCalcDoNothing", std::vector<std::string>{}, std::unordered_map<std::string, std::string>{}});
 }
 
 //----------------------------------------------------------------------------
@@ -1448,7 +1449,7 @@ void jacobianAdjustAndTransform(
   ArrayOfArrayOfIndex jis0;
   Vector x0;
   //
-  for (Index q = 0; q < jacobian_quantities.nelem(); q++) {
+  for (Index q = 0; q < jacobian_quantities.size(); q++) {
     if (jacobian_quantities[q].Target().isSpeciesVMR() &&
         jacobian_quantities[q].Mode() == "rel") {
       if (!vars_init) {
@@ -1480,7 +1481,7 @@ void jacobianSetAffineTransformation(ArrayOfRetrievalQuantity& jqs,
         "transformation to.");
   }
 
-  Index nelem = jqs.back().Grids().nelem();
+  Index nelem = jqs.back().Grids().size();
 
   if (!(nelem == transformation_matrix.nrows())) {
     std::runtime_error(
@@ -1699,7 +1700,7 @@ void jacobianFromYbatch(Matrix& jacobian,
                     const Vector& y,
                     const Numeric& pert_size) {
   const Index n = y.nelem();
-  const Index l = ybatch.nelem();
+  const Index l = ybatch.size();
   if (l>0){
       if( ybatch[0].nelem() != n )
         throw std::runtime_error("Inconsistency in length of y and ybatch[0].");

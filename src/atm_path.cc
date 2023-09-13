@@ -31,7 +31,7 @@ ArrayOfAtmPoint forward_atm_path(const Ppath &ppath, const AtmField &atm) {
 ArrayOfVector &path_freq_resize(ArrayOfVector &path_freq,
                                 const Vector &main_freq,
                                 const ArrayOfAtmPoint &atm_path) {
-  path_freq.resize(atm_path.nelem());
+  path_freq.resize(atm_path.size());
   for (auto &v : path_freq)
     v.resize(main_freq.nelem());
   return path_freq;
@@ -55,7 +55,7 @@ void forward_path_freq(ArrayOfVector &path_freq, const Vector &main_freq,
                                 std::cos(aa_f - aa_p)));
   };
 
-  for (Index ip = 0; ip < atm_path.nelem(); ip++) {
+  for (Size ip = 0; ip < atm_path.size(); ip++) {
     std::transform(main_freq.begin(), main_freq.end(), path_freq[ip].begin(),
                    [fac = 1.0 - (along_path_atm_speed + dot_prod(ip)) /
                                     Constant::speed_of_light](const auto &f) {
@@ -67,7 +67,7 @@ void forward_path_freq(ArrayOfVector &path_freq, const Vector &main_freq,
 ArrayOfVector forward_path_freq(const Vector &main_freq, const Ppath &ppath,
                                 const ArrayOfAtmPoint &atm_path,
                                 const Numeric along_path_atm_speed) {
-  ArrayOfVector path_freq(atm_path.nelem(), Vector(main_freq.nelem()));
+  ArrayOfVector path_freq(atm_path.size(), Vector(main_freq.nelem()));
   forward_path_freq(path_freq, main_freq, ppath, atm_path,
                     along_path_atm_speed);
   return path_freq;
@@ -78,7 +78,7 @@ void extract1D(ArrayOfAtmPoint &atm_path,
                const Vector &z_grid,
                const Vector &lat_grid,
                const Vector &lon_grid) {
-  const Index n = atm_path.nelem();
+  const Index n = atm_path.size();
 
   const auto correct_size = [n](const auto &x) {
     const Index m = x->nelem();

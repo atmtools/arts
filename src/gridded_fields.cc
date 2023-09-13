@@ -24,6 +24,8 @@
 #include "exceptions.h"
 #include "mystring.h"
 
+#include <array_ostream.h>
+
 using std::endl;
 using std::ostream;
 using std::ostringstream;

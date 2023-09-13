@@ -187,7 +187,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
 
         const auto type = toTemperatureModel(s);
         const Index ntemp =
-            LegacyLineFunctionData::temperaturemodel2legacynelem(type);
+            LegacyLineFunctionData::temperaturemodel2legacysize(type);
 
         m.mdata[i].Data()[Index(param)].type = type;
         if (ntemp <= ModelParameters::N) {
@@ -240,7 +240,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   data >> s;
 
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
-  const auto n = LegacyPressureBroadeningData::typepb2nelem(type);
+  const auto n = LegacyPressureBroadeningData::typepb2size(type);
   const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
 
   Vector x(n);
@@ -265,7 +265,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   data >> s;
 
   const auto type = LegacyLineMixingData::string2typelm(s);
-  const auto n = LegacyLineMixingData::typelm2nelem(type);
+  const auto n = LegacyLineMixingData::typelm2size(type);
 
   Vector x(n);
   for (auto& num : x) data >> double_imanip() >> num;
@@ -440,9 +440,9 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
 Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
-  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
+  ARTS_ASSERT (atmospheric_species.size() == atmospheric_vmrs.size(), "Bad atmospheric inputs");
   
-  const Index n = lineshape_species.nelem();
+  const Index n = lineshape_species.size();
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
@@ -456,7 +456,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+    for (Size j = 0; j < atmospheric_species.size(); j++) {
       if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
       }
@@ -482,7 +482,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 
 Vector LineShape::vmrs(const AtmPoint& atm_point,
                        const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {  
-  const Index n = lineshape_species.nelem();
+  const Index n = lineshape_species.size();
   
   // We need to know if bath is an actual species
   const bool bath = n and lineshape_species.back() == Species::Species::Bath;
@@ -510,10 +510,10 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpecies& lineshape_species,
                        const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT {
-  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(),
+  ARTS_ASSERT (atmospheric_species.size() == atmospheric_vmrs.size(),
                "Bad atmospheric inputs");
   
-  const Index n = lineshape_species.nelem();
+  const Index n = lineshape_species.size();
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
@@ -529,7 +529,7 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+    for (Size j = 0; j < atmospheric_species.size(); j++) {
       if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
       }
@@ -681,7 +681,7 @@ ArrayOfString ModelMetaDataArray(const LineShape::Model& m,
         })) {
       std::ostringstream os;
       os << var << " ~ ";
-      for (Index j = 0; j < sts.nelem(); j++) {
+      for (Size j = 0; j < sts.size(); j++) {
         if (j == 0 and self)
           os << "VMR(" << self_broadening << ") * "
              << modelparameters2metadata(m.Data().front().Get(var), T0);
@@ -1015,7 +1015,7 @@ Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
 #define FUNC(X, PVAR)                                                          \
   Numeric Model::X(Numeric T, Numeric T0, Numeric P [[maybe_unused]],          \
                    const Vector &vmrs) const ARTS_NOEXCEPT {                   \
-    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
+    ARTS_ASSERT(size() == vmrs.size())                                       \
                                                                                \
     return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
                                         0.0, std::plus<>(),                    \
@@ -1037,7 +1037,7 @@ FUNC(DV, P *P)
 #define FUNC(X, PVAR)                                                          \
   Numeric Model::d##X##dT(Numeric T, Numeric T0, Numeric P [[maybe_unused]],   \
                           const Vector &vmrs) const ARTS_NOEXCEPT {            \
-    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
+    ARTS_ASSERT(size() == vmrs.size())                                       \
                                                                                \
     return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
                                         0.0, std::plus<>(),                    \
@@ -1206,8 +1206,8 @@ void Model::SetLineMixingModel(SingleSpeciesModel x) {
 }
 
 std::pair<bool, bool> Model::Match(const Model& other) const noexcept {
-  const Index n = nelem();
-  if (other.nelem() not_eq n) return {false, false};
+  const Index n = size();
+  if (other.size() not_eq n) return {false, false};
   
   bool match = true, nullable = true;
   for (Index i=0; i<n; i++) {

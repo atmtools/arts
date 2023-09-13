@@ -31,7 +31,7 @@ template <typename T> concept field_key = Hashable<T> and Equatable<T>;
  * feel free to add it.
  *
  * In addition to that, it should interact well with ARTS concepts,
- * such as Index being the unit of a nelem.
+ * such as Index being the unit of a size.
  * 
  * @tparam T The type of data
  * @tparam Keys Any number of keys so that std::unordered_map<Key, T> is possible
@@ -128,9 +128,9 @@ public:
     }
   }
 
-  template <field_key Key = bool> [[nodiscard]] constexpr Index nelem() const {
+  template <field_key Key = bool> [[nodiscard]] constexpr Index size() const {
     if constexpr (std::same_as<Key, bool>) {
-      return (nelem<Keys>() + ...);
+      return (size<Keys>() + ...);
     } else {
       return static_cast<Index>(map<Key>().size());
     }

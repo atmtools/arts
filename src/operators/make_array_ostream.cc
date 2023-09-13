@@ -55,6 +55,7 @@ int main() {
   std::cout << "namespace Quantum::Number {\n";
   std::cerr << "namespace Quantum::Number {\n";
   MACROEXECUTE(GlobalState)
+  MACROEXECUTE(Type)
   std::cout << "}  // namespace Quantum::Number\n";
   std::cerr << "}  // namespace Quantum::Number\n";
   
@@ -66,6 +67,7 @@ int main() {
   
   std::cout << "namespace Absorption {\n";
   std::cerr << "namespace Absorption {\n";
+  MACROEXECUTE(AbsorptionSingleLine)
   MACROEXECUTE(AbsorptionLines)
   MACROEXECUTE(ArrayOfAbsorptionLines)
   std::cout << "}  // namespace Absorption\n";

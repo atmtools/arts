@@ -17,8 +17,8 @@ template <class T>
 Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)
 {
   // Size of problem
-  const Index n=time_stamps.nelem();
-  if (arr.nelem() not_eq n)
+  const Size n=time_stamps.size();
+  if (arr.size() not_eq n)
     throw std::runtime_error("Cannot sort, time array does not agree with sorting array size");
   
   // Sorted index
@@ -27,7 +27,7 @@ Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)
   
   // Fill the data into a new array
   Array<T> out(n);
-  for (Index i=0; i<n; i++)
+  for (Size i=0; i<n; i++)
     out[i] = arr[sortings[i]];
   
   return out;
@@ -48,7 +48,7 @@ Array<T> FlattenArrayTemplate(const Array<Array<T>>& in)
   // Size of problem
   Index n=0;
   for (auto& array: in)
-    n += array.nelem();
+    n += array.size();
   
   // Allocate output
   Array<T> out(n);
@@ -76,10 +76,10 @@ FLATTEN_MACRO(ArrayOfVector)
 
 void Flatten(Matrix& out, const ArrayOfVector& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Matrix(0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index m = in[0].nelem();
     
     if (not std::all_of(in.cbegin(), in.cend(), [m](auto& v){return m == v.nelem();}))
@@ -93,10 +93,10 @@ void Flatten(Matrix& out, const ArrayOfVector& in)
 
 void Flatten(Tensor3& out, const ArrayOfMatrix& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Tensor3(0, 0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index c = in[0].ncols();
     const Index r = in[0].nrows();
     
@@ -114,10 +114,10 @@ void Flatten(Tensor3& out, const ArrayOfMatrix& in)
 
 void Flatten(Tensor4& out, const ArrayOfTensor3& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Tensor4(0, 0, 0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index c = in[0].ncols();
     const Index r = in[0].nrows();
     const Index p = in[0].npages();
@@ -138,10 +138,10 @@ void Flatten(Tensor4& out, const ArrayOfTensor3& in)
 
 void Flatten(Tensor5& out, const ArrayOfTensor4& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Tensor5(0, 0, 0, 0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index c = in[0].ncols();
     const Index r = in[0].nrows();
     const Index p = in[0].npages();
@@ -165,10 +165,10 @@ void Flatten(Tensor5& out, const ArrayOfTensor4& in)
 
 void Flatten(Tensor6& out, const ArrayOfTensor5& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Tensor6(0, 0, 0, 0, 0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index c = in[0].ncols();
     const Index r = in[0].nrows();
     const Index p = in[0].npages();
@@ -195,10 +195,10 @@ void Flatten(Tensor6& out, const ArrayOfTensor5& in)
 
 void Flatten(Tensor7& out, const ArrayOfTensor6& in)
 {
-  if (in.nelem() == 0) {
+  if (in.size() == 0) {
     out = Tensor7(0, 0, 0, 0, 0, 0, 0);
   } else {
-    const Index n = in.nelem();
+    const Index n = in.size();
     const Index c = in[0].ncols();
     const Index r = in[0].nrows();
     const Index p = in[0].npages();

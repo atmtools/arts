@@ -127,7 +127,7 @@ struct Point {
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
-  [[nodiscard]] Index nelem() const;
+  [[nodiscard]] Index size() const;
   [[nodiscard]] Index ntype() const;
   [[nodiscard]] static constexpr Index nother() {
     return static_cast<Index>(enumtyps::KeyTypes.size());

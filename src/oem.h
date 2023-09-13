@@ -274,7 +274,7 @@ class ArtsLog {
       std::tuple<Params &...> tuple(params...);
 
       auto &y = std::get<4>(tuple);
-      scaling_factor_ = 1.0 / static_cast<Numeric>(y.nelem());
+      scaling_factor_ = 1.0 / static_cast<Numeric>(y.size());
       std::cout << std::endl;
       std::cout << invlib::center("MAP Computation") << std::endl;
 
@@ -491,7 +491,7 @@ class AgendaWrapper {
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
-                        (arts_jacobian.ncols() != 0) && (arts_y.nelem() != 0)),
+                        (arts_jacobian.ncols() != 0) && (arts_y.size() != 0)),
         ws_(ws),
         yi_(arts_y) {}
 
@@ -676,17 +676,17 @@ void OEM_checks(const Workspace& ws,
                 const Vector& lm_ga_settings,
                 const Index& clear_matrices,
                 const Index& display_progress) {
-  const Index nq = jacobian_quantities.nelem();
-  const Index n = xa.nelem();
-  const Index m = y.nelem();
+  const Index nq = jacobian_quantities.size();
+  const Index n = xa.size();
+  const Index m = y.size();
 
-  ARTS_USER_ERROR_IF ((x.nelem() != n) && (x.nelem() != 0),
+  ARTS_USER_ERROR_IF ((x.size() != n) && (x.size() != 0),
                       "The length of *x* must be either the same as *xa* or 0.");
   ARTS_USER_ERROR_IF (covmat_sx.ncols() != covmat_sx.nrows(),
                       "*covmat_sx* must be a square matrix.");
   ARTS_USER_ERROR_IF (covmat_sx.ncols() != n,
                       "Inconsistency in size between *x* and *covmat_sx*.");
-  ARTS_USER_ERROR_IF ((yf.nelem() != m) && (yf.nelem() != 0),
+  ARTS_USER_ERROR_IF ((yf.size() != m) && (yf.size() != 0),
                       "The length of *yf* must be either the same as *y* or 0.");
   ARTS_USER_ERROR_IF (covmat_se.ncols() != covmat_se.nrows(),
                       "*covmat_se* must be a square matrix.");
@@ -700,7 +700,7 @@ void OEM_checks(const Workspace& ws,
   ArrayOfArrayOfIndex jacobian_indices;
   bool any_affine;
   jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  ARTS_USER_ERROR_IF (jacobian_indices.nelem() != nq,
+  ARTS_USER_ERROR_IF (jacobian_indices.size() != nq,
         "Different number of elements in *jacobian_quantities* "
         "and *jacobian_indices*.");
   ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
@@ -715,11 +715,11 @@ void OEM_checks(const Workspace& ws,
         "Valid options for *method* are \"nl\", \"gn\" and "
         "\"ml\" or \"lm\".");
 
-  ARTS_USER_ERROR_IF (!(x_norm.nelem() == 0 || x_norm.nelem() == n),
+  ARTS_USER_ERROR_IF (!(x_norm.size() == 0 || x_norm.size() == n),
         "The vector *x_norm* must have length 0 or match "
         "*covmat_sx*.");
 
-  ARTS_USER_ERROR_IF (x_norm.nelem() > 0 && min(x_norm) <= 0,
+  ARTS_USER_ERROR_IF (x_norm.size() > 0 && min(x_norm) <= 0,
                       "All values in *x_norm* must be > 0.");
 
   ARTS_USER_ERROR_IF (max_iter <= 0,
@@ -730,7 +730,7 @@ void OEM_checks(const Workspace& ws,
 
   if ((method == "ml") || (method == "lm") || (method == "lm_cg") ||
       (method == "ml_cg")) {
-    ARTS_USER_ERROR_IF (lm_ga_settings.nelem() != 6,
+    ARTS_USER_ERROR_IF (lm_ga_settings.size() != 6,
           "When using \"ml\", *lm_ga_setings* must be a "
           "vector of length 6.");
     ARTS_USER_ERROR_IF (min(lm_ga_settings) < 0,
@@ -744,12 +744,12 @@ void OEM_checks(const Workspace& ws,
                       "Valid options for *display_progress* are 0 and 1.");
 
   // If necessary compute yf and jacobian.
-  if (x.nelem() == 0) {
+  if (x.size() == 0) {
     x = xa;
     inversion_iterate_agendaExecute(
         ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
-  if ((yf.nelem() == 0) || (jacobian.empty())) {
+  if ((yf.size() == 0) || (jacobian.empty())) {
     inversion_iterate_agendaExecute(
         ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
   }

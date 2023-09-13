@@ -63,7 +63,7 @@ Time next_even(const Time& t, const TimeStep& dt)
 
 ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
 {
-  Index N = times.nelem();
+  Index N = times.size();
   ARTS_USER_ERROR_IF (N < 2,
     "Can only find time steps for 2-long or longer time grids");
   
@@ -115,7 +115,7 @@ std::istream &operator>>(std::istream &is, Time &t) {
   const auto HMS = split(hms, ":");
 
   ARTS_USER_ERROR_IF(
-      YMD.nelem() not_eq 3 or HMS.nelem() not_eq 3,
+      YMD.size() not_eq 3 or HMS.size() not_eq 3,
       "Time stream must look like \"year-month-day hour:min:seconds\"\n"
       "\"year-month-day\"   looks like: ", std::quoted(ymd), '\n',
       "\"hour:min:seconds\" looks like: ", std::quoted(hms));
@@ -166,11 +166,11 @@ std::istream &operator>>(std::istream &is, Time &t) {
 Time mean_time(const ArrayOfTime& ts, Index s, Index E)
 {
   Index e=0;
-  if (e == -1) e = ts.nelem();
-  ARTS_USER_ERROR_IF (e < 0 or e > ts.nelem(),
+  if (e == -1) e = ts.size();
+  ARTS_USER_ERROR_IF (e < 0 or e > static_cast<Index>(ts.size()),
     "Bad last index, valid options are [-1, ts.nelem()], got: ", E);
   
-  ARTS_USER_ERROR_IF (s < 0 or s > ts.nelem(),
+  ARTS_USER_ERROR_IF (s < 0 or s > static_cast<Index>(ts.size()),
     "Bad first index, valid options are [0, ts.nelem()], got: ", s);
 
   Time::InternalTimeStep dt(0);    
@@ -180,8 +180,8 @@ Time mean_time(const ArrayOfTime& ts, Index s, Index E)
 }
 
 Vector time_vector(const ArrayOfTime& times) {
-  Vector t(times.nelem());
-  for (Index i=0; i<times.nelem(); i++) t[i] = Numeric(times[i]);
+  Vector t(times.size());
+  for (Size i=0; i<times.size(); i++) t[i] = Numeric(times[i]);
   return t;
 }
 

@@ -684,7 +684,7 @@ void psdDelanoeEtAl14(Matrix& psd_data,
   }
 
   if (psd_size_grid[0] < std::numeric_limits<Numeric>::epsilon()) {
-    ARTS_USER_ERROR_IF (psd_size_grid.nelem() < 2,
+    ARTS_USER_ERROR_IF (psd_size_grid.size() < 2,
           "psd_size_grid has only one element which is 0. This is not allowed.");
   }
 
@@ -1124,10 +1124,10 @@ void psdSeifertBeheng06(Matrix& psd_data,
                         const Numeric& t_max,
                         const Index& picky) {
   // Some sizes
-  const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_names.nelem();
+  const Index nin = pnd_agenda_input_names.size();
+  const Index ndx = dpnd_data_dx_names.size();
   const Index np = pnd_agenda_input.nrows();
-  const Index nsi = psd_size_grid.nelem();
+  const Index nsi = psd_size_grid.size();
 
   // Checks
   ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != nin,
@@ -1216,7 +1216,7 @@ void psdSeifertBeheng06(Matrix& psd_data,
       for (Index i = 0; i < nsi; i++) {
         psd_data(ip, i) = psd_weight * psd_1p[i];
 
-        for (Index idx = 0; idx < dpnd_data_dx_idx.nelem(); idx++) {
+        for (Index idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
           // with respect to WC
 
           if (dpnd_data_dx_idx[idx] != -1) {
@@ -1242,10 +1242,10 @@ void psdMilbrandtYau05(Matrix& psd_data,
                        const Numeric& t_max,
                        const Index& picky) {
   // Some sizes
-  const Index nin = pnd_agenda_input_names.nelem();
-  const Index ndx = dpnd_data_dx_names.nelem();
+  const Index nin = pnd_agenda_input_names.size();
+  const Index ndx = dpnd_data_dx_names.size();
   const Index np = pnd_agenda_input.nrows();
-  const Index nsi = psd_size_grid.nelem();
+  const Index nsi = psd_size_grid.size();
 
   // Checks
   ARTS_USER_ERROR_IF (pnd_agenda_input.ncols() != nin,
@@ -1333,7 +1333,7 @@ void psdMilbrandtYau05(Matrix& psd_data,
       for (Index i = 0; i < nsi; i++) {
         psd_data(ip, i) = psd_weight * psd_1p[i];
 
-        for (Index idx = 0; idx < dpnd_data_dx_idx.nelem(); idx++) {
+        for (Index idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
           // with respect to WC
 
           if (dpnd_data_dx_idx[idx] != -1) {

@@ -100,8 +100,8 @@ Numeric LagrangeInterpol4(ConstVectorView x,
   const Numeric Dlimit = 1.00000e-15;
 
   // Check that dimensions of x and y vector agree
-  const Index n_x = x.nelem();
-  const Index n_y = y.nelem();
+  const Index n_x = x.size();
+  const Index n_y = y.size();
   ARTS_USER_ERROR_IF ((n_x != 4) || (n_y != 4),
       "The vectors x and y must all have the same length of 4 elements!\n"
       "Actual lengths:\n"
@@ -140,8 +140,8 @@ Numeric LagrangeInterpol4(ConstVectorView x,
     \date   2000-06-27
 */
 Numeric last(ConstVectorView x) {
-  ARTS_ASSERT(x.nelem() > 0);
-  return x[x.nelem() - 1];
+  ARTS_ASSERT(x.size() > 0);
+  return x[x.size() - 1];
 }
 
 //! last
@@ -155,8 +155,8 @@ Numeric last(ConstVectorView x) {
     \date   2000-06-27
 */
 Index last(const ArrayOfIndex& x) {
-  ARTS_ASSERT(x.nelem() > 0);
-  return x[x.nelem() - 1];
+  ARTS_ASSERT(x.size() > 0);
+  return x[x.size() - 1];
 }
 
 //! linspace
@@ -274,8 +274,8 @@ void nlogspace(Vector& x,
 Numeric trapz(ConstVectorView x,
               ConstVectorView y)
 {
-  const Index n = x.nelem();
-  ARTS_ASSERT(y.nelem() == n);
+  const Index n = x.size();
+  ARTS_ASSERT(y.size() == n);
   Numeric sum = 0.0;
   for (Index i=1; i<n; ++i)
     sum += (x[i]-x[i-1]) * (y[i]+y[i-1]);
@@ -297,8 +297,8 @@ Numeric trapz(ConstVectorView x,
 void cumsum(VectorView csum,
             ConstVectorView x)
 {
-  const Index n = x.nelem();
-  ARTS_ASSERT(csum.nelem() == n);
+  const Index n = x.size();
+  ARTS_ASSERT(csum.size() == n);
   csum[0] = x[0];
   for (Index i=1; i<n; ++i)
     csum[i] = csum[i-1] + x[i];
@@ -318,8 +318,8 @@ void cumsum(VectorView csum,
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid) {
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
+  Index n = za_grid.size();
+  Index m = aa_grid.size();
   Vector res1(n);
   ARTS_ASSERT(is_size(Integrand, n, m));
 
@@ -365,8 +365,8 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView grid_stepsize) {
   Numeric res = 0;
   if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0)) {
-    Index n = za_grid.nelem();
-    Index m = aa_grid.nelem();
+    Index n = za_grid.size();
+    Index m = aa_grid.size();
     Numeric stepsize_za = grid_stepsize[0];
     Numeric stepsize_aa = grid_stepsize[1];
     Vector res1(n);
@@ -414,7 +414,7 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 */
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
                                ConstVectorView za_grid) {
-  Index n = za_grid.nelem();
+  Index n = za_grid.size();
   ARTS_ASSERT(is_size(Integrand, n));
 
   Numeric res = 0.0;
@@ -530,9 +530,9 @@ void mgd(VectorView psd,
          const Numeric& mu,
          const Numeric& la,
          const Numeric& ga) {
-  const Index nx = x.nelem();
+  const Index nx = x.size();
 
-  ARTS_ASSERT(psd.nelem() == nx);
+  ARTS_ASSERT(psd.size() == nx);
 
   if (ga == 1) {
     if (mu == 0) {
@@ -605,9 +605,9 @@ void mgd_with_derivatives(VectorView psd,
                           const bool& do_mu_jac,
                           const bool& do_la_jac,
                           const bool& do_ga_jac) {
-  const Index nx = x.nelem();
+  const Index nx = x.size();
 
-  ARTS_ASSERT(psd.nelem() == nx);
+  ARTS_ASSERT(psd.size() == nx);
   ARTS_ASSERT(jac_data.nrows() == 4);
   ARTS_ASSERT(jac_data.ncols() == nx);
 
@@ -686,7 +686,7 @@ void delanoe_shape_with_derivative(VectorView psd,
   Numeric f_d = tgamma((alpha + 5.0) / beta);
   f_d /= tgamma((alpha + 4.0) / beta);
 
-  for (Index i = 0; i < x.nelem(); ++i) {
+  for (Index i = 0; i < x.size(); ++i) {
     Numeric xi = x[i];
     psd[i] = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
     jac_data(0, i) =
@@ -741,10 +741,10 @@ Numeric mod_gamma_dist(
     \date   2012-02-12
 */
 void unitl(Vector& x) {
-  ARTS_ASSERT(x.nelem() > 0);
+  ARTS_ASSERT(x.size() > 0);
 
   const Numeric l = sqrt(x * x);
-  for (Index i = 0; i < x.nelem(); i++) x[i] /= l;
+  for (Index i = 0; i < x.size(); i++) x[i] /= l;
 }
 
 //! flat
@@ -761,7 +761,7 @@ void unitl(Vector& x) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstMatrixView X) {
-  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols());
+  ARTS_ASSERT(x.size() == X.nrows() * X.ncols());
 
   Index i = 0;
 
@@ -787,7 +787,7 @@ void flat(VectorView x, ConstMatrixView X) {
     \date   2015-09-09
 */
 void flat(VectorView x, ConstTensor3View X) {
-  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(x.size() == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -815,7 +815,7 @@ void flat(VectorView x, ConstTensor3View X) {
     \date   2015-09-10
 */
 void reshape(Tensor3View X, ConstVectorView x) {
-  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols() * X.npages());
+  ARTS_ASSERT(x.size() == X.nrows() * X.ncols() * X.npages());
 
   Index i = 0;
 
@@ -843,7 +843,7 @@ void reshape(Tensor3View X, ConstVectorView x) {
     \date   2015-09-10
 */
 void reshape(MatrixView X, ConstVectorView x) {
-  ARTS_ASSERT(x.nelem() == X.nrows() * X.ncols());
+  ARTS_ASSERT(x.size() == X.nrows() * X.ncols());
 
   Index i = 0;
 
@@ -873,7 +873,7 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
   nlinspace(x, -1, 1, N);
 
   //allocate
-  w.resize(x.nelem());
+  w.resize(x.size());
 
   // calculate weights
   w[0] = (x[1] - x[0]) / 2.;
@@ -881,14 +881,14 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
   for (Index i = 1; i < nph * 2 - 1; i++) {
     w[i] = (x[i + 1] - x[i - 1]) / 2.;
   }
-  w[x.nelem() - 1] = (x[x.nelem() - 1] - x[x.nelem() - 2]) / 2.;
+  w[x.size() - 1] = (x[x.size() - 1] - x[x.size() - 2]) / 2.;
 }
 
 void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
 
-  ARTS_USER_ERROR_IF(x.nelem() <1, "Grid needs at least 2 points." );
+  ARTS_USER_ERROR_IF(x.size() <1, "Grid needs at least 2 points." );
 
-  Index N = x.nelem();
+  Index N = x.size();
 
   w.resize(N);
 
