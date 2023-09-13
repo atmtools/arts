@@ -4,8 +4,12 @@
 
 namespace Species {
 ArrayOfIsotopeRecord isotopologues(Species spec) {
-  #define deal_with_spec(SPEC) case Species::SPEC: return ArrayOfIsotopeRecord(isotopologues<Species::SPEC>());
-  
+#define deal_with_spec(SPEC)                                  \
+  case Species::SPEC: {                                       \
+    static constexpr auto v = isotopologues<Species::SPEC>(); \
+    return {v.begin(), v.end()};                              \
+  }
+
   switch (spec) {
     case Species::Bath: break;
     deal_with_spec(Water)

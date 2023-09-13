@@ -1,15 +1,6 @@
-/**
-    \file   array.h
+#pragma once
 
-   This file contains the definition of Array.
-
-   \author Stefan Buehler
-   \date   2001-09-05
-*/
-
-#ifndef array_h
-#define array_h
-
+#include <algorithm>
 #include <array>
 #include <climits>
 #include <compare>
@@ -19,104 +10,9 @@
 
 #include "matpack_concepts.h"
 
-/** This can be used to make arrays out of anything.
-
-    A simple \#define does not do for this, since I have to implement
-    member functions like nelem, in order to be consistent with
-    Vector.
-
-    Because constructors are not inherited, I have to re-define all
-    constructors.
-*/
-template <class base>
-class Array : public std::vector<base> {
- public:
-  // Constructors:
-  Array() : std::vector<base>() {}
-
-  explicit Array(Index n) : std::vector<base>(n) {}
-
-  Array(Index n, const base& fillvalue) : std::vector<base>(n) {
-    std::fill(this->begin(), this->end(), fillvalue);
-  }
-
-  Array(const Array& A) : std::vector<base>(A) {}
-
-  Array(Array&& A) noexcept : std::vector<base>(std::move(A)) {}
-
-  Array(std::initializer_list<base> init) : std::vector<base>(init) {}
-
-  template <class base2, size_t N>
-  explicit Array(const std::array<base2, N>& input)
-      : std::vector<base>(input.begin(), input.end()) {
-    static_assert(std::is_convertible<base2, base>::value,
-                  "Must be convertible");
-  }
-
-  Array(std::vector<base> x) : std::vector<base>(std::move(x)) {}
-
-  // Assignment operators:
-  Array& operator=(base x) {
-    std::fill(this->begin(), this->end(), x);
-    return *this;
-  }
-
-  Array& operator=(const Array& A) {
-    this->resize(A.size());
-    std::copy(A.begin(), A.end(), this->begin());
-    return *this;
-  }
-
-  Array& operator=(Array&& A) noexcept {
-    std::vector<base>::operator=(std::move(A));
-    return *this;
-  }
-
-  // Number of elements:
-  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT {
-    size_t s = this->size();
-    ARTS_ASSERT(s < LONG_MAX);
-    return static_cast<Index>(s);
-  }
-
-  // Index operators:
-  const base& operator[](const Index n) const {
-    ARTS_ASSERT(0 <= n);
-    ARTS_ASSERT(n < nelem());
-    return std::vector<base>::operator[](n);
-  }
-
-  base& operator[](const Index n) {
-    ARTS_ASSERT(0 <= n);
-    ARTS_ASSERT(n < nelem());
-    return std::vector<base>::operator[](n);
-  }
-
-  // Helper functions
-  void push_back_n(const base& elem, const Index n) {
-    for (Index i = 0; i < n; i++) std::vector<base>::push_back(elem);
-  }
-
-  virtual ~Array() = default;
-
-  friend std::ostream& operator<<(std::ostream& os, const Array& v) {
-    typename Array::const_iterator i = v.begin();
-    const typename Array::const_iterator end = v.end();
-
-    if (i != end) {
-      os << std::setw(3) << *i;
-      ++i;
-    }
-
-    for (; i != end; ++i) {
-      os << " " << std::setw(3) << *i;
-    }
-
-    return os;
-  }
-
-  [[nodiscard]] std::partial_ordering operator<=>(const Array& x) const = default;
-};
+/** An array of Index. */
+template <typename base>
+using Array = std::vector<base>;
 
 /** An array of Index. */
 using ArrayOfIndex = Array<Index>;
@@ -128,34 +24,14 @@ using ArrayOfNumeric = Array<Numeric>;
 
 /** Max function. */
 template <class base>
-inline base max(const Array<base>& x) {
-  // Initial value for max:
-  base max = x[0];
-
-  typename Array<base>::const_iterator xi = x.begin();
-  const typename Array<base>::const_iterator xe = x.end();
-
-  for (; xi != xe; ++xi) {
-    if (*xi > max) max = *xi;
-  }
-
-  return max;
+constexpr base max(const Array<base>& x) {
+  return *std::ranges::max_element(x);
 }
 
 /** Min function. */
 template <class base>
-inline base min(const Array<base>& x) {
-  // Initial value for min:
-  base min = x[0];
-
-  typename Array<base>::const_iterator xi = x.begin();
-  const typename Array<base>::const_iterator xe = x.end();
-
-  for (; xi != xe; ++xi) {
-    if (*xi < min) min = *xi;
-  }
-
-  return min;
+constexpr base min(const Array<base>& x) {
+  return *std::ranges::min_element(x);
 }
 
 //! Find first occurance.
@@ -174,7 +50,7 @@ inline base min(const Array<base>& x) {
 */
 template <class base>
 Index find_first(const Array<base>& x, const base& w) {
-  for (Index i = 0; i < x.nelem(); ++i)
+  for (Size i = 0; i < x.size(); ++i)
     if (w == x[i]) return i;
 
   return -1;
@@ -197,7 +73,7 @@ Index find_first(const Array<base>& x, const base& w) {
 template <class base>
 void find_all(ArrayOfIndex& pos, const Array<base>& x, const base& w) {
   pos.resize(0);
-  for (Index i = 0; i < x.nelem(); ++i)
+  for (Size i = 0; i < x.size(); ++i)
     if (w == x[i]) pos.push_back(i);
 }
 
@@ -236,13 +112,13 @@ Index TotalNumberOfElements(const Array<Array<base> >& aa) {
 //! Determine the index of an element in a flattened version of the array
 template <class base>
 Index FlattenedIndex(const Array<Array<base> >& aa,
-                     Index outer,
-                     Index inner = 0) {
-  ARTS_ASSERT(outer < aa.nelem());
-  ARTS_ASSERT(inner < aa[outer].nelem());
+                     Size outer,
+                     Size inner = 0) {
+  ARTS_ASSERT(outer < aa.size());
+  ARTS_ASSERT(inner < aa[outer].size());
 
   Index N = 0;
-  for (Index i = 0; i < outer; i++) {
+  for (Size i = 0; i < outer; i++) {
     N += aa[i].nelem();
   }
 
@@ -268,5 +144,3 @@ std::string stringify(const Array<T>& list,
   for (auto& x : list) os << beg << x << sep;
   return os.str();
 }
-
-#endif  // array_h

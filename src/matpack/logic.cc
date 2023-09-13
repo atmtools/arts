@@ -220,8 +220,8 @@ bool is_increasing(ConstVectorView x) {
 
 */
 bool is_increasing(const ArrayOfIndex& x) {
-  if (x.nelem() > 1) {
-    for (Index i = 1; i < x.nelem(); i++) {
+  if (x.size() > 1) {
+    for (Size i = 1; i < x.size(); i++) {
       if (x[i] <= x[i - 1]) return false;
     }
   }
@@ -261,8 +261,8 @@ bool is_unique(const ArrayOfIndex& x) {
   // We simply compare the second element to the first,
   // the third to the first and second, and so on.
 
-  for (Index i = 1; i < x.nelem(); ++i)
-    for (Index s = 0; s < i; ++s)
+  for (Size i = 1; i < x.size(); ++i)
+    for (Size s = 0; s < i; ++s)
       if (x[i] == x[s]) return false;
 
   return true;

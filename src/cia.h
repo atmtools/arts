@@ -91,7 +91,7 @@ class CIARecord {
 
   /** Return number of datasets in this record.
      */
-  [[nodiscard]] Index DatasetCount() const { return mdata.nelem(); }
+  [[nodiscard]] Index DatasetCount() const { return mdata.size(); }
 
   /** Return frequency grid for given dataset.
      */

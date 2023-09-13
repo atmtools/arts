@@ -140,7 +140,7 @@ Index chk_contains(const String& x_name, const Array<T>& x, const T& what) {
   // Find all positions of what in x and store in pos:
   find_all(pos, x, what);
 
-  switch (pos.nelem()) {
+  switch (pos.size()) {
     case 0:
       // Not found.
       os << "The array *" << x_name << "* must contain the element " << what
@@ -157,7 +157,7 @@ Index chk_contains(const String& x_name, const Array<T>& x, const T& what) {
       // Found more than once.
       os << "The array *" << x_name << "* must contain the element " << what
          << "\n"
-         << "exactly once, but it does contain it " << pos.nelem() << " times.";
+         << "exactly once, but it does contain it " << pos.size() << " times.";
       throw runtime_error_not_unique(os.str());
       break;
   }

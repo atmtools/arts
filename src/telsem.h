@@ -64,8 +64,8 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for given coordinates obtained from
      * calc cellnum.
      */
-  bool contains(Index cellnumber) const {
-    if (cellnumber >= correspondence.nelem()) {
+  bool contains(Size cellnumber) const {
+    if (cellnumber >= correspondence.size()) {
       return false;
     }
     return correspondence[cellnumber] >= 0;

@@ -61,6 +61,6 @@ add_library(workspace STATIC
   auto_wsm.cpp
   auto_wsa.cpp
 )
-target_link_libraries(workspace PUBLIC workspace_internals artscore)
+target_link_libraries(workspace PUBLIC workspace_internals array_ostream artscore)
 target_include_directories(workspace PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

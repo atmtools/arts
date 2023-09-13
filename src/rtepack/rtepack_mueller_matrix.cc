@@ -2,11 +2,11 @@
 
 namespace rtepack {
 Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector> &T) {
-  const Index n = T.nelem();
+  const Size n = T.size();
   const Index nf = n ? T.front().nelem() : 0;
 
   Array<muelmat_vector> PiT(n, muelmat_vector(nf, muelmat::id()));
-  for (Index i = 1; i < n; i++) {
+  for (Size i = 1; i < n; i++) {
     for (Index j = 0; j < nf; j++) {
       PiT[i][j] = T[i][j] * PiT[i - 1][j];
     }
@@ -15,11 +15,11 @@ Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector
 }
 
 Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T) {
-  const Index n = T.nelem();
+  const Size n = T.size();
   const Index nf = n ? T.front().nelem() : 0;
 
   Array<muelmat_vector> PiT(n, muelmat_vector(nf, muelmat::id()));
-  for (Index i = 1; i < n; i++) {
+  for (Size i = 1; i < n; i++) {
     for (Index j = 0; j < nf; j++) {
       PiT[i][j] = PiT[i - 1][j] * T[i][j];
     }

@@ -234,10 +234,10 @@ class GriddedField {
         ret = mnumericgrids[i].nelem();
         break;
       case GRID_TYPE_STRING:
-        ret = mstringgrids[i].nelem();
+        ret = mstringgrids[i].size();
         break;
       case GRID_TYPE_TIME:
-        ret = mtimegrids[i].nelem();
+        ret = mtimegrids[i].size();
         break;
     }
 

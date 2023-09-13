@@ -950,7 +950,7 @@ class ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT { return values.nelem(); }
+  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT { return values.size(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
   [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;

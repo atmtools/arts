@@ -4,6 +4,8 @@
 
 #include "workspace_class.h"
 
+#include <array_ostream.h>
+
 #include <auto_wsm.h>
 
 #include <algorithm>

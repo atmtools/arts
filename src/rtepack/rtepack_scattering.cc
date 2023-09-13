@@ -39,12 +39,12 @@ bulk_backscatter_derivative(const ConstTensor5View &Pe,
   const Index nv = Pe.npages();
   const Index np = Pe.nbooks();
   const Index ne = Pe.nshelves();
-  const Index nq = dpnd_dx.nelem();
+  const Size nq = dpnd_dx.size();
 
   Array<muelmat_matrix> aoaotm(np, muelmat_matrix(nq, nv));
 
   for (Index ip = 0; ip < np; ip++) {
-    for (Index iq = 0; iq < nq; iq++) {
+    for (Size iq = 0; iq < nq; iq++) {
       aoaotm[ip][iq] = 0.0;
       for (Index iv = 0; iv < nv; iv++) {
         for (Index ie = 0; ie < ne; ie++) {
@@ -88,21 +88,21 @@ void bulk_backscatter_commutative_transmission_rte(
     const Array<muelmat_matrix> &dT1,
     const Array<muelmat_matrix> &dT2,
     const Array<muelmat_matrix> &dZ) {
-  const Index np = dT1.nelem();
+  const Size np = dT1.size();
   const Index nv = np ? dT1.front().ncols() : 0;
   const Index nq = np ? dT1.front().nrows() : 0;
 
   // For all transmission, the I-vector is the same
-  for (Index ip = 0; ip < np; ip++)
+  for (Size ip = 0; ip < np; ip++)
     setBackscatterTransmission(I[ip], I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
 
-  for (Index ip = 0; ip < np; ip++) {
+  for (Size ip = 0; ip < np; ip++) {
     setBackscatterTransmissionDerivative(dI[ip][ip], I_incoming, PiTr[ip],
                                          PiTf[ip], dZ[ip]);
   }
 
-  for (Index ip = 0; ip < np; ip++) {
-    for (Index j = ip; j < np; j++) {
+  for (Size ip = 0; ip < np; ip++) {
+    for (Size j = ip; j < np; j++) {
       for (Index iq = 0; iq < nq; iq++) {
         for (Index iv = 0; iv < nv; iv++) {
           dI[ip][j](iq, iv) +=

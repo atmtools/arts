@@ -358,7 +358,7 @@ void ValueList::set(Index i, std::string_view upp, std::string_view low) {
 }
 
 std::ostream& operator<<(std::ostream& os, const ValueList& vl) {
-  for (Index i = 0; i < vl.values.nelem(); i++) {
+  for (Size i = 0; i < vl.values.size(); i++) {
     if (i) os << ' ';
     os << vl.values[i];
   }

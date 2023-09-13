@@ -24,13 +24,13 @@ void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
                         bool& any_affine,
                         const ArrayOfRetrievalQuantity& jqs,
                         const bool& before_affine) {
-  jis.resize(jqs.nelem());
+  jis.resize(jqs.size());
 
   any_affine = false;
 
   // Indices before affine transformation
   if (before_affine) {
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       jis[i] = ArrayOfIndex(2);
       if (i > 0) {
         jis[i][0] = jis[i - 1][1] + 1;
@@ -47,7 +47,7 @@ void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
 
   // After affine transformation
   else {
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       jis[i] = ArrayOfIndex(2);
       if (i > 0) {
         jis[i][0] = jis[i - 1][1] + 1;
@@ -78,7 +78,7 @@ void transform_jacobian(Matrix& jacobian,
   transform_x_back(x_t, jqs, false);
 
   // Apply functional transformations
-  for (Index i = 0; i < jqs.nelem(); ++i) {
+  for (Size i = 0; i < jqs.size(); ++i) {
     const RetrievalQuantity& jq = jqs[i];
     const String tfun = jq.TransformationFunc();
     // Remember to add new functions also to transform_jacobian and transform_x_back
@@ -110,7 +110,7 @@ void transform_jacobian(Matrix& jacobian,
 
     Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       const RetrievalQuantity& jq = jqs[i];
       Index col_start = jis[i][0];
       Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -139,7 +139,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
   jac_ranges_indices(jis, any_affine, jqs, true);
 
   // Apply functional transformations
-  for (Index i = 0; i < jqs.nelem(); ++i) {
+  for (Size i = 0; i < jqs.size(); ++i) {
     const RetrievalQuantity& jq = jqs[i];
     const String tfun = jq.TransformationFunc();
     // Remember to add new functions also to transform_jacobian and transform_x_back
@@ -188,7 +188,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
 
     Vector x_t(jis_t.back()[1] + 1);
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       const RetrievalQuantity& jq = jqs[i];
       Index col_start = jis[i][0];
       Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -226,7 +226,7 @@ void transform_x_back(Vector& x_t,
 
     Vector x(jis.back()[1] + 1);
 
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       const RetrievalQuantity& jq = jqs[i];
       Index col_start = jis[i][0];
       Index col_extent = jis[i][1] - jis[i][0] + 1;
@@ -247,7 +247,7 @@ void transform_x_back(Vector& x_t,
 
   if (revert_functional_transforms) {
     // Revert functional transformations
-    for (Index i = 0; i < jqs.nelem(); ++i) {
+    for (Size i = 0; i < jqs.size(); ++i) {
       const RetrievalQuantity& jq = jqs[i];
       const String tfun = jq.TransformationFunc();
       // Remember to add new functions also to transform_jacobian and transform_x_back
@@ -463,7 +463,7 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
 
 ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
                                                  const ArrayOfArrayOfSpeciesTag& abs_species) {
-  ArrayOfIndex aoi(jacobian_quantities.nelem(), -1);
+  ArrayOfIndex aoi(jacobian_quantities.size(), -1);
   
   FOR_ANALYTICAL_JACOBIANS_DO(
     if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
@@ -494,7 +494,7 @@ ArrayOfIndex get_pointers_for_analytical_species(const ArrayOfRetrievalQuantity&
 }
 
 ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active) {
-  ArrayOfTensor3 diy_dpath(jacobian_quantities.nelem());
+  ArrayOfTensor3 diy_dpath(jacobian_quantities.size());
   
   const Index nn = active ? np * nf : nf;
   FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq] = Tensor3(np, nn, 4, 0.0);)
@@ -503,7 +503,7 @@ ArrayOfTensor3 get_standard_diy_dpath(const ArrayOfRetrievalQuantity& jacobian_q
 }
 
 ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jacobian_quantities, Index np, Index nf, bool active) {
-  ArrayOfTensor3 diy_dx(jacobian_quantities.nelem());
+  ArrayOfTensor3 diy_dx(jacobian_quantities.size());
   
   bool any_affine;
   ArrayOfArrayOfIndex jacobian_indices;
@@ -518,7 +518,7 @@ ArrayOfTensor3 get_standard_starting_diy_dx(const ArrayOfRetrievalQuantity& jaco
 ArrayOfIndex get_pointers_for_scat_species(const ArrayOfRetrievalQuantity& jacobian_quantities,
                                            const ArrayOfString& scat_species,
                                            const bool cloudbox_on) {
-  ArrayOfIndex aoi(jacobian_quantities.nelem(), -1);
+  ArrayOfIndex aoi(jacobian_quantities.size(), -1);
   
   FOR_ANALYTICAL_JACOBIANS_DO(
     if (cloudbox_on and jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
@@ -733,7 +733,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
 }
 
 void jacobian_type_extrapol(ArrayOfGridPos& gp) {
-  for (Index i = 0; i < gp.nelem(); i++) {
+  for (Size i = 0; i < gp.size(); i++) {
     if (gp[i].fd[0] < 0) {
       gp[i].fd[0] = 0;
       gp[i].fd[1] = 1;
@@ -792,7 +792,7 @@ void calcBaselineFit(Vector& y_baseline,
   // Size and check of sensor_response
   //
   const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Size npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
 
   // Evaluate basis functions for fits.
