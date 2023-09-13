@@ -13,10 +13,11 @@ PlanetSet(option="Earth")
 jacobianOff
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+#
+ppath_step_agendaSet( option="GeometricPath" )
 
 # blackbody surface with skin temperature interpolated from t_surface field
 surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
@@ -47,7 +48,7 @@ ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
 
 abs_speciesSet( species=
-                [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
+                [ "O2-PWR98", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lookupAdapt
 

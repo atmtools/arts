@@ -40,7 +40,6 @@ arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
 arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
-arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath1D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath2D.arts)
@@ -50,7 +49,6 @@ arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
-arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestSensorPol.arts)
@@ -72,7 +70,6 @@ arts_test_run_ctlfile(fast artscomponents/surface/TestTessem.arts)
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
 arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
-arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
 
 arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestPsds.arts)
@@ -101,7 +98,6 @@ arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
 
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4_transmission.arts)
-arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceBlackbody.arts)
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceFlatScalarReflectivity.arts)
 
@@ -166,6 +162,9 @@ arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
 if (ARTS_XML_DATA_DIR)
 
+  arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
+  arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
+
   ###############################
   ### testing XML Data itself ###
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
@@ -211,6 +210,8 @@ if (ARTS_XML_DATA_DIR)
   #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
 
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
+
+  arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
 endif (ARTS_XML_DATA_DIR)
 
 ####################

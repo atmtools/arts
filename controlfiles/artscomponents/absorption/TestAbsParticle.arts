@@ -15,19 +15,19 @@ gas_scattering_agendaSet
 PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # No jacobian calculations
 jacobianOff
@@ -54,7 +54,7 @@ ReadXML( p_grid, "testdata/testdoit_p_grid.xml" )
 
 # Definition of species
 abs_speciesSet( species=[ "H2O-PWR98",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "N2-SelfContStandardType" ] )
 
 # Atmospheric profiles
@@ -104,7 +104,7 @@ VectorCreate( n_t_grid )
 AgendaSet( surface_rtprop_agenda ){
   specular_losCalc
   InterpAtmFieldToPosition( 
-    out   = surface_skin_t, 
+    output = surface_skin_t, 
     field = t_field )
   VectorSetConstant( n_t_grid, 1, surface_skin_t )
   complex_refr_indexWaterLiebe93( 

@@ -16,17 +16,15 @@ water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
 
+# Standard transmission agenda 
+iy_main_agendaSet(option="Transmission")
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-
-# Geometrical path calculation (i.e., refraction neglected)
+ppath_agendaSet( option="FollowSensorLosPath" )
 #
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-# Standard transmission agenda 
-Copy( iy_main_agenda, iy_main_agenda__Transmission )
-
+# no refraction
+#
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Frequencies and Stokes dim.
