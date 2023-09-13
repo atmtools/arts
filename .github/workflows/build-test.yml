@@ -17,7 +17,7 @@ jobs:
           ubuntu-gcc-12-debug,
           ubuntu-clang-15-nofortran,
           ubuntu-clang-16-nofortran,
-          macos-gcc-12,
+          macos-gcc-13,
           macos-clang-16,
         ]
 
@@ -91,14 +91,14 @@ jobs:
             libcxx: "yes"
             buildtype: "Release"
 
-          - name: macos-gcc-12
+          - name: macos-gcc-13
             os: macos-11
             compiler: gcc
-            version: "12"
+            version: "13"
             doc: "no"
             arts: "yes"
             fortran: "yes"
-            fortran-version: "12"
+            fortran-version: "13"
             check: "yes"
             libcxx: "no"
             buildtype: "Release"
