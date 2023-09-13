@@ -634,6 +634,90 @@ struct Lagrange {
   /*! The Lagrange interpolation weights derivatives at each point */
   [[no_unique_address]] dlx_type dlx{};
 
+  /*! Finds lx
+    *
+    * Note that the sum(lx) == 1, and this is guaranteed by
+    * a reduction of the first N-1 elements of lx in this
+    * method
+    *
+    * @param[in] x New grid position
+    * @param[in] xi Old grid positions
+    */
+  template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+  static constexpr auto lx_finder(const Numeric x,
+                                  const Vec &xi,
+                                  const Index pos,
+                                  const Index sz)
+    requires(runtime_polyorder())
+  {
+    lx_type lx(sz);
+    for (Index j = 0; j < sz - 1; j++)
+      lx[j] = l<type, Limit>(pos, sz - 1, x, xi, j);
+
+    lx.back() = 1.0 - std::reduce(lx.begin(), lx.end() - 1);
+
+    return lx;
+  }
+
+   /*! Finds lx
+    *
+    * Note that the sum(lx) == 1, and this is guaranteed by
+    * a reduction of the first N-1 elements of lx in this
+    * method
+    *
+    * @param[in] x New grid position
+    * @param[in] xi Old grid positions
+    */
+   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+   static constexpr auto lx_finder(const Numeric x,
+                                   const Vec &xi,
+                                   const Index pos)
+     requires(not runtime_polyorder())
+   {
+     lx_type lx{};
+
+     if constexpr (PolyOrder == 0) {
+     } else if constexpr (PolyOrder == 1) {
+       lx.front() = l<PolyOrder, type, Limit>(pos, x, xi, 0);
+     } else {
+       for (Index j = 0; j < PolyOrder; j++) {
+         lx[j] = l<PolyOrder, type, Limit>(pos, x, xi, j);
+       }
+     }
+
+     lx.back() = 1.0 - std::reduce(lx.begin(), lx.end() - 1);
+
+     return lx;
+   }
+
+   /*! Finds dlx
+    *
+    * FIXME: Remove this comment if sum(dlx) == 0 or not.
+    * I think it is, and if it is the loop should be fixed
+    * to set dlx.back = - std::reduce(dlx.begin(), dlx.end() - 1);
+    *
+    * @param[in] x New grid position
+    * @param[in] xi Old grid positions
+    */
+   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
+   static constexpr auto dlx_finder(const Numeric x [[maybe_unused]],
+                                    const Vec &xi [[maybe_unused]],
+                                    const lx_type &lx [[maybe_unused]],
+                                    const Index pos [[maybe_unused]]) {
+     if constexpr (not do_derivs) {
+       return Empty{};
+     } else {
+       dlx_type dlx{};
+       if constexpr (runtime_polyorder()) dlx.resize(lx.size());
+
+       for (std::size_t j = 0; j < lx.size(); j++) {
+         dlx[j] = dl<type, Limit>(pos, lx.size(), x, xi, lx, j);
+       }
+
+       return dlx;
+     }
+   }
+
   /* Number of weights */
   static constexpr Index size() noexcept requires(not runtime_polyorder()) { return PolyOrder + 1; }
 
@@ -669,16 +753,15 @@ struct Lagrange {
    * @param[in] polyorder Polynominal degree
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
+  constexpr Lagrange(const Index p0,
+                     const Numeric x,
+                     const Vec &xi,
                      Index polyorder)
     requires(runtime_polyorder())
-      : pos(is_ascending(xi)
-                ? pos_finder<true, Limit>(p0, x, xi, polyorder)
-                : pos_finder<false, Limit>(p0, x, xi, polyorder)),
-        lx(polyorder + 1), dlx(polyorder + 1) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+      : pos(is_ascending(xi) ? pos_finder<true, Limit>(p0, x, xi, polyorder)
+                             : pos_finder<false, Limit>(p0, x, xi, polyorder)),
+        lx(lx_finder(x, xi, pos, polyorder + 1)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Standard initializer from Vector-types for runtime polyorder
    *
@@ -689,14 +772,15 @@ struct Lagrange {
    * @param[in] flag For the order of xi
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
-                     Index polyorder, AscendingOrder)
+  constexpr Lagrange(const Index p0,
+                     const Numeric x,
+                     const Vec &xi,
+                     Index polyorder,
+                     AscendingOrder)
     requires(runtime_polyorder())
       : pos(pos_finder<true, Limit>(p0, x, xi, polyorder)),
-        lx(polyorder + 1), dlx(polyorder + 1) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+        lx(lx_finder(x, xi, pos, polyorder + 1)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Standard initializer from Vector-types for runtime polyorder
    *
@@ -707,14 +791,15 @@ struct Lagrange {
    * @param[in] flag For the order of xi
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi,
-                     Index polyorder, DescendingOrder)
+  constexpr Lagrange(const Index p0,
+                     const Numeric x,
+                     const Vec &xi,
+                     Index polyorder,
+                     DescendingOrder)
     requires(runtime_polyorder())
       : pos(pos_finder<false, Limit>(p0, x, xi, polyorder)),
-        lx(polyorder + 1), dlx(polyorder + 1) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+        lx(lx_finder(x, xi, pos, polyorder + 1)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Standard initializer from Vector-types for compiletime polyorder
    *
@@ -725,12 +810,10 @@ struct Lagrange {
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
   constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi)
     requires(not runtime_polyorder())
-      : pos(is_ascending(xi)
-                ? pos_finder<true, PolyOrder, Limit>(p0, x, xi)
-                : pos_finder<false, PolyOrder, Limit>(p0, x, xi)) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+      : pos(is_ascending(xi) ? pos_finder<true, PolyOrder, Limit>(p0, x, xi)
+                             : pos_finder<false, PolyOrder, Limit>(p0, x, xi)),
+        lx(lx_finder(x, xi, pos)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Standard initializer from Vector-types for compiletime polyorder
    *
@@ -740,12 +823,14 @@ struct Lagrange {
    * @param[in] flag For the order of xi
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi, AscendingOrder)
+  constexpr Lagrange(const Index p0,
+                     const Numeric x,
+                     const Vec &xi,
+                     AscendingOrder)
     requires(not runtime_polyorder())
-      : pos(pos_finder<true, PolyOrder, Limit>(p0, x, xi)) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+      : pos(pos_finder<true, PolyOrder, Limit>(p0, x, xi)),
+        lx(lx_finder(x, xi, pos)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Standard initializer from Vector-types for compiletime polyorder
    *
@@ -755,12 +840,14 @@ struct Lagrange {
    * @param[in] flag For the order of xi
    */
   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-  constexpr Lagrange(const Index p0, const Numeric x, const Vec &xi, DescendingOrder)
+  constexpr Lagrange(const Index p0,
+                     const Numeric x,
+                     const Vec &xi,
+                     DescendingOrder)
     requires(not runtime_polyorder())
-      : pos(pos_finder<false, PolyOrder, Limit>(p0, x, xi)) {
-    lx_finder(x, xi);
-    dlx_finder(x, xi);
-  }
+      : pos(pos_finder<false, PolyOrder, Limit>(p0, x, xi)),
+        lx(lx_finder(x, xi, pos)),
+        dlx(dlx_finder(x, xi, lx, pos)) {}
 
   /*! Friendly stream operator */
   friend std::ostream &operator<<(std::ostream &os, const Lagrange &l) {
@@ -791,51 +878,6 @@ struct Lagrange {
 
     return os;
   }
-
- private:
-   /*! Finds lx
-    *
-    * Note that the sum(lx) == 1, and this is guaranteed by
-    * a reduction of the first N-1 elements of lx in this
-    * method
-    *
-    * @param[in] x New grid position
-    * @param[in] xi Old grid positions
-    */
-   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-   constexpr void lx_finder(const Numeric x, const Vec &xi) {
-     if constexpr (runtime_polyorder()) {
-       for (Index j = 0; j < size() - 1; j++)
-         lx[j] = l<type, Limit>(pos, size() - 1, x, xi, j);
-     } else {
-       if constexpr (PolyOrder == 0) {
-       } else if constexpr (PolyOrder == 1) {
-         lx.front() = l<PolyOrder, type, Limit>(pos, x, xi, 0);
-       } else {
-         for (Index j = 0; j < PolyOrder; j++)
-           lx[j] = l<PolyOrder, type, Limit>(pos, x, xi, j);
-       }
-     }
-     
-     lx.back() = 1.0 - std::reduce(lx.begin(), lx.end() - 1);
-   }
-
-   /*! Finds dlx
-    *
-    * FIXME: Remove this comment if sum(dlx) == 0 or not.
-    * I think it is, and if it is the loop should be fixed
-    * to set dlx.back = - std::reduce(dlx.begin(), dlx.end() - 1);
-    *
-    * @param[in] x New grid position
-    * @param[in] xi Old grid positions
-    */
-   template <matpack::ranked_matpack_type<Numeric, 1> Vec>
-   constexpr void dlx_finder(const Numeric x, const Vec &xi) {
-     if constexpr (do_derivs) {
-       for (Index j = 0; j < size(); j++)
-         dlx[j] = dl<type, Limit>(pos, size(), x, xi, lx, j);
-     }
-   }
 
  public:
    /*! Get the polynominal order of a compile time type */
