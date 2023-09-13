@@ -40,7 +40,6 @@ arts_test_run_ctlfile(fast
                       artscomponents/absorption/TestAbsDoppler.arts)
 arts_test_run_ctlfile(slow
                       artscomponents/absorption/TestAbsParticle.arts)
-arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath1D.arts)
 arts_test_run_ctlfile(fast artscomponents/ppath/TestPpath2D.arts)
@@ -165,6 +164,8 @@ arts_test_run_ctlfile(slow instruments/hirs/TestHIRS_fast.arts)
 arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
 if (ARTS_XML_DATA_DIR)
+
+  arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
   ###############################
   ### testing XML Data itself ###
