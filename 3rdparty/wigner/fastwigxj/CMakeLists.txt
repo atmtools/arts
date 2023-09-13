@@ -12,6 +12,16 @@ check_c_source_compiles("
 )
 
 check_c_source_compiles("
+    __thread int global = 0;
+    int main() {
+        global = 2;
+        return 0;
+    }
+    "
+    FASTWIGXJ_HAVE_THREAD
+)
+
+check_c_source_compiles("
     #include <x86intrin.h>
     typedef long long v4di __attribute__ ((vector_size (32)));
     int main() {
