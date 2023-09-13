@@ -13,19 +13,17 @@ PlanetSet(option="Earth")
 
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 NumericSet( ppath_lmax, 100 )
 
 # Geometrical path calculation (i.e., refraction neglected)
-#
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+ppath_step_agendaSet( option="GeometricPath" )
 
 # Standard RT agendas
-#
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 
 # Definition of species
@@ -53,7 +51,7 @@ AtmFieldsCalc
 # Define (a blacbody) surface
 #
 MatrixSet( z_surface, [0] )
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 
 # Map this to variables used by DISORT
@@ -121,7 +119,7 @@ scat_data_checkedCalc
 # Run DISORT and use a third method
 #
 cloudbox_fieldDisort( nstreams = 8 )
-Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuarticInterpField )
+iy_cloudbox_agendaSet( option="QuarticInterpField" )
 spectral_radiance_fieldExpandCloudboxField
 #WriteXML( "binary", spectral_radiance_field, "f3.xml" )
 Compare( ref_field, spectral_radiance_field, 2e-18 )
