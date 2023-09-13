@@ -294,7 +294,9 @@ void py_basic(py::module_& m) try {
           [](ValueHolder<Index>& x, ValueHolder<Index>& y) { x = y; },
           "Operate on type as if :class:`numpy.ndarray` type");
 
-  artsarrayclass<ArrayOfString>(m, "ArrayOfString");
+  artsarrayclass<ArrayOfString>(m, "ArrayOfString")
+      .PythonInterfaceFileIO(ArrayOfString)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfString);
 
   artsarrayclass<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
@@ -307,7 +309,9 @@ void py_basic(py::module_& m) try {
               },
               py::keep_alive<0, 1>()),
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; },
-          "Operate on type as if :class:`numpy.ndarray` type");
+          "Operate on type as if :class:`numpy.ndarray` type")
+      .PythonInterfaceFileIO(ArrayOfIndex)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfIndex);
 
   artsarrayclass<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
@@ -322,8 +326,13 @@ void py_basic(py::module_& m) try {
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; },
           "Operate on type as if :class:`numpy.ndarray` type");
 
-  PythonInterfaceWorkspaceArray(ArrayOfString);
-  PythonInterfaceWorkspaceArray(ArrayOfIndex);
+  artsarrayclass<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString")
+      .PythonInterfaceFileIO(ArrayOfArrayOfString)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfString);
+  
+  artsarrayclass<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex")
+      .PythonInterfaceFileIO(ArrayOfArrayOfIndex)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfIndex);
   
   artsclass<Any>(m, "Any")
       .def(py::init([]() { return std::make_shared<Any>(); }), "Create empty")

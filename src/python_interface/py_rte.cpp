@@ -28,8 +28,6 @@ void py_rte(py::module_& m) try {
 
   artsarrayclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
-  py::implicitly_convertible<std::vector<LagrangeInterpolation>,
-                             ArrayOfLagrangeInterpolation>();
 
   artsclass<GasAbsLookup>(m, "GasAbsLookup")
       .def(py::init([]() { return std::make_shared<GasAbsLookup>(); }), "Default lookup")

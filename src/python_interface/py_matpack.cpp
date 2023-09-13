@@ -628,53 +628,50 @@ via x.value
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>, Tensor6>();
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
 
-  PythonInterfaceWorkspaceArray(Vector);
-  PythonInterfaceWorkspaceArray(Matrix);
-  PythonInterfaceWorkspaceArray(Tensor3);
-  PythonInterfaceWorkspaceArray(Tensor4);
-  PythonInterfaceWorkspaceArray(Tensor5);
-  PythonInterfaceWorkspaceArray(Tensor6);
-  PythonInterfaceWorkspaceArray(Tensor7);
-
-  PythonInterfaceWorkspaceArray(ArrayOfVector)
-      .def(py::init([](const std::vector<std::vector<Vector>>& x) {
-             ArrayOfArrayOfVector y(x.size());
-             std::copy(x.begin(), x.end(), y.begin());
-             return y;
-           }),
-           py::arg("arr").none(false), py::doc("From :class:`list`"));
-  py::implicitly_convertible<std::vector<std::vector<Vector>>,
-                             ArrayOfArrayOfVector>();
-
-  PythonInterfaceWorkspaceArray(ArrayOfMatrix)
-      .def(py::init([](const std::vector<std::vector<Matrix>>& x) {
-             ArrayOfArrayOfMatrix y(x.size());
-             std::copy(x.begin(), x.end(), y.begin());
-             return y;
-           }),
-           py::arg("arr").none(false), py::doc("From :class:`list`"));
-  py::implicitly_convertible<std::vector<std::vector<Matrix>>,
-                             ArrayOfArrayOfMatrix>();
-
-  PythonInterfaceWorkspaceArray(ArrayOfTensor3)
-      .def(py::init([](const std::vector<std::vector<Tensor3>>& x) {
-             ArrayOfArrayOfTensor3 y(x.size());
-             std::copy(x.begin(), x.end(), y.begin());
-             return y;
-           }),
-           py::arg("arr").none(false), py::doc("From :class:`list`"));
-  py::implicitly_convertible<std::vector<std::vector<Tensor3>>,
-                             ArrayOfArrayOfTensor3>();
-
-  PythonInterfaceWorkspaceArray(ArrayOfTensor6)
-      .def(py::init([](const std::vector<std::vector<Tensor6>>& x) {
-             ArrayOfArrayOfTensor6 y(x.size());
-             std::copy(x.begin(), x.end(), y.begin());
-             return y;
-           }),
-           py::arg("arr").none(false), py::doc("From :class:`list`"));
-  py::implicitly_convertible<std::vector<std::vector<Tensor6>>,
-                             ArrayOfArrayOfTensor6>();
+  
+  artsarrayclass<ArrayOfVector>(m, "ArrayOfVector")
+      .PythonInterfaceFileIO(ArrayOfVector)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfVector);
+  
+  artsarrayclass<ArrayOfMatrix>(m, "ArrayOfMatrix")
+      .PythonInterfaceFileIO(ArrayOfMatrix)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfMatrix);
+  
+  artsarrayclass<ArrayOfTensor3>(m, "ArrayOfTensor3")
+      .PythonInterfaceFileIO(ArrayOfTensor3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor3);
+  
+  artsarrayclass<ArrayOfTensor4>(m, "ArrayOfTensor4")
+      .PythonInterfaceFileIO(ArrayOfTensor4)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor4);
+  
+  artsarrayclass<ArrayOfTensor5>(m, "ArrayOfTensor5")
+      .PythonInterfaceFileIO(ArrayOfTensor5)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor5);
+  
+  artsarrayclass<ArrayOfTensor6>(m, "ArrayOfTensor6")
+      .PythonInterfaceFileIO(ArrayOfTensor6)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor6);
+  
+  artsarrayclass<ArrayOfTensor7>(m, "ArrayOfTensor7")
+      .PythonInterfaceFileIO(ArrayOfTensor7)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor7);
+  
+  artsarrayclass<ArrayOfArrayOfVector>(m, "ArrayOfArrayOfVector")
+      .PythonInterfaceFileIO(ArrayOfArrayOfVector)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfVector);
+  
+  artsarrayclass<ArrayOfArrayOfMatrix>(m, "ArrayOfArrayOfMatrix")
+      .PythonInterfaceFileIO(ArrayOfArrayOfMatrix)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMatrix);
+  
+  artsarrayclass<ArrayOfArrayOfTensor3>(m, "ArrayOfArrayOfTensor3")
+      .PythonInterfaceFileIO(ArrayOfArrayOfTensor3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTensor3);
+  
+  artsarrayclass<ArrayOfArrayOfTensor6>(m, "ArrayOfArrayOfTensor6")
+      .PythonInterfaceFileIO(ArrayOfArrayOfTensor6)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTensor6);
 
   artsclass<Rational>(m, "Rational")
       .def(py::init([](Index n, Index d) {
@@ -708,18 +705,7 @@ via x.value
   py::implicitly_convertible<Index, Rational>();
 
   artsclass<ComplexVector>(m, "ComplexVector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_shared<ComplexVector>(); }), "Default vector")
-      .PythonInterfaceCopyValue(ComplexVector)
-      .PythonInterfaceBasicRepresentation(ComplexVector)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](ComplexVector& x) -> py::buffer_info {
-        return py::buffer_info(x.data_handle(),
-                               sizeof(Complex),
-                               py::format_descriptor<Complex>::format(),
-                               1,
-                               {x.size()},
-                               {sizeof(Complex)});
-      })
       .def_property("value",
                     py::cpp_function(
                         [](ComplexVector& x) {
@@ -728,14 +714,6 @@ via x.value
                         },
                         py::keep_alive<0, 1>()),
                     [](ComplexVector& x, ComplexVector& y) { x = y; }, py::doc(":class:`~numpy.ndarray` Data array"))
-      .def(py::pickle(
-          [](const py::object& self) {
-            return py::make_tuple(self.attr("value"));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return py::type::of<ComplexVector>()(t[0]).cast<ComplexVector>();
-          }))
       .doc() = R"--(Holds complex vector data.
 )--";
 } catch(std::exception& e) {

@@ -78,7 +78,9 @@ void py_jac(py::module_& m) try {
             return out;
           })).doc() = "A retrieval quantity";
 
-  PythonInterfaceWorkspaceArray(RetrievalQuantity);
+  artsarrayclass<ArrayOfRetrievalQuantity>(m, "ArrayOfRetrievalQuantity")
+      .PythonInterfaceFileIO(ArrayOfRetrievalQuantity)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfRetrievalQuantity);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));
 }

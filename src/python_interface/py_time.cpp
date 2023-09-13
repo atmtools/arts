@@ -71,25 +71,23 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  PythonInterfaceWorkspaceArray(Time).def_property_readonly(
-      "as_datetime",
-      [](const ArrayOfTime& in)
-          -> std::vector<std::chrono::system_clock::time_point> {
-        const Index n = in.size();
-        std::vector<std::chrono::system_clock::time_point> out(n);
-        for (Index i = 0; i < n; i++) out[i] = in[i].time;
-        return out;
-      },
-      py::doc("A :class:`list` of :class:`datetime.datetime`"));
+  artsarrayclass<ArrayOfTime>(m, "ArrayOfTime")
+      .PythonInterfaceFileIO(ArrayOfTime)
+      .def_property_readonly(
+          "as_datetime",
+          [](const ArrayOfTime& in)
+              -> std::vector<std::chrono::system_clock::time_point> {
+            const Index n = in.size();
+            std::vector<std::chrono::system_clock::time_point> out(n);
+            for (Index i = 0; i < n; i++) out[i] = in[i].time;
+            return out;
+          },
+          py::doc("A :class:`list` of :class:`datetime.datetime`"))
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTime);
 
-  PythonInterfaceWorkspaceArray(ArrayOfTime)
-      .def(py::init([](const std::vector<std::vector<Time>>& x) {
-        ArrayOfArrayOfTime y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), "From nested lists");
-  py::implicitly_convertible<std::vector<std::vector<Time>>,
-                             ArrayOfArrayOfTime>();
+  artsarrayclass<ArrayOfArrayOfTime>(m, "ArrayOfArrayOfTime")
+      .PythonInterfaceFileIO(ArrayOfArrayOfTime)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTime);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
 }

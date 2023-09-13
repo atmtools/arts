@@ -358,8 +358,6 @@ void py_spectroscopy(py::module_& m) try {
 
   artsarrayclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
-  py::implicitly_convertible<std::vector<AbsorptionSingleLine>,
-                             Array<AbsorptionSingleLine>>();
 
   artsclass<AbsorptionLines>(m, "AbsorptionLines")
       .def(
@@ -521,12 +519,17 @@ X : ~pyarts.arts.LineShapeOutput
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
-  PythonInterfaceWorkspaceArray(AbsorptionLines).
-    def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
+  artsarrayclass<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
+      .PythonInterfaceFileIO(ArrayOfAbsorptionLines)
+.def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
       return fuzzy_find_all(a, q);
-    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier");
+    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier")
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
 
-  PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
+  artsarrayclass<ArrayOfArrayOfAbsorptionLines>(m,
+                                                "ArrayOfArrayOfAbsorptionLines")
+      .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
 
   artsclass<LineShape::Calculator>(m, "LineShapeCalculator")
       .def(py::init([](AbsorptionLines& band,
@@ -824,42 +827,14 @@ but does not enforce it.
 
   artsarrayclass<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
-      .PythonInterfaceBasicRepresentation(
-          Array<SpeciesErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData)
       .doc() = "List of :class:`~pyarts.arts.SpeciesErrorCorrectedSuddenData`";
 
-  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
-      .def(py::init([]() { return std::make_shared<ErrorCorrectedSuddenData>(); }), "Empty data")
-      .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
-      .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
-      .def(
-          "__getitem__",
-          [](ErrorCorrectedSuddenData& x, Species::Species& y)
-              -> SpeciesErrorCorrectedSuddenData& { return x[y]; },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](ErrorCorrectedSuddenData& x,
-             Species::Species& y,
-             SpeciesErrorCorrectedSuddenData& z) { x[y] = z; },
-          py::return_value_policy::reference_internal)
-      .def(py::pickle(
-          [](const ErrorCorrectedSuddenData& t) {
-            return py::make_tuple(t.id, t.data);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_shared<ErrorCorrectedSuddenData>();
-            out->id = t[0].cast<QuantumIdentifier>();
-            out->data = t[1].cast<Array<SpeciesErrorCorrectedSuddenData>>();
-            return out;
-          })).doc() = "Data for the error corrected sudden method of line mixing";
+  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData").doc() =
+      "Data for the error corrected sudden method of line mixing";
 
-  artsarrayclass<Array<ErrorCorrectedSuddenData>>(m,
-                                              "ArrayOfErrorCorrectedSuddenData")
-      .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData).doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
+  artsarrayclass<Array<ErrorCorrectedSuddenData>>(
+      m, "ArrayOfErrorCorrectedSuddenData")
+      .doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
 
   artsclass<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
       m, "MapOfErrorCorrectedSuddenData")

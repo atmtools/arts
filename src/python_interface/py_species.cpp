@@ -1,5 +1,8 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 #include <python_interface.h>
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -58,12 +61,21 @@ void py_species(py::module_& m) try {
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
   artsarrayclass<ArrayOfSpecies>(m, "ArrayOfSpecies")
-    .doc() = "List of :class:`~pyarts.arts.Species`";
-  py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
+      .def(py::init([](const std::vector<std::string>& x) {
+        ArrayOfSpecies out;
+        std::transform(
+            x.begin(),
+            x.end(),
+            std::back_inserter(out),
+            [](const std::string& s) { return Species::toSpeciesOrThrow(s); });
+        return out;
+      }))
+      .doc() = "List of :class:`~pyarts.arts.Species`";
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
   artsclass<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
-      .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
+      .def(py::init([](Index i) {
+    return Species::Isotopologues.at(i); }),
            py::arg("isot") = 0, "From position")
       .def(py::init([](const std::string& c) {
         return Species::Isotopologues.at(Species::find_species_index(c));
@@ -148,6 +160,17 @@ Returns
       "Internal array type - do not use manually ";
 
   artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
+      .def(py::init([](const std::string& x) {
+        return std::make_shared<ArrayOfSpeciesTag>(x);
+      }))
+      .def(py::init([](const std::vector<std::string>& x) {
+        auto out = std::make_shared<ArrayOfSpeciesTag>(x.size());
+        std::transform(
+            x.begin(), x.end(), out->begin(), [](const std::string& s) {
+              return SpeciesTag(s);
+            });
+        return out;
+      }))
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
       .PythonInterfaceCopyValue(ArrayOfSpeciesTag)
       .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
@@ -156,47 +179,51 @@ Returns
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def("__hash__",
-           [](const ArrayOfSpeciesTag &x) {
+           [](const ArrayOfSpeciesTag& x) {
              return std::hash<ArrayOfSpeciesTag>{}(x);
            })
-      .def(py::init([]() { return std::make_shared<ArrayOfSpeciesTag>(); }), "Empty list")
-      .def(py::init(
-          [](const std::string& s) { return std::make_shared<ArrayOfSpeciesTag>(s); }), "From :class:`str`")
+      .def(py::init([]() { return std::make_shared<ArrayOfSpeciesTag>(); }),
+           "Empty list")
+      .def(py::init([](const std::string& s) {
+             return std::make_shared<ArrayOfSpeciesTag>(s);
+           }),
+           "From :class:`str`")
       .def(py::init([](Index a, SpeciesTag b) {
         return std::make_shared<ArrayOfSpeciesTag>(a, b);
       }))
       .def(py::init([](const std::vector<SpeciesTag>& v) {
-        return std::make_shared<ArrayOfSpeciesTag>(v);
-      }), "From :class:`list`")
+             return std::make_shared<ArrayOfSpeciesTag>(v);
+           }),
+           "From :class:`list`")
       .def(
           "append",
-          [](ArrayOfSpeciesTag &x, SpeciesTag y) { x.emplace_back(y); },
+          [](ArrayOfSpeciesTag& x, SpeciesTag y) { x.emplace_back(y); },
           py::doc("Appends a SpeciesTag at the end of the Array"))
       .def(
           "pop",
-          [](ArrayOfSpeciesTag &x) {
+          [](ArrayOfSpeciesTag& x) {
             SpeciesTag y = x.back();
             x.pop_back();
             return y;
           },
           py::doc("Pops a SpeciesTag from the end of the Array"))
       .def(py::pickle(
-          [](const ArrayOfSpeciesTag &v) {
+          [](const ArrayOfSpeciesTag& v) {
             auto n = v.size();
             std::vector<SpeciesTag> out(n);
             std::copy(v.begin(), v.end(), out.begin());
             return py::make_tuple(std::move(out));
           },
-          [](const py::tuple &t) {
+          [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_shared<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
-  py::implicitly_convertible<std::vector<SpeciesTag>, ArrayOfSpeciesTag>();
-  py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();
 
-  PythonInterfaceWorkspaceArray(ArrayOfSpeciesTag).def(py::self == py::self);
+  artsarrayclass<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag")
+      .PythonInterfaceFileIO(ArrayOfArrayOfSpeciesTag)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSpeciesTag);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize species\n", e.what()));
 }

@@ -198,7 +198,9 @@ void py_atm(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(AtmField);
 
-  PythonInterfaceWorkspaceArray(AtmPoint);
+  artsarrayclass<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint")
+      .PythonInterfaceFileIO(ArrayOfAtmPoint)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAtmPoint);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
 }

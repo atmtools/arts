@@ -51,7 +51,24 @@ using artsclass = py::class_<T, Ts..., std::shared_ptr<T>>;
 template <typename Vector>
 py::class_<Vector, std::shared_ptr<Vector>> artsarrayclass(
     py::handle scope, const std::string& name, auto&&... args) {
-  return py::bind_vector<Vector, std::shared_ptr<Vector>>(scope, name, std::forward<decltype(args)>(args)...);
+  using base = std::remove_cvref_t<decltype(Vector{}.front())>;
+
+  auto out = py::bind_vector<Vector, std::shared_ptr<Vector>>(
+      scope, name, std::forward<decltype(args)>(args)...);
+
+  out.def(py::init([](const py::list& x) {
+    py::print("USING LIST CAST");
+    auto out = std::make_shared<Vector>(x.size());
+    std::transform(x.begin(), x.end(), out->begin(), [](const auto& s) {
+      return py::cast<base>(s);
+    });
+    py::print("USED LIST CAST");
+    return out;
+  }));
+
+  py::implicitly_convertible<py::list, Vector>();
+
+  return out;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

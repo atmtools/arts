@@ -50,7 +50,9 @@ void py_telsem(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
 
-  PythonInterfaceWorkspaceArray(TelsemAtlas);
+  artsarrayclass<ArrayOfTelsemAtlas>(m, "ArrayOfTelsemAtlas")
+      .PythonInterfaceFileIO(ArrayOfTelsemAtlas)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfTelsemAtlas);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));
 }

@@ -1,6 +1,8 @@
 #include <python_interface.h>
 
+#include "mystring.h"
 #include "py_macros.h"
+#include "sun.h"
 
 
 namespace Python {
@@ -41,7 +43,9 @@ distance from center of planet to center of sun,
 temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type )--";
 
-  PythonInterfaceWorkspaceArray(Sun);
+  artsarrayclass<ArrayOfSun>(m, "ArrayOfSun")
+      .PythonInterfaceFileIO(ArrayOfSun)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSun);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }

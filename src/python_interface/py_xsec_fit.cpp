@@ -182,7 +182,9 @@ Returns
       .doc() = R"--(A cross-section record.
 )--";
 
-  PythonInterfaceWorkspaceArray(XsecRecord);
+  artsarrayclass<ArrayOfXsecRecord>(m, "ArrayOfXsecRecord")
+      .PythonInterfaceFileIO(ArrayOfXsecRecord)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfXsecRecord);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));
 }
