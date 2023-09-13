@@ -75,7 +75,7 @@ void py_time(py::module_& m) try {
       "as_datetime",
       [](const ArrayOfTime& in)
           -> std::vector<std::chrono::system_clock::time_point> {
-        const Index n = in.nelem();
+        const Index n = in.size();
         std::vector<std::chrono::system_clock::time_point> out(n);
         for (Index i = 0; i < n; i++) out[i] = in[i].time;
         return out;

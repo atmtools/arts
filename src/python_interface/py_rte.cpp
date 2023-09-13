@@ -26,9 +26,7 @@ void py_rte(py::module_& m) try {
             return out;
           })).doc() = "Interpolation object";
 
-  artsclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
-      .PythonInterfaceArrayDefault(LagrangeInterpolation)
-      .PythonInterfaceBasicRepresentation(ArrayOfLagrangeInterpolation)
+  artsarrayclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
   py::implicitly_convertible<std::vector<LagrangeInterpolation>,
                              ArrayOfLagrangeInterpolation>();

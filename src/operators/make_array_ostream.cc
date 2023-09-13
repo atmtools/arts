@@ -25,6 +25,8 @@ int main() {
   std::cout << "}  // namespace std\n";
   std::cerr << "}  // namespace std\n";
   
+  MACROEXECUTE(Numeric)
+  MACROEXECUTE(ArrayOfNumeric)
   MACROEXECUTE(CIARecord)
   MACROEXECUTE(XsecRecord)
   MACROEXECUTE(SingleScatteringData)
@@ -52,6 +54,8 @@ int main() {
 
   MACROEXECUTE(ArrayOfSpeciesTag)
 
+  MACROEXECUTE(GridPos)
+
   std::cout << "namespace Quantum::Number {\n";
   std::cerr << "namespace Quantum::Number {\n";
   MACROEXECUTE(GlobalState)
@@ -70,6 +74,12 @@ int main() {
   MACROEXECUTE(AbsorptionSingleLine)
   MACROEXECUTE(AbsorptionLines)
   MACROEXECUTE(ArrayOfAbsorptionLines)
+  std::cout << "namespace LineMixing {\n";
+  std::cerr << "namespace LineMixing {\n";
+  MACROEXECUTE(SpeciesErrorCorrectedSuddenData)
+  MACROEXECUTE(ErrorCorrectedSuddenData)
+  std::cout << "}  // namespace LineMixing\n";
+  std::cerr << "}  // namespace LineMixing\n";
   std::cout << "}  // namespace Absorption\n";
   std::cerr << "}  // namespace Absorption\n";
 
@@ -111,4 +121,10 @@ int main() {
   MACROEXECUTE(Stokvec)
   std::cout << "}  // namespace rtepack\n";
   std::cerr << "}  // namespace rtepack\n";
+
+  std::cout << "namespace Species {\n";
+  std::cerr << "namespace Species {\n";
+  MACROEXECUTE(Species)
+  std::cout << "}  // namespace Species\n";
+  std::cerr << "}  // namespace Species\n";
 }

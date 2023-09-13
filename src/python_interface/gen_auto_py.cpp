@@ -1058,9 +1058,7 @@ std::string type(const ValueHolder<T>&);
 )--";
 
   for (auto& [group, wsg] : wsgs) {
-    if (group.starts_with("ArrayOf")) {
-      hos << "PYBIND11_MAKE_OPAQUE(std::shared_ptr<" << group << ">);\n";
-    }
+    hos << "PYBIND11_MAKE_OPAQUE(Array<" << group << ">);\n";
   }
 
   std::ofstream cos(fname + ".cpp");

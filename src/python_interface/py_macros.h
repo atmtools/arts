@@ -73,12 +73,12 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                   "    Throws RuntimeError for any failure to read"))
 
 #define PythonInterfaceIndexItemAccess(Type)                                \
-  def("__len__", [](const Type& x) { return x.nelem(); })                   \
+  def("__len__", [](const Type& x) { return x.size(); })                   \
       .def(                                                                 \
           "__getitem__",                                                    \
           [](Type& x, Index i) -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {                         \
-            i = negative_clamp(i, x.nelem());                               \
-            if (x.nelem() <= i or i < 0)                                    \
+            i = negative_clamp(i, x.size());                               \
+            if (x.size() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
                                                  " in object of size [0, ", \
@@ -91,8 +91,8 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(                                                                 \
           "__setitem__",                                                    \
           [](Type& x, Index i, decltype(x[i]) y) {                          \
-            i = negative_clamp(i, x.nelem());                               \
-            if (x.nelem() <= i or i < 0)                                    \
+            i = negative_clamp(i, x.size());                               \
+            if (x.size() <= i or i < 0)                                    \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
                                                  " in object of size [0, ", \
@@ -177,8 +177,8 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           "pop",                                                               \
           [](Array<BaseType>& x, Index i) -> BaseType {                        \
             if (x.size() < 1) throw std::out_of_range("pop from empty list");  \
-            i = negative_clamp(i, x.nelem());                                  \
-            if (x.nelem() <= i or i < 0)                                       \
+            i = negative_clamp(i, x.size());                                  \
+            if (x.size() <= i or i < 0)                                       \
               throw std::out_of_range(var_string("pop index out of range"));   \
             std::rotate(x.begin() + i, x.begin() + 1 + i, x.end());            \
             BaseType copy = std::move(x.back());                               \
@@ -218,7 +218,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(                                                                    \
           "insert",                                                            \
           [](Array<BaseType>& x, Index i, BaseType y) {                        \
-            auto pos = (i < x.nelem() and i >= 0) ? x.begin() + i : x.end();   \
+            auto pos = (i < x.size() and i >= 0) ? x.begin() + i : x.end();   \
             x.insert(pos, std::move(y));                                       \
           },                                                                   \
           "Insert a value into the array")                                     \
@@ -317,7 +317,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 */
 #define PythonInterfaceWorkspaceArray(BaseType)                               \
   auto auto_impl_name##BaseType =                                             \
-      artsclass<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);                   \
+      artsarrayclass<ArrayOf##BaseType>(m, "ArrayOf" #BaseType);              \
   auto_impl_name##BaseType.PythonInterfaceWorkspaceDocumentationExtra(        \
       ArrayOf##BaseType,                                                      \
       "\n\nIt aims to be compatible with :class:`list` of :class:`" #BaseType \
@@ -326,16 +326,14 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
   py::implicitly_convertible<std::vector<BaseType>, ArrayOf##BaseType>();     \
                                                                               \
   auto_impl_name##BaseType.PythonInterfaceFileIO(ArrayOf##BaseType)           \
-      .def(                                                                   \
-          "__repr__",                                                         \
-          [](const py::object& arr) {                                         \
-            return py::list{arr}.attr("__repr__")();                          \
-          })                                                                  \
-      .def(                                                                   \
-          "__str__",                                                          \
-          [](const py::object& arr) {                                         \
-            return py::list{arr}.attr("__str__")();                           \
-          })                                                                  \
+      .def("__repr__",                                                        \
+           [](const py::object& arr) {                                        \
+             return py::list{arr}.attr("__repr__")();                         \
+           })                                                                 \
+      .def("__str__",                                                         \
+           [](const py::object& arr) {                                        \
+             return py::list{arr}.attr("__str__")();                          \
+           })                                                                 \
       .PythonInterfaceArrayDefault(BaseType)                                  \
       .PythonInterfaceWorkspaceVariableConversion(ArrayOf##BaseType)
 

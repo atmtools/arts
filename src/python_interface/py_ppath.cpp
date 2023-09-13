@@ -25,7 +25,7 @@ void py_ppath(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(GridPos);
 
-  artsclass<ArrayOfGridPos>(m, "ArrayOfGridPos")
+  artsarrayclass<ArrayOfGridPos>(m, "ArrayOfGridPos")
       .PythonInterfaceArrayDefault(GridPos)
       .PythonInterfaceBasicRepresentation(ArrayOfGridPos).doc() = "List of :class:`~pyarts.arts.GridPos`";
   py::implicitly_convertible<std::vector<GridPos>, ArrayOfGridPos>();

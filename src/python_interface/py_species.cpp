@@ -57,9 +57,8 @@ void py_species(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
-  artsclass<ArrayOfSpecies>(m, "ArrayOfSpecies")
-      .PythonInterfaceBasicRepresentation(ArrayOfSpecies)
-      .PythonInterfaceArrayDefault(Species::Species).doc() = "List of :class:`~pyarts.arts.Species`";
+  artsarrayclass<ArrayOfSpecies>(m, "ArrayOfSpecies")
+    .doc() = "List of :class:`~pyarts.arts.Species`";
   py::implicitly_convertible<std::vector<Species::Species>, ArrayOfSpecies>();
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
 
@@ -90,35 +89,7 @@ void py_species(py::module_& m) try {
           })).doc() = "An isotopologue record entry";
   py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
 
-  artsclass<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
-      .def(py::init([](bool full_list) -> ArrayOfIsotopeRecord {
-             if (full_list) return ArrayOfIsotopeRecord{Species::Isotopologues};
-             return ArrayOfIsotopeRecord{};
-           }),
-           py::arg("full_list") = false, "Empty list")
-      .PythonInterfaceBasicRepresentation(ArrayOfIsotopeRecord)
-      .PythonInterfaceIndexItemAccess(ArrayOfIsotopeRecord)
-      .def(py::init([](const std::vector<SpeciesIsotopeRecord>& a) {
-        return std::make_shared<ArrayOfIsotopeRecord>(a);
-      }), "From :class:`list`")
-      .def(
-          "append",
-          [](ArrayOfIsotopeRecord& x, SpeciesIsotopeRecord y) {
-            x.emplace_back(y);
-          },
-          py::doc("Appends a :class:`pyarts.arts.SpeciesIsotopeRecord` at the end of the array"))
-      .def(py::pickle(
-          [](const ArrayOfIsotopeRecord& v) {
-            auto n = v.size();
-            std::vector<SpeciesIsotopeRecord> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_shared<ArrayOfIsotopeRecord>(
-                t[0].cast<std::vector<SpeciesIsotopeRecord>>());
-          }))
+  artsarrayclass<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
       .doc() =
       R"(A list of :class:`~pyarts.arts.IsotopeRecord`
 
@@ -173,9 +144,8 @@ Returns
           })).doc() = "The tag of a single absorption species";
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  artsclass<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag")
-      .PythonInterfaceBasicRepresentation(Array<SpeciesTag>)
-      .PythonInterfaceArrayDefault(Species::Tag).doc() = "Internal array type - do not use manually ";
+  artsarrayclass<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag").doc() =
+      "Internal array type - do not use manually ";
 
   artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)

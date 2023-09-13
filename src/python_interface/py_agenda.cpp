@@ -173,11 +173,11 @@ so Copy(a, out=b) will not even see the b variable.
              return var_string(aa);
            })
       .PythonInterfaceFileIO(ArrayOfAgenda)
-      .def("__len__", [](const ArrayOfAgenda& x) { return x.nelem(); })
+      .def("__len__", [](const ArrayOfAgenda& x) { return x.size(); })
       .def(
           "__getitem__",
           [](ArrayOfAgenda& x, Index i) -> Agenda& {
-            if (x.nelem() <= i or i < 0)
+            if (x.size() <= i or i < 0)
               throw std::out_of_range(var_string("Bad index access: ",
                                                  i,
                                                  " in object of size [0, ",
@@ -189,7 +189,7 @@ so Copy(a, out=b) will not even see the b variable.
       .def(
           "__setitem__",
           [](ArrayOfAgenda& x, Index i, Agenda y) {
-            if (x.nelem() <= i or i < 0) {
+            if (x.size() <= i or i < 0) {
               throw std::out_of_range(var_string("Bad index access: ",
                                                  i,
                                                  " in object of size [0, ",
@@ -202,7 +202,7 @@ so Copy(a, out=b) will not even see the b variable.
           py::return_value_policy::reference_internal)
       .def("append",
            [](ArrayOfAgenda& x, Agenda y) {
-             if (x.nelem() and y.get_name() not_eq x.front().get_name())
+             if (x.size() and y.get_name() not_eq x.front().get_name())
                y.set_name(x.front().get_name());
              x.emplace_back(std::move(y));
            }, "Appends a :class:`~pyarts.arts.Agenda` at the end of the array")
@@ -224,7 +224,7 @@ so Copy(a, out=b) will not even see the b variable.
       .def_property(
           "name",
           [](ArrayOfAgenda& a) -> String {
-            if (a.nelem() == 0) return "";
+            if (a.size() == 0) return "";
             return a.front().get_name();
           },
           [](ArrayOfAgenda& aa, const String& name) {

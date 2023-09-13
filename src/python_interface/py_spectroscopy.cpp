@@ -356,9 +356,7 @@ void py_spectroscopy(py::module_& m) try {
                 t[8].cast<Quantum::Number::LocalState>());
           })).doc() = "Single absorption line";
 
-  artsclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
-      .PythonInterfaceBasicRepresentation(Array<AbsorptionSingleLine>)
-      .PythonInterfaceArrayDefault(AbsorptionSingleLine)
+  artsarrayclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
   py::implicitly_convertible<std::vector<AbsorptionSingleLine>,
                              Array<AbsorptionSingleLine>>();
@@ -385,8 +383,8 @@ void py_spectroscopy(py::module_& m) try {
                 "Bad quantumidentity, must specify isotopologue, e.g., H2O-161")
             ARTS_USER_ERROR_IF(
                 std::any_of(lines.begin(), lines.end(),
-                            [count = broadeningspecies.nelem()](auto &line) {
-                              return line.lineshape.nelem() not_eq count;
+                            [count = broadeningspecies.size()](auto &line) {
+                              return line.lineshape.size() not_eq count;
                             }),
                 "Incorrect size of broadeningspecies vs the line shape model")
             ARTS_USER_ERROR_IF(
@@ -427,7 +425,7 @@ void py_spectroscopy(py::module_& m) try {
             return var_string("'",
                               x.quantumidentity,
                               "'-band of ",
-                              x.lines.nelem(),
+                              x.lines.size(),
                               " lines");
           })
       .PythonInterfaceFileIO(AbsorptionLines)
@@ -458,7 +456,7 @@ void py_spectroscopy(py::module_& m) try {
                                "Bad atmospheric state (T P): ",
                                Vector{T, P})
             ARTS_USER_ERROR_IF(
-                VMR.size() not_eq band.broadeningspecies.nelem(),
+                VMR.size() not_eq band.broadeningspecies.size(),
                 "Mismatch between VMRs and broadening species.\nVMR: ",
                 VMR,
                 "\nSpecies: ",
@@ -544,7 +542,7 @@ X : ~pyarts.arts.LineShapeOutput
                                 "Bad atmospheric state (T P H): ",
                                 Vector{T, P, H})
              ARTS_USER_ERROR_IF(
-                 VMR.size() not_eq band.broadeningspecies.nelem(),
+                 VMR.size() not_eq band.broadeningspecies.size(),
                  "Mismatch between VMRs and broadening species.\nVMR: ",
                  VMR,
                  "\nSpecies: ",
@@ -824,7 +822,7 @@ but does not enforce it.
             return out;
           })).doc() = "Holds data required for a single species error corrected sudden method application";
 
-  artsclass<Array<SpeciesErrorCorrectedSuddenData>>(
+  artsarrayclass<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(
           Array<SpeciesErrorCorrectedSuddenData>)
@@ -858,7 +856,7 @@ but does not enforce it.
             return out;
           })).doc() = "Data for the error corrected sudden method of line mixing";
 
-  artsclass<Array<ErrorCorrectedSuddenData>>(m,
+  artsarrayclass<Array<ErrorCorrectedSuddenData>>(m,
                                               "ArrayOfErrorCorrectedSuddenData")
       .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
       .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData).doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";

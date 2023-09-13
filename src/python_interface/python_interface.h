@@ -28,12 +28,31 @@
 
 #include "auto_wsg.h"
 
+// Exposed types whose base type are not workspace variables
+PYBIND11_MAKE_OPAQUE(ArrayOfSun);
+PYBIND11_MAKE_OPAQUE(ArrayOfRetrievalQuantity);
+PYBIND11_MAKE_OPAQUE(Array<SpeciesTag>);
+PYBIND11_MAKE_OPAQUE(ArrayOfXsecRecord);
+PYBIND11_MAKE_OPAQUE(ArrayOfLagrangeInterpolation);
+PYBIND11_MAKE_OPAQUE(ArrayOfSpecies);
+PYBIND11_MAKE_OPAQUE(ArrayOfIsotopeRecord);
+PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
+PYBIND11_MAKE_OPAQUE(Array<SpeciesErrorCorrectedSuddenData>);
+PYBIND11_MAKE_OPAQUE(Array<ErrorCorrectedSuddenData>);
+
+
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {
 namespace py = pybind11;
 
 template <typename T, typename... Ts>
 using artsclass = py::class_<T, Ts..., std::shared_ptr<T>>;
+
+template <typename Vector>
+py::class_<Vector, std::shared_ptr<Vector>> artsarrayclass(
+    py::handle scope, const std::string& name, auto&&... args) {
+  return py::bind_vector<Vector, std::shared_ptr<Vector>>(scope, name, std::forward<decltype(args)>(args)...);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
