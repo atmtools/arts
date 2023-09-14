@@ -21,10 +21,10 @@
   \param v       ArrayOfIndex
 */
 void nca_read_from_file(const int ncid, ArrayOfIndex& v) {
-  Index nelem;
-  nelem = nca_get_dim(ncid, "nelem");
+  Index size;
+  size = nca_get_dim(ncid, "size");
 
-  v.resize(nelem);
+  v.resize(size);
   nca_get_data(ncid, "ArrayOfIndex", v.data());
 }
 
@@ -36,7 +36,7 @@ void nca_read_from_file(const int ncid, ArrayOfIndex& v) {
 void nca_write_to_file(const int ncid, const ArrayOfIndex& v) {
   int retval;
   int ncdim, varid;
-  if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
+  if ((retval = nc_def_dim(ncid, "size", v.size(), &ncdim)))
     nca_error(retval, "nc_def_dim");
   if ((retval = nc_def_var(ncid, "ArrayOfIndex", NC_INT64, 1, &ncdim, &varid)))
     nca_error(retval, "nc_def_var");
@@ -53,16 +53,16 @@ void nca_write_to_file(const int ncid, const ArrayOfIndex& v) {
   \param aom     ArrayOfMatrix
 */
 void nca_read_from_file(const int ncid, ArrayOfMatrix& aom) {
-  Index nelem;
-  nelem = nca_get_dim(ncid, "nelem");
+  Index size;
+  size = nca_get_dim(ncid, "size");
 
-  long* vnrows = new long[nelem];
-  long* vncols = new long[nelem];
-  aom.resize(nelem);
+  long* vnrows = new long[size];
+  long* vncols = new long[size];
+  aom.resize(size);
   nca_get_data(ncid, "Matrix_nrows", vnrows);
   nca_get_data(ncid, "Matrix_ncols", vncols);
   size_t pos = 0;
-  for (Index i = 0; i < nelem; i++) {
+  for (Index i = 0; i < size; i++) {
     aom[i].resize(vnrows[i], vncols[i]);
     nca_get_data(ncid,
                          "ArrayOfMatrix",
@@ -86,18 +86,18 @@ void nca_write_to_file(const int ncid,
   int retval;
   int ncdim, varid_nrows, varid_ncols;
   int ncdim_total, varid;
-  long nelem_total = 0;
-  long* vncols = new long[aom.nelem()];
-  long* vnrows = new long[aom.nelem()];
-  for (Index i = 0; i < aom.nelem(); i++) {
+  long size_total = 0;
+  long* vncols = new long[aom.size()];
+  long* vnrows = new long[aom.size()];
+  for (Index i = 0; i < aom.size(); i++) {
     vnrows[i] = aom[i].nrows();
     vncols[i] = aom[i].ncols();
-    nelem_total += vnrows[i] * vncols[i];
+    size_total += vnrows[i] * vncols[i];
   }
 
-  if ((retval = nc_def_dim(ncid, "nelem", aom.nelem(), &ncdim)))
+  if ((retval = nc_def_dim(ncid, "size", aom.size(), &ncdim)))
     nca_error(retval, "nc_def_dim");
-  if ((retval = nc_def_dim(ncid, "nelem_total", nelem_total, &ncdim_total)))
+  if ((retval = nc_def_dim(ncid, "size_total", size_total, &ncdim_total)))
     nca_error(retval, "nc_def_dim");
 
   if ((retval =
@@ -118,7 +118,7 @@ void nca_write_to_file(const int ncid,
     nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
-  for (Index i = 0; i < aom.nelem(); i++) {
+  for (Index i = 0; i < aom.size(); i++) {
     size_t count = aom[i].nrows() * aom[i].ncols();
     if ((retval = nc_put_vara_double(
              ncid, varid, &pos, &count, aom[i].unsafe_data_handle())))
@@ -138,21 +138,21 @@ void nca_write_to_file(const int ncid,
   \param aov     ArrayOfVector
 */
 void nca_read_from_file(const int ncid, ArrayOfVector& aov) {
-  Index nelem;
-  nelem = nca_get_dim(ncid, "nelem");
+  Index size;
+  size = nca_get_dim(ncid, "size");
 
-  long* vnelem = new long[nelem];
-  aov.resize(nelem);
-  nca_get_data(ncid, "Vector_nelem", vnelem);
+  long* vsize = new long[size];
+  aov.resize(size);
+  nca_get_data(ncid, "Vector_size", vsize);
   size_t pos = 0;
-  for (Index i = 0; i < nelem; i++) {
-    aov[i].resize(vnelem[i]);
+  for (Index i = 0; i < size; i++) {
+    aov[i].resize(vsize[i]);
     nca_get_data(
-        ncid, "ArrayOfVector", pos, vnelem[i], aov[i].unsafe_data_handle());
-    pos += vnelem[i];
+        ncid, "ArrayOfVector", pos, vsize[i], aov[i].unsafe_data_handle());
+    pos += vsize[i];
   }
 
-  delete[] vnelem;
+  delete[] vsize;
 }
 
 //! Writes an ArrayOfVector to a NetCDF file
@@ -163,22 +163,22 @@ void nca_read_from_file(const int ncid, ArrayOfVector& aov) {
 void nca_write_to_file(const int ncid,
                        const ArrayOfVector& aov) {
   int retval;
-  int ncdim, varid_nelem;
+  int ncdim, varid_size;
   int ncdim_total, varid;
-  long nelem_total = 0;
-  long* velems = new long[aov.nelem()];
-  for (Index i = 0; i < aov.nelem(); i++) {
-    velems[i] = aov[i].nelem();
-    nelem_total += velems[i];
+  long size_total = 0;
+  long* velems = new long[aov.size()];
+  for (Index i = 0; i < aov.size(); i++) {
+    velems[i] = aov[i].size();
+    size_total += velems[i];
   }
 
-  if ((retval = nc_def_dim(ncid, "nelem", aov.nelem(), &ncdim)))
+  if ((retval = nc_def_dim(ncid, "size", aov.size(), &ncdim)))
     nca_error(retval, "nc_def_dim");
-  if ((retval = nc_def_dim(ncid, "nelem_total", nelem_total, &ncdim_total)))
+  if ((retval = nc_def_dim(ncid, "size_total", size_total, &ncdim_total)))
     nca_error(retval, "nc_def_dim");
 
   if ((retval =
-           nc_def_var(ncid, "Vector_nelem", NC_INT64, 1, &ncdim, &varid_nelem)))
+           nc_def_var(ncid, "Vector_size", NC_INT64, 1, &ncdim, &varid_size)))
     nca_error(retval, "nc_def_var");
   if ((retval = nc_def_var(
            ncid, "ArrayOfVector", NC_DOUBLE, 1, &ncdim_total, &varid)))
@@ -186,12 +186,12 @@ void nca_write_to_file(const int ncid,
 
   if ((retval = nc_enddef(ncid))) nca_error(retval, "nc_enddef");
 
-  if ((retval = nc_put_var_long(ncid, varid_nelem, velems)))
+  if ((retval = nc_put_var_long(ncid, varid_size, velems)))
     nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
-  for (Index i = 0; i < aov.nelem(); i++) {
-    size_t count = aov[i].nelem();
+  for (Index i = 0; i < aov.size(); i++) {
+    size_t count = aov[i].size();
     if ((retval = nc_put_vara_double(
              ncid, varid, &pos, &count, aov[i].unsafe_data_handle())))
       nca_error(retval, "nc_put_var");

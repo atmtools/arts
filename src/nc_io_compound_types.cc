@@ -29,7 +29,7 @@
 void nca_read_from_file(const int ncid, GasAbsLookup& gal) {
   nca_get_data(ncid, "species", gal.species, true);
 
-  ARTS_USER_ERROR_IF(!gal.species.nelem(),
+  ARTS_USER_ERROR_IF(!gal.species.size(),
                      "No species found in lookup table file!");
 
   nca_get_data(
@@ -57,18 +57,18 @@ void nca_write_to_file(const int ncid,
   int species_strings_varid;
   int species_count_varid;
 
-  ArrayOfIndex species_count(gal.species.nelem());
+  ArrayOfIndex species_count(gal.species.size());
   Size species_max_strlen = 0;
   char* species_strings = nullptr;
 
-  ARTS_USER_ERROR_IF(!gal.species.nelem(),
+  ARTS_USER_ERROR_IF(!gal.species.size(),
                      "Current lookup table contains no species!");
 
-  long species_total_nelems = 0;
-  for (Index nspecies = 0; nspecies < gal.species.nelem(); nspecies++) {
-    Index nspecies_nelem = gal.species[nspecies].nelem();
-    species_total_nelems += nspecies_nelem;
-    species_count[nspecies] = nspecies_nelem;
+  long species_total_sizes = 0;
+  for (Index nspecies = 0; nspecies < gal.species.size(); nspecies++) {
+    Index nspecies_size = gal.species[nspecies].size();
+    species_total_sizes += nspecies_size;
+    species_count[nspecies] = nspecies_size;
 
     for (const auto &it : gal.species[nspecies])
       if (it.Name().size() > species_max_strlen)
@@ -76,8 +76,8 @@ void nca_write_to_file(const int ncid,
   }
   species_max_strlen++;
 
-  species_strings = new char[species_total_nelems * species_max_strlen];
-  memset(species_strings, 0, species_total_nelems * species_max_strlen);
+  species_strings = new char[species_total_sizes * species_max_strlen];
+  memset(species_strings, 0, species_total_sizes * species_max_strlen);
 
   Index str_i = 0;
   for (const auto &species : gal.species)
@@ -91,7 +91,7 @@ void nca_write_to_file(const int ncid,
       nca_def_ArrayOfIndex(ncid, "species_count", species_count);
 
   std::array<int, 2> species_strings_ncdims;
-  nca_def_dim(ncid, "species_strings_nelem", species_total_nelems,
+  nca_def_dim(ncid, "species_strings_size", species_total_sizes,
               &species_strings_ncdims[0]);
   nca_def_dim(ncid, "species_strings_length", species_max_strlen,
               &species_strings_ncdims[1]);
@@ -113,7 +113,7 @@ void nca_write_to_file(const int ncid,
 
   // Write variables
   nca_put_var(ncid, species_count_varid, species_count);
-  if (gal.species.nelem()) {
+  if (gal.species.size()) {
     if ((retval =
              nc_put_var_text(ncid, species_strings_varid, species_strings)))
       nca_error(retval, "nc_put_var");

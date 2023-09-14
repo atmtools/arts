@@ -55,15 +55,15 @@ void nca_filename_with_index(String &filename, const Index &file_index) {
 /**
  \param[in]  ncid   NetCDF file descriptor
  \param[in]  name   Dimension name
- \param[in]  nelem  Dimension size
+ \param[in]  size  Dimension size
  \param[out] ncdim  NetCDF dimension handle
 
  \author Oliver Lemke
  */
-void nca_def_dim(const int ncid, const String &name, const Index nelem,
+void nca_def_dim(const int ncid, const String &name, const Index size,
                  int *ncdim) {
   int retval;
-  if ((retval = nc_def_dim(ncid, name.c_str(), nelem, ncdim)))
+  if ((retval = nc_def_dim(ncid, name.c_str(), size, ncdim)))
     nca_error(retval, "nc_def_dim");
 }
 
@@ -98,8 +98,8 @@ int nca_def_ArrayOfIndex(const int ncid, const String &name,
                          const ArrayOfIndex &a) {
   std::array<int, 1> ncdims;
   int varid;
-  if (a.nelem()) {
-    nca_def_dim(ncid, name + "_nelem", a.nelem(), &ncdims[0]);
+  if (a.size()) {
+    nca_def_dim(ncid, name + "_size", a.size(), &ncdims[0]);
     nca_def_var(ncid, name, NC_INT, 1, &ncdims[0], &varid);
   } else
     varid = -1;
@@ -119,8 +119,8 @@ int nca_def_ArrayOfIndex(const int ncid, const String &name,
 int nca_def_Vector(const int ncid, const String &name, const Vector &v) {
   std::array<int, 1> ncdims;
   int varid;
-  if (v.nelem()) {
-    nca_def_dim(ncid, name + "_nelem", v.nelem(), &ncdims[0]);
+  if (v.size()) {
+    nca_def_dim(ncid, name + "_size", v.size(), &ncdims[0]);
     nca_def_var(ncid, name, NC_DOUBLE, 1, &ncdims[0], &varid);
   } else
     varid = -1;
@@ -311,9 +311,9 @@ void nca_get_data(const int ncid, const String &name, char *data) {
  */
 void nca_get_data(const int ncid, const String &name, ArrayOfIndex &aoi,
                   const bool noerror) {
-  Index nelem = nca_get_dim(ncid, name + "_nelem", noerror);
-  aoi.resize(nelem);
-  if (nelem) {
+  Index size = nca_get_dim(ncid, name + "_size", noerror);
+  aoi.resize(size);
+  if (size) {
     nca_get_data(ncid, name, aoi.data());
   }
 }
@@ -332,19 +332,19 @@ void nca_get_data(const int ncid, const String &name,
                   ArrayOfArrayOfSpeciesTag &aast, const bool noerror) {
   ArrayOfIndex species_count;
   nca_get_data(ncid, name + "_count", species_count, noerror);
-  aast.resize(species_count.nelem());
-  if (species_count.nelem()) {
-    Index species_strings_nelem =
-        nca_get_dim(ncid, name + "_strings_nelem", noerror);
+  aast.resize(species_count.size());
+  if (species_count.size()) {
+    Index species_strings_size =
+        nca_get_dim(ncid, name + "_strings_size", noerror);
     Index species_strings_length =
         nca_get_dim(ncid, name + "_strings_length", noerror);
     char *species_strings =
-        new char[species_strings_nelem * species_strings_length];  // FIXME: THIS SHOULD NOT USE "new"
-    if (species_count.nelem())
+        new char[species_strings_size * species_strings_length];  // FIXME: THIS SHOULD NOT USE "new"
+    if (species_count.size())
       nca_get_data(ncid, name + "_strings", species_strings);
 
     Index si = 0;
-    for (Index i = 0; i < species_count.nelem(); i++) {
+    for (Index i = 0; i < species_count.size(); i++) {
       aast[i].resize(0);
       for (Index j = 0; j < species_count[i]; j++) {
         aast[i].push_back(SpeciesTag(&species_strings[si]));
@@ -368,9 +368,9 @@ void nca_get_data(const int ncid, const String &name,
  */
 void nca_get_data(const int ncid, const String &name, Vector &v,
                   const bool noerror) {
-  Index nelem = nca_get_dim(ncid, name + "_nelem", noerror);
-  v.resize(nelem);
-  if (nelem)
+  Index size = nca_get_dim(ncid, name + "_size", noerror);
+  v.resize(size);
+  if (size)
     nca_get_data(ncid, name, v.unsafe_data_handle());
 }
 
@@ -455,7 +455,7 @@ void nca_put_var(const int ncid, const int varid, const long long *ind_arr) {
  */
 bool nca_put_var(const int ncid, const int varid, const ArrayOfIndex &a) {
   bool fail = true;
-  if (a.nelem()) {
+  if (a.size()) {
     nca_put_var(ncid, varid, a.data());
     fail = false;
   }
@@ -473,7 +473,7 @@ bool nca_put_var(const int ncid, const int varid, const ArrayOfIndex &a) {
  */
 bool nca_put_var(const int ncid, const int varid, const Vector &v) {
   bool fail = true;
-  if (v.nelem()) {
+  if (v.size()) {
     int retval;
     if ((retval = nc_put_var_double(ncid, varid, v.unsafe_data_handle())))
       nca_error(retval, "nc_put_var");
