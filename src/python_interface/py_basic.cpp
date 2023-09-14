@@ -120,7 +120,7 @@ auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
 
   if constexpr (std::same_as<String, T>) {
     out.def("__repr__", [](const ValueHolder<T>& a) {
-      return var_string(std::quoted(*a.val));
+      return py::repr(py::str(*a.val));
     });
   } else {
     out.def("__repr__",

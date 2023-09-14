@@ -95,8 +95,7 @@ class CIARecord {
 
   /** Return frequency grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView FrequencyGrid(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
+  [[nodiscard]] ConstVectorView FrequencyGrid(Size dataset) const {
     ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset].get_numeric_grid(0);
@@ -104,8 +103,7 @@ class CIARecord {
 
   /** Return temperatur grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView TemperatureGrid(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
+  [[nodiscard]] ConstVectorView TemperatureGrid(Size dataset) const {
     ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset].get_numeric_grid(1);
@@ -113,8 +111,7 @@ class CIARecord {
 
   /** Return CIA dataset.
      */
-  [[nodiscard]] const GriddedField2& Dataset(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
+  [[nodiscard]] const GriddedField2& Dataset(Size dataset) const {
     ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset];

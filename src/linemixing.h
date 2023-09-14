@@ -148,13 +148,13 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
   
   const ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) const;
   
-  const ErrorCorrectedSuddenData& operator[](Index i) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(i >= 0 and i < size())
+  const ErrorCorrectedSuddenData& operator[](Size i) const ARTS_NOEXCEPT {
+    ARTS_ASSERT(i < size())
     return * (begin() + i);
   }
   
-  ErrorCorrectedSuddenData& operator[](Index i) ARTS_NOEXCEPT {
-    ARTS_ASSERT(i >= 0 and i < size())
+  ErrorCorrectedSuddenData& operator[](Size i) ARTS_NOEXCEPT {
+    ARTS_ASSERT(i < size())
     return * (begin() + i);
   }
   
