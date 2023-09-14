@@ -198,14 +198,18 @@ String Tag::Name() const {
   std::ostringstream os;
 
   // First the species name:
-  os << toShortName(Isotopologue().spec) << "-";
+  os << toShortName(Isotopologue().spec);
+
+  if (type != TagType::FreeElectrons && type != TagType::Particles) {
+    os << "-";
+  }
 
   // Is this a CIA tag?
   if (type == TagType::Cia) {
     os << "CIA-" << toShortName(cia_2nd_species);
 
   } else if (type == TagType::FreeElectrons || type == TagType::Particles) {
-    os << toShortName(Isotopologue().spec);
+    // noop
   }
   // Hitran Xsec flag.
   else if (type == TagType::XsecFit) {
