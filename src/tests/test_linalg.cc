@@ -20,6 +20,8 @@
 
 #include "minimize.h"
 
+#include "array_ostream.h"
+
 // #include "gui/plot.h"
 
 using std::abs;

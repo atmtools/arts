@@ -7,6 +7,7 @@
 #include <unistd.h>
 #endif
 
+#include "array_ostream.h"
 #include "matpack_data.h"
 #include "sorting.h"
 
