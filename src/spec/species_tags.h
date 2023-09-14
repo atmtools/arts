@@ -123,7 +123,9 @@ public:
     return *this;
   }
 
-  [[nodiscard]] auto operator<=>(const ArrayOfSpeciesTag& x) const = default;
+  [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const {
+    return std::ranges::equal(*this, x);
+  }
   
   ArrayOfSpeciesTag(std::string_view text);
   

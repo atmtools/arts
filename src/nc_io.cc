@@ -344,7 +344,7 @@ void nca_get_data(const int ncid, const String &name,
       nca_get_data(ncid, name + "_strings", species_strings);
 
     Index si = 0;
-    for (Index i = 0; i < species_count.size(); i++) {
+    for (Size i = 0; i < species_count.size(); i++) {
       aast[i].resize(0);
       for (Index j = 0; j < species_count[i]; j++) {
         aast[i].push_back(SpeciesTag(&species_strings[si]));

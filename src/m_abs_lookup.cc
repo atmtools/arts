@@ -526,7 +526,7 @@ void propmat_clearskyAddFromLookup(
     for (Index isp = 0; isp < abs_scalar_gas.nrows(); isp++) {
       for (Index iv = 0; iv < abs_scalar_gas.ncols(); iv++) {
         propmat_clearsky[iv].A() += abs_scalar_gas(isp, iv);
-        for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
+        for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
           
           if (not deriv.propmattype()) continue;

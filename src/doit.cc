@@ -574,7 +574,7 @@ void za_gridOpt(  //Output:
 
   za_grid_opt.resize(idx.size());
   cloudbox_field_opt.resize(N_p, idx.size());
-  for (Index i = 0; i < idx.size(); i++) {
+  for (Size i = 0; i < idx.size(); i++) {
     za_grid_opt[i] = za_grid_fine[idx[i]];
     cloudbox_field_opt(joker, i) = cloudbox_field_mono(joker, 0, 0, idx[i], 0, 0);
   }

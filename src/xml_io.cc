@@ -41,7 +41,7 @@ void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpecies& value,
   
   if(self)
     v << LineShape::self_broadening;
-  for(Index i=Index(self); i<value.size()-Index(bath); i++)
+  for(Size i=self; i<value.size()-bath; i++)
     v << ' ' << Species::toShortName(value[i]);
   if(bath) {
     v << ' ' << LineShape::bath_broadening;

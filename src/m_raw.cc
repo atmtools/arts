@@ -68,7 +68,7 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
                          const Index& disregard_last)
 {
   // Size of problem
-  const Index n=sensor_time.size();
+  const Size n=sensor_time.size();
   ARTS_USER_ERROR_IF (sensor_time.size() not_eq n,
                       "Time vector length must match input data length");
   
@@ -83,7 +83,7 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
   ArrayOfVector ybatch_out;
   ArrayOfTime sensor_time_out;
   
-  if (lims.front() == n) {
+  if (static_cast<Size>(lims.front()) == n) {
     ybatch_out.resize(0);
     sensor_time_out.resize(0);
   } else {

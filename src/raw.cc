@@ -62,7 +62,7 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
   ArrayOfVector out;
   
   // For all data entries
-  for (Index i=start; i<data.size(); i++) {
+  for (Size i=start; i<data.size(); i++) {
     // Cycle is CAHA → 4 steps
     const Index pos = i % 4;
     
@@ -293,10 +293,10 @@ std::pair<Index, Index> find_first_and_last_1(const ArrayOfIndex& x)
 {
   Index first=x.size() - 1;
   Index last=0;
-  for (Index i=0; i<x.size(); i++) {
+  for (Size i=0; i<x.size(); i++) {
     if (x[i] == 1) {
-      last = std::max(i, last);
-      first = std::min(i, first);
+      last = std::max<Index>(i, last);
+      first = std::min<Index>(i, first);
     }
   }
   

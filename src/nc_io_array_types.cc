@@ -89,7 +89,7 @@ void nca_write_to_file(const int ncid,
   long size_total = 0;
   long* vncols = new long[aom.size()];
   long* vnrows = new long[aom.size()];
-  for (Index i = 0; i < aom.size(); i++) {
+  for (Size i = 0; i < aom.size(); i++) {
     vnrows[i] = aom[i].nrows();
     vncols[i] = aom[i].ncols();
     size_total += vnrows[i] * vncols[i];
@@ -118,7 +118,7 @@ void nca_write_to_file(const int ncid,
     nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
-  for (Index i = 0; i < aom.size(); i++) {
+  for (Size i = 0; i < aom.size(); i++) {
     size_t count = aom[i].nrows() * aom[i].ncols();
     if ((retval = nc_put_vara_double(
              ncid, varid, &pos, &count, aom[i].unsafe_data_handle())))
@@ -167,7 +167,7 @@ void nca_write_to_file(const int ncid,
   int ncdim_total, varid;
   long size_total = 0;
   long* velems = new long[aov.size()];
-  for (Index i = 0; i < aov.size(); i++) {
+  for (Size i = 0; i < aov.size(); i++) {
     velems[i] = aov[i].size();
     size_total += velems[i];
   }
@@ -190,7 +190,7 @@ void nca_write_to_file(const int ncid,
     nca_error(retval, "nc_put_var");
 
   size_t pos = 0;
-  for (Index i = 0; i < aov.size(); i++) {
+  for (Size i = 0; i < aov.size(); i++) {
     size_t count = aov[i].size();
     if ((retval = nc_put_vara_double(
              ncid, varid, &pos, &count, aov[i].unsafe_data_handle())))

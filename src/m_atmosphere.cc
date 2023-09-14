@@ -1170,7 +1170,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
       // All fields called "ignore" will be ignored.
   String fn_upper;  // Temporary variable to hold upper case field_names.
 
-  ARTS_USER_ERROR_IF (field_names.size() != nf,
+  ARTS_USER_ERROR_IF (field_names.size() != static_cast<Size>(nf),
     "Cannot extract fields from Matrix.\n"
     "*field_names* must have one element less than there are\n"
     "matrix columns.")
@@ -1178,7 +1178,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
   // Remove additional fields from the field_names. All fields that
   // are flagged by 'ignore' in the field names, small or large letters,
   // are removed.
-  for (Index f = 0; f < field_names.size(); f++) {
+  for (Size f = 0; f < field_names.size(); f++) {
     fn_upper = field_names[f];
     toupper(fn_upper);
     //cout << "fieldname[" << f << "]: " << fn_upper;

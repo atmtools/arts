@@ -684,7 +684,7 @@ class Model {
           const std::size_t nspecies) const noexcept;
   
   /** Number of species in Model */
-  [[nodiscard]] Index size() const { return Index(mdata.size()); }
+  [[nodiscard]] Size size() const { return mdata.size(); }
   
   /** Resize function for Model 
    * 
@@ -692,7 +692,7 @@ class Model {
    * 
    * @param[in] n New size of mspecies and mdata
    */
-  void resize(Index n) {mdata.resize(n);}
+  void resize(Size n) {mdata.resize(n);}
   
   /** Reserve function for Model 
    * 

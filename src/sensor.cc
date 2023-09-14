@@ -897,7 +897,7 @@ void spectrometer_matrix(Sparse& H,
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  ARTS_ASSERT(ch_response.size() == 1 || ch_response.size() == ch_f.size());
+  ARTS_ASSERT(ch_response.size() == 1 || ch_response.size() == static_cast<Size>(ch_f.size()));
   //
   Index freq_full = ch_response.size() > 1;
 
@@ -1067,7 +1067,7 @@ void find_effective_channel_boundaries(  // Output:
     const ArrayOfGriddedField1& backend_channel_response,
     const Numeric& delta) {
   // How many channels in total:
-  const Index n_chan = f_backend.size();
+  const Size n_chan = f_backend.size();
 
   // Checks on input quantities:
 
@@ -1082,7 +1082,7 @@ void find_effective_channel_boundaries(  // Output:
       "must have same number of bands for each LO.")
 
   // Frequency grids for response functions must be strictly increasing.
-  for (Index i = 0; i < n_chan; ++i) {
+  for (Size i = 0; i < n_chan; ++i) {
     // Frequency grid for this response function:
     const Vector& backend_f_grid =
         backend_channel_response[i].get_numeric_grid(0);
@@ -1100,7 +1100,7 @@ void find_effective_channel_boundaries(  // Output:
 
   // Get a list of original channel boundaries:
   Index numPB = 0;
-  for (Index idx = 0; idx < n_chan; ++idx) {
+  for (Size idx = 0; idx < n_chan; ++idx) {
     const Vector& backend_filter = backend_channel_response[idx].data;
     if (backend_filter.size() >
         2) {  // only run this code when there is more then two elements in the backend
@@ -1124,7 +1124,7 @@ void find_effective_channel_boundaries(  // Output:
   Vector fmax_pb(numPB);
   Index pbIdx = 0;
 
-  for (Index idx = 0; idx < n_chan; ++idx) {
+  for (Size idx = 0; idx < n_chan; ++idx) {
     // Some handy shortcuts:
     //
     // We have to find the first and last frequency where the

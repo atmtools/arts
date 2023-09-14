@@ -522,7 +522,7 @@ void ScatSpeciesExtendTemperature(  //WS Output:
         "Scattering species ", species, " not found among scat_species.")
     }
 
-    for (Index i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
+    for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
       const SingleScatteringData& ssdo = scat_data_raw[i_ss][i_se];
       const Index nTo = ssdo.T_grid.nelem();
       Index nTn = nTo;

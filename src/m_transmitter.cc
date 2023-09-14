@@ -49,7 +49,7 @@ void iy_transmitterMultiplePol(Matrix& iy_transmitter,
 
   iy_transmitter.resize(nf, 4);
 
-  for (Index i = 0; i < nf; i++) {
+  for (Size i = 0; i < nf; i++) {
     stokes2pol(iy_transmitter(i, joker), instrument_pol[i], 1);
   }
 }

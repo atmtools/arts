@@ -437,7 +437,7 @@ String get_dirname(const std::string_view path) {
   const ArrayOfString fileparts = split(String{path}, "/");
   if (path[0] == '/') dirname = "/";
   if (fileparts.size() > 1) {
-    for (Index i = 0; i < fileparts.size() - 1; i++) {
+    for (Size i = 0; i < fileparts.size() - 1; i++) {
       dirname += fileparts[i];
       if (i < fileparts.size() - 2) dirname += "/";
     }

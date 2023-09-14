@@ -133,8 +133,8 @@ void check_rt4_input(  // Output
 
   // RT4 can only completely or azimuthally randomly oriented particles.
   bool no_arb_ori = true;
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++)
-    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++)
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++)
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++)
       if (scat_data[i_ss][i_se].ptype != PTYPE_TOTAL_RND &&
           scat_data[i_ss][i_se].ptype != PTYPE_AZIMUTH_RND)
         no_arb_ori = false;
@@ -452,8 +452,8 @@ void sca_optpropCalc(  //Output
   //
   // FIXME: are the stokes component assignments correct? for totally random?
   // and azimuthally random? (as they are done differently...)
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       SingleScatteringData ssd = scat_data[i_ss][i_se];
       Index this_f_index = (ssd.pha_mat_data.nlibraries() == 1 ? 0 : f_index);
       Index i_pfct;

@@ -118,7 +118,7 @@ void insert_elements(Matrix& matrix,
                      const ArrayOfIndex& column_indices,
                      const Vector& elements) {
   ARTS_ASSERT(row_indices.size() == column_indices.size());
-  ARTS_ASSERT(column_indices.size() == elements.size());
+  ARTS_ASSERT(column_indices.size() == static_cast<Size>(elements.size()));
 
   matrix.resize(m, n);
 
@@ -727,7 +727,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
 void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
                                   const CovarianceMatrix& covmat_sx) {
   x_norm = covmat_sx.diagonal();
-  for (Size i = 0; i < x_norm.size(); ++i) {
+  for (Index i = 0; i < x_norm.size(); ++i) {
     x_norm[i] = sqrt(x_norm[i]);
   }
 }

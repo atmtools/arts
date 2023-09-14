@@ -189,7 +189,7 @@ void NumericInterpLatLonField(Numeric& value,
 void gridpos_local(ArrayOfGridPos& gp,
                  ConstVectorView grid, 
                  ConstVectorView points) {
-  const Index n = points.size();
+  const Size n = points.size();
   ARTS_ASSERT(gp.size() == n);
 
   // To save time in case of grid length 1
@@ -199,7 +199,7 @@ void gridpos_local(ArrayOfGridPos& gp,
     return;
   }
     
-  for (Index i=0; i<n; ++i) {
+  for (Size i=0; i<n; ++i) {
     Numeric x = points[i];
     
     // Handle nearest extrapolation

@@ -454,7 +454,7 @@ void py_spectroscopy(py::module_& m) try {
                                "Bad atmospheric state (T P): ",
                                Vector{T, P})
             ARTS_USER_ERROR_IF(
-                VMR.size() not_eq band.broadeningspecies.size(),
+                static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
                 "Mismatch between VMRs and broadening species.\nVMR: ",
                 VMR,
                 "\nSpecies: ",
@@ -545,7 +545,7 @@ X : ~pyarts.arts.LineShapeOutput
                                 "Bad atmospheric state (T P H): ",
                                 Vector{T, P, H})
              ARTS_USER_ERROR_IF(
-                 VMR.size() not_eq band.broadeningspecies.size(),
+                 static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
                  "Mismatch between VMRs and broadening species.\nVMR: ",
                  VMR,
                  "\nSpecies: ",

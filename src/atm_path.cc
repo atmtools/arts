@@ -105,9 +105,9 @@ void extract1D(ArrayOfAtmPoint &atm_path,
   }
 
   atm_field.at(atm_path,
-               *const_cast<const Vector *const>(grids[0].get()),
-               *const_cast<const Vector *const>(grids[1].get()),
-               *const_cast<const Vector *const>(grids[2].get()));
+               *grids[0].get(),
+               *grids[1].get(),
+               *grids[2].get());
 }
 
 ArrayOfAtmPoint extract1D(const AtmField& atm_field,

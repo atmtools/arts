@@ -68,18 +68,18 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
       .PythonInterfaceBasicRepresentation(matpackT)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](matpackT& x) -> py::buffer_info {
-        std::vector<ssize_t> shape{static_cast<ssize_t>(sz)...};
-        std::vector<ssize_t> strides(shape.size(),
+        std::vector<ssize_t> shpe{static_cast<ssize_t>(sz)...};
+        std::vector<ssize_t> strides(shpe.size(),
                                      static_cast<ssize_t>(sizeof(T)));
         for (std::size_t j = 0; j < sizeof...(sz) - 1; j++) {
           strides[j] *= std::reduce(
-              shape.begin() + j + 1, shape.end(), 1, std::multiplies<>());
+              shpe.begin() + j + 1, shpe.end(), 1, std::multiplies<>());
         }
         return py::buffer_info(x.data.data(),
                                sizeof(T),
                                py::format_descriptor<T>::format(),
                                sizeof...(sz),
-                               std::move(shape),
+                               std::move(shpe),
                                std::move(strides));
       })
       .def_property(

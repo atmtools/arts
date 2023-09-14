@@ -2199,10 +2199,10 @@ inline void _cr_internal_(const Array<T>& var1,
                           const Array<T>& var2,
                           const Numeric& maxabsreldiff,
                           const String& error_message) {
-  const Index n = var1.size();
+  const Size n = var1.size();
   if (var2.size() not_eq n)
     throw std::runtime_error("Cannot compare arrays of different length");
-  for (Index i = 0; i < n; i++)
+  for (Size i = 0; i < n; i++)
     _cr_internal_(var1[i],
                   var2[i],
                   maxabsreldiff,

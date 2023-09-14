@@ -136,10 +136,10 @@ void surface_props_check(const SurfaceField& surface_field,
     ARTS_USER_ERROR_IF(not surface_field.contains(SurfacePropertyTag{name}),
                        "No ", std::quoted(name), " field in surface_field")
 
-  for (Index i = 0; i < surface_props_names.size(); i++) {
+  for (Size i = 0; i < surface_props_names.size(); i++) {
     ARTS_USER_ERROR_IF (surface_props_names[i].size() == 0,
       "Element ", i, " (0-based) of *surface_props_names* is empty.")
-    for (Index j = i + 1; j < surface_props_names.size(); j++) {
+    for (Size j = i + 1; j < surface_props_names.size(); j++) {
       ARTS_USER_ERROR_IF (surface_props_names[j] == surface_props_names[i],
         "Two surface properties with same name found!\n"
         "This found for these two properties\n"
@@ -154,16 +154,16 @@ void dsurface_check(const ArrayOfString& surface_props_names,
                     const ArrayOfString& dsurface_names,
                     const ArrayOfTensor4 dsurface_rmatrix_dx,
                     const ArrayOfMatrix& dsurface_emission_dx) {
-  const Index nq = dsurface_names.size();
+  const Size nq = dsurface_names.size();
 
   ARTS_USER_ERROR_IF (dsurface_rmatrix_dx.size() != nq,
         "The lengths of *dsurface_names* and *dsurface_rmatrix_dx* differ.");
   ARTS_USER_ERROR_IF (dsurface_emission_dx.size() != nq,
         "The lengths of *dsurface_names* and *dsurface_emission_dx* differ.");
 
-  for (Index i = 0; i < nq; i++) {
+  for (Size i = 0; i < nq; i++) {
     bool found = false;
-    for (Index j = 0; j < surface_props_names.size() && !found; j++) {
+    for (Size j = 0; j < surface_props_names.size() && !found; j++) {
       if (dsurface_names[i] == surface_props_names[j]) {
         found = true;
       }

@@ -290,7 +290,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
       std::sort(dl_from_ip.begin(), dl_from_ip.end());
 
       // Move to overall arrays and add points if ppath_lstep that requires
-      for (Index i = 0; i < dl_from_ip.size(); ++i) {
+      for (Size i = 0; i < dl_from_ip.size(); ++i) {
         // Some useful lengths
         const Numeric l_next = l_acc_ppath[ip] + dl_from_ip[i];
         const Numeric dl = l_next - l_last_inserted;

@@ -1272,7 +1272,7 @@ void abs_lines_per_speciesMirroringSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1328,7 +1328,7 @@ void abs_lines_per_speciesManualMirroringSpecies(
   if (auto ind = std::distance(
           abs_species.cbegin(),
           std::find(abs_species.cbegin(), abs_species.cend(), species));
-      ind not_eq abs_species.size()) {
+      static_cast<Size>(ind) not_eq abs_species.size()) {
     abs_linesManualMirroring(abs_lines_per_species[ind]);
   } else {
     ARTS_USER_ERROR("Cannot find species: ",
@@ -1621,7 +1621,7 @@ void abs_lines_per_speciesT0Species(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -2016,7 +2016,7 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
                                                    const Vector& change,
                                                    const Index& relative)
 {
-  ARTS_USER_ERROR_IF (QID.size() not_eq change.size(),
+  ARTS_USER_ERROR_IF (QID.size() not_eq static_cast<Size>(change.size()),
                       "Mismatch between QID and change input lengths not allowed");
   
   for (Size iq=0; iq<QID.size(); iq++)
@@ -2030,7 +2030,7 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
                                                                const Vector& change,
                                                                const Index& relative)
 {
-  ARTS_USER_ERROR_IF (QID.size() not_eq change.size(),
+  ARTS_USER_ERROR_IF (QID.size() not_eq static_cast<Size>(change.size()),
                       "Mismatch between QID and change input lengths not allowed");
   
   for (Size iq=0; iq<QID.size(); iq++)
@@ -2231,7 +2231,7 @@ void abs_lines_per_speciesCompact(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRemoveBand(ArrayOfAbsorptionLines & abs_lines,
                          const QuantumIdentifier& qid) {
-  for (Index i = 0; i < abs_lines.size(); i++) {
+  for (Size i = 0; i < abs_lines.size(); i++) {
     const Quantum::Number::StateMatch lt(qid, abs_lines[i].quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       abs_lines.erase(abs_lines.begin() + i);

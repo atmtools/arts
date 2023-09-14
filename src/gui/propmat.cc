@@ -358,7 +358,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
   const bool select_jac = opts.jacobian_target >= 0 and
-                          opts.jacobian_target < v.jacobian_quantities.size();
+                          static_cast<Size>(opts.jacobian_target) < v.jacobian_quantities.size();
 
   const PropmatConstVectorView pm =
       select_jac ? v.aopm[opts.jacobian_target] : v.pm;
@@ -417,7 +417,7 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
   const bool select_jac = opts.jacobian_target >= 0 and
-                          opts.jacobian_target < v.jacobian_quantities.size();
+                          static_cast<Size>(opts.jacobian_target) < v.jacobian_quantities.size();
 
   const MuelmatConstVectorView tm =
       select_jac ? v.aotm[opts.jacobian_target] : v.tm;
@@ -865,7 +865,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current VMR
       ImGui::Text("\tVMR\t");
-      for (Index i = 0; i < abs_species.size(); i++) {
+      for (Size i = 0; i < abs_species.size(); i++) {
         const std::string spec{var_string(abs_species[i])};
         ImGui::Text("\t  %s:\t\n\t    %g%c",
                     spec.c_str(),
@@ -877,7 +877,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Display current Jacobian
       bool jac_agree =
           jacobian_quantities.size() == v.jacobian_quantities.size();
-      for (Index i = 0; i < jacobian_quantities.size() and jac_agree; i++) {
+      for (Size i = 0; i < jacobian_quantities.size() and jac_agree; i++) {
         jac_agree = jac_agree and
                     jacobian_quantities[i].Target().type ==
                         v.jacobian_quantities[i].Target().type and

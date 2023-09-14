@@ -274,7 +274,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
   // 3 = 3
   if (pnd_field.ncols() > 1) {
-    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == N_se_total);
+    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == static_cast<Size>(N_se_total));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
@@ -290,7 +290,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     //ARTS_ASSERT(is_size(scat_theta, doit_za_grid_size, 1,
     //                doit_za_grid_size, aa_grid.size()));
 
-    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == TotalNumberOfElements(scat_data_mono));
+    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == static_cast<Size>(TotalNumberOfElements(scat_data_mono)));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
@@ -647,11 +647,11 @@ void opt_prop_sptFromScat_data(  // Output and Input:
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  const Index N_ss = scat_data.size();
+  const Size N_ss = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
+  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data);)
   ARTS_ASSERT(ext_mat_spt.size() == N_se_total);
   ARTS_ASSERT(abs_vec_spt.size() == N_se_total);
 
@@ -668,11 +668,11 @@ void opt_prop_sptFromScat_data(  // Output and Input:
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].size();
+  for (Size i_ss = 0; i_ss < N_ss; i_ss++) {
+    const Size N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
-    for (Index i_se = 0; i_se < N_se; i_se++) {
+    for (Size i_se = 0; i_se < N_se; i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for the i_se scattering element is zero, we don't need
       // to do the transformation
@@ -2416,7 +2416,7 @@ void ScatSpeciesMerge(  //WS Output:
   ArrayOfString scat_species_merged;
   scat_species_merged.resize(1);
   scat_species_merged[0] = "mergedfield-mergedpsd";
-  for (Index sp = 0; sp < scat_data_merged[0].size(); sp++) {
+  for (Size sp = 0; sp < scat_data_merged[0].size(); sp++) {
     SingleScatteringData& this_part = scat_data_merged[0][sp];
     this_part.ptype = scat_data[0][0].ptype;
     this_part.description = "Merged scattering elements";
@@ -2515,8 +2515,8 @@ void ScatSpeciesMerge(  //WS Output:
     pnd_field_merged(i_lv, i_lv, 0, 0) = 1.;
 
     SingleScatteringData& this_part = scat_data_merged[0][i_lv];
-    for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
-      for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
+    for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+      for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
         SingleScatteringData& orig_part = scat_data[i_ss][i_se];
         const Index pnd_index = FlattenedIndex(scat_data, i_ss, i_se);
 

@@ -553,7 +553,7 @@ Numeric &Point::operator[](const KeyVal &k) {
 }
 
 void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
-  ARTS_ASSERT(sp.size() == x.size())
+  ARTS_ASSERT(sp.size() == static_cast<Size>(x.size()))
   for (Size i=0; i<sp.size(); i++) {
    specs[sp[i]] = x[i];
   }

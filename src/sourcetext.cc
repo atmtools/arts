@@ -10,14 +10,14 @@ void SourceText::AppendFile(const String& name) {
 }
 
 void SourceText::AdvanceChar() {
-  if (mColumn < mText[mLine].size() - 1) {
+  if (static_cast<Size>(mColumn) < mText[mLine].size() - 1) {
     ++mColumn;
   } else {
     mLineBreak = true;
     do {
-      if (mLine >= mText.size()) {
+      if (static_cast<Size>(mLine) >= mText.size()) {
         throw Eot("", this->File(), this->Line(), this->Column());
-      } else if (mLine == mText.size() - 1) {
+      } else if (static_cast<Size>(mLine) == mText.size() - 1) {
         mColumn++;
         break;
       } else {
@@ -32,7 +32,7 @@ void SourceText::AdvanceLine() {
   mLineBreak = true;
   mColumn = 0;
   do {
-    if (mLine >= mText.size() - 1) {
+    if (static_cast<Size>(mLine) >= mText.size() - 1) {
       throw Eot("", this->File(), this->Line(), this->Column());
     } else {
       ++mLine;
@@ -41,7 +41,7 @@ void SourceText::AdvanceLine() {
 }
 
 const String& SourceText::File() {
-  Index i = 0;
+  Size i = 0;
   bool stop = false;
 
   while (i < mSfLine.size() - 1 && !stop) {
@@ -63,7 +63,7 @@ void SourceText::Init() {
   } else {
     // Skip empty lines:
     while (1 > mText[mLine].size()) {
-      if (mLine >= mText.size() - 1) {
+      if (static_cast<Size>(mLine) >= mText.size() - 1) {
         throw Eot("", this->File(), this->Line(), this->Column());
       } else {
         mLineBreak = true;
@@ -74,7 +74,7 @@ void SourceText::Init() {
 }
 
 Index SourceText::GetSourceLine(const Index line) {
-  Index i = 0;
+  Size i = 0;
   bool stop = false;
 
   while (i < mSfLine.size() - 1 && !stop) {
@@ -88,7 +88,7 @@ Index SourceText::GetSourceLine(const Index line) {
 }
 
 std::ostream& operator<<(std::ostream& os, const SourceText& text) {
-  for (Index i = 0; i < text.mText.size(); ++i)
+  for (Size i = 0; i < text.mText.size(); ++i)
     os << i << "(" << text.mText[i].size() << ")"
        << ": " << text.mText[i] << '\n';
   return (os);

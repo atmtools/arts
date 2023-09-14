@@ -2055,7 +2055,7 @@ void sensor_responseMixerBackendPrecalcWeights(
     error_found = true;
   }
   for (Index i = 0; i < nout_f; i++) {
-    if (channel2fgrid_indexes[i].size() != channel2fgrid_weights[i].size()) {
+    if (channel2fgrid_indexes[i].size() != static_cast<Size>(channel2fgrid_weights[i].size())) {
       os << "Mismatch in size between *channel2fgrid_indexes* and "
          << "*channel2fgrid_weights*, found for array/vector with "
          << "index " << i << ".\n";
@@ -2259,9 +2259,9 @@ void sensor_responseMultiMixerBackend(
 
   // Append data to create total sensor_response
   //
-  const Index ncols = sr[0].ncols();
-  const Index npolnew = sensor_response_pol_grid.size();
-  const Index nfpolnew = nfnew * npolnew;
+  const Size ncols = sr[0].ncols();
+  const Size npolnew = sensor_response_pol_grid.size();
+  const Size nfpolnew = nfnew * npolnew;
   //
   sensor_response.resize(nlos * nfpolnew, ncols);
   //
@@ -2270,8 +2270,8 @@ void sensor_responseMultiMixerBackend(
   for (Size ilo = 0; ilo < nlo; ilo++) {
     const Index nfpolthis = (cumsumf[ilo + 1] - cumsumf[ilo]) * npolnew;
 
-    ARTS_ASSERT(sr[ilo].nrows() == nlos * nfpolthis);
-    ARTS_ASSERT(sr[ilo].ncols() == ncols);
+    ARTS_ASSERT(static_cast<Size>(sr[ilo].nrows()) == nlos * nfpolthis);
+    ARTS_ASSERT(static_cast<Size>(sr[ilo].ncols()) == ncols);
 
     for (Size ilos = 0; ilos < nlos; ilos++) {
       for (Index i = 0; i < nfpolthis; i++) {
@@ -3030,7 +3030,7 @@ void WMRFSelectChannels(  // WS Output:
        << "The actual value you have is " << max(wmrf_channels) << ".";
   }
 
-  if (wmrf_channels.size() == f_backend.size()) {
+  if (wmrf_channels.size() == static_cast<Size>(f_backend.size())) {
     // No channels to be removed, I can return the original grid.
   } else {
   }
@@ -3072,7 +3072,7 @@ void WMRFSelectChannels(  // WS Output:
     }
   }
 
-  if (selection.size() == f_grid.size()) {
+  if (selection.size() == static_cast<Size>(f_grid.size())) {
     // No frequencies were removed, I can return the original grid.
   } else if (selection.size() == 0) {
     throw std::runtime_error("No frequencies found for any selected channels.\n");
@@ -3286,12 +3286,12 @@ void yApplySensorPol(Vector& y,
     throw std::runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
   if (static_cast<Size>(y_pos.nrows()) != n1)
     throw std::runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
-  if (y_los.nrows() != n1)
+  if (static_cast<Size>(y_los.nrows()) != n1)
     throw std::runtime_error("Sizes of input *y* and *y_los* are inconsistent.");
-  if (y_geo.nrows() != n1)
+  if (static_cast<Size>(y_geo.nrows()) != n1)
     throw std::runtime_error("Sizes of input *y* and *y_geo* are inconsistent.");
   if (jacobian_do) {
-    if (jacobian.nrows() != n1)
+    if (static_cast<Size>(jacobian.nrows()) != n1)
       throw std::runtime_error("Sizes of *y* and *jacobian* are inconsistent.");
   }
 
@@ -3306,7 +3306,7 @@ void yApplySensorPol(Vector& y,
   }
 
   // Checks of sensor_pos
-  if (sensor_pos.nrows() != nm)
+  if (static_cast<Size>(sensor_pos.nrows()) != nm)
     throw std::runtime_error(
         "Different number of rows in *sensor_pos* and *sensor_pol*.");
   ARTS_USER_ERROR_IF(n2 * 4 != n1,

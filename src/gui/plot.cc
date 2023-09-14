@@ -75,7 +75,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
       if (xdata.size() not_eq ydata.size())
         ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
       else {
-        for (Index i = 0; i < xdata.size(); i++) {
+        for (Index i = 0; i < static_cast<Index>(xdata.size()); i++) {
           ImGui::Text("xdata[%" PRId64 "] is %" PRId64 " elements and ydata[%" PRId64
                       "] is %" PRId64 " elements",
                       i,

@@ -189,7 +189,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             const Species::Species species) {
-  for (Index i = 0; i < xsec_data.size(); i++)
+  for (Size i = 0; i < xsec_data.size(); i++)
     if (xsec_data[i].Species() == species) return i;
 
   return -1;

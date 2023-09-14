@@ -65,7 +65,7 @@ void nca_write_to_file(const int ncid,
                      "Current lookup table contains no species!");
 
   long species_total_sizes = 0;
-  for (Index nspecies = 0; nspecies < gal.species.size(); nspecies++) {
+  for (Size nspecies = 0; nspecies < gal.species.size(); nspecies++) {
     Index nspecies_size = gal.species[nspecies].size();
     species_total_sizes += nspecies_size;
     species_count[nspecies] = nspecies_size;

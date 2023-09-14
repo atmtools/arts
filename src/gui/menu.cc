@@ -210,14 +210,14 @@ bool change_item(const char* name,
                  Vector& vec,
                  Vector& old,
                  const ArrayOfString& keys) {
-  const Index n = vec.size();
+  const Size n = vec.size();
   ARTS_ASSERT(n == keys.size())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Value")) {
       if (ImGui::BeginMenu(name)) {
-        for (Index i = 0; i < n; i++) {
+        for (Size i = 0; i < n; i++) {
           ImGui::Text("\t");
           ImGui::SameLine();
           if (ImGui::InputDouble(keys[i].c_str(), &vec[i], 0, 0, "%g"))
@@ -323,7 +323,7 @@ bool change_item(const char* name,
                  AtmPoint& old,
                  const ArrayOfArrayOfSpeciesTag& spec,
                  Options& menu) {
-  ARTS_ASSERT(vec.size() == spec.size())
+  ARTS_ASSERT(static_cast<Size>(vec.size()) == spec.size())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
@@ -361,7 +361,7 @@ bool change_item(const char* name,
                     scale * max,
                     vmr_type.c_str());
 
-        for (Index i = 0; i < spec.size(); i++) {
+        for (Size i = 0; i < spec.size(); i++) {
           const std::string spec_name{var_string('\t', spec[i], '\t')};
           Numeric val = scale * vec[spec[i]];
           ImGui::Text("\t");
@@ -568,10 +568,10 @@ void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
     ind = -1;
   }
 
-  for (Index i = 0; i < jac.size(); i++) {
+  for (Size i = 0; i < jac.size(); i++) {
     const std::string opt{var_string('\t', "Derivative: ", change_item_name(jac[i].Target()), '\t')};
     if (ImGui::Selectable(
-            opt.c_str(), ind == i, ImGuiSelectableFlags_DontClosePopups)) {
+            opt.c_str(), static_cast<Size>(ind) == i, ImGuiSelectableFlags_DontClosePopups)) {
       ind = i;
     }
   }

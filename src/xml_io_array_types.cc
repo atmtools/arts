@@ -86,7 +86,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < agpos.size(); n++)
+  for (Size n = 0; n < agpos.size(); n++)
     xml_write_to_stream(os_xml, agpos[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -155,7 +155,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < arq.size(); n++)
+  for (Size n = 0; n < arq.size(); n++)
     xml_write_to_stream(os_xml, arq[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -224,7 +224,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < astag.size(); n++)
+  for (Size n = 0; n < astag.size(); n++)
     xml_write_to_stream(os_xml, astag[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -295,7 +295,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < astar.size(); n++) {
+  for (Size n = 0; n < astar.size(); n++) {
     xml_write_to_stream(os_xml, astar[n], pbofs, "");
   }
 
@@ -398,7 +398,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < axd.size(); n++)
+  for (Size n = 0; n < axd.size(); n++)
     xml_write_to_stream(os_xml, axd[n], pbofs, "");
 
   close_tag.set_name("/Array");

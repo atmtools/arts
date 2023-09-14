@@ -33,17 +33,17 @@
 void find_new_grid_in_old_grid(ArrayOfIndex& pos,
                                ConstVectorView old_grid,
                                ConstVectorView new_grid) {
-  const Index n_new_grid = new_grid.size();
-  const Index n_old_grid = old_grid.size();
+  const Size n_new_grid = new_grid.size();
+  const Size n_old_grid = old_grid.size();
 
   // Make sure that pos has the right size:
   ARTS_ASSERT(n_new_grid == pos.size());
 
   // Old grid position:
-  Index j = 0;
+  Size j = 0;
 
   // Loop the new frequencies:
-  for (Index i = 0; i < n_new_grid; ++i) {
+  for (Size i = 0; i < n_new_grid; ++i) {
     // We have done runtime checks that both the new and the old
     // frequency grids are sorted in GasAbsLookup::Adapt, so we can
     // use the fact here.

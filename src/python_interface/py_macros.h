@@ -71,33 +71,33 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
                   "On Error:\n"                                             \
                   "    Throws RuntimeError for any failure to read"))
 
-#define PythonInterfaceIndexItemAccess(Type)                                \
-  def("__len__", [](const Type& x) { return x.size(); })                    \
-      .def(                                                                 \
-          "__getitem__",                                                    \
-          [](Type& x, Index i)                                              \
-              -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {     \
-            i = negative_clamp(i, x.size());                                \
-            if (x.size() <= i or i < 0)                                     \
-              throw std::out_of_range(var_string("Bad index access: ",      \
-                                                 i,                         \
-                                                 " in object of size [0, ", \
-                                                 x.size(),                  \
-                                                 ")"));                     \
-            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(    \
-                &x[i], [](void*) {});                                       \
-          },                                                                \
-          py::return_value_policy::reference_internal,                      \
-          py::keep_alive<0, 1>())                                           \
-      .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {          \
-        i = negative_clamp(i, x.size());                                    \
-        if (x.size() <= i or i < 0)                                         \
-          throw std::out_of_range(var_string("Bad index access: ",          \
-                                             i,                             \
-                                             " in object of range [0, ",    \
-                                             x.size(),                      \
-                                             ")"));                         \
-        x[i] = std::move(y);                                                \
+#define PythonInterfaceIndexItemAccess(Type)                                 \
+  def("__len__", [](const Type& x) { return x.size(); })                     \
+      .def(                                                                  \
+          "__getitem__",                                                     \
+          [](Type& x, Index i)                                               \
+              -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {      \
+            i = negative_clamp(i, x.size());                                 \
+            if (x.size() <= static_cast<Size>(i) or i < 0)                   \
+              throw std::out_of_range(var_string("Bad index access: ",       \
+                                                 i,                          \
+                                                 " in object of range [0, ", \
+                                                 x.size(),                   \
+                                                 ")"));                      \
+            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(     \
+                &x[i], [](void*) {});                                        \
+          },                                                                 \
+          py::return_value_policy::reference_internal,                       \
+          py::keep_alive<0, 1>())                                            \
+      .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {           \
+        i = negative_clamp(i, x.size());                                     \
+        if (x.size() <= static_cast<Size>(i) or i < 0)                       \
+          throw std::out_of_range(var_string("Bad index access: ",           \
+                                             i,                              \
+                                             " in object of range [0, ",     \
+                                             x.size(),                       \
+                                             ")"));                          \
+        x[i] = std::move(y);                                                 \
       })
 
 #define PythonInterfaceBasicRepresentation(Type) \
