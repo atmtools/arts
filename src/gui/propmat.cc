@@ -228,13 +228,13 @@ struct TraMatDataHolder {
   int running_average;
 
   [[nodiscard]] int size() const noexcept {
-    const Index nelem = f_grid.nelem();
-    return static_cast<int>(nelem / running_average) +
-           bool(nelem % running_average);
+    const Index size = f_grid.size();
+    return static_cast<int>(size / running_average) +
+           bool(size % running_average);
   }
 
   [[nodiscard]] std::pair<Index, Index> range(int i) const noexcept {
-    const Index f_grid_size{f_grid.nelem()};
+    const Index f_grid_size{f_grid.size()};
     const Index start{i * running_average};
     const Index last{std::min(start + running_average, f_grid_size) - 1};
     return {start, last};
@@ -264,13 +264,13 @@ struct PropMatDataHolder {
   int running_average;
 
   [[nodiscard]] int size() const noexcept {
-    const Index nelem = f_grid.nelem();
-    return static_cast<int>(nelem / running_average) +
-           bool(nelem % running_average);
+    const Index size = f_grid.size();
+    return static_cast<int>(size / running_average) +
+           bool(size % running_average);
   }
 
   [[nodiscard]] std::pair<Index, Index> range(int i) const noexcept {
-    const Index f_grid_size{f_grid.nelem()};
+    const Index f_grid_size{f_grid.size()};
     const Index start{i * running_average};
     const Index last{std::min(start + running_average, f_grid_size) - 1};
     return {start, last};
@@ -358,7 +358,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
   const bool select_jac = opts.jacobian_target >= 0 and
-                          opts.jacobian_target < v.jacobian_quantities.nelem();
+                          opts.jacobian_target < v.jacobian_quantities.size();
 
   const PropmatConstVectorView pm =
       select_jac ? v.aopm[opts.jacobian_target] : v.pm;
@@ -394,17 +394,17 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
     ImPlot::PlotLineG(
         "A", PropMatDataHolder::A, &main_data, main_data.size());
     ImPlot::PlotLineG(
-        "B", PropMatDataHolder::B, &main_data, int(v.f_grid.nelem()));
+        "B", PropMatDataHolder::B, &main_data, int(v.f_grid.size()));
     ImPlot::PlotLineG(
-        "C", PropMatDataHolder::C, &main_data, int(v.f_grid.nelem()));
+        "C", PropMatDataHolder::C, &main_data, int(v.f_grid.size()));
     ImPlot::PlotLineG(
-        "D", PropMatDataHolder::D, &main_data, int(v.f_grid.nelem()));
+        "D", PropMatDataHolder::D, &main_data, int(v.f_grid.size()));
     ImPlot::PlotLineG(
-        "U", PropMatDataHolder::U, &main_data, int(v.f_grid.nelem()));
+        "U", PropMatDataHolder::U, &main_data, int(v.f_grid.size()));
     ImPlot::PlotLineG(
-        "V", PropMatDataHolder::V, &main_data, int(v.f_grid.nelem()));
+        "V", PropMatDataHolder::V, &main_data, int(v.f_grid.size()));
     ImPlot::PlotLineG(
-        "W", PropMatDataHolder::W, &main_data, int(v.f_grid.nelem()));
+        "W", PropMatDataHolder::W, &main_data, int(v.f_grid.size()));
 
     out = ImPlot::GetPlotLimits();
     ImPlot::EndPlot();
@@ -417,7 +417,7 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
   const bool select_jac = opts.jacobian_target >= 0 and
-                          opts.jacobian_target < v.jacobian_quantities.nelem();
+                          opts.jacobian_target < v.jacobian_quantities.size();
 
   const MuelmatConstVectorView tm =
       select_jac ? v.aotm[opts.jacobian_target] : v.tm;
@@ -740,7 +740,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
                       std::clamp<Numeric>(max,
                                           new_limits.X.Min + 1,
                                           std::numeric_limits<Numeric>::max());
-                  nlinspace(f_grid, min, max, f_grid.nelem());
+                  nlinspace(f_grid, min, max, f_grid.size());
                   start_run(i, ctrl, start_time, end_time);
                 }
               }
@@ -832,15 +832,15 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current frequency grid
       ImGui::Text(
-          "\tFrequency Grid:\n\t  Start: %g Hz%c\t\n\t  Stop: %g Hz%c\t\n\t  nelem: %" PRId64
+          "\tFrequency Grid:\n\t  Start: %g Hz%c\t\n\t  Stop: %g Hz%c\t\n\t  size: %" PRId64
           "%c\t",
           v.f_grid[0],
           v.f_grid[0] == f_grid[0] ? ' ' : '*',
-          v.f_grid[v.f_grid.nelem() - 1],
-          v.f_grid[v.f_grid.nelem() - 1] == f_grid[f_grid.nelem() - 1] ? ' '
+          v.f_grid[v.f_grid.size() - 1],
+          v.f_grid[v.f_grid.size() - 1] == f_grid[f_grid.size() - 1] ? ' '
                                                                        : '*',
-          f_grid.nelem(),
-          f_grid.nelem() == v.f_grid.nelem() ? ' ' : '*');
+          f_grid.size(),
+          f_grid.size() == v.f_grid.size() ? ' ' : '*');
       ImGui::Separator();
 
       // Display current magnetic field
@@ -865,7 +865,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current VMR
       ImGui::Text("\tVMR\t");
-      for (Index i = 0; i < abs_species.nelem(); i++) {
+      for (Index i = 0; i < abs_species.size(); i++) {
         const std::string spec{var_string(abs_species[i])};
         ImGui::Text("\t  %s:\t\n\t    %g%c",
                     spec.c_str(),
@@ -876,8 +876,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
       // Display current Jacobian
       bool jac_agree =
-          jacobian_quantities.nelem() == v.jacobian_quantities.nelem();
-      for (Index i = 0; i < jacobian_quantities.nelem() and jac_agree; i++) {
+          jacobian_quantities.size() == v.jacobian_quantities.size();
+      for (Index i = 0; i < jacobian_quantities.size() and jac_agree; i++) {
         jac_agree = jac_agree and
                     jacobian_quantities[i].Target().type ==
                         v.jacobian_quantities[i].Target().type and
