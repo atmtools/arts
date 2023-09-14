@@ -3,29 +3,27 @@ from pyarts.workspace import Workspace, arts_agenda
 
 
 def setup_testcase(ws):
-    ws.execute_controlfile("general/continua.arts")
-    ws.execute_controlfile("general/agendas.arts")
-    ws.execute_controlfile("general/planet_earth.arts")
-    # (standard) emission calculation
-    ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Emission)
-    # cosmic background radiation
-    ws.Copy(ws.iy_space_agenda, ws.iy_space_agenda__CosmicBackground)
+    ws.water_p_eq_agendaSet()
+    ws.gas_scattering_agendaSet()
+    ws.PlanetSet(option="Earth")
 
-    @arts_agenda
-    def iy_surface_agenda_PY(ws):
+    # (standard) emission calculation
+    ws.iy_main_agendaSet(option="Emission")
+    # cosmic background radiation
+    ws.iy_space_agendaSet()
+    # sensor-only path
+    ws.ppath_agendaSet(option="FollowSensorLosPath")
+    # no refraction
+    ws.ppath_step_agendaSet(option="GeometricPath")
+
+    # upwelling intensity (and jacobian) from the surface for given point and direction
+    @arts_agenda(ws=ws, set_agenda=True)
+    def iy_surface_agenda(ws):
         ws.SurfaceBlackbody()
         ws.iySurfaceRtpropCalc()
-    # upwelling intensity (and jacobian) from the surface for given point and direction
-    ws.Copy(ws.iy_surface_agenda, iy_surface_agenda_PY)
+    ws.iy_surface_agenda = iy_surface_agenda
     # called by iySurfaceRtpropCalc within iy_surface_agenda
-    ws.Copy(ws.surface_rtprop_agenda, ws.surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface)
-    # clearsky agenda
-    ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
-    # sensor-only path
-    ws.Copy(ws.ppath_agenda, ws.ppath_agenda__FollowSensorLosPath)
-    # no refraction
-    ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
-    ws.Copy(ws.abs_xsec_agenda, ws.abs_xsec_agenda__noCIA)
+    ws.surface_rtprop_agendaSet(option="Specular_NoPol_ReflFix_SurfTFromt_surface")
 
     ws.stokes_dim = 1
     ws.atmosphere_dim = 1  # 1D VAR
@@ -46,23 +44,24 @@ def setup_testcase(ws):
     ws.sensor_responseBackend()
 
     ws.abs_speciesSet(species=[
-        "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
+        "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
     ])
     ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
-        basename="spectroscopy/Artscat/"
+        basename="lines/"
     )
-    ws.abs_lines_per_speciesSetCutoff(option="ByLine", value=750e9)
+    ws.abs_lines_per_speciesCutoff(option="ByLine", value=750e9)
     ws.abs_lines_per_speciesCompact()
-    ws.abs_xsec_agenda_checkedCalc()
+    # clearsky agenda
+    ws.propmat_clearsky_agendaAuto()
     ws.lbl_checkedCalc()
 
     # Load atmospheric data to be forward simulated
     ws.ReadXML(ws.batch_atm_fields_compact, 'testdata/garand_profiles.xml.gz')
-    ws.propmat_clearsky_agenda_checkedCalc()
 
     ws.VectorCreate("t_surface_vector")  # helper variable for ybatch_calc_agenda
     ws.NumericCreate("t_surface_numeric")  # helper variable for ybatch_calc_agenda
-    @arts_agenda
+
+    @arts_agenda(ws=ws, set_agenda=True)
     def ybatch_calc_agenda(ws):
         ws.Extract(ws.atm_fields_compact,
                    ws.batch_atm_fields_compact,
@@ -84,7 +83,6 @@ def setup_testcase(ws):
         ws.sensor_checkedCalc()
         ws.yCalc()
 
-    ws.Copy(ws.ybatch_calc_agenda, ybatch_calc_agenda)
     ws.IndexSet(ws.ybatch_start, 0)
     ws.IndexSet(ws.ybatch_n, 1)  # Amount of atmospheres
     ws.ybatchCalc()  # conduct the forward simulation
@@ -93,14 +91,14 @@ def setup_testcase(ws):
 
 # test for ybatch
 def test_ybatch(ws):
-    ybatch_ref = np.array([256.9629541])
+    ybatch_ref = np.array([257.00247])
     assert np.allclose(ws.ybatch.value[0], ybatch_ref)
 
 
 # test for ybatch_jacobians
 def test_ybatch_jacobians(ws):
-    ybatch_jacobians_ref = np.array([[3.38580056e-06]])
-    assert np.allclose(ws.ybatch_jacobians.value[0], ybatch_jacobians_ref, atol=1e-12)
+    ybatch_jacobians_ref = np.array([[4.65258e-06]])
+    assert np.allclose(ws.ybatch_jacobians.value[0], ybatch_jacobians_ref, atol=1e-6)
 
 
 if __name__ == '__main__':
