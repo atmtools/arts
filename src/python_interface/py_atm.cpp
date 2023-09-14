@@ -198,7 +198,7 @@ void py_atm(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(AtmField);
 
-  artsarrayclass<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint")
+  artsarray<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint")
       .PythonInterfaceFileIO(ArrayOfAtmPoint)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAtmPoint);
 } catch(std::exception& e) {

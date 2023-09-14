@@ -71,7 +71,7 @@ void py_time(py::module_& m) try {
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  artsarrayclass<ArrayOfTime>(m, "ArrayOfTime")
+  artsarray<ArrayOfTime>(m, "ArrayOfTime")
       .PythonInterfaceFileIO(ArrayOfTime)
       .def_property_readonly(
           "as_datetime",
@@ -85,7 +85,7 @@ void py_time(py::module_& m) try {
           py::doc("A :class:`list` of :class:`datetime.datetime`"))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTime);
 
-  artsarrayclass<ArrayOfArrayOfTime>(m, "ArrayOfArrayOfTime")
+  artsarray<ArrayOfArrayOfTime>(m, "ArrayOfArrayOfTime")
       .PythonInterfaceFileIO(ArrayOfArrayOfTime)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTime);
 } catch(std::exception& e) {

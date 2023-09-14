@@ -102,6 +102,9 @@ internal_workspace_groups() {
   wsg_data["ArrayOfQuantumIdentifier"] = {
       .file = "quantum_numbers.h", .desc = "A list of *QuantumIdentifier*\n"};
 
+  wsg_data["RetrievalQuantity"] = {
+      .file = "jacobian.h", .desc = "A single of retrieval quantitity\n"};
+
   wsg_data["ArrayOfRetrievalQuantity"] = {
       .file = "jacobian.h", .desc = "A list of retrieval quantitities\n"};
 
@@ -121,7 +124,14 @@ about the isotopologue, the absorption scheme, and the frequency limits
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
                                .desc = "A list of *Sparse*\n"};
 
-  wsg_data["ArrayOfSun"] = {.file = "sun.h", .desc = "A list of sun\n"};
+  wsg_data["Sun"] = {.file = "sun.h", .desc = R"-x-(A single sun.
+          
+Each sun is described by a struct with its spectrum, radius
+distance from center of planet to center of sun,
+temperature (if possible), latitude in the sky of the planet,
+longitude in the sky of the planet and the type)-x-"};
+
+  wsg_data["ArrayOfSun"] = {.file = "sun.h", .desc = "A list of *Sun*\n"};
 
   wsg_data["ArrayOfString"] = {.file = "mystring.h",
                                .desc = "A list of *String*\n"};
@@ -148,6 +158,9 @@ about the isotopologue, the absorption scheme, and the frequency limits
 
   wsg_data["ArrayOfVector"] = {.file = "matpack.h",
                                .desc = "A list of *Vector*\n"};
+
+  wsg_data["XsecRecord"] = {.file = "xsec_fit.h",
+                            .desc = "A single cross-section record"};
 
   wsg_data["ArrayOfXsecRecord"] = {.file = "xsec_fit.h",
                                    .desc =

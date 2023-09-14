@@ -297,7 +297,7 @@ class TestGroups:
         assert not np.all(np.array(x) == 0)
 
     def testArrayOfArrayOfTime(self):
-        x = cxx.ArrayOfArrayOfTime(1, cxx.ArrayOfTime(1, cxx.Time()))
+        x = cxx.ArrayOfArrayOfTime([cxx.ArrayOfTime([cxx.Time()])])
         test.io(x, delete=True)
         test.array(x)
         test.array_of_array(x)
@@ -365,7 +365,7 @@ class TestGroups:
         assert not np.all(np.array(x) == 1)
 
     def testArrayOfPpath(self):
-        x = cxx.ArrayOfPpath(1, cxx.Ppath())
+        x = cxx.ArrayOfPpath([cxx.Ppath()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -375,22 +375,22 @@ class TestGroups:
         test.array(x)
 
     def testArrayOfRetrievalQuantity(self):
-        x = cxx.ArrayOfRetrievalQuantity(1, cxx.RetrievalQuantity())
+        x = cxx.ArrayOfRetrievalQuantity([cxx.RetrievalQuantity()])
         # test.io(x, delete=True)
         test.array(x)
 
     def testArrayOfScatteringMetaData(self):
-        x = cxx.ArrayOfScatteringMetaData(1, cxx.ScatteringMetaData())
+        x = cxx.ArrayOfScatteringMetaData([cxx.ScatteringMetaData()])
         test.io(x, delete=True)
         test.array(x)
 
     def testArrayOfSingleScatteringData(self):
-        x = cxx.ArrayOfSingleScatteringData(1, cxx.SingleScatteringData())
+        x = cxx.ArrayOfSingleScatteringData([cxx.SingleScatteringData()])
         # test.io(x, delete=True)
         test.array(x)
 
     def testArrayOfSparse(self):
-        x = cxx.ArrayOfSparse(1, cxx.Sparse())
+        x = cxx.ArrayOfSparse([cxx.Sparse()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -422,7 +422,7 @@ class TestGroups:
         assert np.isclose(sun.spectrum[1, 0], 1.93040e-17, atol=1e-25)
         assert np.isclose(sun.spectrum[2, 0], 4.34338e-17, atol=1e-25)
 
-        x = cxx.ArrayOfSun(1, cxx.Sun())
+        x = cxx.ArrayOfSun([cxx.Sun()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -430,8 +430,6 @@ class TestGroups:
         x = cxx.ArrayOfString(["OI"])
         test.io(x, delete=True)
         test.array(x)
-
-        x = cxx.ArrayOfString(["OI", cxx.String("AI")])
 
     def testArrayOfTensor3(self):
         x = cxx.ArrayOfTensor3([[[[1, 2, 3]]]])
@@ -506,7 +504,7 @@ class TestGroups:
     def testArrayOfTime(self):
         import datetime as datetime
 
-        x = cxx.ArrayOfTime(1, "2017-01-01 15:30:20")
+        x = cxx.ArrayOfTime(["2017-01-01 15:30:20"])
         test.io(x, delete=True)
         test.array(x)
 
@@ -529,7 +527,7 @@ class TestGroups:
         assert not np.all(np.array(x) == 0)
 
     def testArrayOfXsecRecord(self):
-        x = cxx.ArrayOfXsecRecord(1, cxx.XsecRecord())
+        x = cxx.ArrayOfXsecRecord([cxx.XsecRecord()])
         test.io(x, delete=True)
         test.array(x)
 
@@ -853,6 +851,7 @@ class TestGroups:
             "NumericUnaryOperator",
             "SpectralRadianceProfileOperator",
             "SingleScatteringData",
+            "RetrievalQuantity",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())
@@ -1051,4 +1050,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.testArrayOfString()
+    x.testArrayOfIndex()

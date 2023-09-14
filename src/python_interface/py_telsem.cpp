@@ -50,7 +50,7 @@ void py_telsem(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
 
-  artsarrayclass<ArrayOfTelsemAtlas>(m, "ArrayOfTelsemAtlas")
+  artsarray<ArrayOfTelsemAtlas>(m, "ArrayOfTelsemAtlas")
       .PythonInterfaceFileIO(ArrayOfTelsemAtlas)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTelsemAtlas);
 } catch(std::exception& e) {

@@ -2,12 +2,12 @@
 #define py_macros_h
 
 #include <python_interface.h>
-
 #include <xml_io.h>
+
 #include <functional>
 
-#include "python_interface_value_type.h"
 #include "pydocs.h"
+#include "python_interface_value_type.h"
 
 namespace Python {
 namespace py = pybind11;
@@ -17,109 +17,103 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   return (i < 0) ? i + n : i;
 }
 
-#define PythonInterfaceFileIO(Type)                                        \
-  def(                                                                     \
-      "savexml",                                                           \
-      [](const Type& x,                                                    \
-         const char* const file,                                           \
-         const char* const type,                                           \
-         bool clobber) {                                                   \
-        xml_write_to_file(                                                 \
-            file, x, string2filetype(type), clobber ? 0 : 1);              \
-      },                                                                   \
-      py::arg("file").none(false),                                         \
-      py::arg("type").none(false) = "ascii",                               \
-      py::arg("clobber") = true,                                           \
-      py::doc("Saves :class:`" #Type "` to file\n"                         \
-              "\n"                                                         \
-              "Parameters:\n"                                              \
-              "    file (str): The path to which the file is written."     \
-              " Note that several of the options might modify the"         \
-              " name or write more files\n"                                \
-              "    type (str): Type of file to save (ascii. zascii,"       \
-              " or binary)\n"                                              \
-              "    clobber (bool): Overwrite existing files or add new"    \
-              " file with modified name?\n"                                \
-              "\n"                                                         \
-              "On Error:\n"                                                \
-              "    Throws RuntimeError for any failure to save"))          \
-      .def(                                                                \
-          "readxml",                                                       \
-          [](Type& x, const char* const file) {                            \
-            xml_read_from_file(file, x);                                   \
-          },                                                               \
-          py::arg("file").none(false),                                     \
-          py::doc("Read :class:`" #Type "` from file\n"                    \
-                  "\n"                                                     \
-                  "Parameters:\n"                                          \
-                  "    file (str): A file that can be read\n"              \
-                  "\n"                                                     \
-                  "On Error:\n"                                            \
-                  "    Throws RuntimeError for any failure to read"))      \
-      .def_static(                                                         \
-          "fromxml",                                                       \
-          [](const char* const file) {                                     \
-            Type x;                                                        \
-            xml_read_from_file(file, x);                                   \
-            return x;                                                      \
-          },                                                               \
-          py::arg("file").none(false),                                     \
-          py::doc("Create :class:`" #Type "` from file\n"                  \
-                  "\n"                                                     \
-                  "Parameters:\n"                                          \
-                  "    file (str): A file that can be read\n"              \
-                  "\n"                                                     \
-                  "On Error:\n"                                            \
+#define PythonInterfaceFileIO(Type)                                         \
+  def(                                                                      \
+      "savexml",                                                            \
+      [](const Type& x,                                                     \
+         const char* const file,                                            \
+         const char* const type,                                            \
+         bool clobber) {                                                    \
+        xml_write_to_file(file, x, string2filetype(type), clobber ? 0 : 1); \
+      },                                                                    \
+      py::arg("file").none(false),                                          \
+      py::arg("type").none(false) = "ascii",                                \
+      py::arg("clobber") = true,                                            \
+      py::doc("Saves :class:`" #Type "` to file\n"                          \
+              "\n"                                                          \
+              "Parameters:\n"                                               \
+              "    file (str): The path to which the file is written."      \
+              " Note that several of the options might modify the"          \
+              " name or write more files\n"                                 \
+              "    type (str): Type of file to save (ascii. zascii,"        \
+              " or binary)\n"                                               \
+              "    clobber (bool): Overwrite existing files or add new"     \
+              " file with modified name?\n"                                 \
+              "\n"                                                          \
+              "On Error:\n"                                                 \
+              "    Throws RuntimeError for any failure to save"))           \
+      .def(                                                                 \
+          "readxml",                                                        \
+          [](Type& x, const char* const file) {                             \
+            xml_read_from_file(file, x);                                    \
+          },                                                                \
+          py::arg("file").none(false),                                      \
+          py::doc("Read :class:`" #Type "` from file\n"                     \
+                  "\n"                                                      \
+                  "Parameters:\n"                                           \
+                  "    file (str): A file that can be read\n"               \
+                  "\n"                                                      \
+                  "On Error:\n"                                             \
+                  "    Throws RuntimeError for any failure to read"))       \
+      .def_static(                                                          \
+          "fromxml",                                                        \
+          [](const char* const file) {                                      \
+            Type x;                                                         \
+            xml_read_from_file(file, x);                                    \
+            return x;                                                       \
+          },                                                                \
+          py::arg("file").none(false),                                      \
+          py::doc("Create :class:`" #Type "` from file\n"                   \
+                  "\n"                                                      \
+                  "Parameters:\n"                                           \
+                  "    file (str): A file that can be read\n"               \
+                  "\n"                                                      \
+                  "On Error:\n"                                             \
                   "    Throws RuntimeError for any failure to read"))
 
 #define PythonInterfaceIndexItemAccess(Type)                                \
-  def("__len__", [](const Type& x) { return x.size(); })                   \
+  def("__len__", [](const Type& x) { return x.size(); })                    \
       .def(                                                                 \
           "__getitem__",                                                    \
-          [](Type& x, Index i) -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {                         \
-            i = negative_clamp(i, x.size());                               \
-            if (x.size() <= i or i < 0)                                    \
+          [](Type& x, Index i)                                              \
+              -> std::shared_ptr<std::remove_cvref_t<decltype(x[i])>> {     \
+            i = negative_clamp(i, x.size());                                \
+            if (x.size() <= i or i < 0)                                     \
               throw std::out_of_range(var_string("Bad index access: ",      \
                                                  i,                         \
                                                  " in object of size [0, ", \
                                                  x.size(),                  \
                                                  ")"));                     \
-            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(&x[i], [](void*){});                                                    \
+            return std::shared_ptr<std::remove_cvref_t<decltype(x[i])>>(    \
+                &x[i], [](void*) {});                                       \
           },                                                                \
           py::return_value_policy::reference_internal,                      \
           py::keep_alive<0, 1>())                                           \
-      .def(                                                                 \
-          "__setitem__",                                                    \
-          [](Type& x, Index i, decltype(x[i]) y) {                          \
-            i = negative_clamp(i, x.size());                               \
-            if (x.size() <= i or i < 0)                                    \
-              throw std::out_of_range(var_string("Bad index access: ",      \
-                                                 i,                         \
-                                                 " in object of size [0, ", \
-                                                 x.size(),                  \
-                                                 ")"));                     \
-            x[i] = std::move(y);                                            \
-          })
+      .def("__setitem__", [](Type& x, Index i, decltype(x[i]) y) {          \
+        i = negative_clamp(i, x.size());                                    \
+        if (x.size() <= i or i < 0)                                         \
+          throw std::out_of_range(var_string("Bad index access: ",          \
+                                             i,                             \
+                                             " in object of range [0, ",    \
+                                             x.size(),                      \
+                                             ")"));                         \
+        x[i] = std::move(y);                                                \
+      })
 
-#define PythonInterfaceBasicRepresentation(Type)       \
-  def(                                                 \
-      "__str__",                                       \
-      [](const Type& x) { return var_string(x); })     \
-      .def(                                            \
-          "__repr__",                                  \
-          [](const Type& x) { return var_string(x); })
+#define PythonInterfaceBasicRepresentation(Type) \
+  def("__str__", [](const Type& x) {             \
+    return var_string(x);                        \
+  }).def("__repr__", [](const Type& x) { return var_string(x); })
 
-#define PythonInterfaceCopyValue(Type)                                  \
-  def(                                                                  \
-      "__copy__", [](Type& t) -> Type { return t; })                    \
-      .def(                                                             \
-          "__deepcopy__",                                               \
-          [](Type& t, py::dict&) -> Type { return t; })
+#define PythonInterfaceCopyValue(Type)  \
+  def("__copy__", [](Type& t) -> Type { \
+    return t;                           \
+  }).def("__deepcopy__", [](Type& t, py::dict&) -> Type { return t; })
 
 #define PythonInterfaceCommonMath(Type) \
   def(py::self + Type())                \
       .def(py::self - Type())           \
-      .def(py::self * Type())           \
+      .def(py::self* Type())            \
       .def(py::self / Type())           \
       .def(py::self += Type())          \
       .def(py::self -= Type())          \
@@ -147,7 +141,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(-py::self)                 \
       .def(py::self + py::self)       \
       .def(py::self - py::self)       \
-      .def(py::self * py::self)       \
+      .def(py::self* py::self)        \
       .def(py::self / py::self)       \
       .def(py::self += py::self)      \
       .def(py::self -= py::self)      \
@@ -160,9 +154,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(py::self >= py::self)      \
       .def(py::self > py::self)
 
-#define PythonInterfaceWorkspaceVariableConversion(Type)                       \
-  def(py::init([](const Type &x) { return std::make_shared<Type>(x); }),       \
-      py::arg("val"), py::doc("Copy instance"))
+#define PythonInterfaceWorkspaceVariableConversion(Type)                 \
+  def(py::init([](const Type& x) { return std::make_shared<Type>(x); }), \
+      py::arg("val"),                                                    \
+      py::doc("Copy instance"))
 
 //! Place at the end!
 #define PythonInterfaceWorkspaceDocumentation(Type)                           \
@@ -271,16 +266,14 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
             return g.attr("data").attr("value").attr("shape");                  \
           },                                                                    \
           ":class:`list` Shape of the gridded field")                           \
-      .def(                                                                     \
-          "__getitem__",                                                        \
-          [](py::object& g, py::object& i) {                                    \
-            return g.attr("data").attr("value").attr("__getitem__")(i);         \
-          })                                                                    \
-      .def(                                                                     \
-          "__setitem__",                                                        \
-          [](py::object& g, py::object& i, py::object& n) {                     \
-            g.attr("data").attr("value").attr("__setitem__")(i, n);             \
-          })                                                                    \
+      .def("__getitem__",                                                       \
+           [](py::object& g, py::object& i) {                                   \
+             return g.attr("data").attr("value").attr("__getitem__")(i);        \
+           })                                                                   \
+      .def("__setitem__",                                                       \
+           [](py::object& g, py::object& i, py::object& n) {                    \
+             g.attr("data").attr("value").attr("__setitem__")(i, n);            \
+           })                                                                   \
       .def(                                                                     \
           "get",                                                                \
           [](Type& g,                                                           \
@@ -330,12 +323,10 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
           py::arg("key"),                                                       \
           py::arg("factor"),                                                    \
           py::doc("Scale the data"))                                            \
-      .def_static(                                                              \
-          "from_xarray",                                                        \
-          [](py::object& v) {                                                   \
-            auto g = py::type::of<Type>();                                      \
-            return details::GriddedField::from_xarray(g, v);                    \
-          })
+      .def_static("from_xarray", [](py::object& v) {                            \
+        auto g = py::type::of<Type>();                                          \
+        return details::GriddedField::from_xarray(g, v);                        \
+      })
 
 #define PythonInterfaceReadWriteData(Type, data, docstr)     \
   def_readwrite(#data,                                       \
@@ -359,9 +350,11 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       },                                                                     \
       py::doc(docstr))
 
-#define PythonInterfaceSelfAttribute(ATTR) \
-  def_property_readonly(                   \
-      #ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); }, "As for :class:`numpy.ndarray`")
+#define PythonInterfaceSelfAttribute(ATTR)                       \
+  def_property_readonly(                                         \
+      #ATTR,                                                     \
+      [](py::object& x) { return x.attr("value").attr(#ATTR); }, \
+      "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceSelfOperator(ATTR)                          \
   def(                                                             \

@@ -152,7 +152,7 @@ symbol : str
       .PythonInterfaceWorkspaceDocumentation(QuantumIdentifier);
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
-  artsarrayclass<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier")
+  artsarray<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier")
       .PythonInterfaceFileIO(ArrayOfQuantumIdentifier)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfQuantumIdentifier);
 } catch(std::exception& e) {

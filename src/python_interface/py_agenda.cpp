@@ -146,7 +146,7 @@ so Copy(a, out=b) will not even see the b variable.
            })
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
-  artsarrayclass<ArrayOfAgenda>(m, "ArrayOfAgenda")
+  artsarray<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(
           py::init([](std::vector<Agenda> va) {
             for (auto& a : va) {

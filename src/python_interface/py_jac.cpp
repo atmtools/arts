@@ -76,9 +76,14 @@ void py_jac(py::module_& m) try {
             out->Target() = t[8].cast<JacobianTarget>();
             
             return out;
-          })).doc() = "A retrieval quantity";
+          }))
+      .def(py::init<const RetrievalQuantity&>())
+      .PythonInterfaceCopyValue(RetrievalQuantity)
+      .PythonInterfaceBasicRepresentation(RetrievalQuantity)
+      .PythonInterfaceFileIO(RetrievalQuantity)
+      .PythonInterfaceWorkspaceDocumentation(RetrievalQuantity);
 
-  artsarrayclass<ArrayOfRetrievalQuantity>(m, "ArrayOfRetrievalQuantity")
+  artsarray<ArrayOfRetrievalQuantity>(m, "ArrayOfRetrievalQuantity")
       .PythonInterfaceFileIO(ArrayOfRetrievalQuantity)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfRetrievalQuantity);
 } catch(std::exception& e) {

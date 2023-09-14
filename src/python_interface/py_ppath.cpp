@@ -25,7 +25,7 @@ void py_ppath(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(GridPos);
 
-  artsarrayclass<ArrayOfGridPos>(m, "ArrayOfGridPos")
+  artsarray<ArrayOfGridPos>(m, "ArrayOfGridPos")
     .doc() = "List of :class:`~pyarts.arts.GridPos`";
 
   artsclass<Ppath>(m, "Ppath")
@@ -99,7 +99,7 @@ void py_ppath(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 
-  artsarrayclass<ArrayOfPpath>(m, "ArrayOfPpath")
+  artsarray<ArrayOfPpath>(m, "ArrayOfPpath")
       .PythonInterfaceFileIO(ArrayOfPpath)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfPpath);
 } catch(std::exception& e) {

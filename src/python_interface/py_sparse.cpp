@@ -190,7 +190,7 @@ arr : numpy.ndarray
           }))
       .PythonInterfaceWorkspaceDocumentation(CovarianceMatrix);
 
-  artsarrayclass<ArrayOfSparse>(m, "ArrayOfSparse")
+  artsarray<ArrayOfSparse>(m, "ArrayOfSparse")
       .PythonInterfaceFileIO(ArrayOfSparse)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSparse);
 } catch(std::exception& e) {

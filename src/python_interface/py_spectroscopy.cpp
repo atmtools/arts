@@ -356,7 +356,7 @@ void py_spectroscopy(py::module_& m) try {
                 t[8].cast<Quantum::Number::LocalState>());
           })).doc() = "Single absorption line";
 
-  artsarrayclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
+  artsarray<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
   artsclass<AbsorptionLines>(m, "AbsorptionLines")
@@ -519,14 +519,14 @@ X : ~pyarts.arts.LineShapeOutput
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
-  artsarrayclass<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
+  artsarray<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
       .PythonInterfaceFileIO(ArrayOfAbsorptionLines)
 .def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
       return fuzzy_find_all(a, q);
     }, py::arg("q"), "Find all the indexes that could match the given quantum identifier")
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
 
-  artsarrayclass<ArrayOfArrayOfAbsorptionLines>(m,
+  artsarray<ArrayOfArrayOfAbsorptionLines>(m,
                                                 "ArrayOfArrayOfAbsorptionLines")
       .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
@@ -825,14 +825,14 @@ but does not enforce it.
             return out;
           })).doc() = "Holds data required for a single species error corrected sudden method application";
 
-  artsarrayclass<Array<SpeciesErrorCorrectedSuddenData>>(
+  artsarray<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
       .doc() = "List of :class:`~pyarts.arts.SpeciesErrorCorrectedSuddenData`";
 
   artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData").doc() =
       "Data for the error corrected sudden method of line mixing";
 
-  artsarrayclass<Array<ErrorCorrectedSuddenData>>(
+  artsarray<Array<ErrorCorrectedSuddenData>>(
       m, "ArrayOfErrorCorrectedSuddenData")
       .doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
 

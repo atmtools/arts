@@ -5,6 +5,7 @@
 #include <pybind11/stl_bind.h>
 #include <python_interface.h>
 
+#include <algorithm>
 #include <iomanip>
 #include <memory>
 
@@ -270,7 +271,7 @@ void py_basic(py::module_& m) try {
                 return np.attr("array")(x, py::arg("copy") = false);
               },
               py::keep_alive<0, 1>()),
-          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) { x = y; },
+          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) { *x.val = *y.val; },
           "Operate on type as if :class:`numpy.ndarray` type");
 
   value_holder_artsclass<Index>(m, "Index", true)
@@ -291,14 +292,25 @@ void py_basic(py::module_& m) try {
                 return np.attr("array")(x, py::arg("copy") = false);
               },
               py::keep_alive<0, 1>()),
-          [](ValueHolder<Index>& x, ValueHolder<Index>& y) { x = y; },
+          [](ValueHolder<Index>& x, ValueHolder<Index>& y) { *x.val = *y.val; },
           "Operate on type as if :class:`numpy.ndarray` type");
 
-  artsarrayclass<ArrayOfString>(m, "ArrayOfString")
+  artsarray<ArrayOfString, ArrayOptions::index>(m, "ArrayOfString")
+  .def(py::init([](
+    const std::vector<std::variant<ValueHolder<String>, String>>& x
+  ){
+    auto out = std::make_shared<ArrayOfString>(x.size());
+    std::transform(x.begin(), x.end(), out -> begin(),
+    [](auto& s){
+      return std::visit([](auto& v)->const String&{return v;}, s);
+    });
+    return out;
+  }))
       .PythonInterfaceFileIO(ArrayOfString)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfString);
+  py::implicitly_convertible<std::vector<std::variant<ValueHolder<String>, String>>, ArrayOfString>();
 
-  artsarrayclass<ArrayOfIndex>(m, "ArrayOfIndex", py::buffer_protocol())
+  artsarray<ArrayOfIndex, ArrayOptions::index>(m, "ArrayOfIndex", py::buffer_protocol())
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
@@ -313,24 +325,25 @@ void py_basic(py::module_& m) try {
       .PythonInterfaceFileIO(ArrayOfIndex)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfIndex);
 
-  artsarrayclass<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+  artsarray<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
           py::cpp_function(
-              [](ArrayOfIndex& x) {
+              [](ArrayOfNumeric& x) {
                 py::object np = py::module_::import("numpy");
                 return np.attr("array")(x, py::arg("copy") = false);
               },
               py::keep_alive<0, 1>()),
-          [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; },
-          "Operate on type as if :class:`numpy.ndarray` type");
+          [](ArrayOfNumeric& x, ArrayOfNumeric& y) { x = y; },
+          "Operate on type as if :class:`numpy.ndarray` type")
+      .doc() = "List of :class:`~Numeric` values";
 
-  artsarrayclass<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString")
+  artsarray<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString")
       .PythonInterfaceFileIO(ArrayOfArrayOfString)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfString);
   
-  artsarrayclass<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex")
+  artsarray<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex")
       .PythonInterfaceFileIO(ArrayOfArrayOfIndex)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfIndex);
   

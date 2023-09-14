@@ -629,47 +629,47 @@ via x.value
   py::implicitly_convertible<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<std::vector<Scalar>>>>>>>, Tensor7>();
 
   
-  artsarrayclass<ArrayOfVector>(m, "ArrayOfVector")
+  artsarray<ArrayOfVector>(m, "ArrayOfVector")
       .PythonInterfaceFileIO(ArrayOfVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfVector);
   
-  artsarrayclass<ArrayOfMatrix>(m, "ArrayOfMatrix")
+  artsarray<ArrayOfMatrix>(m, "ArrayOfMatrix")
       .PythonInterfaceFileIO(ArrayOfMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMatrix);
   
-  artsarrayclass<ArrayOfTensor3>(m, "ArrayOfTensor3")
+  artsarray<ArrayOfTensor3>(m, "ArrayOfTensor3")
       .PythonInterfaceFileIO(ArrayOfTensor3)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor3);
   
-  artsarrayclass<ArrayOfTensor4>(m, "ArrayOfTensor4")
+  artsarray<ArrayOfTensor4>(m, "ArrayOfTensor4")
       .PythonInterfaceFileIO(ArrayOfTensor4)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor4);
   
-  artsarrayclass<ArrayOfTensor5>(m, "ArrayOfTensor5")
+  artsarray<ArrayOfTensor5>(m, "ArrayOfTensor5")
       .PythonInterfaceFileIO(ArrayOfTensor5)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor5);
   
-  artsarrayclass<ArrayOfTensor6>(m, "ArrayOfTensor6")
+  artsarray<ArrayOfTensor6>(m, "ArrayOfTensor6")
       .PythonInterfaceFileIO(ArrayOfTensor6)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor6);
   
-  artsarrayclass<ArrayOfTensor7>(m, "ArrayOfTensor7")
+  artsarray<ArrayOfTensor7>(m, "ArrayOfTensor7")
       .PythonInterfaceFileIO(ArrayOfTensor7)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfTensor7);
   
-  artsarrayclass<ArrayOfArrayOfVector>(m, "ArrayOfArrayOfVector")
+  artsarray<ArrayOfArrayOfVector>(m, "ArrayOfArrayOfVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfVector);
   
-  artsarrayclass<ArrayOfArrayOfMatrix>(m, "ArrayOfArrayOfMatrix")
+  artsarray<ArrayOfArrayOfMatrix>(m, "ArrayOfArrayOfMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMatrix);
   
-  artsarrayclass<ArrayOfArrayOfTensor3>(m, "ArrayOfArrayOfTensor3")
+  artsarray<ArrayOfArrayOfTensor3>(m, "ArrayOfArrayOfTensor3")
       .PythonInterfaceFileIO(ArrayOfArrayOfTensor3)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTensor3);
   
-  artsarrayclass<ArrayOfArrayOfTensor6>(m, "ArrayOfArrayOfTensor6")
+  artsarray<ArrayOfArrayOfTensor6>(m, "ArrayOfArrayOfTensor6")
       .PythonInterfaceFileIO(ArrayOfArrayOfTensor6)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTensor6);
 

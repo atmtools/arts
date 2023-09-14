@@ -26,7 +26,7 @@ void py_rte(py::module_& m) try {
             return out;
           })).doc() = "Interpolation object";
 
-  artsarrayclass<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
+  artsarray<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
       .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
 
   artsclass<GasAbsLookup>(m, "GasAbsLookup")

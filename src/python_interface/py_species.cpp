@@ -60,7 +60,7 @@ void py_species(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
 
-  artsarrayclass<ArrayOfSpecies>(m, "ArrayOfSpecies")
+  artsarray<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .def(py::init([](const std::vector<std::string>& x) {
         ArrayOfSpecies out;
         std::transform(
@@ -101,7 +101,7 @@ void py_species(py::module_& m) try {
           })).doc() = "An isotopologue record entry";
   py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
 
-  artsarrayclass<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
+  artsarray<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord")
       .doc() =
       R"(A list of :class:`~pyarts.arts.IsotopeRecord`
 
@@ -156,7 +156,7 @@ Returns
           })).doc() = "The tag of a single absorption species";
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  artsarrayclass<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag").doc() =
+  artsarray<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag").doc() =
       "Internal array type - do not use manually ";
 
   artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
@@ -218,10 +218,30 @@ Returns
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_shared<ArrayOfSpeciesTag>(t[0].cast<std::vector<SpeciesTag>>());
           }))
+      .def(py::init([](const std::vector<SpeciesTag>& x) {
+        return std::make_shared<ArrayOfSpeciesTag>(x);
+      }))
+      .def(py::init([](const std::vector<py::object>& x) {
+        auto out = std::make_shared<ArrayOfSpeciesTag>(x.size());
+        std::transform(x.begin(), x.end(), out->begin(), [](const auto& s) {
+          return py::cast<SpeciesTag>(s);
+        });
+        return out;
+      }))
+      .def(py::init([](const py::list& x) {
+        auto out = std::make_shared<ArrayOfSpeciesTag>(x.size());
+        std::transform(x.begin(), x.end(), out->begin(), [](const auto& s) {
+          return py::cast<SpeciesTag>(s);
+        });
+        return out;
+      }))
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();
+  py::implicitly_convertible<Array<SpeciesTag>, ArrayOfSpeciesTag>();
+  py::implicitly_convertible<Array<py::object>, ArrayOfSpeciesTag>();
+  py::implicitly_convertible<py::list, ArrayOfSpeciesTag>();
 
-  artsarrayclass<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag")
+  artsarray<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag")
       .PythonInterfaceFileIO(ArrayOfArrayOfSpeciesTag)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSpeciesTag);
 } catch(std::exception& e) {

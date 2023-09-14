@@ -115,16 +115,16 @@ void py_rtepack(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(StokvecMatrix);
 
-  artsarrayclass<ArrayOfStokvecVector>(m, "ArrayOfStokvecVector")
+  artsarray<ArrayOfStokvecVector>(m, "ArrayOfStokvecVector")
       .PythonInterfaceFileIO(ArrayOfStokvecVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfStokvecVector);
-  artsarrayclass<ArrayOfStokvecMatrix>(m, "ArrayOfStokvecMatrix")
+  artsarray<ArrayOfStokvecMatrix>(m, "ArrayOfStokvecMatrix")
       .PythonInterfaceFileIO(ArrayOfStokvecMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfStokvecMatrix);
-  artsarrayclass<ArrayOfArrayOfStokvecVector>(m, "ArrayOfArrayOfStokvecVector")
+  artsarray<ArrayOfArrayOfStokvecVector>(m, "ArrayOfArrayOfStokvecVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfStokvecVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfStokvecVector);
-  artsarrayclass<ArrayOfArrayOfStokvecMatrix>(m, "ArrayOfArrayOfStokvecMatrix")
+  artsarray<ArrayOfArrayOfStokvecMatrix>(m, "ArrayOfArrayOfStokvecMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfStokvecMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfStokvecMatrix);
 
@@ -233,16 +233,16 @@ void py_rtepack(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(PropmatMatrix);
 
-  artsarrayclass<ArrayOfPropmatVector>(m, "ArrayOfPropmatVector")
+  artsarray<ArrayOfPropmatVector>(m, "ArrayOfPropmatVector")
       .PythonInterfaceFileIO(ArrayOfPropmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfPropmatVector);
-  artsarrayclass<ArrayOfPropmatMatrix>(m, "ArrayOfPropmatMatrix")
+  artsarray<ArrayOfPropmatMatrix>(m, "ArrayOfPropmatMatrix")
       .PythonInterfaceFileIO(ArrayOfPropmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfPropmatMatrix);
-  artsarrayclass<ArrayOfArrayOfPropmatVector>(m, "ArrayOfArrayOfPropmatVector")
+  artsarray<ArrayOfArrayOfPropmatVector>(m, "ArrayOfArrayOfPropmatVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfPropmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfPropmatVector);
-  artsarrayclass<ArrayOfArrayOfPropmatMatrix>(m, "ArrayOfArrayOfPropmatMatrix")
+  artsarray<ArrayOfArrayOfPropmatMatrix>(m, "ArrayOfArrayOfPropmatMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfPropmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfPropmatMatrix);
 
@@ -355,16 +355,16 @@ void py_rtepack(py::module_ &m) try {
       .PythonInterfaceWorkspaceDocumentation(MuelmatMatrix);
 
 
-  artsarrayclass<ArrayOfMuelmatVector>(m, "ArrayOfMuelmatVector")
+  artsarray<ArrayOfMuelmatVector>(m, "ArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMuelmatVector);
-  artsarrayclass<ArrayOfMuelmatMatrix>(m, "ArrayOfMuelmatMatrix")
+  artsarray<ArrayOfMuelmatMatrix>(m, "ArrayOfMuelmatMatrix")
       .PythonInterfaceFileIO(ArrayOfMuelmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMuelmatMatrix);
-  artsarrayclass<ArrayOfArrayOfMuelmatVector>(m, "ArrayOfArrayOfMuelmatVector")
+  artsarray<ArrayOfArrayOfMuelmatVector>(m, "ArrayOfArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatVector);
-  artsarrayclass<ArrayOfArrayOfMuelmatMatrix>(m, "ArrayOfArrayOfMuelmatMatrix")
+  artsarray<ArrayOfArrayOfMuelmatMatrix>(m, "ArrayOfArrayOfMuelmatMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatMatrix);
 } catch(std::exception& e) {

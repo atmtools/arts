@@ -99,19 +99,19 @@ void py_scattering(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(ScatteringMetaData);
 
-  artsarrayclass<ArrayOfScatteringMetaData>(m, "ArrayOfScatteringMetaData")
+  artsarray<ArrayOfScatteringMetaData>(m, "ArrayOfScatteringMetaData")
       .PythonInterfaceFileIO(ArrayOfScatteringMetaData)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfScatteringMetaData);
 
-  artsarrayclass<ArrayOfSingleScatteringData>(m, "ArrayOfSingleScatteringData")
+  artsarray<ArrayOfSingleScatteringData>(m, "ArrayOfSingleScatteringData")
       .PythonInterfaceFileIO(ArrayOfSingleScatteringData)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfSingleScatteringData);
 
-  artsarrayclass<ArrayOfArrayOfScatteringMetaData>(m, "ArrayOfArrayOfScatteringMetaData")
+  artsarray<ArrayOfArrayOfScatteringMetaData>(m, "ArrayOfArrayOfScatteringMetaData")
       .PythonInterfaceFileIO(ArrayOfArrayOfScatteringMetaData)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfScatteringMetaData);
 
-  artsarrayclass<ArrayOfArrayOfSingleScatteringData>(m, "ArrayOfArrayOfSingleScatteringData")
+  artsarray<ArrayOfArrayOfSingleScatteringData>(m, "ArrayOfArrayOfSingleScatteringData")
       .PythonInterfaceFileIO(ArrayOfArrayOfSingleScatteringData)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSingleScatteringData);
 } catch(std::exception& e) {

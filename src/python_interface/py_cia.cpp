@@ -107,7 +107,7 @@ Returns
           }))
       .PythonInterfaceWorkspaceDocumentation(CIARecord);
 
-  artsarrayclass<ArrayOfCIARecord>(m, "ArrayOfCIARecord")
+  artsarray<ArrayOfCIARecord>(m, "ArrayOfCIARecord")
       .PythonInterfaceFileIO(ArrayOfCIARecord)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfCIARecord);
 } catch(std::exception& e) {

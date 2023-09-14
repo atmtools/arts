@@ -340,8 +340,9 @@ void two_level_exp_test(muelmat &t,
                         const Numeric r,
                         const ExhaustiveConstVectorView &dr1,
                         const ExhaustiveConstVectorView &dr2) {
-  const Index N = dk1.size();
-  ARTS_ASSERT(N == dk2.size() and N == dr1.size() and N == dr2.size())
+  ARTS_ASSERT(dk1.size() == dk2.size() and
+              dk1.size() == dr1.size() and
+              dk1.size() == dr2.size())
 
   const tran tran_state{k1, k2, r};
   t = tran_state();

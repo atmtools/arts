@@ -310,31 +310,31 @@ void py_griddedfield(py::module_& m) try {
       .PythonInterfaceGriddedField(GriddedField6)
       .PythonInterfaceWorkspaceDocumentation(GriddedField6);
 
-  artsarrayclass<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1")
+  artsarray<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1")
       .PythonInterfaceFileIO(ArrayOfGriddedField1)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField1);
 
-  artsarrayclass<ArrayOfGriddedField2>(m, "ArrayOfGriddedField2")
+  artsarray<ArrayOfGriddedField2>(m, "ArrayOfGriddedField2")
       .PythonInterfaceFileIO(ArrayOfGriddedField2)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField2);
 
-  artsarrayclass<ArrayOfGriddedField3>(m, "ArrayOfGriddedField3")
+  artsarray<ArrayOfGriddedField3>(m, "ArrayOfGriddedField3")
       .PythonInterfaceFileIO(ArrayOfGriddedField3)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField3);
 
-  artsarrayclass<ArrayOfGriddedField4>(m, "ArrayOfGriddedField4")
+  artsarray<ArrayOfGriddedField4>(m, "ArrayOfGriddedField4")
       .PythonInterfaceFileIO(ArrayOfGriddedField4)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField4);
 
-  artsarrayclass<ArrayOfArrayOfGriddedField1>(m, "ArrayOfArrayOfGriddedField1")
+  artsarray<ArrayOfArrayOfGriddedField1>(m, "ArrayOfArrayOfGriddedField1")
       .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField1)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField1);
 
-  artsarrayclass<ArrayOfArrayOfGriddedField2>(m, "ArrayOfArrayOfGriddedField2")
+  artsarray<ArrayOfArrayOfGriddedField2>(m, "ArrayOfArrayOfGriddedField2")
       .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField2)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField2);
 
-  artsarrayclass<ArrayOfArrayOfGriddedField3>(m, "ArrayOfArrayOfGriddedField3")
+  artsarray<ArrayOfArrayOfGriddedField3>(m, "ArrayOfArrayOfGriddedField3")
       .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField3)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField3);
 } catch(std::exception& e) {
