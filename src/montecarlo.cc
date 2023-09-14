@@ -632,10 +632,10 @@ void ext2trans(MatrixView trans_mat,
 bool is_anyptype_nonTotRan(
     const ArrayOfArrayOfSingleScatteringData& scat_data) {
   bool is_anyptype_nonTotRan = false;
-  for (Index i_ss = 0;
+  for (Size i_ss = 0;
        is_anyptype_nonTotRan == false && i_ss < scat_data.size();
        i_ss++) {
-    for (Index i_se = 0;
+    for (Size i_se = 0;
          is_anyptype_nonTotRan == false && i_se < scat_data[i_ss].size();
          i_se++) {
       if (scat_data[i_ss][i_se].ptype > PTYPE_TOTAL_RND) {

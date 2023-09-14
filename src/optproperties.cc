@@ -96,7 +96,7 @@ void opt_prop_Bulk(    //Output
   ext_mat = ext_mat_ss[0];
   abs_vec = abs_vec_ss[0];
 
-  for (Index i_ss = 1; i_ss < ext_mat_ss.size(); i_ss++) {
+  for (Size i_ss = 1; i_ss < ext_mat_ss.size(); i_ss++) {
     ext_mat += ext_mat_ss[i_ss];
     abs_vec += abs_vec_ss[i_ss];
   }
@@ -168,7 +168,7 @@ void opt_prop_ScatSpecBulk(   //Output
     abs_vec[i_ss].resize(nf, nT, nDir, 4);
     abs_vec[i_ss] = 0.;
 
-    for (Index i_se = 0; i_se < ext_mat_se[i_ss].size(); i_se++) {
+    for (Size i_se = 0; i_se < ext_mat_se[i_ss].size(); i_se++) {
       ARTS_ASSERT(nT == ext_mat_se[i_ss][i_se].nbooks());
       ARTS_ASSERT(nT == abs_vec_se[i_ss][i_se].npages());
 
@@ -719,7 +719,7 @@ void pha_mat_Bulk(     //Output
     const ArrayOfIndex& ptypes_ss) {
   pha_mat = pha_mat_ss[0];
 
-  for (Index i_ss = 1; i_ss < pha_mat_ss.size(); i_ss++)
+  for (Size i_ss = 1; i_ss < pha_mat_ss.size(); i_ss++)
     pha_mat += pha_mat_ss[i_ss];
 
   ptype = max(ptypes_ss);
@@ -780,7 +780,7 @@ void pha_mat_ScatSpecBulk(    //Output
     pha_mat[i_ss].resize(nf, nT, npDir, niDir, 4, 4);
     pha_mat[i_ss] = 0.;
 
-    for (Index i_se = 0; i_se < pha_mat_se[i_ss].size(); i_se++) {
+    for (Size i_se = 0; i_se < pha_mat_se[i_ss].size(); i_se++) {
       ARTS_ASSERT(nT == pha_mat_se[i_ss][i_se].nshelves());
 
       for (Index Tind = 0; Tind < nT; Tind++) {

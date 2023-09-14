@@ -40,7 +40,7 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 void iy_transmitterMultiplePol(Matrix& iy_transmitter,
                                const Vector& f_grid,
                                const ArrayOfIndex& instrument_pol) {
-  const Index nf = f_grid.size();
+  const Size nf = f_grid.size();
 
   if (instrument_pol.size() != nf)
     throw std::runtime_error(

@@ -55,7 +55,7 @@ void vmr_fieldClip(Tensor4& vmr_field,
   }
 
   else {
-    for (Index i = 0; i < abs_species.size(); i++) {
+    for (Size i = 0; i < abs_species.size(); i++) {
       if (abs_species[i].Species() == SpeciesTag(species).Spec()) {
         iq = i;
         break;
@@ -177,7 +177,7 @@ void x2artsSensor(const Workspace& ws,
       }
       // Polynomial representation
       else {
-        ARTS_USER_ERROR_IF (sensor_los.nrows() != sensor_time.size(),
+        ARTS_USER_ERROR_IF (static_cast<Size>(sensor_los.nrows()) != sensor_time.size(),
               "Sizes of *sensor_los* and *sensor_time* do not match.");
         Vector w;
         for (Index c = 0; c < np; c++) {

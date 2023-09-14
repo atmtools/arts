@@ -111,10 +111,10 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.size(); ii++) {
+  for (Size ii = 0; ii < abs_species_active.size(); ii++) {
     const Index i = abs_species_active[ii];
 
-    for (Index s = 0; s < abs_species[i].size(); s++) {
+    for (Size s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a CIA tag
@@ -198,7 +198,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
 
           for (Index iv = 0; iv < xsec_temp.nelem(); iv++) {
             this_xsec(iv, ip) += n * xsec_temp[iv];
-            for (Index iq = 0; iq < jacobian_quantities.size();
+            for (Size iq = 0; iq < jacobian_quantities.size();
                  iq++) {
               const auto& deriv = jacobian_quantities[iq];
             
@@ -311,7 +311,7 @@ void propmat_clearskyAddCIA(  // WS Output:
 
     // Go through the tags in the current tag group to see if they
     // are continuum tags:
-    for (Index s = 0; s < abs_species[ispecies].size(); ++s) {
+    for (Size s = 0; s < abs_species[ispecies].size(); ++s) {
       const SpeciesTag& this_species = abs_species[ispecies][s];
 
       // Check if this is a CIA tag
@@ -387,7 +387,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv].A() +=
               nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
-          for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
+          for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
             const auto& deriv = jacobian_quantities[iq];
 
             if (not deriv.propmattype()) continue;
@@ -471,8 +471,8 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Index sp = 0; sp < abs_species.size(); sp++) {
-    for (Index iso = 0; iso < abs_species[sp].size(); iso++) {
+  for (Size sp = 0; sp < abs_species.size(); sp++) {
+    for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       ArrayOfString cia_names;
@@ -496,10 +496,10 @@ void abs_cia_dataReadFromCIA(  // WS Output:
       ArrayOfString checked_dirs;
 
       bool found = false;
-      for (Index fname = 0; !found && fname < cia_names.size(); fname++) {
+      for (Size fname = 0; !found && fname < cia_names.size(); fname++) {
         String cia_name = cia_names[fname];
 
-        for (Index dir = 0; !found && dir < subfolders.size(); dir++) {
+        for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
           ArrayOfString files;
           checked_dirs.push_back(catalogpath + "/" + subfolders[dir] +
                                  cia_name + "/");
@@ -554,8 +554,8 @@ void abs_cia_dataReadFromXML(  // WS Output:
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
   // each group. Despite the name, iso does not denote the isotope!
-  for (Index sp = 0; sp < abs_species.size(); sp++) {
-    for (Index iso = 0; iso < abs_species[sp].size(); iso++) {
+  for (Size sp = 0; sp < abs_species.size(); sp++) {
+    for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
       Index cia_index = cia_get_index(abs_cia_data,
@@ -577,7 +577,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
     bool first = true;
 
     os << "Error: The following CIA tag(s) are missing in input file: ";
-    for (size_t i = 0; i < missing_tags.size(); i++) {
+    for (Size i = 0; i < missing_tags.size(); i++) {
       if (!first)
         os << ", ";
       else
@@ -594,7 +594,7 @@ void CIAInfo(  // Generic Input:
     const ArrayOfString& cia_tags) {
   ArrayOfArrayOfSpeciesTag species_tags;
 
-  for (Index i = 0; i < cia_tags.size(); i++) {
+  for (Size i = 0; i < cia_tags.size(); i++) {
     ArrayOfSpeciesTag this_species_tag;
 
     ArrayOfString species_names;

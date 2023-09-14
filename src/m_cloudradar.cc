@@ -69,9 +69,9 @@ void RadarOnionPeelingTableCalc(
   ARTS_USER_ERROR_IF (nss != 2,
                       "*scat_data* must contain data for exactly two "
                       "scattering species.");
-  ARTS_USER_ERROR_IF (scat_species.size() != nss,
+  ARTS_USER_ERROR_IF (scat_species.size() != static_cast<Size>(nss),
         "*scat_data* and *scat_species* are inconsistent in size.");
-  ARTS_USER_ERROR_IF (scat_meta.size() != nss,
+  ARTS_USER_ERROR_IF (scat_meta.size() != static_cast<Size>(nss),
         "*scat_data* and *scat_meta* are inconsistent in size.");
   ARTS_USER_ERROR_IF (scat_data[iss].size() != scat_meta[iss].size(),
                       "*scat_data* and *scat_meta* have inconsistent sizes.");

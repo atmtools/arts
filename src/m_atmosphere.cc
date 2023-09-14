@@ -356,7 +356,7 @@ void FieldFromGriddedField(  // WS Generic Output:
                      gfraw_in[0].data.ncols());
   }
 
-  for (Index i = 0; i < gfraw_in.size(); i++) {
+  for (Size i = 0; i < gfraw_in.size(); i++) {
     chk_griddedfield_gridname(gfraw_in[i], 0, "Pressure");
     chk_if_equal(
         "p_grid", "gfield.p_grid", p_grid, gfraw_in[i].get_numeric_grid(0));
@@ -563,7 +563,7 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
     const ArrayOfGriddedField3& gfraw_in) {
   gfraw_out.resize(gfraw_in.size());
 
-  for (Index i = 0; i < gfraw_in.size(); i++)
+  for (Size i = 0; i < gfraw_in.size(); i++)
     GriddedFieldLatLonExpand(gfraw_out[i], gfraw_in[i]);
 }
 
@@ -788,7 +788,7 @@ void GriddedFieldPRegrid(  // WS Generic Output:
     const Index& zeropadding) {
   agfraw_out.resize(agfraw_in.size());
 
-  for (Index i = 0; i < agfraw_in.size(); i++) {
+  for (Size i = 0; i < agfraw_in.size(); i++) {
     GriddedFieldPRegrid(agfraw_out[i],
                         p_grid,
                         agfraw_in[i],
@@ -1143,7 +1143,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     const Index& interp_order) {
   agfraw_out.resize(agfraw_in.size());
 
-  for (Index i = 0; i < agfraw_in.size(); i++) {
+  for (Size i = 0; i < agfraw_in.size(); i++) {
     GriddedFieldLatLonRegrid(agfraw_out[i],
                              lat_true,
                              lon_true,
@@ -1230,9 +1230,9 @@ void atm_fields_compactAddConstant(  // WS Output:
     const Tensor4& vmrs = af.data;
     const ArrayOfString& species = af.get_string_grid(GFIELD4_FIELD_NAMES);
     Tensor3 condensible_sum(vmrs.npages(), vmrs.nrows(), vmrs.ncols(), 1.);
-    for (Index c = 0; c < condensibles.size(); c++) {
+    for (Size c = 0; c < condensibles.size(); c++) {
       bool species_found = false;
-      for (Index i = 0; !species_found && i < species.size(); i++) {
+      for (Size i = 0; !species_found && i < species.size(); i++) {
         if (species[i] == condensibles[c]) {
           condensible_sum -= vmrs(i, joker, joker, joker);
           species_found = true;
@@ -1394,7 +1394,7 @@ void batch_atm_fields_compactAddConstant(  // WS Output:
     const Numeric& value,
     const Index& prepend,
     const ArrayOfString& condensibles) {
-  for (Index i = 0; i < batch_atm_fields_compact.size(); i++) {
+  for (Size i = 0; i < batch_atm_fields_compact.size(); i++) {
     atm_fields_compactAddConstant(batch_atm_fields_compact[i],
                                   name,
                                   value,
@@ -1442,7 +1442,7 @@ void batch_atm_fields_compactCleanup(  //WS Output:
     ArrayOfGriddedField4& batch_atm_fields_compact,
     //WS Input:
     const Numeric& threshold) {
-  for (Index i = 0; i < batch_atm_fields_compact.size(); i++) {
+  for (Size i = 0; i < batch_atm_fields_compact.size(); i++) {
     atm_fields_compactCleanup(
         batch_atm_fields_compact[i], threshold);
   }

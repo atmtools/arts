@@ -452,7 +452,7 @@ void iySurfaceRtpropCalc(const Workspace& ws,
   // Surface Jacobians
   if (jacobian_do && dsurface_names.size()) {
     // Loop dsurface_names
-    for (Index i = 0; i < dsurface_names.size(); i++) {
+    for (Size i = 0; i < dsurface_names.size(); i++) {
       // Error if derivatives not calculated
       // Or should we accept this?
       if (dsurface_emission_dx[i].empty() || dsurface_rmatrix_dx[i].empty()) {
@@ -465,7 +465,7 @@ void iySurfaceRtpropCalc(const Workspace& ws,
       } else {
         // Find index among jacobian quantities
         Index ihit = -1;
-        for (Index j = 0; j < jacobian_quantities.size() && ihit < 0; j++) {
+        for (Size j = 0; j < jacobian_quantities.size() && ihit < 0; j++) {
           if (dsurface_names[i] == jacobian_quantities[j].Subtag()) {
             ihit = j;
           }
@@ -980,7 +980,7 @@ void surface_rtpropFromTypesManual(const Workspace& ws,
                                    const Index& surface_type)
 {
   ARTS_USER_ERROR_IF(surface_type < 0 or
-     surface_type >= surface_rtprop_agenda_array.size(),
+     static_cast<Size>(surface_type) >= surface_rtprop_agenda_array.size(),
      "Provided surface type index invalid (<0 or too high w.r.t. "
      "length of *surface_rtprop_agenda_array*).");
   
@@ -1116,7 +1116,7 @@ void transmittanceFromIy_aux(Vector& transmittance,
 {
   Index ihit = -1;
 
-  for (Index i = 0; i < iy_aux_vars.size(); i++) {
+  for (Size i = 0; i < iy_aux_vars.size(); i++) {
     if (iy_aux_vars[i] == "Optical depth") {
       ihit = i;
       break;

@@ -700,7 +700,7 @@ void OEM_checks(const Workspace& ws,
   ArrayOfArrayOfIndex jacobian_indices;
   bool any_affine;
   jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  ARTS_USER_ERROR_IF (jacobian_indices.size() != nq,
+  ARTS_USER_ERROR_IF (jacobian_indices.size() != static_cast<Size>(nq),
         "Different number of elements in *jacobian_quantities* "
         "and *jacobian_indices*.");
   ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,

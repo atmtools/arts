@@ -517,7 +517,7 @@ void za_gridOpt(  //Output:
     // Interpolate reduced intensity field on fine za_grid for
     // all pressure levels
     for (Index i_p = 0; i_p < N_p; i_p++) {
-      for (Index i_za_red = 0; i_za_red < idx.size(); i_za_red++) {
+      for (Size i_za_red = 0; i_za_red < idx.size(); i_za_red++) {
         za_reduced[i_za_red] = za_grid_fine[idx[i_za_red]];
         cloudbox_field_opt(i_p, i_za_red) =
             cloudbox_field_mono(i_p, 0, 0, idx[i_za_red], 0, 0);
@@ -566,7 +566,7 @@ void za_gridOpt(  //Output:
     i_sort.resize(idx_unsorted.size());
     get_sorted_indexes(i_sort, idx_unsorted);
 
-    for (Index i = 0; i < idx_unsorted.size(); i++)
+    for (Size i = 0; i < idx_unsorted.size(); i++)
       idx[i] = idx_unsorted[i_sort[i]];
 
     za_reduced.resize(idx.size());

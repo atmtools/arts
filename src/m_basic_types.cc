@@ -1276,9 +1276,9 @@ void VectorInsertGridPoints(  // WS Generic Output:
 
   // Copy to result vector, turn around if necessary.
   if (ascending)
-    for (Index i = 0; i < x.size(); ++i) og[i] = x[i];  // Just copy.
+    for (Size i = 0; i < x.size(); ++i) og[i] = x[i];  // Just copy.
   else
-    for (Index i = 0; i < x.size(); ++i)
+    for (Size i = 0; i < x.size(); ++i)
       og[i] = x[x.size() - 1 - i];  // Copy in reverse order.
 }
 
@@ -1859,7 +1859,7 @@ void Compare(const ArrayOfVector& var1,
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.size(); i++) {
+  for (Size i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
@@ -1894,7 +1894,7 @@ void Compare(const ArrayOfMatrix& var1,
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.size(); i++) {
+  for (Size i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
@@ -1929,7 +1929,7 @@ void Compare(const ArrayOfTensor7& var1,
 
   bool failed = false;
   std::ostringstream fail_msg;
-  for (Index i = 0; i < var1.size(); i++) {
+  for (Size i = 0; i < var1.size(); i++) {
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";

@@ -1216,7 +1216,7 @@ void psdSeifertBeheng06(Matrix& psd_data,
       for (Index i = 0; i < nsi; i++) {
         psd_data(ip, i) = psd_weight * psd_1p[i];
 
-        for (Index idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
+        for (Size idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
           // with respect to WC
 
           if (dpnd_data_dx_idx[idx] != -1) {
@@ -1333,7 +1333,7 @@ void psdMilbrandtYau05(Matrix& psd_data,
       for (Index i = 0; i < nsi; i++) {
         psd_data(ip, i) = psd_weight * psd_1p[i];
 
-        for (Index idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
+        for (Size idx = 0; idx < dpnd_data_dx_idx.size(); idx++) {
           // with respect to WC
 
           if (dpnd_data_dx_idx[idx] != -1) {

@@ -822,7 +822,7 @@ void opt_prop_bulkCalc(  // Output and Input:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  Index N_se = abs_vec_spt.size();
+  const Size N_se = abs_vec_spt.size();
 
   if (ext_mat_spt.size() not_eq N_se) {
     std::ostringstream os;
@@ -838,7 +838,7 @@ void opt_prop_bulkCalc(  // Output and Input:
   StokvecVector abs_vec_part(1, Stokvec{0, 0, 0, 0});
 
   // this is the loop over the different scattering elements
-  for (Index l = 0; l < N_se; l++) {
+  for (Size l = 0; l < N_se; l++) {
     abs_vec_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * abs_vec_spt[l][0];
     ext_mat_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * ext_mat_spt[l][0];
   }
@@ -1169,8 +1169,8 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
   // The check was changed to allow extrapolation at the boundaries of the
   // frequency grid.
   const String which_interpolation = "scat_data_raw.f_grid to f_grid";
-  for (Index i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
       // Check for the special case that ssd.f_grid f_grid have only one
       // element. If identical, that's  fine. If not, throw error.
       if (scat_data_raw[i_ss][i_se].f_grid.size() == 1 && nf == 1)
@@ -1198,7 +1198,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
   scat_data.resize(scat_data_raw.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
+  for (Size i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
     const Index N_se = scat_data_raw[i_ss].size();
 
     //Initialise scat_data
@@ -1366,7 +1366,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
   }
 
   // Loop over the included scattering elements
-  for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
+  for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
     // At very first check validity of the scatt elements ptype (so far we only
     // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
     if (PART_TYPE != PTYPE_TOTAL_RND and PART_TYPE != PTYPE_AZIMUTH_RND) {
@@ -1689,8 +1689,8 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   // Check, whether single scattering data contains the right frequencies:
   // The check was changed to allow extrapolation at the boundaries of the
   // frequency grid.
-  for (Index h = 0; h < scat_data.size(); h++) {
-    for (Index i = 0; i < scat_data[h].size(); i++) {
+  for (Size h = 0; h < scat_data.size(); h++) {
+    for (Size i = 0; i < scat_data[h].size(); i++) {
       // check with extrapolation
       chk_interpolation_grids("scat_data.f_grid to f_grid",
                               scat_data[h][i].f_grid,
@@ -1702,7 +1702,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   scat_data_mono.resize(scat_data.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
     const Index N_se = scat_data[i_ss].size();
 
     //Initialise scat_data_mono
@@ -1816,7 +1816,7 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   scat_data_mono.resize(scat_data.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
     const Index N_se = scat_data[i_ss].size();
 
     //Initialise scat_data_mono
@@ -1888,7 +1888,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
+  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
@@ -1921,9 +1921,9 @@ void opt_prop_sptFromMonoData(  // Output and Input:
 
   Index i_se_flat = 0;
   // Loop over the included scattering elements
-  for (Index i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
+  for (Size i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
     // Loop over the included scattering elements
-    for (Index i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
+    for (Size i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for the i_se scattering element is zero, we don't need
       // to do the transformation!
@@ -2083,8 +2083,8 @@ void pha_mat_sptFromMonoData(  // Output:
   pha_mat_spt = 0.;
 
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for scattering element i_se is zero, we don't need to
       // do the transformation!
@@ -2460,8 +2460,8 @@ void ScatSpeciesMerge(  //WS Output:
 
   // Check that all scattering elements have same ptype and data dimensions
   SingleScatteringData& first_part = scat_data[0][0];
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       SingleScatteringData& orig_part = scat_data[i_ss][i_se];
 
       if (orig_part.ptype != first_part.ptype)

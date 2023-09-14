@@ -40,8 +40,8 @@ void ybatchColdAtmHotAtmCycle(ArrayOfVector& ybatch,
                               const Vector& hot_temp,
                               const Index& first_c_index)
 {
-  ARTS_USER_ERROR_IF(level0_data.size() not_eq cold_temp.size() or
-                     level0_data.size() not_eq hot_temp.size(),
+  ARTS_USER_ERROR_IF(level0_data.size() not_eq static_cast<Size>(cold_temp.size()) or
+                     level0_data.size() not_eq static_cast<Size>(hot_temp.size()),
                      "Length of vectors must be correct");
   ARTS_USER_ERROR_IF (level0_time.size() not_eq level0_data.size() and
                       level0_time.size() not_eq 0,
@@ -54,7 +54,7 @@ void ybatchColdAtmHotAtmCycle(ArrayOfVector& ybatch,
     sensor_time.resize(ybatch.size());
     // First position as described by method is at H if this index is too large
     const Index pos = first_c_index - ((first_c_index > 1) ? 2 : 0);
-    for (Index i=0; i<sensor_time.size(); i++) {
+    for (Size i=0; i<sensor_time.size(); i++) {
       sensor_time[i] = level0_time[pos + 2*i];
     }
   }
@@ -167,13 +167,13 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
                                                     const ArrayOfVector& ybatch_corr)
 {
   // Size of problem
-  const Index n=ybatch.size();
+  const Size n=ybatch.size();
   ARTS_USER_ERROR_IF ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(),
                                    [](auto& corr){return corr.size() not_eq 3;})) or ybatch_corr.size() not_eq n,
                       "Bad input size, all of ybatch_corr must match ybatch and have three elements each");
   
   // Apply inverse of correction
-  for (Index i=0; i<n; i++) {
+  for (Size i=0; i<n; i++) {
     ybatch[i] -= ybatch_corr[i][2] * (1 - ybatch_corr[i][1]);
     ybatch[i] /= ybatch_corr[i][1];
   }

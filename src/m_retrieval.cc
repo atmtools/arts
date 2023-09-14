@@ -579,15 +579,15 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
                        const MatrixType& block,
                        const Index& i,
                        const Index&j ) {
-  Index ii(i), jj(j);
+  Index ii{i}, jj{j};
   if ((ii < 0) && (jj < 0)) {
     ii = covmat_sx.ndiagblocks();
     jj = ii;
-    ARTS_USER_ERROR_IF ((ii >= jq.size()) || (jj >= jq.size()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
           "*covmat_sx* already contains more or as many diagonal"
           " blocks as there are retrieval quantities.");
   } else {
-    ARTS_USER_ERROR_IF ((ii >= jq.size()) || (jj >= jq.size()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
@@ -660,7 +660,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
     ii = covmat_sx.ndiagblocks() - 1;
     jj = ii;
   } else {
-    ARTS_USER_ERROR_IF ((ii >= jq.size()) || (jj >= jq.size()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
@@ -727,7 +727,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
 void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
                                   const CovarianceMatrix& covmat_sx) {
   x_norm = covmat_sx.diagonal();
-  for (Index i = 0; i < x_norm.size(); ++i) {
+  for (Size i = 0; i < x_norm.size(); ++i) {
     x_norm[i] = sqrt(x_norm[i]);
   }
 }

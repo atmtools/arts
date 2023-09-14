@@ -68,7 +68,7 @@ void iyApplyUnit(Matrix& iy,
 
   apply_iy_unit(iy, iy_unit, f_grid, 1, i_pol);
 
-  for (Index i = 0; i < iy_aux_vars.size(); i++) {
+  for (Size i = 0; i < iy_aux_vars.size(); i++) {
     if (iy_aux_vars[i] == "iy" || iy_aux_vars[i] == "Error" ||
         iy_aux_vars[i] == "Error (uncorrelated)") {
       apply_iy_unit(iy_aux[i], iy_unit, f_grid, 1, i_pol);
@@ -162,7 +162,7 @@ void ppvar_radCalcEmission(
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
-  const Index np = ppvar_src.size();
+  const Size np = ppvar_src.size();
 
   ARTS_USER_ERROR_IF(np not_eq ppvar_dsrc.size(),
                      "ppvar_dsrc must have (np) elements")
@@ -229,7 +229,7 @@ void ppvar_radCalcTransmission(
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
-  const Index np = ppvar_tramat.size();
+  const Size np = ppvar_tramat.size();
 
   ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.size(),
                      "ppvar_tramat must have (np) elements")
@@ -567,7 +567,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
   ppvar_trans_partial.resize(np, nf, 4, 4);
   ppvar_iy.resize(nf, 4, np);
   iy = to_matrix(ppvar_rad.front());
-  for (Index ip = 0; ip < ppvar_rad.size(); ip++) {
+  for (Size ip = 0; ip < ppvar_rad.size(); ip++) {
     ppvar_trans_cumulat(ip, joker, joker, joker) = to_tensor3(ppvar_cumtramat[ip]);
     ppvar_trans_partial(ip, joker, joker, joker) = to_tensor3(ppvar_tramat[ip]);
     ppvar_iy(joker, joker, ip) = to_matrix(ppvar_rad[ip]);
@@ -716,22 +716,22 @@ void iyLoopFrequencies(const Workspace& ws,
       iy.resize(nf, 4);
       //
       iy_aux.resize(iy_aux1.size());
-      for (Index q = 0; q < iy_aux1.size(); q++) {
+      for (Size q = 0; q < iy_aux1.size(); q++) {
         iy_aux[q].resize(nf, 4);
       }
       //
       diy_dx.resize(diy_dx1.size());
-      for (Index q = 0; q < diy_dx1.size(); q++) {
+      for (Size q = 0; q < diy_dx1.size(); q++) {
         diy_dx[q].resize(diy_dx1[q].npages(), nf, 4);
       }
     }
 
     // Copy to output variables
     iy(i, joker) = iy1(0, joker);
-    for (Index q = 0; q < iy_aux1.size(); q++) {
+    for (Size q = 0; q < iy_aux1.size(); q++) {
       iy_aux[q](i, joker) = iy_aux1[q](0, joker);
     }
-    for (Index q = 0; q < diy_dx1.size(); q++) {
+    for (Size q = 0; q < diy_dx1.size(); q++) {
       diy_dx[q](joker, i, joker) = diy_dx1[q](joker, 0, joker);
     }
   }
@@ -753,7 +753,7 @@ void iyReplaceFromAux(Matrix& iy,
 
   bool ready = false;
 
-  for (Index i = 0; i < iy_aux.size() && !ready; i++) {
+  for (Size i = 0; i < iy_aux.size() && !ready; i++) {
     if (iy_aux_vars[i] == aux_var) {
       iy = iy_aux[i];
       ready = true;

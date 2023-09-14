@@ -920,7 +920,7 @@ void DoitWriteIterationFields(  //WS input
         os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
   }
 
-  for (Index j = 0; j < frequencies.size(); j++) {
+  for (Size j = 0; j < frequencies.size(); j++) {
     if (f_index == frequencies[j] || (!j && frequencies[j] == -1)) {
       // All iterations are written to files
       if (iterations[0] == -1) {
@@ -932,7 +932,7 @@ void DoitWriteIterationFields(  //WS input
 
       // Only the iterations given by the keyword are written to a file
       else {
-        for (Index i = 0; i < iterations.size(); i++) {
+        for (Size i = 0; i < iterations.size(); i++) {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file(os.str() + ".xml",
                               cloudbox_field_mono,

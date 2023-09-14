@@ -62,9 +62,9 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   // see there.
 
   // Loop tag groups:
-  for (Index i = 0; i < abs_species.size(); ++i) {
+  for (Size i = 0; i < abs_species.size(); ++i) {
     // Loop tags in tag group
-    for (Index s = 0; s < abs_species[i].size(); ++s) {
+    for (Size s = 0; s < abs_species[i].size(); ++s) {
       // Check for continuum tags
       if (abs_species[i][s].type == Species::TagType::Predefined ||
           abs_species[i][s].type == Species::TagType::Cia) {
@@ -154,7 +154,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   find_nonlinear_continua(cont, abs_species);
 
   // Add these to abs_nls:
-  for (Index i = 0; i < cont.size(); ++i) {
+  for (Size i = 0; i < cont.size(); ++i) {
     abs_nls.push_back(abs_species[cont[i]]);
   }
 }
@@ -334,7 +334,7 @@ void abs_speciesAdd(  // WS Output:
 
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
-  for (Index i = 0; i < names.size(); ++i) {
+  for (Size i = 0; i < names.size(); ++i) {
     abs_species.emplace_back(names[i]);
   }
 
@@ -395,7 +395,7 @@ void abs_speciesSet(  // WS Output:
 
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
-  for (Index i = 0; i < names.size(); ++i) {
+  for (Size i = 0; i < names.size(); ++i) {
     // This part has now been moved to array_species_tag_from_string.
     // Call this function.
     abs_species[i] = ArrayOfSpeciesTag(names[i]);

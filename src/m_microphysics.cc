@@ -67,10 +67,10 @@ void HydrotableCalc(const Workspace& ws,
   const Index nt = T_grid.nelem();
   const Index nw = wc_grid.nelem();
 
-  ARTS_USER_ERROR_IF (pnd_agenda_array.size() != nss,
+  ARTS_USER_ERROR_IF (pnd_agenda_array.size() != static_cast<Size>(nss),
         "*scat_data* and *pnd_agenda_array* are inconsistent "
         "in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.size() != nss,
+  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.size() != static_cast<Size>(nss),
         "*scat_data* and *pnd_agenda_array_input_names* are "
         "inconsistent in size.");
   ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].size() != 1,
@@ -163,8 +163,8 @@ void particle_massesFromMetaDataSingleCategory(
   particle_masses.resize(np_total, 1);
 
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
           scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
           "A presumably incorrect value found for "
@@ -189,8 +189,8 @@ void particle_massesFromMetaData(  //WS Output:
 
   // calculate and set particle_masses
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
           scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
           "A presumably incorrect value found for "
@@ -326,10 +326,10 @@ void pndFromPsd(Matrix& pnd_data,
         "*scat_data* must have passed a consistency check"
         " (scat_data_checked=1).\n"
         "Alternatively, use *pndFromPsdBasic*.");
-  ARTS_USER_ERROR_IF (scat_index >= scat_data.size(),
+  ARTS_USER_ERROR_IF (static_cast<Size>(scat_index) >= scat_data.size(),
         "*scat_index* exceeds the number of available"
         " scattering species.");
-  ARTS_USER_ERROR_IF (scat_data[scat_index].size() != ng,
+  ARTS_USER_ERROR_IF (scat_data[scat_index].size() != static_cast<Size>(ng),
         "Number of scattering elements in this scattering"
         " species (*scat_index*) inconsistent with length of"
         " *pnd_size_grid*.");

@@ -71,11 +71,11 @@ void collision_coefficientsFromSplitFiles(
   check_collision_line_identifiers(collision_line_identifiers);
 
   // Inner array size has to be this constantly
-  const Index n = collision_line_identifiers.size();
+  const Size n = collision_line_identifiers.size();
 
   // Set species dimensions and fill the array
   collision_coefficients.resize(abs_species.size());
-  for (Index i = 0; i < collision_coefficients.size(); i++) {
+  for (Size i = 0; i < collision_coefficients.size(); i++) {
     ArrayOfGriddedField1 aogf1;
 
     // Read the file for a species and check that the size is correct of the array

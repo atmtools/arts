@@ -99,7 +99,7 @@ void jacobianAddAbsSpecies(const Workspace&,
   }
 
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species,
       "The gas species:\n", species, "\nis already included in *jacobian_quantities*.")
     ARTS_USER_ERROR_IF (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi,
@@ -150,7 +150,7 @@ void jacobianAddFreqShift(const Workspace& ws _U_,
                           const Vector& f_grid,
                           const Numeric& df) {
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.size(); it++) {
+  for (Size it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
       std::ostringstream os;
       os << "Fit of frequency shift is already included in\n"
@@ -213,7 +213,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
+  for (Size n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyShift) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -292,7 +292,7 @@ void jacobianAddFreqStretch(const Workspace& ws _U_,
                             const Vector& f_grid,
                             const Numeric& df) {
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.size(); it++) {
+  for (Size it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
       std::ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
@@ -358,7 +358,7 @@ void jacobianCalcFreqStretch(
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
+  for (Size n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyStretch) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -464,7 +464,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
         "The polynomial order has to be positive or -1 for gitter.");
 
   // Check that this jacobian type is not already included.
-  for (Index it = 0; it < jacobian_quantities.size(); it++) {
+  for (Size it = 0; it < jacobian_quantities.size(); it++) {
     if (jacobian_quantities[it].Target().isPointing()) {
       std::ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
@@ -479,7 +479,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
     throw std::runtime_error("The argument *dza* is not allowed to exceed 0.1 deg.");
 
   // Check that sensor_time is consistent with sensor_pos
-  if (sensor_time.size() != sensor_pos.nrows()) {
+  if (sensor_time.size() != static_cast<Size>(sensor_pos.nrows())) {
     std::ostringstream os;
     os << "The WSV *sensor_time* must be defined for every "
        << "measurement block.\n";
@@ -487,7 +487,7 @@ void jacobianAddPointingZa(const Workspace& ws _U_,
   }
 
   // Do not allow that *poly_order* is not too large compared to *sensor_time*
-  if (poly_order > sensor_time.size() - 1) {
+  if (static_cast<Size>(poly_order) > sensor_time.size() - 1) {
     throw std::runtime_error(
         "The polynomial order can not be >= length of *sensor_time*.");
   }
@@ -550,7 +550,7 @@ void jacobianCalcPointingZaInterp(
   // Find the retrieval quantity related to this method.
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for (Index n = 0; n < jacobian_quantities.size() && !found; n++) {
+  for (Size n = 0; n < jacobian_quantities.size() && !found; n++) {
     if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithInterp) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
@@ -667,7 +667,7 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
     throw std::runtime_error("The polynomial order has to be >= 0.");
 
   // Check that polyfit is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Sensor::Polyfit) {
       std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
@@ -740,7 +740,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   RetrievalQuantity rq;
   ArrayOfIndex ji;
   bool found = false;
-  Index iq;
+  Size iq;
   std::ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
   for (iq = 0; iq < jacobian_quantities.size() && !found; iq++) {
@@ -822,7 +822,7 @@ void jacobianAddScatSpecies(const Workspace&,
                             const String& quantity) {
   // Check that this species+quantity combination is not already included in
   // the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
       std::ostringstream os;
@@ -867,7 +867,7 @@ void jacobianAddSinefit(const Workspace& ws _U_,
   if (np == 0) throw std::runtime_error("No sinusoidal periods has benn given.");
 
   // Check that polyfit is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Sensor::Sinefit) {
       std::ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
@@ -940,7 +940,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   RetrievalQuantity rq;
   ArrayOfIndex ji;
   bool found = false;
-  Index iq;
+  Size iq;
   std::ostringstream sstr;
   sstr << "Period " << period_index;
   for (iq = 0; iq < jacobian_quantities.size() && !found; iq++) {
@@ -1027,7 +1027,7 @@ void jacobianAddSurfaceQuantity(const Workspace&,
                                 const Vector& rq_lon_grid,
                                 const String& quantity) {
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
       std::ostringstream os;
       os << quantity << " is already included as a surface variable "
@@ -1063,7 +1063,7 @@ void jacobianAddTemperature(const Workspace&,
                             const String& hse) {
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Atm::Temperature) {
       std::ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
@@ -1131,7 +1131,7 @@ void jacobianAddWind(const Workspace&,
   }
 
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
       "The wind component:\n", component, "\n"
       "is already included in *jacobian_quantities*.")
@@ -1181,7 +1181,7 @@ void jacobianAddMagField(const Workspace&,
   }
   
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (jq[it].Target().sameTargetType(rq.Target()),
                         "The magnetic component:\n", component, "\n"
                         "is already included in *jacobian_quantities*.")
@@ -1295,7 +1295,7 @@ void jacobianAddBasicCatalogParameter(const Workspace&,
   }
   
   // Check that this is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     ARTS_USER_ERROR_IF (rq.Target().sameTargetType(jq[it].Target()),
       "The catalog identifier:\n",
       catalog_identity, " for ID: ", catalog_identity, "\n"
@@ -1338,7 +1338,7 @@ void jacobianAddNLTE(const Workspace&,
                      const QuantumIdentifier& energy_level_identity,
                      const Numeric& dx) {
   // Check that this species is not already included in the jacobian.
-  for (Index it = 0; it < jq.size(); it++) {
+  for (Size it = 0; it < jq.size(); it++) {
     if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
       std::ostringstream os;
@@ -1394,7 +1394,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {
-    for (Index it = 0; it < jq.size(); it++) {
+    for (Size it = 0; it < jq.size(); it++) {
       if (jq[it] == Jacobian::Atm::Electrons) {
         std::ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
@@ -1404,7 +1404,7 @@ void jacobianAddSpecialSpecies(const Workspace&,
     rq.Target(Jacobian::Target(Jacobian::Atm::Electrons));
 
   } else if (species == "particulates") {
-    for (Index it = 0; it < jq.size(); it++) {
+    for (Size it = 0; it < jq.size(); it++) {
       if (jq[it] == Jacobian::Atm::Particulates) {
         std::ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
@@ -1449,7 +1449,7 @@ void jacobianAdjustAndTransform(
   ArrayOfArrayOfIndex jis0;
   Vector x0;
   //
-  for (Index q = 0; q < jacobian_quantities.size(); q++) {
+  for (Size q = 0; q < jacobian_quantities.size(); q++) {
     if (jacobian_quantities[q].Target().isSpeciesVMR() &&
         jacobian_quantities[q].Mode() == "rel") {
       if (!vars_init) {
@@ -1538,82 +1538,6 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 //----------------------------------------------------------------------------
 // Methods for doing perturbations
 //----------------------------------------------------------------------------
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void AtmFieldPerturb(Tensor3& perturbed_field,
-                    const Tensor3& original_field,
-                    const Vector& p_ret_grid,
-                    const Vector& lat_ret_grid,
-                    const Vector& lon_ret_grid,
-                    const Index& pert_index,
-                    const Numeric& pert_size,
-                    const String& pert_mode) {
-
-  // Pack retrieval grids into an ArrayOfVector
-  ArrayOfVector ret_grids(3);
-  ret_grids[0] = p_ret_grid;
-    ret_grids[1] = lat_ret_grid;
-      ret_grids[2] = lon_ret_grid;
-
-  // Find mapping from retrieval grids to atmospheric grids
-  ArrayOfGridPos gp_p, gp_lat, gp_lon;
-  Index n_p, n_lat, n_lon;
-  ARTS_ASSERT(false)
-    /*get_gp_rq_to_atmgrids(gp_p,
-                        gp_lat,
-                        gp_lon,
-                        n_p,
-                        n_lat,
-                        n_lon,
-                        ret_grids,
-                        3,
-                        p_grid,
-                        lat_grid,
-                        lon_grid);*/
-
-  // Now we can chec *pert_index*
-  if (pert_index<0){
-    throw std::runtime_error("Bad *pert_index*. It is negative.");
-  }
-  const Index n_tot = n_p * n_lat * n_lon;
-  if (pert_index >= n_tot){
-    throw std::runtime_error("Bad *pert_index*. It is too high with respect "
-                        "to length of retrieval grids.");
-  }    
-  
-  // Create x-vector that matches perturbation
-  Vector x(n_tot);
-  if (pert_mode == "absolute" ){
-    x = 0;
-    x[pert_index] = pert_size;
-  }
-  else if (pert_mode == "relative" ){
-    x = 1;
-    x[pert_index] += pert_size;
-  }
-  else{
-    throw std::runtime_error("Bad *pert_mode*. Allowed choices are: "
-                        """absolute"" and ""relative"".");
-  }
-  
-  // Map x to a perturbation defined at atmospheric grids
-  Tensor3 x3d(n_p, n_lat, n_lon), pert(n_p, n_lat, n_lon);
-  reshape(x3d, x);
-  regrid_atmfield_by_gp_oem(pert, x3d, gp_p, gp_lat, gp_lon);
-  
-  // Init perturbed_field, if not equal to original_field
-  if (&perturbed_field != &original_field) {
-    perturbed_field = original_field;
-  }
-
-  // Apply perturbation
-  if (pert_mode == "absolute" ){
-    perturbed_field += pert;
-  }
-  else{
-    perturbed_field *= pert;
-  }
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,

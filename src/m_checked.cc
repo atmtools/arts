@@ -312,7 +312,7 @@ void lbl_checkedCalc(Index& lbl_checked,
       abs_species.size(),
       '\n')
   
-  for (Index i=0; i<abs_species.size(); i++) {
+  for (Size i=0; i<abs_species.size(); i++) {
     auto& specs = abs_species[i];
     auto& lines = abs_lines_per_species[i];
     
@@ -610,8 +610,8 @@ void sensor_checkedCalc(Index& sensor_checked,
 
   // Sensor aux variables
   //
-  ARTS_USER_ERROR_IF (n1y != sensor_response_f.nelem() || n1y != sensor_response_pol.size() ||
-      n1y != sensor_response_dlos.nrows(),
+  ARTS_USER_ERROR_IF (static_cast<Size>(n1y) != sensor_response_f.nelem() || static_cast<Size>(n1y) != sensor_response_pol.size() ||
+      static_cast<Size>(n1y) != sensor_response_dlos.nrows(),
       "Sensor auxiliary variables do not have the correct size.\n"
       "The following variables should all have same size:\n"
       "length of y for one block     : ", n1y, "\n"

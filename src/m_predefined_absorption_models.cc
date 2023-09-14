@@ -73,7 +73,7 @@ void propmat_clearskyAddPredefined(
   // Derivatives and their error handling
   if (dpropmat_clearsky_dx.nrows()) {
     ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.size(),
+        static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_quantities.size(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
         dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),

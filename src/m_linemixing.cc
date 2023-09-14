@@ -53,8 +53,8 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
   ArrayOfIndex used(lines.size(), false);
 
   bool emptied = false;
-  for (Index i = 0; i < abs_species.size(); i++) {
-    for (Index j = 0; j < abs_species[i].size(); j++) {
+  for (Size i = 0; i < abs_species.size(); i++) {
+    for (Size j = 0; j < abs_species[i].size(); j++) {
       if (abs_species[i][j].Spec() not_eq Species::fromShortName("CO2"))
         continue;
 
@@ -63,7 +63,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
         emptied = true;
       }
 
-      for (Index k = 0; k < lines.size(); k++) {
+      for (Size k = 0; k < lines.size(); k++) {
         if (used[k]) continue;
 
         const Numeric lf{abs_species[i][j].lower_freq > 0
@@ -107,7 +107,7 @@ void propmat_clearskyAddHitranLineMixingLines(
   const Numeric co2 = atm_point[Species::Species::CarbonDioxide];
   const Vector vmrs{co2, water, 1.0-co2-water};
 
-  for (Index i = 0; i < abs_species.size(); i++) {
+  for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
       continue;
 
@@ -161,7 +161,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(
   ARTS_USER_ERROR_IF(not lbl_checked,
                      "Please set lbl_checked true to use this function");
 
-  for (Index i = 0; i < abs_species.size(); i++) {
+  for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
       continue;
     for (auto& band : abs_lines_per_species[i]) {
@@ -187,7 +187,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(
         }
 
         // Sum up the resorted Jacobian
-        for (Index j = 0; j < jacobian_quantities.size(); j++) {
+        for (Size j = 0; j < jacobian_quantities.size(); j++) {
           const auto &deriv = jacobian_quantities[j];
 
           if (not deriv.propmattype())
@@ -238,7 +238,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
   const auto polarization_scale_deta_data =
       Zeeman::AllPolarization_deta(Z.theta, Z.eta);
 
-  for (Index i = 0; i < abs_species.size(); i++) {
+  for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
       continue;
     for (auto& band : abs_lines_per_species[i]) {
@@ -272,7 +272,7 @@ void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
                                                  polarization));
 
           // Sum up the resorted Jacobian
-          for (Index j = 0; j < jacobian_quantities.size(); j++) {
+          for (Size j = 0; j < jacobian_quantities.size(); j++) {
             const auto& deriv = jacobian_quantities[j];
 
             if (not deriv.propmattype()) continue;
@@ -411,7 +411,7 @@ void ecs_dataAddSpeciesData(
 void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
                         const Vector& vmrs,
                         const ArrayOfSpeciesTag& specs) {
-  ARTS_USER_ERROR_IF(specs.size() not_eq vmrs.nelem(),
+  ARTS_USER_ERROR_IF(specs.size() not_eq static_cast<Size>(vmrs.nelem()),
                      "Bad sizes of specs and vmrs\nspecs: [",
                      specs,
                      "]\nvmrs: [",
@@ -444,7 +444,7 @@ void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
 
     bool found = false;
     Numeric sumvmr = 0;
-    for (Index i = 0; i < specs.size(); i++) {
+    for (Size i = 0; i < specs.size(); i++) {
       ARTS_USER_ERROR_IF(not specs[i].Isotopologue().joker(),
                          "Can only have joker species, finds: [",
                          specs,

@@ -68,14 +68,14 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
   for (auto& lines : abs_lines_per_species) lines.resize(0);
 
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
-  for (Index ilines = 0; ilines < abs_lines.size(); ilines++) {
+  for (Size ilines = 0; ilines < abs_lines.size(); ilines++) {
     AbsorptionLines lines = abs_lines[ilines];
     
     // Skip empty lines
     if (lines.NumLines() == 0) continue;
 
     // Loop all the tags
-    for (Index i = 0; i < abs_species.size() and lines.NumLines(); i++) {
+    for (Size i = 0; i < abs_species.size() and lines.NumLines(); i++) {
       for (auto& this_tag : abs_species[i]) {
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
         if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
@@ -326,7 +326,7 @@ void propmat_clearskyAddFaraday(
       propmat_clearsky[iv].U() += r;
 
       // The Jacobian loop
-      for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
+      for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
         if (is_frequency_parameter(jacobian_quantities[iq]))
           dpropmat_clearsky_dx(iq, iv) += -2.0 * ne * r / f_grid[iv];
         else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
@@ -376,7 +376,7 @@ void propmat_clearskyAddParticles(
 
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
-  for (Index sp = 0; sp < abs_species.size(); sp++) {
+  for (Size sp = 0; sp < abs_species.size(); sp++) {
     if (abs_species[sp].Particles()) {
       np++;
     }
@@ -466,8 +466,8 @@ void propmat_clearskyAddParticles(
   // to the position of the particle type entries in abs_species.
   Index sp = 0;
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data.size(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       // forward to next particle entry in abs_species
       while (sp < na && not abs_species[sp].Particles()) sp++;
       internal_propmat = 0.0;
@@ -530,7 +530,7 @@ void propmat_clearskyAddParticles(
       // For number density derivatives
       if (jacobian_quantities.size()) rtp_vmr_sum += atm_point[abs_species[sp]];
 
-      for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
+      for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
         const auto& deriv = jacobian_quantities[iq];
 
         if (not deriv.propmattype()) continue;

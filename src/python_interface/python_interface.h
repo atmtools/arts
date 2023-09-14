@@ -47,7 +47,7 @@ namespace py = pybind11;
 template <typename T, typename... Ts>
 using artsclass = py::class_<T, Ts..., std::shared_ptr<T>>;
 
-ENUMCLASS(ArrayOptions, char, index, nolist, noobjlist, nopickle)
+ENUMCLASS(ArrayOptions, char, index, nolist, noobjlist, nopickle, nocopy)
 
 template <typename PythonListable, ArrayOptions... opts>
 py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(
@@ -56,6 +56,16 @@ py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(
 
   auto out = py::bind_vector<PythonListable, std::shared_ptr<PythonListable>>(
       scope, name, std::forward<decltype(args)>(args)...);
+
+  if constexpr (not((opts == ArrayOptions::noobjlist) or ...)) {
+    out.def("__copy__", [](const PythonListable& v) {
+      return std::make_shared<PythonListable>(v);
+    });
+
+    out.def("__deepcopy__", [](const PythonListable& v, const py::dict&) {
+      return std::make_shared<PythonListable>(v);
+    });
+  }
 
   if constexpr (not((opts == ArrayOptions::noobjlist) or ...)) {
     out.def(py::init([](const Array<py::object>& x) {

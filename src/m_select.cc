@@ -5,7 +5,7 @@ void ArraySelect(T& needles, const T& haystack, const ArrayOfIndex& needleind) {
   needles = T(needleind.size());
   for (auto& i : needleind) {
     ARTS_USER_ERROR_IF(
-        i < 0 || i >= haystack.size(), "Index ", i, " out of range in Select.")
+        i < 0 || static_cast<Size>(i) >= haystack.size(), "Index ", i, " out of range in Select.")
     needles[i] = haystack[i];
   }
 }
@@ -113,7 +113,7 @@ void Select(  // WS Generic Output:
     return;
   }
 
-  for (Index i = 0; i < needleind.size(); i++) {
+  for (Size i = 0; i < needleind.size(); i++) {
     if (haystack.nrows() <= needleind[i]) {
       std::ostringstream os;
       os << "The input matrix only has " << haystack.nrows()

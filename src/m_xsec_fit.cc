@@ -71,7 +71,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
 
   // Derivatives and their error handling
   ARTS_USER_ERROR_IF(
-    dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.size()
+    static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_quantities.size()
     or
     dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
@@ -114,13 +114,13 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index i = 0; i < abs_species.size(); i++) {
+  for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and abs_species[i] not_eq select_abs_species)
       continue;
 
     const Numeric vmr = atm_point[abs_species[i]];
 
-    for (Index s = 0; s < abs_species[i].size(); s++) {
+    for (Size s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag
@@ -160,7 +160,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
       Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
       for (Index f = 0; f < f_grid.size(); f++) {
         propmat_clearsky[f].A() += xsec_temp[f] * nd * vmr;
-        for (Index iq = 0; iq < jacobian_quantities.size(); iq++) {
+        for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
 
           if (!deriv.propmattype()) continue;
@@ -246,10 +246,10 @@ void abs_xsec_per_speciesAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ii = 0; ii < abs_species_active.size(); ii++) {
+  for (Size ii = 0; ii < abs_species_active.size(); ii++) {
     const Index i = abs_species_active[ii];
 
-    for (Index s = 0; s < abs_species[i].size(); s++) {
+    for (Size s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
 
       // Check if this is a HITRAN cross section tag

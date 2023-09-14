@@ -549,7 +549,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  ARTS_ASSERT(grids.size() == dim);
+  ARTS_ASSERT(static_cast<Index>(grids.size()) == dim);
 
   if (p_retr.size() == 0) {
     os << "The grid vector *" << p_retr_name << "* is empty,"
@@ -833,7 +833,7 @@ void calcBaselineFit(Vector& y_baseline,
     for (Index f = 0; f < nf; f++) {
       const Index row2 = row3 + f * npol;
 
-      for (Index p = 0; p < npol; p++) {
+      for (Size p = 0; p < npol; p++) {
         Index col1 = col3;
         if (n1 > 1) {
           col1 += p;

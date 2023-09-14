@@ -347,7 +347,7 @@ void f_gridFromSensorAMSU(  // WS Output:
   // Find out how many channels we have in total:
   // f_backend is an array of vectors, containing the band frequencies for each Mixer.
   Index n_chan = 0;
-  for (Index i = 0; i < f_backend.size(); ++i)
+  for (Size i = 0; i < f_backend.size(); ++i)
     for (Index s = 0; s < f_backend[i].size(); ++s) ++n_chan;
 
   // Checks on input quantities:
@@ -361,8 +361,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   }
 
   // Is number of LOs consistent in all input variables?
-  if ((f_backend.size() != lo.size()) ||
-      (backend_channel_response.size() != lo.size())) {
+  if ((f_backend.size() != static_cast<Size>(lo.size())) ||
+      (backend_channel_response.size() != static_cast<Size>(lo.size()))) {
     std::ostringstream os;
     os << "Variables *lo_multi*, *f_backend_multi* and *backend_channel_response_multi*\n"
        << "must have same number of elements (number of LOs).";
@@ -370,8 +370,8 @@ void f_gridFromSensorAMSU(  // WS Output:
   }
 
   // Is number of bands consistent for each LO?
-  for (Index i = 0; i < f_backend.size(); ++i)
-    if (f_backend[i].size() != backend_channel_response[i].size()) {
+  for (Size i = 0; i < f_backend.size(); ++i)
+    if (static_cast<Size>(f_backend[i].size()) != backend_channel_response[i].size()) {
       std::ostringstream os;
       os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
          << "must have same number of bands for each LO.";
@@ -392,7 +392,7 @@ void f_gridFromSensorAMSU(  // WS Output:
   // Counts position inside the flat arrays during construction:
   Index j = 0;
 
-  for (Index i = 0; i < f_backend.size(); ++i)
+  for (Size i = 0; i < f_backend.size(); ++i)
     for (Index s = 0; s < f_backend[i].size(); ++s) {
       const GriddedField1& this_grid = backend_channel_response[i][s];
       const Numeric this_f_backend = f_backend[i][s];
@@ -468,8 +468,8 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
     const Vector& verbosityVect) {
   Index numFpoints = 0;
   // Calculate the total number of frequency points
-  for (Index idx = 0; idx < backend_channel_response_multi.size(); ++idx) {
-    for (Index idy = 0; idy < backend_channel_response_multi[idx].size();
+  for (Size idx = 0; idx < backend_channel_response_multi.size(); ++idx) {
+    for (Size idy = 0; idy < backend_channel_response_multi[idx].size();
          ++idy) {
       numFpoints += backend_channel_response_multi[idx][idy].get_grid_size(0);
     }
@@ -502,7 +502,7 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
   Vector VerbosityValVect(numFpoints);
   Index VerbVectIdx = 0;
 
-  for (Index i = 0; i < f_backend_multi.size(); ++i) {
+  for (Size i = 0; i < f_backend_multi.size(); ++i) {
     for (Index ii = 0; ii < f_backend_multi[i].size(); ++ii) {
       const GriddedField1& this_grid = backend_channel_response_multi[i][ii];
       const Numeric this_f_backend = f_backend_multi[i][ii];
@@ -674,13 +674,13 @@ void f_gridMetMM(
     const ArrayOfIndex& freq_number,
     const Numeric& freq_merge_threshold) {
   // Some sizes
-  const Index nchannels = mm_back.nrows();
+  const Size nchannels = mm_back.nrows();
 
   // Checks of input
   //
   chk_met_mm_backend(mm_back);
   //
-  if (freq_spacing.size() != 1 && freq_spacing.size() != nchannels)
+  if (freq_spacing.size() != 1 && static_cast<Size>(freq_spacing.size()) != nchannels)
     throw std::runtime_error(
         "Length of *freq_spacing* vector must be either 1 or correspond\n"
         "to the number of rows in *met_mm_backend*.");
@@ -705,7 +705,7 @@ void f_gridMetMM(
 
   f_backend.resize(nchannels);
 
-  for (Index ch = 0; ch < nchannels; ch++) {
+  for (Size ch = 0; ch < nchannels; ch++) {
     const Numeric lo = mm_back(ch, 0);
     const Numeric offset1 = mm_back(ch, 1);
     const Numeric offset2 = mm_back(ch, 2);
@@ -817,7 +817,7 @@ void f_gridMetMM(
   channel2fgrid_indexes.resize(nchannels);
   channel2fgrid_weights.resize(nchannels);
   Index i = 0;
-  for (Index ch = 0; ch < nchannels; ch++) {
+  for (Size ch = 0; ch < nchannels; ch++) {
     channel2fgrid_indexes[ch].resize(nf_per_channel[ch]);
     channel2fgrid_weights[ch].resize(nf_per_channel[ch]);
     //
@@ -1477,7 +1477,7 @@ void sensor_responseIF2RF(  // WS Output:
   // Unknown option
   else {
     throw std::runtime_error(
-        "Only allowed options for *sideband _mode* are \"lower\" and \"upper\".");
+        R"(Only allowed options for *sideband _mode* are "lower" and "upper".)");
   }
 }
 
@@ -1929,8 +1929,8 @@ void sensor_responseMetMM(
                                             channel2fgrid_weights);
 
   // Construct complete sensor_response matrix
-  const Index num_f = f_grid.size();
-  const Index nchannels = f_backend.size();
+  const Size num_f = f_grid.size();
+  const Size nchannels = f_backend.size();
   sensor_response = Sparse(nchannels * antenna_dlos_local.nrows(),
                            num_f * 4 * antenna_dlos_local.nrows());
 
@@ -2044,7 +2044,7 @@ void sensor_responseMixerBackendPrecalcWeights(
   }
 
   // frequency index and weights
-  if (channel2fgrid_indexes.size() != nout_f) {
+  if (channel2fgrid_indexes.size() != static_cast<Size>(nout_f)) {
     os << "The first size of *channel2fgrid_indexes* an length of *f_backend* "
        << "must be equal.\n";
     error_found = true;
@@ -2061,7 +2061,7 @@ void sensor_responseMixerBackendPrecalcWeights(
          << "index " << i << ".\n";
       error_found = true;
     }
-    for (Index j = 0; j < channel2fgrid_indexes[i].size(); j++) {
+    for (Size j = 0; j < channel2fgrid_indexes[i].size(); j++) {
       if (channel2fgrid_indexes[i][j] < 0 ||
           channel2fgrid_indexes[i][j] >= nin_f) {
         os << "At least one value in *channel2fgrid_indexes* is either "
@@ -2084,7 +2084,7 @@ void sensor_responseMixerBackendPrecalcWeights(
     for (Index ifr = 0; ifr < nout_f; ifr++) {
       // The summation vector for 1 polarisation and 1 viewing direction
       Vector w1(nin_f, 0.0);
-      for (Index j = 0; j < channel2fgrid_indexes[ifr].size(); j++) {
+      for (Size j = 0; j < channel2fgrid_indexes[ifr].size(); j++) {
         w1[channel2fgrid_indexes[ifr][j]] = channel2fgrid_weights[ifr][j];
       }
 
@@ -2141,23 +2141,23 @@ void sensor_responseMultiMixerBackend(
     const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
     const Index& sensor_norm) {
   // Some sizes
-  const Index nf = sensor_response_f_grid.size();
-  const Index npol = sensor_response_pol_grid.size();
-  const Index nlos = sensor_response_dlos_grid.nrows();
-  const Index nin = nf * npol * nlos;
-  const Index nlo = lo_multi.size();
+  const Size nf = sensor_response_f_grid.size();
+  const Size npol = sensor_response_pol_grid.size();
+  const Size nlos = sensor_response_dlos_grid.nrows();
+  const Size nin = nf * npol * nlos;
+  const Size nlo = lo_multi.size();
 
   // Initialise a output stream for runtime errors and a flag for errors
   std::ostringstream os;
   bool error_found = false;
 
   // Check that sensor_response variables are consistent in size
-  if (sensor_response_f.size() != nin) {
+  if (static_cast<Size>(sensor_response_f.size()) != nin) {
     os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
        << "grid variables (sensor_response_f_grid etc.).\n";
     error_found = true;
   }
-  if (sensor_response.nrows() != nin) {
+  if (static_cast<Size>(sensor_response.nrows()) != nin) {
     os << "The sensor block response matrix *sensor_response* does not have\n"
        << "right size compared to the sensor grid variables\n"
        << "(sensor_response_f_grid etc.).\n";
@@ -2196,7 +2196,7 @@ void sensor_responseMultiMixerBackend(
   ArrayOfVector srfgrid;
   ArrayOfIndex cumsumf(nlo + 1, 0);
 
-  for (Index ilo = 0; ilo < nlo; ilo++) {
+  for (Size ilo = 0; ilo < nlo; ilo++) {
     // Copies of variables that will be changed, but must be
     // restored for next loop
     Sparse sr1 = sensor_response;
@@ -2251,7 +2251,7 @@ void sensor_responseMultiMixerBackend(
   const Index nfnew = cumsumf[nlo];
   sensor_response_f_grid.resize(nfnew);
   //
-  for (Index ilo = 0; ilo < nlo; ilo++) {
+  for (Size ilo = 0; ilo < nlo; ilo++) {
     for (Index i = 0; i < srfgrid[ilo].size(); i++) {
       sensor_response_f_grid[cumsumf[ilo] + i] = srfgrid[ilo][i];
     }
@@ -2267,13 +2267,13 @@ void sensor_responseMultiMixerBackend(
   //
   Vector dummy(ncols, 0.0);
   //
-  for (Index ilo = 0; ilo < nlo; ilo++) {
+  for (Size ilo = 0; ilo < nlo; ilo++) {
     const Index nfpolthis = (cumsumf[ilo + 1] - cumsumf[ilo]) * npolnew;
 
     ARTS_ASSERT(sr[ilo].nrows() == nlos * nfpolthis);
     ARTS_ASSERT(sr[ilo].ncols() == ncols);
 
-    for (Index ilos = 0; ilos < nlos; ilos++) {
+    for (Size ilos = 0; ilos < nlos; ilos++) {
       for (Index i = 0; i < nfpolthis; i++) {
         // "Poor mans" transfer of a row from one sparse to another
         for (Index ic = 0; ic < ncols; ic++) {
@@ -3273,18 +3273,18 @@ void yApplySensorPol(Vector& y,
                      const Matrix& sensor_pos,
                      const Matrix& sensor_pol) {
   // Some sizes
-  const Index n1 = y.size();
-  const Index nm = sensor_pol.nrows();
-  const Index nc = sensor_pol.ncols();
-  const Index n2 = nm * nc;
+  const Size n1 = y.size();
+  const Size nm = sensor_pol.nrows();
+  const Size nc = sensor_pol.ncols();
+  const Size n2 = nm * nc;
 
   // Check consistency of input data
   if (y.empty()) throw std::runtime_error("Input *y* is empty. Use *yCalc*");
-  if (y_f.size() != n1)
+  if (static_cast<Size>(y_f.size()) != n1)
     throw std::runtime_error("Lengths of input *y* and *y_f* are inconsistent.");
   if (y_pol.size() != n1)
     throw std::runtime_error("Lengths of input *y* and *y_pol* are inconsistent.");
-  if (y_pos.nrows() != n1)
+  if (static_cast<Size>(y_pos.nrows()) != n1)
     throw std::runtime_error("Sizes of input *y* and *y_pos* are inconsistent.");
   if (y_los.nrows() != n1)
     throw std::runtime_error("Sizes of input *y* and *y_los* are inconsistent.");
@@ -3330,13 +3330,13 @@ void yApplySensorPol(Vector& y,
   y_pos.resize(n2, y_pos1.ncols());
   y_los.resize(n2, y_los1.ncols());
   y_geo.resize(n2, y_geo1.ncols());
-  for (Index a = 0; a < y_aux.size(); a++) y_aux[a].resize(n2);
+  for (Size a = 0; a < y_aux.size(); a++) y_aux[a].resize(n2);
   if (jacobian_do) {
     jacobian.resize(n2, jacobian1.ncols());
   }
 
-  for (Index r = 0; r < nm; r++) {
-    for (Index c = 0; c < nc; c++) {
+  for (Size r = 0; r < nm; r++) {
+    for (Size c = 0; c < nc; c++) {
       const Index iout = r * nc + c;
       const Index iin = iout * 4;
 
@@ -3361,7 +3361,7 @@ void yApplySensorPol(Vector& y,
       y_pos(iout, joker) = y_pos1(iin, joker);
       y_los(iout, joker) = y_los1(iin, joker);
       y_geo(iout, joker) = y_geo1(iin, joker);
-      for (Index a = 0; a < y_aux.size(); a++) y_aux[a][iout] = y_aux1[a][iin];
+      for (Size a = 0; a < y_aux.size(); a++) y_aux[a][iout] = y_aux1[a][iin];
     }
   }
 }

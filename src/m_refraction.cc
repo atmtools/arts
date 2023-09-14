@@ -54,7 +54,7 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
   Numeric edensity = 0;
 
   Index ife = -1;
-  for (Index sp = 0; sp < abs_species.size() && ife < 0; sp++) {
+  for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
@@ -125,7 +125,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
                                    const Numeric& k1,
                                    const Numeric& k2,
                                    const Numeric& k3) {
-  if (abs_species.size() != rtp_vmr.size())
+  if (abs_species.size() != static_cast<Size>(rtp_vmr.size()))
     throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");
@@ -197,7 +197,7 @@ void refr_index_airMicrowavesGeneral(
   ref_n[5] = 5338.89e-6;
 
   // Checks
-  if (abs_species.size() != rtp_vmr.size())
+  if (abs_species.size() != static_cast<Size>(rtp_vmr.size()))
     throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");

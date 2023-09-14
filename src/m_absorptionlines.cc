@@ -759,7 +759,7 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
   abs_lines_per_speciesCreateFromLines(alps, abs_lines, as);
   
   // Save the arrays
-  for (Index i=0; i<specs.size(); i++) {
+  for (Size i=0; i<specs.size(); i++) {
     auto& name = specs[i];
     auto& lines = alps[i];
     
@@ -1076,7 +1076,7 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
   for (auto& replacement: replacing_bands) {
     struct {Index band;} pos{-1};
     
-    for (Index i=0; i<abs_lines.size(); i++) {
+    for (Size i=0; i<abs_lines.size(); i++) {
       auto& band = abs_lines[i];
       
       if (Quantum::Number::StateMatch(band.quantumidentity, replacement.quantumidentity) ==
@@ -1213,7 +1213,7 @@ void abs_lines_per_speciesCutoffSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1389,7 +1389,7 @@ void abs_lines_per_speciesPopulationSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1448,7 +1448,7 @@ void abs_lines_per_speciesNormalizationSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1508,7 +1508,7 @@ void abs_lines_per_speciesLineShapeTypeSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1565,7 +1565,7 @@ void abs_lines_per_speciesLinemixingLimitSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1752,7 +1752,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec=0; ispec<abs_species.size(); ispec++) {
+  for (Size ispec=0; ispec<abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesChangeBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, relative);
     }
@@ -1849,7 +1849,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.size(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1903,7 +1903,7 @@ void abs_linesLineShapeModelParametersMatchingLines(
           band.lines[k].lineshape.Data().back().Data()[Index(var)] = newdata;
         } else {
           for (Index i = band.selfbroadening;
-               i < band.broadeningspecies.size() - band.bathbroadening;
+               i < static_cast<Index>(band.broadeningspecies.size()) - band.bathbroadening;
                i++) {
             if (spec == band.broadeningspecies[i]) {
               band.lines[k].lineshape.Data()[i].Data()[Index(var)] = newdata;
@@ -2019,7 +2019,7 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
   ARTS_USER_ERROR_IF (QID.size() not_eq change.size(),
                       "Mismatch between QID and change input lengths not allowed");
   
-  for (Index iq=0; iq<QID.size(); iq++)
+  for (Size iq=0; iq<QID.size(); iq++)
     abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative);
 }
 
@@ -2033,7 +2033,7 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
   ARTS_USER_ERROR_IF (QID.size() not_eq change.size(),
                       "Mismatch between QID and change input lengths not allowed");
   
-  for (Index iq=0; iq<QID.size(); iq++)
+  for (Size iq=0; iq<QID.size(); iq++)
     for (auto& lines: abs_lines_per_species)
       abs_linesChangeBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], relative);
 }
@@ -2109,10 +2109,10 @@ void abs_linesBaseParameterMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
                                           const String& parameter_name,
                                           const Vector& change) {
   ARTS_USER_ERROR_IF(
-      QID.size() not_eq change.size(),
+      QID.size() not_eq static_cast<Size>(change.size()),
       "Mismatch between QID and change input lengths not allowed");
 
-  for (Index iq = 0; iq < QID.size(); iq++)
+  for (Size iq = 0; iq < QID.size(); iq++)
     abs_linesBaseParameterMatchingLevel(
         abs_lines, QID[iq], parameter_name, change[iq]);
 }
@@ -2124,10 +2124,10 @@ void abs_lines_per_speciesBaseParameterMatchingLevels(
     const String& parameter_name,
     const Vector& change) {
   ARTS_USER_ERROR_IF(
-      QID.size() not_eq change.size(),
+      QID.size() not_eq static_cast<Size>(change.size()),
       "Mismatch between QID and change input lengths not allowed");
 
-  for (Index iq = 0; iq < QID.size(); iq++)
+  for (Size iq = 0; iq < QID.size(); iq++)
     for (auto& lines : abs_lines_per_species)
       abs_linesBaseParameterMatchingLevel(
           lines, QID[iq], parameter_name, change[iq]);

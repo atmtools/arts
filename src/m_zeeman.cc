@@ -68,8 +68,8 @@ void propmat_clearskyAddZeeman(
 void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                  const ArrayOfQuantumIdentifier& qid,
                                  const Vector& gs) {
-  ARTS_USER_ERROR_IF (qid.size() not_eq gs.size(), "Inputs not matching in size");
-  for (Index i=0; i<qid.size(); i++) {
+  ARTS_USER_ERROR_IF (qid.size() not_eq static_cast<Size>(gs.size()), "Inputs not matching in size");
+  for (Size i=0; i<qid.size(); i++) {
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
     
@@ -90,7 +90,7 @@ void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_
                                                 const ArrayOfQuantumIdentifier& qid,
                                                 const Vector& gs) {
   for (auto& abs_lines: abs_lines_per_species) {
-    for (Index i=0; i<qid.size(); i++) {
+    for (Size i=0; i<qid.size(); i++) {
       abs_linesZeemanCoefficients(abs_lines, qid, gs);
     }
   }

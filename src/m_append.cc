@@ -19,7 +19,7 @@ void Append(  // WS Generic Output:
   // Reserve memory in advance to avoid reallocations:
   out.reserve(out.size() + in_ref.size());
   // Append in to end of out:
-  for (Index i = 0; i < in_ref.size(); ++i) out.push_back(in_ref[i]);
+  for (Size i = 0; i < in_ref.size(); ++i) out.push_back(in_ref[i]);
 }
 
 /* Implementation for array types to append single element */
