@@ -656,7 +656,7 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lat_retr_name,
                            const String& lon_retr_name,
                            const Index& dim) {
-  ARTS_ASSERT(grids.size() == max(dim - 1, Index(1)));
+  ARTS_ASSERT(static_cast<Index>(grids.size()) == std::max<Index>(dim - 1, Index(1)));
 
   if (dim == 1) {
     // Here we only need to create a length 1 dummy grid
