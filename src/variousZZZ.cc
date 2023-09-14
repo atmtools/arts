@@ -54,17 +54,17 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
                      "*longitude_grid* must be strictly increasing.");
   ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) >= 180,
                      "All values in *latitude_grid* must be inside [-180,180[.");
-  ARTS_USER_ERROR_IF(data.npages() != altitude_grid.nelem(),
+  ARTS_USER_ERROR_IF(data.npages() != altitude_grid.size(),
                      "Inconsistent altitude size!\n"
-                     "Length of altitude grid: ", altitude_grid.nelem(), "\n"
+                     "Length of altitude grid: ", altitude_grid.size(), "\n"
                      "Altitude size of data: ", data.npages());
-  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.nelem(),
+  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.size(),
                      "Inconsistent latitude size!\n"
-                     "Length of latitude grid: ", latitude_grid.nelem(), "\n"
+                     "Length of latitude grid: ", latitude_grid.size(), "\n"
                      "Latitude size of data: ", data.nrows());
-  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.nelem(),
+  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.size(),
                      "Inconsistent longitude size!\n"
-                     "Length of longitude grid: ", longitude_grid.nelem(), "\n"
+                     "Length of longitude grid: ", longitude_grid.size(), "\n"
                      "Longitude size of data: ", data.ncols());
 
   gfield3.set_name(name);
@@ -112,13 +112,13 @@ void LatLonFieldSet(GriddedField2& gfield2,
                      "*longitude_grid* must be strictly increasing.");
   ARTS_USER_ERROR_IF(min(longitude_grid) < -180 || max(longitude_grid) >= 180,
                      "All values in *latitude_grid* must be inside [-180,180[.");
-  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.nelem(),
+  ARTS_USER_ERROR_IF(data.nrows() != latitude_grid.size(),
                      "Inconsistent latitude size!\n"
-                     "Length of latitude grid: ", latitude_grid.nelem(), "\n"
+                     "Length of latitude grid: ", latitude_grid.size(), "\n"
                      "Latitude size of data: ", data.nrows());
-  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.nelem(),
+  ARTS_USER_ERROR_IF(data.ncols() != longitude_grid.size(),
                      "Inconsistent longitude size!\n"
-                     "Length of longitude grid: ", longitude_grid.nelem(), "\n"
+                     "Length of longitude grid: ", longitude_grid.size(), "\n"
                      "Longitude size of data: ", data.ncols());
 
   gfield2.set_name(name);
@@ -189,11 +189,11 @@ void NumericInterpLatLonField(Numeric& value,
 void gridpos_local(ArrayOfGridPos& gp,
                  ConstVectorView grid, 
                  ConstVectorView points) {
-  const Index n = points.nelem();
-  ARTS_ASSERT(gp.nelem() == n);
+  const Index n = points.size();
+  ARTS_ASSERT(gp.size() == n);
 
   // To save time in case of grid length 1
-  const Index l = grid.nelem();
+  const Index l = grid.size();
   if (l == 1) {
     gp4length1grid(gp);
     return;
@@ -230,7 +230,7 @@ void NumericInterpVector(Numeric& value,
 Numeric interp_gfield2(const GriddedField2& G,
                        const Vector& pos2D)
 {
-  ARTS_ASSERT(pos2D.nelem() == 2);
+  ARTS_ASSERT(pos2D.size() == 2);
   ARTS_ASSERT(G.checksize());
 
   // Sizes
@@ -257,7 +257,7 @@ Numeric interp_gfield2(const GriddedField2& G,
 Numeric interp_gfield3(const GriddedField3& G,
                        const Vector& pos)
 {
-  ARTS_ASSERT(pos.nelem() == 3);
+  ARTS_ASSERT(pos.size() == 3);
   ARTS_ASSERT(G.checksize());
 
   // Sizes

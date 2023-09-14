@@ -123,7 +123,7 @@ constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
  * 
  * @return The number of elements
  */
-constexpr Index nelem(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Index size(Rational Ju, Rational Jl, Polarization type) noexcept {
   return (end(Ju, Jl, type) - start(Ju, Jl, type)).toIndex() + 1;
 }
 

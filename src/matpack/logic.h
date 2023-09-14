@@ -99,7 +99,7 @@ bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon = 0.001);
 */
 template <class T>
 bool is_size(const Array<T>& x, const Index& n) {
-  return (n == x.nelem());
+  return (n == x.size());
 }
 
 #endif  // logic_h

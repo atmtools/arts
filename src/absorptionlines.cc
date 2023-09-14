@@ -2362,7 +2362,7 @@ Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEP
 
   // Select F before J but assume one of them exist
   auto& val = get(lines[k].localquanta);
-  return Zeeman::nelem(val.upp(), val.low(), type);
+  return Zeeman::size(val.upp(), val.low(), type);
 }
 
 Numeric Lines::ZeemanStrength(size_t k,

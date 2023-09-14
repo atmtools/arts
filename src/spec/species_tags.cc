@@ -373,7 +373,7 @@ std::set<Species::Species> lbl_species(
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
                            const Species spec) ARTS_NOEXCEPT {
-  ARTS_ASSERT(abs_species.nelem() == rtp_vmr.nelem())
+  ARTS_ASSERT(abs_species.size() == rtp_vmr.size())
 
   auto pos =
       std::find_if(abs_species.begin(),
