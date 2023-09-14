@@ -49,6 +49,7 @@ arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
+arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky_StarGasScattering.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestSensorPol.arts)
