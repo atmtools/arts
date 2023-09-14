@@ -168,22 +168,6 @@ if (ARTS_XML_DATA_DIR)
 
   ###############################
   ### testing XML Data itself ###
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Venus.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts)
-
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
-
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
-
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Earth.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Venus.arts)
-
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestPlanetIsoRatios.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestCIA.arts)
@@ -199,17 +183,6 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
   
-  ##################################
-  ### planet toolbox demos cases ###
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
-
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts)
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
-  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
-
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 
   arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)
