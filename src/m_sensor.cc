@@ -2276,7 +2276,7 @@ void sensor_responseMultiMixerBackend(
     for (Size ilos = 0; ilos < nlos; ilos++) {
       for (Index i = 0; i < nfpolthis; i++) {
         // "Poor mans" transfer of a row from one sparse to another
-        for (Index ic = 0; ic < ncols; ic++) {
+        for (Size ic = 0; ic < ncols; ic++) {
           dummy[ic] = sr[ilo](ilos * nfpolthis + i, ic);
         }
 
