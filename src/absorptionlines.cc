@@ -2920,4 +2920,19 @@ std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const Quantum
 
   return out;
 }
+
+std::ostream& operator<<(std::ostream& os, const Array<SingleLine>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Lines>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
 } // namespace Absorption

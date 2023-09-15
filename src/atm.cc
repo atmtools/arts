@@ -558,6 +558,11 @@ void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
    specs[sp[i]] = x[i];
   }
 }
+
+std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
 } // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {

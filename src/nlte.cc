@@ -11,8 +11,6 @@
 #include "interp.h"
 #include "quantum_numbers.h"
 
-#include <array_ostream.h>
-
 std::ostream& operator<<(std::ostream& os, const VibrationalEnergyLevels& vib) {
   bool any = false;
   os << '{';

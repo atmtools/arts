@@ -27,6 +27,8 @@ class CIARecord;
 
 using ArrayOfCIARecord = Array<CIARecord>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x);
+
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
                        const ConstVectorView& frequency,

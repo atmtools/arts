@@ -163,4 +163,6 @@ Range get_rowindex_for_mblock(const Sparse& sensor_response,
 /** An array of sparse matrices. */
 using ArrayOfSparse = Array<Sparse>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a);
+
 #endif

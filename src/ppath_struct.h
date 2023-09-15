@@ -83,4 +83,6 @@ struct Ppath {
 /** An array of propagation paths. */
 using ArrayOfPpath = Array<Ppath>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfPpath& x);
+
 #endif

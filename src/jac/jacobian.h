@@ -522,6 +522,8 @@ class RetrievalQuantity {
 
 using ArrayOfRetrievalQuantity = Array<RetrievalQuantity>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfRetrievalQuantity& a);
+
 // A macro to loop analytical jacobian quantities
 #define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do)                             \
   for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {              \

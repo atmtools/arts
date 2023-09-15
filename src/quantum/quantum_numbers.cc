@@ -1152,4 +1152,14 @@ bool Quantum::Number::LocalState::good() const { return val.good(); }
 bool Quantum::Number::GlobalState::good() const {
   return Species::is_normal_isotopologue(Isotopologue()) and val.good();
 }
+
+std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Type>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
 }  // namespace Quantum::Number

@@ -29,3 +29,8 @@ std::ostream& operator<<(std::ostream& os, const Ppath& x) {
   os << "ngroup: " << x.ngroup << "\n";
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfPpath& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

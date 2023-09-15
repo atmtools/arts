@@ -25,6 +25,12 @@
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
 /** Interpolate CIA data.
  
  Interpolate CIA data to given frequency vector and given scalar temperature.

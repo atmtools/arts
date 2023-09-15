@@ -4,8 +4,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <array_ostream.h>
-
 #include "auto_wsv.h"
 #include "debug.h"
 

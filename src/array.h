@@ -22,6 +22,24 @@ using ArrayOfArrayOfIndex = Array<ArrayOfIndex>;
 /** An array of Numeric. */
 using ArrayOfNumeric = Array<Numeric>;
 
+namespace std {
+inline std::ostream& operator<<(std::ostream& os, const ArrayOfIndex& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os,
+                                const ArrayOfArrayOfIndex& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+}  // namespace std
+
+inline std::ostream& operator<<(std::ostream& os, const ArrayOfNumeric& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
 /** Max function. */
 template <class base>
 constexpr base max(const Array<base>& x) {

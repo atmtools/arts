@@ -1131,3 +1131,8 @@ std::ostream& operator<<(std::ostream& os, const Target& x) {
   return os;
 }
 }  // namespace Jacobian
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfRetrievalQuantity& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

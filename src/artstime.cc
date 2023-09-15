@@ -214,3 +214,19 @@ TimeStep mean(const ArrayOfTimeStep& dt) {
 std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {
   return os << dt.count() << " seconds";
 }
+
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTime& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTime& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTimeStep& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

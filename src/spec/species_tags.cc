@@ -447,3 +447,20 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
   }
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+namespace Species {
+std::ostream& operator<<(std::ostream& os, const Array<Species>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+}  // namespace Species

@@ -368,4 +368,6 @@ typedef Array<TelsemAtlas> ArrayOfTelsemAtlas;
 
 std::ostream &operator<<(std::ostream &os, const TelsemAtlas &ta);
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfTelsemAtlas& a);
+
 #endif /* telsem_h */

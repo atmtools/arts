@@ -1183,6 +1183,9 @@ bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
                                                          Type::Ka,
                                                          Type::Kc,
                                                          Type::N};
+
+std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Type>& a);
 }  // namespace Quantum::Number
 
 using QuantumNumberType = Quantum::Number::Type;

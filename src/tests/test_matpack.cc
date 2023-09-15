@@ -17,8 +17,6 @@
 #include "time.h"
 #include "wigner_functions.h"
 
-#include "array_ostream.h"
-
 using std::cout;
 using std::endl;
 using std::runtime_error;

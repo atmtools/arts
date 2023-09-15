@@ -6,8 +6,6 @@
 #include "matpack_data.h"
 #include "matpack_math.h"
 
-#include "array_ostream.h"
-
 using std::cout;
 using std::setprecision;
 

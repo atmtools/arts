@@ -215,3 +215,8 @@ std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {
   os << "Species: " << xd.Species() << std::endl;
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}

@@ -288,6 +288,9 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                        const Vector& temperatures,
                                        const ErrorCorrectedSuddenData& ecs_data,
                                        const Vector& pressures);
+
+std::ostream& operator<<(std::ostream& os, const Array<SpeciesErrorCorrectedSuddenData>& a);
+std::ostream& operator<<(std::ostream& os, const Array<ErrorCorrectedSuddenData>& a);
 } // namespace Absorption::LineMixing
 
 using ErrorCorrectedSuddenData = Absorption::LineMixing::ErrorCorrectedSuddenData;

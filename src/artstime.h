@@ -118,6 +118,9 @@ struct Time {
   friend std::istream& operator>>(std::istream& is, Time& t);
 };  // Time
 
+/** Debug output for duration */
+std::ostream& operator<<(std::ostream& os, const TimeStep& dt);
+
 /** List of times */
 using ArrayOfTime = Array<Time>;
 
@@ -127,8 +130,11 @@ using ArrayOfArrayOfTime = Array<ArrayOfTime>;
 /** List of time steps */
 using ArrayOfTimeStep = Array<TimeStep>;
 
-/** Debug output for duration */
-std::ostream& operator<<(std::ostream& os, const TimeStep& dt);
+std::ostream& operator<<(std::ostream& os, const ArrayOfTime& a);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTime& a);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTimeStep& a);
 
 /** Returns a time step from valid string
  * 

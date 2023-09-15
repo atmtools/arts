@@ -1572,4 +1572,14 @@ std::ostream& operator<<(std::ostream& os,
   std::for_each(m.cbegin(), m.cend(), [&](auto& x) { os << x << '\n'; });
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const Array<SpeciesErrorCorrectedSuddenData>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<ErrorCorrectedSuddenData>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
 }  // namespace Absorption::LineMixing

@@ -172,6 +172,8 @@ public:
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a);
+
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a tagtype
 struct SpeciesTagTypeStatus {
   bool Plain{false},
@@ -256,6 +258,9 @@ Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
  * @return Array<Tag> List of species tags with no constraints
  */
 Array<Tag> parse_tags(std::string_view text);
+
+std::ostream& operator<<(std::ostream& os, const Array<Species>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a);
 } // namespace Species
 
 namespace std {

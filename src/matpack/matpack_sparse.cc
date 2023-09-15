@@ -662,3 +662,8 @@ Range get_rowindex_for_mblock(const Sparse& sensor_response,
   const Index n1y = sensor_response.nrows();
   return Range(n1y * mblock_index, n1y);
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

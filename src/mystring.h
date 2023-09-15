@@ -20,6 +20,19 @@ using ArrayOfString = Array<String>;
 /** An array of Strings. */
 using ArrayOfArrayOfString = Array<Array<String>>;
 
+namespace std {
+inline std::ostream& operator<<(std::ostream& os, const ArrayOfString& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os,
+                                const ArrayOfArrayOfString& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+}  // namespace std
+
 /** Extract something from the beginning of a string. This is just a small helper
  function to safe some typing.
 

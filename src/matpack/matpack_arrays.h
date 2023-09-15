@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array.h"
+#include "matpack_concepts.h"
 #include "matpack_constexpr.h"
 #include "matpack_data.h"
 
@@ -57,3 +58,23 @@ using ArrayOfVector2 = Array<Vector2>;
 
 //! An array of Vectors of length 3 of Numeric
 using ArrayOfVector3 = Array<Vector3>;
+
+namespace matpack {
+template <any_matpack_type T>
+std::ostream& operator<<(std::ostream& os, const Array<T>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+template <any_matpack_type T>
+std::ostream& operator<<(std::ostream& os, const Array<Array<T>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+template <any_matpack_type T>
+std::ostream& operator<<(std::ostream& os, const Array<Array<Array<T>>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+}  // namespace matpack

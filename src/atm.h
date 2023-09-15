@@ -372,6 +372,8 @@ GriddedField3 fix(const GriddedField2 &);
  * @return GriddedField3 in the Field format
  */
 GriddedField3 fix(const GriddedField1 &);
+
+std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
 } // namespace Atm
 
 using AtmField = Atm::Field;

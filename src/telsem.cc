@@ -375,3 +375,8 @@ const std::array<Numeric, 4> TelsemAtlas::rapport43_32 = {
     0.62, 0.37, 0.46, 0.63};
 const std::array<Numeric, 4> TelsemAtlas::rapport54_43 = {
     0.30, 0.60, 0.47, 0.35};
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTelsemAtlas& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

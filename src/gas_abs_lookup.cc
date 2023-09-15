@@ -16,8 +16,6 @@
 #include "matpack_data.h"
 #include "physics_funcs.h"
 
-#include <array_ostream.h>
-
 //! Find positions of new grid points in old grid.
 /*! 
   Throw a runtime error if the frequencies of the new grid are not

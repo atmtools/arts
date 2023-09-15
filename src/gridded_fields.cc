@@ -24,8 +24,6 @@
 #include "exceptions.h"
 #include "mystring.h"
 
-#include <array_ostream.h>
-
 using std::endl;
 using std::ostream;
 using std::ostringstream;
@@ -274,4 +272,47 @@ ostream& operator<<(ostream& os, const GriddedField5& gf) {
 //! See GriddedField::operator<<
 ostream& operator<<(ostream& os, const GriddedField6& gf) {
   return os << *((GriddedField*)&gf) << "Data:" << endl << gf.data << endl;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField1& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField2& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField3& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField4& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField5& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField1& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField2& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField3& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
 }

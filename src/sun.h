@@ -59,6 +59,8 @@ struct Sun {
 /** An array of sun. */
 using ArrayOfSun = Array<Sun>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
+
 
 /*===========================================================================
   === Functions in sun.h

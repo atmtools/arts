@@ -2908,3 +2908,23 @@ Numeric interp_poly(ConstVectorView x,
 
   return y_int;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

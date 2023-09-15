@@ -945,6 +945,10 @@ Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
   @return A list of indices of bands that may be part of qid
 */
 std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const QuantumIdentifier& qid);
+
+std::ostream& operator<<(std::ostream& os, const Array<SingleLine>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Lines>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;

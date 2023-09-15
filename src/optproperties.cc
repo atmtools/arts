@@ -2444,3 +2444,25 @@ void ext_abs_pfun_from_tro(MatrixView ext_data,
     }
   }
 }
+
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfSingleScatteringData& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSingleScatteringData& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfScatteringMetaData& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfScatteringMetaData& x) {
+  for (auto& a : x) os << a << '\n';
+  return os;
+}

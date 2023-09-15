@@ -179,3 +179,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
   return int_data;
 }
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
