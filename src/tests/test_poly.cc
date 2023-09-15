@@ -1,5 +1,6 @@
 #include <iostream>
-#include "poly_roots.h"
+
+#include <poly_roots.h>
 
 int main(void) {
   Vector v(9, 0);

@@ -1,4 +1,3 @@
-add_subdirectory(matpack)
 add_subdirectory(gui)
 add_subdirectory(partfun)
 add_subdirectory(predefined)
@@ -140,7 +139,6 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  math_funcs.cc
   mc_antenna.cc
   mc_interp.cc
   microphysics.cc
@@ -150,7 +148,6 @@ add_library (artscore STATIC
   optproperties.cc
   parameters.cc
   physics_funcs.cc
-  poly_roots.cc
   ppath.cc
   ppath_struct.cc
   propmat_field.cc
@@ -235,19 +232,6 @@ add_library (xmliobase STATIC
         )
 
 target_link_libraries (xmliobase PUBLIC binio matpack)
-
-########### next target ###############
-
-add_library (binio STATIC
-        bifstream.cc
-        bofstream.cc
-        binio.cc
-        gzstream.cc 
-        )
-
-set_source_files_properties (binio.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
-target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
 
 ########################################################################################
 

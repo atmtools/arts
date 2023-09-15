@@ -34,7 +34,6 @@ target_link_libraries (test_linalg artscore
 ########### next testcase ###############
 
 add_executable (test_integration
-  ../math_funcs.cc
   test_integration.cc)
 
 target_link_libraries (test_integration matpack)
@@ -79,7 +78,7 @@ if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
 endif()
 ########### next testcase ###############
 
-add_executable (test_poly ../poly_roots.h ../poly_roots.cc test_poly.cc)
+add_executable (test_poly test_poly.cc)
 target_link_libraries (test_poly matpack)
 
 ########### next testcase ###############
@@ -107,6 +106,7 @@ target_link_libraries (test_sparse artscore test_utils)
 
 add_executable (test_xml test_xml.cc)
 target_link_libraries (test_xml xmliobase)
+target_include_directories(test_xml PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 ########### next testcase ###############
 
@@ -224,6 +224,7 @@ add_custom_target(check-pyversion
 #####
 add_executable(test_matpack_perf test_matpack_perf.cc ../artstime.cc)
 target_link_libraries(test_matpack_perf PUBLIC matpack)
+target_include_directories(test_matpack_perf PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 #####
 add_executable(test_interp_perf test_interp_perf.cc)
@@ -232,3 +233,4 @@ target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 #####
 add_executable(test_rng test_rng.cc ../artstime.cc)
 target_link_libraries(test_rng PUBLIC matpack)
+target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)

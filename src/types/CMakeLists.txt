@@ -9,3 +9,7 @@ target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
 target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 ######
+
+add_subdirectory(binio)
+
+add_subdirectory(matpack)
