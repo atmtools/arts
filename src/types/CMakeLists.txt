@@ -1,12 +1,20 @@
 ##### Give Index, Numeric, String, and Array<> types
+set (CORETYPE_EXTRA)
+if (NOT HAVE_GETOPT_H)
+  list (APPEND CORETYPE_EXTRA
+    arts_getopt.c arts_getopt1.c)
+endif (NOT HAVE_GETOPT_H)
 
 add_library(coretypes STATIC
+  ${CORETYPE_EXTRA}
   array.cpp
+  file.cc
   mystring.cpp
+  parameters.cc
 )
 target_include_directories(coretypes PUBLIC "${ARTS_SOURCE_DIR}/3rdparty")
-target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
 target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
 
 ######
 

@@ -32,14 +32,7 @@ add_custom_command (
 
 ########### next target ###############
 
-set (ARTSCORE_EXTRA_SOURCES)
-if (NOT HAVE_GETOPT_H)
-  list (APPEND ARTSCORE_EXTRA_SOURCES
-    arts_getopt.c arts_getopt1.c)
-endif (NOT HAVE_GETOPT_H)
-
 add_library (artscore STATIC
-  ${ARTSCORE_EXTRA_SOURCES}
   absorption.cc
   arts_omp.cc
   atm_path.cc
@@ -50,7 +43,6 @@ add_library (artscore STATIC
   doit.cc
   fastem.cc
   predefined_absorption_models.cc
-  file.cc
   gas_scattering.cc
   geodetic.cc
   gui_propmat.cc
@@ -125,7 +117,6 @@ add_library (artscore STATIC
   microphysics.cc
   minimize.cc
   montecarlo.cc
-  parameters.cc
   physics_funcs.cc
   ppath.cc
   propmat_field.cc
