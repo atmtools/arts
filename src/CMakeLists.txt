@@ -1,10 +1,7 @@
 add_subdirectory(gui)
 add_subdirectory(partfun)
-add_subdirectory(predefined)
 add_subdirectory(python_interface)
-add_subdirectory(rtepack)
 add_subdirectory(workspace)
-add_subdirectory(operators)
 add_subdirectory(types)
 
 if (NETCDF_FOUND)
@@ -235,11 +232,6 @@ target_link_libraries (xmliobase PUBLIC binio matpack)
 
 ########################################################################################
 
-add_subdirectory(spec)
-add_subdirectory(jac)
-
-########################################################################################
-
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
   set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -254,7 +246,4 @@ target_link_libraries(artscore PUBLIC artscore_gpl_selector)
 
 add_subdirectory(tests)
 
-add_subdirectory(fwd)
 target_link_libraries(artscore PUBLIC fwd)
-
-add_subdirectory(quantum)

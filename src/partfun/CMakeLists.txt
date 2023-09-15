@@ -3,8 +3,7 @@ add_executable(partfun_generator
     xml_io_partfun.cc
 )
 
-target_link_libraries (partfun_generator PRIVATE matpack xmliobase)
-target_include_directories(partfun_generator PRIVATE ../spec)
+target_link_libraries (partfun_generator PRIVATE matpack xmliobase coretypes)
 target_include_directories(partfun_generator PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 file(GLOB_RECURSE partfun_xml_files LIST_DIRECTORIES FALSE RELATIVE ${ARTS_PARTFUN_DATA_PATH} "*.xml")
