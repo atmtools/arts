@@ -6,9 +6,10 @@
 #include <compare>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
-#include "matpack_concepts.h"
+#include "configtypes.h"
 
 /** An array of Index. */
 template <typename base>
@@ -23,22 +24,11 @@ using ArrayOfArrayOfIndex = Array<ArrayOfIndex>;
 using ArrayOfNumeric = Array<Numeric>;
 
 namespace std {
-inline std::ostream& operator<<(std::ostream& os, const ArrayOfIndex& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                const ArrayOfArrayOfIndex& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const ArrayOfIndex& x);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfIndex& x);
 }  // namespace std
 
-inline std::ostream& operator<<(std::ostream& os, const ArrayOfNumeric& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const ArrayOfNumeric& x);
 
 /** Max function. */
 template <class base>

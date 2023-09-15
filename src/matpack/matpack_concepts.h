@@ -1,8 +1,5 @@
 #pragma once
 
-#include "config.h"
-#include "debug.h"
-
 #include <experimental/mdspan>
 
 #include <array>
@@ -12,16 +9,10 @@
 #include <type_traits>
 #include <vector>
 
+#include <configtypes.h>
+#include <debug.h>
+
 namespace stdx = std::experimental;
-
-//! The base number type of matpack
-using Numeric = NUMERIC;
-
-//! The base integer type of matpack
-using Index = INDEX;
-
-//! The base unsigned integer type of matpack
-using Size = std::size_t;
 
 using Complex = std::complex<Numeric>;
 

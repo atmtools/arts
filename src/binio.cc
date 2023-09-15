@@ -21,7 +21,8 @@
 #include <stdexcept>
 
 #include "binio.h"
-#include "debug.h"
+
+#include <debug.h>
 
 /***** Defines *****/
 

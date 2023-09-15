@@ -6,6 +6,7 @@ add_subdirectory(python_interface)
 add_subdirectory(rtepack)
 add_subdirectory(workspace)
 add_subdirectory(operators)
+add_subdirectory(types)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES

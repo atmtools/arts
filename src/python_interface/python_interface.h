@@ -57,7 +57,7 @@ py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(
   auto out = py::bind_vector<PythonListable, std::shared_ptr<PythonListable>>(
       scope, name, std::forward<decltype(args)>(args)...);
 
-  if constexpr (not((opts == ArrayOptions::noobjlist) or ...)) {
+  if constexpr (not((opts == ArrayOptions::nocopy) or ...)) {
     out.def("__copy__", [](const PythonListable& v) {
       return std::make_shared<PythonListable>(v);
     });

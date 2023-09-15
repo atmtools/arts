@@ -4,12 +4,13 @@
 
 #include <algorithm>
 #include <charconv>
+#include <sstream>
 #include <string>
 #include <string_view>
 
 #include "array.h"
+#include "configtypes.h"
 #include "nonstd.h"
-#include <matpack_concepts.h>
 
 /** The String type for ARTS. Implementation. */
 using String = std::string;
@@ -21,16 +22,8 @@ using ArrayOfString = Array<String>;
 using ArrayOfArrayOfString = Array<Array<String>>;
 
 namespace std {
-inline std::ostream& operator<<(std::ostream& os, const ArrayOfString& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                const ArrayOfArrayOfString& x) {
-  for (auto& a : x) os << a << '\n';
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const ArrayOfString& x);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfString& x);
 }  // namespace std
 
 /** Extract something from the beginning of a string. This is just a small helper
@@ -50,8 +43,8 @@ void extract(T& x, String& line, Size n) {
   const Size N = n;
   Size i = 0;
   while (i < N and i < line.size() and isspace(line[i])) ++i;
-  while (n > i and (n-1) < line.size() and isspace(line[n-1])) --n;
-  
+  while (n > i and (n - 1) < line.size() and isspace(line[n - 1])) --n;
+
   if constexpr (std::is_same_v<double, T> or std::is_same_v<float, T>) {
     fast_float::from_chars(line.data() + i, line.data() + n, x);
   } else if constexpr (std::is_same_v<long long, T> or
@@ -71,66 +64,14 @@ void extract(T& x, String& line, Size n) {
   line.erase(0, N);
 }
 
-inline
-void tolower(String& x) {
-  std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c){ return ::tolower(c); });
-}
+void tolower(String& x);
+String tolower(const String& x);
 
-[[nodiscard]]
-inline
-String tolower(const String& x) {
-  String out=x;
-  tolower(out);
-  return out;
-}
+void toupper(String& x);
+String toupper(const String& x);
 
-inline
-void toupper(String& x) {
-  std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c){ return ::toupper(c); });
-}
+void split(ArrayOfString& aos, const String& x, const String& delim);
+ArrayOfString split(const String& x, const String& delim);
 
-[[nodiscard]]
-inline
-String toupper(const String& x) {
-  String out=x;
-  toupper(out);
-  return out;
-}
-
-inline
-void split(ArrayOfString& aos, const String& x, const String& delim) {
-    Size pos, oldpos;
-    pos = oldpos = 0;
-    aos.resize(0);
-
-    while (oldpos < x.size() &&
-           (pos = x.find(delim, oldpos)) != x.npos) {
-      if (pos && pos - oldpos)
-        aos.push_back(x.substr(oldpos, pos - oldpos));
-      oldpos = pos + delim.size();
-    }
-
-    if (oldpos < x.size()) aos.push_back(x.substr(oldpos));
-}
-
-[[nodiscard]]
-inline
-ArrayOfString split(const String& x, const String& delim) {
-  ArrayOfString out;
-  split(out, x, delim);
-  return out;
-}
-
-inline
-void trim(String& x) {
-  while (nonstd::isspace(x.front())) x.erase(x.begin());
-  while (nonstd::isspace(x.back())) x.pop_back();
-}
-
-[[nodiscard]]
-inline
-String trim(const String& x) {
-  String out = x;
-  trim(out);
-  return out;
-}
+void trim(String& x);
+String trim(const String& x);
