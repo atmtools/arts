@@ -117,7 +117,7 @@ void open_input_file(std::ifstream& file, const std::string_view name) {
   ArrayOfString matching_files;
   find_file(matching_files, ename, allpaths);
 
-  if (matching_files.nelem()) ename = matching_files[0];
+  if (matching_files.size()) ename = matching_files[0];
 
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
@@ -286,7 +286,7 @@ bool find_file(ArrayOfString& matches,
   std::string efilename{expand_path(String{filename})};
 
   // filename contains full path
-  if (!paths.nelem() || std::filesystem::path(efilename).is_absolute()) {
+  if (!paths.size() || std::filesystem::path(efilename).is_absolute()) {
     for (const auto& ext : extensions) {
       const String fullpath{efilename + ext};
 
@@ -341,7 +341,7 @@ void find_xml_file(String& filename) {
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
 
-  ARTS_USER_ERROR_IF(!matching_files.nelem(),
+  ARTS_USER_ERROR_IF(!matching_files.size(),
                      "Cannot find input file: ",
                      filename,
                      "\nSearch path: ",
@@ -371,7 +371,7 @@ bool find_xml_file_existence(String& filename) {
   ArrayOfString matching_files;
   find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
   
-  if (matching_files.nelem()) {
+  if (matching_files.size()) {
     filename = matching_files[0];
     return true;
   }
@@ -434,10 +434,10 @@ String get_dirname(const std::string_view path) {
 
   const ArrayOfString fileparts = split(String{path}, "/");
   if (path[0] == '/') dirname = "/";
-  if (fileparts.nelem() > 1) {
-    for (Index i = 0; i < fileparts.nelem() - 1; i++) {
+  if (fileparts.size() > 1) {
+    for (Size i = 0; i < fileparts.size() - 1; i++) {
       dirname += fileparts[i];
-      if (i < fileparts.nelem() - 2) dirname += "/";
+      if (i < fileparts.size() - 2) dirname += "/";
     }
   }
 

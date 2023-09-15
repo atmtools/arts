@@ -1709,7 +1709,7 @@ Vector compabs(
   constexpr Numeric u_pi = Constant::inv_pi;
   constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
   
-  for (Index iband=0; iband<bands.nelem(); iband++) {
+  for (Size iband=0; iband<bands.size(); iband++) {
     if (not bands[iband].DoLineMixing(P)) continue;
     
     const Numeric rat_isot = isotopologue_ratio[bands[iband].Isotopologue()];

@@ -85,7 +85,7 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
                               const Numeric& surface_skin_t) {
   ARTS_ASSERT(surface_rmatrix.nrows() == 4);
   ARTS_ASSERT(surface_rmatrix.ncols() == 4);
-  ARTS_ASSERT(surface_emission.nelem() == 4);
+  ARTS_ASSERT(surface_emission.size() == 4);
 
   // Expressions are derived in the surface chapter in the user guide
 
@@ -124,11 +124,11 @@ void surface_specular_R_and_b(MatrixView surface_rmatrix,
 void surface_props_check(const SurfaceField& surface_field,
                          const ArrayOfString& surface_props_names) {
   // Check sizes
-  ARTS_USER_ERROR_IF (surface_field.nelem<SurfacePropertyTag>() != surface_props_names.nelem(),
+  ARTS_USER_ERROR_IF (surface_field.size<SurfacePropertyTag>() != surface_props_names.size(),
         "The number of pages in *surface_props_data* and "
         "length of *surface_props_names* differ.");
   // If no surface properties, then we are ready
-  if (surface_props_names.nelem() == 0) {
+  if (surface_props_names.size() == 0) {
     return;
   }
 
@@ -136,10 +136,10 @@ void surface_props_check(const SurfaceField& surface_field,
     ARTS_USER_ERROR_IF(not surface_field.contains(SurfacePropertyTag{name}),
                        "No ", std::quoted(name), " field in surface_field")
 
-  for (Index i = 0; i < surface_props_names.nelem(); i++) {
+  for (Size i = 0; i < surface_props_names.size(); i++) {
     ARTS_USER_ERROR_IF (surface_props_names[i].size() == 0,
       "Element ", i, " (0-based) of *surface_props_names* is empty.")
-    for (Index j = i + 1; j < surface_props_names.nelem(); j++) {
+    for (Size j = i + 1; j < surface_props_names.size(); j++) {
       ARTS_USER_ERROR_IF (surface_props_names[j] == surface_props_names[i],
         "Two surface properties with same name found!\n"
         "This found for these two properties\n"
@@ -154,16 +154,16 @@ void dsurface_check(const ArrayOfString& surface_props_names,
                     const ArrayOfString& dsurface_names,
                     const ArrayOfTensor4 dsurface_rmatrix_dx,
                     const ArrayOfMatrix& dsurface_emission_dx) {
-  const Index nq = dsurface_names.nelem();
+  const Size nq = dsurface_names.size();
 
-  ARTS_USER_ERROR_IF (dsurface_rmatrix_dx.nelem() != nq,
+  ARTS_USER_ERROR_IF (dsurface_rmatrix_dx.size() != nq,
         "The lengths of *dsurface_names* and *dsurface_rmatrix_dx* differ.");
-  ARTS_USER_ERROR_IF (dsurface_emission_dx.nelem() != nq,
+  ARTS_USER_ERROR_IF (dsurface_emission_dx.size() != nq,
         "The lengths of *dsurface_names* and *dsurface_emission_dx* differ.");
 
-  for (Index i = 0; i < nq; i++) {
+  for (Size i = 0; i < nq; i++) {
     bool found = false;
-    for (Index j = 0; j < surface_props_names.nelem() && !found; j++) {
+    for (Size j = 0; j < surface_props_names.size() && !found; j++) {
       if (dsurface_names[i] == surface_props_names[j]) {
         found = true;
       }
@@ -184,10 +184,10 @@ void surface_normal_calc(VectorView pos,
                          const SurfaceField& surface_field,
                          ConstVectorView pos2D)
 {
-  ARTS_ASSERT(pos.nelem() == 3); 
-  ARTS_ASSERT(ecef.nelem() == 3); 
-  ARTS_ASSERT(decef.nelem() == 3); 
-  ARTS_ASSERT(pos2D.nelem() == 2);
+  ARTS_ASSERT(pos.size() == 3); 
+  ARTS_ASSERT(ecef.size() == 3); 
+  ARTS_ASSERT(decef.size() == 3); 
+  ARTS_ASSERT(pos2D.size() == 2);
   
   // We need two orthogonal vectors inside the surface plane. We
   // follow ENU and the first one should be towards E and the second

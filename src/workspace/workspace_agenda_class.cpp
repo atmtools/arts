@@ -301,3 +301,8 @@ std::ostream& operator<<(std::ostream& os, const Agenda& a) {
 
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfAgenda& a) {
+  for (auto& ag : a) os << ag << '\n';
+  return os;
+}

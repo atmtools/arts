@@ -31,7 +31,7 @@ void statistical_equilibrium_equation(MatrixView A,
                                       const ConstVectorView& Jij,
                                       const ArrayOfIndex& upper,
                                       const ArrayOfIndex& lower) {
-  const Index nlines = Aij.nelem();
+  const Index nlines = Aij.size();
 
   A = 0.0;
   for (Index iline = 0; iline < nlines; iline++) {
@@ -59,7 +59,7 @@ void dampened_statistical_equilibrium_equation(
     const ArrayOfIndex& upper,
     const ArrayOfIndex& lower,
     const Numeric& total_number_count) {
-  const Index nlines = Aij.nelem();
+  const Index nlines = Aij.size();
 
   A = 0.0;
   for (Index iline = 0; iline < nlines; iline++) {
@@ -90,7 +90,7 @@ void set_constant_statistical_equilibrium_matrix(MatrixView A,
 
 Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   // Size of problem
-  const Index n = nelem(abs_lines);
+  const Index n = size(abs_lines);
   Vector Aij(n);
   
   Index i=0;
@@ -109,7 +109,7 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   constexpr Numeric c0 = 2.0 * Constant::h / Math::pow2(Constant::c);
   
   // Size of problem
-  const Index n = nelem(abs_lines);
+  const Index n = size(abs_lines);
   Vector Bij(n);
   
   // Base equation for single state:  B21 = A21 c^2 / 2 h f^3  (nb. SI, don't use this without checking your need)
@@ -127,7 +127,7 @@ Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
 
 Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   // Size of problem
-  const Index n = Bij.nelem();
+  const Index n = Bij.size();
   Vector Bji(n);
 
   // Base equation for single state:  B12 = B21 g2 / g1
@@ -146,7 +146,7 @@ Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lin
 Vector createCji(const Vector& Cij,
                  const ArrayOfArrayOfAbsorptionLines& abs_lines,
                  const Numeric& T) {
-  const Index n = nelem(abs_lines);
+  const Index n = size(abs_lines);
   Vector Cji(n);
   setCji(Cji, Cij, abs_lines, T);
   return Cji;
@@ -183,8 +183,8 @@ void nlte_collision_factorsCalcFromCoeffs(
     const Numeric& T,
     const Numeric& P) {
   // size of problem
-  const Index nspec = abs_species.nelem();
-  const Index ntrans = collision_line_identifiers.nelem();
+  const Index nspec = abs_species.size();
+  const Index ntrans = collision_line_identifiers.size();
 
   // reset Cij for summing later
   Cij = 0;
@@ -231,7 +231,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
     ArrayOfIndex& lower,
     const ArrayOfArrayOfAbsorptionLines& abs_lines,
     const ArrayOfQuantumIdentifier& nlte_qid) {
-  const Index nl = nelem(abs_lines), nq = nlte_qid.nelem();
+  const Index nl = size(abs_lines), nq = nlte_qid.size();
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
@@ -265,7 +265,7 @@ Index find_first_unique_in_lower(const ArrayOfIndex& upper,
     if (std::find(upper.cbegin(), upper.cend(), l) == upper.cend())
       return l;
   }
-  return upper.nelem() - 1;
+  return upper.size() - 1;
 }
 
 void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers) {

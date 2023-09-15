@@ -146,74 +146,27 @@ so Copy(a, out=b) will not even see the b variable.
            })
       .PythonInterfaceWorkspaceDocumentation(Agenda);
 
-  artsclass<ArrayOfAgenda>(m, "ArrayOfAgenda")
-      .def(py::init([]() { return std::make_shared<ArrayOfAgenda>(); }), "Create empty")
-      .PythonInterfaceWorkspaceVariableConversion(ArrayOfAgenda)
-      .PythonInterfaceCopyValue(ArrayOfAgenda)
-      .def(py::init([](std::vector<Agenda> va) {
-        for (auto& a : va) {
-          ARTS_USER_ERROR_IF(
-              a.get_name() not_eq va.front().get_name(),
-              "An ArrayOfAgenda must only consist of agendas with the same name\n"
-              "You have input a list of agendas that contains disimilar names.\n"
-              "\nThe first item is named: \"",
-              va.front().get_name(),
-              '"',
-              '\n',
-              "A later item in the list is names: \"",
-              a.get_name(),
-              '"',
-              '\n')
-        }
-        return std::make_shared<ArrayOfAgenda>(va);
-      }), "Create from :class:`list`")
-      .def("__repr__", [](ArrayOfAgenda&) { return "ArrayOfAgenda"; })
-      .def("__str__",
-           [](ArrayOfAgenda& aa) {
-             return var_string(aa);
-           })
-      .PythonInterfaceFileIO(ArrayOfAgenda)
-      .def("__len__", [](const ArrayOfAgenda& x) { return x.nelem(); })
+  artsarray<ArrayOfAgenda>(m, "ArrayOfAgenda")
       .def(
-          "__getitem__",
-          [](ArrayOfAgenda& x, Index i) -> Agenda& {
-            if (x.nelem() <= i or i < 0)
-              throw std::out_of_range(var_string("Bad index access: ",
-                                                 i,
-                                                 " in object of size [0, ",
-                                                 x.size(),
-                                                 ")"));
-            return x[i];
-          },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](ArrayOfAgenda& x, Index i, Agenda y) {
-            if (x.nelem() <= i or i < 0) {
-              throw std::out_of_range(var_string("Bad index access: ",
-                                                 i,
-                                                 " in object of size [0, ",
-                                                 x.size(),
-                                                 ")"));
+          py::init([](std::vector<Agenda> va) {
+            for (auto& a : va) {
+              ARTS_USER_ERROR_IF(
+                  a.get_name() not_eq va.front().get_name(),
+                  "An ArrayOfAgenda must only consist of agendas with the same name\n"
+                  "You have input a list of agendas that contains disimilar names.\n"
+                  "\nThe first item is named: \"",
+                  va.front().get_name(),
+                  '"',
+                  '\n',
+                  "A later item in the list is names: \"",
+                  a.get_name(),
+                  '"',
+                  '\n')
             }
-            if (y.get_name() not_eq x.front().get_name()) y.set_name(x.front().get_name());
-            x[i] = std::move(y);
-          },
-          py::return_value_policy::reference_internal)
-      .def("append",
-           [](ArrayOfAgenda& x, Agenda y) {
-             if (x.nelem() and y.get_name() not_eq x.front().get_name())
-               y.set_name(x.front().get_name());
-             x.emplace_back(std::move(y));
-           }, "Appends a :class:`~pyarts.arts.Agenda` at the end of the array")
-      .def(
-          "pop",
-          [](ArrayOfAgenda& aa) {
-            Agenda a = std::move(aa.back());
-            aa.pop_back();
-            return a;
-          },
-          "Pops and returns the last item")
+            return std::make_shared<ArrayOfAgenda>(va);
+          }),
+          "Create from :class:`list`")
+      .PythonInterfaceFileIO(ArrayOfAgenda)
       .def(
           "finalize",
           [](ArrayOfAgenda& aa) {
@@ -224,26 +177,17 @@ so Copy(a, out=b) will not even see the b variable.
       .def_property(
           "name",
           [](ArrayOfAgenda& a) -> String {
-            if (a.nelem() == 0) return "";
+            if (a.size() == 0) return "";
             return a.front().get_name();
           },
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
-          }, py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"))
-      .def(py::pickle(
-          [](const ArrayOfAgenda& v) {
-            auto n = v.size();
-            std::vector<Agenda> out(n);
-            std::copy(v.begin(), v.end(), out.begin());
-            return py::make_tuple(std::move(out));
           },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_shared<ArrayOfAgenda>(t[0].cast<std::vector<Agenda>>());
-          }))
-      .PythonInterfaceWorkspaceDocumentationExtra(ArrayOfAgenda, "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
-  py::implicitly_convertible<std::vector<Agenda>, ArrayOfAgenda>();
-} catch(std::exception& e) {
+          py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"))
+      .PythonInterfaceWorkspaceDocumentationExtra(
+          ArrayOfAgenda,
+          "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
+} catch (std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));
 }
 }  // namespace Python

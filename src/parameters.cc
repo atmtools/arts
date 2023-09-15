@@ -373,7 +373,7 @@ bool get_parameters(int argc, char **argv) {
 
 #ifdef ARTS_DEFAULT_INCLUDE_DIR
   String arts_default_include_path(ARTS_DEFAULT_INCLUDE_DIR);
-  if (arts_default_include_path != "" && !parameters.includepath.nelem()) {
+  if (arts_default_include_path != "" && !parameters.includepath.size()) {
     // Skip delimiters at beginning.
     String::size_type lastPos =
         arts_default_include_path.find_first_not_of(":", 0);
@@ -396,7 +396,7 @@ bool get_parameters(int argc, char **argv) {
   if (parameters.outdir.size())
     parameters.datapath.insert(parameters.datapath.begin(), parameters.outdir);
 
-  if (parameters.controlfiles.nelem()) {
+  if (parameters.controlfiles.size()) {
     const String cfdirname{get_dirname(parameters.controlfiles[0])};
     if (cfdirname.size()) parameters.includepath.push_back(cfdirname);
   }

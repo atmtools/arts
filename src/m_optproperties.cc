@@ -89,7 +89,7 @@ void pha_mat_sptFromData(  // Output:
   // has been checked by scat_data_raw reading routines (ScatSpecies/Element*Add/Read).
   // Unsafe, however, remain when ReadXML is used directly or if scat_data(_raw) is
   // (partly) produced from scat_data_singleTmatrix.
-  if (scat_data[0][0].f_grid.nelem() < 2) {
+  if (scat_data[0][0].f_grid.size() < 2) {
     std::ostringstream os;
     os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
        << "but frequency interpolable data (*scat_data* with >=2 freq points) "
@@ -97,7 +97,7 @@ void pha_mat_sptFromData(  // Output:
     throw std::runtime_error(os.str());
   }
 
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data.size();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, 4, 4]
@@ -106,7 +106,7 @@ void pha_mat_sptFromData(  // Output:
   Index i_se_flat = 0;
   // Loop over scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+    const Index N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
@@ -147,10 +147,10 @@ void pha_mat_sptFromData(  // Output:
             ti = 0;
           } else if (rtp_temperature > -20.)  // highest T-point
           {
-            ti = T_DATAGRID.nelem() - 1;
+            ti = T_DATAGRID.size() - 1;
           } else  // median T-point
           {
-            ti = T_DATAGRID.nelem() / 2;
+            ti = T_DATAGRID.size() / 2;
           }
         }
 
@@ -220,9 +220,9 @@ void pha_mat_sptFromData(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < za_grid.nelem();
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size();
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             pha_matTransform(
                 pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker),
@@ -274,31 +274,31 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
   // 3 = 3
   if (pnd_field.ncols() > 1) {
-    ARTS_ASSERT(pha_mat_sptDOITOpt.nelem() == N_se_total);
+    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == static_cast<Size>(N_se_total));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
-           scat_data_mono[0][0].T_grid.nelem());
+           scat_data_mono[0][0].T_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
-    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.size());
   }
 
   // 3 = 1, only zenith angle required for scattered directions.
   else if (pnd_field.ncols() == 1) {
     //ARTS_ASSERT(is_size(scat_theta, doit_za_grid_size, 1,
-    //                doit_za_grid_size, aa_grid.nelem()));
+    //                doit_za_grid_size, aa_grid.size()));
 
-    ARTS_ASSERT(pha_mat_sptDOITOpt.nelem() == TotalNumberOfElements(scat_data_mono));
+    ARTS_ASSERT(pha_mat_sptDOITOpt.size() == static_cast<Size>(TotalNumberOfElements(scat_data_mono)));
     // Assuming that if the size is o.k. for one scattering element, it will
     // also be o.k. for the other scattering elements.
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nlibraries() ==
-           scat_data_mono[0][0].T_grid.nelem());
+           scat_data_mono[0][0].T_grid.size());
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nshelves() == 1);
     ARTS_ASSERT(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
+    ARTS_ASSERT(pha_mat_sptDOITOpt[0].npages() == aa_grid.size());
   }
 
   ARTS_ASSERT(doit_za_grid_size > 0);
@@ -312,7 +312,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
-  if (scat_data_mono[0][0].f_grid.nelem() > 1) {
+  if (scat_data_mono[0][0].f_grid.size() > 1) {
     std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
@@ -323,7 +323,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
-  const Index N_ss = scat_data_mono.nelem();
+  const Index N_ss = scat_data_mono.size();
 
   if (4 > 4 || 4 < 1) {
     throw std::runtime_error(
@@ -341,7 +341,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
   // Do the transformation into the laboratory coordinate system.
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data_mono[i_ss].nelem();
+    const Index N_se = scat_data_mono[i_ss].size();
 
     for (Index i_se = 0; i_se < N_se; i_se++) {
       // If the particle number density at a specific point in the
@@ -387,7 +387,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
         for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
@@ -441,14 +441,14 @@ void opt_prop_sptFromData(  // Output and Input:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
              if (N_ss) {
-               ARTS_ASSERT(ext_mat_spt[0].nelem() == N_se_total);
-               ARTS_ASSERT(abs_vec_spt[0].nelem() == N_se_total);
+               ARTS_ASSERT(ext_mat_spt[0].size() == N_se_total);
+               ARTS_ASSERT(abs_vec_spt[0].size() == N_se_total);
              });
 
   // Check that we don't have scat_data_mono here. Only checking the first
@@ -458,7 +458,7 @@ void opt_prop_sptFromData(  // Output and Input:
   // has been checked by scat_data_raw reading routines (ScatSpecies/Element*Add/Read).
   // Unsafe, however, remain when ReadXML is used directly or if scat_data(_raw) is
   // (partly) produced from scat_data_singleTmatrix.
-  if (scat_data[0][0].f_grid.nelem() < 2) {
+  if (scat_data[0][0].f_grid.size() < 2) {
     std::ostringstream os;
     os << "Scattering data seems to be *scat_data_mono* (1 freq point only),\n"
        << "but frequency interpolable data (*scat_data* with >=2 freq points) "
@@ -478,7 +478,7 @@ void opt_prop_sptFromData(  // Output and Input:
   Index i_se_flat = 0;
   // Loop over the included scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+    const Index N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
@@ -510,7 +510,7 @@ void opt_prop_sptFromData(  // Output and Input:
         GridPos t_gp;
         Vector itw;
 
-        if (T_DATAGRID.nelem() > 1) {
+        if (T_DATAGRID.size() > 1) {
           std::ostringstream os;
           os << "In opt_prop_sptFromData.\n"
              << "The temperature grid of the scattering data does not\n"
@@ -647,13 +647,13 @@ void opt_prop_sptFromScat_data(  // Output and Input:
         "The scattering data must be flagged to have "
         "passed a consistency check (scat_data_checked=1).");
 
-  const Index N_ss = scat_data.nelem();
+  const Size N_ss = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);)
-  ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
-  ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
+  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data);)
+  ARTS_ASSERT(ext_mat_spt.size() == N_se_total);
+  ARTS_ASSERT(abs_vec_spt.size() == N_se_total);
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, 4, 4]
@@ -668,11 +668,11 @@ void opt_prop_sptFromScat_data(  // Output and Input:
 
   Index i_se_flat = 0;
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+  for (Size i_ss = 0; i_ss < N_ss; i_ss++) {
+    const Size N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
-    for (Index i_se = 0; i_se < N_se; i_se++) {
+    for (Size i_se = 0; i_se < N_se; i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for the i_se scattering element is zero, we don't need
       // to do the transformation
@@ -822,9 +822,9 @@ void opt_prop_bulkCalc(  // Output and Input:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  Index N_se = abs_vec_spt.nelem();
+  const Size N_se = abs_vec_spt.size();
 
-  if (ext_mat_spt.nelem() not_eq N_se) {
+  if (ext_mat_spt.size() not_eq N_se) {
     std::ostringstream os;
     os << "Number of scattering elements in *abs_vec_spt* and *ext_mat_spt*\n"
        << "does not agree.";
@@ -838,7 +838,7 @@ void opt_prop_bulkCalc(  // Output and Input:
   StokvecVector abs_vec_part(1, Stokvec{0, 0, 0, 0});
 
   // this is the loop over the different scattering elements
-  for (Index l = 0; l < N_se; l++) {
+  for (Size l = 0; l < N_se; l++) {
     abs_vec_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * abs_vec_spt[l][0];
     ext_mat_part[0] += pnd_field(l, scat_p_index, scat_lat_index, scat_lon_index) * ext_mat_spt[l][0];
   }
@@ -850,9 +850,9 @@ void opt_prop_bulkCalc(  // Output and Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas(PropmatVector& ext_mat,
                    const PropmatVector& propmat_clearsky) {
-  const Index f_dim = ext_mat.nelem();
+  const Index f_dim = ext_mat.size();
 
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.nelem(),
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.size(),
         "Frequency dimension of ext_mat and propmat_clearsky\n"
         "are inconsistent in ext_matAddGas.");
 
@@ -862,9 +862,9 @@ void ext_matAddGas(PropmatVector& ext_mat,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas(StokvecVector& abs_vec,
                    const PropmatVector& propmat_clearsky) {
-  const Index f_dim = abs_vec.nelem();
+  const Index f_dim = abs_vec.size();
 
-  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.nelem(),
+  ARTS_USER_ERROR_IF (f_dim != propmat_clearsky.size(),
         "Frequency dimension of abs_vec and propmat_clearsky\n"
         "are inconsistent in abs_vecAddGas.");
 
@@ -959,7 +959,7 @@ void scat_dataCheck(  //Input:
   // adapted, though, once we have WSM that can create Z/K/a with different
   // f/T dimensions than scat_data_single.f/T_grid.
 
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data.size();
 
   // 1) any negative values in Z11, K11, or a1? K11>=a1?
   // 2) scat_data containing any NaN?
@@ -967,14 +967,14 @@ void scat_dataCheck(  //Input:
 
   // Loop over the included scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+    const Index N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
-      for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
+      for (Index f = 0; f < F_DATAGRID.size(); f++) {
         for (Index zai = 0; zai < ABS_VEC_DATA.npages(); zai++)
           for (Index aai = 0; aai < ABS_VEC_DATA.nrows(); aai++) {
-            for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+            for (Index t = 0; t < T_DATAGRID.size(); t++) {
               if (EXT_MAT_DATA(f, t, zai, aai, 0) < 0 ||
                   ABS_VEC_DATA(f, t, zai, aai, 0) < 0) {
                 std::ostringstream os;
@@ -1016,14 +1016,14 @@ void scat_dataCheck(  //Input:
 
   // Loop over the included scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+    const Index N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
-      for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
+      for (Index f = 0; f < F_DATAGRID.size(); f++) {
         for (Index zai = 0; zai < ABS_VEC_DATA.npages(); zai++)
           for (Index aai = 0; aai < ABS_VEC_DATA.nrows(); aai++) {
-            for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+            for (Index t = 0; t < T_DATAGRID.size(); t++) {
               for (Index st = 0; st < ABS_VEC_DATA.ncols(); st++)
                 if (std::isnan(ABS_VEC_DATA(f, t, zai, aai, st))) {
                   std::ostringstream os;
@@ -1068,14 +1068,14 @@ void scat_dataCheck(  //Input:
   if (toupper(check_type) == "ALL") {
     // Loop over the included scattering species
     for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-      const Index N_se = scat_data[i_ss].nelem();
+      const Index N_se = scat_data[i_ss].size();
 
       // Loop over the included scattering elements
       for (Index i_se = 0; i_se < N_se; i_se++)
-        if (T_DATAGRID.nelem() == PHA_MAT_DATA.nvitrines()) switch (PART_TYPE) {
+        if (T_DATAGRID.size() == PHA_MAT_DATA.nvitrines()) switch (PART_TYPE) {
             case PTYPE_TOTAL_RND: {
-              for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
-                for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+              for (Index f = 0; f < F_DATAGRID.size(); f++) {
+                for (Index t = 0; t < T_DATAGRID.size(); t++) {
                   Numeric Csca = AngIntegrate_trapezoid(
                       PHA_MAT_DATA(f, t, joker, 0, 0, 0, 0), ZA_DATAGRID);
                   Numeric Cext_data = EXT_MAT_DATA(f, t, 0, 0, 0);
@@ -1104,8 +1104,8 @@ void scat_dataCheck(  //Input:
             }
 
             case PTYPE_AZIMUTH_RND: {
-              for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
-                for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+              for (Index f = 0; f < F_DATAGRID.size(); f++) {
+                for (Index t = 0; t < T_DATAGRID.size(); t++) {
                   for (Index iza = 0; iza < ABS_VEC_DATA.npages(); iza++) {
                     Numeric Csca =
                         2 * AngIntegrate_trapezoid(
@@ -1163,17 +1163,17 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
   //Extrapolation factor:
   //const Numeric extpolfac = 0.5;
 
-  Index nf = f_grid.nelem();
+  Index nf = f_grid.size();
 
   // Check, whether single scattering data contains the right frequencies:
   // The check was changed to allow extrapolation at the boundaries of the
   // frequency grid.
   const String which_interpolation = "scat_data_raw.f_grid to f_grid";
-  for (Index i_ss = 0; i_ss < scat_data_raw.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data_raw[i_ss].nelem(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
       // Check for the special case that ssd.f_grid f_grid have only one
       // element. If identical, that's  fine. If not, throw error.
-      if (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1 && nf == 1)
+      if (scat_data_raw[i_ss][i_se].f_grid.size() == 1 && nf == 1)
         if (!is_same_within_epsilon(scat_data_raw[i_ss][i_se].f_grid[0],
                                     f_grid[0],
                                     2 * DBL_EPSILON)) {
@@ -1195,11 +1195,11 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
   }
 
   //Initialise scat_data
-  scat_data.resize(scat_data_raw.nelem());
+  scat_data.resize(scat_data_raw.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data_raw.nelem(); i_ss++) {
-    const Index N_se = scat_data_raw[i_ss].nelem();
+  for (Size i_ss = 0; i_ss < scat_data_raw.size(); i_ss++) {
+    const Index N_se = scat_data_raw[i_ss].size();
 
     //Initialise scat_data
     scat_data[i_ss].resize(N_se);
@@ -1233,7 +1233,7 @@ void scat_dataCalc(ArrayOfArrayOfSingleScatteringData& scat_data,
                           scat_data_raw[i_ss][i_se].abs_vec_data.ncols());
 
       const bool single_se_fgrid =
-          (scat_data_raw[i_ss][i_se].f_grid.nelem() == 1);
+          (scat_data_raw[i_ss][i_se].f_grid.size() == 1);
       if (!single_se_fgrid) {
         // Gridpositions:
         const auto lag_freq=my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, scat_data_raw[i_ss][i_se].f_grid, interp_order);
@@ -1357,7 +1357,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
   // T_grid!).
 
   // Check that species i_ss exists at all in scat_data
-  const Index nss = scat_data.nelem();
+  const Index nss = scat_data.size();
   if (nss <= i_ss) {
     std::ostringstream os;
     os << "Can not T-reduce scattering species #" << i_ss << ".\n"
@@ -1366,7 +1366,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
   }
 
   // Loop over the included scattering elements
-  for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+  for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
     // At very first check validity of the scatt elements ptype (so far we only
     // handle PTYPE_TOTAL_RND and PTYPE_AZIMUTH_RND).
     if (PART_TYPE != PTYPE_TOTAL_RND and PART_TYPE != PTYPE_AZIMUTH_RND) {
@@ -1380,7 +1380,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
     // If ssd.T_grid already has only a single point, we do nothing.
     // This is not necessarily expected behaviour. BUT, it is in line with
     // previous use (that if nT==1, then assume ssd constant in T).
-    Index nT = T_DATAGRID.nelem();
+    Index nT = T_DATAGRID.size();
     if (nT > 1) {
       // Check, that we not have data that has already been T-reduced (in
       // pha_mat only. complete ssd T-reduce should have been sorted away
@@ -1529,7 +1529,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
       // Which?
       switch (PART_TYPE) {
         case PTYPE_TOTAL_RND: {
-          for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
+          for (Index f = 0; f < F_DATAGRID.size(); f++) {
             // b) calculate norm of T-reduced pha mat
             Numeric Csca = AngIntegrate_trapezoid(
                 phamat_tmp(f, 0, joker, 0, 0, 0, 0), ZA_DATAGRID);
@@ -1568,7 +1568,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
             // d) Ensure that T-reduced data is consistent/representative of all data.
             // below use theoretical (ext-abs derived) sca xs as reference.
             Csca = Csca_data;
-            for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+            for (Index t = 0; t < T_DATAGRID.size(); t++) {
               Cext_data = EXT_MAT_DATA(f, t, 0, 0, 0);
               Csca_data = Cext_data - ABS_VEC_DATA(f, t, 0, 0, 0);
               Numeric xs_dev = (Csca - Csca_data) / Cext_data;
@@ -1594,7 +1594,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
         }
 
         case PTYPE_AZIMUTH_RND: {
-          for (Index f = 0; f < F_DATAGRID.nelem(); f++) {
+          for (Index f = 0; f < F_DATAGRID.size(); f++) {
             for (Index iza = 0; iza < ABS_VEC_DATA.npages(); iza++) {
               // b) calculate norm of T-reduced pha mat
               Numeric Csca = 2 * AngIntegrate_trapezoid(
@@ -1636,7 +1636,7 @@ void scat_dataReduceT(ArrayOfArrayOfSingleScatteringData& scat_data,
               // d) Ensure that T-reduced data is consistent/representative of all data.
               // below use theoretical (ext-abs derived) sca xs as reference.
               Csca = Csca_data;
-              for (Index t = 0; t < T_DATAGRID.nelem(); t++) {
+              for (Index t = 0; t < T_DATAGRID.size(); t++) {
                 Cext_data = EXT_MAT_DATA(f, t, 0, 0, 0);
                 Csca_data = Cext_data - ABS_VEC_DATA(f, t, 0, 0, 0);
                 if (abs(Csca - Csca_data) / Cext_data > this_threshold) {
@@ -1689,8 +1689,8 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   // Check, whether single scattering data contains the right frequencies:
   // The check was changed to allow extrapolation at the boundaries of the
   // frequency grid.
-  for (Index h = 0; h < scat_data.nelem(); h++) {
-    for (Index i = 0; i < scat_data[h].nelem(); i++) {
+  for (Size h = 0; h < scat_data.size(); h++) {
+    for (Size i = 0; i < scat_data[h].size(); i++) {
       // check with extrapolation
       chk_interpolation_grids("scat_data.f_grid to f_grid",
                               scat_data[h][i].f_grid,
@@ -1699,11 +1699,11 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
   }
 
   //Initialise scat_data_mono
-  scat_data_mono.resize(scat_data.nelem());
+  scat_data_mono.resize(scat_data.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    const Index N_se = scat_data[i_ss].size();
 
     //Initialise scat_data_mono
     scat_data_mono[i_ss].resize(N_se);
@@ -1763,7 +1763,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
         }
         //Extinction matrix data
         scat_data_mono[i_ss][i_se].ext_mat_data.resize(1,
-                                                       T_DATAGRID.nelem(),
+                                                       T_DATAGRID.size(),
                                                        EXT_MAT_DATA.npages(),
                                                        EXT_MAT_DATA.nrows(),
                                                        EXT_MAT_DATA.ncols());
@@ -1784,7 +1784,7 @@ void scat_data_monoCalc(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
         }
         //Absorption vector data
         scat_data_mono[i_ss][i_se].abs_vec_data.resize(1,
-                                                       T_DATAGRID.nelem(),
+                                                       T_DATAGRID.size(),
                                                        ABS_VEC_DATA.npages(),
                                                        ABS_VEC_DATA.nrows(),
                                                        ABS_VEC_DATA.ncols());
@@ -1813,18 +1813,18 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfArrayOfSingleScatteringData& scat_data,
                            const Index& f_index) {
   //Initialise scat_data_mono
-  scat_data_mono.resize(scat_data.nelem());
+  scat_data_mono.resize(scat_data.size());
 
   // Loop over the included scattering species
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    const Index N_se = scat_data[i_ss].size();
 
     //Initialise scat_data_mono
     scat_data_mono[i_ss].resize(N_se);
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
-      Index nf = F_DATAGRID.nelem();
+      Index nf = F_DATAGRID.size();
       if (nf == 1) {
         scat_data_mono[i_ss][i_se] = scat_data[i_ss][i_se];
       } else {
@@ -1852,7 +1852,7 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
             Range(this_f_index, 1), joker, joker, joker, joker, joker, joker);
 
         //Extinction matrix data
-        /*scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID.nelem(),
+        /*scat_data_mono[i_ss][i_se].ext_mat_data.resize(1, T_DATAGRID.size(),
                                                      EXT_MAT_DATA.npages(),
                                                      EXT_MAT_DATA.nrows(),
                                                      EXT_MAT_DATA.ncols());*/
@@ -1861,7 +1861,7 @@ void scat_data_monoExtract(ArrayOfArrayOfSingleScatteringData& scat_data_mono,
             EXT_MAT_DATA(Range(this_f_index, 1), joker, joker, joker, joker);
 
         //Absorption vector data
-        /*scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID.nelem(),
+        /*scat_data_mono[i_ss][i_se].abs_vec_data.resize(1, T_DATAGRID.size(),
                                                      ABS_VEC_DATA.npages(),
                                                      ABS_VEC_DATA.nrows(),
                                                      ABS_VEC_DATA.ncols());*/
@@ -1888,12 +1888,12 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Index& scat_p_index,
     const Index& scat_lat_index,
     const Index& scat_lon_index) {
-  DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
+  DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
 
-  ARTS_ASSERT(ext_mat_spt.nelem() == N_se_total);
-  ARTS_ASSERT(abs_vec_spt.nelem() == N_se_total);
+  ARTS_ASSERT(ext_mat_spt.size() == N_se_total);
+  ARTS_ASSERT(abs_vec_spt.size() == N_se_total);
 
   // Check that we do indeed have scat_data_mono here. Only checking the first
   // scat element, assuming the other elements have been processed in the same
@@ -1904,7 +1904,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
-  if (scat_data_mono[0][0].f_grid.nelem() > 1) {
+  if (scat_data_mono[0][0].f_grid.size() > 1) {
     std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
@@ -1921,9 +1921,9 @@ void opt_prop_sptFromMonoData(  // Output and Input:
 
   Index i_se_flat = 0;
   // Loop over the included scattering elements
-  for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++) {
+  for (Size i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
     // Loop over the included scattering elements
-    for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++) {
+    for (Size i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for the i_se scattering element is zero, we don't need
       // to do the transformation!
@@ -1948,7 +1948,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
         //Check that scattering data temperature range covers required temperature
         ConstVectorView t_grid = scat_data_mono[i_ss][i_se].T_grid;
 
-        if (t_grid.nelem() > 1) {
+        if (t_grid.size() > 1) {
           std::ostringstream os;
           os << "In opt_prop_sptFromMonoData.\n"
              << "The temperature grid of the scattering data does not\n"
@@ -1993,7 +1993,7 @@ void opt_prop_sptFromMonoData(  // Output and Input:
         // Absorption vector:
         //
 
-        if (t_grid.nelem() > 1) {
+        if (t_grid.size() > 1) {
           Tensor3 abs_vec_data1temp(abs_npages, abs_nrows, abs_ncols);
           //interpolate over temperature
           for (Index i_p = 0; i_p < abs_npages; i_p++) {
@@ -2069,7 +2069,7 @@ void pha_mat_sptFromMonoData(  // Output:
   // though.
   // Also, we can't check here whether data is at the correct frequency since we
   // don't know f_grid and f_index here (we could pass it in, though).
-  if (scat_data_mono[0][0].f_grid.nelem() > 1) {
+  if (scat_data_mono[0][0].f_grid.size() > 1) {
     std::ostringstream os;
     os << "Scattering data seems to be *scat_data* (several freq points),\n"
        << "but *scat_data_mono* (1 freq point only) is expected here.";
@@ -2083,8 +2083,8 @@ void pha_mat_sptFromMonoData(  // Output:
   pha_mat_spt = 0.;
 
   Index i_se_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data_mono.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data_mono[i_ss].nelem(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data_mono.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data_mono[i_ss].size(); i_se++) {
       // If the particle number density at a specific point in the
       // atmosphere for scattering element i_se is zero, we don't need to
       // do the transformation!
@@ -2134,7 +2134,7 @@ void pha_mat_sptFromMonoData(  // Output:
         // Do the transformation into the laboratory coordinate system.
         for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
@@ -2219,7 +2219,7 @@ void pha_mat_sptFromScat_data(  // Output:
   // save side.
   ARTS_ASSERT(pha_mat_spt.nshelves() == N_se_total);
 
-  const Index N_ss = scat_data.nelem();
+  const Index N_ss = scat_data.size();
 
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, 4, 4]
@@ -2230,7 +2230,7 @@ void pha_mat_sptFromScat_data(  // Output:
   Index i_se_flat = 0;
   // Loop over scattering species
   for (Index i_ss = 0; i_ss < N_ss; i_ss++) {
-    const Index N_se = scat_data[i_ss].nelem();
+    const Index N_se = scat_data[i_ss].size();
 
     // Loop over the included scattering elements
     for (Index i_se = 0; i_se < N_se; i_se++) {
@@ -2337,9 +2337,9 @@ void pha_mat_sptFromScat_data(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < za_grid.nelem();
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.size();
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.size();
                aa_inc_idx++) {
             pha_matTransform(
                 pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker),
@@ -2416,7 +2416,7 @@ void ScatSpeciesMerge(  //WS Output:
   ArrayOfString scat_species_merged;
   scat_species_merged.resize(1);
   scat_species_merged[0] = "mergedfield-mergedpsd";
-  for (Index sp = 0; sp < scat_data_merged[0].nelem(); sp++) {
+  for (Size sp = 0; sp < scat_data_merged[0].size(); sp++) {
     SingleScatteringData& this_part = scat_data_merged[0][sp];
     this_part.ptype = scat_data[0][0].ptype;
     this_part.description = "Merged scattering elements";
@@ -2460,15 +2460,15 @@ void ScatSpeciesMerge(  //WS Output:
 
   // Check that all scattering elements have same ptype and data dimensions
   SingleScatteringData& first_part = scat_data[0][0];
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       SingleScatteringData& orig_part = scat_data[i_ss][i_se];
 
       if (orig_part.ptype != first_part.ptype)
         throw std::runtime_error(
             "All scattering elements must have the same type");
 
-      if (orig_part.f_grid.nelem() != first_part.f_grid.nelem())
+      if (orig_part.f_grid.size() != first_part.f_grid.size())
         throw std::runtime_error(
             "All scattering elements must have the same f_grid");
 
@@ -2515,8 +2515,8 @@ void ScatSpeciesMerge(  //WS Output:
     pnd_field_merged(i_lv, i_lv, 0, 0) = 1.;
 
     SingleScatteringData& this_part = scat_data_merged[0][i_lv];
-    for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-      for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+    for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+      for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
         SingleScatteringData& orig_part = scat_data[i_ss][i_se];
         const Index pnd_index = FlattenedIndex(scat_data, i_ss, i_se);
 
@@ -2526,7 +2526,7 @@ void ScatSpeciesMerge(  //WS Output:
         if (pnd_field(pnd_index, i_lv, 0, 0) > PND_LIMIT)  //TRS
         {
           Numeric temperature = this_part.T_grid[0];
-          if (orig_part.T_grid.nelem() > 1) {
+          if (orig_part.T_grid.size() > 1) {
             std::ostringstream os;
             os << "The temperature grid of the scattering data "
                << "does not cover the\n"
@@ -2556,7 +2556,7 @@ void ScatSpeciesMerge(  //WS Output:
               for (Index i_aa = 0; i_aa < orig_part.ext_mat_data.nrows();
                    i_aa++) {
                 // Weighted sum of ext_mat_data and abs_vec_data
-                if (orig_part.T_grid.nelem() == 1) {
+                if (orig_part.T_grid.size() == 1) {
                   Vector v{orig_part.ext_mat_data(i_f, 0, i_za, i_aa, joker)};
                   v *= pnd_field(pnd_index, i_lv, 0, 0);
                   this_part.ext_mat_data(i_f, 0, i_za, 0, joker) += v;
@@ -2606,7 +2606,7 @@ void ScatSpeciesMerge(  //WS Output:
                        i_aa_inc < orig_part.pha_mat_data.nrows();
                        i_aa_inc++) {
                     // Weighted sum of pha_mat_data
-                    if (orig_part.T_grid.nelem() == 1) {
+                    if (orig_part.T_grid.size() == 1) {
                       Vector v{orig_part.pha_mat_data(i_f,
                                                         0,
                                                         i_za_out,
@@ -2682,7 +2682,7 @@ void ExtractFromMetaSingleScatSpecies(
     throw std::runtime_error(os.str());
   }
 
-  const Index nss = scat_meta.nelem();
+  const Index nss = scat_meta.size();
 
   // check that scat_meta actually has at least scat_species_index elements
   if (!(nss > scat_species_index)) {
@@ -2693,7 +2693,7 @@ void ExtractFromMetaSingleScatSpecies(
     throw std::runtime_error(os.str());
   }
 
-  const Index nse = scat_meta[scat_species_index].nelem();
+  const Index nse = scat_meta[scat_species_index].size();
   meta_param.resize(nse);
 
   for (Index i = 0; i < nse; i++) {

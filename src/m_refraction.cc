@@ -54,7 +54,7 @@ void refr_index_airFreeElectrons(Numeric& refr_index_air,
   Numeric edensity = 0;
 
   Index ife = -1;
-  for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
+  for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
@@ -125,7 +125,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
                                    const Numeric& k1,
                                    const Numeric& k2,
                                    const Numeric& k3) {
-  if (abs_species.nelem() != rtp_vmr.nelem())
+  if (abs_species.size() != static_cast<Size>(rtp_vmr.size()))
     throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");
@@ -197,7 +197,7 @@ void refr_index_airMicrowavesGeneral(
   ref_n[5] = 5338.89e-6;
 
   // Checks
-  if (abs_species.nelem() != rtp_vmr.nelem())
+  if (abs_species.size() != static_cast<Size>(rtp_vmr.size()))
     throw std::runtime_error(
         "The number of tag groups differ between "
         "*rtp_vmr* and *abs_species*.");
@@ -283,9 +283,9 @@ void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index
                                 const Vector& data_t_grid,
                                 const Vector& density_water,    //Gin
                                 const Index& only_valid_range) {
-  const Index N_f = data_f_grid.nelem();
-  const Index N_t = data_t_grid.nelem();
-  const Index N_d = density_water.nelem();
+  const Index N_f = data_f_grid.size();
+  const Index N_t = data_t_grid.size();
+  const Index N_d = density_water.size();
 
   if (N_d > 1)
     ARTS_USER_ERROR_IF(N_d != N_f, R"--(
@@ -298,14 +298,14 @@ density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, data_t_grid);
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, {"real", "imaginary"});
+  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
 
   Numeric refractive_index;
   Numeric density = density_water[0];
 
   for (Index i_f = 0; i_f < N_f; i_f++) {
     for (Index i_t = 0; i_t < N_t; i_t++) {
-      if (density_water.nelem() > 1 && i_t > 0) density = density_water[i_t];
+      if (density_water.size() > 1 && i_t > 0) density = density_water[i_t];
 
       refractive_index_water_and_steam_VisNIR(refractive_index,
                                               only_valid_range,
@@ -333,7 +333,7 @@ void complex_refr_indexConstant(GriddedField3& complex_refr_index,
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, Vector(1, 0));
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, {"real", "imaginary"});
+  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
 
   complex_refr_index.data(joker, joker, 0) = refr_index_real;
   complex_refr_index.data(joker, joker, 1) = refr_index_imag;
@@ -346,8 +346,8 @@ void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
   if (min(t_grid) < 250) {
   }
 
-  const Index nf = f_grid.nelem();
-  const Index nt = t_grid.nelem();
+  const Index nf = f_grid.size();
+  const Index nt = t_grid.size();
 
   complex_refr_index.resize(nf, nt, 2);
   complex_refr_index.set_grid_name(0, "Frequency");
@@ -355,7 +355,7 @@ void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, t_grid);
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, {"real", "imaginary"});
+  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
 
   Matrix complex_n;
   for (Index t = 0; t < nt; ++t) {
@@ -368,8 +368,8 @@ void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
 void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
                                     const Vector& f_grid,
                                     const Vector& t_grid) {
-  const Index nf = f_grid.nelem();
-  const Index nt = t_grid.nelem();
+  const Index nf = f_grid.size();
+  const Index nt = t_grid.size();
 
   // Frequency must be between 10MHz and 3THz
   const Numeric f_min = 10e6;
@@ -393,7 +393,7 @@ void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, t_grid);
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, {"real", "imaginary"});
+  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
 
   Matrix complex_n;
   for (Index i_t = 0; i_t < nt; ++i_t) {
@@ -411,7 +411,7 @@ void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
   chk_vector_length("f_grid","refr_index_real",f_grid,refr_index_real);
   chk_vector_length("f_grid","refr_index_imag",f_grid,refr_index_imag);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   complex_refr_index.resize(nf, 1, 2);
   complex_refr_index.set_grid_name(0, "Frequency");
@@ -419,7 +419,7 @@ void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
   complex_refr_index.set_grid_name(1, "Temperature");
   complex_refr_index.set_grid(1, Vector(1, temperature));
   complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, {"real", "imaginary"});
+  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
 
   complex_refr_index.data(joker, 0, 0) = refr_index_real;
   complex_refr_index.data(joker, 0, 1) = refr_index_imag;

@@ -32,9 +32,9 @@ void fill_with_junk(MatrixView x) { x = 888; }
 int test1() {
   Vector v(20);
 
-  cout << "v.nelem() = " << v.nelem() << "\n";
+  cout << "v.size() = " << v.size() << "\n";
 
-  for (Index i = 0; i < v.nelem(); ++i) v[i] = (Numeric)i;
+  for (Index i = 0; i < v.size(); ++i) v[i] = (Numeric)i;
 
   cout << "v.begin() = " << *v.begin() << "\n";
 
@@ -58,10 +58,10 @@ int test1() {
 
   cout << "v = \n" << v << "\n";
   cout << "v2 = \n" << v2 << "\n";
-  cout << "v2.nelem() = \n" << v2.nelem() << "\n";
+  cout << "v2.size() = \n" << v2.size() << "\n";
 
   Vector v3;
-  v3.resize(v2.nelem());
+  v3.resize(v2.size());
   v3 = v2;
 
   cout << "\nv3 = \n" << v3 << "\n";
@@ -114,10 +114,10 @@ int test1() {
 void test2() {
   Vector v(50000000);
 
-  cout << "v.nelem() = " << v.nelem() << "\n";
+  cout << "v.size() = " << v.size() << "\n";
 
   cout << "Filling\n";
-  //   for (Index i=0; i<v.nelem(); ++i )
+  //   for (Index i=0; i<v.size(); ++i )
   //     v[i] = sqrt(i);
   v = 1.;
   cout << "Done\n";
@@ -125,11 +125,11 @@ void test2() {
 
 void test4() {
   Vector a(10);
-  Vector b(a.nelem());
+  Vector b(a.size());
 
-  for (Index i = 0; i < a.nelem(); ++i) {
+  for (Index i = 0; i < a.size(); ++i) {
     a[i] = (Numeric)(i + 1);
-    b[i] = (Numeric)(a.nelem() - i);
+    b[i] = (Numeric)(a.size() - i);
   }
 
   cout << "a = \n" << a << "\n";
@@ -191,14 +191,14 @@ void test6() {
 
 void test7() {
   Vector x=uniform_grid(1, 20000000, 1);
-  Vector y(x.nelem());
+  Vector y(x.size());
   transform(y, sin, x);
   cout << "min(sin(x)), max(sin(x)) = " << min(y) << ", " << max(y) << "\n";
 }
 
 void test8() {
   Vector x(80000000);
-  for (Index i = 0; i < x.nelem(); ++i) x[i] = (Numeric)i;
+  for (Index i = 0; i < x.size(); ++i) x[i] = (Numeric)i;
   cout << "Done."
        << "\n";
 }
@@ -226,7 +226,7 @@ void test11() {
   // At the moment doing this with a non-const Vector will result in a
   // warning message.
   Vector v=uniform_grid(1, 8, 1);
-  Matrix M(v.nelem(), 1);
+  Matrix M(v.size(), 1);
   M = MatrixView{v};
   cout << "M = " << M << "\n";
 }
@@ -239,7 +239,7 @@ void test12() {
   sa[1] = "a ";
   sa[2] = "test.";
 
-  Array<String> sb(sa), sc(sa.nelem());
+  Array<String> sb(sa), sc(sa.size());
 
   cout << "sb = \n" << sb << "\n";
 
@@ -284,7 +284,7 @@ void test15() {
   b.push_back(1);
   b.push_back(2);
   b.push_back(3);
-  a.resize(b.nelem());
+  a.resize(b.size());
   a = b;
   cout << "b =\n" << b << "\n";
   cout << "a =\n" << a << "\n";
@@ -863,7 +863,7 @@ bool test_diagonal(Index ntests) {
       pass = pass && (v[j] == A(j, j));
       pass = pass && (vt[j] == AT(j, j));
 
-      if (j < vb.nelem()) pass = pass && (vb[j] == B(j, j));
+      if (j < vb.size()) pass = pass && (vb[j] == B(j, j));
     }
     cout << endl;
   }
@@ -1314,17 +1314,6 @@ void test_empty() {
   }
 }
 
-void nlinspace(Vector& x,
-               const Numeric start,
-               const Numeric stop,
-               const Index n) {
-  ARTS_ASSERT(1 < n);  // Number of points must be greater 1.
-  x.resize(n);
-  Numeric step = (stop - start) / ((double)n - 1);
-  for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
-  x[n - 1] = stop;
-}
-
 void test47() {
   // Selecting empty matpack dimensions with Joker shouldn't fail
   Vector v;
@@ -1333,7 +1322,7 @@ void test47() {
   VectorView vv = v[joker];
   MatrixView mv = m(joker, joker);
 
-  std::cout << "vv.nelem: " << vv.nelem() << std::endl;
+  std::cout << "vv.size: " << vv.size() << std::endl;
   std::cout << "mv.nrows: " << mv.nrows() << " ";
   std::cout << "mv.ncols: " << mv.ncols() << std::endl;
 

@@ -398,10 +398,10 @@ class RetrievalQuantity {
    * 
    * @return The number of elements if each grid represents a dimension
    */
-  [[nodiscard]] Index nelem() const {
+  [[nodiscard]] Index size() const {
     Index i = 1;
-    for (Index j = 0; j < mgrids.nelem(); ++j) {
-      i *= mgrids[j].nelem();
+    for (Size j = 0; j < mgrids.size(); ++j) {
+      i *= mgrids[j].size();
     }
     return i;
   }
@@ -522,9 +522,11 @@ class RetrievalQuantity {
 
 using ArrayOfRetrievalQuantity = Array<RetrievalQuantity>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfRetrievalQuantity& a);
+
 // A macro to loop analytical jacobian quantities
 #define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do)                             \
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {              \
+  for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {              \
     if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and          \
         not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) { \
       what_to_do                                                            \
@@ -532,7 +534,7 @@ using ArrayOfRetrievalQuantity = Array<RetrievalQuantity>;
   }
 // A macro to loop analytical jacobian quantities
 #define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                  \
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {    \
+  for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {    \
     if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor)) { \
       what_to_do                                                  \
     }                                                             \

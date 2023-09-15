@@ -75,11 +75,11 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
       }
       compute(ws, v, propmat_clearsky_agenda);
 
-      v.tm = MuelmatVector(v.pm.nelem());
-      v.aotm = MuelmatMatrix(v.jacobian_quantities.nelem(), v.pm.nelem());
+      v.tm = MuelmatVector(v.pm.size());
+      v.aotm = MuelmatMatrix(v.jacobian_quantities.size(), v.pm.size());
       auto local_aotm = v.aotm;
 
-      const Vector local_dr(jacobian_quantities.nelem(), 0);
+      const Vector local_dr(jacobian_quantities.size(), 0);
       rtepack::two_level_exp(v.tm,
                             v.aotm,
                             local_aotm,
@@ -129,7 +129,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   atm_point[Atm::Key::t] = 300;
   atm_point[Atm::Key::p] = 1000;
 
-  for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.nelem());
+  for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
 
   // Set some defaults
   if (load) {

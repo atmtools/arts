@@ -152,7 +152,9 @@ symbol : str
       .PythonInterfaceWorkspaceDocumentation(QuantumIdentifier);
   py::implicitly_convertible<std::string, QuantumIdentifier>();
 
-  PythonInterfaceWorkspaceArray(QuantumIdentifier);
+  artsarray<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier")
+      .PythonInterfaceFileIO(ArrayOfQuantumIdentifier)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfQuantumIdentifier);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }

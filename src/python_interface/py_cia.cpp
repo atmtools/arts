@@ -107,7 +107,9 @@ Returns
           }))
       .PythonInterfaceWorkspaceDocumentation(CIARecord);
 
-  PythonInterfaceWorkspaceArray(CIARecord);
+  artsarray<ArrayOfCIARecord>(m, "ArrayOfCIARecord")
+      .PythonInterfaceFileIO(ArrayOfCIARecord)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfCIARecord);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));
 }

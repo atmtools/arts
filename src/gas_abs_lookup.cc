@@ -31,17 +31,17 @@
 void find_new_grid_in_old_grid(ArrayOfIndex& pos,
                                ConstVectorView old_grid,
                                ConstVectorView new_grid) {
-  const Index n_new_grid = new_grid.nelem();
-  const Index n_old_grid = old_grid.nelem();
+  const Size n_new_grid = new_grid.size();
+  const Size n_old_grid = old_grid.size();
 
   // Make sure that pos has the right size:
-  ARTS_ASSERT(n_new_grid == pos.nelem());
+  ARTS_ASSERT(n_new_grid == pos.size());
 
   // Old grid position:
-  Index j = 0;
+  Size j = 0;
 
   // Loop the new frequencies:
-  for (Index i = 0; i < n_new_grid; ++i) {
+  for (Size i = 0; i < n_new_grid; ++i) {
     // We have done runtime checks that both the new and the old
     // frequency grids are sorted in GasAbsLookup::Adapt, so we can
     // use the fact here.
@@ -96,14 +96,14 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
 void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
                          ConstVectorView current_f_grid) {
   // Some constants we will need:
-  const Index n_current_species = current_species.nelem();
-  const Index n_current_f_grid = current_f_grid.nelem();
+  const Index n_current_species = current_species.size();
+  const Index n_current_f_grid = current_f_grid.size();
 
-  const Index n_species = species.nelem();
-  const Index n_nls = nonlinear_species.nelem();
-  const Index n_nls_pert = nls_pert.nelem();
-  const Index n_f_grid = f_grid.nelem();
-  const Index n_p_grid = p_grid.nelem();
+  const Index n_species = species.size();
+  const Index n_nls = nonlinear_species.size();
+  const Index n_nls_pert = nls_pert.size();
+  const Index n_f_grid = f_grid.size();
+  const Index n_p_grid = p_grid.size();
 
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species, 0);
@@ -180,7 +180,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   //     Dimension: [ a, b, c, d ]
   //
   if (0 == n_nls) {
-    if (0 == t_pert.nelem()) {
+    if (0 == t_pert.size()) {
       //     Simplest case (no temperature perturbations,
       //     no vmr perturbations):
       //     a = 1
@@ -195,7 +195,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
       //     b = n_species
       //     c = n_f_grid
       //     d = n_p_grid
-      chk_size("xsec", xsec, t_pert.nelem(), n_species, n_f_grid, n_p_grid);
+      chk_size("xsec", xsec, t_pert.size(), n_species, n_f_grid, n_p_grid);
     }
   } else {
     //     Full case (with temperature perturbations and
@@ -204,7 +204,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     //     b = n_species + n_nonlinear_species * ( n_nls_pert - 1 )
     //     c = n_f_grid
     //     d = n_p_grid
-    Index a = t_pert.nelem();
+    Index a = t_pert.size();
     Index b = n_species + n_nls * (n_nls_pert - 1);
     Index c = n_f_grid;
     Index d = n_p_grid;
@@ -340,16 +340,16 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   }
 
   // Reference temperature profile:
-  //  new_table.t_ref.resize( t_ref.nelem() );
+  //  new_table.t_ref.resize( t_ref.size() );
   new_table.t_ref = t_ref;
 
   // Vector of temperature perturbations:
-  //  new_table.t_pert.resize( t_pert.nelem() );
+  //  new_table.t_pert.resize( t_pert.size() );
   new_table.t_pert = t_pert;
 
   // Vector of perturbations for the VMRs of the nonlinear species:
   // (Should stay empty if we have no nonlinear species)
-  if (0 != new_table.nonlinear_species.nelem()) {
+  if (0 != new_table.nonlinear_species.size()) {
     //      new_table.nls_pert.resize( n_nls_pert );
     new_table.nls_pert = nls_pert;
   }
@@ -479,26 +479,26 @@ void GasAbsLookup::Extract(Matrix& sga,
   // 1. Obtain some properties of the lookup table:
 
   // Number of gas species in the table:
-  const Index n_species = species.nelem();
+  const Index n_species = species.size();
 
   // Number of nonlinear species:
-  const Index n_nls = nonlinear_species.nelem();
+  const Index n_nls = nonlinear_species.size();
 
   // Number of frequencies in the table:
-  const Index n_f_grid = f_grid.nelem();
+  const Index n_f_grid = f_grid.size();
 
   // Number of pressure grid points in the table:
-  const Index n_p_grid = p_grid.nelem();
+  const Index n_p_grid = p_grid.size();
 
   // Number of temperature perturbations:
-  const Index n_t_pert = t_pert.nelem();
+  const Index n_t_pert = t_pert.size();
 
   // Number of nonlinear species perturbations:
-  const Index n_nls_pert = nls_pert.nelem();
+  const Index n_nls_pert = nls_pert.size();
 
   // Number of frequencies in new_f_grid, the frequency grid for which we
   // want to extract.
-  const Index n_new_f_grid = new_f_grid.nelem();
+  const Index n_new_f_grid = new_f_grid.size();
 
   // 2. First some checks on the lookup table itself:
 
@@ -554,7 +554,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   })
 
   // Make sure that log_p_grid is initialized:
-  if (log_p_grid.nelem() != n_p_grid) {
+  if (log_p_grid.size() != n_p_grid) {
     std::ostringstream os;
     os << "The lookup table internal variable log_p_grid is not initialized.\n"
        << "Use the abs_lookupAdapt method!";
@@ -1060,7 +1060,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // with the total number density n, times the VMR of the
   // species:
   for (Index si = 0; si < n_species; ++si) {
-    if (select_abs_species.nelem()) {
+    if (select_abs_species.size()) {
       if (species[si] == select_abs_species)
         sga(si, Range(joker)) *= (n * abs_vmrs[si]);
       else

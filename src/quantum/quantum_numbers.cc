@@ -358,7 +358,7 @@ void ValueList::set(Index i, std::string_view upp, std::string_view low) {
 }
 
 std::ostream& operator<<(std::ostream& os, const ValueList& vl) {
-  for (Index i = 0; i < vl.values.nelem(); i++) {
+  for (Size i = 0; i < vl.values.size(); i++) {
     if (i) os << ' ';
     os << vl.values[i];
   }
@@ -1151,5 +1151,15 @@ bool Quantum::Number::LocalState::good() const { return val.good(); }
 
 bool Quantum::Number::GlobalState::good() const {
   return Species::is_normal_isotopologue(Isotopologue()) and val.good();
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Type>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
 }
 }  // namespace Quantum::Number

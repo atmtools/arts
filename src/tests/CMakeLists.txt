@@ -16,7 +16,7 @@ add_executable (test_gridded_fields
   test_gridded_fields.cc
   ../artstime.cc)
 
-target_link_libraries (test_gridded_fields matpack)
+target_link_libraries (test_gridded_fields artscore)
 
 ########### next testcase ###############
 
@@ -85,7 +85,7 @@ target_link_libraries (test_poly matpack)
 ########### next testcase ###############
 
 add_executable (test_tensor test_tensor.cc)
-target_link_libraries (test_tensor matpack)
+target_link_libraries (test_tensor artscore)
 
 ########### next testcase ###############
 
@@ -116,7 +116,7 @@ target_link_libraries (test_complex matpack)
 ########### next testcase ###############
 
 add_executable (test_sorting test_sorting.cc)
-target_link_libraries (test_sorting matpack)
+target_link_libraries (test_sorting artscore)
 
 ########### next testcase ###############
 

@@ -2,10 +2,10 @@
 
 template <WorkspaceGroup T>
 void ArraySelect(T& needles, const T& haystack, const ArrayOfIndex& needleind) {
-  needles = T(needleind.nelem());
+  needles = T(needleind.size());
   for (auto& i : needleind) {
     ARTS_USER_ERROR_IF(
-        i < 0 || i >= haystack.nelem(), "Index ", i, " out of range in Select.")
+        i < 0 || static_cast<Size>(i) >= haystack.size(), "Index ", i, " out of range in Select.")
     needles[i] = haystack[i];
   }
 }
@@ -15,7 +15,7 @@ void MatpackSelect(T& needles,
                    const T& haystack,
                    const ArrayOfIndex& needleind) {
   auto sh = haystack.shape();
-  sh[0] = needleind.nelem();
+  sh[0] = needleind.size();
   needles = T(sh);
 
   for (auto& i : needleind) {
@@ -105,15 +105,15 @@ void Select(  // WS Generic Output:
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
-  Sparse dummy(needleind.nelem(), haystack.ncols());
+  Sparse dummy(needleind.size(), haystack.ncols());
 
   // If needleind only contains -1 as the only element, copy the whole thing
-  if (needleind.nelem() == 1 && needleind[0] == -1) {
+  if (needleind.size() == 1 && needleind[0] == -1) {
     needles = haystack;
     return;
   }
 
-  for (Index i = 0; i < needleind.nelem(); i++) {
+  for (Size i = 0; i < needleind.size(); i++) {
     if (haystack.nrows() <= needleind[i]) {
       std::ostringstream os;
       os << "The input matrix only has " << haystack.nrows()

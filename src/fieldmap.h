@@ -31,7 +31,7 @@ template <typename T> concept field_key = Hashable<T> and Equatable<T>;
  * feel free to add it.
  *
  * In addition to that, it should interact well with ARTS concepts,
- * such as Index being the unit of a nelem.
+ * such as Index being the unit of a size.
  * 
  * @tparam T The type of data
  * @tparam Keys Any number of keys so that std::unordered_map<Key, T> is possible
@@ -42,15 +42,15 @@ struct Map {
 static_assert(not (std::same_as<Keys, bool> or ...), "Cannot have pure boolean keys");
 static_assert((std::same_as<Keys, std::remove_cvref_t<Keys>> and ...), "Only for base-type keys");
 
-  static constexpr Index N = sizeof...(Keys);
+  static constexpr Size N = sizeof...(Keys);
   using KeyVal = std::variant<Keys...>;
   std::tuple<std::unordered_map<Keys, T>...> map_data;
 
 private:
-  template <field_key Key> static constexpr Index pos() {
+  template <field_key Key> static constexpr Size pos() {
     constexpr std::array<bool, N> tst{
         std::same_as<std::remove_cvref_t<Key>, Keys>...};
-    Index i=0;
+    Size i=0;
     while(not tst[i] and i < N) i++;
     return i;
   }
@@ -128,11 +128,11 @@ public:
     }
   }
 
-  template <field_key Key = bool> [[nodiscard]] constexpr Index nelem() const {
+  template <field_key Key = bool> [[nodiscard]] constexpr Size size() const {
     if constexpr (std::same_as<Key, bool>) {
-      return (nelem<Keys>() + ...);
+      return (size<Keys>() + ...);
     } else {
-      return static_cast<Index>(map<Key>().size());
+      return map<Key>().size();
     }
   }
 

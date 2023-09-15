@@ -64,8 +64,8 @@ class TelsemAtlas {
      * @param cellnumber The cellnumber for given coordinates obtained from
      * calc cellnum.
      */
-  bool contains(Index cellnumber) const {
-    if (cellnumber >= correspondence.nelem()) {
+  bool contains(Size cellnumber) const {
+    if (cellnumber >= correspondence.size()) {
       return false;
     }
     return correspondence[cellnumber] >= 0;
@@ -367,5 +367,7 @@ class TelsemAtlas {
 typedef Array<TelsemAtlas> ArrayOfTelsemAtlas;
 
 std::ostream &operator<<(std::ostream &os, const TelsemAtlas &ta);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTelsemAtlas& a);
 
 #endif /* telsem_h */

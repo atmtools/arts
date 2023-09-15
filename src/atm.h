@@ -187,7 +187,7 @@ public:
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
-  [[nodiscard]] Index nelem() const;
+  [[nodiscard]] Index size() const;
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
@@ -372,6 +372,8 @@ GriddedField3 fix(const GriddedField2 &);
  * @return GriddedField3 in the Field format
  */
 GriddedField3 fix(const GriddedField1 &);
+
+std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
 } // namespace Atm
 
 using AtmField = Atm::Field;

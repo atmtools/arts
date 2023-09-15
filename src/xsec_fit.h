@@ -132,6 +132,8 @@ class XsecRecord {
 
 using ArrayOfXsecRecord = Array<XsecRecord>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x);
+
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             Species::Species species);
 

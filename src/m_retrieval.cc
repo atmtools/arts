@@ -19,7 +19,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
   Range range(start, extent);
   Index n_gps = 1;
   for (Index j = 0; j < grid_dimensions; ++j) {
-    n_gps *= jq.Grids()[j].nelem();
+    n_gps *= jq.Grids()[j].size();
   }
 
   if (!covmat_block.empty()) {
@@ -70,27 +70,27 @@ void add_scalar_variance(CovarianceMatrix& covmat,
 ////////////////////////////////////////////////////////////////////////////////
 
 void ZFromPSimple(Vector& z_grid, const Vector& p_grid) {
-  z_grid = Vector(p_grid.nelem());
+  z_grid = Vector(p_grid.size());
 
-  for (Index i = 0; i < p_grid.nelem(); ++i) {
+  for (Index i = 0; i < p_grid.size(); ++i) {
     ARTS_USER_ERROR_IF (p_grid[i] < 0.01,
                         "Pressures below 0.01 Pa are not accedpted.");
   }
 
-  for (Index i = 0; i < p_grid.nelem(); ++i) {
+  for (Index i = 0; i < p_grid.size(); ++i) {
     z_grid[i] = 16e3 * (5.0 - log10(p_grid[i]));
   }
 }
 
 void PFromZSimple(Vector& p_grid, const Vector& z_grid) {
-  p_grid = Vector(z_grid.nelem());
+  p_grid = Vector(z_grid.size());
 
-  for (Index i = 0; i < p_grid.nelem(); ++i) {
+  for (Index i = 0; i < p_grid.size(); ++i) {
     ARTS_USER_ERROR_IF (z_grid[i] > 120e3,
                         "Altitudes above 120 km are not accepted.");
   }
 
-  for (Index i = 0; i < z_grid.nelem(); ++i) {
+  for (Index i = 0; i < z_grid.size(); ++i) {
     p_grid[i] = pow(10.0, 5.0 - z_grid[i] / 16e3);
   }
 }
@@ -107,7 +107,7 @@ void insert_elements(MatrixType& matrix,
                      const ArrayOfIndex& column_indices,
                      const Vector& elements) {
   matrix.insert_elements(
-      row_indices.nelem(), row_indices, column_indices, elements);
+      row_indices.size(), row_indices, column_indices, elements);
 }
 
 template <>
@@ -117,12 +117,12 @@ void insert_elements(Matrix& matrix,
                      const ArrayOfIndex& row_indices,
                      const ArrayOfIndex& column_indices,
                      const Vector& elements) {
-  ARTS_ASSERT(row_indices.nelem() == column_indices.nelem());
-  ARTS_ASSERT(column_indices.nelem() == elements.nelem());
+  ARTS_ASSERT(row_indices.size() == column_indices.size());
+  ARTS_ASSERT(column_indices.size() == static_cast<Size>(elements.size()));
 
   matrix.resize(m, n);
 
-  for (Index i = 0; i < elements.nelem(); ++i) {
+  for (Index i = 0; i < elements.size(); ++i) {
     matrix(row_indices[i], column_indices[i]) = elements[i];
   }
 }
@@ -133,7 +133,7 @@ void covmatDiagonal(MatrixType& block,
                     const Vector& vars) {
   ARTS_USER_ERROR_IF (vars.empty(),
         "Cannot pass empty vector of variances to covmat_blockSetDiagonal");
-  Index n = vars.nelem();
+  Index n = vars.size();
   block = MatrixType(n, n);
   block_inv = MatrixType(n, n);
 
@@ -164,11 +164,11 @@ void covmat1DMarkov(MatrixType& block,
                     const Vector& sigma,
                     const Numeric& lc,
                     const Numeric& /*co*/) {
-  Index n = grid.nelem();
+  Index n = grid.size();
   ArrayOfIndex row_indices, column_indices;
   Vector elements, elements_inv;
 
-  ARTS_USER_ERROR_IF (n != sigma.nelem(),
+  ARTS_USER_ERROR_IF (n != sigma.size(),
                       "Size of grid incompatible with given variances.");
 
   elements = Vector(row_indices.size());
@@ -249,35 +249,35 @@ void covmat1D(MatrixType& block,
               const Vector& lc2,
               const Numeric& co,
               const String& fname) {
-  Index m = grid1.nelem();
+  Index m = grid1.size();
   Vector sigma1_copy(sigma1), lc1_copy(lc1);
 
-  ARTS_ASSERT((sigma1.nelem() == m) || (sigma1.nelem() == 1));
-  if (sigma1.nelem() == 1) {
+  ARTS_ASSERT((sigma1.size() == m) || (sigma1.size() == 1));
+  if (sigma1.size() == 1) {
     Numeric v = sigma1[0];
     sigma1_copy = Vector(m);
     sigma1_copy = v;
   }
 
-  ARTS_ASSERT((lc1.nelem() == m) || (lc1.nelem() == 1));
-  if (lc1.nelem() == 1) {
+  ARTS_ASSERT((lc1.size() == m) || (lc1.size() == 1));
+  if (lc1.size() == 1) {
     Numeric v = lc1[0];
     lc1_copy = Vector(m);
     lc1_copy = v;
   };
 
-  Index n = grid2.nelem();
+  Index n = grid2.size();
   Vector sigma2_copy(sigma2), lc2_copy(lc2);
 
-  ARTS_ASSERT((sigma2.nelem() == n) || (sigma2.nelem() == 1));
-  if (sigma2.nelem() == 1) {
+  ARTS_ASSERT((sigma2.size() == n) || (sigma2.size() == 1));
+  if (sigma2.size() == 1) {
     Numeric v = sigma2[0];
     sigma2_copy = Vector(n);
     sigma2_copy = v;
   }
 
-  ARTS_ASSERT((lc2.nelem() == n) || (lc2.nelem() == 1));
-  if (lc2.nelem() == 1) {
+  ARTS_ASSERT((lc2.size() == n) || (lc2.size() == 1));
+  if (lc2.size() == 1) {
     Numeric v = lc2[0];
     lc2_copy = Vector(n);
     lc2_copy = v;
@@ -579,15 +579,15 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
                        const MatrixType& block,
                        const Index& i,
                        const Index&j ) {
-  Index ii(i), jj(j);
+  Index ii{i}, jj{j};
   if ((ii < 0) && (jj < 0)) {
     ii = covmat_sx.ndiagblocks();
     jj = ii;
-    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
           "*covmat_sx* already contains more or as many diagonal"
           " blocks as there are retrieval quantities.");
   } else {
-    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
@@ -599,11 +599,11 @@ void covmat_sxAddBlock(CovarianceMatrix& covmat_sx,
   Index m = block.nrows();
   Index n = block.ncols();
 
-  Index jq_m = jq[ii].nelem();
+  Index jq_m = jq[ii].size();
   if (jq[ii].HasAffine()) {
     jq_m = jq[ii].TransformationMatrix().ncols();
   }
-  Index jq_n = jq[jj].nelem();
+  Index jq_n = jq[jj].size();
   if (jq[jj].HasAffine()) {
     jq_n = jq[jj].TransformationMatrix().ncols();
   }
@@ -660,7 +660,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
     ii = covmat_sx.ndiagblocks() - 1;
     jj = ii;
   } else {
-    ARTS_USER_ERROR_IF ((ii >= jq.nelem()) || (jj >= jq.nelem()),
+    ARTS_USER_ERROR_IF ((static_cast<Size>(ii) >= jq.size()) || (static_cast<Size>(jj) >= jq.size()),
         "The block indices must either be both -1 (default) or\n"
         "non-negative and smaller than the number of retrieval \n"
         "quantities.");
@@ -672,12 +672,12 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
   Index m = block_inv.nrows();
   Index n = block_inv.ncols();
 
-  Index jq_m = jq[ii].nelem();
+  Index jq_m = jq[ii].size();
   if (jq[ii].HasAffine()) {
     jq_m = jq[ii].TransformationMatrix().ncols();
   }
 
-  Index jq_n = jq[jj].nelem();
+  Index jq_n = jq[jj].size();
   if (jq[jj].HasAffine()) {
     jq_n = jq[jj].TransformationMatrix().ncols();
   }
@@ -727,7 +727,7 @@ void covmat_sxAddInverseBlock(CovarianceMatrix& covmat_sx,
 void covmat_sxExtractSqrtDiagonal(Vector& x_norm,
                                   const CovarianceMatrix& covmat_sx) {
   x_norm = covmat_sx.diagonal();
-  for (Index i = 0; i < x_norm.nelem(); ++i) {
+  for (Index i = 0; i < x_norm.size(); ++i) {
     x_norm[i] = sqrt(x_norm[i]);
   }
 }
@@ -759,7 +759,7 @@ void retrievalAddAbsSpecies(const Workspace& ws,
                         for_species_tag);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -777,7 +777,7 @@ void retrievalAddFreqShift(const Workspace& ws,
       ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       1,
                       covmat_block,
                       covmat_inv_block);
@@ -795,7 +795,7 @@ void retrievalAddFreqStretch(const Workspace& ws,
       ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       1,
                       covmat_block,
                       covmat_inv_block);
@@ -832,7 +832,7 @@ void retrievalAddCatalogParameters(
                                     catalog_parameters);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       0,
                       covmat_block,
                       covmat_inv_block);
@@ -859,7 +859,7 @@ void retrievalAddMagField(const Workspace& ws,
                       dB);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -886,7 +886,7 @@ void retrievalAddPointingZa(const Workspace& ws,
                         dza);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       1,
                       covmat_block,
                       covmat_inv_block);
@@ -947,7 +947,7 @@ void retrievalAddScatSpecies(const Workspace& ws,
                          quantity);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -977,7 +977,7 @@ void retrievalAddSinefit(const Workspace& ws,
                      no_pol_variation,
                      no_los_variation,
                      no_mblock_variation);
-  for (Index i = 0; i < period_lengths.nelem(); ++i) {
+  for (Index i = 0; i < period_lengths.size(); ++i) {
     check_and_add_block(covmat_sx,
                         jacobian_quantities[jq_start + i],
                         jq_start + i,
@@ -1006,7 +1006,7 @@ void retrievalAddSpecialSpecies(const Workspace& ws,
                             species);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -1033,7 +1033,7 @@ void retrievalAddWind(const Workspace& ws,
                   dfrequency);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -1058,7 +1058,7 @@ void retrievalAddTemperature(const Workspace& ws,
                          hse);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3,
                       covmat_block,
                       covmat_inv_block);
@@ -1082,7 +1082,7 @@ void retrievalAddSurfaceQuantity(const Workspace& ws,
 
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() - 1,
+                      jacobian_quantities.size() - 1,
                       3 - 1,
                       covmat_block,
                       covmat_inv_block);

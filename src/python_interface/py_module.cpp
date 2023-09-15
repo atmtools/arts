@@ -67,19 +67,19 @@ PYBIND11_MODULE(arts, m) try {
     // Set parameters that are know on first execution
 #ifdef ARTS_DEFAULT_INCLUDE_DIR
     String arts_default_include_path(ARTS_DEFAULT_INCLUDE_DIR);
-    if (arts_default_include_path != "" && !parameters.includepath.nelem()) {
+    if (arts_default_include_path != "" && !parameters.includepath.size()) {
       // Skip delimiters at beginning.
       String::size_type lastPos =
-          arts_default_include_path.find_first_not_of(":", 0);
+          arts_default_include_path.find_first_not_of(':', 0);
       // Find first "non-delimiter".
       String::size_type pos =
-          arts_default_include_path.find_first_of(":", lastPos);
+          arts_default_include_path.find_first_of(':', lastPos);
 
       while (String::npos != pos || String::npos != lastPos) {
         parameters.includepath.push_back(
             arts_default_include_path.substr(lastPos, pos - lastPos));
-        lastPos = arts_default_include_path.find_first_not_of(":", pos);
-        pos = arts_default_include_path.find_first_of(":", lastPos);
+        lastPos = arts_default_include_path.find_first_not_of(':', pos);
+        pos = arts_default_include_path.find_first_of(':', lastPos);
       }
     }
 #endif

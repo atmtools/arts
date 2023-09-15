@@ -63,7 +63,7 @@ void FastemStandAlone(Matrix& emissivity,
                       const Numeric& rel_aa,
                       const Vector& transmittance,
                       const Index& fastem_version) {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   chk_if_in_range("zenith angle", za, 90, 180);
   chk_if_in_range_exclude("surface skin temperature", surface_skin_t, 260, 373);
@@ -177,7 +177,7 @@ void surface_pointFromAtm(SurfacePoint& surface_point,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iySurfaceInit(Matrix& iy,
                    const Vector& f_grid) {
-  iy.resize(f_grid.nelem(), 4);
+  iy.resize(f_grid.size(), 4);
   iy = 0.;
 }
 
@@ -219,11 +219,11 @@ void iySurfaceRtpropAgenda(const Workspace& ws,
 
   // Check output of *surface_rtprop_agenda*
   const Index nlos = surface_los.nrows();
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   //
   if (nlos)  // if 0, blackbody ground and not all checks are needed
   {
-    if (surface_los.ncols() != rtp_los.nelem())
+    if (surface_los.ncols() != rtp_los.size())
       throw std::runtime_error("Number of columns in *surface_los* is not correct.");
     if (nlos != surface_rmatrix.nbooks())
       throw std::runtime_error(
@@ -350,11 +350,11 @@ void iySurfaceRtpropCalc(const Workspace& ws,
 
   // Check provided surface rtprop variables
   const Index nlos = surface_los.nrows();
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   //
   if (nlos)  // if 0, blackbody ground and not all checks are needed
   {
-    if (surface_los.ncols() != rtp_los.nelem())
+    if (surface_los.ncols() != rtp_los.size())
       throw std::runtime_error("Number of columns in *surface_los* is not correct.");
     if (nlos != surface_rmatrix.nbooks())
       throw std::runtime_error(
@@ -450,9 +450,9 @@ void iySurfaceRtpropCalc(const Workspace& ws,
   surface_calc(iy, I, surface_los, surface_rmatrix, surface_emission);
 
   // Surface Jacobians
-  if (jacobian_do && dsurface_names.nelem()) {
+  if (jacobian_do && dsurface_names.size()) {
     // Loop dsurface_names
-    for (Index i = 0; i < dsurface_names.nelem(); i++) {
+    for (Size i = 0; i < dsurface_names.size(); i++) {
       // Error if derivatives not calculated
       // Or should we accept this?
       if (dsurface_emission_dx[i].empty() || dsurface_rmatrix_dx[i].empty()) {
@@ -465,7 +465,7 @@ void iySurfaceRtpropCalc(const Workspace& ws,
       } else {
         // Find index among jacobian quantities
         Index ihit = -1;
-        for (Index j = 0; j < jacobian_quantities.nelem() && ihit < 0; j++) {
+        for (Size j = 0; j < jacobian_quantities.size() && ihit < 0; j++) {
           if (dsurface_names[i] == jacobian_quantities[j].Subtag()) {
             ihit = j;
           }
@@ -516,7 +516,7 @@ void surfaceBlackbody(Matrix& surface_los,
   surface_los.resize(0, 0);
   surface_rmatrix.resize(0, 0, 0, 0);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   Vector b(nf);
   planck(b, f_grid, surface_point.temperature);
@@ -573,7 +573,7 @@ void surfaceTessem(Matrix& surface_los,
 
   // Get Rv and Rh
   //
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   Matrix surface_rv_rh(nf, 2);
   //
   for (Index i = 0; i < nf; ++i) {
@@ -619,7 +619,7 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
 
   // Interpolate *surface_complex_refr_index*
   //
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   //
   Matrix n_real(nf, 1), n_imag(nf, 1);
   //
@@ -630,7 +630,7 @@ void surfaceFlatRefractiveIndex(Matrix& surface_los,
                    f_grid,
                    Vector(1, surface_skin_t));
 
-  surface_los.resize(1, specular_los.nelem());
+  surface_los.resize(1, specular_los.size());
   surface_los(0, joker) = specular_los;
 
   surface_emission.resize(nf, 4);
@@ -675,7 +675,7 @@ void surfaceFlatReflectivity(Matrix& surface_los,
   chk_rte_los(specular_los);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   ARTS_USER_ERROR_IF(
       surface_reflectivity.nrows() != 4 && surface_reflectivity.ncols() != 4,
@@ -690,7 +690,7 @@ void surfaceFlatReflectivity(Matrix& surface_los,
       "\n dimension of *surface_reflectivity* : ",
       surface_reflectivity.npages(), "\n")
 
-  surface_los.resize(1, specular_los.nelem());
+  surface_los.resize(1, specular_los.size());
   surface_los(0, joker) = specular_los;
 
   surface_emission.resize(nf, 4);
@@ -740,7 +740,7 @@ void surfaceFlatRvRh(Matrix& surface_los,
   chk_rte_los(specular_los);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   if (surface_rv_rh.ncols() != 2) {
     std::ostringstream os;
@@ -763,7 +763,7 @@ void surfaceFlatRvRh(Matrix& surface_los,
     throw std::runtime_error("All values in *surface_rv_rh* must be inside [0,1].");
   }
 
-  surface_los.resize(1, specular_los.nelem());
+  surface_los.resize(1, specular_los.size());
   surface_los(0, joker) = specular_los;
 
   surface_emission.resize(nf, 4);
@@ -813,16 +813,16 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
   chk_rte_los(specular_los);
   chk_not_negative("surface_skin_t", surface_skin_t);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
-  if (surface_scalar_reflectivity.nelem() != nf &&
-      surface_scalar_reflectivity.nelem() != 1) {
+  if (surface_scalar_reflectivity.size() != nf &&
+      surface_scalar_reflectivity.size() != 1) {
     std::ostringstream os;
     os << "The number of elements in *surface_scalar_reflectivity* should\n"
        << "match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << nf
        << "\n length of *surface_scalar_reflectivity* : "
-       << surface_scalar_reflectivity.nelem() << "\n";
+       << surface_scalar_reflectivity.size() << "\n";
     throw std::runtime_error(os.str());
   }
 
@@ -832,7 +832,7 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
         "All values in *surface_scalar_reflectivity* must be inside [0,1].");
   }
 
-  surface_los.resize(1, specular_los.nelem());
+  surface_los.resize(1, specular_los.size());
   surface_los(0, joker) = specular_los;
 
   surface_emission.resize(nf, 4);
@@ -847,7 +847,7 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
   Numeric r = 0.0;
 
   for (Index iv = 0; iv < nf; iv++) {
-    if (iv == 0 || surface_scalar_reflectivity.nelem() > 1) {
+    if (iv == 0 || surface_scalar_reflectivity.size() > 1) {
       r = surface_scalar_reflectivity[iv];
     }
 
@@ -871,21 +871,21 @@ void surfaceLambertianSimple(Matrix& surface_los,
                              const Vector& surface_scalar_reflectivity,
                              const Index& lambertian_nza,
                              const Numeric& za_pos) {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   chk_rte_pos(rtp_pos);
   chk_rte_los(rtp_los);
   chk_not_negative("surface_skin_t", surface_skin_t);
   chk_if_in_range("za_pos", za_pos, 0, 1);
 
-  if (surface_scalar_reflectivity.nelem() != nf &&
-      surface_scalar_reflectivity.nelem() != 1) {
+  if (surface_scalar_reflectivity.size() != nf &&
+      surface_scalar_reflectivity.size() != 1) {
     std::ostringstream os;
     os << "The number of elements in *surface_scalar_reflectivity* should\n"
        << "match length of *f_grid* or be 1."
        << "\n length of *f_grid* : " << nf
        << "\n length of *surface_scalar_reflectivity* : "
-       << surface_scalar_reflectivity.nelem() << "\n";
+       << surface_scalar_reflectivity.size() << "\n";
     throw std::runtime_error(os.str());
   }
 
@@ -897,7 +897,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
 
   // Allocate and init everything to zero
   //
-  surface_los.resize(lambertian_nza, rtp_los.nelem());
+  surface_los.resize(lambertian_nza, rtp_los.size());
   surface_rmatrix.resize(lambertian_nza, nf, 4, 4);
   surface_emission.resize(nf, 4);
   //
@@ -925,7 +925,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
   //
   for (Index iv = 0; iv < nf; iv++) {
     // Get reflectivity
-    if (iv == 0 || surface_scalar_reflectivity.nelem() > 1) {
+    if (iv == 0 || surface_scalar_reflectivity.size() > 1) {
       r = surface_scalar_reflectivity[iv];
     }
 
@@ -980,11 +980,11 @@ void surface_rtpropFromTypesManual(const Workspace& ws,
                                    const Index& surface_type)
 {
   ARTS_USER_ERROR_IF(surface_type < 0 or
-     surface_type >= surface_rtprop_agenda_array.nelem(),
+     static_cast<Size>(surface_type) >= surface_rtprop_agenda_array.size(),
      "Provided surface type index invalid (<0 or too high w.r.t. "
      "length of *surface_rtprop_agenda_array*).");
   
-  surface_type_mix.resize(surface_rtprop_agenda_array.nelem());
+  surface_type_mix.resize(surface_rtprop_agenda_array.size());
   surface_type_mix = 0.0;
   surface_type_mix[surface_type] = 1.0;
 
@@ -1005,10 +1005,10 @@ void surface_rtpropInterpFreq(Vector& f_grid,
                               Tensor4& surface_rmatrix,
                               Matrix& surface_emission,
                               const Vector& f_new) {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index ns = surface_emission.ncols();
   const Index nlos = surface_rmatrix.nbooks();
-  const Index nnew = f_new.nelem();
+  const Index nnew = f_new.size();
 
   // Checks
   ARTS_USER_ERROR_IF(surface_emission.nrows() not_eq nf,
@@ -1051,7 +1051,7 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                   const ArrayOfString& surface_props_names,
                   const ArrayOfString& dsurface_names,
                   const Index& jacobian_do) {
-  ARTS_USER_ERROR_IF (surface_props_names.nelem(),
+  ARTS_USER_ERROR_IF (surface_props_names.size(),
         "When calling this method, *surface_props_names* should be empty.")
 
   if (jacobian_do) {
@@ -1116,7 +1116,7 @@ void transmittanceFromIy_aux(Vector& transmittance,
 {
   Index ihit = -1;
 
-  for (Index i = 0; i < iy_aux_vars.nelem(); i++) {
+  for (Size i = 0; i < iy_aux_vars.size(); i++) {
     if (iy_aux_vars[i] == "Optical depth") {
       ihit = i;
       break;

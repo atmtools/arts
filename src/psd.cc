@@ -39,7 +39,7 @@ void psd_cloudice_MH97(Vector& psd,
                        const Numeric& iwc,
                        const Numeric& t,
                        const bool noisy) {
-  Index nD = diameter.nelem();
+  Index nD = diameter.size();
   psd.resize(nD);
   psd = 0.;
 
@@ -603,7 +603,7 @@ void psd_mono_common(Matrix& psd_data,
   START_OF_PSD_METHODS();
 
   // Extra checks for this PSD
-  const Index nss = scat_meta.nelem();
+  const Index nss = scat_meta.size();
   if (nss == 0) throw std::runtime_error("*scat_meta* is empty!");
   if (nss < species_index + 1) {
     std::ostringstream os;
@@ -612,12 +612,12 @@ void psd_mono_common(Matrix& psd_data,
        << "is not allowed since *scat_meta* has only " << nss << " elements.";
     throw std::runtime_error(os.str());
   }
-  if (scat_meta[species_index].nelem() != 1) {
+  if (scat_meta[species_index].size() != 1) {
     std::ostringstream os;
     os << "This method only works with scattering species consisting of a\n"
        << "single element, but your data do not match this demand.\n"
        << "Selected scattering species index is " << species_index << ".\n"
-       << "This species has " << scat_meta[species_index].nelem()
+       << "This species has " << scat_meta[species_index].size()
        << " elements.";
     throw std::runtime_error(os.str());
   }
@@ -678,7 +678,7 @@ void psd_mono_common(Matrix& psd_data,
 }
 
 void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
-  Index nD = diameter.nelem();
+  Index nD = diameter.size();
   psd.resize(nD);
   psd = 0.;
 
@@ -870,7 +870,7 @@ void psd_snow_F07(Vector& psd,
                   const Numeric alpha,
                   const Numeric beta,
                   const String& regime) {
-  Index nD = diameter.nelem();
+  Index nD = diameter.size();
   psd.resize(nD);
   psd = 0.;
 
@@ -1026,7 +1026,7 @@ void psd_SB06(Vector& psd,
   M0 = N_tot;
   M1 = WC;
 
-  Index nD = mass.nelem();
+  Index nD = mass.size();
   psd.resize(nD);
   psd = 0.;
 
@@ -1164,7 +1164,7 @@ void psd_MY05(Vector& psd,
   M0 = N_tot;
   M1 = WC;
 
-  Index nD = diameter_max.nelem();
+  Index nD = diameter_max.size();
   psd.resize(nD);
   psd = 0.;
 

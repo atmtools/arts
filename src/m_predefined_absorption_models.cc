@@ -67,22 +67,22 @@ void propmat_clearskyAddPredefined(
     const Vector& f_grid,
     const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.nelem() not_eq f_grid.nelem(),
+      propmat_clearsky.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   if (dpropmat_clearsky_dx.nrows()) {
     ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.nrows() not_eq jacobian_quantities.nelem(),
+        static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_quantities.size(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.ncols() not_eq f_grid.nelem(),
+        dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
   const Absorption::PredefinedModel::VMRS vmr(atm_point);
   for (auto& tag_groups : abs_species) {
-    if (select_abs_species.nelem() and select_abs_species not_eq tag_groups)
+    if (select_abs_species.size() and select_abs_species not_eq tag_groups)
       continue;
     for (auto& tag : tag_groups) {
       Absorption::PredefinedModel::compute(propmat_clearsky,

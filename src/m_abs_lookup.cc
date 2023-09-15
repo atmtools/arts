@@ -62,9 +62,9 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   // see there.
 
   // Loop tag groups:
-  for (Index i = 0; i < abs_species.nelem(); ++i) {
+  for (Size i = 0; i < abs_species.size(); ++i) {
     // Loop tags in tag group
-    for (Index s = 0; s < abs_species[i].nelem(); ++s) {
+    for (Size s = 0; s < abs_species[i].size(); ++s) {
       // Check for continuum tags
       if (abs_species[i][s].type == Species::TagType::Predefined ||
           abs_species[i][s].type == Species::TagType::Cia) {
@@ -154,7 +154,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   find_nonlinear_continua(cont, abs_species);
 
   // Add these to abs_nls:
-  for (Index i = 0; i < cont.nelem(); ++i) {
+  for (Size i = 0; i < cont.size(); ++i) {
     abs_nls.push_back(abs_species[cont[i]]);
   }
 }
@@ -334,7 +334,7 @@ void abs_speciesAdd(  // WS Output:
 
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
-  for (Index i = 0; i < names.nelem(); ++i) {
+  for (Size i = 0; i < names.size(); ++i) {
     abs_species.emplace_back(names[i]);
   }
 
@@ -389,13 +389,13 @@ void abs_speciesSet(  // WS Output:
   // Invalidate agenda check flags
   propmat_clearsky_agenda_checked = false;
 
-  abs_species.resize(names.nelem());
+  abs_species.resize(names.size());
 
   //cout << "Names: " << names << "\n";
 
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
-  for (Index i = 0; i < names.nelem(); ++i) {
+  for (Size i = 0; i < names.size(); ++i) {
     // This part has now been moved to array_species_tag_from_string.
     // Call this function.
     abs_species[i] = ArrayOfSpeciesTag(names[i]);
@@ -446,7 +446,7 @@ void propmat_clearskyAddFromLookup(
   const Numeric dt = temperature_perturbation(jacobian_quantities);
 
   const Vector a_vmr_list = [&]() {
-    Vector vmr(abs_species.nelem());
+    Vector vmr(abs_species.size());
     std::transform(abs_species.begin(), abs_species.end(), vmr.begin(),
                    [&](const ArrayOfSpeciesTag& spec) -> Numeric { return atm_point[spec]; });
     return vmr;
@@ -526,7 +526,7 @@ void propmat_clearskyAddFromLookup(
     for (Index isp = 0; isp < abs_scalar_gas.nrows(); isp++) {
       for (Index iv = 0; iv < abs_scalar_gas.ncols(); iv++) {
         propmat_clearsky[iv].A() += abs_scalar_gas(isp, iv);
-        for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+        for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
           
           if (not deriv.propmattype()) continue;

@@ -210,14 +210,14 @@ bool change_item(const char* name,
                  Vector& vec,
                  Vector& old,
                  const ArrayOfString& keys) {
-  const Index n = vec.nelem();
-  ARTS_ASSERT(n == keys.nelem())
+  const Size n = vec.size();
+  ARTS_ASSERT(n == keys.size())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Value")) {
       if (ImGui::BeginMenu(name)) {
-        for (Index i = 0; i < n; i++) {
+        for (Size i = 0; i < n; i++) {
           ImGui::Text("\t");
           ImGui::SameLine();
           if (ImGui::InputDouble(keys[i].c_str(), &vec[i], 0, 0, "%g"))
@@ -286,7 +286,7 @@ bool change_item(const char* name,
                  Vector3& old,
                  const ArrayOfString& keys) {
   const Index n = 3;
-  ARTS_ASSERT(n == keys.nelem())
+  ARTS_ASSERT(n == keys.size())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
@@ -323,7 +323,7 @@ bool change_item(const char* name,
                  AtmPoint& old,
                  const ArrayOfArrayOfSpeciesTag& spec,
                  Options& menu) {
-  ARTS_ASSERT(vec.nelem() == spec.nelem())
+  ARTS_ASSERT(static_cast<Size>(vec.size()) == spec.size())
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
@@ -361,7 +361,7 @@ bool change_item(const char* name,
                     scale * max,
                     vmr_type.c_str());
 
-        for (Index i = 0; i < spec.nelem(); i++) {
+        for (Size i = 0; i < spec.size(); i++) {
           const std::string spec_name{var_string('\t', spec[i], '\t')};
           Numeric val = scale * vec[spec[i]];
           ImGui::Text("\t");
@@ -395,7 +395,7 @@ bool change_item(const char* name,
 
 bool change_item(
     const char* name, Vector& vec, Vector& old, Numeric min, Numeric max) {
-  Index n = vec.nelem();
+  Index n = vec.size();
   ARTS_ASSERT(is_sorted(vec))
   ARTS_ASSERT(min < max)
   ARTS_ASSERT(n > 1)
@@ -422,7 +422,7 @@ bool change_item(
         }
         ImGui::Text("\t");
         ImGui::SameLine();
-        if (ImGui::InputScalar("\tnelem\t", ImGuiDataType_S64, &n)) {
+        if (ImGui::InputScalar("\tsize\t", ImGuiDataType_S64, &n)) {
           n = std::clamp(n, Index{2}, std::numeric_limits<Index>::max());
           change = true;
         }
@@ -498,7 +498,7 @@ bool change_item(const char* name,
     if (ImGui::BeginMenu("Value")) {
       if (ImGui::BeginMenu(name)) {
         if (ImGui::Selectable(" *All* ",
-                              out.nelem() == 0,
+                              out.size() == 0,
                               ImGuiSelectableFlags_DontClosePopups)) {
           out.resize(0);
           did_something = true;
@@ -568,10 +568,10 @@ void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
     ind = -1;
   }
 
-  for (Index i = 0; i < jac.nelem(); i++) {
+  for (Size i = 0; i < jac.size(); i++) {
     const std::string opt{var_string('\t', "Derivative: ", change_item_name(jac[i].Target()), '\t')};
     if (ImGui::Selectable(
-            opt.c_str(), ind == i, ImGuiSelectableFlags_DontClosePopups)) {
+            opt.c_str(), static_cast<Size>(ind) == i, ImGuiSelectableFlags_DontClosePopups)) {
       ind = i;
     }
   }

@@ -849,8 +849,8 @@ struct ComputeData {
               const bool nlte) noexcept
       : F(f.nelem(), 0),
         N(nlte ? f.nelem() : 0, 0),
-        dF(f.nelem(), jacobian_quantities.nelem(), 0),
-        dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.nelem() : 0, 0),
+        dF(f.nelem(), jacobian_quantities.size(), 0),
+        dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.size() : 0, 0),
         f_grid(f),
         do_nlte(nlte) {}
 

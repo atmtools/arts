@@ -566,7 +566,7 @@ void DoitInit(  //WS Output
   if (doit_za_grid_size > 100) {
   }
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 6,
+  ARTS_USER_ERROR_IF (cloudbox_limits.size() != 6,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
@@ -600,7 +600,7 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
   Tensor6 cloudbox_field_mono_opt(
       p_grid_orig.nelem(), 1, 1, cloudbox_field_mono.npages(), 1, 1);
   ArrayOfGridPos Z_gp(p_grid_orig.nelem());
-  Matrix itw_z(Z_gp.nelem(), 2);
+  Matrix itw_z(Z_gp.size(), 2);
   // We only need the p_grid inside the cloudbox as cloudbox_field_mono is only defined in the
   // cloudbox
   Vector p_grid_cloudbox {p_grid[Range(
@@ -649,7 +649,7 @@ void OptimizeDoitPressureGrid(
         "( 4 = 1)");
   // If ScatSpeciesMerged has been applied, then scat_data_mono should have only one element, and
   // pnd_field should have the number of pressure grid points in the cloudbox as first dimension
-  ARTS_USER_ERROR_IF (scat_data_mono.nelem() > 1 ||
+  ARTS_USER_ERROR_IF (scat_data_mono.size() > 1 ||
       pnd_field.nbooks() != cloudbox_limits[1] - cloudbox_limits[0] + 1,
         " ScatSpeciesMerge has to be applied in order to use this method");
 
@@ -822,7 +822,7 @@ void OptimizeDoitPressureGrid(
                            1,
                            1);
   ArrayOfGridPos Z_gp(z_grid.nelem());
-  Matrix itw_z(Z_gp.nelem(), 2);
+  Matrix itw_z(Z_gp.size(), 2);
   std::ostringstream os;
   os << "At the current frequency " << f_grid[f_index]
      << " there was an error while interpolating the fields to the new z_field";
@@ -852,7 +852,7 @@ void OptimizeDoitPressureGrid(
 
   // Interpolate cloudbox_field_mono and pha_mat_doit
   ArrayOfGridPos Z_gp_2(cloudbox_opt_size);
-  Matrix itw_z_2(Z_gp_2.nelem(), 2);
+  Matrix itw_z_2(Z_gp_2.size(), 2);
   Range r1 =
       Range(cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1);
   Range r2 = Range(cloudbox_limits_opt[0], cloudbox_opt_size);
@@ -906,7 +906,7 @@ void DoitWriteIterationFields(  //WS input
     //Keyword:
     const ArrayOfIndex& iterations,
     const ArrayOfIndex& frequencies) {
-  if (!frequencies.nelem() || !iterations.nelem()) return;
+  if (!frequencies.size() || !iterations.size()) return;
 
   // If the number of iterations is less than a number specified in the
   // keyword *iterations*, this number will be ignored.
@@ -920,7 +920,7 @@ void DoitWriteIterationFields(  //WS input
         os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
   }
 
-  for (Index j = 0; j < frequencies.nelem(); j++) {
+  for (Size j = 0; j < frequencies.size(); j++) {
     if (f_index == frequencies[j] || (!j && frequencies[j] == -1)) {
       // All iterations are written to files
       if (iterations[0] == -1) {
@@ -932,7 +932,7 @@ void DoitWriteIterationFields(  //WS input
 
       // Only the iterations given by the keyword are written to a file
       else {
-        for (Index i = 0; i < iterations.nelem(); i++) {
+        for (Size i = 0; i < iterations.size(); i++) {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file(os.str() + ".xml",
                               cloudbox_field_mono,

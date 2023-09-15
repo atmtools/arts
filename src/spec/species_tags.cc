@@ -277,7 +277,7 @@ ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
 Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
                         Species::Species spec,
                         Index i) noexcept {
-  const Index n = specs.nelem();
+  const Index n = static_cast<Index>(specs.size());
   for (; i < n; i++)
     if (specs[i].Species() == spec) return i;
   return -1;
@@ -290,7 +290,7 @@ Index find_first_species(const ArrayOfArrayOfSpeciesTag& specs,
 
 std::pair<Index, Index> find_first_species_tag(
     const ArrayOfArrayOfSpeciesTag& specs, const SpeciesTag& tag) noexcept {
-  for (Index i = 0; i < specs.nelem(); i++) {
+  for (Size i = 0; i < specs.size(); i++) {
     if (auto ptr = std::find(specs[i].cbegin(), specs[i].cend(), tag);
         ptr not_eq specs[i].cend())
       return {i, std::distance(specs[i].cbegin(), ptr)};
@@ -301,7 +301,7 @@ std::pair<Index, Index> find_first_species_tag(
 std::pair<Index, Index> find_first_isotologue(
     const ArrayOfArrayOfSpeciesTag& specs,
     const SpeciesIsotopeRecord& isot) noexcept {
-  for (Index i = 0; i < specs.nelem(); i++) {
+  for (Size i = 0; i < specs.size(); i++) {
     if (auto ptr =
             std::find_if(specs[i].cbegin(),
                          specs[i].cend(),
@@ -314,11 +314,11 @@ std::pair<Index, Index> find_first_isotologue(
 
 void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
   Index num_free_electrons = 0;
-  for (Index i = 0; i < abs_species.nelem(); ++i) {
+  for (Size i = 0; i < abs_species.size(); ++i) {
     bool has_free_electrons = false;
     bool has_particles = false;
     bool has_hitran_xsec = false;
-    for (Index s = 0; s < abs_species[i].nelem(); ++s) {
+    for (Size s = 0; s < abs_species[i].size(); ++s) {
       if (abs_species[i][s].Type() == Species::TagType::FreeElectrons) {
         num_free_electrons++;
         has_free_electrons = true;
@@ -333,18 +333,18 @@ void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
       }
     }
 
-    ARTS_USER_ERROR_IF(abs_species[i].nelem() > 1 && has_free_electrons,
+    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_free_electrons,
                        "'free_electrons' must not be combined "
                        "with other tags in the same group.");
     ARTS_USER_ERROR_IF(num_free_electrons > 1,
                        "'free_electrons' must not be defined "
                        "more than once.");
 
-    ARTS_USER_ERROR_IF(abs_species[i].nelem() > 1 && has_particles,
+    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_particles,
                        "'particles' must not be combined "
                        "with other tags in the same group.");
 
-    ARTS_USER_ERROR_IF(abs_species[i].nelem() > 1 && has_hitran_xsec,
+    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_hitran_xsec,
                        "'hitran_xsec' must not be combined "
                        "with other tags in the same group.");
   }
@@ -373,13 +373,13 @@ std::set<Species::Species> lbl_species(
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
                            const Species spec) ARTS_NOEXCEPT {
-  ARTS_ASSERT(abs_species.nelem() == rtp_vmr.nelem())
+  ARTS_ASSERT(abs_species.size() == static_cast<Size>(rtp_vmr.size()))
 
   auto pos =
       std::find_if(abs_species.begin(),
                    abs_species.end(),
                    [spec](const ArrayOfSpeciesTag& tag_group) {
-                     return tag_group.nelem() and tag_group.Species() == spec;
+                     return tag_group.size() and tag_group.Species() == spec;
                    });
   return pos == abs_species.end()
              ? 0
@@ -447,3 +447,20 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
   }
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+namespace Species {
+std::ostream& operator<<(std::ostream& os, const Array<Species>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+}  // namespace Species

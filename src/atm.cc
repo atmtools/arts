@@ -99,7 +99,7 @@ Numeric Point::mean_mass() const {
       this_mass_sum += spec.Mass();
     }
 
-    if (x.first.nelem()) this_mass_sum *= x.second / static_cast<Numeric>(x.first.nelem());
+    if (x.first.size()) this_mass_sum *= x.second / static_cast<Numeric>(x.first.size());
     out += this_mass_sum;
     total_vmr += x.second;
   }
@@ -110,7 +110,7 @@ Numeric Point::mean_mass() const {
 
 std::vector<KeyVal> Point::keys() const {
   std::vector<KeyVal> out;
-  out.reserve(nelem());
+  out.reserve(size());
   for (auto &a : enumtyps::KeyTypes)
     out.emplace_back(a);
   for (auto &a : specs)
@@ -125,7 +125,7 @@ std::vector<KeyVal> Point::keys() const {
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
 Index Point::npart() const { return static_cast<Index>(partp.size()); }
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
-Index Point::nelem() const { return nspec() + nnlte() + nother() + npart(); }
+Index Point::size() const { return nspec() + nnlte() + nother() + npart(); }
 
 Index Field::nspec() const { return static_cast<Index>(specs().size()); }
 Index Field::npart() const { return static_cast<Index>(partp().size()); }
@@ -170,12 +170,12 @@ Limits find_limits(const GriddedField3 &gf3) {
 }
 
 Vector vec_interp(const Numeric& v, const Vector& alt, const Vector&, const Vector&) {
-  Vector out(alt.nelem(), v);
+  Vector out(alt.size(), v);
   return out;
 }
 
 Vector vec_interp(const FunctionalData& v, const Vector& alt, const Vector& lat, const Vector& lon) {
-  const Index n=alt.nelem();
+  const Index n=alt.size();
   Vector out(n);
   for (Index i=0; i<n; i++) out[i] = v(alt[i], lat[i], lon[i]);
   return out;
@@ -250,7 +250,7 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
   const bool d2 = v.get_grid_size(1) == 1;
   const bool d3 = v.get_grid_size(2) == 1;
 
-  const Index n=alt.nelem();
+  const Index n=alt.size();
   
   if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
   if (d1 and d2)        return tvec_interp<0, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
@@ -351,7 +351,7 @@ Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const 
   // Fix the extrapolations for ZERO and NONE and NEAREST
   const auto lim =
       std::visit([](auto &d) { return find_limits(d); }, data.data);
-  const Index n = alt.nelem();
+  const Index n = alt.size();
   for (Index i=0; i<n; i++) {
     out[i] = limit(data, find_limit(data, lim, alt[i], lat[i], lon[i]), out[i]);
   }
@@ -368,7 +368,7 @@ void Field::at(std::vector<Point> &out, const Vector &alt, const Vector &lat,
       top_of_atmosphere, " m.\nYour max input altitude is: ", max(alt), " m.")
 
   const auto n = static_cast<Index>(out.size());
-  ARTS_ASSERT(n == alt.nelem() and n == lat.nelem() and n == lon.nelem())
+  ARTS_ASSERT(n == alt.size() and n == lat.size() and n == lon.size())
 
   const auto compute = [&](const auto &key, const Data &data) {
     const Vector field_val = data.at(alt, lat, lon);
@@ -381,7 +381,7 @@ void Field::at(std::vector<Point> &out, const Vector &alt, const Vector &lat,
 }
 
 std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
-  std::vector<Point> out(alt.nelem());
+  std::vector<Point> out(alt.size());
   at(out, alt, lat, lon);
   return out;
 }
@@ -553,10 +553,15 @@ Numeric &Point::operator[](const KeyVal &k) {
 }
 
 void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
-  ARTS_ASSERT(sp.nelem() == x.nelem())
-  for (Index i=0; i<sp.nelem(); i++) {
+  ARTS_ASSERT(sp.size() == static_cast<Size>(x.size()))
+  for (Size i=0; i<sp.size(); i++) {
    specs[sp[i]] = x[i];
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
 }
 } // namespace Atm
 

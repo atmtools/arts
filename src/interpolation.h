@@ -72,6 +72,14 @@ typedef Array<Array<Array<GridPos> > > ArrayOfArrayOfArrayOfGridPos;
 typedef Array<Array<Array<Array<GridPos> > > >
     ArrayOfArrayOfArrayOfArrayOfGridPos;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfGridPos& a);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGridPos& a);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfGridPos& a);
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfArrayOfGridPos& a);
+
 // Function headers (documentation is in .cc file):
 
 void gridpos(ArrayOfGridPos& gp,

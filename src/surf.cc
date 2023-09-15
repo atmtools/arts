@@ -164,7 +164,7 @@ String Data::data_type() const {
   return static_cast<Index>(type.size());
 }
 
-[[nodiscard]] Index Point::nelem() const { return nother() + ntype(); }
+[[nodiscard]] Index Point::size() const { return nother() + ntype(); }
 
 Numeric &Point::operator[](const KeyVal &x) {
   return std::visit(

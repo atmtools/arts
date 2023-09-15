@@ -123,7 +123,9 @@ public:
     return *this;
   }
 
-  [[nodiscard]] auto operator<=>(const ArrayOfSpeciesTag& x) const = default;
+  [[nodiscard]] bool operator==(const ArrayOfSpeciesTag& x) const {
+    return std::ranges::equal(*this, x);
+  }
   
   ArrayOfSpeciesTag(std::string_view text);
   
@@ -169,6 +171,8 @@ public:
 };
 
 using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a);
 
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a tagtype
 struct SpeciesTagTypeStatus {
@@ -254,6 +258,9 @@ Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
  * @return Array<Tag> List of species tags with no constraints
  */
 Array<Tag> parse_tags(std::string_view text);
+
+std::ostream& operator<<(std::ostream& os, const Array<Species>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a);
 } // namespace Species
 
 namespace std {

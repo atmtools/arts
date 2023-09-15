@@ -356,12 +356,8 @@ void py_spectroscopy(py::module_& m) try {
                 t[8].cast<Quantum::Number::LocalState>());
           })).doc() = "Single absorption line";
 
-  artsclass<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
-      .PythonInterfaceBasicRepresentation(Array<AbsorptionSingleLine>)
-      .PythonInterfaceArrayDefault(AbsorptionSingleLine)
+  artsarray<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
-  py::implicitly_convertible<std::vector<AbsorptionSingleLine>,
-                             Array<AbsorptionSingleLine>>();
 
   artsclass<AbsorptionLines>(m, "AbsorptionLines")
       .def(
@@ -385,8 +381,8 @@ void py_spectroscopy(py::module_& m) try {
                 "Bad quantumidentity, must specify isotopologue, e.g., H2O-161")
             ARTS_USER_ERROR_IF(
                 std::any_of(lines.begin(), lines.end(),
-                            [count = broadeningspecies.nelem()](auto &line) {
-                              return line.lineshape.nelem() not_eq count;
+                            [count = broadeningspecies.size()](auto &line) {
+                              return line.lineshape.size() not_eq count;
                             }),
                 "Incorrect size of broadeningspecies vs the line shape model")
             ARTS_USER_ERROR_IF(
@@ -427,7 +423,7 @@ void py_spectroscopy(py::module_& m) try {
             return var_string("'",
                               x.quantumidentity,
                               "'-band of ",
-                              x.lines.nelem(),
+                              x.lines.size(),
                               " lines");
           })
       .PythonInterfaceFileIO(AbsorptionLines)
@@ -458,7 +454,7 @@ void py_spectroscopy(py::module_& m) try {
                                "Bad atmospheric state (T P): ",
                                Vector{T, P})
             ARTS_USER_ERROR_IF(
-                VMR.size() not_eq band.broadeningspecies.nelem(),
+                static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
                 "Mismatch between VMRs and broadening species.\nVMR: ",
                 VMR,
                 "\nSpecies: ",
@@ -523,12 +519,17 @@ X : ~pyarts.arts.LineShapeOutput
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
 
-  PythonInterfaceWorkspaceArray(AbsorptionLines).
-    def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
+  artsarray<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
+      .PythonInterfaceFileIO(ArrayOfAbsorptionLines)
+.def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
       return fuzzy_find_all(a, q);
-    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier");
+    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier")
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
 
-  PythonInterfaceWorkspaceArray(ArrayOfAbsorptionLines);
+  artsarray<ArrayOfArrayOfAbsorptionLines>(m,
+                                                "ArrayOfArrayOfAbsorptionLines")
+      .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
 
   artsclass<LineShape::Calculator>(m, "LineShapeCalculator")
       .def(py::init([](AbsorptionLines& band,
@@ -544,7 +545,7 @@ X : ~pyarts.arts.LineShapeOutput
                                 "Bad atmospheric state (T P H): ",
                                 Vector{T, P, H})
              ARTS_USER_ERROR_IF(
-                 VMR.size() not_eq band.broadeningspecies.nelem(),
+                 static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
                  "Mismatch between VMRs and broadening species.\nVMR: ",
                  VMR,
                  "\nSpecies: ",
@@ -824,44 +825,16 @@ but does not enforce it.
             return out;
           })).doc() = "Holds data required for a single species error corrected sudden method application";
 
-  artsclass<Array<SpeciesErrorCorrectedSuddenData>>(
+  artsarray<Array<SpeciesErrorCorrectedSuddenData>>(
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
-      .PythonInterfaceBasicRepresentation(
-          Array<SpeciesErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(SpeciesErrorCorrectedSuddenData)
       .doc() = "List of :class:`~pyarts.arts.SpeciesErrorCorrectedSuddenData`";
 
-  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
-      .def(py::init([]() { return std::make_shared<ErrorCorrectedSuddenData>(); }), "Empty data")
-      .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
-      .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
-      .def(
-          "__getitem__",
-          [](ErrorCorrectedSuddenData& x, Species::Species& y)
-              -> SpeciesErrorCorrectedSuddenData& { return x[y]; },
-          py::return_value_policy::reference_internal)
-      .def(
-          "__setitem__",
-          [](ErrorCorrectedSuddenData& x,
-             Species::Species& y,
-             SpeciesErrorCorrectedSuddenData& z) { x[y] = z; },
-          py::return_value_policy::reference_internal)
-      .def(py::pickle(
-          [](const ErrorCorrectedSuddenData& t) {
-            return py::make_tuple(t.id, t.data);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
-            auto out = std::make_shared<ErrorCorrectedSuddenData>();
-            out->id = t[0].cast<QuantumIdentifier>();
-            out->data = t[1].cast<Array<SpeciesErrorCorrectedSuddenData>>();
-            return out;
-          })).doc() = "Data for the error corrected sudden method of line mixing";
+  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData").doc() =
+      "Data for the error corrected sudden method of line mixing";
 
-  artsclass<Array<ErrorCorrectedSuddenData>>(m,
-                                              "ArrayOfErrorCorrectedSuddenData")
-      .PythonInterfaceBasicRepresentation(Array<ErrorCorrectedSuddenData>)
-      .PythonInterfaceArrayDefault(ErrorCorrectedSuddenData).doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
+  artsarray<Array<ErrorCorrectedSuddenData>>(
+      m, "ArrayOfErrorCorrectedSuddenData")
+      .doc() = "List of :class:`~pyarts.arts.ErrorCorrectedSuddenData`";
 
   artsclass<MapOfErrorCorrectedSuddenData, Array<ErrorCorrectedSuddenData>>(
       m, "MapOfErrorCorrectedSuddenData")

@@ -1,6 +1,8 @@
 #include <python_interface.h>
 
+#include "mystring.h"
 #include "py_macros.h"
+#include "sun.h"
 
 
 namespace Python {
@@ -34,14 +36,16 @@ void py_star(py::module_& m) try {
                              t[3].cast<Numeric>(),
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()});
-          })).doc()=R"--(A single sun.
-          
-Each sun is described by a struct with its spectrum, radius
-distance from center of planet to center of sun,
-temperature (if possible), latitude in the sky of the planet,
-longitude in the sky of the planet and the type )--";
+          }))
+      .def(py::init<const Sun&>())
+      .PythonInterfaceCopyValue(Sun)
+      .PythonInterfaceBasicRepresentation(Sun)
+      .PythonInterfaceFileIO(Sun)
+      .PythonInterfaceWorkspaceDocumentation(Sun);
 
-  PythonInterfaceWorkspaceArray(Sun);
+  artsarray<ArrayOfSun>(m, "ArrayOfSun")
+      .PythonInterfaceFileIO(ArrayOfSun)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSun);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }

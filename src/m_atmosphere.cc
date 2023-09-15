@@ -85,7 +85,7 @@ void atm_fields_compactExpand(GriddedField4& af,
                               const String& name,
                               const Index& prepend) {
   // Number of fields already present:
-  nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  nf = af.get_string_grid(GFIELD4_FIELD_NAMES).size();
 
   if (prepend) {
     // Add name of new field to field name list:
@@ -347,16 +347,16 @@ void FieldFromGriddedField(  // WS Generic Output:
     const Vector& lon_grid,
     // WS Generic Input:
     const ArrayOfGriddedField3& gfraw_in) {
-  if (!gfraw_in.nelem()) {
+  if (!gfraw_in.size()) {
     field_out.resize(0, 0, 0, 0);
   } else {
-    field_out.resize(gfraw_in.nelem(),
+    field_out.resize(gfraw_in.size(),
                      p_grid.nelem(),
                      gfraw_in[0].data.nrows(),
                      gfraw_in[0].data.ncols());
   }
 
-  for (Index i = 0; i < gfraw_in.nelem(); i++) {
+  for (Size i = 0; i < gfraw_in.size(); i++) {
     chk_griddedfield_gridname(gfraw_in[i], 0, "Pressure");
     chk_if_equal(
         "p_grid", "gfield.p_grid", p_grid, gfraw_in[i].get_numeric_grid(0));
@@ -561,9 +561,9 @@ void GriddedFieldLatLonExpand(  // WS Generic Output:
     ArrayOfGriddedField3& gfraw_out,
     // WS Generic Input:
     const ArrayOfGriddedField3& gfraw_in) {
-  gfraw_out.resize(gfraw_in.nelem());
+  gfraw_out.resize(gfraw_in.size());
 
-  for (Index i = 0; i < gfraw_in.nelem(); i++)
+  for (Size i = 0; i < gfraw_in.size(); i++)
     GriddedFieldLatLonExpand(gfraw_out[i], gfraw_in[i]);
 }
 
@@ -786,9 +786,9 @@ void GriddedFieldPRegrid(  // WS Generic Output:
     const ArrayOfGriddedField3& agfraw_in,
     const Index& interp_order,
     const Index& zeropadding) {
-  agfraw_out.resize(agfraw_in.nelem());
+  agfraw_out.resize(agfraw_in.size());
 
-  for (Index i = 0; i < agfraw_in.nelem(); i++) {
+  for (Size i = 0; i < agfraw_in.size(); i++) {
     GriddedFieldPRegrid(agfraw_out[i],
                         p_grid,
                         agfraw_in[i],
@@ -1141,9 +1141,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
     // WS Generic Input:
     const ArrayOfGriddedField3& agfraw_in,
     const Index& interp_order) {
-  agfraw_out.resize(agfraw_in.nelem());
+  agfraw_out.resize(agfraw_in.size());
 
-  for (Index i = 0; i < agfraw_in.nelem(); i++) {
+  for (Size i = 0; i < agfraw_in.size(); i++) {
     GriddedFieldLatLonRegrid(agfraw_out[i],
                              lat_true,
                              lon_true,
@@ -1170,7 +1170,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
       // All fields called "ignore" will be ignored.
   String fn_upper;  // Temporary variable to hold upper case field_names.
 
-  ARTS_USER_ERROR_IF (field_names.nelem() != nf,
+  ARTS_USER_ERROR_IF (field_names.size() != static_cast<Size>(nf),
     "Cannot extract fields from Matrix.\n"
     "*field_names* must have one element less than there are\n"
     "matrix columns.")
@@ -1178,7 +1178,7 @@ void atm_fields_compactFromMatrix(  // WS Output:
   // Remove additional fields from the field_names. All fields that
   // are flagged by 'ignore' in the field names, small or large letters,
   // are removed.
-  for (Index f = 0; f < field_names.nelem(); f++) {
+  for (Size f = 0; f < field_names.size(); f++) {
     fn_upper = field_names[f];
     toupper(fn_upper);
     //cout << "fieldname[" << f << "]: " << fn_upper;
@@ -1226,13 +1226,13 @@ void atm_fields_compactAddConstant(  // WS Output:
   // Add book
   atm_fields_compactExpand(af, nf, name, prepend);
 
-  if (condensibles.nelem()) {
+  if (condensibles.size()) {
     const Tensor4& vmrs = af.data;
     const ArrayOfString& species = af.get_string_grid(GFIELD4_FIELD_NAMES);
     Tensor3 condensible_sum(vmrs.npages(), vmrs.nrows(), vmrs.ncols(), 1.);
-    for (Index c = 0; c < condensibles.nelem(); c++) {
+    for (Size c = 0; c < condensibles.size(); c++) {
       bool species_found = false;
-      for (Index i = 0; !species_found && i < species.nelem(); i++) {
+      for (Size i = 0; !species_found && i < species.size(); i++) {
         if (species[i] == condensibles[c]) {
           condensible_sum -= vmrs(i, joker, joker, joker);
           species_found = true;
@@ -1309,7 +1309,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
       gridpos(lon_gridpos, sp_lon_grid, af_lon_grid);
 
       Tensor4 itw(
-          p_gridpos.nelem(), lat_gridpos.nelem(), lon_gridpos.nelem(), 8);
+          p_gridpos.size(), lat_gridpos.size(), lon_gridpos.size(), 8);
       interpweights(itw, p_gridpos, lat_gridpos, lon_gridpos);
 
       Tensor3 newfield(
@@ -1319,7 +1319,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
       atm_fields_compact.data(insert_pos, joker, joker, joker) = newfield;
     } else {  // 2D-case
 
-      Tensor3 itw(p_gridpos.nelem(), lat_gridpos.nelem(), 4);
+      Tensor3 itw(p_gridpos.size(), lat_gridpos.size(), 4);
       interpweights(itw, p_gridpos, lat_gridpos);
 
       Matrix newfield(af_p_grid.nelem(), af_lat_grid.nelem());
@@ -1329,7 +1329,7 @@ void atm_fields_compactAddSpecies(  // WS Output:
       atm_fields_compact.data(insert_pos, joker, joker, 0) = newfield;
     }
   } else {  // 1D-case
-    Matrix itw(p_gridpos.nelem(), 2);
+    Matrix itw(p_gridpos.size(), 2);
     interpweights(itw, p_gridpos);
 
     Vector newfield(af_p_grid.nelem());
@@ -1394,7 +1394,7 @@ void batch_atm_fields_compactAddConstant(  // WS Output:
     const Numeric& value,
     const Index& prepend,
     const ArrayOfString& condensibles) {
-  for (Index i = 0; i < batch_atm_fields_compact.nelem(); i++) {
+  for (Size i = 0; i < batch_atm_fields_compact.size(); i++) {
     atm_fields_compactAddConstant(batch_atm_fields_compact[i],
                                   name,
                                   value,
@@ -1411,7 +1411,7 @@ void batch_atm_fields_compactAddSpecies(  // WS Output:
     const String& name,
     const GriddedField3& species,
     const Index& prepend) {
-  const Index nelem = batch_atm_fields_compact.nelem();
+  const Index nelem = batch_atm_fields_compact.size();
 
   String fail_msg;
   bool failed = false;
@@ -1442,7 +1442,7 @@ void batch_atm_fields_compactCleanup(  //WS Output:
     ArrayOfGriddedField4& batch_atm_fields_compact,
     //WS Input:
     const Numeric& threshold) {
-  for (Index i = 0; i < batch_atm_fields_compact.nelem(); i++) {
+  for (Size i = 0; i < batch_atm_fields_compact.size(); i++) {
     atm_fields_compactCleanup(
         batch_atm_fields_compact[i], threshold);
   }
@@ -1456,7 +1456,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(  // WS Output:
     const ArrayOfMatrix& am,
     // Control Parameters:
     const ArrayOfString& field_names) {
-  const Index amnelem = am.nelem();
+  const Index amnelem = am.size();
 
   ARTS_USER_ERROR_IF (amnelem == 0,
       "No elements in atmospheric scenario batch.\n"
@@ -1540,7 +1540,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
-  const Index nsa = abs_species.nelem();
+  const Index nsa = abs_species.size();
 
   // Check that there is at least one VMR species:
   ARTS_USER_ERROR_IF (nsa < 1,
@@ -1691,7 +1691,7 @@ void atm_fieldLteExternalPartitionFunction(
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
-  const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
+  const Index nn = nlte_quantum_identifiers.size(), np = t_field.npages(),
               nlat = t_field.nrows(), nlon = t_field.ncols();
   if (nn == 0) return;
 
@@ -1769,7 +1769,7 @@ void atm_fieldLteInternalPartitionFunction(
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "Atmospheric field must have temperature field")
   //const auto& t_field = atm_field[Atm::Key::t].get<const Tensor3&>();
 
-  const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
+  const Index nn = nlte_quantum_identifiers.size(), np = t_field.npages(),
               nlat = t_field.nrows(), nlon = t_field.ncols();
   if (nn == 0) return;
 

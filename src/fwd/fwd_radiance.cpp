@@ -12,6 +12,7 @@
 #include "cia.h"
 #include "debug.h"
 #include "matpack_concepts.h"
+#include "matpack_view.h"
 #include "physics_funcs.h"
 
 namespace fwd::profile {
@@ -88,7 +89,7 @@ spectral_radiance::spectral_radiance(
   ARTS_USER_ERROR_IF(error_msg.size(), error_msg, '\n')
 }
 
-ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView rad,
+ExhaustiveVectorView spectral_radiance::planar(ExhaustiveVectorView& rad,
                                                Numeric f,
                                                Numeric za) const try {
   using Conversion::cosd;
@@ -158,14 +159,15 @@ Vector spectral_radiance::planar(Numeric f, Numeric za) const {
   return rad;
 }
 
-void spectral_radiance::planar_par(ExhaustiveMatrixView rad,
+void spectral_radiance::planar_par(ExhaustiveMatrixView& rad,
                                    const Vector& fs,
                                    Numeric za) const {
   const Index n = fs.size();
 
 #pragma omp parallel for
   for (Index i = 0; i < n; i++) {
-    planar(rad[i], fs[i], za);
+    ExhaustiveVectorView radvec = rad[i];
+    planar(radvec, fs[i], za);
   }
 }
 

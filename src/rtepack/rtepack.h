@@ -41,3 +41,12 @@ using ArrayOfMuelmatVector = Array<MuelmatVector>;
 using ArrayOfMuelmatMatrix = Array<MuelmatMatrix>;
 using ArrayOfArrayOfMuelmatVector = Array<ArrayOfMuelmatVector>;
 using ArrayOfArrayOfMuelmatMatrix = Array<ArrayOfMuelmatMatrix>;
+
+namespace rtepack {
+std::ostream& operator<<(std::ostream& os, const Array<propmat>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<propmat>>& a);
+std::ostream& operator<<(std::ostream& os, const Array<muelmat>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<muelmat>>& a);
+std::ostream& operator<<(std::ostream& os, const Array<stokvec>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<stokvec>>& a);
+}  // namespace rtepack

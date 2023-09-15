@@ -187,7 +187,7 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data,
 
         const auto type = toTemperatureModel(s);
         const Index ntemp =
-            LegacyLineFunctionData::temperaturemodel2legacynelem(type);
+            LegacyLineFunctionData::temperaturemodel2legacysize(type);
 
         m.mdata[i].Data()[Index(param)].type = type;
         if (ntemp <= ModelParameters::N) {
@@ -240,7 +240,7 @@ std::istream& LineShape::from_pressurebroadeningdata(
   data >> s;
 
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
-  const auto n = LegacyPressureBroadeningData::typepb2nelem(type);
+  const auto n = LegacyPressureBroadeningData::typepb2size(type);
   const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
 
   Vector x(n);
@@ -265,7 +265,7 @@ std::istream& LineShape::from_linemixingdata(std::istream& data,
   data >> s;
 
   const auto type = LegacyLineMixingData::string2typelm(s);
-  const auto n = LegacyLineMixingData::typelm2nelem(type);
+  const auto n = LegacyLineMixingData::typelm2size(type);
 
   Vector x(n);
   for (auto& num : x) data >> double_imanip() >> num;
@@ -440,9 +440,9 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
 Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {
-  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(), "Bad atmospheric inputs");
+  ARTS_ASSERT (atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()), "Bad atmospheric inputs");
   
-  const Index n = lineshape_species.nelem();
+  const Size n = lineshape_species.size();
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
@@ -451,12 +451,12 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species
-  for (Index i = 0; i < n - bath; i++) {
+  for (Size i = 0; i < n - bath; i++) {
     const Species::Species target = lineshape_species[i];
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+    for (Size j = 0; j < atmospheric_species.size(); j++) {
       if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
       }
@@ -482,7 +482,7 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
 
 Vector LineShape::vmrs(const AtmPoint& atm_point,
                        const ArrayOfSpecies& lineshape_species) ARTS_NOEXCEPT {  
-  const Index n = lineshape_species.nelem();
+  const Index n = lineshape_species.size();
   
   // We need to know if bath is an actual species
   const bool bath = n and lineshape_species.back() == Species::Species::Bath;
@@ -510,10 +510,10 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
                        const ArrayOfArrayOfSpeciesTag& atmospheric_species,
                        const ArrayOfSpecies& lineshape_species,
                        const SpeciesIsotopologueRatios& ir) ARTS_NOEXCEPT {
-  ARTS_ASSERT (atmospheric_species.nelem() == atmospheric_vmrs.nelem(),
+  ARTS_ASSERT (atmospheric_species.size() == static_cast<Size>(atmospheric_vmrs.size()),
                "Bad atmospheric inputs");
   
-  const Index n = lineshape_species.nelem();
+  const Size n = lineshape_species.size();
   
   // Initialize list of VMRS to 0
   Vector line_vmrs(n, 0);
@@ -523,13 +523,13 @@ Vector LineShape::mass(const ConstVectorView& atmospheric_vmrs,
   const bool bath = n and lineshape_species.back() == Species::Species::Bath;
   
   // Loop species ignoring self and bath
-  for (Index i = 0; i < n - bath; i++) {
+  for (Size i = 0; i < n - bath; i++) {
     // Select target in-case this is self-broadening
     const Species::Species target = lineshape_species[i];
     
     // Find species in list or do nothing at all
     Index this_species_index = -1;
-    for (Index j = 0; j < atmospheric_species.nelem(); j++) {
+    for (Size j = 0; j < atmospheric_species.size(); j++) {
       if (atmospheric_species[j].Species() == target) {
         this_species_index = j;
       }
@@ -681,7 +681,7 @@ ArrayOfString ModelMetaDataArray(const LineShape::Model& m,
         })) {
       std::ostringstream os;
       os << var << " ~ ";
-      for (Index j = 0; j < sts.nelem(); j++) {
+      for (Size j = 0; j < sts.size(); j++) {
         if (j == 0 and self)
           os << "VMR(" << self_broadening << ") * "
              << modelparameters2metadata(m.Data().front().Get(var), T0);
@@ -1012,16 +1012,20 @@ Output SingleSpeciesModel::dT0(Numeric T, Numeric T0,
           P * Y().dT0(T, T0),  P * P * G().dT0(T, T0), P * P * DV().dT0(T, T0)};
 }
 
-#define FUNC(X, PVAR)                                                          \
-  Numeric Model::X(Numeric T, Numeric T0, Numeric P [[maybe_unused]],          \
-                   const Vector &vmrs) const ARTS_NOEXCEPT {                   \
-    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
-                                                                               \
-    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
-                                        0.0, std::plus<>(),                    \
-                                        [T, T0](auto &ls, auto &xi) {          \
-                                          return xi * ls.X().at(T, T0);        \
-                                        });                                    \
+#define FUNC(X, PVAR)                                                        \
+  Numeric Model::X(                                                          \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
+      const ARTS_NOEXCEPT {                                                  \
+  ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                      \
+                                                                             \
+  return PVAR * std::transform_reduce(begin(),                               \
+                                      end(),                                 \
+                                      vmrs.data_handle(),                    \
+                                      0.0,                                   \
+                                      std::plus<>(),                         \
+                                      [T, T0](auto& ls, auto& xi) {          \
+                                        return xi * ls.X().at(T, T0);        \
+                                      });                                    \
   }
 FUNC(G0, P)
 FUNC(D0, P)
@@ -1034,16 +1038,20 @@ FUNC(G, P *P)
 FUNC(DV, P *P)
 #undef FUNC
 
-#define FUNC(X, PVAR)                                                          \
-  Numeric Model::d##X##dT(Numeric T, Numeric T0, Numeric P [[maybe_unused]],   \
-                          const Vector &vmrs) const ARTS_NOEXCEPT {            \
-    ARTS_ASSERT(nelem() == vmrs.nelem())                                       \
-                                                                               \
-    return PVAR * std::transform_reduce(begin(), end(), vmrs.data_handle(),    \
-                                        0.0, std::plus<>(),                    \
-                                        [T, T0](auto &ls, auto &xi) {          \
-                                          return xi * ls.X().dT(T, T0);        \
-                                        });                                    \
+#define FUNC(X, PVAR)                                                        \
+  Numeric Model::d##X##dT(                                                   \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
+      const ARTS_NOEXCEPT {                                                  \
+  ARTS_ASSERT(size() == static_cast<Size>(vmrs.size()))                      \
+                                                                             \
+  return PVAR * std::transform_reduce(begin(),                               \
+                                      end(),                                 \
+                                      vmrs.data_handle(),                    \
+                                      0.0,                                   \
+                                      std::plus<>(),                         \
+                                      [T, T0](auto& ls, auto& xi) {          \
+                                        return xi * ls.X().dT(T, T0);        \
+                                      });                                    \
   }
 FUNC(G0, P)
 FUNC(D0, P)
@@ -1206,11 +1214,11 @@ void Model::SetLineMixingModel(SingleSpeciesModel x) {
 }
 
 std::pair<bool, bool> Model::Match(const Model& other) const noexcept {
-  const Index n = nelem();
-  if (other.nelem() not_eq n) return {false, false};
+  const Size n = size();
+  if (other.size() not_eq n) return {false, false};
   
   bool match = true, nullable = true;
-  for (Index i=0; i<n; i++) {
+  for (Size i=0; i<n; i++) {
     const auto x = mdata[i].MatchTypes(other[i]);
     match = match and x.first;
     nullable = nullable and x.second;

@@ -105,11 +105,11 @@ void ScatElementsPndAndScatAdd(  //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  ARTS_USER_ERROR_IF (scat_data_files.nelem() != pnd_field_files.nelem(),
+  ARTS_USER_ERROR_IF (scat_data_files.size() != pnd_field_files.size(),
       "Number of elements in scat_data and pnd_field filelists is"
       "inconsistent.")
 
-  Index last_species = scat_data_raw.nelem() - 1;
+  Index last_species = scat_data_raw.size() - 1;
   if (last_species == -1) {
     scat_data_raw.resize(1);
     last_species = 0;
@@ -119,21 +119,21 @@ void ScatElementsPndAndScatAdd(  //WS Output:
   SingleScatteringData scat_data_single;
   GriddedField3 pnd_field_data;
 
-  for (Index i = 0; i < scat_data_files.nelem(); i++) {
+  for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
     scat_data_raw[last_species].push_back(scat_data_single);
     pnd_field_raw.push_back(pnd_field_data);
 
     xml_read_from_file(
         scat_data_files[i],
-        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]);
+        scat_data_raw[last_species][scat_data_raw[last_species].size() - 1]);
 
     if (pnd_field_files[i].size() < 1) {
     } else {
       xml_read_from_file(pnd_field_files[i],
-                         pnd_field_raw[pnd_field_raw.nelem() - 1]);
+                         pnd_field_raw[pnd_field_raw.size() - 1]);
 
-      chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem() - 1],
+      chk_pnd_data(pnd_field_raw[pnd_field_raw.size() - 1],
                    pnd_field_files[i]);
     }
   }
@@ -154,14 +154,14 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
 
   //--- Reading the data ---------------------------------------------------
   ArrayOfSingleScatteringData arr_ssd;
-  arr_ssd.resize(scat_data_files.nelem());
+  arr_ssd.resize(scat_data_files.size());
 
-  for (Index i = 0; i < scat_data_files.nelem(); i++) {
+  for (Size i = 0; i < scat_data_files.size(); i++) {
     xml_read_from_file(scat_data_files[i], arr_ssd[i]);
   }
 
   // append as new scattering species
-  if (scat_data_raw.nelem() == 0) {
+  if (scat_data_raw.size() == 0) {
     scat_data_raw.resize(1);
     scat_data_raw[0] = arr_ssd;
   } else
@@ -173,7 +173,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file);
 
   // append to pnd_field_raw
-  for (Index i = 0; i < pnd_tmp.nelem(); ++i)
+  for (Size i = 0; i < pnd_tmp.size(); ++i)
     pnd_field_raw.push_back(pnd_tmp[i]);
 }
 
@@ -199,11 +199,11 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  ARTS_USER_ERROR_IF (scat_data_files.nelem() != pnd_field_files.nelem(),
+  ARTS_USER_ERROR_IF (scat_data_files.size() != pnd_field_files.size(),
       "Number of elements in scat_data and pnd_field filelists is"
       "inconsistent.")
 
-  Index last_species = scat_data_raw.nelem() - 1;
+  Index last_species = scat_data_raw.size() - 1;
   if (last_species == -1) {
     scat_data_raw.resize(1);
     last_species = 0;
@@ -219,18 +219,18 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
                   propmat_clearsky_agenda_checked,
                   species);
 
-  for (Index i = 0; i < scat_data_files.nelem(); i++) {
+  for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
     scat_data_raw[last_species].push_back(scat_data_single);
     atm_field[abs_species.back()] = pnd_field_data;
 
     xml_read_from_file(
         scat_data_files[i],
-        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]);
+        scat_data_raw[last_species][scat_data_raw[last_species].size() - 1]);
 
     chk_interpolation_grids(
         "scat_data_single.f_grid to f_grid",
-        scat_data_raw[last_species][scat_data_raw[last_species].nelem() - 1]
+        scat_data_raw[last_species][scat_data_raw[last_species].size() - 1]
             .f_grid,
         f_grid);
 
@@ -243,7 +243,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
         ArrayOfGriddedField3 tmp;
         try {
           xml_read_from_file(pnd_field_files[i], tmp);
-          if (tmp.nelem() == 1) {
+          if (tmp.size() == 1) {
             atm_field[abs_species.back()] = tmp[0];
           } else {
             ARTS_USER_ERROR (
@@ -274,12 +274,12 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   ArrayOfSingleScatteringData arr_ssd;
   ArrayOfScatteringMetaData arr_smd;
 
-  arr_ssd.resize(scat_data_files.nelem());
-  arr_smd.resize(scat_data_files.nelem());
+  arr_ssd.resize(scat_data_files.size());
+  arr_smd.resize(scat_data_files.size());
 
   Index meta_naming_conv = 0;
 
-  for (Index i = 0; i < 1 && i < scat_data_files.nelem(); i++) {
+  for (Size i = 0; i < 1 && i < scat_data_files.size(); i++) {
     xml_read_from_file(scat_data_files[i], arr_ssd[i]);
 
     // make meta data name from scat data name
@@ -302,7 +302,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
       } else {
         try {
           split(strarr, scat_data_files[i], "scat_data");
-          ARTS_USER_ERROR_IF (strarr.nelem() < 2,
+          ARTS_USER_ERROR_IF (strarr.size() < 2,
                 "Splitting scattering data filename up at 'scat_data' also failed.");
           scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
@@ -327,11 +327,11 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   ArrayOfString fail_msg;
 
 #pragma omp parallel for if (!arts_omp_in_parallel() &&                       \
-                             scat_data_files.nelem() > 1)                     \
+                             scat_data_files.size() > 1)                     \
     num_threads(arts_omp_get_max_threads() > 16 ? 16                          \
                                                 : arts_omp_get_max_threads()) \
         shared(scat_data_files, arr_ssd, arr_smd)
-  for (Index i = 1; i < scat_data_files.nelem(); i++) {
+  for (Size i = 1; i < scat_data_files.size(); i++) {
     // make meta data name from scat data name
     ArrayOfString strarr;
     String scat_meta_file;
@@ -368,7 +368,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     arr_smd[i] = std::move(smd);
   }
 
-  if (fail_msg.nelem()) {
+  if (fail_msg.size()) {
     std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
@@ -396,14 +396,14 @@ void ScatElementsSelect(  //WS Output:
     const Numeric& tolerance,
     const String& delim) {
   // first check that sizes of scat_species and scat_data_raw/scat_meta agree
-  Index nspecies = scat_species.nelem();
-  ARTS_USER_ERROR_IF (nspecies != scat_data_raw.nelem() || nspecies != scat_meta.nelem(),
+  const Size nspecies = scat_species.size();
+  ARTS_USER_ERROR_IF (nspecies != scat_data_raw.size() || nspecies != scat_meta.size(),
       "Number of scattering species specified by scat_species does\n"
       "not agree with number of scattering species in\n"
       "scat_data_raw or scat_meta:\n"
       "scat_species has ", nspecies,
-      " entries, while scat_data_raw has ", scat_data_raw.nelem(),
-      " and scat_meta has ", scat_meta.nelem(), ".")
+      " entries, while scat_data_raw has ", scat_data_raw.size(),
+      " and scat_meta has ", scat_meta.size(), ".")
 
   // create temporary containers for selected elements
   ArrayOfSingleScatteringData scat_data_raw_tmp;
@@ -413,7 +413,7 @@ void ScatElementsSelect(  //WS Output:
   //find the species to handle: compare 'species' to 'partfield' part of
   //scat_species tags
   Index i_ss = -1;
-  for (Index i = 0; i < scat_species.nelem(); i++) {
+  for (Size i = 0; i < scat_species.size(); i++) {
     parse_partfield_name(partfield_name, scat_species[i], delim);
     if (partfield_name == species) i_ss = i;
   }
@@ -422,7 +422,7 @@ void ScatElementsSelect(  //WS Output:
 
   // choosing the specified SingleScatteringData and ScatteringMetaData
   if (sizeparam == "diameter_max")
-    for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
+    for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       // scattering element diameter is extracted from the
       // scattering element's meta data and checked whether it's within size
       // selected range (sizemax < 0 check follows from wildcard usage and
@@ -436,7 +436,7 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else if (sizeparam == "diameter_volume_equ")
-    for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
+    for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       if (scat_meta[i_ss][i_se].diameter_volume_equ >
               sizemin - sizemin * tolerance &&
           (sizemax + sizemax * tolerance >
@@ -448,7 +448,7 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else if (sizeparam == "diameter_area_equ_aerodynamical")
-    for (Index i_se = 0; i_se < scat_meta[i_ss].nelem(); i_se++) {
+    for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
       if (scat_meta[i_ss][i_se].diameter_area_equ_aerodynamical >
               sizemin - sizemin * tolerance &&
           (sizemax + sizemax * tolerance >
@@ -467,7 +467,7 @@ void ScatElementsSelect(  //WS Output:
   // To use a particle species field without associated scattering element
   // data poses a high risk of accidentially neglecting these species. That's
   // unlikely what the user intends. Hence throw error.
-  ARTS_USER_ERROR_IF (scat_meta_tmp.nelem() < 1,
+  ARTS_USER_ERROR_IF (scat_meta_tmp.size() < 1,
       "For scattering species ", species, " no scattering "
       "element matching the requested size range found.\n"
       "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
@@ -497,23 +497,23 @@ void ScatSpeciesExtendTemperature(  //WS Output:
   if (do_tl || do_th) {
     Index i_ss = -1;
     if (species == "") {
-      i_ss = scat_data_raw.nelem() - 1;
+      i_ss = scat_data_raw.size() - 1;
       ARTS_USER_ERROR_IF (i_ss == -1,
           "No *scat_data* available. Can not extend temperature range on "
           "inexistent data.")
     } else {
       // first check that sizes of scat_species and scat_data_raw agree
-      Index nspecies = scat_species.nelem();
-      ARTS_USER_ERROR_IF (nspecies != scat_data_raw.nelem(),
+      Size nspecies = scat_species.size();
+      ARTS_USER_ERROR_IF (nspecies != scat_data_raw.size(),
           "Number of scattering species specified by scat_species does\n"
           "not agree with number of scattering species in *scat_data*:\n"
           "scat_species has ", nspecies,
-          " entries, while *scat_data* has ", scat_data_raw.nelem(),
+          " entries, while *scat_data* has ", scat_data_raw.size(),
           ".")
       String partfield_name;
       //find the species to handle: compare 'species' to 'partfield' part of
       //scat_species tags
-      for (Index i = 0; i < scat_species.nelem(); i++) {
+      for (Size i = 0; i < scat_species.size(); i++) {
         parse_partfield_name(
             partfield_name, scat_species[i], scat_species_delim);
         if (partfield_name == species) i_ss = i;
@@ -522,7 +522,7 @@ void ScatSpeciesExtendTemperature(  //WS Output:
         "Scattering species ", species, " not found among scat_species.")
     }
 
-    for (Index i_se = 0; i_se < scat_data_raw[i_ss].nelem(); i_se++) {
+    for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
       const SingleScatteringData& ssdo = scat_data_raw[i_ss][i_se];
       const Index nTo = ssdo.T_grid.nelem();
       Index nTn = nTo;
@@ -673,7 +673,7 @@ void pnd_fieldZero(  //WS Output:
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfRetrievalQuantity& jacobian_quantities) {
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.nelem() != 2 * 3,
+  ARTS_USER_ERROR_IF (cloudbox_limits.size() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
         "upper and lower limit of the cloud for all "
         "atmospheric dimensions. So its dimension must"
@@ -687,7 +687,7 @@ void pnd_fieldZero(  //WS Output:
 
   // no (cloudy) Jacobians with this WSM, hence no setting.
   // but we need to size dpnd_field to be consistent with jacobian_quantities.
-  dpnd_field_dx.resize(jacobian_quantities.nelem());
+  dpnd_field_dx.resize(jacobian_quantities.size());
 
   // Do only reset scat_data if it has not been set yet.
   // There's no need otherwise, and it's rather unpractical for testing when

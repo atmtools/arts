@@ -29,13 +29,13 @@ struct spectral_radiance {
   [[nodiscard]] Vector planar(Numeric f, Numeric za) const;
 
   //! FIXME: Will change in arts-3
-  ExhaustiveVectorView planar(ExhaustiveVectorView rad,
+  ExhaustiveVectorView planar(ExhaustiveVectorView& rad,
                               Numeric f,
                               Numeric za) const;
 
   //! FIXME: Will change in arts-3
   [[nodiscard]] Matrix planar_par(const Vector& f, Numeric za) const;
-  void planar_par(ExhaustiveMatrixView rad, const Vector& f, Numeric za) const;
+  void planar_par(ExhaustiveMatrixView& rad, const Vector& f, Numeric za) const;
 
   friend std::ostream& operator<<(std::ostream&, const spectral_radiance&);
 };

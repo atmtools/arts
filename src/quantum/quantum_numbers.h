@@ -626,7 +626,7 @@ constexpr Index count_items(std::string_view s) noexcept {
 
   Index count = 0;
   for (auto& x : s) {
-    bool const this_space = nonstd::isspace(x);
+    const bool this_space = nonstd::isspace(x);
 
     // If we had a space and now no longer do, we are in an item
     if (last_space and not this_space) count++;
@@ -687,7 +687,7 @@ constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
   if (end == 0) return s;
 
   for (std::size_t ind = 0; ind < end; ind++) {
-    bool const this_space = nonstd::isspace(s[ind]);
+    const bool this_space = nonstd::isspace(s[ind]);
 
     // Return when we find the end of the final item
     if (this_space and count == i + n) return {&s[beg], ind - beg};
@@ -800,8 +800,8 @@ struct Value {
 
   //! Set level value
   constexpr void set(std::string_view s, bool upp) {
-    ValueDescription const v = value_holder(s, type);
-    TwoLevelValueHolder const nqn(v, v, type);
+    const ValueDescription v = value_holder(s, type);
+    const TwoLevelValueHolder nqn(v, v, type);
     if (upp) {
       qn.upp = nqn.upp;
     } else {
@@ -950,7 +950,7 @@ class ValueList {
   void finalize();
 
   //! Return number of quantum numbers
-  [[nodiscard]] Index nelem() const ARTS_NOEXCEPT { return values.nelem(); }
+  [[nodiscard]] Index size() const ARTS_NOEXCEPT { return values.size(); }
 
   //! Finds whether two ValueList describe completely different sets of quantum numbers (e.g., local vs global)
   [[nodiscard]] bool perpendicular(const ValueList& that) const ARTS_NOEXCEPT;
@@ -1144,78 +1144,48 @@ ENUMCLASS(
 bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
 
 //! A default state of global quantum numbers
-[[maybe_unused]] constexpr std::array global_types{Type::alpha,
-                                                   Type::config,
-                                                   Type::ElecStateLabel,
-                                                   Type::L,
-                                                   Type::Lambda,
-                                                   Type::Omega,
-                                                   Type::S,
-                                                   Type::Sigma,
-                                                   Type::SpinComponentLabel,
-                                                   Type::asSym,
-                                                   Type::elecInv,
-                                                   Type::elecRefl,
-                                                   Type::elecSym,
-                                                   Type::kronigParity,
-                                                   Type::l,
-                                                   Type::l1,
-                                                   Type::l10,
-                                                   Type::l11,
-                                                   Type::l12,
-                                                   Type::l2,
-                                                   Type::l3,
-                                                   Type::l4,
-                                                   Type::l5,
-                                                   Type::l6,
-                                                   Type::l7,
-                                                   Type::l8,
-                                                   Type::l9,
-                                                   Type::n,
-                                                   Type::parity,
-                                                   Type::r,
-                                                   Type::rotSym,
-                                                   Type::rovibSym,
-                                                   Type::sym,
-                                                   Type::tau,
-                                                   Type::term,
-                                                   Type::v,
-                                                   Type::v1,
-                                                   Type::v10,
-                                                   Type::v11,
-                                                   Type::v12,
-                                                   Type::v2,
-                                                   Type::v3,
-                                                   Type::v4,
-                                                   Type::v5,
-                                                   Type::v6,
-                                                   Type::v7,
-                                                   Type::v8,
-                                                   Type::v9,
-                                                   Type::vibInv,
-                                                   Type::vibRefl,
-                                                   Type::vibSym};
+[[maybe_unused]] static constexpr std::array global_types{
+    Type::alpha,   Type::config,       Type::ElecStateLabel,
+    Type::L,       Type::Lambda,       Type::Omega,
+    Type::S,       Type::Sigma,        Type::SpinComponentLabel,
+    Type::asSym,   Type::elecInv,      Type::elecRefl,
+    Type::elecSym, Type::kronigParity, Type::l,
+    Type::l1,      Type::l10,          Type::l11,
+    Type::l12,     Type::l2,           Type::l3,
+    Type::l4,      Type::l5,           Type::l6,
+    Type::l7,      Type::l8,           Type::l9,
+    Type::n,       Type::parity,       Type::r,
+    Type::rotSym,  Type::rovibSym,     Type::sym,
+    Type::tau,     Type::term,         Type::v,
+    Type::v1,      Type::v10,          Type::v11,
+    Type::v12,     Type::v2,           Type::v3,
+    Type::v4,      Type::v5,           Type::v6,
+    Type::v7,      Type::v8,           Type::v9,
+    Type::vibInv,  Type::vibRefl,      Type::vibSym};
 
 //! A default state of local quantum numbers
-[[maybe_unused]] constexpr std::array local_types{Type::F,
-                                                  Type::F1,
-                                                  Type::F10,
-                                                  Type::F11,
-                                                  Type::F12,
-                                                  Type::F2,
-                                                  Type::F3,
-                                                  Type::F4,
-                                                  Type::F5,
-                                                  Type::F6,
-                                                  Type::F7,
-                                                  Type::F8,
-                                                  Type::F9,
-                                                  Type::I,
-                                                  Type::J,
-                                                  Type::K,
-                                                  Type::Ka,
-                                                  Type::Kc,
-                                                  Type::N};
+[[maybe_unused]] static constexpr std::array local_types{Type::F,
+                                                         Type::F1,
+                                                         Type::F10,
+                                                         Type::F11,
+                                                         Type::F12,
+                                                         Type::F2,
+                                                         Type::F3,
+                                                         Type::F4,
+                                                         Type::F5,
+                                                         Type::F6,
+                                                         Type::F7,
+                                                         Type::F8,
+                                                         Type::F9,
+                                                         Type::I,
+                                                         Type::J,
+                                                         Type::K,
+                                                         Type::Ka,
+                                                         Type::Kc,
+                                                         Type::N};
+
+std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Type>& a);
 }  // namespace Quantum::Number
 
 using QuantumNumberType = Quantum::Number::Type;

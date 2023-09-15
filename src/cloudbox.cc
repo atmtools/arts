@@ -55,7 +55,7 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
   // Here we have to check whether the atmospheric dimension is correct and whether
   // the particle number density is 0 on the cloudbox boundary and outside the cloudbox.
 
-    ARTS_USER_ERROR_IF (pfr_lat_grid.nelem() == 1 || pfr_lon_grid.nelem() == 1,
+    ARTS_USER_ERROR_IF (pfr_lat_grid.size() == 1 || pfr_lon_grid.size() == 1,
          "The atmospheric dimension is 3D but the particle "
          "number density file * ", pnd_field_file,
          " is for a 1D or a 2D atmosphere. \n")
@@ -72,7 +72,7 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
 */
 void chk_pnd_raw_data(const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file) {
-  for (Index i = 0; i < pnd_field_raw.nelem(); i++) {
+  for (Size i = 0; i < pnd_field_raw.size(); i++) {
     chk_pnd_data(pnd_field_raw[i], pnd_field_file);
   }
 }
@@ -105,7 +105,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
   Numeric p, lat, lon, v;
   Index n, p_i, lat_i, lon_i;
   // For any non-zero point, verify we're outside the cloudbox
-  for (n = 0; n < pnd_field_raw.nelem(); n++) {
+  for (n = 0; n < static_cast<Index>(pnd_field_raw.size()); n++) {
     for (p_i = 0; p_i < pnd_field_raw[n].data.npages(); p_i++) {
       for (lat_i = 0; lat_i < pnd_field_raw[n].data.nrows(); lat_i++) {
         for (lon_i = 0; lon_i < pnd_field_raw[n].data.ncols(); lon_i++) {
@@ -172,15 +172,15 @@ void chk_pnd_field_raw_only_in_cloudbox(
 */
 void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
   ArrayOfString strarr;
-  Index nelem = 2;
+  Size size = 2;
 
-  for (Index k = 0; k < scat_species.nelem(); k++) {
+  for (Size k = 0; k < scat_species.size(); k++) {
     split(strarr, scat_species[k], delim);
-    ARTS_USER_ERROR_IF (strarr.nelem() < nelem,
-         "Individual strings in scat_species must contain at least ", nelem,
+    ARTS_USER_ERROR_IF (strarr.size() < size,
+         "Individual strings in scat_species must contain at least ", size,
          " elements,\n"
          "but entry #", k, " contains only the following ",
-         strarr.nelem(), ":\n",
+         strarr.size(), ":\n",
          strarr, "\n")
   }
 }
@@ -198,7 +198,7 @@ void chk_scat_species(const ArrayOfString& scat_species, const String& delim) {
 
 void chk_scattering_data(const ArrayOfSingleScatteringData& scat_data,
                          const ArrayOfScatteringMetaData& scat_meta) {
-  ARTS_USER_ERROR_IF (scat_data.nelem() != scat_meta.nelem(),
+  ARTS_USER_ERROR_IF (scat_data.size() != scat_meta.size(),
       "The number of elements in in current scat_species'  *scat_data* and "
       "*scat_meta* do not match.\n"
       "Each *scat_data* entry must correspond to one entry in *scat_meta*.")
@@ -260,28 +260,28 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
-               scat_data_single.aa_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
-               scat_data_single.aa_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
+               scat_data_single.aa_grid.size(),
+               scat_data_single.za_grid.size(),
+               scat_data_single.aa_grid.size(),
                16);
 
       chk_size(os_ext_mat.str(),
                scat_data_single.ext_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
-               scat_data_single.aa_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
+               scat_data_single.aa_grid.size(),
                7);
 
       chk_size(os_abs_vec.str(),
                scat_data_single.abs_vec_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
-               scat_data_single.aa_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
+               scat_data_single.aa_grid.size(),
                4);
       break;
 
@@ -289,9 +289,9 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
                1,
                1,
                1,
@@ -299,16 +299,16 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
       chk_size(os_ext_mat.str(),
                scat_data_single.ext_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
                1,
                1,
                1);
 
       chk_size(os_abs_vec.str(),
                scat_data_single.abs_vec_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
                1,
                1,
                1);
@@ -318,27 +318,27 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
       chk_size(os_pha_mat.str(),
                scat_data_single.pha_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
-               scat_data_single.aa_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
+               scat_data_single.aa_grid.size(),
+               scat_data_single.za_grid.size(),
                1,
                16);
 
       chk_size(os_ext_mat.str(),
                scat_data_single.ext_mat_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
                1,
                3);
 
       chk_size(os_abs_vec.str(),
                scat_data_single.abs_vec_data,
-               scat_data_single.f_grid.nelem(),
-               scat_data_single.T_grid.nelem(),
-               scat_data_single.za_grid.nelem(),
+               scat_data_single.f_grid.size(),
+               scat_data_single.T_grid.size(),
+               scat_data_single.za_grid.size(),
                1,
                2);
       break;
@@ -450,7 +450,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
                         const bool include_boundaries)
 
 {
-  ARTS_ASSERT(cloudbox_limits.nelem() == 6);
+  ARTS_ASSERT(cloudbox_limits.size() == 6);
   const Index np = ppath_step.np;
 
   return is_gp_inside_cloudbox(ppath_step.gp_p[np - 1],
@@ -478,7 +478,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 
 */
 void bin_quadweights(Vector& w, const Vector& x, const Index& order) {
-  Index nx = x.nelem();
+  Index nx = x.size();
 
   ARTS_ASSERT(nx > 1);
   ARTS_ASSERT(is_increasing(x));
@@ -520,23 +520,23 @@ void chk_scat_species_field(bool& empty_flag,
                             const Vector& lat_grid,
                             const Vector& lon_grid) {
   // check p
-  ARTS_USER_ERROR_IF (scat_species_field.npages() != p_grid.nelem(),
-                      "The size of *p_grid* (", p_grid.nelem(),
+  ARTS_USER_ERROR_IF (scat_species_field.npages() != p_grid.size(),
+                      "The size of *p_grid* (", p_grid.size(),
                       ") is unequal the number of pages of *", fieldname, "* (",
                       scat_species_field.npages(), ").")
 
   // check lat
   if (dim >= 2) {
-    ARTS_USER_ERROR_IF (scat_species_field.nrows() != lat_grid.nelem(),
-        "The size of *lat_grid* (", lat_grid.nelem(),
+    ARTS_USER_ERROR_IF (scat_species_field.nrows() != lat_grid.size(),
+        "The size of *lat_grid* (", lat_grid.size(),
          ") is unequal the number of rows of *", fieldname, "* (",
          scat_species_field.nrows(), ").")
   }
 
   // check lon
   if (dim == 3) {
-    ARTS_USER_ERROR_IF (scat_species_field.ncols() != lon_grid.nelem(),
-        "The size of *lon_grid* (", lon_grid.nelem(),
+    ARTS_USER_ERROR_IF (scat_species_field.ncols() != lon_grid.size(),
+        "The size of *lon_grid* (", lon_grid.size(),
         ") is unequal the number of columns of *", fieldname, "* (",
         scat_species_field.ncols(), ").")
   }

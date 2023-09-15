@@ -55,11 +55,11 @@ void antenna1d_matrix(Sparse& H,
                       const Index n_pol,
                       const Index do_norm) {
   // Number of input pencil beam directions and frequency
-  const Index n_za = za_grid.nelem();
-  const Index n_f = f_grid.nelem();
+  const Index n_za = za_grid.size();
+  const Index n_f = f_grid.size();
 
   // Calculate number of antenna beams
-  const Index n_ant = antenna_dza.nelem();
+  const Index n_ant = antenna_dza.size();
 
   // Asserts for variables beside antenna_response
   ARTS_ASSERT(antenna_dim == 1);
@@ -69,17 +69,17 @@ void antenna1d_matrix(Sparse& H,
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
   ConstVectorView aresponse_f_grid =
       antenna_response.get_numeric_grid(GFIELD4_F_GRID);
   ConstVectorView aresponse_za_grid =
       antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
   DEBUG_ONLY(const Index n_ar_aa =
-                 antenna_response.get_numeric_grid(GFIELD4_AA_GRID).nelem();)
+                 antenna_response.get_numeric_grid(GFIELD4_AA_GRID).size();)
 
   //
-  const Index n_ar_f = aresponse_f_grid.nelem();
-  const Index n_ar_za = aresponse_za_grid.nelem();
+  const Index n_ar_f = aresponse_f_grid.size();
+  const Index n_ar_za = aresponse_za_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -197,7 +197,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 {
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
-  const Index n_f = f_grid.nelem();
+  const Index n_f = f_grid.size();
 
   // Decompose mblock_dlos into za and aa grids, including checking
   ARTS_USER_ERROR_IF (mblock_dlos.ncols() != 2 ,
@@ -239,7 +239,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
   ConstVectorView aresponse_f_grid =
       antenna_response.get_numeric_grid(GFIELD4_F_GRID);
   ConstVectorView aresponse_za_grid =
@@ -247,9 +247,9 @@ void antenna2d_gridded_dlos(Sparse& H,
   ConstVectorView aresponse_aa_grid =
       antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
   //
-  const Index n_ar_f = aresponse_f_grid.nelem();
-  const Index n_ar_za = aresponse_za_grid.nelem();
-  const Index n_ar_aa = aresponse_aa_grid.nelem();
+  const Index n_ar_f = aresponse_f_grid.size();
+  const Index n_ar_za = aresponse_za_grid.size();
+  const Index n_ar_aa = aresponse_aa_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -440,7 +440,7 @@ void antenna2d_interp_response(Sparse& H,
 {  
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
-  const Index n_f = f_grid.nelem();
+  const Index n_f = f_grid.size();
 
   // Calculate number of antenna beams
   const Index n_ant = antenna_dlos.nrows();
@@ -449,11 +449,11 @@ void antenna2d_interp_response(Sparse& H,
   ARTS_ASSERT(antenna_dim == 2);
   ARTS_ASSERT(n_dlos >= 1);
   ARTS_ASSERT(n_pol >= 1);
-  ARTS_ASSERT(n_dlos == solid_angles.nelem());
+  ARTS_ASSERT(n_dlos == solid_angles.size());
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
   ConstVectorView aresponse_f_grid =
       antenna_response.get_numeric_grid(GFIELD4_F_GRID);
   ConstVectorView aresponse_za_grid =
@@ -461,9 +461,9 @@ void antenna2d_interp_response(Sparse& H,
   ConstVectorView aresponse_aa_grid =
       antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
   //
-  const Index n_ar_f = aresponse_f_grid.nelem();
-  const Index n_ar_za = aresponse_za_grid.nelem();
-  const Index n_ar_aa = aresponse_aa_grid.nelem();
+  const Index n_ar_f = aresponse_f_grid.size();
+  const Index n_ar_za = aresponse_za_grid.size();
+  const Index n_ar_aa = aresponse_aa_grid.size();
   const Index pol_step = n_ar_pol > 1;
 
   // Asserts for antenna_response
@@ -619,19 +619,19 @@ void mixer_matrix(Sparse& H,
   // Frequency grid of for sideband response specification
   ConstVectorView filter_grid = filter.get_numeric_grid(GFIELD1_F_GRID);
 
-  DEBUG_ONLY(const Index nrp = filter.data.nelem();)
+  DEBUG_ONLY(const Index nrp = filter.data.size();)
 
   // Asserts
   ARTS_ASSERT(lo > f_grid[0]);
   ARTS_ASSERT(lo < last(f_grid));
-  ARTS_ASSERT(filter_grid.nelem() == nrp);
+  ARTS_ASSERT(filter_grid.size() == nrp);
   ARTS_ASSERT(fabs(last(filter_grid) + filter_grid[0]) < 1e3);
   // If response data extend outside f_grid is checked in summation_by_vecmult
 
   // Find indices in f_grid where f_grid is just below and above the
   // lo frequency.
   /*
-  Index i_low = 0, i_high = f_grid.nelem()-1, i_mean;
+  Index i_low = 0, i_high = f_grid.size()-1, i_mean;
   while( i_high-i_low > 1 )
     {
       i_mean = (Index) (i_high+i_low)/2;
@@ -658,7 +658,7 @@ void mixer_matrix(Sparse& H,
   // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
   std::list<Numeric> l_mixer;
-  for (Index i = 0; i < f_grid.nelem(); i++) {
+  for (Index i = 0; i < f_grid.size(); i++) {
     if (fabs(f_grid[i] - lo) >= lim_low && fabs(f_grid[i] - lo) <= lim_high) {
       l_mixer.push_back(fabs(f_grid[i] - lo));
     }
@@ -675,18 +675,18 @@ void mixer_matrix(Sparse& H,
   }
 
   // Resize H
-  H.resize(f_mixer.nelem() * n_pol * n_sp, f_grid.nelem() * n_pol * n_sp);
+  H.resize(f_mixer.size() * n_pol * n_sp, f_grid.size() * n_pol * n_sp);
 
   // Calculate the sensor summation vector and insert the values in the
   // final matrix taking number of polarisations and zenith angles into
   // account.
-  Vector row_temp(f_grid.nelem());
-  Vector row_final(f_grid.nelem() * n_pol * n_sp);
+  Vector row_temp(f_grid.size());
+  Vector row_final(f_grid.size() * n_pol * n_sp);
   //
   Vector if_grid{f_grid};
   if_grid -= lo;
   //
-  for (Index i = 0; i < f_mixer.nelem(); i++) {
+  for (Index i = 0; i < f_mixer.size(); i++) {
     summation_by_vecmult(
         row_temp, filter.data, filter_grid, if_grid, f_mixer[i], -f_mixer[i]);
 
@@ -700,8 +700,8 @@ void mixer_matrix(Sparse& H,
         // Distribute elements of row_temp to row_final.
         row_final = 0.0;
         row_final[Range(
-            a * f_grid.nelem() * n_pol + p, f_grid.nelem(), n_pol)] = row_temp;
-        H.insert_row(a * f_mixer.nelem() * n_pol + p + i * n_pol, row_final);
+            a * f_grid.size() * n_pol + p, f_grid.size(), n_pol)] = row_temp;
+        H.insert_row(a * f_mixer.size() * n_pol + p + i * n_pol, row_final);
       }
     }
   }
@@ -721,7 +721,7 @@ void met_mm_polarisation_hmatrix(Sparse& H,
 
   // Identify (basic) polarisation response and possible sensor specific
   // "rotation"
-  const Index nch = mm_pol.nelem();  // Number of channels
+  const Index nch = mm_pol.size();  // Number of channels
   ArrayOfString pol(nch);
   ArrayOfString rot(nch);
   for (Index i = 0; i < nch; i++) {
@@ -857,8 +857,8 @@ void sensor_aux_vectors(Vector& sensor_response_f,
                         const ArrayOfIndex& sensor_response_pol_grid,
                         ConstMatrixView sensor_response_dlos_grid) {
   // Sizes
-  const Index nf = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nf = sensor_response_f_grid.size();
+  const Index npol = sensor_response_pol_grid.size();
   const Index nlos = sensor_response_dlos_grid.nrows();
   const Index n = nf * npol * nlos;
 
@@ -897,17 +897,17 @@ void spectrometer_matrix(Sparse& H,
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  ARTS_ASSERT(ch_response.nelem() == 1 || ch_response.nelem() == ch_f.nelem());
+  ARTS_ASSERT(ch_response.size() == 1 || ch_response.size() == static_cast<Size>(ch_f.size()));
   //
-  Index freq_full = ch_response.nelem() > 1;
+  Index freq_full = ch_response.size() > 1;
 
   // If response data extend outside sensor_f is checked in
   // integration_func_by_vecmult
 
   // Reisze H
   //
-  const Index nin_f = sensor_f.nelem();
-  const Index nout_f = ch_f.nelem();
+  const Index nin_f = sensor_f.size();
+  const Index nout_f = ch_f.size();
   const Index nin = n_sp * nin_f * n_pol;
   const Index nout = n_sp * nout_f * n_pol;
   //
@@ -956,7 +956,7 @@ void spectrometer_matrix(Sparse& H,
 void stokes2pol(VectorView w,
                 const Index& ipol_1based,
                 const Numeric nv) {
-  ARTS_ASSERT(w.nelem() == 4);
+  ARTS_ASSERT(w.size() == 4);
 
   ARTS_USER_ERROR_IF (ipol_1based < 1 || ipol_1based > 10,
                       "Valid polarization indices are 1 to 10 (1-based).");
@@ -974,7 +974,7 @@ void stokes2pol(VectorView w,
   s2p[8] = {nv, 0, 0, nv};   // Ilhc
   s2p[9] = {nv, 0, 0, -nv};  // Irhc
 
-  const Index l = s2p[ipol_1based - 1].nelem();
+  const Index l = s2p[ipol_1based - 1].size();
   ARTS_USER_ERROR_IF (l > 4,
     "You have selected polarization with 1-based index: ", ipol_1based,
     "\n",
@@ -1018,8 +1018,8 @@ void stokes2pol(VectorView w,
   \param j Index of second channel.
 */
 bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
-  const Index nf = fmin.nelem();
-  ARTS_ASSERT(fmax.nelem() == nf);
+  const Index nf = fmin.size();
+  ARTS_ASSERT(fmax.size() == nf);
   ARTS_ASSERT(i >= 0 && i < nf);
   ARTS_ASSERT(j >= 0 && j < nf);
   ARTS_ASSERT(fmin[i] <= fmin[j]);
@@ -1067,7 +1067,7 @@ void find_effective_channel_boundaries(  // Output:
     const ArrayOfGriddedField1& backend_channel_response,
     const Numeric& delta) {
   // How many channels in total:
-  const Index n_chan = f_backend.nelem();
+  const Size n_chan = f_backend.size();
 
   // Checks on input quantities:
 
@@ -1077,12 +1077,12 @@ void find_effective_channel_boundaries(  // Output:
       "(The vector *f_backend* must have at least one element.)")
 
   // There must be a response function for each channel.
-  ARTS_USER_ERROR_IF (n_chan != backend_channel_response.nelem(),
+  ARTS_USER_ERROR_IF (n_chan != backend_channel_response.size(),
       "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
       "must have same number of bands for each LO.")
 
   // Frequency grids for response functions must be strictly increasing.
-  for (Index i = 0; i < n_chan; ++i) {
+  for (Size i = 0; i < n_chan; ++i) {
     // Frequency grid for this response function:
     const Vector& backend_f_grid =
         backend_channel_response[i].get_numeric_grid(0);
@@ -1100,11 +1100,11 @@ void find_effective_channel_boundaries(  // Output:
 
   // Get a list of original channel boundaries:
   Index numPB = 0;
-  for (Index idx = 0; idx < n_chan; ++idx) {
+  for (Size idx = 0; idx < n_chan; ++idx) {
     const Vector& backend_filter = backend_channel_response[idx].data;
-    if (backend_filter.nelem() >
+    if (backend_filter.size() >
         2) {  // only run this code when there is more then two elements in the backend
-      for (Index idy = 1; idy < backend_filter.nelem(); ++idy) {
+      for (Index idy = 1; idy < backend_filter.size(); ++idy) {
         if ((backend_filter[idy] > 0) && (backend_filter[idy - 1] == 0)) {
           numPB++;  // Two consecutive zeros gives the border between two passbands
         }
@@ -1124,7 +1124,7 @@ void find_effective_channel_boundaries(  // Output:
   Vector fmax_pb(numPB);
   Index pbIdx = 0;
 
-  for (Index idx = 0; idx < n_chan; ++idx) {
+  for (Size idx = 0; idx < n_chan; ++idx) {
     // Some handy shortcuts:
     //
     // We have to find the first and last frequency where the
@@ -1160,10 +1160,10 @@ void find_effective_channel_boundaries(  // Output:
     const Vector& backend_f_grid =
         backend_channel_response[idx].get_numeric_grid(0);
     const Vector& backend_filter = backend_channel_response[idx].data;
-    if (backend_filter.nelem() >=
+    if (backend_filter.size() >=
         4)  // Is the passband frequency response given explicitly ? e.g. [0,>0,>0,0]
     {
-      for (Index idy = 1; idy < backend_filter.nelem(); ++idy) {
+      for (Index idy = 1; idy < backend_filter.size(); ++idy) {
         if (idy == 1) {
           fmin_pb[pbIdx] = f_backend[idx] + backend_f_grid[0];
         } else if ((backend_filter[idy] > 0) &&
@@ -1180,7 +1180,7 @@ void find_effective_channel_boundaries(  // Output:
     {
       fmin_pb[pbIdx] = f_backend[idx] + backend_f_grid[0] - delta;  //delta;
       fmax_pb[pbIdx] = f_backend[idx] +
-                       backend_f_grid[backend_f_grid.nelem() - 1] +
+                       backend_f_grid[backend_f_grid.size() - 1] +
                        delta;  ///delta;
       pbIdx++;
     }
@@ -1214,14 +1214,14 @@ void find_effective_channel_boundaries(  // Output:
   // neighbour. If that has no overlap, higher channels can not have
   // any either, due to the sorting by fmin.
   //
-  // Note that fmin.nelem() changes, as the loop is
+  // Note that fmin.size() changes, as the loop is
   // iterated. Nevertheless this is the correct stop condition.
-  for (Index i = 0; i < fmin.nelem() - 1; ++i) {
+  for (Index i = 0; i < fmin.size() - 1; ++i) {
     bool continue_checking = true;
-    // The "i<fmin.nelem()" condition below is necessary, since
-    // fmin.nelem() can decrease while the loop is executed, due to
+    // The "i<fmin.size()" condition below is necessary, since
+    // fmin.size() can decrease while the loop is executed, due to
     // merging.
-    while (continue_checking && i < fmin.nelem() - 1) {
+    while (continue_checking && i < fmin.size() - 1) {
       continue_checking = test_and_merge_two_channels(fmin, fmax, i, i + 1);
 
       // Function returns true if merging has taken place.
@@ -1241,12 +1241,12 @@ void integration_func_by_vecmult(VectorView h,
                                  ConstVectorView x_f_in,
                                  ConstVectorView x_g_in) {
   // Basic sizes
-  const Index nf = x_f_in.nelem();
-  const Index ng = x_g_in.nelem();
+  const Index nf = x_f_in.size();
+  const Index ng = x_g_in.size();
 
   // Asserts
-  ARTS_ASSERT(h.nelem() == ng);
-  ARTS_ASSERT(f.nelem() == nf);
+  ARTS_ASSERT(h.size() == ng);
+  ARTS_ASSERT(f.size() == nf);
   ARTS_ASSERT(is_increasing(x_f_in));
   ARTS_ASSERT(is_increasing(x_g_in) || is_decreasing(x_g_in));
   // More ARTS_ASSERTs below
@@ -1308,7 +1308,7 @@ void integration_func_by_vecmult(VectorView h,
   Index i_g = 0;
   Numeric dx, a0, b0, c0, a1, b1, c1, x3, x2, x1;
   //
-  for (Index i = 0; i < x_ref.nelem() - 1; i++) {
+  for (Index i = 0; i < x_ref.size() - 1; i++) {
     // Find for what index in x_g (which is the same as for h) and f
     // calculation corresponds to
     while (x_g[i_g + 1] <= x_ref[i]) {
@@ -1376,11 +1376,11 @@ void integration_bin_by_vecmult(VectorView h,
                                 const Numeric& limit1,
                                 const Numeric& limit2) {
   // Basic sizes
-  const Index ng = x_g_in.nelem();
+  const Index ng = x_g_in.size();
 
   // Asserts
   ARTS_ASSERT(ng > 1);
-  ARTS_ASSERT(h.nelem() == ng);
+  ARTS_ASSERT(h.size() == ng);
   ARTS_ASSERT(limit1 <= limit2);
 
   // Handle possibly reversed x_g.
@@ -1476,8 +1476,8 @@ void summation_by_vecmult(VectorView h,
                           const Numeric x1,
                           const Numeric x2) {
   // Asserts
-  ARTS_ASSERT(h.nelem() == x_g.nelem());
-  ARTS_ASSERT(f.nelem() == x_f.nelem());
+  ARTS_ASSERT(h.size() == x_g.size());
+  ARTS_ASSERT(f.size() == x_f.size());
   ARTS_ASSERT(x_g[0] <= x_f[0]);
   ARTS_ASSERT(last(x_g) >= last(x_f));
   ARTS_ASSERT(x1 >= x_f[0]);

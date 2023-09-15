@@ -35,12 +35,9 @@ void TelsemAtlas::read(std::istream& is) {
   emis = NAN;
   emis_err.resize(ndat, nchan);
   emis_err = NAN;
-  classes1.resize(ndat);
-  classes1 = -1;
-  classes2.resize(ndat);
-  classes2 = -1;
-  cellnums.resize(ndat);
-  cellnums = -1;
+  classes1.resize(ndat, -1);
+  classes2.resize(ndat, -1);
+  cellnums.resize(ndat, -1);
 
   equare();
 
@@ -115,8 +112,7 @@ void TelsemAtlas::equare() {
 }
 
 void TelsemAtlas::telsem_calc_correspondence() {
-  correspondence.resize(660066);
-  correspondence = -1;
+  correspondence.resize(660066, -1);
   for (Index j = 0; j < ndat; j++) {
     correspondence[cellnums[j]] = j;
   }
@@ -379,3 +375,8 @@ const std::array<Numeric, 4> TelsemAtlas::rapport43_32 = {
     0.62, 0.37, 0.46, 0.63};
 const std::array<Numeric, 4> TelsemAtlas::rapport54_43 = {
     0.30, 0.60, 0.47, 0.35};
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfTelsemAtlas& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}

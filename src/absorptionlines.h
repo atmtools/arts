@@ -209,10 +209,10 @@ struct SingleLine {
   //////////////////////////////////////////////////////////////////
   
   /** Number of lineshape elements */
-  [[nodiscard]] Index LineShapeElems() const noexcept {return lineshape.nelem();}
+  [[nodiscard]] Index LineShapeElems() const noexcept {return lineshape.size();}
   
   /** Number of lower quantum numbers */
-  [[nodiscard]] Index LocalQuantumElems() const ARTS_NOEXCEPT {return localquanta.val.nelem();}
+  [[nodiscard]] Index LocalQuantumElems() const ARTS_NOEXCEPT {return localquanta.val.size();}
   
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Special settings
@@ -903,13 +903,13 @@ std::vector<Lines> split_list_of_external_lines(std::vector<SingleLineExternal>&
                                                 const std::vector<QuantumNumberType>& globalquantas={});
 
 /** Number of lines */
-Index nelem(const Lines& l);
+Index size(const Lines& l);
 
 /** Number of lines in list */
-Index nelem(const Array<Lines>& l);
+Index size(const Array<Lines>& l);
 
 /** Number of lines in lists */
-Index nelem(const Array<Array<Lines>>& l);
+Index size(const Array<Array<Lines>>& l);
 
 /** Compute the reduced rovibrational dipole moment
  * 
@@ -945,6 +945,10 @@ Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
   @return A list of indices of bands that may be part of qid
 */
 std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const QuantumIdentifier& qid);
+
+std::ostream& operator<<(std::ostream& os, const Array<SingleLine>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Lines>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a);
 } // namespace Absorption
 
 using AbsorptionSingleLine = Absorption::SingleLine;

@@ -40,16 +40,16 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 void iy_transmitterMultiplePol(Matrix& iy_transmitter,
                                const Vector& f_grid,
                                const ArrayOfIndex& instrument_pol) {
-  const Index nf = f_grid.nelem();
+  const Size nf = f_grid.size();
 
-  if (instrument_pol.nelem() != nf)
+  if (instrument_pol.size() != nf)
     throw std::runtime_error(
         "The length of *f_grid* and the number of elements "
         "in *instrument_pol* must be equal.");
 
   iy_transmitter.resize(nf, 4);
 
-  for (Index i = 0; i < nf; i++) {
+  for (Size i = 0; i < nf; i++) {
     stokes2pol(iy_transmitter(i, joker), instrument_pol[i], 1);
   }
 }
@@ -58,9 +58,9 @@ void iy_transmitterMultiplePol(Matrix& iy_transmitter,
 void iy_transmitterSinglePol(Matrix& iy_transmitter,
                              const Vector& f_grid,
                              const ArrayOfIndex& instrument_pol) {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
-  if (instrument_pol.nelem() != 1)
+  if (instrument_pol.size() != 1)
     throw std::runtime_error(
         "The number of elements in *instrument_pol* must be 1.");
 

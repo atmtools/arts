@@ -51,8 +51,8 @@ void adapt_stepwise_partial_derivatives(
     const ConstVectorView &ppath_line_of_sight) {
 
   // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.nelem();
-  const Index nv = ppath_f_grid.nelem();
+  const Index nq = jacobian_quantities.size();
+  const Index nv = ppath_f_grid.size();
   ARTS_ASSERT(nq == dK_dx.nrows())
   ARTS_ASSERT(nq == dS_dx.nrows())
   ARTS_ASSERT(nv == dK_dx.ncols())
@@ -85,10 +85,10 @@ void apply_iy_unit(MatrixView iy,
   // If any change here, remember to update the other function.
 
   const Index nf = iy.nrows();
-  const Index ns = iy.ncols();
+  const Size ns = iy.ncols();
 
-  ARTS_ASSERT(f_grid.nelem() == nf);
-  ARTS_ASSERT(i_pol.nelem() == ns);
+  ARTS_ASSERT(f_grid.size() == nf);
+  ARTS_ASSERT(i_pol.size() == ns);
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -99,7 +99,7 @@ void apply_iy_unit(MatrixView iy,
   else if (iy_unit == "RJBT") {
     for (Index iv = 0; iv < nf; iv++) {
       const Numeric scfac = invrayjean(1, f_grid[iv]);
-      for (Index is = 0; is < ns; is++) {
+      for (Size is = 0; is < ns; is++) {
         if (i_pol[is] < 5)  // Stokes components
         {
           iy(iv, is) *= scfac;
@@ -131,7 +131,7 @@ void apply_iy_unit(MatrixView iy,
   else if (iy_unit == "W/(m^2 m sr)") {
     for (Index iv = 0; iv < nf; iv++) {
       const Numeric scfac = n * n * f_grid[iv] * (f_grid[iv] / SPEED_OF_LIGHT);
-      for (Index is = 0; is < ns; is++) {
+      for (Size is = 0; is < ns; is++) {
         iy(iv, is) *= scfac;
       }
     }
@@ -164,8 +164,8 @@ void apply_iy_unit2(Tensor3View J,
 
   ARTS_ASSERT(J.nrows() == nf);
   ARTS_ASSERT(J.ncols() == ns);
-  ARTS_ASSERT(f_grid.nelem() == nf);
-  ARTS_ASSERT(i_pol.nelem() == ns);
+  ARTS_ASSERT(f_grid.size() == nf);
+  ARTS_ASSERT(i_pol.size() == static_cast<Size>(ns));
 
   if (iy_unit == "1") {
     if (n != 1) {
@@ -193,7 +193,7 @@ void apply_iy_unit2(Tensor3View J,
   }
 
   else if (iy_unit == "PlanckBT") {
-    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+    for (Index iv = 0; iv < f_grid.size(); iv++) {
       for (Index is = ns - 1; is >= 0; is--) {
         Numeric scfac = 1;
         if (i_pol[is] == 1) {
@@ -317,7 +317,7 @@ void get_iy_of_background(const Workspace& ws,
                           const Agenda& iy_cloudbox_agenda,
                           const Index& iy_agenda_call1) {
   // Some sizes
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index np = ppath.np;
 
   // Set rtp_pos and rtp_los to match the last point in ppath.
@@ -350,14 +350,14 @@ void get_iy_of_background(const Workspace& ws,
       // Surface jacobian stuff:
       ArrayOfString dsurface_names(0);
       if (jacobian_do && iy_agenda_call1) {
-        for (Index i = 0; i < jacobian_quantities.nelem(); i++) {
+        for (Size i = 0; i < jacobian_quantities.size(); i++) {
           if (jacobian_quantities[i] == Jacobian::Special::SurfaceString) {
             dsurface_names.push_back(jacobian_quantities[i].Subtag());
           }
         }
       }
-      ArrayOfTensor4 dsurface_rmatrix_dx(dsurface_names.nelem());
-      ArrayOfMatrix dsurface_emission_dx(dsurface_names.nelem());
+      ArrayOfTensor4 dsurface_rmatrix_dx(dsurface_names.size());
+      ArrayOfMatrix dsurface_emission_dx(dsurface_names.size());
       //
       iy_surface_agendaExecute(ws,
                                iy,
@@ -410,10 +410,10 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
   // Pnd along the ppath
   ppath_pnd.resize(pnd_field.nbooks(), np);
   ppath_pnd = 0;
-  ppath_dpnd_dx.resize(dpnd_field_dx.nelem());
+  ppath_dpnd_dx.resize(dpnd_field_dx.size());
 
   bool any_dpnd = false;
-  for (Index iq = 0; iq < dpnd_field_dx.nelem(); iq++) {
+  for (Size iq = 0; iq < dpnd_field_dx.size(); iq++) {
     if (dpnd_field_dx[iq].empty()) {
       ppath_dpnd_dx[iq].resize(0, 0);
     } else {
@@ -460,7 +460,7 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
       }
       bool any_ppath_dpnd = false;
       if (any_dpnd) {
-        for (Index iq = 0; iq < dpnd_field_dx.nelem();
+        for (Size iq = 0; iq < dpnd_field_dx.size();
              iq++)  // Jacobian parameter
         {
           if (!dpnd_field_dx[iq].empty()) {
@@ -499,7 +499,7 @@ void get_ppath_f(Matrix& ppath_f,
                  const Numeric& rte_alonglos_v,
                  const ConstMatrixView& ppath_wind) {
   // Sizes
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index np = ppath.np;
 
   ppath_f.resize(nf, np);
@@ -553,13 +553,13 @@ void get_stepwise_blackbody_radiation(
     const Numeric &ppath_temperature,
     const ArrayOfRetrievalQuantity &jacobian_quantities,
     const bool j_analytical_do) {
-  B.resize(ppath_f_grid.nelem());
+  B.resize(ppath_f_grid.size());
   std::transform(ppath_f_grid.begin(), ppath_f_grid.end(), B.begin(),
                  [T = ppath_temperature](auto &&f) { return planck(f, T); });
 
   if (j_analytical_do) {
-    dB.resize(jacobian_quantities.nelem(), ppath_f_grid.nelem());
-    for (Index i = 0; i < jacobian_quantities.nelem(); ++i) {
+    dB.resize(jacobian_quantities.size(), ppath_f_grid.size());
+    for (Size i = 0; i < jacobian_quantities.size(); ++i) {
       if (jacobian_quantities[i] == Jacobian::Atm::Temperature) {
         std::transform(
             ppath_f_grid.begin(), ppath_f_grid.end(), dB[i].begin(),
@@ -640,7 +640,7 @@ void get_stepwise_scattersky_propmat(
     const ConstVectorView& ppath_line_of_sight,
     const ConstVectorView& ppath_temperature,
     const bool& jacobian_do) {
-  const Index nf = Kp.nelem();
+  const Size nf = Kp.size();
 
   ArrayOfArrayOfSingleScatteringData scat_data_mono;
 
@@ -689,7 +689,7 @@ void get_stepwise_scattersky_propmat(
                 abs_vec_ssbulk,
                 ptype_ssbulk);
 
-  for (Index iv = 0; iv < nf; iv++) {
+  for (Size iv = 0; iv < nf; iv++) {
     ap[iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
     Kp[iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
   }
@@ -716,7 +716,7 @@ void get_stepwise_scattersky_propmat(
                         ext_mat_ssbulk,
                         abs_vec_ssbulk,
                         ptype_ssbulk);
-          for (Index iv = 0; iv < nf; iv++) {
+          for (Size iv = 0; iv < nf; iv++) {
               dap_dx[iq][iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
               dKp_dx[iq][iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
           }
@@ -742,12 +742,12 @@ void get_stepwise_scattersky_source(
     const Index& t_interp_order) {
   ARTS_USER_ERROR ("This function handles so far only 1D atmospheres.");
 
-  const Index nf = Sp.nelem();
-  const Index ne = ppath_1p_pnd.nelem();
+  const Index nf = Sp.size();
+  const Index ne = ppath_1p_pnd.size();
   ARTS_ASSERT(TotalNumberOfElements(scat_data) == ne);
-  const Index nza = za_grid.nelem();
-  const Index naa = aa_grid.nelem();
-  const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
+  const Index nza = za_grid.size();
+  const Index naa = aa_grid.size();
+  const Index nq = jacobian_do ? jacobian_quantities.size() : 0;
 
   // interpolate incident field to this ppath point (no need to do this
   // separately per scatelem)
@@ -796,8 +796,8 @@ void get_stepwise_scattersky_source(
   Tensor3 scat_source_1se(ne, nf, 4, 0.);
 
   Index ise_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+  for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
+    for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
       // determine whether we have some valid pnd for this
       // scatelem (in pnd or dpnd)
       Index val_pnd = 0;
@@ -1032,7 +1032,7 @@ void rtmethods_jacobian_finalisation(
   Tensor3 water_p_eq(0, 0, 0);
   //
   // Conversion for abs species itself
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+  for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
     // Let x be VMR, and z the selected retrieval unit.
     // We have then that diy/dz = diy/dx * dx/dz
     //
@@ -1060,7 +1060,7 @@ void rtmethods_jacobian_finalisation(
       else if (jacobian_quantities[iq].Mode() == "rh") {
         // Here x = (p_sat/p) * z
         AtmField atm_field;
-        Tensor3 t_data(ppvar_atm.nelem(), 1, 1);
+        Tensor3 t_data(ppvar_atm.size(), 1, 1);
         for (Index ip = 0; ip < np; ip++) {
           t_data(ip, 0, 0) = ppvar_atm[ip].temperature;
         }
@@ -1083,7 +1083,7 @@ void rtmethods_jacobian_finalisation(
   }
 
   // Correction of temperature Jacobian
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
+  for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
     // Let a be unit for abs species, and iy = f(T,a(T))
     // We have then that diy/dT = df/dT + df/da*da/dT
     // diy_dpath holds already df/dT. Remains is to add
@@ -1092,7 +1092,7 @@ void rtmethods_jacobian_finalisation(
     //
     if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
       // Loop abs species, again
-      for (Index ia = 0; ia < jacobian_quantities.nelem(); ia++) {
+      for (Size ia = 0; ia < jacobian_quantities.size(); ia++) {
         if (jac_species_i[ia] >= 0) {
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
@@ -1103,7 +1103,7 @@ void rtmethods_jacobian_finalisation(
               diy_dpath[iq](ip, joker, joker) += ddterm;
             }
           } else if (jacobian_quantities[ia].Mode() == "rh") {
-            Tensor3 t_data(ppvar_atm.nelem(), 1, 1);
+            Tensor3 t_data(ppvar_atm.size(), 1, 1);
             for (Index ip = 0; ip < np; ip++) {
               t_data(ip, 0, 0) = ppvar_atm[ip].temperature;
             }
@@ -1189,9 +1189,9 @@ void ze_cfac(Vector& fac,
              const Vector& f_grid,
              const Numeric& ze_tref,
              const Numeric& k2) {
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
-  ARTS_ASSERT(fac.nelem() == nf);
+  ARTS_ASSERT(fac.size() == nf);
 
   // Refractive index for water (if needed)
   Matrix complex_n(0, 0);

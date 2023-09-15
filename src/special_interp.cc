@@ -58,9 +58,9 @@ void interp_atmfield_gp2itw(Matrix& itw,
                             const ArrayOfGridPos& gp_p,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon) {
-  const Index n = gp_p.nelem();
-  ARTS_ASSERT(gp_lat.nelem() == n);
-  ARTS_ASSERT(gp_lon.nelem() == n);
+  const Size n = gp_p.size();
+  ARTS_ASSERT(gp_lat.size() == n);
+  ARTS_ASSERT(gp_lon.size() == n);
   itw.resize(n, 8);
   interpweights(itw, gp_p, gp_lat, gp_lon);
 }
@@ -71,7 +71,7 @@ void interp_atmfield_by_itw(VectorView x,
                             const ArrayOfGridPos& gp_lat,
                             const ArrayOfGridPos& gp_lon,
                             ConstMatrixView itw) {
-  ARTS_ASSERT(x.nelem() == gp_p.nelem());
+  ARTS_ASSERT(static_cast<Size>(x.size()) == gp_p.size());
   ARTS_ASSERT(itw.ncols() == 8);
   interp(x, itw, x_field, gp_p, gp_lat, gp_lon);
 }
@@ -129,7 +129,7 @@ void interp_cloudfield_gp2itw(VectorView itw,
     gridpos_upperend_check(gp_p_out, cloudbox_limits[1] - cloudbox_limits[0]);
     gridpos_upperend_check(gp_lat_out, cloudbox_limits[3] - cloudbox_limits[2]);
     gridpos_upperend_check(gp_lon_out, cloudbox_limits[5] - cloudbox_limits[4]);
-    ARTS_ASSERT(itw.nelem() == 8);
+    ARTS_ASSERT(itw.size() == 8);
     interpweights(itw, gp_p_out, gp_lat_out, gp_lon_out);
 }
 
@@ -154,8 +154,8 @@ void interp_cloudfield_gp2itw(VectorView itw,
 void interp_atmsurface_gp2itw(Matrix& itw,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon) {
-    const Index n = gp_lat.nelem();
-    ARTS_ASSERT(n == gp_lon.nelem());
+    const Size n = gp_lat.size();
+    ARTS_ASSERT(n == gp_lon.size());
     itw.resize(n, 4);
     interpweights(itw, gp_lat, gp_lon);
 }
@@ -165,7 +165,7 @@ void interp_atmsurface_by_itw(VectorView x,
                               const ArrayOfGridPos& gp_lat,
                               const ArrayOfGridPos& gp_lon,
                               ConstMatrixView itw) {
-    ARTS_ASSERT(x.nelem() == gp_lat.nelem());
+    ARTS_ASSERT(static_cast<Size>(x.size()) == gp_lat.size());
     ARTS_ASSERT(itw.ncols() == 4);
     interp(x, itw, x_surface, gp_lat, gp_lon);
 }
@@ -208,10 +208,10 @@ void regrid_atmfield_by_gp(Tensor3& field_new,
                            const ArrayOfGridPos& gp_p,
                            const ArrayOfGridPos& gp_lat,
                            const ArrayOfGridPos& gp_lon) {
-  const Index n1 = gp_p.nelem();
+  const Size n1 = gp_p.size();
 
-    const Index n2 = gp_lat.nelem();
-    const Index n3 = gp_lon.nelem();
+    const Size n2 = gp_lat.size();
+    const Size n3 = gp_lon.size();
     field_new.resize(n1, n2, n3);
     Tensor4 itw(n1, n2, n3, 8);
     interpweights(itw, gp_p, gp_lat, gp_lon);
@@ -222,8 +222,8 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
                           ConstMatrixView field_old,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon) {
-    const Index n1 = gp_lat.nelem();
-    const Index n2 = gp_lon.nelem();
+    const Size n1 = gp_lat.size();
+    const Size n2 = gp_lon.size();
     field_new.resize(n1, n2);
     Tensor3 itw(n1, n2, 4);
     interpweights(itw, gp_lat, gp_lon);
@@ -237,13 +237,13 @@ void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
                            const Vector& p_grid,
                            const Vector& lat_grid,
                            const Vector& lon_grid) {
-  gp_p.resize(rq.Grids()[0].nelem());
+  gp_p.resize(rq.Grids()[0].size());
   p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
   //
-    gp_lat.resize(rq.Grids()[1].nelem());
+    gp_lat.resize(rq.Grids()[1].size());
     gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
   //
-    gp_lon.resize(rq.Grids()[2].nelem());
+    gp_lon.resize(rq.Grids()[2].size());
     gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
 }
 
@@ -252,10 +252,10 @@ void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
                           const RetrievalQuantity& rq,
                           const Vector& lat_grid,
                           const Vector& lon_grid) {
-    gp_lat.resize(rq.Grids()[0].nelem());
+    gp_lat.resize(rq.Grids()[0].size());
     gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
   //
-    gp_lon.resize(rq.Grids()[1].nelem());
+    gp_lon.resize(rq.Grids()[1].size());
     gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
 }
 
@@ -273,8 +273,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
   //                                        extremly high extrapolation factor
   const Numeric inf_proxy = 1.0e99;
 
-  gp_p.resize(p_grid.nelem());
-  n_p = ret_grids[0].nelem();
+  gp_p.resize(p_grid.size());
+  n_p = ret_grids[0].size();
   if (n_p > 1) {
     p2gridpos(gp_p, ret_grids[0], p_grid, inf_proxy);
     jacobian_type_extrapol(gp_p);
@@ -282,8 +282,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
     gp4length1grid(gp_p);
   }
 
-    gp_lat.resize(lat_grid.nelem());
-    n_lat = ret_grids[1].nelem();
+    gp_lat.resize(lat_grid.size());
+    n_lat = ret_grids[1].size();
     if (n_lat > 1) {
       gridpos(gp_lat, ret_grids[1], lat_grid, inf_proxy);
       jacobian_type_extrapol(gp_lat);
@@ -291,8 +291,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
       gp4length1grid(gp_lat);
     }
   //
-    gp_lon.resize(lon_grid.nelem());
-    n_lon = ret_grids[2].nelem();
+    gp_lon.resize(lon_grid.size());
+    n_lon = ret_grids[2].size();
     if (n_lon > 1) {
       gridpos(gp_lon, ret_grids[2], lon_grid, inf_proxy);
       jacobian_type_extrapol(gp_lon);
@@ -312,8 +312,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
   //                                        extremly high extrapolation factor
   const Numeric inf_proxy = 1.0e99;
 
-    gp_lat.resize(lat_grid.nelem());
-    n_lat = ret_grids[0].nelem();
+    gp_lat.resize(lat_grid.size());
+    n_lat = ret_grids[0].size();
     if (n_lat > 1) {
       gridpos(gp_lat, ret_grids[0], lat_grid, inf_proxy);
       jacobian_type_extrapol(gp_lat);
@@ -321,8 +321,8 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
       gp4length1grid(gp_lat);
     }
   //
-    gp_lon.resize(lon_grid.nelem());
-    n_lon = ret_grids[1].nelem();
+    gp_lon.resize(lon_grid.size());
+    n_lon = ret_grids[1].size();
     if (n_lon > 1) {
       gridpos(gp_lon, ret_grids[1], lon_grid, inf_proxy);
       jacobian_type_extrapol(gp_lon);
@@ -336,7 +336,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
                                const ArrayOfGridPos& gp_p,
                                const ArrayOfGridPos& gp_lat,
                                const ArrayOfGridPos& gp_lon) {
-  const Index n1 = gp_p.nelem();
+  const Size n1 = gp_p.size();
 
   const bool np_is1 = field_old.npages() == 1 ? true : false;
   const bool nlat_is1 =
@@ -349,8 +349,8 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
     regrid_atmfield_by_gp(
         field_new, field_old, gp_p, gp_lat, gp_lon);
   } else {
-      const Index n2 = gp_lat.nelem();
-      const Index n3 = gp_lon.nelem();
+      const Size n2 = gp_lat.size();
+      const Size n3 = gp_lon.size();
       field_new.resize(n1, n2, n3);
       //
       if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
@@ -366,9 +366,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_lon);
           Vector tmp(n3);
           interp(tmp, itw, field_old(0, 0, joker), gp_lon);
-          for (Index p = 0; p < n1; p++) {
+          for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            for (Index lat = 0; lat < n2; lat++) {
+            for (Size lat = 0; lat < n2; lat++) {
               ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
               field_new(p, lat, joker) = tmp;
             }
@@ -379,9 +379,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_lat);
           Vector tmp(n2);
           interp(tmp, itw, field_old(0, joker, 0), gp_lat);
-          for (Index p = 0; p < n1; p++) {
+          for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
-            for (Index lon = 0; lon < n3; lon++) {
+            for (Size lon = 0; lon < n3; lon++) {
               ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
               field_new(p, joker, lon) = tmp;
             }
@@ -392,7 +392,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_lat, gp_lon);
           Matrix tmp(n2, n3);
           interp(tmp, itw, field_old(0, joker, joker), gp_lat, gp_lon);
-          for (Index p = 0; p < n1; p++) {
+          for (Size p = 0; p < n1; p++) {
             ARTS_ASSERT(gp_p[p].fd[0] < 1e-6);
             field_new(p, joker, joker) = tmp;
           }
@@ -407,9 +407,9 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_p);
           Vector tmp(n1);
           interp(tmp, itw, field_old(joker, 0, 0), gp_p);
-          for (Index lat = 0; lat < n2; lat++) {
+          for (Size lat = 0; lat < n2; lat++) {
             ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
-            for (Index lon = 0; lon < n3; lon++) {
+            for (Size lon = 0; lon < n3; lon++) {
               ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
               field_new(joker, lat, lon) = tmp;
             }
@@ -420,7 +420,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_p, gp_lon);
           Matrix tmp(n1, n3);
           interp(tmp, itw, field_old(joker, 0, joker), gp_p, gp_lon);
-          for (Index lat = 0; lat < n2; lat++) {
+          for (Size lat = 0; lat < n2; lat++) {
             ARTS_ASSERT(gp_lat[lat].fd[0] < 1e-6);
             field_new(joker, lat, joker) = tmp;
           }
@@ -430,7 +430,7 @@ void regrid_atmfield_by_gp_oem(Tensor3& field_new,
           interpweights(itw, gp_p, gp_lat);
           Matrix tmp(n1, n2);
           interp(tmp, itw, field_old(joker, joker, 0), gp_p, gp_lat);
-          for (Index lon = 0; lon < n3; lon++) {
+          for (Size lon = 0; lon < n3; lon++) {
             ARTS_ASSERT(gp_lon[lon].fd[0] < 1e-6);
             field_new(joker, joker, lon) = tmp;
           }
@@ -454,8 +454,8 @@ void regrid_atmsurf_by_gp_oem(Matrix& field_new,
       regrid_atmsurf_by_gp(
           field_new, field_old, gp_lat, gp_lon);
     } else {
-        const Index n1 = gp_lat.nelem();
-        const Index n2 = gp_lon.nelem();
+        const Index n1 = gp_lat.size();
+        const Index n2 = gp_lon.size();
         field_new.resize(n1, n2);
         //
         if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
@@ -494,10 +494,10 @@ void itw2p(VectorView p_values,
            const ArrayOfGridPos& gp,
            ConstMatrixView itw) {
   ARTS_ASSERT(itw.ncols() == 2);
-  ARTS_ASSERT(p_values.nelem() == itw.nrows());
+  ARTS_ASSERT(p_values.size() == itw.nrows());
 
   // Local variable to store log of the pressure grid:
-  Vector logpgrid(p_grid.nelem());
+  Vector logpgrid(p_grid.size());
 
   transform(logpgrid, log, p_grid);
 
@@ -535,8 +535,8 @@ void p2gridpos(ArrayOfGridPos& gp,
                ConstVectorView new_pgrid,
                const Numeric& extpolfac) {
   // Local variable to store log of the pressure grids
-  Vector logold(old_pgrid.nelem());
-  Vector lognew(new_pgrid.nelem());
+  Vector logold(old_pgrid.size());
+  Vector lognew(new_pgrid.size());
 
   transform(logold, log, old_pgrid);
   transform(lognew, log, new_pgrid);
@@ -555,7 +555,7 @@ void rte_pos2gridpos(GridPos& gp_p,
   chk_rte_pos(rte_pos);
 
     // Determine z at lat/lon (z_grid) by blue interpolation
-    const Index np = p_grid.nelem();
+    const Index np = p_grid.size();
     Vector z_grid(np);
     ArrayOfGridPos agp_z, agp_lat(np);
     //
@@ -604,11 +604,11 @@ void z_at_lat_2d(VectorView z,
 #endif
                  ConstMatrixView z_field,
                  const GridPos& gp_lat) {
-  const Index np = p_grid.nelem();
+  const Index np = p_grid.size();
 
-  ARTS_ASSERT(z.nelem() == np);
+  ARTS_ASSERT(z.size() == np);
   ARTS_ASSERT(z_field.nrows() == np);
-  ARTS_ASSERT(z_field.ncols() == lat_grid.nelem());
+  ARTS_ASSERT(z_field.ncols() == lat_grid.size());
 
   Matrix z_matrix(np, 1);
   ArrayOfGridPos gp_z(np), agp_lat(1);
@@ -635,12 +635,12 @@ void z_at_latlon(VectorView z,
                  ConstTensor3View z_field,
                  const GridPos& gp_lat,
                  const GridPos& gp_lon) {
-  const Index np = p_grid.nelem();
+  const Index np = p_grid.size();
 
-  ARTS_ASSERT(z.nelem() == np);
+  ARTS_ASSERT(z.size() == np);
   ARTS_ASSERT(z_field.npages() == np);
-  ARTS_ASSERT(z_field.nrows() == lat_grid.nelem());
-  ARTS_ASSERT(z_field.ncols() == lon_grid.nelem());
+  ARTS_ASSERT(z_field.nrows() == lat_grid.size());
+  ARTS_ASSERT(z_field.ncols() == lon_grid.size());
 
   Tensor3 z_tensor(np, 1, 1);
   ArrayOfGridPos agp_z(np), agp_lat(1), agp_lon(1);
@@ -663,7 +663,7 @@ void z_at_latlon(VectorView z,
 void complex_n_interp(MatrixView n_real,
                       MatrixView n_imag,
                       const GriddedField3& complex_n,
-                      const String& varname,
+                      const String&,
                       ConstVectorView f_grid,
                       ConstVectorView t_grid) {
   // Set expected order of grids
@@ -682,8 +682,8 @@ void complex_n_interp(MatrixView n_real,
   // Frequency and temperature grid sizes
   const Index nf_in = complex_n.data.npages();
   const Index nt_in = complex_n.data.nrows();
-  const Index nf_out = f_grid.nelem();
-  const Index nt_out = t_grid.nelem();
+  const Index nf_out = f_grid.size();
+  const Index nt_out = t_grid.size();
 
   //Assert size of output variables
   ARTS_ASSERT(n_real.nrows() == nf_out && n_real.ncols() == nt_out);

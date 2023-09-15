@@ -26,7 +26,7 @@ void test01() {
   std::cout << "ng:\n" << ng << "\n";
 
   // To store the grid positions:
-  ArrayOfGridPos gp(ng.nelem());
+  ArrayOfGridPos gp(ng.size());
 
   gridpos(gp, og, ng);
   std::cout << "gp:\n" << gp << "\n";
@@ -35,19 +35,19 @@ void test01() {
        << "---\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 2);
+    Matrix itw(gp.size(), 2);
     interpweights(itw, gp);
 
     std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Vector of(og.nelem(), 0);
+    Vector of(og.size(), 0);
     of[2] = 10;  // 0, 0, 10, 0, 0
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp);
 
@@ -58,19 +58,19 @@ void test01() {
        << "--------\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 4);
+    Matrix itw(gp.size(), 4);
     interpweights(itw, gp, gp);
 
     std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Matrix of(og.nelem(), og.nelem(), 0);
+    Matrix of(og.size(), og.size(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp, gp);
 
@@ -81,20 +81,20 @@ void test01() {
        << "--------\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 64);
+    Matrix itw(gp.size(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     //    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Index n = og.nelem();
+    Index n = og.size();
     Tensor6 of(n, n, n, n, n, n, 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     //    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -105,7 +105,7 @@ void test01() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor3 itw(gp.nelem(), gp.nelem(), 4);
+    Tensor3 itw(gp.size(), gp.size(), 4);
     interpweights(itw, gp, gp);
 
     for (Index i = 0; i < itw.ncols(); ++i)
@@ -113,13 +113,13 @@ void test01() {
            << itw(Range(joker), Range(joker), i) << "\n";
 
     // Original field:
-    Matrix of(og.nelem(), og.nelem(), 0);
+    Matrix of(og.size(), og.size(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Matrix nf(ng.nelem(), ng.nelem());
+    Matrix nf(ng.size(), ng.size());
 
     interp(nf, itw, of, gp, gp);
 
@@ -130,21 +130,21 @@ void test01() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor7 itw(gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(),
-                gp.nelem(), 64);
+    Tensor7 itw(gp.size(), gp.size(), gp.size(), gp.size(), gp.size(),
+                gp.size(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     // Original field:
-    Tensor6 of(og.nelem(), og.nelem(), og.nelem(), og.nelem(), og.nelem(),
-               og.nelem(), 0);
+    Tensor6 of(og.size(), og.size(), og.size(), og.size(), og.size(),
+               og.size(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     std::cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
-    Tensor6 nf(ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(),
-               ng.nelem());
+    Tensor6 nf(ng.size(), ng.size(), ng.size(), ng.size(), ng.size(),
+               ng.size());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -159,7 +159,7 @@ void test02(Index n) {
        << "---------------------------------------------\n";
 
   Vector a(n);
-  for (Index i = 0; i < a.nelem(); ++i) a[i] = (Numeric)i;
+  for (Index i = 0; i < a.size(); ++i) a[i] = (Numeric)i;
 }
 
 void test03(Index n) {
@@ -184,7 +184,7 @@ void test04() {
 
   // 10 pages, 20 rows, 30 columns, all grids are: 1,2,3
   Vector a_pgrid=uniform_grid(1, 3, 1), a_rgrid=uniform_grid(1, 3, 1), a_cgrid=uniform_grid(1, 3, 1);
-  Tensor3 a(a_pgrid.nelem(), a_rgrid.nelem(), a_cgrid.nelem());
+  Tensor3 a(a_pgrid.size(), a_rgrid.size(), a_cgrid.size());
 
   a = 0;
   // Put some simple numbers in the middle of each page:
@@ -195,19 +195,19 @@ void test04() {
   // New row and column grids:
   // 1, 1.5, 2, 2.5, 3
   Vector n_rgrid=uniform_grid(1, 5, .5), n_cgrid=uniform_grid(1, 5, .5);
-  Tensor3 n(a_pgrid.nelem(), n_rgrid.nelem(), n_cgrid.nelem());
+  Tensor3 n(a_pgrid.size(), n_rgrid.size(), n_cgrid.size());
 
   // So, n has the same number of pages as a, but more rows and columns.
 
   // Get the grid position arrays:
-  ArrayOfGridPos n_rgp(n_rgrid.nelem());  // For row grid positions.
-  ArrayOfGridPos n_cgp(n_cgrid.nelem());  // For column grid positions.
+  ArrayOfGridPos n_rgp(n_rgrid.size());  // For row grid positions.
+  ArrayOfGridPos n_cgp(n_cgrid.size());  // For column grid positions.
 
   gridpos(n_rgp, a_rgrid, n_rgrid);
   gridpos(n_cgp, a_cgrid, n_cgrid);
 
   // Get the interpolation weights:
-  Tensor3 itw(n_rgrid.nelem(), n_cgrid.nelem(), 4);
+  Tensor3 itw(n_rgrid.size(), n_cgrid.size(), 4);
   interpweights(itw, n_rgp, n_cgp);
 
   // Do a "green" interpolation for all pages of the Tensor a:
@@ -243,25 +243,25 @@ void test05() {
   std::cout << "New grid:\n" << ng << "\n";
 
   // To store the grid positions:
-  ArrayOfGridPos gp(ng.nelem());
+  ArrayOfGridPos gp(ng.size());
 
   gridpos(gp, og, ng);
   std::cout << "Grid positions:\n" << gp;
 
   // To store interpolation weights:
-  Matrix itw(gp.nelem(), 2);
+  Matrix itw(gp.size(), 2);
   interpweights(itw, gp);
 
   std::cout << "Interpolation weights:\n" << itw << "\n";
 
   // Original field:
-  Vector of(og.nelem(), 0);
+  Vector of(og.size(), 0);
   of[2] = 10;  // 0, 0, 10, 0, 0
 
   std::cout << "Original field:\n" << of << "\n";
 
   // Interpolated field:
-  Vector nf(ng.nelem());
+  Vector nf(ng.size());
 
   interp(nf, itw, of, gp);
 
@@ -279,7 +279,7 @@ void test06() {
   std::cout << "ng:\n" << ng << "\n";
 
   // To store the grid positions:
-  ArrayOfGridPos gp(ng.nelem());
+  ArrayOfGridPos gp(ng.size());
 
   gridpos(gp, og, ng);
   std::cout << "gp:\n" << gp << "\n";
@@ -288,20 +288,20 @@ void test06() {
        << "---\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 2);
+    Matrix itw(gp.size(), 2);
     interpweights(itw, gp);
 
     std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Vector of(og.nelem(), 0);
-    for (Index i = 0; i < og.nelem(); ++i)
+    Vector of(og.size(), 0);
+    for (Index i = 0; i < og.size(); ++i)
       of[i] = (Numeric)(10 * (i + 1));  // 10, 20, 30, 40, 50
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp);
 
@@ -312,19 +312,19 @@ void test06() {
        << "--------\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 4);
+    Matrix itw(gp.size(), 4);
     interpweights(itw, gp, gp);
 
     std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Matrix of(og.nelem(), og.nelem(), 0);
+    Matrix of(og.size(), og.size(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp, gp);
 
@@ -335,20 +335,20 @@ void test06() {
        << "--------\n";
   {
     // To store interpolation weights:
-    Matrix itw(gp.nelem(), 64);
+    Matrix itw(gp.size(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     //    std::cout << "itw:\n" << itw << "\n";
 
     // Original field:
-    Index n = og.nelem();
+    Index n = og.size();
     Tensor6 of(n, n, n, n, n, n, 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     //    std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Vector nf(ng.nelem());
+    Vector nf(ng.size());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -359,7 +359,7 @@ void test06() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor3 itw(gp.nelem(), gp.nelem(), 4);
+    Tensor3 itw(gp.size(), gp.size(), 4);
     interpweights(itw, gp, gp);
 
     for (Index i = 0; i < itw.ncols(); ++i)
@@ -367,13 +367,13 @@ void test06() {
            << itw(Range(joker), Range(joker), i) << "\n";
 
     // Original field:
-    Matrix of(og.nelem(), og.nelem(), 0);
+    Matrix of(og.size(), og.size(), 0);
     of(2, 2) = 10;  // 0 Matrix with 10 in the middle
 
     std::cout << "of:\n" << of << "\n";
 
     // Interpolated field:
-    Matrix nf(ng.nelem(), ng.nelem());
+    Matrix nf(ng.size(), ng.size());
 
     interp(nf, itw, of, gp, gp);
 
@@ -384,21 +384,21 @@ void test06() {
        << "---------\n";
   {
     // To store interpolation weights:
-    Tensor7 itw(gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(), gp.nelem(),
-                gp.nelem(), 64);
+    Tensor7 itw(gp.size(), gp.size(), gp.size(), gp.size(), gp.size(),
+                gp.size(), 64);
     interpweights(itw, gp, gp, gp, gp, gp, gp);
 
     // Original field:
-    Tensor6 of(og.nelem(), og.nelem(), og.nelem(), og.nelem(), og.nelem(),
-               og.nelem(), 0);
+    Tensor6 of(og.size(), og.size(), og.size(), og.size(), og.size(),
+               og.size(), 0);
     of(2, 2, 2, 2, 2, 2) = 10;  // 0 Tensor with 10 in the middle
 
     std::cout << "Middle slice of of:\n"
          << of(2, 2, 2, 2, Range(joker), Range(joker)) << "\n";
 
     // Interpolated field:
-    Tensor6 nf(ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(), ng.nelem(),
-               ng.nelem());
+    Tensor6 nf(ng.size(), ng.size(), ng.size(), ng.size(), ng.size(),
+               ng.size());
 
     interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
 
@@ -443,11 +443,11 @@ void test09() {
   }
   
   // Linear interpolation of all points
-  ArrayOfGridPos gp(ng.nelem());
+  ArrayOfGridPos gp(ng.size());
   gridpos(gp, og, ng);
-  Matrix gp_iw(gp.nelem(), 2);
+  Matrix gp_iw(gp.size(), 2);
   interpweights(gp_iw, gp);
-  Vector gp_y(ng.nelem());
+  Vector gp_y(ng.size());
   interp(gp_y, gp_iw, yi, gp);
   std::cout << "gp:  " << gp_y << '\n';
   
@@ -947,15 +947,15 @@ void test28() {
   Vector lon; VectorNLinSpace(lon, 4, -170, 170);
   
   // New Grids (pressure will be reduced)
-  Vector newpre(1, pre[pre.nelem()/2]); 
+  Vector newpre(1, pre[pre.size()/2]); 
   Vector newlat; VectorNLinSpace(newlat, 4, - 90,  90);
   Vector newlon; VectorNLinSpace(newlon, 3, -180, 180);
   
   // Old Data given some values
-  Tensor3 data(pre.nelem(), lat.nelem(), lon.nelem());
-  for (Index i=0; i<pre.nelem(); i++) {
-    for (Index j=0; j<lat.nelem(); j++) {
-      for (Index k=0; k<lon.nelem(); k++) {
+  Tensor3 data(pre.size(), lat.size(), lon.size());
+  for (Index i=0; i<pre.size(); i++) {
+    for (Index j=0; j<lat.size(); j++) {
+      for (Index k=0; k<lon.size(); k++) {
         data(i, j, k) =
           std::log(pre[i]) * sind(lat[j]) * pow3(cosd(lon[k]));
       }
@@ -977,7 +977,7 @@ void test28() {
   const Matrix newdata = reinterp(data, lag_iw, lag_pre, lag_lat, lag_lon).reduce_rank<1, 2>();
   
   // Print the data
-  std::cout << data(pre.nelem()/2, joker, joker) 
+  std::cout << data(pre.size()/2, joker, joker) 
             << '\n' << '\n' << newdata << '\n';
 }
 

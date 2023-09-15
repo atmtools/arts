@@ -81,12 +81,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", "GridPos");
-  open_tag.add_attribute("nelem", agpos.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(agpos.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < agpos.nelem(); n++)
+  for (Size n = 0; n < agpos.size(); n++)
     xml_write_to_stream(os_xml, agpos[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -150,12 +150,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", "RetrievalQuantity");
-  open_tag.add_attribute("nelem", arq.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(arq.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < arq.nelem(); n++)
+  for (Size n = 0; n < arq.size(); n++)
     xml_write_to_stream(os_xml, arq[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -219,12 +219,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", "SpeciesTag");
-  open_tag.add_attribute("nelem", astag.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(astag.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < astag.nelem(); n++)
+  for (Size n = 0; n < astag.size(); n++)
     xml_write_to_stream(os_xml, astag[n], pbofs, "");
 
   close_tag.set_name("/Array");
@@ -290,12 +290,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", "Sun");
-  open_tag.add_attribute("nelem", astar.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(astar.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < astar.nelem(); n++) {
+  for (Size n = 0; n < astar.size(); n++) {
     xml_write_to_stream(os_xml, astar[n], pbofs, "");
   }
 
@@ -393,12 +393,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
 
   open_tag.add_attribute("type", "XsecRecord");
-  open_tag.add_attribute("nelem", axd.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(axd.size()));
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Index n = 0; n < axd.nelem(); n++)
+  for (Size n = 0; n < axd.size(); n++)
     xml_write_to_stream(os_xml, axd[n], pbofs, "");
 
   close_tag.set_name("/Array");

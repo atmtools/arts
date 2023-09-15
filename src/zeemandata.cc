@@ -436,8 +436,8 @@ const PolarizationVector& SelectPolarization(const AllPolarizationVectors& data,
 
 void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
                  const PolarizationVector &polvec) {
-  const Index n = pm.nelem();
-  ARTS_ASSERT(n == abs.nelem())
+  const Index n = pm.size();
+  ARTS_ASSERT(n == abs.size())
 
   for (Index i = 0; i < n; i++) {
       for (Index j = 0; j < 4; j++) {
@@ -452,8 +452,8 @@ void sum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
 
 void sum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
                  const PolarizationVector &polvec) {
-  const Index n = sv.nelem();
-  ARTS_ASSERT(n == abs.nelem())
+  const Index n = sv.size();
+  ARTS_ASSERT(n == abs.size())
 
   for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {
@@ -468,9 +468,9 @@ void dsum_propmat(PropmatVectorView pm, const ConstComplexVectorView &abs,
                   const PolarizationVector &dpolvec_dtheta,
                   const PolarizationVector &dpolvec_deta, const Numeric dH,
                   const Numeric dt, const Numeric de) {
-  const Index n = pm.nelem();
-  ARTS_ASSERT(n == abs.nelem())
-  ARTS_ASSERT(n == dabs.nelem())
+  const Index n = pm.size();
+  ARTS_ASSERT(n == abs.size())
+  ARTS_ASSERT(n == dabs.size())
 
   for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {
@@ -493,9 +493,9 @@ void dsum_stokvec(StokvecVectorView sv, const ConstComplexVectorView &abs,
                   const PolarizationVector &dpolvec_dtheta,
                   const PolarizationVector &dpolvec_deta, const Numeric dH,
                   const Numeric dt, const Numeric de) {
-  const Index n = sv.nelem();
-  ARTS_ASSERT(n == abs.nelem())
-  ARTS_ASSERT(n == dabs.nelem())
+  const Index n = sv.size();
+  ARTS_ASSERT(n == abs.size())
+  ARTS_ASSERT(n == dabs.size())
 
   for (Index i = 0; i < n; i++) {
     for (Index j = 0; j < 4; j++) {

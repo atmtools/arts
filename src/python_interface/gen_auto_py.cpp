@@ -983,6 +983,13 @@ void groups(const std::string& fname) {
 
 #include <pybind11/pybind11.h>
 
+)--";
+
+  for (auto& [group, wsg] : wsgs) {
+    hos << "PYBIND11_MAKE_OPAQUE(Array<" << group << ">);\n";
+  }
+
+  hos << R"--(
 namespace Python {
 namespace py = pybind11;
 
@@ -1054,6 +1061,7 @@ std::string type(const std::shared_ptr<T>&);
 template <WorkspaceGroup T>
 std::string type(const ValueHolder<T>&);
 }  // namespace Python
+
 )--";
 
   std::ofstream cos(fname + ".cpp");

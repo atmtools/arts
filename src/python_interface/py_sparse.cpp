@@ -6,6 +6,7 @@
 
 #include "covariance_matrix.h"
 #include "matpack_concepts.h"
+#include "matpack_sparse.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -189,7 +190,9 @@ arr : numpy.ndarray
           }))
       .PythonInterfaceWorkspaceDocumentation(CovarianceMatrix);
 
-  PythonInterfaceWorkspaceArray(Sparse);
+  artsarray<ArrayOfSparse>(m, "ArrayOfSparse")
+      .PythonInterfaceFileIO(ArrayOfSparse)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSparse);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
 }

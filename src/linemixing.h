@@ -148,13 +148,13 @@ struct MapOfErrorCorrectedSuddenData : public Array<ErrorCorrectedSuddenData> {
   
   const ErrorCorrectedSuddenData& operator[](const QuantumIdentifier& id) const;
   
-  const ErrorCorrectedSuddenData& operator[](Index i) const ARTS_NOEXCEPT {
-    ARTS_ASSERT(i >= 0 and i < nelem())
+  const ErrorCorrectedSuddenData& operator[](Size i) const ARTS_NOEXCEPT {
+    ARTS_ASSERT(i < size())
     return * (begin() + i);
   }
   
-  ErrorCorrectedSuddenData& operator[](Index i) ARTS_NOEXCEPT {
-    ARTS_ASSERT(i >= 0 and i < nelem())
+  ErrorCorrectedSuddenData& operator[](Size i) ARTS_NOEXCEPT {
+    ARTS_ASSERT(i < size())
     return * (begin() + i);
   }
   
@@ -288,6 +288,9 @@ Tensor5 ecs_eigenvalue_adaptation_test(const AbsorptionLines& band,
                                        const Vector& temperatures,
                                        const ErrorCorrectedSuddenData& ecs_data,
                                        const Vector& pressures);
+
+std::ostream& operator<<(std::ostream& os, const Array<SpeciesErrorCorrectedSuddenData>& a);
+std::ostream& operator<<(std::ostream& os, const Array<ErrorCorrectedSuddenData>& a);
 } // namespace Absorption::LineMixing
 
 using ErrorCorrectedSuddenData = Absorption::LineMixing::ErrorCorrectedSuddenData;

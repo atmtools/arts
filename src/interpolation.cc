@@ -595,7 +595,7 @@ void gridpos_upperend_check(GridPos& gp, const Index& ie) {
    \date   2011-02-28
 */
 void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
-  for (Index i = 0; i < gp.nelem(); i++) {
+  for (Size i = 0; i < gp.size(); i++) {
     if (gp[i].idx == ie) {
       ARTS_ASSERT(gp[i].fd[0] < 0.005);  // To capture obviously bad cases
       gp[i].idx -= 1;
@@ -619,7 +619,7 @@ void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
   \date   2015-09-10
 */
 void gp4length1grid(ArrayOfGridPos& gp) {
-  for (Index i = 0; i < gp.nelem(); i++) {
+  for (Size i = 0; i < gp.size(); i++) {
     gp[i].idx = 0;
     gp[i].fd[0] = 0;
     gp[i].fd[1] = 1;
@@ -1240,7 +1240,7 @@ Numeric interp(ConstVectorView itw,
   \date   Fri May  3 08:55:51 2002
 */
 void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(itw, n, 2));  // We must store 2 interpolation
                                // weights for each position.
 
@@ -1311,7 +1311,7 @@ void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
 void interpweights(MatrixView itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
   ARTS_ASSERT(is_size(itw, n, 4));  // We must store 4 interpolation
                                // weights for each position.
@@ -1366,7 +1366,7 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
   ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
   ARTS_ASSERT(is_size(itw, n, 8));  // We must store 8 interpolation
@@ -1418,7 +1418,7 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
   ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
   ARTS_ASSERT(is_size(rgp, n));      // rgp must have same size as cgp.
@@ -1475,7 +1475,7 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
   ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
   ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
@@ -1537,7 +1537,7 @@ void interpweights(MatrixView itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
   ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
   ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
@@ -1590,7 +1590,7 @@ void interp(VectorView ia,
             ConstMatrixView itw,
             ConstVectorView a,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(itw, n, 2));  // We need 2 interpolation
                                // weights for each position.
@@ -1647,7 +1647,7 @@ void interp(VectorView ia,
             ConstMatrixView a,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
   ARTS_ASSERT(is_size(itw, n, 4));  // We need 4 interpolation
@@ -1708,7 +1708,7 @@ void interp(VectorView ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));      //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(pgp, n));     // pgp must have same size as cgp.
   ARTS_ASSERT(is_size(rgp, n));     // rgp must have same size as cgp.
@@ -1774,7 +1774,7 @@ void interp(VectorView ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
   ARTS_ASSERT(is_size(pgp, n));      // pgp must have same size as cgp.
@@ -1846,7 +1846,7 @@ void interp(VectorView ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
   ARTS_ASSERT(is_size(bgp, n));      // bgp must have same size as cgp.
@@ -1927,7 +1927,7 @@ void interp(VectorView ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index n = cgp.nelem();
+  Index n = cgp.size();
   ARTS_ASSERT(is_size(ia, n));       //  ia must have same size as cgp.
   ARTS_ASSERT(is_size(vgp, n));      // vgp must have same size as cgp.
   ARTS_ASSERT(is_size(sgp, n));      // sgp must have same size as cgp.
@@ -2006,8 +2006,8 @@ void interp(VectorView ia,
 void interpweights(Tensor3View itw,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We must store 4 interpolation
                                     // weights for each position.
 
@@ -2065,9 +2065,9 @@ void interpweights(Tensor4View itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   // We must store 8 interpolation weights for each position:
   ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
 
@@ -2121,10 +2121,10 @@ void interpweights(Tensor5View itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   // We must store 16 interpolation weights for each position:
   ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
 
@@ -2184,11 +2184,11 @@ void interpweights(Tensor6View itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index ns = sgp.nelem();
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index ns = sgp.size();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   // We must store 32 interpolation weights for each position:
   ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
 
@@ -2255,12 +2255,12 @@ void interpweights(Tensor7View itw,
                    const ArrayOfGridPos& pgp,
                    const ArrayOfGridPos& rgp,
                    const ArrayOfGridPos& cgp) {
-  Index nv = vgp.nelem();
-  Index ns = sgp.nelem();
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nv = vgp.size();
+  Index ns = sgp.size();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   // We must store 64 interpolation weights for each position:
   ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
@@ -2325,8 +2325,8 @@ void interp(MatrixView ia,
             ConstMatrixView a,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(ia, nr, nc));
   ARTS_ASSERT(is_size(itw, nr, nc, 4));  // We need 4 interpolation
                                     // weights for each position.
@@ -2392,9 +2392,9 @@ void interp(Tensor3View ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(ia, np, nr, nc));
   ARTS_ASSERT(is_size(itw, np, nr, nc, 8));
 
@@ -2465,10 +2465,10 @@ void interp(Tensor4View ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(ia, nb, np, nr, nc));
   ARTS_ASSERT(is_size(itw, nb, np, nr, nc, 16));
 
@@ -2542,11 +2542,11 @@ void interp(Tensor5View ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index ns = sgp.nelem();
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index ns = sgp.size();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(ia, ns, nb, np, nr, nc));
   ARTS_ASSERT(is_size(itw, ns, nb, np, nr, nc, 32));
 
@@ -2630,12 +2630,12 @@ void interp(Tensor6View ia,
             const ArrayOfGridPos& pgp,
             const ArrayOfGridPos& rgp,
             const ArrayOfGridPos& cgp) {
-  Index nv = vgp.nelem();
-  Index ns = sgp.nelem();
-  Index nb = bgp.nelem();
-  Index np = pgp.nelem();
-  Index nr = rgp.nelem();
-  Index nc = cgp.nelem();
+  Index nv = vgp.size();
+  Index ns = sgp.size();
+  Index nb = bgp.size();
+  Index np = pgp.size();
+  Index nr = rgp.size();
+  Index nc = cgp.size();
   ARTS_ASSERT(is_size(ia, nv, ns, nb, np, nr, nc));
   ARTS_ASSERT(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
@@ -2907,4 +2907,24 @@ Numeric interp_poly(ConstVectorView x,
   }
 
   return y_int;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfArrayOfArrayOfGridPos& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
 }

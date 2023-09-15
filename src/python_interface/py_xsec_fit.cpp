@@ -179,10 +179,15 @@ Returns
             return details::XsecRecord::__eq__(xr, other);
           },
           py::is_operator())
-      .doc() = R"--(A cross-section record.
-)--";
+      .def(py::init<const XsecRecord&>())
+      .PythonInterfaceCopyValue(XsecRecord)
+      .PythonInterfaceBasicRepresentation(XsecRecord)
+      .PythonInterfaceFileIO(XsecRecord)
+      .PythonInterfaceWorkspaceDocumentation(XsecRecord);
 
-  PythonInterfaceWorkspaceArray(XsecRecord);
+  artsarray<ArrayOfXsecRecord>(m, "ArrayOfXsecRecord")
+      .PythonInterfaceFileIO(ArrayOfXsecRecord)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfXsecRecord);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));
 }

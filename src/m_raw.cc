@@ -20,10 +20,10 @@ void yColdAtmHot(Vector& y,
                  const Numeric& hot_temp,
                  const Index& calib)
 {
-  ARTS_USER_ERROR_IF (cold.nelem() not_eq atm.nelem() or atm.nelem() not_eq hot.nelem(),
+  ARTS_USER_ERROR_IF (cold.size() not_eq atm.size() or atm.size() not_eq hot.size(),
                       "Length of vectors must be correct");
    
-  y.resize(atm.nelem());
+  y.resize(atm.size());
   if (calib) {
     y = Raw::Calibration::calibration(cold, atm, hot, cold_temp, hot_temp);
   } else {
@@ -40,21 +40,21 @@ void ybatchColdAtmHotAtmCycle(ArrayOfVector& ybatch,
                               const Vector& hot_temp,
                               const Index& first_c_index)
 {
-  ARTS_USER_ERROR_IF(level0_data.nelem() not_eq cold_temp.nelem() or
-                     level0_data.nelem() not_eq hot_temp.nelem(),
+  ARTS_USER_ERROR_IF(level0_data.size() not_eq static_cast<Size>(cold_temp.size()) or
+                     level0_data.size() not_eq static_cast<Size>(hot_temp.size()),
                      "Length of vectors must be correct");
-  ARTS_USER_ERROR_IF (level0_time.nelem() not_eq level0_data.nelem() and
-                      level0_time.nelem() not_eq 0,
+  ARTS_USER_ERROR_IF (level0_time.size() not_eq level0_data.size() and
+                      level0_time.size() not_eq 0,
                       "Bad level0_time length, must be empty of same as level0_data");
   
   ybatch = Raw::Calibration::caha(level0_data, cold_temp, hot_temp, first_c_index);
   
   // Fix time using the same method as CAHA
-  if (level0_time.nelem()) {
-    sensor_time.resize(ybatch.nelem());
+  if (level0_time.size()) {
+    sensor_time.resize(ybatch.size());
     // First position as described by method is at H if this index is too large
     const Index pos = first_c_index - ((first_c_index > 1) ? 2 : 0);
-    for (Index i=0; i<sensor_time.nelem(); i++) {
+    for (Size i=0; i<sensor_time.size(); i++) {
       sensor_time[i] = level0_time[pos + 2*i];
     }
   }
@@ -68,8 +68,8 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
                          const Index& disregard_last)
 {
   // Size of problem
-  const Index n=sensor_time.nelem();
-  ARTS_USER_ERROR_IF (sensor_time.nelem() not_eq n,
+  const Size n=sensor_time.size();
+  ARTS_USER_ERROR_IF (sensor_time.size() not_eq n,
                       "Time vector length must match input data length");
   
   // Time is not decreasing
@@ -83,19 +83,19 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
   ArrayOfVector ybatch_out;
   ArrayOfTime sensor_time_out;
   
-  if (lims.front() == n) {
+  if (static_cast<Size>(lims.front()) == n) {
     ybatch_out.resize(0);
     sensor_time_out.resize(0);
   } else {
     
     // Frequency grids
-    const Index k = ybatch[0].nelem();
+    const Index k = ybatch[0].size();
     ARTS_USER_ERROR_IF (not std::all_of(ybatch.cbegin(), ybatch.cend(),
-                                        [k](auto& x){return x.nelem() == k;}),
+                                        [k](auto& x){return x.size() == k;}),
                         "Bad frequency grid size in input data; expects all equal");
     
     // Allocate output
-    const Index m = lims.nelem() - 1;
+    const Index m = lims.size() - 1;
     ARTS_USER_ERROR_IF (m < 0,
                         "Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
@@ -131,26 +131,26 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
                                                     const Numeric& targ_temp)
 {
   // Size of problem
-  const Index n=ybatch.nelem();
-  const Index m=n ? ybatch[0].nelem() : 0;
+  const Index n=ybatch.size();
+  const Index m=n ? ybatch[0].size() : 0;
   
   ARTS_USER_ERROR_IF (m == 0, "A frequency range is required")
   
   ARTS_USER_ERROR_IF (std::any_of(ybatch.begin(), ybatch.end(),
-                                  [m](auto& y){return y.nelem() not_eq m;}),
+                                  [m](auto& y){return y.size() not_eq m;}),
                       "Bad input size, all of ybatch must match itself");
   
-  ARTS_USER_ERROR_IF (trop_temp.nelem() not_eq n and trop_temp.nelem() not_eq 1,
+  ARTS_USER_ERROR_IF (trop_temp.size() not_eq n and trop_temp.size() not_eq 1,
                       "Bad input size, trop_temp must match ybatch or be 1-long,\n"
-                      "trop_temp: [", trop_temp, "]\ntrop_temp.nelem(): ",
-                      trop_temp.nelem(), "\nybatch.nelem(): ", n);
+                      "trop_temp: [", trop_temp, "]\ntrop_temp.size(): ",
+                      trop_temp.size(), "\nybatch.size(): ", n);
   
   // This algorithm stores partial transmission and median and tropospheric temperature in the correction terms
   ybatch_corr = ArrayOfVector(n, Vector(3));
   
   // Compute tropospheric correction
   for (Index i=0; i<n; i++) {
-    ybatch_corr[i][2] = trop_temp.nelem() > 1 ? trop_temp[i] : trop_temp[0];
+    ybatch_corr[i][2] = trop_temp.size() > 1 ? trop_temp[i] : trop_temp[0];
     ybatch_corr[i][0] = Raw::Average::nanmedian(ybatch[i], range);
     ybatch_corr[i][1] = std::exp(- std::log((ybatch_corr[i][2] - ybatch_corr[i][0])  / (ybatch_corr[i][2] - targ_temp)));
   }
@@ -167,13 +167,13 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
                                                     const ArrayOfVector& ybatch_corr)
 {
   // Size of problem
-  const Index n=ybatch.nelem();
+  const Size n=ybatch.size();
   ARTS_USER_ERROR_IF ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(),
-                                   [](auto& corr){return corr.nelem() not_eq 3;})) or ybatch_corr.nelem() not_eq n,
+                                   [](auto& corr){return corr.size() not_eq 3;})) or ybatch_corr.size() not_eq n,
                       "Bad input size, all of ybatch_corr must match ybatch and have three elements each");
   
   // Apply inverse of correction
-  for (Index i=0; i<n; i++) {
+  for (Size i=0; i<n; i++) {
     ybatch[i] -= ybatch_corr[i][2] * (1 - ybatch_corr[i][1]);
     ybatch[i] /= ybatch_corr[i][1];
   }
@@ -184,7 +184,7 @@ void yMaskOutsideMedianRange(Vector& y,
   const Numeric median = Raw::Average::nanmedian(y);
   auto mask = Raw::Mask::out_of_bounds(y, median-dx, median+dx);
   
-  for (Index i=0; i<y.nelem(); i++) {
+  for (Index i=0; i<y.size(); i++) {
     y[i] = mask[i] ? std::numeric_limits<Numeric>::quiet_NaN() : y[i];
   }
 }
@@ -198,7 +198,7 @@ void yDoublingMeanFocus(Vector& f_grid,
                         Vector& y,
                         const Numeric& f0,
                         const Numeric& df) {
-  if (f_grid.nelem() not_eq y.nelem()) {
+  if (f_grid.size() not_eq y.size()) {
     throw std::runtime_error("f_grid and y must have the same size");
   }
   
@@ -206,7 +206,7 @@ void yDoublingMeanFocus(Vector& f_grid,
     throw std::runtime_error("f_grid must be sorted and ever increasing");
   }
   
-  if (f_grid.nelem() < 2) {
+  if (f_grid.size() < 2) {
     throw std::runtime_error("Must have at least 2 frequency grid points");
   }
   
@@ -228,7 +228,7 @@ void ybatchDoublingMeanFocus(Vector& f_grid,
                              const Numeric& f0,
                              const Numeric& df) {
   for (Vector& y: ybatch) {
-    if (f_grid.nelem() not_eq y.nelem()) {
+    if (f_grid.size() not_eq y.size()) {
       throw std::runtime_error("f_grid and all of ybatch must have the same size");
     }
   }
@@ -237,7 +237,7 @@ void ybatchDoublingMeanFocus(Vector& f_grid,
     throw std::runtime_error("f_grid must be sorted and ever increasing");
   }
   
-  if (f_grid.nelem() < 2) {
+  if (f_grid.size() < 2) {
     throw std::runtime_error("Must have at least 2 frequency grid points");
   }
   

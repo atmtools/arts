@@ -310,37 +310,33 @@ void py_griddedfield(py::module_& m) try {
       .PythonInterfaceGriddedField(GriddedField6)
       .PythonInterfaceWorkspaceDocumentation(GriddedField6);
 
-  PythonInterfaceWorkspaceArray(GriddedField1);
-  PythonInterfaceWorkspaceArray(GriddedField2);
-  PythonInterfaceWorkspaceArray(GriddedField3);
-  PythonInterfaceWorkspaceArray(GriddedField4);
+  artsarray<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1")
+      .PythonInterfaceFileIO(ArrayOfGriddedField1)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField1);
 
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField1)
-      .def(py::init([](const std::vector<std::vector<GriddedField1>>& x) {
-        ArrayOfArrayOfGriddedField1 y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), "Initialize from lists");
-  py::implicitly_convertible<std::vector<std::vector<GriddedField1>>,
-                             ArrayOfArrayOfGriddedField1>();
+  artsarray<ArrayOfGriddedField2>(m, "ArrayOfGriddedField2")
+      .PythonInterfaceFileIO(ArrayOfGriddedField2)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField2);
 
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField2)
-      .def(py::init([](const std::vector<std::vector<GriddedField2>>& x) {
-        ArrayOfArrayOfGriddedField2 y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), "Initialize from lists");
-  py::implicitly_convertible<std::vector<std::vector<GriddedField2>>,
-                             ArrayOfArrayOfGriddedField2>();
+  artsarray<ArrayOfGriddedField3>(m, "ArrayOfGriddedField3")
+      .PythonInterfaceFileIO(ArrayOfGriddedField3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField3);
 
-  PythonInterfaceWorkspaceArray(ArrayOfGriddedField3)
-      .def(py::init([](const std::vector<std::vector<GriddedField3>>& x) {
-        ArrayOfArrayOfGriddedField3 y(x.size());
-        std::copy(x.begin(), x.end(), y.begin());
-        return y;
-      }), "Initialize from lists");
-  py::implicitly_convertible<std::vector<std::vector<GriddedField3>>,
-                             ArrayOfArrayOfGriddedField3>();
+  artsarray<ArrayOfGriddedField4>(m, "ArrayOfGriddedField4")
+      .PythonInterfaceFileIO(ArrayOfGriddedField4)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField4);
+
+  artsarray<ArrayOfArrayOfGriddedField1>(m, "ArrayOfArrayOfGriddedField1")
+      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField1)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField1);
+
+  artsarray<ArrayOfArrayOfGriddedField2>(m, "ArrayOfArrayOfGriddedField2")
+      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField2)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField2);
+
+  artsarray<ArrayOfArrayOfGriddedField3>(m, "ArrayOfArrayOfGriddedField3")
+      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField3);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));
 }

@@ -2235,7 +2235,7 @@ struct ComputeValues {
                 std::vector<Complex> &dN_, const Numeric &f_lim,
                 const ArrayOfDerivatives &derivs_, const bool do_nlte_) noexcept
       : F(&F_), dF(dF_.data()), N(&N_), dN(dN_.data()), f(&f_lim), size(1),
-        derivs(derivs_), jac_size(derivs.nelem()),
+        derivs(derivs_), jac_size(derivs.size()),
         max_jac_size(active_nelem(derivs)), do_nlte(do_nlte_) {}
 
   ComputeValues &operator-=(const ComputeValues &cut) ARTS_NOEXCEPT {
@@ -3378,7 +3378,7 @@ void line_loop(ComputeData &com, ComputeData &sparse_com,
                const Numeric r, const Numeric drdSELFVMR, const Numeric drdT,
                const Zeeman::Polarization zeeman_polarization,
                const Options::LblSpeedup speedup_type) ARTS_NOEXCEPT {
-  const Index nj = jacobian_quantities.nelem();
+  const Index nj = jacobian_quantities.size();
   const Index nl = band.NumLines();
 
   // Derivatives are allocated ahead of all loops
@@ -3564,7 +3564,7 @@ void compute(ComputeData &com, ComputeData &sparse_com,
              const Zeeman::Polarization zeeman_polarization,
              const Options::LblSpeedup speedup_type,
              const bool robust) ARTS_NOEXCEPT {
-  [[maybe_unused]] const Index nj = jacobian_quantities.nelem();
+  [[maybe_unused]] const Index nj = jacobian_quantities.size();
   const Index nl = band.NumLines();
   const Index nv = com.f_grid.nelem();
 

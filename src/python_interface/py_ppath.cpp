@@ -25,10 +25,8 @@ void py_ppath(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(GridPos);
 
-  artsclass<ArrayOfGridPos>(m, "ArrayOfGridPos")
-      .PythonInterfaceArrayDefault(GridPos)
-      .PythonInterfaceBasicRepresentation(ArrayOfGridPos).doc() = "List of :class:`~pyarts.arts.GridPos`";
-  py::implicitly_convertible<std::vector<GridPos>, ArrayOfGridPos>();
+  artsarray<ArrayOfGridPos>(m, "ArrayOfGridPos")
+    .doc() = "List of :class:`~pyarts.arts.GridPos`";
 
   artsclass<Ppath>(m, "Ppath")
       .def(py::init([]() { return std::make_shared<Ppath>(); }), "Empty path")
@@ -101,7 +99,9 @@ void py_ppath(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(Ppath);
 
-  PythonInterfaceWorkspaceArray(Ppath);
+  artsarray<ArrayOfPpath>(m, "ArrayOfPpath")
+      .PythonInterfaceFileIO(ArrayOfPpath)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfPpath);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));
 }

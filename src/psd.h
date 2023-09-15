@@ -21,10 +21,10 @@
 // ------------------------------------------------------
 
 #define START_OF_PSD_METHODS()                                                 \
-  const Index nin = pnd_agenda_input_names.nelem();                            \
-  const Index ndx = dpnd_data_dx_names.nelem();                                \
+  const Index nin = pnd_agenda_input_names.size();                            \
+  const Index ndx = dpnd_data_dx_names.size();                                \
   const Index np = pnd_agenda_input.nrows();                                   \
-  const Index nsi = psd_size_grid.nelem();                                     \
+  const Index nsi = psd_size_grid.size();                                     \
   ArrayOfIndex dx2in(ndx);                                                     \
                                                                                \
   if (pnd_agenda_input.ncols() != nin)                                         \

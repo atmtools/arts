@@ -98,8 +98,8 @@ bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon = 0.001);
   \return True if the size of x is n.
 */
 template <class T>
-bool is_size(const Array<T>& x, const Index& n) {
-  return (n == x.nelem());
+bool is_size(const Array<T>& x, const Size& n) {
+  return (n == x.size());
 }
 
 #endif  // logic_h

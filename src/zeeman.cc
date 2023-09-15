@@ -38,15 +38,15 @@ void zeeman_on_the_fly(
     const Numeric& eta0) {
 
   // Size of problem
-  const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.nelem();
-  const Index ns = abs_species.nelem();
+  const Index nf = f_grid.size();
+  const Index nq = jacobian_quantities.size();
+  const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
+  ARTS_USER_ERROR_IF(propmat_clearsky.size() not_eq nf,
     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
+  ARTS_USER_ERROR_IF(nlte_source.size() not_eq nf,
     "*f_grid* must match *nlte_source*")
   ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows() or nf not_eq dpropmat_clearsky_dx.ncols(),
     "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities* times the lenght of *f_grid*")
@@ -95,11 +95,11 @@ void zeeman_on_the_fly(
 
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
       // Skip it if there are no species or there is no Zeeman
-      if (not abs_species[ispecies].nelem() or
+      if (not abs_species[ispecies].size() or
           not abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].nelem())
+          not abs_lines_per_species[ispecies].size())
         continue;
-      if (select_abs_species.nelem() and
+      if (select_abs_species.size() and
           select_abs_species not_eq abs_species[ispecies])
         continue;
 

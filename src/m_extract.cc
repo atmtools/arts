@@ -2,7 +2,7 @@
 
 template <typename AoT, WorkspaceGroup T>
 void ArrayExtracter(T& e, const AoT& arr, const Index& index) {
-  ARTS_USER_ERROR_IF(index >= arr.nelem() or index < 0,
+  ARTS_USER_ERROR_IF(static_cast<Size>(index) >= arr.size() or index < 0,
                      "The index ",
                      index,
                      " is outside the range of the array.")

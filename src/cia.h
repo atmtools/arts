@@ -27,6 +27,8 @@ class CIARecord;
 
 using ArrayOfCIARecord = Array<CIARecord>;
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x);
+
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
                        const ConstVectorView& frequency,
@@ -91,31 +93,28 @@ class CIARecord {
 
   /** Return number of datasets in this record.
      */
-  [[nodiscard]] Index DatasetCount() const { return mdata.nelem(); }
+  [[nodiscard]] Index DatasetCount() const { return mdata.size(); }
 
   /** Return frequency grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView FrequencyGrid(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
-    ARTS_ASSERT(dataset < mdata.nelem());
+  [[nodiscard]] ConstVectorView FrequencyGrid(Size dataset) const {
+    ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset].get_numeric_grid(0);
   }
 
   /** Return temperatur grid for given dataset.
      */
-  [[nodiscard]] ConstVectorView TemperatureGrid(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
-    ARTS_ASSERT(dataset < mdata.nelem());
+  [[nodiscard]] ConstVectorView TemperatureGrid(Size dataset) const {
+    ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset].get_numeric_grid(1);
   }
 
   /** Return CIA dataset.
      */
-  [[nodiscard]] const GriddedField2& Dataset(Index dataset) const {
-    ARTS_ASSERT(dataset >= 0);
-    ARTS_ASSERT(dataset < mdata.nelem());
+  [[nodiscard]] const GriddedField2& Dataset(Size dataset) const {
+    ARTS_ASSERT(dataset < mdata.size());
 
     return mdata[dataset];
   }

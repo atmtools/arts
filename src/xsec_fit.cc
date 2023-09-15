@@ -56,7 +56,7 @@ void XsecRecord::Extract(VectorView result,
 
   result = 0.;
 
-  const Index ndatasets = mfitcoeffs.nelem();
+  const Index ndatasets = mfitcoeffs.size();
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
     const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
     const Numeric data_fmin = data_f_grid[0];
@@ -142,7 +142,7 @@ void XsecRecord::Extract(VectorView result,
       ArrayOfGridPos f_gp(f_grid_active.nelem());
       gridpos(f_gp, data_f_grid_active, f_grid_active);
 
-      Matrix itw(f_gp.nelem(), 2);
+      Matrix itw(f_gp.size(), 2);
       interpweights(itw, f_gp);
       interp(xsec_interp, itw, fit_result_active, f_gp);
     }
@@ -189,7 +189,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             const Species::Species species) {
-  for (Index i = 0; i < xsec_data.nelem(); i++)
+  for (Size i = 0; i < xsec_data.size(); i++)
     if (xsec_data[i].Species() == species) return i;
 
   return -1;
@@ -213,5 +213,10 @@ std::shared_ptr<XsecRecord> hitran_xsec_get_data(
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {
   os << "Species: " << xd.Species() << std::endl;
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x) {
+  for (auto& a : x) os << a << '\n';
   return os;
 }

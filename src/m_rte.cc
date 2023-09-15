@@ -68,7 +68,7 @@ void iyApplyUnit(Matrix& iy,
 
   apply_iy_unit(iy, iy_unit, f_grid, 1, i_pol);
 
-  for (Index i = 0; i < iy_aux_vars.nelem(); i++) {
+  for (Size i = 0; i < iy_aux_vars.size(); i++) {
     if (iy_aux_vars[i] == "iy" || iy_aux_vars[i] == "Error" ||
         iy_aux_vars[i] == "Error (uncorrelated)") {
       apply_iy_unit(iy_aux[i], iy_unit, f_grid, 1, i_pol);
@@ -162,18 +162,18 @@ void ppvar_radCalcEmission(
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
-  const Index np = ppvar_src.nelem();
+  const Size np = ppvar_src.size();
 
-  ARTS_USER_ERROR_IF(np not_eq ppvar_dsrc.nelem(),
+  ARTS_USER_ERROR_IF(np not_eq ppvar_dsrc.size(),
                      "ppvar_dsrc must have (np) elements")
-  ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.nelem(),
+  ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.size(),
                      "ppvar_tramat must have (np) elements")
-  ARTS_USER_ERROR_IF(np not_eq ppvar_cumtramat.nelem(),
+  ARTS_USER_ERROR_IF(np not_eq ppvar_cumtramat.size(),
                      "ppvar_cumtramat must have (np) elements")
-  ARTS_USER_ERROR_IF(2 not_eq ppvar_dtramat.nelem() or
-                         ppvar_dtramat.front().nelem() not_eq
-                             ppvar_dtramat.back().nelem() or
-                         ppvar_dtramat.front().nelem() not_eq np,
+  ARTS_USER_ERROR_IF(2 not_eq ppvar_dtramat.size() or
+                         ppvar_dtramat.front().size() not_eq
+                             ppvar_dtramat.back().size() or
+                         ppvar_dtramat.front().size() not_eq np,
                      "ppvar_dtramat must (2 x np) elements")
 
   if (np == 0) {
@@ -185,8 +185,8 @@ void ppvar_radCalcEmission(
   const Index nq = ppvar_dsrc.front().nrows();
   const Index nf = ppvar_dsrc.front().ncols();
 
-  const auto test_nf = [nf](auto &v) { return v.nelem() not_eq nf; };
-  ARTS_USER_ERROR_IF(nf not_eq background_rad.nelem(),
+  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
+  ARTS_USER_ERROR_IF(nf not_eq background_rad.size(),
                      "background_rad must have nf elements")
   ARTS_USER_ERROR_IF(std::any_of(ppvar_src.begin(), ppvar_src.end(), test_nf),
                      "ppvar_src must have (nf) inner elements")
@@ -229,16 +229,16 @@ void ppvar_radCalcTransmission(
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
-  const Index np = ppvar_tramat.nelem();
+  const Size np = ppvar_tramat.size();
 
-  ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.nelem(),
+  ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.size(),
                      "ppvar_tramat must have (np) elements")
-  ARTS_USER_ERROR_IF(np not_eq ppvar_cumtramat.nelem(),
+  ARTS_USER_ERROR_IF(np not_eq ppvar_cumtramat.size(),
                      "ppvar_cumtramat must have (np) elements")
-  ARTS_USER_ERROR_IF(2 not_eq ppvar_dtramat.nelem() or
-                         ppvar_dtramat.front().nelem() not_eq
-                             ppvar_dtramat.back().nelem() or
-                         ppvar_dtramat.front().nelem() not_eq np,
+  ARTS_USER_ERROR_IF(2 not_eq ppvar_dtramat.size() or
+                         ppvar_dtramat.front().size() not_eq
+                             ppvar_dtramat.back().size() or
+                         ppvar_dtramat.front().size() not_eq np,
                      "ppvar_dtramat must (2 x np) elements")
 
   if (np == 0) {
@@ -250,7 +250,7 @@ void ppvar_radCalcTransmission(
   const Index nq = ppvar_dtramat.front().front().nrows();
   const Index nf = ppvar_dtramat.front().front().ncols();
 
-  const auto test_nf = [nf](auto &v) { return v.nelem() not_eq nf; };
+  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
   ARTS_USER_ERROR_IF(
       std::any_of(ppvar_tramat.begin(), ppvar_tramat.end(), test_nf),
       "ppvar_tramat must have (nf) inner elements")
@@ -383,15 +383,15 @@ void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
   ArrayOfString fail_msg;
   bool do_abort = false;
 
-  const Index np = ppvar_atm.nelem();
+  const Index np = ppvar_atm.size();
   if (np == 0) {
     ppvar_src.resize(0);
     ppvar_dsrc.resize(0);
     return;
   }
 
-  const Index nf = ppvar_propmat.front().nelem();
-  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
+  const Index nf = ppvar_propmat.front().size();
+  const Index nq = j_analytical_do ? jacobian_quantities.size() : 0;
 
   ppvar_src.resize(np, StokvecVector(nf));
   ppvar_dsrc.resize(np, StokvecMatrix(nq, nf));
@@ -455,8 +455,8 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
     return;
   }
 
-  const Index nf = ppvar_propmat.front().nelem();
-  const Index nq = j_analytical_do ? jacobian_quantities.nelem() : 0;
+  const Index nf = ppvar_propmat.front().size();
+  const Index nq = j_analytical_do ? jacobian_quantities.size() : 0;
 
   ppvar_tramat.resize(np, MuelmatVector(nf));
   ppvar_dtramat.resize(2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
@@ -504,14 +504,14 @@ void iy_auxFromVars(ArrayOfMatrix &iy_aux, const ArrayOfString &iy_aux_vars,
   const Index np = ppath.np;
 
   // Init iy_aux and fill where possible
-  const Index naux = iy_aux_vars.nelem();
+  const Index naux = iy_aux_vars.size();
   iy_aux.resize(naux);
 
   if (np == 0) {
     return;
   }
 
-  const Index nf = background_transmittance.nelem();
+  const Index nf = background_transmittance.size();
 
   //
   Index auxOptDepth = -1;
@@ -548,7 +548,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
   const Index j_analytical_do =
       jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
 
-  const Index np = ppvar_rad.nelem();
+  const Index np = ppvar_rad.size();
   if (np == 0) {
     ppvar_trans_cumulat.resize(np, 0, 0, 0);
     ppvar_trans_partial.resize(np, 0, 0, 0);
@@ -557,7 +557,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
     return;
   }
 
-  const Index nf = ppvar_rad.front().nelem();
+  const Index nf = ppvar_rad.front().size();
 
   // Copy back to ARTS external style
   diy_dpath = j_analytical_do ? get_standard_diy_dpath(jacobian_quantities, np,
@@ -567,7 +567,7 @@ void iyCopyPath(Matrix &iy, Tensor3 &ppvar_iy, Tensor4 &ppvar_trans_cumulat, Ten
   ppvar_trans_partial.resize(np, nf, 4, 4);
   ppvar_iy.resize(nf, 4, np);
   iy = to_matrix(ppvar_rad.front());
-  for (Index ip = 0; ip < ppvar_rad.nelem(); ip++) {
+  for (Size ip = 0; ip < ppvar_rad.size(); ip++) {
     ppvar_trans_cumulat(ip, joker, joker, joker) = to_tensor3(ppvar_cumtramat[ip]);
     ppvar_trans_partial(ip, joker, joker, joker) = to_tensor3(ppvar_tramat[ip]);
     ppvar_iy(joker, joker, ip) = to_matrix(ppvar_rad[ip]);
@@ -621,7 +621,7 @@ void iyBackground(const Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
                                      iy_transmittance, total_transmittance,
                                      iy_agenda_call1);
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
   const Index np = ppath.np;
 
   const Index j_analytical_do =
@@ -688,7 +688,7 @@ void iyLoopFrequencies(const Workspace& ws,
   ARTS_USER_ERROR_IF (iy_transmittance.ncols(),
         "*iy_transmittance* must be empty.");
 
-  const Index nf = f_grid.nelem();
+  const Index nf = f_grid.size();
 
   for (Index i = 0; i < nf; i++) {
     // Variables for 1 frequency
@@ -715,23 +715,23 @@ void iyLoopFrequencies(const Workspace& ws,
     if (i == 0) {
       iy.resize(nf, 4);
       //
-      iy_aux.resize(iy_aux1.nelem());
-      for (Index q = 0; q < iy_aux1.nelem(); q++) {
+      iy_aux.resize(iy_aux1.size());
+      for (Size q = 0; q < iy_aux1.size(); q++) {
         iy_aux[q].resize(nf, 4);
       }
       //
-      diy_dx.resize(diy_dx1.nelem());
-      for (Index q = 0; q < diy_dx1.nelem(); q++) {
+      diy_dx.resize(diy_dx1.size());
+      for (Size q = 0; q < diy_dx1.size(); q++) {
         diy_dx[q].resize(diy_dx1[q].npages(), nf, 4);
       }
     }
 
     // Copy to output variables
     iy(i, joker) = iy1(0, joker);
-    for (Index q = 0; q < iy_aux1.nelem(); q++) {
+    for (Size q = 0; q < iy_aux1.size(); q++) {
       iy_aux[q](i, joker) = iy_aux1[q](0, joker);
     }
-    for (Index q = 0; q < diy_dx1.nelem(); q++) {
+    for (Size q = 0; q < diy_dx1.size(); q++) {
       diy_dx[q](joker, i, joker) = diy_dx1[q](joker, 0, joker);
     }
   }
@@ -743,7 +743,7 @@ void iyReplaceFromAux(Matrix& iy,
                       const ArrayOfString& iy_aux_vars,
                       const Index& jacobian_do,
                       const String& aux_var) {
-  ARTS_USER_ERROR_IF (iy_aux.nelem() != iy_aux_vars.nelem(),
+  ARTS_USER_ERROR_IF (iy_aux.size() != iy_aux_vars.size(),
         "*iy_aux* and *iy_aux_vars* must have the same "
         "number of elements.");
 
@@ -753,7 +753,7 @@ void iyReplaceFromAux(Matrix& iy,
 
   bool ready = false;
 
-  for (Index i = 0; i < iy_aux.nelem() && !ready; i++) {
+  for (Size i = 0; i < iy_aux.size() && !ready; i++) {
     if (iy_aux_vars[i] == aux_var) {
       iy = iy_aux[i];
       ready = true;
@@ -790,7 +790,7 @@ void yApplyUnit(Vector& y,
 
   // Is jacobian set?
   //
-  const Index ny = y.nelem();
+  const Index ny = y.size();
   //
   const bool do_j = jacobian.nrows() == ny;
 
@@ -891,7 +891,7 @@ void y_geo_seriesFromY_geo(Matrix& y_geo_series,
 {
   // Sizes
   const Index ly = y_geo.nrows();
-  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index nchannel = sensor_response_f_grid.size();
   const Index lseries = ly / nchannel;
   
   ARTS_USER_ERROR_IF (nchannel * lseries != ly,
@@ -914,7 +914,7 @@ void y_geo_swathFromY_geo(Tensor3& y_geo_swath,
 {
   // Sizes
   const Index ly = y_geo.nrows();
-  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index nchannel = sensor_response_f_grid.size();
   const Index nswath = ly / (nchannel * npixel);
   
   ARTS_USER_ERROR_IF (nchannel * npixel * nswath != ly,
@@ -939,8 +939,8 @@ void y_seriesFromY(Matrix& y_series,
                    const Index& safe)
 {
   // Sizes
-  const Index ly = y.nelem();
-  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index ly = y.size();
+  const Index nchannel = sensor_response_f_grid.size();
   const Index lseries = ly / nchannel;
   
   ARTS_USER_ERROR_IF (nchannel * lseries != ly,
@@ -969,8 +969,8 @@ void y_swathFromY(Tensor3& y_swath,
                   const Index& safe)
 {
   // Sizes
-  const Index ly = y.nelem();
-  const Index nchannel = sensor_response_f_grid.nelem();
+  const Index ly = y.size();
+  const Index nchannel = sensor_response_f_grid.size();
   const Index nswath = ly / (nchannel * npixel);
   
   ARTS_USER_ERROR_IF (nchannel * npixel * nswath != ly,

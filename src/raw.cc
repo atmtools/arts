@@ -62,7 +62,7 @@ ArrayOfVector caha(const ArrayOfVector& data, const Vector& tcvec, const Vector&
   ArrayOfVector out;
   
   // For all data entries
-  for (Index i=start; i<data.nelem(); i++) {
+  for (Size i=start; i<data.size(); i++) {
     // Cycle is CAHA → 4 steps
     const Index pos = i % 4;
     
@@ -94,7 +94,7 @@ namespace Average {
 VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 { 
   // True end
-  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.nelem() + end_tmp;
+  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
   
   // Scale
   const Numeric scale = 1 / Numeric(end - start);
@@ -104,7 +104,7 @@ VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.nelem(); i++)
+    for (Index i=0; i<y.size(); i++)
       y[i] += ys[k][i] * scale;
   return y;
 }
@@ -112,13 +112,13 @@ VectorView avg(VectorView y, const ArrayOfVector& ys, const Index start, const I
 VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 { 
   // True end
-  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.nelem() + end_tmp;
+  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
   
   // Reset y
   y = 0;
   
   // Compute the averages ignoring all NaN
-  for (Index i=0; i<y.nelem(); i++) {
+  for (Index i=0; i<y.size(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
@@ -141,7 +141,7 @@ VectorView nanavg(VectorView y, const ArrayOfVector& ys, const Index start, cons
 VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 {
   // True end
-  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.nelem() + end_tmp;
+  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
   
   // Scale
   const Numeric scale = 1 / Numeric(end - start);
@@ -151,7 +151,7 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.nelem(); i++)
+    for (Index i=0; i<y.size(); i++)
       var[i] += Math::pow2(ys[k][i] - y[i]) * scale;
   return var;
 }
@@ -159,13 +159,13 @@ VectorView var(VectorView var, const Vector& y, const ArrayOfVector& ys, const I
 VectorView nanvar(VectorView var, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 {
   // True end
-  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.nelem() + end_tmp;
+  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
   
   // Reset
   var = 0;
   
   // Compute
-  for (Index i=0; i<y.nelem(); i++) {
+  for (Index i=0; i<y.size(); i++) {
     Index numnormal=0;
     for (Index k=start; k<end; k++) {
       if (isnormal_or_zero(ys[k][i])) {
@@ -201,7 +201,7 @@ VectorView nanstd(VectorView std, const Vector& y, const ArrayOfVector& ys, cons
 MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 {
   // True end
-  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.nelem() + end_tmp;
+  const Index end = end_tmp >= 0 ? end_tmp : 1 + ys.size() + end_tmp;
   
   // Scale
   const Numeric scale = 1 / Numeric(end - start - 1);
@@ -211,8 +211,8 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
   
   // Compute
   for (Index k=start; k<end; k++)
-    for (Index i=0; i<y.nelem(); i++)
-      for (Index j=0; j<y.nelem(); j++)
+    for (Index i=0; i<y.size(); i++)
+      for (Index j=0; j<y.size(); j++)
         cov(i, j) += (ys[k][i] - y[i]) * (ys[k][j] - y[j]) * scale;
   return cov;
 }
@@ -220,12 +220,12 @@ MatrixView cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const I
 Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos)
 {
   // Size of problem
-  const Index n = pos.nelem() ? pos.nelem() : v.nelem();
+  const Index n = pos.size() ? pos.size() : v.size();
   
   // Create a vector to sort
   ArrayOfNumeric calc(n);
   for (Index i=0; i<n; i++)
-    if (pos.nelem())
+    if (pos.size())
       calc[i] = v[pos[i]];
     else
       calc[i] = v[i];
@@ -242,12 +242,12 @@ Numeric median(const ConstVectorView& v, const ArrayOfIndex& pos)
 Numeric nanmedian(const ConstVectorView& v, const ArrayOfIndex& pos)
 {
   // Size of problem
-  const Index n = pos.nelem() ? pos.nelem() : v.nelem();
+  const Index n = pos.size() ? pos.size() : v.size();
   
   // Create a vector to sort
   ArrayOfNumeric calc(n);
   for (Index i=0; i<n; i++) {
-    if (pos.nelem()) {
+    if (pos.size()) {
       calc[i] = v[pos[i]];
     } else {
       calc[i] = v[i];
@@ -291,12 +291,12 @@ ArrayOfIndex focus_doublescaling(const Vector& x, const Numeric x0, const Numeri
 
 std::pair<Index, Index> find_first_and_last_1(const ArrayOfIndex& x)
 {
-  Index first=x.nelem() - 1;
+  Index first=x.size() - 1;
   Index last=0;
-  for (Index i=0; i<x.nelem(); i++) {
+  for (Size i=0; i<x.size(); i++) {
     if (x[i] == 1) {
-      last = std::max(i, last);
-      first = std::min(i, first);
+      last = std::max<Index>(i, last);
+      first = std::min<Index>(i, first);
     }
   }
   
@@ -389,7 +389,7 @@ std::vector<bool> out_of_bounds(const Vector& x, const Numeric xmin, const Numer
 
 VectorView mask(VectorView x, const std::vector<bool>& masking)
 {
-  const Index N = x.nelem();
+  const Index N = x.size();
   for (Index i=0; i<N; i++)
     if (masking[i])
       x[i] = std::numeric_limits<Numeric>::quiet_NaN();

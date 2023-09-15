@@ -35,7 +35,7 @@ void abs_linesRemoveEmptyBands(ArrayOfAbsorptionLines& abs_lines)
 
 void abs_linesFlatten(ArrayOfAbsorptionLines& abs_lines)
 {
-  const Index n = abs_lines.nelem();
+  const Index n = abs_lines.size();
   
   for (Index i=0; i<n; i++) {
     AbsorptionLines& band = abs_lines[i];
@@ -148,10 +148,10 @@ Array<QuantumNumberType> string2vecqn(std::string_view qnstr) {
   using namespace Quantum::Number;
 
   if (qnstr == "DEFAULT_GLOBAL") {
-    return Array<Type>(global_types);
+    return Array<Type>(global_types.begin(), global_types.end());
   }
   if (qnstr == "DEFAULT_LOCAL") {
-    return Array<Type>(local_types);
+    return Array<Type>(local_types.begin(), local_types.end());
   }
 
   const Index N = count_items(qnstr);
@@ -194,7 +194,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
   ArtsXMLTag tag;
-  Index nelem;
+  Index size;
   
   // ARTSCAT data
   std::shared_ptr<std::istream> ifs = nullptr;
@@ -209,14 +209,14 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   tag.check_name("Array");
   
   Index num_arrays;
-  tag.get_attribute_value("nelem", num_arrays);
+  tag.get_attribute_value("size", num_arrays);
 
   ArrayOfAbsorptionLines local_bands(0);
   for (Index i=0; i<num_arrays; i++) {
     tag.read_from_stream(is_xml);
     tag.check_name("ArrayOfLineRecord");
     
-    tag.get_attribute_value("nelem", nelem);
+    tag.get_attribute_value("size", size);
     
     String version;
     tag.get_attribute_value("version", version);
@@ -239,7 +239,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     
     bool go_on = true;
     Index n = 0;
-    while (n<nelem) {
+    while (n<size) {
       n++;
 
       if (go_on) {
@@ -275,7 +275,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
         }
 
         merge_external_line(local_bands, sline, global_qid);
-        if (local_bands.nelem() > merge_local_lines_size) {
+        if (local_bands.size() > merge_local_lines_size) {
           merge_local_lines(abs_lines, local_bands);
           local_bands.resize(0);
         }
@@ -327,7 +327,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   ARTS_USER_ERROR_IF(not check_local(local_nums), "Can only have non-string values in the local state")
   
   ArtsXMLTag tag;
-  Index nelem;
+  Index size;
   
   // ARTSCAT data
   std::shared_ptr<std::istream> ifs = nullptr;
@@ -341,7 +341,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   tag.read_from_stream(is_xml);
   tag.check_name("ArrayOfLineRecord");
   
-  tag.get_attribute_value("nelem", nelem);
+  tag.get_attribute_value("size", size);
   
   String version;
   tag.get_attribute_value("version", version);
@@ -365,7 +365,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   bool go_on = true;
   Index n = 0;
   ArrayOfAbsorptionLines local_bands(0);
-  while (n<nelem) {
+  while (n<size) {
     n++;
 
     if (go_on) {
@@ -401,7 +401,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
       }
 
       merge_external_line(local_bands, sline, global_qid);
-      if (local_bands.nelem() > merge_local_lines_size) {
+      if (local_bands.size() > merge_local_lines_size) {
         merge_local_lines(abs_lines, local_bands);
         local_bands.resize(0);
       }
@@ -553,7 +553,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     if (sline.bad) {
       if (is.eof())
         break;
-      ARTS_USER_ERROR("Cannot read line ", nelem(abs_lines) + nelem(local_bands) + 1);
+      ARTS_USER_ERROR("Cannot read line ", size(abs_lines) + size(local_bands) + 1);
     }
     if (sline.line.F0 < fmin)
       continue; // Skip this line
@@ -575,7 +575,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
 
     // Either find a line like this in the list of lines or start a new Lines
     merge_external_line(local_bands, sline, global_qid);
-    if (local_bands.nelem() > merge_local_lines_size) {
+    if (local_bands.size() > merge_local_lines_size) {
       merge_local_lines(abs_lines, local_bands);
       local_bands.resize(0);
     }
@@ -759,7 +759,7 @@ void abs_linesWriteSpeciesSplitCatalog(const String& output_format,
   abs_lines_per_speciesCreateFromLines(alps, abs_lines, as);
   
   // Save the arrays
-  for (Index i=0; i<specs.nelem(); i++) {
+  for (Size i=0; i<specs.size(); i++) {
     auto& name = specs[i];
     auto& lines = alps[i];
     
@@ -866,9 +866,9 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines&
     }
   }
 
-  ARTS_USER_ERROR_IF(error.load(), "Encountered ", errors.nelem(), ':', errors)
+  ARTS_USER_ERROR_IF(error.load(), "Encountered ", errors.size(), ':', errors)
   
-  const Index bands_found = nelem(par_abs_lines);
+  const Index bands_found = size(par_abs_lines);
   ARTS_USER_ERROR_IF (not bands_found and not robust,
                       "Cannot find any bands in the directory you are reading");
   
@@ -1060,7 +1060,7 @@ void abs_linesKeepBand(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifie
 }
 
 void CheckUnique(const ArrayOfAbsorptionLines& lines) {
-  const Index nb = lines.nelem();
+  const Index nb = lines.size();
   for (Index i=0; i<nb; i++) {
     for (Index j=i+1; j<nb; j++) {
       ARTS_USER_ERROR_IF(
@@ -1076,7 +1076,7 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
   for (auto& replacement: replacing_bands) {
     struct {Index band;} pos{-1};
     
-    for (Index i=0; i<abs_lines.nelem(); i++) {
+    for (Size i=0; i<abs_lines.size(); i++) {
       auto& band = abs_lines[i];
       
       if (Quantum::Number::StateMatch(band.quantumidentity, replacement.quantumidentity) ==
@@ -1097,7 +1097,7 @@ void abs_linesReplaceBands(ArrayOfAbsorptionLines& abs_lines,
 
 void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
                            const ArrayOfAbsorptionLines& replacing_lines) {
-  const Index nb = abs_lines.nelem();  // Evaluate first so new bands are not counted
+  const Index nb = abs_lines.size();  // Evaluate first so new bands are not counted
   
   for (auto& replacement: replacing_lines) {
     const Index nl=replacement.NumLines();
@@ -1213,7 +1213,7 @@ void abs_lines_per_speciesCutoffSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1272,7 +1272,7 @@ void abs_lines_per_speciesMirroringSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1328,7 +1328,7 @@ void abs_lines_per_speciesManualMirroringSpecies(
   if (auto ind = std::distance(
           abs_species.cbegin(),
           std::find(abs_species.cbegin(), abs_species.cend(), species));
-      ind not_eq abs_species.nelem()) {
+      static_cast<Size>(ind) not_eq abs_species.size()) {
     abs_linesManualMirroring(abs_lines_per_species[ind]);
   } else {
     ARTS_USER_ERROR("Cannot find species: ",
@@ -1389,7 +1389,7 @@ void abs_lines_per_speciesPopulationSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1448,7 +1448,7 @@ void abs_lines_per_speciesNormalizationSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1508,7 +1508,7 @@ void abs_lines_per_speciesLineShapeTypeSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1565,7 +1565,7 @@ void abs_lines_per_speciesLinemixingLimitSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1621,7 +1621,7 @@ void abs_lines_per_speciesT0Species(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1752,7 +1752,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec=0; ispec<abs_species.nelem(); ispec++) {
+  for (Size ispec=0; ispec<abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(), abs_species[ispec].end(), target_species[0].begin())) {
       abs_linesChangeBaseParameterForMatchingLines(abs_lines_per_species[ispec], QI, parameter_name, change, relative);
     }
@@ -1849,7 +1849,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
   Index t1;
   ArrayOfArrayOfSpeciesTag target_species;
   abs_speciesSet(target_species, t1, {species_tag});
-  for (Index ispec = 0; ispec < abs_species.nelem(); ispec++) {
+  for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
                    target_species[0].begin())) {
@@ -1877,10 +1877,10 @@ void abs_linesLineShapeModelParametersMatchingLines(
 
   const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
 
-  ARTS_USER_ERROR_IF(new_values.nelem() not_eq LineShape::ModelParameters::N,
+  ARTS_USER_ERROR_IF(new_values.size() not_eq LineShape::ModelParameters::N,
                      "Mismatch between input and expected number of variables\n"
                      "\tInput is: ",
-                     new_values.nelem(),
+                     new_values.size(),
                      " long but expects: ",
                      LineShape::ModelParameters::N,
                      " values\n")
@@ -1903,7 +1903,7 @@ void abs_linesLineShapeModelParametersMatchingLines(
           band.lines[k].lineshape.Data().back().Data()[Index(var)] = newdata;
         } else {
           for (Index i = band.selfbroadening;
-               i < band.broadeningspecies.nelem() - band.bathbroadening;
+               i < static_cast<Index>(band.broadeningspecies.size()) - band.bathbroadening;
                i++) {
             if (spec == band.broadeningspecies[i]) {
               band.lines[k].lineshape.Data()[i].Data()[Index(var)] = newdata;
@@ -2016,10 +2016,10 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
                                                    const Vector& change,
                                                    const Index& relative)
 {
-  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+  ARTS_USER_ERROR_IF (QID.size() not_eq static_cast<Size>(change.size()),
                       "Mismatch between QID and change input lengths not allowed");
   
-  for (Index iq=0; iq<QID.nelem(); iq++)
+  for (Size iq=0; iq<QID.size(); iq++)
     abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative);
 }
 
@@ -2030,10 +2030,10 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbs
                                                                const Vector& change,
                                                                const Index& relative)
 {
-  ARTS_USER_ERROR_IF (QID.nelem() not_eq change.nelem(),
+  ARTS_USER_ERROR_IF (QID.size() not_eq static_cast<Size>(change.size()),
                       "Mismatch between QID and change input lengths not allowed");
   
-  for (Index iq=0; iq<QID.nelem(); iq++)
+  for (Size iq=0; iq<QID.size(); iq++)
     for (auto& lines: abs_lines_per_species)
       abs_linesChangeBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], relative);
 }
@@ -2109,10 +2109,10 @@ void abs_linesBaseParameterMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
                                           const String& parameter_name,
                                           const Vector& change) {
   ARTS_USER_ERROR_IF(
-      QID.nelem() not_eq change.nelem(),
+      QID.size() not_eq static_cast<Size>(change.size()),
       "Mismatch between QID and change input lengths not allowed");
 
-  for (Index iq = 0; iq < QID.nelem(); iq++)
+  for (Size iq = 0; iq < QID.size(); iq++)
     abs_linesBaseParameterMatchingLevel(
         abs_lines, QID[iq], parameter_name, change[iq]);
 }
@@ -2124,10 +2124,10 @@ void abs_lines_per_speciesBaseParameterMatchingLevels(
     const String& parameter_name,
     const Vector& change) {
   ARTS_USER_ERROR_IF(
-      QID.nelem() not_eq change.nelem(),
+      QID.size() not_eq static_cast<Size>(change.size()),
       "Mismatch between QID and change input lengths not allowed");
 
-  for (Index iq = 0; iq < QID.nelem(); iq++)
+  for (Size iq = 0; iq < QID.size(); iq++)
     for (auto& lines : abs_lines_per_species)
       abs_linesBaseParameterMatchingLevel(
           lines, QID[iq], parameter_name, change[iq]);
@@ -2198,7 +2198,7 @@ void abs_lines_per_speciesSetEmpty(
     ArrayOfArrayOfAbsorptionLines & abs_lines_per_species,
     const ArrayOfArrayOfSpeciesTag& abs_species) {
   abs_lines_per_species = ArrayOfArrayOfAbsorptionLines(
-      abs_species.nelem(), ArrayOfAbsorptionLines(0));
+      abs_species.size(), ArrayOfAbsorptionLines(0));
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2231,7 +2231,7 @@ void abs_lines_per_speciesCompact(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRemoveBand(ArrayOfAbsorptionLines & abs_lines,
                          const QuantumIdentifier& qid) {
-  for (Index i = 0; i < abs_lines.nelem(); i++) {
+  for (Size i = 0; i < abs_lines.size(); i++) {
     const Quantum::Number::StateMatch lt(qid, abs_lines[i].quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
       abs_lines.erase(abs_lines.begin() + i);
@@ -2269,7 +2269,7 @@ void f_gridFromAbsorptionLines(
     const Numeric& delta_f_low,
     const Numeric& delta_f_upp,
     const Index& num_freqs) {
-  const Index n = nelem(abs_lines_per_species);
+  const Index n = size(abs_lines_per_species);
 
   ARTS_USER_ERROR_IF(delta_f_low >= delta_f_upp,
                      "The lower frequency delta has to be smaller "
@@ -2301,7 +2301,7 @@ void f_gridFromAbsorptionLines(
   std::sort(fout.begin(), fout.end());
   fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
   f_grid.resize(fout.size());
-  for (Index i = 0; i < f_grid.nelem(); i++) f_grid[i] = fout[i];
+  for (Index i = 0; i < f_grid.size(); i++) f_grid[i] = fout[i];
 }
 
 /////////////////////////////////////////////////////////
@@ -2315,7 +2315,7 @@ void remove_impl(ArrayOfAbsorptionLines & abs_lines,
                  const Numeric lower_intensity,
                  const Index safe,
                  const Index flip_flims) {
-  const bool care_about_species = species.nelem();
+  const bool care_about_species = species.size();
 
   for (auto& band : abs_lines) {
     if (care_about_species and
@@ -2405,7 +2405,7 @@ void abs_linesRemoveLinesFromSpecies(ArrayOfAbsorptionLines & abs_lines,
                                      const Index& safe,
                                      const Index& flip_flims) {
   ARTS_USER_ERROR_IF(
-      species.nelem() not_eq 1, "Must have a single species, got: ", species)
+      species.size() not_eq 1, "Must have a single species, got: ", species)
   ARTS_USER_ERROR_IF(species[0].Isotopologue().joker(),
                      "Cannot give joker species, got: ",
                      species)

@@ -56,3 +56,5 @@ public:
 };
 
 using ArrayOfAgenda = Array<Agenda>;
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfAgenda& a);

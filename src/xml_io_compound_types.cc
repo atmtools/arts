@@ -1212,17 +1212,17 @@ void xml_read_from_stream(std::istream& is_xml,
   xml_read_from_stream(is_xml, ssdata.za_grid, pbifs);
   /* Verify that we have a good coverage for the za grid */
   if ((ssdata.za_grid[0] > 1) ||
-      ssdata.za_grid[ssdata.za_grid.nelem() - 1] < 179) {
+      ssdata.za_grid[ssdata.za_grid.size() - 1] < 179) {
     std::ostringstream os;
     os << "Missing data in xml-stream. Expected za_grid: [0, 180]. "
        << "Found za_grid: [" << ssdata.za_grid[0] << ", "
-       << ssdata.za_grid[ssdata.za_grid.nelem() - 1] << "]";
+       << ssdata.za_grid[ssdata.za_grid.size() - 1] << "]";
     throw std::runtime_error(os.str());
   }
   xml_read_from_stream(is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream(is_xml, ssdata.pha_mat_data, pbifs);
-  if (ssdata.pha_mat_data.nlibraries() != ssdata.f_grid.nelem()) {
+  if (ssdata.pha_mat_data.nlibraries() != ssdata.f_grid.size()) {
     throw std::runtime_error(
         "Number of frequencies in f_grid and pha_mat_data "
         "not matching!!!");
@@ -1852,7 +1852,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("MapOfErrorCorrectedSuddenData");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", rvb.nelem());
+  open_tag.add_attribute("nelem", static_cast<Index>(rvb.size()));
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
   
@@ -1862,7 +1862,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("ErrorCorrectedSuddenData");
     internal_open_tag.add_attribute("key", var_string(r.id));
-    internal_open_tag.add_attribute("nelem", r.data.nelem());
+    internal_open_tag.add_attribute("nelem", static_cast<Index>(r.data.size()));
     internal_open_tag.write_to_stream(os_xml);
     os_xml << '\n';
     

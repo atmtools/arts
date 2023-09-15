@@ -15,7 +15,7 @@ std::vector<std::string> PlotConfig::Legend = {};
   
 bool same_lengths(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   for (std::size_t i=0; i<xdata.size(); i++)
-    if (xdata[i].nelem() not_eq ydata[i].nelem())
+    if (xdata[i].size() not_eq ydata[i].size())
       return false;
   return true;
 }
@@ -67,7 +67,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
     if (valid) {
       if (ImPlot::BeginPlot(PlotConfig::Title.c_str(), x.c_str(), y.c_str(), {-1, -1})) {
         for (std::size_t i=0; i<lines.size(); i++) {
-          ImPlot::PlotLine(lines[i].c_str(), xdata[i].data_handle(), ydata[i].data_handle(), int(ydata[i].nelem()));
+          ImPlot::PlotLine(lines[i].c_str(), xdata[i].data_handle(), ydata[i].data_handle(), int(ydata[i].size()));
         }
         ImPlot::EndPlot();
       }
@@ -75,7 +75,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
       if (xdata.size() not_eq ydata.size())
         ImGui::Text("Invalid sizes, xdata is %ld elements and ydata is %ld elements", xdata.size(), ydata.size());
       else {
-        for (Index i = 0; i < xdata.nelem(); i++) {
+        for (Index i = 0; i < static_cast<Index>(xdata.size()); i++) {
           ImGui::Text("xdata[%" PRId64 "] is %" PRId64 " elements and ydata[%" PRId64
                       "] is %" PRId64 " elements",
                       i,
@@ -103,7 +103,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
 }
 
 void plot(const Vector& xdata, const ArrayOfVector& y) {
-  const ArrayOfVector x(y.nelem(), xdata);
+  const ArrayOfVector x(y.size(), xdata);
   plot(x, y);
 }
 

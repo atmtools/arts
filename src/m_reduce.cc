@@ -15,7 +15,7 @@ void select_dims_by_size(ArrayOfIndex& dim_sizes,
                          const Index min_num_elem,
                          const Vector& type) {
   dim_sizes.resize(0);
-  if (type.nelem() > min_num_elem) dim_sizes.push_back(type.nelem());
+  if (type.size() > min_num_elem) dim_sizes.push_back(type.size());
 }
 
 // Need this for each matpack type: Matrix
@@ -98,7 +98,7 @@ void Reduce(
     // WS Input:
     // WS Generic Input:
     const Vector& i) {
-  if (i.nelem() == 1)
+  if (i.size() == 1)
     o = i[0];
   else {
     std::ostringstream os;
@@ -219,7 +219,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -244,7 +244,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -269,7 +269,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -294,7 +294,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -319,7 +319,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -344,7 +344,7 @@ void Reduce(
   Index test = 1;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0]);
     memcpy(o.data_handle(),
@@ -371,7 +371,7 @@ void Reduce(
   Index test = 2;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
     memcpy(o.data_handle(),
@@ -396,7 +396,7 @@ void Reduce(
   Index test = 2;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
     memcpy(o.data_handle(),
@@ -421,7 +421,7 @@ void Reduce(
   Index test = 2;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
     memcpy(o.data_handle(),
@@ -446,7 +446,7 @@ void Reduce(
   Index test = 2;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
     memcpy(o.data_handle(),
@@ -471,7 +471,7 @@ void Reduce(
   Index test = 2;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1]);
     memcpy(o.data_handle(),
@@ -498,7 +498,7 @@ void Reduce(
   Index test = 3;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
     memcpy(o.data_handle(),
@@ -523,7 +523,7 @@ void Reduce(
   Index test = 3;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
     memcpy(o.data_handle(),
@@ -548,7 +548,7 @@ void Reduce(
   Index test = 3;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
     memcpy(o.data_handle(),
@@ -573,7 +573,7 @@ void Reduce(
   Index test = 3;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2]);
     memcpy(o.data_handle(),
@@ -600,7 +600,7 @@ void Reduce(
   Index test = 4;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
     memcpy(o.data_handle(),
@@ -625,7 +625,7 @@ void Reduce(
   Index test = 4;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
     memcpy(o.data_handle(),
@@ -650,7 +650,7 @@ void Reduce(
   Index test = 4;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3]);
     memcpy(o.data_handle(),
@@ -677,7 +677,7 @@ void Reduce(
   Index test = 5;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(
         dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3], dim_sizes[4]);
@@ -703,7 +703,7 @@ void Reduce(
   Index test = 5;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(
         dim_sizes[0], dim_sizes[1], dim_sizes[2], dim_sizes[3], dim_sizes[4]);
@@ -731,7 +731,7 @@ void Reduce(
   Index test = 6;
 
   select_dims_by_size(dim_sizes, 1, i);
-  Index num = dim_sizes.nelem();
+  Index num = dim_sizes.size();
   if (num == test) {
     o.resize(dim_sizes[0],
              dim_sizes[1],

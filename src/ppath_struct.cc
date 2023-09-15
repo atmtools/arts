@@ -27,12 +27,10 @@ std::ostream& operator<<(std::ostream& os, const Ppath& x) {
   os << "end_lstep: " << x.end_lstep << "\n";
   os << "nreal: " << x.nreal << "\n";
   os << "ngroup: " << x.ngroup << "\n";
-  os << "gp_z: " << x.gp_p << "\n";   // ZZZ
-  if (x.dim >= 2) {
-    os << "gp_lat: " << x.gp_lat << "\n";
-  }
-  if (x.dim == 3) {
-    os << "gp_lon: " << x.gp_lon << "\n";
-  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfPpath& a) {
+  for (auto& x : a) os << x << '\n';
   return os;
 }

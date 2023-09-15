@@ -89,7 +89,7 @@ Index Absorption::Lines::LineShapePos(
 
   // First and last might be artificial so they should not be checked
   const Index s = selfbroadening;
-  const Index e = broadeningspecies.nelem() - bathbroadening;
+  const Index e = broadeningspecies.size() - bathbroadening;
   for (Index i = s; i < e; i++) {
     if (spec == broadeningspecies[i]) {
       return i;
@@ -97,7 +97,7 @@ Index Absorption::Lines::LineShapePos(
   }
 
   // At this point, the ID is not explicitly among the broadeners, but bath broadening means its VMR still might matter
-  if (bathbroadening) return broadeningspecies.nelem() - 1;
+  if (bathbroadening) return broadeningspecies.size() - 1;
   return -1;
 }
 
@@ -113,7 +113,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
   LineShape::Output out{};
   if (pos >= 0) {
     out = lineshape[pos].at(T, T0, P);
-    const Index bath = lineshape.nelem() - 1;
+    const Index bath = lineshape.size() - 1;
     if (bathbroadening and pos not_eq bath) {
       out -= lineshape[bath].at(T, T0, P);
     }
@@ -432,7 +432,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
       icecream >> double_imanip() >> data.line.glow;
 
       String token;
-      Index nelem;
+      Index size;
       icecream >> token;
 
       while (icecream) {
@@ -516,8 +516,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
           // Line shape modifications
 
           // Starts with the number of modifications
-          icecream >> nelem;
-          for (Index lsm = 0; lsm < nelem; lsm++) {
+          icecream >> size;
+          for (Index lsm = 0; lsm < size; lsm++) {
             icecream >> token;
 
             // cutoff frequency
@@ -1789,7 +1789,7 @@ std::ostream& operator<<(std::ostream& os, const Absorption::SingleLine& line) {
   os << line.F0 << ' ' << line.I0 << ' ' << line.E0 << ' ' << line.glow << ' '
      << line.gupp << ' ' << line.A << ' ' << line.zeeman << ' '
      << line.lineshape;
-  if (line.localquanta.val.nelem()) os << ' ' << line.localquanta.values();
+  if (line.localquanta.val.size()) os << ' ' << line.localquanta.values();
   return os;
 }
 
@@ -1895,18 +1895,18 @@ Vector Absorption::Lines::BroadeningSpeciesMass(
     const SpeciesIsotopologueRatios& ir,
     const Numeric& bath_mass) const {
   Vector mass = LineShape::mass(atm_vmrs, atm_spec, broadeningspecies, ir);
-  if (bathbroadening and bath_mass > 0) mass[mass.nelem() - 1] = bath_mass;
+  if (bathbroadening and bath_mass > 0) mass[mass.size() - 1] = bath_mass;
   return mass;
 }
 
 Numeric Absorption::Lines::SelfVMR(
     const ConstVectorView& atm_vmrs,
     const ArrayOfArrayOfSpeciesTag& atm_spec) const {
-  ARTS_USER_ERROR_IF(atm_vmrs.nelem() not_eq atm_spec.nelem(),
+  ARTS_USER_ERROR_IF(atm_vmrs.size() not_eq static_cast<Index>(atm_spec.size()),
                      "Bad species and vmr lists");
 
-  for (Index i = 0; i < atm_spec.nelem(); i++)
-    if (atm_spec[i].nelem() and atm_spec[i].Species() == Species())
+  for (Size i = 0; i < atm_spec.size(); i++)
+    if (atm_spec[i].size() and atm_spec[i].Species() == Species())
       return atm_vmrs[i];
   return 0;
 }
@@ -2102,7 +2102,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
 }
 
 bool Absorption::Lines::OK() const ARTS_NOEXCEPT {
-  const Index nb = broadeningspecies.nelem();
+  const Index nb = broadeningspecies.size();
 
   // Check that the isotopologue is ok
   if (not Isotopologue().OK()) return false;
@@ -2305,10 +2305,10 @@ Species::IsotopeRecord Lines::Isotopologue() const noexcept {return quantumident
 
 Index Lines::NumLines() const noexcept {return Index(lines.size());}
 
-Index Lines::NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.nelem());}
+Index Lines::NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.size());}
 
 Index Lines::NumLocalQuanta() const noexcept {
-  return lines.size() ? lines.front().localquanta.val.nelem() : 0;
+  return lines.size() ? lines.front().localquanta.val.size() : 0;
 }
 
 bool Lines::OnTheFlyLineMixing() const noexcept {
@@ -2362,7 +2362,7 @@ Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEP
 
   // Select F before J but assume one of them exist
   auto& val = get(lines[k].localquanta);
-  return Zeeman::nelem(val.upp(), val.low(), type);
+  return Zeeman::size(val.upp(), val.low(), type);
 }
 
 Numeric Lines::ZeemanStrength(size_t k,
@@ -2850,11 +2850,11 @@ AbsorptionSpeciesBandIndex flat_index(
     Index i,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
-  const Index n = abs_species.nelem();
+  const Index n = abs_species.size();
 
   Index ispec{0};
-  while (ispec < n and i >= abs_lines_per_species[ispec].nelem()) {
-    i -= abs_lines_per_species[ispec].nelem();
+  while (ispec < n and i >= static_cast<Index>(abs_lines_per_species[ispec].size())) {
+    i -= abs_lines_per_species[ispec].size();
     ++ispec;
   }
 
@@ -2891,21 +2891,21 @@ Rational Lines::max(QuantumNumberType x) const {
 }
 
 /** Number of lines */
-Index nelem(const Lines &l) { return l.NumLines(); }
+Index size(const Lines &l) { return l.NumLines(); }
 
 /** Number of lines in list */
-Index nelem(const Array<Lines> &l) {
+Index size(const Array<Lines> &l) {
   Index n = 0;
   for (auto &x : l)
-    n += nelem(x);
+    n += size(x);
   return n;
 }
 
 /** Number of lines in lists */
-Index nelem(const Array<Array<Lines>> &l) {
+Index size(const Array<Array<Lines>> &l) {
   Index n = 0;
   for (auto &x : l)
-    n += nelem(x);
+    n += size(x);
   return n;
 }
 
@@ -2919,5 +2919,20 @@ std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const Quantum
   }
 
   return out;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<SingleLine>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Lines>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a) {
+  for (auto& x : a) os << x << '\n';
+  return os;
 }
 } // namespace Absorption

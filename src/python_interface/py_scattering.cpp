@@ -99,10 +99,21 @@ void py_scattering(py::module_& m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(ScatteringMetaData);
 
-  PythonInterfaceWorkspaceArray(ScatteringMetaData);
-  PythonInterfaceWorkspaceArray(SingleScatteringData);
-  PythonInterfaceWorkspaceArray(ArrayOfScatteringMetaData);
-  PythonInterfaceWorkspaceArray(ArrayOfSingleScatteringData);
+  artsarray<ArrayOfScatteringMetaData>(m, "ArrayOfScatteringMetaData")
+      .PythonInterfaceFileIO(ArrayOfScatteringMetaData)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfScatteringMetaData);
+
+  artsarray<ArrayOfSingleScatteringData>(m, "ArrayOfSingleScatteringData")
+      .PythonInterfaceFileIO(ArrayOfSingleScatteringData)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSingleScatteringData);
+
+  artsarray<ArrayOfArrayOfScatteringMetaData>(m, "ArrayOfArrayOfScatteringMetaData")
+      .PythonInterfaceFileIO(ArrayOfArrayOfScatteringMetaData)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfScatteringMetaData);
+
+  artsarray<ArrayOfArrayOfSingleScatteringData>(m, "ArrayOfArrayOfSingleScatteringData")
+      .PythonInterfaceFileIO(ArrayOfArrayOfSingleScatteringData)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSingleScatteringData);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }

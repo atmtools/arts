@@ -234,10 +234,10 @@ class GriddedField {
         ret = mnumericgrids[i].nelem();
         break;
       case GRID_TYPE_STRING:
-        ret = mstringgrids[i].nelem();
+        ret = mstringgrids[i].size();
         break;
       case GRID_TYPE_TIME:
-        ret = mtimegrids[i].nelem();
+        ret = mtimegrids[i].size();
         break;
     }
 
@@ -574,6 +574,16 @@ using ArrayOfGriddedField5 = Array<GriddedField5>;
 using ArrayOfArrayOfGriddedField1 = Array<Array<GriddedField1>>;
 using ArrayOfArrayOfGriddedField2 = Array<Array<GriddedField2>>;
 using ArrayOfArrayOfGriddedField3 = Array<Array<GriddedField3>>;
+
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField1& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField2& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField3& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField4& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField5& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField1& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField2& a);
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField3& a);
 
 #undef CHECK_ERROR_BOILERPLATE
 

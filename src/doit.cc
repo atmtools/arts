@@ -362,7 +362,7 @@ void interp_cloud_coeff1D(  //Output
   gridpos_upperend_check(cloud_gp_p[0], n1);
   gridpos_upperend_check(cloud_gp_p[ppath_step.np - 1], n1);
 
-  Matrix itw(cloud_gp_p.nelem(), 2);
+  Matrix itw(cloud_gp_p.size(), 2);
   interpweights(itw, cloud_gp_p);
 
   // The zenith angles of the propagation path are needed as we have to
@@ -373,7 +373,7 @@ void interp_cloud_coeff1D(  //Output
   ArrayOfGridPos gp_za(los_grid.nelem());
   gridpos(gp_za, za_grid, los_grid);
 
-  Matrix itw_p_za(cloud_gp_p.nelem(), 4);
+  Matrix itw_p_za(cloud_gp_p.size(), 4);
   interpweights(itw_p_za, cloud_gp_p, gp_za);
 
   // Calculate the average of the coefficients for the layers
@@ -509,15 +509,15 @@ void za_gridOpt(  //Output:
   Index ind_p = 0;
 
   while (max_diff > acc) {
-    za_reduced.resize(idx.nelem());
-    cloudbox_field_opt.resize(N_p, idx.nelem());
+    za_reduced.resize(idx.size());
+    cloudbox_field_opt.resize(N_p, idx.size());
     max_diff_za = 0.;
     max_diff_p = 0.;
 
     // Interpolate reduced intensity field on fine za_grid for
     // all pressure levels
     for (Index i_p = 0; i_p < N_p; i_p++) {
-      for (Index i_za_red = 0; i_za_red < idx.nelem(); i_za_red++) {
+      for (Size i_za_red = 0; i_za_red < idx.size(); i_za_red++) {
         za_reduced[i_za_red] = za_grid_fine[idx[i_za_red]];
         cloudbox_field_opt(i_p, i_za_red) =
             cloudbox_field_mono(i_p, 0, 0, idx[i_za_red], 0, 0);
@@ -525,7 +525,7 @@ void za_gridOpt(  //Output:
       // Calculate grid positions
       gridpos(gp_za, za_reduced, za_grid_fine);
       //linear interpolation
-      if (scat_za_interp == 0 || idx.nelem() < 3) {
+      if (scat_za_interp == 0 || idx.size() < 3) {
         interpweights(itw, gp_za);
         interp(i_approx_interp, itw, cloudbox_field_opt(i_p, joker), gp_za);
       } else if (scat_za_interp == 1) {
@@ -563,18 +563,18 @@ void za_gridOpt(  //Output:
     idx.push_back(ind_za[ind_p]);
     idx_unsorted = idx;
 
-    i_sort.resize(idx_unsorted.nelem());
+    i_sort.resize(idx_unsorted.size());
     get_sorted_indexes(i_sort, idx_unsorted);
 
-    for (Index i = 0; i < idx_unsorted.nelem(); i++)
+    for (Size i = 0; i < idx_unsorted.size(); i++)
       idx[i] = idx_unsorted[i_sort[i]];
 
-    za_reduced.resize(idx.nelem());
+    za_reduced.resize(idx.size());
   }
 
-  za_grid_opt.resize(idx.nelem());
-  cloudbox_field_opt.resize(N_p, idx.nelem());
-  for (Index i = 0; i < idx.nelem(); i++) {
+  za_grid_opt.resize(idx.size());
+  cloudbox_field_opt.resize(N_p, idx.size());
+  for (Size i = 0; i < idx.size(); i++) {
     za_grid_opt[i] = za_grid_fine[idx[i]];
     cloudbox_field_opt(joker, i) = cloudbox_field_mono(joker, 0, 0, idx[i], 0, 0);
   }

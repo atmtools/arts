@@ -151,9 +151,9 @@ void ppath_add_grid_crossings(Ppath& ppath,
                               const Vector& lon_grid,
                               const Numeric& ppath_lstep)
 {
-  const Index nz = z_grid.nelem();
-  const Index nlat = lat_grid.nelem();
-  const Index nlon = lon_grid.nelem();
+  const Index nz = z_grid.size();
+  const Index nlat = lat_grid.size();
+  const Index nlon = lon_grid.size();
 
   // Nothing to do if there is no ppath step, or all grids empty
   if (ppath.np < 2  || !(nz || nlat || nlon)) {
@@ -190,13 +190,13 @@ void ppath_add_grid_crossings(Ppath& ppath,
   Vector ngp_lat(nlat ? ppath.np : 0);
   Vector ngp_lon(nlat ? ppath.np : 0);
   //
-  ArrayOfGridPos gp_z(ngp_z.nelem());
+  ArrayOfGridPos gp_z(ngp_z.size());
   if (nz)
     gridpos(gp_z, zgrid2, ppath.pos(joker, 0));
-  ArrayOfGridPos gp_lat(ngp_lat.nelem());
+  ArrayOfGridPos gp_lat(ngp_lat.size());
   if (nlat)
     gridpos(gp_lat, latgrid2, ppath.pos(joker, 1));
-  ArrayOfGridPos gp_lon(ngp_lon.nelem());
+  ArrayOfGridPos gp_lon(ngp_lon.size());
   if (nlon)
     gridpos(gp_lon, longrid2, ppath.pos(joker, 2));
   //
@@ -290,7 +290,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
       std::sort(dl_from_ip.begin(), dl_from_ip.end());
 
       // Move to overall arrays and add points if ppath_lstep that requires
-      for (Index i = 0; i < dl_from_ip.nelem(); ++i) {
+      for (Size i = 0; i < dl_from_ip.size(); ++i) {
         // Some useful lengths
         const Numeric l_next = l_acc_ppath[ip] + dl_from_ip[i];
         const Numeric dl = l_next - l_last_inserted;
@@ -336,7 +336,7 @@ void ppath_add_grid_crossings(Ppath& ppath,
   Matrix los = ppath.los;
 
   // New size of ppath
-  const Index nl = l_array.nelem();
+  const Index nl = l_array.size();
 
   ppath.np = nl + 2;
   ppath.nreal = Vector(ppath.np, 1.0);  // We guess on no refraction
@@ -660,9 +660,9 @@ void specular_los_calc(VectorView los_new,
                        ConstVectorView los,
                        const bool& ignore_topography)
 {
-  ARTS_ASSERT(los_new.nelem() == 2);
-  ARTS_ASSERT(pos2D.nelem() == 2);
-  ARTS_ASSERT(los.nelem() == 2);
+  ARTS_ASSERT(los_new.size() == 2);
+  ARTS_ASSERT(pos2D.size() == 2);
+  ARTS_ASSERT(los.size() == 2);
 
   // No surface tilt if told so or surface_elevation.data has size (1,1)
   if (ignore_topography || surface_field.constant_value(Surf::Key::h)) {
