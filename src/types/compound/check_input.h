@@ -17,10 +17,10 @@
   === External declarations
   ===========================================================================*/
 
-#include "exceptions.h"
-#include "gridded_fields.h"
-#include "matpack_data.h"
-#include "mystring.h"
+#include <exceptions.h>
+#include <gridded_fields.h>
+#include <matpack_data.h>
+#include <mystring.h>
 
 //! We don't want to depend on all of ARTS in a header file.
 class Agenda;

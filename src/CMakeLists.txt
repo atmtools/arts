@@ -41,39 +41,24 @@ endif (NOT HAVE_GETOPT_H)
 add_library (artscore STATIC
   ${ARTSCORE_EXTRA_SOURCES}
   absorption.cc
-  absorptionlines.cc
   arts_omp.cc
-  artstime.cc
-  atm.cc
   atm_path.cc
   auto_version.cc
-  callback.cc
-  check_input.cc
-  cia.cc
   cloudbox.cc
   compile_time_tests.cc
-  covariance_matrix.cc
   disort.cc
   doit.cc
   fastem.cc
   predefined_absorption_models.cc
   file.cc
-  gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
-  gridded_fields.cc
   gui_propmat.cc
-  hitran_species.cc
-  xsec_fit.cc
   igrf13.cc
-  interpolation.cc
-  jpl_species.cc
   legendre.cc
   linemixing.cc
   linemixing_hitran.cc
-  linescaling.cc
   lineshape.cc
-  lineshapemodel.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
@@ -136,17 +121,13 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  mc_antenna.cc
   mc_interp.cc
   microphysics.cc
   minimize.cc
   montecarlo.cc
-  nlte.cc
-  optproperties.cc
   parameters.cc
   physics_funcs.cc
   ppath.cc
-  ppath_struct.cc
   propmat_field.cc
   psd.cc
   radiation_field.cc
@@ -157,11 +138,8 @@ add_library (artscore STATIC
   sensor.cc
   sourcetext.cc
   special_interp.cc
-  sun.cc
-  surf.cc
+  sun_methods.cc
   surface.cc
-  telsem.cc
-  tessem.cc
   tmatrix.cc
   variousZZZ.cc
   wigner_functions.cc
@@ -171,7 +149,6 @@ add_library (artscore STATIC
   xml_io_compound_types.cc
   xml_io_rtepack.cc
   zeeman.cc
-  zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
@@ -186,7 +163,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species_tags predef xmliobase wigner Faddeeva workspace quantum jacobian)
+target_link_libraries(artscore PUBLIC auto_partfun cdisort artstypes xmliobase wigner Faddeeva workspace)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)

@@ -19,4 +19,22 @@ add_subdirectory(operators)
 add_subdirectory(fwd)
 add_subdirectory(quantum)
 add_subdirectory(spec)
-add_subdirectory(jac)
+add_subdirectory(griddedfield)
+add_subdirectory(compound)
+add_subdirectory(artstime)
+
+add_library(artstypes INTERFACE)
+target_link_libraries(artstypes INTERFACE
+  artstime
+  compoundtypes
+  coretypes
+  griddedfield
+  fwd
+  matpack
+  operators
+  predef
+  quantum
+  rtepack
+  species
+  species_tags
+)

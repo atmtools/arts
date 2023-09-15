@@ -15,13 +15,10 @@
   ===========================================================================*/
 
 #include "check_input.h"
+
 #include <cfloat>
 #include <cmath>
 #include <stdexcept>
-#include "array.h"
-#include <workspace.h>
-#include "gridded_fields.h"
-#include "logic.h"
 
 using GriddedFieldGrids::GFIELD2_LAT_GRID;
 using GriddedFieldGrids::GFIELD2_LON_GRID;

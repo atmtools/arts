@@ -13,10 +13,7 @@
 #include <cmath>
 #include <string_view>
 
-#include "array.h"
-#include "debug.h"
-#include "matpack_data.h"
-#include "mystring.h"
+#include <matpack.h>
 
 /** A duration of time, 1 full tick should be 1 second */
 using TimeStep = std::chrono::duration<Numeric>;

@@ -16,7 +16,6 @@
 #include <ostream>
 #include <string>
 
-#include "absorption.h"
 #include "arts_conversions.h"
 #include "debug.h"
 #include "enums.h"

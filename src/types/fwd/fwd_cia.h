@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include "../atm.h"
-#include "../cia.h"
+#include <atm.h>
+#include <cia.h>
 #include "matpack_concepts.h"
 #include "species_tags.h"
 

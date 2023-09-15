@@ -10,8 +10,7 @@
 #define interpolation_h
 
 #include <matpack.h>
-
-#include "mystring.h"
+#include <mystring.h>
 
 //! Structure to store a grid position.
 /*! 

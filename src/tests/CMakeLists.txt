@@ -12,11 +12,9 @@ target_link_libraries (test_binaryio artscore)
 ########### next testcase ###############
 
 add_executable (test_gridded_fields
-  ../gridded_fields.cc
-  test_gridded_fields.cc
-  ../artstime.cc)
+  test_gridded_fields.cc)
 
-target_link_libraries (test_gridded_fields artscore)
+target_link_libraries (test_gridded_fields artstypes)
 
 ########### next testcase ###############
 
@@ -176,7 +174,7 @@ add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
 # Test that the implentation for predefined models are complete
 add_executable(test_predefined test_predefined.cc)
-target_link_libraries(test_predefined artscore jacobian)
+target_link_libraries(test_predefined artscore)
 add_dependencies(check-deps test_predefined)
 add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
@@ -222,8 +220,8 @@ add_custom_target(check-pyversion
 ########################################################################################
 
 #####
-add_executable(test_matpack_perf test_matpack_perf.cc ../artstime.cc)
-target_link_libraries(test_matpack_perf PUBLIC matpack)
+add_executable(test_matpack_perf test_matpack_perf.cc)
+target_link_libraries(test_matpack_perf PUBLIC artstypes)
 target_include_directories(test_matpack_perf PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 #####
@@ -231,6 +229,6 @@ add_executable(test_interp_perf test_interp_perf.cc)
 target_link_libraries(test_interp_perf PUBLIC matpack artscore)
 
 #####
-add_executable(test_rng test_rng.cc ../artstime.cc)
-target_link_libraries(test_rng PUBLIC matpack)
+add_executable(test_rng test_rng.cc)
+target_link_libraries(test_rng PUBLIC artstypes)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)

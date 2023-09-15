@@ -18,11 +18,10 @@
 #include <stdexcept>
 #include <utility>
 
-#include "array.h"
-#include "matpack_arrays.h"
-#include "matpack_data.h"
-#include "artstime.h"
-#include "mystring.h"
+#include <array.h>
+#include <artstime.h>
+#include <matpack.h>
+#include <mystring.h>
 
 namespace GriddedFieldGrids {
   /** Global constant, Index of the frequency grid in GriddedField1.

@@ -15,7 +15,7 @@ add_library(workspace_internals STATIC
   workspace_variables.cpp
   auto_wsg.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group matpack predef species fwd quantum operators)
+target_link_libraries(workspace_internals PUBLIC workspace_group artstypes)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -51,6 +51,7 @@ add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
 target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
 
 add_library(workspace STATIC
+  callback.cc
   workspace_agenda_class.cpp
   workspace_agenda_creator.cpp
   workspace_method_class.cpp

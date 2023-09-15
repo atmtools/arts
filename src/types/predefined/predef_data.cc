@@ -8,7 +8,6 @@
 #include <vector>
 
 #include <debug.h>
-
 #include <double_imanip.h>
 
 namespace Absorption::PredefinedModel {

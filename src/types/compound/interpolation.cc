@@ -20,14 +20,14 @@
   
 */
 
+#include "check_input.h"
 #include "interpolation.h"
+
 #include <cmath>
 #include <iostream>
-#include "array.h"
-#include "check_input.h"
-#include "logic.h"
 
-#include "matpack_math.h"
+#include <array.h>
+#include <matpack_math.h>
 
 // File-global constants:
 

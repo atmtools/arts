@@ -1,10 +1,11 @@
 #ifndef ppath_struct_h
 #define ppath_struct_h
 
-#include "matpack_data.h"
-#include "enums.h"
 #include "interpolation.h"
-#include "mystring.h"
+
+#include <matpack.h>
+#include <enums.h>
+#include <mystring.h>
 
 namespace Options {
 ENUMCLASS(PpathBackground, char, Undefined, Space, Surface, Cloudbox,

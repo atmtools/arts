@@ -17,7 +17,7 @@
 #include <cfloat>
 #include <stdexcept>
 
-#include "supergeneric.h"
+#include <supergeneric.h>
 
 #include <array.h>
 #include <binio/bifstream.h>

@@ -18,11 +18,13 @@
   ===========================================================================*/
 
 #include "gridded_fields.h"
+
 #include <iostream>
 #include <stdexcept>
-#include "artstime.h"
-#include "exceptions.h"
-#include "mystring.h"
+
+#include <artstime.h>
+#include <exceptions.h>
+#include <mystring.h>
 
 using std::endl;
 using std::ostream;
