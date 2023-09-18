@@ -3008,7 +3008,7 @@ void ScatSpeciesMerge(  //WS Output:
                                              i_aa_out,
                                              i_za_inc,
                                              i_aa_inc,
-                                             joker) = v;
+                                             joker) += v;
                     } else {
                       // Temperature interpolation
                       for (Index i = 0; i < orig_part.pha_mat_data.ncols();
