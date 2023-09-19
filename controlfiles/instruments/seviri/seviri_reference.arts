@@ -20,7 +20,7 @@
 #                            pointless. So you probably want 0 to 11
 #                            (zero based ARTS indexing)
 # views       (ArrayOfIndex) Which views you want.
-# hitran_file (String)       Name of HITRAN catalogue file.
+# cat_file (String)          Path to ARTS catalogue file.
 # f_grid_spacing (Numeric)   Frequency grid spacing.
 
 # ????????????   TODO   ???????????????
@@ -50,8 +50,8 @@ INCLUDE "seviri_general.arts"
 #----------------
 
 INCLUDE "seviri_spectroscopy.arts"
-# hitran separate because one might want to use a lookup table
-INCLUDE "seviri_hitran.arts"
+# catalogue separate because one might want to use a lookup table
+INCLUDE "seviri_catalogue.arts"
 
 # 3. Sensor:
 #-----------

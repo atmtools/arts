@@ -18,7 +18,7 @@
 #                            pointless. So you probably want 0 to 11
 #                            (zero based ARTS indexing)
 # views       (ArrayOfIndex) Which views you want.
-# hitran_file (String)       Name of HITRAN catalogue file.
+# cat_file (String)          Path to catalogue file.
 
 
 Arts2 {
@@ -31,19 +31,21 @@ INCLUDE "seviri_general.arts"
 # 2. Spectroscopy
 #----------------
 
-INCLUDE "seviri_spectroscopy.arts"
+#INCLUDE "seviri_spectroscopy.arts"
 
-# deriving abs_lines separate, because one might want to use a lookup table
-#
-# no use of HITRAN in test cases
-# (uncomment when you want to use HITRAN)
-#INCLUDE "instruments/hirs/hirs_hitran.arts"
-# instead we use a HITRAN-extract converted to ARTSCAT
-# (outcomment when you want to use HITRAN)
-ReadARTSCAT( abs_lines, "testdata/abs_lines_IR.xml.gz" )
-abs_linesCutoff(abs_lines, "ByLine", 750e9)
-abs_linesNormalization(abs_lines, "VVH")
-abs_lines_per_speciesCreateFromLines
+# Reduced number of species for test case
+abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
+                          # "O3",
+                          # "CO2, CO2-CKDMT252",
+                          # "N2O",
+                          # "CO",
+                          # "CH4",
+                          # "O2, O2-CIAfunCKDMT100",
+                          "N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252" ] )
+
+abs_lines_per_speciesReadSpeciesSplitCatalog( basename=cat_file )
+abs_lines_per_speciesCutoff(option="ByLine", value=750e9)
+abs_lines_per_speciesNormalization(option="VVH")
 
 # 3. Sensor:
 #-----------
