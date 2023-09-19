@@ -75,10 +75,6 @@ arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestPsds.arts)
 
-#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
-#arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
-#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
-
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
