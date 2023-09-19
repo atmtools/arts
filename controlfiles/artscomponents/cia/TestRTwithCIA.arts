@@ -17,29 +17,20 @@ gas_scattering_agendaSet
 PlanetSet(option="Earth")
 
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
-
-# on-the-fly absorption
-AgendaSet( propmat_clearsky_agenda ) {
-      Ignore( rtp_los )
-      Ignore( rtp_mag )
-      propmat_clearskyInit
-      propmat_clearskyAddConts
-      propmat_clearskyAddCIA
-      propmat_clearskyAddLines
-}
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-
+ppath_agendaSet( option="FollowSensorLosPath" )
+#
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+#
+ppath_step_agendaSet( option="GeometricPath" )
 
 
 # Number of Stokes components to be computed
@@ -60,13 +51,13 @@ cloudboxOff
 # ATTENTION: You also have to include CIA in abs_xsec_agenda,
 # otherwise you will not get any absorption for it!
 abs_speciesSet( species=
-            ["H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100, H2O", 
+            ["H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350, H2O",
              "O2",
-             "N2-CIA-N2-0, N2-CIA-N2-1"] )
+             "N2-CIA-N2"] )
 
 # Read CIA data
 # ---
-ReadXML(abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
+abs_cia_dataReadSpeciesSplitCatalog( basename="cia/" )
 
 
 # Line file and a matching coarse frequency grid
@@ -95,8 +86,7 @@ AtmRawRead( basename = "testdata/tropical" )
 # Weakly reflecting surface
 # ---
 VectorSetConstant( surface_scalar_reflectivity, 1, 0.8 )
-Copy( surface_rtprop_agenda,
-      surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface )
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_surface" )
 
 
 # Tb unit
@@ -120,7 +110,7 @@ VectorSet( rte_pos2, [] )     # A dummy value
 
 # Perform RT calculations
 # ---
-propmat_clearsky_agenda_checkedCalc
+propmat_clearsky_agendaAuto
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc

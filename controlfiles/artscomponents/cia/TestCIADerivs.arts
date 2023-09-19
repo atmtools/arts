@@ -20,7 +20,8 @@ Arts2{
   ArrayOfPropagationMatrixCreate(dtestdata)
   
   # CIA catalog from arts-xml-data
-  ReadXML(abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz")
+  abs_cia_dataReadSpeciesSplitCatalog( basename="cia/" )
+
   
   # Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
   VectorSet(p_grid, [150])  # We have no grid
