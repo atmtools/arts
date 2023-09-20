@@ -109,7 +109,6 @@ if (ENABLE_GUI)
     gui_menu.cc
     gui_plot.cc
     gui_propmat.cc
-    guim_propmat.cc
   )
 endif()
 
@@ -132,6 +131,7 @@ add_library (artscore STATIC
   compile_time_tests.cc
   disort.cc
   doit.cc
+  guim_propmat.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
