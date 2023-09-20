@@ -51,7 +51,7 @@ add_library(workspace_internals STATIC
   workspace_variables.cpp
   auto_wsg.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group artstypes)
+target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -114,7 +114,7 @@ endif()
 
 ########### next target ###############
 
-add_library (artscore STATIC
+add_library (artsworkspace STATIC
   ${ARTS_GUI_FILES}
   callback.cpp
   workspace_agenda_class.cpp
@@ -212,23 +212,23 @@ add_library (artscore STATIC
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
-target_include_directories (artscore PUBLIC 
+target_include_directories (artsworkspace PUBLIC 
   ${ARTS_SOURCE_DIR}/3rdparty/cdisort
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
   ${NETCDF_INCLUDE_DIR}
   )
 
-add_dependencies (artscore auto_version_cc)
+add_dependencies (artsworkspace auto_version_cc)
 if (ENABLE_PCH)
-  target_precompile_headers(artscore PRIVATE pch_artscore.h)
+  target_precompile_headers(artsworkspace PRIVATE pch_artsworkspace.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun cdisort xmliobase artsfun workspace_internals)
+target_link_libraries(artsworkspace PUBLIC auto_partfun cdisort xmliobase artscore workspace_internals)
 
 if (ENABLE_GUI)
-  target_link_libraries (artscore PUBLIC imgui implot)
-  target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
-  target_include_directories(artscore PUBLIC
+  target_link_libraries (artsworkspace PUBLIC imgui implot)
+  target_compile_definitions(artsworkspace PUBLIC ARTS_GUI_ENABLED)
+  target_include_directories(artsworkspace PUBLIC
     ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
     ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
     ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
@@ -236,32 +236,28 @@ if (ENABLE_GUI)
 endif()
 
 if (NETCDF_FOUND)
-  target_link_libraries (artscore PUBLIC ${NETCDF_LIBRARIES})
+  target_link_libraries (artsworkspace PUBLIC ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
 
 if (ENABLE_MPI)
-  target_link_libraries (artscore PUBLIC ${MPI_CXX_LIBRARIES})
+  target_link_libraries (artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
 
 if (OpenMP_CXX_FOUND)
-  target_link_libraries (artscore PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries (artsworkspace PUBLIC OpenMP::OpenMP_CXX)
 endif ()
 
 if (ENABLE_RT4)
-  target_link_libraries (artscore PUBLIC rt4)
+  target_link_libraries (artsworkspace PUBLIC rt4)
 endif (ENABLE_RT4)
 
 if (ENABLE_FASTEM)
-  target_link_libraries (artscore PUBLIC fastem)
+  target_link_libraries (artsworkspace PUBLIC fastem)
 endif (ENABLE_FASTEM)
 
 if (ENABLE_TMATRIX)
-  target_link_libraries (artscore PUBLIC tmatrix)
+  target_link_libraries (artsworkspace PUBLIC tmatrix)
 endif (ENABLE_TMATRIX)
-
-########### next target ###############
-
-target_link_libraries(artscore PUBLIC rtepack)
 
 ########### next target ###############
 
@@ -277,15 +273,13 @@ target_link_libraries (xmliobase PUBLIC binio matpack)
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
   set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET artsworkspace PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
 add_subdirectory(gpl)
-target_link_libraries(artscore PUBLIC artscore_gpl_selector)
+target_link_libraries(artsworkspace PUBLIC artsworkspace_gpl_selector)
 
 add_subdirectory(tests)
-
-target_link_libraries(artscore PUBLIC fwd)

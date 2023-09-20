@@ -7,26 +7,26 @@ target_link_libraries( test_utils matpack )
 
 add_executable (test_binaryio test_binaryio.cc)
 
-target_link_libraries (test_binaryio artscore)
+target_link_libraries (test_binaryio artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_gridded_fields
   test_gridded_fields.cc)
 
-target_link_libraries (test_gridded_fields artstypes)
+target_link_libraries (test_gridded_fields artscore)
 
 ########### next testcase ###############
 
 add_executable (test_interpolation test_interpolation.cc)
-target_link_libraries (test_interpolation artscore)
+target_link_libraries (test_interpolation artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_linalg
   test_linalg.cc)
 
-target_link_libraries (test_linalg artscore
+target_link_libraries (test_linalg artsworkspace
   ${LAPACK_LIBRARIES} test_utils)
 
 ########### next testcase ###############
@@ -82,12 +82,12 @@ target_link_libraries (test_poly matpack)
 ########### next testcase ###############
 
 add_executable (test_tensor test_tensor.cc)
-target_link_libraries (test_tensor artscore)
+target_link_libraries (test_tensor artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_matpack test_matpack.cc)
-target_link_libraries (test_matpack artsfun test_utils)
+target_link_libraries (test_matpack artscore test_utils)
 
 ########### next testcase ###############
 
@@ -97,7 +97,7 @@ target_link_libraries (test_matpack_simple test_utils)
 ########### next testcase ###############
 
 add_executable (test_sparse test_sparse.cc)
-target_link_libraries (test_sparse artscore test_utils)
+target_link_libraries (test_sparse artsworkspace test_utils)
 
 ########### next testcase ###############
 
@@ -113,48 +113,48 @@ target_link_libraries (test_complex matpack)
 ########### next testcase ###############
 
 add_executable (test_sorting test_sorting.cc)
-target_link_libraries (test_sorting artscore)
+target_link_libraries (test_sorting artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_readpp test_readpp.cc)
-target_link_libraries (test_readpp artscore)
+target_link_libraries (test_readpp artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_cia test_cia.cc)
-target_link_libraries (test_cia artscore)
+target_link_libraries (test_cia artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_time test_time.cc)
-target_link_libraries (test_time artscore)
+target_link_libraries (test_time artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_covariance_matrix test_covariance_matrix.cc)
-target_link_libraries(test_covariance_matrix test_utils artscore)
+target_link_libraries(test_covariance_matrix test_utils artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_telsem test_telsem.cc)
-target_link_libraries(test_telsem artscore)
+target_link_libraries(test_telsem artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_hitran test_hitran.cc)
-target_link_libraries(test_hitran artscore)
+target_link_libraries(test_hitran artsworkspace)
 
 ########### next testcase ###############
 
 add_executable (test_magfield test_magfield.cc)
-target_link_libraries (test_magfield artscore)
+target_link_libraries (test_magfield artsworkspace)
 
 ########### tests ###############
 
 ########################################################################################
 add_executable(test_species_tags test_species_tags.cc)
-target_link_libraries (test_species_tags artscore)
+target_link_libraries (test_species_tags artsworkspace)
 ########################################################################################
 
 ########################################################################################
@@ -165,7 +165,7 @@ target_link_libraries (test_isotope species matpack)
 ########################################################################################
 # Test that the builtin partition functions are complete
 add_executable(test_partfun test_partfun.cc)
-target_link_libraries(test_partfun artscore partfun)
+target_link_libraries(test_partfun artsworkspace partfun)
 add_dependencies(check-deps test_partfun)
 add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
@@ -173,7 +173,7 @@ add_test(NAME "cpp.fast.test_partfun" COMMAND test_partfun)
 ########################################################################################
 # Test that the implentation for predefined models are complete
 add_executable(test_predefined test_predefined.cc)
-target_link_libraries(test_predefined artscore)
+target_link_libraries(test_predefined artsworkspace)
 add_dependencies(check-deps test_predefined)
 add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########################################################################################
@@ -181,7 +181,7 @@ add_test(NAME "cpp.fast.test_predefined" COMMAND test_predefined)
 ########### next testcase ###############
 
 add_executable (linemixing_jmh linemixing_jmh.cc)
-target_link_libraries(linemixing_jmh artscore)
+target_link_libraries(linemixing_jmh artsworkspace)
 
 ########### next testcase ###############
 
@@ -191,7 +191,7 @@ target_link_libraries(arts_qn species xmliobase quantum)
 ########################################################################################
 # Test OpenMP
 add_executable(test_omp EXCLUDE_FROM_ALL test_omp.cc)
-target_link_libraries(test_omp PUBLIC artscore)
+target_link_libraries(test_omp PUBLIC artsworkspace)
 ########################################################################################
 # Test Eigen
 add_executable(test_matpack_eigen test_matpack_eigen.cc)
@@ -201,7 +201,7 @@ add_dependencies(check-deps test_matpack_eigen)
 ########################################################################################
 
 add_executable(run_partfun run_partfun.cc)
-target_link_libraries(run_partfun PRIVATE artscore)
+target_link_libraries(run_partfun PRIVATE artsworkspace)
 
 #####
 add_executable(test_mdspan test_mdspan.cc)
@@ -220,14 +220,14 @@ add_custom_target(check-pyversion
 
 #####
 add_executable(test_matpack_perf test_matpack_perf.cc)
-target_link_libraries(test_matpack_perf PUBLIC artstypes)
+target_link_libraries(test_matpack_perf PUBLIC artscore)
 target_include_directories(test_matpack_perf PRIVATE ${ARTS_SOURCE_DIR}/src)
 
 #####
 add_executable(test_interp_perf test_interp_perf.cc)
-target_link_libraries(test_interp_perf PUBLIC matpack artscore)
+target_link_libraries(test_interp_perf PUBLIC matpack artsworkspace)
 
 #####
 add_executable(test_rng test_rng.cc)
-target_link_libraries(test_rng PUBLIC artstypes)
+target_link_libraries(test_rng PUBLIC artscore)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)

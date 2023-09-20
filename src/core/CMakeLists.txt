@@ -31,38 +31,56 @@ add_subdirectory(artstime)
 
 ######
 
-add_library(artstypes STATIC
+add_library(artscore STATIC
+  absorption.cc
   absorptionlines.cc
   atm.cc
+  atm_path.cc
   cia.cc
   check_input.cc
+  cloudbox.cc
   covariance_matrix.cc
+  fastem.cc
   gas_abs_lookup.cc
+  gas_scattering.cc
+  geodetic.cc
   hitran_species.cc
+  igrf13.cc
   interpolation.cc
   jacobian.cc
   jpl_species.cc
+  legendre.cc
   linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
   lineshape.cc
   lineshapemodel.cc
   mc_antenna.cc
+  mc_interp.cc
+  microphysics.cc
   minimize.cc
   nlte.cc
   physics_funcs.cc
   optproperties.cc
   ppath_struct.cc
   predefined_absorption_models.cc
+  radiation_field.cc
+  raw.cc
+  refraction.cc
+  sensor.cc
+  special_interp.cc
   sun.cc
   surf.cc
   telsem.cc
   tessem.cc
+  tmatrix.cc
+  wigner_functions.cc
   xsec_fit.cc
+  zeeman.cc
   zeemandata.cc
 )
 
-target_link_libraries(artstypes PUBLIC
+target_link_libraries(artscore PUBLIC
   artstime
   binio
   coretypes
@@ -75,32 +93,7 @@ target_link_libraries(artstypes PUBLIC
   rtepack
   species
   species_tags
-)
-
-######
-
-add_library(artsfun STATIC
-  absorption.cc
-  atm_path.cc
-  cloudbox.cc
-  fastem.cc
-  gas_scattering.cc
-  geodetic.cc
-  igrf13.cc
-  legendre.cc
-  mc_interp.cc
-  microphysics.cc
-  radiation_field.cc
-  raw.cc
-  refraction.cc
-  sensor.cc
-  special_interp.cc
-  tmatrix.cc
-  wigner_functions.cc
-  zeeman.cc
-)
-
-target_link_libraries(artsfun PUBLIC
-  artstypes
   wigner
 )
+
+target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
