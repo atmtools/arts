@@ -48,6 +48,7 @@ add_library(artstypes STATIC
   lineshape.cc
   lineshapemodel.cc
   mc_antenna.cc
+  minimize.cc
   nlte.cc
   physics_funcs.cc
   optproperties.cc
@@ -89,7 +90,6 @@ add_library(artsfun STATIC
   legendre.cc
   mc_interp.cc
   microphysics.cc
-  minimize.cc
   radiation_field.cc
   raw.cc
   refraction.cc
