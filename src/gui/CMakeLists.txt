@@ -13,6 +13,7 @@ if (ENABLE_GUI)
                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
                                             ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
                                             ${ARTS_SOURCE_DIR}/3rdparty/)
+  add_dependencies(artsgui auto_generated_workspace_headers)
 
   if (IPO_SUPPORTED)
     set_property(TARGET artsgui PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)

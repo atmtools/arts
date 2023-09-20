@@ -102,6 +102,8 @@ target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
 
 #####
 
+add_custom_target(auto_generated_workspace_headers DEPENDS auto_wsg.h auto_wsv.h auto_wsm.h auto_wsa.h)
+
 ########### next target ###############
 
 add_library (artscore STATIC
