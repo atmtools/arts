@@ -2,8 +2,8 @@
 #include <mutex>
 
 #include "matpack_math.h"
-#include "plot.h"
-#include "menu.h"
+#include "gui_plot.h"
+#include "gui_menu.h"
 
 namespace ARTSGUI {
 // Defaults

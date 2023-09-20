@@ -1,4 +1,4 @@
-#include "error.h"
+#include "gui_error.h"
 #include "imgui.h"
 
 namespace ARTSGUI {

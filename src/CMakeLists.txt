@@ -1,4 +1,3 @@
-add_subdirectory(gui)
 add_subdirectory(partfun)
 add_subdirectory(python_interface)
 add_subdirectory(core)
@@ -102,11 +101,22 @@ target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
 
 #####
 
-add_custom_target(auto_generated_workspace_headers DEPENDS auto_wsg.h auto_wsv.h auto_wsm.h auto_wsa.h)
+set(ARTS_GUI_FILES)
+if (ENABLE_GUI)
+  set(ARTS_GUI_FILES
+    gui_error.cc
+    gui.cc
+    gui_menu.cc
+    gui_plot.cc
+    gui_propmat.cc
+    guim_propmat.cc
+  )
+endif()
 
 ########### next target ###############
 
 add_library (artscore STATIC
+  ${ARTS_GUI_FILES}
   callback.cpp
   workspace_agenda_class.cpp
   workspace_agenda_creator.cpp
@@ -122,7 +132,6 @@ add_library (artscore STATIC
   compile_time_tests.cc
   disort.cc
   doit.cc
-  gui_propmat.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
@@ -217,8 +226,13 @@ endif()
 target_link_libraries(artscore PUBLIC auto_partfun cdisort xmliobase artsfun workspace_internals)
 
 if (ENABLE_GUI)
-  target_link_libraries (artscore PUBLIC artsgui)
+  target_link_libraries (artscore PUBLIC imgui implot)
   target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
+  target_include_directories(artscore PUBLIC
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
+  )
 endif()
 
 if (NETCDF_FOUND)
