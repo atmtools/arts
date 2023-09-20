@@ -19,12 +19,11 @@
 #include <stdexcept>
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include <workspace.h>
 #include "gridded_fields.h"
 #include "logic.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-#include "rte.h"
+
 #include "sensor.h"
 #include "sorting.h"
 
@@ -707,6 +706,30 @@ void mixer_matrix(Sparse& H,
   }
 }
 
+
+
+
+void muellersparse_rotation(Sparse& H,
+                            const Numeric& rotangle) {
+  ARTS_ASSERT(H.nrows() == 4);
+  ARTS_ASSERT(H.ncols() == 4);
+  ARTS_ASSERT(H(0, 1) == 0);
+  ARTS_ASSERT(H(1, 0) == 0);
+  //
+  H.rw(0, 0) = 1;
+  const Numeric a = Conversion::cosd(2 * rotangle);
+  H.rw(1, 1) = a;
+  ARTS_ASSERT(H(2, 0) == 0);
+  ARTS_ASSERT(H(0, 2) == 0);
+
+  const Numeric b = Conversion::sind(2 * rotangle);
+  H.rw(1, 2) = b;
+  H.rw(2, 1) = -b;
+  H.rw(2, 2) = a;
+  // More values should be checked, but to save time we just ARTS_ASSERT one
+  ARTS_ASSERT(H(2, 3) == 0);
+  H.rw(3, 3) = 1;
+}
 
 
 void met_mm_polarisation_hmatrix(Sparse& H,

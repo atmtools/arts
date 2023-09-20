@@ -86,9 +86,8 @@ target_link_libraries (test_tensor artscore)
 
 ########### next testcase ###############
 
-add_executable (test_matpack
-                ../wigner_functions.cc test_matpack.cc)
-target_link_libraries (test_matpack matpack artscore test_utils)
+add_executable (test_matpack test_matpack.cc)
+target_link_libraries (test_matpack artsfun test_utils)
 
 ########### next testcase ###############
 

@@ -25,18 +25,7 @@ inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 #include <limits>
 #include <stdexcept>
 
-#include "check_input.h"
-#include "cloudbox.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "mc_antenna.h"
-#include "physics_funcs.h"
-#include "ppath.h"
-#include "psd.h"
-#include "rng.h"
-#include "sorting.h"
-
+#include <sorting.h>
 
 Numeric asymmetry_parameter(ConstVectorView sa_grid,
                             ConstVectorView pfun)

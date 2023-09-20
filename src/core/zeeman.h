@@ -10,7 +10,6 @@
 #include "nlte.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
-#include "rte.h"
 #include "species_tags.h"
 
 /** Main and only way to compute Zeeman effect

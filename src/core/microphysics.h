@@ -9,12 +9,7 @@
 #ifndef microphysics_h
 #define microphysics_h
 
-#include "array.h"
-#include "gridded_fields.h"
-#include "interpolation.h"
-#include "matpack_data.h"
-#include "optproperties.h"
-#include "ppath.h"
+#include <matpack.h>
 
 
 //! asymmetry_parameter

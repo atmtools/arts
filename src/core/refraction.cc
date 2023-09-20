@@ -17,7 +17,7 @@
 #include "refraction.h"
 #include <cmath>
 #include "arts_constants.h"
-#include <workspace.h>
+
 #include "matpack_complex.h"
 #include "geodetic.h"
 #include "interpolation.h"

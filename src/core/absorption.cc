@@ -12,20 +12,7 @@
 */
 
 #include "absorption.h"
-#include "arts_conversions.h"
-#include "file.h"
-#include "linescaling.h"
-#include "lineshape.h"
-#include "logic.h"
-#include "math_funcs.h"
 #include "partfun.h"
-#include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <cstdlib>
-#include <map>
-
-#include <workspace.h>
 
 void checkPartitionFunctions(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
   for (auto& abs_lines: abs_lines_per_species) {

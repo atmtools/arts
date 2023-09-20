@@ -28,7 +28,6 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 #include "math_funcs.h"
 #include "mc_antenna.h"
 #include "physics_funcs.h"
-#include "ppath.h"
 #include "rng.h"
 #include "sorting.h"
 

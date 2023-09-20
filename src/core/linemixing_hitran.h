@@ -10,11 +10,11 @@
 #define LINEMIXING_HITRAN_H
 
 #include "absorptionlines.h"
-#include "arts_conversions.h"
-#include "linescaling.h"
-#include "matpack_data.h"
-#include "matpack_complex.h"
-#include "mystring.h"
+
+#include <arts_conversions.h>
+#include <linescaling.h>
+#include <matpack.h>
+#include <mystring.h>
 
 
 struct HitranRelaxationMatrixData {

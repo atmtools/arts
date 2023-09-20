@@ -11,7 +11,9 @@
 
 #include "matpack_data.h"
 #include "mystring.h"
-#include "rte.h"
+#include "ppath_struct.h"
+
+#include <rtepack.h>
 
 /** Throws an error if integration values are bad
  * 

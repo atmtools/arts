@@ -1,8 +1,8 @@
 #pragma once
 
-#include "artstime.h"
-#include "debug.h"
-#include "matpack_concepts.h"
+#include <artstime.h>
+#include <debug.h>
+#include <matpack.h>
 
 #include <algorithm>
 #include <limits>

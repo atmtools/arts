@@ -2,7 +2,7 @@ add_subdirectory(gui)
 add_subdirectory(partfun)
 add_subdirectory(python_interface)
 add_subdirectory(workspace)
-add_subdirectory(types)
+add_subdirectory(core)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -33,24 +33,12 @@ add_custom_command (
 ########### next target ###############
 
 add_library (artscore STATIC
-  absorption.cc
   arts_omp.cc
-  atm_path.cc
   auto_version.cc
-  cloudbox.cc
   compile_time_tests.cc
   disort.cc
   doit.cc
-  fastem.cc
-  predefined_absorption_models.cc
-  gas_scattering.cc
-  geodetic.cc
   gui_propmat.cc
-  igrf13.cc
-  legendre.cc
-  linemixing.cc
-  linemixing_hitran.cc
-  lineshape.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
@@ -113,33 +101,21 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  mc_interp.cc
-  microphysics.cc
-  minimize.cc
   montecarlo.cc
-  physics_funcs.cc
   ppath.cc
   propmat_field.cc
   psd.cc
-  radiation_field.cc
-  raw.cc
-  refraction.cc
   rt4.cc
   rte.cc
-  sensor.cc
   sourcetext.cc
-  special_interp.cc
   sun_methods.cc
   surface.cc
-  tmatrix.cc
   variousZZZ.cc
-  wigner_functions.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_rtepack.cc
-  zeeman.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
@@ -154,7 +130,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun cdisort artstypes xmliobase wigner Faddeeva workspace)
+target_link_libraries(artscore PUBLIC auto_partfun cdisort xmliobase artsfun workspace)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)

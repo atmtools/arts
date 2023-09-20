@@ -15,9 +15,8 @@
 #include <stdexcept>
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "matpack_complex.h"
-#include "exceptions.h"
-#include "matpack_data.h"
+
+#include "fastem.h"
 
 using std::ostringstream;
 using std::runtime_error;

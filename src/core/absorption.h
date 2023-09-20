@@ -9,18 +9,7 @@
 #ifndef absorption_h
 #define absorption_h
 
-#include "species_tags.h"
 #include "absorptionlines.h"
-#include "array.h"
-#include "gridded_fields.h"
-#include "jacobian.h"
-#include "matpack_data.h"
-#include "mystring.h"
-#include <array>
-#include <cmath>
-#include <limits>
-#include <map>
-#include <stdexcept>
 
 /** Check that ARTS was compiled for all requested species tags */
 void checkPartitionFunctions(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species);

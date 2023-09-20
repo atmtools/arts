@@ -15,7 +15,7 @@
 #ifndef refraction_h
 #define refraction_h
 
-#include <workspace.h>
+#include <matpack.h>
 
 void complex_n_water_liebe93(Matrix& complex_n,
                              const Vector& f_grid,

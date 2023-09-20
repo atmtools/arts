@@ -17,7 +17,7 @@
 #include "debug.h"
 #include "enums.h"
 #include "fieldmap.h"
-#include "gridded_fields.h"
+#include <gridded_fields.h>
 
 #include "quantum_numbers.h"
 #include "species.h"
