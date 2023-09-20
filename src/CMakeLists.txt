@@ -1,7 +1,6 @@
 add_subdirectory(gui)
 add_subdirectory(partfun)
 add_subdirectory(python_interface)
-add_subdirectory(workspace)
 add_subdirectory(core)
 
 if (NETCDF_FOUND)
@@ -30,9 +29,92 @@ add_custom_command (
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
+#####
+
+add_library(workspace_group STATIC
+  workspace_groups.cpp
+)
+
+add_executable(make_auto_wsg make_auto_wsg.cpp)
+add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
+  COMMAND make_auto_wsg > auto_wsg.h 2> auto_wsg.cpp
+  DEPENDS make_auto_wsg
+  COMMENT "Generating automatic workspace groups"
+)
+target_link_libraries(make_auto_wsg PRIVATE workspace_group)
+
+#####
+
+add_library(workspace_internals STATIC
+  workspace_agenda_class_default_constructor.cpp
+  workspace_agendas.cpp
+  workspace_methods.cpp
+  workspace_variables.cpp
+  auto_wsg.cpp
+)
+target_link_libraries(workspace_internals PUBLIC workspace_group artstypes)
+target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+#####
+
+add_executable(make_auto_wsv make_auto_wsv.cpp)
+add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
+  COMMAND make_auto_wsv > auto_wsv.h 2> auto_wsv.cpp
+  DEPENDS make_auto_wsv
+  COMMENT "Generating automatic workspace variables"
+)
+target_link_libraries(make_auto_wsv PRIVATE workspace_internals)
+
+#####
+
+if(NOT NUM_ARTS_WSM)
+  set(NUM_ARTS_WSM 10)
+endif()
+
+message(STATUS "Using ${NUM_ARTS_WSM} automatic workspace method files (--DNUM_ARTS_WSM=N to change)")
+
+set(ARTS_WORKSPACE_METHODS "")
+list(LENGTH ARTS_WORKSPACE_METHODS N)
+
+while(N LESS NUM_ARTS_WSM)
+  list(APPEND ARTS_WORKSPACE_METHODS "auto_wsm_${N}.cpp")
+  list(LENGTH ARTS_WORKSPACE_METHODS N)
+endwhile()
+
+add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
+add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp ${ARTS_WORKSPACE_METHODS}
+  COMMAND make_auto_wsm ${NUM_ARTS_WSM} > auto_wsm.h 2> auto_wsm.cpp
+  DEPENDS make_auto_wsm
+  COMMENT "Generating automatic workspace methods"
+)
+target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
+
+#####
+
+add_executable(make_auto_wsa make_auto_wsa.cpp)
+add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
+  COMMAND make_auto_wsa > auto_wsa.h 2> auto_wsa.cpp
+  DEPENDS make_auto_wsa
+  COMMENT "Generating automatic workspace agendas"
+)
+target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
+
+#####
+
 ########### next target ###############
 
 add_library (artscore STATIC
+  callback.cpp
+  workspace_agenda_class.cpp
+  workspace_agenda_creator.cpp
+  workspace_method_class.cpp
+  workspace_class.cpp
+  ${ARTS_WORKSPACE_METHODS}
+  auto_workspace.cpp
+  auto_wsv.cpp
+  auto_wsm.cpp
+  auto_wsa.cpp
   arts_omp.cc
   auto_version.cc
   compile_time_tests.cc
@@ -130,7 +212,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artscore PRIVATE pch_artscore.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun cdisort xmliobase artsfun workspace)
+target_link_libraries(artscore PUBLIC auto_partfun cdisort xmliobase artsfun workspace_internals)
 
 if (ENABLE_GUI)
   target_link_libraries (artscore PUBLIC artsgui)
