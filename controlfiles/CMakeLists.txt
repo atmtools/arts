@@ -151,6 +151,8 @@ arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
 if (ARTS_XML_DATA_DIR)
 
+  arts_test_run_ctlfile(slow instruments/avhrr/TestAVHRR_fast.arts)
+
   arts_test_run_ctlfile(slow instruments/mviri/TestMVIRI.arts)
 
   arts_test_run_ctlfile(slow instruments/seviri/TestSEVIRI.arts)
