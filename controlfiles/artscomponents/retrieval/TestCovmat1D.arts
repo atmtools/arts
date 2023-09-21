@@ -3,14 +3,14 @@ Arts2 {
   VectorCreate(sigma_1)
   VectorCreate(cls_1)
   VectorLinSpace(grid_1, 0.0, 30000.0, 1500.0)
-  VectorSetConstant(out = sigma_1, nelem = 1, value = 1.0)
+  VectorSetConstant(output = sigma_1, nelem = 1, value = 1.0)
   VectorLinSpace(cls_1, 1000.0, 2000.0, 50.0)
 
   VectorCreate(grid_2)
   VectorCreate(sigma_2)
   VectorCreate(cls_2)
   VectorLinSpace(grid_2, 0.0, 30000.0, 3000.0)
-  VectorSetConstant(out = sigma_2, nelem = 1, value = 2.0)
+  VectorSetConstant(output = sigma_2, nelem = 1, value = 2.0)
   VectorLinSpace(cls_2, 1000.0, 2000.0, 100.0)
 
   SparseCreate(covmat_reference)
