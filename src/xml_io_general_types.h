@@ -16,12 +16,14 @@
 
 #include <cfloat>
 #include <stdexcept>
-#include "array.h"
-#include "bifstream.h"
-#include "bofstream.h"
+
+#include <supergeneric.h>
+
+#include <array.h>
+#include <binio/bifstream.h>
+#include <binio/bofstream.h>
 #include <matpack.h>
 #include <matpack_sparse.h>
-#include "supergeneric.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
   void xml_read_from_stream(std::istream &, what &, bifstream *);              \

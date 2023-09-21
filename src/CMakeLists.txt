@@ -1,11 +1,6 @@
-add_subdirectory(matpack)
-add_subdirectory(gui)
 add_subdirectory(partfun)
-add_subdirectory(predefined)
 add_subdirectory(python_interface)
-add_subdirectory(rtepack)
-add_subdirectory(workspace)
-add_subdirectory(operators)
+add_subdirectory(core)
 
 if (NETCDF_FOUND)
   set (NETCDF_CC_FILES
@@ -33,50 +28,110 @@ add_custom_command (
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
+#####
+
+add_library(workspace_group STATIC
+  workspace_groups.cpp
+)
+
+add_executable(make_auto_wsg make_auto_wsg.cpp)
+add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
+  COMMAND make_auto_wsg > auto_wsg.h 2> auto_wsg.cpp
+  DEPENDS make_auto_wsg
+  COMMENT "Generating automatic workspace groups"
+)
+target_link_libraries(make_auto_wsg PRIVATE workspace_group)
+
+#####
+
+add_library(workspace_internals STATIC
+  workspace_agenda_class_default_constructor.cpp
+  workspace_agendas.cpp
+  workspace_methods.cpp
+  workspace_variables.cpp
+  auto_wsg.cpp
+)
+target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
+target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+#####
+
+add_executable(make_auto_wsv make_auto_wsv.cpp)
+add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
+  COMMAND make_auto_wsv > auto_wsv.h 2> auto_wsv.cpp
+  DEPENDS make_auto_wsv
+  COMMENT "Generating automatic workspace variables"
+)
+target_link_libraries(make_auto_wsv PRIVATE workspace_internals)
+
+#####
+
+if(NOT NUM_ARTS_WSM)
+  set(NUM_ARTS_WSM 10)
+endif()
+
+message(STATUS "Using ${NUM_ARTS_WSM} automatic workspace method files (--DNUM_ARTS_WSM=N to change)")
+
+set(ARTS_WORKSPACE_METHODS "")
+list(LENGTH ARTS_WORKSPACE_METHODS N)
+
+while(N LESS NUM_ARTS_WSM)
+  list(APPEND ARTS_WORKSPACE_METHODS "auto_wsm_${N}.cpp")
+  list(LENGTH ARTS_WORKSPACE_METHODS N)
+endwhile()
+
+add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
+add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp ${ARTS_WORKSPACE_METHODS}
+  COMMAND make_auto_wsm ${NUM_ARTS_WSM} > auto_wsm.h 2> auto_wsm.cpp
+  DEPENDS make_auto_wsm
+  COMMENT "Generating automatic workspace methods"
+)
+target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
+
+#####
+
+add_executable(make_auto_wsa make_auto_wsa.cpp)
+add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
+  COMMAND make_auto_wsa > auto_wsa.h 2> auto_wsa.cpp
+  DEPENDS make_auto_wsa
+  COMMENT "Generating automatic workspace agendas"
+)
+target_link_libraries(make_auto_wsa PRIVATE workspace_internals)
+
+#####
+
+set(ARTS_GUI_FILES)
+if (ENABLE_GUI)
+  set(ARTS_GUI_FILES
+    gui_error.cc
+    gui.cc
+    gui_menu.cc
+    gui_plot.cc
+    gui_propmat.cc
+  )
+endif()
+
 ########### next target ###############
 
-set (ARTSCORE_EXTRA_SOURCES)
-if (NOT HAVE_GETOPT_H)
-  list (APPEND ARTSCORE_EXTRA_SOURCES
-    arts_getopt.c arts_getopt1.c)
-endif (NOT HAVE_GETOPT_H)
-
-add_library (artscore STATIC
-  ${ARTSCORE_EXTRA_SOURCES}
-  absorption.cc
-  absorptionlines.cc
+add_library (artsworkspace STATIC
+  ${ARTS_GUI_FILES}
+  callback.cpp
+  workspace_agenda_class.cpp
+  workspace_agenda_creator.cpp
+  workspace_method_class.cpp
+  workspace_class.cpp
+  ${ARTS_WORKSPACE_METHODS}
+  auto_workspace.cpp
+  auto_wsv.cpp
+  auto_wsm.cpp
+  auto_wsa.cpp
   arts_omp.cc
-  artstime.cc
-  atm.cc
-  atm_path.cc
   auto_version.cc
-  callback.cc
-  check_input.cc
-  cia.cc
-  cloudbox.cc
   compile_time_tests.cc
-  covariance_matrix.cc
   disort.cc
   doit.cc
-  fastem.cc
-  predefined_absorption_models.cc
-  file.cc
-  gas_abs_lookup.cc
-  gas_scattering.cc
-  geodetic.cc
-  gridded_fields.cc
-  gui_propmat.cc
-  hitran_species.cc
-  xsec_fit.cc
-  igrf13.cc
-  interpolation.cc
-  jpl_species.cc
-  legendre.cc
-  linemixing.cc
-  linemixing_hitran.cc
-  linescaling.cc
-  lineshape.cc
-  lineshapemodel.cc
+  guim_propmat.cc
   m_abs.cc
   m_absorptionlines.cc
   m_abs_lookup.cc
@@ -139,92 +194,70 @@ add_library (artscore STATIC
   m_wigner.cc
   m_xml.cc
   m_zeeman.cc
-  math_funcs.cc
-  mc_antenna.cc
-  mc_interp.cc
-  microphysics.cc
-  minimize.cc
   montecarlo.cc
-  nlte.cc
-  optproperties.cc
-  parameters.cc
-  physics_funcs.cc
-  poly_roots.cc
   ppath.cc
-  ppath_struct.cc
   propmat_field.cc
   psd.cc
-  radiation_field.cc
-  raw.cc
-  refraction.cc
   rt4.cc
   rte.cc
-  sensor.cc
   sourcetext.cc
-  special_interp.cc
-  sun.cc
-  surf.cc
+  sun_methods.cc
   surface.cc
-  telsem.cc
-  tessem.cc
-  tmatrix.cc
   variousZZZ.cc
-  wigner_functions.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_rtepack.cc
-  zeeman.cc
-  zeemandata.cc
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 
-target_include_directories (artscore PUBLIC 
+target_include_directories (artsworkspace PUBLIC 
   ${ARTS_SOURCE_DIR}/3rdparty/cdisort
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
   ${NETCDF_INCLUDE_DIR}
   )
 
-add_dependencies (artscore auto_version_cc)
+add_dependencies (artsworkspace auto_version_cc)
 if (ENABLE_PCH)
-  target_precompile_headers(artscore PRIVATE pch_artscore.h)
+  target_precompile_headers(artsworkspace PRIVATE pch_artsworkspace.h)
 endif()
 
-target_link_libraries(artscore PUBLIC auto_partfun matpack cdisort species_tags predef xmliobase wigner Faddeeva workspace quantum jacobian)
+target_link_libraries(artsworkspace PUBLIC auto_partfun cdisort xmliobase artscore workspace_internals)
 
 if (ENABLE_GUI)
-  target_link_libraries (artscore PUBLIC artsgui)
-  target_compile_definitions(artscore PUBLIC ARTS_GUI_ENABLED)
+  target_link_libraries (artsworkspace PUBLIC imgui implot)
+  target_compile_definitions(artsworkspace PUBLIC ARTS_GUI_ENABLED)
+  target_include_directories(artsworkspace PUBLIC
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui/
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/implot/
+    ${ARTS_SOURCE_DIR}/3rdparty/gui/imgui-filebrowser/
+  )
 endif()
 
 if (NETCDF_FOUND)
-  target_link_libraries (artscore PUBLIC ${NETCDF_LIBRARIES})
+  target_link_libraries (artsworkspace PUBLIC ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
 
 if (ENABLE_MPI)
-  target_link_libraries (artscore PUBLIC ${MPI_CXX_LIBRARIES})
+  target_link_libraries (artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
 
 if (OpenMP_CXX_FOUND)
-  target_link_libraries (artscore PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries (artsworkspace PUBLIC OpenMP::OpenMP_CXX)
 endif ()
 
 if (ENABLE_RT4)
-  target_link_libraries (artscore PUBLIC rt4)
+  target_link_libraries (artsworkspace PUBLIC rt4)
 endif (ENABLE_RT4)
 
 if (ENABLE_FASTEM)
-  target_link_libraries (artscore PUBLIC fastem)
+  target_link_libraries (artsworkspace PUBLIC fastem)
 endif (ENABLE_FASTEM)
 
 if (ENABLE_TMATRIX)
-  target_link_libraries (artscore PUBLIC tmatrix)
+  target_link_libraries (artsworkspace PUBLIC tmatrix)
 endif (ENABLE_TMATRIX)
-
-########### next target ###############
-
-target_link_libraries(artscore PUBLIC rtepack)
 
 ########### next target ###############
 
@@ -235,41 +268,18 @@ add_library (xmliobase STATIC
 
 target_link_libraries (xmliobase PUBLIC binio matpack)
 
-########### next target ###############
-
-add_library (binio STATIC
-        bifstream.cc
-        bofstream.cc
-        binio.cc
-        gzstream.cc 
-        )
-
-set_source_files_properties (binio.cc PROPERTIES
-                             COMPILE_FLAGS "-fno-strict-aliasing")
-target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
-
-########################################################################################
-
-add_subdirectory(spec)
-add_subdirectory(jac)
-
 ########################################################################################
 
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
   set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-  set_property(TARGET artscore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  set_property(TARGET artsworkspace PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
 add_subdirectory(gpl)
-target_link_libraries(artscore PUBLIC artscore_gpl_selector)
+target_link_libraries(artsworkspace PUBLIC artsworkspace_gpl_selector)
 
 add_subdirectory(tests)
-
-add_subdirectory(fwd)
-target_link_libraries(artscore PUBLIC fwd)
-
-add_subdirectory(quantum)

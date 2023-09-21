@@ -9,7 +9,10 @@
  * Zeeman effect calculations are implemented in this file
  */
 
+
+#include "rte.h"
 #include "zeeman.h"
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman(

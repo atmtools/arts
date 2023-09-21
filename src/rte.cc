@@ -936,28 +936,6 @@ void mirror_los(Vector& los_mirrored,
   }
 }
 
-void muellersparse_rotation(Sparse& H,
-                            const Numeric& rotangle) {
-  ARTS_ASSERT(H.nrows() == 4);
-  ARTS_ASSERT(H.ncols() == 4);
-  ARTS_ASSERT(H(0, 1) == 0);
-  ARTS_ASSERT(H(1, 0) == 0);
-  //
-  H.rw(0, 0) = 1;
-  const Numeric a = Conversion::cosd(2 * rotangle);
-  H.rw(1, 1) = a;
-  ARTS_ASSERT(H(2, 0) == 0);
-  ARTS_ASSERT(H(0, 2) == 0);
-
-  const Numeric b = Conversion::sind(2 * rotangle);
-  H.rw(1, 2) = b;
-  H.rw(2, 1) = -b;
-  H.rw(2, 2) = a;
-  // More values should be checked, but to save time we just ARTS_ASSERT one
-  ARTS_ASSERT(H(2, 3) == 0);
-  H.rw(3, 3) = 1;
-}
-
 void mueller_modif2stokes(Matrix &Cs) {
   //
   Cs.resize(4, 4);

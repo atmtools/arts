@@ -1,7 +1,7 @@
 #include <debug.h>
 #include <gridded_fields.h>
-#include <isotopologues.h>
-#include <species.h>
+#include <spec/isotopologues.h>
+#include <spec/species.h>
 
 #include "template_partfun.h"
 

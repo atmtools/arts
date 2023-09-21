@@ -15,9 +15,9 @@
 #include <numeric>
 #include <sstream>
 
-#include "exceptions.h"
 #include "gsl_gauss_legendre.h"
-#include "math_funcs.h"
+
+#include <math_funcs.h>
 
 struct gsl_integration_glfixed_table {
   size_t n;        /* number of points */

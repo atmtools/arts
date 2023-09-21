@@ -1,8 +1,5 @@
-#include "artstime.h"
-#include "matpack_arrays.h"
-#include "matpack_eigen.h"
-#include "matpack_math.h"
-#include "matpack_view.h"
+#include <artstime.h>
+#include <matpack.h>
 
 #include <cstdlib>
 #include <ostream>

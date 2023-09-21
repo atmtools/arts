@@ -18,7 +18,7 @@
 #include "xml_io_general_types.h"
 
 #ifdef ENABLE_ZLIB
-#include "gzstream.h"
+#include <binio/gzstream.h>
 #endif
 
 enum FileType : Index {
