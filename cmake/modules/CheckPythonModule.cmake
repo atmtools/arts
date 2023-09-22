@@ -4,7 +4,7 @@
 
 macro (CHECK_PYTHON_MODULES)
   set(REQUIRED_MODULES
-    build
+    build.__main__
     docutils
     lark.parse_tree_builder
     matplotlib
