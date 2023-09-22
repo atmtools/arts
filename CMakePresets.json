@@ -17,8 +17,8 @@
         "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
         "ENABLE_ARTS_LGPL": "0",
         "ENABLE_FORTRAN": "1",
-        "ENABLE_GUI": "0",
-        "ENABLE_NETCDF": "0",
+        "ENABLE_GUI": "1",
+        "ENABLE_NETCDF": "1",
         "ENABLE_PCH": "0",
         "FASTWIGNER": "0",
         "NO_FASTEM": "0",
@@ -61,8 +61,7 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
-        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran",
-        "ENABLE_PCH": "1"
+        "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
       }
     },
     {
@@ -71,8 +70,7 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc-13",
         "CMAKE_CXX_COMPILER": "g++-13",
-        "CMAKE_Fortran_COMPILER": "gfortran-13",
-        "ENABLE_PCH": "0"
+        "CMAKE_Fortran_COMPILER": "gfortran-13"
       }
     },
     {
@@ -81,8 +79,7 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
         "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
-        "CMAKE_Fortran_COMPILER": "gfortran-13",
-        "ENABLE_PCH": "1"
+        "CMAKE_Fortran_COMPILER": "gfortran-13"
       }
     },
     {

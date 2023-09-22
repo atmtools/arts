@@ -128,7 +128,6 @@ def load(filename, search_arts_path=True):
             filename += '.gz'
 
     artstype = _get_arts_type_from_file(filename)
-    print(artstype)
 
     ret = getattr(arts, artstype)()
     ret.readxml(filename)
