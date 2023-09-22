@@ -15,12 +15,15 @@ static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
 
 struct tran {
-  Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{}, exp_a{};
-  Numeric a2{}, b2{}, c2{}, d2{}, u2{}, v2{}, w2{}, tmp{};
-  Complex Const1{}, Const2{}, tmp_x_sqrt{}, tmp_y_sqrt{}, x{}, y{}, x2{}, y2{},
-      cy{}, sy{}, cx{}, sx{};
-  bool unpolarized{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
-  Complex ix{}, iy{}, inv_x2y2{}, C0c{}, C1c{}, C2c{}, C3c{};
+  Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{};  // To not repeat input
+  Numeric exp_a{};  // To not repeat exp(a)
+  Numeric b2{}, c2{}, d2{}, u2{}, v2{}, w2{};  // To shorten expressions
+  Numeric B, C, S;  // From L^4 + BL^2 + C = 0; S = sqrt(B^2 - 4C)
+  Complex L1{}, L2{};  // Squared Eigenvalues, L1 = sqrt(-0.5*(S+B)), L1 = sqrt(0.5*(S-B))
+  Numeric x2{}, y2{}, x{}, y{}, cy{}, sy{}, cx{}, sx{};  // Eigenvalues and their used trigonometric functions
+  Numeric ix{}, iy{}, inv_x2y2{};  // Computational helpers
+  Numeric C0{}, C1{}, C2{}, C3{};  // The Cayley-Hamilton coefficients
+  bool unpolarized{}, l1_imag{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
 
   constexpr tran() = default;
 
@@ -40,20 +43,39 @@ struct tran {
       return;
     }
 
-    b2 = b * b, c2 = c * c, d2 = d * d, u2 = u * u, v2 = v * v, w2 = w * w;
-    tmp = w2 * w2 + 2 * (b2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2) +
-                         c2 * (c2 * 0.5 + d2 - u2 + v2 - w2) +
-                         d2 * (d2 * 0.5 + u2 - v2 - w2) +
-                         u2 * (u2 * 0.5 + v2 + w2) + v2 * (v2 * 0.5 + w2) +
-                         4 * (b * d * u * w - b * c * v * w - c * d * u * v));
-    Const1 = std::sqrt(Complex(tmp, 0));
-    Const2 = b2 + c2 + d2 - u2 - v2 - w2;
-    tmp_x_sqrt = std::sqrt(Const2 + Const1);
-    tmp_y_sqrt = std::sqrt(Const2 - Const1);
-    x = tmp_x_sqrt * sqrt_05;
-    y = tmp_y_sqrt * sqrt_05 * Complex(0, 1);
-    x2 = x * x;
-    y2 = y * y;
+    b2 = b * b;
+    c2 = c * c;
+    d2 = d * d;
+    u2 = u * u;
+    v2 = v * v;
+    w2 = w * w;
+
+    /* Solve: 
+        0 = 
+            L^4 + 
+            (U^2+V^2+W^2-B^2-C^2-D^2)L^2 + 
+            2BCVW - 2BDUW + 2CDUV -B^2W^2 - C^2V^2 - D^2U^2
+    */
+    B = u2 + v2 + w2 - b2 - c2 - d2;
+    C = 2 * (b * c * v * w - b * d * u * w + c * d * u * v) -
+                      b2 * w2 - c2 * v2 - d2 * u2;
+    S = std::sqrt(B * B - 4 * C);
+    L1 = std::sqrt(- Complex(0.5) * (S + B));
+    L2 = std::sqrt(Complex(0.5) * (S - B));
+
+    /*
+        We have define: 
+            x2 and y2 are the squares of x and y
+            x and y are the real and positive Eigenvalues
+            x is from the real part of the Eigenvalues
+            y is from the imag part of the Eigenvalues
+    */
+    l1_imag = L1.imag() != 0;
+    x2 = l1_imag ? std::abs(L2.real()) : std::abs(L1.real());
+    y2 = l1_imag ? std::abs(L1.imag()) : std::abs(L2.imag());
+    x = std::sqrt(x2);
+    y = std::sqrt(y2);
+
     cy = std::cos(y);
     sy = std::sin(y);
     cx = std::cosh(x);
@@ -78,25 +100,20 @@ struct tran {
         both_zero
             ? 1.0
             : 1.0 / (x2 + y2);  // The first "1.0" is the trick for above limits
-    C0c = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
-    C1c = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
-    C2c = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
-    C3c = both_zero ? 1.0 / 6.0
-                    : (x_zero   ? 1.0 - sy * iy
-                       : y_zero ? sx * ix - 1.0
-                                : sx * ix - sy * iy) *
-                          inv_x2y2;
+    C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
+    C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
+    C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
+    C3 = both_zero ? 1.0 / 6.0
+                   : (x_zero   ? 1.0 - sy * iy
+                      : y_zero ? sx * ix - 1.0
+                               : sx * ix - sy * iy) *
+                         inv_x2y2;
   }
 
   muelmat operator()() const {
     if (unpolarized) {
       return exp_a;
     }
-
-    const Numeric C0 = C0c.real();
-    const Numeric C1 = C1c.real();
-    const Numeric C2 = C2c.real();
-    const Numeric C3 = C3c.real();
 
     return {exp_a * C0 + C2 * (b2 + c2 + d2),
             exp_a * C1 * b + C2 * (-c * u - d * v) +
@@ -162,64 +179,52 @@ struct tran {
                   dw = -0.5 * (r * dk.W() + dr * (k1.W() + k2.W()));
     const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c, dd2 = 2 * dd * d,
                   du2 = 2 * du * u, dv2 = 2 * dv * v, dw2 = 2 * dw * w;
-    const Numeric dtmp =
-        2 * w2 * dw2 +
-        2 * (db2 * (b2 * 0.5 + c2 + d2 - u2 - v2 + w2) +
-             b2 * (db2 * 0.5 + dc2 + dd2 - du2 - dv2 + dw2) +
-             dc2 * (c2 * 0.5 + d2 - u2 + v2 - w2) +
-             c2 * (dc2 * 0.5 + dd2 - du2 + dv2 - dw2) +
-             dd2 * (d2 * 0.5 + u2 - v2 - w2) +
-             d2 * (dd2 * 0.5 + du2 - dv2 - dw2) + du2 * (u2 * 0.5 + v2 + w2) +
-             u2 * (du2 * 0.5 + dv2 + dw2) + dv2 * (v2 * 0.5 + w2) +
-             v2 * (dv2 * 0.5 + dw2) +
-             4 * (db * d * u * w - db * c * v * w - dc * d * u * v +
-                  b * dd * u * w - b * dc * v * w - c * dd * u * v +
-                  b * d * du * w - b * c * dv * w - c * d * du * v +
-                  b * d * u * dw - b * c * v * dw - c * d * u * dv));
-    const Complex dConst1 = 0.5 * dtmp / Const1;
-    const Numeric dConst2 = db2 + dc2 + dd2 - du2 - dv2 - dw2;
-    const Complex dx =
-        x_zero ? 0 : (0.5 * (dConst2 + dConst1) / tmp_x_sqrt) * sqrt_05;
-    const Complex dy = y_zero ? 0
-                              : (0.5 * (dConst2 - dConst1) / tmp_y_sqrt) *
-                                    sqrt_05 * Complex(0, 1);
-    const Complex dx2 = 2.0 * x * dx;
-    const Complex dy2 = 2.0 * y * dy;
-    const Complex dcy = -sy * dy;
-    const Complex dsy = cy * dy;
-    const Complex dcx = sx * dx;
-    const Complex dsx = cx * dx;
-    const Complex dix = -dx * ix * ix;
-    const Complex diy = -dy * iy * iy;
-    const Complex dx2dy2 = dx2 + dy2;
-    const Complex dC0c =
+
+    const Numeric dB = du2 + dv2 + dw2 - db2 - dc2 - dd2;
+    const Numeric dC = 2 * (db * c * v * w - b * d * u * dw + dc * d * u * v +
+                            b * dc * v * w - b * d * du * w + c * dd * u * v +
+                            b * c * dv * w - b * dd * u * w + c * d * du * v +
+                            b * c * v * dw - db * d * u * w + c * d * u * dv) -
+                       db2 * w2 - c2 * dv2 - dd2 * u2 - b2 * dw2 - dc2 * v2 -
+                       d2 * du2;
+    const Numeric dS = (2 * B * dB - 4 * dC) * 0.5 / S;
+
+    const Complex dL1 = - (dB + dS) * 0.5 / L1;
+    const Complex dL2 = (dB - dS) * 0.5 / L2;
+
+    const Numeric dx2 = l1_imag ? std::abs(dL2.real()) : std::abs(dL1.real());
+    const Numeric dy2 = l1_imag ? std::abs(dL1.imag()) : std::abs(dL2.imag());
+    const Numeric dx = dx2 * 0.5 / x;
+    const Numeric dy = dy2 * 0.5 / y;
+
+    const Numeric dcy = -sy * dy;
+    const Numeric dsy = cy * dy;
+    const Numeric dcx = sx * dx;
+    const Numeric dsx = cx * dx;
+    const Numeric dix = -dx * ix * ix;
+    const Numeric diy = -dy * iy * iy;
+    const Numeric dx2dy2 = dx2 + dy2;
+    const Numeric dC0 =
         either_zero
             ? 0.0
-            : (dcy * x2 + cy * dx2 + dcx * y2 + cx * dy2 - C0c * dx2dy2) *
+            : (dcy * x2 + cy * dx2 + dcx * y2 + cx * dy2 - C0 * dx2dy2) *
                   inv_x2y2;
-    const Complex dC1c =
+    const Numeric dC1 =
         either_zero
             ? 0.0
             : (dsy * x2 * iy + sy * dx2 * iy + sy * x2 * diy + dsx * y2 * ix +
-               sx * dy2 * ix + sx * y2 * dix - C1c * dx2dy2) *
+               sx * dy2 * ix + sx * y2 * dix - C1 * dx2dy2) *
                   inv_x2y2;
-    const Complex dC2c =
-        both_zero ? 0.0 : (dcx - dcy - C2c * dx2dy2) * inv_x2y2;
-    const Complex dC3c =
+    const Numeric dC2 =
+        both_zero ? 0.0 : (dcx - dcy - C2 * dx2dy2) * inv_x2y2;
+    const Numeric dC3 =
         both_zero ? 0.0
                   : ((x_zero   ? -dsy * iy - sy * diy
                       : y_zero ? dsx * ix + sx * dix
                                : dsx * ix + sx * dix - dsy * iy - sy * diy) -
-                     C3c * dx2dy2) *
+                     C3 * dx2dy2) *
                         inv_x2y2;
-
-    const Numeric C1 = C1c.real();
-    const Numeric C2 = C2c.real();
-    const Numeric C3 = C3c.real();
-    const Numeric dC0 = dC0c.real();
-    const Numeric dC1 = dC1c.real();
-    const Numeric dC2 = dC2c.real();
-    const Numeric dC3 = dC3c.real();
+                        
     return {t(0, 0) * da + exp_a * dC0 + dC2 * (b2 + c2 + d2) +
                 C2 * (db2 + dc2 + dd2),
             t(0, 1) * da + exp_a * db * C1 + b * dC1 + dC2 * (-c * u - d * v) +

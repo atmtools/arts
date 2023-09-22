@@ -101,9 +101,9 @@ public:
             class random_distribution = std::uniform_real_distribution,
             typename... Ts>
   auto get(Ts &&...x) const {
-    return [v = new_generator(),
+    return [nv = new_generator(),
             draw = random_distribution(std::forward<Ts>(x)...)]() mutable {
-      return draw(v);
+      return draw(nv);
     };
   }
 

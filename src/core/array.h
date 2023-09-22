@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "configtypes.h"
+#include "debug.h"
 
 /** An array of Index. */
 template <typename base>

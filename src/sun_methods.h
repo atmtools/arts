@@ -1,7 +1,5 @@
 #include <sun.h>
-
-class Workspace;
-class Agenda;
+#include <workspace.h>
 
 /*===========================================================================
   === Functions in sun.h

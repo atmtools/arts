@@ -356,7 +356,7 @@ public:
   constexpr matpack_view(const cs_view& x) requires(constant and strided) : view(x.view) {}
 
   //! Construct this from the same size data view
-  constexpr matpack_view(const data_t& x) noexcept : matpack_view(x.view) {}
+  constexpr matpack_view(const data_t& x) noexcept requires(strided or constant) : matpack_view(x.view) {}
 
   //! Construct this from a smaller view by upping the rank with padded 1-extents to the right
   template <Index M> explicit constexpr matpack_view(const matpack_data<T, M>& x) requires(N > M) : matpack_view(x.data_handle(), upview<N, M>(x.shape())) {}
