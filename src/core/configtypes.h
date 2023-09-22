@@ -1,6 +1,8 @@
 #pragma once
 
 #include <config.h>
+#include <cstddef>
+#include <cstdint>
 
 //! The base number type of matpack
 using Numeric = NUMERIC;
