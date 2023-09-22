@@ -2,7 +2,7 @@ find_package(glfw3 REQUIRED)
 
 find_package(GLEW REQUIRED)
 
-set(OpenGL_GL_PREFERENCE GLVND)
+set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL REQUIRED)
 
 add_library(imgui STATIC
