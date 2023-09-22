@@ -74,29 +74,24 @@ StringSet( iy_unit, "1" )
 
 # Set up absorption
 # ---
+# Reduced species set to speed up test case
 abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
-                          "O3",
-                          "CO2, CO2-CKDMT252",
-                          "N2O",
-                          "CO",
-                          "CH4",
-                          "O2, O2-CIAfunCKDMT100",
+                          #"O3",
+                          #"CO2, CO2-CKDMT252",
+                          #"N2O",
+                          #"CO",
+                          #"CH4",
+                          #"O2, O2-CIAfunCKDMT100",
                           "N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252" ] )
 
-# deriving abs_lines separate, because one might want to use a lookup table
-#
-# no use of HITRAN in test cases
-# (uncomment when you want to use HITRAN)
-#abs_linesReadFromHitran( abs_lines,
-#                         "HITRAN2012.par",
-#                         2.0022234e+12, 7.9855733e+14 )
-# instead we use a HITRAN-extract converted to ARTSCAT
-# (comment out when you want to use HITRAN)
-ReadARTSCAT( abs_lines, "testdata/abs_lines_IR.xml.gz" )
-abs_linesNormalization(option="VVH")
-abs_linesCutoff(option="ByLine", value=750e9)
+abs_lines_per_speciesReadSpeciesSplitCatalog( basename="lines/" )
+abs_lines_per_speciesNormalization(option="VVH")
+abs_lines_per_speciesCutoff(option="ByLine", value=750e9)
 
-abs_lines_per_speciesCreateFromLines
+# ReadARTSCAT( abs_lines, "testdata/abs_lines_IR.xml.gz" )
+# abs_linesNormalization(option="VVH")
+# abs_linesCutoff(option="ByLine", value=750e9)
+# abs_lines_per_speciesCreateFromLines
 
 
 # Sensor setup
@@ -214,7 +209,8 @@ abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
 # ---
-propmat_clearsky_agendaAuto(use_abs_lookup=1)
+propmat_clearsky_agendaAuto( use_abs_lookup=1 )
+
 
 # Set up RT calculation
 # =====================
@@ -256,7 +252,7 @@ AgendaSet( ybatch_calc_agenda ){
 #                          atmosphere_dim,
 #                          p_grid, lat_grid, lon_grid,
 #                          p_grid, lat_grid, lon_grid,
-#                          "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
+#                          "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
 #                          "rel")
 #   jacobianClose
 
@@ -299,7 +295,7 @@ WriteXML( "ascii", ybatch )
 
 # Compare with reference:
 ArrayOfVectorCreate( ybatch_ref )
-ReadXML( ybatch_ref, "TestHIRS.NOAA14.ybatch.ref.xml" )
+ReadXML( ybatch_ref, "TestHIRS_fast.NOAA14.ybatch.ref.xml" )
 Compare( ybatch_ref, ybatch, 0.01 )
 
 }
