@@ -7666,27 +7666,27 @@ R"(
                "Interpolation order.",
                "Apply zero-padding.")));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("heating_ratesFromIrradianceSimple"),
-      DESCRIPTION(
-          "Calculates heating rates from the *irradiance_field*.\n"
-          "\n"
-          "The method assumes that the heating rates depend only on the\n"
-          "vertical derivation of the net flux. The net flux is the sum of the\n"
-          "*irradiance_field* in upward direction and the *irradiance_field*\n"
-          "in downward direction\n"
-          "Gravity and mass heat capacity at constant pressure is assumed \n"
-          "as constant\n"),
-      AUTHORS("Manfred Brath"),
-      OUT("heating_rates"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid", "irradiance_field"),
-      GIN("mass_specific_heat_capacity", "gzero"),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+//   md_data_raw.push_back(create_mdrecord(
+//       NAME("heating_ratesFromIrradianceSimple"),
+//       DESCRIPTION(
+//           "Calculates heating rates from the *irradiance_field*.\n"
+//           "\n"
+//           "The method assumes that the heating rates depend only on the\n"
+//           "vertical derivation of the net flux. The net flux is the sum of the\n"
+//           "*irradiance_field* in upward direction and the *irradiance_field*\n"
+//           "in downward direction\n"
+//           "Gravity and mass heat capacity at constant pressure is assumed \n"
+//           "as constant\n"),
+//       AUTHORS("Manfred Brath"),
+//       OUT("heating_rates"),
+//       GOUT(),
+//       GOUT_TYPE(),
+//       GOUT_DESC(),
+//       IN("p_grid", "irradiance_field"),
+//       GIN("mass_specific_heat_capacity", "gzero"),
+//       GIN_TYPE(),
+//       GIN_DEFAULT(),
+//       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
@@ -7697,14 +7697,17 @@ R"(
           "vertical derivation of the net flux. The net flux is the sum of the\n"
           "*irradiance_field* in upward direction and the *irradiance_field*\n"
           "in downward direction\n"
-          "Gravity and mass heat capacity at constant pressure is assumed \n"
-          "as constant\n"),
+          "Gravity and mass specific heat capacity are assumed to be varying \n"
+          "with pressure (altitude), latitude and longitude\n"),
       AUTHORS("Manfred Brath"),
       OUT("heating_rates"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("p_grid", "irradiance_field", "specific_heat_capacity", "g0"),
+      IN("p_grid", "lat_grid", "lon_grid", "z_field", 
+                "irradiance_field", "specific_heat_capacity", "g0_agenda",
+                "refellipsoid",
+                "atmosphere_dim"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
