@@ -168,6 +168,12 @@ void cloudboxSetAutomatically(  // WS Output:
   }
 
   if (any_not_empty) {
+    // without a cloudbox_margin, set the lower cloudbox_limit
+    // to the highest pressure
+    if (cloudbox_margin == -1) {
+      p1 = 0;
+    }
+
     // decrease lower cb limit by one to ensure that linear interpolation of
     // particle number densities is possible.
     p1 = max(p1 - 1, Index(0));
