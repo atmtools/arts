@@ -30,6 +30,14 @@ inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+void altitude2gravity(Numeric& g,
+                      const Numeric& r,
+                      const Numeric& g0,
+                      const Numeric& z) {
+  const Numeric x = r / (r + z);
+  g = g0 * x * x;
+}
+
 /** barometric_heightformula
  *
  *  Barometric heightformula for isothermal earth atmosphere.

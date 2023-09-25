@@ -39,6 +39,7 @@
 #include "linescaling.h"
 #include "matpack_data.h"
 #include "messages.h"
+#include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "xml_io.h"
@@ -3760,11 +3761,11 @@ void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
   }
 }
 
-// A small help function
-void z2g(Numeric& g, const Numeric& r, const Numeric& g0, const Numeric& z) {
-  const Numeric x = r / (r + z);
-  g = g0 * x * x;
-}
+// // A small help function
+// void z2g(Numeric& g, const Numeric& r, const Numeric& g0, const Numeric& z) {
+//   const Numeric x = r / (r + z);
+//   g = g0 * x * x;
+// }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void z_fieldFromHSE(Workspace& ws,
@@ -3878,10 +3879,10 @@ void z_fieldFromHSE(Workspace& ws,
         for (Index ip = 0; ip < np - 1; ip++) {
           // Calculate average g
           if (ip == 0) {
-            z2g(g2, re, g0, z_field(ip, ilat, ilon));
+            altitude2gravity(g2, re, g0, z_field(ip, ilat, ilon));
           }
           const Numeric g1 = g2;
-          z2g(g2, re, g0, z_field(ip + 1, ilat, ilon));
+          altitude2gravity(g2, re, g0, z_field(ip + 1, ilat, ilon));
           //
           const Numeric g = (g1 + g2) / 2.0;
 
