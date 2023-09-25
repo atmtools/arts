@@ -16,6 +16,7 @@ if (NOT ENABLE_ARTS_LGPL)
   arts_test_run_pyfile(fast artscomponents/cloudbox/Testcloudbox_fieldInterp2Azimuth.py)
 endif()
 
+arts_test_run_pyfile(fast artscomponents/cloudbox/TestCloudboxAuto.py)
 arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
 
 if (NOT ENABLE_ARTS_LGPL)
