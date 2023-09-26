@@ -3761,12 +3761,6 @@ void wind_u_fieldIncludePlanetRotation(Tensor3& wind_u_field,
   }
 }
 
-// // A small help function
-// void z2g(Numeric& g, const Numeric& r, const Numeric& g0, const Numeric& z) {
-//   const Numeric x = r / (r + z);
-//   g = g0 * x * x;
-// }
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void z_fieldFromHSE(Workspace& ws,
                     Tensor3& z_field,
