@@ -99,7 +99,7 @@ arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceBlackbody.arts)
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceFlatScalarReflectivity.arts)
 
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
-# arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
+arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
 arts_test_run_ctlfile(fast artscomponents/radar/TestOnionPeeling.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
