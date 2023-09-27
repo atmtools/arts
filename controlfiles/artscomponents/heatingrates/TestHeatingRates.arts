@@ -173,15 +173,14 @@ Arts2 {
     nrowsGet( 	nrows, t_field )
     ncolsGet( 	ncols, t_field )
     Tensor3SetConstant(specific_heat_capacity, npages, nrows, ncols, 1.006e+03 )
-    NumericSet(g0,9.80665)
-
+    
     #ARTS heating rates
     heating_ratesFromIrradiance
     Tensor3Create( heating_rates1 )
     Copy(heating_rates1,heating_rates)
 
     #Uncomment, if you want to calculate new reference
-    #WriteXML("ascii", heating_rates, "TestHeatingRates.heating_ratesREFERENCE2.xml" )
+    # WriteXML("ascii", heating_rates, "TestHeatingRates.heating_ratesREFERENCE.xml" )
     
     
     # For testing calculate first spectral irradiance and than do spectral 
