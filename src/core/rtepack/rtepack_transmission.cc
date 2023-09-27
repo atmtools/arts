@@ -15,15 +15,15 @@ static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
 
 struct tran {
-  Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{};  // To not repeat input
-  Numeric exp_a{};  // To not repeat exp(a)
+  Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{};   // To not repeat input
+  Numeric exp_a{};                             // To not repeat exp(a)
   Numeric b2{}, c2{}, d2{}, u2{}, v2{}, w2{};  // To shorten expressions
   Numeric B, C, S;  // From L^4 + BL^2 + C = 0; S = sqrt(B^2 - 4C)
-  Complex L1{}, L2{};  // Squared Eigenvalues, L1 = sqrt(-0.5*(S+B)), L1 = sqrt(0.5*(S-B))
-  Numeric x2{}, y2{}, x{}, y{}, cy{}, sy{}, cx{}, sx{};  // Eigenvalues and their used trigonometric functions
+  Numeric x2{}, y2{}, x{}, y{}, cy{}, sy{}, cx{},
+      sx{};  // Eigenvalues and their used trigonometric functions
   Numeric ix{}, iy{}, inv_x2y2{};  // Computational helpers
   Numeric C0{}, C1{}, C2{}, C3{};  // The Cayley-Hamilton coefficients
-  bool unpolarized{}, l1_imag{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
+  bool unpolarized{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
 
   constexpr tran() = default;
 
@@ -51,17 +51,17 @@ struct tran {
     w2 = w * w;
 
     /* Solve: 
-        0 = 
-            L^4 + 
-            (U^2+V^2+W^2-B^2-C^2-D^2)L^2 + 
-            2BCVW - 2BDUW + 2CDUV -B^2W^2 - C^2V^2 - D^2U^2
+        0 = L^4 + B L^2 + C
+        B = U^2+V^2+W^2-B^2-C^2-D^2
+        C = - (DU - CV + BW)^2
     */
     B = u2 + v2 + w2 - b2 - c2 - d2;
-    C = 2 * (b * c * v * w - b * d * u * w + c * d * u * v) -
-                      b2 * w2 - c2 * v2 - d2 * u2;
+    C = -Math::pow2(d * u - c * v + b * w);
     S = std::sqrt(B * B - 4 * C);
-    L1 = std::sqrt(- Complex(0.5) * (S + B));
-    L2 = std::sqrt(Complex(0.5) * (S - B));
+
+    // One will be complex, so we need to take the square root of a real-valued complex
+    y2 = std::sqrt(0.5 * (S + B));
+    x2 = std::sqrt(0.5 * (S - B));
 
     /*
         We have define: 
@@ -70,9 +70,6 @@ struct tran {
             x is from the real part of the Eigenvalues
             y is from the imag part of the Eigenvalues
     */
-    l1_imag = L1.imag() != 0;
-    x2 = l1_imag ? std::abs(L2.real()) : std::abs(L1.real());
-    y2 = l1_imag ? std::abs(L1.imag()) : std::abs(L2.imag());
     x = std::sqrt(x2);
     y = std::sqrt(y2);
 
@@ -81,8 +78,8 @@ struct tran {
     cx = std::cosh(x);
     sx = std::sinh(x);
 
-    x_zero = std::abs(x) < lower_is_considered_zero_for_sinc_likes;
-    y_zero = std::abs(y) < lower_is_considered_zero_for_sinc_likes;
+    x_zero = x < lower_is_considered_zero_for_sinc_likes;
+    y_zero = y < lower_is_considered_zero_for_sinc_likes;
     both_zero = y_zero and x_zero;
     either_zero = y_zero or x_zero;
 
@@ -96,10 +93,10 @@ struct tran {
      */
     ix = x_zero ? 0.0 : 1.0 / x;
     iy = y_zero ? 0.0 : 1.0 / y;
-    inv_x2y2 =
-        both_zero
-            ? 1.0
-            : 1.0 / (x2 + y2);  // The first "1.0" is the trick for above limits
+
+    // The first "1.0" is the trick for above limits
+    inv_x2y2 = both_zero ? 1.0 : 1.0 / (x2 + y2);
+
     C0 = either_zero ? 1.0 : (cy * x2 + cx * y2) * inv_x2y2;
     C1 = either_zero ? 1.0 : (sy * x2 * iy + sx * y2 * ix) * inv_x2y2;
     C2 = both_zero ? 0.5 : (cx - cy) * inv_x2y2;
@@ -110,54 +107,60 @@ struct tran {
                          inv_x2y2;
   }
 
-  muelmat operator()() const {
-    if (unpolarized) {
-      return exp_a;
-    }
-
-    return {exp_a * C0 + C2 * (b2 + c2 + d2),
-            exp_a * C1 * b + C2 * (-c * u - d * v) +
-                C3 * (b * (b2 + c2 + d2) - u * (b * u - d * w) -
-                      v * (b * v + c * w)),
-            exp_a * C1 * c + C2 * (b * u - d * w) +
-                C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) -
-                      w * (b * v + c * w)),
-            exp_a * C1 * d + C2 * (b * v + c * w) +
-                C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) +
-                      w * (b * u - d * w)),
-
-            exp_a * C1 * b + C2 * (c * u + d * v) +
-                C3 * (-b * (-b2 + u2 + v2) + c * (b * c - v * w) +
-                      d * (b * d + u * w)),
-            exp_a * C0 + C2 * (b2 - u2 - v2),
-            exp_a * C2 * (b * c - v * w) + C1 * u +
-                C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) -
-                      w * (b * d + u * w)),
-            exp_a * C2 * (b * d + u * w) + C1 * v +
-                C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) +
-                      w * (b * c - v * w)),
-
-            exp_a * C1 * c + C2 * (-b * u + d * w) +
-                C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) +
-                      d * (c * d - u * v)),
-            exp_a * C2 * (b * c - v * w) - C1 * u +
-                C3 * (-b * (b * u - d * w) + u * (-c2 + u2 + w2) -
-                      v * (c * d - u * v)),
-            exp_a * C0 + C2 * (c2 - u2 - w2),
-            exp_a * C2 * (c * d - u * v) + C1 * w +
-                C3 * (-d * (b * u - d * w) + v * (b * c - v * w) -
-                      w * (-c2 + u2 + w2)),
-
-            exp_a * C1 * d + C2 * (-b * v - c * w) +
-                C3 * (b * (b * d + u * w) + c * (c * d - u * v) -
-                      d * (-d2 + v2 + w2)),
-            exp_a * C2 * (b * d + u * w) - C1 * v +
-                C3 * (-b * (b * v + c * w) - u * (c * d - u * v) +
-                      v * (-d2 + v2 + w2)),
-            exp_a * C2 * (c * d - u * v) - C1 * w +
-                C3 * (-c * (b * v + c * w) + u * (b * d + u * w) +
-                      w * (-d2 + v2 + w2)),
-            exp_a * C0 + C2 * (d2 - v2 - w2)};
+  constexpr muelmat operator()() const noexcept {
+    return unpolarized ? muelmat{exp_a}
+                       : muelmat{exp_a * (C0 + C2 * b2 + C2 * c2 + C2 * d2),
+                                 -exp_a * (-C1 * b + C2 * c * u + C2 * d * v -
+                                           C3 * b * (b2 + c2 + d2) +
+                                           C3 * u * (b * u - d * w) +
+                                           C3 * v * (b * v + c * w)),
+                                 exp_a * (C1 * c + C2 * b * u - C2 * d * w +
+                                          C3 * c * (b2 + c2 + d2) -
+                                          C3 * u * (c * u + d * v) -
+                                          C3 * w * (b * v + c * w)),
+                                 exp_a * (C1 * d + C2 * b * v + C2 * c * w +
+                                          C3 * d * (b2 + c2 + d2) -
+                                          C3 * v * (c * u + d * v) +
+                                          C3 * w * (b * u - d * w)),
+                                 exp_a * (C1 * b + C2 * c * u + C2 * d * v -
+                                          C3 * b * (-b2 + u2 + v2) +
+                                          C3 * c * (b * c - v * w) +
+                                          C3 * d * (b * d + u * w)),
+                                 exp_a * (C0 + C2 * b2 - C2 * u2 - C2 * v2),
+                                 exp_a * (C1 * u + C2 * b * c - C2 * v * w +
+                                          C3 * c * (c * u + d * v) -
+                                          C3 * u * (-b2 + u2 + v2) -
+                                          C3 * w * (b * d + u * w)),
+                                 exp_a * (C1 * v + C2 * b * d + C2 * u * w +
+                                          C3 * d * (c * u + d * v) -
+                                          C3 * v * (-b2 + u2 + v2) +
+                                          C3 * w * (b * c - v * w)),
+                                 exp_a * (C1 * c - C2 * b * u + C2 * d * w +
+                                          C3 * b * (b * c - v * w) -
+                                          C3 * c * (-c2 + u2 + w2) +
+                                          C3 * d * (c * d - u * v)),
+                                 -exp_a * (C1 * u - C2 * b * c + C2 * v * w +
+                                           C3 * b * (b * u - d * w) -
+                                           C3 * u * (-c2 + u2 + w2) +
+                                           C3 * v * (c * d - u * v)),
+                                 exp_a * (C0 + C2 * c2 - C2 * u2 - C2 * w2),
+                                 exp_a * (C1 * w + C2 * c * d - C2 * u * v -
+                                          C3 * d * (b * u - d * w) +
+                                          C3 * v * (b * c - v * w) -
+                                          C3 * w * (-c2 + u2 + w2)),
+                                 exp_a * (C1 * d - C2 * b * v - C2 * c * w +
+                                          C3 * b * (b * d + u * w) +
+                                          C3 * c * (c * d - u * v) -
+                                          C3 * d * (-d2 + v2 + w2)),
+                                 -exp_a * (C1 * v - C2 * b * d - C2 * u * w +
+                                           C3 * b * (b * v + c * w) +
+                                           C3 * u * (c * d - u * v) -
+                                           C3 * v * (-d2 + v2 + w2)),
+                                 -exp_a * (C1 * w - C2 * c * d + C2 * u * v +
+                                           C3 * c * (b * v + c * w) -
+                                           C3 * u * (b * d + u * w) -
+                                           C3 * w * (-d2 + v2 + w2)),
+                                 exp_a * (C0 + C2 * d2 - C2 * v2 - C2 * w2)};
   }
 
   [[nodiscard]] muelmat deriv(const muelmat &t,
@@ -166,12 +169,12 @@ struct tran {
                               const propmat &dk,
                               const Numeric r,
                               const Numeric dr) const {
+    const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A()));
     if (unpolarized) {
-      return {-0.5 * (r * dk.A() + dr * (k1.A() + k2.A())) * exp_a};
+      return {da * exp_a};
     }
 
-    const Numeric da = -0.5 * (r * dk.A() + dr * (k1.A() + k2.A())),
-                  db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B())),
+    const Numeric db = -0.5 * (r * dk.B() + dr * (k1.B() + k2.B())),
                   dc = -0.5 * (r * dk.C() + dr * (k1.C() + k2.C())),
                   dd = -0.5 * (r * dk.D() + dr * (k1.D() + k2.D())),
                   du = -0.5 * (r * dk.U() + dr * (k1.U() + k2.U())),
@@ -180,22 +183,20 @@ struct tran {
     const Numeric db2 = 2 * db * b, dc2 = 2 * dc * c, dd2 = 2 * dd * d,
                   du2 = 2 * du * u, dv2 = 2 * dv * v, dw2 = 2 * dw * w;
 
+    /* Solve: 
+        0 = L^4 + B L^2 + C
+        B = U^2+V^2+W^2-B^2-C^2-D^2
+        C = - (DU - CV + BW)^2
+    */
     const Numeric dB = du2 + dv2 + dw2 - db2 - dc2 - dd2;
-    const Numeric dC = 2 * (db * c * v * w - b * d * u * dw + dc * d * u * v +
-                            b * dc * v * w - b * d * du * w + c * dd * u * v +
-                            b * c * dv * w - b * dd * u * w + c * d * du * v +
-                            b * c * v * dw - db * d * u * w + c * d * u * dv) -
-                       db2 * w2 - c2 * dv2 - dd2 * u2 - b2 * dw2 - dc2 * v2 -
-                       d2 * du2;
+    const Numeric dC = -2 * (b * w - c * v + d * u) *
+                       (b * dw - c * dv + d * du + db * w - dc * v + dd * u);
     const Numeric dS = (2 * B * dB - 4 * dC) * 0.5 / S;
 
-    const Complex dL1 = - (dB + dS) * 0.5 / L1;
-    const Complex dL2 = (dB - dS) * 0.5 / L2;
-
-    const Numeric dx2 = l1_imag ? std::abs(dL2.real()) : std::abs(dL1.real());
-    const Numeric dy2 = l1_imag ? std::abs(dL1.imag()) : std::abs(dL2.imag());
-    const Numeric dx = dx2 * 0.5 / x;
-    const Numeric dy = dy2 * 0.5 / y;
+    const Numeric dy2 = 0.25 * (dS + dB) / y2;
+    const Numeric dx2 = 0.25 * (dS - dB) / x2;
+    const Numeric dx = 0.5 * dx2 / x;
+    const Numeric dy = 0.5 * dy2 / y;
 
     const Numeric dcy = -sy * dy;
     const Numeric dsy = cy * dy;
@@ -215,8 +216,7 @@ struct tran {
             : (dsy * x2 * iy + sy * dx2 * iy + sy * x2 * diy + dsx * y2 * ix +
                sx * dy2 * ix + sx * y2 * dix - C1 * dx2dy2) *
                   inv_x2y2;
-    const Numeric dC2 =
-        both_zero ? 0.0 : (dcx - dcy - C2 * dx2dy2) * inv_x2y2;
+    const Numeric dC2 = both_zero ? 0.0 : (dcx - dcy - C2 * dx2dy2) * inv_x2y2;
     const Numeric dC3 =
         both_zero ? 0.0
                   : ((x_zero   ? -dsy * iy - sy * diy
@@ -224,7 +224,7 @@ struct tran {
                                : dsx * ix + sx * dix - dsy * iy - sy * diy) -
                      C3 * dx2dy2) *
                         inv_x2y2;
-                        
+
     return {t(0, 0) * da + exp_a * dC0 + dC2 * (b2 + c2 + d2) +
                 C2 * (db2 + dc2 + dd2),
             t(0, 1) * da + exp_a * db * C1 + b * dC1 + dC2 * (-c * u - d * v) +
@@ -345,15 +345,13 @@ void two_level_exp_test(muelmat &t,
                         const Numeric r,
                         const ExhaustiveConstVectorView &dr1,
                         const ExhaustiveConstVectorView &dr2) {
-  ARTS_ASSERT(dk1.size() == dk2.size() and
-              dk1.size() == dr1.size() and
+  ARTS_ASSERT(dk1.size() == dk2.size() and dk1.size() == dr1.size() and
               dk1.size() == dr2.size())
 
   const tran tran_state{k1, k2, r};
   t = tran_state();
 
-  const auto deriv = [&](const propmat &dk,
-                                         const Numeric &dr) -> muelmat {
+  const auto deriv = [&](const propmat &dk, const Numeric &dr) -> muelmat {
     return tran_state.deriv(t, k1, k2, dk, r, dr);
   };
 
