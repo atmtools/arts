@@ -30,15 +30,4 @@ void two_level_exp_nopolar(muelmat_vector_view &t,
                            const propmat_vector_const_view &k1,
                            const propmat_vector_const_view &k2,
                            const Numeric r);
-
-void two_level_exp_test(muelmat &t,
-                        muelmat_vector_view &dt1,
-                        muelmat_vector_view &dt2,
-                        const propmat &k1,
-                        const propmat &k2,
-                        const propmat_vector_const_view &dk1,
-                        const propmat_vector_const_view &dk2,
-                        const Numeric r,
-                        const ExhaustiveConstVectorView &dr1,
-                        const ExhaustiveConstVectorView &dr2);
 }  // namespace rtepack
