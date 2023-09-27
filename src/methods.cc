@@ -6904,26 +6904,6 @@ R"(
       GIN_DESC("An array")));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("FluxDivergenceFromIrradiance"),
-      DESCRIPTION(
-          "Calculates flux divergence from the *irradiance_field*.\n"
-          "\n"
-          "It is the vertical derivation of the net flux. \n"
-          "The net flux is the sum of the\n"
-          "*irradiance_field* in upward direction and the *irradiance_field*\n"
-          "in downward direction\n"),
-      AUTHORS("Manfred Brath"),
-      OUT("flux_divergence"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid", "irradiance_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));    
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("ForLoop"),
       DESCRIPTION(
           "A simple for-loop.\n"
@@ -7695,15 +7675,15 @@ R"(
           "vertical derivation of the net flux. The net flux is the sum of the\n"
           "*irradiance_field* in upward direction and the *irradiance_field*\n"
           "in downward direction\n"
-          "Gravity and mass heat capacity at constant pressure is assumed \n"
-          "as constant\n"),
+          "Gravity and mass heat capacity at constant pressure are assumed \n"
+          "to be constant.\n"),
       AUTHORS("Manfred Brath"),
       OUT("heating_rates"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("p_grid", "irradiance_field"),
-      GIN("mass_specific_heat_capacity", "g"),
+      GIN("mass_specific_heat_capacity", "gravity"),
       GIN_TYPE("Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Mass specific heat capacity at constant pressure", "Gravity")));

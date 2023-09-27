@@ -1442,21 +1442,6 @@ void define_wsv_data() {
           "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. \n"),
       GROUP("Index")));
 
-    wsv_data.push_back(WsvRecord(
-      NAME("flux_divergence"),
-      DESCRIPTION(
-          "Flux divergence at atmospheric levels.\n"
-          "\n"
-          "The flux divergence is defined as the derivative of the net \n"
-          "radiation flux with respect to pressure at each level. \n"
-          "It is positive by absorption of radiation or it\n"
-          "is negative due to loss of energy by emission of radiation.\n"
-          "\n"
-          "Units: W m^-3\n"
-          "\n"
-          "Size: [ p_grid, lat_grid, lon_grid ]\n"),
-      GROUP("Tensor3")));    
-
   wsv_data.push_back(WsvRecord(NAME("forloop_agenda"),
                                DESCRIPTION("Agenda performing a for loop.\n"),
                                GROUP("Agenda")));

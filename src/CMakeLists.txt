@@ -145,6 +145,7 @@ add_library (artscore STATIC
   fastem.cc
   predefined_absorption_models.cc
   file.cc
+  fluxes.cc
   gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
