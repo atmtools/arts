@@ -111,8 +111,8 @@ ws.propmat_clearsky_agendaAuto(use_abs_lookup=1)
 # =============================================================================
 
 # Atmospheric profiles
-# ws.AtmRawRead(basename="testdata/tropical")
-ws.AtmRawRead(basename="../../arts_dev/arts-xml-data/planets/Earth/Fascod/tropical/tropical")
+ws.AtmRawRead(basename="testdata/tropical")
+# ws.AtmRawRead(basename="../../arts_dev/arts-xml-data/planets/Earth/Fascod/tropical/tropical")
 ws.AtmFieldsCalc()
 
 # Get ground altitude (z_surface) from z_field
