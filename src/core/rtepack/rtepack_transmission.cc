@@ -113,59 +113,49 @@ struct tran {
 
   constexpr muelmat operator()() const noexcept {
     // Do the calculation exp(a) * (C0 * I + C1 * K + C2 * K^2 + C3 * K^3)
-    return unpolarized ? muelmat{exp_a}
-                       : muelmat{exp_a * (C0 + C2 * b2 + C2 * c2 + C2 * d2),
-                                 -exp_a * (-C1 * b + C2 * c * u + C2 * d * v -
-                                           C3 * b * (b2 + c2 + d2) +
-                                           C3 * u * (b * u - d * w) +
-                                           C3 * v * (b * v + c * w)),
-                                 exp_a * (C1 * c + C2 * b * u - C2 * d * w +
-                                          C3 * c * (b2 + c2 + d2) -
-                                          C3 * u * (c * u + d * v) -
-                                          C3 * w * (b * v + c * w)),
-                                 exp_a * (C1 * d + C2 * b * v + C2 * c * w +
-                                          C3 * d * (b2 + c2 + d2) -
-                                          C3 * v * (c * u + d * v) +
-                                          C3 * w * (b * u - d * w)),
-                                 exp_a * (C1 * b + C2 * c * u + C2 * d * v -
-                                          C3 * b * (-b2 + u2 + v2) +
-                                          C3 * c * (b * c - v * w) +
-                                          C3 * d * (b * d + u * w)),
-                                 exp_a * (C0 + C2 * b2 - C2 * u2 - C2 * v2),
-                                 exp_a * (C1 * u + C2 * b * c - C2 * v * w +
-                                          C3 * c * (c * u + d * v) -
-                                          C3 * u * (-b2 + u2 + v2) -
-                                          C3 * w * (b * d + u * w)),
-                                 exp_a * (C1 * v + C2 * b * d + C2 * u * w +
-                                          C3 * d * (c * u + d * v) -
-                                          C3 * v * (-b2 + u2 + v2) +
-                                          C3 * w * (b * c - v * w)),
-                                 exp_a * (C1 * c - C2 * b * u + C2 * d * w +
-                                          C3 * b * (b * c - v * w) -
-                                          C3 * c * (-c2 + u2 + w2) +
-                                          C3 * d * (c * d - u * v)),
-                                 -exp_a * (C1 * u - C2 * b * c + C2 * v * w +
-                                           C3 * b * (b * u - d * w) -
-                                           C3 * u * (-c2 + u2 + w2) +
-                                           C3 * v * (c * d - u * v)),
-                                 exp_a * (C0 + C2 * c2 - C2 * u2 - C2 * w2),
-                                 exp_a * (C1 * w + C2 * c * d - C2 * u * v -
-                                          C3 * d * (b * u - d * w) +
-                                          C3 * v * (b * c - v * w) -
-                                          C3 * w * (-c2 + u2 + w2)),
-                                 exp_a * (C1 * d - C2 * b * v - C2 * c * w +
-                                          C3 * b * (b * d + u * w) +
-                                          C3 * c * (c * d - u * v) -
-                                          C3 * d * (-d2 + v2 + w2)),
-                                 -exp_a * (C1 * v - C2 * b * d - C2 * u * w +
-                                           C3 * b * (b * v + c * w) +
-                                           C3 * u * (c * d - u * v) -
-                                           C3 * v * (-d2 + v2 + w2)),
-                                 -exp_a * (C1 * w - C2 * c * d + C2 * u * v +
-                                           C3 * c * (b * v + c * w) -
-                                           C3 * u * (b * d + u * w) -
-                                           C3 * w * (-d2 + v2 + w2)),
-                                 exp_a * (C0 + C2 * d2 - C2 * v2 - C2 * w2)};
+    return unpolarized
+               ? muelmat{exp_a}
+               : muelmat{
+                     exp_a * (C0 + C2 * (b2 + c2 + d2)),
+                     -exp_a * (-C1 * b + C2 * (c * u + d * v) +
+                               C3 * (u * (b * u - d * w) - b * (b2 + c2 + d2) +
+                                     v * (b * v + c * w))),
+                     exp_a * (C1 * c + C2 * (b * u - d * w) +
+                              C3 * (c * (b2 + c2 + d2) - u * (c * u + d * v) -
+                                    w * (b * v + c * w))),
+                     exp_a * (C1 * d + C2 * (b * v + c * w) +
+                              C3 * (d * (b2 + c2 + d2) - v * (c * u + d * v) +
+                                    w * (b * u - d * w))),
+                     exp_a * (C1 * b + C2 * (c * u + d * v) +
+                              C3 * (c * (b * c - v * w) - b * (-b2 + u2 + v2) +
+                                    d * (b * d + u * w))),
+                     exp_a * (C0 + C2 * (b2 - u2 - v2)),
+                     exp_a * (C1 * u + C2 * (b * c - v * w) +
+                              C3 * (c * (c * u + d * v) - u * (-b2 + u2 + v2) -
+                                    w * (b * d + u * w))),
+                     exp_a * (C1 * v + C2 * (b * d + u * w) +
+                              C3 * (d * (c * u + d * v) - v * (-b2 + u2 + v2) +
+                                    w * (b * c - v * w))),
+                     exp_a * (C1 * c + C2 * (d * w - b * u) +
+                              C3 * (b * (b * c - v * w) - c * (-c2 + u2 + w2) +
+                                    d * (c * d - u * v))),
+                     -exp_a * (C1 * u + C2 * (v * w - b * c) +
+                               C3 * (b * (b * u - d * w) - u * (-c2 + u2 + w2) +
+                                     v * (c * d - u * v))),
+                     exp_a * (C0 + C2 * (c2 - u2 - w2)),
+                     exp_a * (C1 * w + C2 * (c * d - u * v) +
+                              C3 * (v * (b * c - v * w) - d * (b * u - d * w) -
+                                    w * (-c2 + u2 + w2))),
+                     exp_a * (C1 * d - C2 * (b * v + c * w) +
+                              C3 * (b * (b * d + u * w) + c * (c * d - u * v) -
+                                    d * (-d2 + v2 + w2))),
+                     -exp_a * (C1 * v - C2 * (b * d + u * w) +
+                               C3 * (b * (b * v + c * w) + u * (c * d - u * v) -
+                                     v * (-d2 + v2 + w2))),
+                     -exp_a * (C1 * w + C2 * (u * v - c * d) +
+                               C3 * (c * (b * v + c * w) - u * (b * d + u * w) -
+                                     w * (-d2 + v2 + w2))),
+                     exp_a * (C0 + C2 * (d2 - v2 - w2))};
   }
 
   [[nodiscard]] muelmat deriv(const muelmat &t,

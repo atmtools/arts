@@ -9,7 +9,7 @@
 #include "lin_alg.h"
 
 void test_expm() {
-  const Numeric A = 0.1;
+  const Numeric A = 0.01;
   for (Size i = 0; i < 100; i++) {
     auto rng = RandomNumberGenerator{}.get(0.0, A);
     auto rng2 = RandomNumberGenerator{}.get(-A, A);
@@ -51,8 +51,7 @@ void test_expm() {
 
     t_test_diff -= t_expm;
     t_test_diff /= t_expm;
-    std::cout << t_expm[0][0] << ' ';
-    std::cout << t_test[0][0] << '\n';
+    std::cout << t_test_diff << '\n';
     std::cout << '\n';
   }
 }
@@ -166,8 +165,8 @@ void test_inv() {
 }
 
 int main() {
-  //test_expm();
-  //test_dexpm();
+  test_expm();
+  test_dexpm();
   test_inv();
   return 0;
 }
