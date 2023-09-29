@@ -182,26 +182,9 @@ void heating_ratesFromIrradianceSimple(
     const Numeric& mass_specific_heat_capacity,
     const Numeric& gravity,
     const Verbosity&) {
-  //allocate
-  heating_rates.resize(irradiance_field.nbooks(),
-                       irradiance_field.npages(),
-                       irradiance_field.nrows());
-  heating_rates = 0;
+  FluxDivergenceFromIrradiance(heating_rates, p_grid, irradiance_field);
 
-  // calculate heating rates.
-  Tensor3 flux_divergence;
-  FluxDivergenceFromIrradiance(
-      flux_divergence, p_grid, irradiance_field);
-
-  // calculate heating rates.
-  for (Index b = 0; b < irradiance_field.nbooks() - 1; b++) {
-    for (Index p = 0; p < irradiance_field.npages(); p++) {
-      for (Index r = 0; r < irradiance_field.nrows(); r++) {
-        heating_rates(b, p, r) =
-            flux_divergence(b, p, r) * gravity / mass_specific_heat_capacity;
-      }
-    }
-  }
+  heating_rates *= gravity / mass_specific_heat_capacity;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
