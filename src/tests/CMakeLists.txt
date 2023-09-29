@@ -231,3 +231,7 @@ target_link_libraries(test_interp_perf PUBLIC matpack artsworkspace)
 add_executable(test_rng test_rng.cc)
 target_link_libraries(test_rng PUBLIC artscore)
 target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
+
+#####
+add_executable(test_rtepack test_rtepack.cc)
+target_link_libraries(test_rtepack PUBLIC artstime rtepack)
