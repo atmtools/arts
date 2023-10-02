@@ -617,7 +617,7 @@ class TestGroups:
         x = cxx.Numeric(0)
         test.io(x, delete=True)
 
-        assert x == 0., f"{x} cannot evaluate as equal to 0."
+        assert x == 0.0, f"{x} cannot evaluate as equal to 0."
         assert x == 0, f"{x} cannot evaluate as equal to 0"
         x = x + 2
         assert x == 2
@@ -841,14 +841,24 @@ class TestGroups:
     def testNumericUnaryOperator(self):
         def sqrt(n):
             return np.sqrt(n)
+
         f = cxx.NumericUnaryOperator(sqrt)
         x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         assert np.allclose(np.sqrt(x) - f(x), 0)
+
+    def testNumericTernaryOperator(self):
+        def add(x, y, z):
+            return x + y + z
+
+        f = cxx.NumericTernaryOperator(add)
+        x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        assert np.allclose(x + x + x - f(x, x, x), 0)
 
     def test_xml(self):
         ignore_groups = [
             "CallbackOperator",
             "NumericUnaryOperator",
+            "NumericTernaryOperator",
             "SpectralRadianceProfileOperator",
             "SingleScatteringData",
             "RetrievalQuantity",
@@ -961,7 +971,7 @@ class TestGroups:
             raise Exception(f"There are {len(fail)} tests failing")
 
     def test_copy(self):
-        ignore_groups = ["NumericUnaryOperator"]
+        ignore_groups = ["NumericUnaryOperator", "NumericTernaryOperator"]
 
         groups = list(cxx.globals.workspace_groups().keys())
         groups.sort()
