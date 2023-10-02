@@ -32,3 +32,5 @@ struct CustomOperator {
 #endif
 
 using NumericUnaryOperator = CustomOperator<Numeric, Numeric>;
+
+using NumericTernaryOperator = CustomOperator<Numeric, Numeric, Numeric, Numeric>;
