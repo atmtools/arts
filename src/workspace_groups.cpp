@@ -498,5 +498,12 @@ This type will work as a function pointer that takes a single *Numeric*
 to produce another *Numeric*.
 )--"};
 
+  wsg_data["NumericTernaryOperator"]  = {
+      .file = "operators.h", .desc = R"--(A simple functional type.
+
+This type will work as a function pointer that takes three *Numeric*
+to produce a single *Numeric*.
+)--"};
+
   return wsg_data;
 }

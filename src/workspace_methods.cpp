@@ -17171,5 +17171,35 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
     .gin_desc = {"Set to 1 to use liquid saturation pressure at all temperatures"}
   };
 
+  wsm_data["atm_fieldHydrostaticPressure"] = {
+      .desc = R"-x-(Add the hydrostatic pressure to the atmospheric field
+    
+The field must already be able to compute temperature as a function of
+altitude, latitude, and longitude.
+
+If it also contains species data, the species are used to compute the
+average mass of the atmospheric molecules to get the specific gas
+constant.  Note that this can also be overwritte with a positive
+value for the equivalent GIN.
+
+The ``alts`` vector contains the altitude grid values that limits the
+extrapolation distance in altitude.  The first altitude in this
+list should corresond to the altitude of the ``p0`` grid.  The extrapolation
+outside of this range simply uses the hydrostatic equation
+$P_1 = P_0 - g * h * \rho$ by means of the specific gas constant omputed
+as desribed above and the pressure of the lower or first altitude level.
+)-x-",
+      .author = {"Richard Larsson"},
+      .out = {"atm_field"},
+      .in = {"atm_field", "gravity_operator", "isotopologue_ratios"},
+      .gin = {"p0", "alts", "fixed_specific_gas_constant", "fixed_atm_temperature", "hydrostatic_option"},
+      .gin_type = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{-1}, Numeric{-1}, String{"HydrostaticEquation"}},
+      .gin_desc = {"Lowest altitude pressure field",
+                   "Altitude vector",
+                   "Specific gas constant if larger than 0",
+                   "Constant atmospheric temprature if larger than 0",
+                   "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"}};
+
   return wsm_data;
 }

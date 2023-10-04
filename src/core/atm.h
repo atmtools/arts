@@ -183,7 +183,7 @@ public:
       return has_(*this, std::forward<T>(key));
   }
 
-  [[nodiscard]] Numeric mean_mass() const;
+  [[nodiscard]] Numeric mean_mass(const SpeciesIsotopologueRatios& ir) const;
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
@@ -339,39 +339,6 @@ static_assert(
     std::same_as<typename Field::KeyVal, KeyVal>,
     "The order of arguments in the template of which Field inherits from is "
     "wrong.  KeyVal must be defined in the same way for this to work.");
-
-/** A wrapper to fix the input field to the expected format for Field
- *
- * The input must contain all of the Pressure, Latitude, and Longitude grids
- *
- * Throws if anything goes wrong
- *
- * @param[in] gf A gridded field
- * @return GriddedField3 in the Field format
- */
-GriddedField3 fix(const GriddedField3 &);
-
-/** A wrapper to fix the input field to the expected format for Field
- *
- * The input must contain 2 of the Pressure, Latitude, and Longitude grids
- *
- * Throws if anything goes wrong
- *
- * @param[in] gf A gridded field
- * @return GriddedField3 in the Field format
- */
-GriddedField3 fix(const GriddedField2 &);
-
-/** A wrapper to fix the input field to the expected format for Field
- *
- * The input must contain 1 of the Pressure, Latitude, and Longitude grids
- *
- * Throws if anything goes wrong
- *
- * @param[in] gf A gridded field
- * @return GriddedField3 in the Field format
- */
-GriddedField3 fix(const GriddedField1 &);
 
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
 } // namespace Atm

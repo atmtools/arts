@@ -4522,5 +4522,10 @@ Unit:  m
 )--",
       .type = "NumericUnaryOperator"};
 
+  wsv_data["gravity_operator"] = {
+      .desc = R"--(The gravity operator.
+)--",
+      .type = "NumericTernaryOperator"};
+
   return wsv_data;
 }

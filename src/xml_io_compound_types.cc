@@ -2857,6 +2857,21 @@ void xml_write_to_stream(std::ostream&,
   ARTS_USER_ERROR("Method not implemented!");
 }
 
+//=== NumericTernaryOperator =========================================
+
+void xml_read_from_stream(std::istream&,
+                          NumericTernaryOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const NumericTernaryOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
 //=== SpectralRadianceProfileOperator =========================================
 
 void xml_read_from_stream(std::istream&,

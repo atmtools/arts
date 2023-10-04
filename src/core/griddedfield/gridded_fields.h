@@ -17,6 +17,8 @@
 
 #include <stdexcept>
 #include <utility>
+#include "configtypes.h"
+#include "matpack_data.h"
 
 #include <array.h>
 #include <artstime.h>
@@ -147,6 +149,55 @@ String metaErrorData(const GriddedFieldType& gf) {
     os << ' ' << gf.data.nelem();
   return os.str();
 }
+
+template <typename T, typename... Grids>
+struct gridded_data {
+  static constexpr Size dim = sizeof...(Grids);
+
+  using data_t = matpack::matpack_data<T, dim>;
+
+  using grids_t = std::tuple<Grids...>;
+
+  template <Size Grid>
+  using grid_t = std::tuple_element_t<Grid, grids_t>;
+
+  data_t data;
+  grids_t grids;
+  String data_name{};
+  std::array<String, dim> grid_names{};
+
+  template <Size Grid>
+  [[nodiscard]] grid_t<Grid>& grid() {
+    return std::get<Grid>(grids);
+  }
+
+  template <Size Grid>
+  [[nodiscard]] const grid_t<Grid>& grid() const {
+    return std::get<Grid>(grids);
+  }
+
+  template <Size Grid>
+  [[nodiscard]] String& gridname() {
+    return std::get<Grid>(grid_names);
+  }
+
+  template <Size Grid>
+  [[nodiscard]] const String& gridname() const {
+    return std::get<Grid>(grid_names);
+  }
+
+  template <Size... Ints>
+  [[nodiscard]] std::array<Size, dim> shape(
+      std::index_sequence<Ints...>) const requires(sizeof...(Ints) == dim) {
+    return {grid<Ints>().size()...};
+  }
+
+  [[nodiscard]] std::array<Size, dim> shape() const {
+    return shape(std::make_index_sequence<dim>());
+  }
+
+  [[nodiscard]] bool check() const { return data.shape() == shape(); }
+};
 
 /*! Abstract base class for gridded fields. */
 class GriddedField {

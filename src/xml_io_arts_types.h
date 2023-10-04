@@ -135,6 +135,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
+TMPL_XML_READ_WRITE_STREAM(NumericTernaryOperator)
 
 //=== rtepack types ========================================================
 
