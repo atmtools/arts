@@ -21,6 +21,7 @@ arts_test_run_pyfile(fast artscomponents/cutoff/ycalc.py)
 
 if (NOT ENABLE_ARTS_LGPL)
   arts_test_run_pyfile(fast artscomponents/disort/Test_spectral_irradiance_fieldDisort.py)
+  arts_test_run_pyfile(fast artscomponents/heatingrates/Test_HeatingRate.py)
 endif()
 
 if (NOT ENABLE_ARTS_LGPL)

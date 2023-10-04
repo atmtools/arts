@@ -10,6 +10,7 @@
 #include "arts_conversions.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "fluxes.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "messages.h"
@@ -19,6 +20,9 @@
 #include "check_input.h"
 #include "global_data.h"
 #include "gsl_gauss_legendre.h"
+#include "geodetic.h"
+#include "physics_funcs.h"
+
 
 /*!
   \file   m_fluxes.cc
@@ -171,11 +175,31 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void heating_ratesFromIrradiance(Tensor3& heating_rates,
+void heating_ratesFromIrradianceSimple(
+    Tensor3& heating_rates,
+    const Vector& p_grid,
+    const Tensor4& irradiance_field,
+    const Numeric& mass_specific_heat_capacity,
+    const Numeric& gravity,
+    const Verbosity&) {
+  FluxDivergenceFromIrradiance(heating_rates, p_grid, irradiance_field);
+
+  heating_rates *= gravity / mass_specific_heat_capacity;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void heating_ratesFromIrradiance(Workspace& ws,
+                                 Tensor3& heating_rates,
                                  const Vector& p_grid,
+                                 const Vector& lat_grid,
+                                 const Vector& lon_grid,
+                                 const Tensor3& z_field,
                                  const Tensor4& irradiance_field,
                                  const Tensor3& specific_heat_capacity,
-                                 const Numeric& g0,
+                                 const Agenda& g0_agenda,
+                                 const Vector& refellipsoid,
+                                 const Index& atmosphere_dim,
+                                 const Numeric& lat_1d_atm,
                                  const Verbosity&) {
   //allocate
   heating_rates.resize(irradiance_field.nbooks(),
@@ -183,58 +207,54 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
                        irradiance_field.nrows());
   heating_rates = 0;
 
-  // allocate some auxiliary variables
-  Numeric net_flux_b;  //net_flux bottom
-  Numeric net_flux_c;  //net_flux center
-  Numeric net_flux_t;  //net_flux top
-  Index idx;
-
-  // calculate heating rates, we skip the upper and lower boundary here, because to achieve the same
-  // second order accuracy for the derivation of the net flux at the edged, we use
-  // a differentiation based on polynomial interpolation
-  for (Index b = 1; b < irradiance_field.nbooks() - 1; b++) {
+  //get gravity at lowermost level for each lat/lon grid point
+  Matrix g0(irradiance_field.npages(), irradiance_field.nrows(), 0);
+  if (atmosphere_dim == 1) {
+    Numeric g_temp;
+    g0_agendaExecute(ws, g_temp, lat_1d_atm, 0, g0_agenda);
+    g0 = g_temp;
+  } else if (atmosphere_dim == 2) {
+    for (Index p = 0; p < irradiance_field.npages(); p++) {
+      g0_agendaExecute(ws, g0(p, 0), lat_grid[p], 0, g0_agenda);
+      g0(p, joker) = g0(p, 0);
+    }
+  } else {
     for (Index p = 0; p < irradiance_field.npages(); p++) {
       for (Index r = 0; r < irradiance_field.nrows(); r++) {
-        net_flux_b = (irradiance_field(b - 1, p, r, 0) +
-                      irradiance_field(b - 1, p, r, 1));
-        net_flux_t = (irradiance_field(b + 1, p, r, 0) +
-                      irradiance_field(b + 1, p, r, 1));
-
-        heating_rates(b, p, r) = (net_flux_t - net_flux_b) /
-                                 (p_grid[b + 1] - p_grid[b - 1]) * g0 /
-                                 specific_heat_capacity(b, p, r);
+        g0_agendaExecute(ws, g0(p, r), lat_grid[p], lon_grid[r], g0_agenda);
       }
     }
   }
 
-  idx = irradiance_field.nbooks();
+  // Radius of reference ellipsoid
+  Numeric r_e = refellipsoid[0];
+  Vector R_e;
+  if (atmosphere_dim > 1) {
+    R_e.resize(lat_grid.nelem());
+    for (Index p = 0; p < irradiance_field.npages(); p++) {
+      R_e[p] = refell2r(refellipsoid, lat_grid[p]);
+    }
+  }
 
-  // now calculate the heating rates for the upper and lower boundary
-  for (Index p = 0; p < irradiance_field.npages(); p++) {
-    for (Index r = 0; r < irradiance_field.nrows(); r++) {
-      // lower boundary
-      net_flux_b =
-          (irradiance_field(0, p, r, 0) + irradiance_field(0, p, r, 1));
-      net_flux_c =
-          (irradiance_field(1, p, r, 0) + irradiance_field(1, p, r, 1));
-      net_flux_t =
-          (irradiance_field(2, p, r, 0) + irradiance_field(0, p, r, 1));
+  // calculate flux divergence.
+  Tensor3 flux_divergence;
+  FluxDivergenceFromIrradiance(
+      flux_divergence, p_grid, irradiance_field);
 
-      heating_rates(0, p, r) = (-3 * net_flux_b + 4 * net_flux_c - net_flux_t) /
-                               (p_grid[2] - p_grid[0]) * g0 /
-                               specific_heat_capacity(0, p, r);
+  // calculate heating rates.
+  Numeric g;
+  for (Index b = 0; b < irradiance_field.nbooks() - 1; b++) {
+    for (Index p = 0; p < irradiance_field.npages(); p++) {
+      if (atmosphere_dim > 1) {
+        r_e = R_e[p];
+      }
 
-      // upper boundary
-      net_flux_t = (irradiance_field(idx - 1, p, r, 0) +
-                    irradiance_field(idx - 1, p, r, 1));
-      net_flux_c = (irradiance_field(idx - 2, p, r, 0) +
-                    irradiance_field(idx - 2, p, r, 1));
-      net_flux_b = (irradiance_field(idx - 3, p, r, 0) +
-                    irradiance_field(idx - 3, p, r, 1));
+      for (Index r = 0; r < irradiance_field.nrows(); r++) {
+        altitude2gravity(g, r_e, g0(p, r), z_field(b, p, r));
 
-      heating_rates(idx - 1, p, r) =
-          -(-3 * net_flux_t + 4 * net_flux_c - net_flux_b) /
-          (p_grid[idx-1] - p_grid[idx-3]) * g0 / specific_heat_capacity(0, p, r);
+        heating_rates(b, p, r) =
+            flux_divergence(b, p, r) * g / specific_heat_capacity(b, p, r);
+      }
     }
   }
 }

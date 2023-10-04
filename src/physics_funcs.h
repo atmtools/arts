@@ -21,6 +21,22 @@
 /*===========================================================================
   === Functions in physics_funcs.h
   ===========================================================================*/
+/** altitude2gravity
+ *  
+ * Calculates the gravity at a given altitude.
+  * 
+  * @param[out] g   Gravity.
+  * @param[in]  r   Radius of reference ellipsoid.
+  * @param[in]  g0  Gravity at zero altitude.
+  * @param[in]  z   Altitude.
+  * 
+  * @author Patrick Eriksson
+  * @date   2011-02-04
+ */
+void altitude2gravity(Numeric& g,
+                      const Numeric& r,
+                      const Numeric& g0,
+                      const Numeric& z);
 
 Numeric barometric_heightformula(const Numeric& p, const Numeric& dh);
 
