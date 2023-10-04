@@ -1,0 +1,3 @@
+Arts2 {
+    VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
+}
