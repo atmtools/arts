@@ -21,7 +21,9 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
+#include "debug.h"
 #include "matpack_data.h"
+#include "operators.h"
 #include "surf.h"
 #include <cmath>
 #include <stdexcept>
@@ -273,4 +275,45 @@ void PlanetSet(Agenda &g0_agenda, SurfaceField &surface_field,
   }
 
   g0_agenda = get_g0_agenda(option);
+}
+
+void gravity_operatorFromGM(NumericTernaryOperator &gravity_operator,
+                            const SurfaceField &surface_field,
+                            const Numeric &GM) {
+  struct Gravity {
+    Numeric GM;
+    Numeric a;
+    Numeric b;
+
+    Numeric operator()(Numeric h, Numeric lat, Numeric lon) const {
+      using Conversion::cosd;
+      using Conversion::sind;
+      using Math::pow2;
+      using std::sqrt;
+
+      const Numeric e = std::sqrt(1 - pow2(b / a));
+
+      const Numeric N = a / sqrt(1 - pow2(e * sind(lat)));
+
+      const Numeric r2 = pow2((N + h) * cosd(lon) * cosd(lat)) +
+                         pow2((N + h) * sind(lon) * cosd(lat)) +
+                         pow2((N * (1 - pow2(e)) + h) * sind(lat));
+
+      return GM / r2;
+    }
+  };
+
+  ARTS_USER_ERROR_IF(surface_field.ellipsoid[0] <= 0,
+                     "Ellipsoid has bad semi-major axis [",
+                     surface_field.ellipsoid,
+                     ']')
+  ARTS_USER_ERROR_IF(
+      surface_field.ellipsoid[1] <= 0 or
+          surface_field.ellipsoid[1] > surface_field.ellipsoid[0],
+      "Ellipsoid has bad semi-minor axis [",
+      surface_field.ellipsoid,
+      ']')
+
+  gravity_operator = NumericTernaryOperator{
+      Gravity{GM, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
 }

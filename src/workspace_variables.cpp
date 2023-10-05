@@ -4524,6 +4524,8 @@ Unit:  m
 
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
+
+Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude [deg].
 )--",
       .type = "NumericTernaryOperator"};
 

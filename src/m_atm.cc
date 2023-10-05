@@ -547,6 +547,17 @@ void atm_fieldHydrostaticPressure(
       "Field:\n",
       p0)
 
+  const bool has_def_t = fixed_atm_temperature <= 0;
+  const bool has_def_r = fixed_specific_gas_constant <= 0;
+
+  ARTS_USER_ERROR_IF(
+      has_def_t and not atm_field.contains(Atm::Key::t),
+      "atm_field lacks temperature and no default temperature given")
+
+  ARTS_USER_ERROR_IF(
+      has_def_r and atm_field.nspec() == 0,
+      "atm_field lacks species and no default specific gas constant given")
+
   const Tensor3 scale_factor = [&]() {
     Tensor3 scl(nalt, nlat, nlon);
     for (Index i = 0; i < nalt; i++) {
@@ -560,11 +571,11 @@ void atm_fieldHydrostaticPressure(
           const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
 
           const Numeric inv_specific_gas_constant =
-              fixed_specific_gas_constant > 0
+              has_def_r
                   ? 1.0 / fixed_specific_gas_constant
                   : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
                      Constant::R);
-          const Numeric inv_temp = fixed_atm_temperature > 0
+          const Numeric inv_temp = has_def_t
                                        ? 1.0 / fixed_atm_temperature
                                        : 1.0 / atm_point.temperature;
 

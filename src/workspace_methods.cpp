@@ -17201,5 +17201,18 @@ as desribed above and the pressure of the lower or first altitude level.
                    "Constant atmospheric temprature if larger than 0",
                    "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"}};
 
+  wsm_data["gravity_operatorFromGM"] = {
+      .desc = R"-x-(Sets a gravity operator from the gravitational constant and the mass of the planet
+
+Gets the ellispoid from *surface_field*
+)-x-",
+      .author = {"Richard Larsson"},
+      .out = {"gravity_operator"},
+      .in = {"surface_field"},
+      .gin = {"GM"},
+      .gin_type = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Gravitation constant so that the gravity at radius *r* is GM / r^2"}};
+
   return wsm_data;
 }
