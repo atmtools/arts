@@ -17212,7 +17212,7 @@ Gets the ellispoid from *surface_field*
       .gin = {"GM"},
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
-      .gin_desc = {"Gravitation constant so that the gravity at radius *r* is GM / r^2"}};
+      .gin_desc = {"Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"}};
 
   return wsm_data;
 }
