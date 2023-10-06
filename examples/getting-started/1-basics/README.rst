@@ -7,3 +7,4 @@ It will take you through the following concepts:
 3. Loading data from files
 4. Running methods using the workspace
 5. Create a custom Agenda
+6. Convert an existing ARTS controlfile

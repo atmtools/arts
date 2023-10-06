@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Simple script to convert .arts controlfiles to Python.
 """

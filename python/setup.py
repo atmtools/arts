@@ -70,4 +70,5 @@ setup(
     tests_require=["pytest"],
     include_package_data=True,
     distclass=BinaryDistribution,
+    scripts=["bin/arts_convert.py"],
 )
