@@ -36,9 +36,9 @@ ppath_agendaSet( option="FollowSensorLosPath" )
 ppath_step_agendaSet( option="GeometricPath" )
 
 
-VectorLinSpace( f_grid, 10e9, 3000e9, 10e9 )
+VectorLinSpace( f_grid, 10e9, 3000e9, 10e10 )
 #WriteXML( "ascii", f_grid )
-VectorNLogSpace( p_grid, 41, 1000e2, 0.1 )
+VectorNLogSpace( p_grid, 10, 1000e2, 0.1 )
 
 # monchromatic pencilbeam 1D scalar clearsky RT without Jacobians
 AtmosphereSet1D
