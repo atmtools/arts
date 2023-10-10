@@ -1,4 +1,4 @@
-To take an existing controlfile as a starting point, you can use the ``arts_convert.py`` script to convert it to a Python script. The script is included with the conda package and should be available in your path. For example:
+To take a legacy ARTS controlfile (``.arts`` file) as a starting point, you can use the ``arts_convert.py`` script to convert it to a Python script. The script is included with the conda package and should be available in your path. For example:
 
 .. code-block:: bash
 
