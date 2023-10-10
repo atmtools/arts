@@ -1,0 +1,5 @@
+# Included by seviri_fast.arts and seviri_reference.arts
+Arts2{
+# Read ARTS catalog:
+abs_lines_per_speciesReadSpeciesSplitCatalog( basename=cat_file )
+}

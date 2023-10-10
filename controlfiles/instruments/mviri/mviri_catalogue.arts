@@ -1,0 +1,5 @@
+# Included by mviri_fast.arts and mviri_reference.arts
+Arts2{
+# Read ARTS catalog:
+abs_lines_per_speciesReadSpeciesSplitCatalog( basename=cat_file )
+}

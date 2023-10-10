@@ -715,6 +715,8 @@ void pnd_fieldCalcFromParticleBulkProps(
         scatspecies_to_jq[ihit].push_back(iq);
         dpnd_field_dx[iq].resize(ncumse[nss], np, nlat, nlon);
         dpnd_field_dx[iq] = 0.0;
+      } else {
+        dpnd_field_dx[iq].resize(0, 0, 0, 0);
       }
     }
   }

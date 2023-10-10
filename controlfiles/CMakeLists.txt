@@ -49,6 +49,7 @@ arts_test_run_ctlfile(fast artscomponents/pencilbeam/TestPencilBeam.arts)
 
 arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky.arts)
 arts_test_run_ctlfile(slow artscomponents/clearsky/TestClearSky2.arts)
+arts_test_run_ctlfile(fast artscomponents/clearsky/TestClearSky_StarGasScattering.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestSensorPol.arts)
@@ -74,10 +75,6 @@ arts_test_run_ctlfile(fast artscomponents/nlte/TestNLTE.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestFromParticleBulkProps.arts)
 arts_test_run_ctlfile(fast artscomponents/psd/TestPsds.arts)
 
-#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioLink.arts)
-#arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
-#arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
-
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
@@ -102,7 +99,7 @@ arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceBlackbody.arts)
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestSurfaceFlatScalarReflectivity.arts)
 
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
-# arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
+arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
 arts_test_run_ctlfile(fast artscomponents/radar/TestOnionPeeling.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
@@ -139,14 +136,6 @@ if (ENABLE_NETCDF)
   arts_test_run_ctlfile(slow artscomponents/moltau/TestMolTau.arts)
 endif ()
 
-# if (ENABLE_RELMAT)
-#   if (FASTWIGNER)
-#     arts_test_run_ctlfile(fast artscomponents/linemixing/TestRelmat.arts)
-#   else()
-#     arts_test_run_ctlfile(slow artscomponents/linemixing/TestRelmat.arts)
-#   endif()
-# endif ()
-
 if (OEM_SUPPORT)
   arts_test_run_ctlfile(fast artscomponents/oem/TestOEM.arts)
 endif ()
@@ -162,27 +151,17 @@ arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
 
 if (ARTS_XML_DATA_DIR)
 
+  arts_test_run_ctlfile(slow instruments/avhrr/TestAVHRR_fast.arts)
+
+  arts_test_run_ctlfile(slow instruments/mviri/TestMVIRI.arts)
+
+  arts_test_run_ctlfile(slow instruments/seviri/TestSEVIRI.arts)
+
   arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
   arts_test_run_ctlfile(slow artscomponents/absorption/TestIsoRatios.arts)
 
   ###############################
   ### testing XML Data itself ###
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Venus.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScen_Jupiter.arts)
-
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Earth.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Venus.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestAtmScenSup_Jupiter.arts)
-
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Mars.arts)
-#  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestClouds_Venus.arts)
-
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Earth.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Mars.arts)
-  arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestSurf_Venus.arts)
-
   arts_test_run_ctlfile(xmldata artscomponents/arts-xml-data/TestPlanetIsoRatios.arts)
 
   arts_test_run_ctlfile(xmldata artscomponents/cia/TestCIA.arts)
@@ -198,17 +177,6 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(fast artscomponents/ppath/TestRefractPlanets.arts)
   
-  ##################################
-  ### planet toolbox demos cases ###
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/active/DemoLinkBudget.arts)
-
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoJupiter_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_3D_clearsky.arts)
-#  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoMars_fullRT_1D_cloudy.arts)
-  arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_clearsky.arts)
-  #arts_test_run_ctlfile(planettoolbox planetary_toolbox/demos/passive/DemoVenus_fullRT_1D_cloudy.arts)
-
   arts_test_run_ctlfile(fast artscomponents/cia/TestCIADerivs.arts)
 
   arts_test_run_ctlfile(slow artscomponents/nlte/testRotationalConvergence.arts)

@@ -6,7 +6,6 @@
 #
 Arts2 {
 
-
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
@@ -23,20 +22,17 @@ ReadXML( scat_meta, "testdata/scat_meta_wfuntest.xml" )
 AtmosphereSet1D
 IndexSet( stokes_dim, 2 )
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
 # Definition of species
 abs_speciesSet( species=[ "N2-SelfContStandardType",
-                          "O2-PWR93",
+                          "O2-PWR98",
                           "H2O-PWR98"
                         ] )
 
 # No line data needed here
 abs_lines_per_speciesSetEmpty
+
+# on-the-fly absorption
+propmat_clearsky_agendaAuto
 
 # Atmospheric profiles
 AtmRawRead( basename = "testdata/tropical" )
@@ -80,11 +76,8 @@ ArrayOfIndexSet( instrument_pol, [ 5 ] )
 Append( instrument_pol_array, instrument_pol )
 
 #
-AgendaSet( iy_main_agenda ){
+AgendaSet( iy_radar_agenda ){
   Ignore( iy_id )
-  Ignore( rte_pos2 )
-  Ignore( iy_unit )
-  
   iy_transmitterSinglePol
   ppathPlaneParallel( cloudbox_on = 0 )
   iyRadarSingleScat( trans_in_jacobian = 1 )
@@ -97,8 +90,6 @@ VectorLinSpace(range_bins, 0, 15e3, 500 )
 
 
 # Perform some checks
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 sensor_checkedCalc
@@ -120,20 +111,6 @@ jacobianAddScatSpecies(
     g2 = lat_grid,
     g3 = lon_grid
 )
-#jacobianAddAbsSpecies( 
-#    species  = "H2O-PWR98",
-#    unit     = "vmr",
-#    g1       = rgrid,
-#    g2       = lat_grid,
-#    g3       = lon_grid
-#)
-#jacobianAddTemperature( 
-#    hse = "off",
-#    g1  = rgrid,
-#    g2  = lat_grid,
-#    g3  = lon_grid
-#)
-#
 jacobianClose
 #
 pnd_fieldCalcFromParticleBulkProps
@@ -143,37 +120,10 @@ yRadar
 #
 Copy( Ja, jacobian )
 #WriteXML( input=y, filename="y0.xml" )
-#WriteXML( input=jacobian, filename="J_iwc_analytical.xml" )
-
-
-# IWC, perturbation Jacobian
-#
-MatrixCreate( Jp )
-IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
-NumericCreate( perturbation )
-NumericSet( perturbation, 1e-9 )
-jacobianOff
-pnd_fieldCalcFromParticleBulkProps
-cloudbox_checkedCalc
-#
-AgendaSet(ybatch_calc_agenda){
-  particle_bulkprop_fieldPerturb( p_ret_grid = rgrid,
-                                  lat_ret_grid = lat_grid,
-                                  lon_ret_grid =  lon_grid,
-                                  particle_type = "IWC",
-                                  pert_index = ybatch_index,
-                                  pert_size = perturbation,
-                                  pert_mode = "absolute" )
-  pnd_fieldCalcFromParticleBulkProps
-  yRadar
-}
-#
-ybatchCalc( ybatch_start=0 )
-jacobianFromYbatch( pert_size = perturbation )
-Copy( Jp, jacobian )
-#WriteXML( input=jacobian, filename="J_iwc_perturbation.xml" )
-# 
-CompareRelative( Jp, Ja, 1 )
+WriteXML( input=jacobian, filename="TestIyActive_wfuns.jacobian.iwc.xml" )
+MatrixCreate( JaIWCRef )
+ReadXML( JaIWCRef, "TestIyActive_wfuns.jacobian.iwcRef.xml" )
+CompareRelative( JaIWCRef, Ja, 0.01 )
 
 
 # H2O, analytical Jacobian
@@ -204,37 +154,11 @@ cloudbox_checkedCalc
 yRadar
 #
 Copy( Ja, jacobian )
-#WriteXML( input=jacobian, filename="J_h2o_analytical.xml" )
+WriteXML( input=jacobian, filename="TestIyActive_wfuns.jacobian.h2o.xml" )
+MatrixCreate( JaH2ORef )
+ReadXML( JaH2ORef, "TestIyActive_wfuns.jacobian.h2oRef.xml" )
+CompareRelative( JaH2ORef, Ja, 0.01 )
 
-
-# H2O, perturbation Jacobian
-#
-IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
-NumericSet( perturbation, 1e-3 )
-jacobianOff
-pnd_fieldCalcFromParticleBulkProps
-cloudbox_checkedCalc
-#
-AgendaSet(ybatch_calc_agenda){
-  vmr_fieldPerturb( p_ret_grid = rgrid,
-                    lat_ret_grid = lat_grid,
-                    lon_ret_grid =  lon_grid,
-                    species = "H2O-PWR98",
-                    pert_index = ybatch_index,
-                    pert_size = perturbation,
-                    pert_mode = "relative" )
-  yRadar
-}
-#
-ybatchCalc( ybatch_start=0 )
-jacobianFromYbatch( pert_size = perturbation )
-Copy( Jp, jacobian )
-#WriteXML( input=jacobian, filename="J_h2o_perturbation.xml" )
-# 
-CompareRelative( Ja, Jp, 0.2 )
-
-
-Exit
 #
 # Code below looks at the temperature Jacobian. For temperature we expect
 # significant differences as the analytical version assumes that dPSD/dT is
@@ -262,32 +186,10 @@ cloudbox_checkedCalc
 yRadar
 #
 Copy( Ja, jacobian )
-#WriteXML( input=jacobian, filename="J_t_analytical.xml" )
+WriteXML( input=jacobian, filename="TestIyActive_wfuns.jacobian.t.xml" )
+MatrixCreate( JaTRef )
+ReadXML( JaTRef, "TestIyActive_wfuns.jacobian.tRef.xml" )
+CompareRelative( JaTRef, Ja, 0.01 )
 
-
-# Temparature, perturbation Jacobian
-#
-IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
-NumericSet( perturbation, 0.1 )
-jacobianOff
-pnd_fieldCalcFromParticleBulkProps
-cloudbox_checkedCalc
-#
-AgendaSet(ybatch_calc_agenda){
-  AtmFieldPerturb( perturbed_field = t_field,
-                   original_field = t_field,
-                   p_ret_grid = rgrid,
-                   lat_ret_grid = lat_grid,
-                   lon_ret_grid =  lon_grid,
-                   pert_index = ybatch_index,
-                   pert_size = perturbation,
-                   pert_mode = "absolute" )
-  yRadar
-}
-#
-ybatchCalc( ybatch_start=0 )
-jacobianFromYbatch( pert_size = perturbation )
-Copy( Jp, jacobian )
-#WriteXML( input=jacobian, filename="J_t_perturbation.xml" )
 
 }

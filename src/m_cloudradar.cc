@@ -113,10 +113,6 @@ void iyRadarSingleScat(Workspace& ws,
           " scattering elements.");
   }
   if (jacobian_do) {
-    // FIXME: These needs to be tested properly
-    ARTS_USER_ERROR ( "Jacobian calculations *iyActiveSingleScat* need "
-                              "revision before safe to use.");
-    
     ARTS_USER_ERROR_IF (dpnd_field_dx.nelem() != jacobian_quantities.nelem(),
           "*dpnd_field_dx* not properly initialized:\n"
           "Number of elements in dpnd_field_dx must be equal number of jacobian"

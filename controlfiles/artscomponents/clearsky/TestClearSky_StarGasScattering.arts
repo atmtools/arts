@@ -10,34 +10,27 @@
 
 Arts2 {
 
-INCLUDE "general/general.arts"
 water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+# (standard) emission calculation
+iy_main_agendaSet(option="Clearsky")
 
-# sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
-
-# no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-
-# on-the-fly absorption
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
-
-# Clear sky calculation
-Copy( iy_main_agenda, iy_main_agenda__Clearsky )
-
-# In coming background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground)
+# cosmic background radiation
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop)
+iy_surface_agendaSet
+
+# sensor-only path
+ppath_agendaSet( option="FollowSensorLosPath" )
+
+# no refraction
+ppath_step_agendaSet( option="GeometricPath" )
 
 # specular reflecting surfaces (no polarization)
-Copy( surface_rtprop_agenda,surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field)
+surface_rtprop_agendaSet( option="Specular_NoPol_ReflFix_SurfTFromt_field" )
 
 
 #gas scattering agenda
@@ -92,7 +85,6 @@ AtmFieldsCalcExpand1D
 
 
 # set sun source
-Touch(sun)
 sunsAddSingleBlackbody(distance=1.495978707e11, latitude=0., longitude=0.)
 
 # No jacobian calculations
@@ -128,9 +120,8 @@ IndexSet(gas_scattering_do,1)
 #Switch off sun
 IndexSet(suns_do,1)
 
+propmat_clearsky_agendaAuto
 sensor_checkedCalc
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
 lbl_checkedCalc
 
 # Perform RT calculation

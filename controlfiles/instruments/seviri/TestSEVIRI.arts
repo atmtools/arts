@@ -15,25 +15,20 @@ water_p_eq_agendaSet
 gas_scattering_agendaSet
 PlanetSet(option="Earth")
 
-# Agenda for scalar gas absorption calculation
-Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
-
 # (standard) emission calculation
-Copy( iy_main_agenda, iy_main_agenda__Emission )
+iy_main_agendaSet(option="Emission")
 
 # cosmic background radiation
-Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+iy_space_agendaSet
 
 # standard surface agenda (i.e., make use of surface_rtprop_agenda)
-Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+iy_surface_agendaSet
 
 # sensor-only path
-Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+ppath_agendaSet( option="FollowSensorLosPath" )
 
 # no refraction
-Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
-#Copy( ppath_step_agenda,ppath_step_agenda__RefractedPath )
-#Copy( refr_index_air_agenda, refr_index_air_agenda__NoRefrac)
+ppath_step_agendaSet( option="GeometricPath" )
 
 # blackbody surface with skin temperature interpolated from t_surface field
 surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
@@ -42,7 +37,7 @@ surface_rtprop_agendaSet( option="Blackbody_SurfTFromt_field" )
 StringCreate(satellite)
 ArrayOfIndexCreate(channels)
 ArrayOfIndexCreate(views)
-StringCreate(hitran_file)
+StringCreate(cat_file)
 NumericCreate(f_grid_spacing)
 
 
@@ -66,7 +61,7 @@ ArrayOfIndexSet(channels, [3,4,5,6,7,8,9,10,11])
 # ---
 ArrayOfIndexSet(views, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25])
 
-# You have to give here the location of the HITRAN catalogue
+# You have to give here the location of the ARTS catalogue
 # ---
 # FIXME: This has to be replaced by a little piece of the catalog
 # explicitly included here, or?
@@ -74,9 +69,7 @@ ArrayOfIndexSet(views, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
 # this.
 # We can also include a pre-calculated absorption table for HIRS with
 # ARTS. 
-#StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
-StringSet(hitran_file,"/scratch/uni/u237/data/catalogue/hitran/hitran2012_140407/HITRAN2012.par")
-#StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
+StringSet(cat_file,"lines/")
 
 
 # Set frequency grid spacing
@@ -130,9 +123,10 @@ abs_lookupSetupBatch
 
 # Create the lookup table
 # ---
-abs_xsec_agenda_checkedCalc
 lbl_checkedCalc
+propmat_clearsky_agendaAuto
 abs_lookupCalc
+
 
 #WriteXML("binary", abs_lookup)
 
@@ -146,7 +140,7 @@ abs_lookupCalc
 
 # Set propmat_clearsky_agenda to use lookup table
 # ---
-Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
+propmat_clearsky_agendaAuto( use_abs_lookup=1 )
 
 
 # Set up RT calculation
@@ -193,7 +187,7 @@ AgendaSet( ybatch_calc_agenda ){
 #                          atmosphere_dim,
 #                          p_grid, lat_grid, lon_grid, 
 #                          p_grid, lat_grid, lon_grid,
-#                          "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
+#                          "H2O, H2O-SelfContCKDMT350, H2O-ForeignContCKDMT350",
 #                          "rel")
 #   jacobianClose
 
@@ -265,7 +259,7 @@ WriteXML( "ascii", f_grid, out_file_name_f_grid)
 
 # Verify results
 ArrayOfVectorCreate( ybatch_ref )
-ReadXML( ybatch_ref, "TestSEVIRI.ybatch_MET9_6e9_fastREFERENCE.xml" )
+ReadXML( ybatch_ref, "TestSEVIRI_fast.ybatch_MET9_6e9_fastREFERENCE.xml" )
 
 Compare( ybatch, ybatch_ref, 0.01,
          "Total BT should be close to the reference values")

@@ -674,6 +674,21 @@ void f_gridFromSensorHIRS(  // WS Output:
   // can use the STL push_back function.
   std::vector<Numeric> f_grid_array;
 
+  // sensor_responseBackend requires that the lowest and highest frequencies
+  // from f_backend are included in f_grid. We therefore add them to f_grid_array
+  // if necessary
+  Numeric f_low = INFINITY;
+  Numeric f_high = 0;
+  for (Index i = 0; i < f_backend.nelem(); i++) {
+    const Vector& bchr_f_grid =
+        backend_channel_response[i].get_numeric_grid(GFIELD1_F_GRID);
+
+    f_low = min(f_low, f_backend[i] + bchr_f_grid[0]);
+    f_high = max(f_high, f_backend[i] - last(bchr_f_grid));
+  }
+
+  if (fmin[0] > f_low) f_grid_array.push_back(f_low);
+
   for (Index i = 0; i < fmin.nelem(); ++i) {
     // Band width:
     const Numeric bw = fmax[i] - fmin[i];
@@ -695,6 +710,8 @@ void f_gridFromSensorHIRS(  // WS Output:
     f_grid_array.reserve(f_grid_array.size() + npi);
     for (Index s = 0; s < npi; ++s) f_grid_array.push_back(grid[s]);
   }
+
+  if (last(fmax) < f_high) f_grid_array.push_back(f_high);
 
   // Copy result to output vector:
   f_grid = f_grid_array;
@@ -1234,10 +1251,12 @@ void sensor_responseBackend(
   Numeric f_dlow = 0.0;
   Numeric f_dhigh = 0.0;
 
-  Index freq_full = nrp > 1;
   for (Index i = 0; i < f_backend.nelem(); i++) {
-    const Index irp = i * freq_full;
-    ConstVectorView bchr_f_grid =
+    // If we only have one backend_channel_response,
+    // use it for all f_backend frequencies
+    const Index irp = i * (nrp > 1);
+
+    const Vector& bchr_f_grid =
         backend_channel_response[irp].get_numeric_grid(GFIELD1_F_GRID);
 
     if (bchr_f_grid.nelem() != backend_channel_response[irp].data.nelem()) {
