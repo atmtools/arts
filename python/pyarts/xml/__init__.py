@@ -29,7 +29,7 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
     """Save a variable to an ARTS XML file.
 
     Args:
-        var: Variable to be stored.
+        var: ARTS variable to be stored.
         filename (str): Name of output XML file.
             If the name ends in .gz, the file is compressed on the fly.
         precision (str): Format for output precision.
@@ -42,7 +42,7 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
         compressing files manually after writing them normally.
 
     Example:
-        >>> x = numpy.array([1.,2.,3.])
+        >>> x = pyarts.arts.Vector([1.,2.,3.])
         >>> pyarts.xml.save(x, 'myvector.xml')
 
     """
@@ -105,8 +105,8 @@ def load(filename, search_arts_path=True):
 
     Example:
         >>> pyarts.xml.load('tests/reference/matrix.xml')
-        array([[ 0.,  1.],
-               [ 2.,  3.]])
+        0  1
+        2  3
 
     """
 
