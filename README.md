@@ -24,14 +24,14 @@ Dependencies
 
 Build Prerequisites (provided by mambaforge):
 
-- gcc/g++ >=11 (or llvm/clang >=13)
+- gcc/g++ >=11 (or llvm/clang >=15)
 - cmake (>=3.18)
 - zlib
 - openblas
 - libc++ (only for clang)
 - libmicrohttpd (>=0.9, optional, for documentation server)
 - netcdf (optional)
-- Python3 (>=3.9)
+- Python3 (3.9, 3.10, 3.11)
   - required modules:
     docutils
     lark-parser
@@ -295,8 +295,7 @@ ccache support
 --------------
 
 The build utilizes ccache automatically when available, it can be
-turned of with the option `-DENABLE_CCACHE=1`
-```
+turned off with the option `-DENABLE_CCACHE=0`
 
 For details see https://ccache.samba.org/
 
