@@ -4,8 +4,8 @@ import urllib.request
 
 nargs = len(sys.argv)
 
-xml = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/trunk/"
-cat = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/trunk/"
+xml = "https://arts.mi.uni-hamburg.de/svn/rt/arts-xml-data/branches/arts-xml-data-2.6/"
+cat = "https://arts.mi.uni-hamburg.de/svn/rt/arts-cat-data/branches/arts-cat-data-2.6/"
 
 if nargs > 3:
     try:
