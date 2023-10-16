@@ -9,11 +9,10 @@ pyarts
    :maxdepth: 2
    :hidden:
 
-   about
+   features
    installation
-   getting.started
+   examples
    workspace
    pyarts
-   examples
    indices
    contact
