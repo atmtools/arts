@@ -18,7 +18,10 @@
 .wy-nav-content a:visited {
     color: rgb(2, 113, 187);
 }
-
+.wy-side-nav-search .wy-dropdown>a img.logo, .wy-side-nav-search>a img.logo {
+  width: 100px;
+  height: 100px;
+}
 .wy-side-nav-search {
     background-color: rgb(2, 113, 187);
 }

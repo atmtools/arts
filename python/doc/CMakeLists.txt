@@ -20,12 +20,7 @@ if (SPHINX_FOUND)
     configure_file(${file} ${file} @ONLY)
   endforeach()
 
-  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
-  foreach(file ${RST_FILES})
-    configure_file(${file} ${file} @ONLY)
-  endforeach()
-
-  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.css")
+  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst" "*.css" "*.svg" "*.png")
   foreach(file ${RST_FILES})
     configure_file(${file} ${file} @ONLY)
   endforeach()
