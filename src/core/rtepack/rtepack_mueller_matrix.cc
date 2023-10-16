@@ -1,7 +1,8 @@
 #include "rtepack_mueller_matrix.h"
 
 namespace rtepack {
-Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector> &T) {
+Array<muelmat_vector> reverse_cumulative_transmission(
+    const Array<muelmat_vector> &T) {
   const Size n = T.size();
   const Index nf = n ? T.front().nelem() : 0;
 
@@ -14,7 +15,8 @@ Array<muelmat_vector> reverse_cumulative_transmission(const Array<muelmat_vector
   return PiT;
 }
 
-Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector> &T) {
+Array<muelmat_vector> forward_cumulative_transmission(
+    const Array<muelmat_vector> &T) {
   const Size n = T.size();
   const Index nf = n ? T.front().nelem() : 0;
 
@@ -26,4 +28,4 @@ Array<muelmat_vector> forward_cumulative_transmission(const Array<muelmat_vector
   }
   return PiT;
 }
-} // namespace rtepack
+}  // namespace rtepack

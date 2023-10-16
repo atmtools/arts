@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <exception>
 #include <iomanip>
+#include <iterator>
 #include <limits>
 #include <numeric>
 #include <ostream>
+#include <stdexcept>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -17,6 +19,8 @@
 #include "grids.h"
 #include "interpolation.h"
 #include "isotopologues.h"
+#include "matpack_data.h"
+#include "matpack_view.h"
 
 #include <matpack.h>
 
@@ -455,6 +459,47 @@ void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
 
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
   for (auto& x : a) os << x << '\n';
+  return os;
+}
+
+[[nodiscard]] ExhaustiveConstVectorView Data::flat_view() const {
+  return std::visit(
+      [](auto& X) -> ExhaustiveConstVectorView {
+        using T = std::remove_cvref_t<decltype(X)>;
+        if constexpr (std::same_as<T, GriddedField3>)
+          return X.data.flat_view();
+        else if constexpr (std::same_as<T, Numeric>)
+          return ExhaustiveConstVectorView{X};
+        else if constexpr (std::same_as<T, FunctionalData>)
+          return ExhaustiveConstVectorView{};
+        else
+          static_assert(
+              RawDataType<T>,
+              "Cannot be reached, you have added a new type but not done the plumbing...");
+      },
+      data);
+}
+
+[[nodiscard]] ExhaustiveVectorView Data::flat_view() {
+  return std::visit(
+      [](auto& X) -> ExhaustiveVectorView {
+        using T = std::remove_cvref_t<decltype(X)>;
+        if constexpr (std::same_as<T, GriddedField3>)
+          return X.data.flat_view();
+        else if constexpr (std::same_as<T, Numeric>)
+          return ExhaustiveVectorView{X};
+        else if constexpr (std::same_as<T, FunctionalData>)
+          return ExhaustiveVectorView{};
+        else
+          static_assert(
+              RawDataType<T>,
+              "Cannot be reached, you have added a new type but not done the plumbing...");
+      },
+      data);
+}
+
+std::ostream& operator<<(std::ostream& os, const KeyVal& key) {
+  std::visit([&os](const auto& k) { os << k; }, key);
   return os;
 }
 } // namespace Atm

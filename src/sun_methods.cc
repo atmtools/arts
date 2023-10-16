@@ -33,7 +33,7 @@ void get_scattered_sunsource(const Workspace& ws,
   Matrix mat_temp(1, ns,0.);
   // Calculate the scattered radiation
   for (Index i_f = 0; i_f < nf; i_f++) {
-    Stokvec scattered_sunlight_temp{transmitted_sunlight[i_f]};
+    Stokvec scattered_sunlight_temp{rtepack::to_stokvec(transmitted_sunlight[i_f])};
     scattered_sunlight[i_f] = K_sca[i_f].A() / (4*pi) * gas_scattering_mat[i_f] * scattered_sunlight_temp;
   }
 

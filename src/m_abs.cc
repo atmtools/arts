@@ -505,7 +505,7 @@ void propmat_clearskyAddParticles(
         } else {
           for (Index iv = 0; iv < f_grid.nelem(); iv++) {
             internal_propmat[iv] =
-                Propmat{ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker)};
+                rtepack::to_propmat(ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
           }
         }
         
@@ -554,7 +554,7 @@ void propmat_clearskyAddParticles(
               dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
               dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
             } else {
-              dpropmat_clearsky_dx(iq, iv) += Propmat{tmp(iv, joker, joker)};
+              dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
             }
           }
         }

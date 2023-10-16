@@ -690,8 +690,8 @@ void get_stepwise_scattersky_propmat(
                 ptype_ssbulk);
 
   for (Size iv = 0; iv < nf; iv++) {
-    ap[iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
-    Kp[iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
+    ap[iv] = rtepack::to_stokvec(abs_vec_bulk(iv, 0, 0, joker));
+    Kp[iv] = rtepack::to_propmat(ext_mat_bulk(iv, 0, 0, joker, joker));
   }
 
   if (jacobian_do)
@@ -717,8 +717,8 @@ void get_stepwise_scattersky_propmat(
                         abs_vec_ssbulk,
                         ptype_ssbulk);
           for (Size iv = 0; iv < nf; iv++) {
-              dap_dx[iq][iv] = Stokvec{abs_vec_bulk(iv, 0, 0, joker)};
-              dKp_dx[iq][iv] = Propmat{ext_mat_bulk(iv, 0, 0, joker, joker)};
+              dap_dx[iq][iv] = rtepack::to_stokvec(abs_vec_bulk(iv, 0, 0, joker));
+              dKp_dx[iq][iv] = rtepack::to_propmat(ext_mat_bulk(iv, 0, 0, joker, joker));
           }
         })
 }
@@ -870,7 +870,7 @@ void get_stepwise_scattersky_source(
       }
     }
 
-    Sp[iv] = Stokvec{scat_source};
+    Sp[iv] = rtepack::to_stokvec(scat_source);
 
     if (jacobian_do) {
       FOR_ANALYTICAL_JACOBIANS_DO(
@@ -880,7 +880,7 @@ void get_stepwise_scattersky_source(
               for (Index i = 0; i < 4; i++) {
                 scat_source[i] += scat_source_1se(ise_flat, iv, i) *
                                   ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
-                dSp_dx[iq][iv] = Stokvec{scat_source};
+                dSp_dx[iq][iv] = rtepack::to_stokvec(scat_source);
               }
             }
           })

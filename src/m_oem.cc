@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <sstream>
@@ -31,12 +32,15 @@
 #include "debug.h"
 #include "jacobian.h"
 #include "math_funcs.h"
+#include "matpack_view.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "surf.h"
 #include "surface.h"
 #include "check_input.h"
+
+#include <new_jacobian.h>
 
 #pragma GCC diagnostic ignored "-Wconversion"
 
@@ -263,6 +267,21 @@ void x2artsSensor(const Workspace& ws,
   }
 }
 
+void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
+                                     const JacobianTargets& jacobian_targets,
+                                     const Vector& retrieval_values) {
+  ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.size();
+                     sz not_eq static_cast<Size>(retrieval_values.size()),
+                     "Mismatch between size expected of jacobian_targets (",
+                     sz,
+                     ") and retrieval_values (",
+                     retrieval_values.size(),
+                     ')')
+
+  for (auto& target : jacobian_targets.atm) {
+    target.update(atm_field, retrieval_values);
+  }
+}
 
 #ifdef OEM_SUPPORT
 /* Workspace method: Doxygen documentation will be auto-generated */

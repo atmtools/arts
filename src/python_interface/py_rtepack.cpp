@@ -12,7 +12,7 @@ void py_rtepack(py::module_ &m) try {
   artsclass<Stokvec>(m, "Stokvec", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Numeric>())
-      .def(py::init<std::array<Numeric, 4>>())
+      .def(py::init([](std::array<Numeric, 4> a){return Stokvec{a[0], a[1], a[2], a[3]};}))
       .def_buffer([](Stokvec &x) -> py::buffer_info {
         return py::buffer_info(x.data.data(), sizeof(Numeric),
                                py::format_descriptor<Numeric>::format(), 1, {4},

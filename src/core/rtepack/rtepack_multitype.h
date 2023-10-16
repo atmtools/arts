@@ -8,17 +8,21 @@
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
+//! Treat the propagation matrix as a Mueller matrix
 constexpr muelmat to_muelmat(const propmat &k) {
   const auto [a, b, c, d, u, v, w] = k.data;
   return muelmat{a, b, c, d, b, a, u, v, c, -u, a, w, d, -v, -w, a};
 }
 
+//! Treat the propagation matrix as a Stokes (absorption) vector
 constexpr stokvec absvec(const propmat &k) {
   return stokvec{k.A(), k.B(), k.C(), k.D()};
 }
 
+//! Treat a list of propagation matrices as a list of Stokes (absorption) vectors
 stokvec_vector absvec(const propmat_vector_const_view &k);
 
+//! Get the inverse of a propagation matrix as a Mueller matrix
 constexpr muelmat inv(const propmat &k) {
   const auto &[a, b, c, d, u, v, w] = k.data;
 
@@ -27,38 +31,34 @@ constexpr muelmat inv(const propmat &k) {
              b * w * (b * w - 2 * c * v + 2 * d * u) +
              c * v * (-c * v + 2 * d * u) - d * d * u * u);
 
-  return {
-      a * (a * a + u * u + v * v + w * w) * div,
-      -(a * (a * b + c * u + d * v) + w * (b * w - c * v + d * u)) * div,
-      (a * (-a * c + b * u - d * w) + v * (b * w - c * v + d * u)) * div,
-      (a * (-a * d + b * v + c * w) - u * (b * w - c * v + d * u)) * div,
-      (a * (-a * b + c * u + d * v) - w * (b * w - c * v + d * u)) * div,
-      a * (a * a - c * c - d * d + w * w) * div,
-      (d * (b * w - c * v + d * u) - a * (a * u - b * c + v * w)) * div,
-      (a * (-a * v + b * d + u * w) - c * (b * w - c * v + d * u)) * div,
-      (v * (b * w - c * v + d * u) - a * (a * c + b * u - d * w)) * div,
-      (a * (a * u + b * c - v * w) - d * (b * w - c * v + d * u)) * div,
-      a * (a * a - b * b - d * d + v * v) * div,
-      (b * (b * w - c * v + d * u) - a * (a * w - c * d + u * v)) * div,
-      -(a * (a * d + b * v + c * w) + u * (b * w - c * v + d * u)) * div,
-      (a * (a * v + b * d + u * w) + c * (b * w - c * v + d * u)) * div,
-      -(a * (-a * w - c * d + u * v) + b * (b * w - c * v + d * u)) * div,
-      a * (a * a - b * b - c * c + u * u) * div};
-}
-
-//! muelmat matrix multiplied by a lazy stokvec vector
-constexpr auto operator*(const muelmat &a, const lazy_stokvec auto &b) {
-  return smvmul{constexpr_smat_data{a}, b};
+  return {a * (a * a + u * u + v * v + w * w) * div,
+          -(a * (a * b + c * u + d * v) + w * (b * w - c * v + d * u)) * div,
+          (a * (-a * c + b * u - d * w) + v * (b * w - c * v + d * u)) * div,
+          (a * (-a * d + b * v + c * w) - u * (b * w - c * v + d * u)) * div,
+          (a * (-a * b + c * u + d * v) - w * (b * w - c * v + d * u)) * div,
+          a * (a * a - c * c - d * d + w * w) * div,
+          (d * (b * w - c * v + d * u) - a * (a * u - b * c + v * w)) * div,
+          (a * (-a * v + b * d + u * w) - c * (b * w - c * v + d * u)) * div,
+          (v * (b * w - c * v + d * u) - a * (a * c + b * u - d * w)) * div,
+          (a * (a * u + b * c - v * w) - d * (b * w - c * v + d * u)) * div,
+          a * (a * a - b * b - d * d + v * v) * div,
+          (b * (b * w - c * v + d * u) - a * (a * w - c * d + u * v)) * div,
+          -(a * (a * d + b * v + c * w) + u * (b * w - c * v + d * u)) * div,
+          (a * (a * v + b * d + u * w) + c * (b * w - c * v + d * u)) * div,
+          -(a * (-a * w - c * d + u * v) + b * (b * w - c * v + d * u)) * div,
+          a * (a * a - b * b - c * c + u * u) * div};
 }
 
 //! muelmat matrix multiplied by a stokvec vector
-constexpr auto operator*(const muelmat &a, const stokvec &b) {
-  return smvmul{constexpr_smat_data{a}, constexpr_vec_data{b}};
-}
-
-//! Lazy muelmat matrix multiplied by a stokvec vector
-constexpr auto operator*(const lazy_muelmat auto &a, const stokvec &b) {
-  return smvmul{a, constexpr_vec_data{b}};
+constexpr stokvec operator*(const muelmat &a, const stokvec &b) {
+  const auto
+      &[m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16] =
+          a;
+  const auto &[s1, s2, s3, s4] = b;
+  return {m1 * s1 + m2 * s2 + m3 * s3 + m4 * s4,
+          m5 * s1 + m6 * s2 + m7 * s3 + m8 * s4,
+          m10 * s2 + m11 * s3 + m12 * s4 + m9 * s1,
+          m13 * s1 + m14 * s2 + m15 * s3 + m16 * s4};
 }
 
 //! Mutliply a propmat with a muelmat matrix
@@ -122,15 +122,27 @@ constexpr stokvec operator*(const propmat &k, const stokvec s) {
                  a * s4 + d * s1 - s2 * v - s3 * w};
 }
 
-muelmat exp(const propmat &k);
-
+//! Transform a matrix of shape (N, 4) to a list of Stokes (absorption) vectors
 stokvec_vector to_stokvec_vector(const ExhaustiveConstMatrixView &v);
 
+//! Transform a list Mueller matrices to a Tensor3 of shape (N, 4, 4)
 Tensor3 to_tensor3(const muelmat_vector_const_view &m);
 
+//! Transform a list of Stokes (absorption) vectors to a matrix of shape (N, 4)
 Matrix to_matrix(const stokvec_vector_const_view &v);
 
+//! Transform a propagation matrix to a matrix of shape (4, 4)
 Matrix to_matrix(const propmat &v);
 
+//! Transform a Stokes (absorption) vector to a vector of shape (4)
 Vector to_vector(const stokvec &v);
+
+//! Transform a matpack type to a stokvec
+stokvec to_stokvec(const ConstVectorView& a);
+
+//! Transform a matpack type to a propmat
+propmat to_propmat(const ConstMatrixView& a);
+
+//! Transform a matpack type to a muelmat
+muelmat to_muelmat(const ConstMatrixView& a);
 }  // namespace rtepack

@@ -9,6 +9,7 @@
 #include "optproperties.h"
 #include "rte.h"
 #include "rtepack.h"
+#include "rtepack_multitype.h"
 #include <cmath>
 
 using Constant::pi;
@@ -172,7 +173,7 @@ void gas_scattering_matRayleigh(MuelmatVector& gas_scattering_mat,
                       gas_scattering_los_in[1],
                       theta_rad);
 
-      MuelmatVector sca_mat_temp(1, Muelmat{pha_mat});
+      MuelmatVector sca_mat_temp(1, rtepack::to_muelmat(pha_mat));
 
       gas_scattering_mat = sca_mat_temp;
     } else {

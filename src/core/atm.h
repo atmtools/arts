@@ -19,6 +19,7 @@
 #include "fieldmap.h"
 #include <gridded_fields.h>
 
+#include "matpack_view.h"
 #include "quantum_numbers.h"
 #include "species.h"
 #include "species_tags.h"
@@ -67,6 +68,8 @@ concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or
 
 using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier,
                             ParticulatePropertyTag>;
+
+std::ostream& operator<<(std::ostream&, const KeyVal&);
 
 template <typename T>
 concept ListKeyType = requires(T a) {
@@ -292,6 +295,10 @@ struct Data {
   [[nodiscard]] Vector at(const Vector& alt, const Vector& lat, const Vector& lon) const;
 
   [[nodiscard]] Numeric at(const Numeric& alt, const Numeric& lat, const Numeric& lon) const;
+
+  [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
+
+  [[nodiscard]] ExhaustiveVectorView flat_view();
 };
 
 template <typename T>
@@ -322,9 +329,6 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag,
   //! Compute the values at a single point
   [[nodiscard]] std::vector<Point> at(const Vector &alt, const Vector &lat, const Vector &lon) const;
 
-  //! Compute the values at a single point
-  [[nodiscard]] Numeric get_at(const Vector &alt, const Vector &lat, const Vector &lon) const;
-
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
@@ -343,6 +347,7 @@ static_assert(
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
 } // namespace Atm
 
+using AtmKeyVal = Atm::KeyVal;
 using AtmField = Atm::Field;
 using AtmPoint = Atm::Point;
 using ArrayOfAtmPoint = Array<AtmPoint>;

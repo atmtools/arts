@@ -1,4 +1,5 @@
 #include "rtepack_scattering.h"
+
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
@@ -12,28 +13,58 @@ Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe,
   const Index ne = Pe.nshelves();
 
   Array<muelmat_vector> aotm(np, muelmat_vector(nv));
-  if (ne == 0)
-    return aotm;
+  if (ne == 0) return aotm;
 
   for (Index ip = 0; ip < np; ip++) {
     for (Index iv = 0; iv < nv; iv++) {
-      aotm[ip][iv] = pnd(0, ip) * muelmat(Pe(0, ip, iv, joker, joker));
+      auto m = Pe(0, ip, iv, joker, joker);
+      aotm[ip][iv] = pnd(0, ip) * muelmat(m(0, 0),
+                                          m(0, 1),
+                                          m(0, 2),
+                                          m(0, 3),
+                                          m(1, 0),
+                                          m(1, 1),
+                                          m(1, 2),
+                                          m(1, 3),
+                                          m(2, 0),
+                                          m(2, 1),
+                                          m(2, 2),
+                                          m(2, 3),
+                                          m(3, 0),
+                                          m(3, 1),
+                                          m(3, 2),
+                                          m(3, 3));
     }
   }
 
   for (Index ie = 1; ie < ne; ie++) {
     for (Index ip = 0; ip < np; ip++) {
       for (Index iv = 0; iv < nv; iv++) {
-        aotm[ip][iv] += pnd(ie, ip) * muelmat(Pe(ie, ip, iv, joker, joker));
+        auto m = Pe(ie, ip, iv, joker, joker);
+        aotm[ip][iv] += pnd(ie, ip) * muelmat(m(0, 0),
+                                              m(0, 1),
+                                              m(0, 2),
+                                              m(0, 3),
+                                              m(1, 0),
+                                              m(1, 1),
+                                              m(1, 2),
+                                              m(1, 3),
+                                              m(2, 0),
+                                              m(2, 1),
+                                              m(2, 2),
+                                              m(2, 3),
+                                              m(3, 0),
+                                              m(3, 1),
+                                              m(3, 2),
+                                              m(3, 3));
       }
     }
   }
   return aotm;
 }
 
-Array<muelmat_matrix>
-bulk_backscatter_derivative(const ConstTensor5View &Pe,
-                            const ArrayOfMatrix &dpnd_dx) {
+Array<muelmat_matrix> bulk_backscatter_derivative(
+    const ConstTensor5View &Pe, const ArrayOfMatrix &dpnd_dx) {
   ARTS_ASSERT(Pe.ncols() == 4 and Pe.nrows() == 4)
 
   const Index nv = Pe.npages();
@@ -48,8 +79,23 @@ bulk_backscatter_derivative(const ConstTensor5View &Pe,
       aoaotm[ip][iq] = 0.0;
       for (Index iv = 0; iv < nv; iv++) {
         for (Index ie = 0; ie < ne; ie++) {
-          aoaotm[ip](iq, iv) +=
-              dpnd_dx[iq](ie, ip) * muelmat(Pe(ie, ip, iv, joker, joker));
+          auto m = Pe(ie, ip, iv, joker, joker);
+          aoaotm[ip](iq, iv) += dpnd_dx[iq](ie, ip) * muelmat(m(0, 0),
+                                                              m(0, 1),
+                                                              m(0, 2),
+                                                              m(0, 3),
+                                                              m(1, 0),
+                                                              m(1, 1),
+                                                              m(1, 2),
+                                                              m(1, 3),
+                                                              m(2, 0),
+                                                              m(2, 1),
+                                                              m(2, 2),
+                                                              m(2, 3),
+                                                              m(3, 0),
+                                                              m(3, 1),
+                                                              m(3, 2),
+                                                              m(3, 3));
         }
       }
     }
@@ -57,24 +103,22 @@ bulk_backscatter_derivative(const ConstTensor5View &Pe,
   return aoaotm;
 }
 
-void setBackscatterTransmission(stokvec_vector& out,
-                                                 const stokvec_vector& I0,
-                                                 const muelmat_vector& Tr,
-                                                 const muelmat_vector& Tf,
-                                                 const muelmat_vector& Z) {
-  for (Index i = 0; i < out.nelem(); i++)
-    out[i] = Tr[i] * Z[i] * Tf[i] * I0[i];
+void setBackscatterTransmission(stokvec_vector &out,
+                                const stokvec_vector &I0,
+                                const muelmat_vector &Tr,
+                                const muelmat_vector &Tf,
+                                const muelmat_vector &Z) {
+  for (Index i = 0; i < out.nelem(); i++) out[i] = Tr[i] * Z[i] * Tf[i] * I0[i];
 }
 
-void setBackscatterTransmissionDerivative(
-  stokvec_matrix& out,
-    const stokvec_vector& I0,
-    const muelmat_vector& Tr,
-    const muelmat_vector& Tf,
-    const muelmat_matrix& dZ) {
+void setBackscatterTransmissionDerivative(stokvec_matrix &out,
+                                          const stokvec_vector &I0,
+                                          const muelmat_vector &Tr,
+                                          const muelmat_vector &Tf,
+                                          const muelmat_matrix &dZ) {
   for (Index j = 0; j < dZ.nrows(); j++)
-  for (Index i = 0; i < dZ.ncols(); i++)
-    out(j, i) += Tr[i] * dZ(j, i) * Tf[i] * I0[i];
+    for (Index i = 0; i < dZ.ncols(); i++)
+      out(j, i) += Tr[i] * dZ(j, i) * Tf[i] * I0[i];
 }
 
 void bulk_backscatter_commutative_transmission_rte(
@@ -97,8 +141,8 @@ void bulk_backscatter_commutative_transmission_rte(
     setBackscatterTransmission(I[ip], I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
 
   for (Size ip = 0; ip < np; ip++) {
-    setBackscatterTransmissionDerivative(dI[ip][ip], I_incoming, PiTr[ip],
-                                         PiTf[ip], dZ[ip]);
+    setBackscatterTransmissionDerivative(
+        dI[ip][ip], I_incoming, PiTr[ip], PiTf[ip], dZ[ip]);
   }
 
   for (Size ip = 0; ip < np; ip++) {
@@ -106,16 +150,15 @@ void bulk_backscatter_commutative_transmission_rte(
       for (Index iq = 0; iq < nq; iq++) {
         for (Index iv = 0; iv < nv; iv++) {
           dI[ip][j](iq, iv) +=
-              T[ip][iv] *(
-              (dT1[ip](iq, iv) + dT2[ip](iq, iv)) * I[j][iv]);
+              T[ip][iv] * ((dT1[ip](iq, iv) + dT2[ip](iq, iv)) * I[j][iv]);
 
           if (j < np - 1 and j > ip)
             dI[ip][j](iq, iv) +=
-                inv(T[ip + 1][iv]) * (
-                (dT1[ip](iq, iv) + dT2[ip](iq, iv)) * I[j][iv]);
+                inv(T[ip + 1][iv]) *
+                ((dT1[ip](iq, iv) + dT2[ip](iq, iv)) * I[j][iv]);
         }
       }
     }
   }
 }
-} // namespace rtepack
+}  // namespace rtepack

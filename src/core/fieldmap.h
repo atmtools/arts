@@ -101,6 +101,12 @@ public:
     return map<Key>().contains(std::forward<Key>(key));
   }
 
+  constexpr bool contains(const KeyVal &key) const {
+    return std::visit([this](auto& k) -> bool {
+      return this->map<decltype(k)>().contains(k);
+      }, key);
+  }
+
   template <field_key ... MultipleKeys>
   constexpr bool has(MultipleKeys && ...key) const {
     return (contains<MultipleKeys>(std::forward<MultipleKeys>(key)) and ...);

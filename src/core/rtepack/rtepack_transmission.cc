@@ -12,7 +12,6 @@
 
 namespace rtepack {
 static constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
-static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
 
 struct tran {
   Numeric a{}, b{}, c{}, d{}, u{}, v{}, w{};   // To not repeat input
@@ -418,19 +417,22 @@ void two_level_exp(muelmat_vector_view &tv,
   }
 }
 
-void two_level_exp_nopolar(muelmat_vector_view &tv,
-                           const propmat_vector_const_view &k1v,
-                           const propmat_vector_const_view &k2v,
-                           const Numeric rv) {
+muelmat exp (propmat k) {
+  return tran(k, k, 1.0)();
+}
+
+void two_level_exp(muelmat_vector_view &tv,
+                   const propmat_vector_const_view &k1v,
+                   const propmat_vector_const_view &k2v,
+                   const Numeric rv) {
   ARTS_ASSERT(k2v.nelem() == k1v.nelem());
   ARTS_ASSERT(tv.nelem() == k1v.nelem());
 
-  std::transform(k1v.begin(),
-                 k1v.end(),
-                 k2v.begin(),
-                 tv.begin(),
-                 [rv](const propmat &a, const propmat &b) {
-                   return exp(-0.5 * rv * (a + b));
-                 });
+  std::transform(
+      k1v.begin(),
+      k1v.end(),
+      k2v.begin(),
+      tv.begin(),
+      [rv](const propmat &a, const propmat &b) { return tran(a, b, rv)(); });
 }
 }  // namespace rtepack

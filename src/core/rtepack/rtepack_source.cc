@@ -1,16 +1,21 @@
 #include "rtepack_source.h"
+
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"
 
-namespace rtepack::source  {
-void level_nlte_and_scattering_and_sun(
-    stokvec_vector_view J, stokvec_matrix_view dJ,
-    const stokvec_vector_const_view &J_add, const propmat_vector_const_view &K,
-    const stokvec_vector_const_view &a, const stokvec_vector_const_view &S,
-    const propmat_matrix_const_view &dK, const stokvec_matrix_const_view &da,
-    const stokvec_matrix_const_view &dS, const ExhaustiveConstVectorView &B,
-    const ExhaustiveConstMatrixView &dB) {
+namespace rtepack::source {
+void level_nlte_and_scattering_and_sun(stokvec_vector_view J,
+                                       stokvec_matrix_view dJ,
+                                       const stokvec_vector_const_view &J_add,
+                                       const propmat_vector_const_view &K,
+                                       const stokvec_vector_const_view &a,
+                                       const stokvec_vector_const_view &S,
+                                       const propmat_matrix_const_view &dK,
+                                       const stokvec_matrix_const_view &da,
+                                       const stokvec_matrix_const_view &dS,
+                                       const ExhaustiveConstVectorView &B,
+                                       const ExhaustiveConstMatrixView &dB) {
   const Index N = J.nelem();
   ARTS_ASSERT(N == dJ.ncols())
   ARTS_ASSERT(N == J_add.nelem())
@@ -47,13 +52,16 @@ void level_nlte_and_scattering_and_sun(
   }
 }
 
-void level_nlte_and_scattering(
-    stokvec_vector_view J, stokvec_matrix_view dJ,
-    const propmat_vector_const_view &K,
-    const stokvec_vector_const_view &a, const stokvec_vector_const_view &S,
-    const propmat_matrix_const_view &dK, const stokvec_matrix_const_view &da,
-    const stokvec_matrix_const_view &dS, const ExhaustiveConstVectorView &B,
-    const ExhaustiveConstMatrixView &dB) {
+void level_nlte_and_scattering(stokvec_vector_view J,
+                               stokvec_matrix_view dJ,
+                               const propmat_vector_const_view &K,
+                               const stokvec_vector_const_view &a,
+                               const stokvec_vector_const_view &S,
+                               const propmat_matrix_const_view &dK,
+                               const stokvec_matrix_const_view &da,
+                               const stokvec_matrix_const_view &dS,
+                               const ExhaustiveConstVectorView &B,
+                               const ExhaustiveConstMatrixView &dB) {
   const Index N = J.nelem();
   ARTS_ASSERT(N == dJ.ncols())
   ARTS_ASSERT(N == K.nelem())
@@ -105,7 +113,8 @@ void level_nlte_and_scattering(stokvec_vector_view J,
   }
 }
 
-void level_nlte(stokvec_vector_view J, stokvec_matrix_view dJ,
+void level_nlte(stokvec_vector_view J,
+                stokvec_matrix_view dJ,
                 const propmat_vector_const_view &K,
                 const stokvec_vector_const_view &S,
                 const propmat_matrix_const_view &dK,
@@ -143,4 +152,4 @@ void level_nlte(stokvec_vector_view J, stokvec_matrix_view dJ,
     }
   }
 }
-} // namespace rtepack::source
+}  // namespace rtepack::source
