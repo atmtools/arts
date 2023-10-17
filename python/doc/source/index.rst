@@ -18,5 +18,6 @@ ARTS
    examples
    workspace
    pyarts
+   pdf_guides
    indices
    contact
