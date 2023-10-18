@@ -33,22 +33,6 @@ inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_te
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixCBR(  // WS Output:
-    Matrix& m,
-    // WS Input:
-    // WS Generic Input:
-    const Vector& f) {
-  const Index n = f.nelem();
-
-  if (n == 0) throw std::runtime_error("The given frequency vector is empty.");
-
-  m.resize(n, 4);
-  m = 0;
-
-  planck(m(joker, 0), f, COSMIC_BG_TEMP);
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixPlanck(  // WS Output:
     Matrix& m,
     // WS Input:
@@ -63,6 +47,15 @@ void MatrixPlanck(  // WS Output:
   m = 0;
 
   planck(m(joker, 0), f, t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixCBR(  // WS Output:
+    Matrix& m,
+    // WS Input:
+    // WS Generic Input:
+    const Vector& f) {
+  MatrixPlanck(m, f, COSMIC_BG_TEMP);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

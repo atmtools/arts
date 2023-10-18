@@ -639,8 +639,7 @@ void iyBackground(const Workspace &ws, Matrix &iy, ArrayOfTensor3 &diy_dx,
 } ARTS_METHOD_ERROR_CATCH
 
 void background_radFromMatrix(StokvecVector &background_rad, const Matrix &iy) {
-  ARTS_USER_ERROR_IF(iy.ncols() > 5 or iy.ncols() < 1,
-                     "Only for stokes dimensions [1, 4].")
+  ARTS_USER_ERROR_IF(iy.ncols() not_eq 4, "Only for stokes dimensions 4.")
   background_rad = rtepack::to_stokvec_vector(iy);
 }
 

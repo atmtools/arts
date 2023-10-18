@@ -461,7 +461,7 @@ std::string method_resolution_variadic(
       supergeneric_types(wsm);
   if (is_unique_variadic(wsm)) {
     os << "        std::visit([&] (auto& _t) {"
-          "\n          using _tT=std::remove_cvref_t<decltype(_t)>;";
+          "\n          using _tT=std::remove_cvref_t<decltype(*_t)>;";
 
     std::string var = "";
     os << "\n          if constexpr (false) {}";
@@ -1051,6 +1051,7 @@ PyWsvValue from(const WsvValue& x);
 PyWsvValue from(const Wsv& x);
 PyWsvValue from(const std::shared_ptr<Wsv>& x);
 
+Wsv from(py::object& x);
 Wsv from(const py::object& x);
 
 std::string type(const py::object& x);
@@ -1119,7 +1120,32 @@ PyWsvValue from(const std::shared_ptr<Wsv>& x) {
 Wsv from(const py::object& x) {
   if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
 
-  return from(x.cast<PyWsvValue>());
+  try {
+    return from(x.cast<PyWsvValue>());
+  } catch (py::cast_error&) {
+    py::object y = x.attr("__copy__")();
+    return from(y.cast<PyWsvValue>());
+  } catch(std::exception&) {
+    throw;
+  }
+}
+
+Wsv from(py::object& x) {
+  if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+
+  try {
+    return from(x.cast<PyWsvValue>());
+  } catch (py::cast_error& e) {
+    throw std::runtime_error(var_string(
+        "Cannot use one of the passed python objects as a workspace variable.\n\n",
+        "The python object is of type: ",
+        type(x),
+        ".\n\nThe full internal error reads:\n",
+        e.what(), "\n\n",
+        "Note that it is not possible to use temporary references as output workspace variables."));
+  } catch (std::runtime_error&) {
+    throw;
+  }
 }
 
 std::string type(const py::object& x) {
