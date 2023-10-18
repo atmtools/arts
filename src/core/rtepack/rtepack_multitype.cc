@@ -82,9 +82,9 @@ propmat to_propmat(const ConstMatrixView &a) {
   ARTS_ASSERT(a(0, 1) == a(1, 0), "Must be 10 - 01 symmetric")
   ARTS_ASSERT(a(0, 2) == a(2, 0), "Must be 20 - 02 symmetric")
   ARTS_ASSERT(a(0, 3) == a(3, 0), "Must be 30 - 03 symmetric")
-  ARTS_ASSERT(a(1, 2) == -a(2, 1) "Must be 12 - 21 asymmetric")
-  ARTS_ASSERT(a(1, 3) == -a(3, 1) "Must be 13 - 31 asymmetric")
-  ARTS_ASSERT(a(2, 3) == -a(3, 2) "Must be 23 - 32 asymmetric")
+  ARTS_ASSERT(a(1, 2) == -a(2, 1), "Must be 12 - 21 asymmetric")
+  ARTS_ASSERT(a(1, 3) == -a(3, 1), "Must be 13 - 31 asymmetric")
+  ARTS_ASSERT(a(2, 3) == -a(3, 2), "Must be 23 - 32 asymmetric")
 
   return {a[0][0], a[0][1], a[0][2], a[0][3], a[1][2], a[1][3], a[2][3]};
 }
