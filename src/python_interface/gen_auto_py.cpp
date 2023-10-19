@@ -1122,12 +1122,15 @@ Wsv from(const py::object& x) {
 
   try {
     return from(x.cast<PyWsvValue>());
-  } catch (py::cast_error&) {
-    py::object y = x.attr("__copy__")();
-    return from(y.cast<PyWsvValue>());
+  } catch (py::cast_error& ) {
+    // Expected error for reference values that has to be copied,
+    // but are not copyable by pybind standard.
   } catch(std::exception&) {
     throw;
   }
+
+  py::object y = x.attr("__copy__")();
+  return from(y.cast<PyWsvValue>());
 }
 
 Wsv from(py::object& x) {
