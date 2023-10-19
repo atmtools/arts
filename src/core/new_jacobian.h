@@ -46,7 +46,7 @@ struct AtmTarget {
 struct Targets {
   std::vector<AtmTarget> atm;
 
-  [[nodiscard]] constexpr Size size() const {
+  [[nodiscard]] Size size() const {
     const auto sz = [](const auto& x) { return x.size; };
     return std::transform_reduce(
         atm.begin(), atm.end(), Size{0}, std::plus<>{}, sz);
