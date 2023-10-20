@@ -46,6 +46,10 @@
   background-color: rgb(226, 234, 248);
 }
 
+.wy-nav-top {
+    background-color: rgb(2, 113, 187);
+}
+
 .wy-nav-content {
     max-width: none;
 }
@@ -66,9 +70,13 @@
     background-color: rgb(2, 113, 187);
 }
 .wy-side-scroll, .wy-nav-side {
-    background-color: rgb(252, 252, 252);
+    color: rgb(252, 252, 252);
+    background-color: rgb(2, 113, 187);
 }
 .wy-side-scroll a.reference.internal {
+    color: rgb(252, 252, 252);
+}
+.wy-side-scroll a:hover.reference.internal {
     color: rgb(64, 64, 64);
 }
 .wy-menu-vertical li.current a {
@@ -79,22 +87,39 @@
     border-bottom-style: none;
 }
 .wy-menu-vertical a:hover {
-    background-color: rgb(214,214,214);
+    color: rgb(64,64,64);
+    background-color: rgb(252,252,252);
+}
+.wy-menu-vertical li.current a:hover {
+    background-color: rgb(252,252,252);
 }
 .wy-menu-vertical li.toctree-l2.current>a, .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a {
-    background-color: rgb(252,252,252);
+    background-color: rgb(2, 113, 187);
 }
 .wy-menu-vertical li.toctree-l2 a, .wy-menu-vertical li.toctree-l3 a, .wy-menu-vertical li.toctree-l4 a, .wy-menu-vertical li.toctree-l5 a, .wy-menu-vertical li.toctree-l6 a, .wy-menu-vertical li.toctree-l7 a, .wy-menu-vertical li.toctree-l8 a, .wy-menu-vertical li.toctree-l9 a, .wy-menu-vertical li.toctree-l10 a {
-    background-color: rgb(252,252,252);
+    background-color: rgb(2, 113, 187);
 }
 
 .wy-menu-vertical li.toctree-l2.current li.toctree-l3>a, .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a, .wy-menu-vertical li.toctree-l4.current li.toctree-l5>a, .wy-menu-vertical li.toctree-l5.current li.toctree-l6>a, .wy-menu-vertical li.toctree-l6.current li.toctree-l7>a, .wy-menu-vertical li.toctree-l7.current li.toctree-l8>a, .wy-menu-vertical li.toctree-l8.current li.toctree-l9>a, .wy-menu-vertical li.toctree-l9.current li.toctree-l10>a, .wy-menu-vertical li.toctree-l10.current li.toctree-l11>a {
-    background-color: rgb(252,252,252);
+    color: rgb(252,252,252);
+    background-color: rgb(2, 113, 187);
 }
-.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover, .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a:hover, .wy-menu-vertical li.toctree-l4.current li.toctree-l5>a:hover, .wy-menu-vertical li.toctree-l5.current li.toctree-l6>a:hover, .wy-menu-vertical li.toctree-l6.current li.toctree-l7>a:hover, .wy-menu-vertical li.toctree-l7.current li.toctree-l8>a:hover, .wy-menu-vertical li.toctree-l8.current li.toctree-l9>a:hover, .wy-menu-vertical li.toctree-l9.current li.toctree-l10>a:hover, .wy-menu-vertical li.toctree-l10.current li.toctree-l11>a:hover {
-    background-color: rgb(214,214,214);
+.wy-menu-vertical li.toctree-l2.current>a:hover,.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a:hover, .wy-menu-vertical li.toctree-l3.current li.toctree-l4>a:hover, .wy-menu-vertical li.toctree-l4.current li.toctree-l5>a:hover, .wy-menu-vertical li.toctree-l5.current li.toctree-l6>a:hover, .wy-menu-vertical li.toctree-l6.current li.toctree-l7>a:hover, .wy-menu-vertical li.toctree-l7.current li.toctree-l8>a:hover, .wy-menu-vertical li.toctree-l8.current li.toctree-l9>a:hover, .wy-menu-vertical li.toctree-l9.current li.toctree-l10>a:hover, .wy-menu-vertical li.toctree-l10.current li.toctree-l11>a:hover {
+    color: rgb(64, 64, 64);
+    background-color: rgb(252, 252, 252);
 }
-.wy-menu-vertical li.current>a:hover, .wy-menu-vertical li.on a:hover {
-    background-color: rgb(214,214,214);
+.wy-menu-vertical li button.toctree-expand, .wy-menu-vertical li.current>a button.toctree-expand, .wy-menu-vertical li.on a button.toctree-expand {
+    color: rgb(252, 252, 252);
 }
-
+.wy-menu-vertical a:hover button.toctree-expand {
+    color: rgb(64, 64, 64);
+}
+.wy-menu-vertical li.current>a, .wy-menu-vertical li.on a {
+    background-color: rgb(2, 113, 187);
+}
+.wy-menu-vertical li.toctree-l2 a button.toctree-expand, .wy-menu-vertical li.toctree-l3 a button.toctree-expand, .wy-menu-vertical li.toctree-l4 a button.toctree-expand, .wy-menu-vertical li.toctree-l5 a button.toctree-expand, .wy-menu-vertical li.toctree-l6 a button.toctree-expand, .wy-menu-vertical li.toctree-l7 a button.toctree-expand, .wy-menu-vertical li.toctree-l8 a button.toctree-expand, .wy-menu-vertical li.toctree-l9 a button.toctree-expand, .wy-menu-vertical li.toctree-l10 a button.toctree-expand {
+    color: rgb(252, 252, 252);
+}
+.wy-menu-vertical li.toctree-l2 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l3 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l4 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l5 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l6 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l7 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l8 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l9 a:hover button.toctree-expand, .wy-menu-vertical li.toctree-l10 a:hover button.toctree-expand {
+    color: rgb(64, 64, 64);
+}
