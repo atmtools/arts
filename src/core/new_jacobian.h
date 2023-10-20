@@ -13,10 +13,11 @@ struct AtmTarget {
   AtmKeyVal type;
   Size start;
   Size size;
-  std::function<void(ExhaustiveVectorView, const AtmField&, const ConstVectorView&)> set{
-      [](ExhaustiveVectorView xnew,
-         const AtmField&,
-         const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(
+      ExhaustiveVectorView, const AtmField&, const ConstVectorView&)>
+      set{[](ExhaustiveVectorView xnew,
+             const AtmField&,
+             const ConstVectorView& xold) { xnew = xold; }};
 
   friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
     return os << "Atmosphere key value: " << target.type << ", starting at "
@@ -50,6 +51,14 @@ struct Targets {
     const auto sz = [](const auto& x) { return x.size; };
     return std::transform_reduce(
         atm.begin(), atm.end(), Size{0}, std::plus<>{}, sz);
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const Targets& targets) {
+    os << "Jacobian targets:\n";
+    for (const auto& t : targets.atm) {
+      os << "  " << t << '\n';
+    }
+    return os;
   }
 };
 }  // namespace Jacobian

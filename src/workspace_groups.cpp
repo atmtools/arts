@@ -491,18 +491,26 @@ of this term multiplied by a negative distance.
   wsg_data["ArrayOfArrayOfStokvecMatrix"] = {
       .file = "rtepack.h", .desc = "A list of *ArrayOfStokvecMatrix*.\n"};
 
-  wsg_data["NumericUnaryOperator"]  = {
-      .file = "operators.h", .desc = R"--(A simple functional type.
+  wsg_data["NumericUnaryOperator"] = {.file = "operators.h",
+                                      .desc = R"--(A simple functional type.
 
 This type will work as a function pointer that takes a single *Numeric*
 to produce another *Numeric*.
 )--"};
 
-  wsg_data["NumericTernaryOperator"]  = {
-      .file = "operators.h", .desc = R"--(A simple functional type.
+  wsg_data["NumericTernaryOperator"] = {.file = "operators.h",
+                                        .desc = R"--(A simple functional type.
 
 This type will work as a function pointer that takes three *Numeric*
 to produce a single *Numeric*.
+)--"};
+
+  wsg_data["JacobianTargets"] = {
+      .file = "new_jacobian.h",
+      .desc = R"--(A list of targets for use in Jacobian Matrix calculations
+
+This type flags the type of calculations that should be performed
+when computing the Jacobian matrix or partial derivatives.
 )--"};
 
   return wsg_data;

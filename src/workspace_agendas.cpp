@@ -587,5 +587,47 @@ See further *ybatchCalc*.
 )--",
       .output = {"y", "y_aux", "jacobian"},
       .input = {"ybatch_index"}};
+
+  wsa_data["space_radiation_agenda"] = {
+      .desc = R"--(Radiation as seen of space.
+
+This agenda calculates the radiation as seen of space. The
+intent is to provide a background radiation from space that
+is input to the atmospheric radiative transfer calculations.
+
+The input position and line-of-sight are as if you were looking
+at space.
+)--",
+      .output = {"rad", "drad"},
+      .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
+
+  wsa_data["surface_radiation_agenda"] = {
+      .desc = R"--(Radiation as seen of the surface.
+
+This agenda calculates the radiation as seen of the surface.
+The intent is to provide a background radiation from the
+surface that is input to the atmospheric radiative transfer
+calculations.
+
+The input position and line-of-sight are as if you were looking
+at the surface.
+)--",
+      .output = {"rad", "drad"},
+      .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
+
+  wsa_data["atm_radiation_agenda"] = {
+      .desc = R"--(Radiation as seen of the atmosphere.
+
+This agenda calculates the radiation as seen of the atmosphere.
+The intent is to provide a background radiation from the
+atmosphere that is input to the atmospheric radiative transfer
+calculations.
+
+The input position and line-of-sight are as if you were looking
+at the atmosphere.
+)--",
+      .output = {"rad", "drad"},
+      .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
+
   return wsa_data;
 }

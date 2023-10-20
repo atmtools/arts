@@ -21,6 +21,7 @@
 #include <workspace.h>
 
 // Extras
+#include "jacobian.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "template_partfun.h"
@@ -136,6 +137,7 @@ TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(SpectralRadianceProfileOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericTernaryOperator)
+TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
 
 //=== rtepack types ========================================================
 

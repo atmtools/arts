@@ -2886,3 +2886,18 @@ void xml_write_to_stream(std::ostream&,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");
 }
+
+//=== JacobianTargets =========================================
+
+void xml_read_from_stream(std::istream&,
+                          JacobianTargets&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const JacobianTargets&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}

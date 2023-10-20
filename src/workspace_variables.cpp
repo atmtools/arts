@@ -4529,5 +4529,20 @@ Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude 
 )--",
       .type = "NumericTernaryOperator"};
 
+  wsv_data["rad"] = {
+      .desc = R"--(A radiation vector.
+)--",
+      .type = "StokvecVector"};
+
+  wsv_data["drad"] = {
+      .desc = R"--(A radiation derivative matrix.
+)--",
+      .type = "StokvecMatrix"};
+
+  wsv_data["jacobian_targets"] = {
+      .desc = R"--(A list of targets for the Jacobian Matrix calculations.
+)--",
+      .type = "JacobianTargets"};
+
   return wsv_data;
 }
