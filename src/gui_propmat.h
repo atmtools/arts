@@ -7,7 +7,7 @@
 #include "enums.h"
 #include "gui.h"
 
-namespace ARTSGUI {
+namespace gui {
 namespace PropmatClearsky {
 struct ComputeValues {
   PropmatVector pm;

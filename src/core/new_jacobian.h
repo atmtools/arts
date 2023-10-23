@@ -18,6 +18,11 @@ struct AtmTarget {
       set{[](ExhaustiveVectorView xnew,
              const AtmField&,
              const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(
+      VectorView, const AtmField&, const ExhaustiveConstVectorView&)>
+      unset{[](VectorView xnew,
+             const AtmField&,
+             const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
   friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
     return os << "Atmosphere key value: " << target.type << ", starting at "
@@ -41,6 +46,25 @@ struct AtmTarget {
         "Did you change your atmosphere since you set the jacobian targets?")
 
     set(xnew, atm, xold_d);
+  }
+
+  void update(Vector& x, const AtmField& atm) const {
+    ARTS_USER_ERROR_IF(static_cast<Size>(x.size()) < (start + size),
+                       "Got too small vector.")
+
+    ARTS_USER_ERROR_IF(not atm.contains(type),
+                       "Atmosphere does not contain key value ",
+                       type,
+                       '.')
+
+    auto xnew = x[Range(start, size)];
+    auto xold_d = atm[type].flat_view();
+    ARTS_USER_ERROR_IF(
+        xnew.size() not_eq xold_d.size(),
+        "Problem with sizes.  \n"
+        "Did you change your atmosphere since you set the jacobian targets?")
+
+    unset(xnew, atm, xold_d);
   }
 };
 

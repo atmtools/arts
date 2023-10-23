@@ -3491,6 +3491,10 @@ Unit:  [ degrees ]
 )--",
       .type = "Vector"};
 
+  wsv_data["background_drad"] = {.desc = R"--(Radiation derivative from the background
+)--",
+                                .type = "StokvecMatrix"};
+
   wsv_data["background_rad"] = {.desc = R"--(Radiation from the background
 )--",
                                 .type = "StokvecVector"};

@@ -14,13 +14,13 @@
 
 #include "arts_omp.h"
 #include "compare.h"
+#include "configtypes.h"
 #include "debug.h"
+#include "fieldmap.h"
 #include "gridded_fields.h"
 #include "grids.h"
 #include "interpolation.h"
 #include "isotopologues.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
 
 #include <matpack.h>
 
@@ -230,10 +230,65 @@ struct interp_helper {
 };
 
 template <Index poly_alt, Index poly_lat, Index poly_lon>
-Vector tvec_interp(const Tensor3 &v, const Vector &alt_grid,
-                   const Vector &lat_grid, const Vector &lon_grid,
-                   const Vector &alt, const Vector &lat, const Vector &lon) {
-  const interp_helper<poly_alt, poly_lat, poly_lon> interpolater(
+interp_helper<poly_alt, poly_lat, poly_lon> tvec_interpgrid(
+    const Vector &alt_grid,
+    const Vector &lat_grid,
+    const Vector &lon_grid,
+    const Vector &alt,
+    const Vector &lat,
+    const Vector &lon) {
+  using Interpolater = interp_helper<poly_alt, poly_lat, poly_lon>;
+  return Interpolater(alt_grid, lat_grid, lon_grid, alt, lat, lon);
+}
+
+template <Index poly_alt, Index poly_lat, Index poly_lon>
+Array<std::array<std::pair<Index, Numeric>, 8>> tvec_interpgrid_weights(
+    const Vector &alt_grid,
+    const Vector &lat_grid,
+    const Vector &lon_grid,
+    const Vector &alt,
+    const Vector &lat,
+    const Vector &lon) {
+  const auto interpolater = tvec_interpgrid<poly_alt, poly_lat, poly_lon>(
+      alt_grid, lat_grid, lon_grid, alt, lat, lon);
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+  constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
+  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
+
+  const Index n = alt_grid.size();
+  const Index m = lat_grid.size();
+
+  for (Index i = 0; i < alt.size(); i++) {
+    const Index alt0 = interpolater.lags_alt[i].pos * m * n;
+    const Index lat0 = interpolater.lags_lat[i].pos * m;
+    const Index lon0 = interpolater.lags_lon[i].pos;
+
+    Index j = 0;
+    for (Index idx0 = 0; idx0 < 1 + poly_alt; idx0++) {
+      for (Index idx1 = 0; idx1 < 1 + poly_lat; idx1++) {
+        for (Index idx2 = 0; idx2 < 1 + poly_lon; idx2++) {
+          out[i][j].first = alt0 + lat0 + lon0 + idx0 * n * m + idx1 * m + idx2;
+          out[i][j].second = interpolater.lags_alt[i].lx[idx0] *
+                             interpolater.lags_lat[i].lx[idx1] *
+                             interpolater.lags_lon[i].lx[idx2];
+          ++j;
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
+template <Index poly_alt, Index poly_lat, Index poly_lon>
+Vector tvec_interp(const Tensor3 &v,
+                   const Vector &alt_grid,
+                   const Vector &lat_grid,
+                   const Vector &lon_grid,
+                   const Vector &alt,
+                   const Vector &lat,
+                   const Vector &lon) {
+  const auto interpolater = tvec_interpgrid<poly_alt, poly_lat, poly_lon>(
       alt_grid, lat_grid, lon_grid, alt, lat, lon);
   return interpolater(v);
 }
@@ -496,6 +551,54 @@ std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
               "Cannot be reached, you have added a new type but not done the plumbing...");
       },
       data);
+}
+
+Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(const Numeric &,
+                                                              const Vector &alt,
+                                                              const Vector &,
+                                                              const Vector &) {
+  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+  constexpr std::array v{v1, v0, v0, v0, v0, v0, v0, v0};
+  return Array<std::array<std::pair<Index, Numeric>, 8>>(alt.size(), v);
+}
+
+Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
+    const FunctionalData &, const Vector &alt, const Vector &, const Vector &) {
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+  constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
+  return Array<std::array<std::pair<Index, Numeric>, 8>>(alt.size(), v);
+}
+
+Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
+    const GriddedField3 &v,
+    const Vector &alt,
+    const Vector &lat,
+    const Vector &lon) {
+  const bool d1 = v.get_grid_size(0) == 1;
+  const bool d2 = v.get_grid_size(1) == 1;
+  const bool d3 = v.get_grid_size(2) == 1;
+
+  using namespace detail;
+  if (d1 and d2 and d3) return flat_weights_(Numeric{}, alt, lat, lon);
+  if (d1 and d2)        return tvec_interpgrid_weights<0, 0, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1 and d3)        return tvec_interpgrid_weights<0, 1, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d2 and d3)        return tvec_interpgrid_weights<1, 0, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1)               return tvec_interpgrid_weights<0, 1, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d2)               return tvec_interpgrid_weights<1, 0, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d3)               return tvec_interpgrid_weights<1, 1, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  return tvec_interpgrid_weights<1, 1, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+}
+
+//! Flat weights for the positions in an atmosphere
+[[nodiscard]] Array<std::array<std::pair<Index, Numeric>, 8>>
+Data::flat_weights(const Vector &alt,
+                   const Vector &lat,
+                   const Vector &lon) const {
+  ARTS_USER_ERROR_IF(alt.size() != lat.size() or alt.size() != lon.size(),
+                     "alt, lat, and lon must have the same size")
+  return std::visit([&](auto &v) { return flat_weights_(v, alt, lat, lon); },
+                    data);
 }
 
 std::ostream& operator<<(std::ostream& os, const KeyVal& key) {

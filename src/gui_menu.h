@@ -9,7 +9,7 @@
 #include "imgui.h"
 #include "jacobian.h"
 
-namespace ARTSGUI::MainMenu {
+namespace gui::MainMenu {
 ENUMCLASS(VMR, char, exact, percent, ppmv)
 
 struct Options {

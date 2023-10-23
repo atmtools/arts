@@ -17214,5 +17214,69 @@ Gets the ellispoid from *surface_field*
       .gin_value = {std::nullopt},
       .gin_desc = {"Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"}};
 
+  wsm_data["background_radFromPropagation"] = {
+      .desc = R"--(Computes the background radiation.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"background_rad", "background_drad"},
+      .in = {"f_grid",
+             "jacobian_targets",
+             "ppath",
+             "space_radiation_agenda",
+             "surface_radiation_agenda",
+             "stop_distance_radiation_agenda"},
+      .pass_workspace = true};
+
+  wsm_data["background_radCosmicBackground"] = {
+      .desc = R"--(Set the cosmic background radiation.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"background_rad"},
+      .in = {"f_grid"}};
+
+  wsm_data["background_radSurfaceFieldEmission"] = {
+      .desc = R"--(Set surface emission from Planck function of the surface temperature
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"background_rad"},
+      .in = {"f_grid", "surface_field", "rtp_pos"}};
+
+  wsm_data["background_dradEmpty"] = {
+      .desc = R"--(Set the cosmic background radiation derivative to empty.
+
+Size : (*jacobian_targets*, *f_grid*)
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"background_drad"},
+      .in = {"f_grid", "jacobian_targets"}};
+
+  wsm_data["dradEmpty"] = {
+      .desc = R"--(Set the cosmic background radiation derivative to empty.
+
+Size : (*jacobian_targets*, *f_grid*)
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"drad"},
+      .in = {"f_grid", "jacobian_targets"}};
+
+  wsm_data["dradFromPropagation"] = {
+      .desc = R"--(Computes radiation derivative from the propagation
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"drad"},
+      .in = {"ppvar_drad",
+             "background_transmittance",
+             "background_drad",
+             "jacobian_targets",
+             "atm_field",
+             "ppath"}};
+
+  wsm_data["radFromPropagation"] = {
+      .desc = R"--(Sets *rad* from front of *ppvar_rad*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"rad"},
+      .in = {"ppvar_rad"}};
+
   return wsm_data;
 }

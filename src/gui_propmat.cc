@@ -27,7 +27,7 @@
 #include <rtepack.h>
 #include "species_tags.h"
 
-namespace ARTSGUI {
+namespace gui {
 Numeric no_inf(Numeric x) noexcept {
   return std::isfinite(x) ? x : std::numeric_limits<Numeric>::quiet_NaN();
 }
@@ -526,7 +526,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   Time end_time{start_time};
   Numeric last_runtime = std::numeric_limits<Numeric>::quiet_NaN();
   std::size_t curpos = PropmatClearsky::n;
-  auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
+  auto fileBrowser = Files::xmlfile_chooser();
 
   // Old copies
   auto old_jacobian_quantities = jacobian_quantities;
@@ -917,9 +917,9 @@ void propmat(PropmatClearsky::ResultsArray& res,
   // Save the data to file?
   if (curpos < res.size() and res[curpos].ok.load()) {
     if (config.save_type == 0)
-      ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.pm);
+      Files::save_data(config, fileBrowser, res[curpos].value.pm);
     else if (config.save_type == 1)
-      ARTSGUI::Files::save_data(config, fileBrowser, res[curpos].value.aopm);
+      Files::save_data(config, fileBrowser, res[curpos].value.aopm);
   }
 
   if (ctrl.error.load()) {

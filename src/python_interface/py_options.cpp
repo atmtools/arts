@@ -125,6 +125,8 @@ void py_options(py::module_& m) try {
   DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation)
   DeclareOptionRenamed(AtmKey, Atm, Key)
 
+  // Surface
+  DeclareOptionRenamed(SurfaceKey, Surf, Key)
 
   // Jacobian enums
   DeclareOptionRenamed(JacobianType, Jacobian, Type)

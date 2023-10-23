@@ -597,8 +597,13 @@ is input to the atmospheric radiative transfer calculations.
 
 The input position and line-of-sight are as if you were looking
 at space.
+
+The output must be sized as:
+
+- *background_rad* : (*f_grid*)
+- *background_drad* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"rad", "drad"},
+      .output = {"background_rad", "background_drad"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
 
   wsa_data["surface_radiation_agenda"] = {
@@ -611,22 +616,24 @@ calculations.
 
 The input position and line-of-sight are as if you were looking
 at the surface.
+
+The output must be sized as:
+
+- *background_rad* : (*f_grid*)
+- *background_drad* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"rad", "drad"},
+      .output = {"background_rad", "background_drad"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
 
-  wsa_data["atm_radiation_agenda"] = {
-      .desc = R"--(Radiation as seen of the atmosphere.
+  wsa_data["stop_distance_radiation_agenda"] = {
+      .desc = R"--(Radiation as seen from stopping the ppath calculations.
 
-This agenda calculates the radiation as seen of the atmosphere.
-The intent is to provide a background radiation from the
-atmosphere that is input to the atmospheric radiative transfer
-calculations.
+The output must be sized as:
 
-The input position and line-of-sight are as if you were looking
-at the atmosphere.
+- *background_rad* : (*f_grid*)
+- *background_drad* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"rad", "drad"},
+      .output = {"background_rad", "background_drad"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
 
   return wsa_data;

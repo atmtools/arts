@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <functional>
 #include <iterator>
 #include <stdexcept>
 
@@ -31,6 +32,7 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_arrays.h"
+#include "matpack_constexpr.h"
 #include "matpack_data.h"
 #include "montecarlo.h"
 #include "new_jacobian.h"
@@ -307,51 +309,6 @@ void ppvar_radCalcTransmission(
   }
 }
 ARTS_METHOD_ERROR_CATCH
-
-struct derivative_weight {
-  Numeric weight;
-  Index index;
-};
-
-void radFromPropagation(StokvecVector& rad,
-                        StokvecMatrix& drad,
-                        const ArrayOfStokvecVector &ppvar_rad,
-                        const ArrayOfStokvecMatrix &ppvar_drad,
-                        const ArrayOfMuelmatVector &ppvar_cumtramat,
-                        const JacobianTargets& jacobian_targets,
-                        const AtmField& atm_field,
-                        const Ppath &ppath) {
-  ARTS_USER_ERROR_IF(ppvar_rad.size() != ppvar_drad.size(),
-                     "ppvar_rad and ppvar_drad must have the same size");
-  ARTS_USER_ERROR_IF(ppvar_rad.size() != ppvar_cumtramat.size(),
-                     "ppvar_rad and ppvar_cumtramat must have the same size");
-  ARTS_USER_ERROR_IF(ppvar_rad.size() == 0, "ppvar_rad is empty");
-
-  //! The radiance is what comes from this
-  rad = ppvar_rad.front();
-
-  //! Now we can check the size of the Jacobian
-  ARTS_USER_ERROR_IF(static_cast<Size>(drad.nrows()) != jacobian_targets.size(),
-                     "drad must have the same number of rows as the length of "
-                     "jacobian_targets");
-  ARTS_USER_ERROR_IF(
-      drad.ncols() != rad.size(),
-      "drad must have the same "
-      "number of columns as the number of frequency points in ppvar_rad");
-
-  //! The transmittance from background adapts the input Jacobian
-  const MuelmatVector &PiT = ppvar_cumtramat.back();
-  for (Size i = 0; i < jacobian_targets.size(); i++) {
-    for (Index j = 0; j < PiT.size(); j++) {
-      drad(i, j) = PiT[j] * drad(i, j);
-    }
-  }
-
-  //! The derivative calculations operate on the block-size of the input parameters
-  for (auto& atm_block: jacobian_targets.atm) {
-
-  }
-}
 
 void iyUnitConversion(Matrix &iy,
                       ArrayOfTensor3 &diy_dx,

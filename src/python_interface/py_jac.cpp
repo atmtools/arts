@@ -1,6 +1,7 @@
 #include <python_interface.h>
 
 #include "jacobian.h"
+#include "new_jacobian.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
 #include "species.h"
@@ -86,6 +87,13 @@ void py_jac(py::module_& m) try {
   artsarray<ArrayOfRetrievalQuantity>(m, "ArrayOfRetrievalQuantity")
       .PythonInterfaceFileIO(ArrayOfRetrievalQuantity)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfRetrievalQuantity);
+
+  artsclass<JacobianTargets>(m, "JacobianTargets")
+      .PythonInterfaceWorkspaceVariableConversion(JacobianTargets)
+      .PythonInterfaceBasicRepresentation(JacobianTargets)
+      .PythonInterfaceFileIO(JacobianTargets)
+      .def_readwrite("atm", &JacobianTargets::atm, "List of atmospheric targets")
+      .PythonInterfaceWorkspaceDocumentation(JacobianTargets);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));
 }

@@ -70,6 +70,10 @@ class Workspace {
 
   friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
 
+  [[nodiscard]] auto begin() { return wsv.begin(); }
+
+  [[nodiscard]] auto end() { return wsv.end(); }
+
   [[nodiscard]] auto begin() const { return wsv.begin(); }
 
   [[nodiscard]] auto end() const { return wsv.end(); }

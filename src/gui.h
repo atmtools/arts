@@ -20,7 +20,7 @@
 #include <matpack_arrays.h>
 #include <matpack_data.h>
 
-namespace ARTSGUI {
+namespace gui {
   /** A global config for all things ARTSGUI */
 struct Config {
   /** The io variable of ImGui, has a lot of key presses */

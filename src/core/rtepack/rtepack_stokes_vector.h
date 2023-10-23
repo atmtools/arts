@@ -70,6 +70,4 @@ using stokvec_tensor3 = matpack::matpack_data<stokvec, 3>;
 using stokvec_tensor3_view = matpack::matpack_view<stokvec, 3, false, false>;
 using stokvec_tensor3_const_view =
     matpack::matpack_view<stokvec, 3, true, false>;
-
-stokvec_vector operator*(Numeric x, const stokvec_vector_const_view &y);
 }  // namespace rtepack

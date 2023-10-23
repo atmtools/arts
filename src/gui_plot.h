@@ -14,7 +14,7 @@
 #include "gui.h"
 #pragma GCC diagnostic pop
 
-namespace ARTSGUI {
+namespace gui {
 
 //! Static data for making the plots nicer to look at
 struct PlotConfig {

@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "gui.h"
 
-namespace ARTSGUI {
+namespace gui {
 enum class ErrorStatus : char {OnHold, Exit, Continue};
 [[nodiscard]] ErrorStatus error(const std::string& errmsg);
 }  // namespace ARTSGUI

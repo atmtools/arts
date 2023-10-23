@@ -45,21 +45,34 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks
 
 ws.lbl_checked = 1
+ws.Touch(ws.jacobian_targets)
+
+@pyarts.workspace.arts_agenda(ws=ws, fix=True)
+def space_radiation_agenda(ws):
+    ws.background_radCosmicBackground()
+    ws.background_dradEmpty()
+
+@pyarts.workspace.arts_agenda(ws=ws, fix=True)
+def surface_radiation_agenda(ws):
+    ws.background_radSurfaceFieldEmission()
+    ws.background_dradEmpty()
+
+ws.stop_distance_radiation_agenda
+ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.
 
 # %% Core calculations
 ws.ppathGeometric()
+ws.background_radFromPropagation()
+
+
 ws.ppvar_atmFromPath()
 ws.ppvar_fFromPath()
 ws.ppvar_propmatCalc()
 ws.ppvar_srcFromPropmat()
-ws.MatrixPlanck(ws.iy, f=ws.f_grid, t=293)
-ws.background_radFromMatrix(iy_mat=ws.iy)
 ws.ppvar_tramatCalc()
 ws.ppvar_cumtramatForward()
 ws.ppvar_radCalcEmission()
+ws.radFromPropagation()
 
-
-ws.iyCopyPath()
-ws.Touch(ws.diy_dx)
-ws.iyUnitConversion(iy_agenda_call1=1)
-
+ws.background_transmittanceFromBack()
+ws.dradFromPropagation()

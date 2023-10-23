@@ -26,7 +26,7 @@ using namespace std::chrono_literals;
 
 namespace PropmatClearskyAgendaGUI {
 void compute(const Workspace& ws,
-             ARTSGUI::PropmatClearsky::ComputeValues& v,
+             gui::PropmatClearsky::ComputeValues& v,
              const Agenda& propmat_clearsky_agenda) {
   propmat_clearsky_agendaExecute(ws,
                                  v.pm,
@@ -41,8 +41,8 @@ void compute(const Workspace& ws,
                                  propmat_clearsky_agenda);
 }
 
-bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
-         ARTSGUI::PropmatClearsky::Control& ctrl,
+bool run(gui::PropmatClearsky::ResultsArray& ret,
+         gui::PropmatClearsky::Control& ctrl,
          const Workspace& ws,
          const Agenda& propmat_clearsky_agenda,
          ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -52,7 +52,7 @@ bool run(ARTSGUI::PropmatClearsky::ResultsArray& ret,
          AtmPoint& atm_point,
          Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
-  ARTSGUI::PropmatClearsky::ComputeValues v;
+  gui::PropmatClearsky::ComputeValues v;
 
   while (true) {
     std::this_thread::sleep_for(10ms);
@@ -117,8 +117,8 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                                 const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
                                 const Index& load [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
-  ARTSGUI::PropmatClearsky::ResultsArray res;
-  ARTSGUI::PropmatClearsky::Control ctrl;
+  gui::PropmatClearsky::ResultsArray res;
+  gui::PropmatClearsky::Control ctrl;
 
   // Initialize values to something
   ArrayOfRetrievalQuantity jacobian_quantities{};
@@ -159,7 +159,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
     }
     ctrl.exit.store(true);
   } else {
-    ARTSGUI::propmat(res,
+    gui::propmat(res,
                      ctrl,
                      jacobian_quantities,
                      select_abs_species,

@@ -1,7 +1,7 @@
 #include "gui_error.h"
 #include "imgui.h"
 
-namespace ARTSGUI {
+namespace gui {
 ErrorStatus error(const std::string& errmsg) {
   ImGui::OpenPopup("Error");
 

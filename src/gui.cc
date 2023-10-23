@@ -3,7 +3,7 @@
 #include <rtepack.h>
 #include <xml_io.h>
 
-namespace ARTSGUI {
+namespace gui {
   void LayoutAndStyleSettings() {
     auto &style = ImGui::GetStyle();
     style.FramePadding = {0.0f, 0.0f};

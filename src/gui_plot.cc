@@ -5,7 +5,7 @@
 #include "gui_plot.h"
 #include "gui_menu.h"
 
-namespace ARTSGUI {
+namespace gui {
 // Defaults
 std::string PlotConfig::Frame = "Plot";
 std::string PlotConfig::X = "X";
@@ -49,7 +49,7 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
       lines[0] = std::string("Line");
     }
   }
-  auto fileBrowser = ARTSGUI::Files::xmlfile_chooser();
+  auto fileBrowser = Files::xmlfile_chooser();
   
   // Is this valid?
   const bool valid = xdata.size() == ydata.size() and same_lengths(xdata, ydata);
@@ -90,9 +90,9 @@ void plot(const ArrayOfVector& xdata, const ArrayOfVector& ydata) {
   
   // Save the data to file?
   if (lines.size() == 1) {
-    ARTSGUI::Files::save_data(config, fileBrowser, ydata[0]);
+    Files::save_data(config, fileBrowser, ydata[0]);
   } else {
-    ARTSGUI::Files::save_data(config, fileBrowser, ydata);
+    Files::save_data(config, fileBrowser, ydata);
   }
   
   // End of main loop

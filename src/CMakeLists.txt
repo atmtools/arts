@@ -109,6 +109,7 @@ if (ENABLE_GUI)
     gui_menu.cc
     gui_plot.cc
     gui_propmat.cc
+    gui_workspace.cc
   )
 endif()
 
@@ -141,6 +142,7 @@ add_library (artsworkspace STATIC
   m_artstime.cc
   m_atmosphere.cc
   m_atm.cc
+  m_background.cc
   m_basic_types.cc
   m_batch.cc
   m_checked.cc
@@ -178,6 +180,7 @@ add_library (artsworkspace STATIC
   m_reduce.cc
   m_refraction.cc
   m_retrieval.cc
+  m_rad.cc
   m_rt4.cc
   m_rte.cc
   m_retrieval.cc
@@ -196,7 +199,6 @@ add_library (artsworkspace STATIC
   m_zeeman.cc
   montecarlo.cc
   ppath.cc
-  propmat_field.cc
   psd.cc
   rt4.cc
   rte.cc

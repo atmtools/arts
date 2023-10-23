@@ -13,7 +13,7 @@
 #include "jacobian.h"
 #include "math_funcs.h"
 
-namespace ARTSGUI::MainMenu {
+namespace gui::MainMenu {
 void fullscreen(Config& cfg, GLFWwindow* window) {
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("File")) {

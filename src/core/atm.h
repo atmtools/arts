@@ -19,7 +19,6 @@
 #include "fieldmap.h"
 #include <gridded_fields.h>
 
-#include "matpack_view.h"
 #include "quantum_numbers.h"
 #include "species.h"
 #include "species_tags.h"
@@ -299,6 +298,10 @@ struct Data {
   [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
 
   [[nodiscard]] ExhaustiveVectorView flat_view();
+  
+  //! Flat weights for the positions in an atmosphere
+  [[nodiscard]] Array<std::array<std::pair<Index, Numeric>, 8>>
+    flat_weights(const Vector &alt, const Vector &lat, const Vector &lon) const;
 };
 
 template <typename T>
