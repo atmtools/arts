@@ -126,7 +126,7 @@ void background_radSurfaceFieldEmission(StokvecVector& background_rad,
     for (auto& w : weights) {
       if (w.second != 0.0) {
         const auto i = w.first + ptr->x_start;
-        ARTS_ASSERT(i < nj)
+        ARTS_ASSERT(i < jacobian_targets.x_size())
         std::transform(f_grid.begin(),
                        f_grid.end(),
                        background_drad[i].begin(),
