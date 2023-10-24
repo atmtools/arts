@@ -62,8 +62,7 @@ ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.
 
 # %% Core calculations
 ws.ppathGeometric()
-ws.background_radFromPropagation()
-
+ws.background_radFromPath()
 
 ws.ppvar_atmFromPath()
 ws.ppvar_fFromPath()
@@ -72,7 +71,9 @@ ws.ppvar_srcFromPropmat()
 ws.ppvar_tramatCalc()
 ws.ppvar_cumtramatForward()
 ws.ppvar_radCalcEmission()
-ws.radFromPropagation()
 
-ws.background_transmittanceFromBack()
-ws.dradFromPropagation()
+ws.background_transmittanceFromPathPropagationBack()
+
+ws.radFromPathPropagation()
+ws.dradFromBackground()
+ws.dradAddPathPropagation()

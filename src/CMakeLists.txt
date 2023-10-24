@@ -175,6 +175,7 @@ add_library (artsworkspace STATIC
   m_planets.cc
   m_poslos.cc
   m_ppath.cc
+  m_ppvar.cc
   m_psd.cc
   m_raw.cc
   m_reduce.cc

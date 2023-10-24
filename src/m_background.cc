@@ -2,9 +2,10 @@
 #include <rtepack.h>
 #include <surf.h>
 #include <workspace.h>
+
 #include <algorithm>
 
-void background_radFromPropagation(
+void background_radFromPath(
     const Workspace& ws,
     StokvecVector& background_rad,
     StokvecMatrix& background_drad,
@@ -72,19 +73,7 @@ void background_radFromPropagation(
       "Bad size of background_drad, it's outer dimension should match the size of f_grid");
 }
 
-void dradAdaptBackground(StokvecMatrix& drad,
-                         MuelmatVector& background_transmittance) {
-  ARTS_USER_ERROR_IF(
-      background_transmittance.nelem() not_eq drad.ncols(),
-      "Bad size of cumtramat and drad, their frequency domain disagree");
-
-  for (Index i = 0; i < drad.nrows(); ++i) {
-    for (Index j = 0; j < drad.ncols(); ++j) {
-      drad(i, j) = background_transmittance[j] * drad(i, j);
-    }
-  }
-}
-
+namespace detail {
 StokvecVector from_temp(const ExhaustiveConstVectorView& f_grid,
                         const Numeric t) {
   StokvecVector v(f_grid.nelem(), 0.0);
@@ -94,6 +83,7 @@ StokvecVector from_temp(const ExhaustiveConstVectorView& f_grid,
       });
   return v;
 }
+}  // namespace detail
 
 void background_dradEmpty(StokvecMatrix& background_drad,
                           const Vector& f_grid,
@@ -104,7 +94,7 @@ void background_dradEmpty(StokvecMatrix& background_drad,
 void background_radCosmicBackground(StokvecVector &background_rad,
                                     const Vector &f_grid) {
   constexpr auto t = Constant::cosmic_microwave_background_temperature;
-  background_rad = from_temp(f_grid, t);
+  background_rad = detail::from_temp(f_grid, t);
 }
 
 void background_radSurfaceFieldEmission(StokvecVector& background_rad,
@@ -120,7 +110,7 @@ void background_radSurfaceFieldEmission(StokvecVector& background_rad,
                      "Surface field does not contain temperature")
 
   const auto t = surface_field.single_value(key, rtp_pos[1], rtp_pos[2]);
-  background_rad = from_temp(f_grid, t);
+  background_rad = detail::from_temp(f_grid, t);
 
   background_dradEmpty(background_drad, f_grid, jacobian_targets);
 
@@ -146,4 +136,20 @@ void background_radSurfaceFieldEmission(StokvecVector& background_rad,
       }
     }
   }
+}
+
+void background_transmittanceFromPathPropagationBack(
+    MuelmatVector &background_transmittance,
+    const ArrayOfMuelmatVector &ppvar_cumtramat) {
+  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0,
+                     "Cannot extract from empty list.")
+  background_transmittance = ppvar_cumtramat.back();
+}
+
+void background_transmittanceFromPathPropagationFront(
+    MuelmatVector &background_transmittance,
+    const ArrayOfMuelmatVector &ppvar_cumtramat) {
+  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0,
+                     "Cannot extract from empty list.")
+  background_transmittance = ppvar_cumtramat.front();
 }
