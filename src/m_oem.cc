@@ -270,7 +270,7 @@ void x2artsSensor(const Workspace& ws,
 void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
                                      const JacobianTargets& jacobian_targets,
                                      const Vector& retrieval_values) {
-  ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.size();
+  ARTS_USER_ERROR_IF(const auto sz = jacobian_targets.x_size();
                      sz not_eq static_cast<Size>(retrieval_values.size()),
                      "Mismatch between size expected of jacobian_targets (",
                      sz,

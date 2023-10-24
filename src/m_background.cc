@@ -2,6 +2,7 @@
 #include <rtepack.h>
 #include <surf.h>
 #include <workspace.h>
+#include <algorithm>
 
 void background_radFromPropagation(
     const Workspace& ws,
@@ -63,7 +64,7 @@ void background_radFromPropagation(
       "Bad size of background_rad, it's dimension should match the size of f_grid");
 
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(background_drad.nrows()) not_eq jacobian_targets.size(),
+      static_cast<Size>(background_drad.nrows()) not_eq jacobian_targets.x_size(),
       "Bad size of background_drad, it's inner dimension should match the size of jacobian_targets");
 
   ARTS_USER_ERROR_IF(
@@ -106,17 +107,43 @@ void background_radCosmicBackground(StokvecVector &background_rad,
   background_rad = from_temp(f_grid, t);
 }
 
-void background_radSurfaceFieldEmission(StokvecVector &background_rad,
-                                        const Vector &f_grid,
-                                        const SurfaceField &surface_field,
-                                        const Vector &rtp_pos) {
+void background_radSurfaceFieldEmission(StokvecVector& background_rad,
+                                        StokvecMatrix& background_drad,
+                                        const Vector& f_grid,
+                                        const SurfaceField& surface_field,
+                                        const JacobianTargets& jacobian_targets,
+                                        const Vector& rtp_pos) {
+  constexpr auto key = Surf::Key::t;
+
   ARTS_USER_ERROR_IF(rtp_pos.size() != 3, "Bad size of rtp_pos, must be 3-long")
-  ARTS_USER_ERROR_IF(not surface_field.contains(Surf::Key::t),
+  ARTS_USER_ERROR_IF(not surface_field.contains(key),
                      "Surface field does not contain temperature")
 
-  const auto t =
-      surface_field.single_value(Surf::Key::t, rtp_pos[1], rtp_pos[2]);
+  const auto t = surface_field.single_value(key, rtp_pos[1], rtp_pos[2]);
   background_rad = from_temp(f_grid, t);
 
-  //! FIXME: Surface frequency and surface temperature should be included in derivatives
+  background_dradEmpty(background_drad, f_grid, jacobian_targets);
+
+  const auto ptr =
+      std::find_if(jacobian_targets.surf.begin(),
+                   jacobian_targets.surf.end(),
+                   [key](auto& v) { return v.type == SurfaceKeyVal{key}; });
+
+  if (ptr != jacobian_targets.surf.end()) {
+    const auto& data = surface_field[key];
+    const auto weights = data.flat_weights(rtp_pos[1], rtp_pos[2]);
+
+    for (auto& w : weights) {
+      if (w.second != 0.0) {
+        const auto i = w.first + ptr->x_start;
+        ARTS_ASSERT(i < nj)
+        std::transform(f_grid.begin(),
+                       f_grid.end(),
+                       background_drad[i].begin(),
+                       [t, x = w.second](auto f) -> Stokvec {
+                         return {x * dplanck_dt(f, t), 0, 0, 0};
+                       });
+      }
+    }
+  }
 }

@@ -862,6 +862,7 @@ class TestGroups:
             "SpectralRadianceProfileOperator",
             "SingleScatteringData",
             "RetrievalQuantity",
+            "JacobianTargets",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())

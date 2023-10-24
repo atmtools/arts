@@ -17238,8 +17238,8 @@ Gets the ellispoid from *surface_field*
       .desc = R"--(Set surface emission from Planck function of the surface temperature
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_rad"},
-      .in = {"f_grid", "surface_field", "rtp_pos"}};
+      .out = {"background_rad", "background_drad"},
+      .in = {"f_grid", "surface_field", "jacobian_targets", "rtp_pos"}};
 
   wsm_data["background_dradEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.

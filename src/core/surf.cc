@@ -389,6 +389,111 @@ bool Field::constant_value(const KeyVal &key) const {
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
+
+[[nodiscard]] ExhaustiveConstVectorView Data::flat_view() const {
+  return std::visit(
+      [](auto& X) -> ExhaustiveConstVectorView {
+        using T = std::remove_cvref_t<decltype(X)>;
+        if constexpr (std::same_as<T, GriddedField2>)
+          return X.data.flat_view();
+        else if constexpr (std::same_as<T, Numeric>)
+          return ExhaustiveConstVectorView{X};
+        else if constexpr (std::same_as<T, FunctionalData>)
+          return ExhaustiveConstVectorView{};
+        ARTS_ASSERT(false,
+              "Cannot be reached, you have added a new type but not done the plumbing...");
+      },
+      data);
+}
+
+[[nodiscard]] ExhaustiveVectorView Data::flat_view() {
+  return std::visit(
+      [](auto& X) -> ExhaustiveVectorView {
+        using T = std::remove_cvref_t<decltype(X)>;
+        if constexpr (std::same_as<T, GriddedField2>)
+          return X.data.flat_view();
+        else if constexpr (std::same_as<T, Numeric>)
+          return ExhaustiveVectorView{X};
+        else if constexpr (std::same_as<T, FunctionalData>)
+          return ExhaustiveVectorView{};
+        ARTS_ASSERT(false,
+              "Cannot be reached, you have added a new type but not done the plumbing...");
+      },
+      data);
+}
+
+std::array<std::pair<Index, Numeric>, 4> flat_weights_(const Numeric &,
+                                                       const Numeric &,
+                                                       const Numeric &) {
+  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+  return {v1, v0, v0, v0};
+}
+
+std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
+                                                       const Numeric &,
+                                                       const Numeric &) {
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+  return {v0, v0, v0, v0};
+}
+
+std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
+                                                       const Numeric &lat,
+                                                       const Numeric &lon) {
+  using LonLag = my_interp::Lagrange<1,
+                                     false,
+                                     my_interp::GridType::Cyclic,
+                                     my_interp::cycle_m180_p180>;
+  using LatLag = my_interp::Lagrange<1>;
+
+  const auto slon = v.get_grid_size(1);
+  const bool d1 = v.get_grid_size(0) == 1;
+  const bool d2 = slon == 1;
+
+  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
+  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
+
+  if (d1 and d2) {
+    return {v1, v0, v0, v0};
+  }
+
+  if (d1) {
+    const LonLag wlon(0, lon, v.get_numeric_grid(1));
+    return {std::pair<Index, Numeric>{wlon.pos, wlon.lx[0]},
+            std::pair<Index, Numeric>{wlon.pos + 1, wlon.lx[1]},
+            v0,
+            v0};
+  }
+
+  if (d2) {
+    const LatLag wlat(0, lat, v.get_numeric_grid(0));
+    return {std::pair<Index, Numeric>{wlat.pos, wlat.lx[0]},
+            std::pair<Index, Numeric>{wlat.pos + 1, wlat.lx[1]},
+            v0,
+            v0};
+  }
+
+  const LatLag wlat(0, lat, v.get_numeric_grid(0));
+  const LonLag wlon(0, lon, v.get_numeric_grid(1));
+  auto sz = [slon](auto lat_pos, auto lon_pos) {
+    return lat_pos * slon + lon_pos;
+  };
+
+  return {std::pair<Index, Numeric>{sz(wlat.pos, wlon.pos),
+                                    wlat.lx[0] * wlon.lx[0]},
+          std::pair<Index, Numeric>{sz(wlat.pos, wlon.pos + 1),
+                                    wlat.lx[0] * wlon.lx[1]},
+          std::pair<Index, Numeric>{sz(wlat.pos + 1, wlon.pos),
+                                    wlat.lx[1] * wlon.lx[0]},
+          std::pair<Index, Numeric>{sz(wlat.pos + 1, wlon.pos + 1),
+                                    wlat.lx[1] * wlon.lx[1]}};
+}
+
+//! Flat weights for the positions in an atmosphere
+std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
+    const Numeric &lat, const Numeric &lon) const {
+  return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
+}
 } // namespace Surf
 
 std::ostream &operator<<(std::ostream &os, const SurfaceTypeTag &ppt) {

@@ -89,6 +89,8 @@ void py_jac(py::module_& m) try {
       .PythonInterfaceWorkspaceDocumentation(ArrayOfRetrievalQuantity);
 
   artsclass<JacobianTargets>(m, "JacobianTargets")
+      .def(py::init([]() { return std::make_shared<JacobianTargets>(); }), "Default target")
+      .PythonInterfaceCopyValue(JacobianTargets)
       .PythonInterfaceWorkspaceVariableConversion(JacobianTargets)
       .PythonInterfaceBasicRepresentation(JacobianTargets)
       .PythonInterfaceFileIO(JacobianTargets)

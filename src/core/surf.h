@@ -63,6 +63,8 @@ concept KeyType = isKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
 
 using KeyVal = std::variant<Key, SurfaceTypeTag, SurfacePropertyTag>;
 
+std::ostream& operator<<(std::ostream& os, const KeyVal& key);
+
 struct Point {
   Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};
   Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
@@ -207,6 +209,14 @@ struct Data {
   }
 
   void rescale(Numeric);
+
+  [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
+
+  [[nodiscard]] ExhaustiveVectorView flat_view();
+  
+  //! Flat weights for the positions on the surface
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 4>
+    flat_weights(const Numeric &lat, const Numeric &lon) const;
 };
 
 struct Field final
@@ -255,5 +265,6 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 } // namespace Surf
 
+using SurfaceKeyVal = Surf::KeyVal;
 using SurfacePoint = Surf::Point;
 using SurfaceField = Surf::Field;

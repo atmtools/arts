@@ -517,7 +517,7 @@ std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
   return os;
 }
 
-[[nodiscard]] ExhaustiveConstVectorView Data::flat_view() const {
+ExhaustiveConstVectorView Data::flat_view() const {
   return std::visit(
       [](auto& X) -> ExhaustiveConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
@@ -535,7 +535,7 @@ std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
       data);
 }
 
-[[nodiscard]] ExhaustiveVectorView Data::flat_view() {
+ExhaustiveVectorView Data::flat_view() {
   return std::visit(
       [](auto& X) -> ExhaustiveVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
@@ -560,14 +560,16 @@ Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(const Numeric &,
   constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
   constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
   constexpr std::array v{v1, v0, v0, v0, v0, v0, v0, v0};
-  return Array<std::array<std::pair<Index, Numeric>, 8>>(alt.size(), v);
+  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
+  return out;
 }
 
 Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
     const FunctionalData &, const Vector &alt, const Vector &, const Vector &) {
   constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
   constexpr std::array v{v0, v0, v0, v0, v0, v0, v0, v0};
-  return Array<std::array<std::pair<Index, Numeric>, 8>>(alt.size(), v);
+  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
+  return out;
 }
 
 Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
@@ -591,7 +593,7 @@ Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
 }
 
 //! Flat weights for the positions in an atmosphere
-[[nodiscard]] Array<std::array<std::pair<Index, Numeric>, 8>>
+Array<std::array<std::pair<Index, Numeric>, 8>>
 Data::flat_weights(const Vector &alt,
                    const Vector &lat,
                    const Vector &lon) const {

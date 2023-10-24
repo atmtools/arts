@@ -8,7 +8,7 @@
 void dradEmpty(StokvecMatrix &drad,
                const Vector &f_grid,
                const JacobianTargets &jacobian_targets) {
-  drad.resize(jacobian_targets.size(), f_grid.nelem());
+  drad.resize(jacobian_targets.x_size(), f_grid.nelem());
   drad = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 
@@ -20,7 +20,7 @@ void dradFromPropagation(StokvecMatrix &drad,
                          const AtmField &atm_field,
                          const Ppath &ppath) {
   const auto np = ppvar_drad.size();
-  const auto nj = jacobian_targets.size();
+  const auto nj = jacobian_targets.x_size();
   const auto nf = cumulative_transmission.size();
 
   ARTS_USER_ERROR_IF(static_cast<Size>(ppath.pos.nrows()) != np,
@@ -46,6 +46,9 @@ void dradFromPropagation(StokvecMatrix &drad,
         "ppvar_drad elements must have same number of columns as the size of "
         "cumulative_transmission")
   }
+
+  //! Check that the jacobian_targets can be used
+  jacobian_targets.throwing_check(nj);
 
   //! The radiance derivative shape is the background shape
   drad.resize(background_drad.shape());
@@ -85,11 +88,11 @@ void dradFromPropagation(StokvecMatrix &drad,
     for (Size j = 0; j < np; j++) {
       for (auto &w : weights[j]) {
         if (w.second != 0.0) {
-          const auto i = w.first + atm_block.start;
+          const auto i = w.first + atm_block.x_start;
           ARTS_ASSERT(i < nj)
           std::transform(
-              ppvar_drad[j][i].begin(),
-              ppvar_drad[j][i].end(),
+              ppvar_drad[j][atm_block.target_pos].begin(),
+              ppvar_drad[j][atm_block.target_pos].end(),
               drad[i].begin(),
               drad[i].begin(),
               [x = w.second](auto &a, auto &b) { return x * a + b; });

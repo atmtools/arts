@@ -239,6 +239,14 @@ public:
   //! View this object as a 1-dimensional object
   constexpr matpack_view<T, 1, false, false> flat_view() { return {data.data(), {size()}}; }
 
+  constexpr auto slice(Index i0, Index nelem) { 
+    return view.slice(i0, nelem);
+  }
+
+  constexpr auto slice(Index i0, Index nelem) const { 
+    return view.slice(i0, nelem);
+  }
+
   constexpr matpack_data& operator=(const matpack_data& x) {
     if (this not_eq &x) {
       resize(x.shape());
