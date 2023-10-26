@@ -89,7 +89,7 @@ inputs required to initialize the propagation matrix
 
 """
 
-ws.jacobian_quantities = []  # No derivatives
+ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
 ws.f_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
 ws.atm_point.temperature = 295  # At room temperature
