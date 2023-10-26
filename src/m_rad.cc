@@ -112,43 +112,19 @@ void radFromPathPropagation(StokvecVector &rad,
   rad = ppvar_rad.front();
 }
 
-void radFullEmission(const Workspace &ws,
-                     StokvecVector &rad,
-                     StokvecMatrix &drad,
-
-                     const Vector &rte_pos,
-                     const Vector &rte_los,
-                     const Vector &f_grid,
-                     const JacobianTargets &jacobian_targets,
-
-                     const AtmField &atm_field,
-                     const SurfaceField &surface_field,
-
-                     const Agenda &space_radiation_agenda,
-                     const Agenda &surface_radiation_agenda,
-                     const Agenda &stop_distance_radiation_agenda,
-                     const Agenda &propmat_clearsky_agenda,
-                     
-                     const Numeric &ppath_lstep,
-                     const Numeric &ppath_ltotal,
-                     const Numeric &rte_alonglos_v,
-                     const Numeric &surface_search_accuracy,
-                     const Index &surface_search_safe,
-
-                     const Index &include_specular_ppath,
-                     const Index &hse_derivative) try {
-  Ppath ppath;
-  ppathGeometric(ppath,
-                 rte_pos,
-                 rte_los,
-                 ppath_lstep,
-                 ppath_ltotal,
-                 surface_field,
-                 surface_search_accuracy,
-                 surface_search_safe,
-                 atm_field,
-                 include_specular_ppath);
-
+void radStandardEmission(const Workspace &ws,
+                         StokvecVector &rad,
+                         StokvecMatrix &drad,
+                         const Vector &f_grid,
+                         const JacobianTargets &jacobian_targets,
+                         const AtmField &atm_field,
+                         const Ppath& ppath,
+                         const Agenda &space_radiation_agenda,
+                         const Agenda &surface_radiation_agenda,
+                         const Agenda &stop_distance_radiation_agenda,
+                         const Agenda &propmat_clearsky_agenda,
+                         const Numeric &rte_alonglos_v,
+                         const Index &hse_derivative) try {
   background_radFromPath(ws,
                          rad,
                          drad,
@@ -196,7 +172,6 @@ void radFullEmission(const Workspace &ws,
   ArrayOfArrayOfMuelmatMatrix ppvar_dtramat;
   Vector ppvar_distance;
   ArrayOfArrayOfVector ppvar_ddistance;
-
   ppvar_tramatCalc(ppvar_tramat,
                    ppvar_dtramat,
                    ppvar_distance,

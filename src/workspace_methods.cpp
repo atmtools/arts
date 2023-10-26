@@ -15416,5 +15416,26 @@ Size : (*jacobian_targets*, *f_grid*)
       .out = {"rad"},
       .in = {"ppvar_rad"}};
 
+  wsm_data["radStandardEmission"] = {
+      .desc = R"--(Sets *rad* and *drad* from standard emission calculations
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"rad", "drad"},
+      .in = {"f_grid",
+             "jacobian_targets",
+             "atm_field",
+             "ppath",
+             "space_radiation_agenda",
+             "surface_radiation_agenda",
+             "stop_distance_radiation_agenda",
+             "propmat_clearsky_agenda",
+             "rte_alonglos_v"},
+      .gin = {"hse_derivative"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Whether or not hypsometric balance is assumed in temperature derivatives"},
+      .pass_workspace = true};
+
   return wsm_data;
 }
