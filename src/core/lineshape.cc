@@ -2236,8 +2236,7 @@ struct ComputeValues {
         do_nlte(do_nlte_) {}
 
   ComputeValues &operator-=(const ComputeValues &cut) {
-    ARTS_ASSERT(cut.size == 1, "Not a cutoff limit")
-    ARTS_ASSERT(cut.jac_size == jac_size, "Not from the same Jacobian type")
+    ARTS_ASSERT(cut.f.size() == 1, "Not a cutoff limit")
 
     F -= cut.F;
     for (auto& d: derivs) {
