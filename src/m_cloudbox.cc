@@ -36,6 +36,7 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "microphysics.h"
+#include "new_jacobian.h"
 #include "optproperties.h"
 #include "parameters.h"
 #include "physics_funcs.h"
@@ -671,7 +672,7 @@ void pnd_fieldZero(  //WS Output:
     //WS Input:
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
-    const ArrayOfRetrievalQuantity& jacobian_quantities) {
+    const JacobianTargets& jacobian_targets) {
 
   ARTS_USER_ERROR_IF (cloudbox_limits.size() != 2 * 3,
         "*cloudbox_limits* is a vector which contains the"
@@ -687,7 +688,7 @@ void pnd_fieldZero(  //WS Output:
 
   // no (cloudy) Jacobians with this WSM, hence no setting.
   // but we need to size dpnd_field to be consistent with jacobian_quantities.
-  dpnd_field_dx.resize(jacobian_quantities.size());
+  dpnd_field_dx.resize(jacobian_targets.target_count());
 
   // Do only reset scat_data if it has not been set yet.
   // There's no need otherwise, and it's rather unpractical for testing when

@@ -6,16 +6,14 @@
 #include "atm.h"
 #include "enums.h"
 #include "gui.h"
+#include "new_jacobian.h"
 
 namespace gui {
 namespace PropmatClearsky {
 struct ComputeValues {
   PropmatVector pm;
-  PropmatMatrix aopm;
   StokvecVector sv;
-  StokvecMatrix aosv;
 
-  ArrayOfRetrievalQuantity jacobian_quantities;
   ArrayOfSpeciesTag select_abs_species;
   Vector f_grid;
   Vector rtp_los;
@@ -23,7 +21,6 @@ struct ComputeValues {
 
   Numeric transmission_distance;
   MuelmatVector tm;
-  MuelmatMatrix aotm;
 };
 
 struct Control {
@@ -66,8 +63,6 @@ ENUMCLASS(TramatScaling, char, None, dB)
 struct DisplayOptions {
   XScaling xscale{XScaling::Hz};
   
-  Index jacobian_target{-1};
-
   PropmatScaling propmat_scale{PropmatScaling::None};
   Numeric propmat_scale_const{1.0};
   bool inverse_propmat_scale{false};
@@ -83,11 +78,10 @@ struct DisplayOptions {
 
 void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
-             ArrayOfRetrievalQuantity& jacobian_quantities,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
              Vector& rtp_los,
              AtmPoint& atm_point,
              Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species);
-}  // namespace ARTSGUI
+}  // namespace gui

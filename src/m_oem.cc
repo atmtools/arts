@@ -278,7 +278,7 @@ void atm_fieldSetFromRetrievalValues(AtmField& atm_field,
                      retrieval_values.size(),
                      ')')
 
-  for (auto& target : jacobian_targets.atm) {
+  for (auto& target : jacobian_targets.atm()) {
     target.update(atm_field, retrieval_values);
   }
 }
@@ -297,7 +297,7 @@ void OEM(const Workspace& ws,
          const CovarianceMatrix& covmat_sx,
          const Vector& y,
          const CovarianceMatrix& covmat_se,
-         const ArrayOfRetrievalQuantity& jacobian_quantities,
+         const JacobianTargets& jacobian_targets,
          const Agenda& inversion_iterate_agenda,
          const String& method,
          const Numeric& max_start_cost,
@@ -315,23 +315,24 @@ void OEM(const Workspace& ws,
   covmat_sx.compute_inverse();
   covmat_se.compute_inverse();
 
-  OEM_checks(ws,
-             x,
-             yf,
-             jacobian,
-             inversion_iterate_agenda,
-             xa,
-             covmat_sx,
-             y,
-             covmat_se,
-             jacobian_quantities,
-             method,
-             x_norm,
-             max_iter,
-             stop_dx,
-             lm_ga_settings,
-             clear_matrices,
-             display_progress);
+  // OEM_checks(ws,
+  //            x,
+  //            yf,
+  //            jacobian,
+  //            inversion_iterate_agenda,
+  //            xa,
+  //            covmat_sx,
+  //            y,
+  //            covmat_se,
+  //            jacobian_targets,
+  //            method,
+  //            x_norm,
+  //            max_iter,
+  //            stop_dx,
+  //            lm_ga_settings,
+  //            clear_matrices,
+  //            display_progress);
+  ARTS_ASSERT(false, "Must fix")
 
   // Size diagnostic output and init with NaNs
   oem_diagnostics.resize(5);

@@ -1,5 +1,7 @@
 #include "rtepack_source.h"
 
+#include "debug.h"
+#include "physics_funcs.h"
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_stokes_vector.h"
@@ -119,8 +121,9 @@ void level_nlte(stokvec_vector_view J,
                 const stokvec_vector_const_view &S,
                 const propmat_matrix_const_view &dK,
                 const stokvec_matrix_const_view &dS,
-                const ExhaustiveConstVectorView &B,
-                const ExhaustiveConstMatrixView &dB) {
+                const ExhaustiveConstVectorView &f,
+                const Numeric& t,
+                const Index& it) {
   const Index N = J.nelem();
   ARTS_ASSERT(N == dJ.ncols())
   ARTS_ASSERT(N == K.nelem())
@@ -129,11 +132,13 @@ void level_nlte(stokvec_vector_view J,
   ARTS_ASSERT(N == dS.ncols())
   ARTS_ASSERT(N == B.nelem())
   ARTS_ASSERT(N == dB.ncols())
+  ARTS_ASSERT(N == f.nelem())
 
   const Index M = dJ.nrows();
   ARTS_ASSERT(M == dK.nrows())
   ARTS_ASSERT(M == dS.nrows())
   ARTS_ASSERT(M == dB.nrows())
+  ARTS_ASSERT(M > it)
 
   for (Index i = 0; i < N; i++) {
     if (K[i].is_rotational()) {
@@ -141,12 +146,12 @@ void level_nlte(stokvec_vector_view J,
       dJ(joker, i) = 0.0;
     } else {
       const auto invK = inv(K[i]);
-      const auto b = stokvec{B[i], 0, 0, 0};
+      const auto b = stokvec{planck(f[i], t), 0, 0, 0};
       J[i] = b + invK * S[i];
 
       for (Index j = 0; j < M; j++) {
-        const auto db = stokvec{dB(j, i), 0, 0, 0};
-        const auto JB = stokvec{J[i].I() + B[i], J[i].Q(), J[i].U(), J[i].V()};
+        const auto db = stokvec{it == j ? dplanck_dt(f[i], t) : 0, 0, 0, 0};
+        const auto JB = stokvec{J[i].I() + b.I(), J[i].Q(), J[i].U(), J[i].V()};
         dJ(j, i) = 0.5 * (db + invK * (dS(j, i) - dK(j, i) * JB));
       }
     }

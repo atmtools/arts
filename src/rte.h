@@ -269,27 +269,25 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @param[in,out] dK_dx Propagation matrix derivatives at propagation path point
  * @param[in,out] dS_dx NLTE source adjustment derivatives at propagation path point
  * @param[in] propmat_clearsky_agenda As WSA
- * @param[in] jacobian_quantities As WSV
+ * @param[in] jacobian_targets As WSV
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
  * @param[in] ppath_line_of_sight Line of sight at propagation path point
  * @param[in] atm_point As WSV
- * @param[in] jacobian_do As WSV
  * 
  * @author Richard Larsson 
  * @date   2017-09-21
  */
 void get_stepwise_clearsky_propmat(
-  const Workspace& ws,
-  PropmatVector& K,
-  StokvecVector& S,
-  PropmatMatrix& dK_dx,
-  StokvecMatrix& dS_dx,
-  const Agenda& propmat_clearsky_agenda,
-  const ArrayOfRetrievalQuantity& jacobian_quantities,
-  const Vector& ppath_f_grid,
-  const Vector& ppath_line_of_sight,
-  const AtmPoint& atm_point,
-  const bool jacobian_do);
+    const Workspace& ws,
+    PropmatVector& K,
+    StokvecVector& S,
+    PropmatMatrix& dK_dx,
+    StokvecMatrix& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const JacobianTargets& jacobian_targets,
+    const Vector& ppath_f_grid,
+    const Vector& ppath_line_of_sight,
+    const AtmPoint& atm_point);
 
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component
@@ -304,7 +302,7 @@ void get_stepwise_clearsky_propmat(
  */
 Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type);
+                               const Atm::Key wind_type);
 
 /** Computes the contribution by scattering at propagation path point
  * 

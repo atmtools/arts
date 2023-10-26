@@ -86,6 +86,7 @@ void level_nlte(stokvec_vector_view J,
                 const stokvec_vector_const_view &S,
                 const propmat_matrix_const_view &dK,
                 const stokvec_matrix_const_view &dS,
-                const ExhaustiveConstVectorView &B,
-                const ExhaustiveConstMatrixView &dB);
+                const ExhaustiveConstVectorView &f,
+                const Numeric& t,
+                const Index& it);
 }  // namespace rtepack::source

@@ -102,12 +102,6 @@ internal_workspace_groups() {
   wsg_data["ArrayOfQuantumIdentifier"] = {
       .file = "quantum_numbers.h", .desc = "A list of *QuantumIdentifier*\n"};
 
-  wsg_data["RetrievalQuantity"] = {
-      .file = "jacobian.h", .desc = "A single of retrieval quantitity\n"};
-
-  wsg_data["ArrayOfRetrievalQuantity"] = {
-      .file = "jacobian.h", .desc = "A list of retrieval quantitities\n"};
-
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file = "optproperties.h", .desc = "A list of *ScatteringMetaData*\n"};
 

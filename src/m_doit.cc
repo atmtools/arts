@@ -696,7 +696,7 @@ void OptimizeDoitPressureGrid(
                                    nlte_dummy,
                                    partial_dummy,
                                    partial_nlte_dummy,
-                                   ArrayOfRetrievalQuantity(0),
+                                   {},
                                    {},
                                    Vector{f_grid[Range(f_index, 1)]},
                                    ppath_los_dummy,

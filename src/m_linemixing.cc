@@ -10,6 +10,7 @@
  * compute the relaxation, not simply use the relaxation
  */
 
+#include <variant>
 #include "arts_conversions.h"
 #include "atm.h"
 #include "hitran_species.h"
@@ -17,6 +18,7 @@
 #include "linemixing_hitran.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
+#include "new_jacobian.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
     HitranRelaxationMatrixData& abs_hitran_relmat_data,
@@ -95,9 +97,9 @@ void propmat_clearskyAddHitranLineMixingLines(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const AtmPoint& atm_point) {
-  ARTS_USER_ERROR_IF(jacobian_quantities.size(),
+  ARTS_USER_ERROR_IF(jacobian_targets.target_count(),
                      "Cannot support any Jacobian at this time");
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
                      "Bad size of input species+lines");
@@ -153,7 +155,7 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const AtmPoint& atm_point,
     const Index& lbl_checked) {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
@@ -181,19 +183,14 @@ void propmat_clearskyAddOnTheFlyLineMixing(
             f_grid,
             Zeeman::Polarization::None,
             band,
-            jacobian_quantities);
+            jacobian_targets);
         for (Index iv=0; iv<f_grid.nelem(); iv++) {
           propmat_clearsky[iv].A() += abs[iv].real();
         }
 
-        // Sum up the resorted Jacobian
-        for (Size j = 0; j < jacobian_quantities.size(); j++) {
-          const auto &deriv = jacobian_quantities[j];
-
-          if (not deriv.propmattype())
-            continue;
-
-          if (deriv == abs_species[i]) {
+        for (auto& atm: jacobian_targets.atm()) {
+          const auto j = atm.target_pos;
+          if (atm.type == abs_species[i]) {
             for (Index iv = 0; iv < f_grid.nelem(); iv++) {
               dpropmat_clearsky_dx[j][iv].A() += abs[iv].real();
             }
@@ -203,131 +200,8 @@ void propmat_clearskyAddOnTheFlyLineMixing(
             }
           }
         }
-      }
-    }
-  }
-}
 
-void propmat_clearskyAddOnTheFlyLineMixingWithZeeman(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const MapOfErrorCorrectedSuddenData& ecs_data,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
-    const Vector& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const AtmPoint& atm_point,
-    const Vector& rtp_los,
-    const Index& lbl_checked) {
-  ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
-                     "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF(not lbl_checked,
-                     "Please set lbl_checked true to use this function");
-
-  // Polarization
-  const auto Z = Zeeman::FromGrids(atm_point.mag[0],
-                                   atm_point.mag[1],
-                                   atm_point.mag[2],
-                                   Conversion::deg2rad(rtp_los[0]),
-                                   Conversion::deg2rad(rtp_los[1]));
-  const auto polarization_scale_data = Zeeman::AllPolarization(Z.theta, Z.eta);
-  const auto polarization_scale_dtheta_data =
-      Zeeman::AllPolarization_dtheta(Z.theta, Z.eta);
-  const auto polarization_scale_deta_data =
-      Zeeman::AllPolarization_deta(Z.theta, Z.eta);
-
-  for (Size i = 0; i < abs_species.size(); i++) {
-    if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
-      continue;
-    for (auto& band : abs_lines_per_species[i]) {
-      if (band.OnTheFlyLineMixing() and band.DoLineMixing(atm_point.pressure)) {
-        // vmrs should be for the line
-        const Vector line_shape_vmr =
-            band.BroadeningSpeciesVMR(atm_point);
-        const Numeric this_vmr =
-            atm_point[abs_species[i]] * isotopologue_ratios[band.Isotopologue()];
-        for (Zeeman::Polarization polarization :
-             {Zeeman::Polarization::Pi,
-              Zeeman::Polarization::SigmaMinus,
-              Zeeman::Polarization::SigmaPlus}) {
-          const auto [abs, dabs, error] =
-              Absorption::LineMixing::ecs_absorption(
-                  atm_point.temperature,
-                  Z.H,
-                  atm_point.pressure,
-                  this_vmr,
-                  line_shape_vmr,
-                  ecs_data[band.quantumidentity],
-                  f_grid,
-                  polarization,
-                  band,
-                  jacobian_quantities);
-
-          // Sum up the propagation matrix
-          Zeeman::sum_propmat(propmat_clearsky,
-                      abs,
-                      Zeeman::SelectPolarization(polarization_scale_data,
-                                                 polarization));
-
-          // Sum up the resorted Jacobian
-          for (Size j = 0; j < jacobian_quantities.size(); j++) {
-            const auto& deriv = jacobian_quantities[j];
-
-            if (not deriv.propmattype()) continue;
-
-            if (deriv == Jacobian::Atm::MagneticU) {
-              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
-                           abs,
-                           dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data,
-                                                      polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_deta_data, polarization),
-                           Z.dH_du,
-                           Z.dtheta_du,
-                           Z.deta_du);
-            } else if (deriv == Jacobian::Atm::MagneticV) {
-              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
-                           abs,
-                           dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data,
-                                                      polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_deta_data, polarization),
-                           Z.dH_dv,
-                           Z.dtheta_dv,
-                           Z.deta_dv);
-            } else if (deriv == Jacobian::Atm::MagneticW) {
-              Zeeman::dsum_propmat(dpropmat_clearsky_dx[j],
-                           abs,
-                           dabs[j],
-                           Zeeman::SelectPolarization(polarization_scale_data,
-                                                      polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_dtheta_data, polarization),
-                           Zeeman::SelectPolarization(
-                               polarization_scale_deta_data, polarization),
-                           Z.dH_dw,
-                           Z.dtheta_dw,
-                           Z.deta_dw);
-            } else if (deriv == abs_species[i]) {
-              Zeeman::sum_propmat(dpropmat_clearsky_dx[j],
-                          abs,
-                          Zeeman::SelectPolarization(polarization_scale_data,
-                                                     polarization));
-            } else {
-              for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-                dpropmat_clearsky_dx[j][iv].A() += dabs[j][iv].real();
-              }
-            }
-          }
-        }
+        // FIXME: Add line parameters!
       }
     }
   }

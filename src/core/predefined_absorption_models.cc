@@ -12,14 +12,17 @@
 #include <iomanip>
 #include <predef.h>
 
+#include "atm.h"
 #include "debug.h"
 #include "jacobian.h"
 #include "lin_alg.h"
 #include "linescaling.h"
 #include "matpack_data.h"
+#include "new_jacobian.h"
 #include "predefined/predef_data.h"
 #include "quantum_numbers.h"
 #include "species.h"
+#include "species_tags.h"
 
 namespace Absorption::PredefinedModel {
 /** Compute the selected model and returns if it can be computed
@@ -148,23 +151,6 @@ bool can_compute(const SpeciesIsotopeRecord& model) {
   return compute_selection<true>(pm, model, {}, {}, {}, {}, {});
 }
 
-/** Sets a VMR perturbation
- * 
- * @tparam special Whether or not this is called for special derivatives
- * @param[in] x Original VMR
- * @return constexpr Numeric [1e-6 if x < 1e-10 else x * 1e-6] if not special else x
- */
-template <bool special>
-constexpr Numeric dvmr_calc(Numeric x) noexcept {
-  if constexpr (special) {
-    return x;
-  } else {
-    constexpr Numeric d = 1e-6;
-    constexpr Numeric l = d * 1e-4;
-    return x < l ? d : x * d;
-  }
-}
-
 /** Compute the partial VMR derivative
  *
  * Sets dpm to the expected value (does not add, but really sets)
@@ -182,62 +168,44 @@ constexpr Numeric dvmr_calc(Numeric x) noexcept {
  * @param[in] vmr A VMRS object defined from the WSVs abs_species and rtp_vmr
  * @param[in] spec The species whose derivative is computed
  */
-template <bool special>
-bool compute_vmr_deriv(PropmatVector& dpm,
+void compute_vmr_deriv(PropmatVector& dpm,
                        const PropmatVector& pm,
                        const SpeciesIsotopeRecord& model,
                        const Vector& f,
                        const Numeric& p,
                        const Numeric& t,
                        VMRS vmr,
+                       const Numeric dvmr,
                        const Species::Species spec,
                        const PredefinedModelData& predefined_model_data
                        [[maybe_unused]]) {
-  Numeric dvmr = 0;
-
   switch (spec) {
     case Species::Species::Oxygen:
-      dvmr = dvmr_calc<special>(vmr.O2);
-      if constexpr (not special) vmr.O2 += dvmr;
+      vmr.O2 += dvmr;
       break;
     case Species::Species::Water:
-      dvmr = dvmr_calc<special>(vmr.H2O);
-      if constexpr (not special) vmr.H2O += dvmr;
+      vmr.H2O += dvmr;
       break;
     case Species::Species::Nitrogen:
-      dvmr = dvmr_calc<special>(vmr.N2);
-      if constexpr (not special) vmr.N2 += dvmr;
+      vmr.N2 += dvmr;
       break;
     case Species::Species::CarbonDioxide:
-      dvmr = dvmr_calc<special>(vmr.CO2);
-      if constexpr (not special) vmr.CO2 += dvmr;
+      vmr.CO2 += dvmr;
       break;
     case Species::Species::liquidcloud:
-      dvmr = dvmr_calc<special>(vmr.LWC);
-      if constexpr (not special) vmr.LWC += dvmr;
+      vmr.LWC += dvmr;
       break;
     default:
-      return false;  // Escape mechanism when nothing should be done
+      ARTS_ASSERT(false);
   }
   static_assert(
       sizeof(VMRS) / sizeof(Numeric) == 5,
       "It seems you have changed VMRS.  Please check that the derivatives are up-to-date above this assert");
 
-  if constexpr (not special) {
-    dpm = 0;
-    compute_selection<false>(dpm, model, f, p, t, vmr, predefined_model_data);
-    dpm -= pm;
-    dpm /= dvmr;
-  } else {
-    if (dvmr not_eq 0) {
-      dpm = pm;
-      dpm /= dvmr;
-    } else {
-      compute_vmr_deriv<false>(
-          dpm, pm, model, f, p, t, vmr, spec, predefined_model_data);
-    }
-  }
-  return true;
+  dpm = 0;
+  compute_selection<false>(dpm, model, f, p, t, vmr, predefined_model_data);
+  dpm -= pm;
+  dpm /= dvmr;
 }
 
 void compute(PropmatVector& propmat_clearsky,
@@ -247,7 +215,7 @@ void compute(PropmatVector& propmat_clearsky,
              const Numeric& rtp_pressure,
              const Numeric& rtp_temperature,
              const VMRS& vmr,
-             const ArrayOfRetrievalQuantity& jacobian_quantities,
+             const JacobianTargets& jacobian_targets,
              const PredefinedModelData& predefined_model_data) {
   if (not compute_selection<true>(propmat_clearsky,
                                   model,
@@ -258,22 +226,15 @@ void compute(PropmatVector& propmat_clearsky,
                                   predefined_model_data))
     return;
 
-  const bool do_freq_jac = do_frequency_jacobian(jacobian_quantities);
-  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
-  const bool do_vmrs_jac =
-      std::any_of(jacobian_quantities.begin(),
-                  jacobian_quantities.end(),
-                  [](auto& deriv) { return deriv == Jacobian::Line::VMR; }) or
-      std::any_of(jacobian_quantities.begin(),
-                  jacobian_quantities.end(),
-                  [model](auto& deriv) {
-                    return deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
-                           std::any_of(deriv.Target().species_array_id.begin(),
-                                       deriv.Target().species_array_id.end(),
-                                       [model](auto& tag) {
-                                         return tag.Isotopologue() == model;
-                                       });
-                  });
+  using enum Species::Species;
+  const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
+      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+  const auto vmrs_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
+      CarbonDioxide, Oxygen, Nitrogen, Water, liquidcloud);
+  const bool do_freq_jac = std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
+  const bool do_temp_jac = temp_jac.first;
+  const bool do_vmrs_jac = std::ranges::any_of(vmrs_jac, [](auto& x) { return x.first; });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
     PropmatVector pm(f_grid.nelem());
@@ -290,7 +251,8 @@ void compute(PropmatVector& propmat_clearsky,
     propmat_clearsky += pm;
 
     if (do_temp_jac) {
-      const Numeric d = temperature_perturbation(jacobian_quantities);
+      const Numeric d = temp_jac.second -> d;
+      const auto iq = temp_jac.second -> target_pos;
       ARTS_ASSERT(d not_eq 0)
 
       dpm = 0;
@@ -303,67 +265,48 @@ void compute(PropmatVector& propmat_clearsky,
                                predefined_model_data);
       dpm -= pm;
       dpm /= d;
-      for (Index iq = 0; iq < dpropmat_clearsky_dx.nrows(); iq++) {
-        if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
-          dpropmat_clearsky_dx[iq] += dpm;
-        }
+      dpropmat_clearsky_dx[iq] += dpm;
+    }
+
+    for (auto& j : freq_jac) {
+      if (j.first) {
+        const Numeric d = j.second->d;
+        const auto iq = j.second->target_pos;
+        ARTS_ASSERT(d not_eq 0)
+
+        Vector f_grid_d{f_grid};
+        f_grid_d += d;
+
+        dpm = 0.0;
+        compute_selection<false>(dpm,
+                                 model,
+                                 f_grid_d,
+                                 rtp_pressure,
+                                 rtp_temperature,
+                                 vmr,
+                                 predefined_model_data);
+        dpm -= pm;
+        dpm /= d;
+        dpropmat_clearsky_dx[iq] += dpm;
       }
     }
 
-    if (do_freq_jac) {
-      const Numeric d = frequency_perturbation(jacobian_quantities);
-      ARTS_ASSERT(d not_eq 0)
-
-      Vector f_grid_d{f_grid};
-      f_grid_d += d;
-
-      dpm = 0.0;
-      compute_selection<false>(dpm,
-                               model,
-                               f_grid_d,
-                               rtp_pressure,
-                               rtp_temperature,
-                               vmr,
-                               predefined_model_data);
-      dpm -= pm;
-      dpm /= d;
-      for (Index iq = 0; iq < dpropmat_clearsky_dx.nrows(); iq++) {
-        if (is_frequency_parameter(jacobian_quantities[iq])) {
-          dpropmat_clearsky_dx[iq] += dpm;
-        }
-      }
-    }
-
-    for (Index iq = 0; iq < dpropmat_clearsky_dx.nrows(); iq++) {
-      auto& deriv = jacobian_quantities[iq];
-      if (deriv == Jacobian::Line::VMR) {
-        if (compute_vmr_deriv<false>(dpm,
-                                     pm,
-                                     model,
-                                     f_grid,
-                                     rtp_pressure,
-                                     rtp_temperature,
-                                     vmr,
-                                     deriv.QuantumIdentity().Species(),
-                                     predefined_model_data))
-          dpropmat_clearsky_dx[iq] += dpm;
-      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
-                 std::any_of(deriv.Target().species_array_id.begin(),
-                             deriv.Target().species_array_id.end(),
-                             [model](auto& tag) {
-                               return tag.Isotopologue() == model;
-                             })) {
-        if (compute_vmr_deriv<true>(
-                dpm,
-                pm,
-                model,
-                f_grid,
-                rtp_pressure,
-                rtp_temperature,
-                vmr,
-                deriv.Target().species_array_id.front().Spec(),
-                predefined_model_data))
-          dpropmat_clearsky_dx[iq] += dpm;
+    for (auto& j : vmrs_jac) {
+      if (j.first) {
+        const Numeric d = j.second->d;
+        const auto iq = j.second->target_pos;
+        compute_vmr_deriv(
+            dpm,
+            pm,
+            model,
+            f_grid,
+            rtp_pressure,
+            rtp_temperature,
+            vmr,
+            d,
+            std::get_if<ArrayOfSpeciesTag>(&j.second->type)->Species(),
+            predefined_model_data);
+        dpropmat_clearsky_dx[iq] += dpm;
       }
     }
   } else {

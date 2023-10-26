@@ -4,6 +4,8 @@
 #include <atm_path.h>
 #include <rte.h>
 
+#include <new_jacobian.h>
+
 void ppvar_radCalcTransmission(
     ArrayOfStokvecVector &ppvar_rad,
     ArrayOfStokvecMatrix &ppvar_drad,
@@ -72,14 +74,10 @@ void ppvar_propmatCalc(const Workspace &ws,
                        ArrayOfPropmatMatrix &ppvar_dpropmat,
                        ArrayOfStokvecMatrix &ppvar_dnlte,
                        const Agenda &propmat_clearsky_agenda,
-                       const ArrayOfRetrievalQuantity &jacobian_quantities,
+                       const JacobianTargets &jacobian_targets,
                        const ArrayOfVector &ppvar_f,
                        const Ppath &ppath,
-                       const ArrayOfAtmPoint &ppvar_atm,
-                       const Index &jacobian_do) try {
-  const Index j_analytical_do =
-      jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
-
+                       const ArrayOfAtmPoint &ppvar_atm) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
@@ -108,11 +106,10 @@ void ppvar_propmatCalc(const Workspace &ws,
                                     ppvar_dpropmat[ip],
                                     ppvar_dnlte[ip],
                                     propmat_clearsky_agenda,
-                                    jacobian_quantities,
+                                    jacobian_targets,
                                     ppvar_f[ip],
                                     Vector{ppath.los(ip, joker)},
-                                    ppvar_atm[ip],
-                                    j_analytical_do);
+                                    ppvar_atm[ip]);
     } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
       {
@@ -139,11 +136,7 @@ void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
                           const ArrayOfStokvecMatrix &ppvar_dnlte,
                           const ArrayOfVector &ppvar_f,
                           const ArrayOfAtmPoint &ppvar_atm,
-                          const ArrayOfRetrievalQuantity &jacobian_quantities,
-                          const Index &jacobian_do) try {
-  const Index j_analytical_do =
-      jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
-
+                          const JacobianTargets& jacobian_targets) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
@@ -155,34 +148,27 @@ void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
   }
 
   const Index nf = ppvar_propmat.front().size();
-  const Index nq = j_analytical_do ? jacobian_quantities.size() : 0;
+  const Index nq = jacobian_targets.target_count();
+
+  const Index it = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
   ppvar_src.resize(np, StokvecVector(nf));
   ppvar_dsrc.resize(np, StokvecMatrix(nq, nf));
 
-  Vector B(nf);
-  Matrix dB(nq, nf);
-
   // Loop ppath points and determine radiative properties
-#pragma omp parallel for if (!arts_omp_in_parallel()) firstprivate(B, dB)
+#pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ip = 0; ip < np; ip++) {
     if (do_abort) continue;
     try {
-      get_stepwise_blackbody_radiation(B,
-                                       dB,
-                                       ppvar_f[ip],
-                                       ppvar_atm[ip].temperature,
-                                       jacobian_quantities,
-                                       j_analytical_do);
-
       rtepack::source::level_nlte(ppvar_src[ip],
                                   ppvar_dsrc[ip],
                                   ppvar_propmat[ip],
                                   ppvar_nlte[ip],
                                   ppvar_dpropmat[ip],
                                   ppvar_dnlte[ip],
-                                  B,
-                                  dB);
+                                  ppvar_f[ip],
+                                  ppvar_atm[ip].temperature,
+                                  it);
     } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
       {
@@ -206,18 +192,13 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
                       const ArrayOfPropmatMatrix &ppvar_dpropmat,
                       const Ppath &ppath,
                       const ArrayOfAtmPoint &ppvar_atm,
-                      const ArrayOfRetrievalQuantity &jacobian_quantities,
-                      const Index &jacobian_do) try {
+                      const JacobianTargets &jacobian_targets,
+                      const Index &hse_derivative) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
-  const Index j_analytical_do =
-      jacobian_do ? do_analytical_jacobian<2>(jacobian_quantities) : 0;
-
   // HSE variables
-  const Index temperature_derivative_position =
-      j_analytical_do ? pos<Jacobian::Atm::Temperature>(jacobian_quantities)
-                      : -1;
+  const Index temperature_derivative_position = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
   const Index np = ppath.np;
 
@@ -230,7 +211,7 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
   }
 
   const Index nf = ppvar_propmat.front().size();
-  const Index nq = j_analytical_do ? jacobian_quantities.size() : 0;
+  const Index nq = jacobian_targets.target_count();
 
   ppvar_tramat.resize(np, MuelmatVector(nf));
   ppvar_dtramat.resize(2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
@@ -242,9 +223,7 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
     if (do_abort) continue;
     try {
       ppvar_distance[ip - 1] = ppath.lstep[ip - 1];
-      if (temperature_derivative_position >= 0 and
-          jacobian_quantities[temperature_derivative_position].Subtag() ==
-              "HSE on") {
+      if (hse_derivative and temperature_derivative_position >= 0) {
         ppvar_ddistance[0][ip][temperature_derivative_position] =
             ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature);
         ppvar_ddistance[1][ip][temperature_derivative_position] =

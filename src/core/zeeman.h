@@ -7,6 +7,7 @@
  */
 
 #include "atm.h"
+#include "new_jacobian.h"
 #include "nlte.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
@@ -25,7 +26,7 @@
  * @param[in,out] dnlte_source_dx as WSV
  * @param[in]  abs_species as WSV
  * @param[in]  select_abs_species as WSV
- * @param[in]  jacobian_quantities as WSV
+ * @param[in]  jacobian_targets as WSV
  * @param[in]  abs_lines_per_species as WSV
  * @param[in]  isotopologue_ratios as WSV
  * @param[in]  partition_functions as WSV
@@ -49,7 +50,7 @@ void zeeman_on_the_fly(
     StokvecMatrix& dnlte_source_dx,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,

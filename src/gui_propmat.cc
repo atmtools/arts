@@ -357,11 +357,7 @@ struct PropMatDataHolder {
 ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
-  const bool select_jac = opts.jacobian_target >= 0 and
-                          static_cast<Size>(opts.jacobian_target) < v.jacobian_quantities.size();
-
-  const PropmatConstVectorView pm =
-      select_jac ? v.aopm[opts.jacobian_target] : v.pm;
+  const PropmatConstVectorView pm = v.pm;
 
   PropMatDataHolder main_data{
       pm,
@@ -379,15 +375,10 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
            " (Scale: 1:%g)",
            main_data.yscale_const);
 
-  const std::string y_axis = var_string(
-      select_jac ? MainMenu::absunit(
-                       v.jacobian_quantities[opts.jacobian_target].Target())
-                 : std::string{"Absorption [1/m]"},
+  const std::string y_axis = var_string("Absorption [1/m]",
       main_data.yscale_const == 1.0 ? "" : yscale_str.data());
 
-  const std::string_view title = select_jac
-                                     ? "Propagation Matrix Partial Derivative"
-                                     : "Propagation Matrix";
+  const std::string_view title = "Propagation Matrix";
 
   if (ImPlot::BeginPlot(
           title.data(), xunit(opts.xscale).data(), y_axis.c_str(), {-1, -1})) {
@@ -416,11 +407,7 @@ ImPlotLimits draw_propmat(const ComputeValues& v, const DisplayOptions& opts) {
 ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
   ImPlotLimits out{};
 
-  const bool select_jac = opts.jacobian_target >= 0 and
-                          static_cast<Size>(opts.jacobian_target) < v.jacobian_quantities.size();
-
-  const MuelmatConstVectorView tm =
-      select_jac ? v.aotm[opts.jacobian_target] : v.tm;
+  const MuelmatConstVectorView tm = v.tm;
 
   TraMatDataHolder main_data{tm,
                              v.f_grid,
@@ -429,9 +416,7 @@ ImPlotLimits draw_tramat(const ComputeValues& v, const DisplayOptions& opts) {
                              opts.inverse_tramat_scale,
                              opts.smooth_counter};
 
-  const std::string_view title = select_jac
-                                     ? "Transmission Matrix Partial Derivative"
-                                     : "Transmission Matrix";
+  const std::string_view title = "Transmission Matrix";
 
   if (ImPlot::BeginPlot(
           title.data(),
@@ -497,7 +482,6 @@ void start_run(Index pos, Control& ctrl, Time& start_time, Time& end_time) {
 
 void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
-             ArrayOfRetrievalQuantity& jacobian_quantities,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
              Vector& rtp_los,
@@ -529,7 +513,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
   auto fileBrowser = Files::xmlfile_chooser();
 
   // Old copies
-  auto old_jacobian_quantities = jacobian_quantities;
   auto old_select_abs_species = select_abs_species;
   auto old_f_grid = f_grid;
   auto old_rtp_mag = atm_point.mag;
@@ -558,11 +541,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
   bool updated = false;
   {
     std::lock_guard lock{ctrl.copy};
-
-    updated = MainMenu::change_item("\tjacobian_quantities\t",
-                                    jacobian_quantities,
-                                    old_jacobian_quantities) or
-              updated;
 
     updated = MainMenu::change_item("\tselect_abs_species\t",
                                     select_abs_species,
@@ -667,17 +645,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
         ImGui::EndMenu();
       }
       MainMenu::tooltip("Various ways to scale the X-axis", config);
-      ImGui::Separator();
-
-      // Plot selection
-      if (ImGui::BeginMenu("\tSelect Plot\t")) {
-        MainMenu::select_option(disp_options.jacobian_target,
-                                jacobian_quantities);
-        ImGui::EndMenu();
-      }
-      MainMenu::tooltip(
-          "Choose between main absorption or one of the computed derivatives",
-          config);
       ImGui::Separator();
 
       // Running average
@@ -874,30 +841,6 @@ void propmat(PropmatClearsky::ResultsArray& res,
       }
       ImGui::Separator();
 
-      // Display current Jacobian
-      bool jac_agree =
-          jacobian_quantities.size() == v.jacobian_quantities.size();
-      for (Size i = 0; i < jacobian_quantities.size() and jac_agree; i++) {
-        jac_agree = jac_agree and
-                    jacobian_quantities[i].Target().type ==
-                        v.jacobian_quantities[i].Target().type and
-                    jac_agree and
-                    jacobian_quantities[i].Target().atm ==
-                        v.jacobian_quantities[i].Target().atm and
-                    jac_agree and
-                    jacobian_quantities[i].Target().line ==
-                        v.jacobian_quantities[i].Target().line and
-                    jac_agree and
-                    jacobian_quantities[i].Target().qid ==
-                        v.jacobian_quantities[i].Target().qid;
-      }
-      ImGui::Text("\tPartial Derivatives:%c", jac_agree ? ' ' : '*');
-      for (auto& jac : v.jacobian_quantities) {
-        const auto str = MainMenu::change_item_name(jac.Target());
-        ImGui::Text("\t  %s\t", str.c_str());
-      }
-      ImGui::Separator();
-
       // Display current select species
       auto spec_str = var_string(v.select_abs_species);
       ImGui::Text("\tSelect Species:%c\t\n\t  %s",
@@ -916,10 +859,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
 
   // Save the data to file?
   if (curpos < res.size() and res[curpos].ok.load()) {
-    if (config.save_type == 0)
-      Files::save_data(config, fileBrowser, res[curpos].value.pm);
-    else if (config.save_type == 1)
-      Files::save_data(config, fileBrowser, res[curpos].value.aopm);
+    Files::save_data(config, fileBrowser, res[curpos].value.pm);
   }
 
   if (ctrl.error.load()) {
@@ -947,4 +887,4 @@ void propmat(PropmatClearsky::ResultsArray& res,
   // Set the exit parameter
   ctrl.exit.store(true);
 }
-}  // namespace ARTSGUI
+}  // namespace gui

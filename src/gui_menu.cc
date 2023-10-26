@@ -143,68 +143,6 @@ bool change_item(const char* name) {
   return "Bad Value";
 }
 
-bool change_item(const char* name,
-                 ArrayOfRetrievalQuantity& jac,
-                 ArrayOfRetrievalQuantity& old) {
-  bool did_something = false;
-  Jacobian::Target target;
-  std::string target_name;
-
-  if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::BeginMenu("Value")) {
-      auto tpred = [](auto& j) { return j == Jacobian::Atm::Temperature; };
-      auto fpred = [](auto& j) { return j == Jacobian::Atm::WindMagnitude; };
-
-      if (ImGui::BeginMenu(name)) {
-        target = Jacobian::Target(Jacobian::Atm::Temperature);
-        target_name = '\t' + change_item_name(target) + '\t';
-        if (bool has = std::any_of(jac.begin(), jac.end(), tpred);
-            ImGui::Selectable(target_name.c_str(),
-                              has,
-                              ImGuiSelectableFlags_DontClosePopups)) {
-          if (has) {
-            jac.erase(std::remove_if(jac.begin(), jac.end(), tpred), jac.end());
-          } else {
-            target.perturbation = 0.1;
-            jac.emplace_back().Target() = target;
-          }
-          did_something = true;
-        }
-        ImGui::Separator();
-
-        target = Jacobian::Target(Jacobian::Atm::WindMagnitude);
-        target_name = '\t' + change_item_name(target) + '\t';
-        if (bool has = std::any_of(jac.begin(), jac.end(), fpred);
-            ImGui::Selectable(target_name.c_str(),
-                              has,
-                              ImGuiSelectableFlags_DontClosePopups)) {
-          if (has) {
-            jac.erase(std::remove_if(jac.begin(), jac.end(), fpred), jac.end());
-          } else {
-            target.perturbation = 100;
-            jac.emplace_back().Target() = target;
-          }
-          did_something = true;
-        }
-        ImGui::Separator();
-        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
-          jac = old;
-          did_something = true;
-        }
-        ImGui::Separator();
-        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = jac;
-        ImGui::Separator();
-        ImGui::EndMenu();
-      }
-
-      ImGui::Separator();
-      ImGui::EndMenu();
-    }
-    ImGui::EndMainMenuBar();
-  }
-
-  return did_something;
-}
 
 bool change_item(const char* name,
                  Vector& vec,
@@ -531,51 +469,7 @@ bool change_item(const char* name,
   return did_something;
 }
 
-std::string absunit(const Jacobian::Target& target) {
-  switch (target.type) {
-    case Jacobian::Type::Atm:
-      switch (target.atm) {
-        case Jacobian::Atm::Temperature:
-          return "Absorption Partial Derivative [1/m K]";
-          break;
-        case Jacobian::Atm::WindMagnitude:
-          return "Absorption Partial Derivative [1/m (m/s)]";
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
 
-      break;
-    case Jacobian::Type::Line:
-      switch (target.line) {
-        case Jacobian::Line::VMR:
-          return var_string(
-              "Absorption Partial Derivative [1/m ", target.qid, ']');
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
-      break;
-    default:
-      ARTS_USER_ERROR("Not implemented")
-  }
-}
-
-void select_option(Index& ind, const ArrayOfRetrievalQuantity& jac) {
-  if (ImGui::Selectable("\tMain Calculations\t",
-                        ind == -1,
-                        ImGuiSelectableFlags_DontClosePopups)) {
-    ind = -1;
-  }
-
-  for (Size i = 0; i < jac.size(); i++) {
-    const std::string opt{var_string('\t', "Derivative: ", change_item_name(jac[i].Target()), '\t')};
-    if (ImGui::Selectable(
-            opt.c_str(), static_cast<Size>(ind) == i, ImGuiSelectableFlags_DontClosePopups)) {
-      ind = i;
-    }
-  }
-}
 
 void tooltip(const char* tip, const Config& config) {
   if (ImGui::IsItemHovered()) {

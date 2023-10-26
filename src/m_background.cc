@@ -114,19 +114,15 @@ void background_radSurfaceFieldEmission(StokvecVector& background_rad,
 
   background_dradEmpty(background_drad, f_grid, jacobian_targets);
 
-  const auto ptr =
-      std::find_if(jacobian_targets.surf.begin(),
-                   jacobian_targets.surf.end(),
-                   [key](auto& v) { return v.type == SurfaceKeyVal{key}; });
-
-  if (ptr != jacobian_targets.surf.end()) {
-    const auto& data = surface_field[key];
-    const auto weights = data.flat_weights(rtp_pos[1], rtp_pos[2]);
-
+  if (auto pair = jacobian_targets.find<Jacobian::SurfaceTarget>(SurfaceKeyVal{key}); pair.first) {
+    const auto x_start = pair.second->x_start;
+    const auto& surf_data = surface_field[key];
+    const auto weights = surf_data.flat_weights(rtp_pos[1], rtp_pos[2]);
     for (auto& w : weights) {
       if (w.second != 0.0) {
-        const auto i = w.first + ptr->x_start;
-        ARTS_ASSERT(i < jacobian_targets.x_size())
+        const auto i = w.first + x_start;
+        ARTS_ASSERT(i < background_drad.nrows())
+
         std::transform(f_grid.begin(),
                        f_grid.end(),
                        background_drad[i].begin(),

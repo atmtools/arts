@@ -24,9 +24,6 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
 
 [[nodiscard]] bool change_item(const char *);
 
-[[nodiscard]] std::string change_item_name(const JacobianTarget&);
-[[nodiscard]] bool change_item(const char *, ArrayOfRetrievalQuantity&, ArrayOfRetrievalQuantity&);
-
 [[nodiscard]] bool change_item(const char *,
                                Vector &,Vector &,
                                const ArrayOfString &keys);
@@ -72,9 +69,6 @@ void select_option(T &current,
     ImGui::Separator();
   }
 }
-
-[[nodiscard]] std::string absunit(const Jacobian::Target& target);
-void select_option(Index&, const ArrayOfRetrievalQuantity& jac);
 
 void tooltip(const char*, const Config& config);
 

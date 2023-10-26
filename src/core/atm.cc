@@ -607,6 +607,52 @@ std::ostream& operator<<(std::ostream& os, const KeyVal& key) {
   std::visit([&os](const auto& k) { os << k; }, key);
   return os;
 }
+
+template <KeyType T>
+constexpr bool cmp(const KeyVal& keyval, const T& key) {
+  const auto* ptr = std::get_if<T>(&keyval);
+  return ptr and *ptr == key;
+}
+
+bool operator==(const KeyVal& keyval, Key key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(Key key, const KeyVal& keyval) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const KeyVal& keyval, const ArrayOfSpeciesTag& key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const ArrayOfSpeciesTag& key, const KeyVal& keyval) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const KeyVal& keyval, const QuantumIdentifier& key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const QuantumIdentifier& key, const KeyVal& keyval) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const KeyVal& keyval, const ParticulatePropertyTag& key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const ParticulatePropertyTag& key, const KeyVal& keyval) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const KeyVal& keyval, const Species::Species& key) {
+  return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
+}
+
+bool operator==(const Species::Species& key, const KeyVal& keyval) {
+  return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
+}
 } // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {

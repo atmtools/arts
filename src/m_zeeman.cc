@@ -10,6 +10,7 @@
  */
 
 
+#include "new_jacobian.h"
 #include "rte.h"
 #include "zeeman.h"
 
@@ -24,7 +25,7 @@ void propmat_clearskyAddZeeman(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_levels,
@@ -54,7 +55,7 @@ void propmat_clearskyAddZeeman(
                     dnlte_source_dx,
                     abs_species,
                     select_abs_species,
-                    jacobian_quantities,
+                    jacobian_targets,
                     abs_lines_per_species,
                     isotopologue_ratios,
                     f_grid,

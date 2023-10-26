@@ -158,11 +158,11 @@ were thought or found to be useful. (See variable list below.).
 
       .gout = {"output"},
       .gout_type =
-          {"Vector, Vector, Matrix, Matrix, Tensor3, Tensor3, Tensor4, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector"},
+          {"Vector, Vector, Matrix, Matrix, Tensor3, Tensor3, Tensor4, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector"},
       .gout_desc = {R"--(The variable to append to.)--"},
 
       .gin = {"input", "dimension"},
-      .gin_type = {"Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor3, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, AbsorptionLines, Agenda, ArrayOfAbsorptionLines, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTensor3, ArrayOfTensor6, ArrayOfTime, ArrayOfVector, AtmPoint, CIARecord, GriddedField1, GriddedField2, GriddedField3, GriddedField4, Index, Matrix, MuelmatMatrix, MuelmatVector, Ppath, PropmatMatrix, PropmatVector, QuantumIdentifier, ScatteringMetaData, SingleScatteringData, Sparse, StokvecMatrix, StokvecVector, String, TelsemAtlas, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Time, Vector", "String"},
+      .gin_type = {"Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor3, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, AbsorptionLines, Agenda, ArrayOfAbsorptionLines, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTensor3, ArrayOfTensor6, ArrayOfTime, ArrayOfVector, AtmPoint, CIARecord, GriddedField1, GriddedField2, GriddedField3, GriddedField4, Index, Matrix, MuelmatMatrix, MuelmatVector, Ppath, PropmatMatrix, PropmatVector, QuantumIdentifier, ScatteringMetaData, SingleScatteringData, Sparse, StokvecMatrix, StokvecVector, String, TelsemAtlas, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Time, Vector", "String"},
       .gin_value = {std::nullopt, String("leading")},
       .gin_desc =
           {R"--(The variable to append.)--",
@@ -1200,7 +1200,7 @@ element (which equals nelem-1).
       .out = {"nelem"},
 
       .gin = {"v"},
-      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
+      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(The method is defined for these groups.)--"},
 
@@ -2221,7 +2221,7 @@ Description of the special input arguments:
              "y",
              "covmat_se",
              "jacobian",
-             "jacobian_quantities",
+             "jacobian_targets",
              "inversion_iterate_agenda"},
       .gin = {"method",
               "max_start_cost",
@@ -3320,12 +3320,12 @@ are the same variable.
 
       .gout = {"needles"},
       .gout_type =
-          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse"},
+          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse"},
       .gout_desc =
           {R"--(Selected elements. Must have the same variable type as haystack.)--"},
 
       .gin = {"haystack", "needleindexes"},
-      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse",
+      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse",
                    "ArrayOfIndex"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc =
@@ -6335,42 +6335,6 @@ how to input them in the control file.
 
   };
 
-  wsm_data["abs_speciesAdd2"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Adds a species tag group to the list of absorption species and
-jacobian quantities.
-
-The method is basically a combined call of *abs_speciesAdd* and
-*jacobianAddAbsSpecies*. In this way it is not needed to specify a
-tag group in two different places.
-
-Arguments exactly as for *jacobianAddAbsSpecies*. Note that this
-method only handles a single tag group, in contrast to
-*abs_speciesAdd*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"abs_species",
-              "jacobian_quantities",
-              "jacobian_agenda",
-              "propmat_clearsky_agenda_checked"},
-
-      .in = {"abs_species"},
-      .gin = {"gin1", "gin2", "gin3", "species", "unit"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String("vmr")},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(The species tag of the retrieval quantity.)--",
-                   R"--(Retrieval unit. See above.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["abs_speciesDefineAll"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *abs_species* [i][0] to all species in ARTS
 )--",
@@ -7697,68 +7661,6 @@ to be computed after a successful OEM calculation.
 
   };
 
-  wsm_data["covmat_sxAddBlock"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Add a block to the a priori covariance matrix *covmat_sx*
-
-This functions adds a given matrix as a block in the covariance
-matrix *covmat_sx*. The position of the block can be given by the generic
-arguments ``i`` and ``j``, which should give the index of the retrieval quantity in
-*jacobian_quantities*, which is given just by the order the quantities have been
-added to the retrieval.
-
-If arguments ``i`` and ``j`` are omitted, the block will be added as diagonal block
-for the last added retrieval quantity.
-
-If provided, the index ``i`` must be less than or equal to ``j``. Also the provided
-block must be consistent with the corresponding retrieval quantities.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx"},
-
-      .in = {"covmat_sx", "jacobian_quantities"},
-      .gin = {"block", "i", "j"},
-      .gin_type = {"Matrix, Sparse", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{-1}, Index{-1}},
-      .gin_desc =
-          {R"--(The block to add to the covariance matrix)--",
-           R"--(Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.)--",
-           R"--(Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.)--"},
-
-  };
-
-  wsm_data["covmat_sxAddInverseBlock"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Add the inverse of a block in covariance matrix *covmat_sx*
-
-This functions adds a given matrix as the inverse of a block in the covariance
-matrix *covmat_sx*. The purpose of this function is to allow the user to
-to use a precomputed inverse for this block in the covariance matrix, the may
-for example by obtained analytically.
-
-This function requires the non-inverse block to already be present in *covmat_sx*
-If the 'i' and 'j' input arguments are not given, the inverse block
-will be added at the position of the most recently added non-inverse diagonal
-block.
-
-Note that for this to work this retrieval quantity must be independent from
-other retrieval quantities that do not have an inverse. Otherwise the inverse
-will be ignored and recomputed numerically.
-
-For the rest, the same requirements as for *covmat_sxAddBlock* apply.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx"},
-
-      .in = {"covmat_sx", "jacobian_quantities"},
-      .gin = {"block", "i", "j"},
-      .gin_type = {"Matrix, Sparse", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{-1}, Index{-1}},
-      .gin_desc =
-          {R"--(The inverse block to add to the covariance matrix)--",
-           R"--(Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.)--",
-           R"--(Index of a retrieval quantity. Must satisfy ``i`` <= ``j``.)--"},
-
-  };
-
   wsm_data["covmat_sxExtractSqrtDiagonal"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Extract the square root of the diagonal of the state space covariance matrix.
@@ -7853,27 +7755,6 @@ Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
                        R"--(Particle aspect ratio.)--"},
 
       };
-
-  wsm_data["diy_dxTransform"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Transforms *diy_dpath* and adds it to *diy_dx*.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"diy_dx", "diy_dpath"},
-
-      .in = {"diy_dx",
-             "diy_dpath",
-             "ppath",
-             "ppvar_atm",
-             "abs_species",
-             "iy_transmittance",
-             "water_p_eq_agenda",
-             "jacobian_quantities",
-             "jacobian_do",
-             "iy_agenda_call1"},
-
-      .pass_workspace = true,
-
-  };
 
   wsm_data["dlosGauss"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Gives a *dlos* suitable for a circular Gaussian response.
@@ -8810,34 +8691,6 @@ the methods dealing with such simulations.
 
   };
 
-  wsm_data["iyBackground"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Computes background radiation by wrapping various agendas
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"iy", "diy_dx"},
-
-      .in = {"iy_transmittance",
-             "background_transmittance",
-             "surface_field",
-             "f_grid",
-             "rte_pos2",
-             "ppath",
-             "atm_field",
-             "jacobian_quantities",
-             "jacobian_do",
-             "cloudbox_on",
-             "iy_id",
-             "iy_agenda_call1",
-             "iy_main_agenda",
-             "iy_space_agenda",
-             "iy_surface_agenda",
-             "iy_cloudbox_agenda",
-             "iy_unit"},
-
-      .pass_workspace = true,
-
-  };
-
   wsm_data["iyCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(A single monochromatic pencil beam calculation.
 
@@ -8870,26 +8723,6 @@ incorporated by using ``yCalc``
              "iy_main_agenda"},
 
       .pass_workspace = true,
-
-  };
-
-  wsm_data["iyCopyPath"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Copies the radiative transfer properties to their matpack equivalents.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"iy",
-              "ppvar_iy",
-              "ppvar_trans_cumulat",
-              "ppvar_trans_partial",
-              "diy_dpath"},
-
-      .in = {"ppvar_rad",
-             "ppvar_drad",
-             "ppvar_cumtramat",
-             "ppvar_tramat",
-             "jacobian_quantities",
-             "jacobian_do"},
 
   };
 
@@ -8992,65 +8825,6 @@ in a straightforward fashion.
              "surface_rtprop_agenda"},
 
       .pass_workspace = true,
-
-  };
-
-  wsm_data["iySurfaceRtpropCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Applies *surface_los*, *surface_rmatrix* and *surface_emission*.
-
-This method is designed to be part of *iy_surface_agenda* and
-should be mandatory when using methods describing the surface
-radiative transfer properties by *surface_los*, *surface_rmatrix*
-and *surface_emission*. The task of this method is to apply these
-three WSVs to obtain the upwelling radiation from the surface.
-This upwelling radiation is the sum of surface emission and
-reflected downwelling radiation. The later part is calculated
-by calling *iy_main_agenda*. See further AUG.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"iy", "diy_dx"},
-
-      .in = {"diy_dx",
-             "surface_los",
-             "surface_rmatrix",
-             "surface_emission",
-             "dsurface_names",
-             "dsurface_rmatrix_dx",
-             "dsurface_emission_dx",
-             "iy_transmittance",
-             "iy_id",
-             "jacobian_do",
-             "suns_do",
-             "jacobian_quantities",
-             "atm_field",
-             "cloudbox_on",
-             "f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "rte_pos2",
-             "iy_unit",
-             "iy_main_agenda"},
-
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["iyUnitConversion"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Perform unit conversions of *iy*, *diy_dx*, and *ppvar_iy*.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"iy", "diy_dx", "ppvar_iy"},
-
-      .in = {"iy",
-             "diy_dx",
-             "ppvar_iy",
-             "f_grid",
-             "ppath",
-             "jacobian_quantities",
-             "iy_unit",
-             "jacobian_do",
-             "iy_agenda_call1"},
 
   };
 
@@ -9258,754 +9032,11 @@ magnitude, such as [1,1,0,0].
 
   };
 
-  wsm_data["jacobianAddAbsSpecies"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes an absorption species in the Jacobian.
-
-For 1D or 2D calculations the latitude and/or longitude grid of
-the retrieval field should set to have zero length.
-
-These retrieval units are at hand for all gas species:
-
-- ``"vmr"``: Volume mixing ratio.
-- ``"nd"``: Number density.
-- ``"rel"``: Relative unit (e.g. 1.1 means 10% more of the gas).
-
-For water vapour, also these units are at hand:
-
-- ``"rh"``: Relative humidity.
-- ``"q"``: Specific humidity.
-
-Note that ``for_species_tag`` is used to indicate if species tag VMR,
-rather than atmospheric gas VMR is calculated. Set it to 0 and we
-calculate the atmospheric gas VMR, but this only works for "analytical".
-
-Note that the Jacobian is set to zero where volume mixing ratio equals zero.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "species", "unit", "for_species_tag"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "String", "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String("vmr"),
-                    Index{1}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(The species tag of the retrieval quantity.)--",
-                   R"--(Retrieval unit. See above.)--",
-                   R"--(Index-bool for acting on species tags or species.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddBasicCatalogParameter"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Includes a basic catalog parameter in the Jacobian. These are constant
-over all layers and so only a single vector output is returned.
-
-The only basic catalog parameters currently supported are:
-
-* ``"LineStrength"``
-* ``"LineCenter"``
-
-The ``catalog_identity`` should be able to identify one or many
-lines in the catalog used for calculating the spectral absorption.
-Note that partial matching for energy levels are allowed but not
-recommended, as it is somewhat nonsensical to add multiple parameters.
-
-Also note *jacobianAddShapeCatalogParameter* as this allows addition
-of shape parameters, e.g., pressure broadening coefficients.
-
-Each call to this function adds just a single value to *x*.
-
-Example given the catalog_identity="O2-66 TR UP v1 0 J 1 LO v1 0 J 0",
-only the O2 ground-level 119 GHz line can be accessed and only its
-catalog_parameter will be accessed.  However, the more lenient
-catalog_identity="O2-66 TR UP J 1 LO J 0" may be used, but then the
-118 GHz line belonging to v1=1 branch will be added to the same *x*.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"catalog_identity", "catalog_parameter"},
-      .gin_type = {"QuantumIdentifier", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The catalog line matching information.)--",
-                   R"--(The catalog parameter of the retrieval quantity.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddBasicCatalogParameters"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(See *jacobianAddBasicCatalogParameter*.
-
-This adds a multiple of parameters for first each catalog identity in
-``catalog_identities`` and then for each catalog parameter in
-``catalog_parameters`` by looping calls to *jacobianAddBasicCatalogParameter*
-over these input.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"catalog_identities", "catalog_parameters"},
-      .gin_type = {"ArrayOfQuantumIdentifier", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The catalog line matching information.)--",
-                   R"--(The catalog parameter of the retrieval quantity.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddFreqShift"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a frequency fit of shift type in the Jacobian.
-
-Retrieval of deviations between nominal and actual backend
-frequencies can be included by this method. The assumption here is
-that the deviation is a constant off-set, a shift, common for all
-frequencies (and not varying between measurement blocks).
-
-This method adds one element to the state vector (*x*).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda", "f_grid"},
-      .gin = {"df"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{100e3}},
-      .gin_desc = {R"--(Size of perturbation to apply.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddFreqStretch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a frequency fit of stretch type in the Jacobian.
-
-Retrieval of deviations between nominal and actual backend
-frequencies can be included by this method. The assumption here is
-that the deviation varies linearly over the frequency range
-(following ARTS basis function for polynomial order 1).
-
-This method adds one element to the state vector (*x*).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda", "f_grid"},
-      .gin = {"df"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{100e3}},
-      .gin_desc = {R"--(Size of perturbation to apply.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddMagField"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes one magnetic field component in the Jacobian.
-
-The method follows the pattern of other Jacobian methods. The
-calculations can only be performed by analytic expressions.
-
-The magnetic field components are retrieved separately, and,
-hence, the argument ``component`` can be  "u", "v", "w",
-and "strength".
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-
-The dB-parameter is only used for Faraday rotation.
-)--",
-      .author = {"Patrick Eriksson", "Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "component", "dB"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String("v"),
-                    Numeric{1.0e-7}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Magnetic field component to retrieve)--",
-                   R"--(Magnetic field perturbation)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddNLTE"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Experimental NLTE Jacobian.
-
-Intention: Adds the nlte_field level distribution per atmospheric grid
-to the Jacobian.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-
-The QuantumIdentifier should identify a single energy level, such as:
-"H2O-161 EN J 1 Ka 0 Kc 1", for one of the lower levels in the chains
-of transitions of water.  Note that using this method directly is not
-best practice, as the quantum identifiers of the levels have to be known
-at an early stage in NLTE calculations, and will usually populate the
-``nlte_level_identifiers`` variable, meaning it is better to use *jacobianAddNLTE*
-directly than to individually call this function.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "energy_level_identity", "dx"},
-      .gin_type =
-          {"Vector", "Vector", "Vector", "QuantumIdentifier", "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{1.0e-3}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Identifier to the eneregy level)--",
-                   R"--(Perturbation of value if required by method)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddNLTEs"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for
-many levels
-
-Adds energy_level_identities.nelem() times as many arguments to *x*
-as *jacobianAddNLTE*, ordered as energy_level_identities describes
-
-This method is preferred to *jacobianAddNLTE*, since ``energy_level_identities``
-is conveniently almost always the same as ``nlte_level_identifiers``.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "energy_level_identities", "dx"},
-      .gin_type =
-          {"Vector", "Vector", "Vector", "ArrayOfQuantumIdentifier", "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{1.0e-3}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Identifiers to the eneregy level)--",
-                   R"--(Perturbation of value if required by method)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddPointingZa"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds sensor pointing zenith angle off-set jacobian.
-
-Retrieval of deviations between nominal and actual zenith angle of
-the sensor can be included by this method. The weighing functions
-can be calculated in several ways:
-
-- ``calcmode = "recalc"``:
-    Recalculation of pencil beam spectra,
-    shifted with ``dza`` from nominal values. A single-sided
-    perturbation is applied (towards higher zenith angles).
-- ``calcmode = "interp"``:
-    Inter/extrapolation of existing pencil
-    beam spectra. For this option, allow some extra margins for
-    zenith angle grids, to avoid artifacts when extrapolating
-    the data (to shifted zenith angles). The average of a
-    negative and a positive shift is taken.
-
-The interp option is recommended. It should in general be both
-faster and more accurate (due to the double sided disturbance).
-In addition, it is less sensitive to the choice of dza (as long
-as a small value is applied).
-
-The pointing off-set can be modelled to be time varying. The time
-variation is then described by a polynomial (with standard base
-functions). For example, a polynomial order of 0 means that the
-off-set is constant in time. If the off-set is totally uncorrelated
-between the spectra, set the order to -1.
-
-The number of elements added to the state vector (*x*) is
-
-* if poly_order < 0 : length of *sensor_time*
-* otherwise : poly_order+1
-
-In the first case, the order in *x* matches *sensor_time*. In the second
-case, the coefficient for polynomial order 0 comes first etc.
-)--",
-      .author = {"Patrick Eriksson", "Mattias Ekstrom"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities",
-             "jacobian_agenda",
-             "sensor_pos",
-             "sensor_time"},
-      .gin = {"poly_order", "calcmode", "dza"},
-      .gin_type = {"Index", "String", "Numeric"},
-      .gin_value = {Index{0}, String("recalc"), Numeric{0.01}},
-      .gin_desc =
-          {R"--(Order of polynomial to describe the time variation of pointing off-sets.)--",
-           R"--(Calculation method. See above)--",
-           R"--(Size of perturbation to apply (when applicable).)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddPolyfit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes polynomial baseline fit in the Jacobian.
-
-This method deals with retrieval of disturbances of the spectra
-that can be described by an additive term, a baseline off-set.
-
-The baseline off-set is here modelled as a polynomial. The
-polynomial spans the complete frequency range spanned by
-*sensor_response_f_grid* and the method should only of interest for
-cases with no frequency gap in the spectra. The default assumption
-is that the off-set differs between all spectra, but it can also be
-assumed that the off-set is common for all e.g. line-of-sights.
-
-If the simulation/retrieval deals with a single spectrum, the number
-of elements added to the state vector (*x*) is poly_order+1. The
-coefficient for polynomial order 0 comes first etc. The same is true
-if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``
-all are set to 1, even if several spectra are involved. Otherwise thenumber of elements added to *x* depends on the number of spectra and
-the settings of ``no_pol_variation``, ``no_los_variation`` and 
-``no_mblock_variation``. The coefficients of the different polynomial
-orders are treated as separate retrieval quantities. That is, the
-the elements associated with polynomial order 0 are grouped and form
-together a retrieval quantity. The coefficients for higher polynomial
-orders are treated in the same way.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities",
-             "jacobian_agenda",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "sensor_pos"},
-      .gin = {"poly_order",
-              "no_pol_variation",
-              "no_los_variation",
-              "no_mblock_variation"},
-      .gin_type = {"Index", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {R"--(Polynomial order to use for the fit.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all Stokes components.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all line-of-sights (inside each measurement block).)--",
-           R"--(Set to 1 if the baseline off-set is the same for all measurement blocks.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddScatSpecies"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a scattering species in the Jacobian.
-
-For 1D or 2D calculations the latitude and/or longitude grid of
-the retrieval field should set to have zero length.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "species", "quantity"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
-      .gin_desc =
-          {R"--(Pressure retrieval grid.)--",
-           R"--(Latitude retrieval grid.)--",
-           R"--(Longitude retreival grid.)--",
-           R"--(Name of scattering species, must match one element in *scat_species*.)--",
-           R"--(Retrieval quantity, e.g. "IWC".)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddShapeCatalogParameter"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Adds a line shape parameter to the Jacobian calculations. These
-are constant over all levels so only a single *x*-value is added
-
-Line function parameter assume the derivatives of internal pressure
-broadening and line mixing functionality follows a f(T, T0, X0, X1, X2)
-format. The shape of the function f() is determined by input
-catalog; please see the ARTS documentation for more details.
-
-The input are as follows:
-
-- line_identity:
-    Identifier of preferably a single line
-- species:
-    A SpeciesTag, e.g., "O2" or "H2O" for common species.
-    Note that "SELF" and "AIR" tags are used for shape parameters
-    affected by self and air-broadening, respectively.
-- variable:
-    A variable supported by the line, these can be
-
-    - ``"G0"``:  Speed-independent pressure broadening
-    - ``"G2"``:  Speed-dependent pressure broadening
-    - ``"D0"``:  Speed-independent pressure shift
-    - ``"D2"``:  Speed-dependent pressure shift
-    - ``"FVC"``: Frequency of velocity changing collisions
-    - ``"ETA"``: partial correlation between velocity and rotational state changes due to collisions
-    - ``"Y"``:   First order line-mixing parameter
-    - ``"G"``:   Second order line-mixing parameter for strength
-    - ``"DV"``:  Second order line-mixing parameter for shifting
-- coefficient:
-    A coefficient in the model to compute the above parameters.
-
-Note that we cannot test if the line in question supports the variable and
-coefficient at the level of this function, so many errors will only be reported
-at a later stage.
-
-For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.
-Also see said function for an example of how to set the QuantumIdentifier.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"line_identity", "species", "variable", "coefficient"},
-      .gin_type = {"QuantumIdentifier", "String", "String", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Line identifier)--",
-                   R"--(Species of interest)--",
-                   R"--(Variable of interest)--",
-                   R"--(Coefficient of interest)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddShapeCatalogParameters"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(See *jacobianAddShapeCatalogParameter* for information on
-the GIN parameters
-
-This function accepts the same input but for lists of data.
-The function loops over each input list
-individually and appends the information to *jacobian_quantities*.
-
-Special "ALL" for 1 length ``variables`` and ``coefficients`` are
-allowed to compute all variables/coefficients in the order described
-in the description of *jacobianAddShapeCatalogParameter*.
-
-For example, if ``line_identities`` have length 5, ``species`` length 4,
-``variables`` length 3, and ``coefficients`` length 2, there will be
-5*4x3x2 = 120 new additions to *jacobian_quantities* in the order:
-
-- [{line_identities[0], species[0], variables[0] coefficients[0]}]
-- [{line_identities[0], species[0], variables[0] coefficients[1]}]
-- [{line_identities[0], species[0], variables[1] coefficients[0]}]
-- [{line_identities[0], species[0], variables[1] coefficients[1]}]
-- [{line_identities[0], species[0], variables[2] coefficients[0]}]
-- [{line_identities[0], species[0], variables[2] coefficients[1]}]
-- [{line_identities[0], species[1], variables[0] coefficients[0]}]
-- ...
-- [{line_identities[4], species[3], variables[1] coefficients[1]}]
-- [{line_identities[4], species[3], variables[2] coefficients[0]}]
-- [{line_identities[4], species[3], variables[2] coefficients[1]}]
-
-or in words: lines first, then species, then variables, then coefficients
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"line_identities", "species", "variables", "coefficients"},
-      .gin_type = {"ArrayOfQuantumIdentifier",
-                   "ArrayOfString",
-                   "ArrayOfString",
-                   "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(List of line identifiers)--",
-                   R"--(List of species of interest)--",
-                   R"--(List of variables of interest)--",
-                   R"--(List of coefficients of interest)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddSinefit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes sinusoidal baseline fit in the Jacobian.
-
-Works as *jacobianAddPolyfit*, beside that a series of sine and
-cosine terms are used for the baseline fit.
-
-For each value in ``period_lengths`` one sine and one cosine term are
-included (in mentioned order). By these two terms the amplitude and
-"phase" for each period length can be determined. The sine and
-cosine terms have value 0 and 1, respectively, for first frequency.
-
-If the simulation/retrieval deals with a single spectrum, the number
-of elements added to the state vector (*x*) is 2 * nperiods, where
-nperiods is the length of ``period_lengths``. The same is true
-if ``no_pol_variation``, ``no_los_variation`` and ``no_mblock_variation``
-all are set to 1, even if several spectra are involved. Otherwise thenumber of elements added to *x* depends on the number of spectra and
-the settings of ``no_pol_variation``, ``no_los_variation`` and 
-``no_mblock_variation``. The sine and cosine terms for each period
-length are treated as a  separate retrieval quantities. That is, the
-the elements associated with the first period length are grouped and
-form together a retrieval quantity, etc. Inside each retrieval quantity
-the pairs of sine and cosine terms are kept together, in given order.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities",
-             "jacobian_agenda",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "sensor_pos"},
-      .gin = {"period_lengths",
-              "no_pol_variation",
-              "no_los_variation",
-              "no_mblock_variation"},
-      .gin_type = {"Vector", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {R"--(Period lengths of the fit.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all Stokes components.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all line-of-sights (inside each measurement block).)--",
-           R"--(Set to 1 if the baseline off-set is the same for all measurement blocks.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddSpecialSpecies"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a special absorption species in the Jacobian.
-
-Similar to *jacobianAddAbsSpecies* but only for number densities.
-
-Species allowed are:
-
-* "electrons"
-* "particulates"
-
-Note that the average of all particulates are used to scale its
-*jacobian*, so this method works best when only one type of
-particulate is being used, i.e., when *scat_data* has only one
-scattering species.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "species"},
-      .gin_type = {"Vector", "Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(The species of the retrieval quantity.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddSurfaceQuantity"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a surface quantity in the Jacobian.
-
-The quantity is specified by the GIN-variable ``quantity``. The name
-of the quantity must match the name used in *surface_props_names*.
-
-For 1D or 2D calculations the latitude and/or longitude grid of
-the retrieval field should set to have zero length.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2
-
-where n_g1 and n_g2 are the length of GIN ``g1`` and ``g2``, respectively.
-Here empty vectors should be considered to have a length 1.
-The elements are sorted with latitude as innermost loop and longitude
-as outermost loop.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "quantity"},
-      .gin_type = {"Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Retrieval quantity, e.g. "Wind speed".)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddTemperature"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes atmospheric temperatures in the Jacobian.
-
-The calculations are performed by (semi-)analytical expressions.
-Hydrostatic equilibrium (HSE) can be included.
-
-The analytical calculation approach neglects so far refraction
-totally, but considers the local effect of HSE.
-The later should be accaptable for observations around zenith and
-nadir. There is no warning if the method is applied incorrectly, 
-with respect to these issues. Note that the argument ``hse`` of this
-WSM only refers to the Jacobian calculation, if the model and/or
-retrieved atmosphere actually fulfils HSE or not is governed in
-other manners.
-
-The calculations (both options) assume that gas species are defined
-in VMR (a change in temperature then changes the number density). 
-This has the consequence that retrieval of temperatures and number
-density can not be mixed. Neither any warning here!
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "hse"},
-      .gin_type = {"Vector", "Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String("on")},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Flag to assume HSE or not ("on" or "off").)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAddWind"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes one atmospheric wind component in the Jacobian.
-
-The method follows the pattern of other Jacobian methods. The
-calculations can only be performed by analytic expressions.
-Some lower level function depends on frequency perturbations,
-however, so therefore a frequency perturbation df is required
-and as a consequence *abs_f_interp_order* must be > 0.
-
-The wind field components are retrieved separately, and,
-hence, the argument ``component`` can be "u", "v" or "w" 
-for vector components, or just "strength" for total wind speed.
-
-The number of elements added to the state vector (*x*) is::
-
-  n_g1 * n_g2 * n_g3
-
-where n_g1, n_g2 and n_g3 are the length of GIN ``g1``, ``g2`` and ``g3``,
-respectively. Here empty vectors should be considered to have a length 1.
-The elements are sorted with pressure as innermost loop, followed by
-latitude and longitude as outermost loop.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities", "jacobian_agenda"},
-      .gin = {"g1", "g2", "g3", "component", "dfrequency"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "Numeric"},
-      .gin_value =
-          {std::nullopt, std::nullopt, std::nullopt, String("v"), Numeric{0.1}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retrieval grid.)--",
-                   R"--(Wind component to retrieve)--",
-                   R"--(This is the frequency perturbation)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["jacobianAdjustAndTransform"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Applies adjustments and transformations on *jacobian*.
-
-The method handles two tasks:
-1. The retrieval transformations set by the user can not be applied
-onthe  Jacobian inside ``yCalc``. Transformations are instead applied
-by calling this method.
-2. It applies required adjustments of the Jacoboan. So far there is
-only one possible adjustment. If any absorption species uses the "rel"
-unit, an adjustment is needed for later iterations of the inversion.
-
-If no tranformations are selected and the "rel" option is not used at
-all, there is no need to call this method(, but you can still include it
-without causing any error, the calculations will just be a bit slower).
-Otherwise, this method should be called, typically as part of
-*inversion_iterate_agenda*.
-
-The method accepts if *jacobian* is empty, and then does, nothing.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian", "jacobian_quantities", "x"},
-
-  };
-
   wsm_data["jacobianCalcDoNothing"] = WorkspaceMethodInternalRecord{
       .desc = R"--(This function doesn't do anything. It just exists to satisfy
 the input and output requirement of the *jacobian_agenda*.
 
-This method is added to *jacobian_agenda* by *jacobianAddAbsSpecies*
+This method is added to *jacobian_agenda* by ``jacobianAddAbsSpecies``
 and some similar methods, and it should normally not be called by
 the user.
 )--",
@@ -10014,142 +9045,6 @@ the user.
 
       .in = {"jacobian", "mblock_index", "iyb", "yb"},
 
-  };
-
-  wsm_data["jacobianCalcFreqShift"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates frequency shift jacobians by interpolation
-of *iyb*.
-
-This function is added to *jacobian_agenda* by jacobianAddFreqShift
-and should normally not be called by the user.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "f_grid",
-             "mblock_dlos",
-             "sensor_response",
-             "jacobian_quantities"},
-
-  };
-
-  wsm_data["jacobianCalcFreqStretch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates frequency stretch jacobians by interpolation
-of *iyb*.
-
-This function is added to *jacobian_agenda* by jacobianAddFreqStretch
-and should normally not be called by the user.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "f_grid",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_response_pol_grid",
-             "sensor_response_f_grid",
-             "sensor_response_dlos_grid",
-             "jacobian_quantities"},
-
-  };
-
-  wsm_data["jacobianCalcPointingZaInterp"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates zenith angle pointing deviation jacobians by
-inter-extrapolation of *iyb*.
-
-This function is added to *jacobian_agenda* by
-jacobianAddPointingZa and should normally not be
-called by the user.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "f_grid",
-             "sensor_los",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_time",
-             "jacobian_quantities"},
-
-  };
-
-  wsm_data["jacobianCalcPolyfit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates jacobians for polynomial baseline fit.
-
-This function is added to *jacobian_agenda* by jacobianAddPolyfit
-and should normally not be called by the user.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "sensor_response",
-             "sensor_response_pol_grid",
-             "sensor_response_f_grid",
-             "sensor_response_dlos_grid",
-             "jacobian_quantities"},
-      .gin = {"poly_coeff"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Polynomial coefficient to handle.)--"},
-
-  };
-
-  wsm_data["jacobianCalcSinefit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates jacobians for sinusoidal baseline fit.
-
-This function is added to *jacobian_agenda* by jacobianAddPolyfit
-and should normally not be called by the user.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian"},
-
-      .in = {"jacobian",
-             "mblock_index",
-             "iyb",
-             "yb",
-             "sensor_response",
-             "sensor_response_pol_grid",
-             "sensor_response_f_grid",
-             "sensor_response_dlos_grid",
-             "jacobian_quantities"},
-      .gin = {"period_index"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(Index among the period length specified for add-method.)--"},
-
-  };
-
-  wsm_data["jacobianClose"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Closes the array of retrieval quantities and prepares for
-calculation of the Jacobian matrix.
-
-This function closes the *jacobian_quantities* array and sets
-*jacobian_do* to 1.
-
-Retrieval quantities should not be added after a call to this WSM.
-No calculations are performed here.
-)--",
-      .author = {"Mattias Ekstrom"},
-      .out = {"jacobian_do", "jacobian_agenda"},
-
-      .in = {"jacobian_agenda", "jacobian_quantities"},
   };
 
   wsm_data["jacobianFromTwoY"] = WorkspaceMethodInternalRecord{
@@ -10194,150 +9089,6 @@ Column i of *jacobian* equals: (ybatch[i]-y)/pert_size.
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Size of perturbation behind spectra in *ybatch*.)--"},
-
-  };
-
-  wsm_data["jacobianInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initialises the variables connected to the Jacobian matrix.
-
-This function initialises the *jacobian_quantities* array so
-that retrieval quantities can be added to it. Accordingly, it has
-to be called before any calls to jacobianAddTemperature or
-similar methods.
-
-The Jacobian quantities are initialised to be empty.
-)--",
-      .author = {"Mattias Ekstrom"},
-      .out = {"jacobian_quantities", "jacobian_agenda"},
-  };
-
-  wsm_data["jacobianOff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Makes mandatory initialisation of some jacobian variables.
-
-Some clear-sky jacobian WSVs must be initialised even if no such
-calculations will be performed.  This is handled with this method.
-That is, this method must be called when no clear-sky jacobians
-will be calculated (even if cloudy-sky jacobians are calculated!).
-
-Sets *jacobian_do* to 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"jacobian_do", "jacobian_agenda", "jacobian_quantities"},
-  };
-
-  wsm_data["jacobianSetAffineTransformation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds an affine transformation of the last element of
-*jacobian_quantities*.
-
-See *jacobianSetFuncTransformation* for  a general description of how
-retrieval transformations are defined. Transformations are not applied by
-methods such as ``yCalc``. Instead, the method *jacobianAdjustAndTransform*
-must be called to activate the transformations.
-
-The affine transformation is specified by a transformation matrix, A,
-and an offset vector, b. These two are applied as described in
-*jacobianSetFuncTransformation*.
-
-The transformations is applied as::
-
-  x = A * ( z - b )
-
-where z is the retrieval quantity on the standard retrieval grids
-and x is the final state vector.
-
-So far, the following must be true for valid A-matrices::
-
-  z = A' * x + b
-
-That is, the reversed transformation is given by A transposed.
-
-This method must only be called if an affine transformation is wanted.
-Default is to make no such tranformation at all.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"jacobian_quantities"},
-
-      .in = {"jacobian_quantities"},
-      .gin = {"transformation_matrix", "offset_vector"},
-      .gin_type = {"Matrix", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The transformation matrix A)--",
-                   R"--(The offset vector b)--"},
-
-  };
-
-  wsm_data["jacobianSetFuncTransformation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the functional transformation of the last element of
-*jacobian_quantities*.
-
-See below for a general description of how retrieval transformations
-are defined. Transformations are not applied by methods such as ``yCalc``.
-Instead, the method *jacobianAdjustAndTransform* must be called to
-activate the transformations.
-
-The following transformations can be selected (by ``transformation_func``):
-
-- ``"log"``: The natural logarithm
-- ``"log10"``: The base-10 logarithm
-- ``"atanh"``: Area hyperbolic tangent 
-- ``"none"``: No transformation at all
-
-This method needs only to be called if a functional transformation
-is wanted. Default is to make no such tranformation at all (i.e.
-the option "none" exists only for reasons of flexibility).
-
-The log-options are applied as log(z-z_min) and log10(z-z_min).
-The default for ``z_min`` is zero, but by changing it the lower limit
-for z can be changed. Note that ``z_min`` becomes the lower limit for
-allowed values of z. The GIN ``z_max`` is here ignored.
-
-For the atanh-option, also ``z_max`` is considered. This transformation
-is applied as atanh((2(z-z_min)/(z_max-z_min))-1). As above,``z_min``
-is lower limit for allowed values of z. On the other hand, ``z_max``
-eines the upper limit for z.
-
-The GIN ``transformation_func`` is so far only used for atanh. The parameter
-specifies the maximum allowed value allowed for u. That is, the valid
-range for u becomes ]0,tfunc_parameter[. Note that log and log10
-demands/ensures that u > 0, but implies no upper limit.
-
-General handling of retrieval units and transformations:
----
-Default is that quantities are retrieved as defined in ARTS, but
-both some unit conversion and transformations are provided. These
-operations are applied as::
-
-  x = A * ( f(u(z)) - b ) 
-
-where
-
-- z is the quantity as defined ARTS
-- u represents the change of unit
-- f is the transformation function
-- A and b define together an affine transformation
-- x is the retrieved quantity
-
-For example, this systen allows to retrive a principal component
-representation (A and b) of the log (f) of relative humidity (u).
-
-Change of unit is selected by the quantity specific jacobian-add
-methods (so far only at hand for gas species). 
-
-Activating a transformation function is done by this method. Note
-that the functions are defined as the transformation from z to x.
-For more details on affine transformations, see
-*jacobianSetAffineTransformation*.
-)--",
-      .author = {"Patrick Eriksson", "Simon Pfreundschuh"},
-      .out = {"jacobian_quantities"},
-
-      .in = {"jacobian_quantities"},
-      .gin = {"transformation_func", "z_min", "z_max"},
-      .gin_type = {"String", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{0}, Numeric{-99e99}},
-      .gin_desc = {R"--(The transformation function.)--",
-                   R"--(Lower limit of z.)--",
-                   R"--(Upper limit of z.)--"},
 
   };
 
@@ -10496,7 +9247,7 @@ variable *nelem*.
 
       .gin = {"v"},
       .gin_type =
-          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfRetrievalQuantity, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
+          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Variable to get the number of elements from.)--"},
 
@@ -11094,7 +9845,7 @@ a cloudbox with no particles.
       .author = {"Claudia Emde, Jana Mendrok"},
       .out = {"pnd_field", "dpnd_field_dx", "scat_data"},
 
-      .in = {"scat_data", "f_grid", "cloudbox_limits", "jacobian_quantities"},
+      .in = {"scat_data", "f_grid", "cloudbox_limits", "jacobian_targets"},
 
   };
 
@@ -11482,11 +10233,10 @@ The values in ppvar_optical_depth are set to
       .out = {"ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"},
 
       .in = {"propmat_clearsky_agenda",
-             "jacobian_quantities",
+             "jacobian_targets",
              "ppvar_f",
              "ppath",
-             "ppvar_atm",
-             "jacobian_do"},
+             "ppvar_atm"},
 
       .pass_workspace = true,
 
@@ -11546,8 +10296,7 @@ Options are:
              "ppvar_dnlte",
              "ppvar_f",
              "ppvar_atm",
-             "jacobian_quantities",
-             "jacobian_do"},
+             "jacobian_targets"},
 
   };
 
@@ -11567,10 +10316,12 @@ of the derivatives out of this function is 2.
              "ppvar_dpropmat",
              "ppath",
              "ppvar_atm",
-             "jacobian_quantities",
-             "jacobian_do"},
+             "jacobian_targets"},
 
-  };
+      .gin = {"hse_derivative"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc = {"Flag to compute the hypsometric distance derivatives"}};
 
   wsm_data["predefined_model_dataAddWaterMTCKD400"] =
       WorkspaceMethodInternalRecord{
@@ -11641,7 +10392,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
              "dpropmat_clearsky_dx",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "f_grid",
              "atm_point",
              "abs_cia_data"},
@@ -11679,7 +10430,7 @@ but adds further contributions.
              "f_grid",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "atm_point",
              "rtp_los"},
 
@@ -11732,7 +10483,7 @@ limit can here be adjusted by the ``extpolfac`` argument.
              "abs_f_interp_order",
              "f_grid",
              "atm_point",
-             "jacobian_quantities",
+             "jacobian_targets",
              "abs_species",
              "select_abs_species"},
       .gin = {"extpolfac", "no_negatives"},
@@ -11767,7 +10518,7 @@ Please ensure you cite the original authors when you use this function:
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
-                 "jacobian_quantities",
+                 "jacobian_targets",
                  "atm_point"},
 
       };
@@ -11812,7 +10563,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
              "f_grid",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "abs_lines_per_species",
              "isotopologue_ratios",
              "atm_point",
@@ -11859,42 +10610,8 @@ to compensate the calculations for the pressure limit
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
-                 "jacobian_quantities",
+                 "jacobian_targets",
                  "atm_point",
-                 "lbl_checked"},
-
-      };
-
-  wsm_data["propmat_clearskyAddOnTheFlyLineMixingWithZeeman"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Compute the line mixing of matching lines and add it to the propagation matrix
-Also computes Zeeman effect for all the lines in the band
-
-Each band's Population Type is checked and the calculations are only performed
-for bands with matching population types (and a good pressure limits)
-
-Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 2020
-
-*Wigner6Init* or *Wigner3Init* must be called before this function.
-
-Note that you need to have *propmat_clearskyAddLines* in addition to this method
-to compensate the calculations for the pressure limit
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
-
-          .in = {"propmat_clearsky",
-                 "dpropmat_clearsky_dx",
-                 "abs_lines_per_species",
-                 "ecs_data",
-                 "isotopologue_ratios",
-                 "f_grid",
-                 "abs_species",
-                 "select_abs_species",
-                 "jacobian_quantities",
-                 "atm_point",
-                 "rtp_los",
                  "lbl_checked"},
 
       };
@@ -11949,7 +10666,7 @@ but adds further contributions.
              "f_grid",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "rtp_los",
              "atm_point",
              "scat_data",
@@ -12272,39 +10989,9 @@ Available models:
              "predefined_model_data",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "f_grid",
              "atm_point"},
-
-  };
-
-  wsm_data["propmat_clearskyAddScaledSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Adds a scaled target species absorption to *propmat_clearsky* and *nlte_source*
-
-This recomputes the entire propagation matrix.  There are more efficient ways
-to do these calculations but this method exist because of the composability it
-offers
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky", "nlte_source"},
-
-      .in = {"propmat_clearsky",
-             "nlte_source",
-             "jacobian_quantities",
-             "select_abs_species",
-             "f_grid",
-             "rtp_los",
-             "atm_point",
-             "propmat_clearsky_agenda"},
-      .gin = {"target", "scale"},
-      .gin_type = {"ArrayOfSpeciesTag", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Target species tags to rescale (must be in *abs_species*)--",
-           R"--(Rescaling factor (e.g., 0.1 adds 10% of the species to the absorption))--"},
-      .pass_workspace = true,
-
   };
 
   wsm_data["propmat_clearskyAddXsecFit"] = WorkspaceMethodInternalRecord{
@@ -12324,7 +11011,7 @@ this method.
              "dpropmat_clearsky_dx",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "f_grid",
              "atm_point",
              "xsec_fit_data"},
@@ -12357,7 +11044,7 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "f_grid",
              "abs_species",
              "select_abs_species",
-             "jacobian_quantities",
+             "jacobian_targets",
              "isotopologue_ratios",
              "atm_point",
              "nlte_vib_energies",
@@ -12400,7 +11087,7 @@ This method must be used inside *propmat_clearsky_agenda* and then be called fir
               "dpropmat_clearsky_dx",
               "dnlte_source_dx"},
 
-      .in = {"jacobian_quantities",
+      .in = {"jacobian_targets",
              "f_grid",
              "propmat_clearsky_agenda_checked"},
 
@@ -12443,7 +11130,6 @@ The following methods are considered for addition:
     9) *propmat_clearskyAddPredefined*
     10) *propmat_clearskyAddOnTheFlyLineMixing*
     11) *propmat_clearskyAddHitranLineMixingLines*
-    12) *propmat_clearskyAddOnTheFlyLineMixingWithZeeman*
 
 To perform absorption lookupo table calculation, call:
     1) *propmat_clearsky_agendaAuto*
@@ -13751,473 +12437,6 @@ Options are:
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["retrievalAddAbsSpecies"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds an absorption species to the retrieval quantities.
-
-Similar to *jacobianAddAbsSpecies* but also sets the corresponding block in
-*covmat_sx* to the matrices provided in *covmat_block* and *covmat_inv_block*.
-The dimensions of *covmat_block* are required to agree with the dimensions of the
-retrieval grid.
-
-*covmat_inv_block* must be either empty or the same dimension as *covmat_block*.
-If provided, this matrix will be used as the inverse for the covariance matrix block
-and numerical inversion of this block is thus avoided. Note, however, that this is
-only effective if this block is uncorrelated with any other retrieval quantity.
-
-For number and order of elements added to *x*, see *jacobianAddAbsSpecies*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "species", "unit", "for_species_tag"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "String", "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String("rel"),
-                    Index{1}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(The species tag of the retrieval quantity.)--",
-                   R"--(Retrieval unit. See above.)--",
-                   R"--(Index-bool for acting on species tags or species.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddCatalogParameter"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding
-block to *covmat_sx* with the given ``var`` as variance value.
-
-For number and order of elements added to *x*,
-see *jacobianAddBasicCatalogParameter*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-      .gin = {"catalog_identity", "catalog_parameter", "var"},
-      .gin_type = {"QuantumIdentifier", "String", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The catalog line matching information.)--",
-                   R"--(The catalog parameter of the retrieval quantity.)--",
-                   R"--(The variance of the catalog parameter.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddCatalogParameters"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddBasicCatalogParameters* but also adds a new
-block to *covmat_sx* using the matrices in *covmat_block* and
-*covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*,
-see *jacobianAddBasicCatalogParameters*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"catalog_identities", "catalog_parameters"},
-      .gin_type = {"ArrayOfQuantumIdentifier", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The catalog line matching informations.)--",
-                   R"--(The catalog parameters of the retrieval quantity.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddFreqShift"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddFreqShift* but also adds the correlation block
-contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.
-
-For number and order of elements added to *x*, see *jacobianAddFreqShift*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "covmat_block",
-             "covmat_inv_block",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "f_grid"},
-      .gin = {"df"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{100e3}},
-      .gin_desc = {R"--(Size of perturbation to apply.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddFreqStretch"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddFreqShift* but also adds the correlation block
-contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.
-
-For number and order of elements added to *x*, see *jacobianAddFreqStretch*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"jacobian_quantities",
-             "jacobian_agenda",
-             "f_grid",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"df"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{100e3}},
-      .gin_desc = {R"--(Size of perturbation to apply.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddMagField"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddMagField*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "component", "dB"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    String("v"),
-                    Numeric{1.0e-7}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Magnetic field component to retrieve)--",
-                   R"--(Magnetic field perturbation)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddPointingZa"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddPointingZa*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block",
-             "sensor_pos",
-             "sensor_time"},
-      .gin = {"poly_order", "calcmode", "dza"},
-      .gin_type = {"Index", "String", "Numeric"},
-      .gin_value = {Index{0}, String("recalc"), Numeric{0.01}},
-      .gin_desc =
-          {R"--(Order of polynomial to describe the time variation of pointing off-sets.)--",
-           R"--(Calculation method. See above)--",
-           R"--(Size of perturbation to apply (when applicable).)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddPolyfit"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddPolyfit*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "sensor_pos"},
-      .gin = {"poly_order",
-              "no_pol_variation",
-              "no_los_variation",
-              "no_mblock_variation"},
-      .gin_type = {"Index", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {R"--(Polynomial order to use for the fit.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all Stokes components.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all line-of-sights (inside each measurement block).)--",
-           R"--(Set to 1 if the baseline off-set is the same for all measurement blocks.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddScatSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddScatSpecies*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "species", "quantity"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt},
-      .gin_desc =
-          {R"--(Pressure retrieval grid.)--",
-           R"--(Latitude retrieval grid.)--",
-           R"--(Longitude retreival grid.)--",
-           R"--(Name of scattering species, must match one element in *scat_species*.)--",
-           R"--(Retrieval quantity, e.g. "IWC".)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddSinefit"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddSinefit*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "sensor_pos"},
-      .gin = {"period_lengths",
-              "no_pol_variation",
-              "no_los_variation",
-              "no_mblock_variation"},
-      .gin_type = {"Vector", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {R"--(Period lengths of the fit.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all Stokes components.)--",
-           R"--(Set to 1 if the baseline off-set is the same for all line-of-sights (inside each measurement block).)--",
-           R"--(Set to 1 if the baseline off-set is the same for all measurement blocks.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddSpecialSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddSpecialSpecies*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "species"},
-      .gin_type = {"Vector", "Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(The species of the retrieval quantity.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddSurfaceQuantity"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddSurfaceQuantity* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddSurfaceQuantity*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "quantity"},
-      .gin_type = {"Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Retrieval quantity, e.g. "Wind speed".)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddTemperature"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddTemperature*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "hse"},
-      .gin_type = {"Vector", "Vector", "Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String("on")},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retreival grid.)--",
-                   R"--(Flag to assume HSE or not ("on" or "off").)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalAddWind"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Same as *jacobianAddWind* but also adds a new block to *covmat_sx*
-using the matrices in *covmat_block* and *covmat_inv_block*.
-
-If *covmat_inv_block* is non-empty, it is used as inverse for the added block
-which avoids its numerical computation.
-
-For number and order of elements added to *x*, see *jacobianAddWind*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_sx", "jacobian_quantities", "jacobian_agenda"},
-
-      .in = {"covmat_sx",
-             "jacobian_quantities",
-             "jacobian_agenda",
-             "covmat_block",
-             "covmat_inv_block"},
-      .gin = {"g1", "g2", "g3", "component", "dfrequency"},
-      .gin_type = {"Vector", "Vector", "Vector", "String", "Numeric"},
-      .gin_value =
-          {std::nullopt, std::nullopt, std::nullopt, String("v"), Numeric{0.1}},
-      .gin_desc = {R"--(Pressure retrieval grid.)--",
-                   R"--(Latitude retrieval grid.)--",
-                   R"--(Longitude retrieval grid.)--",
-                   R"--(Wind component to retrieve)--",
-                   R"--(This is the frequency perturbation)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["retrievalDefClose"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Closes the definition of retrieval quantities and correlations and
-prepares related WSVs for the retrieval.
-
-This function calls jacobianClose and checks that the corvariance matrices
-are consistent with the Jacobian.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"jacobian_do", "jacobian_agenda", "retrieval_checked"},
-
-      .in = {"jacobian_agenda", "covmat_sx", "jacobian_quantities"},
-  };
-
-  wsm_data["retrievalDefInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Begin retrieval definition section.
-
-This function initialises all variables required for defining
-retrieval quantities and corresponding covariance matrices.
-By default, Jacobian quantities should be added withing the.
-retrieval definition section. If Jacobian quantities are
-defined separately ``initialize_jacobian`` must be set to 0,
-otherwise the quantities will be discarded.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_se",
-              "covmat_sx",
-              "covmat_block",
-              "covmat_inv_block",
-              "jacobian_quantities",
-              "jacobian_agenda"},
-
-      .gin = {"initialize_jacobian"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {R"--(Flag whether or not to (re)initialize Jacobian-related quantities. Set to 0 if Jacobian is already defined.)--"},
   };
 
   wsm_data["retrievalErrorsExtract"] = WorkspaceMethodInternalRecord{
@@ -16596,89 +14815,6 @@ Options are:
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["x2artsSensor"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Maps *x* to sensor variables.
-
-Maps OEM's state vector, *x*, to the matching ARTS variables. This
-method handles variables associated with the sensor. If you retrieve
-other variables, make sure that you also call ``x2artsAtmAndSurf``
-and/or ``x2artsSpectroscopy``.
-
-The following retrieval quantities are handled by this method:
- - Pointing
- - Frequency shift and stretch
- - Baseline fits
-
-Should only be used inside *inversion_iterate_agenda*.
-
-Elements in *x* representing pointing corrections are mapped to
-*sensor_los*. Elements representing frequency corrections are mapped
-to *f_backend*. Baseline variables are mapped to *y_baseline*.
-
-The sensor response is recalculated if there is any non-zero frequency
-correction.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_los",
-              "f_backend",
-              "y_baseline",
-              "sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid",
-              "sensor_response_pol_grid",
-              "sensor_response_dlos_grid",
-              "mblock_dlos"},
-
-      .in = {"sensor_los",
-             "f_backend",
-             "sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "mblock_dlos",
-             "jacobian_quantities",
-             "x",
-             "sensor_response_agenda",
-             "sensor_checked",
-             "sensor_time"},
-
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["xClip"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Clipping of the state vector.
-
-The method allows you to apply hard limits the values of a
-retrieval quantity. The retrieval quantity is specified by
-``ijq``. All values of the quantity below ``limit_low``, are simply
-set to ``limit_low``. And the same is performed with respect to
-``limit_high``. That is, the data in x for the retrieval quantity
-are forced to be inside the range [limit_low,limit_high].
-
-Setting ijq=-1, is a shortcut for applying the limits on all
-retrieval quantities.
-
-Notice that limits must be specified in the unit used in *x*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"x"},
-
-      .in = {"x", "jacobian_quantities"},
-      .gin = {"ijq", "limit_low", "limit_high"},
-      .gin_type = {"Index", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, -std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
-      .gin_desc = {R"--(Retrieval quantity index (zero-based))--",
-                   R"--(Lower limit for clipping.)--",
-                   R"--(Upper limit for clipping.)--"},
-
-  };
-
   wsm_data["yApplySensorPol"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Extraction of arbitrary linear polarisation.
 
@@ -16732,7 +14868,7 @@ stringent check of this can not be performed.
 
 The method can not be used with jacobian quantities that are not
 obtained through radiative transfer calculations. One example on
-quantity that can not be handled is *jacobianAddPolyfit*. There
+quantity that can not be handled is ``jacobianAddPolyfit``. There
 are no automatic checks warning for incorrect usage!
 
 If you are using this method, *iy_unit* should be set to "1" when

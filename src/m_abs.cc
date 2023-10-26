@@ -34,6 +34,7 @@
 #include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "montecarlo.h"
+#include "new_jacobian.h"
 #include "nlte.h"
 #include "optproperties.h"
 #include "parameters.h"
@@ -211,11 +212,11 @@ void propmat_clearskyInit(  //WS Output
     PropmatMatrix& dpropmat_clearsky_dx,
     StokvecMatrix& dnlte_source_dx,
     //WS Input
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const Vector& f_grid,
     const Index& propmat_clearsky_agenda_checked) {
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.size();
+  const Index nq = jacobian_targets.target_count();
 
   ARTS_USER_ERROR_IF(
       !propmat_clearsky_agenda_checked,
@@ -259,7 +260,7 @@ void propmat_clearskyAddFaraday(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const AtmPoint& atm_point,
     const Vector& rtp_los) {
   Index ife = -1;
@@ -283,8 +284,15 @@ void propmat_clearskyAddFaraday(
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
 
-  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
-  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
+  const auto jacs =
+      jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::mag_u,
+                                                     Atm::Key::mag_v,
+                                                     Atm::Key::mag_w,
+                                                     Atm::Key::wind_u,
+                                                     Atm::Key::wind_v,
+                                                     Atm::Key::wind_w,
+                                                     abs_species[ife]);
+  const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
   const Numeric ne = atm_point[abs_species[ife]];
 
@@ -295,23 +303,23 @@ void propmat_clearskyAddFaraday(
         dotprod_with_los(
             rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
 
-    Numeric dc1_u = 0.0, dc1_v = 0.0, dc1_w = 0.0;
-    if (do_magn_jac) {
-      dc1_u = (2 * FRconst *
+    std::array<Numeric, 3> dc1{0.,0.,0.};
+    if (dmag != 0.0) {
+      dc1[0] = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0] + dmag,
                                     atm_point.mag[1],
                                     atm_point.mag[2]) -
                c1) /
               dmag;
-      dc1_v = (2 * FRconst *
+      dc1[1] = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1] + dmag,
                                     atm_point.mag[2]) -
                c1) /
               dmag;
-      dc1_w = (2 * FRconst *
+      dc1[2] = (2 * FRconst *
                    dotprod_with_los(rtp_los,
                                     atm_point.mag[0],
                                     atm_point.mag[1],
@@ -325,20 +333,20 @@ void propmat_clearskyAddFaraday(
       const Numeric r = ne * c1 / f2;
       propmat_clearsky[iv].U() += r;
 
-      // The Jacobian loop
-      for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
-        if (is_frequency_parameter(jacobian_quantities[iq]))
-          dpropmat_clearsky_dx(iq, iv) += -2.0 * ne * r / f_grid[iv];
-        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticU)
-          dpropmat_clearsky_dx(iq, iv) += ne * dc1_u / f2;
-        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticV)
-          dpropmat_clearsky_dx(iq, iv) += ne * dc1_v / f2;
-        else if (jacobian_quantities[iq] == Jacobian::Atm::MagneticW)
-          dpropmat_clearsky_dx(iq, iv) += ne * dc1_w / f2;
-        else if (jacobian_quantities[iq] == Jacobian::Atm::Electrons)
-          dpropmat_clearsky_dx(iq, iv) += r;
-        else if (jacobian_quantities[iq] == abs_species[ife])
-          dpropmat_clearsky_dx(iq, iv) += r;
+      for (Size i=0; i<3; i++) {
+        if (jacs[i].first) {
+          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() += ne * dc1[i] / f2;
+        }
+      }
+
+      for (Size i=3; i<6; i++) {
+        if (jacs[i].first) {
+          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() += -2.0 * ne * r / f_grid[iv];
+        }
+      }
+
+      if (jacs[6].first) {
+        dpropmat_clearsky_dx(jacs[6].second->target_pos, iv).U() += r;
       }
     }
   }
@@ -353,7 +361,7 @@ void propmat_clearskyAddParticles(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const Vector& rtp_los,
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -411,21 +419,12 @@ void propmat_clearskyAddParticles(
   // Use for rescaling vmr of particulates
   Numeric rtp_vmr_sum = 0.0;
 
-  // Tests and setup partial derivatives
-  const bool do_jac_temperature = do_temperature_jacobian(jacobian_quantities);
-  const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
-  const Numeric dT = temperature_perturbation(jacobian_quantities);
+  const auto jac_temperature = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+  const Numeric dT = jac_temperature.first ? jac_temperature.second -> d : 0.0;
 
   const Index na = abs_species.size();
   Vector rtp_los_back;
   mirror_los(rtp_los_back, rtp_los);
-
-  // 170918 JM: along with transition to use of new-type (aka
-  // pre-f_grid-interpolated) scat_data, freq perturbation switched off. Typical
-  // clear-sky freq perturbations yield insignificant effects in particle
-  // properties. Hence, this feature is neglected here.
-  if (do_jac_frequencies) {
-  }
 
   // creating temporary output containers
   ArrayOfArrayOfTensor5 ext_mat_Nse;
@@ -435,7 +434,7 @@ void propmat_clearskyAddParticles(
 
   // preparing input in format needed
   Vector T_array;
-  if (do_jac_temperature) {
+  if (jac_temperature.first) {
     T_array.resize(2);
     T_array = atm_point.temperature;
     T_array[1] += dT;
@@ -516,80 +515,51 @@ void propmat_clearskyAddParticles(
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
-      if (do_jac_temperature) {
-        ARTS_USER_ERROR_IF(
-            t_ok(i_se_flat, 1) < 0.,
-            "Temperature interpolation error (in perturbation):\n"
-            "scat species #",
-            i_ss,
-            ", scat elem #",
-            i_se,
-            "\n")
-      }
+      ARTS_USER_ERROR_IF(jac_temperature.first and
+          t_ok(i_se_flat, 1) < 0.,
+          "Temperature interpolation error (in perturbation):\n"
+          "scat species #",
+          i_ss,
+          ", scat elem #",
+          i_se,
+          "\n")
 
-      // For number density derivatives
-      if (jacobian_quantities.size()) rtp_vmr_sum += atm_point[abs_species[sp]];
+      if (jac_temperature.first) {
+        const auto iq = jac_temperature.second -> target_pos;
 
-      for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
-        const auto& deriv = jacobian_quantities[iq];
+        if (use_abs_as_ext) {
+          tmp(joker, joker, 0) = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
+          tmp(joker, joker, 0) -= abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
+        } else {
+          tmp = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
+          tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
+        }
 
-        if (not deriv.propmattype()) continue;
+        tmp *= atm_point[abs_species[sp]];
+        tmp /= dT;
 
-        if (deriv == Jacobian::Atm::Temperature) {
+        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
-            tmp(joker, joker, 0) = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
-            tmp(joker, joker, 0) -= abs_vec_Nse[i_ss][i_se](joker, 0, 0, joker);
+            dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
+            dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
+            dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
+            dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
           } else {
-            tmp = ext_mat_Nse[i_ss][i_se](joker, 1, 0, joker, joker);
-            tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
+            dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
           }
-
-          tmp *= atm_point[abs_species[sp]];
-          tmp /= dT;
-
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-            if (use_abs_as_ext) {
-              dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
-              dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
-              dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
-              dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
-            } else {
-              dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
-            }
-          }
-        }
-
-        else if (deriv == Jacobian::Atm::Particulates) {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++)
-            dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
-        }
-
-        else if (deriv == abs_species[sp]) {
-          dpropmat_clearsky_dx[iq] += internal_propmat;
         }
       }
+
+      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp]);jac_species.first) {
+        rtp_vmr_sum += atm_point[abs_species[sp]];
+        const auto iq = jac_species.second->target_pos;
+        
+        for (Index iv = 0; iv < f_grid.nelem(); iv++)
+          dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
+      }
+
       sp++;
       i_se_flat++;
-    }
-  }
-
-  //checking that no further 'particle' entry left after all scat_data entries
-  //are processes. this is basically not necessary. but checking it anyway to
-  //really be safe. remove later, when more extensively tested.
-  while (sp < na) {
-    ARTS_ASSERT(abs_species[sp][0].Type() != Species::TagType::Particles);
-    sp++;
-  }
-
-  if (rtp_vmr_sum != 0.0) {
-    for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
-      const auto& deriv = jacobian_quantities[iq];
-
-      if (not deriv.propmattype()) continue;
-
-      if (deriv == Jacobian::Atm::Particulates) {
-        dpropmat_clearsky_dx[iq] /= rtp_vmr_sum;
-      }
     }
   }
 }
@@ -640,7 +610,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesIsotopologueRatios& isotopologue_ratios,
     const AtmPoint& atm_point,
@@ -654,7 +624,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const Index& robust) {
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.size();
+  const Index nq = jacobian_targets.target_count();
   const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
@@ -700,9 +670,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
       "Must have a sparse limit if you set speedup_option")
 
   // Calculations data
-  LineShape::ComputeData com(f_grid, jacobian_quantities, nlte_do);
+  LineShape::ComputeData com(f_grid, jacobian_targets, nlte_do);
   LineShape::ComputeData sparse_com(
-      f_grid_sparse, jacobian_quantities, nlte_do);
+      f_grid_sparse, jacobian_targets, nlte_do);
 
   if (arts_omp_in_parallel()) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
@@ -718,7 +688,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
         LineShape::compute(com,
                           sparse_com,
                           band,
-                          jacobian_quantities,
+                          jacobian_targets,
                           atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
                           nlte_vib_energies,
                           band.BroadeningSpeciesVMR(atm_point),
@@ -744,11 +714,11 @@ void propmat_clearskyAddLines(  // Workspace reference:
     std::vector<LineShape::ComputeData> vcom(
         arts_omp_get_max_threads(),
         LineShape::ComputeData{
-            f_grid, jacobian_quantities, static_cast<bool>(nlte_do)});
+            f_grid, jacobian_targets, static_cast<bool>(nlte_do)});
     std::vector<LineShape::ComputeData> vsparse_com(
         arts_omp_get_max_threads(),
         LineShape::ComputeData{
-            f_grid_sparse, jacobian_quantities, static_cast<bool>(nlte_do)});
+            f_grid_sparse, jacobian_targets, static_cast<bool>(nlte_do)});
 
 #pragma omp parallel for schedule(dynamic)
     for (Index i = 0; i < nbands; i++) {
@@ -768,7 +738,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
       LineShape::compute(vcom[arts_omp_get_thread_num()],
                          vsparse_com[arts_omp_get_thread_num()],
                          band,
-                         jacobian_quantities,
+                         jacobian_targets,
                          atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
                          nlte_vib_energies,
                          band.BroadeningSpeciesVMR(atm_point),
@@ -807,9 +777,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
   }
 
   // Sum up the Jacobian
+  
   for (Index j = 0; j < nq; j++) {
-    if (not jacobian_quantities[j].propmattype()) continue;
-
     for (Index iv = 0; iv < nf; iv++) {
       dpropmat_clearsky_dx(j, iv).A() += com.dF(iv, j).real();
     }
@@ -823,8 +792,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
     // Sum up the Jacobian
     for (Index j = 0; j < nq; j++) {
-      if (not jacobian_quantities[j].propmattype()) continue;
-
       for (Index iv = 0; iv < nf; iv++) {
         dnlte_source_dx(j, iv).I() += com.dN(iv, j).real();
       }

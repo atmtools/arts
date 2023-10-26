@@ -748,15 +748,15 @@ void retrievalAddAbsSpecies(const Workspace& ws,
                             const String& species,
                             const String& mode,
                             const Index &for_species_tag) {
-  jacobianAddAbsSpecies(ws,
-                        jacobian_quantities,
-                        jacobian_agenda,
-                        rq_p_grid,
-                        rq_lat_grid,
-                        rq_lon_grid,
-                        species,
-                        mode,
-                        for_species_tag);
+  // jacobianAddAbsSpecies(ws,
+  //                       jacobian_quantities,
+  //                       jacobian_agenda,
+  //                       rq_p_grid,
+  //                       rq_lat_grid,
+  //                       rq_lon_grid,
+  //                       species,
+  //                       mode,
+  //                       for_species_tag);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -773,8 +773,8 @@ void retrievalAddFreqShift(const Workspace& ws,
                            const Sparse& covmat_inv_block,
                            const Vector& f_grid,
                            const Numeric &df) {
-  jacobianAddFreqShift(
-      ws, jacobian_quantities, jacobian_agenda, f_grid, df);
+  // jacobianAddFreqShift(
+  //     ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -791,8 +791,8 @@ void retrievalAddFreqStretch(const Workspace& ws,
                              const Sparse& covmat_block,
                              const Sparse& covmat_inv_block,
                              const Numeric&df) {
-  jacobianAddFreqStretch(
-      ws, jacobian_quantities, jacobian_agenda, f_grid, df);
+  // jacobianAddFreqStretch(
+  //     ws, jacobian_quantities, jacobian_agenda, f_grid, df);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -808,11 +808,11 @@ void retrievalAddCatalogParameter(const Workspace& ws,
                                   const QuantumIdentifier& catalog_identity,
                                   const String& catalog_parameter,
                                   const Numeric &var) {
-  jacobianAddBasicCatalogParameter(ws,
-                                   jacobian_quantities,
-                                   jacobian_agenda,
-                                   catalog_identity,
-                                   catalog_parameter);
+  // jacobianAddBasicCatalogParameter(ws,
+  //                                  jacobian_quantities,
+  //                                  jacobian_agenda,
+  //                                  catalog_identity,
+  //                                  catalog_parameter);
   add_scalar_variance(covmat_sx, jacobian_quantities, var);
 }
 
@@ -825,11 +825,11 @@ void retrievalAddCatalogParameters(
     const Sparse& covmat_inv_block,
     const ArrayOfQuantumIdentifier& catalog_identities,
     const ArrayOfString &catalog_parameters) {
-  jacobianAddBasicCatalogParameters(ws,
-                                    jacobian_quantities,
-                                    jacobian_agenda,
-                                    catalog_identities,
-                                    catalog_parameters);
+  // jacobianAddBasicCatalogParameters(ws,
+  //                                   jacobian_quantities,
+  //                                   jacobian_agenda,
+  //                                   catalog_identities,
+  //                                   catalog_parameters);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -849,14 +849,14 @@ void retrievalAddMagField(const Workspace& ws,
                           const Vector& rq_lon_grid,
                           const String& component,
                           const Numeric &dB) {
-  jacobianAddMagField(ws,
-                      jacobian_quantities,
-                      jacobian_agenda,
-                      rq_p_grid,
-                      rq_lat_grid,
-                      rq_lon_grid,
-                      component,
-                      dB);
+  // jacobianAddMagField(ws,
+  //                     jacobian_quantities,
+  //                     jacobian_agenda,
+  //                     rq_p_grid,
+  //                     rq_lat_grid,
+  //                     rq_lon_grid,
+  //                     component,
+  //                     dB);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -876,14 +876,14 @@ void retrievalAddPointingZa(const Workspace& ws,
                             const Index& poly_order,
                             const String& calcmode,
                             const Numeric &dza) {
-  jacobianAddPointingZa(ws,
-                        jacobian_quantities,
-                        jacobian_agenda,
-                        sensor_pos,
-                        sensor_time,
-                        poly_order,
-                        calcmode,
-                        dza);
+  // jacobianAddPointingZa(ws,
+  //                       jacobian_quantities,
+  //                       jacobian_agenda,
+  //                       sensor_pos,
+  //                       sensor_time,
+  //                       poly_order,
+  //                       calcmode,
+  //                       dza);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -906,16 +906,16 @@ void retrievalAddPolyfit(const Workspace& ws,
                          const Index& no_los_variation,
                          const Index &no_mblock_variation) {
   size_t jq_start = jacobian_quantities.size();
-  jacobianAddPolyfit(ws,
-                     jacobian_quantities,
-                     jacobian_agenda,
-                     sensor_response_pol_grid,
-                     sensor_response_dlos_grid,
-                     sensor_pos,
-                     poly_order,
-                     no_pol_variation,
-                     no_los_variation,
-                     no_mblock_variation);
+  // jacobianAddPolyfit(ws,
+  //                    jacobian_quantities,
+  //                    jacobian_agenda,
+  //                    sensor_response_pol_grid,
+  //                    sensor_response_dlos_grid,
+  //                    sensor_pos,
+  //                    poly_order,
+  //                    no_pol_variation,
+  //                    no_los_variation,
+  //                    no_mblock_variation);
   for (Index i = 0; i <= poly_order; ++i) {
     check_and_add_block(covmat_sx,
                         jacobian_quantities[jq_start + i],
@@ -937,14 +937,14 @@ void retrievalAddScatSpecies(const Workspace& ws,
                              const Vector& rq_lon_grid,
                              const String& species,
                              const String& quantity) {
-  jacobianAddScatSpecies(ws,
-                         jacobian_quantities,
-                         jacobian_agenda,
-                         rq_p_grid,
-                         rq_lat_grid,
-                         rq_lon_grid,
-                         species,
-                         quantity);
+  // jacobianAddScatSpecies(ws,
+  //                        jacobian_quantities,
+  //                        jacobian_agenda,
+  //                        rq_p_grid,
+  //                        rq_lat_grid,
+  //                        rq_lon_grid,
+  //                        species,
+  //                        quantity);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -967,16 +967,16 @@ void retrievalAddSinefit(const Workspace& ws,
                          const Index& no_los_variation,
                          const Index &no_mblock_variation) {
   size_t jq_start = jacobian_quantities.size();
-  jacobianAddSinefit(ws,
-                     jacobian_quantities,
-                     jacobian_agenda,
-                     sensor_response_pol_grid,
-                     sensor_response_dlos_grid,
-                     sensor_pos,
-                     period_lengths,
-                     no_pol_variation,
-                     no_los_variation,
-                     no_mblock_variation);
+  // jacobianAddSinefit(ws,
+  //                    jacobian_quantities,
+  //                    jacobian_agenda,
+  //                    sensor_response_pol_grid,
+  //                    sensor_response_dlos_grid,
+  //                    sensor_pos,
+  //                    period_lengths,
+  //                    no_pol_variation,
+  //                    no_los_variation,
+  //                    no_mblock_variation);
   for (Index i = 0; i < period_lengths.size(); ++i) {
     check_and_add_block(covmat_sx,
                         jacobian_quantities[jq_start + i],
@@ -997,13 +997,13 @@ void retrievalAddSpecialSpecies(const Workspace& ws,
                                 const Vector& rq_lat_grid,
                                 const Vector& rq_lon_grid,
                                 const String &species) {
-  jacobianAddSpecialSpecies(ws,
-                            jacobian_quantities,
-                            jacobian_agenda,
-                            rq_p_grid,
-                            rq_lat_grid,
-                            rq_lon_grid,
-                            species);
+  // jacobianAddSpecialSpecies(ws,
+  //                           jacobian_quantities,
+  //                           jacobian_agenda,
+  //                           rq_p_grid,
+  //                           rq_lat_grid,
+  //                           rq_lon_grid,
+  //                           species);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -1023,14 +1023,14 @@ void retrievalAddWind(const Workspace& ws,
                       const Vector& rq_lon_grid,
                       const String& component,
                       const Numeric &dfrequency) {
-  jacobianAddWind(ws,
-                  jacobian_quantities,
-                  jacobian_agenda,
-                  rq_p_grid,
-                  rq_lat_grid,
-                  rq_lon_grid,
-                  component,
-                  dfrequency);
+  // jacobianAddWind(ws,
+  //                 jacobian_quantities,
+  //                 jacobian_agenda,
+  //                 rq_p_grid,
+  //                 rq_lat_grid,
+  //                 rq_lon_grid,
+  //                 component,
+  //                 dfrequency);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -1049,13 +1049,13 @@ void retrievalAddTemperature(const Workspace& ws,
                              const Vector& rq_lat_grid,
                              const Vector& rq_lon_grid,
                              const String& hse) {
-  jacobianAddTemperature(ws,
-                         jacobian_quantities,
-                         jacobian_agenda,
-                         rq_p_grid,
-                         rq_lat_grid,
-                         rq_lon_grid,
-                         hse);
+  // jacobianAddTemperature(ws,
+  //                        jacobian_quantities,
+  //                        jacobian_agenda,
+  //                        rq_p_grid,
+  //                        rq_lat_grid,
+  //                        rq_lon_grid,
+  //                        hse);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
                       jacobian_quantities.size() - 1,
@@ -1073,12 +1073,12 @@ void retrievalAddSurfaceQuantity(const Workspace& ws,
                                  const Vector& rq_lat_grid,
                                  const Vector& rq_lon_grid,
                                  const String &quantity) {
-  jacobianAddSurfaceQuantity(ws,
-                             jacobian_quantities,
-                             jacobian_agenda,
-                             rq_lat_grid,
-                             rq_lon_grid,
-                             quantity);
+  // jacobianAddSurfaceQuantity(ws,
+  //                            jacobian_quantities,
+  //                            jacobian_agenda,
+  //                            rq_lat_grid,
+  //                            rq_lon_grid,
+  //                            quantity);
 
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
@@ -1094,7 +1094,7 @@ void retrievalDefClose(Index& jacobian_do,
                        Index& retrieval_checked,
                        const CovarianceMatrix& covmat_sx,
                        const ArrayOfRetrievalQuantity &jacobian_quantities) {
-  jacobianClose(jacobian_do, jacobian_agenda, jacobian_quantities);
+  // jacobianClose(jacobian_do, jacobian_agenda, jacobian_quantities);
 
   ArrayOfArrayOfIndex ji_t;
   bool any_affine;
@@ -1119,7 +1119,7 @@ void retrievalDefInit(CovarianceMatrix& covmat_se,
                       Agenda& jacobian_agenda,
                       const Index &initialize_jacobian) {
   if (initialize_jacobian == 1) {
-    jacobianInit(jacobian_quantities, jacobian_agenda);
+    // jacobianInit(jacobian_quantities, jacobian_agenda);
   }
 
   covmat_block = Sparse();

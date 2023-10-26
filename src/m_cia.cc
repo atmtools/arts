@@ -14,9 +14,11 @@
 #include "absorption.h"
 #include "arts_constants.h"
 #include <workspace.h>
+#include "atm.h"
 #include "cia.h"
 #include "debug.h"
 #include "file.h"
+#include "new_jacobian.h"
 #include "physics_funcs.h"
 #include "species.h"
 #include "species_tags.h"
@@ -229,7 +231,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const Vector& f_grid,
     const AtmPoint& atm_point,
     const ArrayOfCIARecord& abs_cia_data,
@@ -238,7 +240,7 @@ void propmat_clearskyAddCIA(  // WS Output:
     const Index& ignore_errors) {
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = jacobian_quantities.size();
+  const Index nq = jacobian_targets.target_count();
   const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
@@ -246,7 +248,7 @@ void propmat_clearskyAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nq,
-      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
+      "*dpropmat_clearsky_dx* must match derived form of *jacobian_targets*")
   ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.ncols() not_eq nf,
       "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
@@ -257,13 +259,13 @@ void propmat_clearskyAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const Numeric df = frequency_perturbation(jacobian_quantities);
-  const Numeric dt = temperature_perturbation(jacobian_quantities);
+  const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+  const auto jac_temps = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
 
-  const bool do_jac = supports_CIA(
-      jacobian_quantities);  // Throws runtime error if line parameters are wanted since we cannot know if the line is in the Continuum...
-  const bool do_wind_jac = do_wind_jacobian(jacobian_quantities);
-  const bool do_temp_jac = do_temperature_jacobian(jacobian_quantities);
+  const bool do_wind_jac = std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
+  const bool do_temp_jac = jac_temps.first;
+  const Numeric dt = field_perturbation(std::span{&jac_temps, 1});
+  const Numeric df = field_perturbation(std::span{jac_freqs});
 
   Vector dfreq;
   Vector dabs_t{atm_point.temperature + dt};
@@ -273,20 +275,12 @@ void propmat_clearskyAddCIA(  // WS Output:
     for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
-  Vector dxsec_temp_dF, dxsec_temp_dT;
+  Vector dxsec_temp_dF(do_wind_jac ? f_grid.nelem() : 0), dxsec_temp_dT(do_temp_jac ? f_grid.nelem() : 0);
 
-  if (do_jac) {
-    if (do_wind_jac) {
-      ARTS_USER_ERROR_IF(
-          !std::isnormal(df), "df must be >0 and not NaN or Inf: ", df)
-      dxsec_temp_dF.resize(f_grid.nelem());
-    }
-    if (do_temp_jac) {
-      ARTS_USER_ERROR_IF(
-          !std::isnormal(dt), "dt must be >0 and not NaN or Inf: ", dt)
-      dxsec_temp_dT.resize(f_grid.nelem());
-    }
-  }
+  ARTS_USER_ERROR_IF(do_wind_jac and 
+      !std::isnormal(df), "df must be >0 and not NaN or Inf: ", df)
+  ARTS_USER_ERROR_IF(do_temp_jac and
+      !std::isnormal(dt), "dt must be >0 and not NaN or Inf: ", dt)
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
@@ -373,52 +367,42 @@ void propmat_clearskyAddCIA(  // WS Output:
             "Problem with CIA species ", this_species.Name(), ":\n", e.what())
       }
 
-      if (!do_jac) {
-        xsec_temp *= nd_sec * number_density(atm_point.pressure, atm_point.temperature) *
-                     atm_point[this_cia.Species(0)];
-        for (Index iv = 0; iv < f_grid.nelem(); iv++)
-          propmat_clearsky[iv].A() += xsec_temp[iv];
-      } else {  // The Jacobian block
-        const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
-        const Numeric dnd_dt =
-            dnumber_density_dt(atm_point.pressure, atm_point.temperature);
-        const Numeric dnd_dt_sec =
-            dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          propmat_clearsky[iv].A() +=
-              nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
-          for (Size iq = 0; iq < jacobian_quantities.size(); iq++) {
-            const auto& deriv = jacobian_quantities[iq];
+      const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
+      const Numeric dnd_dt =
+          dnumber_density_dt(atm_point.pressure, atm_point.temperature);
+      const Numeric dnd_dt_sec =
+          dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
+      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        propmat_clearsky[iv].A() +=
+            nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
-            if (not deriv.propmattype()) continue;
+        if (jac_temps.first) {
+          const auto iq = jac_temps.second->target_pos;
+          dpropmat_clearsky_dx(iq, iv).A() +=
+              ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
+                xsec_temp[iv] * dnd_dt_sec) *
+                   nd +
+               xsec_temp[iv] * nd_sec * dnd_dt) *
+              atm_point[this_cia.Species(0)];
+        }
 
-            if (is_wind_parameter(deriv)) {
-              dpropmat_clearsky_dx(iq, iv).A() +=
-                  nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
-                  atm_point[this_cia.Species(1)];
-            } else if (deriv == Jacobian::Atm::Temperature) {
-              dpropmat_clearsky_dx(iq, iv).A() +=
-                  ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
-                    xsec_temp[iv] * dnd_dt_sec) *
-                       nd +
-                   xsec_temp[iv] * nd_sec * dnd_dt) *
-                  atm_point[this_cia.Species(0)];
-            } else if (deriv == abs_species[ispecies]) {
-              dpropmat_clearsky_dx(iq, iv).A() +=
-                  nd_sec * xsec_temp[iv] * nd;
-            } else if (species_match(deriv, this_species.Spec())) {
-              dpropmat_clearsky_dx(iq, iv).A() +=
-                  nd * nd_sec * xsec_temp[iv] *
-                  (this_species.cia_2nd_species == this_species.Spec() ? 2.0
-                                                                       : 1.0);
-            } else if (species_match(deriv, this_species.cia_2nd_species)) {
-              dpropmat_clearsky_dx(iq, iv).A() +=
-                  nd * nd * xsec_temp[iv] * atm_point[this_cia.Species(0)] *
-                  (this_species.cia_2nd_species == this_species.Spec() ? 2.0
-                                                                       : 1.0);
-            }
+        for (auto& j : jac_freqs) {
+          if (j.first) {
+            const auto iq = j.second->target_pos;
+            dpropmat_clearsky_dx(iq, iv).A() +=
+                nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
+                atm_point[this_cia.Species(1)];
           }
         }
+
+        if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
+                abs_species[ispecies]);
+            j.first) {
+          const auto iq = j.second->target_pos;
+          dpropmat_clearsky_dx(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+        }
+
+        // FIXME: Missing secondary species !
       }
     }
   }

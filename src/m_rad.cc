@@ -80,7 +80,7 @@ void dradAddPathPropagation(StokvecMatrix &drad,
   }();
 
   //! The derivative part from the atmosphere
-  for (auto &atm_block : jacobian_targets.atm) {
+  for (auto &atm_block : jacobian_targets.atm()) {
     ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type),
                        "No ",
                        atm_block.type,
@@ -115,28 +115,28 @@ void radFromPathPropagation(StokvecVector &rad,
 void radFullEmission(const Workspace &ws,
                      StokvecVector &rad,
                      StokvecMatrix &drad,
+
                      const Vector &rte_pos,
                      const Vector &rte_los,
                      const Vector &f_grid,
-
                      const JacobianTargets &jacobian_targets,
-                     const ArrayOfRetrievalQuantity &jacobian_quantities,
 
-                     const Numeric &ppath_lstep,
-                     const Numeric &ppath_ltotal,
                      const AtmField &atm_field,
                      const SurfaceField &surface_field,
+
                      const Agenda &space_radiation_agenda,
                      const Agenda &surface_radiation_agenda,
                      const Agenda &stop_distance_radiation_agenda,
                      const Agenda &propmat_clearsky_agenda,
+                     
+                     const Numeric &ppath_lstep,
+                     const Numeric &ppath_ltotal,
                      const Numeric &rte_alonglos_v,
                      const Numeric &surface_search_accuracy,
                      const Index &surface_search_safe,
 
-                     const Index &jacobian_do,
-
-                     const Index &include_specular_ppath) try {
+                     const Index &include_specular_ppath,
+                     const Index &hse_derivative) try {
   Ppath ppath;
   ppathGeometric(ppath,
                  rte_pos,
@@ -175,11 +175,10 @@ void radFullEmission(const Workspace &ws,
                     ppvar_dpropmat,
                     ppvar_dnlte,
                     propmat_clearsky_agenda,
-                    jacobian_quantities,
+                    jacobian_targets,
                     ppvar_f,
                     ppath,
-                    ppvar_atm,
-                    jacobian_do);
+                    ppvar_atm);
 
   ArrayOfStokvecVector ppvar_src;
   ArrayOfStokvecMatrix ppvar_dsrc;
@@ -191,8 +190,7 @@ void radFullEmission(const Workspace &ws,
                        ppvar_dnlte,
                        ppvar_f,
                        ppvar_atm,
-                       jacobian_quantities,
-                       jacobian_do);
+                       jacobian_targets);
 
   ArrayOfMuelmatVector ppvar_tramat;
   ArrayOfArrayOfMuelmatMatrix ppvar_dtramat;
@@ -207,8 +205,8 @@ void radFullEmission(const Workspace &ws,
                    ppvar_dpropmat,
                    ppath,
                    ppvar_atm,
-                   jacobian_quantities,
-                   jacobian_do);
+                   jacobian_targets,
+                   hse_derivative);
 
   ArrayOfMuelmatVector ppvar_cumtramat;
   ppvar_cumtramatForward(ppvar_cumtramat, ppvar_tramat);

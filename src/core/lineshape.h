@@ -6,6 +6,7 @@
 
 #include "arts_conversions.h"
 #include "linescaling.h"
+#include "new_jacobian.h"
 #include "nlte.h"
 #include "nonstd.h"
 #include "species.h"
@@ -373,7 +374,7 @@ struct SimpleFrequencyScaling {
             T_) {}
 
   [[nodiscard]] Numeric dNdT(Numeric t_ [[maybe_unused]],
-                             Numeric f) const ARTS_NOEXCEPT;
+                             Numeric f) const ;
   [[nodiscard]] Numeric dNdf(Numeric f) const noexcept;
   [[nodiscard]] constexpr Numeric dNdF0() const noexcept {
     return -N / F0 + N * Constant::h * expF0 / (Constant::k * T * expm1F0);
@@ -845,12 +846,12 @@ struct ComputeData {
   const bool do_nlte;
 
   ComputeData(const Vector &f,
-              const ArrayOfRetrievalQuantity &jacobian_quantities,
+              const JacobianTargets &jacobian_targets,
               const bool nlte) noexcept
       : F(f.nelem(), 0),
         N(nlte ? f.nelem() : 0, 0),
-        dF(f.nelem(), jacobian_quantities.size(), 0),
-        dN(nlte ? f.nelem() : 0, nlte ? jacobian_quantities.size() : 0, 0),
+        dF(f.nelem(), jacobian_targets.target_count(), 0),
+        dN(nlte ? f.nelem() : 0, nlte ? jacobian_targets.target_count() : 0, 0),
         f_grid(f),
         do_nlte(nlte) {}
 
@@ -865,13 +866,13 @@ struct ComputeData {
     *
     * @param[in] sparse The sparsely gridded data
   */
-  void interp_add_even(const ComputeData &sparse) ARTS_NOEXCEPT;
+  void interp_add_even(const ComputeData &sparse) ;
 
   /** Add a sparse grid to this grid via square interpolation
     *
     * @param[in] sparse The sparsely gridded data
   */
-  void interp_add_triplequad(const ComputeData &sparse) ARTS_NOEXCEPT;
+  void interp_add_triplequad(const ComputeData &sparse) ;
 
   /** All four fields are set to zero at i if F[i].real() < 0 */
   void enforce_positive_absorption() noexcept {
@@ -923,7 +924,7 @@ struct ComputeData {
  * @param[inout] com Main computations variable.  Should be initialized and may have been used before.
  * @param[inout] sparse_com Sparse computations variable.  Should be initialized and may have been used before.
  * @param[in] band The absorption band
- * @param[in] jacobian_quantities As WSV
+ * @param[in] jacobian_targets As WSV
  * @param[in] rtp_nlte As WSV
  * @param[in] vmrs The volume mixing ratios of the band's line shape model
  * @param[in] self_tag The species tag from abs_species this band belongs to (only used for derivatives)
@@ -940,7 +941,7 @@ struct ComputeData {
 void compute(ComputeData &com,
              ComputeData &sparse_com,
              const AbsorptionLines &band,
-             const ArrayOfRetrievalQuantity &jacobian_quantities,
+             const JacobianTargets &jacobian_targets,
              const std::pair<Numeric, Numeric> &rtp_nlte,
              const VibrationalEnergyLevels& nlte_vib_energies,
              const Vector &vmrs,
@@ -953,10 +954,10 @@ void compute(ComputeData &com,
              const Numeric &sparse_lim,
              const Zeeman::Polarization zeeman_polarization,
              const Options::LblSpeedup speedup_type,
-             const bool robust) ARTS_NOEXCEPT;
+             const bool robust) ;
 
 Vector linear_sparse_f_grid(const Vector &f_grid,
-                            const Numeric &sparse_df) ARTS_NOEXCEPT;
+                            const Numeric &sparse_df) ;
 
 bool good_linear_sparse_f_grid(const Vector &f_grid_dense,
                                const Vector &f_grid_sparse) noexcept;

@@ -348,6 +348,17 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
+
+bool operator==(const KeyVal&, Key);
+bool operator==(Key, const KeyVal&);
+bool operator==(const KeyVal&, const ArrayOfSpeciesTag&);
+bool operator==(const ArrayOfSpeciesTag&, const KeyVal&);
+bool operator==(const KeyVal&, const Species::Species&);
+bool operator==(const Species::Species&, const KeyVal&);
+bool operator==(const KeyVal&, const QuantumIdentifier&);
+bool operator==(const QuantumIdentifier&, const KeyVal&);
+bool operator==(const KeyVal&, const ParticulatePropertyTag&);
+bool operator==(const ParticulatePropertyTag&, const KeyVal&);
 } // namespace Atm
 
 using AtmKeyVal = Atm::KeyVal;

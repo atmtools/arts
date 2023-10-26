@@ -12,6 +12,7 @@
 #include "atm.h"
 #include "debug.h"
 #include "logic.h"
+#include "new_jacobian.h"
 #include "predefined_absorption_models.h"
 
 void predefined_model_dataInit(PredefinedModelData& predefined_model_data) {
@@ -63,7 +64,7 @@ void propmat_clearskyAddPredefined(
     const PredefinedModelData& predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const Vector& f_grid,
     const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(
@@ -73,7 +74,7 @@ void propmat_clearskyAddPredefined(
   // Derivatives and their error handling
   if (dpropmat_clearsky_dx.nrows()) {
     ARTS_USER_ERROR_IF(
-        static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_quantities.size(),
+        static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_targets.target_count(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
         dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
@@ -92,7 +93,7 @@ void propmat_clearskyAddPredefined(
                                            atm_point.pressure,
                                            atm_point.temperature,
                                            vmr,
-                                           jacobian_quantities,
+                                           jacobian_targets,
                                            predefined_model_data);
     }
   }

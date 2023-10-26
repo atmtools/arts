@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "atm.h"
+#include "new_jacobian.h"
 #include "rtepack.h"
 
 namespace fwd::predef {
@@ -25,7 +26,7 @@ full::full(const AtmPoint& atm_point,
 Complex full::at(Numeric f) const {
   PropmatVector propmat_clearsky(1);
   PropmatMatrix dpropmat_clearsky_dx;
-  ArrayOfRetrievalQuantity jacobian_quantities;
+  JacobianTargets jacobian_targets;
   Vector f_grid{f};
 
   for (auto& tag : tags) {
@@ -36,7 +37,7 @@ Complex full::at(Numeric f) const {
                                          P,
                                          T,
                                          vmrs,
-                                         jacobian_quantities,
+                                         jacobian_targets,
                                          *predefined_model_data);
   }
 

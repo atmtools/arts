@@ -25,6 +25,7 @@
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "montecarlo.h"
+#include "new_jacobian.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "ppath_struct.h"
@@ -45,33 +46,38 @@ inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
   ===========================================================================*/
 
 void adapt_stepwise_partial_derivatives(
-    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
-    const ArrayOfRetrievalQuantity &jacobian_quantities,
-    const ConstVectorView &ppath_f_grid,
-    const ConstVectorView &ppath_line_of_sight) {
-
+    PropmatMatrix& dK_dx,
+    StokvecMatrix& dS_dx,
+    const JacobianTargets& jacobian_targets,
+    const ConstVectorView& ppath_f_grid,
+    const ConstVectorView& ppath_line_of_sight) {
   // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.size();
-  const Index nv = ppath_f_grid.size();
+  DEBUG_ONLY(const Index nq = jacobian_targets.target_count();)
+  DEBUG_ONLY(const Index nv = ppath_f_grid.size();)
   ARTS_ASSERT(nq == dK_dx.nrows())
   ARTS_ASSERT(nq == dS_dx.nrows())
   ARTS_ASSERT(nv == dK_dx.ncols())
   ARTS_ASSERT(nv == dS_dx.ncols())
 
-  for (Index i = 0; i < nq; i++) {
-    if (jacobian_quantities[i] == Jacobian::Type::Sensor or
-        jacobian_quantities[i] == Jacobian::Special::SurfaceString)
-      continue;
+  for (auto w : {Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w}) {
+    if (auto wind_pair = jacobian_targets.find<Jacobian::AtmTarget>(w);
+        wind_pair.first) {
+      const auto i = wind_pair.second->target_pos;
+      ARTS_ASSERT(i < nq)
 
-    if (jacobian_quantities[i].is_wind()) {
-      const auto scale = get_stepwise_f_partials(
-          ppath_line_of_sight, ppath_f_grid,
-          jacobian_quantities[i].Target().atm);
+      const Vector scale =
+          get_stepwise_f_partials(ppath_line_of_sight, ppath_f_grid, w);
 
-      for (Index iv = 0; iv < nv; ++iv) {
-        dK_dx(i, iv) *= scale[iv];
-        dS_dx(i, iv) *= scale[iv];
-      }
+      std::transform(scale.begin(),
+                     scale.end(),
+                     dK_dx[i].begin(),
+                     dK_dx[i].begin(),
+                     std::multiplies<>());
+      std::transform(scale.begin(),
+                     scale.end(),
+                     dS_dx[i].begin(),
+                     dS_dx[i].begin(),
+                     std::multiplies<>());
     }
   }
 }
@@ -572,48 +578,55 @@ void get_stepwise_blackbody_radiation(
 }
 
 void get_stepwise_clearsky_propmat(
-    const Workspace &ws, PropmatVector &K, StokvecVector &S,
-    PropmatMatrix &dK_dx, StokvecMatrix &dS_dx,
-    const Agenda &propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity &jacobian_quantities,
-    const Vector &ppath_f_grid, const Vector &ppath_line_of_sight,
-    const AtmPoint &atm_point, const bool jacobian_do) {
+    const Workspace& ws,
+    PropmatVector& K,
+    StokvecVector& S,
+    PropmatMatrix& dK_dx,
+    StokvecMatrix& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const JacobianTargets& jacobian_targets,
+    const Vector& ppath_f_grid,
+    const Vector& ppath_line_of_sight,
+    const AtmPoint& atm_point) {
   static const ArrayOfSpeciesTag select_abs_species{};
   static const ArrayOfRetrievalQuantity jacobian_quantities_empty{};
 
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(
-      ws, K, S, dK_dx, dS_dx,
-      jacobian_do ? jacobian_quantities : jacobian_quantities_empty,
-      select_abs_species, ppath_f_grid, ppath_line_of_sight, atm_point,
+      ws,
+      K,
+      S,
+      dK_dx,
+      dS_dx,
+      jacobian_targets,
+      select_abs_species,
+      ppath_f_grid,
+      ppath_line_of_sight,
+      atm_point,
       propmat_clearsky_agenda);
 
-  if (jacobian_do)
-    adapt_stepwise_partial_derivatives(dK_dx, dS_dx, jacobian_quantities,
-                                       ppath_f_grid, ppath_line_of_sight);
+  adapt_stepwise_partial_derivatives(
+      dK_dx, dS_dx, jacobian_targets, ppath_f_grid, ppath_line_of_sight);
 }
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Jacobian::Atm wind_type) {
+                               const Atm::Key wind_type) {
   // Doppler relevant velocity
   Numeric dv_doppler_dx = 0.0;
   
   Vector deriv(f_grid);
   
   switch (wind_type) {
-    case Jacobian::Atm::WindMagnitude:
-      dv_doppler_dx = 1.0;
-      break;
-    case Jacobian::Atm::WindU:
+    case Atm::Key::wind_u:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 1, 0, 0));
       break;
-    case Jacobian::Atm::WindV:
+    case Atm::Key::wind_v:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 0, 1, 0));
       break;
-    case Jacobian::Atm::WindW:
+    case Atm::Key::wind_w:
       dv_doppler_dx =
           (dotprod_with_los(line_of_sight, 0, 0, 1));
       break;

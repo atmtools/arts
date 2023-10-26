@@ -23,7 +23,7 @@ that can be used here.
                  "nlte_source",
                  "dpropmat_clearsky_dx",
                  "dnlte_source_dx"},
-      .input = {"jacobian_quantities",
+      .input = {"jacobian_targets",
                 "select_abs_species",
                 "f_grid",
                 "rtp_los",

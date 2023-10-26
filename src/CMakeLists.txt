@@ -116,17 +116,16 @@ endif()
 ########### next target ###############
 
 add_library (artsworkspace STATIC
-  ${ARTS_GUI_FILES}
+  auto_wsv.cpp
+  auto_wsm.cpp
+  auto_wsa.cpp
+  auto_workspace.cpp
+  ${ARTS_WORKSPACE_METHODS}
   callback.cpp
   workspace_agenda_class.cpp
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
   workspace_class.cpp
-  ${ARTS_WORKSPACE_METHODS}
-  auto_workspace.cpp
-  auto_wsv.cpp
-  auto_wsm.cpp
-  auto_wsa.cpp
   arts_omp.cc
   auto_version.cc
   compile_time_tests.cc
@@ -156,7 +155,6 @@ add_library (artsworkspace STATIC
   m_fwd.cc
   m_gridded_fields.cc
   m_predefined_absorption_models.cc
-  m_propmat.cc
   m_gas_scattering.cc
   m_general.cc
   m_geodetic.cc
@@ -212,6 +210,7 @@ add_library (artsworkspace STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_rtepack.cc
+  ${ARTS_GUI_FILES}
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
 

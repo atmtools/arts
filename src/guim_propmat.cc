@@ -1,3 +1,5 @@
+#include <workspace.h>
+
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -8,14 +10,13 @@
 #include <stdexcept>
 #include <thread>
 
-#include <workspace.h>
-
 #include "artstime.h"
 #include "atm.h"
 #include "debug.h"
 #include "jacobian.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
+#include "new_jacobian.h"
 #include "rtepack.h"
 #include "species_tags.h"
 
@@ -28,12 +29,14 @@ namespace PropmatClearskyAgendaGUI {
 void compute(const Workspace& ws,
              gui::PropmatClearsky::ComputeValues& v,
              const Agenda& propmat_clearsky_agenda) {
+  PropmatMatrix empty_propmat{};
+  StokvecMatrix empty_stokvec{};
   propmat_clearsky_agendaExecute(ws,
                                  v.pm,
                                  v.sv,
-                                 v.aopm,
-                                 v.aosv,
-                                 v.jacobian_quantities,
+                                 empty_propmat,
+                                 empty_stokvec,
+                                 {},
                                  v.select_abs_species,
                                  v.f_grid,
                                  v.rtp_los,
@@ -45,7 +48,6 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
          gui::PropmatClearsky::Control& ctrl,
          const Workspace& ws,
          const Agenda& propmat_clearsky_agenda,
-         ArrayOfRetrievalQuantity& jacobian_quantities,
          ArrayOfSpeciesTag& select_abs_species,
          Vector& f_grid,
          Vector& rtp_los,
@@ -65,7 +67,6 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       if (ctrl.run.load()) {
         std::lock_guard allow_copy{ctrl.copy};
 
-        v.jacobian_quantities = jacobian_quantities;
         v.select_abs_species = select_abs_species;
         v.f_grid = f_grid;
         v.rtp_los = rtp_los;
@@ -77,20 +78,17 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       compute(ws, v, propmat_clearsky_agenda);
 
       v.tm = MuelmatVector(v.pm.size());
-      v.aotm = MuelmatMatrix(v.jacobian_quantities.size(), v.pm.size());
-      auto local_aotm = v.aotm;
-
-      const Vector local_dr(jacobian_quantities.size(), 0);
+      MuelmatMatrix empty_muelmat{};
       rtepack::two_level_exp(v.tm,
-                            v.aotm,
-                            local_aotm,
-                            v.pm,
-                            v.pm,
-                            v.aopm,
-                            v.aopm,
-                            v.transmission_distance,
-                            local_dr,
-                            local_dr);
+                             empty_muelmat,
+                             empty_muelmat,
+                             v.pm,
+                             v.pm,
+                             {},
+                             {},
+                             v.transmission_distance,
+                             {},
+                             {});
 
       // Lock after the compute to copy values
       std::lock_guard allow_copy{ctrl.copy};
@@ -113,15 +111,16 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
 #endif  // ARTS_GUI_ENABLED
 
 void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
-                                const Agenda& propmat_clearsky_agenda [[maybe_unused]],
-                                const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
+                                const Agenda& propmat_clearsky_agenda
+                                [[maybe_unused]],
+                                const ArrayOfArrayOfSpeciesTag& abs_species
+                                [[maybe_unused]],
                                 const Index& load [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
   gui::PropmatClearsky::ResultsArray res;
   gui::PropmatClearsky::Control ctrl;
 
   // Initialize values to something
-  ArrayOfRetrievalQuantity jacobian_quantities{};
   ArrayOfSpeciesTag select_abs_species{};
   Vector f_grid = uniform_grid(1e9, 1000, 1e9);
   Vector rtp_los(2, 0);
@@ -130,7 +129,8 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   atm_point[Atm::Key::t] = 300;
   atm_point[Atm::Key::p] = 1000;
 
-  for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
+  for (auto& spec : abs_species)
+    atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
 
   // Set some defaults
   if (load) {
@@ -145,7 +145,6 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                             std::ref(ctrl),
                             std::cref(ws),
                             std::cref(propmat_clearsky_agenda),
-                            std::ref(jacobian_quantities),
                             std::ref(select_abs_species),
                             std::ref(f_grid),
                             std::ref(rtp_los),
@@ -160,14 +159,13 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
     ctrl.exit.store(true);
   } else {
     gui::propmat(res,
-                     ctrl,
-                     jacobian_quantities,
-                     select_abs_species,
-                     f_grid,
-                     rtp_los,
-                     atm_point,
-                     transmission_distance,
-                     ArrayOfArrayOfSpeciesTag{abs_species});
+                 ctrl,
+                 select_abs_species,
+                 f_grid,
+                 rtp_los,
+                 atm_point,
+                 transmission_distance,
+                 ArrayOfArrayOfSpeciesTag{abs_species});
   }
 
   bool invalid_state = not success.get();

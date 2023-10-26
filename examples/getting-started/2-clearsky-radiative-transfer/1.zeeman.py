@@ -6,7 +6,6 @@ ws = pyarts.workspace.Workspace()
 
 # %% Calculations
 
-ws.jacobianOff()
 ws.iy_unit = "PlanckBT"
 ws.ppath_lstep = 5e2
 ws.ppath_lmax = 1e3

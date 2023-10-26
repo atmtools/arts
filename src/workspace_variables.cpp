@@ -1017,9 +1017,9 @@ Dimensions: [ n_quantities ]
   wsv_data["dpnd_field_dx"] = {.desc = R"--(Partial derivatives of *pnd_field*.
 
 The variable gives the particle derivative of *pnd_field* with respect
-to scattering species variables included in *jacobian_quantities*.
+to scattering species variables included in *jacobian_targets*.
 
-The length of this array shall match the size of *jacobian_quantities*.
+The length of this array shall match the size of *jacobian_targets*.
 For retrieval quantities that are not scattering species, the matching
 Tensor4 is of no relevance and must be set to be empty.
 
@@ -1038,10 +1038,10 @@ parameters.
 
 Dimension: [ n_quantities ] [naa, nza, nf, f(stokes_dim)]
 
-*jacobian_quantities* should be used to set the input variable for
+*jacobian_targets* should be used to set the input variable for
 partial derivation
 
-Unit: 1/m/jacobian_quantity
+Unit: 1/m/jacobian_targets
 )--",
                                       .type = "PropmatMatrix"};
 
@@ -1060,7 +1060,7 @@ Dimensions: [ n_quantities, n_points, n_scattering_elements ]
 
 Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]
 
-Unit: 1/m/jacobian_quantity
+Unit: 1/m/jacobian_targets
 )--",
       .type = "StokvecMatrix"};
 
@@ -1719,7 +1719,7 @@ See the radar methods for allowed options.
 
 The matrix holding the Jacobians of the retrieval quantities. The
 matrix has to be initialised before the retrieval quantities can be
-defined. Initialisation is done by *jacobianInit*. Retrieval quantities
+defined. Initialisation is done by ``jacobianInit``. Retrieval quantities
 are then added with ``jacobianAdd...`` or ``retrievalAdd...`` methods.
 
 The order between rows and columns follows how data are stored in *y*
@@ -1741,16 +1741,6 @@ jacobianAddXxx methods).
 Needs to be 0 if cloudy-sky (Doit) Jacobians shall be calculated.
 )--",
       .type = "Index"};
-
-  wsv_data["jacobian_quantities"] = {
-      .desc = R"--(The retrieval quantities in the Jacobian matrix.
-
-An array of retrieval quantities for which the Jacobians are
-calculated.
-
-Usage: Quantities are added by the jacobianAdd WSMs.
-)--",
-      .type = "ArrayOfRetrievalQuantity"};
 
   wsv_data["lat"] = {.desc = R"--(A latitude.
 
@@ -4175,11 +4165,11 @@ This WSV matches directly the x-vector in the formalism by C.D. Rodgers.
 Inside *x*, the elements matching one retrieval quantity, such as
 atmospheric temperatures, are kept together. That is, each retrieval
 quantity covers a continuous range inside *x*. The start and index of
-these ranges can be deduced by *jacobian_quantities* (see function(s)
+these ranges can be deduced by *jacobian_targets* (see function(s)
 inside jacobian.cc for details).
 
 The order of elements inside each retrieval quantity should be clarified
-by corresponding \"adding\" method, i.e. *jacobianAddTemperature* for
+by corresponding \"adding\" method, i.e. ``jacobianAddTemperature`` for
 atmospheric temperatures. The general rule is that data are sorted from
 left to right with respect to the order in the corresponding WSV. For
 example, inside *x* atmospheric data are stored with pressure as inner-
@@ -4255,7 +4245,7 @@ a baseline off-set.
 So far there is no module in ARTS that actually tries to physically model
 any baseline effect. *y_baseline* is just used as a pure fitting parameter
 in retrievals. One example on method to include a baseline fit is 
-*jacobianAddPolyfit*.
+``jacobianAddPolyfit``.
 
 If the baseline is totally constant, it is allowed to set *y_baseline*
 to have length one, with this element set to the baseline value.

@@ -9,6 +9,7 @@
 #include "gridded_fields.h"
 #include "linescaling.h"
 #include "matpack_complex.h"
+#include "new_jacobian.h"
 #include "species.h"
 #include "zeemandata.h"
 
@@ -196,7 +197,7 @@ EcsReturn ecs_absorption(const Numeric T,
                           const Vector& f_grid,
                           const Zeeman::Polarization zeeman_polarization,
                           const AbsorptionLines& band,
-                          const ArrayOfRetrievalQuantity& jacobian_quantities={});
+                          const JacobianTargets& jacobian_targets={});
 
 /**  Adapts the band to the temperature data
  * 

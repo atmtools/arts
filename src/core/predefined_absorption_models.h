@@ -12,6 +12,7 @@
 
 #include "atm.h"
 #include "jacobian.h"
+#include "new_jacobian.h"
 #include "predefined/predef_data.h"
 #include "species.h"
 #include <algorithm>
@@ -77,7 +78,7 @@ bool can_compute(const SpeciesIsotopeRecord& model);
  * @param[in] rtp_pressure As WSV
  * @param[in] rtp_temperature As WSV
  * @param[in] vmr The VMRS defined from WSVs abs_species and rtp_vmr
- * @param[in] jacobian_quantities As WSV
+ * @param[in] jacobian_targets As WSV
  * @param[in] predefined_model_data As WSV
  */
 void compute(
@@ -88,7 +89,7 @@ void compute(
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
     const VMRS& vmr,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const JacobianTargets& jacobian_targets,
     const PredefinedModelData& predefined_model_data);
 } // namespace Absorption::PredefinedModel
 

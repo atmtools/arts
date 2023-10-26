@@ -559,34 +559,6 @@ public:
       return submdspan_substride(std::forward<access>(ind)...);
   }
 
-  matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
-    ARTS_ASSERT(i0 < extent(0) or (i0 + nelem) > extent(0),
-                "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
-                "\nFor slice: ",
-                i0,
-                " : ",
-                i0 + nelem)
-    return stdx::submdspan(
-        view,
-        stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>{
-            i0, nelem, std::integral_constant<Index, 1>{}});
-  }
-
-  matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
-    ARTS_ASSERT(i0 < extent(0) or (i0 + nelem) > extent(0),
-                "Out-of-bounds:\nShape:    ",
-                shape_help<N>(shape()),
-                "\nFor slice: ",
-                i0,
-                " : ",
-                i0 + nelem)
-    return stdx::submdspan(
-        view,
-        stdx::strided_slice<Index, Index, std::integral_constant<Index, 1>>{
-            i0, nelem, std::integral_constant<Index, 1>{}});
-  }
-
   template <access_operator access, Index M = num_index<access>,
             class ret_t = mutable_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
@@ -611,6 +583,14 @@ public:
       return view[std::forward<access>(ind)];
     else
       return sub<0, N>(view, detail::substride(extent(0), std::forward<access>(ind)));
+  }
+
+  matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
+    return operator[](matpack_strided_access(i0, nelem, 1)).view;
+  }
+
+  matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
+    return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
   //! The value type of this matpack data is public information
