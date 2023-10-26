@@ -284,6 +284,13 @@ void propmat_clearskyAddFaraday(
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
 
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
+  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
+=======
+>>>>>>> d240b0157 (???)
   const auto jacs =
       jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::mag_u,
                                                      Atm::Key::mag_v,
@@ -291,10 +298,16 @@ void propmat_clearskyAddFaraday(
                                                      Atm::Key::wind_u,
                                                      Atm::Key::wind_v,
                                                      Atm::Key::wind_w,
+<<<<<<< HEAD
                                                      abs_species[ife]);
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
+=======
+                                                     abs_species[ife].Species());
+  const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
 
-  const Numeric ne = atm_point[abs_species[ife]];
+  const Numeric ne = atm_point[abs_species[ife].Species()];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
@@ -475,7 +488,7 @@ void propmat_clearskyAddParticles(
       // particle entry. shouldn't happen, though.
       ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF(
-          atm_point[abs_species[sp]] < 0.,
+          atm_point[abs_species[sp].Species()] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
           "scat species #",
@@ -486,7 +499,7 @@ void propmat_clearskyAddParticles(
           sp,
           ")\n")
 
-      if (atm_point[abs_species[sp]] > 0.) {
+      if (atm_point[abs_species[sp].Species()] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
                            "scat species #",
@@ -508,7 +521,7 @@ void propmat_clearskyAddParticles(
           }
         }
         
-        const Numeric vmr = atm_point[abs_species[sp]];
+        const Numeric vmr = atm_point[abs_species[sp].Species()];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv] += vmr * internal_propmat[iv];
         }
@@ -535,8 +548,17 @@ void propmat_clearskyAddParticles(
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
+<<<<<<< HEAD
         tmp *= atm_point[abs_species[sp]];
         tmp /= dT;
+=======
+<<<<<<< Updated upstream
+        if (not deriv.propmattype()) continue;
+=======
+        tmp *= atm_point[abs_species[sp].Species()];
+        tmp /= dT;
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
 
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
@@ -547,6 +569,42 @@ void propmat_clearskyAddParticles(
           } else {
             dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
           }
+<<<<<<< HEAD
+=======
+
+          tmp *= atm_point[abs_species[sp]];
+          tmp /= dT;
+
+          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+            if (use_abs_as_ext) {
+              dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
+              dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
+              dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
+              dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
+            } else {
+              dpropmat_clearsky_dx(iq, iv) += Propmat{tmp(iv, joker, joker)};
+            }
+          }
+        }
+
+<<<<<<< Updated upstream
+        else if (deriv == Jacobian::Atm::Particulates) {
+          for (Index iv = 0; iv < f_grid.nelem(); iv++)
+            dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
+        }
+=======
+      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp].Species());jac_species.first) {
+        rtp_vmr_sum += atm_point[abs_species[sp].Species()];
+        const auto iq = jac_species.second->target_pos;
+        
+        for (Index iv = 0; iv < f_grid.nelem(); iv++)
+          dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
+      }
+>>>>>>> Stashed changes
+
+        else if (deriv == abs_species[sp]) {
+          dpropmat_clearsky_dx[iq] += internal_propmat;
+>>>>>>> d240b0157 (???)
         }
       }
 
@@ -612,7 +670,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,
     const Index& nlte_do,
@@ -693,8 +750,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
                           nlte_vib_energies,
                           band.BroadeningSpeciesVMR(atm_point),
                           abs_species[ispecies],
-                          atm_point[abs_species[ispecies]],
-                          isotopologue_ratios[band.Isotopologue()],
+                          atm_point[band.Species()],
+                          atm_point[band.Isotopologue()],
                           atm_point.pressure,
                           atm_point.temperature,
                           0,
@@ -743,8 +800,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
                          nlte_vib_energies,
                          band.BroadeningSpeciesVMR(atm_point),
                          abs_species[ispecies],
-                         atm_point[abs_species[ispecies]],
-                         isotopologue_ratios[band.Isotopologue()],
+                         atm_point[band.Species()],
+                         atm_point[band.Isotopologue()],
                          atm_point.pressure,
                          atm_point.temperature,
                          0,

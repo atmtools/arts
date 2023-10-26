@@ -1168,4 +1168,14 @@ using ArrayOfSpecies = Array<Species::Species>;
 
 using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
 
+template <> struct std::hash<SpeciesIsotopeRecord> {
+  std::size_t operator()(const SpeciesIsotopeRecord &g) const {
+
+  return (    ((std::hash<Species::Species>{}(g.spec) << 8) ^
+      (std::hash<std::string_view>{}(g.isotname) << 16)) ^
+      (std::hash<Numeric>{}(g.mass) << 32)) ^
+      (std::hash<Index>{}(g.gi) << 48);
+  }
+};
+
 #endif  // isotopologues_h

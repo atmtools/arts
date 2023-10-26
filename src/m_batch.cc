@@ -318,19 +318,19 @@ void ybatchMetProfilesClear(const Workspace& ws,
         atm_field[Atm::Key::p].get<const GriddedField3&>().get_numeric_grid(GFIELD3_P_GRID);
     Index N_p = tfr_z_grid.nelem();
 
-    atm_field[abs_species[0]] = vmr_field_raw_h2o;
+    atm_field[abs_species[0].Species()] = vmr_field_raw_h2o;
 
     // the second element of the species.  the first 3 Tensors in the
     //array are the same .  They are pressure grid, latitude grid and
     // longitude grid.  The third tensor which is the vmr is set to a
     // constant value of 0.782.
-    atm_field[abs_species[1]] = 0.782;
+    atm_field[abs_species[1].Species()] = 0.782;
 
     // the second element of the species.  the first 3 Tensors in the
     //array are the same .  They are pressure grid, latitude grid and
     // longitude grid.  The third tensor which is the vmr is set to a
     // constant value of 0.209.
-    atm_field[abs_species[2]] = 0.209;
+    atm_field[abs_species[2].Species()] = 0.209;
 
     //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
     //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);

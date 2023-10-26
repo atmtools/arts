@@ -2265,11 +2265,6 @@ Description of the special input arguments:
           R"--(Sets *g0_agenda*, ``refellipsoid``, *molarmass_dry_air*, and *planet_rotation_period* to default values
 
 *g0_agenda* is set using *g0_agendaSet* with the same option
-
-Note that the default value of *isotopologue_ratios* is set to "Earth" by
-default and that we strongly recommend users to update these values if they
-are using non-Earth atmospheres.
-
 Options are:
 
 - ``"Earth"``:
@@ -6710,11 +6705,10 @@ computations.
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
 
-      .gin = {"toa"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Top of atmosphere altitude [m].)--"},
-
+      .gin = {"toa", "default_isotopologue"},
+      .gin_type = {"Numeric", "String"},
+      .gin_value = {std::nullopt, String{"Builtin"}},
+      .gin_desc = {R"--(Top of atmosphere altitude [m].)--", "Default option for the isotopologue ratios"},
   };
 
   wsm_data["atm_fieldLteExternalPartitionFunction"] =
@@ -8046,7 +8040,7 @@ interpolations in the zenith angle dimension.
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "isotopologue_ratios"},
+      .in = {"ecs_data", "atm_field"},
 
   };
 
@@ -8073,7 +8067,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "isotopologue_ratios"},
+      .in = {"ecs_data", "atm_field"},
 
   };
 
@@ -8083,7 +8077,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "isotopologue_ratios"},
+      .in = {"ecs_data", "atm_field"},
       .gin = {"qid",
               "species",
               "scaling_type",
@@ -8134,7 +8128,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "isotopologue_ratios"},
+      .in = {"ecs_data", "atm_field"},
 
   };
 
@@ -8144,7 +8138,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "isotopologue_ratios"},
+      .in = {"ecs_data", "atm_field"},
 
   };
 
@@ -8640,26 +8634,6 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 
   };
 
-  wsm_data["isotopologue_ratiosInitFromBuiltin"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Initialize isotopologue ratios with default values from built-in
-species data.  This should be OK for Earth-like atmospheres
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"isotopologue_ratios"},
-
-  };
-
-  wsm_data["isotopologue_ratiosInitFromHitran"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Initialize isotopologue ratios with default values from built-in
-Hitran species data.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"isotopologue_ratios"},
-
-  };
-
   wsm_data["iyApplyUnit"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Conversion of *iy* to other spectral units (for passive observations).
@@ -9119,7 +9093,7 @@ in later versions
       .author = {"Richard Larsson"},
       .out = {"lbl_checked"},
 
-      .in = {"abs_lines_per_species", "abs_species", "isotopologue_ratios"},
+      .in = {"abs_lines_per_species", "abs_species", "atm_field"},
 
   };
 
@@ -10514,7 +10488,6 @@ Please ensure you cite the original authors when you use this function:
           .in = {"propmat_clearsky",
                  "abs_hitran_relmat_data",
                  "abs_lines_per_species",
-                 "isotopologue_ratios",
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
@@ -10565,7 +10538,6 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
              "select_abs_species",
              "jacobian_targets",
              "abs_lines_per_species",
-             "isotopologue_ratios",
              "atm_point",
              "nlte_vib_energies",
              "nlte_do",
@@ -10606,7 +10578,6 @@ to compensate the calculations for the pressure limit
                  "dpropmat_clearsky_dx",
                  "abs_lines_per_species",
                  "ecs_data",
-                 "isotopologue_ratios",
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
@@ -11044,8 +11015,16 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "f_grid",
              "abs_species",
              "select_abs_species",
+<<<<<<< HEAD
              "jacobian_targets",
+=======
+<<<<<<< Updated upstream
+             "jacobian_quantities",
+>>>>>>> d240b0157 (???)
              "isotopologue_ratios",
+=======
+             "jacobian_targets",
+>>>>>>> Stashed changes
              "atm_point",
              "nlte_vib_energies",
              "rtp_los",
@@ -15327,7 +15306,7 @@ as desribed above and the pressure of the lower or first altitude level.
 )-x-",
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
-      .in = {"atm_field", "gravity_operator", "isotopologue_ratios"},
+      .in = {"atm_field", "gravity_operator"},
       .gin = {"p0", "alts", "fixed_specific_gas_constant", "fixed_atm_temperature", "hydrostatic_option"},
       .gin_type = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt, std::nullopt, Numeric{-1}, Numeric{-1}, String{"HydrostaticEquation"}},

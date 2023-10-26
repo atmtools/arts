@@ -376,8 +376,8 @@ void get_gas_scattering_properties(const Workspace& ws,
     AtmPoint atm_point;
     atm_point[Atm::Key::p] = p[ip];
     atm_point[Atm::Key::t] = t[ip];
-    atm_point.set(specs, vmr(joker, ip));
-
+    //atm_point.set(specs, vmr(joker, ip));
+ARTS_ASSERT(false);
     gas_scattering_agendaExecute(ws,
                                  K_sca_gas_temp,
                                  sca_mat_dummy,
@@ -1053,7 +1053,8 @@ void run_cdisort(const Workspace& ws,
       atm[ip].pressure = p_grid[ip];
       atm[ip].temperature = t_profile[ip];
       for (Size ispec=0; ispec<specs.size(); ispec++) {
-        atm[ip][specs[ispec]] = vmr_profiles(ispec, ip);
+        //atm[ip][specs[ispec]] = vmr_profiles(ispec, ip);
+        ARTS_ASSERT(false)
       }
     }
     return atm;
@@ -1482,7 +1483,8 @@ void run_cdisort_flux(const Workspace& ws,
       atm[ip].pressure = p[ip];
       atm[ip].temperature = t[ip];
       for (Size ispec=0; ispec<specs.size(); ispec++) {
-        atm[ip][specs[ispec]] = vmr(ispec, ip);
+        //atm[ip][specs[ispec]] = vmr(ispec, ip);
+        ARTS_ASSERT(false)
       }
     }
     return atm;

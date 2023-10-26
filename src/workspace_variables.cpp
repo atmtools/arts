@@ -1548,14 +1548,6 @@ Size: [ p_grid,  lat_grid,  lon_grid,  2 ]
 )--",
       .type = "Tensor4"};
 
-  wsv_data["isotopologue_ratios"] = {
-      .desc = R"--(Contains the isotopologue ratios.
-
-This variable is set to the default provided by *isotopologue_ratiosInitFromBuiltin*
-)--",
-      .type = "SpeciesIsotopologueRatios",
-      .default_value = Species::isotopologue_ratiosInitFromBuiltin()};
-
   wsv_data["iy"] = {.desc = R"--(Monochromatic pencil beam radiance spectrum.
 
 This variable holds a single spectrum, with values corresponding

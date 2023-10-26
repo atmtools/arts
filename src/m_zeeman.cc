@@ -25,8 +25,16 @@ void propmat_clearskyAddZeeman(
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
+<<<<<<< HEAD
     const JacobianTargets& jacobian_targets,
+=======
+<<<<<<< Updated upstream
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+>>>>>>> d240b0157 (???)
     const SpeciesIsotopologueRatios& isotopologue_ratios,
+=======
+    const JacobianTargets& jacobian_targets,
+>>>>>>> Stashed changes
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_levels,
     const Vector& ppath_los,
@@ -57,7 +65,6 @@ void propmat_clearskyAddZeeman(
                     select_abs_species,
                     jacobian_targets,
                     abs_lines_per_species,
-                    isotopologue_ratios,
                     f_grid,
                     atm_point,
                     nlte_vib_levels,

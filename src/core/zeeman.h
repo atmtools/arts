@@ -28,7 +28,6 @@
  * @param[in]  select_abs_species as WSV
  * @param[in]  jacobian_targets as WSV
  * @param[in]  abs_lines_per_species as WSV
- * @param[in]  isotopologue_ratios as WSV
  * @param[in]  partition_functions as WSV
  * @param[in]  f_grid as WSV
  * @param[in]  rtp_vmr as WSV
@@ -52,7 +51,6 @@ void zeeman_on_the_fly(
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,

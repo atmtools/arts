@@ -86,7 +86,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
+          [](AtmPoint &atm, const Species::Species &x) {
             if (not atm.has(x))
               throw py::key_error(var_string(x));
             return atm[x];
@@ -96,7 +96,7 @@ void py_atm(py::module_ &m) try {
            [](AtmPoint &atm, Atm::Key x, Numeric data) { atm[x] = data; })
       .def("__setitem__", [](AtmPoint &atm, const QuantumIdentifier &x,
                              Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const ArrayOfSpeciesTag &x,
+      .def("__setitem__", [](AtmPoint &atm, const Species::Species &x,
                              Numeric data) { atm[x] = data; })
       .def("keys", &AtmPoint::keys)
       .PythonInterfaceCopyValue(AtmPoint)
@@ -148,7 +148,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
+          [](AtmField &atm, const Species::Species &x) -> Atm::Data & {
             if (not atm.has(x))
               throw py::key_error(var_string(x));
             return atm[x];
@@ -158,7 +158,7 @@ void py_atm(py::module_ &m) try {
                              const Atm::Data &data) { atm[x] = data; })
       .def("__setitem__", [](AtmField &atm, const QuantumIdentifier &x,
                              const Atm::Data &data) { atm[x] = data; })
-      .def("__setitem__", [](AtmField &atm, const ArrayOfSpeciesTag &x,
+      .def("__setitem__", [](AtmField &atm, const Species::Species &x,
                              const Atm::Data &data) { atm[x] = data; })
       .def("at", [](const AtmField &atm, const Vector& h, const Vector& lat,
                     const Vector& lon) { return atm.at(h, lat, lon); })

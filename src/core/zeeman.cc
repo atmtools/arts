@@ -27,7 +27,6 @@ void zeeman_on_the_fly(
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const Vector& f_grid,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,
@@ -116,11 +115,26 @@ void zeeman_on_the_fly(
                            atm_point.is_lte()
                                ? std::pair{0., 0.}
                                : atm_point.levels(band.quantumidentity),
+<<<<<<< HEAD
                            nlte_vib_energies,
                            band.BroadeningSpeciesVMR(atm_point),
                            abs_species[ispecies],
                            atm_point[abs_species[ispecies]],
                            isotopologue_ratios[band.Isotopologue()],
+=======
+<<<<<<< Updated upstream
+            nlte_vib_energies, band.BroadeningSpeciesVMR(atm_point),
+            abs_species[ispecies], atm_point[abs_species[ispecies]],
+            isotopologue_ratios[band.Isotopologue()], atm_point.pressure,
+            atm_point.temperature, X.H, sparse_limit, polar,
+            Options::LblSpeedup::None, false);
+=======
+                           nlte_vib_energies,
+                           band.BroadeningSpeciesVMR(atm_point),
+                           abs_species[ispecies],
+                           atm_point[band.Species()],
+                           atm_point[band.Isotopologue()],
+>>>>>>> d240b0157 (???)
                            atm_point.pressure,
                            atm_point.temperature,
                            X.H,
@@ -128,6 +142,10 @@ void zeeman_on_the_fly(
                            polar,
                            Options::LblSpeedup::None,
                            false);
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
       }
     }
 

@@ -394,15 +394,27 @@ void propmat_clearskyAddCIA(  // WS Output:
                 atm_point[this_cia.Species(1)];
           }
         }
+<<<<<<< HEAD
 
         if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
                 abs_species[ispecies]);
+=======
+<<<<<<< Updated upstream
+=======
+
+        if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
+                abs_species[ispecies].Species());
+>>>>>>> d240b0157 (???)
             j.first) {
           const auto iq = j.second->target_pos;
           dpropmat_clearsky_dx(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
         }
 
         // FIXME: Missing secondary species !
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
       }
     }
   }

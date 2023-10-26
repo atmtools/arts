@@ -21,6 +21,7 @@
 #include "grids.h"
 #include "interpolation.h"
 #include "isotopologues.h"
+#include "species.h"
 
 #include <matpack.h>
 
@@ -28,8 +29,11 @@ namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
 }
-const std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() const {
-  return map<ArrayOfSpeciesTag>();
+const std::unordered_map<Species::Species, Data> &Field::specs() const {
+  return map<Species::Species>();
+}
+const std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() const {
+  return map<Species::IsotopeRecord>();
 }
 const std::unordered_map<Key, Data> &Field::other() const {
   return map<Key>();
@@ -41,8 +45,11 @@ const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
   return map<QuantumIdentifier>();
 }
-std::unordered_map<ArrayOfSpeciesTag, Data> &Field::specs() {
-  return map<ArrayOfSpeciesTag>();
+std::unordered_map<Species::Species, Data> &Field::specs() {
+  return map<Species::Species>();
+}
+std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() {
+  return map<Species::IsotopeRecord>();
 }
 std::unordered_map<Key, Data> &Field::other() { return map<Key>(); }
 std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
@@ -86,6 +93,11 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
     std::visit(printer, vals.second.data);
   }
 
+  for (auto& vals : atm.isots()) {
+    os << ",\n" << vals.first << ":\n";
+    std::visit(printer, vals.second.data);
+  }
+
   for (auto& vals : atm.nlte()) {
     os << ",\n" << vals.first << ":";
     std::visit(printer, vals.second.data);
@@ -98,7 +110,7 @@ Numeric Point::mean_mass(const SpeciesIsotopologueRatios& ir) const {
   Numeric out = 0;
   Numeric total_vmr = 0;
   for (auto& [spec, vmr]: specs) {
-    out += vmr * Species::mean_mass(spec.Species(), ir);
+    out += vmr * Species::mean_mass(spec, ir);
     total_vmr += vmr;
   }
 
@@ -122,10 +134,12 @@ std::vector<KeyVal> Point::keys() const {
 
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
 Index Point::npart() const { return static_cast<Index>(partp.size()); }
+Index Point::nisot() const { return static_cast<Index>(isots.size()); }
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
-Index Point::size() const { return nspec() + nnlte() + nother() + npart(); }
+Index Point::size() const { return nspec() + nnlte() + nother() + npart() + nisot(); }
 
 Index Field::nspec() const { return static_cast<Index>(specs().size()); }
+Index Field::nisot() const { return static_cast<Index>(isots().size()); }
 Index Field::npart() const { return static_cast<Index>(partp().size()); }
 Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
 Index Field::nother() const { return static_cast<Index>(other().size()); }
@@ -439,14 +453,6 @@ std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector&
   return out;
 }
 
-Numeric Point::operator[](Species::Species x) const noexcept {
-  for (auto &spec : specs) {
-    if (spec.first.Species() == x)
-      return spec.second;
-  }
-  return 0.0;
-}
-
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
@@ -505,17 +511,15 @@ Numeric &Point::operator[](const KeyVal &k) {
       k);
 }
 
-void Point::set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x) {
-  ARTS_ASSERT(sp.size() == static_cast<Size>(x.size()))
-  for (Size i=0; i<sp.size(); i++) {
-   specs[sp[i]] = x[i];
-  }
-}
-
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> d240b0157 (???)
 
 ExhaustiveConstVectorView Data::flat_view() const {
   return std::visit(
@@ -622,11 +626,27 @@ bool operator==(Key key, const KeyVal& keyval) {
   return cmp(keyval, key);
 }
 
+<<<<<<< HEAD
 bool operator==(const KeyVal& keyval, const ArrayOfSpeciesTag& key) {
   return cmp(keyval, key);
 }
 
 bool operator==(const ArrayOfSpeciesTag& key, const KeyVal& keyval) {
+=======
+bool operator==(const KeyVal& keyval, const Species::Species& key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const Species::Species& key, const KeyVal& keyval) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const KeyVal& keyval, const Species::IsotopeRecord& key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const Species::IsotopeRecord& key, const KeyVal& keyval) {
+>>>>>>> d240b0157 (???)
   return cmp(keyval, key);
 }
 
@@ -645,6 +665,7 @@ bool operator==(const KeyVal& keyval, const ParticulatePropertyTag& key) {
 bool operator==(const ParticulatePropertyTag& key, const KeyVal& keyval) {
   return cmp(keyval, key);
 }
+<<<<<<< HEAD
 
 bool operator==(const KeyVal& keyval, const Species::Species& key) {
   return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
@@ -653,6 +674,9 @@ bool operator==(const KeyVal& keyval, const Species::Species& key) {
 bool operator==(const Species::Species& key, const KeyVal& keyval) {
   return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
 }
+=======
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
 } // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {

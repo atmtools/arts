@@ -339,11 +339,6 @@ This is still a work in progress, and the interface will change in the future
   wsg_data["Sparse"] = {.file = "matpack_sparse.h",
                         .desc = "A sparse version of *Matrix*\n"};
 
-  wsg_data["SpeciesIsotopologueRatios"] = {
-      .file = "optproperties.h",
-      .desc =
-          "Contains a list of isotopologue ratios for all defined species\n"};
-
   wsg_data["String"] = {
       .file = "mystring.h", .desc = "Basic string type\n", .value_type = true};
 

@@ -129,8 +129,17 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   atm_point[Atm::Key::t] = 300;
   atm_point[Atm::Key::p] = 1000;
 
+<<<<<<< HEAD
   for (auto& spec : abs_species)
     atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
+=======
+<<<<<<< Updated upstream
+  for (auto& spec: abs_species) atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
+=======
+  for (auto& spec : abs_species)
+    atm_point[spec.Species()] = 1.0 / static_cast<Numeric>(abs_species.size());
+>>>>>>> Stashed changes
+>>>>>>> d240b0157 (???)
 
   // Set some defaults
   if (load) {
