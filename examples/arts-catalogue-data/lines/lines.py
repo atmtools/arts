@@ -143,7 +143,7 @@ inputs required to initialize the propagation matrix
 
 """
 
-ws.jacobian_quantities = []  # No derivatives
+ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
 ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
 ws.rtp_los = []  # No particular LOS

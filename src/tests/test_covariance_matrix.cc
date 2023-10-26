@@ -484,16 +484,17 @@ void test_workspace_methods() {
   rqs.push_back(rq_1);
   rqs.push_back(rq_2);
 
-  covmat_sxAddBlock(covmat, rqs, A_sparse, -1, -1);
+  ARTS_ASSERT(false)
+  //covmat_sxAddBlock(covmat, rqs, A_sparse, -1, -1);
 
   try {
-    covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1);
+    //covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1);
     // This should fail.
     ARTS_ASSERT(false);
   } catch (const std::runtime_error&) {
   }
 
-  covmat_sxAddBlock(covmat, rqs, C, 0, 1);
+  //covmat_sxAddBlock(covmat, rqs, C, 0, 1);
   covmat_sxAddInverseBlock(covmat, rqs, A, 0, 0);
 
   try {

@@ -44,7 +44,6 @@ ws.atm_point[ws.abs_species[2]] = 2.850472e-06
 ws.atm_point[ws.abs_species[3]] = 1.501303e-07
 ws.atm_point[ws.abs_species[4]] = 3.019448e-08
 ws.atm_point.mag = [10e-6, 20e-6, 40e-6]
-ws.Touch(ws.jacobian_quantities)
 
 # Check that the calculations are OK
 ws.lbl_checkedCalc()

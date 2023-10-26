@@ -374,11 +374,6 @@ class TestGroups:
         test.io(x, delete=True)
         test.array(x)
 
-    def testArrayOfRetrievalQuantity(self):
-        x = cxx.ArrayOfRetrievalQuantity([cxx.RetrievalQuantity()])
-        # test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfScatteringMetaData(self):
         x = cxx.ArrayOfScatteringMetaData([cxx.ScatteringMetaData()])
         test.io(x, delete=True)
@@ -861,7 +856,6 @@ class TestGroups:
             "NumericTernaryOperator",
             "SpectralRadianceProfileOperator",
             "SingleScatteringData",
-            "RetrievalQuantity",
             "JacobianTargets",
         ]
 

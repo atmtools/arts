@@ -130,14 +130,11 @@ void level_nlte(stokvec_vector_view J,
   ARTS_ASSERT(N == S.nelem())
   ARTS_ASSERT(N == dK.ncols())
   ARTS_ASSERT(N == dS.ncols())
-  ARTS_ASSERT(N == B.nelem())
-  ARTS_ASSERT(N == dB.ncols())
   ARTS_ASSERT(N == f.nelem())
 
   const Index M = dJ.nrows();
   ARTS_ASSERT(M == dK.nrows())
   ARTS_ASSERT(M == dS.nrows())
-  ARTS_ASSERT(M == dB.nrows())
   ARTS_ASSERT(M > it)
 
   for (Index i = 0; i < N; i++) {
