@@ -291,65 +291,6 @@ void compute(PropmatVector& propmat_clearsky,
       }
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-    if (do_freq_jac) {
-      const Numeric d = frequency_perturbation(jacobian_quantities);
-      ARTS_ASSERT(d not_eq 0)
-
-      Vector f_grid_d{f_grid};
-      f_grid_d += d;
-
-      dpm = 0.0;
-      compute_selection<false>(dpm,
-                               model,
-                               f_grid_d,
-                               rtp_pressure,
-                               rtp_temperature,
-                               vmr,
-                               predefined_model_data);
-      dpm -= pm;
-      dpm /= d;
-      for (Index iq = 0; iq < dpropmat_clearsky_dx.nrows(); iq++) {
-        if (is_frequency_parameter(jacobian_quantities[iq])) {
-          dpropmat_clearsky_dx[iq] += dpm;
-        }
-      }
-    }
-
-    for (Index iq = 0; iq < dpropmat_clearsky_dx.nrows(); iq++) {
-      auto& deriv = jacobian_quantities[iq];
-      if (deriv == Jacobian::Line::VMR) {
-        if (compute_vmr_deriv<false>(dpm,
-                                     pm,
-                                     model,
-                                     f_grid,
-                                     rtp_pressure,
-                                     rtp_temperature,
-                                     vmr,
-                                     deriv.QuantumIdentity().Species(),
-                                     predefined_model_data))
-          dpropmat_clearsky_dx[iq] += dpm;
-      } else if (deriv == Jacobian::Special::ArrayOfSpeciesTagVMR and
-                 std::any_of(deriv.Target().species_array_id.begin(),
-                             deriv.Target().species_array_id.end(),
-                             [model](auto& tag) {
-                               return tag.Isotopologue() == model;
-                             })) {
-        if (compute_vmr_deriv<true>(
-                dpm,
-                pm,
-                model,
-                f_grid,
-                rtp_pressure,
-                rtp_temperature,
-                vmr,
-                deriv.Target().species_array_id.front().Spec(),
-                predefined_model_data))
-          dpropmat_clearsky_dx[iq] += dpm;
-=======
->>>>>>> d240b0157 (???)
     for (auto& j : vmrs_jac) {
       if (j.first) {
         const Numeric d = j.second->d;
@@ -363,16 +304,9 @@ void compute(PropmatVector& propmat_clearsky,
             rtp_temperature,
             vmr,
             d,
-<<<<<<< HEAD
-            std::get_if<ArrayOfSpeciesTag>(&j.second->type)->Species(),
-            predefined_model_data);
-        dpropmat_clearsky_dx[iq] += dpm;
-=======
             *std::get_if<Species::Species>(&j.second->type),
             predefined_model_data);
         dpropmat_clearsky_dx[iq] += dpm;
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
       }
     }
   } else {

@@ -360,29 +360,15 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
-<<<<<<< HEAD
 
 bool operator==(const KeyVal&, Key);
 bool operator==(Key, const KeyVal&);
-bool operator==(const KeyVal&, const ArrayOfSpeciesTag&);
-bool operator==(const ArrayOfSpeciesTag&, const KeyVal&);
-=======
-<<<<<<< Updated upstream
-=======
-
-bool operator==(const KeyVal&, Key);
-bool operator==(Key, const KeyVal&);
->>>>>>> d240b0157 (???)
 bool operator==(const KeyVal&, const Species::Species&);
 bool operator==(const Species::Species&, const KeyVal&);
 bool operator==(const KeyVal&, const QuantumIdentifier&);
 bool operator==(const QuantumIdentifier&, const KeyVal&);
 bool operator==(const KeyVal&, const ParticulatePropertyTag&);
 bool operator==(const ParticulatePropertyTag&, const KeyVal&);
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
 } // namespace Atm
 
 using AtmKeyVal = Atm::KeyVal;

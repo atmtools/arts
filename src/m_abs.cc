@@ -284,13 +284,6 @@ void propmat_clearskyAddFaraday(
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
 
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-  const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
-  const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
-=======
->>>>>>> d240b0157 (???)
   const auto jacs =
       jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::mag_u,
                                                      Atm::Key::mag_v,
@@ -298,14 +291,8 @@ void propmat_clearskyAddFaraday(
                                                      Atm::Key::wind_u,
                                                      Atm::Key::wind_v,
                                                      Atm::Key::wind_w,
-<<<<<<< HEAD
-                                                     abs_species[ife]);
-  const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
-=======
                                                      abs_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
 
   const Numeric ne = atm_point[abs_species[ife].Species()];
 
@@ -548,17 +535,8 @@ void propmat_clearskyAddParticles(
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
-<<<<<<< HEAD
-        tmp *= atm_point[abs_species[sp]];
-        tmp /= dT;
-=======
-<<<<<<< Updated upstream
-        if (not deriv.propmattype()) continue;
-=======
         tmp *= atm_point[abs_species[sp].Species()];
         tmp /= dT;
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
 
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
@@ -569,47 +547,11 @@ void propmat_clearskyAddParticles(
           } else {
             dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
           }
-<<<<<<< HEAD
-=======
-
-          tmp *= atm_point[abs_species[sp]];
-          tmp /= dT;
-
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-            if (use_abs_as_ext) {
-              dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
-              dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
-              dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
-              dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
-            } else {
-              dpropmat_clearsky_dx(iq, iv) += Propmat{tmp(iv, joker, joker)};
-            }
-          }
         }
+      }
 
-<<<<<<< Updated upstream
-        else if (deriv == Jacobian::Atm::Particulates) {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++)
-            dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
-        }
-=======
       if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp].Species());jac_species.first) {
         rtp_vmr_sum += atm_point[abs_species[sp].Species()];
-        const auto iq = jac_species.second->target_pos;
-        
-        for (Index iv = 0; iv < f_grid.nelem(); iv++)
-          dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
-      }
->>>>>>> Stashed changes
-
-        else if (deriv == abs_species[sp]) {
-          dpropmat_clearsky_dx[iq] += internal_propmat;
->>>>>>> d240b0157 (???)
-        }
-      }
-
-      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp]);jac_species.first) {
-        rtp_vmr_sum += atm_point[abs_species[sp]];
         const auto iq = jac_species.second->target_pos;
         
         for (Index iv = 0; iv < f_grid.nelem(); iv++)

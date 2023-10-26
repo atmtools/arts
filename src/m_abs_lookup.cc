@@ -500,17 +500,9 @@ void propmat_clearskyAddFromLookup(
               (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
         }
       }
-<<<<<<< HEAD
-
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[isp]);
-=======
-<<<<<<< Updated upstream
-=======
 
       if (const auto j =
               jacobian_targets.find<Jacobian::AtmTarget>(abs_species[isp].Species());
->>>>>>> d240b0157 (???)
           j.first) {
         const auto iq = j.second->target_pos;
         dpropmat_clearsky_dx(iq, iv).A() +=
@@ -518,10 +510,6 @@ void propmat_clearskyAddFromLookup(
                 ? abs_scalar_gas(isp, iv) / a_vmr_list[isp]
                 : 0;
       }
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
     }
   }
 }

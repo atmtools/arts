@@ -188,26 +188,9 @@ void propmat_clearskyAddOnTheFlyLineMixing(
           propmat_clearsky[iv].A() += abs[iv].real();
         }
 
-<<<<<<< HEAD
-        for (auto& atm: jacobian_targets.atm()) {
-          const auto j = atm.target_pos;
-          if (atm.type == abs_species[i]) {
-=======
-<<<<<<< Updated upstream
-        // Sum up the resorted Jacobian
-        for (Size j = 0; j < jacobian_quantities.size(); j++) {
-          const auto &deriv = jacobian_quantities[j];
-
-          if (not deriv.propmattype())
-            continue;
-
-          if (deriv == abs_species[i]) {
-=======
         for (auto& atm: jacobian_targets.atm()) {
           const auto j = atm.target_pos;
           if (atm.type == abs_species[i].Species()) {
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
             for (Index iv = 0; iv < f_grid.nelem(); iv++) {
               dpropmat_clearsky_dx[j][iv].A() += abs[iv].real();
             }

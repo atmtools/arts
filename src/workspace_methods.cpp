@@ -11015,16 +11015,7 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "f_grid",
              "abs_species",
              "select_abs_species",
-<<<<<<< HEAD
              "jacobian_targets",
-=======
-<<<<<<< Updated upstream
-             "jacobian_quantities",
->>>>>>> d240b0157 (???)
-             "isotopologue_ratios",
-=======
-             "jacobian_targets",
->>>>>>> Stashed changes
              "atm_point",
              "nlte_vib_energies",
              "rtp_los",

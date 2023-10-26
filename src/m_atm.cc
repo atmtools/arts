@@ -595,25 +595,12 @@ void atm_fieldHydrostaticPressure(
           const Numeric g = gravity_operator(al, la, lo);
           const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
 
-<<<<<<< Updated upstream
-          const Numeric inv_specific_gas_constant =
-              has_def_r
-                  ? 1.0 / fixed_specific_gas_constant
-                  : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
-                     Constant::R);
-<<<<<<< HEAD
-          const Numeric inv_temp = has_def_t
-=======
-          const Numeric inv_temp = fixed_atm_temperature > 0
-=======
           // const Numeric inv_specific_gas_constant =
           //     has_def_r
           //         ? 1.0 / fixed_specific_gas_constant
           //         : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
           //            Constant::R);
           const Numeric inv_temp = has_def_t
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
                                        ? 1.0 / fixed_atm_temperature
                                        : 1.0 / atm_point.temperature;
 

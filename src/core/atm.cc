@@ -515,11 +515,6 @@ std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> d240b0157 (???)
 
 ExhaustiveConstVectorView Data::flat_view() const {
   return std::visit(
@@ -626,13 +621,6 @@ bool operator==(Key key, const KeyVal& keyval) {
   return cmp(keyval, key);
 }
 
-<<<<<<< HEAD
-bool operator==(const KeyVal& keyval, const ArrayOfSpeciesTag& key) {
-  return cmp(keyval, key);
-}
-
-bool operator==(const ArrayOfSpeciesTag& key, const KeyVal& keyval) {
-=======
 bool operator==(const KeyVal& keyval, const Species::Species& key) {
   return cmp(keyval, key);
 }
@@ -646,7 +634,6 @@ bool operator==(const KeyVal& keyval, const Species::IsotopeRecord& key) {
 }
 
 bool operator==(const Species::IsotopeRecord& key, const KeyVal& keyval) {
->>>>>>> d240b0157 (???)
   return cmp(keyval, key);
 }
 
@@ -665,18 +652,6 @@ bool operator==(const KeyVal& keyval, const ParticulatePropertyTag& key) {
 bool operator==(const ParticulatePropertyTag& key, const KeyVal& keyval) {
   return cmp(keyval, key);
 }
-<<<<<<< HEAD
-
-bool operator==(const KeyVal& keyval, const Species::Species& key) {
-  return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
-}
-
-bool operator==(const Species::Species& key, const KeyVal& keyval) {
-  return std::holds_alternative<ArrayOfSpeciesTag>(keyval) and std::get_if<ArrayOfSpeciesTag>(&keyval) -> Species() == key;
-}
-=======
->>>>>>> Stashed changes
->>>>>>> d240b0157 (???)
 } // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
