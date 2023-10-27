@@ -16,8 +16,7 @@ if [[ ! -d $1 ]]; then
 fi
 
 rm -rf docserver doxygen uguide pyarts
-mkdir uguide
 
-cp -r $1/python/doc/build pyarts
-cp $1/doc/uguide/*.pdf uguide/
-rm -rf pyarts/.doctrees
+cp -r $1/python/doc/build/* .
+touch .nojekyll
+rm -rf .doctrees
