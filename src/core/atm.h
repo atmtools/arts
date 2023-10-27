@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -100,19 +101,16 @@ public:
               std::numeric_limits<Numeric>::quiet_NaN(),
               std::numeric_limits<Numeric>::quiet_NaN()};
 
-  template <KeyType T> constexpr Numeric operator[](T &&x) const {
+  template <KeyType T> constexpr Numeric operator[](T &&x) const try {
     if constexpr (isSpecies<T>) {
       auto y = specs.find(std::forward<T>(x));
       return y == specs.end() ? 0 : y->second;
     } else if constexpr (isIsotopeRecord<T>) {
-      auto y = isots.find(std::forward<T>(x));
-      return y == isots.end() ? 0 : y->second;
+      return isots.at(std::forward<T>(x));
     } else if constexpr (isParticulatePropertyTag<T>) {
-      auto y = partp.find(std::forward<T>(x));
-      return y == partp.end() ? 0 : y->second;
+      return partp.at(std::forward<T>(x));
     } else if constexpr (isQuantumIdentifier<T>) {
-      auto y = nlte.find(std::forward<T>(x));
-      return y == nlte.end() ? 0 : y->second;
+      return nlte.at(std::forward<T>(x));
     } else {
       switch (std::forward<T>(x)) {
       case Key::t:
@@ -136,6 +134,10 @@ public:
       }
       ARTS_USER_ERROR("Cannot reach")
     }
+  } catch (std::out_of_range &) {
+    ARTS_USER_ERROR("Key not found: \"", x, '"')
+  } catch (std::exception &) {
+    throw;
   }
 
   template <KeyType T> constexpr Numeric &operator[](T &&x) {

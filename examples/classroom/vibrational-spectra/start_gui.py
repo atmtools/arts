@@ -39,11 +39,11 @@ ws.propmat_clearsky_agendaAuto()
 
 # Arts setup (No NLTE, no polarization, and standard isotopologue ratios)
 ws.nlte_do = 0
-ws.isotopologue_ratiosInitFromBuiltin()
 
 # Settings (Standard atmosphere midlatitude-summer)
 ws.rtp_los = [45, 45]
 ws.f_grid = pyarts.arts.convert.kaycm2freq(np.linspace(300, 3000, 1000))
+ws.atm_pointInit()
 ws.atm_point.temperature = 2.942000e+02
 ws.atm_point.pressure = ws.rtp_pressure = 110000
 ws.atm_point[ws.abs_species[0]] = 1.000869e-09
@@ -55,9 +55,6 @@ ws.atm_point[ws.abs_species[5]] = 1.877431e-02
 ws.atm_point[ws.abs_species[6]] = 3.302947e-04
 ws.atm_point[ws.abs_species[7]] = 1.701397e-06
 ws.atm_point.mag = [10e-6, 20e-6, 40e-6]
-
-# Check that the calculations are OK
-ws.lbl_checkedCalc()
 
 # Start the explorer
 ws.propmat_clearsky_agendaGUI()

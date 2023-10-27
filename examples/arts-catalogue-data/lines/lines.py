@@ -111,15 +111,6 @@ ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 """
 
-With abs_species and abs_lines_per_species both defined, you can (and must)
-confirm that the input is proper by setting lbl_checked to 1.  This is safely
-done using:
-
-"""
-ws.lbl_checkedCalc()
-
-"""
-
 You should generally always call this after you are done setting up your
 ws.abs_species and ws.abs_lines_per_species.  It will deal with the internal
 ARTS setup for you.  Note that the flag use_abs_lookup=1 can be passed to this
@@ -147,6 +138,7 @@ ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
 ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
 ws.rtp_los = []  # No particular LOS
+ws.atm_pointInit()
 ws.atm_point.temperature = 295  # At room temperature
 ws.atm_point.pressure = 1e5  # At 1 bar
 ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen

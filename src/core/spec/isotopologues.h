@@ -32,8 +32,9 @@ struct IsotopeRecord {
   constexpr IsotopeRecord() noexcept : IsotopeRecord(Species::FINAL) {}
   
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
-    return os << ir.spec << ' ' << ir.isotname << ' ' << ir.mass << ' ' << ir.gi;
+    return os << ir.FullName();
   }
+
   constexpr bool operator==(const IsotopeRecord& that) const noexcept {
     return that.spec == spec and that.isotname == isotname;
   }
@@ -46,7 +47,7 @@ struct IsotopeRecord {
   
   template <typename T> constexpr bool operator!=(T x)const noexcept {return not operator==(x);}
   
-  [[nodiscard]] String FullName() const noexcept {return String(toShortName(spec)) + String("-") + String(isotname);}
+  [[nodiscard]] String FullName() const noexcept {return var_string(toShortName(spec), '-', isotname);}
   [[nodiscard]] constexpr bool joker() const noexcept {return isotname == Joker;}
   [[nodiscard]] constexpr bool OK() const noexcept {return good_enum(spec);}
 };
@@ -1170,11 +1171,7 @@ using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
 
 template <> struct std::hash<SpeciesIsotopeRecord> {
   std::size_t operator()(const SpeciesIsotopeRecord &g) const {
-
-  return (    ((std::hash<Species::Species>{}(g.spec) << 8) ^
-      (std::hash<std::string_view>{}(g.isotname) << 16)) ^
-      (std::hash<Numeric>{}(g.mass) << 32)) ^
-      (std::hash<Index>{}(g.gi) << 48);
+    return static_cast<std::size_t>(find_species_index(g));
   }
 };
 

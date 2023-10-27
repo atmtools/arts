@@ -156,12 +156,9 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
-    const AtmPoint& atm_point,
-    const Index& lbl_checked) {
+    const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
                      "Bad size of input species+lines");
-  ARTS_USER_ERROR_IF(not lbl_checked,
-                     "Please set lbl_checked true to use this function");
 
   for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and select_abs_species not_eq abs_species[i])

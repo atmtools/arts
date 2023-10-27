@@ -6700,7 +6700,7 @@ computations.
   };
 
   wsm_data["atm_fieldInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initialize the atmospheric field with some altitude
+      .desc = R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
 )--",
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
@@ -6709,6 +6709,18 @@ computations.
       .gin_type = {"Numeric", "String"},
       .gin_value = {std::nullopt, String{"Builtin"}},
       .gin_desc = {R"--(Top of atmosphere altitude [m].)--", "Default option for the isotopologue ratios"},
+  };
+
+  wsm_data["atm_pointInit"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Initialize an atmospheric point with some isotopologue ratios
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atm_point"},
+
+      .gin = {"default_isotopologue"},
+      .gin_type = {"String"},
+      .gin_value = {String{"Builtin"}},
+      .gin_desc = {"Default option for the isotopologue ratios"},
   };
 
   wsm_data["atm_fieldLteExternalPartitionFunction"] =
@@ -10540,8 +10552,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
              "abs_lines_per_species",
              "atm_point",
              "nlte_vib_energies",
-             "nlte_do",
-             "lbl_checked"},
+             "nlte_do"},
       .gin = {"lines_sparse_df",
               "lines_sparse_lim",
               "lines_speedup_option",
@@ -10582,8 +10593,7 @@ to compensate the calculations for the pressure limit
                  "abs_species",
                  "select_abs_species",
                  "jacobian_targets",
-                 "atm_point",
-                 "lbl_checked"},
+                 "atm_point"},
 
       };
 
@@ -11019,8 +11029,7 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "atm_point",
              "nlte_vib_energies",
              "rtp_los",
-             "nlte_do",
-             "lbl_checked"},
+             "nlte_do"},
       .gin = {"manual_mag_field", "H", "theta", "eta"},
       .gin_type = {"Index", "Numeric", "Numeric", "Numeric"},
       .gin_value = {Index{0}, Numeric{1.0}, Numeric{0.0}, Numeric{0.0}},

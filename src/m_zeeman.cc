@@ -30,7 +30,6 @@ void propmat_clearskyAddZeeman(
     const VibrationalEnergyLevels& nlte_vib_levels,
     const Vector& ppath_los,
     const Index& nlte_do,
-    const Index& lbl_checked,
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
@@ -39,9 +38,6 @@ void propmat_clearskyAddZeeman(
   
   ARTS_USER_ERROR_IF((ppath_los.size() not_eq 2) and (not manual_zeeman_tag),
     "Only for 2D *ppath_los* or a manual magnetic field");
-  
-  ARTS_USER_ERROR_IF(not lbl_checked,
-    "Please set lbl_checked true to use this function")
 
   // Change to LOS by radiation
   Vector rtp_los;

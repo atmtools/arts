@@ -46,13 +46,37 @@ void atm_fieldInit(AtmField &atm_field,
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_field.isots()[Species::Isotopologues[i]] = x.data[i];
+        atm_field[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_field.isots()[Species::Isotopologues[i]] = x.data[i];
+        atm_field[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::None:
+    default:
+      break;
+  }
+}
+
+void atm_pointInit(AtmPoint& atm_point,
+                   const String &default_isotopologue) {
+  atm_point = AtmPoint{};
+
+  switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
+    case IsoRatioOption::Builtin: {
+      const SpeciesIsotopologueRatios x =
+          Species::isotopologue_ratiosInitFromBuiltin();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_point[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::Hitran: {
+      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_point[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::None:
