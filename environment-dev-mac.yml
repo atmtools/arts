@@ -20,6 +20,7 @@ dependencies:
         - pytest
         - scipy
         - sphinx
+        - sphinx-favicon
         - sphinx_rtd_theme
         - xarray
         - zlib

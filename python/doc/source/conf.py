@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'sphinx_favicon',
     'matplotlib.sphinxext.plot_directive',
 ]
 
@@ -330,3 +331,10 @@ plot_rcparams = {
     'font.size': 16,
     'savefig.bbox': 'tight',
 }
+
+# -- Favicon ----------------------------------------------------------------
+favicons = [
+    "favicon-16x16.png",
+    "favicon-32x32.png",
+    {"rel": "apple-touch-icon", "sizes": "180x180", "href": "apple-touch-icon.png"},
+]

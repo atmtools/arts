@@ -37,9 +37,14 @@ if (SPHINX_FOUND)
     configure_file(${file} ${file} @ONLY)
   endforeach()
 
-  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst" "*.css" "*.svg" "*.png")
+  file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
   foreach(file ${RST_FILES})
     configure_file(${file} ${file} @ONLY)
+  endforeach()
+
+  file(GLOB_RECURSE MISC_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.css" "*.svg" "*.png" "*.ico")
+  foreach(file ${MISC_FILES})
+    configure_file(${file} ${file} COPYONLY)
   endforeach()
 
   configure_file(build/.nojekyll build/.nojekyll @ONLY)
