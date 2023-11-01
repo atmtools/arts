@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -19,9 +20,9 @@
 #include "fieldmap.h"
 #include <gridded_fields.h>
 
+#include "isotopologues.h"
 #include "quantum_numbers.h"
 #include "species.h"
-#include "species_tags.h"
 
 #include <matpack.h>
 
@@ -51,8 +52,12 @@ concept isParticulatePropertyTag =
     std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
 
 template <typename T>
-concept isArrayOfSpeciesTag =
-    std::is_same_v<std::remove_cvref_t<T>, ArrayOfSpeciesTag>;
+concept isSpecies =
+    std::is_same_v<std::remove_cvref_t<T>, Species::Species>;
+
+template <typename T>
+concept isIsotopeRecord =
+    std::is_same_v<std::remove_cvref_t<T>, Species::IsotopeRecord>;
 
 template <typename T>
 concept isQuantumIdentifier =
@@ -62,10 +67,10 @@ template <typename T>
 concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
 
 template <typename T>
-concept KeyType = isKey<T> or isArrayOfSpeciesTag<T> or
+concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
                   isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
 
-using KeyVal = std::variant<Key, ArrayOfSpeciesTag, QuantumIdentifier,
+using KeyVal = std::variant<Key, Species::Species, Species::IsotopeRecord, QuantumIdentifier,
                             ParticulatePropertyTag>;
 
 std::ostream& operator<<(std::ostream&, const KeyVal&);
@@ -83,7 +88,8 @@ concept ListOfNumeric = requires(T a) {
 };
 
 struct Point {
-  std::unordered_map<ArrayOfSpeciesTag, Numeric> specs{};
+  std::unordered_map<Species::Species, Numeric> specs{};
+  std::unordered_map<Species::IsotopeRecord, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
@@ -95,16 +101,16 @@ public:
               std::numeric_limits<Numeric>::quiet_NaN(),
               std::numeric_limits<Numeric>::quiet_NaN()};
 
-  template <KeyType T> constexpr Numeric operator[](T &&x) const {
-    if constexpr (isArrayOfSpeciesTag<T>) {
+  template <KeyType T> constexpr Numeric operator[](T &&x) const try {
+    if constexpr (isSpecies<T>) {
       auto y = specs.find(std::forward<T>(x));
       return y == specs.end() ? 0 : y->second;
+    } else if constexpr (isIsotopeRecord<T>) {
+      return isots.at(std::forward<T>(x));
     } else if constexpr (isParticulatePropertyTag<T>) {
-      auto y = partp.find(std::forward<T>(x));
-      return y == partp.end() ? 0 : y->second;
+      return partp.at(std::forward<T>(x));
     } else if constexpr (isQuantumIdentifier<T>) {
-      auto y = nlte.find(std::forward<T>(x));
-      return y == nlte.end() ? 0 : y->second;
+      return nlte.at(std::forward<T>(x));
     } else {
       switch (std::forward<T>(x)) {
       case Key::t:
@@ -128,11 +134,17 @@ public:
       }
       ARTS_USER_ERROR("Cannot reach")
     }
+  } catch (std::out_of_range &) {
+    ARTS_USER_ERROR("Key not found: \"", x, '"')
+  } catch (std::exception &) {
+    throw;
   }
 
   template <KeyType T> constexpr Numeric &operator[](T &&x) {
-    if constexpr (isArrayOfSpeciesTag<T>) {
+    if constexpr (isSpecies<T>) {
       return specs[std::forward<T>(x)];
+    } else if constexpr (isIsotopeRecord<T>) {
+      return isots[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
     } else if constexpr (isParticulatePropertyTag<T>) {
@@ -162,16 +174,16 @@ public:
     }
   }
 
-  Numeric operator[](Species::Species x) const noexcept;
-
   Numeric operator[](const KeyVal &) const;
   Numeric &operator[](const KeyVal &);
 
   template <KeyType T, KeyType... Ts, std::size_t N = sizeof...(Ts)>
   constexpr bool has(T &&key, Ts &&...keys) const {
     const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
-      if constexpr (isArrayOfSpeciesTag<T>)
+      if constexpr (isSpecies<T>)
         return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
+      else if constexpr (isIsotopeRecord<T>)
+        return x.isots.end() not_eq x.isots.find(std::forward<T>(k));
       else if constexpr (isKey<T>)
         return true;
       else if constexpr (isQuantumIdentifier<T>)
@@ -191,6 +203,7 @@ public:
 
   [[nodiscard]] Index size() const;
   [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index nisot() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] static constexpr Index nother() {
@@ -215,8 +228,6 @@ public:
   void setZero();
 
   friend std::ostream &operator<<(std::ostream &os, const Point &atm);
-
-  void set(const ArrayOfArrayOfSpeciesTag& sp, const ConstVectorView &x);
 };
 
 //! All the field data; if these types grow too much we might want to
@@ -310,19 +321,21 @@ concept isData = std::is_same_v<std::remove_cvref_t<T>, Data>;
 template <typename T>
 concept DataType = RawDataType<T> or isData<T>;
 
-struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag,
+struct Field final : FieldMap::Map<Data, Key, Species::Species, Species::IsotopeRecord,
                                    QuantumIdentifier, ParticulatePropertyTag> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
-  [[nodiscard]] const std::unordered_map<ArrayOfSpeciesTag, Data> &specs() const;
+  [[nodiscard]] const std::unordered_map<Species::Species, Data> &specs() const;
+  [[nodiscard]] const std::unordered_map<Species::IsotopeRecord, Data> &isots() const;
   [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp() const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
-  [[nodiscard]] std::unordered_map<ArrayOfSpeciesTag, Data> &specs();
+  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
+  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
   [[nodiscard]] std::unordered_map<Key, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
 
@@ -333,6 +346,7 @@ struct Field final : FieldMap::Map<Data, Key, ArrayOfSpeciesTag,
   [[nodiscard]] std::vector<Point> at(const Vector &alt, const Vector &lat, const Vector &lon) const;
 
   [[nodiscard]] Index nspec() const;
+  [[nodiscard]] Index nisot() const;
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] Index nother() const;
@@ -351,8 +365,6 @@ std::ostream& operator<<(std::ostream& os, const Array<Point>& a);
 
 bool operator==(const KeyVal&, Key);
 bool operator==(Key, const KeyVal&);
-bool operator==(const KeyVal&, const ArrayOfSpeciesTag&);
-bool operator==(const ArrayOfSpeciesTag&, const KeyVal&);
 bool operator==(const KeyVal&, const Species::Species&);
 bool operator==(const Species::Species&, const KeyVal&);
 bool operator==(const KeyVal&, const QuantumIdentifier&);

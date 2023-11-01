@@ -9,9 +9,12 @@
   \brief This file contains basic functions to handle XML data files.
 */
 
+#include "atm.h"
 #include "cloudbox.h"
 #include "compare.h"
 #include "debug.h"
+#include "isotopologues.h"
+#include "species.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
 
@@ -2025,8 +2028,10 @@ void xml_read_from_stream_helper(std::istream &is_xml, Atm::KeyVal &key_val,
 
   if (keytype == "Atm::Key")
     key_val = Atm::toKeyOrThrow(key);
-  else if (keytype == "ArrayOfSpeciesTag")
-    key_val = ArrayOfSpeciesTag(key);
+  else if (keytype == "Species")
+    key_val = Species::fromShortName(key);
+  else if (keytype == "IsotopeRecord")
+    key_val = Species::Isotopologues[Species::find_species_index(key)];
   else if (keytype == "QuantumIdentifier")
     key_val = QuantumIdentifier(key);
   else
@@ -2098,11 +2103,14 @@ void xml_write_to_stream_helper(std::ostream &os_xml, const Atm::KeyVal &key,
 
   std::visit([&](auto& key_val){
     if constexpr (Atm::isKey<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Atm::Key");
-    else if constexpr (Atm::isArrayOfSpeciesTag<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "ArrayOfSpeciesTag");
+    else if constexpr (Atm::isSpecies<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "Species");
+    else if constexpr (Atm::isIsotopeRecord<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "IsotopeRecord");
     else if constexpr (Atm::isQuantumIdentifier<decltype(key_val)>) open_data_tag.add_attribute("keytype",  "QuantumIdentifier");
     else ARTS_ASSERT(false, "New key type is not yet handled by writing routine!")
     
-    open_data_tag.add_attribute("key", var_string(key_val));
+    if constexpr (Atm::isSpecies<decltype(key_val)>) open_data_tag.add_attribute("key", String{Species::toShortName(key_val)});
+    else open_data_tag.add_attribute("key", var_string(key_val));
+
     open_data_tag.add_attribute("type", data.data_type());
     open_data_tag.add_attribute("alt_low", String{toString(data.alt_low)});
     open_data_tag.add_attribute("alt_upp", String{toString(data.alt_upp)});
@@ -2202,7 +2210,7 @@ void xml_read_from_stream(std::istream& is_xml,
       atm[Atm::toKeyOrThrow(k)] = v;
       nother--;
     } else if (nspec > 0) {
-      atm[ArrayOfSpeciesTag(k)] = v;
+      atm[Species::fromShortName(k)] = v;
       nspec--;
     } else if (nnlte > 0) {
       atm[QuantumIdentifier(k)] = v;

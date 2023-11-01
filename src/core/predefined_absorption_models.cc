@@ -304,7 +304,7 @@ void compute(PropmatVector& propmat_clearsky,
             rtp_temperature,
             vmr,
             d,
-            std::get_if<ArrayOfSpeciesTag>(&j.second->type)->Species(),
+            *std::get_if<Species::Species>(&j.second->type),
             predefined_model_data);
         dpropmat_clearsky_dx[iq] += dpm;
       }

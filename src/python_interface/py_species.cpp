@@ -38,7 +38,6 @@ void py_species(py::module_& m) try {
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
            py::doc("Builtin values"))
       .PythonInterfaceCopyValue(SpeciesIsotopologueRatios)
-      .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotopologueRatios)
       .PythonInterfaceFileIO(SpeciesIsotopologueRatios)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopologueRatios)
       .def_readonly_static("maxsize", &SpeciesIsotopologueRatios::maxsize, ":class:`int` The max size of the data")
@@ -57,8 +56,7 @@ void py_species(py::module_& m) try {
             auto out = std::make_shared<SpeciesIsotopologueRatios>();
             out->data = v;
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SpeciesIsotopologueRatios);
+          }));
 
   artsarray<ArrayOfSpecies>(m, "ArrayOfSpecies")
       .def(py::init([](const std::vector<std::string>& x) {

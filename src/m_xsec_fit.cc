@@ -121,7 +121,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     if (select_abs_species.size() and abs_species[i] not_eq select_abs_species)
       continue;
 
-    const Numeric vmr = atm_point[abs_species[i]];
+    const Numeric vmr = atm_point[abs_species[i].Species()];
 
     for (Size s = 0; s < abs_species[i].size(); s++) {
       const SpeciesTag& this_species = abs_species[i][s];
@@ -178,7 +178,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
       }
 
       if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[i]);
+              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[i].Species());
           j.first) {
         const auto iq = j.second->target_pos;
         dpropmat_clearsky_dx(iq, f).A() += xsec_temp[f] * nd * vmr;

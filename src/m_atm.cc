@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 #include <exception>
 #include <iomanip>
@@ -14,6 +15,7 @@
 #include "debug.h"
 #include "enums.h"
 #include "gridded_fields.h"
+#include "hitran_species.h"
 #include "igrf13.h"
 #include "interp.h"
 #include "interpolation.h"
@@ -31,9 +33,56 @@ void atm_fieldTopOfAtmosphere(AtmField &atm_field,
   atm_field.top_of_atmosphere = top_of_atmosphere;
 }
 
-void atm_fieldInit(AtmField &atm_field, const Numeric &top_of_atmosphere) {
+ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
+
+void atm_fieldInit(AtmField &atm_field,
+                   const Numeric &top_of_atmosphere,
+                   const String &default_isotopologue) {
   atm_field = AtmField{};
   atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere);
+
+  switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
+    case IsoRatioOption::Builtin: {
+      const SpeciesIsotopologueRatios x =
+          Species::isotopologue_ratiosInitFromBuiltin();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_field[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::Hitran: {
+      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_field[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::None:
+    default:
+      break;
+  }
+}
+
+void atm_pointInit(AtmPoint& atm_point,
+                   const String &default_isotopologue) {
+  atm_point = AtmPoint{};
+
+  switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
+    case IsoRatioOption::Builtin: {
+      const SpeciesIsotopologueRatios x =
+          Species::isotopologue_ratiosInitFromBuiltin();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_point[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::Hitran: {
+      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
+      for (Index i = 0; i < x.maxsize; i++) {
+        atm_point[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::None:
+    default:
+      break;
+  }
 }
 
 namespace detail {
@@ -142,7 +191,7 @@ void atm_fieldAddCustomDataFile(AtmField &atm_field,
                                 const String &extrapolation_type) {
   detail::atm_fieldAddCustomDataFileImpl(
       atm_field,
-      Atm::KeyVal{spec_key},
+      Atm::KeyVal{spec_key.Species()},
       filename,
       Atm::toExtrapolationOrThrow(extrapolation_type));
 }
@@ -177,7 +226,7 @@ void atm_fieldRead(AtmField &atm_field,
     tmp_basename += ".";
 
   // Reset and initialize
-  atm_fieldInit(atm_field, top_of_atmosphere);
+  atm_fieldInit(atm_field, top_of_atmosphere, "None");
 
   if (read_tp) {
     for (auto &key : {t, p}) {
@@ -240,9 +289,9 @@ void atm_fieldSave(const AtmField &atm_field,
       nlte[key] = atm_field[key];
     } else {
       String keyname;
-      if (std::holds_alternative<ArrayOfSpeciesTag>(key)) {
-        auto *spec_key = std::get_if<ArrayOfSpeciesTag>(&key);
-        auto spec = spec_key->Species();
+      if (std::holds_alternative<Species::Species>(key)) {
+        auto *spec_key = std::get_if<Species::Species>(&key);
+        auto spec = *spec_key;
 
         keyname = toString(spec);
         if (auto ptr = std::find(specs.begin(), specs.end(), spec);
@@ -294,7 +343,7 @@ void atm_fieldAddGriddedData(AtmField &atm_field,
                              const ArrayOfSpeciesTag &key,
                              const GriddedField3 &data,
                              const String &extrapolation_type) {
-  auto &fld = atm_field[key] = data;
+  auto &fld = atm_field[key.Species()] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
 
@@ -331,7 +380,7 @@ void atm_fieldAddNumericData(AtmField &atm_field,
 void atm_fieldAddNumericData(AtmField &atm_field,
                              const ArrayOfSpeciesTag &key,
                              const Numeric &data) {
-  atm_field[key] = data;
+  atm_field[key.Species()] = data;
 }
 
 void atm_fieldAddNumericData(AtmField &atm_field,
@@ -520,12 +569,12 @@ ENUMCLASS(HydrostaticPressureOption, char, HydrostaticEquation, HypsometricEquat
 void atm_fieldHydrostaticPressure(
     AtmField &atm_field,
     const NumericTernaryOperator &gravity_operator,
-    const SpeciesIsotopologueRatios &isotopologue_ratios,
     const GriddedField2 &p0,
     const Vector &alts,
     const Numeric &fixed_specific_gas_constant,
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
+  ARTS_ASSERT(false, "Fix isotopologues")
   using enum atm_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
@@ -570,17 +619,17 @@ void atm_fieldHydrostaticPressure(
           const Numeric g = gravity_operator(al, la, lo);
           const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
 
-          const Numeric inv_specific_gas_constant =
-              has_def_r
-                  ? 1.0 / fixed_specific_gas_constant
-                  : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
-                     Constant::R);
+          // const Numeric inv_specific_gas_constant =
+          //     has_def_r
+          //         ? 1.0 / fixed_specific_gas_constant
+          //         : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
+          //            Constant::R);
           const Numeric inv_temp = has_def_t
                                        ? 1.0 / fixed_atm_temperature
                                        : 1.0 / atm_point.temperature;
 
           // Partial rho, no pressure
-          scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
+          // scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
         }
       }
     }

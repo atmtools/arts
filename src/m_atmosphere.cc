@@ -24,6 +24,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
+#include "auto_wsm.h"
 #include "debug.h"
 #include "species_tags.h"
 #include "absorption.h"
@@ -1547,7 +1548,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
     "There must be at least one absorption species.")
   
   // Set TOA
-  atm_fieldInit(atm_field, max(z_grid));
+  atm_fieldInit(atm_field, max(z_grid), "None");
   GriddedField3 field_data;
   field_data.set_grid_name(0, "Altitude");
   field_data.set_grid_name(1, "Latitude");
@@ -1619,7 +1620,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
         if (species_name == as_name) {
           found = true;
           field_data.data = Tensor3{c.data[i]};
-          atm_field[abs_species[j]] = field_data;
+          atm_field[abs_species[j].Species()] = field_data;
         }
       }
       i++;

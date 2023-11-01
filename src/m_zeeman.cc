@@ -26,12 +26,10 @@ void propmat_clearskyAddZeeman(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_levels,
     const Vector& ppath_los,
     const Index& nlte_do,
-    const Index& lbl_checked,
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
@@ -40,9 +38,6 @@ void propmat_clearskyAddZeeman(
   
   ARTS_USER_ERROR_IF((ppath_los.size() not_eq 2) and (not manual_zeeman_tag),
     "Only for 2D *ppath_los* or a manual magnetic field");
-  
-  ARTS_USER_ERROR_IF(not lbl_checked,
-    "Please set lbl_checked true to use this function")
 
   // Change to LOS by radiation
   Vector rtp_los;
@@ -57,7 +52,6 @@ void propmat_clearskyAddZeeman(
                     select_abs_species,
                     jacobian_targets,
                     abs_lines_per_species,
-                    isotopologue_ratios,
                     f_grid,
                     atm_point,
                     nlte_vib_levels,

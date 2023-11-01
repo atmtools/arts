@@ -98,7 +98,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       ret.at(ctrl.pos).ok.store(true);
 
       ctrl.run.store(false);
-    } catch (std::runtime_error& e) {
+    } catch (std::exception& e) {
       ctrl.errmsg = e.what();
       ctrl.error.store(true);
       ctrl.run.store(false);
@@ -126,11 +126,11 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   Vector rtp_los(2, 0);
   Numeric transmission_distance{1'000};
   AtmPoint atm_point;
-  atm_point[Atm::Key::t] = 300;
-  atm_point[Atm::Key::p] = 1000;
+  atm_point.temperature = 300;
+  atm_point.pressure = 1000;
 
   for (auto& spec : abs_species)
-    atm_point[spec] = 1.0 / static_cast<Numeric>(abs_species.size());
+    atm_point[spec.Species()] = 1.0 / static_cast<Numeric>(abs_species.size());
 
   // Set some defaults
   if (load) {

@@ -1036,7 +1036,7 @@ void rtmethods_jacobian_finalisation(
       else if (jacobian_quantities[iq].Mode() == "rel") {
         // Here x = vmr*z
         for (Index ip = 0; ip < np; ip++) {
-          diy_dpath[iq](ip, joker, joker) *= ppvar_atm[ip][abs_species[jac_species_i[iq]]];
+          diy_dpath[iq](ip, joker, joker) *= ppvar_atm[ip][abs_species[jac_species_i[iq]].Species()];
         }
       }
 
@@ -1088,7 +1088,7 @@ void rtmethods_jacobian_finalisation(
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
               Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
-              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]]] *
+              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]].Species()] *
                         (number_density(ppvar_atm[ip].pressure, ppvar_atm[ip].temperature + 1) -
                          number_density(ppvar_atm[ip].pressure, ppvar_atm[ip].pressure));
               diy_dpath[iq](ip, joker, joker) += ddterm;
@@ -1117,7 +1117,7 @@ void rtmethods_jacobian_finalisation(
               const Numeric p_eq = water_p_eq(ip, 0, 0);
               const Numeric p_eq1K = water_p_eq1K(ip, 0, 0);
               Matrix ddterm{diy_dpath[ia](ip, joker, joker)};
-              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]]] *
+              ddterm *= ppvar_atm[ip][abs_species[jac_species_i[ia]].Species()] *
                         (ppvar_atm[ip].pressure / pow(p_eq, 2.0)) * (p_eq1K - p_eq);
               diy_dpath[iq](ip, joker, joker) += ddterm;
             }

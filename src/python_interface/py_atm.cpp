@@ -3,6 +3,7 @@
 
 #include <python_interface.h>
 
+#include "isotopologues.h"
 #include "py_macros.h"
 
 #include <atm.h>
@@ -86,18 +87,38 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
+          [](AtmPoint &atm, const Species::Species &x) {
             if (not atm.has(x))
               throw py::key_error(var_string(x));
             return atm[x];
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__getitem__",
+          [](AtmPoint &atm, const SpeciesIsotopeRecord &x) {
+            if (not atm.has(x))
+              throw py::key_error(var_string(x));
+            return atm[x];
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__getitem__",
+          [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
+            if (not atm.has(x.Species()))
+              throw py::key_error(var_string(x));
+            return atm[x.Species()];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
            [](AtmPoint &atm, Atm::Key x, Numeric data) { atm[x] = data; })
       .def("__setitem__", [](AtmPoint &atm, const QuantumIdentifier &x,
                              Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const ArrayOfSpeciesTag &x,
+      .def("__setitem__", [](AtmPoint &atm, const Species::Species &x,
                              Numeric data) { atm[x] = data; })
+      .def("__setitem__", [](AtmPoint &atm, const SpeciesIsotopeRecord &x,
+                             Numeric data) { atm[x] = data; })
+      .def("__setitem__", [](AtmPoint &atm, const ArrayOfSpeciesTag &x,
+                             Numeric data) { atm[x.Species()] = data; })
       .def("keys", &AtmPoint::keys)
       .PythonInterfaceCopyValue(AtmPoint)
       .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
@@ -148,17 +169,37 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
+          [](AtmField &atm, const Species::Species &x) -> Atm::Data & {
             if (not atm.has(x))
               throw py::key_error(var_string(x));
             return atm[x];
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__getitem__",
+          [](AtmField &atm, const SpeciesIsotopeRecord &x) -> Atm::Data & {
+            if (not atm.has(x))
+              throw py::key_error(var_string(x));
+            return atm[x];
+          },
+          py::return_value_policy::reference_internal)
+      .def(
+          "__getitem__",
+          [](AtmField &atm, const ArrayOfSpeciesTag &x) -> Atm::Data & {
+            if (not atm.has(x.Species()))
+              throw py::key_error(var_string(x.Species()));
+            return atm[x.Species()];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__", [](AtmField &atm, Atm::Key x,
                              const Atm::Data &data) { atm[x] = data; })
       .def("__setitem__", [](AtmField &atm, const QuantumIdentifier &x,
                              const Atm::Data &data) { atm[x] = data; })
+      .def("__setitem__", [](AtmField &atm, const Species::Species &x,
+                             const Atm::Data &data) { atm[x] = data; })
       .def("__setitem__", [](AtmField &atm, const ArrayOfSpeciesTag &x,
+                             const Atm::Data &data) { atm[x.Species()] = data; })
+      .def("__setitem__", [](AtmField &atm, const SpeciesIsotopeRecord &x,
                              const Atm::Data &data) { atm[x] = data; })
       .def("at", [](const AtmField &atm, const Vector& h, const Vector& lat,
                     const Vector& lon) { return atm.at(h, lat, lon); })

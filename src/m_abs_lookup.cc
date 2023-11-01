@@ -415,7 +415,7 @@ void propmat_clearskyAddFromLookup(
   const Vector a_vmr_list = [&]() {
     Vector vmr(abs_species.size());
     std::transform(abs_species.begin(), abs_species.end(), vmr.begin(),
-                   [&](const ArrayOfSpeciesTag& spec) -> Numeric { return atm_point[spec]; });
+                   [&](const ArrayOfSpeciesTag& spec) -> Numeric { return atm_point[spec.Species()]; });
     return vmr;
   }();
 
@@ -502,7 +502,7 @@ void propmat_clearskyAddFromLookup(
       }
 
       if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[isp]);
+              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[isp].Species());
           j.first) {
         const auto iq = j.second->target_pos;
         dpropmat_clearsky_dx(iq, iv).A() +=

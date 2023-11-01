@@ -836,8 +836,8 @@ void propmat(PropmatClearsky::ResultsArray& res,
         const std::string spec{var_string(abs_species[i])};
         ImGui::Text("\t  %s:\t\n\t    %g%c",
                     spec.c_str(),
-                    v.atm_point[abs_species[i]],
-                    v.atm_point[abs_species[i]] == atm_point[abs_species[i]] ? ' ' : '*');
+                    v.atm_point[abs_species[i].Species()],
+                    v.atm_point[abs_species[i].Species()] == atm_point[abs_species[i].Species()] ? ' ' : '*');
       }
       ImGui::Separator();
 

@@ -34,7 +34,7 @@ void atmfields_checkedCalc(Index &atmfields_checked,
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::p), "No pressure field")
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "No temperature field")
   for (auto &spec : abs_species)
-    ARTS_USER_ERROR_IF(not atm_field.has(spec), "No ",
+    ARTS_USER_ERROR_IF(not atm_field.has(spec.Species()), "No ",
                        std::quoted(var_string(spec)), " field")
 
     {
@@ -297,9 +297,10 @@ void scat_data_checkedCalc(Index& scat_data_checked,
 void lbl_checkedCalc(Index& lbl_checked,
                      const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const SpeciesIsotopologueRatios& isotopologue_ratios)
+                     const AtmField& isotopologue_ratios)
 {
-  checkIsotopologueRatios(abs_lines_per_species, isotopologue_ratios);
+      ARTS_ASSERT(false, "Fix isotopologues")
+  // checkIsotopologueRatios(abs_lines_per_species, isotopologue_ratios);
   checkPartitionFunctions(abs_lines_per_species);
   
   lbl_checked = false;

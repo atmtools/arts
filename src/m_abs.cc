@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <exception>
 #include <memory>
 #include <utility>
 
@@ -291,10 +292,10 @@ void propmat_clearskyAddFaraday(
                                                      Atm::Key::wind_u,
                                                      Atm::Key::wind_v,
                                                      Atm::Key::wind_w,
-                                                     abs_species[ife]);
+                                                     abs_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
-  const Numeric ne = atm_point[abs_species[ife]];
+  const Numeric ne = atm_point[abs_species[ife].Species()];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
@@ -475,7 +476,7 @@ void propmat_clearskyAddParticles(
       // particle entry. shouldn't happen, though.
       ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF(
-          atm_point[abs_species[sp]] < 0.,
+          atm_point[abs_species[sp].Species()] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
           "scat species #",
@@ -486,7 +487,7 @@ void propmat_clearskyAddParticles(
           sp,
           ")\n")
 
-      if (atm_point[abs_species[sp]] > 0.) {
+      if (atm_point[abs_species[sp].Species()] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
                            "scat species #",
@@ -508,7 +509,7 @@ void propmat_clearskyAddParticles(
           }
         }
         
-        const Numeric vmr = atm_point[abs_species[sp]];
+        const Numeric vmr = atm_point[abs_species[sp].Species()];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv] += vmr * internal_propmat[iv];
         }
@@ -535,7 +536,7 @@ void propmat_clearskyAddParticles(
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
-        tmp *= atm_point[abs_species[sp]];
+        tmp *= atm_point[abs_species[sp].Species()];
         tmp /= dT;
 
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
@@ -550,8 +551,8 @@ void propmat_clearskyAddParticles(
         }
       }
 
-      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp]);jac_species.first) {
-        rtp_vmr_sum += atm_point[abs_species[sp]];
+      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp].Species());jac_species.first) {
+        rtp_vmr_sum += atm_point[abs_species[sp].Species()];
         const auto iq = jac_species.second->target_pos;
         
         for (Index iv = 0; iv < f_grid.nelem(); iv++)
@@ -612,11 +613,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const SpeciesIsotopologueRatios& isotopologue_ratios,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,
     const Index& nlte_do,
-    const Index& lbl_checked,
     // WS User Generic inputs
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
@@ -628,7 +627,6 @@ void propmat_clearskyAddLines(  // Workspace reference:
   const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(not lbl_checked, "Must check LBL calculations")
   check_abs_species(abs_species);
   ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
                      "*f_grid* must match *propmat_clearsky*")
@@ -693,8 +691,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
                           nlte_vib_energies,
                           band.BroadeningSpeciesVMR(atm_point),
                           abs_species[ispecies],
-                          atm_point[abs_species[ispecies]],
-                          isotopologue_ratios[band.Isotopologue()],
+                          atm_point[band.Species()],
+                          atm_point[band.Isotopologue()],
                           atm_point.pressure,
                           atm_point.temperature,
                           0,
@@ -720,39 +718,55 @@ void propmat_clearskyAddLines(  // Workspace reference:
         LineShape::ComputeData{
             f_grid_sparse, jacobian_targets, static_cast<bool>(nlte_do)});
 
-#pragma omp parallel for schedule(dynamic)
+    std::atomic<bool> error{false};
+    std::string error_message;
+
+#pragma omp parallel for
     for (Index i = 0; i < nbands; i++) {
-      const auto [ispecies, iband] =
-          flat_index(i, abs_species, abs_lines_per_species);
-          
-      if (select_abs_species.size() and
-          select_abs_species not_eq abs_species[ispecies])
-        continue;
+      if (error.load()) continue;
 
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].size())
-        continue;
+      try {
+        const auto [ispecies, iband] =
+            flat_index(i, abs_species, abs_lines_per_species);
 
-      auto& band = abs_lines_per_species[ispecies][iband];
-      LineShape::compute(vcom[arts_omp_get_thread_num()],
-                         vsparse_com[arts_omp_get_thread_num()],
-                         band,
-                         jacobian_targets,
-                         atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
-                         nlte_vib_energies,
-                         band.BroadeningSpeciesVMR(atm_point),
-                         abs_species[ispecies],
-                         atm_point[abs_species[ispecies]],
-                         isotopologue_ratios[band.Isotopologue()],
-                         atm_point.pressure,
-                         atm_point.temperature,
-                         0,
-                         sparse_lim,
-                         Zeeman::Polarization::None,
-                         speedup_type,
-                         robust not_eq 0);
+        if (select_abs_species.size() and
+            select_abs_species not_eq abs_species[ispecies])
+          continue;
+
+        // Skip it if there are no species or there is Zeeman requested
+        if (not abs_species[ispecies].size() or
+            abs_species[ispecies].Zeeman() or
+            not abs_lines_per_species[ispecies].size())
+          continue;
+
+        auto& band = abs_lines_per_species[ispecies][iband];
+        LineShape::compute(vcom[arts_omp_get_thread_num()],
+                           vsparse_com[arts_omp_get_thread_num()],
+                           band,
+                           jacobian_targets,
+                           atm_point.is_lte()
+                               ? std::pair{0., 0.}
+                               : atm_point.levels(band.quantumidentity),
+                           nlte_vib_energies,
+                           band.BroadeningSpeciesVMR(atm_point),
+                           abs_species[ispecies],
+                           atm_point[band.Species()],
+                           atm_point[band.Isotopologue()],
+                           atm_point.pressure,
+                           atm_point.temperature,
+                           0,
+                           sparse_lim,
+                           Zeeman::Polarization::None,
+                           speedup_type,
+                           robust not_eq 0);
+      } catch (std::exception& e) {
+        error.store(true);
+#pragma omp critical
+        error_message = e.what();
+      }
     }
+
+    ARTS_USER_ERROR_IF(error, error_message)
 
     for (auto& pcom: vcom) com += pcom;
     for (auto& pcom: vsparse_com) sparse_com += pcom;

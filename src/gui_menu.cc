@@ -301,12 +301,12 @@ bool change_item(const char* name,
 
         for (Size i = 0; i < spec.size(); i++) {
           const std::string spec_name{var_string('\t', spec[i], '\t')};
-          Numeric val = scale * vec[spec[i]];
+          Numeric val = scale * vec[spec[i].Species()];
           ImGui::Text("\t");
           ImGui::SameLine();
           if (ImGui::InputDouble(spec_name.c_str(), &val, 0, 0, "%g")) {
             val /= scale;
-            vec[spec[i]] = std::clamp(val, 0.0, max);
+            vec[spec[i].Species()] = std::clamp(val, 0.0, max);
             did_something = true;
           }
           ImGui::Separator();

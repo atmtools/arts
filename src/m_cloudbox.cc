@@ -223,7 +223,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
     scat_data_raw[last_species].push_back(scat_data_single);
-    atm_field[abs_species.back()] = pnd_field_data;
+    atm_field[abs_species.back().Species()] = pnd_field_data;
 
     xml_read_from_file(
         scat_data_files[i],
@@ -239,13 +239,13 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     } else {
       try {
         xml_read_from_file(pnd_field_files[i],
-                           atm_field[abs_species.back()].get<GriddedField3&>());
+                           atm_field[abs_species.back().Species()].get<GriddedField3&>());
       } catch (...) {
         ArrayOfGriddedField3 tmp;
         try {
           xml_read_from_file(pnd_field_files[i], tmp);
           if (tmp.size() == 1) {
-            atm_field[abs_species.back()] = tmp[0];
+            atm_field[abs_species.back().Species()] = tmp[0];
           } else {
             ARTS_USER_ERROR (
               "The file ", pnd_field_files[i], "\n"
@@ -258,7 +258,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
         }
       }
 
-      chk_pnd_data(atm_field[abs_species.back()].get<const GriddedField3&>(),
+      chk_pnd_data(atm_field[abs_species.back().Species()].get<const GriddedField3&>(),
                    pnd_field_files[i]);
     }
   }
