@@ -833,6 +833,11 @@ public:
 
   //! Unconditionally sets this object's view to another view --- use carefully
   constexpr void set(const matpack_view& other) { view = other.view; }
+
+  constexpr T& front() requires (not constant) { return *begin(); }
+  constexpr const T& front() const { return *begin(); }
+  constexpr T& back() requires (not constant) { return *std::prev(end()); }
+  constexpr const T& back() const { return *std::prev(end()); }
 };
 
 /** Describe the matpack data type

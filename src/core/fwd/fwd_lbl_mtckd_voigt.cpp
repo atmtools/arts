@@ -202,7 +202,6 @@ band_lm::band_lm(const AtmPoint& atm_point,
 Complex band_lm::at(Numeric f) const {
   using Conversion::hz2joule;
   using Conversion::kelvin2joule;
-
   const Numeric fscl = -f * std::expm1(-hz2joule(f) / kelvin2joule(T));
   const Numeric nscl = number_density(P, T);
 

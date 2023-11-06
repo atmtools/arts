@@ -1,0 +1,435 @@
+/**
+ * @file   zeemandata.h
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2018-04-06
+ * 
+ * @brief Headers and class definition of Zeeman modeling
+ * 
+ * This file serves to describe the Zeeman splitting
+ * implementations using various up-to-speed methods
+ */
+
+#ifndef zeemandata_h
+#define zeemandata_h
+
+#include <matpack.h>
+#include <quantum_numbers.h>
+#include <rtepack.h>
+
+#include <limits>
+
+/** Implements Zeeman modeling */
+namespace lbl::zeeman {
+
+/** Zeeman polarization selection */
+enum class pol : char { sm, pi, sp, no };
+
+/** Gives the change of M given a polarization type
+ * 
+ * @param[in] type The polarization type
+ * 
+ * @return The change in M
+ */
+constexpr Index dM(pol type) noexcept {
+  switch (type) {
+    case pol::sm:
+      return -1;
+    case pol::pi:
+      return 0;
+    case pol::sp:
+      return 1;
+    case pol::no:
+      return 0;
+  }
+  return std::numeric_limits<Index>::max();
+}
+
+/** Gives the lowest M for a polarization type of this transition
+ * 
+ * Since the polarization determines the change in M, this
+ * function gives the first M of interest in the range of M
+ * possible for a given transition
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * 
+ * @return The lowest M value
+ */
+constexpr Rational start(Rational Ju, Rational Jl, pol type) noexcept {
+  switch (type) {
+    case pol::sm:
+      if (Ju < Jl)
+        return -Ju;
+      else if (Ju == Jl)
+        return -Ju + 1;
+      else
+        return -Ju + 2;
+    case pol::pi:
+      return -min(Ju, Jl);
+    case pol::sp:
+      return -Ju;
+    case pol::no:
+      return 0;
+  }
+  return std::numeric_limits<Index>::max();
+}
+
+/** Gives the largest M for a polarization type of this transition
+ * 
+ * Since the polarization determines the change in M, this
+ * function gives the last M of interest in the range of M
+ * possible for a given transition
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * 
+ * @return The largest M value
+ */
+constexpr Rational end(Rational Ju, Rational Jl, pol type) noexcept {
+  switch (type) {
+    case pol::sm:
+      return Ju + 1;
+    case pol::pi:
+      return min(Ju, Jl);
+    case pol::sp:
+      if (Ju < Jl)
+        return Ju + 1;
+      else if (Ju == Jl)
+        return Ju;
+      else
+        return Jl;
+    case pol::no:
+      return 0;
+  }
+  return std::numeric_limits<Index>::max();
+}
+
+/** Gives the number of elements of the polarization type of this transition
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * 
+ * @return The number of elements
+ */
+constexpr Index size(Rational Ju, Rational Jl, pol type) noexcept {
+  return (end(Ju, Jl, type) - start(Ju, Jl, type)).toIndex() + 1;
+}
+
+/** Gives the upper state M value at an index
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * The user has to ensure n is less than the number of elements
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * @param[in] n The position
+ * 
+ * @return The upper state M
+ */
+constexpr Rational Mu(Rational Ju, Rational Jl, pol type, Index n) noexcept {
+  return start(Ju, Jl, type) + n;
+}
+
+/** Gives the lower state M value at an index
+ * 
+ * The user has to ensure that Ju and Jl is a valid transition
+ * 
+ * The user has to ensure n is less than the number of elements
+ * 
+ * @param[in] Ju J of the upper state
+ * @param[in] Jl J of the upper state
+ * @param[in] type The polarization type
+ * @param[in] n The position
+ * 
+ * @return The lower state M
+ */
+constexpr Rational Ml(Rational Ju, Rational Jl, pol type, Index n) noexcept {
+  return Mu(Ju, Jl, type, n) + dM(type);
+}
+
+/** The renormalization factor of a polarization type
+ * 
+ * The polarization comes from some geometry.  This function
+ * returns the factor we need to compute that geometry and to
+ * turn it into something that normalizes every possible M
+ * for this type into some strength that sums to unity
+ *  
+ * @param[in] type The polarization type
+ * 
+ * @return Rescale factor
+ */
+constexpr Numeric polarization_factor(pol type) noexcept {
+  switch (type) {
+    case pol::sm:
+      return .75;
+    case pol::pi:
+      return 1.5;
+    case pol::sp:
+      return .75;
+    case pol::no:
+      return 1.0;
+  }
+  return std::numeric_limits<Numeric>::max();
+}
+
+/** Computes the Zeeman splitting coefficient
+ * 
+ * The level should be Hund case b type and all
+ * the values have to be defined
+ *  
+ * @param[in] N The N quantum number of the level
+ * @param[in] J The J quantum number of the level
+ * @param[in] Lambda The Lambda quantum number of the level
+ * @param[in] S The S quantum number of the level
+ * @param[in] GS The spin Landé coefficient of the molecule
+ * @param[in] GL The Landé coefficient of the molecule
+ * 
+ * @return Zeeman splitting coefficient of the level
+ */
+constexpr Numeric SimpleGCaseB(Rational N,
+                               Rational J,
+                               Rational Lambda,
+                               Rational S,
+                               Numeric GS,
+                               Numeric GL) noexcept {
+  auto JJ = J * (J + 1);
+  auto NN = N * (N + 1);
+  auto SS = S * (S + 1);
+  auto LL = Lambda * Lambda;
+
+  if (JJ == 0) return 0.0;
+  if (NN not_eq 0) {
+    auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
+    auto T2 = ((JJ - SS + NN) * LL / NN / JJ / 2).toNumeric();
+    return GS * T1 + GL * T2;
+  }
+  auto T1 = ((JJ + SS - NN) / JJ / 2).toNumeric();
+  return GS * T1;
+}
+
+/** Computes the Zeeman splitting coefficient
+ * 
+ * The level should be Hund case a type and all
+ * the values have to be defined
+ *  
+ * @param[in] Omega The Omega quantum number of the level
+ * @param[in] J The J quantum number of the level
+ * @param[in] Lambda The Lambda quantum number of the level
+ * @param[in] Sigma The Sigma quantum number of the level
+ * @param[in] GS The spin Landé coefficient of the molecule
+ * @param[in] GL The Landé coefficient of the molecule
+ * 
+ * @return Zeeman splitting coefficient of the level
+ */
+constexpr Numeric SimpleGCaseA(Rational Omega,
+                               Rational J,
+                               Rational Lambda,
+                               Rational Sigma,
+                               Numeric GS,
+                               Numeric GL) noexcept {
+  auto JJ = J * (J + 1);
+
+  if (JJ == Rational(0)) return 0.0;
+  auto DIV = Omega / JJ;
+  auto T1 = (Sigma * DIV).toNumeric();
+  auto T2 = (Lambda * DIV).toNumeric();
+  return GS * T1 + GL * T2;
+}
+
+/** Main storage for Zeeman splitting coefficients
+ * 
+ * The splitting data has an upper (gu) and lower (gl)
+ * component and this stores both of them to not confuse
+ * them elsewhere
+ */
+struct data {
+  Numeric gu{0}, gl{0};
+  constexpr auto operator<=>(const data &) const noexcept = default;
+};
+
+/** Main Zeeman Model
+ * 
+ * This model contains the splitting coefficients
+ * of an energy level.  Various detailed and simplified
+ * initialization routines are defined.  Is also used
+ * as the interface for all Zeeman computations
+ */
+struct model {
+  data mdata{};
+
+  /** Default init */
+  constexpr model() noexcept = default;
+  constexpr model(model &&) noexcept = default;
+  constexpr model(const model &) noexcept = default;
+  constexpr model &operator=(model &&) noexcept = default;
+  constexpr model &operator=(const model &) noexcept = default;
+  constexpr auto operator<=>(const model &) const noexcept = default;
+  constexpr model(data d) noexcept : mdata(d){};
+
+  /** Attempts to compute Zeeman input if available
+   * 
+   * Will first attempt advanced initialization from
+   * specialized functions for special species.  If
+   * this fails, will attempt simple initialization
+   * from pure Hund-cases.  If this fails, will throw
+   * a runtime_error.
+   * 
+   * @param[in] qid Transition type quantum id
+   */
+  explicit model(const QuantumIdentifier &qid) noexcept;
+
+  /** Returns true if the Model represents no Zeeman effect */
+  [[nodiscard]] constexpr bool empty() const noexcept {
+    return 0.0 == mdata.gu and mdata.gl == 0.0;
+  }
+
+  /** Returns the upper state g */
+  constexpr Numeric &gu() noexcept { return mdata.gu; }
+
+  /** Returns the lower state g */
+  constexpr Numeric &gl() noexcept { return mdata.gl; }
+
+  /** Sets the upper state g */
+  constexpr void gu(Numeric x) noexcept { mdata.gu = x; }
+
+  /** Sets the lower state g */
+  constexpr void gl(Numeric x) noexcept { mdata.gl = x; }
+
+  /** Returns the upper state g */
+  [[nodiscard]] constexpr Numeric gu() const noexcept { return mdata.gu; }
+
+  /** Returns the lower state g */
+  [[nodiscard]] constexpr Numeric gl() const noexcept { return mdata.gl; }
+
+  /** Gives the strength of one subline of a given polarization
+   * 
+   * The user has to ensure that Ju and Jl is a valid transition
+   * 
+   * The user has to ensure n is less than the number of elements
+   * 
+   * @param[in] Ju J of the upper state
+   * @param[in] Jl J of the upper state
+   * @param[in] type The polarization type
+   * @param[in] n The position
+   * 
+   * @return The relative strength of the Zeeman subline
+   */
+  [[nodiscard]] Numeric Strength(Rational Ju,
+                                 Rational Jl,
+                                 pol type,
+                                 Index n) const ARTS_NOEXCEPT;
+
+  /** Gives the strength of one subline of a given polarization
+   * 
+   * The user has to ensure that Ju and Jl is a valid transition
+   * 
+   * The user has to ensure n is less than the number of elements
+   * 
+   * @param[in] Ju J of the upper state
+   * @param[in] Jl J of the upper state
+   * @param[in] type The polarization type
+   * @param[in] n The position
+   * 
+   * @return The relative strength of the Zeeman subline
+   */
+  [[nodiscard]] Numeric Strength(const QuantumNumberValueList &qn,
+                                 pol type,
+                                 Index n) const ARTS_NOEXCEPT;
+
+  /** Gives the splitting of one subline of a given polarization
+   * 
+   * The user has to ensure that Ju and Jl is a valid transition
+   * 
+   * The user has to ensure n is less than the number of elements
+   * 
+   * @param[in] Ju J of the upper state
+   * @param[in] Jl J of the upper state
+   * @param[in] type The polarization type
+   * @param[in] n The position
+   * 
+   * @return The splitting of the Zeeman subline
+   */
+  [[nodiscard]] constexpr Numeric Splitting(Rational Ju,
+                                            Rational Jl,
+                                            pol type,
+                                            Index n) const noexcept {
+    using Constant::bohr_magneton;
+    using Constant::h;
+    constexpr Numeric C = bohr_magneton / h;
+
+    return type == pol::no
+               ? 0.0
+               : C * (Ml(Ju, Jl, type, n) * gl() - Mu(Ju, Jl, type, n) * gu());
+  }
+
+  /** Gives the splitting of one subline of a given polarization
+   * 
+   * The user has to ensure that Ju and Jl is a valid transition
+   * 
+   * The user has to ensure n is less than the number of elements
+   * 
+   * @param[in] Ju J of the upper state
+   * @param[in] Jl J of the upper state
+   * @param[in] type The polarization type
+   * @param[in] n The position
+   * 
+   * @return The splitting of the Zeeman subline
+   */
+  [[nodiscard]] Numeric Splitting(const QuantumNumberValueList &qn,
+                                  pol type,
+                                  Index n) const noexcept;
+
+  /** Gives the number of lines for a given polarization type
+   * 
+   * @param[in] qn The quantum numbers of the local state
+   * @param[in] type The polarization type
+   * 
+   * @return The splitting of the Zeeman subline
+   */
+  [[nodiscard]] Index size(const QuantumNumberValueList &qn,
+                           pol type) const noexcept;
+
+  /** Output operator for Zeeman::Model */
+  friend std::ostream &operator<<(std::ostream &os, const model &m);
+
+  /** Input operator for Zeeman::Model */
+  friend std::istream &operator>>(std::istream &is, model &m);
+};  // Model;
+
+/** Returns a simple Zeeman model 
+ * 
+ * Will use the simple Hund case provided
+ * by input.  Throws if the input is bad
+ * 
+ * @param[in] qid Transition type quantum id
+ * 
+ * @return Zeeman model data
+ */
+data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+
+/** Returns an advanced Zeeman model 
+ * 
+ * Will look at available Quantum numbers
+ * and use best approximation for the model
+ * to use.  If no good approximation is available,
+ * it returns Model({0, 0}).
+ * 
+ * @param[in] qid Transition type quantum id
+ * 
+ * @return Zeeman model data
+ */
+data GetAdvancedModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
+};  // namespace lbl::zeeman
+
+#endif /* zeemandata_h */

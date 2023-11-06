@@ -12,6 +12,8 @@
 #include "species.h"
 #include "species_tags.h"
 
+#include <partfun.h>
+
 namespace Python {
 void py_species(py::module_& m) try {
   //! This class should behave as an `options` but we need also the "fromShortName" policy
@@ -78,6 +80,9 @@ void py_species(py::module_& m) try {
       .def(py::init([](const std::string& c) {
         return Species::Isotopologues.at(Species::find_species_index(c));
       }), "From :class:`str`")
+      .def("Q", [](const SpeciesIsotopeRecord& self, Numeric T){
+        return PartitionFunctions::Q(T, self);
+      }, py::arg("T"), "Partition function")
       .PythonInterfaceCopyValue(SpeciesIsotopeRecord)
       .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
       .def_readwrite("spec", &SpeciesIsotopeRecord::spec, ":class:`~pyarts.arts.Species` The species")

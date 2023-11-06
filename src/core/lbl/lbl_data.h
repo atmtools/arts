@@ -1,0 +1,176 @@
+#pragma once
+
+#include <matpack.h>
+
+#include <limits>
+#include <vector>
+
+#include "lbl_lineshape_model.h"
+#include "lbl_zeeman.h"
+#include "quantum_numbers.h"
+#include "species.h"
+
+namespace lbl {
+struct line {
+  //! Einstein A coefficient
+  Numeric a;
+
+  //! Line center
+  Numeric f0;
+
+  //! Lower level energy
+  Numeric e0;
+
+  //! Upper level statistical weight
+  Numeric gu;
+
+  //! Lower level statistical weight
+  Numeric gl;
+
+  //! Zeeman model
+  zeeman::model z;
+
+  //! Line shape model
+  line_shape::model ls;
+
+  //! Quantum numbers of this line
+  QuantumNumberLocalState qn;
+
+  /*! Line strength in LTE divided by frequency-factor
+
+  WARNING: 
+  To agree with databases line strength, you must scale
+  the output of this by f * (1 - exp(-hf/kT))
+
+  @param[in] T Temperature [K]
+  @param[in] Q Partition function at temperature [-]
+  @return Line strength in LTE divided by frequency [per m^2]
+  */
+  [[nodiscard]] Numeric s(Numeric T, Numeric Q) const noexcept;
+
+  /*! Derivative of s(T, Q) wrt to this->e0
+
+  @param[in] T Temperature [K]
+  @param[in] Q Partition function at temperature [-]
+  @return Line strength in LTE divided by frequency [per m^2]
+  */
+  [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const noexcept;
+
+  /*! Derivative of s(T, Q) wrt to this->f0
+
+  @param[in] T Temperature [K]
+  @param[in] Q Partition function at temperature [-]
+  @return Line strength in LTE divided by frequency [per m^2]
+  */
+  [[nodiscard]] Numeric ds_df0(Numeric T, Numeric Q) const noexcept;
+
+  /*! Derivative of s(T, Q) wrt to this->a
+
+  @param[in] T Temperature [K]
+  @param[in] Q Partition function at temperature [-]
+  @return Line strength in LTE divided by frequency [per m^2]
+  */
+  [[nodiscard]] Numeric ds_da(Numeric T, Numeric Q) const noexcept;
+
+  /*! Derivative of s(T, Q) wrt to input t
+
+  @param[in] T Temperature [K]
+  @param[in] Q Partition function at temperature [-]
+  @param[in] dQ_dt Partition function derivative at temperature wrt t [-]
+  @return Line strength in LTE divided by frequency [per m^2]
+  */
+  [[nodiscard]] Numeric ds_dT(Numeric T,
+                              Numeric Q,
+                              Numeric dQ_dt) const noexcept;
+};
+
+ENUMCLASS(CutoffType, char, None, Freq)
+
+ENUMCLASS(Lineshape, char, VP)
+
+ENUMCLASS(Linestrength, char, LTE)
+
+struct band {
+  std::vector<line> lines;
+
+  Lineshape lineshape;
+
+  Linestrength linestrength;
+
+  CutoffType cutoff;
+
+  Numeric cutoff_value;
+
+  [[nodiscard]] auto&& back() noexcept { return lines.back(); }
+  [[nodiscard]] auto&& back() const noexcept { return lines.back(); }
+  [[nodiscard]] auto&& front() noexcept { return lines.front(); }
+  [[nodiscard]] auto&& front() const noexcept { return lines.front(); }
+  [[nodiscard]] auto size() const noexcept { return lines.size(); }
+  [[nodiscard]] auto begin() noexcept { return lines.begin(); }
+  [[nodiscard]] auto begin() const noexcept { return lines.begin(); }
+  [[nodiscard]] auto cbegin() const noexcept { return lines.cbegin(); }
+  [[nodiscard]] auto end() noexcept { return lines.end(); }
+  [[nodiscard]] auto end() const noexcept { return lines.end(); }
+  [[nodiscard]] auto cend() const noexcept { return lines.cend(); }
+
+  [[nodiscard]] constexpr Numeric get_cutoff_frequency() const noexcept {
+    using enum CutoffType;
+    switch (cutoff) {
+      case None:
+        return std::numeric_limits<Numeric>::infinity();
+      case Freq:
+        return cutoff_value;
+      case FINAL:;  // Leave last
+    }
+    return -1;
+  }
+};
+
+//! The key to finding any absorption band
+using band_key = QuantumIdentifier;
+
+//! A list of multiple bands
+using bands = std::unordered_map<band_key, band>;
+
+ENUMCLASS(variable, char, f0, e0, a)
+
+//! The key to finding any absorption line
+struct line_key {
+  //! The band the line belongs to
+  band_key band;
+
+  //! The line count within the band
+  Size line;
+
+  //! The species index if (ls_var is not FINAL)
+  Size spec;
+
+  /* The variable to be used for the line shape derivative
+
+  If ls_var is FINAL, then the var variable is used for the line
+  parameter.  ls_var and var are not both allowed to be FINAL.
+  */
+  line_shape::variable ls_var;
+
+  //! The line shape coefficient if ls_var is not FINAL
+  temperature::coefficient ls_coeff;
+
+  /* The line parameter to be used for the line shape derivative
+  
+  If var is FINAL, then the ls_var variable is used for the line shape
+  parameter.  ls_var and var are not both allowed to be FINAL.
+  */
+  variable var;
+
+  [[nodiscard]] auto operator<=>(const line_key&) const = default;
+};
+}  // namespace lbl
+
+//! Support hashing of line keys
+template <>
+struct std::hash<lbl::line_key> {
+  Size operator()(const lbl::line_key& x) const {
+    return (std::hash<lbl::band_key>{}(x.band) << 32) ^
+           std::hash<Size>{}(x.line) ^ std::hash<Size>{}(x.spec);
+  }
+};
