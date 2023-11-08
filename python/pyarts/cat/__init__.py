@@ -5,3 +5,4 @@ from . import hitran
 from . import select
 from . import zeeman
 from . import linemixing
+from . import download
