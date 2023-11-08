@@ -56,6 +56,11 @@ struct line {
   */
   [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const noexcept;
 
+  //! The ratio of ds_de0 / s
+  constexpr Numeric ds_de0_s_ratio(Numeric T) const noexcept {
+  return -1 / (Constant::k * T);
+}
+
   /*! Derivative of s(T, Q) wrt to this->f0
 
   @param[in] T Temperature [K]
@@ -63,6 +68,11 @@ struct line {
   @return Line strength in LTE divided by frequency [per m^2]
   */
   [[nodiscard]] Numeric ds_df0(Numeric T, Numeric Q) const noexcept;
+
+  //! The ratio of ds_df0 / s
+  [[nodiscard]] constexpr Numeric ds_df0_s_ratio() const noexcept {
+    return -3 / f0;
+  }
 
   /*! Derivative of s(T, Q) wrt to this->a
 

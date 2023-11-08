@@ -51,105 +51,67 @@ struct single_shape {
                  const zeeman::pol type,
                  const Index iz);
 
-  [[nodiscard]] Complex z(Numeric f) const {
+  [[nodiscard]] constexpr Complex z(Numeric f) const noexcept {
     return Complex{inv_gd * (f - f0), z_imag};
   }
 
-  [[nodiscard]] Complex F(const Complex z_) const noexcept {
-    return Faddeeva::w(z_);  // FIXME: Should factor be part of s?
-  }
+  [[nodiscard]] Complex F(const Complex z_) const noexcept ;
 
-  [[nodiscard]] Complex F(const Numeric f) const noexcept { return F(z(f)); }
+  [[nodiscard]] Complex F(const Numeric f) const noexcept;
 
-  [[nodiscard]] Complex operator()(const Numeric f) const noexcept {
-    return s * F(f);
-  }
+  [[nodiscard]] Complex operator()(const Numeric f) const noexcept;
 
-  [[nodiscard]] Complex dF(const Complex z_, const Complex F_) const noexcept {
+  [[nodiscard]] constexpr Complex dF(const Complex z_, const Complex F_) const noexcept {
     return 2 * inv_gd * (1i * Constant::inv_pi * inv_gd - z_ * F_);
   }
 
-  [[nodiscard]] Complex dF(const Numeric f) const noexcept {
-    Complex z_ = z(f);
-    return dF(z_, F(z_));
-  }
+  [[nodiscard]] Complex dF(const Numeric f) const noexcept;
 
  private:
   struct zFdF {
     Complex z, F, dF;
   };
 
-  [[nodiscard]] zFdF all(const Numeric f) const noexcept {
-    zFdF out;
-    out.z = z(f);
-    out.F = F(out.z);
-    out.dF = dF(out.z, out.F);
-    return out;
-  }
+  [[nodiscard]] zFdF all(const Numeric f) const noexcept;
 
  public:
-  [[nodiscard]] Complex df(const Numeric f) const noexcept { return s * dF(f); }
+  [[nodiscard]] Complex df(const Numeric f) const noexcept;
 
   [[nodiscard]] Complex df0(const Complex ds_df0,
-                            const Numeric f) const noexcept {
-    const auto [z_, F_, dF_] = all(f);
-    return ds_df0 * F_ - s * dF_;
-  }
+                            const Complex dz_df0,
+                            const Numeric f) const noexcept ;
 
   [[nodiscard]] Complex dDV(const Complex dz_dDV,
-                            const Numeric f) const noexcept {
-    return s * dz_dDV * dF(f);
-  }
+                            const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dD0(const Complex dz_dD0,
-                            const Numeric f) const noexcept {
-    return s * dz_dD0 * dF(f);
-  }
+                            const Numeric f) const noexcept ;
 
   [[nodiscard]] Complex dG0(const Complex dz_dG0,
-                            const Numeric f) const noexcept {
-    return s * dz_dG0 * dF(f);
-  }
+                            const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dH(const Complex dz_dH,
-                           const Numeric f) const noexcept {
-    return s * dz_dH * dF(f);
-  }
+                           const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dVMR(const Complex ds_dVMR,
                              const Complex dz_dVMR,
-                             const Numeric f) const noexcept {
-    const auto [z_, F_, dF_] = all(f);
-    return ds_dVMR * F_ + dz_dVMR * dF_;
-  }
+                             const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dT(const Complex ds_dT,
                            const Complex dz_dT,
-                           const Numeric f) const noexcept {
-    const auto [z_, F_, dF_] = all(f);
-    return ds_dT * F_ + dz_dT * dF_;
-    //FIXME: invGD factor of F_ is missing
-  }
+                           const Numeric f) const noexcept;
 
   [[nodiscard]] Complex da(const Complex ds_da,
-                           const Numeric f) const noexcept {
-    return ds_da * F(f);
-  }
+                           const Numeric f) const noexcept;
 
   [[nodiscard]] Complex de0(const Complex ds_de0,
-                            const Numeric f) const noexcept {
-    return ds_de0 * F(f);
-  }
+                            const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dG(const Complex ds_dG,
-                           const Numeric f) const noexcept {
-    return ds_dG * F(f);
-  }
+                           const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dY(const Complex ds_dY,
-                           const Numeric f) const noexcept {
-    return ds_dY * F(f);
-  }
+                           const Numeric f) const noexcept;
 };
 
 struct line_pos {
@@ -158,70 +120,24 @@ struct line_pos {
   Size iz{std::numeric_limits<Size>::max()};
 };
 
-inline Size count_lines(const band& bnd, const zeeman::pol type) {
-  return std::transform_reduce(
-      bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
-        const Index factor =
-            line.ls.one_by_one ? line.ls.single_models.size() : 1;
-        return factor * line.z.size(line.qn.val, type);
-      });
-}
+Size count_lines(const band& bnd, const zeeman::pol type);
 
-inline void zeeman_set_back(std::vector<single_shape>& lines,
-                     std::vector<line_pos>& pos,
-                     const single_shape& s,
-                     const line& line,
-                     const Numeric H,
-                     const Size spec,
-                     const zeeman::pol pol,
-                     Size& last_single_shape_pos) {
-  const auto line_nr = static_cast<Size>(pos.size() ? pos.back().line + 1 : 0);
+void zeeman_set_back(std::vector<single_shape>& lines,
+                            std::vector<line_pos>& pos,
+                            const single_shape& s,
+                            const line& line,
+                            const Numeric H,
+                            const Size spec,
+                            const zeeman::pol pol,
+                            Size& last_single_shape_pos);
 
-  if (pol == zeeman::pol::no) {
-    lines[last_single_shape_pos] = s;
-    pos[last_single_shape_pos] = {line_nr, spec};
-    ++last_single_shape_pos;
-  } else {
-    const auto nz = line.z.size(line.qn.val, pol);
-    for (Index iz = 0; iz < nz; iz++) {
-      lines[last_single_shape_pos] = s;
-      lines[last_single_shape_pos].as_zeeman(line, H, pol, iz);
-      pos[last_single_shape_pos] = {line_nr, spec, static_cast<Size>(iz)};
-      ++last_single_shape_pos;
-    }
-  }
-}
-
-inline void lines_set(std::vector<single_shape>& lines,
-               std::vector<line_pos>& pos,
-               const SpeciesIsotopeRecord& spec,
-               const line& line,
-               const AtmPoint& atm,
-               const zeeman::pol pol,
-               Size& last_single_shape_pos) {
-  const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
-  if (line.ls.one_by_one) {
-    for (Size i = 0; i < line.ls.single_models.size(); ++i) {
-      zeeman_set_back(lines,
-                      pos,
-                      {spec, line, atm, i},
-                      line,
-                      H,
-                      i,
-                      pol,
-                      last_single_shape_pos);
-    }
-  } else {
-    zeeman_set_back(lines,
-                    pos,
-                    {spec, line, atm},
-                    line,
-                    H,
-                    std::numeric_limits<Size>::max(),
-                    pol,
-                    last_single_shape_pos);
-  }
-}
+ void lines_set(std::vector<single_shape>& lines,
+                      std::vector<line_pos>& pos,
+                      const SpeciesIsotopeRecord& spec,
+                      const line& line,
+                      const AtmPoint& atm,
+                      const zeeman::pol pol,
+                      Size& last_single_shape_pos);
 
 //! Helper for initializing the band_shape
 inline void band_shape_helper(std::vector<single_shape>& lines,
@@ -231,39 +147,9 @@ inline void band_shape_helper(std::vector<single_shape>& lines,
                               const AtmPoint& atm,
                               const Numeric fmin,
                               const Numeric fmax,
-                              const zeeman::pol pol) {
-  lines.resize(count_lines(bnd, pol));
-  pos.resize(lines.size());
+                              const zeeman::pol pol);
 
-  Size i{0};
-
-  using enum CutoffType;
-  switch (bnd.cutoff) {
-    case None:
-      for (auto& line : bnd) {
-        lines_set(lines, pos, spec, line, atm, pol, i);
-      }
-      break;
-    case Freq: {
-      const auto by_range =
-          std::views::filter([fmin, fmax, c = bnd.cutoff_value](auto& line) {
-            return (line.f0 - c) > fmin and (line.f0 + c) < fmax;
-          });
-      for (auto& line : bnd | by_range) {
-        lines_set(lines, pos, spec, line, atm, pol, i);
-      }
-    } break;
-    case FINAL:
-      ARTS_USER_ERROR("Bad state")
-  }
-
-  bubble_sort_by(
-      [&](const Size l1, const Size l2) { return lines[l1].f0 < lines[l2].f0; },
-      lines,
-      pos);
-}
-
-inline std::pair<Index, Index> find_offset_and_count_of_frequency_range(
+constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
     auto first = lines.begin();
@@ -291,14 +177,14 @@ inline std::pair<Index, Index> find_offset_and_count_of_frequency_range(
 }
 
 namespace detail {
-auto frequency_span(const auto& list, const Size start, const Size count) {
+constexpr auto frequency_span(const auto& list, const Size start, const Size count) {
   std::span out{list};
   return out.subspan(start, count);
 }
 }  // namespace detail
 
 template <typename... Ts>
-auto frequency_spans(const Numeric cutoff,
+constexpr auto frequency_spans(const Numeric cutoff,
                      const Numeric f,
                      const std::span<const single_shape>& lines,
                      const Ts&... lists) {
@@ -308,83 +194,6 @@ auto frequency_spans(const Numeric cutoff,
       find_offset_and_count_of_frequency_range(lines, f, cutoff);
   return std::tuple{detail::frequency_span(lines, start, count),
                     detail::frequency_span(lists, start, count)...};
-}
-
-inline std::tuple<std::span<const single_shape>, std::span<const line_pos>>
-select_lines(const std::vector<single_shape>& lines,
-             const std::vector<line_pos>& pos,
-             const line_key& key) {
-  ARTS_ASSERT(pos.size() == lines.size())
-
-  const auto pred = [line = key.line](auto& a) { return a.line == line; };
-
-  auto start_pos = std::find_if(pos.begin(), pos.end(), pred);
-
-  if (start_pos == pos.end()) {
-    return {{}, {}};
-  }
-
-  auto last_pos = std::find_if(pos.rbegin(), pos.rend(), pred);
-
-  auto offset = std::distance(pos.begin(), start_pos);
-  auto last_index = std::distance(last_pos, pos.rend());
-  auto count = last_index - offset + 1;
-  return {std::span<const single_shape>{lines}.subspan(offset, count),
-          std::span<const line_pos>{pos}.subspan(offset, count)};
-}
-
-inline std::tuple<std::span<const single_shape>,
-                  std::span<const line_pos>,
-                  std::span<const Complex>>
-select_lines(const std::vector<single_shape>& lines,
-             const std::vector<line_pos>& pos,
-             const line_key& key,
-             const ExhaustiveConstComplexVectorView& cut) {
-  ARTS_ASSERT(pos.size() == lines.size())
-
-  const auto pred = [line = key.line](auto& a) { return a.line == line; };
-
-  auto start_pos = std::find_if(pos.begin(), pos.end(), pred);
-
-  if (start_pos == pos.end()) {
-    return {{}, {}, {}};
-  }
-
-  auto last_pos = std::find_if(pos.rbegin(), pos.rend(), pred);
-
-  auto offset = std::distance(pos.begin(), start_pos);
-  auto last_index = std::distance(last_pos, pos.rend());
-  auto count = last_index - offset + 1;
-  return {std::span<const single_shape>{lines}.subspan(offset, count),
-          std::span<const line_pos>{pos}.subspan(offset, count),
-          std::span<const Complex>{cut}.subspan(offset, count)};
-}
-
-inline std::tuple<std::span<const single_shape>,
-                  std::span<const line_pos>,
-                  std::span<Complex>>
-select_lines(const std::vector<single_shape>& lines,
-             const std::vector<line_pos>& pos,
-             const line_key& key,
-             ExhaustiveComplexVectorView cut) {
-  ARTS_ASSERT(pos.size() == lines.size())
-
-  const auto pred = [line = key.line](auto& a) { return a.line == line; };
-
-  auto start_pos = std::find_if(pos.begin(), pos.end(), pred);
-
-  if (start_pos == pos.end()) {
-    return {{}, {}, {}};
-  }
-
-  auto last_pos = std::find_if(pos.rbegin(), pos.rend(), pred);
-
-  auto offset = std::distance(pos.begin(), start_pos);
-  auto last_index = std::distance(last_pos, pos.rend());
-  auto count = last_index - offset + 1;
-  return {std::span<const single_shape>{lines}.subspan(offset, count),
-          std::span<const line_pos>{pos}.subspan(offset, count),
-          std::span<Complex>{cut}.subspan(offset, count)};
 }
 
 //! A band shape is a collection of single shapes.  The shapes are sorted by frequency.
@@ -457,198 +266,101 @@ struct band_shape {
     return out;
   }
 
-  [[nodiscard]] Complex df0(const Complex ds_df0,
+  [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView ds_df0,
+                            const ExhaustiveConstComplexVectorView dz_df0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                            const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.var != variable::f0) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].df0(ds_df0[i], dz_df0[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, ds_df0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line) ? ls.df0(ds_df0, f) : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex da(const Complex ds_da,
+  [[nodiscard]] Complex da(const ExhaustiveConstComplexVectorView ds_da,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                           const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.var != variable::a) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].da(ds_da[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, ds_da, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line) ? ls.da(ds_da, f) : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex de0(const Complex ds_de0,
+  [[nodiscard]] Complex de0(const ExhaustiveConstComplexVectorView ds_de0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                            const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.var != variable::a) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].de0(ds_de0[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, ds_de0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line) ? ls.de0(ds_de0, f) : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex dDV(const Complex dz_dDV,
+  [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView dz_dDV,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                            const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.ls_var != line_shape::variable::DV) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].dDV(dz_dDV[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, dz_dDV, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dDV(dz_dDV, f)
-                     : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex dD0(const Complex dz_dD0,
+  [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView dz_dD0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                            const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.ls_var != line_shape::variable::D0) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].dD0(dz_dD0[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, dz_dD0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dD0(dz_dD0, f)
-                     : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex dG0(const Complex dz_dG0,
+  [[nodiscard]] Complex dG0(const ExhaustiveConstComplexVectorView dz_dG0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                            const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.ls_var != line_shape::variable::G0) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].dG0(dz_dG0[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, dz_dG0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dG0(dz_dG0, f)
-                     : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex dY(const Complex ds_dY,
+  [[nodiscard]] Complex dY(const ExhaustiveConstComplexVectorView ds_dY,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                           const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.ls_var != line_shape::variable::Y) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].dY(ds_dY[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, ds_dY, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dY(ds_dY, f)
-                     : Complex{};
-        });
+    return out;
   }
 
-  [[nodiscard]] Complex dG(const Complex ds_dG,
+  [[nodiscard]] Complex dG(const ExhaustiveConstComplexVectorView ds_dG,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
+                           const std::vector<Size>& filter) const {
+    Complex out{};  //! Fixme, use zip in C++ 23...
 
-    if (line_key.ls_var != line_shape::variable::G) {
-      return {};
+    for (Size i : filter) {
+      out += lines[i].dG(ds_dG[i], f);
     }
 
-    const auto [s, ps] = select_lines(lines, pos, line_key);
-
-    return std::transform_reduce(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        Complex{},
-        std::plus<>{},
-        [f, ds_dG, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dG(ds_dG, f)
-                     : Complex{};
-        });
+    return out;
   }
 
   [[nodiscard]] Complex operator()(const ExhaustiveConstComplexVectorView& cut,
@@ -780,389 +492,190 @@ struct band_shape {
   }
 
   [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView& cut,
-                            const Complex ds_df0,
+                            const ExhaustiveConstComplexVectorView ds_df0,
+                            const ExhaustiveConstComplexVectorView dz_df0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::f0) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                            const std::vector<Size>& filter) const {
+    const auto [s, cs, ds, dz] =
+        frequency_spans(cutoff, f, lines, cut, ds_df0, dz_df0);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line) out += s[i].df0(ds_df0, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].df0(ds[i], dz[i], f) - cs[i];
     }
 
     return out;
   }
 
   void df0(ExhaustiveComplexVectorView cut,
-           const Complex ds_df0,
-           const std::vector<line_pos>& pos,
-           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::f0) {
-      return;
+           const ExhaustiveConstComplexVectorView ds_df0,
+           const ExhaustiveConstComplexVectorView dz_df0,
+           const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].df0(ds_df0[i], dz_df0[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [ds_df0, &line_key, cutoff_freq = cutoff](auto& ls, auto& p) {
-          return (p.line == line_key.line) ? ls.df0(ds_df0, ls.f0 + cutoff_freq)
-                                           : Complex{};
-        });
   }
 
   [[nodiscard]] Complex da(const ExhaustiveConstComplexVectorView& cut,
-                           const Complex ds_da,
+                           const ExhaustiveConstComplexVectorView ds_da,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::a) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                           const std::vector<Size>& filter) const {
+    const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_da);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line) out += s[i].da(ds_da, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].da(ds[i], f) - cs[i];
     }
 
     return out;
   }
 
   void da(ExhaustiveComplexVectorView cut,
-          const Complex ds_da,
-          const std::vector<line_pos>& pos,
-          const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::a) {
-      return;
+          const ExhaustiveComplexVectorView ds_da,
+          const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].da(ds_da[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(s.begin(),
-                   s.end(),
-                   ps.begin(),
-                   cs.begin(),
-                   [cutoff_freq = cutoff, ds_da, &line_key](auto& ls, auto& p) {
-                     return (p.line == line_key.line)
-                                ? ls.da(ds_da, ls.f0 + cutoff_freq)
-                                : Complex{};
-                   });
   }
 
   [[nodiscard]] Complex de0(const ExhaustiveConstComplexVectorView& cut,
-                            const Complex ds_de0,
+                            const ExhaustiveConstComplexVectorView ds_de0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::a) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                            const std::vector<Size>& filter) const {
+    const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_de0);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line) out += s[i].de0(ds_de0, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].de0(ds[i], f) - cs[i];
     }
 
     return out;
   }
 
   void de0(ExhaustiveComplexVectorView cut,
-           const Complex ds_de0,
-           const std::vector<line_pos>& pos,
-           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.var != variable::a) {
-      return;
+           const ExhaustiveComplexVectorView ds_de0,
+           const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].de0(ds_de0[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, ds_de0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line) ? ls.de0(ds_de0, ls.f0 + cutoff_freq)
-                                           : Complex{};
-        });
   }
 
   [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView& cut,
-                            const Complex dz_dDV,
+                            const ExhaustiveConstComplexVectorView dz_dDV,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::DV) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                            const std::vector<Size>& filter) const {
+    const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dDV);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line and ps[i].spec == line_key.spec)
-        out += s[i].dDV(dz_dDV, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].dDV(dz[i], f) - cs[i];
     }
 
     return out;
   }
 
   void dDV(ExhaustiveComplexVectorView cut,
-           const Complex dz_dDV,
-           const std::vector<line_pos>& pos,
-           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::DV) {
-      return;
+           const ExhaustiveComplexVectorView dz_dDV,
+           const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].dDV(dz_dDV[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, dz_dDV, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dDV(dz_dDV, ls.f0 + cutoff_freq)
-                     : Complex{};
-        });
   }
 
   [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView& cut,
-                            const Complex dz_dD0,
+                            const ExhaustiveConstComplexVectorView dz_dD0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::D0) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                            const std::vector<Size>& filter) const {
+    const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dD0);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line and ps[i].spec == line_key.spec)
-        out += s[i].dD0(dz_dD0, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].dD0(dz[i], f) - cs[i];
     }
 
     return out;
   }
 
   void dD0(ExhaustiveComplexVectorView cut,
-           const Complex dz_dD0,
-           const std::vector<line_pos>& pos,
-           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::D0) {
-      return;
+           const ExhaustiveComplexVectorView dz_dD0,
+           const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].dD0(dz_dD0[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, dz_dD0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dD0(dz_dD0, ls.f0 + cutoff_freq)
-                     : Complex{};
-        });
   }
 
   [[nodiscard]] Complex dG0(const ExhaustiveConstComplexVectorView& cut,
-                            const Complex dz_dG0,
+                            const ExhaustiveConstComplexVectorView dz_dG0,
                             const Numeric f,
-                            const std::vector<line_pos>& pos,
-                            const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::G0) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                            const std::vector<Size>& filter) const {
+    const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dG0);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line and ps[i].spec == line_key.spec)
-        out += s[i].dG0(dz_dG0, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].dG0(dz[i], f) - cs[i];
     }
 
     return out;
   }
 
   void dG0(ExhaustiveComplexVectorView cut,
-           const Complex dz_dG0,
-           const std::vector<line_pos>& pos,
-           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::G0) {
-      return;
+           const ExhaustiveComplexVectorView dz_dG0,
+           const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].dG0(dz_dG0[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, dz_dG0, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dG0(dz_dG0, ls.f0 + cutoff_freq)
-                     : Complex{};
-        });
   }
 
   [[nodiscard]] Complex dY(const ExhaustiveConstComplexVectorView& cut,
-                           const Complex ds_dY,
+                           const ExhaustiveConstComplexVectorView ds_dY,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::Y) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                           const std::vector<Size>& filter) const {
+    const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_dY);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line and ps[i].spec == line_key.spec)
-        out += s[i].dY(ds_dY, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].dY(ds[i], f) - cs[i];
     }
 
     return out;
   }
 
   void dY(ExhaustiveComplexVectorView cut,
-          const Complex ds_dY,
-          const std::vector<line_pos>& pos,
-          const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::Y) {
-      return;
+          const ExhaustiveComplexVectorView ds_dY,
+          const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].dY(ds_dY[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, ds_dY, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dY(ds_dY, ls.f0 + cutoff_freq)
-                     : Complex{};
-        });
   }
 
   [[nodiscard]] Complex dG(const ExhaustiveConstComplexVectorView& cut,
-                           const Complex ds_dG,
+                           const ExhaustiveConstComplexVectorView ds_dG,
                            const Numeric f,
-                           const std::vector<line_pos>& pos,
-                           const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::G) {
-      return {};
-    }
-
-    const auto [sp, psp, csp] = select_lines(lines, pos, line_key, cut);
-
-    const auto [s, ps, cs] = frequency_spans(cutoff, f, sp, psp, csp);
+                           const std::vector<Size>& filter) const {
+    const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_dG);
 
     Complex out{};  //! Fixme, use zip in C++ 23...
 
-    for (Size i = 0; i < s.size(); i++) {
-      if (ps[i].line == line_key.line and ps[i].spec == line_key.spec)
-        out += s[i].dG(ds_dG, f) - cs[i];
+    for (Size i : filter) {
+      out += s[i].dG(ds[i], f) - cs[i];
     }
 
     return out;
   }
 
   void dG(ExhaustiveComplexVectorView cut,
-          const Complex ds_dG,
-          const std::vector<line_pos>& pos,
-          const line_key& line_key) const {
-    ARTS_ASSERT(pos.size() == lines.size())
-
-    if (line_key.ls_var != line_shape::variable::G) {
-      return;
+          const ExhaustiveComplexVectorView ds_dG,
+          const std::vector<Size>& filter) const {
+    for (Size i : filter) {
+      cut[i] = lines[i].dG(ds_dG[i], lines[i].f0 + cutoff);
     }
-
-    const auto [s, ps, cs] = select_lines(lines, pos, line_key, cut);
-
-    std::transform(
-        s.begin(),
-        s.end(),
-        ps.begin(),
-        cs.begin(),
-        [cutoff_freq = cutoff, ds_dG, &line_key](auto& ls, auto& p) {
-          return (p.line == line_key.line and p.spec == line_key.spec)
-                     ? ls.dG(ds_dG, ls.f0 + cutoff_freq)
-                     : Complex{};
-        });
   }
 };
 
