@@ -1,6 +1,10 @@
 Contact
 =======
 
+Homepage
+--------
+* The `ARTS homepage <https://radiativetransfer.org/>`_ provides general information about the project, scientific publications and related tools.
+
 GitHub
 ------
 * `Submit a bug report <https://github.com/atmtools/arts/issues/new/choose>`_

@@ -1,5 +1,5 @@
-About
-=====
+Features
+========
 
 Arts is a radiative transfer model. It is written in C++ and Python and
 is available as open source under the GNU General Public License (GPL)

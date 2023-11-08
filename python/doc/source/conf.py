@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'sphinx_favicon',
     'matplotlib.sphinxext.plot_directive',
 ]
 
@@ -56,7 +57,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'pyarts'
+project = 'ARTS'
 copyright = 'The ARTS Developers'
 author = 'The ARTS Developers'
 
@@ -128,7 +129,10 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
+html_theme_options = {
+    'logo_only': True,
+    'display_version': True,
+}
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
@@ -141,7 +145,7 @@ html_theme = 'sphinx_rtd_theme'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '_images/arts-logo-light-bg.svg'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -327,3 +331,10 @@ plot_rcparams = {
     'font.size': 16,
     'savefig.bbox': 'tight',
 }
+
+# -- Favicon ----------------------------------------------------------------
+favicons = [
+    "favicon-16x16.png",
+    "favicon-32x32.png",
+    {"rel": "apple-touch-icon", "sizes": "180x180", "href": "apple-touch-icon.png"},
+]

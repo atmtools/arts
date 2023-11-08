@@ -16,34 +16,7 @@ if [[ ! -d $1 ]]; then
 fi
 
 rm -rf docserver doxygen uguide pyarts
-mkdir uguide
 
-cp -r $1/doc/doxygen/html doxygen
-cp -r $1/python/doc/build pyarts
-cp $1/doc/uguide/*.pdf uguide/
-
-$1/src/arts -S23456
-
-wget \
-     --recursive \
-     --no-clobber \
-     --page-requisites \
-     --convert-links \
-     --adjust-extension \
-     --restrict-file-names=unix \
-     --domains localhost \
-     --no-host-directories \
-     --directory-prefix=docserver \
-     --no-parent \
-         localhost:23456/all
-
-mkdir docserver/all
-cp \
-    docserver/agendas/*.html \
-    docserver/groups/*.html \
-    docserver/methods/*.html \
-    docserver/variables/*.html \
-    docserver/all/
-rm docserver/all/index.html
-
-kill $(pidof arts)
+cp -r $1/python/doc/build/* .
+touch .nojekyll
+rm -rf .doctrees
