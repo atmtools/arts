@@ -61,7 +61,7 @@ void bubble_sort_by(const SortFn& sort_fn,
                     T& data1,
                     Ts&... data_n) ARTS_NOEXCEPT {
   const Size n = static_cast<Size>(data1.size());
-  ARTS_ASSERT(n == static_cast<Size>(data_n.size()) && ...,
+  ARTS_ASSERT((... and (n == static_cast<Size>(data_n.size()))),
               "All data must have the same size.");
   for (Size i = 0; i < n; i++) {
     for (Size j = i + 1; j < n; j++) {

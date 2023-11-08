@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atm.h>
+#include <lbl.h>
 #include <matpack.h>
 #include <surf.h>
 
@@ -9,6 +10,7 @@
 #include <numeric>
 #include <variant>
 #include <vector>
+#include "debug.h"
 
 namespace Jacobian {
 struct AtmTarget {
@@ -138,6 +140,39 @@ struct SurfaceTarget {
   }
 };
 
+
+struct LineTarget {
+  LblLineKey type;
+
+  Numeric d{};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+  Size x_size{std::numeric_limits<Size>::max()};
+  Size target_pos{std::numeric_limits<Size>::max()};
+  std::function<void(
+      ExhaustiveVectorView, const AbsorptionBands&, const ExhaustiveConstVectorView&)>
+      set{[](ExhaustiveVectorView xnew,
+             const AbsorptionBands&,
+             const ConstVectorView& xold) { xnew = xold; }};
+  std::function<void(
+      ExhaustiveVectorView, const AbsorptionBands&, const ExhaustiveConstVectorView&)>
+      unset{[](VectorView xnew,
+             const AbsorptionBands&,
+             const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+
+  friend std::ostream& operator<<(std::ostream& os, const LineTarget& ) {
+    return os << "Line key value: ";
+  }
+
+  void update(AbsorptionBands&, const Vector&) const {
+    ARTS_ASSERT(false)
+  }
+
+  void update(Vector&, const AbsorptionBands&) const {
+    ARTS_ASSERT(false)
+  }
+};
+
 template <typename U, typename T>
 concept target_comparable = requires(T a, U b) { a.type == b; b == a.type; };
 
@@ -191,6 +226,10 @@ template <typename ... Targets> struct targets_t {
     return (target<Targets>().size() + ...);
   }
 
+  [[nodiscard]] constexpr bool any() const {
+    return target_count() != 0;
+  }
+
   void throwing_check(Size xsize) const {
     const auto t_size = target_count();
 
@@ -214,9 +253,10 @@ template <typename ... Targets> struct targets_t {
   }
 };
 
-struct Targets final : targets_t<AtmTarget, SurfaceTarget> {
+struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   [[nodiscard]] const auto& atm() const { return target<AtmTarget>(); }
   [[nodiscard]] const auto& surf() const { return target<SurfaceTarget>(); }
+  [[nodiscard]] const auto& line() const { return target<LineTarget>(); }
 
   friend std::ostream& operator<<(std::ostream& os, const Targets& targets) {
     os << "Jacobian targets:\n";

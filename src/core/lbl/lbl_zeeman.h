@@ -1,16 +1,4 @@
-/**
- * @file   zeemandata.h
- * @author Richard Larsson <larsson (at) mps.mpg.de>
- * @date   2018-04-06
- * 
- * @brief Headers and class definition of Zeeman modeling
- * 
- * This file serves to describe the Zeeman splitting
- * implementations using various up-to-speed methods
- */
-
-#ifndef zeemandata_h
-#define zeemandata_h
+#pragma once
 
 #include <matpack.h>
 #include <quantum_numbers.h>
@@ -430,6 +418,35 @@ data GetSimpleModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
  * @return Zeeman model data
  */
 data GetAdvancedModel(const QuantumIdentifier &qid) ARTS_NOEXCEPT;
-};  // namespace lbl::zeeman
 
-#endif /* zeemandata_h */
+Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+
+Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+
+Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+
+Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT;
+
+constexpr Propmat scale(const Propmat &a, const Complex F) noexcept {
+  return {a.A() * F.real(),
+          a.B() * F.real(),
+          a.C() * F.real(),
+          a.D() * F.real(),
+          a.U() * F.imag(),
+          a.V() * F.imag(),
+          a.W() * F.imag()};
+}
+
+constexpr Propmat scale(const Propmat &a,
+                        const Propmat &da,
+                        const Complex F,
+                        const Complex dF) noexcept {
+  return {da.A() * F.real() + a.A() * dF.real(),
+          da.B() * F.real() + a.B() * dF.real(),
+          da.C() * F.real() + a.C() * dF.real(),
+          da.D() * F.real() + a.D() * dF.real(),
+          da.U() * F.imag() + a.U() * dF.imag(),
+          da.V() * F.imag() + a.V() * dF.imag(),
+          da.W() * F.imag() + a.W() * dF.imag()};
+}
+};  // namespace lbl::zeeman

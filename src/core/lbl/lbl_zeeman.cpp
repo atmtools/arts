@@ -11,8 +11,10 @@
 
 #include "lbl_zeeman.h"
 
+#include "arts_constexpr_math.h"
 #include "debug.h"
 #include "double_imanip.h"
+#include "matpack_data.h"
 #include "quantum_numbers.h"
 #include "wigner_functions.h"
 
@@ -277,7 +279,6 @@ Numeric model::Strength(Rational Ju,
                         Rational Jl,
                         pol type,
                         Index n) const ARTS_NOEXCEPT {
-  ARTS_ASSERT(type not_eq Polarization::None);
   using Math::pow2;
 
   auto ml = Ml(Ju, Jl, type, n);
@@ -325,5 +326,245 @@ std::ostream& operator<<(std::ostream& os, const model& m) {
 std::istream& operator>>(std::istream& is, model& m) {
   is >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
   return is;
+}
+
+constexpr Vector3 cross(const Vector3 a, const Vector3 b) {
+  return {a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0]};
+}
+
+constexpr Numeric dot(const Vector3 a, const Vector3 b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+constexpr Vector3 proj(const Vector3 a, const Vector3 b, const Numeric ct) {
+  return {a[0] - ct * b[0], a[1] - ct * b[1], a[2] - ct * b[2]};
+}
+
+struct magnetic_angles {
+  Numeric u, v, w, sa, ca, sz, cz, H, uct;
+
+  magnetic_angles(const Vector3 mag, const Vector2 los)
+      : u(mag[0]),
+        v(mag[1]),
+        w(mag[2]),
+        sa(std::sin(los[1])),
+        ca(std::cos(los[1])),
+        sz(std::sin(los[0])),
+        cz(std::cos(los[0])),
+        H(std::hypot(u, v, w)),
+        uct(ca * sz * v + cz * w + sa * sz * u) {}
+
+  Numeric theta() const { return std::acos(uct / H); }
+
+  Numeric dtheta_du() const {
+    return (-H * sa * sz + u * uct) /
+           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+  }
+
+  Numeric dtheta_dv() const {
+    return (-H * ca * sz + v * uct) /
+           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+  }
+
+  Numeric dtheta_dw() const {
+    return (-H * cz + w * uct) /
+           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+  }
+
+  Numeric eta() const {
+    return std::atan2(u * ca - v * sa, u * sa * cz + v * ca * cz - w * sz);
+  }
+
+  Numeric deta_du() const {
+    return (-ca * sz * w + cz * v) /
+           (Math::pow2(ca * u - sa * v) +
+            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+  }
+
+  Numeric deta_dv() const {
+    return (-cz * u + sa * sz * w) /
+           (Math::pow2(ca * u - sa * v) +
+            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+  }
+
+  Numeric deta_dw() const {
+    return sz * (ca * u - sa * v) /
+           (Math::pow2(ca * u - sa * v) +
+            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+  }
+};
+
+Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+  if (p == pol::no) {
+    return 1;
+  }
+
+  const magnetic_angles ma(mag, los);
+  const Numeric theta = ma.theta();
+  const Numeric eta = ma.eta();
+
+  const Numeric CT = std::cos(theta);
+  const Numeric ST = std::sin(theta);
+  const Numeric C2E = std::cos(2 * eta);
+  const Numeric S2E = std::sin(2 * eta);
+
+  if (p == pol::pi) {
+    return {ST * ST,
+            -ST * ST * C2E,
+            -S2E * ST * ST,
+            0,
+            0,
+            -2 * S2E * ST * ST,
+            2 * ST * ST * C2E};
+  }
+
+  if (p == pol::sm) {
+    return {CT * CT + 1,
+            ST * ST * C2E,
+            S2E * ST * ST,
+            2 * CT,
+            4 * CT,
+            2 * S2E * ST * ST,
+            -2 * ST * ST * C2E};
+  }
+
+  return {CT * CT + 1,
+          ST * ST * C2E,
+          S2E * ST * ST,
+          -2 * CT,
+          -4 * CT,
+          2 * S2E * ST * ST,
+          -2 * ST * ST * C2E};
+}
+
+Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+  if (p == pol::no) {
+    return 0;
+  }
+
+  const magnetic_angles ma(mag, los);
+  const Numeric theta = ma.theta();
+  const Numeric eta = ma.eta();
+  const Numeric dtheta = ma.dtheta_du();
+  const Numeric deta = ma.deta_du();
+
+  const Numeric CT = std::cos(theta);
+  const Numeric ST = std::sin(theta);
+  const Numeric S2T = 2 * ST * CT;
+  const Numeric C2E = std::cos(2 * eta);
+  const Numeric S2E = std::sin(2 * eta);
+
+  if (p == pol::pi)
+    return {S2T * dtheta,
+            2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
+            2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            0,
+            0,
+            4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
+  if (p == pol::sm)
+    return {-S2T * dtheta,
+            2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+            2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            -2 * ST * dtheta,
+            -4 * ST * dtheta,
+            4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+
+  return {-S2T * dtheta,
+          2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+          2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          2 * ST * dtheta,
+          4 * ST * dtheta,
+          4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+}
+
+Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+  if (p == pol::no) {
+    return 0;
+  }
+
+  const magnetic_angles ma(mag, los);
+  const Numeric theta = ma.theta();
+  const Numeric eta = ma.eta();
+  const Numeric dtheta = ma.dtheta_dv();
+  const Numeric deta = ma.deta_dv();
+
+  const Numeric CT = std::cos(theta);
+  const Numeric ST = std::sin(theta);
+  const Numeric S2T = 2 * ST * CT;
+  const Numeric C2E = std::cos(2 * eta);
+  const Numeric S2E = std::sin(2 * eta);
+
+  if (p == pol::pi)
+    return {S2T * dtheta,
+            2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
+            2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            0,
+            0,
+            4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
+  if (p == pol::sm)
+    return {-S2T * dtheta,
+            2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+            2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            -2 * ST * dtheta,
+            -4 * ST * dtheta,
+            4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+
+  return {-S2T * dtheta,
+          2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+          2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          2 * ST * dtheta,
+          4 * ST * dtheta,
+          4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+}
+
+Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
+  if (p == pol::no) {
+    return 0;
+  }
+
+  const magnetic_angles ma(mag, los);
+  const Numeric theta = ma.theta();
+  const Numeric eta = ma.eta();
+  const Numeric dtheta = ma.dtheta_dw();
+  const Numeric deta = ma.deta_dw();
+  
+  const Numeric CT = std::cos(theta);
+  const Numeric ST = std::sin(theta);
+  const Numeric S2T = 2 * ST * CT;
+  const Numeric C2E = std::cos(2 * eta);
+  const Numeric S2E = std::sin(2 * eta);
+
+  if (p == pol::pi)
+    return {S2T * dtheta,
+            2 * (S2E * ST * deta - C2E * CT * dtheta) * ST,
+            2 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            0,
+            0,
+            4 * (-S2E * CT * dtheta - ST * C2E * deta) * ST,
+            4 * (-S2E * ST * deta + C2E * CT * dtheta) * ST};
+  if (p == pol::sm)
+    return {-S2T * dtheta,
+            2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+            2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            -2 * ST * dtheta,
+            -4 * ST * dtheta,
+            4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+            4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
+
+  return {-S2T * dtheta,
+          2 * (-S2E * ST * deta + C2E * CT * dtheta) * ST,
+          2 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          2 * ST * dtheta,
+          4 * ST * dtheta,
+          4 * (S2E * CT * dtheta + ST * C2E * deta) * ST,
+          4 * (S2E * ST * deta - C2E * CT * dtheta) * ST};
 }
 }  // namespace lbl::zeeman

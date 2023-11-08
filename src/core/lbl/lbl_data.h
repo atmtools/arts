@@ -174,3 +174,6 @@ struct std::hash<lbl::line_key> {
            std::hash<Size>{}(x.line) ^ std::hash<Size>{}(x.spec);
   }
 };
+
+using LblLineKey = lbl::line_key;
+using AbsorptionBands = lbl::bands;

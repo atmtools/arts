@@ -1,6 +1,5 @@
 #pragma once
 
-#include <__algorithm/ranges_any_of.h>
 #include <matpack.h>
 
 #include <cmath>
@@ -251,7 +250,7 @@ class data {
   template <model_type mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
                                              Numeric T
-                                             [[maybe_unused]]) const noexcept {
+                                             [[maybe_unused]]) const ARTS_NOEXCEPT {
     static_assert(mod != model_type::FINAL, "Invalid model type");
     if constexpr (mod == model_type::T0)
       return model::T0(x[0]);
@@ -277,7 +276,7 @@ class data {
   template <model_type mod>                                            \
   [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]], \
                                           Numeric T [[maybe_unused]])  \
-      const noexcept {                                                 \
+      const ARTS_NOEXCEPT {                                                 \
     static_assert(mod != model_type::FINAL, "Invalid model type");     \
     if constexpr (mod == model_type::T0)                               \
       return model::dT0_d##name(x[0]);                                 \
@@ -308,12 +307,12 @@ class data {
 
 #undef DERIVATIVE
 
-  [[nodiscard]] Numeric operator()(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dX0(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dX1(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dX2(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dX3(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dT0(Numeric T0, Numeric T) const noexcept;
-  [[nodiscard]] Numeric dT(Numeric T0, Numeric T) const noexcept;
+  [[nodiscard]] Numeric operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dX0(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dX1(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dX2(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dX3(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dT0(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+  [[nodiscard]] Numeric dT(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
 };
 }  // namespace lbl::temperature
