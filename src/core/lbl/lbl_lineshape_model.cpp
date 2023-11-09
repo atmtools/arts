@@ -1,5 +1,7 @@
 #include "lbl_lineshape_model.h"
 
+#include "species.h"
+
 namespace lbl::line_shape {
 #define VARIABLE(name, PVAR, DPVAR)                                       \
   Numeric species_model::name(                                            \
@@ -170,4 +172,32 @@ VARIABLE(X3);
 #undef VARIABLE
 
 #undef DERIVATIVE
+
+std::ostream& operator<<(std::ostream& os,
+                         const std::pair<variable, temperature::data>& x) {
+  return os << x.first << ' ' << x.second;
+}
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::vector<std::pair<variable, temperature::data>>& x) {
+  os << x.size();
+  for (auto& y : x) os << ' ' << y;
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const species_model& x) {
+  return os << toShortName(x.species) << ' ' << x.data;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const std::vector<species_model>& x) {
+  os << x.size();
+  for (auto& y : x) os << ' ' << y;
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const model& x) {
+  return os << x.T0 << ' ' << x.one_by_one << ' ' << x.single_models;
+}
 }  // namespace lbl::line_shape

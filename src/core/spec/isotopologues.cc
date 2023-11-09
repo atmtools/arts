@@ -180,4 +180,10 @@ std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(const Sp
   }
   return {h, hnot};
 }
+
+
+  
+  IsotopeRecord::IsotopeRecord(const std::string_view name) noexcept {
+    *this = select(name);
+  }
 } // namespace Species

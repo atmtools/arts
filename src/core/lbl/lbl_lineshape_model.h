@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 
+#include <ostream>
 #include <vector>
 
 #include "atm.h"
@@ -81,6 +82,8 @@ struct model {
 
   std::vector<species_model> single_models;
 
+  friend std::ostream& operator<<(std::ostream& os, const model& x);
+
 #define VARIABLE(name)                                            \
   [[nodiscard]] Numeric name(const AtmPoint& atm) const noexcept; \
                                                                   \
@@ -120,4 +123,6 @@ struct model {
 
 #undef DERIVATIVE
 };
+
+  std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
 }  // namespace lbl::line_shape

@@ -19,6 +19,7 @@ void py_constants(py::module_& m) try {
   PythonInterfaceConstant(h);
   PythonInterfaceConstant(h_bar);
   PythonInterfaceConstant(k);
+  PythonInterfaceConstant(doppler_broadening_const_squared);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize constant\n", e.what()));
 }

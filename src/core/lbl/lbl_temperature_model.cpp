@@ -233,4 +233,9 @@ DERIVATIVES(T)
 
 #undef DERIVATIVES
 #undef SWITCHCASE
+
+
+std::ostream& operator<<(std::ostream& os, const temperature::data& x) {
+  return os << x.t << ' ' << x.x;
+}
 }  // namespace lbl::temperature

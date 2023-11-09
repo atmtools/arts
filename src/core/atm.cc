@@ -65,6 +65,9 @@ std::ostream& operator<<(std::ostream& os, const Point& atm) {
      << ", w: " << atm.mag[2] << "] T";
 
   for (auto& spec : atm.specs) {
+    os << ",\n" << toShortName(spec.first) << ": " << spec.second;
+  }
+  for (auto& spec : atm.isots) {
     os << ",\n" << spec.first << ": " << spec.second;
   }
 

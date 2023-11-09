@@ -11,6 +11,8 @@
 #include "species.h"
 
 namespace lbl {
+ENUMCLASS(variable, char, f0, e0, a)
+
 struct line {
   //! Einstein A coefficient
   Numeric a;
@@ -92,6 +94,8 @@ struct line {
   [[nodiscard]] Numeric ds_dT(Numeric T,
                               Numeric Q,
                               Numeric dQ_dt) const noexcept;
+  
+  friend std::ostream& operator<<(std::ostream& os, const line& x);
 };
 
 ENUMCLASS(CutoffType, char, None, Freq)
@@ -122,6 +126,8 @@ struct band {
   [[nodiscard]] auto end() noexcept { return lines.end(); }
   [[nodiscard]] auto end() const noexcept { return lines.end(); }
   [[nodiscard]] auto cend() const noexcept { return lines.cend(); }
+  template <typename T> void push_back(T&& l) noexcept { lines.push_back(std::forward<T>(l)); }
+  template <typename ...Ts> lbl::line& emplace_back(Ts&&... l) noexcept { return lines.emplace_back(std::forward<Ts>(l)...); }
 
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const noexcept {
     using enum CutoffType;
@@ -134,6 +140,10 @@ struct band {
     }
     return -1;
   }
+
+  void sort(variable v=variable::f0);
+
+  friend std::ostream& operator<<(std::ostream& os, const band& x);
 };
 
 //! The key to finding any absorption band
@@ -141,8 +151,6 @@ using band_key = QuantumIdentifier;
 
 //! A list of multiple bands
 using bands = std::unordered_map<band_key, band>;
-
-ENUMCLASS(variable, char, f0, e0, a)
 
 //! The key to finding any absorption line
 struct line_key {
@@ -174,6 +182,8 @@ struct line_key {
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 };
+
+std::ostream& operator<<(std::ostream& os, const bands& x);
 }  // namespace lbl
 
 //! Support hashing of line keys

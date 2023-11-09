@@ -232,6 +232,8 @@ class data {
   Vector x;
 
  public:
+  friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
+
   constexpr data(model_type type = model_type::T0, Vector X = {0.0})
       : t(type), x(std::move(X)) {
     ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
@@ -249,8 +251,8 @@ class data {
 
   template <model_type mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
-                                             Numeric T
-                                             [[maybe_unused]]) const ARTS_NOEXCEPT {
+                                             Numeric T [[maybe_unused]]) const
+      ARTS_NOEXCEPT {
     static_assert(mod != model_type::FINAL, "Invalid model type");
     if constexpr (mod == model_type::T0)
       return model::T0(x[0]);
@@ -276,7 +278,7 @@ class data {
   template <model_type mod>                                            \
   [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]], \
                                           Numeric T [[maybe_unused]])  \
-      const ARTS_NOEXCEPT {                                                 \
+      const ARTS_NOEXCEPT {                                            \
     static_assert(mod != model_type::FINAL, "Invalid model type");     \
     if constexpr (mod == model_type::T0)                               \
       return model::dT0_d##name(x[0]);                                 \

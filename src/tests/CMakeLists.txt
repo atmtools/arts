@@ -235,3 +235,7 @@ target_include_directories(test_rng PRIVATE ${ARTS_SOURCE_DIR}/src)
 #####
 add_executable(test_rtepack test_rtepack.cc)
 target_link_libraries(test_rtepack PUBLIC artstime rtepack)
+
+#####
+add_executable(test_lbl test_lbl.cc)
+target_link_libraries(test_lbl PUBLIC lbl artsworkspace)

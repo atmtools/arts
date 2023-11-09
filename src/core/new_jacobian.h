@@ -182,7 +182,7 @@ concept valid_target = (std::same_as<U, T> or ...);
 template <typename ... Targets> struct targets_t {
   static constexpr Size N = sizeof...(Targets);
 
-  std::tuple <std::vector<Targets>...> targets;
+  std::tuple <std::vector<Targets>...> targets{};
 
   template <valid_target<Targets...> T> constexpr auto& target() {
     return std::get<std::vector<T>>(targets);
