@@ -17,6 +17,18 @@ pyarts.cat.cia
 
    hitran2arts
 
+pyarts.utils.download
+---------------------
+
+.. automodule:: pyarts.cat.download
+
+.. currentmodule:: pyarts.cat.download
+
+.. autosummary::
+   :toctree: stubs
+
+   retrieve
+
 pyarts.cat.hitran
 -----------------
 
