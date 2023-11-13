@@ -9,17 +9,18 @@
 #include "lbl_data.h"
 #include "lbl_lineshape_voigt.h"
 #include "lbl_zeeman.h"
+#include "quantum_numbers.h"
 
 namespace lbl {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
     const Vector& f_grid,
-    const bands& bnds,
+    const AbsorptionBands& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
-  if (std::ranges::any_of(bnds | std::views::values, [](auto& bnd) {
+  if (std::ranges::any_of(bnds, [](auto& bnd) {
         return bnd.lineshape == Lineshape::VP and
                bnd.linestrength == Linestrength::LTE;
-      }))
+      }, &band::data))
     return std::make_unique<voigt::lte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
   return nullptr;
@@ -29,14 +30,14 @@ void calculate(PropmatVector& pm,
                PropmatMatrix& dpm,
                const Vector& f_grid,
                const Jacobian::Targets& jacobian_targets,
-               const bands& bnds,
+               const AbsorptionBands& bnds,
                const AtmPoint& atm,
                const Vector2 los,
                const bool zeeman) {
   auto voigt_lte_data = init_voigt_lte_data(f_grid, bnds, atm, los);
 
   const auto calc_voigt_lte =
-      [&](const band_key& bnd_key, const band& bnd, const zeeman::pol pol) {
+      [&](const QuantumIdentifier& bnd_key, const band_data& bnd, const zeeman::pol pol) {
         voigt::lte::calculate(pm,
                               dpm,
                               *voigt_lte_data,
@@ -49,7 +50,7 @@ void calculate(PropmatVector& pm,
       };
 
   const auto calc_switch =
-      [&](const band_key& bnd_key, const band& bnd, const zeeman::pol pol) {
+      [&](const QuantumIdentifier& bnd_key, const band_data& bnd, const zeeman::pol pol) {
         switch (bnd.lineshape) {
           case Lineshape::VP:
             switch (bnd.linestrength) {

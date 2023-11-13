@@ -32,13 +32,11 @@
 #include "auto_wsg.h"
 
 // Exposed types whose base type are not workspace variables
-PYBIND11_MAKE_OPAQUE(Array<SpeciesTag>);
 PYBIND11_MAKE_OPAQUE(Array<LagrangeInterpolation>);
 PYBIND11_MAKE_OPAQUE(Array<Species::Species>);
 PYBIND11_MAKE_OPAQUE(Array<Species::IsotopeRecord>);
 PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 PYBIND11_MAKE_OPAQUE(Array<SpeciesErrorCorrectedSuddenData>);
-PYBIND11_MAKE_OPAQUE(Array<ErrorCorrectedSuddenData>);
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {

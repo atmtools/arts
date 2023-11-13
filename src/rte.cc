@@ -52,10 +52,10 @@ void adapt_stepwise_partial_derivatives(
     const ConstVectorView& ppath_f_grid,
     const ConstVectorView& ppath_line_of_sight) {
   // All relevant quantities are extracted first
-  DEBUG_ONLY(const Index nq = jacobian_targets.target_count();)
+  DEBUG_ONLY(const Size nq = jacobian_targets.target_count();)
   DEBUG_ONLY(const Index nv = ppath_f_grid.size();)
-  ARTS_ASSERT(nq == dK_dx.nrows())
-  ARTS_ASSERT(nq == dS_dx.nrows())
+  ARTS_ASSERT(nq == static_cast<Size>(dK_dx.nrows()))
+  ARTS_ASSERT(nq == static_cast<Size>(dS_dx.nrows()))
   ARTS_ASSERT(nv == dK_dx.ncols())
   ARTS_ASSERT(nv == dS_dx.ncols())
 

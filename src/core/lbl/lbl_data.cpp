@@ -41,7 +41,7 @@ Numeric line::ds_da(Numeric T, Numeric Q) const noexcept {
   return pow2(c) * gu * exp(-e0 / (k * T)) / (8 * pi * pow3(f0) * Q);
 }
 
-void band::sort(variable v) {
+void band_data::sort(variable v) {
   using enum variable;
   switch (v) {
     case f0:
@@ -73,16 +73,21 @@ std::ostream& operator<<(std::ostream& os, const std::vector<line>& x) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const band& x) {
+std::ostream& operator<<(std::ostream& os, const band_data& x) {
   return os << x.lineshape << ' ' << x.linestrength << ' ' << x.cutoff << ' '
-            << x.cutoff_value << '\n' << x.lines;
+            << x.cutoff_value << '\n'
+            << x.lines;
 }
 
-std::ostream& operator<<(std::ostream& os, const bands& x) {
+std::ostream& operator<<(std::ostream& os, const band& x) {
+  return os << x.key << '\n' << x.data;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<band>& x) {
   constexpr std::string_view endl = "\n";
   std::string_view sep = "";
-  for (auto& [key, band]: x) {
-    os  << sep << key << '\n' << band;
+  for (auto& y : x) {
+    os << sep << y;
     std::exchange(sep, endl);
   }
   return os;

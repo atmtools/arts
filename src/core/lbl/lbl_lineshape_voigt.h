@@ -122,7 +122,7 @@ struct line_pos {
   Size iz{std::numeric_limits<Size>::max()};
 };
 
-Size count_lines(const band& bnd, const zeeman::pol type);
+Size count_lines(const band_data& bnd, const zeeman::pol type);
 
 void zeeman_set_back(std::vector<single_shape>& lines,
                      std::vector<line_pos>& pos,
@@ -145,7 +145,7 @@ void lines_set(std::vector<single_shape>& lines,
 inline void band_shape_helper(std::vector<single_shape>& lines,
                               std::vector<line_pos>& pos,
                               const SpeciesIsotopeRecord& spec,
-                              const band& bnd,
+                              const band_data& bnd,
                               const AtmPoint& atm,
                               const Numeric fmin,
                               const Numeric fmax,
@@ -408,39 +408,39 @@ struct ComputeData {
                      const zeeman::pol pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
-  void core_calc(const band_shape& shp, const band& bnd, const Vector& f_grid);
+  void core_calc(const band_shape& shp, const band_data& bnd, const Vector& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const SpeciesIsotopeRecord& spec,
                     const band_shape& shp,
-                    const band& bnd,
+                    const band_data& bnd,
                     const Vector& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
-                    const band& bnd,
+                    const band_data& bnd,
                     const Vector& f_grid,
                     const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,
-                        const band& bnd,
+                        const band_data& bnd,
                         const Vector& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
-                        const band& bnd,
+                        const band_data& bnd,
                         const Vector& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
-                        const band& bnd,
+                        const band_data& bnd,
                         const Vector& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
@@ -448,7 +448,7 @@ struct ComputeData {
   //! Sets ds and dz and dcut and dshape
   void dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                       const band_shape& shp,
-                      const band& bnd,
+                      const band_data& bnd,
                       const Vector& f_grid,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
@@ -458,54 +458,54 @@ struct ComputeData {
 
   //! Sets dshape and ds and dz and dcut and dshape
   void df0_core_calc(const band_shape& shp,
-                     const band& bnd,
+                     const band_data& bnd,
                      const Vector& f_grid,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void de0_core_calc(const band_shape& shp,
-                     const band& bnd,
+                     const band_data& bnd,
                      const Vector& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void da_core_calc(const band_shape& shp,
-                    const band& bnd,
+                    const band_data& bnd,
                     const Vector& f_grid,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dG0_core_calc(const band_shape& shp,
-                     const band& bnd,
+                     const band_data& bnd,
                      const Vector& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dD0_core_calc(const band_shape& shp,
-                     const band& bnd,
+                     const band_data& bnd,
                      const Vector& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void dY_core_calc(const band_shape& shp,
-                    const band& bnd,
+                    const band_data& bnd,
                     const Vector& f_grid,
                     const AtmPoint& atm,
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void dG_core_calc(const band_shape& shp,
-                    const band& bnd,
+                    const band_data& bnd,
                     const Vector& f_grid,
                     const AtmPoint& atm,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dDV_core_calc(const band_shape& shp,
-                     const band& bnd,
+                     const band_data& bnd,
                      const Vector& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
@@ -516,8 +516,8 @@ void calculate(PropmatVector& pm,
                ComputeData& com_data,
                const Vector& f_grid,
                const Jacobian::Targets& jacobian_targets,
-               const band_key& bnd_qid,
-               const band& bnd,
+               const QuantumIdentifier& bnd_qid,
+               const band_data& bnd,
                const AtmPoint& atm,
                const zeeman::pol pol = zeeman::pol::no);
 }  // namespace lbl::voigt::lte

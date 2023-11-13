@@ -228,8 +228,8 @@ EMPTY(POLY, T0)
 }  // namespace model
 
 class data {
-  model_type t;
-  Vector x;
+  model_type t{model_type::T0};
+  Vector x{};
 
  public:
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);

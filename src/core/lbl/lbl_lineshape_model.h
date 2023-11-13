@@ -25,9 +25,9 @@ ENUMCLASS(variable,
 )
 
 struct species_model {
-  Species::Species species;
+  Species::Species species{};
 
-  std::vector<std::pair<variable, temperature::data>> data;
+  std::vector<std::pair<variable, temperature::data>> data{};
 
 #define VARIABLE(name) \
   [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const noexcept
@@ -76,11 +76,11 @@ struct species_model {
 };
 
 struct model {
-  bool one_by_one;
+  bool one_by_one{false};
 
-  Numeric T0;
+  Numeric T0{0};
 
-  std::vector<species_model> single_models;
+  std::vector<species_model> single_models{};
 
   friend std::ostream& operator<<(std::ostream& os, const model& x);
 

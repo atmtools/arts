@@ -12,6 +12,16 @@ internal_workspace_groups() {
       .desc =
           "Contains line-by-line absorption information for a number of related absorption lines\n"};
 
+  wsg_data["AbsorptionBand"] = {
+      .file = "lbl.h",
+      .desc =
+          "Contains all information about bands of related absorption lines\n"};
+
+  wsg_data["AbsorptionBands"] = {
+      .file = "lbl.h",
+      .desc =
+          "Contains all information about bands of related absorption lines\n"};
+
   wsg_data["Agenda"] = {
       .file = "workspace_agenda_class.h",
       .desc = "Describes a set of function calls and variable definitions\n"};
@@ -108,11 +118,15 @@ internal_workspace_groups() {
   wsg_data["ArrayOfSingleScatteringData"] = {
       .file = "optproperties.h", .desc = "A list of *SingleScatteringData*\n"};
 
-  wsg_data["ArrayOfSpeciesTag"] = {.file = "species_tags.h",
-                                   .desc = R"--(A list of species tags
+  wsg_data["SpeciesTag"] = {
+      .file = "species_tags.h", .desc = R"(A tagged absorption species
 
 These tags include the species and a lot of optional information
 about the isotopologue, the absorption scheme, and the frequency limits
+)"};
+
+  wsg_data["ArrayOfSpeciesTag"] = {.file = "species_tags.h",
+                                   .desc = R"--(A list of *SpeciesTag*
 )--"};
 
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
@@ -265,10 +279,16 @@ Both the data and the grid may be named
                        .desc = "A 64 bit signed integer type\n",
                        .value_type = true};
 
+  wsg_data["ErrorCorrectedSuddenData"] = {
+      .file = "linemixing.h",
+      .desc =
+          R"--(Data required for error-corrected sudden line mixing
+)--"};
+
   wsg_data["MapOfErrorCorrectedSuddenData"] = {
       .file = "linemixing.h",
       .desc =
-          R"--(A map of data required for computing the error-corrected-sudden relaxation matrix
+          R"--(A map of *ErrorCorrectedSuddenData* required for computing the error-corrected-sudden relaxation matrix
 
 This map contains a list of an underlying data type.  This underlying data type contains a
 *QuantumIdentifier* and a list of species dependent computational data for various components

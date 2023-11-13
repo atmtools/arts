@@ -6,6 +6,10 @@ std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
+  wsv_data["absorption_bands"] = {.desc = R"--(Bands of absorption lines for LBL calculations.
+)--",
+                         .type = "AbsorptionBands"};
+
   wsv_data["aa_grid"] = {.desc = R"--(Azimuthal angle grid.
 
 The azimutal angle grid, on which the *cloudbox_field* is stored. 

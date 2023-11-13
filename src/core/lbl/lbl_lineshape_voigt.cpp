@@ -314,7 +314,7 @@ Complex single_shape::dY(const Complex ds_dY, const Numeric f) const noexcept {
   return ds_dY * F(f);
 }
 
-Size count_lines(const band& bnd, const zeeman::pol type) {
+Size count_lines(const band_data& bnd, const zeeman::pol type) {
   return std::transform_reduce(
       bnd.begin(), bnd.end(), Index{}, std::plus<>{}, [type](auto& line) {
         const Index factor =
@@ -382,7 +382,7 @@ void lines_set(std::vector<single_shape>& lines,
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
                        const SpeciesIsotopeRecord& spec,
-                       const band& bnd,
+                       const band_data& bnd,
                        const AtmPoint& atm,
                        const Numeric fmin,
                        const Numeric fmax,
@@ -921,7 +921,7 @@ ComputeData::ComputeData(const Vector& f_grid,
 
 //! Sizes cut, dcut, dz, ds; sets shape
 void ComputeData::core_calc(const band_shape& shp,
-                            const band& bnd,
+                            const band_data& bnd,
                             const Vector& f_grid) {
   cut.resize(shp.size());
   dz.resize(shp.size());
@@ -946,7 +946,7 @@ void ComputeData::core_calc(const band_shape& shp,
 //! Sets dshape and dscl and ds and dz
 void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
                                const band_shape& shp,
-                               const band& bnd,
+                               const band_data& bnd,
                                const Vector& f_grid,
                                const AtmPoint& atm,
                                const zeeman::pol pol) {
@@ -1004,7 +1004,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
 
 //! Sets dshape and dscl
 void ComputeData::df_core_calc(const band_shape& shp,
-                               const band& bnd,
+                               const band_data& bnd,
                                const Vector& f_grid,
                                const AtmPoint& atm) {
   using Constant::h, Constant::k;
@@ -1034,7 +1034,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz
 void ComputeData::dmag_u_core_calc(const band_shape& shp,
-                                   const band& bnd,
+                                   const band_data& bnd,
                                    const Vector& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
@@ -1063,7 +1063,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz
 void ComputeData::dmag_v_core_calc(const band_shape& shp,
-                                   const band& bnd,
+                                   const band_data& bnd,
                                    const Vector& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
@@ -1092,7 +1092,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz
 void ComputeData::dmag_w_core_calc(const band_shape& shp,
-                                   const band& bnd,
+                                   const band_data& bnd,
                                    const Vector& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
@@ -1122,7 +1122,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 //! Sets ds and dz and dcut and dshape
 void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                                  const band_shape& shp,
-                                 const band& bnd,
+                                 const band_data& bnd,
                                  const Vector& f_grid,
                                  const AtmPoint& atm,
                                  const zeeman::pol pol,
@@ -1192,7 +1192,7 @@ void ComputeData::set_filter(const line_key& key, bool check_spec) {
 
 //! Sets dshape and ds and dz and dcut and dshape
 void ComputeData::df0_core_calc(const band_shape& shp,
-                                const band& bnd,
+                                const band_data& bnd,
                                 const Vector& f_grid,
                                 const line_key& key) {
   using Constant::h, Constant::k;
@@ -1224,7 +1224,7 @@ void ComputeData::df0_core_calc(const band_shape& shp,
 
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::de0_core_calc(const band_shape& shp,
-                                const band& bnd,
+                                const band_data& bnd,
                                 const Vector& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
@@ -1252,7 +1252,7 @@ void ComputeData::de0_core_calc(const band_shape& shp,
 
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::da_core_calc(const band_shape& shp,
-                               const band& bnd,
+                               const band_data& bnd,
                                const Vector& f_grid,
                                const line_key& key) {
   using Constant::h, Constant::k;
@@ -1278,7 +1278,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dG0_core_calc(const band_shape& shp,
-                                const band& bnd,
+                                const band_data& bnd,
                                 const Vector& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
@@ -1341,7 +1341,7 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dD0_core_calc(const band_shape& shp,
-                                const band& bnd,
+                                const band_data& bnd,
                                 const Vector& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
@@ -1399,7 +1399,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::dY_core_calc(const band_shape& shp,
-                               const band& bnd,
+                               const band_data& bnd,
                                const Vector& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
@@ -1462,7 +1462,7 @@ void ComputeData::dY_core_calc(const band_shape& shp,
 
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::dG_core_calc(const band_shape& shp,
-                               const band& bnd,
+                               const band_data& bnd,
                                const Vector& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
@@ -1517,7 +1517,7 @@ void ComputeData::dG_core_calc(const band_shape& shp,
 
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dDV_core_calc(const band_shape& shp,
-                                const band& bnd,
+                                const band_data& bnd,
                                 const Vector& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
@@ -1578,7 +1578,7 @@ void compute_derivative(PropmatVectorView dpm,
                         const Vector& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape& shape,
-                        const band& bnd,
+                        const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
                         const Atm::Key& key) {
@@ -1665,7 +1665,7 @@ void compute_derivative(PropmatVectorView dpm,
                         const Vector& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape& shape,
-                        const band& bnd,
+                        const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
                         const Species::Species& deriv_spec) {
@@ -1679,7 +1679,7 @@ void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const Vector& f_grid,
                         const band_shape& shape,
-                        const band& bnd,
+                        const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol,
                         const line_key& deriv) {
@@ -1763,7 +1763,7 @@ void compute_derivative(PropmatVectorView,
                         const Vector&,
                         const SpeciesIsotopeRecord&,
                         const band_shape&,
-                        const band&,
+                        const band_data&,
                         const AtmPoint&,
                         const zeeman::pol,
                         const auto&) {}
@@ -1773,8 +1773,8 @@ void calculate(PropmatVector& pm,
                ComputeData& com_data,
                const Vector& f_grid,
                const JacobianTargets& jacobian_targets,
-               const band_key& bnd_qid,
-               const band& bnd,
+               const QuantumIdentifier& bnd_qid,
+               const band_data& bnd,
                const AtmPoint& atm,
                const zeeman::pol pol) {
   const Index nf = f_grid.size();

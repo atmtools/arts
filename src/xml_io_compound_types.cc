@@ -14,6 +14,7 @@
 #include "compare.h"
 #include "debug.h"
 #include "isotopologues.h"
+#include "lbl_data.h"
 #include "species.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
@@ -2905,6 +2906,51 @@ void xml_read_from_stream(std::istream&,
 
 void xml_write_to_stream(std::ostream&,
                          const JacobianTargets&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== AbsorptionBand =========================================
+
+void xml_read_from_stream(std::istream&,
+                          AbsorptionBand&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const AbsorptionBand&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== AbsorptionBands =========================================
+
+void xml_read_from_stream(std::istream&,
+                          AbsorptionBands&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const AbsorptionBands&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== ErrorCorrectedSuddenData =========================================
+
+void xml_read_from_stream(std::istream&,
+                          ErrorCorrectedSuddenData&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const ErrorCorrectedSuddenData&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");

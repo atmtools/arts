@@ -5,6 +5,7 @@
 #include <limits>
 #include <vector>
 
+#include "configtypes.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 #include "quantum_numbers.h"
@@ -15,28 +16,28 @@ ENUMCLASS(variable, char, f0, e0, a)
 
 struct line {
   //! Einstein A coefficient
-  Numeric a;
+  Numeric a{};
 
   //! Line center
-  Numeric f0;
+  Numeric f0{};
 
   //! Lower level energy
-  Numeric e0;
+  Numeric e0{};
 
   //! Upper level statistical weight
-  Numeric gu;
+  Numeric gu{};
 
   //! Lower level statistical weight
-  Numeric gl;
+  Numeric gl{};
 
   //! Zeeman model
-  zeeman::model z;
+  zeeman::model z{};
 
   //! Line shape model
-  line_shape::model ls;
+  line_shape::model ls{};
 
   //! Quantum numbers of this line
-  QuantumNumberLocalState qn;
+  QuantumNumberLocalState qn{};
 
   /*! Line strength in LTE divided by frequency-factor
 
@@ -104,16 +105,16 @@ ENUMCLASS(Lineshape, char, VP)
 
 ENUMCLASS(Linestrength, char, LTE)
 
-struct band {
-  std::vector<line> lines;
+struct band_data {
+  std::vector<line> lines{};
 
-  Lineshape lineshape;
+  Lineshape lineshape{Lineshape::VP};
 
-  Linestrength linestrength;
+  Linestrength linestrength{Linestrength::LTE};
 
-  CutoffType cutoff;
+  CutoffType cutoff{CutoffType::None};
 
-  Numeric cutoff_value;
+  Numeric cutoff_value{std::numeric_limits<Numeric>::infinity()};
 
   [[nodiscard]] auto&& back() noexcept { return lines.back(); }
   [[nodiscard]] auto&& back() const noexcept { return lines.back(); }
@@ -143,19 +144,20 @@ struct band {
 
   void sort(variable v=variable::f0);
 
-  friend std::ostream& operator<<(std::ostream& os, const band& x);
+  friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };
 
-//! The key to finding any absorption band
-using band_key = QuantumIdentifier;
+struct band {
+  QuantumIdentifier key{};
+  band_data data{};
 
-//! A list of multiple bands
-using bands = std::unordered_map<band_key, band>;
+  friend std::ostream& operator<<(std::ostream& os, const band&);
+};
 
 //! The key to finding any absorption line
 struct line_key {
   //! The band the line belongs to
-  band_key band;
+  QuantumIdentifier band;
 
   //! The line count within the band
   Size line;
@@ -183,17 +185,21 @@ struct line_key {
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 };
 
-std::ostream& operator<<(std::ostream& os, const bands& x);
+std::ostream& operator<<(std::ostream& os, const std::vector<band>& x);
 }  // namespace lbl
 
 //! Support hashing of line keys
 template <>
 struct std::hash<lbl::line_key> {
   Size operator()(const lbl::line_key& x) const {
-    return (std::hash<lbl::band_key>{}(x.band) << 32) ^
+    return (std::hash<QuantumIdentifier>{}(x.band) << 32) ^
            std::hash<Size>{}(x.line) ^ std::hash<Size>{}(x.spec);
   }
 };
 
 using LblLineKey = lbl::line_key;
-using AbsorptionBands = lbl::bands;
+
+using AbsorptionBand = lbl::band;
+
+//! A list of multiple bands
+using AbsorptionBands = std::vector<lbl::band>;

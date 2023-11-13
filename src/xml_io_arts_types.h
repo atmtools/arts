@@ -22,6 +22,7 @@
 
 // Extras
 #include "jacobian.h"
+#include "linemixing.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "template_partfun.h"
@@ -45,6 +46,10 @@ TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
 
 //=== Compound Types =======================================================
 
+TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(ErrorCorrectedSuddenData)
+TMPL_XML_READ_WRITE_STREAM(AbsorptionBand)
+TMPL_XML_READ_WRITE_STREAM(AbsorptionBands)
 TMPL_XML_READ_WRITE_STREAM(AbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(AtmField)
