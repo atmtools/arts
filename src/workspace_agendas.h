@@ -6,9 +6,10 @@
 
 struct WorkspaceAgendaInternalRecord {
   std::string desc{};
-  std::vector <std::string> output{};
-  std::vector <std::string> input{};
+  std::vector<std::string> output{};
+  std::vector<std::string> input{};
   bool array{false};
 };
 
-std::unordered_map<std::string, WorkspaceAgendaInternalRecord> internal_workspace_agendas();
+std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
+internal_workspace_agendas();

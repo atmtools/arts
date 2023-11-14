@@ -1,8 +1,8 @@
 #pragma once
 
 // Internal data
-#include "workspace_groups.h"
 #include "workspace_agendas.h"
+#include "workspace_groups.h"
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 

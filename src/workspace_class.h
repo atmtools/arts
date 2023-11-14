@@ -9,17 +9,18 @@
 
 #include "auto_wsg.h"
 
-
-enum class WorkspaceInitialization : bool {FromGlobalDefaults, Empty};
+enum class WorkspaceInitialization : bool { FromGlobalDefaults, Empty };
 
 class Workspace {
   std::unordered_map<std::string, std::shared_ptr<Wsv>> wsv;
 
  public:
-  Workspace(WorkspaceInitialization how_to_initialize = WorkspaceInitialization::FromGlobalDefaults);
+  Workspace(WorkspaceInitialization how_to_initialize =
+                WorkspaceInitialization::FromGlobalDefaults);
 
   //! Returns a shared pointer to the workspace variable with the given name.
-  [[nodiscard]] const std::shared_ptr<Wsv>& share(const std::string& name) const;
+  [[nodiscard]] const std::shared_ptr<Wsv>& share(
+      const std::string& name) const;
 
   //! Returns a copy of the workspace variable with the given name.
   [[nodiscard]] std::shared_ptr<Wsv> copy(const std::string& name) const;

@@ -118,8 +118,8 @@ internal_workspace_groups() {
   wsg_data["ArrayOfSingleScatteringData"] = {
       .file = "optproperties.h", .desc = "A list of *SingleScatteringData*\n"};
 
-  wsg_data["SpeciesTag"] = {
-      .file = "species_tags.h", .desc = R"(A tagged absorption species
+  wsg_data["SpeciesTag"] = {.file = "species_tags.h",
+                            .desc = R"(A tagged absorption species
 
 These tags include the species and a lot of optional information
 about the isotopologue, the absorption scheme, and the frequency limits

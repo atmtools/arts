@@ -13,8 +13,8 @@
 
 namespace lbl {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
-    const Vector& f_grid,
-    const AbsorptionBands& bnds,
+    const ExhaustiveConstVectorView& f_grid,
+    const std::span<const lbl::band>& bnds,
     const AtmPoint& atm,
     const Vector2 los) {
   if (std::ranges::any_of(bnds, [](auto& bnd) {
@@ -26,11 +26,11 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
   return nullptr;
 }
 
-void calculate(PropmatVector& pm,
-               PropmatMatrix& dpm,
-               const Vector& f_grid,
+void calculate(PropmatVectorView pm,
+               PropmatMatrixView dpm,
+               const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
-               const AbsorptionBands& bnds,
+               const std::span<const lbl::band>& bnds,
                const AtmPoint& atm,
                const Vector2 los,
                const bool zeeman) {

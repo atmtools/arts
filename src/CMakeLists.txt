@@ -160,6 +160,7 @@ add_library (artsworkspace STATIC
   m_geodetic.cc
   m_xsec_fit.cc
   m_jacobian.cc
+  m_lbl.cc
   m_linemixing.cc
   m_microphysics.cc
   m_montecarlo.cc

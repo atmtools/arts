@@ -99,7 +99,7 @@ struct line {
   friend std::ostream& operator<<(std::ostream& os, const line& x);
 };
 
-ENUMCLASS(CutoffType, char, None, Freq)
+ENUMCLASS(CutoffType, char, None, ByLine)
 
 ENUMCLASS(Lineshape, char, VP)
 
@@ -135,7 +135,7 @@ struct band_data {
     switch (cutoff) {
       case None:
         return std::numeric_limits<Numeric>::infinity();
-      case Freq:
+      case ByLine:
         return cutoff_value;
       case FINAL:;  // Leave last
     }
@@ -143,6 +143,9 @@ struct band_data {
   }
 
   void sort(variable v=variable::f0);
+
+  //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
+  [[nodiscard]] std::span<const line> active_lines(Numeric f0, Numeric f1) const;
 
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };

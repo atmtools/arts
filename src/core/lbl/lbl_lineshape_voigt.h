@@ -17,11 +17,9 @@
 #include <type_traits>
 #include <vector>
 
-#include "configtypes.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
-#include "matpack_view.h"
 
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {
@@ -142,37 +140,24 @@ void lines_set(std::vector<single_shape>& lines,
                Size& last_single_shape_pos);
 
 //! Helper for initializing the band_shape
-inline void band_shape_helper(std::vector<single_shape>& lines,
-                              std::vector<line_pos>& pos,
-                              const SpeciesIsotopeRecord& spec,
-                              const band_data& bnd,
-                              const AtmPoint& atm,
-                              const Numeric fmin,
-                              const Numeric fmax,
-                              const zeeman::pol pol);
+void band_shape_helper(std::vector<single_shape>& lines,
+                       std::vector<line_pos>& pos,
+                       const SpeciesIsotopeRecord& spec,
+                       const band_data& bnd,
+                       const AtmPoint& atm,
+                       const Numeric fmin,
+                       const Numeric fmax,
+                       const zeeman::pol pol);
 
 constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(
     const std::span<const single_shape> lines, Numeric f, Numeric cutoff) {
   if (cutoff < std::numeric_limits<Numeric>::infinity()) {
-    auto first = lines.begin();
+    auto low =
+        std::ranges::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
+    auto upp =
+        std::ranges::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
 
-    struct limit {
-      Numeric cutoff;
-      constexpr bool operator()(const single_shape& line,
-                                Numeric f) const noexcept {
-        return cutoff < std::abs(f - line.f0);
-      }
-      constexpr bool operator()(Numeric f,
-                                const single_shape& line) const noexcept {
-        return cutoff < std::abs(f - line.f0);
-      }
-    };
-
-    const auto [start_range, end_range] =
-        std::equal_range(first, lines.end(), f, limit{cutoff});
-
-    return {std::distance(first, start_range),
-            std::distance(start_range, end_range)};
+    return {std::distance(lines.begin(), low), std::distance(low, upp)};
   }
 
   return {0, lines.size()};
@@ -398,50 +383,52 @@ struct ComputeData {
   Propmat dnpm_dw{};  //! The orientation of the polarization
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
-  ComputeData(const Vector& f_grid,
+  ComputeData(const ExhaustiveConstVectorView& f_grid,
               const AtmPoint& atm,
-              const Vector2 los = {},
+              const Vector2& los = {},
               const zeeman::pol pol = zeeman::pol::no);
 
-  void update_zeeman(const Vector2 los,
-                     const Vector3 mag,
+  void update_zeeman(const Vector2& los,
+                     const Vector3& mag,
                      const zeeman::pol pol);
 
   //! Sizes cut, dcut, dz, ds; sets shape
-  void core_calc(const band_shape& shp, const band_data& bnd, const Vector& f_grid);
+  void core_calc(const band_shape& shp,
+                 const band_data& bnd,
+                 const ExhaustiveConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
   void dt_core_calc(const SpeciesIsotopeRecord& spec,
                     const band_shape& shp,
                     const band_data& bnd,
-                    const Vector& f_grid,
+                    const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const zeeman::pol pol);
 
   //! Sets dshape and dscl
   void df_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const Vector& f_grid,
+                    const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm);
 
   //! Sets dshape and dz
   void dmag_u_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_v_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
   //! Sets dshape and dz
   void dmag_w_core_calc(const band_shape& shp,
                         const band_data& bnd,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const AtmPoint& atm,
                         const zeeman::pol pol);
 
@@ -449,7 +436,7 @@ struct ComputeData {
   void dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                       const band_shape& shp,
                       const band_data& bnd,
-                      const Vector& f_grid,
+                      const ExhaustiveConstVectorView& f_grid,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
                       const Species::Species target_spec);
@@ -459,62 +446,62 @@ struct ComputeData {
   //! Sets dshape and ds and dz and dcut and dshape
   void df0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const Vector& f_grid,
+                     const ExhaustiveConstVectorView& f_grid,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void de0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const Vector& f_grid,
+                     const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void da_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const Vector& f_grid,
+                    const ExhaustiveConstVectorView& f_grid,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dG0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const Vector& f_grid,
+                     const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dD0_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const Vector& f_grid,
+                     const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void dY_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const Vector& f_grid,
+                    const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
   void dG_core_calc(const band_shape& shp,
                     const band_data& bnd,
-                    const Vector& f_grid,
+                    const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
   void dDV_core_calc(const band_shape& shp,
                      const band_data& bnd,
-                     const Vector& f_grid,
+                     const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
 };
 
-void calculate(PropmatVector& pm,
-               PropmatMatrix& dpm,
+void calculate(PropmatVectorView pm,
+               PropmatMatrixView dpm,
                ComputeData& com_data,
-               const Vector& f_grid,
+               const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,

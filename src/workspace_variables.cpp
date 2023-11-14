@@ -6,9 +6,10 @@ std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;
 
-  wsv_data["absorption_bands"] = {.desc = R"--(Bands of absorption lines for LBL calculations.
+  wsv_data["absorption_bands"] = {
+      .desc = R"--(Bands of absorption lines for LBL calculations.
 )--",
-                         .type = "AbsorptionBands"};
+      .type = "AbsorptionBands"};
 
   wsv_data["aa_grid"] = {.desc = R"--(Azimuthal angle grid.
 
@@ -3477,9 +3478,10 @@ Unit:  [ degrees ]
 )--",
       .type = "Vector"};
 
-  wsv_data["background_drad"] = {.desc = R"--(Radiation derivative from the background
+  wsv_data["background_drad"] = {
+      .desc = R"--(Radiation derivative from the background
 )--",
-                                .type = "StokvecMatrix"};
+      .type = "StokvecMatrix"};
 
   wsv_data["background_rad"] = {.desc = R"--(Radiation from the background
 )--",
@@ -4512,22 +4514,19 @@ Unit:  m
 )--",
       .type = "NumericUnaryOperator"};
 
-  wsv_data["gravity_operator"] = {
-      .desc = R"--(The gravity operator.
+  wsv_data["gravity_operator"] = {.desc = R"--(The gravity operator.
 
 Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude [deg].
 )--",
-      .type = "NumericTernaryOperator"};
+                                  .type = "NumericTernaryOperator"};
 
-  wsv_data["rad"] = {
-      .desc = R"--(A radiation vector.
+  wsv_data["rad"] = {.desc = R"--(A radiation vector.
 )--",
-      .type = "StokvecVector"};
+                     .type = "StokvecVector"};
 
-  wsv_data["drad"] = {
-      .desc = R"--(A radiation derivative matrix.
+  wsv_data["drad"] = {.desc = R"--(A radiation derivative matrix.
 )--",
-      .type = "StokvecMatrix"};
+                      .type = "StokvecMatrix"};
 
   wsv_data["jacobian_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.

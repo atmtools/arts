@@ -9,4 +9,5 @@ struct WorkspaceGroupRecord {
   bool value_type{false};
 };
 
-std::unordered_map<std::string, WorkspaceGroupRecord> internal_workspace_groups();
+std::unordered_map<std::string, WorkspaceGroupRecord>
+internal_workspace_groups();

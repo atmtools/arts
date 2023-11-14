@@ -323,59 +323,48 @@ Size count_lines(const band_data& bnd, const zeeman::pol type) {
       });
 }
 
-void zeeman_set_back(std::vector<single_shape>& lines,
-                     std::vector<line_pos>& pos,
-                     const single_shape& s,
-                     const line& line,
-                     const Numeric H,
-                     const Size spec,
-                     const zeeman::pol pol,
-                     Size& last_single_shape_pos) {
+void zeeman_push_back(std::vector<single_shape>& lines,
+                      std::vector<line_pos>& pos,
+                      single_shape&& s,
+                      const line& line,
+                      const Numeric H,
+                      const Size spec,
+                      const zeeman::pol pol) {
   const auto line_nr = static_cast<Size>(pos.size() ? pos.back().line + 1 : 0);
 
   if (pol == zeeman::pol::no) {
-    lines[last_single_shape_pos] = s;
-    pos[last_single_shape_pos] = {line_nr, spec};
-    ++last_single_shape_pos;
+    lines.emplace_back(std::forward<single_shape>(s));
+    pos.emplace_back(line_nr, spec);
   } else {
     const auto nz = line.z.size(line.qn.val, pol);
     for (Index iz = 0; iz < nz; iz++) {
-      lines[last_single_shape_pos] = s;
-      lines[last_single_shape_pos].as_zeeman(line, H, pol, iz);
-      pos[last_single_shape_pos] = {line_nr, spec, static_cast<Size>(iz)};
-      ++last_single_shape_pos;
+      lines.push_back(s);
+      lines.back().as_zeeman(line, H, pol, iz);
+      pos.emplace_back(line_nr, spec, static_cast<Size>(iz));
     }
   }
 }
 
-void lines_set(std::vector<single_shape>& lines,
-               std::vector<line_pos>& pos,
-               const SpeciesIsotopeRecord& spec,
-               const line& line,
-               const AtmPoint& atm,
-               const zeeman::pol pol,
-               Size& last_single_shape_pos) {
+void lines_push_back(std::vector<single_shape>& lines,
+                     std::vector<line_pos>& pos,
+                     const SpeciesIsotopeRecord& spec,
+                     const line& line,
+                     const AtmPoint& atm,
+                     const zeeman::pol pol) {
   const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   if (line.ls.one_by_one) {
     for (Size i = 0; i < line.ls.single_models.size(); ++i) {
-      zeeman_set_back(lines,
-                      pos,
-                      {spec, line, atm, i},
-                      line,
-                      H,
-                      i,
-                      pol,
-                      last_single_shape_pos);
+      zeeman_push_back(
+          lines, pos, single_shape{spec, line, atm, i}, line, H, i, pol);
     }
   } else {
-    zeeman_set_back(lines,
-                    pos,
-                    {spec, line, atm},
-                    line,
-                    H,
-                    std::numeric_limits<Size>::max(),
-                    pol,
-                    last_single_shape_pos);
+    zeeman_push_back(lines,
+                     pos,
+                     single_shape{spec, line, atm},
+                     line,
+                     H,
+                     std::numeric_limits<Size>::max(),
+                     pol);
   }
 }
 
@@ -387,25 +376,22 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const Numeric fmin,
                        const Numeric fmax,
                        const zeeman::pol pol) {
-  lines.resize(count_lines(bnd, pol));
-  pos.resize(lines.size());
-
-  Size i{0};
+  lines.resize(0);
+  pos.resize(0);
+  lines.reserve(count_lines(bnd, pol));
+  pos.reserve(lines.capacity());
 
   using enum CutoffType;
   switch (bnd.cutoff) {
     case None:
       for (auto& line : bnd) {
-        lines_set(lines, pos, spec, line, atm, pol, i);
+        lines_push_back(lines, pos, spec, line, atm, pol);
       }
       break;
-    case Freq: {
-      const auto by_range =
-          std::views::filter([fmin, fmax, c = bnd.cutoff_value](auto& line) {
-            return (line.f0 - c) > fmin and (line.f0 + c) < fmax;
-          });
-      for (auto& line : bnd | by_range) {
-        lines_set(lines, pos, spec, line, atm, pol, i);
+    case ByLine: {
+      const auto active_lines = bnd.active_lines(fmin, fmax);
+      for (auto& line : active_lines) {
+        lines_push_back(lines, pos, spec, line, atm, pol);
       }
     } break;
     case FINAL:
@@ -888,8 +874,8 @@ void band_shape::dG(ExhaustiveComplexVectorView cut,
   }
 }
 
-void ComputeData::update_zeeman(const Vector2 los,
-                                const Vector3 mag,
+void ComputeData::update_zeeman(const Vector2& los,
+                                const Vector3& mag,
                                 const zeeman::pol pol) {
   npm = zeeman::norm_view(pol, mag, los);
   if (pol != zeeman::pol::no) {
@@ -899,9 +885,9 @@ void ComputeData::update_zeeman(const Vector2 los,
   }
 }
 
-ComputeData::ComputeData(const Vector& f_grid,
+ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
                          const AtmPoint& atm,
-                         const Vector2 los,
+                         const Vector2& los,
                          const zeeman::pol pol)
     : scl(f_grid.size()),
       dscl(f_grid.size()),
@@ -922,7 +908,7 @@ ComputeData::ComputeData(const Vector& f_grid,
 //! Sizes cut, dcut, dz, ds; sets shape
 void ComputeData::core_calc(const band_shape& shp,
                             const band_data& bnd,
-                            const Vector& f_grid) {
+                            const ExhaustiveConstVectorView& f_grid) {
   cut.resize(shp.size());
   dz.resize(shp.size());
   ds.resize(shp.size());
@@ -947,7 +933,7 @@ void ComputeData::core_calc(const band_shape& shp,
 void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
                                const band_shape& shp,
                                const band_data& bnd,
-                               const Vector& f_grid,
+                               const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const zeeman::pol pol) {
   using Constant::h, Constant::k;
@@ -1005,7 +991,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
 //! Sets dshape and dscl
 void ComputeData::df_core_calc(const band_shape& shp,
                                const band_data& bnd,
-                               const Vector& f_grid,
+                               const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm) {
   using Constant::h, Constant::k;
 
@@ -1035,7 +1021,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_u_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const Vector& f_grid,
+                                   const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -1064,7 +1050,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_v_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const Vector& f_grid,
+                                   const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -1093,7 +1079,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
 //! Sets dshape and dz
 void ComputeData::dmag_w_core_calc(const band_shape& shp,
                                    const band_data& bnd,
-                                   const Vector& f_grid,
+                                   const ExhaustiveConstVectorView& f_grid,
                                    const AtmPoint& atm,
                                    const zeeman::pol pol) {
   const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
@@ -1123,7 +1109,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                                  const band_shape& shp,
                                  const band_data& bnd,
-                                 const Vector& f_grid,
+                                 const ExhaustiveConstVectorView& f_grid,
                                  const AtmPoint& atm,
                                  const zeeman::pol pol,
                                  const Species::Species target_spec) {
@@ -1193,7 +1179,7 @@ void ComputeData::set_filter(const line_key& key, bool check_spec) {
 //! Sets dshape and ds and dz and dcut and dshape
 void ComputeData::df0_core_calc(const band_shape& shp,
                                 const band_data& bnd,
-                                const Vector& f_grid,
+                                const ExhaustiveConstVectorView& f_grid,
                                 const line_key& key) {
   using Constant::h, Constant::k;
 
@@ -1225,7 +1211,7 @@ void ComputeData::df0_core_calc(const band_shape& shp,
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::de0_core_calc(const band_shape& shp,
                                 const band_data& bnd,
-                                const Vector& f_grid,
+                                const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
   using Constant::h, Constant::k;
@@ -1253,7 +1239,7 @@ void ComputeData::de0_core_calc(const band_shape& shp,
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::da_core_calc(const band_shape& shp,
                                const band_data& bnd,
-                               const Vector& f_grid,
+                               const ExhaustiveConstVectorView& f_grid,
                                const line_key& key) {
   using Constant::h, Constant::k;
 
@@ -1279,7 +1265,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dG0_core_calc(const band_shape& shp,
                                 const band_data& bnd,
-                                const Vector& f_grid,
+                                const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
   using Constant::h, Constant::k;
@@ -1342,7 +1328,7 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dD0_core_calc(const band_shape& shp,
                                 const band_data& bnd,
-                                const Vector& f_grid,
+                                const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
   using Constant::h, Constant::k;
@@ -1400,7 +1386,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::dY_core_calc(const band_shape& shp,
                                const band_data& bnd,
-                               const Vector& f_grid,
+                               const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
   using Constant::h, Constant::k;
@@ -1463,7 +1449,7 @@ void ComputeData::dY_core_calc(const band_shape& shp,
 //! Sets dshape and ds and dcut and dshape
 void ComputeData::dG_core_calc(const band_shape& shp,
                                const band_data& bnd,
-                               const Vector& f_grid,
+                               const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
   using Constant::h, Constant::k;
@@ -1518,7 +1504,7 @@ void ComputeData::dG_core_calc(const band_shape& shp,
 //! Sets dshape and dz and dcut and dshape
 void ComputeData::dDV_core_calc(const band_shape& shp,
                                 const band_data& bnd,
-                                const Vector& f_grid,
+                                const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
   using Constant::h, Constant::k;
@@ -1575,7 +1561,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape& shape,
                         const band_data& bnd,
@@ -1639,7 +1625,7 @@ void compute_derivative(PropmatVectorView dpm,
 
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape&,
                         const band&,
@@ -1662,7 +1648,7 @@ void compute_derivative(PropmatVectorView dpm,
 
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape& shape,
                         const band_data& bnd,
@@ -1677,7 +1663,7 @@ void compute_derivative(PropmatVectorView dpm,
 
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
-                        const Vector& f_grid,
+                        const ExhaustiveConstVectorView& f_grid,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
@@ -1760,7 +1746,7 @@ void compute_derivative(PropmatVectorView dpm,
 
 void compute_derivative(PropmatVectorView,
                         ComputeData&,
-                        const Vector&,
+                        const ExhaustiveConstVectorView&,
                         const SpeciesIsotopeRecord&,
                         const band_shape&,
                         const band_data&,
@@ -1768,10 +1754,10 @@ void compute_derivative(PropmatVectorView,
                         const zeeman::pol,
                         const auto&) {}
 
-void calculate(PropmatVector& pm,
-               PropmatMatrix& dpm,
+void calculate(PropmatVectorView pm,
+               PropmatMatrixView dpm,
                ComputeData& com_data,
-               const Vector& f_grid,
+               const ExhaustiveConstVectorView& f_grid,
                const JacobianTargets& jacobian_targets,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
@@ -1792,6 +1778,8 @@ void calculate(PropmatVector& pm,
   //! Reuse lines and positions if possible
   band_shape_helper(
       com_data.lines, com_data.pos, spec, bnd, atm, fmin, fmax, pol);
+
+  if (com_data.lines.empty()) return;
 
   //! Not const to save lines for reuse
   band_shape shape{std::move(com_data.lines), bnd.get_cutoff_frequency()};

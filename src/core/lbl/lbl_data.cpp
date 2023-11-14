@@ -92,4 +92,13 @@ std::ostream& operator<<(std::ostream& os, const std::vector<band>& x) {
   }
   return os;
 }
+
+//! Gets all the lines between (f0-cutoff, f1+cutoff)
+std::span<const line> band_data::active_lines(Numeric f0, Numeric f1) const {
+  const Numeric c = get_cutoff_frequency();
+  auto low = std::ranges::lower_bound(*this, f0-c, {}, &line::f0);
+  auto upp = std::ranges::upper_bound(low, end(), f1+c, {}, &line::f0);
+ 
+  return {low, upp};
+}
 }  // namespace lbl
