@@ -199,7 +199,7 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
 #pragma omp parallel for
     for (Index i = 0; i < n; i++) {
       lbl::calculate(pm.slice(ompv[i].first, ompv[i].second),
-                     dpm.slice(ompv[i].first, ompv[i].second),  // FIXME: IF DERIVS
+                     dpm(joker, Range(ompv[i].first, ompv[i].second)),  // FIXME: IF DERIVS
                      f_grid.slice(ompv[i].first, ompv[i].second),
                      jacobian_targets,
                      absorption_bands,

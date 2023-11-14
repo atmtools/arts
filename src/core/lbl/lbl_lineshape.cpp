@@ -27,7 +27,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
 }
 
 void calculate(PropmatVectorView pm,
-               PropmatMatrixView dpm,
+               matpack::matpack_view<Propmat, 2, false, true> dpm,
                const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const std::span<const lbl::band>& bnds,

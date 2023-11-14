@@ -20,6 +20,7 @@
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
+#include "matpack_view.h"
 
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {
@@ -499,7 +500,7 @@ struct ComputeData {
 };
 
 void calculate(PropmatVectorView pm,
-               PropmatMatrixView dpm,
+               matpack::matpack_view<Propmat, 2, false, true> dpm,
                ComputeData& com_data,
                const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,

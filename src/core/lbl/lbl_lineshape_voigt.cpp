@@ -1755,7 +1755,7 @@ void compute_derivative(PropmatVectorView,
                         const auto&) {}
 
 void calculate(PropmatVectorView pm,
-               PropmatMatrixView dpm,
+               matpack::matpack_view<Propmat, 2, false, true> dpm,
                ComputeData& com_data,
                const ExhaustiveConstVectorView& f_grid,
                const JacobianTargets& jacobian_targets,
@@ -1793,7 +1793,7 @@ void calculate(PropmatVectorView pm,
   for (auto& atm_target : jacobian_targets.atm()) {
     std::visit(
         [&](auto& target) {
-          compute_derivative(dpm[atm_target.target_pos],
+          compute_derivative(dpm.as_slice(atm_target.target_pos),
                              com_data,
                              f_grid,
                              spec,
@@ -1808,7 +1808,7 @@ void calculate(PropmatVectorView pm,
 
   for (auto& line_target : jacobian_targets.line()) {
     if (line_target.type.band == bnd_qid) {
-      compute_derivative(dpm[line_target.target_pos],
+      compute_derivative(dpm.as_slice(line_target.target_pos),
                          com_data,
                          f_grid,
                          shape,

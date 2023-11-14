@@ -774,6 +774,14 @@ class matpack_view {
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
+  matpack_view<T, N-1, constant, false> as_slice(Index i) requires(N > 1) {
+    return operator[](i).view;
+  }
+
+  matpack_view<T, N-1, true, false> as_slice(Index i) const requires(N > 1) {
+    return operator[](i).view;
+  }
+
   //! The value type of this matpack data is public information
   using value_type = T;
 
