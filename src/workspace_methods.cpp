@@ -15460,5 +15460,93 @@ Size : (*jacobian_targets*, *f_grid*)
              "absorption_bands",
              "atm_point"}};
 
+  wsm_data["jacobian_targetsInit"] = {
+      .desc = R"--(Initialize or reset the *jacobian_targets*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"}};
+
+  wsm_data["jacobian_targetsFinalize"] = {
+      .desc = R"--(Finalize *jacobian_targets* for use in RT methods
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets", "atm_field"}};
+
+  wsm_data["jacobian_targetsAddTemperature"] = {
+      .desc = R"--(Set temperature derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"d"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{0.1}},
+      .gin_desc = {
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddPressure"] = {
+      .desc = R"--(Set pressure derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"d"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{0.1}},
+      .gin_desc = {
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddMagneticField"] = {
+      .desc = R"--(Set magnetic field derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"component", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {"The component to use [u, v, w]",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddWindField"] = {
+      .desc = R"--(Set wind field derivative
+
+Note that the derivatives from methods that takes the freqeuncy will return
+their derivatives as if these were frequency derivatives.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"component", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {"The component to use [u, v, w]",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddSpeciesVMR"] = {
+      .desc = R"--(Set volume mixing ratio derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"species", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {"The species of interest (short or long name)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
+      .desc = R"--(Set volume mixing ratio derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"species", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {"The species isotopologue of interest (short name)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
   return wsm_data;
 }

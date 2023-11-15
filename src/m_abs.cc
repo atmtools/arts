@@ -225,33 +225,21 @@ void propmat_clearskyInit(  //WS Output
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
-  // Set size of propmat_clearsky or reset it's values
-  if (propmat_clearsky.nelem() == nf) {
-    propmat_clearsky = 0.0;
-  } else {
-    propmat_clearsky = PropmatVector(nf);
-  }
+  // Set size of propmat_clearsky and reset it's values
+  propmat_clearsky.resize(nf);
+  propmat_clearsky = 0.0;
 
-  // Set size of dpropmat_clearsky_dx or reset it's values
-  if (dpropmat_clearsky_dx.shape() not_eq std::array{nq, nf}) {
-    dpropmat_clearsky_dx = PropmatMatrix(nq, nf);
-  } else {
-    dpropmat_clearsky_dx = 0.0;
-  }
+  // Set size of nlte_source and reset it's values
+  nlte_source.resize(nf);
+  nlte_source=0.0;
 
-  // Set size of nlte_source or reset it's values
-  if (nlte_source.nelem() == nf) {
-    nlte_source = 0.0;
-  } else {
-    nlte_source = StokvecVector(nf);
-  }
+  // Set size of dpropmat_clearsky_dx and reset it's values
+  dpropmat_clearsky_dx.resize(nq, nf);
+  dpropmat_clearsky_dx = 0.0;
 
-  // Set size of dnlte_source_dx or reset it's values
-  if (dnlte_source_dx.shape() not_eq std::array{nq, nf}) {
-    dnlte_source_dx = StokvecMatrix(nq, nf);
-  } else {
-    dnlte_source_dx = 0.0;
-  }
+  // Set size of dnlte_source_dx and reset it's values
+  dnlte_source_dx.resize(nq, nf);
+  dnlte_source_dx = 0.0;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

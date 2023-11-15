@@ -343,7 +343,7 @@ constexpr Vector3 proj(const Vector3 a, const Vector3 b, const Numeric ct) {
 }
 
 struct magnetic_angles {
-  Numeric u, v, w, sa, ca, sz, cz, H, uct;
+  Numeric u, v, w, sa, ca, sz, cz, H, uct, duct;
 
   magnetic_angles(const Vector3 mag, const Vector2 los)
       : u(mag[0]),
@@ -354,45 +354,47 @@ struct magnetic_angles {
         sz(std::sin(los[0])),
         cz(std::cos(los[0])),
         H(std::hypot(u, v, w)),
-        uct(ca * sz * v + cz * w + sa * sz * u) {}
+        uct(ca * sz * v + cz * w + sa * sz * u),
+        duct(u * sa * cz + v * ca * cz - w * sz) {}
 
-  Numeric theta() const { return std::acos(uct / H); }
+  Numeric theta() const { return H == 0 ? 0 : std::acos(uct / H); }
 
   Numeric dtheta_du() const {
-    return (-H * sa * sz + u * uct) /
-           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+    return H == 0 ? 0
+                  : (-H * sa * sz + u * uct) /
+                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
   Numeric dtheta_dv() const {
-    return (-H * ca * sz + v * uct) /
-           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+    return H == 0 ? 0
+                  : (-H * ca * sz + v * uct) /
+                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
   Numeric dtheta_dw() const {
-    return (-H * cz + w * uct) /
-           (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+    return H == 0 ? 0
+                  : (-H * cz + w * uct) /
+                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
-  Numeric eta() const {
-    return std::atan2(u * ca - v * sa, u * sa * cz + v * ca * cz - w * sz);
-  }
+  Numeric eta() const { return std::atan2(u * ca - v * sa, duct); }
 
   Numeric deta_du() const {
-    return (-ca * sz * w + cz * v) /
-           (Math::pow2(ca * u - sa * v) +
-            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+    return H == 0 ? 0
+                  : (-ca * sz * w + cz * v) /
+                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
   }
 
   Numeric deta_dv() const {
-    return (-cz * u + sa * sz * w) /
-           (Math::pow2(ca * u - sa * v) +
-            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+    return H == 0 ? 0
+                  : (-cz * u + sa * sz * w) /
+                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
   }
 
   Numeric deta_dw() const {
-    return sz * (ca * u - sa * v) /
-           (Math::pow2(ca * u - sa * v) +
-            Math::pow2(ca * cz * v + cz * sa * u - sz * w));
+    return H == 0 ? 0
+                  : sz * (ca * u - sa * v) /
+                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
   }
 };
 
@@ -535,7 +537,7 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
   const Numeric eta = ma.eta();
   const Numeric dtheta = ma.dtheta_dw();
   const Numeric deta = ma.deta_dw();
-  
+
   const Numeric CT = std::cos(theta);
   const Numeric ST = std::sin(theta);
   const Numeric S2T = 2 * ST * CT;

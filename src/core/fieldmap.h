@@ -1,7 +1,5 @@
 #pragma once
 
-#include "matpack_concepts.h"
-
 #include <concepts>
 #include <cstddef>
 #include <functional>
@@ -10,10 +8,14 @@
 #include <variant>
 #include <vector>
 
+#include "matpack_concepts.h"
+
 namespace FieldMap {
-template<typename T>
+template <typename T>
 concept Hashable = requires(T a) {
-    { std::hash<std::remove_cvref_t<T>>{}(a) } -> std::convertible_to<std::size_t>;
+  {
+    std::hash<std::remove_cvref_t<T>>{}(a)
+  } -> std::convertible_to<std::size_t>;
 };
 
 template <typename T>
@@ -21,7 +23,11 @@ concept Equatable = requires(T a) {
   { a == a } -> std::convertible_to<bool>;
 };
 
-template <typename T> concept field_key = Hashable<T> and Equatable<T>;
+template <typename T>
+concept field_key = Hashable<T> and Equatable<T>;
+
+template <typename T, typename...Ts>
+concept one_of = (std::same_as<std::remove_cvref_t<T>, Ts> or ...);
 
 /** A multi-key map of fields of data
  *
@@ -39,90 +45,100 @@ template <typename T> concept field_key = Hashable<T> and Equatable<T>;
 template <typename T, field_key... Keys>
   requires(sizeof...(Keys) > 0)
 struct Map {
-static_assert(not (std::same_as<Keys, bool> or ...), "Cannot have pure boolean keys");
-static_assert((std::same_as<Keys, std::remove_cvref_t<Keys>> and ...), "Only for base-type keys");
+  static_assert(not(std::same_as<Keys, bool> or ...),
+                "Cannot have pure boolean keys");
+  static_assert((std::same_as<Keys, std::remove_cvref_t<Keys>> and ...),
+                "Only for base-type keys");
 
   static constexpr Size N = sizeof...(Keys);
   using KeyVal = std::variant<Keys...>;
   std::tuple<std::unordered_map<Keys, T>...> map_data;
 
-private:
-  template <field_key Key> static constexpr Size pos() {
+ private:
+  template <one_of<Keys...> Key>
+  static constexpr Size pos() {
     constexpr std::array<bool, N> tst{
         std::same_as<std::remove_cvref_t<Key>, Keys>...};
-    Size i=0;
-    while(not tst[i] and i < N) i++;
+    Size i = 0;
+    while (i < N and not tst[i]) i++;
     return i;
   }
 
-public:
-  template <field_key Key>
+ public:
+  template <one_of<Keys...> Key>
   std::unordered_map<std::remove_cvref_t<Key>, T> &map()
     requires(pos<Key>() < N)
   {
     return std::get<pos<Key>()>(map_data);
   }
 
-  template <field_key Key>
+  template <one_of<Keys...> Key>
   const std::unordered_map<std::remove_cvref_t<Key>, T> &map() const
     requires(pos<Key>() < N)
   {
     return std::get<pos<Key>()>(map_data);
   }
 
-  template <field_key Key>
+  template <one_of<Keys...> Key>
   [[nodiscard]] constexpr const T &operator[](const Key &k) const {
     return map<Key>().at(k);
   }
 
-  template <field_key Key>
+  template <one_of<Keys...> Key>
   [[nodiscard]] constexpr T &operator[](const Key &k) {
     return map<Key>()[k];
   }
 
   [[nodiscard]] constexpr const T &operator[](const KeyVal &k) const {
-    return std::visit([this](auto& key) -> const T& {
-      return this->map<decltype(key)>().at(key);
-      }, k);
+    return std::visit(
+        [this](auto &key) -> const T & {
+          return this->map<decltype(key)>().at(key);
+        },
+        k);
   }
 
   [[nodiscard]] constexpr T &operator[](const KeyVal &k) {
-    return std::visit([this](auto& key) -> T& {
-      return const_cast<Map *>(this)->map<decltype(key)>()[key];
-      }, k);
+    return std::visit(
+        [this](auto &key) -> T & {
+          return const_cast<Map *>(this)->map<decltype(key)>()[key];
+        },
+        k);
   }
 
-  template <field_key Key> constexpr void erase(Key &&k) {
+  template <one_of<Keys...> Key>
+  constexpr void erase(Key &&k) {
     map<Key>().erase(std::forward<Key>(k));
   }
 
-  template <field_key Key>
+  template <one_of<Keys...> Key>
   constexpr bool contains(Key &&key) const {
     return map<Key>().contains(std::forward<Key>(key));
   }
 
   constexpr bool contains(const KeyVal &key) const {
-    return std::visit([this](auto& k) -> bool {
-      return this->map<decltype(k)>().contains(k);
-      }, key);
+    return std::visit(
+        [this](auto &k) -> bool {
+          return this->map<decltype(k)>().contains(k);
+        },
+        key);
   }
 
-  template <field_key ... MultipleKeys>
-  constexpr bool has(MultipleKeys && ...key) const {
+  template <field_key... MultipleKeys>
+  constexpr bool has(MultipleKeys &&...key) const {
     return (contains<MultipleKeys>(std::forward<MultipleKeys>(key)) and ...);
   }
 
-private:
-  template <field_key Key, field_key... rest_of_keys>
+ private:
+  template <one_of<Keys...> Key, field_key... rest_of_keys>
   constexpr void append_keys(auto &keys) const {
-    for (auto &val : map<Key>())
-      keys.emplace_back(val.first);
+    for (auto &val : map<Key>()) keys.emplace_back(val.first);
     if constexpr (sizeof...(rest_of_keys) > 0)
       append_keys<rest_of_keys...>(keys);
   }
 
-public:
-  template <field_key Key = bool> constexpr auto keys() const {
+ public:
+  template <one_of<Keys..., bool> Key = bool>
+  constexpr auto keys() const {
     if constexpr (std::same_as<Key, bool>) {
       std::vector<KeyVal> out;
       append_keys<Keys...>(out);
@@ -134,7 +150,8 @@ public:
     }
   }
 
-  template <field_key Key = bool> [[nodiscard]] constexpr Size size() const {
+  template <one_of<Keys..., bool> Key = bool>
+  [[nodiscard]] constexpr Size size() const {
     if constexpr (std::same_as<Key, bool>) {
       return (size<Keys>() + ...);
     } else {
@@ -142,22 +159,34 @@ public:
     }
   }
 
-  template <field_key Key>
-  [[nodiscard]] auto begin() {return map<Key>().begin();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto begin() {
+    return map<Key>().begin();
+  }
 
-  template <field_key Key>
-  [[nodiscard]] auto end() {return map<Key>().end();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto end() {
+    return map<Key>().end();
+  }
 
-  template <field_key Key>
-  [[nodiscard]] auto begin() const {return map<Key>().begin();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto begin() const {
+    return map<Key>().begin();
+  }
 
-  template <field_key Key>
-  [[nodiscard]] auto end() const {return map<Key>().end();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto end() const {
+    return map<Key>().end();
+  }
 
-  template <field_key Key>
-  [[nodiscard]] auto cbegin() const {return map<Key>().begin();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto cbegin() const {
+    return map<Key>().begin();
+  }
 
-  template <field_key Key>
-  [[nodiscard]] auto cend() const {return map<Key>().end();}
+  template <one_of<Keys...> Key>
+  [[nodiscard]] auto cend() const {
+    return map<Key>().end();
+  }
 };
-} // namespace FieldMap
+}  // namespace FieldMap

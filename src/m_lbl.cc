@@ -2,9 +2,11 @@
 #include <lbl.h>
 #include <partfun.h>
 
+#include <exception>
 #include <stdexcept>
 
 #include "arts_omp.h"
+#include "debug.h"
 #include "new_jacobian.h"
 
 void absorption_bandsFromAbsorbtionLines(
@@ -164,7 +166,7 @@ void absorption_bandsFromAbsorbtionLines(
         return lhs.size() > rhs.size();
       },
       &lbl::band::data);
-  for (auto& bnd: absorption_bands) bnd.data.sort();
+  for (auto& bnd : absorption_bands) bnd.data.sort();
 }
 
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
@@ -190,20 +192,30 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                                const JacobianTargets& jacobian_targets,
                                const AbsorptionBands& absorption_bands,
                                const AtmPoint& atm_point) {
-    const auto n = arts_omp_get_max_threads();
+  const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
     lbl::calculate(
         pm, dpm, f_grid, jacobian_targets, absorption_bands, atm_point);
   } else {
     const auto ompv = omp_offset_count(f_grid.size(), n);
+    std::string error;
 #pragma omp parallel for
     for (Index i = 0; i < n; i++) {
-      lbl::calculate(pm.slice(ompv[i].first, ompv[i].second),
-                     dpm(joker, Range(ompv[i].first, ompv[i].second)),  // FIXME: IF DERIVS
-                     f_grid.slice(ompv[i].first, ompv[i].second),
-                     jacobian_targets,
-                     absorption_bands,
-                     atm_point);
+      try {
+        lbl::calculate(
+            pm.slice(ompv[i].first, ompv[i].second),
+            dpm(joker,
+                Range(ompv[i].first, ompv[i].second)),  // FIXME: IF DERIVS
+            f_grid.slice(ompv[i].first, ompv[i].second),
+            jacobian_targets,
+            absorption_bands,
+            atm_point);
+      } catch (std::exception& e) {
+#pragma omp critical
+        if (error.empty()) error = var_string(e.what(), '\n');
+      }
     }
+
+    ARTS_USER_ERROR_IF(not error.empty(), error)
   }
 }

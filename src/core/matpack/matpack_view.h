@@ -766,18 +766,58 @@ class matpack_view {
                        detail::substride(extent(0), std::forward<access>(ind)));
   }
 
+  /** Take a slice of the left-most dimension of this object
+   *
+   * Unlike the operator() call, this will preserve the stridedness of the
+   * view, allowing you to use the much more efficient contigious element
+   * access patterns
+   * 
+   * @param i0 Initial index
+   * @param nelem Length of new view
+   * @return matpack_view<T, N, constant, strided> Slice of the view
+   */
   matpack_view<T, N, constant, strided> slice(Index i0, Index nelem) {
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
+  /** Take a slice of the left-most dimension of this object
+   *
+   * Unlike the operator() call, this will preserve the stridedness of the
+   * view, allowing you to use the much more efficient contigious element
+   * access patterns
+   * 
+   * @param i0 Initial index
+   * @param nelem Length of new view
+   * @return matpack_view<T, N, true, strided> Slice of the view
+   */
   matpack_view<T, N, true, strided> slice(Index i0, Index nelem) const {
     return operator[](matpack_strided_access(i0, nelem, 1)).view;
   }
 
+  /**  Returns an exhaustive slice of a sub-view of the data
+   * 
+   * WARNING: This function is not safe to use with all strided views,
+   *          as it will not check if the sub-view is contiguous.  If
+   *          the sub-view is not contiguous, calling the function will
+   *          terminate the program.
+   *
+   * @param[in] i The left-most index access
+   * @return matpack_view<T, N-1, constant, false> Exhaustive slice of the sub-view
+   */
   matpack_view<T, N-1, constant, false> as_slice(Index i) requires(N > 1) {
     return operator[](i).view;
   }
 
+  /**  Returns an exhaustive slice of a sub-view of the data
+   * 
+   * WARNING: This function is not safe to use with all strided views,
+   *          as it will not check if the sub-view is contiguous.  If
+   *          the sub-view is not contiguous, calling the function will
+   *          terminate the program.
+   *
+   * @param[in] i The left-most index access
+   * @return matpack_view<T, N-1, true, false> Exhaustive slice of the sub-view
+   */
   matpack_view<T, N-1, true, false> as_slice(Index i) const requires(N > 1) {
     return operator[](i).view;
   }
