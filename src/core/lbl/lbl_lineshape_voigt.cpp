@@ -7,9 +7,11 @@
 
 #include <cmath>
 #include <cstdio>
+#include <iterator>
 #include <limits>
 
 #include <Faddeeva/Faddeeva.hh>
+#include "atm.h"
 
 namespace lbl::voigt::lte {
 Complex line_strength_calc(const Numeric inv_gd,
@@ -48,6 +50,7 @@ Complex dline_strength_calc_dVMR(const Numeric inv_gd,
     return -Constant::inv_sqrt_pi * inv_gd * r * s *
            (x * (df0 / f0) * lm - (x * dlm + lm));
   }
+
   return -Constant::inv_sqrt_pi * inv_gd * r * s * x * ((df0 / f0) * lm - dlm);
 }
 
@@ -222,7 +225,7 @@ Complex single_shape::dF(const Complex z_, const Complex F_) noexcept {
    *
    *           dF = -2 * z * F(z) + 2 * i / sqrt(pi)
   */
-  const Complex dz = 1e-6 * z_;
+  const Complex dz{std::max(1e-6 * z_.real(), 1e-6), std::max(1e-6*z_.imag(), 1e-6)};
   const Complex F_2 = Faddeeva::w(z_ + dz);
   return (F_2 - F_) / dz;
 }
@@ -309,19 +312,18 @@ void zeeman_push_back(std::vector<single_shape>& lines,
                       single_shape&& s,
                       const line& line,
                       const Numeric H,
-                      const Size spec,
-                      const zeeman::pol pol) {
-  const auto line_nr = static_cast<Size>(pos.size() ? pos.back().line + 1 : 0);
-
+                      const zeeman::pol pol,
+                      const Size ispec,
+                      const Size iline) {
   if (pol == zeeman::pol::no) {
     lines.emplace_back(std::forward<single_shape>(s));
-    pos.emplace_back(line_nr, spec);
+    pos.emplace_back(line_pos{.line=iline, .spec=ispec});
   } else {
     const auto nz = line.z.size(line.qn.val, pol);
     for (Index iz = 0; iz < nz; iz++) {
       lines.push_back(s);
       lines.back().as_zeeman(line, H, pol, iz);
-      pos.emplace_back(line_nr, spec, static_cast<Size>(iz));
+      pos.emplace_back(line_pos{.line=iline, .spec=ispec, .iz=static_cast<Size>(iz)});
     }
   }
 }
@@ -331,12 +333,13 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const SpeciesIsotopeRecord& spec,
                      const line& line,
                      const AtmPoint& atm,
-                     const zeeman::pol pol) {
+                     const zeeman::pol pol,
+                     const Size iline) {
   const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   if (line.ls.one_by_one) {
     for (Size i = 0; i < line.ls.single_models.size(); ++i) {
       zeeman_push_back(
-          lines, pos, single_shape{spec, line, atm, i}, line, H, i, pol);
+          lines, pos, single_shape{spec, line, atm, i}, line, H, pol, i, iline);
     }
   } else {
     zeeman_push_back(lines,
@@ -344,8 +347,8 @@ void lines_push_back(std::vector<single_shape>& lines,
                      single_shape{spec, line, atm},
                      line,
                      H,
-                     std::numeric_limits<Size>::max(),
-                     pol);
+                     pol,
+                     std::numeric_limits<Size>::max(), iline);
   }
 }
 
@@ -359,20 +362,22 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const zeeman::pol pol) {
   lines.resize(0);
   pos.resize(0);
+
   lines.reserve(count_lines(bnd, pol));
   pos.reserve(lines.capacity());
 
   using enum CutoffType;
   switch (bnd.cutoff) {
     case None:
-      for (auto& line : bnd) {
-        lines_push_back(lines, pos, spec, line, atm, pol);
+      for (Size iline =0; iline<bnd.size(); iline++) {
+        lines_push_back(lines, pos, spec, bnd.lines[iline], atm, pol, iline);
       }
       break;
     case ByLine: {
       const auto active_lines = bnd.active_lines(fmin, fmax);
+      Size iline = std::distance(bnd.begin(), active_lines.begin());
       for (auto& line : active_lines) {
-        lines_push_back(lines, pos, spec, line, atm, pol);
+        lines_push_back(lines, pos, spec, line, atm, pol, iline++);
       }
     } break;
     case FINAL:
@@ -380,7 +385,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
   }
 
   bubble_sort_by(
-      [&](const Size l1, const Size l2) { return lines[l1].f0 < lines[l2].f0; },
+      [&](const Size l1, const Size l2) { return lines[l1].f0 > lines[l2].f0; },
       lines,
       pos);
 }
@@ -1102,9 +1107,11 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
   using Constant::h, Constant::k;
 
   for (Size i = 0; i < pos.size(); i++) {
-    const Numeric& inv_gd = shp.lines[i].inv_gd;
-    const Numeric& f0 = shp.lines[i].f0;
     const auto& line = bnd.lines[pos[i].line];
+    const auto& lshp = shp.lines[i];
+
+    const Numeric& inv_gd = lshp.inv_gd;
+    const Numeric& f0 = lshp.f0;
 
     if (pos[i].spec == std::numeric_limits<Size>::max()) {
       dz_fac[i] = -(line.ls.dD0_dVMR(atm, target_spec) +

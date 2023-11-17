@@ -58,14 +58,15 @@ template <bubble_sorting_function SortFn,
           bubble_sortable T,
           bubble_sortable... Ts>
 void bubble_sort_by(const SortFn& sort_fn,
-                    T& data1,
+                    T& data_0,
                     Ts&... data_n) ARTS_NOEXCEPT {
-  const Size n = static_cast<Size>(data1.size());
+  const Size n = static_cast<Size>(data_0.size());
   ARTS_ASSERT((... and (n == static_cast<Size>(data_n.size()))),
               "All data must have the same size.");
   for (Size i = 0; i < n; i++) {
     for (Size j = i + 1; j < n; j++) {
       if (sort_fn(i, j)) {
+        std::swap(data_0[i], data_0[j]);
         (std::swap(data_n[i], data_n[j]), ...);
       }
     }
