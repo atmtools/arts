@@ -4,17 +4,6 @@ This file will showcase how you can load line data from arts-cat-data into the
 workspace and do the required setups to perform a simple forward calculations
 using this data
 
-Note that this example presumes that you have set the environment variable
-ARTS_DATA_PATH to contain a path to a local copy of both arts-cat-data and
-arts-xml-data before you import pyarts.  Please check that this is the case
-if the example does not work for you.  You can easily check if this path is
-set by adding the following two lines at the top of this pyarts-controlfile:
-
-```
-import os
-print(os.environ.get("ARTS_DATA_PATH"))
-```
-
 """
 
 import pyarts
@@ -23,6 +12,13 @@ import matplotlib.pyplot as plt
 
 # Initialize ARTS
 ws = pyarts.workspace.Workspace()
+
+"""
+
+Download ARTS catalogs if they are not already present.
+
+"""
+pyarts.cat.download.retrieve()
 
 """
 
