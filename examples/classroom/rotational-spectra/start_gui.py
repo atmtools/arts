@@ -8,6 +8,9 @@ fmax = 3e12
 # initialize ARTS
 ws = pyarts.workspace.Workspace()
 
+# Download ARTS catalogs if they are not already present.
+pyarts.cat.download.retrieve()
+
 # We are setting up our absorption species to include hydrogen chloride,
 # chlorine monoxide, carbon monoxide, nitrous oxide, and ozone
 # To speed up calculations some, we limit ourself to absorption lines with less

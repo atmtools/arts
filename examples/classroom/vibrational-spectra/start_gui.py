@@ -4,6 +4,9 @@ import numpy as np
 # initialize ARTS
 ws = pyarts.workspace.Workspace()
 
+# Download ARTS catalogs if they are not already present.
+pyarts.cat.download.retrieve()
+
 # These are the same species as for the rotational spectra (see
 # ../rotational-spectra/start_gui.py) but we also add water, carbon dioxide
 # and methane since these are sometimes more interesting in the infrared.

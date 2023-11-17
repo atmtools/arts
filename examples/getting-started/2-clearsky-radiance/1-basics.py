@@ -1,4 +1,5 @@
 # Import the module
+import os
 import pyarts
 import numpy as np  # This example uses numpy
 import matplotlib.pyplot as plt
@@ -6,6 +7,9 @@ import matplotlib.pyplot as plt
 
 # Create a workspace
 ws = pyarts.Workspace()
+
+# Download ARTS catalogs if they are not already present.
+pyarts.cat.download.retrieve()
 
 # The main agenda for computations of the radiative transfer
 # follows a pure clears sky radiative transfer in this example.
@@ -100,6 +104,10 @@ plt.xlabel("Frequency [GHz]")
 plt.ylabel("Brightness temperature [K]")
 plt.legend(["Looking down", "Looking up"])
 plt.title("Low resolution O$_2$ millimeter absorption band")
+
+# WE SHOW THE PLOT ONLY IF THIS SCRIPT IS RUN OUTSIDE OUR TEST ENVIRONMENT.
+if os.environ.get("ARTS_HEADLESS") is None:
+    plt.show()
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
