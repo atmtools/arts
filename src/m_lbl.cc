@@ -8,6 +8,7 @@
 #include "arts_omp.h"
 #include "debug.h"
 #include "new_jacobian.h"
+#include "quantum_numbers.h"
 
 void absorption_bandsFromAbsorbtionLines(
     AbsorptionBands& absorption_bands,
@@ -184,6 +185,54 @@ std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
   result.back().second = N - result.back().first;
 
   return result;
+}
+
+void absorption_bandsSelectFrequency(AbsorptionBands& absorption_bands,
+                                     const Numeric& fmin,
+                                     const Numeric& fmax) {
+  std::vector<Size> to_remove;
+
+  for (Size i = 0; i < absorption_bands.size(); i++) {
+    if (absorption_bands[i].data.lines.front().f0 > fmax or
+        absorption_bands[i].data.lines.back().f0 < fmin) {
+      to_remove.push_back(i);
+    }
+  }
+
+  for (auto i : to_remove | std::views::reverse) {
+    absorption_bands.erase(absorption_bands.begin() + i);
+  }
+}
+
+void absorption_bandsRemoveID(AbsorptionBands& absorption_bands,
+                              const QuantumIdentifier& id) {
+  for (Size i = 0; i < absorption_bands.size(); i++) {
+    if (id == absorption_bands[i].key) {
+      absorption_bands.erase(absorption_bands.begin() + i);
+      return;
+    }
+  }
+  ARTS_USER_ERROR("Did not find band of ID: ", id)
+}
+
+void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
+                            const QuantumIdentifier& id,
+                            const Index& line) {
+  for (Size i = 0; i < absorption_bands.size(); i++) {
+    if (id == absorption_bands[i].key) {
+      absorption_bands = {absorption_bands[i]};
+
+      if (line >= 0) {
+        ARTS_USER_ERROR_IF(
+            static_cast<Size>(line) >= absorption_bands[0].data.lines.size(),
+            "Line index out of range: ",
+            line)
+        absorption_bands[0].data.lines = {absorption_bands[0].data.lines[line]};
+      }
+
+      return;
+    }
+  }
 }
 
 void propmat_clearskyAddLines2(PropmatVector& pm,

@@ -15548,5 +15548,40 @@ their derivatives as if these were frequency derivatives.
       .gin_desc = {"The species isotopologue of interest (short name)",
           "The perturbation used in methods that cannot compute derivatives analytically"}};
 
+  wsm_data["absorption_bandsSelectFrequency"] = {
+      .desc = R"--(Remove all bands that strictly falls outside a frequency range
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"fmin", "fmax"},
+      .gin_type = {"Numeric", "Numeric"},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
+      .gin_desc = {"Minimum frequency to keep", "Maximum frequency to keep"}};
+
+  wsm_data["absorption_bandsRemoveID"] = {
+      .desc = R"--(Remove first band of ID
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"id"},
+      .gin_type = {"QuantumIdentifier"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Identifier to remove"}};
+
+  wsm_data["absorption_bandsKeepID"] = {
+      .desc = R"--(Keeps first band of ID
+
+If ``line`` is positive, also keep only the line of this index
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"id", "line"},
+      .gin_type = {"QuantumIdentifier", "Index"},
+      .gin_value = {std::nullopt, Index{-1}},
+      .gin_desc = {"Band to keep", "Line to keep (if positive)"}};
+
   return wsm_data;
 }

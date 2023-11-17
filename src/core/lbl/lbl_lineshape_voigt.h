@@ -2,15 +2,9 @@
 
 #include <arts_constants.h>
 #include <atm.h>
-#include <empty.h>
-#include <isotopologues.h>
 #include <matpack.h>
-#include <physics_funcs.h>
-#include <quantum_numbers.h>
 #include <rtepack.h>
-#include <sorting.h>
 
-#include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
 #include <limits>
 #include <numeric>
@@ -20,7 +14,6 @@
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
-#include "matpack_view.h"
 
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {
@@ -59,22 +52,20 @@ struct single_shape {
     return Complex{inv_gd * (f - f0), z_imag};
   }
 
-  [[nodiscard]] Complex F(const Complex z_) const noexcept;
+  [[nodiscard]] static Complex F(const Complex z_) noexcept;
 
   [[nodiscard]] Complex F(const Numeric f) const noexcept;
 
   [[nodiscard]] Complex operator()(const Numeric f) const noexcept;
 
-  [[nodiscard]] constexpr Complex dF(const Complex z_,
-                                     const Complex F_) const noexcept {
-    return 2 * inv_gd * (1i * Constant::inv_pi * inv_gd - z_ * F_);
-  }
+  [[nodiscard]] static Complex dF(const Complex z_, const Complex F_) noexcept;
 
   [[nodiscard]] Complex dF(const Numeric f) const noexcept;
 
  private:
   struct zFdF {
     Complex z, F, dF;
+    zFdF(const Complex z_) noexcept;
   };
 
   [[nodiscard]] zFdF all(const Numeric f) const noexcept;
@@ -99,6 +90,7 @@ struct single_shape {
 
   [[nodiscard]] Complex dVMR(const Complex ds_dVMR,
                              const Complex dz_dVMR,
+                             const Numeric dz_dVMR_fac,
                              const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dT(const Complex ds_dT,
@@ -211,6 +203,7 @@ struct band_shape {
 
   [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
                              const ExhaustiveConstComplexVectorView& dz_dVMR,
+                             const ExhaustiveConstVectorView& dz_dVMR_fac,
                              const Numeric f) const;
 
   [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView ds_df0,
@@ -275,11 +268,13 @@ struct band_shape {
   [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& cut,
                              const ExhaustiveConstComplexVectorView& ds_dVMR,
                              const ExhaustiveConstComplexVectorView& dz_dVMR,
+                             const ExhaustiveConstVectorView& dz_dVMR_fac,
                              const Numeric f) const;
 
   void dVMR(ExhaustiveComplexVectorView cut,
             const ExhaustiveConstComplexVectorView& ds_dVMR,
-            const ExhaustiveConstComplexVectorView& dz_dVMR) const;
+            const ExhaustiveConstComplexVectorView& dz_dVMR,
+            const ExhaustiveConstVectorView& dz_dVMR_fac) const;
 
   [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView& cut,
                             const ExhaustiveConstComplexVectorView ds_df0,
@@ -370,6 +365,7 @@ struct ComputeData {
 
   ComplexVector cut{};   //! Size of line shapes
   ComplexVector dz{};    //! Size of line shapes
+  Vector dz_fac{};       //! Size of line shapes
   ComplexVector ds{};    //! Size of line shapes
   ComplexVector dcut{};  //! Size of line shapes
 

@@ -1,26 +1,19 @@
 #include "lbl_lineshape_voigt.h"
 
 #include <new_jacobian.h>
+#include <partfun.h>
+#include <physics_funcs.h>
+#include <sorting.h>
 
 #include <cmath>
 #include <cstdio>
 #include <limits>
 
-#include "arts_constants.h"
-#include "atm.h"
-#include "debug.h"
-#include "isotopologues.h"
-#include "lbl_data.h"
-#include "lbl_lineshape_model.h"
-#include "lbl_temperature_model.h"
-#include "lbl_zeeman.h"
-#include "matpack_view.h"
-#include "partfun.h"
-#include "physics_funcs.h"
-#include "quantum_numbers.h"
+#include <Faddeeva/Faddeeva.hh>
 
 namespace lbl::voigt::lte {
-Complex line_strength_calc(const SpeciesIsotopeRecord& spec,
+Complex line_strength_calc(const Numeric inv_gd,
+                           const SpeciesIsotopeRecord& spec,
                            const line& line,
                            const AtmPoint& atm) {
   const auto s =
@@ -28,12 +21,12 @@ Complex line_strength_calc(const SpeciesIsotopeRecord& spec,
 
   const Complex lm{1 + line.ls.G(atm), -line.ls.Y(atm)};
 
-  const auto n = atm[spec] * atm[spec.spec];
-
-  return n * lm * s;
+  return Constant::inv_sqrt_pi * inv_gd * atm[spec] * atm[spec.spec] * lm * s;
 }
 
-Complex dline_strength_calc_dVMR(const SpeciesIsotopeRecord& spec,
+Complex dline_strength_calc_dVMR(const Numeric inv_gd,
+                                 const Numeric f0,
+                                 const SpeciesIsotopeRecord& spec,
                                  const Species::Species target_spec,
                                  const line& line,
                                  const AtmPoint& atm) {
@@ -41,13 +34,21 @@ Complex dline_strength_calc_dVMR(const SpeciesIsotopeRecord& spec,
       line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
 
   const Complex lm{1 + line.ls.G(atm), -line.ls.Y(atm)};
-  const Complex dlm{line.ls.dG_dVMR(atm, target_spec),
-                    -line.ls.dY_dVMR(atm, target_spec)};
 
-  const auto n = atm[spec] * atm[spec.spec];
-  const auto dn = target_spec == spec.spec ? atm[spec] : 0.0;
+  const Numeric dG = line.ls.dG_dVMR(atm, target_spec);
+  const Numeric dY = line.ls.dY_dVMR(atm, target_spec);
+  const Numeric dD0 = line.ls.dD0_dVMR(atm, target_spec);
+  const Numeric dDV = line.ls.dDV_dVMR(atm, target_spec);
+  const Numeric df0 = dD0 + dDV;
+  const Complex dlm = {dG, -dY};
+  const Numeric r = atm[spec];
+  const Numeric x = atm[target_spec];
 
-  return (dn * lm + n * dlm) * s;
+  if (target_spec == spec.spec) {
+    return -Constant::inv_sqrt_pi * inv_gd * r * s *
+           (x * (df0 / f0) * lm - (x * dlm + lm));
+  }
+  return -Constant::inv_sqrt_pi * inv_gd * r * s * x * ((df0 / f0) * lm - dlm);
 }
 
 Complex dline_strength_calc_dT(const SpeciesIsotopeRecord& spec,
@@ -67,21 +68,8 @@ Complex dline_strength_calc_dT(const SpeciesIsotopeRecord& spec,
   return n * (dlm * s + lm * ds);
 }
 
-Complex dline_strength_calc_disot(const SpeciesIsotopeRecord& spec,
-                                  const SpeciesIsotopeRecord& target_isot,
-                                  const line& line,
-                                  const AtmPoint& atm) {
-  const auto s =
-      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
-
-  const Complex lm{1 + line.ls.G(atm), -line.ls.Y(atm)};
-
-  const auto dn = spec == target_isot ? atm[spec.spec] : 0.0;
-
-  return dn * lm * s;
-}
-
-Complex line_strength_calc(const SpeciesIsotopeRecord& spec,
+Complex line_strength_calc(const Numeric inv_gd,
+                           const SpeciesIsotopeRecord& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const Size ispec) {
@@ -95,7 +83,7 @@ Complex line_strength_calc(const SpeciesIsotopeRecord& spec,
 
   const auto n = atm[spec] * atm[spec.spec] * atm[ls.species];
 
-  return n * lm * s;
+  return Constant::inv_sqrt_pi * inv_gd * n * lm * s;
 }
 
 Complex dline_strength_calc_dVMR(const SpeciesIsotopeRecord& spec,
@@ -138,25 +126,6 @@ Complex dline_strength_calc_dT(const SpeciesIsotopeRecord& spec,
   const auto n = atm[spec] * atm[spec.spec] * atm[ls.species];
 
   return n * (dlm * s + lm * ds);
-}
-
-Complex dline_strength_calc_disot(const SpeciesIsotopeRecord& spec,
-                                  const SpeciesIsotopeRecord& target_isot,
-                                  const line& line,
-                                  const AtmPoint& atm,
-                                  const Size ispec) {
-  const auto s =
-      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
-
-  const auto& ls = line.ls.single_models[ispec];
-
-  const Complex lm{1 + ls.G(line.ls.T0, atm.temperature, atm.pressure),
-                   -ls.Y(line.ls.T0, atm.temperature, atm.pressure)};
-
-  const auto dn =
-      (target_isot == spec) ? atm[spec.spec] * atm[ls.species] : 0.0;
-
-  return dn * lm * s;
 }
 
 Numeric line_center_calc(const line& line, const AtmPoint& atm) {
@@ -209,7 +178,7 @@ single_shape::single_shape(const SpeciesIsotopeRecord& spec,
     : f0(line_center_calc(line, atm)),
       inv_gd(1.0 / scaled_gd(atm.temperature, spec.mass, f0)),
       z_imag(line.ls.G0(atm) * inv_gd),
-      s(Constant::inv_sqrt_pi * inv_gd * line_strength_calc(spec, line, atm)) {}
+      s(line_strength_calc(inv_gd, spec, line, atm)) {}
 
 single_shape::single_shape(const SpeciesIsotopeRecord& spec,
                            const line& line,
@@ -220,8 +189,7 @@ single_shape::single_shape(const SpeciesIsotopeRecord& spec,
       z_imag(line.ls.single_models[ispec].G0(
                  line.ls.T0, atm.temperature, atm.pressure) *
              inv_gd),
-      s(Constant::inv_sqrt_pi * inv_gd *
-        line_strength_calc(spec, line, atm, ispec)) {}
+      s(line_strength_calc(inv_gd, spec, line, atm, ispec)) {}
 
 void single_shape::as_zeeman(const line& line,
                              const Numeric H,
@@ -231,9 +199,7 @@ void single_shape::as_zeeman(const line& line,
   f0 += H * line.z.Splitting(line.qn.val, pol, iz);
 }
 
-Complex single_shape::F(const Complex z_) const noexcept {
-  return Faddeeva::w(z_);  // FIXME: Should factor be part of s?
-}
+Complex single_shape::F(const Complex z_) noexcept { return Faddeeva::w(z_); }
 
 Complex single_shape::F(const Numeric f) const noexcept { return F(z(f)); }
 
@@ -242,16 +208,30 @@ Complex single_shape::operator()(const Numeric f) const noexcept {
 }
 
 Complex single_shape::dF(const Numeric f) const noexcept {
-  Complex z_ = z(f);
+  const Complex z_ = z(f);
   return dF(z_, F(z_));
 }
 
+Complex single_shape::dF(const Complex z_, const Complex F_) noexcept {
+  /*! FIXME: We should use a proper algorithm here.  This produces
+   *         no errors in tests, but the actual derivative form is
+   *         analytically known.  Its numerical instability, however,
+   *         makes it completely useless.
+   *
+   *         The analytical form is:
+   *
+   *           dF = -2 * z * F(z) + 2 * i / sqrt(pi)
+  */
+  const Complex dz = 1e-6 * z_;
+  const Complex F_2 = Faddeeva::w(z_ + dz);
+  return (F_2 - F_) / dz;
+}
+
+single_shape::zFdF::zFdF(const Complex z_) noexcept
+    : z{z_}, F{single_shape::F(z_)}, dF{single_shape::dF(z_, F)} {}
+
 single_shape::zFdF single_shape::all(const Numeric f) const noexcept {
-  zFdF out;
-  out.z = z(f);
-  out.F = F(out.z);
-  out.dF = dF(out.z, out.F);
-  return out;
+  return z(f);
 }
 
 Complex single_shape::df(const Numeric f) const noexcept { return s * dF(f); }
@@ -284,9 +264,10 @@ Complex single_shape::dH(const Complex dz_dH, const Numeric f) const noexcept {
 
 Complex single_shape::dVMR(const Complex ds_dVMR,
                            const Complex dz_dVMR,
+                           const Numeric dz_dVMR_fac,
                            const Numeric f) const noexcept {
   const auto [z_, F_, dF_] = all(f);
-  return ds_dVMR * F_ + dz_dVMR * dF_;
+  return ds_dVMR * F_ + s * (dz_dVMR + dz_dVMR_fac * z_) * dF_;
 }
 
 Complex single_shape::dT(const Complex ds_dT,
@@ -451,6 +432,7 @@ Complex band_shape::dT(const ExhaustiveConstComplexVectorView& ds_dT,
 
 Complex band_shape::dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
                          const ExhaustiveConstComplexVectorView& dz_dVMR,
+                         const ExhaustiveConstVectorView& dz_dVMR_fac,
                          const Numeric f) const {
   ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
   ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
@@ -458,7 +440,7 @@ Complex band_shape::dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i = 0; i < lines.size(); ++i) {
-    out += lines[i].dVMR(ds_dVMR[i], dz_dVMR[i], f);
+    out += lines[i].dVMR(ds_dVMR[i], dz_dVMR[i], dz_dVMR_fac[i], f);
   }
 
   return out;
@@ -660,17 +642,18 @@ void band_shape::dT(ExhaustiveComplexVectorView cut,
 Complex band_shape::dVMR(const ExhaustiveConstComplexVectorView& cut,
                          const ExhaustiveConstComplexVectorView& ds_dVMR,
                          const ExhaustiveConstComplexVectorView& dz_dVMR,
+                         const ExhaustiveConstVectorView& dz_dVMR_fac,
                          const Numeric f) const {
   ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
   ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
-  const auto [s, cs, ds, dz] =
-      frequency_spans(cutoff, f, lines, cut, ds_dVMR, dz_dVMR);
+  const auto [s, cs, ds, dz, dzf] =
+      frequency_spans(cutoff, f, lines, cut, ds_dVMR, dz_dVMR, dz_dVMR_fac);
 
   for (Size i = 0; i < s.size(); ++i) {
-    out += s[i].dVMR(ds[i], dz[i], f) - cs[i];
+    out += s[i].dVMR(ds[i], dz[i], dzf[i], f) - cs[i];
   }
 
   return out;
@@ -678,12 +661,14 @@ Complex band_shape::dVMR(const ExhaustiveConstComplexVectorView& cut,
 
 void band_shape::dVMR(ExhaustiveComplexVectorView cut,
                       const ExhaustiveConstComplexVectorView& ds_dVMR,
-                      const ExhaustiveConstComplexVectorView& dz_dVMR) const {
+                      const ExhaustiveConstComplexVectorView& dz_dVMR,
+                      const ExhaustiveConstVectorView& dz_dVMR_fac) const {
   ARTS_ASSERT(ds_dVMR.size() == dz_dVMR.size())
   ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
 
   for (Size i = 0; i < lines.size(); ++i) {
-    cut[i] += lines[i].dVMR(ds_dVMR[i], dz_dVMR[i], lines[i].f0 + cutoff);
+    cut[i] += lines[i].dVMR(
+        ds_dVMR[i], dz_dVMR[i], dz_dVMR_fac[i], lines[i].f0 + cutoff);
   }
 }
 
@@ -911,6 +896,7 @@ void ComputeData::core_calc(const band_shape& shp,
                             const ExhaustiveConstVectorView& f_grid) {
   cut.resize(shp.size());
   dz.resize(shp.size());
+  dz_fac.resize(shp.size());
   ds.resize(shp.size());
   dcut.resize(shp.size());
   filter.reserve(shp.size());
@@ -1115,42 +1101,37 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                                  const Species::Species target_spec) {
   using Constant::h, Constant::k;
 
-  const Numeric H = std::hypot(atm.mag[0], atm.mag[1], atm.mag[2]);
   for (Size i = 0; i < pos.size(); i++) {
-    const bool single_line = pos[i].spec == std::numeric_limits<Size>::max();
     const Numeric& inv_gd = shp.lines[i].inv_gd;
+    const Numeric& f0 = shp.lines[i].f0;
     const auto& line = bnd.lines[pos[i].line];
-    ds[i] =
-        Constant::inv_sqrt_pi * inv_gd *
-        line.z.Strength(line.qn.val, pol, pos[i].iz) *
-        (single_line ? dline_strength_calc_dVMR(spec, target_spec, line, atm)
-                     : dline_strength_calc_dVMR(
-                           spec, target_spec, line, atm, pos[i].spec));
-    dz[i] =
-        inv_gd *
-        Complex{
-            -(single_line ? dline_center_calc_dVMR(line, target_spec, atm)
-                          : dline_center_calc_dVMR(
-                                line, target_spec, atm, pos[i].spec)) -
-                H * line.z.Splitting(line.qn.val, pol, pos[i].iz),
-            (single_line
-                 ? line.ls.dG0_dVMR(atm, target_spec)
-                 : (line.ls.single_models[pos[i].spec].species == target_spec
-                        ? line.ls.single_models[pos[i].spec].G0(
-                              line.ls.T0, atm.temperature, atm.pressure)
-                        : 0.0))};
+
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      dz_fac[i] = -(line.ls.dD0_dVMR(atm, target_spec) +
+                    line.ls.dDV_dVMR(atm, target_spec)) /
+                  f0;
+
+      ds[i] =
+          line.z.Strength(line.qn.val, pol, pos[i].iz) *
+          dline_strength_calc_dVMR(inv_gd, f0, spec, target_spec, line, atm);
+
+      dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
+                               line.ls.dG0_dVMR(atm, target_spec)};
+    } else {
+      ARTS_ASSERT(false, "Not implemented")
+    }
   }
 
   if (bnd.cutoff != CutoffType::None) {
-    shp.dVMR(dcut, ds, dz);
+    shp.dVMR(dcut, ds, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dVMR(dcut, ds, dz, f);
+          return shp.dVMR(dcut, ds, dz, dz_fac, f);
         });
   } else {
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
-          return shp.dVMR(ds, dz, f);
+          return shp.dVMR(ds, dz, dz_fac, f);
         });
   }
 }
@@ -1628,7 +1609,7 @@ void compute_derivative(PropmatVectorView dpm,
                         const ExhaustiveConstVectorView& f_grid,
                         const SpeciesIsotopeRecord& spec,
                         const band_shape&,
-                        const band&,
+                        const band_data&,
                         const AtmPoint& atm,
                         const zeeman::pol,
                         const SpeciesIsotopeRecord& deriv_spec) {

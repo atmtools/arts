@@ -101,14 +101,16 @@ VARIABLE(X3);
     const Numeric x = ptr->mod(T0, atm.temperature, atm.pressure);            \
                                                                               \
     if (species == Species::Species::Bath) return -x;                         \
-    if (single_models.back().species == Species::Species::Bath) return x;     \
-    return x /                                                                \
-           std::transform_reduce(single_models.begin(),                       \
-                                 single_models.end(),                         \
-                                 0.0,                                         \
-                                 std::plus<>{},                               \
-                                 [&atm](auto& m) { return atm[m.species]; }); \
-  }
+    if (single_models.back().species == Species::Species::Bath)               \
+      return x - single_models.back().mod(T0, atm.temperature, atm.pressure); \
+    const Numeric t =                                                         \
+        std::transform_reduce(single_models.begin(),                          \
+                              single_models.end(),                            \
+                              0.0,                                            \
+                              std::plus<>{},                                  \
+                              [&atm](auto& m) { return atm[m.species]; });    \
+    return (t - x) / t * t;                                                   \
+  }  // namespace lbl::line_shape
 
 VARIABLE(G0);
 VARIABLE(D0);
