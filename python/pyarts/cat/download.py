@@ -61,6 +61,9 @@ def retrieve(download_dir=None, version=None, verbose=False):
         if verbose:
             print("Skipping download, environment variable ARTS_INCLUDE_PATH already set.")
         return
+    if int(version[-1]) % 2:
+        raise RuntimeError(f"Version {version} is not a release version.\n"
+                           f"Please check out the current catalogs with svn instead.")
 
     def retrieve_catalog(catname):
         if not os.path.exists(os.path.join(download_dir, catname)):
@@ -71,7 +74,7 @@ def retrieve(download_dir=None, version=None, verbose=False):
 
     retrieve_catalog(artsxmldata)
     retrieve_catalog(artscatdata)
- 
+
     from pyarts.arts import globals
     globals.parameters.datapath = [
         ".",
