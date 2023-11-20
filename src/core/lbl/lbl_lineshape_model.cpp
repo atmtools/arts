@@ -143,7 +143,8 @@ VARIABLE(DV);
                                                                              \
     if (const auto& m = single_models.back();                                \
         m.species == Species::Species::Bath) {                               \
-      out += (1.0 - vmr) * m.mod(T0, atm.temperature, atm.pressure);         \
+      out += (1.0 - vmr) *                                                   \
+             m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure);         \
     } else {                                                                 \
       compute(m);                                                            \
       out /= vmr;                                                            \

@@ -95,6 +95,7 @@ struct single_shape {
 
   [[nodiscard]] Complex dT(const Complex ds_dT,
                            const Complex dz_dT,
+                           const Numeric dz_dT_fac,
                            const Numeric f) const noexcept;
 
   [[nodiscard]] Complex da(const Complex ds_da, const Numeric f) const noexcept;
@@ -199,6 +200,7 @@ struct band_shape {
 
   [[nodiscard]] Complex dT(const ExhaustiveConstComplexVectorView& ds_dT,
                            const ExhaustiveConstComplexVectorView& dz_dT,
+                           const ExhaustiveConstVectorView& dz_dT_fac,
                            const Numeric f) const;
 
   [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
@@ -259,11 +261,13 @@ struct band_shape {
   [[nodiscard]] Complex dT(const ExhaustiveConstComplexVectorView& cut,
                            const ExhaustiveConstComplexVectorView& ds_dT,
                            const ExhaustiveConstComplexVectorView& dz_dT,
+                           const ExhaustiveConstVectorView& dz_dT_fac,
                            const Numeric f) const;
 
   void dT(ExhaustiveComplexVectorView cut,
           const ExhaustiveConstComplexVectorView& ds_dT,
-          const ExhaustiveConstComplexVectorView& dz_dT) const;
+          const ExhaustiveConstComplexVectorView& dz_dT,
+          const ExhaustiveConstVectorView& dz_dT_fac) const;
 
   [[nodiscard]] Complex dVMR(const ExhaustiveConstComplexVectorView& cut,
                              const ExhaustiveConstComplexVectorView& ds_dVMR,
