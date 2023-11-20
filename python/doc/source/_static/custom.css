@@ -38,8 +38,13 @@
     }
 }
 
-.rst-content code.literal, .rst-content tt.literal {
+.rst-content code.docutils.literal:not(.xref) {
     color: rgb(64, 64, 64);
+    font-weight: 700;
+}
+
+.rst-content code.docutils.literal.xref {
+    color: rgb(2, 113, 187);
 }
 
 .highlight {
