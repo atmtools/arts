@@ -260,7 +260,9 @@ single_shape::zFdF single_shape::all(const Numeric f) const noexcept {
   return z(f);
 }
 
-Complex single_shape::df(const Numeric f) const noexcept { return s * dF(f); }
+Complex single_shape::df(const Numeric f) const noexcept {
+  return s * inv_gd * dF(f);
+}
 
 Complex single_shape::df0(const Complex ds_df0,
                           const Complex dz_df0,
