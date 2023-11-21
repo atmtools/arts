@@ -29,9 +29,9 @@ def retrieve(download_dir=None, version=None, verbose=False):
     This function sets the ARTS data search path to the downloaded
     data directories, so that ARTS can find the required data files.
 
-    If the environment variable ARTS_DATA_PATH is set, it is assumed that the
-    user wants to use their own catalog locations and this function does
-    nothing.
+    If the environment variable ARTS_DATA_PATH or ARTS_INCLUDE_PATH is set,
+    it is assumed that the user wants to use their own catalog locations
+    and this function does nothing.
 
     Parameters:
         download_dir (str, optional):
@@ -55,8 +55,15 @@ def retrieve(download_dir=None, version=None, verbose=False):
     artsxmldata = "arts-xml-data-" + version
     if os.getenv("ARTS_DATA_PATH"):
         if verbose:
-            print("Skipping download, environment variable ARTS_DATA_PATH already set")
+            print("Skipping download, environment variable ARTS_DATA_PATH already set.")
         return
+    if os.getenv("ARTS_INCLUDE_PATH"):
+        if verbose:
+            print("Skipping download, environment variable ARTS_INCLUDE_PATH already set.")
+        return
+    if int(version[-1]) % 2:
+        raise RuntimeError(f"Version {version} is not a release version.\n"
+                           f"Please check out the current catalogs with svn instead.")
 
     def retrieve_catalog(catname):
         if not os.path.exists(os.path.join(download_dir, catname)):
@@ -67,7 +74,7 @@ def retrieve(download_dir=None, version=None, verbose=False):
 
     retrieve_catalog(artsxmldata)
     retrieve_catalog(artscatdata)
- 
+
     from pyarts.arts import globals
     globals.parameters.datapath = [
         ".",

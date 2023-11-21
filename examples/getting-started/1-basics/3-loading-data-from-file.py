@@ -20,7 +20,7 @@ a clear sky or a cloudy sky.
 The folders that ARTS looks in are called search paths.  You can
 print the search paths that ARTS uses by doing:
 """
-print ("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
+print("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
 
 
 """
@@ -42,24 +42,30 @@ permanent.
 It is always possible to add additional search paths from within python:
 """
 pyarts.arts.globals.parameters.datapath.append("/my_data")
-print ("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
-
-
-"""
-The following examples assumes that you have a copy of the arts-cat-data
-and arts-xml-data repositories in the search paths.  If you do not have
-these, you can download them from: https://www.radiativetransfer.org/tools/
-
-It demonstrates different ways that you can load data from a file into
-the workspace.  There is no "best" way to do this, it depends on the
-context, and what you find most readable.
-"""
-
-# Call the WorkspaceVariable member method "readxml" to load data from file
-ws.abs_lines.readxml("lines/O2-66.xml")
+print("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
 assert pyarts.arts.globals.parameters.datapath.index("/my_data")
 # END TESTING
+
+"""
+The following examples assume that you have a copy of the arts-cat-data
+and arts-xml-data repositories in the search paths.
+
+The easiest way to get the correct catalogs for your current ARTS version is
+by calling the `pyarts.cat.download.retrieve` function.
+The function will not only download the catalogs, but also set the search path
+to the download location (default is `~/.cache/arts/`).
+
+There are different ways to load data from a file into the workspace.
+There is no "best" way to do this, it depends on the context, and what you find
+most readable.
+"""
+
+# Download ARTS catalogs matching the current pyarts version
+pyarts.cat.download.retrieve()
+
+# Call the WorkspaceVariable member method "readxml" to load data from file
+ws.abs_lines.readxml("lines/O2-66.xml")
