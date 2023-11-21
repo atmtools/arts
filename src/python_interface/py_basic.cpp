@@ -125,10 +125,11 @@ be accessed without copy using element-wise access operators)--");
 
   py::class_<Numeric_>(m, "Numeric")
       .def(py::init([]() { return std::make_unique<Numeric_>(); }), "Create default")
+      .def(py::init([](Numeric n) { return std::make_unique<Numeric_>(n); }), "Create from :class:`float`")
+      .def(py::init([](const py::object &n) { return n.cast<Numeric>(); }), "Try to cast from any python type")
       .def(py::init([](Index i) -> Numeric_ {
         return Numeric_{static_cast<Numeric>(i)};
       }), "Create from :class:`int`")
-      .def(py::init([](Numeric n) { return std::make_unique<Numeric_>(n); }), "Create from :class:`float`")
       .PythonInterfaceCopyValue(Numeric_)
       .PythonInterfaceWorkspaceVariableConversion(Numeric_)
       .def("__hash__", [](Numeric_& x) { return py::hash(py::float_(x.val)); })
