@@ -110,7 +110,7 @@ VARIABLE(X3);
                               std::plus<>{},                                  \
                               [&atm](auto& m) { return atm[m.species]; });    \
     return (t - x) / t * t;                                                   \
-  }  // namespace lbl::line_shape
+  }
 
 VARIABLE(G0);
 VARIABLE(D0);
@@ -167,6 +167,54 @@ VARIABLE(DV);
 VARIABLE(P);
 VARIABLE(T);
 VARIABLE(T0);
+
+#undef VARIABLE
+
+#undef DERIVATIVE
+
+#define DERIVATIVE(mod, deriv)                                                \
+  Numeric model::d##mod##_d##deriv(const AtmPoint& atm, const Size spec)      \
+      const noexcept {                                                        \
+    if (spec >= single_models.size()) return 0.0;                             \
+    const auto& m = single_models[spec];                                      \
+                                                                              \
+    const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
+                                                                              \
+    if (spec == single_models.size() - 1 and                                  \
+        single_models.back().species == Species::Species::Bath) {             \
+      const Numeric vmr =                                                     \
+          std::transform_reduce(single_models.begin(),                        \
+                                single_models.end() - 1,                      \
+                                0.0,                                          \
+                                std::plus<>{},                                \
+                                [&atm](auto& m) { return atm[m.species]; });  \
+      return (1 - vmr) * x;                                                   \
+    }                                                                         \
+                                                                              \
+    if (single_models.back().species == Species::Species::Bath) {             \
+      return atm[m.species] * x;                                              \
+    }                                                                         \
+                                                                              \
+    const Numeric vmr =                                                       \
+        std::transform_reduce(single_models.begin(),                          \
+                              single_models.end(),                            \
+                              0.0,                                            \
+                              std::plus<>{},                                  \
+                              [&atm](auto& m) { return atm[m.species]; });    \
+    return x * atm[m.species] / vmr;                                          \
+  }
+
+#define VARIABLE(deriv)   \
+  DERIVATIVE(G0, deriv);  \
+  DERIVATIVE(D0, deriv);  \
+  DERIVATIVE(G2, deriv);  \
+  DERIVATIVE(D2, deriv);  \
+  DERIVATIVE(FVC, deriv); \
+  DERIVATIVE(Y, deriv);   \
+  DERIVATIVE(G, deriv);   \
+  DERIVATIVE(DV, deriv);  \
+  DERIVATIVE(ETA, deriv);
+
 VARIABLE(X0);
 VARIABLE(X1);
 VARIABLE(X2);
@@ -175,6 +223,36 @@ VARIABLE(X3);
 #undef VARIABLE
 
 #undef DERIVATIVE
+
+#define VARIABLE(name)                                                      \
+  Numeric model::d##name##_dX(                                              \
+      const AtmPoint& atm, const Size spec, temperature::coefficient coeff) \
+      const noexcept {                                                      \
+    switch (coeff) {                                                        \
+      case temperature::coefficient::X0:                                    \
+        return d##name##_dX0(atm, spec);                                    \
+      case temperature::coefficient::X1:                                    \
+        return d##name##_dX1(atm, spec);                                    \
+      case temperature::coefficient::X2:                                    \
+        return d##name##_dX2(atm, spec);                                    \
+      case temperature::coefficient::X3:                                    \
+        return d##name##_dX3(atm, spec);                                    \
+      case temperature::coefficient::FINAL:;                                \
+    }                                                                       \
+    return 0.0;                                                             \
+  }
+
+VARIABLE(G0);
+VARIABLE(D0);
+VARIABLE(G2);
+VARIABLE(D2);
+VARIABLE(ETA);
+VARIABLE(FVC);
+VARIABLE(Y);
+VARIABLE(G);
+VARIABLE(DV);
+
+#undef VARIABLE
 
 std::ostream& operator<<(std::ostream& os,
                          const std::pair<variable, temperature::data>& x) {

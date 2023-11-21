@@ -9,11 +9,50 @@
 
 namespace Python {
 void py_lbl(py::module_& m) try {
-  artsclass<lbl::temperature::data>(m, "TemperatureModel");
+  artsclass<lbl::temperature::data>(m, "TemperatureModel")
+      .def(py::init<lbl::temperature::model_type, Vector>())
+      .def_property_readonly(
+          "type",
+          &lbl::temperature::data::Type,
+          ":class:`~pyarts.arts.options.TemperatureModelType` The type of the model")
+      .def_property_readonly("data",
+                    &lbl::temperature::data::X,
+                    ":class:`~pyarts.arts.Vector` The coefficients")
+      .PythonInterfaceBasicRepresentation(lbl::temperature::data);
+
+  using pair_vector_type =
+      std::vector<std::pair<lbl::line_shape::variable, lbl::temperature::data>>;
+  artsarray<pair_vector_type>(m, "LineShapeVariableTemperatureModelList")
+      .def("get",
+           [](const pair_vector_type& self,
+              lbl::line_shape::variable x) -> lbl::temperature::data {
+             for (auto& [var, data] : self) {
+               if (var == x) {
+                 return data;
+               }
+             }
+             return {};
+           })
+      .def("set",
+           [](pair_vector_type& self,
+              lbl::line_shape::variable x,
+              lbl::temperature::data y) {
+             for (auto& [var, data] : self) {
+               if (var == x) {
+                 data = y;
+                 return;
+               }
+             }
+             self.emplace_back(x, y);
+           })
+      .PythonInterfaceBasicRepresentation(pair_vector_type);
 
   artsclass<lbl::line_shape::species_model>(m, "LineShapeSpeciesModel")
   .def_readwrite("species", &lbl::line_shape::species_model::species, "The species")
-  .def_readwrite("data", &lbl::line_shape::species_model::data, "The data");
+  .def_readwrite("data", &lbl::line_shape::species_model::data, "The data")
+      .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
+
+  artsarray<std::vector<lbl::line_shape::species_model>>(m, "LineShapeModelList");
 
   artsclass<lbl::line_shape::model>(m, "LineShapeModelFIXMENAMEODR")
   .def_readwrite("one_by_one", &lbl::line_shape::model::one_by_one, "If true, the lines are treated one by one")
@@ -33,6 +72,8 @@ void py_lbl(py::module_& m) try {
     .def_readwrite("z", &lbl::line::z, "The Zeeman model")
     .def_readwrite("ls", &lbl::line::ls, "The line shape model")
     .def_readwrite("qn", &lbl::line::qn, "The quantum numbers of this line");
+  
+  artsarray<std::vector<lbl::line>>(m, "LineList");
 
   artsclass<lbl::band_data>(m, "AbsorptionBandData")
   .def_readwrite("lines", &lbl::band_data::lines, "The lines in the band")

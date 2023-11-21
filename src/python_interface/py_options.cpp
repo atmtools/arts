@@ -1,10 +1,10 @@
 #include <arts_options.h>
 #include <lineshapemodel.h>
+#include <python_interface.h>
+
 #include "atm.h"
 #include "ppath_struct.h"
-
 #include "py_macros.h"
-#include <python_interface.h>
 
 //! See DeclareOption macro, but this may rename the python class
 #define DeclareOptionRenamed(opt_rename, opt_namespace, opt_localname)             \
@@ -62,7 +62,7 @@
     }                                                                              \
     py::implicitly_convertible<std::string, opt_namespace::opt_localname>();       \
     return cls;                                                                    \
-  }();
+  }()
 
 //! Exposes and option defined by the ARTS internal ENUMCLASS macro to pyarts
 #define DeclareOption(opt_namespace, opt_localname) \
@@ -73,77 +73,84 @@ void py_options(py::module_& m) try {
   opt.doc() = "Various named options of Arts";
 
   // Default agenda options:
-  DeclareOption(Options, iy_main_agendaDefaultOptions)
-  DeclareOption(Options, iy_loop_freqs_agendaDefaultOptions)
-  DeclareOption(Options, iy_space_agendaDefaultOptions)
-  DeclareOption(Options, iy_surface_agendaDefaultOptions)
-  DeclareOption(Options, iy_cloudbox_agendaDefaultOptions)
-  DeclareOption(Options, ppath_agendaDefaultOptions)
-  DeclareOption(Options, ppath_step_agendaDefaultOptions)
-  DeclareOption(Options, refr_index_air_agendaDefaultOptions)
-  DeclareOption(Options, water_p_eq_agendaDefaultOptions)
-  DeclareOption(Options, gas_scattering_agendaDefaultOptions)
-  DeclareOption(Options, surface_rtprop_agendaDefaultOptions)
-  DeclareOption(Options, g0_agendaDefaultOptions)
-  DeclareOption(Options, test_agendaDefaultOptions)
-  DeclareOption(Options, dobatch_calc_agendaDefaultOptions)
-  DeclareOption(Options, ybatch_calc_agendaDefaultOptions)
-  DeclareOption(Options, spt_calc_agendaDefaultOptions)
-  DeclareOption(Options, sensor_response_agendaDefaultOptions)
-  DeclareOption(Options, propmat_clearsky_agendaDefaultOptions)
-  DeclareOption(Options, pha_mat_spt_agendaDefaultOptions)
-  DeclareOption(Options, met_profile_calc_agendaDefaultOptions)
-  DeclareOption(Options, main_agendaDefaultOptions)
-  DeclareOption(Options, jacobian_agendaDefaultOptions)
-  DeclareOption(Options, iy_radar_agendaDefaultOptions)
-  DeclareOption(Options, iy_independent_beam_approx_agendaDefaultOptions)
-  DeclareOption(Options, inversion_iterate_agendaDefaultOptions)
-  DeclareOption(Options, forloop_agendaDefaultOptions)
-  DeclareOption(Options, doit_scat_field_agendaDefaultOptions)
-  DeclareOption(Options, doit_rte_agendaDefaultOptions)
-  DeclareOption(Options, doit_mono_agendaDefaultOptions)
-  DeclareOption(Options, doit_conv_test_agendaDefaultOptions)
-  DeclareOption(Options, ppvar_rtprop_agendaDefaultOptions)
-  DeclareOption(Options, rte_background_agendaDefaultOptions)
+  DeclareOption(Options, iy_main_agendaDefaultOptions);
+  DeclareOption(Options, iy_loop_freqs_agendaDefaultOptions);
+  DeclareOption(Options, iy_space_agendaDefaultOptions);
+  DeclareOption(Options, iy_surface_agendaDefaultOptions);
+  DeclareOption(Options, iy_cloudbox_agendaDefaultOptions);
+  DeclareOption(Options, ppath_agendaDefaultOptions);
+  DeclareOption(Options, ppath_step_agendaDefaultOptions);
+  DeclareOption(Options, refr_index_air_agendaDefaultOptions);
+  DeclareOption(Options, water_p_eq_agendaDefaultOptions);
+  DeclareOption(Options, gas_scattering_agendaDefaultOptions);
+  DeclareOption(Options, surface_rtprop_agendaDefaultOptions);
+  DeclareOption(Options, g0_agendaDefaultOptions);
+  DeclareOption(Options, test_agendaDefaultOptions);
+  DeclareOption(Options, dobatch_calc_agendaDefaultOptions);
+  DeclareOption(Options, ybatch_calc_agendaDefaultOptions);
+  DeclareOption(Options, spt_calc_agendaDefaultOptions);
+  DeclareOption(Options, sensor_response_agendaDefaultOptions);
+  DeclareOption(Options, propmat_clearsky_agendaDefaultOptions);
+  DeclareOption(Options, pha_mat_spt_agendaDefaultOptions);
+  DeclareOption(Options, met_profile_calc_agendaDefaultOptions);
+  DeclareOption(Options, main_agendaDefaultOptions);
+  DeclareOption(Options, jacobian_agendaDefaultOptions);
+  DeclareOption(Options, iy_radar_agendaDefaultOptions);
+  DeclareOption(Options, iy_independent_beam_approx_agendaDefaultOptions);
+  DeclareOption(Options, inversion_iterate_agendaDefaultOptions);
+  DeclareOption(Options, forloop_agendaDefaultOptions);
+  DeclareOption(Options, doit_scat_field_agendaDefaultOptions);
+  DeclareOption(Options, doit_rte_agendaDefaultOptions);
+  DeclareOption(Options, doit_mono_agendaDefaultOptions);
+  DeclareOption(Options, doit_conv_test_agendaDefaultOptions);
+  DeclareOption(Options, ppvar_rtprop_agendaDefaultOptions);
+  DeclareOption(Options, rte_background_agendaDefaultOptions);
 
   // Default multiple-choice options:
-  DeclareOption(Options, planetDefaultOptions)
+  DeclareOption(Options, planetDefaultOptions);
 
   // Enum options relating to spectroscopy
-  DeclareOptionRenamed(LineShapeTemperatureModel, LineShape, TemperatureModel)
-  DeclareOptionRenamed(AbsorptionCutoffType, Absorption, CutoffType)
-  DeclareOptionRenamed(AbsorptionMirroringType, Absorption, MirroringType)
-  DeclareOptionRenamed(AbsorptionPopulationType, Absorption,PopulationType)
-  DeclareOptionRenamed(AbsorptionNormalizationType, Absorption, NormalizationType)
-  DeclareOptionRenamed(LineShapeType, LineShape, Type)
-  DeclareOptionRenamed(LineShapeVariable, LineShape, Variable)
+  DeclareOptionRenamed(LineShapeTemperatureModel, LineShape, TemperatureModel);
+  DeclareOptionRenamed(AbsorptionCutoffType, Absorption, CutoffType);
+  DeclareOptionRenamed(AbsorptionMirroringType, Absorption, MirroringType);
+  DeclareOptionRenamed(AbsorptionPopulationType, Absorption, PopulationType);
+  DeclareOptionRenamed(
+      AbsorptionNormalizationType, Absorption, NormalizationType);
+  DeclareOptionRenamed(LineShapeType, LineShape, Type);
+  DeclareOptionRenamed(LineShapeVariableOLDOLD, LineShape, Variable);
 
   // Ppath
-  DeclareOption(Options, PpathBackground)
+  DeclareOption(Options, PpathBackground);
 
   // Atm
-  DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation)
-  DeclareOptionRenamed(AtmKey, Atm, Key)
+  DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation);
+  DeclareOptionRenamed(AtmKey, Atm, Key);
 
   // Surface
-  DeclareOptionRenamed(SurfaceKey, Surf, Key)
+  DeclareOptionRenamed(SurfaceKey, Surf, Key);
 
   // Jacobian enums
-  DeclareOptionRenamed(JacobianType, Jacobian, Type)
-  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm)
-  DeclareOptionRenamed(JacobianLine, Jacobian, Line)
-  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor)
-  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special)
+  DeclareOptionRenamed(JacobianType, Jacobian, Type);
+  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm);
+  DeclareOptionRenamed(JacobianLine, Jacobian, Line);
+  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor);
+  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special);
 
   // Predef enums
-  DeclareOptionRenamed(PredefinedModelDataKey, Absorption::PredefinedModel, DataKey)
+  DeclareOptionRenamed(
+      PredefinedModelDataKey, Absorption::PredefinedModel, DataKey);
 
-  // Predef enums
-  DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type)
+  // Quantum numbers
+  DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type);
+
+  // Line shape types
+  DeclareOptionRenamed(TemperatureModelType, lbl::temperature, model_type);
+  DeclareOptionRenamed(LineShapeVariable, lbl::line_shape, variable);
 
   // Species enums
-  DeclareOptionRenamed(SpeciesTagType, Species, TagType)
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize options\n", e.what()));
+  DeclareOptionRenamed(SpeciesTagType, Species, TagType);
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize options\n", e.what()));
 }
 }  // namespace Python

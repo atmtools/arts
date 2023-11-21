@@ -60,7 +60,7 @@ struct line {
   [[nodiscard]] Numeric ds_de0(Numeric T, Numeric Q) const noexcept;
 
   //! The ratio of ds_de0 / s
-  constexpr Numeric ds_de0_s_ratio(Numeric T) const noexcept {
+  [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const noexcept {
   return -1 / (Constant::k * T);
 }
 
@@ -163,29 +163,31 @@ struct line_key {
   QuantumIdentifier band;
 
   //! The line count within the band
-  Size line;
+  Size line{std::numeric_limits<Size>::max()};
 
   //! The species index if (ls_var is not FINAL)
-  Size spec;
+  Size spec{std::numeric_limits<Size>::max()};
 
   /* The variable to be used for the line shape derivative
 
   If ls_var is FINAL, then the var variable is used for the line
   parameter.  ls_var and var are not both allowed to be FINAL.
   */
-  line_shape::variable ls_var;
+  line_shape::variable ls_var{line_shape::variable::FINAL};
 
   //! The line shape coefficient if ls_var is not FINAL
-  temperature::coefficient ls_coeff;
+  temperature::coefficient ls_coeff{temperature::coefficient::FINAL};
 
   /* The line parameter to be used for the line shape derivative
   
   If var is FINAL, then the ls_var variable is used for the line shape
   parameter.  ls_var and var are not both allowed to be FINAL.
   */
-  variable var;
+  variable var{variable::FINAL};
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
+
+  friend std::ostream& operator<<(std::ostream& os, const line_key& x);
 };
 
 std::ostream& operator<<(std::ostream& os, const std::vector<band>& x);

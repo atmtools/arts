@@ -8,10 +8,12 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 #include <iterator>
 #include <limits>
 
 #include "atm.h"
+#include "lbl_data.h"
 
 namespace lbl::voigt::lte {
 Complex line_strength_calc(const Numeric inv_gd,
@@ -28,6 +30,24 @@ Complex line_strength_calc(const Numeric inv_gd,
   const Numeric x = atm[spec.spec];
 
   return Constant::inv_sqrt_pi * inv_gd * r * x * lm * s;
+}
+Complex dline_strength_calc_df0(const Numeric f0,
+                                const Numeric inv_gd,
+                                const SpeciesIsotopeRecord& spec,
+                                const line& line,
+                                const AtmPoint& atm) {
+  const auto s =
+      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
+  const auto ds = line.ds_df0_s_ratio() * s;
+
+  const Numeric G = line.ls.G(atm);
+  const Numeric Y = line.ls.Y(atm);
+
+  const Complex lm{1 + G, -Y};
+  const Numeric r = atm[spec];
+  const Numeric x = atm[spec.spec];
+
+  return Constant::inv_sqrt_pi * inv_gd * r * x * (f0 * ds - s) * lm / f0;
 }
 
 Complex dline_strength_calc_dVMR(const Numeric inv_gd,
@@ -246,6 +266,10 @@ Complex single_shape::dF(const Complex z_, const Complex F_) noexcept {
    *         The analytical form is:
    *
    *           dF = -2 * z * F(z) + 2 * i / sqrt(pi)
+   *
+   * Tests show that for y < 1e7 it works until x > 1e7, but for
+   * y > 1e7, it always fails.  This is about the analytical form
+   * above using the latest version of the MIT Faddeeva package.
   */
   const Complex dz{std::max(1e-6 * z_.real(), 1e-6),
                    std::max(1e-6 * z_.imag(), 1e-6)};
@@ -266,9 +290,10 @@ Complex single_shape::df(const Numeric f) const noexcept {
 
 Complex single_shape::df0(const Complex ds_df0,
                           const Complex dz_df0,
+                          const Numeric dz_df0_fac,
                           const Numeric f) const noexcept {
   const auto [z_, F_, dF_] = all(f);
-  return ds_df0 * F_ + s * dz_df0 * dF_;
+  return ds_df0 * F_ + s * (dz_df0 + dz_df0_fac * z_) * dF_;
 }
 
 Complex single_shape::dDV(const Complex dz_dDV,
@@ -481,12 +506,13 @@ Complex band_shape::dVMR(const ExhaustiveConstComplexVectorView& ds_dVMR,
 
 Complex band_shape::df0(const ExhaustiveConstComplexVectorView ds_df0,
                         const ExhaustiveConstComplexVectorView dz_df0,
+                        const ExhaustiveConstVectorView dz_df0_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += lines[i].df0(ds_df0[i], dz_df0[i], f);
+    out += lines[i].df0(ds_df0[i], dz_df0[i], dz_df0_fac[i], f);
   }
 
   return out;
@@ -711,15 +737,16 @@ void band_shape::dVMR(ExhaustiveComplexVectorView cut,
 Complex band_shape::df0(const ExhaustiveConstComplexVectorView& cut,
                         const ExhaustiveConstComplexVectorView ds_df0,
                         const ExhaustiveConstComplexVectorView dz_df0,
+                        const ExhaustiveConstVectorView dz_df0_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
-  const auto [s, cs, ds, dz] =
-      frequency_spans(cutoff, f, lines, cut, ds_df0, dz_df0);
+  const auto [s, cs, ds, dz, dzf] =
+      frequency_spans(cutoff, f, lines, cut, ds_df0, dz_df0, dz_df0_fac);
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += s[i].df0(ds[i], dz[i], f) - cs[i];
+    out += s[i].df0(ds[i], dz[i], dzf[i], f) - cs[i];
   }
 
   return out;
@@ -728,9 +755,11 @@ Complex band_shape::df0(const ExhaustiveConstComplexVectorView& cut,
 void band_shape::df0(ExhaustiveComplexVectorView cut,
                      const ExhaustiveConstComplexVectorView ds_df0,
                      const ExhaustiveConstComplexVectorView dz_df0,
+                     const ExhaustiveConstVectorView dz_df0_fac,
                      const std::vector<Size>& filter) const {
   for (Size i : filter) {
-    cut[i] = lines[i].df0(ds_df0[i], dz_df0[i], lines[i].f0 + cutoff);
+    cut[i] =
+        lines[i].df0(ds_df0[i], dz_df0[i], dz_df0_fac[i], lines[i].f0 + cutoff);
   }
 }
 
@@ -1169,55 +1198,64 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
   }
 }
 
-void ComputeData::set_filter(const line_key& key, bool check_spec) {
-  if (key.line == filtered_line and
-      (not check_spec or (check_spec and key.spec == filtered_spec)))
-    return;
+void ComputeData::set_filter(const line_key& key) {
+  if (key.line == filtered_line and key.spec == filtered_spec) return;
 
-  filtered_spec = check_spec ? key.spec : std::numeric_limits<Size>::max();
+  filtered_spec = key.spec;
   filtered_line = key.line;
   filter.resize(0);
 
-  if (not check_spec) {
+  if (key.var == variable::FINAL) {
     for (Size i = 0; i < pos.size(); i++) {
-      if (pos[i].line == key.line) filter.push_back(i);
+      if (pos[i].line == key.line and
+          (pos[i].spec == key.spec or
+           pos[i].spec == std::numeric_limits<Size>::max()))
+        filter.push_back(i);
     }
   } else {
     for (Size i = 0; i < pos.size(); i++) {
-      if (pos[i].line == key.line and pos[i].spec == key.spec)
-        filter.push_back(i);
+      if (pos[i].line == key.line) filter.push_back(i);
     }
   }
 }
 
 //! Sets dshape and ds and dz and dcut and dshape
-void ComputeData::df0_core_calc(const band_shape& shp,
+void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
+                                const band_shape& shp,
                                 const band_data& bnd,
                                 const ExhaustiveConstVectorView& f_grid,
+                                const AtmPoint& atm,
+                                const zeeman::pol pol,
                                 const line_key& key) {
-  using Constant::h, Constant::k;
-
-  set_filter(key, false);
-  const Numeric ds_df0_ratio =
-      bnd.lines[pos[filter.front()].line].ds_df0_s_ratio();
+  set_filter(key);
 
   for (Size i : filter) {
-    const auto& line = shp.lines[i];
-    const Numeric& inv_gd = line.inv_gd;
-    const Numeric dinv_gd_df0_ratio = -1 / line.f0;
-    ds[i] = dinv_gd_df0_ratio * line.s + ds_df0_ratio * line.s;
-    dz[i] =
-        dinv_gd_df0_ratio * Complex{-inv_gd * line.f0, line.z_imag} - inv_gd;
+    const auto& lshp = shp.lines[i];
+    const auto& line = bnd.lines[i];
+
+    const Numeric& inv_gd = lshp.inv_gd;
+    const Numeric& f0 = lshp.f0;
+
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      dz_fac[i] = -1.0 / f0;
+
+      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+              dline_strength_calc_df0(f0, inv_gd, spec, line, atm);
+
+      dz[i] = -inv_gd;
+    } else {
+      ARTS_ASSERT(false, "Not implemented")
+    }
   }
 
   if (bnd.cutoff != CutoffType::None) {
-    shp.df0(dcut, ds, dz, filter);
+    shp.df0(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.df0(dcut, ds, dz, f_grid[i], filter);
+      dshape[i] = shp.df0(dcut, ds, dz, dz_fac, f_grid[i], filter);
     }
   } else {
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.df0(ds, dz, f_grid[i], filter);
+      dshape[i] = shp.df0(ds, dz, dz_fac, f_grid[i], filter);
     }
   }
 }
@@ -1230,7 +1268,7 @@ void ComputeData::de0_core_calc(const band_shape& shp,
                                 const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, false);
+  set_filter(key);
 
   for (Size i : filter) {
     const Numeric ds_de0_ratio =
@@ -1257,7 +1295,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
                                const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, false);
+  set_filter(key);
 
   for (Size i : filter) {
     const Numeric ds_da_ratio = 1.0 / bnd.lines[pos[i].line].a;
@@ -1282,49 +1320,12 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
                                 const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
-  using Constant::h, Constant::k;
+  set_filter(key);
 
-  set_filter(key, true);
-
-  using enum temperature::coefficient;
-  switch (key.ls_coeff) {
-    case X0:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = Complex(
-            0,
-            shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG0_dX0(
-                                      ls.T0, atm.temperature, atm.pressure));
-      }
-      break;
-    case X1:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = Complex(
-            0,
-            shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG0_dX1(
-                                      ls.T0, atm.temperature, atm.pressure));
-      }
-      break;
-    case X2:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = Complex(
-            0,
-            shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG0_dX2(
-                                      ls.T0, atm.temperature, atm.pressure));
-      }
-      break;
-    case X3:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = Complex(
-            0,
-            shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG0_dX3(
-                                      ls.T0, atm.temperature, atm.pressure));
-      }
-      break;
-    case FINAL:;
+  for (Size i : filter) {
+    const auto& ls = bnd.lines[pos[i].line].ls;
+    dz[i] = Complex(
+        0, shp.lines[i].inv_gd * ls.dG0_dX(atm, key.spec, key.ls_coeff));
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1347,7 +1348,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
                                 const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, true);
+  set_filter(key);
 
   using enum temperature::coefficient;
   switch (key.ls_coeff) {
@@ -1405,7 +1406,7 @@ void ComputeData::dY_core_calc(const band_shape& shp,
                                const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, true);
+  set_filter(key);
 
   using enum temperature::coefficient;
   switch (key.ls_coeff) {
@@ -1468,7 +1469,7 @@ void ComputeData::dG_core_calc(const band_shape& shp,
                                const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, true);
+  set_filter(key);
 
   using enum temperature::coefficient;
   switch (key.ls_coeff) {
@@ -1523,7 +1524,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
                                 const line_key& key) {
   using Constant::h, Constant::k;
 
-  set_filter(key, true);
+  set_filter(key);
 
   using enum temperature::coefficient;
   switch (key.ls_coeff) {
@@ -1591,10 +1592,6 @@ void compute_derivative(PropmatVectorView dpm,
                                 com_data.dscl[i] * com_data.shape[i] +
                                     com_data.scl[i] * com_data.dshape[i]);
       }
-      // std::cout << "dscl: " << com_data.dscl << '\n';
-      // std::cout << "dshape: " << com_data.dshape << '\n';
-      // std::cout << "scl: " << com_data.scl << '\n';
-      // std::cout << "shape: " << com_data.shape << '\n';
       break;
     case p:
       ARTS_USER_ERROR("Not implemented, pressure derivative");
@@ -1682,14 +1679,15 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
+                        const SpeciesIsotopeRecord& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
-                        const zeeman::pol,
+                        const zeeman::pol pol,
                         const line_key& deriv) {
   switch (deriv.var) {
     case variable::f0:
-      com_data.df0_core_calc(shape, bnd, f_grid, deriv);
+      com_data.df0_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
@@ -1829,6 +1827,7 @@ void calculate(PropmatVectorView pm,
       compute_derivative(dpm.as_slice(line_target.target_pos),
                          com_data,
                          f_grid,
+                         spec,
                          shape,
                          bnd,
                          atm,

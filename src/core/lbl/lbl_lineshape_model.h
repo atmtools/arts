@@ -73,6 +73,8 @@ struct species_model {
   DERIVATIVE(X3);
 
 #undef DERIVATIVE
+
+  friend std::ostream& operator<<(std::ostream& os, const species_model& x);
 };
 
 struct model {
@@ -116,13 +118,43 @@ struct model {
   DERIVATIVE(T);
   DERIVATIVE(T0);
   DERIVATIVE(P);
+
+#undef DERIVATIVE
+
+#define DERIVATIVE(name)                                                                   \
+  [[nodiscard]] Numeric dG0_d##name(const AtmPoint& atm, const Size spec) const noexcept;  \
+  [[nodiscard]] Numeric dD0_d##name(const AtmPoint& atm, const Size spec) const noexcept;  \
+  [[nodiscard]] Numeric dG2_d##name(const AtmPoint& atm, const Size spec) const noexcept;  \
+  [[nodiscard]] Numeric dD2_d##name(const AtmPoint& atm, const Size spec) const noexcept;  \
+  [[nodiscard]] Numeric dETA_d##name(const AtmPoint& atm, const Size spec) const noexcept; \
+  [[nodiscard]] Numeric dFVC_d##name(const AtmPoint& atm, const Size spec) const noexcept; \
+  [[nodiscard]] Numeric dY_d##name(const AtmPoint& atm, const Size spec) const noexcept;   \
+  [[nodiscard]] Numeric dG_d##name(const AtmPoint& atm, const Size spec) const noexcept;   \
+  [[nodiscard]] Numeric dDV_d##name(const AtmPoint& atm, const Size spec) const noexcept
+
   DERIVATIVE(X0);
   DERIVATIVE(X1);
   DERIVATIVE(X2);
   DERIVATIVE(X3);
 
 #undef DERIVATIVE
+
+#undef DERIVATIVE
+
+[[nodiscard]] Numeric dG0_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;  
+[[nodiscard]] Numeric dD0_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;  
+[[nodiscard]] Numeric dG2_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;  
+[[nodiscard]] Numeric dD2_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;  
+[[nodiscard]] Numeric dETA_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept; 
+[[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept; 
+[[nodiscard]] Numeric dY_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;   
+[[nodiscard]] Numeric dG_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;   
+[[nodiscard]] Numeric dDV_dX(const AtmPoint& atm, const Size spec, temperature::coefficient coeff) const noexcept;
 };
 
-  std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::vector<std::pair<variable, temperature::data>>& x);
+
+std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
 }  // namespace lbl::line_shape

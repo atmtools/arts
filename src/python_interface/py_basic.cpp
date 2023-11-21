@@ -119,9 +119,8 @@ auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
           [](const ValueHolder<T>& a) { return var_string(*a.val); });
 
   if constexpr (std::same_as<String, T>) {
-    out.def("__repr__", [](const ValueHolder<T>& a) {
-      return py::repr(py::str(*a.val));
-    });
+    out.def("__repr__",
+            [](const ValueHolder<T>& a) { return py::repr(py::str(*a.val)); });
   } else {
     out.def("__repr__",
             [](const ValueHolder<T>& a) { return var_string(*a.val); });
@@ -271,7 +270,9 @@ void py_basic(py::module_& m) try {
                 return np.attr("array")(x, py::arg("copy") = false);
               },
               py::keep_alive<0, 1>()),
-          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) { *x.val = *y.val; },
+          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) {
+            *x.val = *y.val;
+          },
           "Operate on type as if :class:`numpy.ndarray` type");
 
   value_holder_artsclass<Index>(m, "Index", true)
@@ -296,21 +297,22 @@ void py_basic(py::module_& m) try {
           "Operate on type as if :class:`numpy.ndarray` type");
 
   artsarray<ArrayOfString, ArrayOptions::index>(m, "ArrayOfString")
-  .def(py::init([](
-    const std::vector<std::variant<ValueHolder<String>, String>>& x
-  ){
-    auto out = std::make_shared<ArrayOfString>(x.size());
-    std::transform(x.begin(), x.end(), out -> begin(),
-    [](auto& s){
-      return std::visit([](auto& v)->const String&{return v;}, s);
-    });
-    return out;
-  }))
+      .def(py::init(
+          [](const std::vector<std::variant<ValueHolder<String>, String>>& x) {
+            auto out = std::make_shared<ArrayOfString>(x.size());
+            std::transform(x.begin(), x.end(), out->begin(), [](auto& s) {
+              return std::visit([](auto& v) -> const String& { return v; }, s);
+            });
+            return out;
+          }))
       .PythonInterfaceFileIO(ArrayOfString)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfString);
-  py::implicitly_convertible<std::vector<std::variant<ValueHolder<String>, String>>, ArrayOfString>();
+  py::implicitly_convertible<
+      std::vector<std::variant<ValueHolder<String>, String>>,
+      ArrayOfString>();
 
-  artsarray<ArrayOfIndex, ArrayOptions::index>(m, "ArrayOfIndex", py::buffer_protocol())
+  artsarray<ArrayOfIndex, ArrayOptions::index>(
+      m, "ArrayOfIndex", py::buffer_protocol())
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
@@ -342,11 +344,11 @@ void py_basic(py::module_& m) try {
   artsarray<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString")
       .PythonInterfaceFileIO(ArrayOfArrayOfString)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfString);
-  
+
   artsarray<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex")
       .PythonInterfaceFileIO(ArrayOfArrayOfIndex)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfIndex);
-  
+
   artsclass<Any>(m, "Any")
       .def(py::init([]() { return std::make_shared<Any>(); }), "Create empty")
       .def(py::init([](const py::args&, const py::kwargs&) {

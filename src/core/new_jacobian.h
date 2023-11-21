@@ -333,6 +333,9 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
     for (const auto& t : targets.surf()) {
       os << "  " << t << '\n';
     }
+    for (const auto& t : targets.line()) {
+      os << "  " << t << '\n';
+    }
     return os;
   }
 };

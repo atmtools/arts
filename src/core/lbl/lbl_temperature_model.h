@@ -232,6 +232,9 @@ class data {
   Vector x{};
 
  public:
+  [[nodiscard]] model_type Type() const;
+  [[nodiscard]] Vector X() const;
+
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
 
   constexpr data(model_type type = model_type::T0, Vector X = {0.0})

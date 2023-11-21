@@ -18,7 +18,7 @@
 //! FIXME: These functions should be elsewhere?
 namespace Jacobian {
 struct Targets;
-}
+}  // namespace Jacobian
 
 namespace lbl::voigt::lte {
 struct single_shape {
@@ -75,6 +75,7 @@ struct single_shape {
 
   [[nodiscard]] Complex df0(const Complex ds_df0,
                             const Complex dz_df0,
+                            const Numeric dz_df0_fac,
                             const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dDV(const Complex dz_dDV,
@@ -210,6 +211,7 @@ struct band_shape {
 
   [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView ds_df0,
                             const ExhaustiveConstComplexVectorView dz_df0,
+                            const ExhaustiveConstVectorView dz_df0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
@@ -283,12 +285,14 @@ struct band_shape {
   [[nodiscard]] Complex df0(const ExhaustiveConstComplexVectorView& cut,
                             const ExhaustiveConstComplexVectorView ds_df0,
                             const ExhaustiveConstComplexVectorView dz_df0,
+                            const ExhaustiveConstVectorView dz_df0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
   void df0(ExhaustiveComplexVectorView cut,
            const ExhaustiveConstComplexVectorView ds_df0,
            const ExhaustiveConstComplexVectorView dz_df0,
+           const ExhaustiveConstVectorView dz_df0_fac,
            const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex da(const ExhaustiveConstComplexVectorView& cut,
@@ -442,12 +446,14 @@ struct ComputeData {
                       const zeeman::pol pol,
                       const Species::Species target_spec);
 
-  void set_filter(const line_key& key, bool check_spec);
+  void set_filter(const line_key& key);
 
   //! Sets dshape and ds and dz and dcut and dshape
-  void df0_core_calc(const band_shape& shp,
+  void df0_core_calc(const SpeciesIsotopeRecord& spec,const band_shape& shp,
                      const band_data& bnd,
                      const ExhaustiveConstVectorView& f_grid,
+                     const AtmPoint& atm,
+                     const zeeman::pol pol,
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape

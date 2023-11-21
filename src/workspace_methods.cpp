@@ -15506,7 +15506,8 @@ Size : (*jacobian_targets*, *f_grid*)
       .gin = {"component", "d"},
       .gin_type = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc = {"The component to use [u, v, w]",
+      .gin_desc = {
+          "The component to use [u, v, w]",
           "The perturbation used in methods that cannot compute derivatives analytically"}};
 
   wsm_data["jacobian_targetsAddWindField"] = {
@@ -15521,7 +15522,8 @@ their derivatives as if these were frequency derivatives.
       .gin = {"component", "d"},
       .gin_type = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc = {"The component to use [u, v, w]",
+      .gin_desc = {
+          "The component to use [u, v, w]",
           "The perturbation used in methods that cannot compute derivatives analytically"}};
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
@@ -15533,11 +15535,12 @@ their derivatives as if these were frequency derivatives.
       .gin = {"species", "d"},
       .gin_type = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc = {"The species of interest (short or long name)",
+      .gin_desc = {
+          "The species of interest (short or long name)",
           "The perturbation used in methods that cannot compute derivatives analytically"}};
 
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
-      .desc = R"--(Set volume mixing ratio derivative
+      .desc = R"--(Set isotopologue ratio derivative
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -15545,30 +15548,63 @@ their derivatives as if these were frequency derivatives.
       .gin = {"species", "d"},
       .gin_type = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc = {"The species isotopologue of interest (short name)",
+      .gin_desc = {
+          "The species isotopologue of interest (short name)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddLineParameter"] = {
+      .desc = R"--(Set line parameter derivative
+
+Note that empty ``coefficient`` means that the derivative is for a standard
+line parameter (e.g., line center), otherwise it is for a line shape parameter.
+By default, this variable is set to empty.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets", "absorption_bands"},
+      .gin = {"id", "line_index", "parameter", "species", "coefficient", "d"},
+      .gin_type = {"QuantumIdentifier",
+                   "Index",
+                   "String",
+                   "String",
+                   "String",
+                   "Numeric"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{""},
+                    String{""},
+                    Numeric{0.1}},
+      .gin_desc = {
+          "The quantum identifier of the band",
+          "The index of the line in the band",
+          "The parameter to compute the derivative for (see options in error message)",
+          "The coefficient in question (if non-empty, ``parameter`` refers to be a line shape parameter, otherwise, ``parameter`` referes to a standard absorption line parameter)",
+          "The species of interest (long or short name; error message shows only valid long names)",
           "The perturbation used in methods that cannot compute derivatives analytically"}};
 
   wsm_data["absorption_bandsSelectFrequency"] = {
-      .desc = R"--(Remove all bands that strictly falls outside a frequency range
+      .desc =
+          R"--(Remove all bands that strictly falls outside a frequency range
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
       .in = {"absorption_bands"},
       .gin = {"fmin", "fmax"},
       .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(),
+                    std::numeric_limits<Numeric>::infinity()},
       .gin_desc = {"Minimum frequency to keep", "Maximum frequency to keep"}};
 
-  wsm_data["absorption_bandsRemoveID"] = {
-      .desc = R"--(Remove first band of ID
+  wsm_data["absorption_bandsRemoveID"] = {.desc = R"--(Remove first band of ID
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"absorption_bands"},
-      .in = {"absorption_bands"},
-      .gin = {"id"},
-      .gin_type = {"QuantumIdentifier"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {"Identifier to remove"}};
+                                          .author = {"Richard Larsson"},
+                                          .out = {"absorption_bands"},
+                                          .in = {"absorption_bands"},
+                                          .gin = {"id"},
+                                          .gin_type = {"QuantumIdentifier"},
+                                          .gin_value = {std::nullopt},
+                                          .gin_desc = {"Identifier to remove"}};
 
   wsm_data["absorption_bandsKeepID"] = {
       .desc = R"--(Keeps first band of ID
