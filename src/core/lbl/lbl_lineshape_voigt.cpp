@@ -31,6 +31,21 @@ Complex line_strength_calc(const Numeric inv_gd,
 
   return Constant::inv_sqrt_pi * inv_gd * r * x * lm * s;
 }
+
+Complex dline_strength_calc_dY(const Numeric dY,
+                               const Numeric inv_gd,
+                               const SpeciesIsotopeRecord& spec,
+                               const line& line,
+                               const AtmPoint& atm) {
+  const auto s =
+      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
+
+  const Numeric r = atm[spec];
+  const Numeric x = atm[spec.spec];
+
+  return Complex(0, -dY) * Constant::inv_sqrt_pi * inv_gd * r * x * s;
+}
+
 Complex dline_strength_calc_df0(const Numeric f0,
                                 const Numeric inv_gd,
                                 const SpeciesIsotopeRecord& spec,
@@ -1346,45 +1361,9 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
                                 const ExhaustiveConstVectorView& f_grid,
                                 const AtmPoint& atm,
                                 const line_key& key) {
-  using Constant::h, Constant::k;
-
   set_filter(key);
 
-  using enum temperature::coefficient;
-  switch (key.ls_coeff) {
-    case X0:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = -lines[i].inv_gd * ls.single_models[pos[i].spec].dD0_dX0(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X1:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dD0_dX1(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X2:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dD0_dX2(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X3:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dD0_dX3(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case FINAL:;
-  }
+  ARTS_ASSERT(false)
 
   if (bnd.cutoff != CutoffType::None) {
     shp.dD0(dcut, dz, filter);
@@ -1399,54 +1378,24 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dY_core_calc(const band_shape& shp,
+void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
+                               const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
-  using Constant::h, Constant::k;
-
   set_filter(key);
 
-  using enum temperature::coefficient;
-  switch (key.ls_coeff) {
-    case X0:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = Complex{
-            0,
-            -lines[i].inv_gd * ls.single_models[pos[i].spec].dY_dX0(
-                                   ls.T0, atm.temperature, atm.pressure)};
-      }
-      break;
-    case X1:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = Complex{
-            0,
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dY_dX1(
-                                       ls.T0, atm.temperature, atm.pressure)};
-      }
-      break;
-    case X2:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = Complex{
-            0,
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dY_dX2(
-                                       ls.T0, atm.temperature, atm.pressure)};
-      }
-      break;
-    case X3:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = Complex{
-            0,
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dY_dX3(
-                                       ls.T0, atm.temperature, atm.pressure)};
-      }
-      break;
-    case FINAL:;
+  for (Size i : filter) {
+    const auto& line = bnd.lines[pos[i].line];
+    const auto& lshp = shp.lines[i];
+
+    ds[i] = dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
+                                   lshp.inv_gd,
+                                   spec,
+                                   line,
+                                   atm);
+    ;
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1467,42 +1416,9 @@ void ComputeData::dG_core_calc(const band_shape& shp,
                                const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
-  using Constant::h, Constant::k;
-
   set_filter(key);
 
-  using enum temperature::coefficient;
-  switch (key.ls_coeff) {
-    case X0:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = lines[i].inv_gd * ls.single_models[pos[i].spec].dG_dX0(
-                                      ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X1:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG_dX1(
-                                          ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X2:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG_dX2(
-                                          ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X3:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        ds[i] = shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dG_dX3(
-                                          ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case FINAL:;
-  }
+  ARTS_ASSERT(false)
 
   if (bnd.cutoff != CutoffType::None) {
     shp.dG(dcut, dz, filter);
@@ -1526,41 +1442,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
   set_filter(key);
 
-  using enum temperature::coefficient;
-  switch (key.ls_coeff) {
-    case X0:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] = -lines[i].inv_gd * ls.single_models[pos[i].spec].dDV_dX0(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X1:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dDV_dX1(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X2:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dDV_dX2(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case X3:
-      for (Size i : filter) {
-        const auto& ls = bnd.lines[pos[i].line].ls;
-        dz[i] =
-            -shp.lines[i].inv_gd * ls.single_models[pos[i].spec].dDV_dX3(
-                                       ls.T0, atm.temperature, atm.pressure);
-      }
-      break;
-    case FINAL:;
-  }
+  ARTS_ASSERT(false)
 
   if (bnd.cutoff != CutoffType::None) {
     shp.dDV(dcut, dz, filter);
@@ -1735,7 +1617,7 @@ void compute_derivative(PropmatVectorView dpm,
     case line_shape::variable::ETA:
       return;
     case line_shape::variable::Y:
-      com_data.dY_core_calc(shape, bnd, f_grid, atm, deriv);
+      com_data.dY_core_calc(spec, shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);

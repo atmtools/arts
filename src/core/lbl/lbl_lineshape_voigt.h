@@ -484,7 +484,8 @@ struct ComputeData {
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
-  void dY_core_calc(const band_shape& shp,
+  void dY_core_calc(const SpeciesIsotopeRecord& spec,
+                    const band_shape& shp,
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
