@@ -43,7 +43,21 @@ Complex dline_strength_calc_dY(const Numeric dY,
   const Numeric r = atm[spec];
   const Numeric x = atm[spec.spec];
 
-  return Complex(0, -dY) * Constant::inv_sqrt_pi * inv_gd * r * x * s;
+  return Constant::inv_sqrt_pi * inv_gd * r * x * Complex(0, -dY) * s;
+}
+
+Complex dline_strength_calc_dG(const Numeric dG,
+                               const Numeric inv_gd,
+                               const SpeciesIsotopeRecord& spec,
+                               const line& line,
+                               const AtmPoint& atm) {
+  const auto s =
+      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
+
+  const Numeric r = atm[spec];
+  const Numeric x = atm[spec.spec];
+
+  return Constant::inv_sqrt_pi * inv_gd * r * x * dG * s;
 }
 
 Complex dline_strength_calc_df0(const Numeric f0,
@@ -311,14 +325,20 @@ Complex single_shape::df0(const Complex ds_df0,
   return ds_df0 * F_ + s * (dz_df0 + dz_df0_fac * z_) * dF_;
 }
 
-Complex single_shape::dDV(const Complex dz_dDV,
+Complex single_shape::dDV(const Complex ds_dDV,
+                          const Complex dz_dDV,
+                          const Numeric dz_dDV_fac,
                           const Numeric f) const noexcept {
-  return s * dz_dDV * dF(f);
+  const auto [z_, F_, dF_] = all(f);
+  return ds_dDV * F_ + s * (dz_dDV + dz_dDV_fac * z_) * dF_;
 }
 
-Complex single_shape::dD0(const Complex dz_dD0,
+Complex single_shape::dD0(const Complex ds_dD0,
+                          const Complex dz_dD0,
+                          const Numeric dz_dD0_fac,
                           const Numeric f) const noexcept {
-  return s * dz_dD0 * dF(f);
+  const auto [z_, F_, dF_] = all(f);
+  return ds_dD0 * F_ + s * (dz_dD0 + dz_dD0_fac * z_) * dF_;
 }
 
 Complex single_shape::dG0(const Complex dz_dG0,
@@ -557,25 +577,29 @@ Complex band_shape::de0(const ExhaustiveConstComplexVectorView ds_de0,
   return out;
 }
 
-Complex band_shape::dDV(const ExhaustiveConstComplexVectorView dz_dDV,
+Complex band_shape::dDV(const ExhaustiveConstComplexVectorView ds_dDV,
+                        const ExhaustiveConstComplexVectorView dz_dDV,
+                        const ExhaustiveConstVectorView dz_dDV_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += lines[i].dDV(dz_dDV[i], f);
+    out += lines[i].dDV(ds_dDV[i], dz_dDV[i], dz_dDV_fac[i], f);
   }
 
   return out;
 }
 
-Complex band_shape::dD0(const ExhaustiveConstComplexVectorView dz_dD0,
+Complex band_shape::dD0(const ExhaustiveConstComplexVectorView ds_dD0,
+                        const ExhaustiveConstComplexVectorView dz_dD0,
+                        const ExhaustiveConstVectorView dz_dD0_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += lines[i].dD0(dz_dD0[i], f);
+    out += lines[i].dD0(ds_dD0[i], dz_dD0[i], dz_dD0_fac[i], f);
   }
 
   return out;
@@ -794,7 +818,7 @@ Complex band_shape::da(const ExhaustiveConstComplexVectorView& cut,
 }
 
 void band_shape::da(ExhaustiveComplexVectorView cut,
-                    const ExhaustiveComplexVectorView ds_da,
+                    const ExhaustiveConstComplexVectorView ds_da,
                     const std::vector<Size>& filter) const {
   for (Size i : filter) {
     cut[i] = lines[i].da(ds_da[i], lines[i].f0 + cutoff);
@@ -817,7 +841,7 @@ Complex band_shape::de0(const ExhaustiveConstComplexVectorView& cut,
 }
 
 void band_shape::de0(ExhaustiveComplexVectorView cut,
-                     const ExhaustiveComplexVectorView ds_de0,
+                     const ExhaustiveConstComplexVectorView ds_de0,
                      const std::vector<Size>& filter) const {
   for (Size i : filter) {
     cut[i] = lines[i].de0(ds_de0[i], lines[i].f0 + cutoff);
@@ -825,48 +849,60 @@ void band_shape::de0(ExhaustiveComplexVectorView cut,
 }
 
 Complex band_shape::dDV(const ExhaustiveConstComplexVectorView& cut,
+                        const ExhaustiveConstComplexVectorView ds_dDV,
                         const ExhaustiveConstComplexVectorView dz_dDV,
+                        const ExhaustiveConstVectorView dz_dDV_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
-  const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dDV);
+  const auto [s, cs, ds, dz, dzf] =
+      frequency_spans(cutoff, f, lines, cut, ds_dDV, dz_dDV, dz_dDV_fac);
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += s[i].dDV(dz[i], f) - cs[i];
+    out += s[i].dDV(ds[i], dz[i], dzf[i], f) - cs[i];
   }
 
   return out;
 }
 
 void band_shape::dDV(ExhaustiveComplexVectorView cut,
-                     const ExhaustiveComplexVectorView dz_dDV,
+                     const ExhaustiveConstComplexVectorView ds_dDV,
+                     const ExhaustiveConstComplexVectorView dz_dDV,
+                     const ExhaustiveConstVectorView dz_dDV_fac,
                      const std::vector<Size>& filter) const {
   for (Size i : filter) {
-    cut[i] = lines[i].dDV(dz_dDV[i], lines[i].f0 + cutoff);
+    cut[i] =
+        lines[i].dDV(ds_dDV[i], dz_dDV[i], dz_dDV_fac[i], lines[i].f0 + cutoff);
   }
 }
 
 Complex band_shape::dD0(const ExhaustiveConstComplexVectorView& cut,
+                        const ExhaustiveConstComplexVectorView ds_dD0,
                         const ExhaustiveConstComplexVectorView dz_dD0,
+                        const ExhaustiveConstVectorView dz_dD0_fac,
                         const Numeric f,
                         const std::vector<Size>& filter) const {
-  const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dD0);
+  const auto [s, cs, ds, dz, dzf] =
+      frequency_spans(cutoff, f, lines, cut, ds_dD0, dz_dD0, dz_dD0_fac);
 
   Complex out{};  //! Fixme, use zip in C++ 23...
 
   for (Size i : filter) {
-    out += s[i].dD0(dz[i], f) - cs[i];
+    out += s[i].dD0(ds[i], dz[i], dzf[i], f) - cs[i];
   }
 
   return out;
 }
 
 void band_shape::dD0(ExhaustiveComplexVectorView cut,
-                     const ExhaustiveComplexVectorView dz_dD0,
+                     const ExhaustiveConstComplexVectorView ds_dD0,
+                     const ExhaustiveConstComplexVectorView dz_dD0,
+                     const ExhaustiveConstVectorView dz_dD0_fac,
                      const std::vector<Size>& filter) const {
   for (Size i : filter) {
-    cut[i] = lines[i].dD0(dz_dD0[i], lines[i].f0 + cutoff);
+    cut[i] =
+        lines[i].dD0(ds_dD0[i], dz_dD0[i], dz_dD0_fac[i], lines[i].f0 + cutoff);
   }
 }
 
@@ -886,7 +922,7 @@ Complex band_shape::dG0(const ExhaustiveConstComplexVectorView& cut,
 }
 
 void band_shape::dG0(ExhaustiveComplexVectorView cut,
-                     const ExhaustiveComplexVectorView dz_dG0,
+                     const ExhaustiveConstComplexVectorView dz_dG0,
                      const std::vector<Size>& filter) const {
   for (Size i : filter) {
     cut[i] = lines[i].dG0(dz_dG0[i], lines[i].f0 + cutoff);
@@ -909,7 +945,7 @@ Complex band_shape::dY(const ExhaustiveConstComplexVectorView& cut,
 }
 
 void band_shape::dY(ExhaustiveComplexVectorView cut,
-                    const ExhaustiveComplexVectorView ds_dY,
+                    const ExhaustiveConstComplexVectorView ds_dY,
                     const std::vector<Size>& filter) const {
   for (Size i : filter) {
     cut[i] = lines[i].dY(ds_dY[i], lines[i].f0 + cutoff);
@@ -932,7 +968,7 @@ Complex band_shape::dG(const ExhaustiveConstComplexVectorView& cut,
 }
 
 void band_shape::dG(ExhaustiveComplexVectorView cut,
-                    const ExhaustiveComplexVectorView ds_dG,
+                    const ExhaustiveConstComplexVectorView ds_dG,
                     const std::vector<Size>& filter) const {
   for (Size i : filter) {
     cut[i] = lines[i].dG(ds_dG[i], lines[i].f0 + cutoff);
@@ -1363,16 +1399,34 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
                                 const line_key& key) {
   set_filter(key);
 
-  ARTS_ASSERT(false)
+  for (Size i : filter) {
+    const auto& lshp = shp.lines[i];
+    const auto& ls = bnd.lines[pos[i].line].ls;
+
+    const Numeric& inv_gd = lshp.inv_gd;
+    const Numeric& f0 = lshp.f0;
+
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      const Numeric d = ls.dD0_dX(atm, key.spec, key.ls_coeff);
+
+      dz_fac[i] = -d / f0;
+
+      ds[i] = -d * lshp.s / f0;
+
+      dz[i] = -d * inv_gd;
+    } else {
+      ARTS_ASSERT(false, "Not implemented")
+    }
+  }
 
   if (bnd.cutoff != CutoffType::None) {
-    shp.dD0(dcut, dz, filter);
+    shp.dD0(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.dD0(dcut, dz, f_grid[i], filter);
+      dshape[i] = shp.dD0(dcut, ds, dz, dz_fac, f_grid[i], filter);
     }
   } else {
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.dD0(dz, f_grid[i], filter);
+      dshape[i] = shp.dD0(ds, dz, dz_fac, f_grid[i], filter);
     }
   }
 }
@@ -1395,7 +1449,6 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
                                    spec,
                                    line,
                                    atm);
-    ;
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1411,14 +1464,24 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dG_core_calc(const band_shape& shp,
+void ComputeData::dG_core_calc(const SpeciesIsotopeRecord& spec,
+                               const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
                                const AtmPoint& atm,
                                const line_key& key) {
   set_filter(key);
 
-  ARTS_ASSERT(false)
+  for (Size i : filter) {
+    const auto& line = bnd.lines[pos[i].line];
+    const auto& lshp = shp.lines[i];
+
+    ds[i] = dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
+                                   lshp.inv_gd,
+                                   spec,
+                                   line,
+                                   atm);
+  }
 
   if (bnd.cutoff != CutoffType::None) {
     shp.dG(dcut, dz, filter);
@@ -1442,16 +1505,34 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
   set_filter(key);
 
-  ARTS_ASSERT(false)
+  for (Size i : filter) {
+    const auto& lshp = shp.lines[i];
+    const auto& ls = bnd.lines[pos[i].line].ls;
+
+    const Numeric& inv_gd = lshp.inv_gd;
+    const Numeric& f0 = lshp.f0;
+
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      const Numeric d = ls.dDV_dX(atm, key.spec, key.ls_coeff);
+
+      dz_fac[i] = -d / f0;
+
+      ds[i] = -d * lshp.s / f0;
+
+      dz[i] = -d * inv_gd;
+    } else {
+      ARTS_ASSERT(false, "Not implemented")
+    }
+  }
 
   if (bnd.cutoff != CutoffType::None) {
-    shp.dDV(dcut, dz, filter);
+    shp.dDV(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.dDV(dcut, dz, f_grid[i], filter);
+      dshape[i] = shp.dDV(dcut, ds, dz, dz_fac, f_grid[i], filter);
     }
   } else {
     for (Index i = 0; i < f_grid.size(); i++) {
-      dshape[i] = shp.dDV(dz, f_grid[i], filter);
+      dshape[i] = shp.dDV(ds, dz, dz_fac, f_grid[i], filter);
     }
   }
 }
@@ -1624,7 +1705,7 @@ void compute_derivative(PropmatVectorView dpm,
       }
       return;
     case line_shape::variable::G:
-      com_data.dG_core_calc(shape, bnd, f_grid, atm, deriv);
+      com_data.dG_core_calc(spec, shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);

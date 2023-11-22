@@ -78,10 +78,14 @@ struct single_shape {
                             const Numeric dz_df0_fac,
                             const Numeric f) const noexcept;
 
-  [[nodiscard]] Complex dDV(const Complex dz_dDV,
+  [[nodiscard]] Complex dDV(const Complex ds_dDV,
+                            const Complex dz_dDV,
+                            const Numeric dz_dDV_fac,
                             const Numeric f) const noexcept;
 
-  [[nodiscard]] Complex dD0(const Complex dz_dD0,
+  [[nodiscard]] Complex dD0(const Complex ds_dD0,
+                            const Complex dz_dD0,
+                            const Numeric dz_dD0_fac,
                             const Numeric f) const noexcept;
 
   [[nodiscard]] Complex dG0(const Complex dz_dG0,
@@ -223,11 +227,15 @@ struct band_shape {
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView dz_dDV,
+  [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView ds_dDV,
+                            const ExhaustiveConstComplexVectorView dz_dDV,
+                            const ExhaustiveConstVectorView dz_dDV_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
-  [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView dz_dD0,
+  [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView ds_dD0,
+                            const ExhaustiveConstComplexVectorView dz_dD0,
+                            const ExhaustiveConstVectorView dz_dD0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
@@ -301,7 +309,7 @@ struct band_shape {
                            const std::vector<Size>& filter) const;
 
   void da(ExhaustiveComplexVectorView cut,
-          const ExhaustiveComplexVectorView ds_da,
+          const ExhaustiveConstComplexVectorView ds_da,
           const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex de0(const ExhaustiveConstComplexVectorView& cut,
@@ -310,25 +318,33 @@ struct band_shape {
                             const std::vector<Size>& filter) const;
 
   void de0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveComplexVectorView ds_de0,
+           const ExhaustiveConstComplexVectorView ds_de0,
            const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dDV(const ExhaustiveConstComplexVectorView& cut,
+                            const ExhaustiveConstComplexVectorView ds_dDV,
                             const ExhaustiveConstComplexVectorView dz_dDV,
+                            const ExhaustiveConstVectorView dz_dDV_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
   void dDV(ExhaustiveComplexVectorView cut,
-           const ExhaustiveComplexVectorView dz_dDV,
+           const ExhaustiveConstComplexVectorView ds_dDV,
+           const ExhaustiveConstComplexVectorView dz_dDV,
+           const ExhaustiveConstVectorView dz_dDV_fac,
            const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dD0(const ExhaustiveConstComplexVectorView& cut,
+                            const ExhaustiveConstComplexVectorView ds_dD0,
                             const ExhaustiveConstComplexVectorView dz_dD0,
+                            const ExhaustiveConstVectorView dz_dD0_fac,
                             const Numeric f,
                             const std::vector<Size>& filter) const;
 
   void dD0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveComplexVectorView dz_dD0,
+           const ExhaustiveConstComplexVectorView ds_dD0,
+           const ExhaustiveConstComplexVectorView dz_dD0,
+           const ExhaustiveConstVectorView dz_dD0_fac,
            const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dG0(const ExhaustiveConstComplexVectorView& cut,
@@ -337,7 +353,7 @@ struct band_shape {
                             const std::vector<Size>& filter) const;
 
   void dG0(ExhaustiveComplexVectorView cut,
-           const ExhaustiveComplexVectorView dz_dG0,
+           const ExhaustiveConstComplexVectorView dz_dG0,
            const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dY(const ExhaustiveConstComplexVectorView& cut,
@@ -346,7 +362,7 @@ struct band_shape {
                            const std::vector<Size>& filter) const;
 
   void dY(ExhaustiveComplexVectorView cut,
-          const ExhaustiveComplexVectorView ds_dY,
+          const ExhaustiveConstComplexVectorView ds_dY,
           const std::vector<Size>& filter) const;
 
   [[nodiscard]] Complex dG(const ExhaustiveConstComplexVectorView& cut,
@@ -355,7 +371,7 @@ struct band_shape {
                            const std::vector<Size>& filter) const;
 
   void dG(ExhaustiveComplexVectorView cut,
-          const ExhaustiveComplexVectorView ds_dG,
+          const ExhaustiveConstComplexVectorView ds_dG,
           const std::vector<Size>& filter) const;
 };
 
@@ -449,7 +465,8 @@ struct ComputeData {
   void set_filter(const line_key& key);
 
   //! Sets dshape and ds and dz and dcut and dshape
-  void df0_core_calc(const SpeciesIsotopeRecord& spec,const band_shape& shp,
+  void df0_core_calc(const SpeciesIsotopeRecord& spec,
+                     const band_shape& shp,
                      const band_data& bnd,
                      const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
@@ -492,7 +509,8 @@ struct ComputeData {
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
-  void dG_core_calc(const band_shape& shp,
+  void dG_core_calc(const SpeciesIsotopeRecord& spec,
+                    const band_shape& shp,
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
