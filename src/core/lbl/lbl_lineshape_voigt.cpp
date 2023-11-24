@@ -11,9 +11,11 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <numeric>
 
 #include "atm.h"
 #include "lbl_data.h"
+#include "species.h"
 
 namespace lbl::voigt::lte {
 Complex line_strength_calc(const Numeric inv_gd,
@@ -73,6 +75,7 @@ Complex dline_strength_calc_df0(const Numeric f0,
   const Numeric Y = line.ls.Y(atm);
 
   const Complex lm{1 + G, -Y};
+
   const Numeric r = atm[spec];
   const Numeric x = atm[spec.spec];
 
@@ -132,10 +135,6 @@ Complex dline_strength_calc_dT(const Numeric inv_gd,
   const Numeric r = atm[spec];
   const Numeric x = atm[spec.spec];
 
-  AtmPoint atm2 = atm;
-  const Numeric dt = 1e-4;
-  atm2.temperature += dt;
-
   return Constant::inv_sqrt_pi * inv_gd * r * x *
          (2 * T * (dlm * s + lm * ds) * f0 - 2 * T * df0 * lm * s -
           f0 * lm * s) /
@@ -147,59 +146,153 @@ Complex line_strength_calc(const Numeric inv_gd,
                            const line& line,
                            const AtmPoint& atm,
                            const Size ispec) {
-  const auto s =
-      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
-
   const auto& ls = line.ls.single_models[ispec];
+  const Numeric T0 = line.ls.T0;
+  const Numeric T = atm.temperature;
+  const Numeric P = atm.pressure;
+  const Numeric x = atm[spec.spec];
+  const Numeric r = atm[spec];
+  const Numeric v = ls.species == Species::Species::Bath
+                        ? 1 - std::transform_reduce(
+                                  line.ls.single_models.begin(),
+                                  line.ls.single_models.end() - 1,
+                                  0.0,
+                                  std::plus<>{},
+                                  [&atm](auto& s) { return atm[s.species]; })
+                        : atm[ls.species];
 
-  const Complex lm{1 + ls.G(line.ls.T0, atm.temperature, atm.pressure),
-                   -ls.Y(line.ls.T0, atm.temperature, atm.pressure)};
+  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
 
-  const auto n = atm[spec] * atm[spec.spec] * atm[ls.species];
+  const auto G = ls.G(T0, T, P);
+  const auto Y = ls.Y(T0, T, P);
+  const Complex lm{1 + G, -Y};
 
-  return Constant::inv_sqrt_pi * inv_gd * n * lm * s;
+  return Constant::inv_sqrt_pi * inv_gd * x * r * v * lm * s;
 }
 
-Complex dline_strength_calc_dVMR(const SpeciesIsotopeRecord& spec,
-                                 const Species::Species target_spec,
-                                 const line& line,
-                                 const AtmPoint& atm,
-                                 const Size ispec) {
-  const auto s =
-      line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
-
-  const auto& ls = line.ls.single_models[ispec];
-
-  const Complex lm{1 + ls.G(line.ls.T0, atm.temperature, atm.pressure),
-                   -ls.Y(line.ls.T0, atm.temperature, atm.pressure)};
-
-  const auto dn =
-      (spec.spec == target_spec ? atm[spec.spec] * atm[ls.species] : 0.0) +
-      (spec.spec == ls.species ? atm[spec] * atm[spec.spec] : 0.0);
-
-  return dn * lm * s;
-}
-
-Complex dline_strength_calc_dT(const SpeciesIsotopeRecord& spec,
+Complex dline_strength_calc_dG(const Numeric dG,
+                               const Numeric inv_gd,
+                               const SpeciesIsotopeRecord& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
+  const auto& ls = line.ls.single_models[ispec];
+  const Numeric T = atm.temperature;
+  const Numeric x = atm[spec.spec];
+  const Numeric r = atm[spec];
+  const Numeric v = ls.species == Species::Species::Bath
+                        ? 1 - std::transform_reduce(
+                                  line.ls.single_models.begin(),
+                                  line.ls.single_models.end() - 1,
+                                  0.0,
+                                  std::plus<>{},
+                                  [&atm](auto& s) { return atm[s.species]; })
+                        : atm[ls.species];
+
+  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
+
+  const Numeric dlm{dG};
+
+  return Constant::inv_sqrt_pi * inv_gd * x * r * v * dlm * s;
+}
+
+Complex dline_strength_calc_dY(const Numeric dY,
+                               const Numeric inv_gd,
+                               const SpeciesIsotopeRecord& spec,
+                               const line& line,
+                               const AtmPoint& atm,
+                               const Size ispec) {
+  const auto& ls = line.ls.single_models[ispec];
+  const Numeric T = atm.temperature;
+  const Numeric x = atm[spec.spec];
+  const Numeric r = atm[spec];
+  const Numeric v = ls.species == Species::Species::Bath
+                        ? 1 - std::transform_reduce(
+                                  line.ls.single_models.begin(),
+                                  line.ls.single_models.end() - 1,
+                                  0.0,
+                                  std::plus<>{},
+                                  [&atm](auto& s) { return atm[s.species]; })
+                        : atm[ls.species];
+
+  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
+
+  const Complex dlm{0, -dY};
+
+  return Constant::inv_sqrt_pi * inv_gd * x * r * v * dlm * s;
+}
+
+Complex dline_strength_calc_df0(const Numeric f0,
+                                const Numeric inv_gd,
+                                const SpeciesIsotopeRecord& spec,
+                                const line& line,
+                                const AtmPoint& atm,
+                                const Size ispec) {
+  const auto& ls = line.ls.single_models[ispec];
+  const Numeric T0 = line.ls.T0;
+  const Numeric T = atm.temperature;
+  const Numeric P = atm.pressure;
+  const Numeric x = atm[spec.spec];
+  const Numeric r = atm[spec];
+  const Numeric v = ls.species == Species::Species::Bath
+                        ? 1 - std::transform_reduce(
+                                  line.ls.single_models.begin(),
+                                  line.ls.single_models.end() - 1,
+                                  0.0,
+                                  std::plus<>{},
+                                  [&atm](auto& s) { return atm[s.species]; })
+                        : atm[ls.species];
   const auto s =
       line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
-  const auto ds = line.ds_dT(atm.temperature,
-                             PartitionFunctions::Q(atm.temperature, spec),
-                             PartitionFunctions::dQdT(atm.temperature, spec));
+  const auto ds = line.ds_df0_s_ratio() * s;
 
+  const auto G = ls.G(T0, T, P);
+  const auto Y = ls.Y(T0, T, P);
+  const Complex lm{1 + G, -Y};
+
+  return Constant::inv_sqrt_pi * inv_gd * r * x * v * (f0 * ds - s) * lm / f0;
+}
+
+Complex dline_strength_calc_dT(const Numeric f0,
+                               const Numeric inv_gd,
+                               const SpeciesIsotopeRecord& spec,
+                               const line& line,
+                               const AtmPoint& atm,
+                               const Size ispec) {
   const auto& ls = line.ls.single_models[ispec];
+  const Numeric T0 = line.ls.T0;
+  const Numeric T = atm.temperature;
+  const Numeric P = atm.pressure;
+  const Numeric x = atm[spec.spec];
+  const Numeric r = atm[spec];
+  const Numeric v = ls.species == Species::Species::Bath
+                        ? 1 - std::transform_reduce(
+                                  line.ls.single_models.begin(),
+                                  line.ls.single_models.end() - 1,
+                                  0.0,
+                                  std::plus<>{},
+                                  [&atm](auto& s) { return atm[s.species]; })
+                        : atm[ls.species];
 
-  const Complex lm{1 + ls.G(line.ls.T0, atm.temperature, atm.pressure),
-                   -ls.Y(line.ls.T0, atm.temperature, atm.pressure)};
-  const Complex dlm{ls.dG_dT(line.ls.T0, atm.temperature, atm.pressure),
-                    -ls.dY_dT(line.ls.T0, atm.temperature, atm.pressure)};
+  const auto s = line.s(T, PartitionFunctions::Q(T, spec));
+  const auto ds = line.ds_dT(
+      T, PartitionFunctions::Q(T, spec), PartitionFunctions::dQdT(T, spec));
 
-  const auto n = atm[spec] * atm[spec.spec] * atm[ls.species];
+  const Numeric G = ls.G(T0, T, P);
+  const Numeric Y = ls.Y(T0, T, P);
+  const Numeric dG = ls.dG_dT(T0, T, P);
+  const Numeric dY = ls.dY_dT(T0, T, P);
+  const Numeric dD0 = ls.dD0_dT(T0, T, P);
+  const Numeric dDV = ls.dDV_dT(T0, T, P);
 
-  return n * (dlm * s + lm * ds);
+  const Numeric df0 = dD0 + dDV;
+  const Complex lm{1 + G, -Y};
+  const Complex dlm = {dG, -dY};
+
+  return Constant::inv_sqrt_pi * inv_gd * r * x * v *
+         (2 * T * (dlm * s + lm * ds) * f0 - 2 * T * df0 * lm * s -
+          f0 * lm * s) /
+         (2 * T * f0);
 }
 
 Numeric line_center_calc(const line& line, const AtmPoint& atm) {
@@ -1069,7 +1162,18 @@ void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
       dz[i] = inv_gd *
               Complex{-dline_center_calc_dT(line, atm), line.ls.dG0_dT(atm)};
     } else {
-      ARTS_ASSERT(false, "Not implemented")
+      const auto& ls = line.ls.single_models[pos[i].spec];
+
+      dz_fac[i] = (-2 * T * ls.dD0_dT(line.ls.T0, T, atm.pressure) -
+                   2 * T * ls.dDV_dT(line.ls.T0, T, atm.pressure) - f0) /
+                  (2 * T * f0);
+
+      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+              dline_strength_calc_dT(f0, inv_gd, spec, line, atm, pos[i].spec);
+
+      dz[i] = inv_gd * Complex{-ls.dD0_dT(line.ls.T0, T, atm.pressure) -
+                                   ls.dDV_dT(line.ls.T0, T, atm.pressure),
+                               ls.dG0_dT(line.ls.T0, T, atm.pressure)};
     }
   }
 
@@ -1212,6 +1316,8 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
                                  const AtmPoint& atm,
                                  const zeeman::pol pol,
                                  const Species::Species target_spec) {
+  const Numeric x = atm[target_spec];
+
   for (Size i = 0; i < pos.size(); i++) {
     const auto& line = bnd.lines[pos[i].line];
     const auto& lshp = shp.lines[i];
@@ -1231,7 +1337,28 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
       dz[i] = inv_gd * Complex{-dline_center_calc_dVMR(line, target_spec, atm),
                                line.ls.dG0_dVMR(atm, target_spec)};
     } else {
-      ARTS_ASSERT(false, "Not implemented")
+      dz_fac[i] = 0;
+
+      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) * lshp.s;
+
+      const auto ls_spec = line.ls.single_models[pos[i].spec].species;
+      if (target_spec == ls_spec and target_spec == spec.spec)
+        ds[i] *= 2 / x;
+      else if (target_spec == ls_spec) {
+        ds[i] /= x;
+      } else if (ls_spec == Species::Species::Bath) {
+        const Numeric v = 1.0 - std::transform_reduce(
+                                    line.ls.single_models.begin(),
+                                    line.ls.single_models.end() - 1,
+                                    0.0,
+                                    std::plus<>{},
+                                    [&atm](auto& s) { return atm[s.species]; });
+        ds[i] *= (v - x) / (x * v);
+      } else {
+        ds[i] = 0;
+      }
+
+      dz[i] = 0;
     }
   }
 
@@ -1282,7 +1409,7 @@ void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
 
   for (Size i : filter) {
     const auto& lshp = shp.lines[i];
-    const auto& line = bnd.lines[i];
+    const auto& line = bnd.lines[pos[i].line];
 
     const Numeric& inv_gd = lshp.inv_gd;
     const Numeric& f0 = lshp.f0;
@@ -1295,7 +1422,12 @@ void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
 
       dz[i] = -inv_gd;
     } else {
-      ARTS_ASSERT(false, "Not implemented")
+      dz_fac[i] = -1.0 / f0;
+
+      ds[i] = line.z.Strength(line.qn.val, pol, pos[i].iz) *
+              dline_strength_calc_df0(f0, inv_gd, spec, line, atm, pos[i].spec);
+
+      dz[i] = -inv_gd;
     }
   }
 
@@ -1375,8 +1507,17 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
 
   for (Size i : filter) {
     const auto& ls = bnd.lines[pos[i].line].ls;
-    dz[i] = Complex(
-        0, shp.lines[i].inv_gd * ls.dG0_dX(atm, key.spec, key.ls_coeff));
+
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      dz[i] = Complex(
+          0, shp.lines[i].inv_gd * ls.dG0_dX(atm, key.spec, key.ls_coeff));
+    } else {
+      dz[i] =
+          Complex(0,
+                  shp.lines[i].inv_gd *
+                      ls.single_models[pos[i].spec].dG0_dX(
+                          ls.T0, atm.temperature, atm.pressure, key.ls_coeff));
+    }
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1415,7 +1556,14 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 
       dz[i] = -d * inv_gd;
     } else {
-      ARTS_ASSERT(false, "Not implemented")
+      const Numeric d = ls.single_models[pos[i].spec].dD0_dX(
+          ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
+
+      dz_fac[i] = -d / f0;
+
+      ds[i] = -d * lshp.s / f0;
+
+      dz[i] = -d * inv_gd;
     }
   }
 
@@ -1444,11 +1592,22 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
     const auto& line = bnd.lines[pos[i].line];
     const auto& lshp = shp.lines[i];
 
-    ds[i] = dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
-                                   lshp.inv_gd,
-                                   spec,
-                                   line,
-                                   atm);
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      ds[i] = dline_strength_calc_dY(line.ls.dY_dX(atm, key.spec, key.ls_coeff),
+                                     lshp.inv_gd,
+                                     spec,
+                                     line,
+                                     atm);
+    } else {
+      ds[i] = dline_strength_calc_dY(
+          line.ls.single_models[pos[i].spec].dY_dX(
+              line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
+          lshp.inv_gd,
+          spec,
+          line,
+          atm,
+          pos[i].spec);
+    }
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1476,11 +1635,22 @@ void ComputeData::dG_core_calc(const SpeciesIsotopeRecord& spec,
     const auto& line = bnd.lines[pos[i].line];
     const auto& lshp = shp.lines[i];
 
-    ds[i] = dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
-                                   lshp.inv_gd,
-                                   spec,
-                                   line,
-                                   atm);
+    if (pos[i].spec == std::numeric_limits<Size>::max()) {
+      ds[i] = dline_strength_calc_dG(line.ls.dG_dX(atm, key.spec, key.ls_coeff),
+                                     lshp.inv_gd,
+                                     spec,
+                                     line,
+                                     atm);
+    } else {
+      ds[i] = dline_strength_calc_dG(
+          line.ls.single_models[pos[i].spec].dG_dX(
+              line.ls.T0, atm.temperature, atm.pressure, key.ls_coeff),
+          lshp.inv_gd,
+          spec,
+          line,
+          atm,
+          pos[i].spec);
+    }
   }
 
   if (bnd.cutoff != CutoffType::None) {
@@ -1521,7 +1691,14 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 
       dz[i] = -d * inv_gd;
     } else {
-      ARTS_ASSERT(false, "Not implemented")
+      const Numeric d = ls.single_models[pos[i].spec].dDV_dX(
+          ls.T0, atm.temperature, atm.pressure, key.ls_coeff);
+
+      dz_fac[i] = -d / f0;
+
+      ds[i] = -d * lshp.s / f0;
+
+      dz[i] = -d * inv_gd;
     }
   }
 

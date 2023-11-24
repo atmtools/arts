@@ -240,6 +240,22 @@ VARIABLE(X3);
       case temperature::coefficient::FINAL:;                                \
     }                                                                       \
     return 0.0;                                                             \
+  }                                                                         \
+  Numeric species_model::d##name##_dX(                                      \
+      Numeric T0, Numeric T, Numeric P, temperature::coefficient coeff)     \
+      const noexcept {                                                      \
+    switch (coeff) {                                                        \
+      case temperature::coefficient::X0:                                    \
+        return d##name##_dX0(T0, T, P);                                     \
+      case temperature::coefficient::X1:                                    \
+        return d##name##_dX1(T0, T, P);                                     \
+      case temperature::coefficient::X2:                                    \
+        return d##name##_dX2(T0, T, P);                                     \
+      case temperature::coefficient::X3:                                    \
+        return d##name##_dX3(T0, T, P);                                     \
+      case temperature::coefficient::FINAL:;                                \
+    }                                                                       \
+    return 0.0;                                                             \
   }
 
 VARIABLE(G0);

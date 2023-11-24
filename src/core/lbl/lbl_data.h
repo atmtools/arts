@@ -190,6 +190,8 @@ struct line_key {
   friend std::ostream& operator<<(std::ostream& os, const line_key& x);
 };
 
+std::ostream& operator<<(std::ostream& os, const std::vector<line>& x);
+
 std::ostream& operator<<(std::ostream& os, const std::vector<band>& x);
 }  // namespace lbl
 

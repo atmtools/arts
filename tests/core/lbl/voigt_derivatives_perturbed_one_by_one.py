@@ -47,6 +47,9 @@ ws.atm_point.temperature = 295  # At room temperature
 ws.atm_point.pressure = 1e5  # At 1 bar
 ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
 
+# Make all the lines one-by-one applicable
+for x in ws.absorption_bands[0].data.lines:
+    x.ls.one_by_one = True
 
 ws.jacobian_targetsInit()
 ws.jacobian_targetsAddSpeciesIsotopologueRatio(species="O2-66")
