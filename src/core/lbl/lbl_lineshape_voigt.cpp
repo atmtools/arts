@@ -2013,7 +2013,6 @@ void calculate(PropmatVectorView pm,
               nf == dpm.ncols())
   ARTS_ASSERT(nf == pm.nelem())
 
-  //! Reuse lines and positions if possible
   band_shape_helper(
       com_data.lines, com_data.pos, spec, bnd, atm, fmin, fmax, pol);
 

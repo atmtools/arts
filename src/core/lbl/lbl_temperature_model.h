@@ -236,6 +236,7 @@ class data {
   [[nodiscard]] Vector X() const;
 
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
+  friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
   constexpr data(model_type type = model_type::T0, Vector X = {0.0})
       : t(type), x(std::move(X)) {

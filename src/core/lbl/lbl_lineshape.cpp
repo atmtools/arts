@@ -19,10 +19,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) {
-            return bnd.lineshape == Lineshape::VP and
-                   bnd.linestrength == Linestrength::LTE;
-          },
+          [](auto& bnd) { return bnd.lineshape == Lineshape::VPLTE; },
           &band::data))
     return std::make_unique<voigt::lte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -56,14 +53,8 @@ void calculate(PropmatVectorView pm,
                                const band_data& bnd,
                                const zeeman::pol pol) {
     switch (bnd.lineshape) {
-      case Lineshape::VP:
-        switch (bnd.linestrength) {
-          case Linestrength::LTE:
-            calc_voigt_lte(bnd_key, bnd, pol);
-            break;
-          case Linestrength::FINAL:
-            ARTS_USER_ERROR("Bad line strength state");
-        }
+      case Lineshape::VPLTE:
+        calc_voigt_lte(bnd_key, bnd, pol);
         break;
       case Lineshape::FINAL:
         ARTS_USER_ERROR("Bad line shape state");

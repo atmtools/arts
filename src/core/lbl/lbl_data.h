@@ -61,8 +61,8 @@ struct line {
 
   //! The ratio of ds_de0 / s
   [[nodiscard]] constexpr Numeric ds_de0_s_ratio(Numeric T) const noexcept {
-  return -1 / (Constant::k * T);
-}
+    return -1 / (Constant::k * T);
+  }
 
   /*! Derivative of s(T, Q) wrt to this->f0
 
@@ -95,22 +95,20 @@ struct line {
   [[nodiscard]] Numeric ds_dT(Numeric T,
                               Numeric Q,
                               Numeric dQ_dt) const noexcept;
-  
+
   friend std::ostream& operator<<(std::ostream& os, const line& x);
+
+  friend std::istream& operator>>(std::istream& is, line& x);
 };
 
 ENUMCLASS(CutoffType, char, None, ByLine)
 
-ENUMCLASS(Lineshape, char, VP)
-
-ENUMCLASS(Linestrength, char, LTE)
+ENUMCLASS(Lineshape, char, VPLTE)
 
 struct band_data {
   std::vector<line> lines{};
 
-  Lineshape lineshape{Lineshape::VP};
-
-  Linestrength linestrength{Linestrength::LTE};
+  Lineshape lineshape{Lineshape::VPLTE};
 
   CutoffType cutoff{CutoffType::None};
 
@@ -127,8 +125,14 @@ struct band_data {
   [[nodiscard]] auto end() noexcept { return lines.end(); }
   [[nodiscard]] auto end() const noexcept { return lines.end(); }
   [[nodiscard]] auto cend() const noexcept { return lines.cend(); }
-  template <typename T> void push_back(T&& l) noexcept { lines.push_back(std::forward<T>(l)); }
-  template <typename ...Ts> lbl::line& emplace_back(Ts&&... l) noexcept { return lines.emplace_back(std::forward<Ts>(l)...); }
+  template <typename T>
+  void push_back(T&& l) noexcept {
+    lines.push_back(std::forward<T>(l));
+  }
+  template <typename... Ts>
+  lbl::line& emplace_back(Ts&&... l) noexcept {
+    return lines.emplace_back(std::forward<Ts>(l)...);
+  }
 
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const noexcept {
     using enum CutoffType;
@@ -142,10 +146,11 @@ struct band_data {
     return -1;
   }
 
-  void sort(variable v=variable::f0);
+  void sort(variable v = variable::f0);
 
   //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
-  [[nodiscard]] std::span<const line> active_lines(Numeric f0, Numeric f1) const;
+  [[nodiscard]] std::span<const line> active_lines(Numeric f0,
+                                                   Numeric f1) const;
 
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };

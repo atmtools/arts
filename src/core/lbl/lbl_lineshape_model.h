@@ -78,7 +78,7 @@ struct species_model {
                                Numeric T,
                                Numeric P,
                                temperature::coefficient coeff) const noexcept;
-                               
+
   [[nodiscard]] Numeric dD0_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
@@ -120,6 +120,7 @@ struct species_model {
                                temperature::coefficient coeff) const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const species_model& x);
+  friend std::istream& operator>>(std::istream& os, species_model& x);
 };
 
 struct model {
@@ -130,6 +131,7 @@ struct model {
   std::vector<species_model> single_models{};
 
   friend std::ostream& operator<<(std::ostream& os, const model& x);
+  friend std::istream& operator>>(std::istream& is, model& x);
 
 #define VARIABLE(name)                                            \
   [[nodiscard]] Numeric name(const AtmPoint& atm) const noexcept; \
@@ -236,5 +238,9 @@ std::ostream& operator<<(
     std::ostream& os,
     const std::vector<std::pair<variable, temperature::data>>& x);
 
+std::istream& operator>>(
+    std::istream& is, std::vector<std::pair<variable, temperature::data>>& x);
+
 std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
+std::istream& operator>>(std::istream& is, std::vector<species_model>& x);
 }  // namespace lbl::line_shape

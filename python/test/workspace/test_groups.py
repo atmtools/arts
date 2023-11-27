@@ -1055,4 +1055,4 @@ class TestGroups:
 
 if __name__ == "__main__":
     x = TestGroups()
-    x.testAtmPoint()
+    x.test_xml()

@@ -117,9 +117,6 @@ void py_lbl(py::module_& m) try {
       .def_readwrite("lines", &lbl::band_data::lines, "The lines in the band")
       .def_readwrite(
           "lineshape", &lbl::band_data::lineshape, "The lineshape type")
-      .def_readwrite("linestrength",
-                     &lbl::band_data::linestrength,
-                     "The linestrength type")
       .def_readwrite("cutoff", &lbl::band_data::cutoff, "The cutoff type")
       .def_readwrite("cutoff_value",
                      &lbl::band_data::cutoff_value,
@@ -129,15 +126,26 @@ void py_lbl(py::module_& m) try {
   artsclass<AbsorptionBand>(m, "AbsorptionBand")
       .def(py::init([]() { return std::make_shared<AbsorptionBand>(); }),
            "Default target")
+      .PythonInterfaceCopyValue(AbsorptionBand)
+      .PythonInterfaceWorkspaceVariableConversion(AbsorptionBand)
+      .PythonInterfaceBasicRepresentation(AbsorptionBand)
+      .PythonInterfaceFileIO(AbsorptionBand)
       .def_readwrite("data",
                      &AbsorptionBand::data,
                      ":class:`~pyarts.arts.AbsorptionBandData`")
       .def_readwrite("key",
                      &AbsorptionBand::data,
                      ":class:`~pyarts.arts.QuantumIdentifier`")
-      .PythonInterfaceBasicRepresentation(AbsorptionBand);
+      .PythonInterfaceWorkspaceDocumentation(AbsorptionBand);
 
-  artsarray<AbsorptionBands>(m, "AbsorptionBands");
+  artsarray<AbsorptionBands>(m, "AbsorptionBands")
+      .def(py::init([]() { return std::make_shared<AbsorptionBands>(); }),
+           "Default target")
+      .PythonInterfaceCopyValue(AbsorptionBands)
+      .PythonInterfaceWorkspaceVariableConversion(AbsorptionBands)
+      .PythonInterfaceBasicRepresentation(AbsorptionBands)
+      .PythonInterfaceFileIO(AbsorptionBands)
+      .PythonInterfaceWorkspaceDocumentation(AbsorptionBands);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));

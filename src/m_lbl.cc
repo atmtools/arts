@@ -7,6 +7,7 @@
 
 #include "arts_omp.h"
 #include "debug.h"
+#include "lbl_data.h"
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
 
@@ -28,10 +29,26 @@ void absorption_bandsFromAbsorbtionLines(
       auto& [new_key, new_band] = absorption_bands.emplace_back();
       new_key = old_band.quantumidentity;
 
-      new_band.lineshape =
-          lbl::toLineshapeOrThrow(toString(old_band.lineshapetype));
-      new_band.linestrength =
-          lbl::toLinestrengthOrThrow(toString(old_band.population));
+      switch (old_band.lineshapetype) {
+        case LineShape::Type::VP:
+          switch (old_band.population) {
+            case Absorption::PopulationType::LTE:
+              new_band.lineshape = lbl::Lineshape::VPLTE;
+              break;
+            default:
+              ARTS_USER_ERROR("New code does not support combination of ",
+                              old_band.lineshapetype,
+                              " and ",
+                              old_band.population)
+          }
+          break;
+        default:
+          ARTS_USER_ERROR("New code does not support combination of ",
+                          old_band.lineshapetype,
+                          " and ",
+                          old_band.population)
+      }
+
       new_band.cutoff = lbl::toCutoffTypeOrThrow(toString(old_band.cutoff));
       new_band.cutoff_value = old_band.cutofffreq;
       new_band.lines.reserve(old_band.lines.size());

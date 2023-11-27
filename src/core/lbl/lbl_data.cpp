@@ -7,6 +7,7 @@
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
+#include "double_imanip.h"
 #include "quantum_numbers.h"
 
 //! In CPP file
@@ -63,6 +64,11 @@ std::ostream& operator<<(std::ostream& os, const line& x) {
             << ' ' << x.z << ' ' << x.ls << ' ' << x.qn.val;
 }
 
+std::istream& operator>>(std::istream& is, line& x) {
+  is >> double_imanip() >> x.f0 >> x.a >> x.e0 >> x.gu >> x.gl;
+  return is >> x.z >> x.ls >> x.qn.val;
+}
+
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x) {
   constexpr std::string_view endl = "\n";
   std::string_view sep = "";
@@ -74,8 +80,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<line>& x) {
 }
 
 std::ostream& operator<<(std::ostream& os, const band_data& x) {
-  return os << x.lineshape << ' ' << x.linestrength << ' ' << x.cutoff << ' '
-            << x.cutoff_value << '\n'
+  return os << x.lineshape << ' ' << x.cutoff << ' ' << x.cutoff_value << '\n'
             << x.lines;
 }
 

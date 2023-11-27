@@ -8,4 +8,4 @@ void calculate(PropmatVectorView pm,
                const std::span<const lbl::band>& bnds,
                const AtmPoint& atm,
                const Vector2 los = {});
-}
+}  // namespace lbl

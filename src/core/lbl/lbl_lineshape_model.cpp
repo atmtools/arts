@@ -1,5 +1,8 @@
 #include "lbl_lineshape_model.h"
 
+#include "debug.h"
+#include "double_imanip.h"
+#include "enums.h"
 #include "species.h"
 
 namespace lbl::line_shape {
@@ -275,6 +278,16 @@ std::ostream& operator<<(std::ostream& os,
   return os << x.first << ' ' << x.second;
 }
 
+std::istream& operator>>(std::istream& is,
+                         std::pair<variable, temperature::data>& x) {
+  String name;
+  is >> name >> x.second;
+
+  x.first = tovariableOrThrow(name);
+
+  return is;
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const std::vector<std::pair<variable, temperature::data>>& x) {
@@ -283,8 +296,25 @@ std::ostream& operator<<(
   return os;
 }
 
+std::istream& operator>>(
+    std::istream& is, std::vector<std::pair<variable, temperature::data>>& x) {
+  Size n;
+  is >> n;
+  x.resize(n);
+  for (auto& y : x) is >> y;
+  return is;
+}
+
 std::ostream& operator<<(std::ostream& os, const species_model& x) {
   return os << toShortName(x.species) << ' ' << x.data;
+}
+
+std::istream& operator>>(std::istream& is, species_model& x) {
+  String name;
+  is >> name >> x.data;
+  x.species = Species::fromShortName(name);
+  ARTS_USER_ERROR_IF(not good_enum(x.species), "Unknown species: ", name);
+  return is;
 }
 
 std::ostream& operator<<(std::ostream& os,
@@ -294,7 +324,23 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
+std::istream& operator>>(std::istream& is, std::vector<species_model>& x) {
+  Size n;
+  is >> n;
+  x.resize(n);
+  for (auto& y : x) is >> y;
+  return is;
+}
+
 std::ostream& operator<<(std::ostream& os, const model& x) {
   return os << x.T0 << ' ' << x.one_by_one << ' ' << x.single_models;
+}
+
+std::istream& operator>>(std::istream& is, model& x) {
+  Index i;
+  is >> double_imanip() >> x.T0;
+  is >> i;
+  x.one_by_one = static_cast<bool>(i);
+  return is >> x.single_models;
 }
 }  // namespace lbl::line_shape

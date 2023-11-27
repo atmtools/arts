@@ -113,9 +113,12 @@ available Arts isotopologues
 )";
 
   artsclass<SpeciesTag>(m, "SpeciesTag")
-      .def(py::init([]() { return std::make_shared<SpeciesTag>(); }), "Empty tag")
+      .def(py::init([]() { return std::make_shared<SpeciesTag>("Ar"); }), "Empty tag; Defaults to Argon as a neutral species")
       .def(py::init([](const std::string& s) { return std::make_shared<SpeciesTag>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(SpeciesTag)
+      .PythonInterfaceWorkspaceVariableConversion(SpeciesTag)
+      .PythonInterfaceBasicRepresentation(SpeciesTag)
+      .PythonInterfaceFileIO(SpeciesTag)
       .def_readwrite("spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_readwrite("lower_freq", &SpeciesTag::lower_freq, ":class:`float` Lower cutoff frequency")
       .def_readwrite("upper_freq", &SpeciesTag::upper_freq, ":class:`float` Upper cutoff frequency")

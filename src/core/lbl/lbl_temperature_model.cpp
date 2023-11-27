@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "debug.h"
+#include "double_imanip.h"
 
 namespace lbl::temperature {
 namespace model {
@@ -235,7 +236,31 @@ DERIVATIVES(T)
 #undef SWITCHCASE
 
 std::ostream& operator<<(std::ostream& os, const temperature::data& x) {
-  return os << x.t << ' ' << x.x;
+  os << x.t;
+
+  if (model_size[static_cast<Size>(x.t)] == std::numeric_limits<Size>::max()) {
+    os << ' ' << x.x.size();
+  }
+
+  return os << ' ' << x.x;
+}
+
+std::istream& operator>>(std::istream& is, temperature::data& x) {
+  String name;
+  is >> name;
+  x.t = tomodel_typeOrThrow(name);
+
+  if (auto n = model_size[static_cast<Size>(x.t)];
+      n == std::numeric_limits<Size>::max()) {
+    Size m;
+    is >> m;
+    x.x.resize(n);
+  } else {
+    x.x.resize(n);
+  }
+
+  for (auto& v : x.x) is >> double_imanip() >> v;
+  return is;
 }
 
 model_type data::Type() const { return t; }
