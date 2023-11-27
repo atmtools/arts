@@ -77,7 +77,6 @@ settings = [
 ]
 
 ws = pyarts.Workspace()
-pyarts.arts.globals.omp_set_num_threads(1)
 
 ws.abs_speciesSet(species=["O2-66"])
 
