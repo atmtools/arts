@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <ostream>
 #include <type_traits>
 #include <vector>
 
@@ -36,17 +37,18 @@ struct single_shape {
 
   constexpr single_shape() = default;
 
-  single_shape(const SpeciesIsotopeRecord& spec, const line&, const AtmPoint&);
-
-  single_shape(const SpeciesIsotopeRecord& spec,
+  single_shape(const SpeciesIsotopeRecord&,
                const line&,
                const AtmPoint&,
-               const Size);
+               const zeeman::pol,
+               const Index);
 
-  void as_zeeman(const line& line,
-                 const Numeric H,
-                 const zeeman::pol type,
-                 const Index iz);
+  single_shape(const SpeciesIsotopeRecord&,
+               const line&,
+               const AtmPoint&,
+               const zeeman::pol,
+               const Index,
+               const Size);
 
   [[nodiscard]] constexpr Complex z(Numeric f) const noexcept {
     return Complex{inv_gd * (f - f0), z_imag};
@@ -506,6 +508,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
+                    const zeeman::pol pol,
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
@@ -514,6 +517,7 @@ struct ComputeData {
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
                     const AtmPoint& atm,
+                    const zeeman::pol pol,
                     const line_key& key);
 
   //! Sets dshape and dz and dcut and dshape
@@ -522,6 +526,9 @@ struct ComputeData {
                      const ExhaustiveConstVectorView& f_grid,
                      const AtmPoint& atm,
                      const line_key& key);
+
+  //! Pure debug print, will never be the same
+  friend std::ostream& operator<<(std::ostream& os, const ComputeData& cd);
 };
 
 void calculate(PropmatVectorView pm,

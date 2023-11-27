@@ -103,8 +103,9 @@ std::span<const line> band_data::active_lines(Numeric f0, Numeric f1) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const line_key& x) {
-  return os << "line_key:\n  band: " << x.band << "\n  line: " << x.line << "\n  spec: " << x.spec
-            << "\n  var: " << x.var << "\n  ls_var: " << x.ls_var
-            << "\n  ls_coeff: " << x.ls_coeff << '\n';
+  return os << "line_key:\n  band: " << x.band << "\n  line: " << x.line
+            << "\n  spec: " << x.spec << "\n  var: " << x.var
+            << "\n  ls_var: " << x.ls_var << "\n  ls_coeff: " << x.ls_coeff
+            << '\n';
 }
 }  // namespace lbl

@@ -285,7 +285,7 @@ Numeric model::Strength(Rational Ju,
   auto mu = Mu(Ju, Jl, type, n);
   auto dm = Rational(dM(type));
   return type == pol::no
-             ? 0.0
+             ? 1.0
              : polarization_factor(type) *
                    pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
 }
@@ -311,20 +311,26 @@ Numeric model::Splitting(const QuantumNumberValueList& qn,
 }
 
 Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
-  if (type == pol::no) return 1;
+  if (mon) {
+    if (type == pol::no) return 0;
 
-  const auto& J = qn[QuantumNumberType::J];
+    const auto& J = qn[QuantumNumberType::J];
 
-  return zeeman::size(J.upp(), J.low(), type);
+    return zeeman::size(J.upp(), J.low(), type);
+  }
+
+  return static_cast<Size>(type == pol::no);
 }
 
 std::ostream& operator<<(std::ostream& os, const model& m) {
-  os << m.mdata.gu << ' ' << m.mdata.gl;
+  os << std::noboolalpha << m.mon << ' ' << m.mdata.gu << ' ' << m.mdata.gl;
   return os;
 }
 
 std::istream& operator>>(std::istream& is, model& m) {
-  is >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
+  Index i;
+  is >> i >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
+  m.mon = static_cast<bool>(i);
   return is;
 }
 
@@ -357,41 +363,45 @@ struct magnetic_angles {
         uct(ca * sz * v + cz * w + sa * sz * u),
         duct(u * sa * cz + v * ca * cz - w * sz) {}
 
-  Numeric theta() const { return H == 0 ? 0 : std::acos(uct / H); }
+  [[nodiscard]] Numeric theta() const {
+    return H == 0 ? 0 : std::acos(uct / H);
+  }
 
-  Numeric dtheta_du() const {
+  [[nodiscard]] Numeric dtheta_du() const {
     return H == 0 ? 0
                   : (-H * sa * sz + u * uct) /
                         (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
-  Numeric dtheta_dv() const {
+  [[nodiscard]] Numeric dtheta_dv() const {
     return H == 0 ? 0
                   : (-H * ca * sz + v * uct) /
                         (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
-  Numeric dtheta_dw() const {
+  [[nodiscard]] Numeric dtheta_dw() const {
     return H == 0 ? 0
                   : (-H * cz + w * uct) /
                         (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
   }
 
-  Numeric eta() const { return std::atan2(u * ca - v * sa, duct); }
+  [[nodiscard]] Numeric eta() const {
+    return std::atan2(u * ca - v * sa, duct);
+  }
 
-  Numeric deta_du() const {
+  [[nodiscard]] Numeric deta_du() const {
     return H == 0 ? 0
                   : (-ca * sz * w + cz * v) /
                         (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
   }
 
-  Numeric deta_dv() const {
+  [[nodiscard]] Numeric deta_dv() const {
     return H == 0 ? 0
                   : (-cz * u + sa * sz * w) /
                         (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
   }
 
-  Numeric deta_dw() const {
+  [[nodiscard]] Numeric deta_dw() const {
     return H == 0 ? 0
                   : sz * (ca * u - sa * v) /
                         (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
