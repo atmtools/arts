@@ -8,6 +8,7 @@
 #include "atm.h"
 #include "gui_plot.h"
 #include "isotopologues.h"
+#include "lbl_data.h"
 #include "lbl_zeeman.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
@@ -18,7 +19,7 @@
 #include "species.h"
 #include "wigner_functions.h"
 
-lbl::bands bands(
+AbsorptionBands bands(
     const bool one_by_one = false,
     const lbl::CutoffType cutoff_type = lbl::CutoffType::None,
     const Numeric cutoff = std::numeric_limits<Numeric>::infinity()) {
@@ -59,14 +60,13 @@ lbl::bands bands(
                                     QuantumNumberValue{"N  9 9"}};
 
   lbl::band band;
-  band.push_back(std::move(line));
-  band.lineshape = lbl::Lineshape::VP;
-  band.linestrength = lbl::Linestrength::LTE;
-  band.cutoff = cutoff_type;
-  band.cutoff_value = cutoff;
+  band.key = QuantumIdentifier{"O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"};
+  band.data.emplace_back(std::move(line));
+  band.data.lineshape = lbl::Lineshape::VPLTE;
+  band.data.cutoff = cutoff_type;
+  band.data.cutoff_value = cutoff;
 
-  return lbl::bands{
-      {lbl::band_key{"O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"}, band}};
+  return {band};
 }
 
 AtmPoint atm() {

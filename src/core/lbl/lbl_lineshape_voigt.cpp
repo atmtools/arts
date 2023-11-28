@@ -1165,8 +1165,10 @@ ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
                  scl.begin(),
                  [N = number_density(atm.pressure, atm.temperature),
                   T = atm.temperature](auto f) {
+                   constexpr Numeric c =
+                       Constant::c * Constant::c / (8 * Constant::pi);
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
-                   return -N * f * std::expm1(-r);
+                   return -N * f * std::expm1(-r) * c;
                  });
 
   update_zeeman(los, atm.mag, pol);
@@ -1210,8 +1212,10 @@ void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
                  [N = number_density(atm.pressure, atm.temperature),
                   dN = dnumber_density_dt(atm.pressure, atm.temperature),
                   T = atm.temperature](auto f) {
+                   constexpr Numeric c =
+                       Constant::c * Constant::c / (8 * Constant::pi);
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
-                   return -f * (N * r * exp(-r) / T + dN * std::expm1(-r));
+                   return -f * (N * r * exp(-r) / T + dN * std::expm1(-r)) * c;
                  });
 
   const Numeric T = atm.temperature;
@@ -1272,8 +1276,10 @@ void ComputeData::df_core_calc(const band_shape& shp,
                  dscl.begin(),
                  [N = number_density(atm.pressure, atm.temperature),
                   T = atm.temperature](auto f) {
+                   constexpr Numeric c =
+                       Constant::c * Constant::c / (8 * Constant::pi);
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
-                   return N * (r * std::exp(-r) - std::expm1(-r));
+                   return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
   if (bnd.cutoff != CutoffType::None) {

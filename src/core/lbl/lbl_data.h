@@ -43,7 +43,21 @@ struct line {
 
   WARNING: 
   To agree with databases line strength, you must scale
-  the output of this by f * (1 - exp(-hf/kT))
+  the output of this by f * (1 - exp(-hf/kT)) (c^2 / 8pi)
+
+  This is done for two reasons:
+  1) The factor is the same for all lines, so it can be
+     applied once to the entire spectrum.  If we ever change
+     ARTS to output absorption coefficients in a better format,
+     i.e., without this factor, we can then apply it once in
+     total, saving some computation withouth adding complication
+  2) NLTE effects in ARTS requires that only the difference between
+     the LTE and NLTE source terms are ouptut.  Since the LTE source
+     term is the Planck function, the LTE source term is this
+     s(...) * B(f, T) * the-factor-above.  The last two terms can
+     easily be simplified to just read hf * f^3 * exp(-hf/kT) / 4pi,
+     meaning that we can simplify the NLTE source term more than
+     we would otherwise be able to if we keep things in this form.
 
   @param[in] T Temperature [K]
   @param[in] Q Partition function at temperature [-]
