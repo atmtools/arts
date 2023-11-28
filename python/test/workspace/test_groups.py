@@ -1056,3 +1056,4 @@ class TestGroups:
 if __name__ == "__main__":
     x = TestGroups()
     x.test_xml()
+    x.testAtmPoint()
