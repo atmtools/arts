@@ -23,7 +23,7 @@ struct Targets;
 
 namespace lbl::voigt::lte {
 struct single_shape {
-  //! Line center after all adjustments, must be as_zeeman if zeeman effect is intended
+  //! Line center after all adjustments
   Numeric f0{};
 
   //! Inverse of the Doppler broadening factor (missing an ln2)
@@ -32,7 +32,7 @@ struct single_shape {
   //! The imaginary part of the complex argument that goes into the Faddeeva function
   Numeric z_imag{};
 
-  //! Linestrength but lacks N * f * (1 - exp(-hf/kt)) factor, must be as_zeeman if zeeman effect is intended, also has Constant::inv_sqrt_pi * inv_gd factor
+  //! Linestrength but lacks N * f * (1 - exp(-hf/kt)) * (c^2 / 8pi) factor; also has Constant::inv_sqrt_pi * inv_gd factor
   Complex s{};
 
   constexpr single_shape() = default;

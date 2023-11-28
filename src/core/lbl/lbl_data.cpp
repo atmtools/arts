@@ -23,13 +23,12 @@ Numeric line::s(Numeric T, Numeric Q) const noexcept {
 }
 
 Numeric line::ds_dT(Numeric T, Numeric Q, Numeric dQ_dT) const noexcept {
-  return a * gu * (e0 * Q - k * pow2(T) * dQ_dT) *
-         exp(-e0 / (k * T)) / (pow3(f0) * k * pow2(T) * pow2(Q));
+  return a * gu * (e0 * Q - k * pow2(T) * dQ_dT) * exp(-e0 / (k * T)) /
+         (pow3(f0) * k * pow2(T) * pow2(Q));
 }
 
 Numeric line::ds_de0(Numeric T, Numeric Q) const noexcept {
-  return -a * gu * exp(-e0 / (k * T)) /
-         (pow3(f0) * k * T * Q);
+  return -a * gu * exp(-e0 / (k * T)) / (pow3(f0) * k * T * Q);
 }
 
 Numeric line::ds_df0(Numeric T, Numeric Q) const noexcept {
@@ -103,7 +102,7 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
   auto low = std::ranges::lower_bound(*this, f0 - c, {}, &line::f0);
   auto upp = std::ranges::upper_bound(low, end(), f1 + c, {}, &line::f0);
 
-  return {std::distance(begin(), low), {low, upp}};
+  return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
 }
 
 std::ostream& operator<<(std::ostream& os, const line_key& x) {

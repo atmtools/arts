@@ -1,4 +1,4 @@
-#include "lbl_lineshape_voigt.h"
+#include "lbl_lineshape_voigt_lte.h"
 
 #include <new_jacobian.h>
 #include <partfun.h>
@@ -551,7 +551,7 @@ Size count_lines(const band_data& bnd, const zeeman::pol type) {
 
 void zeeman_push_back(std::vector<single_shape>& lines,
                       std::vector<line_pos>& pos,
-                      single_shape_builder&& s,
+                      const single_shape_builder& s,
                       const line& line,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
@@ -901,7 +901,7 @@ void band_shape::dT(ExhaustiveComplexVectorView cut,
   ARTS_ASSERT(static_cast<Size>(ds_dT.size()) == lines.size())
 
   for (Size i = 0; i < lines.size(); ++i) {
-    cut[i] +=
+    cut[i] =
         lines[i].dT(ds_dT[i], dz_dT[i], dz_dT_fac[i], lines[i].f0 + cutoff);
   }
 }
@@ -934,7 +934,7 @@ void band_shape::dVMR(ExhaustiveComplexVectorView cut,
   ARTS_ASSERT(static_cast<Size>(ds_dVMR.size()) == lines.size())
 
   for (Size i = 0; i < lines.size(); ++i) {
-    cut[i] += lines[i].dVMR(
+    cut[i] = lines[i].dVMR(
         ds_dVMR[i], dz_dVMR[i], dz_dVMR_fac[i], lines[i].f0 + cutoff);
   }
 }

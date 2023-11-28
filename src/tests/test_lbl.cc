@@ -62,7 +62,7 @@ AbsorptionBands bands(
   lbl::band band;
   band.key = QuantumIdentifier{"O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"};
   band.data.emplace_back(std::move(line));
-  band.data.lineshape = lbl::Lineshape::VPLTE;
+  band.data.lineshape = lbl::Lineshape::VP_LTE;
   band.data.cutoff = cutoff_type;
   band.data.cutoff_value = cutoff;
 

@@ -1,4 +1,9 @@
-#include "lbl_lineshape_voigt.h"
+#include <lbl_data.h>
+
+//! FIXME: These functions should be elsewhere?
+namespace Jacobian {
+struct Targets;
+}  // namespace Jacobian
 
 namespace lbl {
 void calculate(PropmatVectorView pm,

@@ -45,25 +45,35 @@ struct line {
   To agree with databases line strength, you must scale
   the output of this by f * (1 - exp(-hf/kT)) (c^2 / 8pi)
 
-  This is done for two reasons:
-  1) The factor is the same for all lines, so it can be
-     applied once to the entire spectrum.  If we ever change
-     ARTS to output absorption coefficients in a better format,
-     i.e., without this factor, we can then apply it once in
-     total, saving some computation withouth adding complication
-  2) NLTE effects in ARTS requires that only the difference between
-     the LTE and NLTE source terms are ouptut.  Since the LTE source
-     term is the Planck function, the LTE source term is this
-     s(...) * B(f, T) * the-factor-above.  The last two terms can
-     easily be simplified to just read hf * f^3 * exp(-hf/kT) / 4pi,
-     meaning that we can simplify the NLTE source term more than
-     we would otherwise be able to if we keep things in this form.
-
   @param[in] T Temperature [K]
   @param[in] Q Partition function at temperature [-]
   @return Line strength in LTE divided by frequency [per m^2]
   */
   [[nodiscard]] Numeric s(Numeric T, Numeric Q) const noexcept;
+
+  [[nodiscard]] constexpr Numeric nlte_k(Numeric ru, Numeric rl) const noexcept {
+    return (rl * gu / gl - ru) * a / Math::pow3(f0);
+  }
+
+  [[nodiscard]] constexpr Numeric dnlte_k_drl() const noexcept {
+    return gu / gl * a / Math::pow3(f0);
+  }
+
+  [[nodiscard]] constexpr Numeric dnlte_k_dru() const noexcept {
+    return - a / Math::pow3(f0);
+  }
+
+  [[nodiscard]] constexpr Numeric nlte_e(Numeric ru) const noexcept {
+    return ru * a;
+  }
+
+  [[nodiscard]] constexpr Numeric dnlte_e_dru() const noexcept {
+    return a;
+  }
+
+  [[nodiscard]] static constexpr Numeric dnlte_e_drl() noexcept {
+    return 0;
+  }
 
   /*! Derivative of s(T, Q) wrt to this->e0
 
@@ -117,12 +127,12 @@ struct line {
 
 ENUMCLASS(CutoffType, char, None, ByLine)
 
-ENUMCLASS(Lineshape, char, VPLTE)
+ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE)
 
 struct band_data {
   std::vector<line> lines{};
 
-  Lineshape lineshape{Lineshape::VPLTE};
+  Lineshape lineshape{Lineshape::VP_LTE};
 
   CutoffType cutoff{CutoffType::None};
 

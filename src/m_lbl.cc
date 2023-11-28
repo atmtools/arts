@@ -11,6 +11,17 @@
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
 
+lbl::Lineshape toLineshape(const LineShape::Type old_ls,
+                           const Absorption::PopulationType old_pop) {
+  if (old_ls == LineShape::Type::VP and
+      old_pop == Absorption::PopulationType::LTE) {
+    return lbl::Lineshape::VP_LTE;
+  }
+
+  ARTS_USER_ERROR(
+      "New code does not support combination of ", old_ls, " and ", old_pop)
+}
+
 void absorption_bandsFromAbsorbtionLines(
     AbsorptionBands& absorption_bands,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -28,27 +39,8 @@ void absorption_bandsFromAbsorbtionLines(
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
       new_key = old_band.quantumidentity;
-
-      switch (old_band.lineshapetype) {
-        case LineShape::Type::VP:
-          switch (old_band.population) {
-            case Absorption::PopulationType::LTE:
-              new_band.lineshape = lbl::Lineshape::VPLTE;
-              break;
-            default:
-              ARTS_USER_ERROR("New code does not support combination of ",
-                              old_band.lineshapetype,
-                              " and ",
-                              old_band.population)
-          }
-          break;
-        default:
-          ARTS_USER_ERROR("New code does not support combination of ",
-                          old_band.lineshapetype,
-                          " and ",
-                          old_band.population)
-      }
-
+      new_band.lineshape =
+          toLineshape(old_band.lineshapetype, old_band.population);
       new_band.cutoff = lbl::toCutoffTypeOrThrow(toString(old_band.cutoff));
       new_band.cutoff_value = old_band.cutofffreq;
       new_band.lines.reserve(old_band.lines.size());
