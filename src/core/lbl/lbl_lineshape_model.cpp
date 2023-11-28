@@ -175,36 +175,36 @@ VARIABLE(T0);
 
 #undef DERIVATIVE
 
-#define DERIVATIVE(mod, deriv)                                                \
-  Numeric model::d##mod##_d##deriv(const AtmPoint& atm, const Size spec)      \
-      const noexcept {                                                        \
-    if (spec >= single_models.size()) return 0.0;                             \
-    const auto& m = single_models[spec];                                      \
-                                                                              \
-    const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure); \
-                                                                              \
-    if (spec == single_models.size() - 1 and                                  \
-        single_models.back().species == Species::Species::Bath) {             \
-      const Numeric vmr =                                                     \
-          std::transform_reduce(single_models.begin(),                        \
-                                single_models.end() - 1,                      \
-                                0.0,                                          \
-                                std::plus<>{},                                \
-                                [&atm](auto& m) { return atm[m.species]; });  \
-      return (1 - vmr) * x;                                                   \
-    }                                                                         \
-                                                                              \
-    if (single_models.back().species == Species::Species::Bath) {             \
-      return atm[m.species] * x;                                              \
-    }                                                                         \
-                                                                              \
-    const Numeric vmr =                                                       \
-        std::transform_reduce(single_models.begin(),                          \
-                              single_models.end(),                            \
-                              0.0,                                            \
-                              std::plus<>{},                                  \
-                              [&atm](auto& m) { return atm[m.species]; });    \
-    return x * atm[m.species] / vmr;                                          \
+#define DERIVATIVE(mod, deriv)                                                 \
+  Numeric model::d##mod##_d##deriv(const AtmPoint& atm, const Size spec)       \
+      const noexcept {                                                         \
+    if (spec >= single_models.size()) return 0.0;                              \
+    const auto& m = single_models[spec];                                       \
+                                                                               \
+    const Numeric x = m.d##mod##_d##deriv(T0, atm.temperature, atm.pressure);  \
+                                                                               \
+    if (spec == single_models.size() - 1 and                                   \
+        single_models.back().species == Species::Species::Bath) {              \
+      const Numeric vmr =                                                      \
+          std::transform_reduce(single_models.begin(),                         \
+                                single_models.end() - 1,                       \
+                                0.0,                                           \
+                                std::plus<>{},                                 \
+                                [&atm](auto& ml) { return atm[ml.species]; }); \
+      return (1 - vmr) * x;                                                    \
+    }                                                                          \
+                                                                               \
+    if (single_models.back().species == Species::Species::Bath) {              \
+      return atm[m.species] * x;                                               \
+    }                                                                          \
+                                                                               \
+    const Numeric vmr =                                                        \
+        std::transform_reduce(single_models.begin(),                           \
+                              single_models.end(),                             \
+                              0.0,                                             \
+                              std::plus<>{},                                   \
+                              [&atm](auto& ml) { return atm[ml.species]; });   \
+    return x * atm[m.species] / vmr;                                           \
   }
 
 #define VARIABLE(deriv)   \

@@ -297,8 +297,8 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   void finalize(const AtmField& atm_field) {
     zero_out_x();
 
-    const Size N = target_count();
-    for (Size i = 0; i < N; i++) {
+    const Size Nt = target_count();
+    for (Size i = 0; i < Nt; i++) {
       if ([&atm_field, this, pos = i]() -> bool {
             for (auto& t : target<AtmTarget>()) {
               if (t.target_pos == pos) {

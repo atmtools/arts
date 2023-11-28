@@ -628,8 +628,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
       }
       break;
     case ByLine: {
-      const auto active_lines = bnd.active_lines(fmin, fmax);
-      Size iline = std::distance(bnd.begin(), active_lines.begin());
+      auto [iline, active_lines] = bnd.active_lines(fmin, fmax);
       for (auto& line : active_lines) {
         lines_push_back(lines, pos, spec, line, atm, pol, iline++);
       }

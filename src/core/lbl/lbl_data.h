@@ -149,8 +149,8 @@ struct band_data {
   void sort(variable v = variable::f0);
 
   //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
-  [[nodiscard]] std::span<const line> active_lines(Numeric f0,
-                                                   Numeric f1) const;
+  [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(
+      Numeric f0, Numeric f1) const;
 
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };
