@@ -7,7 +7,9 @@ struct Targets;
 
 namespace lbl {
 void calculate(PropmatVectorView pm,
+               StokvecVectorView sv,
                matpack::matpack_view<Propmat, 2, false, true> dpm,
+               matpack::matpack_view<Stokvec, 2, false, true> dsv,
                const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
                const std::span<const lbl::band>& bnds,

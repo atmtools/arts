@@ -8,8 +8,10 @@
 #include "arts_omp.h"
 #include "debug.h"
 #include "lbl_data.h"
+#include "matpack_view.h"
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
+#include "rtepack.h"
 
 lbl::Lineshape toLineshape(const LineShape::Type old_ls,
                            const Absorption::PopulationType old_pop) {
@@ -245,29 +247,37 @@ void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
 }
 
 void propmat_clearskyAddLines2(PropmatVector& pm,
+                               StokvecVector& sv,
                                PropmatMatrix& dpm,
+                               StokvecMatrix& dsv,
                                const Vector& f_grid,
                                const JacobianTargets& jacobian_targets,
                                const AbsorptionBands& absorption_bands,
                                const AtmPoint& atm_point) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
-    lbl::calculate(
-        pm, dpm, f_grid, jacobian_targets, absorption_bands, atm_point);
+    lbl::calculate(pm,
+                   sv,
+                   dpm,
+                   dsv,
+                   f_grid,
+                   jacobian_targets,
+                   absorption_bands,
+                   atm_point);
   } else {
     const auto ompv = omp_offset_count(f_grid.size(), n);
     std::string error;
 #pragma omp parallel for
     for (Index i = 0; i < n; i++) {
       try {
-        lbl::calculate(
-            pm.slice(ompv[i].first, ompv[i].second),
-            dpm(joker,
-                Range(ompv[i].first, ompv[i].second)),  // FIXME: IF DERIVS
-            f_grid.slice(ompv[i].first, ompv[i].second),
-            jacobian_targets,
-            absorption_bands,
-            atm_point);
+        lbl::calculate(pm.slice(ompv[i].first, ompv[i].second),
+                       sv.slice(ompv[i].first, ompv[i].second),
+                       dpm(joker, Range(ompv[i].first, ompv[i].second)),
+                       dsv(joker, Range(ompv[i].first, ompv[i].second)),
+                       f_grid.slice(ompv[i].first, ompv[i].second),
+                       jacobian_targets,
+                       absorption_bands,
+                       atm_point);
       } catch (std::exception& e) {
 #pragma omp critical
         if (error.empty()) error = var_string(e.what(), '\n');

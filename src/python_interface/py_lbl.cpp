@@ -1,9 +1,6 @@
 #include <lbl.h>
 #include <python_interface.h>
 
-#include "lbl_data.h"
-#include "lbl_lineshape_model.h"
-#include "lbl_temperature_model.h"
 #include "py_macros.h"
 
 namespace Python {

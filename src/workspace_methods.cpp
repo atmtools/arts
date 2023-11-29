@@ -15449,12 +15449,17 @@ Size : (*jacobian_targets*, *f_grid*)
       .gin_desc = {"Compare values in percentage"}};
 
   wsm_data["propmat_clearskyAddLines2"] = {
-      .desc = R"--(Gets modern line catalog from old style
+      .desc = R"--(Modern line-by-line calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propmat_clearsky",
+              "nlte_source",
+              "dpropmat_clearsky_dx",
+              "dnlte_source_dx"},
       .in = {"propmat_clearsky",
+             "nlte_source",
              "dpropmat_clearsky_dx",
+             "dnlte_source_dx",
              "f_grid",
              "jacobian_targets",
              "absorption_bands",
