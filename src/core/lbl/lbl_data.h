@@ -9,7 +9,6 @@
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 #include "quantum_numbers.h"
-#include "species.h"
 
 namespace lbl {
 ENUMCLASS(variable, char, f0, e0, a)
@@ -127,7 +126,7 @@ struct line {
 
 ENUMCLASS(CutoffType, char, None, ByLine)
 
-ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE)
+ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE, VP_ECS)
 
 struct band_data {
   std::vector<line> lines{};
@@ -175,6 +174,8 @@ struct band_data {
   //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
   [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(
       Numeric f0, Numeric f1) const;
+
+[[nodiscard]] Rational max(QuantumNumberType) const;
 
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };

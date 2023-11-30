@@ -1,12 +1,14 @@
 #include "lbl_data.h"
 
+#include <algorithm>
 #include <cmath>
-#include <cstdio>
 #include <iomanip>
 #include <limits>
+#include <numeric>
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
+#include "debug.h"
 #include "double_imanip.h"
 #include "quantum_numbers.h"
 
@@ -103,6 +105,20 @@ std::pair<Size, std::span<const line>> band_data::active_lines(
   auto upp = std::ranges::upper_bound(low, end(), f1 + c, {}, &line::f0);
 
   return {static_cast<Size>(std::distance(begin(), low)), {low, upp}};
+}
+
+Rational band_data::max(QuantumNumberType x) const {
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          lines, [x](auto& qn) { return not qn.val.has(x); }, &line::qn),
+      "Quantum number not found in all lines of the band");
+
+  Rational out{std::numeric_limits<Index>::lowest()};
+  for (auto& line : *this) {
+    auto& qn = line.qn.val[x];
+    out = std::max(out, std::max(qn.upp(), qn.low()));
+  }
+  return out;
 }
 
 std::ostream& operator<<(std::ostream& os, const line_key& x) {

@@ -11,6 +11,7 @@
 
 #include <workspace.h>
 
+#include <concepts>
 #include <iomanip>
 #include <limits>
 #include <sstream>
@@ -24,8 +25,10 @@
 #include "cloudbox.h"
 #include "compare.h"
 #include "debug.h"
+#include "enums.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
+#include "lbl_lineshape_linemixing.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -3053,4 +3056,156 @@ void xml_write_to_stream(std::ostream& os_xml,
   close_tag.set_name("/ErrorCorrectedSuddenData");
   close_tag.write_to_stream(os_xml);
   os_xml << '\n';
+}
+
+//=== LinemixingEcsData =========================================
+
+struct meta_data {
+  String name;
+  String value{};
+
+  void add(ArtsXMLTag& tag, const meta_data& m) {
+    tag.add_attribute(m.name, m.value);
+  }
+
+  void get(ArtsXMLTag& tag, meta_data& m) {
+    tag.get_attribute_value(m.name, m.value);
+  }
+
+  meta_data(String n) : name(std::move(n)) {}
+  meta_data(String n, String v) : name(std::move(n)), value(std::move(v)) {}
+  meta_data(String n, auto v) : name(std::move(n)), value(var_string(v)) {}
+};
+
+struct Empty {};
+
+template <bool read>
+struct tag {
+  static constexpr bool write = not read;
+  using T = std::conditional_t<read, std::istream, std::ostream>;
+
+  T& stream;
+  String name;
+  std::conditional_t<read, std::unordered_map<String, String>, Empty> data{};
+
+  tag(T& s, String n) : stream(s), name(std::move(n)) {
+    if constexpr (write) {
+      ArtsXMLTag open_tag;
+      open_tag.set_name(name);
+      open_tag.write_to_stream(stream);
+      stream << '\n';
+    } else if (read) {
+      ArtsXMLTag open_tag;
+      open_tag.read_from_stream(stream);
+      open_tag.check_name(name);
+    }
+  }
+
+  template <typename... Ts>
+  tag(T& s, String n, Ts&&... args) : stream(s), name(std::move(n)) {
+    if constexpr (write) {
+      ArtsXMLTag open_tag;
+      open_tag.set_name(name);
+      (open_tag.add_attribute(args.name, args.value), ...);
+      open_tag.write_to_stream(stream);
+      stream << '\n';
+    } else if (read) {
+      ArtsXMLTag open_tag;
+      open_tag.read_from_stream(stream);
+      open_tag.check_name(name);
+      (open_tag.get_attribute_value(args, data[args]), ...);
+    }
+  }
+
+  ~tag() {
+    if constexpr (std::same_as<T, std::ostream>) {
+      ArtsXMLTag close_tag;
+      close_tag.set_name("/" + name);
+      close_tag.write_to_stream(stream);
+      stream << '\n';
+    } else if constexpr (std::same_as<T, std::istream>) {
+      ArtsXMLTag close_tag;
+      close_tag.read_from_stream(stream);
+      close_tag.check_name("/" + name);
+    }
+  }
+
+  template <typename T = String>
+  [[nodiscard]] T get(const String& key) const
+    requires(read)
+  {
+    auto& x = data.at(key);
+    if constexpr (std::same_as<T, Index>) {
+      return std::stoi(x);
+    } else if constexpr (std::same_as<T, Species::Species>) {
+      auto s = Species::fromShortName(x);
+      if (not good_enum(s)) s = Species::toSpecies(x);
+      return s;
+    } else {
+      return T{x};
+    }
+  }
+};
+
+template <typename... Ts>
+tag(std::ostream& s, String n, Ts&&...) -> tag<false>;
+
+template <typename... Ts>
+tag(std::istream& s, String n, Ts&&...) -> tag<true>;
+
+void xml_read_from_stream(std::istream& is_xml,
+                          LinemixingEcsData& ecsd,
+                          bifstream* pbifs) {
+  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+
+  const tag rtag{is_xml, "LinemixingEcsData", "nelem"};
+  const auto nisot = rtag.get<Index>("nelem");
+
+  // Get values
+  ecsd.clear();
+  ecsd.reserve(nisot);
+  for (Index j = 0; j < nisot; j++) {
+    const tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
+    const auto nspec = isot_tag.get<Index>("nelem");
+    const auto isotkey = isot_tag.get<SpeciesIsotopeRecord>("isot");
+
+    auto& spec_data_map = ecsd[isotkey];
+    for (Index i = 0; i < nspec; i++) {
+      const tag spec_tag{is_xml, "specdata", "spec"};
+      const auto speckey = spec_tag.get<Species::Species>("spec");
+
+      auto& spec_data = spec_data_map[speckey];
+      is_xml >> spec_data.mass >> spec_data.beta >>
+          spec_data.collisional_distance >> spec_data.lambda >>
+          spec_data.scaling;
+    }
+  }
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const LinemixingEcsData& r,
+                         bofstream* pbofs,
+                         const String&) {
+  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+
+  const tag rtag{os_xml,
+                 "LinemixingEcsData",
+                 meta_data{"nelem", static_cast<Index>(r.size())}};
+
+  // Set values
+  for (auto& [key, value] : r) {
+    const tag isot_tag{os_xml,
+                       "isotdata",
+                       meta_data{"nelem", static_cast<Index>(value.size())},
+                       meta_data{"isot", key.FullName()}};
+
+    for (auto& [ikey, ivalue] : value) {
+      const tag spec_tag{
+          os_xml, "specdata", meta_data{"spec", Species::toShortName(ikey)}};
+
+      os_xml << ivalue.mass << ' ' << ivalue.beta << ' '
+             << ivalue.collisional_distance << ' ' << ivalue.lambda << ' '
+             << ivalue.scaling;
+    }
+  }
 }

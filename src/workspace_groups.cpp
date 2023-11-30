@@ -285,6 +285,12 @@ Both the data and the grid may be named
           R"--(Data required for error-corrected sudden line mixing
 )--"};
 
+  wsg_data["LinemixingEcsData"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map of line mixing data
+)--"};
+
   wsg_data["MapOfErrorCorrectedSuddenData"] = {
       .file = "linemixing.h",
       .desc =

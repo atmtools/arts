@@ -15463,6 +15463,7 @@ Size : (*jacobian_targets*, *f_grid*)
              "f_grid",
              "jacobian_targets",
              "absorption_bands",
+             "ecs_data2",
              "atm_point"}};
 
   wsm_data["jacobian_targetsInit"] = {

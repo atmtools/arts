@@ -1,6 +1,8 @@
 #include <lbl.h>
 #include <python_interface.h>
 
+#include <memory>
+
 #include "py_macros.h"
 
 namespace Python {
@@ -143,6 +145,15 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(AbsorptionBands)
       .PythonInterfaceFileIO(AbsorptionBands)
       .PythonInterfaceWorkspaceDocumentation(AbsorptionBands);
+
+  artsclass<LinemixingEcsData>(m, "LinemixingEcsData")
+      .def(py::init([]() { return std::make_shared<LinemixingEcsData>(); }),
+           "Default target")
+      .PythonInterfaceCopyValue(LinemixingEcsData)
+      .PythonInterfaceWorkspaceVariableConversion(LinemixingEcsData)
+      .PythonInterfaceBasicRepresentation(LinemixingEcsData)
+      .PythonInterfaceFileIO(LinemixingEcsData)
+      .PythonInterfaceWorkspaceDocumentation(LinemixingEcsData);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));

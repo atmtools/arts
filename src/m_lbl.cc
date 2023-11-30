@@ -8,6 +8,7 @@
 #include "arts_omp.h"
 #include "debug.h"
 #include "lbl_data.h"
+#include "lbl_lineshape_linemixing.h"
 #include "matpack_view.h"
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
@@ -253,6 +254,7 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                                const Vector& f_grid,
                                const JacobianTargets& jacobian_targets,
                                const AbsorptionBands& absorption_bands,
+                               const LinemixingEcsData& ecs_data,
                                const AtmPoint& atm_point) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
@@ -263,6 +265,7 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                    f_grid,
                    jacobian_targets,
                    absorption_bands,
+                   ecs_data,
                    atm_point);
   } else {
     const auto ompv = omp_offset_count(f_grid.size(), n);
@@ -277,6 +280,7 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                        f_grid.slice(ompv[i].first, ompv[i].second),
                        jacobian_targets,
                        absorption_bands,
+                       ecs_data,
                        atm_point);
       } catch (std::exception& e) {
 #pragma omp critical

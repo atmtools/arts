@@ -1194,6 +1194,15 @@ It is used for absorption bands with these population tags:
 )--",
                           .type = "MapOfErrorCorrectedSuddenData"};
 
+  wsv_data["ecs_data2"] = {.desc = R"--(Error corrected sudden data
+
+Dimensions: [num Isotopologues] [num Species]
+
+Used in line-by-line calculations requiring ECS data.
+)--",
+                           .type = "LinemixingEcsData",
+                           .default_value = LinemixingEcsData{}};
+
   wsv_data["ext_mat"] = {.desc = R"--(Total extinction matrix.
 
 This variable contains the extinction coefficient matrix, which

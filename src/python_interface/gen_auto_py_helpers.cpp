@@ -154,8 +154,8 @@ Parameters
 
   return writer.size() ? out + "\n\n" : "";
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      var_string("Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));
+  throw std::runtime_error(var_string(
+      "Could not get agenda IO for ", std::quoted(x), ":\n", e.what()));
 }
 
 String until_first_newline(const String& x) {
@@ -183,8 +183,8 @@ String short_doc(const String& x) try {
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      var_string("Could not get short doc for ", std::quoted(x), ":\n", e.what()));
+  throw std::runtime_error(var_string(
+      "Could not get short doc for ", std::quoted(x), ":\n", e.what()));
 }
 
 void remove_trailing(String& x, char n) {
@@ -214,18 +214,9 @@ String to_defval_str(const Wsv& wsv) {
         group == "Tensor6" or group == "Tensor7")
       return "[]";
 
-    if (group == "PredefinedModelData")
-      return "pyarts.arts.PredefinedModelData()";
-
     if (group == "Numeric" or group == "Index") return "0";
 
-    throw std::runtime_error(var_string(
-        "Cannot interpret empty default value for ",
-        group,
-        " to a good python type. Please add one.\n"
-        "Ensure that the default value is usable in the constructor inside python!\n"
-        "Even better, please create a formatter for all Arts's types that print them\n"
-        "in agood pythonesque way.\n\nTHIS IS A DEVELOPER ERROR!\n"));
+    return var_string("pyarts.arts.", group, "()");
   }
 
   return out;
