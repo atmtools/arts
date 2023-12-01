@@ -146,7 +146,7 @@ jobs:
             sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
           fi
           sudo apt-get install -y python3-minimal python3-pip python3-setuptools zlib1g-dev libopenblas-dev libglew-dev libglfw3-dev libnetcdf-dev libmicrohttpd-dev
-          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy pybind11\[global\] pytest scipy xarray
+          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy 'pybind11[global]' pytest scipy xarray
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
             sudo apt-get install -y texlive texlive-latex-extra doxygen
@@ -160,7 +160,7 @@ jobs:
           pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
           brew upgrade python
           brew install libmicrohttpd
-          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy pybind11\[global\] pytest scipy xarray
+          sudo pip3 install build docutils lark-parser matplotlib netCDF4 numpy 'pybind11[global]' pytest scipy xarray
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
             echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
