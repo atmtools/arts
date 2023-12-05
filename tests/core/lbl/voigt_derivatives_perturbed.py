@@ -282,7 +282,7 @@ for setting in settings:
 
     # VMR
     d = 0.00001
-    key = pyarts.arts.Species("O2")
+    key = pyarts.arts.SpeciesEnum("O2")
     ws.atm_point[key] += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)

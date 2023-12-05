@@ -1,5 +1,3 @@
-#include <cctype>
-
 #include "isotopologues.h"
 
 namespace Species {

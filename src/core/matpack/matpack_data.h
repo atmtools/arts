@@ -537,10 +537,10 @@ class matpack_data {
   }
 
   //! Return a view of the diagonal of this object
-  [[nodiscard]] constexpr auto diagonal() const
+  [[nodiscard]] constexpr matpack_view<T, 1, true, true> diagonal() const
     requires(N == 2)
   {
-    return matpack_view<T, 1, true, false>{view}.diagonal();
+    return view.diagonal();
   }
 
   constexpr matpack_data& operator=(std::convertible_to<T> auto x) {

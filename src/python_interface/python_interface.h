@@ -36,7 +36,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<std::pair<lbl::line_shape::variable, lbl::tempe
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line_shape::species_model>);
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line>)
 PYBIND11_MAKE_OPAQUE(Array<LagrangeInterpolation>);
-PYBIND11_MAKE_OPAQUE(Array<Species::Species>);
 PYBIND11_MAKE_OPAQUE(Array<Species::IsotopeRecord>);
 PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 PYBIND11_MAKE_OPAQUE(Array<SpeciesErrorCorrectedSuddenData>);

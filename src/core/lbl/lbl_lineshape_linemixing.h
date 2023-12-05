@@ -13,7 +13,6 @@ struct species_data {
   temperature::data beta{temperature::model_type::T0, {0}};
   temperature::data lambda{temperature::model_type::T0, {0}};
   temperature::data collisional_distance{temperature::model_type::T0, {0}};
-  Numeric mass{1};
 
   [[nodiscard]] Numeric Q(const Rational J,
                           const Numeric T,
@@ -22,6 +21,7 @@ struct species_data {
 
   [[nodiscard]] Numeric Omega(const Numeric T,
                               const Numeric T0,
+                              const Numeric mass,
                               const Numeric other_mass,
                               const Numeric energy_x,
                               const Numeric energy_xm2) const;

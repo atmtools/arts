@@ -129,6 +129,13 @@ about the isotopologue, the absorption scheme, and the frequency limits
                                    .desc = R"--(A list of *SpeciesTag*
 )--"};
 
+  wsg_data["ArrayOfSpecies"] = {.file = "species.h",
+                                .desc = R"--(A list of *SpeciesEnum*
+)--"};
+
+  wsg_data["SpeciesEnum"] = {.file = "species.h", .desc = R"--(An atmospheric species
+)--"};
+
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
                                .desc = "A list of *Sparse*\n"};
 
@@ -285,10 +292,9 @@ Both the data and the grid may be named
           R"--(Data required for error-corrected sudden line mixing
 )--"};
 
-  wsg_data["LinemixingEcsData"] = {
-      .file = "lbl.h",
-      .desc =
-          R"--(A map of line mixing data
+  wsg_data["LinemixingEcsData"] = {.file = "lbl.h",
+                                   .desc =
+                                       R"--(A map of line mixing data
 )--"};
 
   wsg_data["MapOfErrorCorrectedSuddenData"] = {

@@ -146,6 +146,8 @@ void py_options(py::module_& m) try {
   // Line shape types
   DeclareOptionRenamed(TemperatureModelType, lbl::temperature, model_type);
   DeclareOptionRenamed(LineShapeVariable, lbl::line_shape, variable);
+  DeclareOptionRenamed(LineshapeNEWNEW, lbl, Lineshape);
+  DeclareOptionRenamed(CutoffTypeNEWNEW, lbl, CutoffType);
 
   // Species enums
   DeclareOptionRenamed(SpeciesTagType, Species, TagType);

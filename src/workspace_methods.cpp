@@ -8067,6 +8067,16 @@ interpolations in the zenith angle dimension.
 
   };
 
+  wsm_data["ecs_dataAddMakarov2020NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the O2-66 microwave band data for ECS.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+
+      .in = {"ecs_data2"},
+
+  };
+
   wsm_data["ecs_dataAddMeanAir"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets ECS data for air from other data if available.
 )--",
@@ -8170,6 +8180,28 @@ and that N2 VMR must be present
 )--",
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
+
+  };
+
+  wsm_data["ecs_dataInitNEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Resets/initializes the ECS data.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+
+  };
+
+  wsm_data["ecs_dataAddMeanAirNEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets ECS data for air from other data if available.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+
+      .in = {"ecs_data2"},
+      .gin = {"vmrs", "species"},
+      .gin_type = {"Vector", "ArrayOfSpecies"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc = {R"--(VMRs of air species)--", R"--(Air species)--"},
 
   };
 

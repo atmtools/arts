@@ -199,7 +199,8 @@ struct Point {
       return has_(*this, std::forward<T>(key));
   }
 
-  [[nodiscard]] Numeric mean_mass(const SpeciesIsotopologueRatios &ir) const;
+  [[nodiscard]] Numeric mean_mass() const;
+  [[nodiscard]] Numeric mean_mass(Species::Species) const;
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 

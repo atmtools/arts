@@ -1,5 +1,7 @@
 #include "atm.h"
 
+#include <matpack.h>
+
 #include <algorithm>
 #include <exception>
 #include <iomanip>
@@ -23,8 +25,6 @@
 #include "isotopologues.h"
 #include "species.h"
 
-#include <matpack.h>
-
 namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
@@ -35,9 +35,7 @@ const std::unordered_map<Species::Species, Data> &Field::specs() const {
 const std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() const {
   return map<Species::IsotopeRecord>();
 }
-const std::unordered_map<Key, Data> &Field::other() const {
-  return map<Key>();
-}
+const std::unordered_map<Key, Data> &Field::other() const { return map<Key>(); }
 const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
   return map<ParticulatePropertyTag>();
 }
@@ -56,7 +54,7 @@ std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
   return map<ParticulatePropertyTag>();
 }
 
-std::ostream& operator<<(std::ostream& os, const Point& atm) {
+std::ostream &operator<<(std::ostream &os, const Point &atm) {
   os << "Temperature: " << atm.temperature << " K,\n";
   os << "Pressure: " << atm.pressure << " Pa,\n";
   os << "Wind Field: [u: " << atm.wind[0] << ", v: " << atm.wind[1]
@@ -64,44 +62,44 @@ std::ostream& operator<<(std::ostream& os, const Point& atm) {
   os << "Magnetic Field: [u: " << atm.mag[0] << ", v: " << atm.mag[1]
      << ", w: " << atm.mag[2] << "] T";
 
-  for (auto& spec : atm.specs) {
+  for (auto &spec : atm.specs) {
     os << ",\n" << toShortName(spec.first) << ": " << spec.second;
   }
-  for (auto& spec : atm.isots) {
+  for (auto &spec : atm.isots) {
     os << ",\n" << spec.first << ": " << spec.second;
   }
 
-  for (auto& vals : atm.nlte) {
-      os << ",\n" << vals.first << ": " << vals.second;
+  for (auto &vals : atm.nlte) {
+    os << ",\n" << vals.first << ": " << vals.second;
   }
 
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Field& atm) {
-  const auto printer = [&](auto& data) {
+std::ostream &operator<<(std::ostream &os, const Field &atm) {
+  const auto printer = [&](auto &data) {
     if constexpr (isFunctionalDataType<decltype(data)>)
       os << "Functional\n";
     else
       os << data;
   };
-  
-  for (auto& vals : atm.other()) {
+
+  for (auto &vals : atm.other()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
   }
 
-  for (auto& vals : atm.specs()) {
+  for (auto &vals : atm.specs()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
   }
 
-  for (auto& vals : atm.isots()) {
+  for (auto &vals : atm.isots()) {
     os << ",\n" << vals.first << ":\n";
     std::visit(printer, vals.second.data);
   }
 
-  for (auto& vals : atm.nlte()) {
+  for (auto &vals : atm.nlte()) {
     os << ",\n" << vals.first << ":";
     std::visit(printer, vals.second.data);
   }
@@ -109,29 +107,46 @@ std::ostream& operator<<(std::ostream& os, const Field& atm) {
   return os;
 }
 
-Numeric Point::mean_mass(const SpeciesIsotopologueRatios& ir) const {
-  Numeric out = 0;
-  Numeric total_vmr = 0;
-  for (auto& [spec, vmr]: specs) {
-    out += vmr * Species::mean_mass(spec, ir);
-    total_vmr += vmr;
+Numeric Point::mean_mass(Species::Species s) const {
+  Numeric ratio = 0.0;
+  Numeric mass = 0.0;
+  for (auto &[isot, this_ratio] : isots) {
+    if (isot.spec == s and not(is_predefined_model(isot) or isot.joker())) {
+      ratio += this_ratio;
+      mass += this_ratio * isot.mass;
+    }
   }
 
-  if (total_vmr not_eq 0) out /= total_vmr;
-  return out;
+  ARTS_USER_ERROR_IF(ratio == 0,
+                     "Cannot find a ratio for the mean mass of species ",
+                     std::quoted(toShortName(s)))
+
+  return mass / ratio;
+}
+
+Numeric Point::mean_mass() const {
+  Numeric vmr = 0.0;
+  Numeric mass = 0.0;
+  for (auto &[spec, this_vmr] : specs) {
+    vmr += this_vmr;
+    if (this_vmr != 0.0) {
+      mass += this_vmr * mean_mass(spec);
+    }
+  }
+
+  ARTS_USER_ERROR_IF(vmr == 0,
+                     "Cannot find a ratio for the mean mass of the atmosphere")
+
+  return mass / vmr;
 }
 
 std::vector<KeyVal> Point::keys() const {
   std::vector<KeyVal> out;
   out.reserve(size());
-  for (auto &a : enumtyps::KeyTypes)
-    out.emplace_back(a);
-  for (auto &a : specs)
-    out.emplace_back(a.first);
-  for (auto &a : nlte)
-    out.emplace_back(a.first);
-  for (auto &a : partp)
-    out.emplace_back(a.first);
+  for (auto &a : enumtyps::KeyTypes) out.emplace_back(a);
+  for (auto &a : specs) out.emplace_back(a.first);
+  for (auto &a : nlte) out.emplace_back(a.first);
+  for (auto &a : partp) out.emplace_back(a.first);
   return out;
 }
 
@@ -139,7 +154,9 @@ Index Point::nspec() const { return static_cast<Index>(specs.size()); }
 Index Point::npart() const { return static_cast<Index>(partp.size()); }
 Index Point::nisot() const { return static_cast<Index>(isots.size()); }
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
-Index Point::size() const { return nspec() + nnlte() + nother() + npart() + nisot(); }
+Index Point::size() const {
+  return nspec() + nnlte() + nother() + npart() + nisot();
+}
 
 Index Field::nspec() const { return static_cast<Index>(specs().size()); }
 Index Field::nisot() const { return static_cast<Index>(isots().size()); }
@@ -151,7 +168,9 @@ String Data::data_type() const {
   if (std::holds_alternative<GriddedField3>(data)) return "GriddedField3";
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
-  ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not doen the plumbing...")
+  ARTS_ASSERT(
+      false,
+      "Cannot be reached, you have added a new type but not doen the plumbing...")
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
@@ -170,41 +189,51 @@ struct ComputeLimit {
   Numeric alt, lat, lon;
 };
 
-Limits find_limits(const Numeric&) {
-  return {};
-}
+Limits find_limits(const Numeric &) { return {}; }
 
-Limits find_limits(const FunctionalData&) {
-  return {};
-}
+Limits find_limits(const FunctionalData &) { return {}; }
 
 Limits find_limits(const GriddedField3 &gf3) {
-  return {gf3.get_numeric_grid(0).front(), gf3.get_numeric_grid(0).back(),
-          gf3.get_numeric_grid(1).front(), gf3.get_numeric_grid(1).back(),
-          gf3.get_numeric_grid(2).front(), gf3.get_numeric_grid(2).back()};
+  return {gf3.get_numeric_grid(0).front(),
+          gf3.get_numeric_grid(0).back(),
+          gf3.get_numeric_grid(1).front(),
+          gf3.get_numeric_grid(1).back(),
+          gf3.get_numeric_grid(2).front(),
+          gf3.get_numeric_grid(2).back()};
 }
 
-Vector vec_interp(const Numeric& v, const Vector& alt, const Vector&, const Vector&) {
+Vector vec_interp(const Numeric &v,
+                  const Vector &alt,
+                  const Vector &,
+                  const Vector &) {
   Vector out(alt.size(), v);
   return out;
 }
 
-Vector vec_interp(const FunctionalData& v, const Vector& alt, const Vector& lat, const Vector& lon) {
-  const Index n=alt.size();
+Vector vec_interp(const FunctionalData &v,
+                  const Vector &alt,
+                  const Vector &lat,
+                  const Vector &lon) {
+  const Index n = alt.size();
   Vector out(n);
-  for (Index i=0; i<n; i++) out[i] = v(alt[i], lat[i], lon[i]);
+  for (Index i = 0; i < n; i++) out[i] = v(alt[i], lat[i], lon[i]);
   return out;
 }
 
-template <Index poly_alt, Index poly_lat, Index poly_lon,
+template <Index poly_alt,
+          Index poly_lat,
+          Index poly_lon,
           bool precompute = false>
 struct interp_helper {
   using AltLag = my_interp::Lagrange<poly_alt>;
   using LatLag = my_interp::Lagrange<poly_lat>;
-  using LonLag = std::conditional_t<
-      poly_lon == 0, my_interp::Lagrange<0>,
-      my_interp::Lagrange<poly_lon, false, my_interp::GridType::Cyclic,
-                          my_interp::cycle_m180_p180>>;
+  using LonLag =
+      std::conditional_t<poly_lon == 0,
+                         my_interp::Lagrange<0>,
+                         my_interp::Lagrange<poly_lon,
+                                             false,
+                                             my_interp::GridType::Cyclic,
+                                             my_interp::cycle_m180_p180>>;
 
   Array<AltLag> lags_alt;
   Array<LatLag> lags_lat;
@@ -215,20 +244,26 @@ struct interp_helper {
       my_interp::Empty>
       iws{};
 
-  constexpr interp_helper(const Vector &alt_grid, const Vector &lat_grid,
-                          const Vector &lon_grid, const Vector &alt,
-                          const Vector &lat, const Vector &lon)
+  constexpr interp_helper(const Vector &alt_grid,
+                          const Vector &lat_grid,
+                          const Vector &lon_grid,
+                          const Vector &alt,
+                          const Vector &lat,
+                          const Vector &lon)
     requires(not precompute)
       : lags_alt(
             my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
         lags_lat(
             my_interp::lagrange_interpolation_list<LatLag>(lat, lat_grid, -1)),
-        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(lon, lon_grid,
-                                                                -1)) {}
+        lags_lon(my_interp::lagrange_interpolation_list<LonLag>(
+            lon, lon_grid, -1)) {}
 
-  constexpr interp_helper(const Vector &alt_grid, const Vector &lat_grid,
-                          const Vector &lon_grid, const Vector &alt,
-                          const Vector &lat, const Vector &lon)
+  constexpr interp_helper(const Vector &alt_grid,
+                          const Vector &lat_grid,
+                          const Vector &lon_grid,
+                          const Vector &alt,
+                          const Vector &lat,
+                          const Vector &lon)
     requires(precompute)
       : lags_alt(
             my_interp::lagrange_interpolation_list<AltLag>(alt, alt_grid, -1)),
@@ -310,8 +345,10 @@ Vector tvec_interp(const Tensor3 &v,
   return interpolater(v);
 }
 
-Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, const Vector& lon) {
-
+Vector vec_interp(const GriddedField3 &v,
+                  const Vector &alt,
+                  const Vector &lat,
+                  const Vector &lon) {
   ARTS_ASSERT(v.get_grid_size(0) > 0)
   ARTS_ASSERT(v.get_grid_size(1) > 0)
   ARTS_ASSERT(v.get_grid_size(2) > 0)
@@ -320,28 +357,79 @@ Vector vec_interp(const GriddedField3& v, const Vector& alt, const Vector& lat, 
   const bool d2 = v.get_grid_size(1) == 1;
   const bool d3 = v.get_grid_size(2) == 1;
 
-  const Index n=alt.size();
-  
+  const Index n = alt.size();
+
   if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
-  if (d1 and d2)        return tvec_interp<0, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d1 and d3)        return tvec_interp<0, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d2 and d3)        return tvec_interp<1, 0, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d1)               return tvec_interp<0, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d2)               return tvec_interp<1, 0, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d3)               return tvec_interp<1, 1, 0>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  return tvec_interp<1, 1, 1>(v.data, v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1 and d2)
+    return tvec_interp<0, 0, 1>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  if (d1 and d3)
+    return tvec_interp<0, 1, 0>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  if (d2 and d3)
+    return tvec_interp<1, 0, 0>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  if (d1)
+    return tvec_interp<0, 1, 1>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  if (d2)
+    return tvec_interp<1, 0, 1>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  if (d3)
+    return tvec_interp<1, 1, 0>(v.data,
+                                v.get_numeric_grid(0),
+                                v.get_numeric_grid(1),
+                                v.get_numeric_grid(2),
+                                alt,
+                                lat,
+                                lon);
+  return tvec_interp<1, 1, 1>(v.data,
+                              v.get_numeric_grid(0),
+                              v.get_numeric_grid(1),
+                              v.get_numeric_grid(2),
+                              alt,
+                              lat,
+                              lon);
 }
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
   ARTS_ASSERT(lim.type not_eq Extrapolation::FINAL)
 
   ARTS_USER_ERROR_IF(lim.type == Extrapolation::None,
-                     "Altitude limit breaced.  Position (", lim.alt, ", ",
-                     lim.lat, ", ", lim.lon,
+                     "Altitude limit breaced.  Position (",
+                     lim.alt,
+                     ", ",
+                     lim.lat,
+                     ", ",
+                     lim.lon,
                      ") is out-of-bounds when no extrapolation is wanted")
 
-  if (lim.type == Extrapolation::Zero)
-    return 0;
+  if (lim.type == Extrapolation::Zero) return 0;
 
   if (lim.type == Extrapolation::Nearest)
     return std::visit(
@@ -355,38 +443,63 @@ Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
 
 constexpr Extrapolation combine(Extrapolation a, Extrapolation b) {
   using enum Extrapolation;
-  switch(a) {
-    case None: return None;
+  switch (a) {
+    case None:
+      return None;
     case Zero: {
-      switch(b) {
-        case None: return None;
-        case Zero: return Zero;
-        case Nearest: return Zero;
-        case Linear: return Zero;
-        case FINAL: ARTS_ASSERT(false);
+      switch (b) {
+        case None:
+          return None;
+        case Zero:
+          return Zero;
+        case Nearest:
+          return Zero;
+        case Linear:
+          return Zero;
+        case FINAL:
+          ARTS_ASSERT(false);
       }
-    } ARTS_ASSERT(false); return FINAL;
+    }
+      ARTS_ASSERT(false);
+      return FINAL;
     case Nearest: {
       switch (b) {
-        case None: return None;
-        case Zero: return Zero;
-        case Nearest: return Nearest;
-        case Linear: return Nearest;
-        case FINAL: ARTS_ASSERT(false);
+        case None:
+          return None;
+        case Zero:
+          return Zero;
+        case Nearest:
+          return Nearest;
+        case Linear:
+          return Nearest;
+        case FINAL:
+          ARTS_ASSERT(false);
       }
-    } ARTS_ASSERT(false); return FINAL;
-    case Linear: return b;
-    case FINAL: ARTS_ASSERT(false);
+    }
+      ARTS_ASSERT(false);
+      return FINAL;
+    case Linear:
+      return b;
+    case FINAL:
+      ARTS_ASSERT(false);
   }
 
   return FINAL;
 }
 
-constexpr Extrapolation combine(Extrapolation a, Extrapolation b, Extrapolation c) {
+constexpr Extrapolation combine(Extrapolation a,
+                                Extrapolation b,
+                                Extrapolation c) {
   return combine(combine(a, b), c);
 }
 
-void select(Extrapolation lowt, Extrapolation uppt, Numeric lowv, Numeric uppv, Numeric v, Numeric& outv, Extrapolation& outt) {
+void select(Extrapolation lowt,
+            Extrapolation uppt,
+            Numeric lowv,
+            Numeric uppv,
+            Numeric v,
+            Numeric &outv,
+            Extrapolation &outt) {
   if (v < lowv) {
     outt = lowt;
     if (outt == Extrapolation::Nearest) v = lowv;
@@ -398,10 +511,15 @@ void select(Extrapolation lowt, Extrapolation uppt, Numeric lowv, Numeric uppv, 
   outv = v;
 }
 
-ComputeLimit find_limit(const Data& data, const Limits& lim, Numeric alt, Numeric lat, Numeric lon) {
+ComputeLimit find_limit(const Data &data,
+                        const Limits &lim,
+                        Numeric alt,
+                        Numeric lat,
+                        Numeric lon) {
   ComputeLimit out;
-  Extrapolation a{Extrapolation::Linear}, b{Extrapolation::Linear}, c{Extrapolation::Linear};
-  
+  Extrapolation a{Extrapolation::Linear}, b{Extrapolation::Linear},
+      c{Extrapolation::Linear};
+
   select(data.alt_low, data.alt_upp, lim.alt_low, lim.alt_upp, alt, out.alt, a);
   select(data.lat_low, data.lat_upp, lim.lat_low, lim.lat_upp, lat, out.lat, b);
   select(data.lon_low, data.lon_upp, lim.lon_low, lim.lon_upp, lon, out.lon, c);
@@ -410,10 +528,11 @@ ComputeLimit find_limit(const Data& data, const Limits& lim, Numeric alt, Numeri
   return out;
 }
 
-Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const Vector& lon) {
-  const auto compute = [&](auto& d) {
-    return vec_interp(d, alt, lat, lon);
-  };
+Vector vec_interp(const Data &data,
+                  const Vector &alt,
+                  const Vector &lat,
+                  const Vector &lon) {
+  const auto compute = [&](auto &d) { return vec_interp(d, alt, lat, lon); };
 
   // Perform the interpolation
   Vector out = std::visit(compute, data.data);
@@ -422,7 +541,7 @@ Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const 
   const auto lim =
       std::visit([](auto &d) { return find_limits(d); }, data.data);
   const Index n = alt.size();
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     out[i] = limit(data, find_limit(data, lim, alt[i], lat[i], lon[i]), out[i]);
   }
 
@@ -430,27 +549,32 @@ Vector vec_interp(const Data& data, const Vector& alt, const Vector& lat, const 
 }
 }  // namespace detail
 
-void Field::at(std::vector<Point> &out, const Vector &alt, const Vector &lat,
+void Field::at(std::vector<Point> &out,
+               const Vector &alt,
+               const Vector &lat,
                const Vector &lon) const {
   ARTS_USER_ERROR_IF(
       std::any_of(alt.begin(), alt.end(), Cmp::gt(top_of_atmosphere)),
       "Cannot get values above the top of the atmosphere, which is at: ",
-      top_of_atmosphere, " m.\nYour max input altitude is: ", max(alt), " m.")
+      top_of_atmosphere,
+      " m.\nYour max input altitude is: ",
+      max(alt),
+      " m.")
 
   const auto n = static_cast<Index>(out.size());
   ARTS_ASSERT(n == alt.size() and n == lat.size() and n == lon.size())
 
   const auto compute = [&](const auto &key, const Data &data) {
     const Vector field_val = data.at(alt, lat, lon);
-    for (Index i = 0; i < n; i++)
-      out[i][key] = field_val[i];
+    for (Index i = 0; i < n; i++) out[i][key] = field_val[i];
   };
 
-  for (auto &&key : keys())
-    compute(key, operator[](key));
+  for (auto &&key : keys()) compute(key, operator[](key));
 }
 
-std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
+std::vector<Point> Field::at(const Vector &alt,
+                             const Vector &lat,
+                             const Vector &lon) const {
   std::vector<Point> out(alt.size());
   at(out, alt, lat, lon);
   return out;
@@ -459,9 +583,11 @@ std::vector<Point> Field::at(const Vector& alt, const Vector& lat, const Vector&
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
-std::vector<Key> get_keys(const std::unordered_map<Key, T, Hash, KeyEqual, Allocator>& map) {
+std::vector<Key> get_keys(
+    const std::unordered_map<Key, T, Hash, KeyEqual, Allocator> &map) {
   std::vector<Key> out(map.size());
-  std::transform(map.begin(), map.end(), out.begin(), [](auto& v){return v.first;});
+  std::transform(
+      map.begin(), map.end(), out.begin(), [](auto &v) { return v.first; });
   return out;
 }
 
@@ -486,21 +612,23 @@ void Data::rescale(Numeric x) {
       data);
 }
 
-Vector Data::at(const Vector& alt, const Vector& lat, const Vector& lon) const {
+Vector Data::at(const Vector &alt, const Vector &lat, const Vector &lon) const {
   return detail::vec_interp(*this, alt, lat, lon);
 }
 
-Numeric Data::at(const Numeric& alt, const Numeric& lat, const Numeric& lon) const {
+Numeric Data::at(const Numeric &alt,
+                 const Numeric &lat,
+                 const Numeric &lon) const {
   return detail::vec_interp(*this, Vector{alt}, Vector{lat}, Vector{lon})[0];
 }
 
 void Point::setZero() {
-  pressure=0;
-  temperature=0;
-  wind={0., 0., 0.};
+  pressure = 0;
+  temperature = 0;
+  wind = {0., 0., 0.};
   mag = {0., 0., 0.};
-  for (auto& v: specs) v.second = 0;
-  for (auto& v: nlte) v.second = 0;
+  for (auto &v : specs) v.second = 0;
+  for (auto &v : nlte) v.second = 0;
 }
 
 Numeric Point::operator[](const KeyVal &k) const {
@@ -514,14 +642,14 @@ Numeric &Point::operator[](const KeyVal &k) {
       k);
 }
 
-std::ostream& operator<<(std::ostream& os, const Array<Point>& a) {
-  for (auto& x : a) os << x << '\n';
+std::ostream &operator<<(std::ostream &os, const Array<Point> &a) {
+  for (auto &x : a) os << x << '\n';
   return os;
 }
 
 ExhaustiveConstVectorView Data::flat_view() const {
   return std::visit(
-      [](auto& X) -> ExhaustiveConstVectorView {
+      [](auto &X) -> ExhaustiveConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField3>)
           return X.data.flat_view();
@@ -539,7 +667,7 @@ ExhaustiveConstVectorView Data::flat_view() const {
 
 ExhaustiveVectorView Data::flat_view() {
   return std::visit(
-      [](auto& X) -> ExhaustiveVectorView {
+      [](auto &X) -> ExhaustiveVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField3>)
           return X.data.flat_view();
@@ -585,77 +713,112 @@ Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
 
   using namespace detail;
   if (d1 and d2 and d3) return flat_weights_(Numeric{}, alt, lat, lon);
-  if (d1 and d2)        return tvec_interpgrid_weights<0, 0, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d1 and d3)        return tvec_interpgrid_weights<0, 1, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d2 and d3)        return tvec_interpgrid_weights<1, 0, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d1)               return tvec_interpgrid_weights<0, 1, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d2)               return tvec_interpgrid_weights<1, 0, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  if (d3)               return tvec_interpgrid_weights<1, 1, 0>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
-  return tvec_interpgrid_weights<1, 1, 1>(v.get_numeric_grid(0), v.get_numeric_grid(1), v.get_numeric_grid(2), alt, lat, lon);
+  if (d1 and d2)
+    return tvec_interpgrid_weights<0, 0, 1>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  if (d1 and d3)
+    return tvec_interpgrid_weights<0, 1, 0>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  if (d2 and d3)
+    return tvec_interpgrid_weights<1, 0, 0>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  if (d1)
+    return tvec_interpgrid_weights<0, 1, 1>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  if (d2)
+    return tvec_interpgrid_weights<1, 0, 1>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  if (d3)
+    return tvec_interpgrid_weights<1, 1, 0>(v.get_numeric_grid(0),
+                                            v.get_numeric_grid(1),
+                                            v.get_numeric_grid(2),
+                                            alt,
+                                            lat,
+                                            lon);
+  return tvec_interpgrid_weights<1, 1, 1>(v.get_numeric_grid(0),
+                                          v.get_numeric_grid(1),
+                                          v.get_numeric_grid(2),
+                                          alt,
+                                          lat,
+                                          lon);
 }
 
 //! Flat weights for the positions in an atmosphere
-Array<std::array<std::pair<Index, Numeric>, 8>>
-Data::flat_weights(const Vector &alt,
-                   const Vector &lat,
-                   const Vector &lon) const {
+Array<std::array<std::pair<Index, Numeric>, 8>> Data::flat_weights(
+    const Vector &alt, const Vector &lat, const Vector &lon) const {
   ARTS_USER_ERROR_IF(alt.size() != lat.size() or alt.size() != lon.size(),
                      "alt, lat, and lon must have the same size")
   return std::visit([&](auto &v) { return flat_weights_(v, alt, lat, lon); },
                     data);
 }
 
-std::ostream& operator<<(std::ostream& os, const KeyVal& key) {
-  std::visit([&os](const auto& k) { os << k; }, key);
+std::ostream &operator<<(std::ostream &os, const KeyVal &key) {
+  std::visit([&os](const auto &k) { os << k; }, key);
   return os;
 }
 
 template <KeyType T>
-constexpr bool cmp(const KeyVal& keyval, const T& key) {
-  const auto* ptr = std::get_if<T>(&keyval);
+constexpr bool cmp(const KeyVal &keyval, const T &key) {
+  const auto *ptr = std::get_if<T>(&keyval);
   return ptr and *ptr == key;
 }
 
-bool operator==(const KeyVal& keyval, Key key) {
+bool operator==(const KeyVal &keyval, Key key) { return cmp(keyval, key); }
+
+bool operator==(Key key, const KeyVal &keyval) { return cmp(keyval, key); }
+
+bool operator==(const KeyVal &keyval, const Species::Species &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(Key key, const KeyVal& keyval) {
+bool operator==(const Species::Species &key, const KeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal& keyval, const Species::Species& key) {
+bool operator==(const KeyVal &keyval, const Species::IsotopeRecord &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const Species::Species& key, const KeyVal& keyval) {
+bool operator==(const Species::IsotopeRecord &key, const KeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal& keyval, const Species::IsotopeRecord& key) {
+bool operator==(const KeyVal &keyval, const QuantumIdentifier &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const Species::IsotopeRecord& key, const KeyVal& keyval) {
+bool operator==(const QuantumIdentifier &key, const KeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal& keyval, const QuantumIdentifier& key) {
+bool operator==(const KeyVal &keyval, const ParticulatePropertyTag &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const QuantumIdentifier& key, const KeyVal& keyval) {
+bool operator==(const ParticulatePropertyTag &key, const KeyVal &keyval) {
   return cmp(keyval, key);
 }
-
-bool operator==(const KeyVal& keyval, const ParticulatePropertyTag& key) {
-  return cmp(keyval, key);
-}
-
-bool operator==(const ParticulatePropertyTag& key, const KeyVal& keyval) {
-  return cmp(keyval, key);
-}
-} // namespace Atm
+}  // namespace Atm
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
   return os << ppt.name;

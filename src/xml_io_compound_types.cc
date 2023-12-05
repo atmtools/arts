@@ -3175,9 +3175,8 @@ void xml_read_from_stream(std::istream& is_xml,
       const auto speckey = spec_tag.get<Species::Species>("spec");
 
       auto& spec_data = spec_data_map[speckey];
-      is_xml >> spec_data.mass >> spec_data.beta >>
-          spec_data.collisional_distance >> spec_data.lambda >>
-          spec_data.scaling;
+      is_xml >> spec_data.beta >> spec_data.collisional_distance >>
+          spec_data.lambda >> spec_data.scaling;
     }
   }
 }
@@ -3203,9 +3202,24 @@ void xml_write_to_stream(std::ostream& os_xml,
       const tag spec_tag{
           os_xml, "specdata", meta_data{"spec", Species::toShortName(ikey)}};
 
-      os_xml << ivalue.mass << ' ' << ivalue.beta << ' '
-             << ivalue.collisional_distance << ' ' << ivalue.lambda << ' '
-             << ivalue.scaling;
+      os_xml << ivalue.beta << ' ' << ivalue.collisional_distance << ' '
+             << ivalue.lambda << ' ' << ivalue.scaling;
     }
   }
+}
+
+//! SpeciesEnum
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SpeciesEnum& s,
+                          bifstream*) {
+  const tag stag{is_xml, "SpeciesEnum", "enum"};
+  s = stag.get<SpeciesEnum>("enum");
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SpeciesEnum& s,
+                         bofstream*,
+                         const String&) {
+  const tag stag{os_xml, "SpeciesEnum", meta_data{"enum", String{Species::toShortName(s)}}};
 }

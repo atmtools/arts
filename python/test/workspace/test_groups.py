@@ -806,7 +806,7 @@ class TestGroups:
     def testAtmField(self):
         x = cxx.AtmField()
         x["wind_u"] = 3.0
-        x[cxx.Species("O2")] = cxx.GriddedField3(
+        x[cxx.SpeciesEnum("O2")] = cxx.GriddedField3(
             [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
             np.random.rand(3, 7, 3),
         )
@@ -814,17 +814,17 @@ class TestGroups:
         def test_fun(a, b, c):
             return float(a + b + c)
 
-        x[cxx.Species("N2")] = test_fun
+        x[cxx.SpeciesEnum("N2")] = test_fun
         test.io(x, delete=True)
-        x[cxx.Species("N2")] = test_fun
+        x[cxx.SpeciesEnum("N2")] = test_fun
         x.top_of_atmosphere = 2.5
         test.io(x, delete=True)
 
     def testAtmPoint(self):
         x = cxx.AtmPoint()
         x["wind_u"] = 3.0
-        x[cxx.Species("O2")] = 0.21
-        x[cxx.Species("N2")] = 0.79
+        x[cxx.SpeciesEnum("O2")] = 0.21
+        x[cxx.SpeciesEnum("N2")] = 0.79
         test.io(x, delete=True)
 
     def testVibrationalEnergyLevels(self):

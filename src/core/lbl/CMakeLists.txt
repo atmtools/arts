@@ -4,6 +4,7 @@ add_library(lbl STATIC
   lbl_lineshape_linemixing.cpp
   lbl_lineshape_model.cpp
   lbl_lineshape_voigt_ecs.cpp
+  lbl_lineshape_voigt_ecs_makarov.cpp
   lbl_lineshape_voigt_lte.cpp
   lbl_lineshape_voigt_nlte.cpp
   lbl_temperature_model.cpp

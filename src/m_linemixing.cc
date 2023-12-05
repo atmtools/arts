@@ -10,11 +10,18 @@
  * compute the relaxation, not simply use the relaxation
  */
 
+#include <numeric>
+#include <stdexcept>
 #include <variant>
+
 #include "arts_conversions.h"
 #include "atm.h"
+#include "configtypes.h"
 #include "debug.h"
 #include "hitran_species.h"
+#include "isotopologues.h"
+#include "lbl_lineshape_linemixing.h"
+#include "lbl_temperature_model.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
 #include "matpack_concepts.h"
@@ -107,7 +114,7 @@ void propmat_clearskyAddHitranLineMixingLines(
   // vmrs should be [air, water, co2]  FIXME: confirm, because code disagreed
   const Numeric water = atm_point[Species::Species::Water];
   const Numeric co2 = atm_point[Species::Species::CarbonDioxide];
-  const Vector vmrs{co2, water, 1.0-co2-water};
+  const Vector vmrs{co2, water, 1.0 - co2 - water};
 
   for (Size i = 0; i < abs_species.size(); i++) {
     if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
@@ -166,10 +173,9 @@ void propmat_clearskyAddOnTheFlyLineMixing(
     for (auto& band : abs_lines_per_species[i]) {
       if (band.OnTheFlyLineMixing() and band.DoLineMixing(atm_point.pressure)) {
         // vmrs should be for the line
-        const Vector line_shape_vmr =
-            band.BroadeningSpeciesVMR(atm_point);
-        const Numeric this_vmr =
-            atm_point[abs_species[i].Species()] * atm_point[band.Isotopologue()];
+        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(atm_point);
+        const Numeric this_vmr = atm_point[abs_species[i].Species()] *
+                                 atm_point[band.Isotopologue()];
         const auto [abs, dabs, error] = Absorption::LineMixing::ecs_absorption(
             atm_point.temperature,
             0,
@@ -181,11 +187,11 @@ void propmat_clearskyAddOnTheFlyLineMixing(
             Zeeman::Polarization::None,
             band,
             jacobian_targets);
-        for (Index iv=0; iv<f_grid.nelem(); iv++) {
+        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv].A() += abs[iv].real();
         }
 
-        for (auto& atm: jacobian_targets.atm()) {
+        for (auto& atm : jacobian_targets.atm()) {
           const auto j = atm.target_pos;
           if (atm.type == abs_species[i].Species()) {
             for (Index iv = 0; iv < f_grid.nelem(); iv++) {
@@ -251,21 +257,20 @@ void ecs_dataInit(MapOfErrorCorrectedSuddenData& ecs_data) {
   ecs_data.resize(0);
 }
 
-void ecs_dataAddSpeciesData(
-    MapOfErrorCorrectedSuddenData& ecs_data,
-    const AtmField& atm_field,
-    const QuantumIdentifier& qid,
-    const String& species,
-    const String& scaling_type,
-    const Vector& scaling,
-    const String& beta_type,
-    const Vector& beta,
-    const String& lambda_type,
-    const Vector& lambda,
-    const String& collisional_distance_type,
-    const Vector& collisional_distance) {
-      ARTS_ASSERT(false, "Fix isotopologues")
-      
+void ecs_dataAddSpeciesData(MapOfErrorCorrectedSuddenData& ecs_data,
+                            const AtmField& atm_field,
+                            const QuantumIdentifier& qid,
+                            const String& species,
+                            const String& scaling_type,
+                            const Vector& scaling,
+                            const String& beta_type,
+                            const Vector& beta,
+                            const String& lambda_type,
+                            const Vector& lambda,
+                            const String& collisional_distance_type,
+                            const Vector& collisional_distance) {
+  ARTS_ASSERT(false, "Fix isotopologues")
+
   const Species::Species spec = Species::fromShortName(species);
   ARTS_USER_ERROR_IF(not good_enum(spec), "Invalid species: ", species)
   auto& data = ecs_data[qid][spec];
@@ -279,7 +284,7 @@ void ecs_dataAddSpeciesData(
       LineShape::toTemperatureModelOrThrow(collisional_distance_type),
       collisional_distance);
   //data.mass = Species::mean_mass(spec, isotopologue_ratios);
-      ARTS_ASSERT(false, "Fix isotopologues")
+  ARTS_ASSERT(false, "Fix isotopologues")
 }
 
 void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
@@ -372,10 +377,70 @@ void ecs_dataAddMeanAir(MapOfErrorCorrectedSuddenData& ecs_data,
   }
 }
 
-void ecs_dataAddMakarov2020(
-    MapOfErrorCorrectedSuddenData& ecs_data,
-    const AtmField& isotopologue_ratios) {
-      ARTS_ASSERT(false, "Fix isotopologues")
+void ecs_dataAddMeanAirNEWNEW(LinemixingEcsData& ecs_data,
+                              const Vector& vmrs,
+                              const ArrayOfSpecies& specs) {
+  ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(),
+                     "Mismatch dimension of vmrs and specs")
+  ARTS_USER_ERROR_IF(
+      std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: ", vmrs)
+
+  auto set = [](const lbl::temperature::data& data1,
+                const lbl::temperature::data& data2,
+                const Numeric vmr,
+                bool first) -> lbl::temperature::data {
+    auto v = data1.X();
+    v *= vmr;
+
+    if (first) {
+      return {data1.Type(), v};
+    }
+
+    v += data2.X();
+    ARTS_USER_ERROR_IF(data1.Type() != data2.Type(),
+                       "Type error in species temperature type for ",
+                       data1.Type(),
+                       " and ",
+                       data2.Type())
+    return {data1.Type(), v};
+  };
+
+  for (auto& [isot, data] : ecs_data) {
+    auto& airdata = data[Species::Species::Bath];
+
+    bool first = true;
+    for (Index i = 0; i < vmrs.size(); i++) {
+      const auto spec = specs[i];
+      const auto vmr = vmrs[i];
+
+      try {
+        auto& specdata = data.at(spec);
+        airdata.scaling = set(specdata.scaling, airdata.scaling, vmr, first);
+        airdata.beta = set(specdata.beta, airdata.beta, vmr, first);
+        airdata.lambda = set(specdata.lambda, airdata.lambda, vmr, first);
+        airdata.collisional_distance = set(specdata.collisional_distance,
+                                           airdata.collisional_distance,
+                                           vmr,
+                                           first);
+        first = false;
+      } catch (std::out_of_range&) {
+        ARTS_USER_ERROR(
+            "Missing species ", spec, " in ecs_data of isotopologue ", isot)
+      } catch (std::exception& e) {
+        ARTS_USER_ERROR("Error for species ",
+                        spec,
+                        " in ecs_data of isotopologue ",
+                        isot,
+                        ":\n",
+                        e.what())
+      }
+    }
+  }
+}
+
+void ecs_dataAddMakarov2020(MapOfErrorCorrectedSuddenData& ecs_data,
+                            const AtmField& isotopologue_ratios) {
+  ARTS_ASSERT(false, "Fix isotopologues")
   // The band is ignored
   auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
 
@@ -389,8 +454,7 @@ void ecs_dataAddMakarov2020(
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
   ecs[Species::Species::Oxygen].beta =
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
-  // ecs[Species::Species::Oxygen].mass =
-  //     Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
+  // ecs[Species::Species::Oxygen].mass = 31.9898;
 
   ecs[Species::Species::Nitrogen].scaling =
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 1.0, 0, 0, 0);
@@ -404,14 +468,34 @@ void ecs_dataAddMakarov2020(
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.39, 0, 0, 0);
   ecs[Species::Species::Nitrogen].beta =
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.567, 0, 0, 0);
-  // ecs[Species::Species::Nitrogen].mass =
-  //     Species::mean_mass(Species::Species::Nitrogen, isotopologue_ratios);
+  // ecs[Species::Species::Nitrogen].mass = 28.8504;
 }
 
-void ecs_dataAddRodrigues1997(
-    MapOfErrorCorrectedSuddenData& ecs_data,
-    const AtmField& isotopologue_ratios) {
-      ARTS_ASSERT(false, "Fix isotopologues")
+void ecs_dataInitNEWNEW(LinemixingEcsData& ecs_data) { ecs_data.clear(); }
+
+void ecs_dataAddMakarov2020NEWNEW(LinemixingEcsData& ecs_data) {
+  using enum lbl::temperature::model_type;
+  using data = lbl::temperature::data;
+
+  auto& ecs = ecs_data[SpeciesIsotopeRecord("O2-66")];
+
+  // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
+  auto& oxy = ecs[Species::Species::Oxygen];
+  oxy.scaling = data(T0, {1.0});
+  oxy.collisional_distance = data(T0, {Conversion::angstrom2meter(0.61)});
+  oxy.lambda = data(T0, {0.39});
+  oxy.beta = data(T0, {0.567});
+
+  auto& nit = ecs[Species::Species::Nitrogen];
+  nit.scaling = data(T0, {1.0});
+  nit.collisional_distance = data(T0, {Conversion::angstrom2meter(0.61)});
+  nit.lambda = data(T0, {0.39});
+  nit.beta = data(T0, {0.567});
+}
+
+void ecs_dataAddRodrigues1997(MapOfErrorCorrectedSuddenData& ecs_data,
+                              const AtmField& isotopologue_ratios) {
+  ARTS_ASSERT(false, "Fix isotopologues")
   for (const auto* key : {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
 
@@ -457,11 +541,15 @@ void ecs_dataAddRodrigues1997(
 
 void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
                          const AtmField& isotopologue_ratios) {
-      ARTS_ASSERT(false, "Fix isotopologues")
+  ARTS_ASSERT(false, "Fix isotopologues")
   auto& ecs = ecs_data[QuantumIdentifier("O2-66")];
 
   ecs[Species::Species::Oxygen].scaling =
-      LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0275), 1.01, 0, 0);
+      LineShapeModelParameters(LineShapeTemperatureModel::T1,
+                               Conversion::kaycm_per_atm2hz_per_pa(0.0275),
+                               1.01,
+                               0,
+                               0);
   ecs[Species::Species::Oxygen].collisional_distance = LineShapeModelParameters(
       LineShapeTemperatureModel::T0, Conversion::angstrom2meter(1.05), 0, 0, 0);
   ecs[Species::Species::Oxygen].lambda =
@@ -472,9 +560,17 @@ void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
   //     Species::mean_mass(Species::Species::Oxygen, isotopologue_ratios);
 
   ecs[Species::Species::Nitrogen].scaling =
-      LineShapeModelParameters(LineShapeTemperatureModel::T1, Conversion::kaycm_per_atm2hz_per_pa(0.0285), 1.03, 0, 0);
-  ecs[Species::Species::Nitrogen].collisional_distance = LineShapeModelParameters(
-      LineShapeTemperatureModel::T0, Conversion::angstrom2meter(1.00), 0, 0, 0);
+      LineShapeModelParameters(LineShapeTemperatureModel::T1,
+                               Conversion::kaycm_per_atm2hz_per_pa(0.0285),
+                               1.03,
+                               0,
+                               0);
+  ecs[Species::Species::Nitrogen].collisional_distance =
+      LineShapeModelParameters(LineShapeTemperatureModel::T0,
+                               Conversion::angstrom2meter(1.00),
+                               0,
+                               0,
+                               0);
   ecs[Species::Species::Nitrogen].lambda =
       LineShapeModelParameters(LineShapeTemperatureModel::T0, 0.95, 0, 0, 0);
   ecs[Species::Species::Nitrogen].beta =
@@ -485,7 +581,7 @@ void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
 
 void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
                          const AtmField& isotopologue_ratios) {
-      ARTS_ASSERT(false, "Fix isotopologues")
+  ARTS_ASSERT(false, "Fix isotopologues")
   for (const auto* key : {"CO2-626", "CO2-628", "CO2-636"}) {
     auto& ecs = ecs_data[QuantumIdentifier(key)];
 

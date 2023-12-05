@@ -10,6 +10,7 @@ Numeric species_data::Q(const Rational J,
 
 Numeric species_data::Omega(const Numeric T,
                             const Numeric T0,
+                            const Numeric mass,
                             const Numeric other_mass,
                             const Numeric energy_x,
                             const Numeric energy_xm2) const {
@@ -19,7 +20,8 @@ Numeric species_data::Omega(const Numeric T,
   using Constant::m_u;
   using Constant::h_bar;
   using Math::pow2;
-  
+
+
   // Constants for the expression
   constexpr Numeric fac = 8 * k / (m_u * pi);
   
@@ -41,7 +43,6 @@ std::ostream& operator<<(std::ostream&os , const isot_map& self) {
       os << "    beta:                 " << v2.beta << "\n";
       os << "    lambda:               " << v2.lambda << "\n";
       os << "    collisional_distance: " << v2.collisional_distance << "\n";
-      os << "    mass:                 " << v2.mass << "\n";
     }
   }
   return os;

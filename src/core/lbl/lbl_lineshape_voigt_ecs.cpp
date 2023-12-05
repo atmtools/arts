@@ -5,45 +5,40 @@
 
 #include <Faddeeva.hh>
 #include <algorithm>
+#include <cmath>
 
+#include "atm.h"
 #include "configtypes.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "lbl_lineshape_linemixing.h"
 #include "partfun.h"
 #include "sorting.h"
-#include "wigner_functions.h"
+#include "species.h"
 
 #undef WIGNER3
 #undef WIGNER6
 
 namespace lbl::voigt::ecs {
-#if DO_FAST_WIGNER
-#define WIGNER3 fw3jja6
-#define WIGNER6 fw6jja
-#else
-#define WIGNER3 wig3jj
-#define WIGNER6 wig6jj
-#endif
+namespace makarov {
+/*! Returns the reduced dipole
+ * 
+ * @param[in] Ju Main rotational number with spin of the upper level
+ * @param[in] Jl Main rotational number with spin of the lower level
+ * @param[in] N Main rotational number of both levels
+ * @return The reduced dipole
+ */
+Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N);
 
-Numeric wig3(const Rational& a,
-             const Rational& b,
-             const Rational& c,
-             const Rational& d,
-             const Rational& e,
-             const Rational& f) noexcept {
-  return WIGNER3(
-      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
-}
-
-Numeric wig6(const Rational& a,
-             const Rational& b,
-             const Rational& c,
-             const Rational& d,
-             const Rational& e,
-             const Rational& f) noexcept {
-  return WIGNER6(
-      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
-}
+void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
+                                   const QuantumIdentifier& bnd_qid,
+                                   const band_data& bnd,
+                                   const ArrayOfIndex& sorting,
+                                   const Species::Species broadening_species,
+                                   const linemixing::species_data& rovib_data,
+                                   const Vector& dipr,
+                                   const AtmPoint& atm);
+}  // namespace makarov
 
 ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
                          const AtmPoint& atm,
@@ -55,10 +50,8 @@ ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
                  scl.begin(),
                  [N = number_density(atm.pressure, atm.temperature),
                   T = atm.temperature](auto f) {
-                   constexpr Numeric c =
-                       Constant::c * Constant::c / (8 * Constant::pi);
                    const Numeric r = (Constant::h * f) / (Constant::k * T);
-                   return -N * f * std::expm1(-r) * c;
+                   return -N * f * std::expm1(-r);
                  });
 
   update_zeeman(los, atm.mag, pol);
@@ -116,218 +109,26 @@ void ComputeData::core_calc_eqv() {
       }
       eqv_str[i] *= z;
     }
+
+    eqv_str *= vmrs[k];
   }
 }
 
 void ComputeData::core_calc(const ExhaustiveConstVectorView& f_grid) {
   core_calc_eqv();
 
+  const auto m = vmrs.size();
   const auto n = f_grid.size();
   shape = 0;
 
-  for (Size k = 0; k < Ws.size(); k++) {
-    for (Index i = 0; i < n; i++) {
+  for (Size k = 0; k < m; k++) {
+    for (Index i = 0; i < eqv_strs[k].size(); i++) {
       const Numeric gamd = gd_fac * eqv_vals[k][i].real();
       const Numeric cte = Constant::sqrt_ln_2 / gamd;
-      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+      for (Index iv = 0; iv < n; iv++) {
         const Complex z = (eqv_vals[k][i] - f_grid[iv]) * cte;
         const Complex w = Faddeeva::w(z);
-        shape[i] += vmrs[k] * eqv_strs[k][i] * w / gamd;
-      }
-    }
-  }
-
-  // for (Index i = 0; i < n; i++) {
-  //   if (shape[i].real() < 0) shape[i] = 0;
-  // }
-}
-
-/*! Returns the reduced dipole
- * 
- * @param[in] Ju Main rotational number with spin of the upper level
- * @param[in] Jl Main rotational number with spin of the lower level
- * @param[in] N Main rotational number of both levels
- * @return The reduced dipole
- */
-Numeric reduced_dipole(const Rational Ju, const Rational Jl, const Rational N) {
-  return (iseven(Jl + N) ? 1 : -1) * sqrt(6 * (2 * Jl + 1) * (2 * Ju + 1)) *
-         wigner6j(1, 1, 1, Jl, Ju, N);
-};
-
-/*! Compute the rotational energy of ground-state O2 at N and J
- * 
- * If the template argument evaluates true, the erot<false>(1, 0)
- * energy is removed from the output of erot<false>(N, J).
- * 
- * @param[in] N Main rotational number
- * @param[in] j Main rotational number plus spin (if j < 0 then J=N)
- * @return Rotational energy in Joule
- */
-template <bool rescale_pure_rotational = true>
-constexpr Numeric erot(const Rational N, const Rational j = -1) {
-  const Rational J = j < 0 ? N : j;
-
-  if constexpr (rescale_pure_rotational) {
-    return erot<false>(N, J) - erot<false>(1, 0);
-  } else {
-    using Conversion::mhz2joule;
-    using Math::pow2;
-    using Math::pow3;
-
-    constexpr Numeric B0 = 43100.4425e0;
-    constexpr Numeric D0 = .145123e0;
-    constexpr Numeric H0 = 3.8e-08;
-    constexpr Numeric xl0 = 59501.3435e0;
-    constexpr Numeric xg0 = -252.58633e0;
-    constexpr Numeric xl1 = 0.058369e0;
-    constexpr Numeric xl2 = 2.899e-07;
-    constexpr Numeric xg1 = -2.4344e-04;
-    constexpr Numeric xg2 = -1.45e-09;
-
-    const auto XN = Numeric(N);
-    const Numeric XX = XN * (XN + 1);
-    const Numeric xlambda = xl0 + xl1 * XX + xl2 * pow2(XX);
-    const Numeric xgama = xg0 + xg1 * XX + xg2 * pow2(XX);
-    const Numeric C1 = B0 * XX - D0 * pow2(XX) + H0 * pow3(XX);
-
-    if (J < N) {
-      if (N == 1)  // erot<false>(1, 0)
-        return mhz2joule(C1 - (xlambda + B0 * (2. * XN - 1.) + xgama * XN));
-      return mhz2joule(C1 - (xlambda + B0 * (2. * XN - 1.) + xgama * XN) +
-                       std::sqrt(pow2(B0 * (2. * XN - 1.)) + pow2(xlambda) -
-                                 2. * B0 * xlambda));
-    }
-    if (J > N)
-      return mhz2joule(C1 -
-                       (xlambda - B0 * (2. * XN + 3.) - xgama * (XN + 1.)) -
-                       std::sqrt(pow2(B0 * (2. * XN + 3.)) + pow2(xlambda) -
-                                 2. * B0 * xlambda));
-    return mhz2joule(C1);
-  }
-}
-
-void relaxation_matrix_offdiagonal(Matrix& W,
-                                   const QuantumIdentifier& bnd_qid,
-                                   const band_data& bnd,
-                                   const ArrayOfIndex& sorting,
-                                   const linemixing::species_data& rovib_data,
-                                   const Numeric T) {
-  using Conversion::kelvin2joule;
-
-  const auto bk = [](const Rational& r) -> Numeric { return sqrt(2 * r + 1); };
-
-  const auto n = bnd.size();
-
-  auto& S = bnd_qid.val[QuantumNumberType::S];
-  const Rational Si = S.upp();
-  const Rational Sf = S.low();
-
-  Vector dipr(n);
-  for (Size i = 0; i < n; i++) {
-    auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
-    auto& N = bnd.lines[sorting[i]].qn.val[QuantumNumberType::N];
-
-    dipr[i] = reduced_dipole(J.upp(), J.low(), N.upp());
-  }
-
-  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J),
-                                   bnd.max(QuantumNumberType::N));
-
-  const auto Om = [&]() {
-    std::vector<Numeric> out(maxL);
-    for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Omega(T,
-                                bnd.front().ls.T0,
-                                bnd_qid.Isotopologue().mass,
-                                erot(i),
-                                erot(i - 2));
-    return out;
-  }();
-
-  const auto Q = [&]() {
-    std::vector<Numeric> out(maxL);
-    for (Index i = 0; i < maxL; i++)
-      out[i] = rovib_data.Q(i, T, bnd.front().ls.T0, erot(i));
-    return out;
-  }();
-
-  wig_thread_temp_init(maxL);
-  for (Size i = 0; i < n; i++) {
-    auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
-    auto& N = bnd.lines[sorting[i]].qn.val[QuantumNumberType::N];
-
-    const Rational Ji = J.upp();
-    const Rational Jf = J.low();
-    const Rational Ni = N.upp();
-    const Rational Nf = N.low();
-
-    for (Size j = 0; j < n; j++) {
-      if (i == j) continue;
-
-      auto& J_p = bnd.lines[sorting[j]].qn.val[QuantumNumberType::J];
-      auto& N_p = bnd.lines[sorting[j]].qn.val[QuantumNumberType::N];
-
-      const Rational Ji_p = J_p.upp();
-      const Rational Jf_p = J_p.low();
-      const Rational Ni_p = N_p.upp();
-      const Rational Nf_p = N_p.low();
-
-      if (Jf_p > Jf) continue;
-
-      // Tran etal 2006 symbol with modifications:
-      //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum = 0;
-      const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
-                          bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
-                          bk(Ji_p);
-      const auto [L0, L1] =
-          wigner_limits(wigner3j_limits<3>(Ni_p, Ni),
-                        {Rational(2), std::numeric_limits<Index>::max()});
-      for (Rational L = L0; L <= L1; L += 2) {
-        const Numeric a = wig3(Ni_p, Ni, L, 0, 0, 0);
-        const Numeric b = wig3(Nf_p, Nf, L, 0, 0, 0);
-        const Numeric c = wig6(L, Ji, Ji_p, Si, Ni_p, Ni);
-        const Numeric d = wig6(L, Jf, Jf_p, Sf, Nf_p, Nf);
-        const Numeric e = wig6(L, Ji, Ji_p, 1, Jf_p, Jf);
-        sum += a * b * c * d * e * Numeric(2 * L + 1) * Q[L.toIndex()] /
-               Om[L.toIndex()];
-      }
-      sum *= scl * Om[Ni.toIndex()];
-
-      // Add to W and rescale to upwards element by the populations
-      W(i, j) = sum;
-      W(j, i) = sum * std::exp((erot(Nf_p) - erot(Nf)) / kelvin2joule(T));
-    }
-  }
-  wig_temp_free();
-
-  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
-
-  // Sum rule correction
-  for (Size i = 0; i < n; i++) {
-    Numeric sumlw = 0.0;
-    Numeric sumup = 0.0;
-
-    for (Size j = 0; j < n; j++) {
-      if (j > i) {
-        sumlw += dipr[j] * W(j, i);
-      } else {
-        sumup += dipr[j] * W(j, i);
-      }
-    }
-
-    const Rational Ni =
-        bnd.lines[sorting[i]].qn.val[QuantumNumberType::N].low();
-    for (Size j = i + 1; j < n; j++) {
-      const Rational Nj =
-          bnd.lines[sorting[j]].qn.val[QuantumNumberType::N].low();
-      if (sumlw == 0) {
-        W(j, i) = 0.0;
-        W(i, j) = 0.0;
-      } else {
-        W(j, i) *= -sumup / sumlw;
-        W(i, j) = W(j, i) * std::exp((erot(Ni) - erot(Nj)) /
-                                     kelvin2joule(T));  // This gives LTE
+        shape[iv] += vmrs[k] * eqv_strs[k][i] * w / gamd;
       }
     }
   }
@@ -341,6 +142,7 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
 
   pop.resize(n);
   dip.resize(n);
+  dipr.resize(n);
   sort.resize(n);
   Wimag.resize(n, n);
 
@@ -359,48 +161,89 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
   eqv_strs[0] = 0;
   eqv_vals[0] = 0;
 
+  freq_offset = 0;  //6.05887e+10;
+  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
+                     atm.temperature / bnd_qid.Isotopologue().mass);
+
   const Numeric T = atm.temperature;
   const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
 
   for (Size i = 0; i < n; i++) {
     const auto& line = bnd.lines[i];
-    const Numeric s = line.s(T, QT);
+    pop[i] = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
+    dip[i] = 0.5 * Constant::c *
+             std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
-    //! NOTE: Missing factor of (c^2 / 8pi) in pop[i], important??
-    pop[i] = Math::pow3(line.f0) * s / line.a;
-    dip[i] = std::sqrt(s / pop[i]);
-
-    //! FIXME: SIGNS????
+    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
+      dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    }
   }
 
   //! Must remember the sorting for the quantum numbers
   std::iota(sort.begin(), sort.end(), 0);
   bubble_sort_by(
       [&](Size i, Size j) {
-        const auto a = bnd.lines[i].f0 * pop[i] * dip[i] * dip[i];
-        const auto b = bnd.lines[j].f0 * pop[j] * dip[j] * dip[j];
+        const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
+        const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
         return b > a;
       },
       sort,
       pop,
-      dip);
+      dip,
+      dipr);
 
-  const auto& ls = bnd.front().ls.single_models;
+  for (auto& line : bnd) {
+    const bool lines_have_same_species =
+        std::transform_reduce(line.ls.single_models.begin(),
+                              line.ls.single_models.end(),
+                              bnd.lines[0].ls.single_models.begin(),
+                              true,
+                              std::logical_or<>(),
+
+                              [](const auto& lsl, const auto& lsr) {
+                                return lsl.species == lsr.species;
+                              });
+
+    ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
+  }
+
   Numeric vmr = 0;
   for (Size i = 0; i < bnd.front().ls.single_models.size(); i++) {
-    const auto& rovib_data_it = rovib_data.find(ls[i].species);
-    ARTS_USER_ERROR_IF(rovib_data_it == rovib_data.end(),
-                       "No rovib data for species " , ls[i].species)
+    const auto spec = bnd.front().ls.single_models[i].species;
+
+    const auto& rovib_data_it = rovib_data.find(spec);
+    ARTS_USER_ERROR_IF(
+        rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
+
     const Numeric this_vmr =
-        ls[i].species == Species::Species::Bath ? 1 - vmr : atm[ls[i].species];
-    vmr += this_vmr;
-    relaxation_matrix_offdiagonal(
-        Wimag, bnd_qid, bnd, sort, rovib_data_it->second, atm.temperature);
+        spec == Species::Species::Bath ? 1 - vmr : atm[spec];
+
+    Wimag = 0.0;
+    for (Size k = 0; k < n; k++) {
+      Wimag(k, k) = bnd.lines[sort[k]].ls.single_models[i].G0(
+          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+    }
+
+    makarov::relaxation_matrix_offdiagonal(
+        Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+
     for (Size ir = 0; ir < n; ir++) {
       for (Size ic = 0; ic < n; ic++) {
-        Ws[0](ir, ic) += 1i * this_vmr * Wimag(ir, ic);
+        imag_val(Ws[0](ir, ic)) += this_vmr * Wimag(ir, ic);
       }
     }
+
+    vmr += this_vmr;
+  }
+
+  if (vmr != 1.0) Ws[0] /= vmr;
+
+  for (Size i = 0; i < n; i++) {
+    real_val(Ws[0](i, i)) =
+        bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm) - freq_offset;
   }
 }
 
@@ -415,11 +258,11 @@ void calculate(PropmatVectorView pm,
                const AtmPoint& atm,
                const zeeman::pol pol) {
   if (pol != zeeman::pol::no) {
-    for (auto& line : bnd) {
-      ARTS_USER_ERROR_IF(
-          line.z.active(),
-          "Zeeman effect and ECS in combination is not yet possible.")
-    }
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(
+            bnd, [](auto& zee) { return zee.active(); }, &line::z),
+        "Zeeman effect and ECS in combination is not yet possible.")
+    return;
   }
 
   ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
@@ -442,8 +285,13 @@ void calculate(PropmatVectorView pm,
     com_data.adapt(bnd_qid, bnd, rovib_data, atm);
   }
 
+  com_data.core_calc(f_grid);
+
   for (Index i = 0; i < f_grid.size(); ++i) {
-    pm[i] += zeeman::scale(com_data.npm, com_data.scl[i] * com_data.shape[i]);
+    pm[i] += zeeman::scale(
+        com_data.npm,
+        Constant::sqrt_ln_2 / Constant::sqrt_pi * atm[bnd_qid.Species()] *
+            atm[bnd_qid.Isotopologue()] * com_data.scl[i] * com_data.shape[i]);
   }
 }
 }  // namespace lbl::voigt::ecs

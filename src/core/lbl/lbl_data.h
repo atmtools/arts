@@ -126,7 +126,7 @@ struct line {
 
 ENUMCLASS(CutoffType, char, None, ByLine)
 
-ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE, VP_ECS)
+ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE, VP_ECS_MAKAROV)
 
 struct band_data {
   std::vector<line> lines{};

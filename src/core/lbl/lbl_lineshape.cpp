@@ -50,7 +50,7 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_ECS; },
+          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_ECS_MAKAROV; },
           &band::data))
     return std::make_unique<voigt::ecs::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -131,7 +131,7 @@ void calculate(PropmatVectorView pm,
       case Lineshape::VP_LINE_NLTE:
         calc_voigt_line_nlte(bnd_key, bnd, pol);
         break;
-      case Lineshape::VP_ECS:
+      case Lineshape::VP_ECS_MAKAROV:
         calc_voigt_ecs_linemixing(bnd_key, bnd, pol);
         break;
       case Lineshape::FINAL:

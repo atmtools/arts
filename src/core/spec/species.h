@@ -1,12 +1,16 @@
-#ifndef species_h
-#define species_h
+#pragma once
+
+#include <array.h>
+
+#include <algorithm>
+#include <string_view>
 
 #include "enums.h"
-#include "matpack_concepts.h"
 
 namespace Species {
 /** named species */
-ENUMCLASS(Species, unsigned char,
+ENUMCLASS(Species,
+          unsigned char,
           Bath,
           Water,
           CarbonDioxide,
@@ -117,388 +121,173 @@ ENUMCLASS(Species, unsigned char,
           icecloud,
           rain,
           free_electrons,
-          particles
-         )  // Species
+          particles)  // Species
+
+struct short_name {
+  std::string_view name;
+  Species species;
+
+  friend std::ostream& operator<<(std::ostream& os, const short_name& x);
+};
+
+enum class short_name_sort_by : bool { name, spec };
+
+constexpr std::array<short_name, static_cast<Size>(Species::FINAL)>
+short_name_species(short_name_sort_by Sort) noexcept {
+  auto x =
+      std::array{short_name{"AIR", Species::Bath},
+                 short_name{"H2O", Species::Water},
+                 short_name{"CO2", Species::CarbonDioxide},
+                 short_name{"O3", Species::Ozone},
+                 short_name{"N2O", Species::NitrogenOxide},
+                 short_name{"CO", Species::CarbonMonoxide},
+                 short_name{"CH4", Species::Methane},
+                 short_name{"O2", Species::Oxygen},
+                 short_name{"NO", Species::NitricOxide},
+                 short_name{"SO2", Species::SulfurDioxide},
+                 short_name{"NO2", Species::NitrogenDioxide},
+                 short_name{"NH3", Species::Ammonia},
+                 short_name{"HNO3", Species::NitricAcid},
+                 short_name{"OH", Species::Hydroxyl},
+                 short_name{"HF", Species::HydrogenFluoride},
+                 short_name{"HCl", Species::HydrogenChloride},
+                 short_name{"HBr", Species::HydrogenBromide},
+                 short_name{"HI", Species::HydrogenIodide},
+                 short_name{"ClO", Species::ChlorineMonoxide},
+                 short_name{"OCS", Species::CarbonylSulfide},
+                 short_name{"H2CO", Species::Formaldehyde},
+                 short_name{"HDCO", Species::HeavyFormaldehyde},
+                 short_name{"D2CO", Species::VeryHeavyFormaldehyde},
+                 short_name{"HOCl", Species::HypochlorousAcid},
+                 short_name{"N2", Species::Nitrogen},
+                 short_name{"HCN", Species::HydrogenCyanide},
+                 short_name{"CH3Cl", Species::Chloromethane},
+                 short_name{"H2O2", Species::HydrogenPeroxide},
+                 short_name{"C2H2", Species::Acetylene},
+                 short_name{"C2H6", Species::Ethane},
+                 short_name{"PH3", Species::Phosphine},
+                 short_name{"COF2", Species::CarbonylFluoride},
+                 short_name{"SF6", Species::SulfurHexafluoride},
+                 short_name{"H2S", Species::HydrogenSulfide},
+                 short_name{"HCOOH", Species::FormicAcid},
+                 short_name{"DCOOH", Species::LeftHeavyFormicAcid},
+                 short_name{"HCOOD", Species::RightHeavyFormicAcid},
+                 short_name{"HO2", Species::Hydroperoxyl},
+                 short_name{"O", Species::OxygenAtom},
+                 short_name{"ClONO2", Species::ChlorineNitrate},
+                 short_name{"NO+", Species::NitricOxideCation},
+                 short_name{"HOBr", Species::HypobromousAcid},
+                 short_name{"C2H4", Species::Ethylene},
+                 short_name{"CH3OH", Species::Methanol},
+                 short_name{"CH3Br", Species::Bromomethane},
+                 short_name{"CH3CN", Species::Acetonitrile},
+                 short_name{"CH2DCN", Species::HeavyAcetonitrile},
+                 short_name{"CF4", Species::CarbonTetrafluoride},
+                 short_name{"C4H2", Species::Diacetylene},
+                 short_name{"HC3N", Species::Cyanoacetylene},
+                 short_name{"H2", Species::Hydrogen},
+                 short_name{"CS", Species::CarbonMonosulfide},
+                 short_name{"SO3", Species::SulfurTrioxide},
+                 short_name{"C2N2", Species::Cyanogen},
+                 short_name{"COCl2", Species::Phosgene},
+                 short_name{"SO", Species::SulfurMonoxide},
+                 short_name{"CS2", Species::CarbonDisulfide},
+                 short_name{"CH3", Species::Methyl},
+                 short_name{"C3H4", Species::Cyclopropene},
+                 short_name{"H2SO4", Species::SulfuricAcid},
+                 short_name{"HNC", Species::HydrogenIsocyanide},
+                 short_name{"BrO", Species::BromineMonoxide},
+                 short_name{"OClO", Species::ChlorineDioxide},
+                 short_name{"C3H8", Species::Propane},
+                 short_name{"He", Species::Helium},
+                 short_name{"Cl2O2", Species::ChlorineMonoxideDimer},
+                 short_name{"H", Species::HydrogenAtom},
+                 short_name{"Ar", Species::Argon},
+                 short_name{"C2F6", Species::Hexafluoroethane},
+                 short_name{"C3F8", Species::Perfluoropropane},
+                 short_name{"C4F10", Species::Perfluorobutane},
+                 short_name{"C5F12", Species::Perfluoropentane},
+                 short_name{"C6F14", Species::Perfluorohexane},
+                 short_name{"C8F18", Species::Perfluorooctane},
+                 short_name{"cC4F8", Species::Perfluorocyclobutane},
+                 short_name{"CCl4", Species::CarbonTetrachloride},
+                 short_name{"CFC11", Species::CFC11},
+                 short_name{"CFC113", Species::CFC113},
+                 short_name{"CFC114", Species::CFC114},
+                 short_name{"CFC115", Species::CFC115},
+                 short_name{"CFC12", Species::CFC12},
+                 short_name{"CH2Cl2", Species::Dichloromethane},
+                 short_name{"CH3CCl3", Species::Trichloroethane},
+                 short_name{"CHCl3", Species::Trichloromethane},
+                 short_name{"Halon1211", Species::Bromochlorodifluoromethane},
+                 short_name{"Halon1301", Species::Bromotrifluoromethane},
+                 short_name{"Halon2402", Species::Dibromotetrafluoroethane},
+                 short_name{"HCFC141b", Species::HCFC141b},
+                 short_name{"HCFC142b", Species::HCFC142b},
+                 short_name{"HCFC22", Species::HCFC22},
+                 short_name{"HFC125", Species::HFC125},
+                 short_name{"HFC134a", Species::HFC134a},
+                 short_name{"HFC143a", Species::HFC143a},
+                 short_name{"HFC152a", Species::HFC152a},
+                 short_name{"HFC227ea", Species::HFC227ea},
+                 short_name{"HFC23", Species::HFC23},
+                 short_name{"HFC236fa", Species::HFC236fa},
+                 short_name{"HFC245fa", Species::HFC245fa},
+                 short_name{"HFC32", Species::HFC32},
+                 short_name{"HFC365mfc", Species::HFC365mfc},
+                 short_name{"NF3", Species::NitrogenTrifluoride},
+                 short_name{"SO2F2", Species::SulfurylFluoride},
+                 short_name{"HFC4310mee", Species::HFC4310mee},
+                 short_name{"GeH4", Species::Germane},
+                 short_name{"CH3I", Species::Iodomethane},
+                 short_name{"CH3F", Species::Fluoromethane},
+                 short_name{"liquidcloud", Species::liquidcloud},
+                 short_name{"icecloud", Species::icecloud},
+                 short_name{"rain", Species::rain},
+                 short_name{"free_electrons", Species::free_electrons},
+                 short_name{"particles", Species::particles}};
+
+
+    
+  if (Sort == short_name_sort_by::name) {
+    std::ranges::sort(x, {}, &short_name::name);
+  } else if (Sort == short_name_sort_by::spec) {
+    std::ranges::sort(x, {}, &short_name::species);
+  }
+  return x;
+};
+
+static constexpr auto short_names_spec =
+    short_name_species(short_name_sort_by::spec);
+static constexpr auto short_names_name =
+    short_name_species(short_name_sort_by::name);
+
+static_assert (std::ranges::adjacent_find(short_names_spec, {}, &short_name::species) ==
+               short_names_spec.end(), "Non-unique species enum in short-name set");
+
+static_assert (std::ranges::adjacent_find(short_names_name, {}, &short_name::name) ==
+               short_names_name.end(), "Non-unique species name in short-name set");
 
 constexpr std::string_view toShortName(Species x) noexcept {
-  switch (x) {
-    case Species::Bath:
-      return "AIR";
-    case Species::Water:
-      return "H2O";
-    case Species::CarbonDioxide:
-      return "CO2";
-    case Species::Ozone:
-      return "O3";
-    case Species::NitrogenOxide:
-      return "N2O";
-    case Species::CarbonMonoxide:
-      return "CO";
-    case Species::Methane:
-      return "CH4";
-    case Species::Oxygen:
-      return "O2";
-    case Species::NitricOxide:
-      return "NO";
-    case Species::SulfurDioxide:
-      return "SO2";
-    case Species::NitrogenDioxide:
-      return "NO2";
-    case Species::Ammonia:
-      return "NH3";
-    case Species::NitricAcid:
-      return "HNO3";
-    case Species::Hydroxyl:
-      return "OH";
-    case Species::HydrogenFluoride:
-      return "HF";
-    case Species::HydrogenChloride:
-      return "HCl";
-    case Species::HydrogenBromide:
-      return "HBr";
-    case Species::HydrogenIodide:
-      return "HI";
-    case Species::ChlorineMonoxide:
-      return "ClO";
-    case Species::CarbonylSulfide:
-      return "OCS";
-    case Species::Formaldehyde:
-      return "H2CO";
-    case Species::HeavyFormaldehyde:
-      return "HDCO";
-    case Species::VeryHeavyFormaldehyde:
-      return "D2CO";
-    case Species::HypochlorousAcid:
-      return "HOCl";
-    case Species::Nitrogen:
-      return "N2";
-    case Species::HydrogenCyanide:
-      return "HCN";
-    case Species::Chloromethane:
-      return "CH3Cl";
-    case Species::HydrogenPeroxide:
-      return "H2O2";
-    case Species::Acetylene:
-      return "C2H2";
-    case Species::Ethane:
-      return "C2H6";
-    case Species::Phosphine:
-      return "PH3";
-    case Species::CarbonylFluoride:
-      return "COF2";
-    case Species::SulfurHexafluoride:
-      return "SF6";
-    case Species::HydrogenSulfide:
-      return "H2S";
-    case Species::FormicAcid:
-      return "HCOOH";
-    case Species::LeftHeavyFormicAcid:
-      return "DCOOH";
-    case Species::RightHeavyFormicAcid:
-      return "HCOOD";
-    case Species::Hydroperoxyl:
-      return "HO2";
-    case Species::OxygenAtom:
-      return "O";
-    case Species::ChlorineNitrate:
-      return "ClONO2";
-    case Species::NitricOxideCation:
-      return "NO+";
-    case Species::HypobromousAcid:
-      return "HOBr";
-    case Species::Ethylene:
-      return "C2H4";
-    case Species::Methanol:
-      return "CH3OH";
-    case Species::Bromomethane:
-      return "CH3Br";
-    case Species::Acetonitrile:
-      return "CH3CN";
-    case Species::HeavyAcetonitrile:
-      return "CH2DCN";
-    case Species::CarbonTetrafluoride:
-      return "CF4";
-    case Species::Diacetylene:
-      return "C4H2";
-    case Species::Cyanoacetylene:
-      return "HC3N";
-    case Species::Hydrogen:
-      return "H2";
-    case Species::CarbonMonosulfide:
-      return "CS";
-    case Species::SulfurTrioxide:
-      return "SO3";
-    case Species::Cyanogen:
-      return "C2N2";
-    case Species::Phosgene:
-      return "COCl2";
-    case Species::SulfurMonoxide:
-      return "SO";
-    case Species::CarbonDisulfide:
-      return "CS2";
-    case Species::Methyl:
-      return "CH3";
-    case Species::Cyclopropene:
-      return "C3H4";
-    case Species::SulfuricAcid:
-      return "H2SO4";
-    case Species::HydrogenIsocyanide:
-      return "HNC";
-    case Species::BromineMonoxide:
-      return "BrO";
-    case Species::ChlorineDioxide:
-      return "OClO";
-    case Species::Propane:
-      return "C3H8";
-    case Species::Helium:
-      return "He";
-    case Species::ChlorineMonoxideDimer:
-      return "Cl2O2";
-    case Species::HydrogenAtom:
-      return "H";
-    case Species::Argon:
-      return "Ar";
-    case Species::Hexafluoroethane: return "C2F6";
-    case Species::Perfluoropropane: return "C3F8";
-    case Species::Perfluorobutane: return "C4F10";
-    case Species::Perfluoropentane: return "C5F12";
-    case Species::Perfluorohexane: return "C6F14";
-    case Species::Perfluorooctane: return "C8F18";
-    case Species::Perfluorocyclobutane: return "cC4F8";
-    case Species::CarbonTetrachloride: return "CCl4";
-    case Species::CFC11: return "CFC11";
-    case Species::CFC113: return "CFC113";
-    case Species::CFC114: return "CFC114";
-    case Species::CFC115: return "CFC115";
-    case Species::CFC12: return "CFC12";
-    case Species::Dichloromethane: return "CH2Cl2";
-    case Species::Trichloroethane: return "CH3CCl3";
-    case Species::Trichloromethane: return "CHCl3";
-    case Species::Bromochlorodifluoromethane: return "Halon1211";
-    case Species::Bromotrifluoromethane: return "Halon1301";
-    case Species::Dibromotetrafluoroethane: return "Halon2402";
-    case Species::HCFC141b: return "HCFC141b";
-    case Species::HCFC142b: return "HCFC142b";
-    case Species::HCFC22: return "HCFC22";
-    case Species::HFC125: return "HFC125";
-    case Species::HFC134a: return "HFC134a";
-    case Species::HFC143a: return "HFC143a";
-    case Species::HFC152a: return "HFC152a";
-    case Species::HFC227ea: return "HFC227ea";
-    case Species::HFC23: return "HFC23";
-    case Species::HFC236fa: return "HFC236fa";
-    case Species::HFC245fa: return "HFC245fa";
-    case Species::HFC32: return "HFC32";
-    case Species::HFC365mfc: return "HFC365mfc";
-    case Species::NitrogenTrifluoride: return "NF3";
-    case Species::SulfurylFluoride: return "SO2F2";
-    case Species::HFC4310mee: return "HFC4310mee";
-    case Species::Germane: return "GeH4";
-    case Species::Iodomethane: return "CH3I";
-    case Species::Fluoromethane: return "CH3F";
-    case Species::liquidcloud:
-      return "liquidcloud";
-    case Species::icecloud:
-      return "icecloud";
-    case Species::rain:
-      return "rain";
-    case Species::free_electrons:
-      return "free_electrons";
-    case Species::particles:
-      return "particles";
-    case Species::FINAL: { /* Leave last */
-    }
+  const auto* it =
+      std::ranges::lower_bound(short_names_spec, x, {}, &short_name::species);
+  if (it != short_names_spec.end() && it->species == x) {
+    return it->name;
   }
   return "InvalidSpecies";
 }
 
 constexpr Species fromShortName(const std::string_view x) noexcept {
-  if (x == "AIR") 
-    return Species::Bath;
-  if (x == "H2O")
-    return Species::Water;
-  if (x == "CO2")
-    return Species::CarbonDioxide;
-  if (x == "O3")
-    return Species::Ozone;
-  if (x == "N2O")
-    return Species::NitrogenOxide;
-  if (x == "CO")
-    return Species::CarbonMonoxide;
-  if (x == "CH4")
-    return Species::Methane;
-  if (x == "O2")
-    return Species::Oxygen;
-  if (x == "NO")
-    return Species::NitricOxide;
-  if (x == "SO2")
-    return Species::SulfurDioxide;
-  if (x == "NO2")
-    return Species::NitrogenDioxide;
-  if (x == "NH3")
-    return Species::Ammonia;
-  if (x == "HNO3")
-    return Species::NitricAcid;
-  if (x == "OH")
-    return Species::Hydroxyl;
-  if (x == "HF")
-    return Species::HydrogenFluoride;
-  if (x == "HCl")
-    return Species::HydrogenChloride;
-  if (x == "HBr")
-    return Species::HydrogenBromide;
-  if (x == "HI")
-    return Species::HydrogenIodide;
-  if (x == "ClO")
-    return Species::ChlorineMonoxide;
-  if (x == "OCS")
-    return Species::CarbonylSulfide;
-  if (x == "H2CO")
-    return Species::Formaldehyde;
-  if (x == "HDCO")
-    return Species::HeavyFormaldehyde;
-  if (x == "D2CO")
-    return Species::VeryHeavyFormaldehyde;
-  if (x == "HOCl")
-    return Species::HypochlorousAcid;
-  if (x == "N2")
-    return Species::Nitrogen;
-  if (x == "HCN")
-    return Species::HydrogenCyanide;
-  if (x == "CH3Cl")
-    return Species::Chloromethane;
-  if (x == "H2O2")
-    return Species::HydrogenPeroxide;
-  if (x == "C2H2")
-    return Species::Acetylene;
-  if (x == "C2H6")
-    return Species::Ethane;
-  if (x == "PH3")
-    return Species::Phosphine;
-  if (x == "COF2")
-    return Species::CarbonylFluoride;
-  if (x == "SF6")
-    return Species::SulfurHexafluoride;
-  if (x == "H2S")
-    return Species::HydrogenSulfide;
-  if (x == "HCOOH")
-    return Species::FormicAcid;
-  if (x == "DCOOH")
-    return Species::LeftHeavyFormicAcid;
-  if (x == "HCOOD")
-    return Species::RightHeavyFormicAcid;
-  if (x == "HO2")
-    return Species::Hydroperoxyl;
-  if (x == "O")
-    return Species::OxygenAtom;
-  if (x == "ClONO2")
-    return Species::ChlorineNitrate;
-  if (x == "NO+")
-    return Species::NitricOxideCation;
-  if (x == "HOBr")
-    return Species::HypobromousAcid;
-  if (x == "C2H4")
-    return Species::Ethylene;
-  if (x == "CH3OH")
-    return Species::Methanol;
-  if (x == "CH3Br")
-    return Species::Bromomethane;
-  if (x == "CH3CN")
-    return Species::Acetonitrile;
-  if (x == "CH2DCN")
-    return Species::HeavyAcetonitrile;
-  if (x == "CF4")
-    return Species::CarbonTetrafluoride;
-  if (x == "C4H2")
-    return Species::Diacetylene;
-  if (x == "HC3N")
-    return Species::Cyanoacetylene;
-  if (x == "H2")
-    return Species::Hydrogen;
-  if (x == "CS")
-    return Species::CarbonMonosulfide;
-  if (x == "SO3")
-    return Species::SulfurTrioxide;
-  if (x == "C2N2")
-    return Species::Cyanogen;
-  if (x == "COCl2")
-    return Species::Phosgene;
-  if (x == "SO")
-    return Species::SulfurMonoxide;
-  if (x == "CS2")
-    return Species::CarbonDisulfide;
-  if (x == "CH3")
-    return Species::Methyl;
-  if (x == "C3H4")
-    return Species::Cyclopropene;
-  if (x == "H2SO4")
-    return Species::SulfuricAcid;
-  if (x == "HNC")
-    return Species::HydrogenIsocyanide;
-  if (x == "BrO")
-    return Species::BromineMonoxide;
-  if (x == "OClO")
-    return Species::ChlorineDioxide;
-  if (x == "C3H8")
-    return Species::Propane;
-  if (x == "He")
-    return Species::Helium;
-  if (x == "Cl2O2")
-    return Species::ChlorineMonoxideDimer;
-  if (x == "H")
-    return Species::HydrogenAtom;
-  if (x == "Ar")
-    return Species::Argon;
-  if (x == "C2F6") return Species::Hexafluoroethane;
-  if (x == "C3F8") return Species::Perfluoropropane;
-  if (x == "C4F10") return Species::Perfluorobutane;
-  if (x == "C5F12") return Species::Perfluoropentane;
-  if (x == "C6F14") return Species::Perfluorohexane;
-  if (x == "C8F18") return Species::Perfluorooctane;
-  if (x == "cC4F8") return Species::Perfluorocyclobutane;
-  if (x == "CCl4") return Species::CarbonTetrachloride;
-  if (x == "CFC11") return Species::CFC11;
-  if (x == "CFC113") return Species::CFC113;
-  if (x == "CFC114") return Species::CFC114;
-  if (x == "CFC115") return Species::CFC115;
-  if (x == "CFC12") return Species::CFC12;
-  if (x == "CH2Cl2") return Species::Dichloromethane;
-  if (x == "CH3CCl3") return Species::Trichloroethane;
-  if (x == "CHCl3") return Species::Trichloromethane;
-  if (x == "Halon1211") return Species::Bromochlorodifluoromethane;
-  if (x == "Halon1301") return Species::Bromotrifluoromethane;
-  if (x == "Halon2402") return Species::Dibromotetrafluoroethane;
-  if (x == "HCFC141b") return Species::HCFC141b;
-  if (x == "HCFC142b") return Species::HCFC142b;
-  if (x == "HCFC22") return Species::HCFC22;
-  if (x == "HFC125") return Species::HFC125;
-  if (x == "HFC134a") return Species::HFC134a;
-  if (x == "HFC143a") return Species::HFC143a;
-  if (x == "HFC152a") return Species::HFC152a;
-  if (x == "HFC227ea") return Species::HFC227ea;
-  if (x == "HFC23") return Species::HFC23;
-  if (x == "HFC236fa") return Species::HFC236fa;
-  if (x == "HFC245fa") return Species::HFC245fa;
-  if (x == "HFC32") return Species::HFC32;
-  if (x == "HFC365mfc") return Species::HFC365mfc;
-  if (x == "NF3") return Species::NitrogenTrifluoride;
-  if (x == "SO2F2") return Species::SulfurylFluoride;
-  if (x == "HFC4310mee") return Species::HFC4310mee;
-  if (x == "GeH4") return Species::Germane;
-  if (x == "CH3I") return Species::Iodomethane;
-  if (x == "CH3F") return Species::Fluoromethane;
-  if (x == "liquidcloud")
-    return Species::liquidcloud;
-  if (x == "icecloud")
-    return Species::icecloud;
-  if (x == "rain")
-    return Species::rain;
-  if (x == "free_electrons")
-    return Species::free_electrons;
-  if (x == "particles")
-    return Species::particles;
+  const auto* it =
+      std::ranges::lower_bound(short_names_name, x, {}, &short_name::name);
+  if (it != short_names_name.end() && it->name == x) {
+    return it->species;
+  }
   return Species::FINAL;
 }
-} // namespace Species
 
-#endif  // species_h
+Species toSpeciesEnumOrThrow(const std::string_view x);
+}  // namespace Species
+
+using SpeciesEnum = Species::Species;
+using ArrayOfSpecies = Array<SpeciesEnum>;
