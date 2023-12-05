@@ -1,7 +1,7 @@
+#include <wigner_functions.h>
+
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
-
-#include <wigner_functions.h>
 
 namespace lbl::voigt::ecs::makarov {
 #if DO_FAST_WIGNER
@@ -98,6 +98,10 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const Vector& dipr,
                                    const AtmPoint& atm) {
   using Conversion::kelvin2joule;
+
+  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66", "Bad isotopologue.")
+
+  if (bnd.size() == 0) return;
 
   const auto bk = [](const Rational& r) -> Numeric { return sqrt(2 * r + 1); };
 
@@ -214,4 +218,4 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
     }
   }
 }
-} // namespace lbl::voigt::ecs::makarov
+}  // namespace lbl::voigt::ecs::makarov

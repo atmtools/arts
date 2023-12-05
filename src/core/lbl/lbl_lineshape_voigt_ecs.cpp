@@ -40,6 +40,23 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const AtmPoint& atm);
 }  // namespace makarov
 
+namespace hartmann {
+Numeric reduced_dipole(const Rational Jf,
+                       const Rational Ji,
+                       const Rational lf,
+                       const Rational li,
+                       const Rational k = 1);
+
+void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
+                                   const QuantumIdentifier& bnd_qid,
+                                   const band_data& bnd,
+                                   const ArrayOfIndex& sorting,
+                                   const Species::Species broadening_species,
+                                   const linemixing::species_data& rovib_data,
+                                   const Vector& dipr,
+                                   const AtmPoint& atm);
+}  // namespace hartmann
+
 ComputeData::ComputeData(const ExhaustiveConstVectorView& f_grid,
                          const AtmPoint& atm,
                          const Vector2& los,
@@ -179,6 +196,11 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
       auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
       dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& l2 = bnd_qid.val[QuantumNumberType::l2];
+      dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
     }
   }
 
@@ -227,8 +249,15 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
-    makarov::relaxation_matrix_offdiagonal(
-        Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+      makarov::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+      hartmann::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else {
+      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE ", bnd.lineshape)
+    }
 
     for (Size ir = 0; ir < n; ir++) {
       for (Size ic = 0; ic < n; ic++) {
@@ -267,8 +296,6 @@ void calculate(PropmatVectorView pm,
 
   ARTS_USER_ERROR_IF(jacobian_targets.target_count() > 0,
                      "No Jacobian support.")
-
-  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66", "Bad isotopologue.")
 
   if (bnd.size() == 0) return;
 

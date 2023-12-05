@@ -50,7 +50,8 @@ struct line {
   */
   [[nodiscard]] Numeric s(Numeric T, Numeric Q) const noexcept;
 
-  [[nodiscard]] constexpr Numeric nlte_k(Numeric ru, Numeric rl) const noexcept {
+  [[nodiscard]] constexpr Numeric nlte_k(Numeric ru,
+                                         Numeric rl) const noexcept {
     return (rl * gu / gl - ru) * a / Math::pow3(f0);
   }
 
@@ -59,20 +60,16 @@ struct line {
   }
 
   [[nodiscard]] constexpr Numeric dnlte_k_dru() const noexcept {
-    return - a / Math::pow3(f0);
+    return -a / Math::pow3(f0);
   }
 
   [[nodiscard]] constexpr Numeric nlte_e(Numeric ru) const noexcept {
     return ru * a;
   }
 
-  [[nodiscard]] constexpr Numeric dnlte_e_dru() const noexcept {
-    return a;
-  }
+  [[nodiscard]] constexpr Numeric dnlte_e_dru() const noexcept { return a; }
 
-  [[nodiscard]] static constexpr Numeric dnlte_e_drl() noexcept {
-    return 0;
-  }
+  [[nodiscard]] static constexpr Numeric dnlte_e_drl() noexcept { return 0; }
 
   /*! Derivative of s(T, Q) wrt to this->e0
 
@@ -126,7 +123,8 @@ struct line {
 
 ENUMCLASS(CutoffType, char, None, ByLine)
 
-ENUMCLASS(Lineshape, char, VP_LTE, VP_LINE_NLTE, VP_ECS_MAKAROV)
+ENUMCLASS(
+    Lineshape, char, VP_LTE, VP_LINE_NLTE, VP_ECS_MAKAROV, VP_ECS_HARTMANN)
 
 struct band_data {
   std::vector<line> lines{};
@@ -175,7 +173,7 @@ struct band_data {
   [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(
       Numeric f0, Numeric f1) const;
 
-[[nodiscard]] Rational max(QuantumNumberType) const;
+  [[nodiscard]] Rational max(QuantumNumberType) const;
 
   friend std::ostream& operator<<(std::ostream& os, const band_data& x);
 };

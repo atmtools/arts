@@ -1,6 +1,7 @@
 #include "array.h"
 
 #include <string_view>
+#include <utility>
 
 namespace std {
 std::ostream& operator<<(std::ostream& os, const ArrayOfIndex& x) {

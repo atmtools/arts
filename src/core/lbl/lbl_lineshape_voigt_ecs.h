@@ -18,7 +18,7 @@ struct ComputeData {
 
   Vector pop{};         //! Size of line shapes
   Vector dip{};         //! Size of line shapes
-  Vector dipr{};         //! Size of line shapes
+  Vector dipr{};        //! Size of line shapes
   ArrayOfIndex sort{};  //! Size of line shapes
   Matrix Wimag{};       //! Size of line shapes
 

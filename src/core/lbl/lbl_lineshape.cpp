@@ -2,9 +2,7 @@
 
 #include <algorithm>
 #include <memory>
-#include <ranges>
 
-#include "artstime.h"
 #include "debug.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
@@ -50,7 +48,10 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_ECS_MAKAROV; },
+          [](auto& bnd) {
+            return bnd.lineshape == Lineshape::VP_ECS_MAKAROV or
+                   bnd.lineshape == Lineshape::VP_ECS_HARTMANN;
+          },
           &band::data))
     return std::make_unique<voigt::ecs::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -132,6 +133,8 @@ void calculate(PropmatVectorView pm,
         calc_voigt_line_nlte(bnd_key, bnd, pol);
         break;
       case Lineshape::VP_ECS_MAKAROV:
+        [[fallthrough]];
+      case Lineshape::VP_ECS_HARTMANN:
         calc_voigt_ecs_linemixing(bnd_key, bnd, pol);
         break;
       case Lineshape::FINAL:
