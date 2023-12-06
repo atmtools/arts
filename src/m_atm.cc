@@ -61,8 +61,7 @@ void atm_fieldInit(AtmField &atm_field,
   }
 }
 
-void atm_pointInit(AtmPoint& atm_point,
-                   const String &default_isotopologue) {
+void atm_pointInit(AtmPoint &atm_point, const String &default_isotopologue) {
   atm_point = AtmPoint{};
 
   switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
@@ -496,7 +495,7 @@ struct atm_fieldHydrostaticPressureData {
                                      false,
                                      my_interp::GridType::Cyclic,
                                      my_interp::cycle_m180_p180>;
-  
+
   template <atm_fieldHydrostaticPressureDataOptions X>
   static constexpr bool is = std::ranges::any_of(opts, Cmp::eq(X));
 
@@ -564,7 +563,10 @@ struct atm_fieldHydrostaticPressureData {
   }
 };
 
-ENUMCLASS(HydrostaticPressureOption, char, HydrostaticEquation, HypsometricEquation)
+ENUMCLASS(HydrostaticPressureOption,
+          char,
+          HydrostaticEquation,
+          HypsometricEquation)
 
 void atm_fieldHydrostaticPressure(
     AtmField &atm_field,
@@ -578,8 +580,8 @@ void atm_fieldHydrostaticPressure(
   using enum atm_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
-  const Vector& lats = p0.get_numeric_grid(0);
-  const Vector& lons = p0.get_numeric_grid(1);
+  const Vector &lats = p0.get_numeric_grid(0);
+  const Vector &lons = p0.get_numeric_grid(1);
 
   const Index nalt = alts.size();
   const Index nlat = lats.size();
@@ -619,21 +621,18 @@ void atm_fieldHydrostaticPressure(
           const Numeric g = gravity_operator(al, la, lo);
           const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
 
-          // const Numeric inv_specific_gas_constant =
-          //     has_def_r
-          //         ? 1.0 / fixed_specific_gas_constant
-          //         : (1e-3 * atm_point.mean_mass(isotopologue_ratios) /
-          //            Constant::R);
-          const Numeric inv_temp = has_def_t
-                                       ? 1.0 / fixed_atm_temperature
-                                       : 1.0 / atm_point.temperature;
+          const Numeric inv_specific_gas_constant =
+              has_def_r ? 1.0 / fixed_specific_gas_constant
+                        : (1e-3 * atm_point.mean_mass() / Constant::R);
+          const Numeric inv_temp = has_def_t ? 1.0 / fixed_atm_temperature
+                                             : 1.0 / atm_point.temperature;
 
           // Partial rho, no pressure
-          // scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
+          scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
         }
       }
     }
-    
+
     return scl;
   }();
 
@@ -660,16 +659,16 @@ void atm_fieldHydrostaticPressure(
 
     case HydrostaticEquation:
       if (nlon > 1 and nlat > 1) {
-        atm_field[Atm::Key::p] =
-            Atm::FunctionalData{atm_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
+        atm_field[Atm::Key::p] = Atm::FunctionalData{
+            atm_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
                 scale_factor, p0, alts)};
       } else if (nlat > 1) {
-        atm_field[Atm::Key::p] =
-            Atm::FunctionalData{atm_fieldHydrostaticPressureData<Hydrostatic, Lat>(
+        atm_field[Atm::Key::p] = Atm::FunctionalData{
+            atm_fieldHydrostaticPressureData<Hydrostatic, Lat>(
                 scale_factor, p0, alts)};
       } else if (nlon > 1) {
-        atm_field[Atm::Key::p] =
-            Atm::FunctionalData{atm_fieldHydrostaticPressureData<Hydrostatic, Lon>(
+        atm_field[Atm::Key::p] = Atm::FunctionalData{
+            atm_fieldHydrostaticPressureData<Hydrostatic, Lon>(
                 scale_factor, p0, alts)};
       } else {
         atm_field[Atm::Key::p] =

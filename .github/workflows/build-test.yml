@@ -93,7 +93,7 @@ jobs:
             buildtype: "RelWithDebInfo"
 
           - name: macos-gcc-12
-            os: macos-11
+            os: macos-latest
             compiler: gcc
             version: "12"
             doc: "no"
@@ -105,7 +105,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-clang-16
-            os: macos-11
+            os: macos-latest
             compiler: clang
             version: "16"
             doc: "no"

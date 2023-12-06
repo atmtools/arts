@@ -539,6 +539,29 @@ void ecs_dataAddRodrigues1997(MapOfErrorCorrectedSuddenData& ecs_data,
   }
 }
 
+void ecs_dataAddRodrigues1997NEWNEW(LinemixingEcsData& ecs_data) {
+  using enum lbl::temperature::model_type;
+  using data = lbl::temperature::data;
+
+  for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
+    auto& ecs = ecs_data[SpeciesIsotopeRecord(key)];
+
+    ecs[Species::Species::Nitrogen].scaling =
+        data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85});
+    ecs[Species::Species::Nitrogen].lambda = data(T1, {.81, 0.0152});
+    ecs[Species::Species::Nitrogen].beta = data(T0, {.008});
+    ecs[Species::Species::Nitrogen].collisional_distance =
+        data(T0, {Conversion::angstrom2meter(2.2)});
+
+    ecs[Species::Species::Oxygen].scaling =
+        data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0168), 0.5});
+    ecs[Species::Species::Oxygen].lambda = data(T1, {.82, -0.091});
+    ecs[Species::Species::Oxygen].beta = data(T0, {.007});
+    ecs[Species::Species::Oxygen].collisional_distance =
+        data(T0, {Conversion::angstrom2meter(2.4)});
+  }
+}
+
 void ecs_dataAddTran2006(MapOfErrorCorrectedSuddenData& ecs_data,
                          const AtmField& isotopologue_ratios) {
   ARTS_ASSERT(false, "Fix isotopologues")
@@ -603,5 +626,21 @@ void ecs_dataAddTran2011(MapOfErrorCorrectedSuddenData& ecs_data,
                                  0);
     // ecs[Species::Species::CarbonDioxide].mass = Species::mean_mass(
     //     Species::Species::CarbonDioxide, isotopologue_ratios);
+  }
+}
+
+void ecs_dataAddTran2011NEWNEW(LinemixingEcsData& ecs_data) {
+  using enum lbl::temperature::model_type;
+  using data = lbl::temperature::data;
+
+  for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
+    auto& ecs = ecs_data[SpeciesIsotopeRecord(key)];
+
+    ecs[Species::Species::CarbonDioxide].scaling =
+        data(T0, {Conversion::kaycm_per_atm2hz_per_pa(0.019)});
+    ecs[Species::Species::CarbonDioxide].lambda = data(T0, {0.61});
+    ecs[Species::Species::CarbonDioxide].beta = data(T0, {0.052});
+    ecs[Species::Species::CarbonDioxide].collisional_distance =
+        data(T0, {Conversion::angstrom2meter(5.5)});
   }
 }

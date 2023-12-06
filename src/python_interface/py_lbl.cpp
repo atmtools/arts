@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "py_macros.h"
+#include "quantum_numbers.h"
 
 namespace Python {
 void py_lbl(py::module_& m) try {
@@ -133,7 +134,7 @@ void py_lbl(py::module_& m) try {
                      &AbsorptionBand::data,
                      ":class:`~pyarts.arts.AbsorptionBandData`")
       .def_readwrite("key",
-                     &AbsorptionBand::data,
+                     &AbsorptionBand::key,
                      ":class:`~pyarts.arts.QuantumIdentifier`")
       .PythonInterfaceWorkspaceDocumentation(AbsorptionBand);
 
@@ -144,6 +145,20 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionBands)
       .PythonInterfaceBasicRepresentation(AbsorptionBands)
       .PythonInterfaceFileIO(AbsorptionBands)
+      .def(
+          "__getitem__",
+          [](AbsorptionBands& x,
+             const QuantumIdentifier& key) -> std::shared_ptr<lbl::band_data> {
+            for (auto& v : x) {
+              if (v.key == key) {
+                return {&v.data, [](void*) {}};
+              }
+            }
+            return std::make_shared<lbl::band_data>();
+          },
+          py::return_value_policy::reference_internal,
+          py::keep_alive<0, 1>(),
+          ":class:`~pyarts.arts.AbsorptionBandData`")
       .PythonInterfaceWorkspaceDocumentation(AbsorptionBands);
 
   artsclass<LinemixingEcsData>(m, "LinemixingEcsData")

@@ -2,11 +2,17 @@
 #include <lbl.h>
 #include <partfun.h>
 
+#include <algorithm>
+#include <cmath>
 #include <exception>
+#include <ranges>
+#include <span>
 #include <stdexcept>
 
 #include "arts_omp.h"
+#include "configtypes.h"
 #include "debug.h"
+#include "enums.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "matpack_view.h"
@@ -227,24 +233,93 @@ void absorption_bandsRemoveID(AbsorptionBands& absorption_bands,
   ARTS_USER_ERROR("Did not find band of ID: ", id)
 }
 
+ENUMCLASS(SortingOption, char, IntegratedIntensity, FrontFrequency, None)
+
+void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
+                                     const AbsorptionBands& absorption_bands,
+                                     const String& criteria,
+                                     const Index& reverse) {
+  struct order {
+    QuantumIdentifier qid;
+    Numeric value;
+    Index idx;
+  };
+
+  std::vector<order> qid_sorter;
+  qid_sorter.reserve(absorption_bands.size());
+
+  const auto sort_opt = toSortingOptionOrThrow(criteria);
+
+  for (auto& [key, band] : absorption_bands) {
+    auto& v = qid_sorter.emplace_back(key, 0.0, qid_sorter.size()).value;
+
+    switch (sort_opt) {
+      case SortingOption::IntegratedIntensity:
+        v = std::transform_reduce(
+            band.lines.begin(),
+            band.lines.end(),
+            Numeric{0},
+            std::plus<>{},
+            [T = 296., ir = key.Isotopologue()](const lbl::line& l) {
+              return - l.f0 * std::expm1(-Constant::h * l.f0 / (Constant::k * T)) * l.s(T, 1);
+            });
+        break;
+      case SortingOption::FrontFrequency:
+        if (band.size()) v = band.lines.front().f0;
+        break;
+      case SortingOption::None:
+        break;
+      case SortingOption::FINAL:;
+    }
+  }
+
+  std::ranges::sort(qid_sorter, {}, &order::qid);
+  
+  Size i = 0;
+  while (i < qid_sorter.size()) {
+    auto [first, last] = std::ranges::equal_range(
+        qid_sorter | std::views::drop(i),
+        qid_sorter[i],
+        [](const auto& p1, const auto& p2) {
+          return p1.qid.isotopologue_index < p2.qid.isotopologue_index;
+        });
+
+    auto span = std::span{first, last};
+    i += span.size();
+
+    if (reverse) {
+      std::ranges::sort(span | std::views::reverse, {}, &order::value);
+    } else {
+      std::ranges::sort(span, {}, &order::value);
+    }
+  }
+
+  sorted_idxs.resize(0);
+  sorted_idxs.reserve(qid_sorter.size());
+  for (auto& [qid, value, idx] : qid_sorter) sorted_idxs.push_back(idx);
+}
+
 void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
                             const QuantumIdentifier& id,
                             const Index& line) {
-  for (Size i = 0; i < absorption_bands.size(); i++) {
-    if (id == absorption_bands[i].key) {
-      absorption_bands = {absorption_bands[i]};
+  for (auto& [key, band] : absorption_bands) {
+    if (id == key) {
+      absorption_bands = {{key, band}};
 
       if (line >= 0) {
-        ARTS_USER_ERROR_IF(
-            static_cast<Size>(line) >= absorption_bands[0].data.lines.size(),
-            "Line index out of range: ",
-            line)
-        absorption_bands[0].data.lines = {absorption_bands[0].data.lines[line]};
+        ARTS_USER_ERROR_IF(static_cast<Size>(line) >=
+                               absorption_bands.front().data.lines.size(),
+                           "Line index out of range: ",
+                           line)
+        absorption_bands[0].data.lines = {
+            absorption_bands.front().data.lines[line]};
       }
 
       return;
     }
   }
+
+  absorption_bands = {};
 }
 
 void propmat_clearskyAddLines2(PropmatVector& pm,

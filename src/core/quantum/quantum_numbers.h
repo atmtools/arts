@@ -63,7 +63,7 @@ struct StringValue {
   }
 
   constexpr std::strong_ordering operator<=>(const StringValue& sv) const {
-    for (std::size_t i=0; i<N; i++) {
+    for (std::size_t i = 0; i < N; i++) {
       if (x[i] < sv.x[i]) return std::strong_ordering::less;
       if (sv.x[i] < x[i]) return std::strong_ordering::greater;
     }
@@ -78,7 +78,9 @@ struct IntegerValue {
   //! Returns the value as a rational
   [[nodiscard]] constexpr Rational val() const noexcept { return x; }
 
-  constexpr std::strong_ordering operator<=>(const IntegerValue& i) const {return x<=> i.x;}
+  constexpr std::strong_ordering operator<=>(const IntegerValue& i) const {
+    return x <=> i.x;
+  }
 };
 
 //! Holds half integer values, but only its denominator
@@ -90,7 +92,9 @@ struct HalfIntegerValue {
     return Rational(x, 2);
   }
 
-  constexpr std::strong_ordering operator<=>(const HalfIntegerValue& h) const {return x<=> h.x;}
+  constexpr std::strong_ordering operator<=>(const HalfIntegerValue& h) const {
+    return x <=> h.x;
+  }
 };
 
 //! Three tags, S: str, I: index, H: half-index
@@ -99,7 +103,7 @@ ENUMCLASS(ValueType, char, S, I, H)
 //! Different types of quantum numbers according to VAMDC with some unbounded counted up to 12 times
 ENUMCLASS(Type,
           char,
-          alpha,  // FIXME: Not in VAMDC
+          alpha,   // FIXME: Not in VAMDC
           config,  // FIXME: Not in VAMDC
           ElecStateLabel,
           F,
@@ -151,7 +155,7 @@ ENUMCLASS(Type,
           rotSym,
           rovibSym,
           sym,
-          tau,  // FIXME: Not in VAMDC
+          tau,   // FIXME: Not in VAMDC
           term,  // FIXME: Not in VAMDC
           v,
           v1,
@@ -393,7 +397,8 @@ struct ValueDescription {
   friend std::ostream& operator<<(std::ostream& os, ValueDescription x);
 };
 
-constexpr std::strong_ordering cmp(std::strong_ordering&& a, std::strong_ordering&& b) {
+constexpr std::strong_ordering cmp(std::strong_ordering&& a,
+                                   std::strong_ordering&& b) {
   return a == std::strong_ordering::equal ? b : a;
 }
 
@@ -433,18 +438,22 @@ struct TwoLevelValueHolder {
   constexpr TwoLevelValueHolder(Type t) noexcept : upp(t), low(t) {}
   constexpr TwoLevelValueHolder(const TwoLevelValueHolder&) = default;
   constexpr TwoLevelValueHolder(TwoLevelValueHolder&&) noexcept = default;
-  constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) = default;
-  constexpr TwoLevelValueHolder& operator=(TwoLevelValueHolder&&) noexcept = default;
+  constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) =
+      default;
+  constexpr TwoLevelValueHolder& operator=(TwoLevelValueHolder&&) noexcept =
+      default;
 
-  [[nodiscard]] constexpr std::strong_ordering order(const TwoLevelValueHolder& tv, ValueType t) const {
+  [[nodiscard]] constexpr std::strong_ordering order(
+      const TwoLevelValueHolder& tv, ValueType t) const {
     switch (t) {
-    case ValueType::S:
-      return cmp(upp.s <=> tv.upp.s, low.s <=> tv.low.s);
-    case ValueType::I:
-      return cmp(upp.i <=> tv.upp.i, low.i <=> tv.low.i);
-    case ValueType::H:
-      return cmp(upp.h <=> tv.upp.h, low.h <=> tv.low.h);
-    case ValueType::FINAL: break;
+      case ValueType::S:
+        return cmp(upp.s <=> tv.upp.s, low.s <=> tv.low.s);
+      case ValueType::I:
+        return cmp(upp.i <=> tv.upp.i, low.i <=> tv.low.i);
+      case ValueType::H:
+        return cmp(upp.h <=> tv.upp.h, low.h <=> tv.low.h);
+      case ValueType::FINAL:
+        break;
     }
     return std::strong_ordering::equal;
   }
@@ -466,7 +475,7 @@ struct TwoLevelValueHolder {
     x.val.h.x = r.numer;
     return x;
   }
-  
+
   if (r.denom == 1) {
     ValueDescription x{ValueType::I};
     x.val.i.x = r.numer;
@@ -494,7 +503,7 @@ struct TwoLevelValueHolder {
 [[nodiscard]] constexpr Rational cast_qnrat(std::string_view s) noexcept {
   // Counts for divides, decimals, and existence
   int div = 0, dot = 0, any = 0, minus = false;
-  std::size_t const n = s.size();
+  const std::size_t n = s.size();
 
   // Counts relevant items
   for (std::size_t i = 0; i < n; i++) {
@@ -587,7 +596,7 @@ struct TwoLevelValueHolder {
 [[nodiscard]] constexpr ValueDescription value_holder(std::string_view s,
                                                       Type t) {
   switch (common_value_type(t)) {
-    case ValueType::I: 
+    case ValueType::I:
     case ValueType::H: {
       const Rational r = cast_qnrat(s);
       return value_holder(r);
@@ -600,7 +609,7 @@ struct TwoLevelValueHolder {
     case ValueType::FINAL: {
     }
   }
-  
+
   return ValueType::FINAL;
 }
 
@@ -723,7 +732,7 @@ struct Value {
     return qn.order(v.qn, common_value_type(type));
   }
 
-  constexpr Value(Type t=Type::FINAL) : type(t), qn(type) {}
+  constexpr Value(Type t = Type::FINAL) : type(t), qn(type) {}
   Value(const Value&) = default;
   Value(Value&&) noexcept = default;
   Value& operator=(const Value&) = default;
@@ -843,7 +852,7 @@ struct Value {
 
   bifstream& read(bifstream& bif);
 
-  [[nodiscard]] constexpr bool good() const {return level_match(*this);}
+  [[nodiscard]] constexpr bool good() const { return level_match(*this); }
 };
 
 //! Status of comparing two lists that are supposedly of some type
@@ -911,14 +920,7 @@ class ValueList {
   //! From legacy text
   ValueList(std::string_view upp, std::string_view low);
 
-  std::strong_ordering operator<=>(const ValueList& v) const {
-    const std::size_t n = std::min(values.size(), v.values.size());
-    for (std::size_t i=0; i<n; i++) {
-      if (values[i] < v.values[i]) return std::strong_ordering::less;
-      if (v.values[i] < values[i]) return std::strong_ordering::greater;
-    }
-    return values.size() <=> v.values.size();
-  }
+  std::strong_ordering operator<=>(const ValueList& v) const;
 
   //! From values (resorted)
   explicit ValueList(Array<Value> values_) : values(std::move(values_)) {
@@ -990,7 +992,8 @@ class ValueList {
   void set(Index i, std::string_view upp, std::string_view low);
 
   //! Returns upper and lower matching status
-  [[nodiscard]] CheckMatch check_match(const ValueList& other) const ARTS_NOEXCEPT;
+  [[nodiscard]] CheckMatch check_match(const ValueList& other) const
+      ARTS_NOEXCEPT;
 
   //! ouptut stream if all values
   friend std::ostream& operator<<(std::ostream& os, const ValueList& vl);
@@ -1013,8 +1016,12 @@ struct LocalState {
   std::strong_ordering operator<=>(const LocalState& l) const {
     return val <=> l.val;
   }
-  auto operator==(const LocalState& l) const {return std::strong_ordering::equal == (*this <=> l);}
-  auto operator!=(const LocalState& l) const {return std::strong_ordering::equal != (*this <=> l);}
+  auto operator==(const LocalState& l) const {
+    return std::strong_ordering::equal == (*this <=> l);
+  }
+  auto operator!=(const LocalState& l) const {
+    return std::strong_ordering::equal != (*this <=> l);
+  }
 
   LocalState() = default;
 
@@ -1039,7 +1046,9 @@ struct LocalState {
   [[nodiscard]] bool good() const;
 };
 
-struct LevelTest {bool upp{true}, low{true};};
+struct LevelTest {
+  bool upp{true}, low{true};
+};
 
 //! A logical struct for global quantum numbers with species identifiers
 struct GlobalState {
@@ -1069,12 +1078,18 @@ struct GlobalState {
   [[nodiscard]] GlobalState UpperLevel() const;
 
   std::strong_ordering operator<=>(const GlobalState& g) const {
-    if (isotopologue_index < g.isotopologue_index) return std::strong_ordering::less;
-    if (g.isotopologue_index < isotopologue_index) return std::strong_ordering::greater;
+    if (isotopologue_index < g.isotopologue_index)
+      return std::strong_ordering::less;
+    if (g.isotopologue_index < isotopologue_index)
+      return std::strong_ordering::greater;
     return val <=> g.val;
   }
-  auto operator==(const GlobalState& g) const {return std::strong_ordering::equal == (*this <=> g);}
-  auto operator!=(const GlobalState& g) const {return std::strong_ordering::equal != (*this <=> g);}
+  auto operator==(const GlobalState& g) const {
+    return std::strong_ordering::equal == (*this <=> g);
+  }
+  auto operator!=(const GlobalState& g) const {
+    return std::strong_ordering::equal != (*this <=> g);
+  }
 
   //! Checks whether all of the LHS is part of RHS
   [[nodiscard]] bool part_of(const GlobalState& other) const;
@@ -1083,7 +1098,8 @@ struct GlobalState {
   [[nodiscard]] bool may_be(const GlobalState& other) const;
 
   //! Checks whether all of the LHS is part of any of the RHS
-  [[nodiscard]] LevelTest part_of(const GlobalState& g, const LocalState& l) const;
+  [[nodiscard]] LevelTest part_of(const GlobalState& g,
+                                  const LocalState& l) const;
 
   //! Test if there are bad quantum numbers (undefined ones) or if the isotopologue is not a normal target
   [[nodiscard]] bool good() const;
@@ -1110,7 +1126,9 @@ struct StateMatch {
     return x == type;
   }
 
-  constexpr bool operator!=(StateMatchType x) const noexcept { return not((*this) == x); }
+  constexpr bool operator!=(StateMatchType x) const noexcept {
+    return not((*this) == x);
+  }
 };
 
 //! VAMDC classes of quantum number cases
@@ -1197,19 +1215,21 @@ using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
 
 namespace std {
 //! Allow Quantum::Number::TwoLevelValueHolder to be used in hashes
-template <> struct hash<Quantum::Number::TwoLevelValueHolder> {
-  std::size_t operator()(const Quantum::Number::TwoLevelValueHolder &g) const {
+template <>
+struct hash<Quantum::Number::TwoLevelValueHolder> {
+  std::size_t operator()(const Quantum::Number::TwoLevelValueHolder& g) const {
     return std::hash<std::string_view>{}(g.upp.s.val()) ^
            (std::hash<std::string_view>{}(g.low.s.val()) << 1);
   }
 };
 
 //! Allow QuantumNumberValueList to be used in hashes
-template <> struct hash<QuantumNumberValueList> {
-  std::size_t operator()(const QuantumNumberValueList &g) const {
+template <>
+struct hash<QuantumNumberValueList> {
+  std::size_t operator()(const QuantumNumberValueList& g) const {
     std::size_t out = 0;
     std::size_t i = 1;
-    for (auto &x : g) {
+    for (auto& x : g) {
       out ^= (std::hash<Quantum::Number::Type>{}(x.type) ^
               (std::hash<Quantum::Number::TwoLevelValueHolder>{}(x.qn) << 1))
              << i;
@@ -1221,18 +1241,19 @@ template <> struct hash<QuantumNumberValueList> {
 
 //! Allow QuantumNumberLocalState to be used in hashes
 struct LocalStateHash {
-  std::size_t operator()(const QuantumNumberLocalState &g) const {
+  std::size_t operator()(const QuantumNumberLocalState& g) const {
     return std::hash<QuantumNumberValueList>{}(g.val);
   }
 };
 
 //! Allow QuantumIdentifier to be used in hashes
-template <> struct hash<QuantumIdentifier> {
-  std::size_t operator()(const QuantumIdentifier &g) const {
+template <>
+struct hash<QuantumIdentifier> {
+  std::size_t operator()(const QuantumIdentifier& g) const {
     return static_cast<std::size_t>(g.isotopologue_index) ^
            (std::hash<QuantumNumberValueList>{}(g.val) << 1);
   }
 };
-} // namespace std
+}  // namespace std
 
 #endif  // quantun_numbers_h

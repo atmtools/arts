@@ -8072,9 +8072,27 @@ interpolations in the zenith angle dimension.
 )--",
       .author = {"Richard Larsson"},
       .out = {"ecs_data2"},
-
       .in = {"ecs_data2"},
+  };
 
+  wsm_data["ecs_dataAddTran2011NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
+
+Sets CO2 species
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+      .in = {"ecs_data2"},
+  };
+
+  wsm_data["ecs_dataAddRodrigues1997NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
+
+Sets N2 and O2 speces
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+      .in = {"ecs_data2"},
   };
 
   wsm_data["ecs_dataAddMeanAir"] = WorkspaceMethodInternalRecord{
@@ -15656,6 +15674,26 @@ If ``line`` is positive, also keep only the line of this index
       .gin_type = {"QuantumIdentifier", "Index"},
       .gin_value = {std::nullopt, Index{-1}},
       .gin_desc = {"Band to keep", "Line to keep (if positive)"}};
+
+  wsm_data["SortedQuantumIdentifiersOfBands"] = {
+      .desc = R"--(Get the sorting of the bands by first quantum identifier then some ``criteria``
+
+The reverse sorting can also be achieved by setting ``reverse``.
+
+Valid ``criteria`` are:
+- None: No sorting after the quantum identifier sorting
+- IntegratedIntensity: Sum of the intesities of the band at 296 K
+- FrontFrequency: By first frequency
+)--",
+      .author = {"Richard Larsson"},
+      .gout={"sorted_idxs"},
+      .gout_type={"ArrayOfIndex"},
+      .gout_desc={"Sorted band indices (of *absorption_bands*)"},
+      .in = {"absorption_bands"},
+      .gin = {"criteria", "reverse"},
+      .gin_type = {"String", "Index"},
+      .gin_value = {String{"None"}, Index{0}},
+      .gin_desc = {"Internal sorting criteria", "Sort in reverse order if true"}};
 
   return wsm_data;
 }

@@ -4,7 +4,6 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
-#include <numeric>
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"

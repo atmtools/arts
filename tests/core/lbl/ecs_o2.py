@@ -8,7 +8,6 @@ ws.abs_speciesSet(species=["O2-66"])
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
-il = 95
 
 ws.absorption_bandsFromAbsorbtionLines()
 ws.absorption_bandsSelectFrequency(fmax=120e9)
