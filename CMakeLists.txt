@@ -130,6 +130,8 @@ find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 include (CheckPythonModule)
 check_python_modules()
 
+find_package(pybind11 CONFIG REQUIRED)
+
 set(ARTS_PYTHON_INTERPRETER "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python" ${Python3_EXECUTABLE})
 
 if (ENABLE_FORTRAN)
