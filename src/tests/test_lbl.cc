@@ -88,11 +88,13 @@ void test_voigt_no_cutoff(const bool one_by_one = false) {
 
   Vector f_grid;
   linspace(f_grid, 60e9, 63e9, 10e3);
+  StokvecVector sv(f_grid.size());
   PropmatVector pm(f_grid.size());
   PropmatMatrix dpm(0, f_grid.size());
+  StokvecMatrix dsv(0, f_grid.size());
 
   make_wigner_ready(100, 100, 6);
-  lbl::calculate(pm, dpm, f_grid, {}, bands, atm);
+  lbl::calculate(pm, sv, dpm, dsv, f_grid, {}, bands, {}, atm);
 
   Vector vpm(f_grid.size());
   for (Index i = 0; i < f_grid.size(); ++i) {
