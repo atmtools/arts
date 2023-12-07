@@ -335,7 +335,7 @@ void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
 void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
                                      const Vector& f_grid,
                                      const Tensor5& spectral_radiation_field,
-                                     const Vector& integration_weights,
+                                     const Vector& quadrature_weights,
                                      const Verbosity&) {
   if (f_grid.nelem() != spectral_radiation_field.nshelves()) {
     throw runtime_error(
@@ -343,10 +343,10 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
         " the first dimension of the spectral_radiation_field");
   }
 
-  if (integration_weights.nelem() > 0 &&
-      integration_weights.nelem() != spectral_radiation_field.nshelves()) {
+  if (quadrature_weights.nelem() > 0 &&
+      quadrature_weights.nelem() != spectral_radiation_field.nshelves()) {
     throw runtime_error(
-        "The length of the integration_weights does not match with\n"
+        "The length of the quadrature_weights does not match with\n"
         " the first dimension of the spectral_radiation_field");
   }
 
@@ -358,7 +358,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
   radiation_field = 0;
 
   // frequency integration without weights
-  if (integration_weights.nelem() == 0) {
+  if (quadrature_weights.nelem() == 0) {
     for (Index i = 0; i < spectral_radiation_field.nshelves() - 1; i++) {
       const Numeric df = f_grid[i + 1] - f_grid[i];
 
@@ -378,7 +378,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
   } else {
     //with weights
     for (Index i = 0; i < spectral_radiation_field.nshelves(); i++) {
-      const Numeric weight = integration_weights[i];
+      const Numeric weight = quadrature_weights[i];
 
       for (Index b = 0; b < radiation_field.nbooks(); b++) {
         for (Index p = 0; p < radiation_field.npages(); p++) {
@@ -398,7 +398,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
 void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
                                      const Vector& f_grid,
                                      const Tensor7& spectral_radiation_field,
-                                     const Vector& integration_weights,
+                                     const Vector& quadrature_weights,
                                      const Verbosity&) {
   if (f_grid.nelem() != spectral_radiation_field.nlibraries()) {
     throw runtime_error(
@@ -406,10 +406,10 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
         " the first dimension of the spectral_radiation_field");
   }
 
-  if (integration_weights.nelem() > 0 &&
-      integration_weights.nelem() != spectral_radiation_field.nshelves()) {
+  if (quadrature_weights.nelem() > 0 &&
+      quadrature_weights.nelem() != spectral_radiation_field.nshelves()) {
     throw runtime_error(
-        "The length of the integration_weights does not match with\n"
+        "The length of the quadrature_weights does not match with\n"
         " the first dimension of the spectral_radiation_field");
   }
 
@@ -422,7 +422,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
   radiation_field = 0;
 
   // frequency integration without weights
-  if (integration_weights.nelem() == 0) {
+  if (quadrature_weights.nelem() == 0) {
     for (Index i = 0; i < spectral_radiation_field.nlibraries() - 1; i++) {
       const Numeric df = f_grid[i + 1] - f_grid[i];
 
@@ -443,7 +443,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
     }
   } else {
     for (Index i = 0; i < spectral_radiation_field.nlibraries() - 1; i++) {
-      const Numeric weight = integration_weights[i];
+      const Numeric weight = quadrature_weights[i];
 
       for (Index s = 0; s < radiation_field.nshelves(); s++) {
         for (Index b = 0; b < radiation_field.nbooks(); b++) {
