@@ -1,13 +1,22 @@
 #include <lbl.h>
+#include <pybind11/cast.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pytypes.h>
 #include <python_interface.h>
 
 #include <memory>
 
+#include "isotopologues.h"
+#include "lbl_data.h"
+#include "lbl_lineshape_voigt_ecs.h"
+#include "partfun.h"
 #include "py_macros.h"
 #include "quantum_numbers.h"
 
 namespace Python {
 void py_lbl(py::module_& m) try {
+  auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
+
   artsclass<lbl::temperature::data>(m, "TemperatureModel")
       .def(py::init<lbl::temperature::model_type, Vector>())
       .def_property_readonly(
@@ -50,6 +59,18 @@ void py_lbl(py::module_& m) try {
       .def_readwrite(
           "species", &lbl::line_shape::species_model::species, "The species")
       .def_readwrite("data", &lbl::line_shape::species_model::data, "The data")
+      .def("G0",
+           py::vectorize(&lbl::line_shape::species_model::G0),
+           "The G0 coefficient",
+           py::arg("T0"),
+           py::arg("T"),
+           py::arg("P"))
+      .def("D0",
+           py::vectorize(&lbl::line_shape::species_model::D0),
+           "The D0 coefficient",
+           py::arg("T0"),
+           py::arg("T"),
+           py::arg("P"))
       .PythonInterfaceBasicRepresentation(lbl::line_shape::species_model);
 
   artsarray<std::vector<lbl::line_shape::species_model>>(m,
@@ -66,6 +87,14 @@ void py_lbl(py::module_& m) try {
       .def_readwrite("single_models",
                      &lbl::line_shape::model::single_models,
                      "The single models")
+      .def("G0",
+           &lbl::line_shape::model::G0,
+           "The G0 coefficient",
+           py::arg("atm"))
+      .def("D0",
+           &lbl::line_shape::model::D0,
+           "The D0 coefficient",
+           py::arg("atm"))
       .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
 
   artsclass<lbl::zeeman::model>(m, "ZeemanLineModel")
@@ -108,6 +137,7 @@ void py_lbl(py::module_& m) try {
       .def_readwrite("z", &lbl::line::z, "The Zeeman model")
       .def_readwrite("ls", &lbl::line::ls, "The line shape model")
       .def_readwrite("qn", &lbl::line::qn, "The quantum numbers of this line")
+      .def("s", py::vectorize(&lbl::line::s), "The line strength")
       .PythonInterfaceBasicRepresentation(lbl::line);
 
   artsarray<std::vector<lbl::line>>(m, "LineList")
@@ -169,6 +199,59 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(LinemixingEcsData)
       .PythonInterfaceFileIO(LinemixingEcsData)
       .PythonInterfaceWorkspaceDocumentation(LinemixingEcsData);
+
+  lbl.def(
+      "equivalent_lines",
+      [](const AbsorptionBand& band,
+         const LinemixingEcsData& ecs_data,
+         const AtmPoint& atm,
+         const Vector& T) {
+        lbl::voigt::ecs::ComputeData com_data({}, atm);
+
+        const auto k = band.data.front().ls.one_by_one
+                           ? band.data.front().ls.single_models.size()
+                           : 1;
+        const auto n = band.data.size();
+        const auto m = T.size();
+
+        auto eqv_str = ComplexTensor3(m, k, n);
+        auto eqv_val = ComplexTensor3(m, k, n);
+
+        equivalent_values(eqv_str,
+                          eqv_val,
+                          com_data,
+                          band.key,
+                          band.data,
+                          ecs_data.data.at(band.key.Isotopologue()),
+                          atm,
+                          T);
+
+        return std::pair{eqv_str, eqv_val};
+      },
+      "Compute equivalent lines for a given band",
+      py::arg("band"),
+      py::arg("ecs_data"),
+      py::arg("atm"),
+      py::arg("T"));
+
+  lbl.def("Q",
+          &PartitionFunctions::Q,
+          "Partition function",
+          py::arg("T"),
+          py::arg("isotopologue"));
+  lbl.def(
+      "Q",
+      [](const Vector& T, const SpeciesIsotopeRecord& isot) {
+        Vector Q(T.size());
+        std::transform(
+            T.begin(), T.end(), Q.begin(), [&isot](Numeric t) -> Numeric {
+              return PartitionFunctions::Q(t, isot);
+            });
+        return Q;
+      },
+      "Partition function",
+      py::arg("T"),
+      py::arg("isotopologue"));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize lbl\n", e.what()));

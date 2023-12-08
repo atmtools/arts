@@ -99,16 +99,15 @@ void ComputeData::core_calc_eqv() {
     */
 
   const auto n = pop.size();
-  const auto m = Ws.size();
+  const auto m = vmrs.size();
 
-  for (Size k = 0; k < m; k++) {
-    auto& V = Vs[k];
-    auto& W = Ws[k];
-    auto& eqv_str = eqv_strs[k];
-    auto& eqv_val = eqv_vals[k];
+  for (Index k = 0; k < m; k++) {
+    auto V = Vs[k];
+    auto W = Ws[k];
+    auto eqv_str = eqv_strs[k];
+    auto eqv_val = eqv_vals[k];
 
     diagonalize(V, eqv_val, W);
-    eqv_val += freq_offset;
 
     // Do the matrix forward multiplication
     for (Index i = 0; i < n; i++) {
@@ -126,8 +125,6 @@ void ComputeData::core_calc_eqv() {
       }
       eqv_str[i] *= z;
     }
-
-    eqv_str *= vmrs[k];
   }
 }
 
@@ -138,7 +135,7 @@ void ComputeData::core_calc(const ExhaustiveConstVectorView& f_grid) {
   const auto n = f_grid.size();
   shape = 0;
 
-  for (Size k = 0; k < m; k++) {
+  for (Index k = 0; k < m; k++) {
     for (Index i = 0; i < eqv_strs[k].size(); i++) {
       const Numeric gamd = gd_fac * eqv_vals[k][i].real();
       const Numeric cte = Constant::sqrt_ln_2 / gamd;
@@ -151,11 +148,15 @@ void ComputeData::core_calc(const ExhaustiveConstVectorView& f_grid) {
   }
 }
 
-void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
-                        const band_data& bnd,
-                        const linemixing::species_data_map& rovib_data,
-                        const AtmPoint& atm) {
+void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
+                              const band_data& bnd,
+                              const linemixing::species_data_map& rovib_data,
+                              const AtmPoint& atm,
+                              const bool presorted) {
   const auto n = bnd.size();
+  const auto m = bnd.front().ls.single_models.size();
+
+  ARTS_USER_ERROR_IF(m == 0, "No broadening species in the band")
 
   pop.resize(n);
   dip.resize(n);
@@ -163,22 +164,17 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
   sort.resize(n);
   Wimag.resize(n, n);
 
-  vmrs.resize(1);
-  eqv_strs.resize(1);
-  eqv_strs[0].resize(n);
-  eqv_vals.resize(1);
-  eqv_vals[0].resize(n);
-  Ws.resize(1);
-  Ws[0].resize(n, n);
-  Vs.resize(1);
-  Vs[0].resize(n, n);
+  vmrs.resize(m);
+  eqv_strs.resize(m, n);
+  eqv_vals.resize(m, n);
+  Ws.resize(m, n, n);
+  Vs.resize(m, n, n);
 
-  Ws[0] = 0;
-  vmrs[0] = 1;
-  eqv_strs[0] = 0;
-  eqv_vals[0] = 0;
+  Ws = 0;
+  vmrs = 0;
+  eqv_strs = 0;
+  eqv_vals = 0;
 
-  freq_offset = 0;  //6.05887e+10;
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
                      atm.temperature / bnd_qid.Isotopologue().mass);
 
@@ -205,17 +201,157 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
   }
 
   //! Must remember the sorting for the quantum numbers
-  std::iota(sort.begin(), sort.end(), 0);
-  bubble_sort_by(
-      [&](Size i, Size j) {
-        const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
-        const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
-        return b > a;
-      },
-      sort,
-      pop,
-      dip,
-      dipr);
+  if (not presorted) {
+    std::iota(sort.begin(), sort.end(), 0);
+    bubble_sort_by(
+        [&](Size i, Size j) {
+          const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
+          const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
+          return b > a;
+        },
+        sort,
+        pop,
+        dip,
+        dipr);
+  } else {
+    const auto presorter = [this](const auto& vec) {
+      auto out = vec;
+      for (Size i : sort) {
+        out[i] = vec[sort[i]];
+      }
+      return out;
+    };
+
+    pop = presorter(pop);
+    dip = presorter(dip);
+    dipr = presorter(dipr);
+  }
+
+  for (auto& line : bnd) {
+    const bool lines_have_same_species =
+        std::transform_reduce(line.ls.single_models.begin(),
+                              line.ls.single_models.end(),
+                              bnd.lines[0].ls.single_models.begin(),
+                              true,
+                              std::logical_or<>(),
+
+                              [](const auto& lsl, const auto& lsr) {
+                                return lsl.species == lsr.species;
+                              });
+
+    ARTS_USER_ERROR_IF(not lines_have_same_species, "Bad species combination")
+  }
+
+  for (Size i = 0; i < m; i++) {
+    const auto spec = bnd.front().ls.single_models[i].species;
+
+    const auto& rovib_data_it = rovib_data.find(spec);
+    ARTS_USER_ERROR_IF(
+        rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
+
+    vmrs[i] = spec == Species::Species::Bath ? 1 - sum(vmrs) : atm[spec];
+
+    Wimag = 0.0;
+    for (Size k = 0; k < n; k++) {
+      Wimag(k, k) = bnd.lines[sort[k]].ls.single_models[i].G0(
+          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+      Ws[i](k, k) = bnd.lines[sort[k]].ls.single_models[i].D0(
+          bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
+    }
+
+    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+      makarov::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+      hartmann::relaxation_matrix_offdiagonal(
+          Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
+    } else {
+      ARTS_USER_ERROR("UNKNOWN ECS LINE SHAPE ", bnd.lineshape)
+    }
+
+    Ws[i].imag() = Wimag;
+  }
+
+  for (Size i = 0; i < n; i++) {
+    Ws(joker, i, i) += bnd.lines[sort[i]].f0;
+  }
+}
+
+void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
+                               const band_data& bnd,
+                               const linemixing::species_data_map& rovib_data,
+                               const AtmPoint& atm,
+                               const bool presorted) {
+  const auto n = bnd.size();
+
+  pop.resize(n);
+  dip.resize(n);
+  dipr.resize(n);
+  sort.resize(n);
+  Wimag.resize(n, n);
+
+  vmrs.resize(1);
+  eqv_strs.resize(1, n);
+  eqv_vals.resize(1, n);
+  Ws.resize(1, n, n);
+  Vs.resize(1, n, n);
+
+  Ws = 0;
+  vmrs = 1;
+  eqv_strs = 0;
+  eqv_vals = 0;
+
+  gd_fac = std::sqrt(Constant::doppler_broadening_const_squared *
+                     atm.temperature / bnd_qid.Isotopologue().mass);
+
+  const Numeric T = atm.temperature;
+  const Numeric QT = PartitionFunctions::Q(T, bnd_qid.Isotopologue());
+
+  for (Size i = 0; i < n; i++) {
+    const auto& line = bnd.lines[i];
+    pop[i] = line.gu * exp(-line.e0 / (Constant::k * T)) / QT;
+    dip[i] = 0.5 * Constant::c *
+             std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
+
+    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
+      dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+      auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
+      auto& l2 = bnd_qid.val[QuantumNumberType::l2];
+      dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
+      dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
+    }
+  }
+
+  //! Must remember the sorting for the quantum numbers
+  if (not presorted) {
+    std::iota(sort.begin(), sort.end(), 0);
+    bubble_sort_by(
+        [&](Size i, Size j) {
+          const auto a = bnd.lines[sort[i]].f0 * pop[i] * dip[i] * dip[i];
+          const auto b = bnd.lines[sort[j]].f0 * pop[j] * dip[j] * dip[j];
+          return b > a;
+        },
+        sort,
+        pop,
+        dip,
+        dipr);
+  } else {
+    const auto presorter = [this](const auto& vec) {
+      auto out = vec;
+      for (Size i : sort) {
+        out[i] = vec[sort[i]];
+      }
+      return out;
+    };
+
+    pop = presorter(pop);
+    dip = presorter(dip);
+    dipr = presorter(dipr);
+  }
 
   for (auto& line : bnd) {
     const bool lines_have_same_species =
@@ -272,7 +408,7 @@ void ComputeData::adapt(const QuantumIdentifier& bnd_qid,
 
   for (Size i = 0; i < n; i++) {
     real_val(Ws[0](i, i)) =
-        bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm) - freq_offset;
+        bnd.lines[sort[i]].f0 + bnd.lines[sort[i]].ls.D0(atm);
   }
 }
 
@@ -302,14 +438,9 @@ void calculate(PropmatVectorView pm,
   const bool one_by_one = bnd.front().ls.one_by_one;
 
   if (one_by_one) {
-    ARTS_USER_ERROR_IF(
-        std::ranges::any_of(
-            bnd, [](const auto& line) { return not line.ls.one_by_one; }),
-        "One-by-one lineshape not supported for ECS.");
-
-    ARTS_USER_ERROR("NOT IMPLEMENTED")
+    com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm);
   } else {
-    com_data.adapt(bnd_qid, bnd, rovib_data, atm);
+    com_data.adapt_single(bnd_qid, bnd, rovib_data, atm);
   }
 
   com_data.core_calc(f_grid);
@@ -319,6 +450,49 @@ void calculate(PropmatVectorView pm,
         com_data.npm,
         Constant::sqrt_ln_2 / Constant::sqrt_pi * atm[bnd_qid.Species()] *
             atm[bnd_qid.Isotopologue()] * com_data.scl[i] * com_data.shape[i]);
+  }
+}
+
+void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
+                       ExhaustiveComplexTensor3View eqv_val,
+                       ComputeData& com_data,
+                       const QuantumIdentifier& bnd_qid,
+                       const band_data& bnd,
+                       const linemixing::species_data_map& rovib_data,
+                       const AtmPoint& atm,
+                       const Vector& T) {
+  const auto k = eqv_str.npages();
+  const auto m = eqv_str.ncols();
+
+  ARTS_USER_ERROR_IF(eqv_val.shape() != eqv_val.shape(),
+                     "eqv_str and eqv_val must have the same shape.")
+  ARTS_USER_ERROR_IF(T.size() != k,
+                     "T must have the same size as eqv_str pages.")
+  ARTS_USER_ERROR_IF(bnd.size() != static_cast<Size>(m),
+                     "bnd must have the same size as eqv_str cols.")
+
+  if (bnd.size() == 0) return;
+
+  const bool one_by_one = bnd.front().ls.one_by_one;
+
+  if (one_by_one) {
+    com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm, false);
+  } else {
+    com_data.adapt_single(bnd_qid, bnd, rovib_data, atm, false);
+  }
+
+#pragma omp parallel for firstprivate(com_data)
+  for (Index i = 0; i < k; ++i) {
+    AtmPoint atm_copy = atm;
+    atm_copy.temperature = T[i];
+    if (one_by_one) {
+      com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
+    } else {
+      com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
+    }
+    com_data.core_calc_eqv();
+    eqv_str[i] = com_data.eqv_strs;
+    eqv_val[i] = com_data.eqv_vals;
   }
 }
 }  // namespace lbl::voigt::ecs

@@ -5,6 +5,34 @@
 #include "lbl_lineshape_linemixing.h"
 
 namespace lbl::voigt::ecs::hartmann {
+#if DO_FAST_WIGNER
+#define WIGNER3 fw3jja6
+#define WIGNER6 fw6jja
+#else
+#define WIGNER3 wig3jj
+#define WIGNER6 wig6jj
+#endif
+
+Numeric wig3(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER3(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
+Numeric wig6(const Rational& a,
+             const Rational& b,
+             const Rational& c,
+             const Rational& d,
+             const Rational& e,
+             const Rational& f) noexcept {
+  return WIGNER6(
+      a.toInt(2), b.toInt(2), c.toInt(2), d.toInt(2), e.toInt(2), f.toInt(2));
+}
+
 std::function<Numeric(Rational)> erot_selection(
     const SpeciesIsotopeRecord& isot) {
   if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
@@ -53,15 +81,34 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
   const int sgn = iseven(li + lf + 1) ? -1 : 1;
   if (abs(li - lf) > 1) return;
 
-  const Numeric T0 = bnd.front().ls.T0;
   const Numeric T = atm.temperature;
-
-  const Numeric mass = broadening_species == SpeciesEnum::Bath
-                           ? atm.mean_mass()
-                           : atm.mean_mass(broadening_species);
 
   const auto erot = erot_selection(bnd_qid.Isotopologue());
 
+  const auto maxL = temp_init_size(bnd.max(QuantumNumberType::J));
+
+  const auto Om = [&]() {
+    Vector out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Omega(atm.temperature,
+                                bnd.front().ls.T0,
+                                broadening_species == SpeciesEnum::Bath
+                                    ? atm.mean_mass()
+                                    : atm.mean_mass(broadening_species),
+                                bnd_qid.Isotopologue().mass,
+                                erot(i),
+                                erot(i - 2));
+    return out;
+  }();
+
+  const auto Q = [&]() {
+    Vector out(maxL);
+    for (Index i = 0; i < maxL; i++)
+      out[i] = rovib_data.Q(i, atm.temperature, bnd.front().ls.T0, erot(i));
+    return out;
+  }();
+
+  wig_thread_temp_init(maxL);
   for (Size i = 0; i < n; i++) {
     auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
     Rational Ji = J.upp();
@@ -85,16 +132,12 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
       Numeric sum = 0;
       for (; L <= Lf; L += 2) {
-        const Numeric a = wigner3j(Ji_p, L, Ji, li, 0, -li);
-        const Numeric b = wigner3j(Jf_p, L, Jf, lf, 0, -lf);
-        const Numeric c = wigner6j(Ji, Jf, 1, Jf_p, Ji_p, L);
-        const Numeric QL = rovib_data.Q(L, T, T0, erot(L));
-        const Numeric ECS = rovib_data.Omega(
-            T, T0, mass, bnd_qid.Isotopologue().mass, erot(L), erot(L - 2));
-        sum += a * b * c * Numeric(2 * L + 1) * QL / ECS;
+        const Numeric a = wig3(Ji_p, L, Ji, li, 0, -li);
+        const Numeric b = wig3(Jf_p, L, Jf, lf, 0, -lf);
+        const Numeric c = wig6(Ji, Jf, 1, Jf_p, Ji_p, L);
+        sum += a * b * c * Numeric(2 * L + 1) * Q[L] / Om[L];
       }
-      const Numeric ECS = rovib_data.Omega(
-          T, T0, mass, bnd_qid.Isotopologue().mass, erot(Ji), erot(Ji - 2));
+      const Numeric ECS = Om[Ji.toIndex()];
       const Numeric scl = sgn * ECS * Numeric(2 * Ji_p + 1) *
                           sqrt((2 * Jf + 1) * (2 * Jf_p + 1));
       sum *= scl;
@@ -104,6 +147,9 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       W(i, j) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
+  wig_temp_free();
+
+  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 
   // Undocumented negative absolute sign
   for (Size i = 0; i < n; i++)

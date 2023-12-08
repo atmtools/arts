@@ -714,3 +714,6 @@ using ComplexVector = matpack::matpack_data<Complex, 1>;
 
 //! A matrix of Complex
 using ComplexMatrix = matpack::matpack_data<Complex, 2>;
+
+//! A tensor3 of Complex
+using ComplexTensor3 = matpack::matpack_data<Complex, 3>;

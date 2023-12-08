@@ -19,6 +19,7 @@ Species toSpeciesEnumOrThrow(const std::string_view x) {
     for (const auto& s : short_names_name) {
       os << '[' << s << "], ";
     }
+    os << ']';
     throw std::runtime_error(os.str());
   }
 

@@ -13,30 +13,34 @@ struct Targets;
 
 namespace lbl::voigt::ecs {
 struct ComputeData {
-  Numeric freq_offset{};  //! Frequency offset factor
-  Numeric gd_fac{};       //! Doppler broadening factor of a band
+  Numeric gd_fac{};  //! Doppler broadening factor of a band
 
-  Vector pop{};         //! Size of line shapes
-  Vector dip{};         //! Size of line shapes
-  Vector dipr{};        //! Size of line shapes
-  ArrayOfIndex sort{};  //! Size of line shapes
-  Matrix Wimag{};       //! Size of line shapes
+  //! Size of line shapes
+  Vector pop{};
+  Vector dip{};
+  Vector dipr{};
+  ArrayOfIndex sort{};
 
-  ArrayOfNumeric vmrs;  //! [1, or broadening species]
+  //! Size of line shapes x size of line shapes
+  Matrix Wimag{};
 
-  ArrayOfComplexVector
-      eqv_strs{};  //! [1, or broadening species] x size of line shapes
-  ArrayOfComplexVector
-      eqv_vals{};  //! [1, or broadening species] x size of line shapes
-  ArrayOfComplexMatrix
-      Ws{};  //! [1, or broadening species] x size of line shapes x line shapes
-  ArrayOfComplexMatrix
-      Vs{};  //! [1, or broadening species] x size of line shapes x line shapes
+  //! [1, or broadening species]
+  Vector vmrs;
 
-  Vector scl{};           //! Size of frequency
-  ComplexVector shape{};  //! Size of frequency
+  //! [1, or broadening species] x size of line shapes
+  ComplexMatrix eqv_strs{};
+  ComplexMatrix eqv_vals{};
 
-  Propmat npm{};  //! The orientation of the polarization
+  //! [1, or broadening species] x size of line shapes x size of line shapes
+  ComplexTensor3 Ws{};
+  ComplexTensor3 Vs{};
+
+  //! Size of frequency
+  Vector scl{};
+  ComplexVector shape{};
+
+  //! The orientation of the polarization
+  Propmat npm{};
 
   //! Sizes scl, dscl, shape, dshape.  Sets scl, npm, dnpm_du, dnpm_dv, dnpm_dw
   ComputeData(const ExhaustiveConstVectorView& f_grid,
@@ -50,10 +54,16 @@ struct ComputeData {
 
   void core_calc_eqv();
   void core_calc(const ExhaustiveConstVectorView& f_grid);
-  void adapt(const QuantumIdentifier& bnd_qid,
-             const band_data& bnd,
-             const linemixing::species_data_map& rovib_data,
-             const AtmPoint& atm);
+  void adapt_single(const QuantumIdentifier& bnd_qid,
+                    const band_data& bnd,
+                    const linemixing::species_data_map& rovib_data,
+                    const AtmPoint& atm,
+                    const bool presorted = false);
+  void adapt_multi(const QuantumIdentifier& bnd_qid,
+                   const band_data& bnd,
+                   const linemixing::species_data_map& rovib_data,
+                   const AtmPoint& atm,
+                   const bool presorted = false);
 };
 
 void calculate(PropmatVectorView pm,
@@ -66,4 +76,13 @@ void calculate(PropmatVectorView pm,
                const linemixing::species_data_map& rovib_data,
                const AtmPoint& atm,
                const zeeman::pol pol = zeeman::pol::no);
+
+void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
+                       ExhaustiveComplexTensor3View eqv_val,
+                       ComputeData& com_data,
+                       const QuantumIdentifier& bnd_qid,
+                       const band_data& bnd,
+                       const linemixing::species_data_map& rovib_data,
+                       const AtmPoint& atm,
+                       const Vector& T);
 }  // namespace lbl::voigt::ecs
