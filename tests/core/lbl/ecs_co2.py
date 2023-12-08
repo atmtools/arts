@@ -1,6 +1,7 @@
 import pyarts
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 
 def polyfit(x, y, plot=True):
@@ -101,12 +102,13 @@ def adaptband(band, T, p, second_order=False):
     return band
 
 
+i = int(sys.argv[1])
+
+pyarts.arts.globals.omp_set_num_threads(1)
+
 ws = pyarts.Workspace()
-
 ws.abs_speciesSet(species=["CO2-626"])
-
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
-
 ws.absorption_bandsFromAbsorbtionLines()
 
 p = 1e5
@@ -131,8 +133,6 @@ ws.ecs_dataAddMeanAirNEWNEW(vmrs=[0.21, 0.79], species=["O2", "N2"])
 f2c = pyarts.arts.convert.freq2kaycm
 
 y = pyarts.arts.AbsorptionBands(ws.absorption_bands)
-
-i = 4
 
 band = y[i]
 ws.absorption_bands = [band]

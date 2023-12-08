@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "arts_omp.h"
 #include "atm.h"
 #include "configtypes.h"
 #include "debug.h"
@@ -482,17 +483,33 @@ void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
   }
 
 #pragma omp parallel for firstprivate(com_data)
-  for (Index i = 0; i < k; ++i) {
-    AtmPoint atm_copy = atm;
-    atm_copy.temperature = T[i];
-    if (one_by_one) {
-      com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
-    } else {
-      com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
+  if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > T.size()) {
+#pragma omp parallel for firstprivate(com_data)
+    for (Index i = 0; i < k; ++i) {
+      AtmPoint atm_copy = atm;
+      atm_copy.temperature = T[i];
+      if (one_by_one) {
+        com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
+      } else {
+        com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
+      }
+      com_data.core_calc_eqv();
+      eqv_str[i] = com_data.eqv_strs;
+      eqv_val[i] = com_data.eqv_vals;
     }
-    com_data.core_calc_eqv();
-    eqv_str[i] = com_data.eqv_strs;
-    eqv_val[i] = com_data.eqv_vals;
+  } else {
+    for (Index i = 0; i < k; ++i) {
+      AtmPoint atm_copy = atm;
+      atm_copy.temperature = T[i];
+      if (one_by_one) {
+        com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm_copy, true);
+      } else {
+        com_data.adapt_single(bnd_qid, bnd, rovib_data, atm_copy, true);
+      }
+      com_data.core_calc_eqv();
+      eqv_str[i] = com_data.eqv_strs;
+      eqv_val[i] = com_data.eqv_vals;
+    }
   }
 }
 }  // namespace lbl::voigt::ecs
