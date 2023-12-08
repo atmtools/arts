@@ -482,7 +482,6 @@ void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
     com_data.adapt_single(bnd_qid, bnd, rovib_data, atm, false);
   }
 
-#pragma omp parallel for firstprivate(com_data)
   if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > T.size()) {
 #pragma omp parallel for firstprivate(com_data)
     for (Index i = 0; i < k; ++i) {
