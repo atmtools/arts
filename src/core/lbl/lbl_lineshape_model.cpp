@@ -312,8 +312,7 @@ std::ostream& operator<<(std::ostream& os, const species_model& x) {
 std::istream& operator>>(std::istream& is, species_model& x) {
   String name;
   is >> name >> x.data;
-  x.species = Species::fromShortName(name);
-  ARTS_USER_ERROR_IF(not good_enum(x.species), "Unknown species: ", name);
+  x.species = Species::toSpeciesEnumOrThrow(name);
   return is;
 }
 
@@ -342,5 +341,16 @@ std::istream& operator>>(std::istream& is, model& x) {
   is >> i;
   x.one_by_one = static_cast<bool>(i);
   return is >> x.single_models;
+}
+
+void model::clear_zeroes() {
+  auto is_zero = [](auto& x) { return x.second.is_zero(); };
+  for (auto& m : single_models) {
+    auto ptr = std::ranges::find_if(m.data, is_zero);
+    while (ptr != m.data.end()) {
+      m.data.erase(ptr);
+      ptr = std::ranges::find_if(m.data, is_zero);
+    }
+  }
 }
 }  // namespace lbl::line_shape

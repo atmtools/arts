@@ -232,6 +232,9 @@ struct model {
   [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm,
                                const Size spec,
                                temperature::coefficient coeff) const noexcept;
+  
+  //! Remove all line shape variables that evaluate unconditionally to 0
+  void clear_zeroes();
 };
 
 std::ostream& operator<<(

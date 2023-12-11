@@ -1180,4 +1180,6 @@ std::ostream& operator<<(std::ostream& os, const Array<Type>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
+
+void ValueList::reserve(Size n) { values.reserve(n); }
 }  // namespace Quantum::Number

@@ -1005,6 +1005,13 @@ class ValueList {
   void add_type_wo_sort(Type);
 
   [[nodiscard]] bool good() const;
+
+  void reserve(Size);
+
+  template <typename ... Ts>
+  auto& emplace_back(Ts&&... xs) {
+    return values.emplace_back(std::forward<Ts>(xs)...);
+  }
 };
 
 ValueList from_hitran(std::string_view upp, std::string_view low);

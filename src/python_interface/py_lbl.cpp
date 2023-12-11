@@ -8,6 +8,7 @@
 
 #include "isotopologues.h"
 #include "lbl_data.h"
+#include "lbl_lineshape_model.h"
 #include "lbl_lineshape_voigt_ecs.h"
 #include "partfun.h"
 #include "py_macros.h"
@@ -95,6 +96,17 @@ void py_lbl(py::module_& m) try {
            &lbl::line_shape::model::D0,
            "The D0 coefficient",
            py::arg("atm"))
+      .def("remove",
+           [](lbl::line_shape::model& self, lbl::line_shape::variable x) {
+             for (auto& specmod : self.single_models) {
+               auto ptr = std::find_if(specmod.data.begin(),
+                                       specmod.data.end(),
+                                       [x](auto& y) { return y.first == x; });
+               if (ptr != specmod.data.end()) specmod.data.erase(ptr);
+             }
+           })
+      .def("remove_zeros",
+           [](lbl::line_shape::model& self) { self.clear_zeroes(); })
       .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
 
   artsclass<lbl::zeeman::model>(m, "ZeemanLineModel")
@@ -208,14 +220,14 @@ void py_lbl(py::module_& m) try {
          const Vector& T) {
         lbl::voigt::ecs::ComputeData com_data({}, atm);
 
-        const auto k = band.data.front().ls.one_by_one
+        const auto K = band.data.front().ls.one_by_one
                            ? band.data.front().ls.single_models.size()
                            : 1;
-        const auto n = band.data.size();
-        const auto m = T.size();
+        const auto N = band.data.size();
+        const auto M = T.size();
 
-        auto eqv_str = ComplexTensor3(m, k, n);
-        auto eqv_val = ComplexTensor3(m, k, n);
+        auto eqv_str = ComplexTensor3(M, K, N);
+        auto eqv_val = ComplexTensor3(M, K, N);
 
         equivalent_values(eqv_str,
                           eqv_val,

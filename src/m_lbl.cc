@@ -5,20 +5,28 @@
 #include <algorithm>
 #include <cmath>
 #include <exception>
+#include <filesystem>
+#include <iomanip>
+#include <iterator>
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <unordered_map>
 
 #include "arts_omp.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
+#include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "matpack_view.h"
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
+#include "xml_io.h"
+#include "xml_io_arts_types.h"
+#include "xml_io_base.h"
 
 lbl::Lineshape toLineshape(const LineShape::Type old_ls,
                            const Absorption::PopulationType old_pop) {
@@ -261,7 +269,9 @@ void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
             Numeric{0},
             std::plus<>{},
             [T = 296., ir = key.Isotopologue()](const lbl::line& l) {
-              return - l.f0 * std::expm1(-Constant::h * l.f0 / (Constant::k * T)) * l.s(T, 1);
+              return -l.f0 *
+                     std::expm1(-Constant::h * l.f0 / (Constant::k * T)) *
+                     l.s(T, 1);
             });
         break;
       case SortingOption::FrontFrequency:
@@ -274,7 +284,7 @@ void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
   }
 
   std::ranges::sort(qid_sorter, {}, &order::qid);
-  
+
   Size i = 0;
   while (i < qid_sorter.size()) {
     auto [first, last] = std::ranges::equal_range(
@@ -320,6 +330,70 @@ void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
   }
 
   absorption_bands = {};
+}
+
+void absorption_bandsAppendSplit(AbsorptionBands& absorption_bands,
+                                 const String& dir) {
+  const std::filesystem::path p(dir);
+  ARTS_USER_ERROR_IF(
+      not std::filesystem::exists(p), "No such directory: ", std::quoted(dir))
+
+  std::vector<std::filesystem::path> paths;
+  std::ranges::copy(std::filesystem::directory_iterator(p),
+                    std::back_inserter(paths));
+  std::ranges::sort(paths);
+
+  absorption_bands.reserve(absorption_bands.size()+paths.size());
+  for (auto& entry : paths) {
+    if (not std::filesystem::is_regular_file(entry)) continue;
+    if (entry.extension() != ".xml") continue;
+    xml_read_from_file(entry, absorption_bands.emplace_back());
+  }
+}
+
+void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
+                               const String& dir) {
+  absorption_bands.resize(0);
+
+  std::vector<std::filesystem::path> paths;
+  std::ranges::copy_if(
+      std::filesystem::directory_iterator(std::filesystem::path(dir)),
+      std::back_inserter(paths),
+      [](auto& entry) { return entry.is_directory(); });
+  std::ranges::sort(paths);
+
+  for (auto& path : paths) {
+    absorption_bandsAppendSplit(absorption_bands, path);
+  }
+}
+
+String strip(String s) {
+  s.erase(std::remove_if(s.begin(), s.end(), [](char c) { return ' ' == c; }),
+          s.end());
+  return s;
+}
+
+void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
+                               const String& dir) {
+  auto create_if_not = [](const std::filesystem::path& path) {
+    if (not std::filesystem::exists(path)) {
+      std::filesystem::create_directories(path);
+    }
+    return path;
+  };
+
+  const auto p = create_if_not(dir);
+
+  std::unordered_map<SpeciesIsotopeRecord, Index> isotopologues;
+  for (auto& band : absorption_bands) {
+    const auto& isot = band.key.Isotopologue();
+    const auto spec_p = create_if_not(p / isot.FullName());
+
+    xml_write_to_file(spec_p / var_string(isotopologues[isot]++, ".xml"),
+                      band,
+                      FILE_TYPE_ASCII,
+                      0);
+  }
 }
 
 void propmat_clearskyAddLines2(PropmatVector& pm,

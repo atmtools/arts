@@ -250,14 +250,11 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
   is >> name;
   x.t = tomodel_typeOrThrow(name);
 
-  if (auto n = model_size[static_cast<Size>(x.t)];
-      n == std::numeric_limits<Size>::max()) {
-    Size m;
-    is >> m;
-    x.x.resize(n);
-  } else {
-    x.x.resize(n);
+  Size n = model_size[static_cast<Size>(x.t)];
+  if (n == std::numeric_limits<Size>::max()) {
+    is >> n;
   }
+  x.x.resize(n);
 
   for (auto& v : x.x) is >> double_imanip() >> v;
   return is;
@@ -266,4 +263,32 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
 model_type data::Type() const { return t; }
 
 Vector data::X() const { return x; }
+
+bool data::is_zero() const noexcept {
+  switch (t) {
+    using enum temperature::model_type;
+    case T0:
+      [[fallthrough]];
+    case T1:
+      [[fallthrough]];
+    case T2:
+      [[fallthrough]];
+    case T5:
+      return x[0] == 0;
+    case T3:
+      [[fallthrough]];
+    case T4:
+      return x[0] == 0 and x[1] == 0;
+    case AER:
+      [[fallthrough]];
+    case POLY:
+      for (auto y : x)
+        if (y != 0) return false;
+      return true;
+    case DPL:
+      return x[0] == 0 and x[2] == 0;
+    case FINAL:;
+  }
+  return true;
+}
 }  // namespace lbl::temperature

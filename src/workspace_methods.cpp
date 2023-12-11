@@ -15695,5 +15695,53 @@ Valid ``criteria`` are:
       .gin_value = {String{"None"}, Index{0}},
       .gin_desc = {"Internal sorting criteria", "Sort in reverse order if true"}};
 
+  wsm_data["absorption_bandsAppendSplit"] = {
+      .desc = R"--(Append all bands found in a directory to *absorption_bands*
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"}};
+
+  wsm_data["absorption_bandsReadSplit"] = {
+      .desc = R"--(Saves all bands fin *absorption_bands* to a directory
+
+This will create the directory if it does not exist.  It will also create
+subdirectories that are the short-form of the isotopologue names.  The bands
+will be stored as 0.xml, 1.xml, 2.xml, and so on
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"}};
+
+  wsm_data["absorption_bandsSaveSplit"] = {
+      .desc = R"--(Saves all bands fin *absorption_bands* to a directory
+
+This will create the directory if it does not exist.  It will also create
+subdirectories that are the short-form of the isotopologue names.  The bands
+will be stored as 0.xml, 1.xml, 2.xml, and so on
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .in = {"absorption_bands"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"}};
+
   return wsm_data;
 }

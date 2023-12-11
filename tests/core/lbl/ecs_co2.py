@@ -1,15 +1,9 @@
 import pyarts
 import numpy as np
-import matplotlib.pyplot as plt
-import sys
 
 
 def polyfit(x, y, plot=True):
     pfit = np.polyfit(x, y, deg=3)
-    if plot:
-        plt.plot(x, y)
-        plt.plot(x, np.polyval(pfit, x))
-        plt.show()
     return pfit
 
 
@@ -102,9 +96,7 @@ def adaptband(band, T, p, second_order=False):
     return band
 
 
-i = int(sys.argv[1])
-
-pyarts.arts.globals.omp_set_num_threads(1)
+i = 4
 
 ws = pyarts.Workspace()
 ws.abs_speciesSet(species=["CO2-626"])
@@ -160,13 +152,4 @@ ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
 ws.propmat_clearskyAddLines2()
 pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
 
-plt.semilogy(f2c(ws.f_grid), pm_lte)
-plt.semilogy(f2c(ws.f_grid), pm_full, "--")
-plt.semilogy(f2c(ws.f_grid), pm_adapted_lte, ":")
-plt.title(f"band {i}; qid: {ws.absorption_bands[0].key}")
-plt.ylabel("Absorption [1/m]")
-plt.xlabel("Frequency [cm-1]")
-plt.legend(["Line mixing OFF", "Line mixing ON", "Line mixing ADAPTED"])
-plt.show()
-
-band.savexml(f"{i}.xml")
+assert np.all(pm_adapted_lte > 0), "Adaptation failed"

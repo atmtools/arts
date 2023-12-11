@@ -320,5 +320,7 @@ class data {
   [[nodiscard]] Numeric dX3(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
   [[nodiscard]] Numeric dT0(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
   [[nodiscard]] Numeric dT(Numeric T0, Numeric T) const ARTS_NOEXCEPT;
+
+  [[nodiscard]] bool is_zero() const noexcept;
 };
 }  // namespace lbl::temperature

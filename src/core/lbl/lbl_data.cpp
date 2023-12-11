@@ -59,12 +59,19 @@ void band_data::sort(variable v) {
 std::ostream& operator<<(std::ostream& os, const line& x) {
   return os << std::setprecision(std::numeric_limits<Numeric>::digits10 + 1)
             << x.f0 << ' ' << x.a << ' ' << x.e0 << ' ' << x.gu << ' ' << x.gl
-            << ' ' << x.z << ' ' << x.ls << ' ' << x.qn.val;
+            << ' ' << x.z << ' ' << x.ls << ' ' << x.qn.val.size() << ' ' << x.qn.val;
 }
 
 std::istream& operator>>(std::istream& is, line& x) {
+  Size s{};
+
   is >> double_imanip() >> x.f0 >> x.a >> x.e0 >> x.gu >> x.gl;
-  return is >> x.z >> x.ls >> x.qn.val;
+  is >> x.z >> x.ls >> s;
+  x.qn.val.reserve(s);
+  for (Size i=0; i<s; i++) is >> x.qn.val.emplace_back();
+  ARTS_USER_ERROR_IF(not x.qn.val.good(), "Bad quantum numbers in ", x.qn)
+
+  return is;
 }
 
 std::ostream& operator<<(std::ostream& os, const std::vector<line>& x) {
