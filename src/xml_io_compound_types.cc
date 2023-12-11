@@ -2948,7 +2948,6 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   xml_write_to_stream(os_xml, data.key, pbofs, "");
   xml_write_to_stream(os_xml, data.data, pbofs, "");
-  os_xml << '\n';
 
   ArtsXMLTag close_tag;
   close_tag.set_name("/AbsorptionBand");

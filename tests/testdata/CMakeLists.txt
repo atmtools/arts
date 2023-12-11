@@ -4,6 +4,7 @@ else()
     list(APPEND DOWNLOAD_CATDATA
         cia/O2-CIA-O2.xml
         lines/O2-66.xml
+        lines/CO2-626.xml
         model/mt_ckd_4.0/H2O.xml
     )
 endif()
