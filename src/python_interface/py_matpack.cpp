@@ -21,8 +21,7 @@ namespace Python {
 using Scalar = std::variant<Numeric, Index>;
 
 template <typename T>
-using numpy_array =
-    py::array_t<T, py::array::c_style | py::array::forcecast>;
+using numpy_array = py::array_t<T, py::array::c_style | py::array::forcecast>;
 
 template <typename T, Index... sz>
 auto register_matpack_constant_data(py::module_& m, const char* const name)
@@ -163,6 +162,9 @@ void py_matpack(py::module_& m) try {
            }),
            py::arg("vec").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Vector>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceBasicRepresentation(Vector)
@@ -221,6 +223,9 @@ via x.value
            }),
            py::arg("mat").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Matrix>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
@@ -287,6 +292,9 @@ via x.value
            }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Tensor3>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
@@ -354,6 +362,9 @@ via x.value
            }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Tensor4>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
@@ -427,6 +438,9 @@ via x.value
            }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Tensor5>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
@@ -514,6 +528,9 @@ via x.value
            }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Tensor6>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
@@ -616,6 +633,9 @@ via x.value
           }),
           py::arg("ten").none(false),
           py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+        return x.cast<numpy_array<Numeric>>().cast<Tensor7>();
+      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceBasicRepresentation(Tensor7)
@@ -680,6 +700,13 @@ via x.value
   py::implicitly_convertible<numpy_array<Numeric>, Tensor5>();
   py::implicitly_convertible<numpy_array<Numeric>, Tensor6>();
   py::implicitly_convertible<numpy_array<Numeric>, Tensor7>();
+  py::implicitly_convertible<py::list, Vector>();
+  py::implicitly_convertible<py::list, Matrix>();
+  py::implicitly_convertible<py::list, Tensor3>();
+  py::implicitly_convertible<py::list, Tensor4>();
+  py::implicitly_convertible<py::list, Tensor5>();
+  py::implicitly_convertible<py::list, Tensor6>();
+  py::implicitly_convertible<py::list, Tensor7>();
 
   artsarray<ArrayOfVector>(m, "ArrayOfVector")
       .PythonInterfaceFileIO(ArrayOfVector)
