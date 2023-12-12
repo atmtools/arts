@@ -1,0 +1,27 @@
+Arts2 {
+
+VectorSet(f_grid, [10.65e9, 18.7e9, 36.5e9])
+IndexSet(stokes_dim, 4)
+
+IndexSet(atmosphere_dim, 1)
+
+VectorSet(rtp_pos, [5])
+VectorSet(rtp_los, [127])
+VectorSet(specular_los, [53])
+NumericSet(surface_skin_t, 280)
+MatrixSet(surface_rv_rh, [0.4, 0.6; 0.3, 0.5; 0.2, 0.4])
+MatrixCreate(surface_ev_eh)
+MatrixSet(surface_ev_eh, [0.6, 0.4; 0.7, 0.5; 0.8, 0.6])
+
+MatrixCreate(REFsurface_los)
+Tensor4Create(REFsurface_rmatrix)
+MatrixCreate(REFsurface_emission)
+surfaceFlatRvRh(surface_los=REFsurface_los, surface_rmatrix=REFsurface_rmatrix, surface_emission=REFsurface_emission)
+
+surfaceFlatRvRhEvEh(surface_ev_eh=surface_ev_eh)
+
+Compare(REFsurface_los, surface_los, 1e-6)
+Compare(REFsurface_rmatrix, surface_rmatrix, 1e-6)
+Compare(REFsurface_emission, surface_emission, 1e-6)
+
+}

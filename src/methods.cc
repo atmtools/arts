@@ -20022,6 +20022,35 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("surfaceFlatRvRhEvEh"),
+      DESCRIPTION(
+          "Creates variables to mimic specular reflection by a (flat) surface\n"
+          "where *surface_rv_rh* and surface_ev_eh is specified.\n"
+          "\n"
+          "This method is similar to *surfaceFlatRvRh*, but surface_ev_eh is also\n"
+          "specified. In *surfaceFlatRvRh*, ev(eh) = 1 - rv(rh). However, the\n"
+          "reflectivity calculated by Fastem and SURFEM-Ocean is corrected by\n"
+          "the anisotropic downward radiation. Therefore, This method is suitable\n"
+          "for providing both emissivity and reflectivity externally.\n"),
+      AUTHORS("Shaofei Wang"),
+      OUT("surface_los", "surface_rmatrix", "surface_emission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("f_grid",
+         "stokes_dim",
+         "atmosphere_dim",
+         "rtp_pos",
+         "rtp_los",
+         "specular_los",
+         "surface_skin_t",
+         "surface_rv_rh"),
+      GIN("surface_ev_eh"),
+      GIN_TYPE("Matrix"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Surface emissivity, for a given position and angle.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatScalarReflectivity"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"

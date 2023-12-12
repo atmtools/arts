@@ -2563,6 +2563,112 @@ void surfaceFlatRvRh(Matrix& surface_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFlatRvRhEvEh(Matrix& surface_los,
+                         Tensor4& surface_rmatrix,
+                         Matrix& surface_emission,
+                         const Vector& f_grid,
+                         const Index& stokes_dim,
+                         const Index& atmosphere_dim,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& specular_los,
+                         const Numeric& surface_skin_t,
+                         const Matrix& surface_rv_rh,
+                         const Matrix& surface_ev_eh,
+                         const Verbosity&) {
+  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  chk_rte_pos(atmosphere_dim, rtp_pos);
+  chk_rte_los(atmosphere_dim, rtp_los);
+  chk_rte_los(atmosphere_dim, specular_los);
+  chk_not_negative("surface_skin_t", surface_skin_t);
+
+  const Index nf = f_grid.nelem();
+
+  // check for surface_rv_rh
+  if (surface_rv_rh.ncols() != 2) {
+    ostringstream os;
+    os << "The number of columns in *surface_rv_rh* must be two,\n"
+       << "but the actual number of columns is " << surface_rv_rh.ncols()
+       << "\n";
+    throw runtime_error(os.str());
+  }
+
+  if (surface_rv_rh.nrows() != nf && surface_rv_rh.nrows() != 1) {
+    ostringstream os;
+    os << "The number of rows in *surface_rv_rh* should\n"
+       << "match length of *f_grid* or be 1."
+       << "\n length of *f_grid* : " << nf
+       << "\n rows in *surface_rv_rh* : " << surface_rv_rh.nrows() << "\n";
+    throw runtime_error(os.str());
+  }
+
+  if (min(surface_rv_rh) < 0 || max(surface_rv_rh) > 1) {
+    throw runtime_error("All values in *surface_rv_rh* must be inside [0,1].");
+  }
+
+  // check for surface_ev_eh
+  if (surface_ev_eh.ncols() != 2) {
+    ostringstream os;
+    os << "The number of columns in *surface_ev_eh* must be two,\n"
+       << "but the actual number of columns is " << surface_ev_eh.ncols()
+       << "\n";
+    throw runtime_error(os.str());
+  }
+
+  if (surface_ev_eh.nrows() != nf && surface_ev_eh.nrows() != 1) {
+    ostringstream os;
+    os << "The number of rows in *surface_ev_eh* should\n"
+       << "match length of *f_grid* or be 1."
+       << "\n length of *f_grid* : " << nf
+       << "\n rows in *surface_ev_eh* : " << surface_ev_eh.nrows() << "\n";
+    throw runtime_error(os.str());
+  }
+
+  if (min(surface_ev_eh) < 0 || max(surface_ev_eh) > 1) {
+    throw runtime_error("All values in *surface_ev_eh* must be inside [0,1].");
+  }
+
+  surface_los.resize(1, specular_los.nelem());
+  surface_los(0, joker) = specular_los;
+
+  surface_emission.resize(nf, stokes_dim);
+  surface_rmatrix.resize(1, nf, stokes_dim, stokes_dim);
+
+  surface_emission = 0;
+  surface_rmatrix = 0;
+
+  Vector b(nf);
+  planck(b, f_grid, surface_skin_t);
+
+  Numeric rmean = 0.0, rdiff = 0.0, emean = 0.0, ediff = 0.0;
+
+  for (Index iv = 0; iv < nf; iv++) {
+    if (iv == 0 || surface_rv_rh.nrows() > 1) {
+      rmean = 0.5 * (surface_rv_rh(iv, 0) + surface_rv_rh(iv, 1));
+      rdiff = 0.5 * (surface_rv_rh(iv, 0) - surface_rv_rh(iv, 1));
+      emean = 0.5 * (surface_ev_eh(iv, 0) + surface_ev_eh(iv, 1));
+      ediff = 0.5 * (surface_ev_eh(iv, 0) - surface_ev_eh(iv, 1));
+    }
+
+    surface_emission(iv, 0) = emean * b[iv];
+    surface_rmatrix(0, iv, 0, 0) = rmean;
+
+    if (stokes_dim > 1) {
+      surface_emission(iv, 1) = ediff * b[iv];
+
+      surface_rmatrix(0, iv, 0, 1) = rdiff;
+      surface_rmatrix(0, iv, 1, 0) = rdiff;
+      surface_rmatrix(0, iv, 1, 1) = rmean;
+
+      for (Index i = 2; i < stokes_dim; i++) {
+        surface_rmatrix(0, iv, i, i) = rmean;
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatScalarReflectivity(Matrix& surface_los,
                                    Tensor4& surface_rmatrix,
                                    Matrix& surface_emission,
