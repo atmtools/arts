@@ -2564,18 +2564,18 @@ void surfaceFlatRvRh(Matrix& surface_los,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRvRhEvEh(Matrix& surface_los,
-                     Tensor4& surface_rmatrix,
-                     Matrix& surface_emission,
-                     const Vector& f_grid,
-                     const Index& stokes_dim,
-                     const Index& atmosphere_dim,
-                     const Vector& rtp_pos,
-                     const Vector& rtp_los,
-                     const Vector& specular_los,
-                     const Numeric& surface_skin_t,
-                     const Matrix& surface_rv_rh,
-                     const Matrix& surface_ev_eh,
-                     const Verbosity&) {
+                         Tensor4& surface_rmatrix,
+                         Matrix& surface_emission,
+                         const Vector& f_grid,
+                         const Index& stokes_dim,
+                         const Index& atmosphere_dim,
+                         const Vector& rtp_pos,
+                         const Vector& rtp_los,
+                         const Vector& specular_los,
+                         const Numeric& surface_skin_t,
+                         const Matrix& surface_rv_rh,
+                         const Matrix& surface_ev_eh,
+                         const Verbosity&) {
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   chk_rte_pos(atmosphere_dim, rtp_pos);
