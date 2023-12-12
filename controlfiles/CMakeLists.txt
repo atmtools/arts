@@ -67,6 +67,7 @@ arts_test_run_ctlfile(fast artscomponents/transmission/TestTransmissionWithScat.
 arts_test_run_ctlfile(fast artscomponents/surfacetypes/TestSurfaceTypes.arts)
 
 arts_test_run_ctlfile(fast artscomponents/surface/TestTessem.arts)
+arts_test_run_ctlfile(fast artscomponents/surface/TestSurfaceFlatRvRhEvEh.arts)
 
 arts_test_run_ctlfile(fast artscomponents/faraday/TestFaradayRotation.arts)
 
