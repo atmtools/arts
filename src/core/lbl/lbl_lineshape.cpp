@@ -67,7 +67,8 @@ void calculate(PropmatVectorView pm,
                const std::span<const lbl::band>& bnds,
                const linemixing::isot_map& ecs_data,
                const AtmPoint& atm,
-               const Vector2 los) {
+               const Vector2 los,
+               const bool no_negative_absorption) {
   auto voigt_lte_data = init_voigt_lte_data(f_grid, bnds, atm, los);
   auto voigt_line_nlte_data = init_voigt_line_nlte_data(f_grid, bnds, atm, los);
   auto voigt_ecs_data = init_voigt_ecs_data(f_grid, bnds, atm, los);
@@ -83,7 +84,8 @@ void calculate(PropmatVectorView pm,
                           bnd_key,
                           bnd,
                           atm,
-                          pol);
+                          pol,
+                          no_negative_absorption);
   };
 
   const auto calc_voigt_line_nlte = [&](const QuantumIdentifier& bnd_key,
@@ -99,7 +101,8 @@ void calculate(PropmatVectorView pm,
                            bnd_key,
                            bnd,
                            atm,
-                           pol);
+                           pol,
+                           no_negative_absorption);
   };
 
   const auto calc_voigt_ecs_linemixing = [&](const QuantumIdentifier& bnd_key,
@@ -119,7 +122,8 @@ void calculate(PropmatVectorView pm,
                           bnd,
                           it->second,
                           atm,
-                          pol);
+                          pol,
+                          no_negative_absorption);
   };
 
   const auto calc_switch = [&](const QuantumIdentifier& bnd_key,

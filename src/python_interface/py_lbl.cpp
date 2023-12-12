@@ -66,6 +66,12 @@ void py_lbl(py::module_& m) try {
            py::arg("T0"),
            py::arg("T"),
            py::arg("P"))
+      .def("Y",
+           py::vectorize(&lbl::line_shape::species_model::Y),
+           "The Y coefficient",
+           py::arg("T0"),
+           py::arg("T"),
+           py::arg("P"))
       .def("D0",
            py::vectorize(&lbl::line_shape::species_model::D0),
            "The D0 coefficient",
@@ -91,6 +97,10 @@ void py_lbl(py::module_& m) try {
       .def("G0",
            &lbl::line_shape::model::G0,
            "The G0 coefficient",
+           py::arg("atm"))
+      .def("Y",
+           &lbl::line_shape::model::Y,
+           "The Y coefficient",
            py::arg("atm"))
       .def("D0",
            &lbl::line_shape::model::D0,

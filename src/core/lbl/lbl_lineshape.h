@@ -17,5 +17,6 @@ void calculate(PropmatVectorView pm,
                const std::span<const lbl::band>& bnds,
                const linemixing::isot_map& ecs_data,
                const AtmPoint& atm,
-               const Vector2 los = {});
+               const Vector2 los,
+               const bool no_negative_absorption);
 }  // namespace lbl

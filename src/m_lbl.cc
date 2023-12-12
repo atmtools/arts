@@ -4,13 +4,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <iomanip>
 #include <iterator>
 #include <ranges>
 #include <span>
-#include <stdexcept>
 #include <unordered_map>
 
 #include "arts_omp.h"
@@ -20,12 +20,12 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
+#include "lineshapemodel.h"
 #include "matpack_view.h"
 #include "new_jacobian.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
 #include "xml_io.h"
-#include "xml_io_arts_types.h"
 #include "xml_io_base.h"
 
 lbl::Lineshape toLineshape(const LineShape::Type old_ls,
@@ -41,8 +41,7 @@ lbl::Lineshape toLineshape(const LineShape::Type old_ls,
 
 void absorption_bandsFromAbsorbtionLines(
     AbsorptionBands& absorption_bands,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Numeric& allowed_linestrength_error) {
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
   absorption_bands.resize(0);
   absorption_bands.reserve(std::transform_reduce(
       abs_lines_per_species.begin(),
@@ -51,7 +50,6 @@ void absorption_bandsFromAbsorbtionLines(
       std::plus<>{},
       [](const ArrayOfAbsorptionLines& lines) { return lines.size(); }));
 
-  std::string errors;
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
@@ -77,25 +75,6 @@ void absorption_bandsFromAbsorbtionLines(
         new_line.ls.one_by_one = false;
         new_line.ls.T0 = old_band.T0;
         new_line.ls.single_models.reserve(old_band.broadeningspecies.size());
-
-        if (allowed_linestrength_error > 0.0) {
-          const Numeric new_i0 =
-              -new_line.f0 *
-              std::expm1(-Constant::h * new_line.f0 /
-                         (Constant::k * new_line.ls.T0)) *
-              new_line.s(
-                  old_band.T0,
-                  PartitionFunctions::Q(old_band.T0, new_key.Isotopologue()));
-          const Numeric percentage_diff =
-              100 * std::abs(1.0 - old_line.I0 / new_i0);
-          if (percentage_diff > allowed_linestrength_error)
-            errors += var_string(new_key,
-                                 " diff: ",
-                                 percentage_diff,
-                                 "%; line: ",
-                                 old_line,
-                                 '\n');
-        }
 
         for (Size i = 0; i < old_band.broadeningspecies.size(); i++) {
           auto& new_line_lsspec = new_line.ls.single_models.emplace_back();
@@ -183,17 +162,102 @@ void absorption_bandsFromAbsorbtionLines(
     }
   }
 
-  if (errors.size()) {
-    throw std::runtime_error(var_string(errors));
-  }
-
   std::ranges::sort(
       absorption_bands,
       [](const lbl::band_data& lhs, const lbl::band_data& rhs) {
         return lhs.size() > rhs.size();
       },
       &lbl::band::data);
-  for (auto& bnd : absorption_bands) bnd.data.sort();
+
+  for (auto& bnd : absorption_bands) {
+    bnd.data.sort();
+    for (auto& line : bnd.data.lines) {
+      line.ls.clear_zeroes();
+    }
+  }
+}
+
+std::pair<LineShape::Type, Absorption::PopulationType>
+toLineshapeAndPolpulation(lbl::Lineshape x) {
+  if (x == lbl::Lineshape::VP_LTE) {
+    return {LineShape::Type::VP, Absorption::PopulationType::LTE};
+  }
+
+  ARTS_USER_ERROR("Old code does not support conversion from ", x)
+}
+
+void abs_linesFromAbsorptionBands(ArrayOfAbsorptionLines& abs_lines,
+                                  const AbsorptionBands& absorption_bands) {
+  abs_lines.resize(0);
+  abs_lines.reserve(absorption_bands.size());
+
+  for (auto& [key, band] : absorption_bands) {
+    if (band.lines.size() == 0) continue;
+
+    const Size i0 = abs_lines.size();
+    AbsorptionLines old_band;
+
+    old_band.quantumidentity = key;
+    old_band.cutoff = Absorption::toCutoffTypeOrThrow(toString(band.cutoff));
+    old_band.cutofffreq = band.cutoff_value;
+    const auto [ls, pop] = toLineshapeAndPolpulation(band.lineshape);
+    old_band.lineshapetype = ls;
+    old_band.population = pop;
+    old_band.normalization = Absorption::NormalizationType::SFS;
+    old_band.linemixinglimit = -1;
+    old_band.lines.resize(1);
+
+    for (auto& line : band.lines) {
+      AbsorptionSingleLine& old_line = old_band.lines.front();
+
+      old_band.broadeningspecies.resize(line.ls.single_models.size());
+      for (Size i = 0; i < line.ls.single_models.size(); i++) {
+        old_band.broadeningspecies[i] = line.ls.single_models[i].species;
+      }
+      old_band.bathbroadening =
+          old_band.broadeningspecies.back() == SpeciesEnum::Bath;
+
+      old_line.A = line.a;
+      old_line.F0 = line.f0;
+      old_line.E0 = line.e0;
+      old_line.gupp = line.gu;
+      old_line.glow = line.gl;
+      old_line.zeeman.gu() = line.z.gu();
+      old_line.zeeman.gl() = line.z.gl();
+      old_line.localquanta = line.qn;
+      old_line.I0 =
+          -(Math::pow2(Constant::c) / (8 * Constant::pi)) * line.f0 *
+          std::expm1(-Constant::h * line.f0 / (Constant::k * line.ls.T0)) *
+          line.s(line.ls.T0,
+                 PartitionFunctions::Q(line.ls.T0, key.Isotopologue()));
+
+      old_line.lineshape.resize(line.ls.single_models.size());
+      for (Size i = 0; i < line.ls.single_models.size(); i++) {
+        for (auto& [var, data] : line.ls.single_models[i].data) {
+          auto& old_line_ls = old_line.lineshape[i];
+          ARTS_USER_ERROR_IF(
+              data.X().size() > 4,
+              "Old code does not support more than 4 temperature parameters.")
+          LineShape::ModelParameters old_model(
+              LineShape::toTemperatureModelOrThrow(toString(data.Type())),
+              data.X());
+          old_line_ls.Set(LineShape::toVariableOrThrow(toString(var)),
+                          old_model);
+        }
+      }
+
+      if (auto ptr = std::find_if(abs_lines.begin()+i0,
+                                  abs_lines.end(),
+                                  [&old_band](const AbsorptionLines& l) {
+                                    return old_band.Match(l).first;
+                                  });
+          ptr == abs_lines.end()) {
+        abs_lines.push_back(old_band);
+      } else {
+        ptr->AppendSingleLine(old_line);
+      }
+    }
+  }
 }
 
 std::vector<std::pair<Index, Index>> omp_offset_count(const Index N,
@@ -343,7 +407,7 @@ void absorption_bandsAppendSplit(AbsorptionBands& absorption_bands,
                     std::back_inserter(paths));
   std::ranges::sort(paths);
 
-  absorption_bands.reserve(absorption_bands.size()+paths.size());
+  absorption_bands.reserve(absorption_bands.size() + paths.size());
   for (auto& entry : paths) {
     if (not std::filesystem::is_regular_file(entry)) continue;
     if (entry.extension() != ".xml") continue;
@@ -365,12 +429,6 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
   for (auto& path : paths) {
     absorption_bandsAppendSplit(absorption_bands, path);
   }
-}
-
-String strip(String s) {
-  s.erase(std::remove_if(s.begin(), s.end(), [](char c) { return ' ' == c; }),
-          s.end());
-  return s;
 }
 
 void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
@@ -404,7 +462,8 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                                const JacobianTargets& jacobian_targets,
                                const AbsorptionBands& absorption_bands,
                                const LinemixingEcsData& ecs_data,
-                               const AtmPoint& atm_point) {
+                               const AtmPoint& atm_point,
+                               const Index& no_negative_absorption) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
     lbl::calculate(pm,
@@ -415,7 +474,9 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                    jacobian_targets,
                    absorption_bands,
                    ecs_data,
-                   atm_point);
+                   atm_point,
+                   {},
+                   no_negative_absorption);
   } else {
     const auto ompv = omp_offset_count(f_grid.size(), n);
     std::string error;
@@ -430,7 +491,9 @@ void propmat_clearskyAddLines2(PropmatVector& pm,
                        jacobian_targets,
                        absorption_bands,
                        ecs_data,
-                       atm_point);
+                       atm_point,
+                       {},
+                       no_negative_absorption);
       } catch (std::exception& e) {
 #pragma omp critical
         if (error.empty()) error = var_string(e.what(), '\n');

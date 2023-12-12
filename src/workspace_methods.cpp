@@ -15492,11 +15492,14 @@ Size : (*jacobian_targets*, *f_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
-      .in = {"abs_lines_per_species"},
-      .gin = {"allowed_linestrength_error"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{0.0}},
-      .gin_desc = {"Compare values in percentage"}};
+      .in = {"abs_lines_per_species"}};
+
+  wsm_data["abs_linesFromAbsorptionBands"] = {
+      .desc = R"--(Gets old line catalog from modern style
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"abs_lines"},
+      .in = {"absorption_bands"}};
 
   wsm_data["propmat_clearskyAddLines2"] = {
       .desc = R"--(Modern line-by-line calculations
@@ -15514,7 +15517,12 @@ Size : (*jacobian_targets*, *f_grid*)
              "jacobian_targets",
              "absorption_bands",
              "ecs_data2",
-             "atm_point"}};
+             "atm_point"},
+      .gin = {"no_negative_absorption"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc = {
+          "Turn off to allow individual absorbers to have negative absorption"}};
 
   wsm_data["jacobian_targetsInit"] = {
       .desc = R"--(Initialize or reset the *jacobian_targets*
@@ -15676,7 +15684,8 @@ If ``line`` is positive, also keep only the line of this index
       .gin_desc = {"Band to keep", "Line to keep (if positive)"}};
 
   wsm_data["SortedQuantumIdentifiersOfBands"] = {
-      .desc = R"--(Get the sorting of the bands by first quantum identifier then some ``criteria``
+      .desc =
+          R"--(Get the sorting of the bands by first quantum identifier then some ``criteria``
 
 The reverse sorting can also be achieved by setting ``reverse``.
 
@@ -15686,14 +15695,15 @@ Valid ``criteria`` are:
 - FrontFrequency: By first frequency
 )--",
       .author = {"Richard Larsson"},
-      .gout={"sorted_idxs"},
-      .gout_type={"ArrayOfIndex"},
-      .gout_desc={"Sorted band indices (of *absorption_bands*)"},
+      .gout = {"sorted_idxs"},
+      .gout_type = {"ArrayOfIndex"},
+      .gout_desc = {"Sorted band indices (of *absorption_bands*)"},
       .in = {"absorption_bands"},
       .gin = {"criteria", "reverse"},
       .gin_type = {"String", "Index"},
       .gin_value = {String{"None"}, Index{0}},
-      .gin_desc = {"Internal sorting criteria", "Sort in reverse order if true"}};
+      .gin_desc = {"Internal sorting criteria",
+                   "Sort in reverse order if true"}};
 
   wsm_data["absorption_bandsAppendSplit"] = {
       .desc = R"--(Append all bands found in a directory to *absorption_bands*

@@ -63,8 +63,9 @@ def eqvvals(band, T):
 def lmvalues(lbl_str, lbl_val, eqv_val_sorted, eqv_str_sorted, p):
     lm_val = eqv_val_sorted - lbl_val.T
     lm_str = 1.0 * eqv_str_sorted
-    lm_str[:, 0] -= lbl_str.T
-    lm_str[:, 1] -= lbl_str.T
+    lm_str[:, 0] /= lbl_str.T
+    lm_str[:, 0] -= 1.0
+    lm_str[:, 1] /= lbl_str.T
 
     foffset = lm_val.real / p**2
     goffset = lm_val.imag / p**3
@@ -93,6 +94,8 @@ def adaptband(band, T, p, second_order=False):
                 band.data.lines[j].ls.single_models[i].data.set(
                     "DV", pyarts.arts.TemperatureModel("POLY", ff[i, j][::-1])
                 )
+
+    band.data.lineshape = "VP_LTE"
     return band
 
 
@@ -145,11 +148,18 @@ ws.absorption_bands = [band]
 
 ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
 ws.propmat_clearskyAddLines2()
-pm_full = 1.0 * ws.propmat_clearsky[:].T[0]
+pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
 
-band.data.lineshape = "VP_LTE"
+band.data.lineshape = "VP_ECS_HARTMANN"
+ws.absorption_bands = [band]
 ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
 ws.propmat_clearskyAddLines2()
-pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
+pm_full = 1.0 * ws.propmat_clearsky[:].T[0]
+
+import matplotlib.pyplot as plt
+plt.semilogy(f2c(ws.f_grid), pm_lte)
+plt.semilogy(f2c(ws.f_grid), pm_adapted_lte, '--')
+plt.semilogy(f2c(ws.f_grid), pm_full, ':')
+plt.legend(["lte", "adapt", "full"])
 
 assert np.all(pm_adapted_lte > 0), "Adaptation failed"

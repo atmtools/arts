@@ -422,7 +422,8 @@ void calculate(PropmatVectorView pm,
                const band_data& bnd,
                const linemixing::species_data_map& rovib_data,
                const AtmPoint& atm,
-               const zeeman::pol pol) {
+               const zeeman::pol pol,
+               const bool no_negative_absorption) {
   if (pol != zeeman::pol::no) {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
@@ -447,10 +448,12 @@ void calculate(PropmatVectorView pm,
   com_data.core_calc(f_grid);
 
   for (Index i = 0; i < f_grid.size(); ++i) {
-    pm[i] += zeeman::scale(
-        com_data.npm,
-        Constant::sqrt_ln_2 / Constant::sqrt_pi * atm[bnd_qid.Species()] *
-            atm[bnd_qid.Isotopologue()] * com_data.scl[i] * com_data.shape[i]);
+    const auto F = Constant::sqrt_ln_2 / Constant::sqrt_pi *
+                   atm[bnd_qid.Species()] * atm[bnd_qid.Isotopologue()] *
+                   com_data.scl[i] * com_data.shape[i];
+    if (no_negative_absorption and F.real() < 0) continue;
+    pm[i] += zeeman::scale(com_data.npm, F);
+    
   }
 }
 
@@ -482,7 +485,7 @@ void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
     com_data.adapt_single(bnd_qid, bnd, rovib_data, atm, false);
   }
 
-  if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > T.size()) {
+  if (not arts_omp_in_parallel() and arts_omp_get_max_threads() > 1) {
 #pragma omp parallel for firstprivate(com_data)
     for (Index i = 0; i < k; ++i) {
       AtmPoint atm_copy = atm;

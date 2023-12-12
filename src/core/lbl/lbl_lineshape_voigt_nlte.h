@@ -254,5 +254,6 @@ void calculate(PropmatVectorView pm,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
-               const zeeman::pol pol = zeeman::pol::no);
+               const zeeman::pol pol,
+               const bool no_negative_absorption);
 }  // namespace lbl::voigt::nlte

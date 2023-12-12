@@ -2003,7 +2003,8 @@ void calculate(PropmatVectorView pm,
                const QuantumIdentifier& bnd_qid,
                const band_data& bnd,
                const AtmPoint& atm,
-               const zeeman::pol pol) {
+               const zeeman::pol pol,
+               const bool no_negative_absorption) {
   if (std::ranges::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 
   const Index nf = f_grid.size();
@@ -2029,7 +2030,9 @@ void calculate(PropmatVectorView pm,
   com_data.core_calc(shape, bnd, f_grid);
 
   for (Index i = 0; i < nf; i++) {
-    pm[i] += zeeman::scale(com_data.npm, com_data.scl[i] * com_data.shape[i]);
+    const auto F = com_data.scl[i] * com_data.shape[i];
+    if (no_negative_absorption and F.real() < 0) continue;
+    pm[i] += zeeman::scale(com_data.npm, F);
   }
 
   for (auto& atm_target : jacobian_targets.atm()) {

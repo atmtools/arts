@@ -75,7 +75,8 @@ void calculate(PropmatVectorView pm,
                const band_data& bnd,
                const linemixing::species_data_map& rovib_data,
                const AtmPoint& atm,
-               const zeeman::pol pol = zeeman::pol::no);
+               const zeeman::pol pol,
+               const bool no_negative_absorption);
 
 void equivalent_values(ExhaustiveComplexTensor3View eqv_str,
                        ExhaustiveComplexTensor3View eqv_val,
