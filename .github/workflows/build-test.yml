@@ -129,7 +129,7 @@ jobs:
         run: |
           if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" -ge "13" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{ matrix.version }} main"
+             sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main"
           fi
 
           sudo apt-get update
