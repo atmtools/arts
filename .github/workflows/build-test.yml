@@ -92,7 +92,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-gcc-13
-            os: macos-11
+            os: macos-12
             compiler: gcc
             version: "13"
             doc: "no"
@@ -104,7 +104,7 @@ jobs:
             buildtype: "Release"
 
           - name: macos-clang-16
-            os: macos-11
+            os: macos-12
             compiler: clang
             version: "16"
             doc: "no"
@@ -129,7 +129,7 @@ jobs:
         run: |
           if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" -ge "13" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-${{ matrix.version }} main"
+             sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main"
           fi
 
           sudo apt-get update
