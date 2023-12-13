@@ -3,6 +3,7 @@ if (ENABLE_FORTRAN AND NOT NO_FASTEM)
 
   add_library (fastem STATIC
     parkind1.F90
+    mod_rttov_fastem3_coef.F90
     mod_rttov_fastem5_coef.F90
     rttov_fastem5.F90
     )

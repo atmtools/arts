@@ -46,6 +46,8 @@
         ZERO, ONE, TWO, PI, DEGREES_TO_RADIANS, transmittance_limit_lower,&
         transmittance_limit_upper, e0_4, e0_5, min_f, max_f, min_wind, max_wind, A_COEF, Lcoef4, Lcoef5,&
         Scoef, t_c4, t_c5, b_coef, FR_COEFF, x, y, coef_mk_azi
+    USE mod_rttov_fastem3_coef, ONLY : fastem3_coef, freqfixed
+    USE parkind1, ONLY : jprb
 !INTF_ON
     USE mod_rttov_fastem5_coef, ONLY: fp
     USE parkind1, ONLY : jpim, jplm
