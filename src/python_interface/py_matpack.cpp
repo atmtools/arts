@@ -3,6 +3,7 @@
 #include <pybind11/pytypes.h>
 #include <python_interface.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <memory>
@@ -12,6 +13,7 @@
 #include <vector>
 
 #include "array.h"
+#include "configtypes.h"
 #include "matpack_concepts.h"
 #include "matpack_constexpr.h"
 #include "matpack_iter.h"
@@ -21,7 +23,7 @@ namespace Python {
 using Scalar = std::variant<Numeric, Index>;
 
 template <typename T>
-using numpy_array = py::array_t<T, py::array::c_style | py::array::forcecast>;
+using numpy_array = py::array_t<T, py::array::forcecast>;
 
 template <typename T, Index... sz>
 auto register_matpack_constant_data(py::module_& m, const char* const name)
@@ -118,6 +120,33 @@ void test_correct_size(const std::vector<T>& x) {
   }
 }
 
+template <Size N, typename T>
+std::array<Index, N> shape(const numpy_array<T>& x)
+  requires(N > 0)
+{
+  const Size D = x.ndim();
+  const Size S = N - D;
+
+  ARTS_USER_ERROR_IF(
+      N < D, "Cannot cast rank ", D, " input into rank ", N, " output")
+
+  std::array<Index, N> out;
+  std::ranges::fill(out | std::views::take(S), 1);
+  for (Size i = S; i < N; i++) {
+    out[i] = static_cast<Index>(x.shape(i - S));
+  }
+
+  return out;
+}
+
+template <Size N, typename T>
+std::shared_ptr<matpack::matpack_data<T, N>> copy(const numpy_array<T>& x) {
+  auto out = std::make_shared<matpack::matpack_data<T, N>>(shape<N, T>(x));
+  py::object np = py::module_::import("numpy");
+  np.attr("copyto")(py::cast(out).attr("value"), x);
+  return out;
+}
+
 void py_matpack(py::module_& m) try {
   register_matpack_constant_data<Numeric, 3>(m, "Vector3").doc() =
       "A 3D vector";
@@ -147,24 +176,14 @@ void py_matpack(py::module_& m) try {
   artsclass<Vector>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Vector>(); }),
            "Default vector")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 1> shape;
-
-             if (dim == 1) {
-               shape = {x.shape(0)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Vector>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<1>(x); }),
            py::arg("vec").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Vector>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Vector>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Vector)
       .PythonInterfaceWorkspaceVariableConversion(Vector)
       .PythonInterfaceBasicRepresentation(Vector)
@@ -206,26 +225,14 @@ via x.value
   artsclass<Matrix>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Matrix>(); }),
            "Default matrix")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 2> shape;
-
-             if (dim == 1) {
-               shape = {1, x.shape(0)};
-             } else if (dim == 2) {
-               shape = {x.shape(0), x.shape(1)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Matrix>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<2>(x); }),
            py::arg("mat").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Matrix>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Matrix>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Matrix)
       .PythonInterfaceWorkspaceVariableConversion(Matrix)
       .PythonInterfaceBasicRepresentation(Matrix)
@@ -273,28 +280,14 @@ via x.value
   artsclass<Tensor3>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor3>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 3> shape;
-
-             if (dim == 1) {
-               shape = {1, 1, x.shape(0)};
-             } else if (dim == 2) {
-               shape = {1, x.shape(0), x.shape(1)};
-             } else if (dim == 3) {
-               shape = {x.shape(0), x.shape(1), x.shape(2)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Tensor3>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<3>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Tensor3>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Tensor3>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor3)
       .PythonInterfaceWorkspaceVariableConversion(Tensor3)
       .PythonInterfaceBasicRepresentation(Tensor3)
@@ -341,30 +334,14 @@ via x.value
   artsclass<Tensor4>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor4>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 4> shape;
-
-             if (dim == 1) {
-               shape = {1, 1, 1, x.shape(0)};
-             } else if (dim == 2) {
-               shape = {1, 1, x.shape(0), x.shape(1)};
-             } else if (dim == 3) {
-               shape = {1, x.shape(0), x.shape(1), x.shape(2)};
-             } else if (dim == 4) {
-               shape = {x.shape(0), x.shape(1), x.shape(2), x.shape(3)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Tensor4>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<4>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Tensor4>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Tensor4>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor4)
       .PythonInterfaceWorkspaceVariableConversion(Tensor4)
       .PythonInterfaceBasicRepresentation(Tensor4)
@@ -414,33 +391,14 @@ via x.value
   artsclass<Tensor5>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor5>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 5> shape;
-
-             if (dim == 1) {
-               shape = {1, 1, 1, 1, x.shape(0)};
-             } else if (dim == 2) {
-               shape = {1, 1, 1, x.shape(0), x.shape(1)};
-             } else if (dim == 3) {
-               shape = {1, 1, x.shape(0), x.shape(1), x.shape(2)};
-             } else if (dim == 4) {
-               shape = {1, x.shape(0), x.shape(1), x.shape(2), x.shape(3)};
-             } else if (dim == 5) {
-               shape = {
-                   x.shape(0), x.shape(1), x.shape(2), x.shape(3), x.shape(4)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Tensor5>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<5>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Tensor5>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Tensor5>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor5)
       .PythonInterfaceWorkspaceVariableConversion(Tensor5)
       .PythonInterfaceBasicRepresentation(Tensor5)
@@ -493,44 +451,14 @@ via x.value
   artsclass<Tensor6>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor6>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) {
-             const Index dim = x.ndim();
-             std::array<Index, 6> shape;
-
-             if (dim == 1) {
-               shape = {1, 1, 1, 1, 1, x.shape(0)};
-             } else if (dim == 2) {
-               shape = {1, 1, 1, 1, x.shape(0), x.shape(1)};
-             } else if (dim == 3) {
-               shape = {1, 1, 1, x.shape(0), x.shape(1), x.shape(2)};
-             } else if (dim == 4) {
-               shape = {1, 1, x.shape(0), x.shape(1), x.shape(2), x.shape(3)};
-             } else if (dim == 5) {
-               shape = {1,
-                        x.shape(0),
-                        x.shape(1),
-                        x.shape(2),
-                        x.shape(3),
-                        x.shape(4)};
-             } else if (dim == 6) {
-               shape = {x.shape(0),
-                        x.shape(1),
-                        x.shape(2),
-                        x.shape(3),
-                        x.shape(4),
-                        x.shape(5)};
-             } else {
-               throw std::runtime_error("Bad rank");
-             }
-             auto out = std::make_shared<Tensor6>(shape);
-             std::copy(x.data(), x.data() + x.size(), out->data_handle());
-             return out;
-           }),
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<6>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Tensor6>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Tensor6>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor6)
       .PythonInterfaceWorkspaceVariableConversion(Tensor6)
       .PythonInterfaceBasicRepresentation(Tensor6)
@@ -587,55 +515,14 @@ via x.value
   artsclass<Tensor7>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor7>(); }),
            "Default tensor")
-      .def(
-          py::init([](const numpy_array<Numeric>& x) {
-            const Index dim = x.ndim();
-            std::array<Index, 7> shape;
-
-            if (dim == 1) {
-              shape = {1, 1, 1, 1, 1, 1, x.shape(0)};
-            } else if (dim == 2) {
-              shape = {1, 1, 1, 1, 1, x.shape(0), x.shape(1)};
-            } else if (dim == 3) {
-              shape = {1, 1, 1, 1, x.shape(0), x.shape(1), x.shape(2)};
-            } else if (dim == 4) {
-              shape = {1, 1, 1, x.shape(0), x.shape(1), x.shape(2), x.shape(3)};
-            } else if (dim == 5) {
-              shape = {1,
-                       1,
-                       x.shape(0),
-                       x.shape(1),
-                       x.shape(2),
-                       x.shape(3),
-                       x.shape(4)};
-            } else if (dim == 6) {
-              shape = {1,
-                       x.shape(0),
-                       x.shape(1),
-                       x.shape(2),
-                       x.shape(3),
-                       x.shape(4),
-                       x.shape(5)};
-            } else if (dim == 7) {
-              shape = {x.shape(0),
-                       x.shape(1),
-                       x.shape(2),
-                       x.shape(3),
-                       x.shape(4),
-                       x.shape(5),
-                       x.shape(6)};
-            } else {
-              throw std::runtime_error("Bad rank");
-            }
-            auto out = std::make_shared<Tensor7>(shape);
-            std::copy(x.data(), x.data() + x.size(), out->data_handle());
-            return out;
-          }),
-          py::arg("ten").none(false),
-          py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const numpy_array<Numeric>& x) { return copy<7>(x); }),
+           py::arg("ten").none(false),
+           py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-        return x.cast<numpy_array<Numeric>>().cast<Tensor7>();
-      }), py::arg("lst"), py::doc("From :class:`list` equivalent via numpy"))
+             return x.cast<numpy_array<Numeric>>().cast<Tensor7>();
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .PythonInterfaceCopyValue(Tensor7)
       .PythonInterfaceWorkspaceVariableConversion(Tensor7)
       .PythonInterfaceBasicRepresentation(Tensor7)
