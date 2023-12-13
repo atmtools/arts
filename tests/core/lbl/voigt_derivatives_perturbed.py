@@ -258,7 +258,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     dpm = ws.dpropmat_clearsky_dx * 1.0
     pm = ws.propmat_clearsky * 1.0
@@ -270,7 +270,7 @@ for setting in settings:
     ws.atm_point[key] += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.atm_point[key] -= d
@@ -286,7 +286,7 @@ for setting in settings:
     ws.atm_point[key] += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.atm_point[key] -= d
@@ -300,7 +300,7 @@ for setting in settings:
     ws.atm_point[key] += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.atm_point[key] -= d
@@ -314,7 +314,7 @@ for setting in settings:
     ws.f_grid += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.f_grid = orig
@@ -328,7 +328,7 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].f0 += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].f0 = orig
@@ -342,7 +342,7 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].e0 += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].e0 = orig
@@ -358,7 +358,7 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].a += d
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].a = orig
@@ -383,7 +383,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -408,7 +408,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -433,7 +433,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -458,7 +458,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -480,7 +480,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -502,7 +502,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -524,7 +524,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -546,7 +546,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -568,7 +568,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -590,7 +590,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -612,7 +612,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -634,7 +634,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -659,7 +659,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -684,7 +684,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -709,7 +709,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -734,7 +734,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -756,7 +756,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -778,7 +778,7 @@ for setting in settings:
     )
 
     ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
-    ws.propmat_clearskyAddLines2()
+    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
