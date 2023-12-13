@@ -37,22 +37,6 @@
 #include "array.h"
 #include "matpack.h"
 
-/** IndexComp
- *
- * Functor for the comparison function used by get_sorted_indexes.
- *
- * Author: Oliver Lemke <olemke@core-dump.info>
- * Date:   2003-08-20
- */
-template <typename T>
-class IndexComp : public binary_function<Index, Index, bool> {
-  const T& m_data;
-
- public:
-  explicit IndexComp(const T& data) : m_data(data) {}
-
-  bool operator()(Index a, Index b) const { return (m_data[a] < m_data[b]); }
-};
 
 /** get_sorted_indexes
  *
@@ -79,7 +63,9 @@ void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
     i++;
   }
 
-  sort(sorted.begin(), sorted.end(), IndexComp<T>(data));
+  sort(sorted.begin(), sorted.end(), [&data](const Index a, const Index b) {
+    return data[a] < data[b];
+  });
 }
 
 #endif /* sorting_h */
