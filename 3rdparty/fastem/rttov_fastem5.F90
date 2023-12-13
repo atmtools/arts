@@ -9,44 +9,38 @@
                               Reflectivity, &  ! Output
                               Transmittance,&  ! Input, may not be used
                               Rel_Azimuth  )   ! Input, may not be used
- ! Description:
-  ! To compute FASTEM-5 emissivities and reflectivities.
-  !
-  ! Copyright:
-  !    This software was developed within the context of
-  !    the EUMETSAT Satellite Application Facility on
-  !    Numerical Weather Prediction (NWP SAF), under the
-  !    Cooperation Agreement dated 25 November 1998, between
-  !    EUMETSAT and the Met Office, UK, by one or more partners
-  !    within the NWP SAF. The partners in the NWP SAF are
-  !    the Met Office, ECMWF, KNMI and MeteoFrance.
-  !
-  !    Copyright 2009, EUMETSAT, All Rights Reserved.
-  !
-  ! Method:
-  ! An improved fast microwave sea surface emissivity model, FASTEM4
-  ! Liu, Q., S. English, F. Weng, 2009: Report in prepare
-  !
-  ! It is an extension of the FASTEM-3 English 2003.
-  ! http://www.metoffice.com/research/interproj/nwpsaf/rtm/evalfastems.pdf
-  !
-  ! Current Code Owner: SAF NWP
-  !
-  ! History:
-  ! Version   Date     Comment
-  ! -------   ----     -------
-  !  1.0       27/08/2009  New F90 code (Q. Liu)
-  !  1.1       10-Feb-2014 Revised wind azimuth dependence (M. Kazumori)
-  !
-  ! Code Description:
-  !   Language:           Fortran 90.
-  !   Software Standards: "European Standards for Writing and
-  !     Documenting Exchangeable Fortran 90 Code".
-  !
-  ! Declarations:
-  ! Modules used:
-  !
-  ! Imported Parameters:
+! Description:
+!> @file
+!!   Compute FASTEM-4,5,6 emissivity and reflectance for a single channel
+!
+!> @brief
+!!   Compute FASTEM-4,5,6 emissivity and reflectance for a single channel
+!!
+!! @details
+!!   References for FASTEM are given in the user guide.
+!!
+!! @param[in]     fastem_version        FASTEM version to compute (4, 5 or 6)
+!! @param[in]     frequency             channel frequency (GHz)
+!! @param[in]     zenith_angle          profile zenith angle (degrees)
+!! @param[in]     temperature           profile skin temperature (K)
+!! @param[in]     salinity              profile salinity (practical salinity units)
+!! @param[in]     wind_speed            profile wind speed (m/s)
+!! @param[out]    emissivity            calculated emissivity (4 Stokes components)
+!! @param[out]    reflectivity          calculated reflectivity (4 Stokes components)
+!! @param[in]     transmittance         surface-to-space transmittance
+!! @param[in]     rel_azimuth           relative azimuth angle
+!
+! Copyright:
+!    This software was developed within the context of
+!    the EUMETSAT Satellite Application Facility on
+!    Numerical Weather Prediction (NWP SAF), under the
+!    Cooperation Agreement dated 7 December 2016, between
+!    EUMETSAT and the Met Office, UK, by one or more partners
+!    within the NWP SAF. The partners in the NWP SAF are
+!    the Met Office, ECMWF, DWD and MeteoFrance.
+!
+!    Copyright 2015, EUMETSAT, All Rights Reserved.
+!
 !INTF_OFF
     USE mod_rttov_fastem5_coef, ONLY : FresnelVariables_type, PermittivityVariables_type,&
         ZERO, ONE, TWO, PI, DEGREES_TO_RADIANS, transmittance_limit_lower,&
@@ -54,7 +48,7 @@
         Scoef, t_c4, t_c5, b_coef, FR_COEFF, x, y, coef_mk_azi
 !INTF_ON
     USE mod_rttov_fastem5_coef, ONLY: fp
-    USE parkind1, ONLY : jpim
+    USE parkind1, ONLY : jpim, jplm
     IMPLICIT NONE
     ! Arguments
     INTEGER(jpim),   INTENT(IN)     :: fastem_version
@@ -84,7 +78,6 @@
     REAL(fp) :: einf, sigma25
     REAL(fp) :: tau1, tau2, es, e1
     REAL(fp) :: perm_Real, perm_imag
-!    REAL(fp) ::
     TYPE(PermittivityVariables_type) :: iVar
     COMPLEX( fp ) :: Permittivity
 
@@ -101,7 +94,7 @@
     ! Local variables for including transmittance
     REAL(fp) :: variance,varm,opdpsfc,zx(9)
     ! Foam reflectance
-    REAL(fp) :: Fv, Fh, Foam_ref
+    REAL(fp) :: Fh, Foam_ref
     ! Local variables for azimuth angle
     REAL(fp) :: ac, sc, fre_c, phi, wind10
     ! Local arrays to hold FASTEM-4/5 coefs
@@ -115,6 +108,15 @@
     REAL(fp),parameter :: xs22=4
     REAL(fp),parameter :: theta_ref=55.2d0
     REAL(fp) :: theta
+
+    ! FASTEM-3 azimuth calculation
+    INTEGER(jpim) :: istokes, ich, i_freq
+    REAL(jprb)    :: u19, freq_ghz, dfreq
+    REAL(jprb)    :: tbfixed(4,4,3)     ! Surface brightness temperature azimuthal variation terms for 37, 19, 10, 7 GHz
+    REAL(jprb)    :: efixed(4,4,3)      ! Emissivity azimuthal variation terms for 7, 10, 19, 37 GHz
+    REAL(jprb)    :: einterpolated(4,3) ! Emissivity azimuthal variation terms for interpolated to required frequency
+    REAL(jprb)    :: a1e, a2e, a3e      ! coefficients used in azimuthal emissivity model
+    REAL(jprb), POINTER :: c(:)! pointer to FASTEM-3 coefs
 
     REAL(fp),dimension(6) :: A1v,A1h,A2v,A2h
     REAL(fp),dimension(6) :: A1s1,A1s2,A2s1,A2s2
@@ -251,12 +253,10 @@
     
   ! The foam vertical and horizontal reflectanc codes, adopted from Masahiro Kazumori, JMA
   ! ----------------------------------
-    Fv = ONE + Zenith_Angle*(FR_COEFF(1)+ Zenith_Angle*(FR_COEFF(2)  &
-       + Zenith_Angle*FR_COEFF(3))) + FR_COEFF(4)*Zenith_Angle**10
-    Foam_Rv = FR_COEFF(5)
-    Fh = ONE + Zenith_Angle*(FR_COEFF(6) +  Zenith_Angle*(FR_COEFF(7)  &
-       + Zenith_Angle*FR_COEFF(8)))
-    Foam_Rh = ONE + FR_COEFF(9)*Fh
+    Foam_Rv = FR_COEFF(1)
+    Fh = ONE + Zenith_Angle*(FR_COEFF(2) +  Zenith_Angle*(FR_COEFF(3)  &
+       + Zenith_Angle*FR_COEFF(4)))
+    Foam_Rh = ONE + FR_COEFF(5)*Fh
 
     ! Added frequency dependence derived from Stogry model
     Foam_ref = 0.4_fp * exp(-0.05_fp*Frequency )
@@ -411,8 +411,57 @@
           Azimuth_Emi(1) = azimuth_component(1,6)
           Azimuth_Emi(2) = azimuth_component(2,6)
         END IF
+        ! Azimuthal component from Fuzhong Weng (NOAA/NESDIS) based on work by Dr. Gene Poe (NRL)
+        ! FASTEM-3 azimuthal calculation for Stokes 3/4 only
+        ! Assume 19m wind = 10m wind for now (fix later).
+        u19 = wind10
+        freq_ghz = Frequency
+        c => fastem3_coef
+        DO ich = 0, 15
+          a1e = c(141 + ich * 12) + u19 * (c(142 + ich * 12) + u19 * (c(143 + ich * 12) + u19 * c(144 + ich * 12)))
+          a2e = c(145 + ich * 12) + u19 * (c(146 + ich * 12) + u19 * (c(147 + ich * 12) + u19 * c(148 + ich * 12)))
+          a3e = c(149 + ich * 12) + u19 * (c(150 + ich * 12) + u19 * (c(151 + ich * 12) + u19 * c(152 + ich * 12)))
+          i_freq = int(ich / 4_jpim) + 1                      ! 37, 19, 10, 7 GHz
+          istokes                     = mod(ich, 4_jpim) + 1
+          tbfixed(istokes, i_freq, 1) = a1e                  !* prof%skin%t
+          tbfixed(istokes, i_freq, 2) = a2e                  !* prof%skin%t
+          tbfixed(istokes, i_freq, 3) = a3e                  !* prof%skin%t
+        ENDDO
+        DO M = 1, 3
+          DO istokes = 3, 4
+            efixed(1, istokes, M) = tbfixed(istokes, 4, M)!/prof%skin%t  ! 7  GHz
+            efixed(2, istokes, M) = tbfixed(istokes, 3, M)!/prof%skin%t  ! 10  GHz
+            efixed(3, istokes, M) = tbfixed(istokes, 2, M)!/prof%skin%t  ! 19  GHz
+            efixed(4, istokes, M) = tbfixed(istokes, 1, M)!/prof%skin%t  ! 37  GHz
+          ENDDO
+          ! Interpolate results to required frequency based on 7, 10, 19, 37 GHz
+          IF (freq_ghz .LE. freqfixed(1)) THEN
+            DO istokes = 3, 4
+              einterpolated(istokes, M) = efixed(1, istokes, M)
+            ENDDO
+          ELSE IF (freq_ghz .GE. freqfixed(4)) THEN
+            DO istokes = 3, 4
+              einterpolated(istokes, M) = efixed(4, istokes, M)
+            ENDDO
+          ELSE
+            IF (freq_ghz .LT. freqfixed(2)                                 ) ifreq = 2
+            IF (freq_ghz .LT. freqfixed(3) .AND. freq_ghz .GE. freqfixed(2)) ifreq = 3
+            IF (freq_ghz .GE. freqfixed(3)                                 ) ifreq = 4
+            dfreq = (freq_ghz - freqfixed(ifreq - 1)) / (freqfixed(ifreq) - freqfixed(ifreq - 1))
+            DO istokes = 3, 4
+              einterpolated(istokes, M) =      &
+                & efixed(ifreq - 1, istokes, M) + dfreq * (efixed(ifreq, istokes, M) - efixed(ifreq - 1, istokes, M))
+            ENDDO
+          ENDIF
+        ENDDO
+        DO istokes = 3, 4
+          DO M = 1, 3
+            Azimuth_Emi(istokes) = Azimuth_Emi(istokes) +      &
+              & einterpolated(istokes, M) * sin(m * phi) * (1.0_JPRB - cos_z) / (1.0_JPRB - 0.6018_JPRB)
+          ENDDO
+        ENDDO
 
-      else                       !M.Liu      azimuth model function
+      else ! FASTEM-4/5    M.Liu      azimuth model function
         Fre_C = ZERO
         IF( Frequency >= min_f .or. Frequency <= max_f ) THEN
           DO i = 1, 8
@@ -467,11 +516,16 @@
     Emissivity(2) = Emissivity(2) + Azimuth_Emi(2)
     Emissivity(3) = Azimuth_Emi(3)
     Emissivity(4) = Azimuth_Emi(4)
-    Reflectivity(1)  = zreflmod_v * (ONE-Emissivity(1))
-    Reflectivity(2)  = zreflmod_h * (ONE-Emissivity(2))
-    ! Reflectivities not computed for 3rd or 4th elements of Stokes vector, 
-    ! as never used subsequently, as atmospheric source term = zero.
-    Reflectivity(3:4)  = ZERO
+
+    Reflectivity(1) = zreflmod_v * (ONE-Emissivity(1))
+    Reflectivity(2) = zreflmod_h * (ONE-Emissivity(2))
+    IF (fastem_version == 6) THEN
+      Reflectivity(3) = -0.5_jprb * (zreflmod_v + zreflmod_h) * Emissivity(3)
+      Reflectivity(4) = -0.5_jprb * (zreflmod_v + zreflmod_h) * Emissivity(4)
+    ELSE
+      ! FASTEM-4/5 set Stokes 3/4 refl to zero: this is not recommended
+      Reflectivity(3:4) = ZERO
+    ENDIF
 
    RETURN
 

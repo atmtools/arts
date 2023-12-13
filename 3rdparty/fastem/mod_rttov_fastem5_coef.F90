@@ -1,42 +1,23 @@
 !
 MODULE mod_rttov_fastem5_coef
-
-  ! Description:
-  ! Constant coefficients and parameters for FASTEM-5.
-  !
-  ! Copyright:
-  !    This software was developed within the context of
-  !    the EUMETSAT Satellite Application Facility on
-  !    Numerical Weather Prediction (NWP SAF), under the
-  !    Cooperation Agreement dated 25 November 1998, between
-  !    EUMETSAT and the Met Office, UK, by one or more partners
-  !    within the NWP SAF. The partners in the NWP SAF are
-  !    the Met Office, ECMWF, KNMI and MeteoFrance.
-  !
-  !    Copyright 2009, EUMETSAT, All Rights Reserved.
-  !
-  ! Method:
-  ! An improved fast microwave sea surface emissivity model, FASTEM4
-  ! Liu, Q., S. English, F. Weng, 2009: Report in prepare
-  !
-  ! It is an extension of the FASTEM-3 English 2003.
-  ! http://www.metoffice.com/research/interproj/nwpsaf/rtm/evalfastems.pdf
-  !
-  ! Current Code Owner: SAF NWP
-  !
-  ! History:
-  ! Version   Date     Comment
-  ! -------   ----     -------
-  !  1.0       27/08/2009  New F90 code (Q. Liu)
-  !
-  ! Code Description:
-  !   Language:           Fortran 90.
-  !   Software Standards: "European Standards for Writing and
-  !     Documenting Exchangeable Fortran 90 Code".
-  !
-  ! Declarations:
-  ! Modules used:
-  !
+! Description:
+!> @file
+!!   Contains data for the FASTEM-4,5,6 MW sea surface emissivity models
+!
+!> @brief
+!!   Contains data for the FASTEM-4,5,6 MW sea surface emissivity models
+!
+! Copyright:
+!    This software was developed within the context of
+!    the EUMETSAT Satellite Application Facility on
+!    Numerical Weather Prediction (NWP SAF), under the
+!    Cooperation Agreement dated 7 December 2016, between
+!    EUMETSAT and the Met Office, UK, by one or more partners
+!    within the NWP SAF. The partners in the NWP SAF are
+!    the Met Office, ECMWF, DWD and MeteoFrance.
+!
+!    Copyright 2016, EUMETSAT, All Rights Reserved.
+!
   USE parkind1, Only : fp => jprb
   ! Disable implicit typing
   IMPLICIT NONE
@@ -65,7 +46,6 @@ MODULE mod_rttov_fastem5_coef
   REAL(fp), PUBLIC, PARAMETER :: transmittance_limit_lower = 0.00001_fp
   REAL(fp), PUBLIC, PARAMETER :: transmittance_limit_upper = 0.9999_fp
 
-!
   REAL(fp), PUBLIC, PARAMETER :: e0_4 = 0.0088419_fp         ! Value used in FASTEM-4
   REAL(fp), PUBLIC, PARAMETER :: e0_5 = 0.00885418781762_fp  ! from Paul van Delst (used in FASTEM-5)
   ! minimum and maximum frequency
@@ -206,11 +186,11 @@ MODULE mod_rttov_fastem5_coef
   !   Ulaby, F.T. et al. (1986) Microwave Remote Sensing, Active
   !     and Passive, vol.3, From Theory to Applications, pp1457.
   ! =============================================================
-  REAL(fp), PUBLIC, PARAMETER :: FR_COEFF(9) = &
-    (/ -9.946e-4_fp, 3.218e-5_fp, -1.187e-6_fp, &
-          7.e-20_fp,     0.07_fp, -1.748e-3_fp, &
-       -7.336e-5_fp, 1.044e-7_fp,     -0.93_fp /)
+  REAL(fp), PUBLIC, PARAMETER :: FR_COEFF(5) = &
+    (/ 0.07_fp, -1.748e-3_fp, -7.336e-5_fp, 1.044e-7_fp, -0.93_fp /)
 
+  !> Structure holding calculation results for the Fresnel coefficient
+  !! calculation
   TYPE :: FresnelVariables_type
 !    PRIVATE
     ! The intermediate terms
@@ -221,8 +201,8 @@ MODULE mod_rttov_fastem5_coef
   END TYPE FresnelVariables_type
 
 
-  ! For the Ellison et al (2003) permittivity model
-  ! -----------------------------------------------
+  !> Structure holding calculation results for the Ellison et al (2003)
+  !! permittivity model
   TYPE :: PermittivityVariables_type
 !    PRIVATE
     REAL(fp) :: t, t_sq, t_cu                   ! Temperature in degC
