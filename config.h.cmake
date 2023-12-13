@@ -29,6 +29,9 @@
 /* Define to compile with FASTEM support */
 #cmakedefine ENABLE_FASTEM
 
+/* Define to compile with SURFEM-Ocean support */
+#cmakedefine ENABLE_SURFEMOCEAN
+
 /* Define to compile with relmat support */
 #cmakedefine ENABLE_RELMAT
 

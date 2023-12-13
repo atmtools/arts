@@ -35,6 +35,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "surface.h"
+#include "surfemocean.h"
 #include "tessem.h"
 #include "arts_conversions.h"
 #include "gas_scattering.h"
@@ -102,6 +103,77 @@ void FastemStandAlone(Matrix& emissivity,
 
   // FASTEM does not work close to the horizon (at least v6). Make sure values
   // are inside [0,1]. Then seems best to make sure that e+r=1.
+  for (Index i = 0; i < nf; i++) {
+    for (Index s = 0; s < 2; s++) {
+      if (emissivity(i, s) > 1) {
+        emissivity(i, s) = 1;
+        reflectivity(i, s) = 0;
+      }
+      if (emissivity(i, s) < 0) {
+        emissivity(i, s) = 0;
+        reflectivity(i, s) = 1;
+      }
+      if (reflectivity(i, s) > 1) {
+        emissivity(i, s) = 0;
+        reflectivity(i, s) = 1;
+      }
+      if (reflectivity(i, s) < 0) {
+        emissivity(i, s) = 1;
+        reflectivity(i, s) = 0;
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfemOceanStandAlone(Matrix& emissivity,
+                           Matrix& reflectivity,
+                           const Vector& f_grid,
+                           const Numeric& surface_skin_t,
+                           const Numeric& za,
+                           const Numeric& salinity,
+                           const Numeric& wind_speed,
+                           const Numeric& rel_aa,
+                           const Vector& transmittance,
+                           const Verbosity&) {
+  const Index nf = f_grid.nelem();
+
+  chk_if_in_range("zenith angle", za, 90, 180);
+  chk_if_in_range_exclude("surface skin temperature", surface_skin_t, 271.15, 303.15);
+  chk_if_in_range_exclude_high("salinity", salinity, 0, 0.4);
+  chk_if_in_range_exclude_high("wind speed", wind_speed, 0, 50);
+  chk_if_in_range("azimuth angle", rel_aa, -180, 180);
+  chk_vector_length("transmittance", "f_grid", transmittance, f_grid);
+
+  emissivity.resize(nf, 4);
+  reflectivity.resize(nf, 4);
+
+  // const Numeric t = max(surface_skin_t, Numeric(270));
+
+  for (Index i = 0; i < nf; i++) {
+    if (f_grid[i] > 700e9)
+      throw std::runtime_error("Only frequency <= 700 GHz are allowed");
+    if (f_grid[i] < 500e6)
+      throw std::runtime_error("Only frequency >= 500 MHz are allowed");
+    chk_if_in_range("transmittance", transmittance[i], 0, 1);
+
+    Vector e, r;
+
+    surfemocean(e,
+                 r,
+                 f_grid[i],
+                 za,
+                 surface_skin_t,
+                 salinity,
+                 wind_speed,
+                 transmittance[i],
+                 rel_aa);
+
+    emissivity(i, joker) = e;
+    reflectivity(i, joker) = r;
+  }
+
+  // Similar to FastemStandAlone
   for (Index i = 0; i < nf; i++) {
     for (Index s = 0; s < 2; s++) {
       if (emissivity(i, s) > 1) {

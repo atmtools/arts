@@ -42,6 +42,7 @@
 #include "sensor.h"
 
 #include "fastem.h"
+#include "surfemocean.h"
 #include "tessem.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
