@@ -22,8 +22,7 @@
 namespace Python {
 using Scalar = std::variant<Numeric, Index>;
 
-template <typename T>
-using numpy_array = py::array_t<T, py::array::forcecast>;
+using numpy_array = py::array;
 
 template <typename T, Index... sz>
 auto register_matpack_constant_data(py::module_& m, const char* const name)
@@ -121,7 +120,7 @@ void test_correct_size(const std::vector<T>& x) {
 }
 
 template <Size N, typename T>
-std::array<Index, N> shape(const numpy_array<T>& x)
+std::array<Index, N> shape(const numpy_array& x)
   requires(N > 0)
 {
   const Size D = x.ndim();
@@ -140,7 +139,7 @@ std::array<Index, N> shape(const numpy_array<T>& x)
 }
 
 template <Size N, typename T>
-std::shared_ptr<matpack::matpack_data<T, N>> copy(const numpy_array<T>& x) {
+std::shared_ptr<matpack::matpack_data<T, N>> copy(const numpy_array& x) {
   auto out = std::make_shared<matpack::matpack_data<T, N>>(shape<N, T>(x));
   py::object np = py::module_::import("numpy");
   np.attr("copyto")(py::cast(out).attr("value"), x);
@@ -176,11 +175,11 @@ void py_matpack(py::module_& m) try {
   artsclass<Vector>(m, "Vector", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Vector>(); }),
            "Default vector")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<1>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<1, Numeric>(x); }),
            py::arg("vec").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Vector>();
+             return py::cast<Vector>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -225,11 +224,11 @@ via x.value
   artsclass<Matrix>(m, "Matrix", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Matrix>(); }),
            "Default matrix")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<2>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<2, Numeric>(x); }),
            py::arg("mat").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Matrix>();
+             return py::cast<Matrix>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -280,11 +279,11 @@ via x.value
   artsclass<Tensor3>(m, "Tensor3", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor3>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<3>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<3, Numeric>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Tensor3>();
+             return py::cast<Tensor3>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -334,11 +333,11 @@ via x.value
   artsclass<Tensor4>(m, "Tensor4", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor4>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<4>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<4, Numeric>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Tensor4>();
+             return py::cast<Tensor4>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -391,11 +390,11 @@ via x.value
   artsclass<Tensor5>(m, "Tensor5", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor5>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<5>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<5, Numeric>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Tensor5>();
+             return py::cast<Tensor5>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -451,11 +450,11 @@ via x.value
   artsclass<Tensor6>(m, "Tensor6", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor6>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<6>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<6, Numeric>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Tensor6>();
+             return py::cast<Tensor6>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -515,11 +514,11 @@ via x.value
   artsclass<Tensor7>(m, "Tensor7", py::buffer_protocol())
       .def(py::init([]() { return std::make_shared<Tensor7>(); }),
            "Default tensor")
-      .def(py::init([](const numpy_array<Numeric>& x) { return copy<7>(x); }),
+      .def(py::init([](const numpy_array& x) { return copy<7, Numeric>(x); }),
            py::arg("ten").none(false),
            py::doc("From :class:`numpy.ndarray` equivalent"))
       .def(py::init([](const py::list& x) {
-             return x.cast<numpy_array<Numeric>>().cast<Tensor7>();
+             return py::cast<Tensor7>(x.cast<numpy_array>());
            }),
            py::arg("lst"),
            py::doc("From :class:`list` equivalent via numpy"))
@@ -580,13 +579,13 @@ The data can be accessed without copy using ``np.array(x, copy=False)`` or
 via x.value
 )--");
 
-  py::implicitly_convertible<numpy_array<Numeric>, Vector>();
-  py::implicitly_convertible<numpy_array<Numeric>, Matrix>();
-  py::implicitly_convertible<numpy_array<Numeric>, Tensor3>();
-  py::implicitly_convertible<numpy_array<Numeric>, Tensor4>();
-  py::implicitly_convertible<numpy_array<Numeric>, Tensor5>();
-  py::implicitly_convertible<numpy_array<Numeric>, Tensor6>();
-  py::implicitly_convertible<numpy_array<Numeric>, Tensor7>();
+  py::implicitly_convertible<numpy_array, Vector>();
+  py::implicitly_convertible<numpy_array, Matrix>();
+  py::implicitly_convertible<numpy_array, Tensor3>();
+  py::implicitly_convertible<numpy_array, Tensor4>();
+  py::implicitly_convertible<numpy_array, Tensor5>();
+  py::implicitly_convertible<numpy_array, Tensor6>();
+  py::implicitly_convertible<numpy_array, Tensor7>();
   py::implicitly_convertible<py::list, Vector>();
   py::implicitly_convertible<py::list, Matrix>();
   py::implicitly_convertible<py::list, Tensor3>();
