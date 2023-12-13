@@ -12,10 +12,10 @@ jobs:
       matrix:
         name: [
           ubuntu-doc,
-          ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
-          ubuntu-clang-11-nofortran,
+          ubuntu-gcc-13,
+          ubuntu-clang-16-nofortran,
           macos-gcc-10,
         ]
 
@@ -28,15 +28,6 @@ jobs:
             arts: "no"
             fortran: "no"
             check: "no"
-
-          - name: ubuntu-gcc-8
-            os: ubuntu-latest
-            compiler: gcc
-            version: "8"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            check: "yes"
 
           - name: ubuntu-gcc-9
             os: ubuntu-latest
@@ -56,10 +47,19 @@ jobs:
             fortran: "yes"
             check: "yes"
 
-          - name: ubuntu-clang-11-nofortran
+          - name: ubuntu-gcc-13
+            os: ubuntu-latest
+            compiler: gcc
+            version: "13"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+
+          - name: ubuntu-clang-16-nofortran
             os: ubuntu-latest
             compiler: clang
-            version: "11"
+            version: "16"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -82,9 +82,9 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "11" ]; then
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" -ge "13" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-${{ matrix.version }} main"
           fi
 
           sudo apt-get update
@@ -119,7 +119,7 @@ jobs:
       - name: Setup (macOS)
         if: runner.os == 'macOS'
         run: |
-          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
+          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy setuptools
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
             echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
