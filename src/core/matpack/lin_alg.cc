@@ -25,6 +25,10 @@
 
 #include <array.h>
 
+#ifndef NDEBUG
+#include "logic.h"
+#endif
+
 //! LU decomposition.
 /*!
   This function performes a LU Decomposition of the matrix A.

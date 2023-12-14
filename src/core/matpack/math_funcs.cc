@@ -25,6 +25,10 @@
 #include <array.h>
 #include <mystring.h>
 
+#ifndef NDEBUG
+#include "logic.h"
+#endif
+
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PI=Constant::pi;
 
