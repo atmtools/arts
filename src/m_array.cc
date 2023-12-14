@@ -6,12 +6,10 @@
  * @brief  Stuff related to manipulating arrays
  */
 
-
 #include "artstime.h"
-#include "matpack_data.h"
 #include "matpack_arrays.h"
+#include "matpack_data.h"
 #include "sorting.h"
-
 
 template <class T>
 Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)

@@ -8,10 +8,10 @@
 
 #include "rational.h"
 
+#include <ostream>
+
 #include "debug.h"
 #include "mystring.h"
-#include <ostream>
-#include <stdexcept>
 
 std::ostream& operator<<(std::ostream& os, const Rational& a) {
   Rational r = reduce_by_gcd(a);
@@ -35,13 +35,12 @@ std::istream& operator>>(std::istream& is, Rational& a) {
   return is;
 }
 
-
 Rational::Rational(const String& s) {
   auto len = s.length();
-  
+
   if (len) {
-    auto dot_pos = s.find(".");
-    auto slash_pos = s.find("/");
+    auto dot_pos = s.find('.');
+    auto slash_pos = s.find('/');
     if (len > dot_pos) {
       *this = numeric2rational(std::stod(s), len - dot_pos - 1);
     } else if (len > slash_pos) {
@@ -50,7 +49,11 @@ Rational::Rational(const String& s) {
       try {
         *this = Rational(std::stoi(a), std::stoi(b));
       } catch (...) {
-        ARTS_USER_ERROR("Cannot interpret either '", a, "' or '", b, "' as an integer (or both)");
+        ARTS_USER_ERROR("Cannot interpret either '",
+                        a,
+                        "' or '",
+                        b,
+                        "' as an integer (or both)");
       }
     } else {
       try {
@@ -63,7 +66,6 @@ Rational::Rational(const String& s) {
     *this = RATIONAL_UNDEFINED;
   }
 }
-
 
 void Rational::simplify_in_place() noexcept {
   Rational a = reduce_by_gcd(*this);

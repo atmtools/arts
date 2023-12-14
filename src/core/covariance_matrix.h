@@ -18,10 +18,8 @@
 #include <memory>
 #include <utility>
 
-#include "jacobian.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
-#include "matpack_sparse.h"
+#include <matpack.h>
+#include <mystring.h>
 
 class CovarianceMatrix;
 

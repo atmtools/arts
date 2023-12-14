@@ -20,7 +20,6 @@
   
 */
 
-#include "check_input.h"
 #include "interpolation.h"
 
 #include <cmath>

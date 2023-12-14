@@ -18,11 +18,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <cmath>
-#include <stdexcept>
 #include <vector>
 
 #include "lapack.h"
-#include "logic.h"
 #include "matpack_math.h"
 
 #include <array.h>

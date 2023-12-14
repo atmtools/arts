@@ -15,7 +15,6 @@
 #endif
 
 #include <workspace.h>
-#include "exceptions.h"
 #include "xml_io.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -8,11 +8,11 @@
 #include <cstddef>
 #include <memory>
 #include <numeric>
+#include <ranges>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
 
-#include "array.h"
 #include "configtypes.h"
 #include "matpack_concepts.h"
 #include "matpack_constexpr.h"

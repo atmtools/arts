@@ -2,7 +2,6 @@
 
 #include <array.h>
 
-#include <memory>
 #include <ostream>
 #include <vector>
 

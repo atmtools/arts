@@ -8,17 +8,15 @@
 
 #ifndef rational_h
 #define rational_h
-#include "math_funcs.h"
-#include "matpack_concepts.h"
-
+#include <array.h>
 #include <binio/bifstream.h>
 #include <binio/bofstream.h>
-#include <array.h>
 #include <mystring.h>
 
 #include <numeric>
 #include <ostream>
 
+#include <configtypes.h>
 
 using std::gcd;
 
@@ -33,8 +31,8 @@ struct Rational {
    * @param[in] denom Denominator
    */
   constexpr Rational(const Index n = 0, const Index d = 1) noexcept
-  : numer(d ? n / gcd(n, d) : 0), denom(d / gcd(n, d)) {}
-  
+      : numer(d ? n / gcd(n, d) : 0), denom(d / gcd(n, d)) {}
+
   /** Initialization call
    * 
    * Sets the rational from the string. Formats accepted are
@@ -48,7 +46,7 @@ struct Rational {
    * @param[in] s String of the value
    */
   explicit Rational(const String& s);
-  
+
   /** Simplify by reducing the values locally */
   void simplify_in_place() noexcept;
 
@@ -57,14 +55,18 @@ struct Rational {
    * @return true If Denom() is 0
    * @return false Otherwise
    */
-  [[nodiscard]] constexpr bool isUndefined() const noexcept { return (denom == 0); }
+  [[nodiscard]] constexpr bool isUndefined() const noexcept {
+    return (denom == 0);
+  }
 
   /** Is the object defined
    * 
    * @return true If Denom() is not 0
    * @return false Otherwise
    */
-  [[nodiscard]] constexpr bool isDefined() const noexcept { return not isUndefined(); }
+  [[nodiscard]] constexpr bool isDefined() const noexcept {
+    return not isUndefined();
+  }
 
   /** Is the object a n-scaled Index
    * 
@@ -72,8 +74,8 @@ struct Rational {
    * @return true If n*Nom() % Denom() is 0
    * @return false Otherwise
    */
-  [[nodiscard]] constexpr bool isIndex(int n=1) const noexcept {
-    return isDefined() and not bool((n*numer) % denom);
+  [[nodiscard]] constexpr bool isIndex(int n = 1) const noexcept {
+    return isDefined() and not bool((n * numer) % denom);
   }
 
   /** Converts the value to index by n-scaled division
@@ -83,8 +85,9 @@ struct Rational {
    * @param[in]  n Scale to *this
    * @return constexpr Index Of *this
    */
-  [[nodiscard]] constexpr Index toIndex(int n=1) const noexcept {
-    return (n*numer) / denom;;
+  [[nodiscard]] constexpr Index toIndex(int n = 1) const noexcept {
+    return (n * numer) / denom;
+    ;
   }
 
   /** Converts this to a Numeric
@@ -94,7 +97,7 @@ struct Rational {
   [[nodiscard]] constexpr Numeric toNumeric() const noexcept {
     return Numeric(numer) / Numeric(denom);
   }
-  
+
   /** Converts the value to int by n-scaled division in Index form
    * 
    * Throws a logic error if *this is not an Index
@@ -102,8 +105,10 @@ struct Rational {
    * @param[in]  n Scale to *this
    * @return constexpr int Of *this
    */
-  [[nodiscard]] constexpr int toInt(int n=1) const noexcept { return int(toIndex(n)); }
-  
+  [[nodiscard]] constexpr int toInt(int n = 1) const noexcept {
+    return int(toIndex(n));
+  }
+
   /** Add to this
    * 
    * @param[in] a To add
@@ -124,7 +129,7 @@ struct Rational {
     numer += denom * a;
     return *this;
   }
-  
+
   /** Add to this
    * 
    * @param[in] a To add
@@ -155,7 +160,7 @@ struct Rational {
     numer -= denom * a;
     return *this;
   }
-  
+
   /** Remove from this
    * 
    * @param[in] a To remove
@@ -186,7 +191,7 @@ struct Rational {
     denom *= a;
     return *this;
   }
-  
+
   /** Divide by this
    * 
    * @param[in] a To divide by
@@ -217,7 +222,7 @@ struct Rational {
     numer *= a;
     return *this;
   }
-  
+
   /** Multiply by this
    * 
    * @param[in] a To multiply by
@@ -228,8 +233,8 @@ struct Rational {
     return *this;
   }
 
- /** Add one if possible */
-  constexpr Rational operator++(int) const noexcept{
+  /** Add one if possible */
+  constexpr Rational operator++(int) const noexcept {
     return {numer + denom, denom};
   }
 
@@ -238,7 +243,7 @@ struct Rational {
     return {numer - denom, denom};
   }
 
- /** Add one if possible */
+  /** Add one if possible */
   constexpr Rational& operator++() noexcept {
     numer += denom;
     return *this;
@@ -263,19 +268,19 @@ struct Rational {
 
   /** Cast to int */
   explicit constexpr operator int() const noexcept { return toInt(); }
-  
+
   /** Binary read for Rational */
   bifstream& read(bifstream& bif) {
     bif >> numer >> denom;
     return bif;
   }
-  
+
   /** Binary write for Rational */
   bofstream& write(bofstream& bof) const {
     bof << numer << denom;
     return bof;
   }
-  
+
   /** Makes the sign of denom positive */
   constexpr Rational& fixSign() noexcept {
     if (denom < 0) {
@@ -286,7 +291,7 @@ struct Rational {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Rational& a);
-  
+
   friend std::istream& operator>>(std::istream& is, Rational& a);
 };  // Rational;
 
@@ -297,8 +302,7 @@ struct Rational {
  */
 constexpr Rational reduce_by_gcd(Rational a) noexcept {
   const Index div = gcd(a.numer, a.denom);
-  if (div)
-    return {a.numer / div, a.denom / div};
+  if (div) return {a.numer / div, a.denom / div};
   return a;
 }
 
@@ -309,32 +313,30 @@ constexpr Rational reduce_by_gcd(Rational a) noexcept {
  * @param[in] x Numeric value
  * @param[in] maxdec Maximum number of decimals
  */
-constexpr Rational numeric2rational(Numeric x, size_t maxdec=4) noexcept {
-  Index nom=0, denom=1;
-  
+constexpr Rational numeric2rational(Numeric x, size_t maxdec = 4) noexcept {
+  Index nom = 0, denom = 1;
+
   // Keep track of sign independently
   const bool signchange = x < 0;
   x = signchange ? -x : x;
-  
+
   // Add numbers by keeping the floor
-  size_t i=0;
+  size_t i = 0;
   do {
-    const auto xi=Index(x);
+    const auto xi = Index(x);
     nom += xi;
     x = 10 * (x - Numeric(xi));
     nom *= 10;
     denom *= 10;
     i++;
-  } while (i<=maxdec);
-  
+  } while (i <= maxdec);
+
   // Fix possible rounding error
-  if (x >= 5)
-    nom += 10;
-  
+  if (x >= 5) nom += 10;
+
   // Change sign or not
   return signchange ? Rational{-nom, denom} : Rational{nom, denom};
 }
-
 
 // An undefined rational to be used everywhere for a undefined rationals
 #define RATIONAL_UNDEFINED Rational(0, 0)
@@ -362,10 +364,9 @@ constexpr Rational operator+(const Rational a) noexcept { return a; }
  * @return constexpr Rational a + b
  */
 constexpr Rational operator+(const Rational a, const Rational b) noexcept {
-  return (a.denom == b.denom)
-             ? Rational(a.numer + b.numer, a.denom)
-             : Rational(a.numer * b.denom + b.numer * a.denom,
-                        a.denom * b.denom);
+  return (a.denom == b.denom) ? Rational(a.numer + b.numer, a.denom)
+                              : Rational(a.numer * b.denom + b.numer * a.denom,
+                                         a.denom * b.denom);
 }
 
 /** Addition
@@ -394,7 +395,9 @@ constexpr Rational operator+(const Rational a, int b) noexcept {
  * @param[in] a Any Rational
  * @return constexpr Rational a + b
  */
-constexpr Rational operator+(Index b, const Rational a) noexcept { return operator+(a, b); }
+constexpr Rational operator+(Index b, const Rational a) noexcept {
+  return operator+(a, b);
+}
 
 /** Addition
  * 
@@ -402,7 +405,9 @@ constexpr Rational operator+(Index b, const Rational a) noexcept { return operat
  * @param[in] a Any Rational
  * @return constexpr Rational a + b
  */
-constexpr Rational operator+(int b, const Rational a) noexcept { return operator+(a, b); }
+constexpr Rational operator+(int b, const Rational a) noexcept {
+  return operator+(a, b);
+}
 
 /** Subtraction
  * 
@@ -411,10 +416,9 @@ constexpr Rational operator+(int b, const Rational a) noexcept { return operator
  * @return constexpr Rational a - b
  */
 constexpr Rational operator-(const Rational a, const Rational b) noexcept {
-  return (a.denom == b.denom)
-             ? Rational(a.numer - b.numer, a.denom)
-             : Rational(a.numer * b.denom - b.numer * a.denom,
-                        a.denom * b.denom);
+  return (a.denom == b.denom) ? Rational(a.numer - b.numer, a.denom)
+                              : Rational(a.numer * b.denom - b.numer * a.denom,
+                                         a.denom * b.denom);
 }
 
 /** Subtraction
@@ -543,7 +547,9 @@ constexpr Rational operator*(const Rational a, int b) noexcept {
  * @param[in] a Any Rational
  * @return constexpr Rational a * b
  */
-constexpr Rational operator*(Index b, const Rational a) noexcept { return operator*(a, b); }
+constexpr Rational operator*(Index b, const Rational a) noexcept {
+  return operator*(a, b);
+}
 
 /** Multiplication
  * 
@@ -551,7 +557,9 @@ constexpr Rational operator*(Index b, const Rational a) noexcept { return operat
  * @param[in] a Any Rational
  * @return constexpr Rational a * b
  */
-constexpr Rational operator*(int b, const Rational a) noexcept { return operator*(a, b); }
+constexpr Rational operator*(int b, const Rational a) noexcept {
+  return operator*(a, b);
+}
 
 /** Remainder
  * 
@@ -626,7 +634,7 @@ constexpr bool operator==(const Rational a, const Rational b) noexcept {
  * @return false Otherwise
  */
 constexpr bool operator!=(const Rational a, const Rational b) noexcept {
-  return not (a.isDefined() and b.isDefined() and operator==(a, b));
+  return not(a.isDefined() and b.isDefined() and operator==(a, b));
 }
 
 /** Less than
@@ -648,7 +656,9 @@ constexpr bool operator<(const Rational a, const Rational b) noexcept {
  * @return true If a > b
  * @return false Otherwise
  */
-constexpr bool operator>(const Rational a, const Rational b) noexcept { return operator<(b, a) and a.isDefined() and b.isDefined(); }
+constexpr bool operator>(const Rational a, const Rational b) noexcept {
+  return operator<(b, a) and a.isDefined() and b.isDefined();
+}
 
 /** Less than or equal to
  * 
@@ -678,7 +688,9 @@ constexpr bool operator>=(const Rational a, const Rational b) noexcept {
  * @return true If a.numer and a.isDefined()
  * @return false Otherwise
  */
-constexpr bool operator!(const Rational a) noexcept { return a.numer and a.isDefined(); }
+constexpr bool operator!(const Rational a) noexcept {
+  return a.numer and a.isDefined();
+}
 
 /** Square root
  * 
@@ -842,9 +854,7 @@ constexpr bool operator!=(const Rational a, const int b) noexcept {
  * @param[in] a Any Rational
  * @return constexpr Rational Absolute value of the Rational
  */
-constexpr Rational abs(const Rational a) noexcept {
-  return a < 0 ? -a : a;
-}
+constexpr Rational abs(const Rational a) noexcept { return a < 0 ? -a : a; }
 
 /** Maximum
  * 
@@ -873,7 +883,7 @@ using ArrayOfRational = Array<Rational>;
  * @param[in] n Any positive integer
  * @return Rational(n, 2)
  */
-constexpr Rational operator ""_2(unsigned long long int n) noexcept {
+constexpr Rational operator""_2(unsigned long long int n) noexcept {
   return Rational(n, 2);
 };
 
@@ -882,25 +892,38 @@ constexpr Rational operator ""_2(unsigned long long int n) noexcept {
  * @param[in]  r Any rational
  * @return  true if r is even, otherwise false
  */
-constexpr bool iseven(const Rational r) noexcept {
-  return 0 == (r % 2);
-}
+constexpr bool iseven(const Rational r) noexcept { return 0 == (r % 2); }
 
 /** Multiplication with numeric */
-constexpr Numeric operator*(Rational y, Numeric x) noexcept {return y.toNumeric() * x;}
-constexpr Numeric operator*(Numeric x, Rational y) noexcept {return x * y.toNumeric();}
+constexpr Numeric operator*(Rational y, Numeric x) noexcept {
+  return y.toNumeric() * x;
+}
+constexpr Numeric operator*(Numeric x, Rational y) noexcept {
+  return x * y.toNumeric();
+}
 
 /** Division with numeric */
-constexpr Numeric operator/(Rational y, Numeric x) noexcept {return y.toNumeric() / x;}
-constexpr Numeric operator/(Numeric x, Rational y) noexcept {return x / y.toNumeric();}
+constexpr Numeric operator/(Rational y, Numeric x) noexcept {
+  return y.toNumeric() / x;
+}
+constexpr Numeric operator/(Numeric x, Rational y) noexcept {
+  return x / y.toNumeric();
+}
 
 /** Addition with numeric */
-constexpr Numeric operator+(Rational y, Numeric x) noexcept {return y.toNumeric() + x;}
-constexpr Numeric operator+(Numeric x, Rational y) noexcept {return x + y.toNumeric();}
+constexpr Numeric operator+(Rational y, Numeric x) noexcept {
+  return y.toNumeric() + x;
+}
+constexpr Numeric operator+(Numeric x, Rational y) noexcept {
+  return x + y.toNumeric();
+}
 
 /** Subtraction with numeric */
-constexpr Numeric operator-(Rational y, Numeric x) noexcept {return y.toNumeric() - x;}
-constexpr Numeric operator-(Numeric x, Rational y) noexcept {return x - y.toNumeric();}
+constexpr Numeric operator-(Rational y, Numeric x) noexcept {
+  return y.toNumeric() - x;
+}
+constexpr Numeric operator-(Numeric x, Rational y) noexcept {
+  return x - y.toNumeric();
+}
 
 #endif  // rational_h
-

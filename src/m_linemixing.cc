@@ -10,13 +10,12 @@
  * compute the relaxation, not simply use the relaxation
  */
 
-#include <numeric>
+#include <matpack.h>
+
 #include <stdexcept>
-#include <variant>
 
 #include "arts_conversions.h"
 #include "atm.h"
-#include "configtypes.h"
 #include "debug.h"
 #include "hitran_species.h"
 #include "isotopologues.h"
@@ -24,8 +23,6 @@
 #include "lbl_temperature_model.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
-#include "matpack_concepts.h"
-#include "matpack_data.h"
 #include "new_jacobian.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(

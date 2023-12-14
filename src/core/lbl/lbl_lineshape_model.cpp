@@ -1,9 +1,9 @@
 #include "lbl_lineshape_model.h"
 
-#include "debug.h"
 #include "double_imanip.h"
-#include "enums.h"
 #include "species.h"
+
+#include <ranges>
 
 namespace lbl::line_shape {
 #define VARIABLE(name, PVAR, DPVAR)                                       \

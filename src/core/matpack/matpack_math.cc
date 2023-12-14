@@ -2,7 +2,6 @@
 #include "matpack_math.h"
 
 #include "blas.h"
-#include "lapack.h"
 
 #include <algorithm>
 

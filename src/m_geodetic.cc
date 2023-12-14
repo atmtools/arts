@@ -18,13 +18,12 @@
   ===========================================================================*/
 
 #include <workspace.h>
+
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpack_data.h"
-#include "surf.h"
-#include "variousZZZ.h"
 #include "ppath.h"
-
+#include "surf.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)

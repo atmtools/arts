@@ -18,18 +18,9 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
   ===========================================================================*/
 #include <algorithm>
 #include <cmath>
-#include <ctime>
-#include <limits>
-#include <stdexcept>
 
 #include "check_input.h"
-#include "lin_alg.h"
-#include "logic.h"
 #include "math_funcs.h"
-#include "mc_antenna.h"
-#include "physics_funcs.h"
-#include "rng.h"
-#include "sorting.h"
 
 //! Check particle number density files
 /*!

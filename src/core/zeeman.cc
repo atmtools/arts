@@ -13,10 +13,11 @@
 #include "zeeman.h"
 
 #include "arts_conversions.h"
-#include "linescaling.h"
 #include "lineshape.h"
 #include "new_jacobian.h"
 #include "nlte.h"
+
+#include <math_funcs.h>
 
 void zeeman_on_the_fly(
     PropmatVector& propmat_clearsky,

@@ -231,7 +231,7 @@ void xml_read_from_file_base(const String& filename,
   }
 #else
   {
-    throw runtime_error(
+    throw std::runtime_error(
         "This arts version was compiled without zlib support.\n"
         "Thus zipped xml files cannot be read.");
   }
@@ -293,7 +293,7 @@ void xml_write_to_file_base(const String& filename,
   }
 #else
   {
-    throw runtime_error(
+    throw std::runtime_error(
         "This arts version was compiled without zlib support.\n"
         "Thus zipped xml files cannot be written.");
   }

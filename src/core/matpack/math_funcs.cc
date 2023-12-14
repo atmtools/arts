@@ -15,11 +15,9 @@
  *****************************************************************************/
 
 #include "math_funcs.h"
-#include "logic.h"
+#include "matpack_math.h"
 
 #include <cmath>
-#include <iostream>
-#include <stdexcept>
 
 #include <arts_constants.h>
 #include <arts_conversions.h>

@@ -8,41 +8,31 @@
    \author Stefan Buehler
    \date   2001-03-12
 */
+#include <workspace.h>
+
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <exception>
-#include <memory>
 #include <utility>
 
-#include "absorption.h"
 #include "absorptionlines.h"
-#include <workspace.h>
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_omp.h"
-#include "artstime.h"
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
-#include "depr.h"
 #include "file.h"
 #include "hitran_species.h"
-#include "jacobian.h"
 #include "lineshape.h"
-#include "m_xml.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
-#include "montecarlo.h"
 #include "new_jacobian.h"
 #include "nlte.h"
 #include "optproperties.h"
-#include "parameters.h"
-#include "physics_funcs.h"
 #include "rte.h"
 #include "species_tags.h"
-#include "xml_io.h"
 
 #ifdef ENABLE_NETCDF
 #include <netcdf.h>
@@ -980,11 +970,11 @@ void WriteMolTau(  //WS Input
 #else
 
 void WriteMolTau(  //WS Input
-    const Vector& f_grid _U_,
-    const Tensor3& z_field _U_,
-    const Tensor7& propmat_clearsky_field _U_,
+    const Vector& f_grid [[maybe_unused]],
+    const Tensor3& z_field [[maybe_unused]],
+    const Tensor7& propmat_clearsky_field [[maybe_unused]],
     //Keyword
-    const String& filename _U_) {
+    const String& filename [[maybe_unused]]) {
   ARTS_USER_ERROR_IF(true,
                      "The workspace method WriteMolTau is not available"
                      "because ARTS was compiled without NetCDF support.");

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #include "rtepack_concepts.h"
 
 namespace rtepack {

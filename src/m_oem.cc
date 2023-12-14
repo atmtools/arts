@@ -17,30 +17,19 @@
   === External declarations
   ===========================================================================*/
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <iterator>
-#include <limits>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include "array.h"
-#include "arts_omp.h"
-#include "atm.h"
+#include <new_jacobian.h>
 #include <workspace.h>
+
+#include <cmath>
+#include <string>
+
+#include "array.h"
+#include "atm.h"
+#include "check_input.h"
+#include "config.h"
 #include "debug.h"
 #include "jacobian.h"
-#include "math_funcs.h"
-#include "matpack_view.h"
-#include "physics_funcs.h"
-#include "rte.h"
-#include "special_interp.h"
-#include "surf.h"
 #include "surface.h"
-#include "check_input.h"
-
-#include <new_jacobian.h>
 
 #pragma GCC diagnostic ignored "-Wconversion"
 

@@ -11,7 +11,6 @@
 #ifndef parameters_h
 #define parameters_h
 
-#include "array.h"
 #include "mystring.h"
 
 /**

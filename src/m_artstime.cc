@@ -9,11 +9,8 @@
 #include <stdexcept>
 #include <thread>
 
-#include "debug.h"
-#include "matpack_data.h"
 #include "artstime.h"
-#include "sorting.h"
-
+#include "debug.h"
 
 void timeNow(Time& time)
 {

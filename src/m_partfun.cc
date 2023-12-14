@@ -1,10 +1,8 @@
 #include <filesystem>
 
 #include "math_funcs.h"
-#include "matpack_concepts.h"
 #include "mystring.h"
 #include "partfun.h"
-
 #include "xml_io.h"
 
 void WriteBuiltinPartitionFunctionsXML(

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "matpack_concepts.h"
 #include "matpack_constexpr.h"
 #include "matpack_data.h"
 

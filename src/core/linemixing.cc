@@ -1,4 +1,3 @@
-#include <iomanip>
 #include <iostream>
 #include <numeric>
 
@@ -10,8 +9,10 @@
 #include "arts_omp.h"
 #include "atm.h"
 #include "debug.h"
+#include "double_imanip.h"
 #include "lin_alg.h"
 #include "linemixing.h"
+#include "linescaling.h"
 #include "lineshape.h"
 #include "matpack_complex.h"
 #include "matpack_data.h"

@@ -20,20 +20,11 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
-#include <cmath>
-#include <stdexcept>
-#include "atm.h"
+
+#include <workspace.h>
+
 #include "check_input.h"
-#include "cloudbox.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "matpack_data.h"
 #include "optproperties.h"
-#include "physics_funcs.h"
-#include "ppath.h"
-#include "rng.h"
-#include "rte.h"
-#include "special_interp.h"
 
 /** clear_rt_vars_at_gp.
  *

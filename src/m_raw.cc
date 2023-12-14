@@ -6,11 +6,10 @@
  * @brief  Stuff related to generating y-data from raw data
  */
 
-
 #include <arts_omp.h>
 #include <artstime.h>
-#include "raw.h"
 
+#include "raw.h"
 
 void yColdAtmHot(Vector& y,
                  const Vector& cold,

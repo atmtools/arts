@@ -11,32 +11,29 @@
   ===========================================================================*/
 
 #include "rte.h"
-#include "arts_constexpr_math.h"
+
+#include <workspace.h>
+
+#include <algorithm>
+#include <cmath>
+
 #include "arts_constants.h"
+#include "arts_constexpr_math.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include <workspace.h>
 #include "check_input.h"
+#include "cloudbox.h"
 #include "debug.h"
-#include "geodetic.h"
 #include "jacobian.h"
-#include "lin_alg.h"
-#include "logic.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
-#include "montecarlo.h"
 #include "new_jacobian.h"
 #include "physics_funcs.h"
-#include "ppath.h"
 #include "ppath_struct.h"
 #include "refraction.h"
 #include "rtepack.h"
 #include "special_interp.h"
 #include "species_tags.h"
-#include <algorithm>
-#include <cmath>
-#include <stdexcept>
-#include "arts_omp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;

@@ -14,7 +14,6 @@
 #include "arts_constexpr_math.h"
 #include "debug.h"
 #include "double_imanip.h"
-#include "matpack_data.h"
 #include "quantum_numbers.h"
 #include "wigner_functions.h"
 

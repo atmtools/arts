@@ -1,14 +1,13 @@
 #include "atm.h"
 #include "debug.h"
-#include "enums.h"
 #include "lineshapemodel.h"
 #include "new_jacobian.h"
 #include "nlte.h"
-#include "partfun.h"
 
 #include <algorithm>
 #include <cmath>
 
+#include "linescaling.h"
 #include "lineshape.h"
 #include "physics_funcs.h"
 #include "species.h"
@@ -16,7 +15,6 @@
 
 #include <Faddeeva/Faddeeva.hh>
 #include <limits>
-#include <span>
 
 using Constant::inv_pi;
 using Constant::inv_sqrt_pi;

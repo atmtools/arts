@@ -83,11 +83,7 @@ int arts_omp_get_nested() {
 
   \param i Turn on nested parallelism with 1, turn off with 0.
 */
-#ifdef _OPENMP
-void arts_omp_set_nested(int i)
-#else
-void arts_omp_set_nested(int i _U_)
-#endif
+void arts_omp_set_nested(int i [[maybe_unused]])
 {
 
 #ifdef _OPENMP
@@ -103,11 +99,7 @@ void arts_omp_set_nested(int i _U_)
 
   \param i Turn on dynamic parallelism with 1, turn off with 0.
 */
-#ifdef _OPENMP
-void arts_omp_set_dynamic(int i)
-#else
-void arts_omp_set_dynamic(int i _U_)
-#endif
+void arts_omp_set_dynamic(int i [[maybe_unused]])
 {
 
 #ifdef _OPENMP

@@ -8,13 +8,11 @@
 
 #include "wigner_functions.h"
 
-#include <sys/errno.h>
-
 #include <algorithm>
 
-#include "arts_omp.h"
-#include "arts_conversions.h"
 #include "debug.h"
+
+#include <math_funcs.h>
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6

@@ -18,14 +18,13 @@
   ===========================================================================*/
 
 #include <cmath>
+
 #include "gridded_fields.h"
 using namespace std;
 
-#include "arts_omp.h"
 #include <workspace.h>
-#include "math_funcs.h"
-#include "physics_funcs.h"
-#include "rte.h"
+
+#include "arts_omp.h"
 #include "xml_io.h"
 
 inline constexpr Numeric PI=Constant::pi;

@@ -11,15 +11,12 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <stdexcept>
 #include "arts_constants.h"
 #include "arts_conversions.h"
 
 #include "fastem.h"
 
 using std::ostringstream;
-using std::runtime_error;
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

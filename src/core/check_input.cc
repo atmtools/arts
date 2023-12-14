@@ -18,7 +18,6 @@
 
 #include <cfloat>
 #include <cmath>
-#include <stdexcept>
 
 using GriddedFieldGrids::GFIELD2_LAT_GRID;
 using GriddedFieldGrids::GFIELD2_LON_GRID;

@@ -12,14 +12,14 @@
 
 #include <algorithm>
 #include <limits>
-#include <numeric>
 #include <ostream>
 #include <string>
 
+#include "absorption.h"
 #include "arts_conversions.h"
 #include "debug.h"
+#include "double_imanip.h"
 #include "enums.h"
-#include "file.h"
 #include "hitran_species.h"
 #include "jpl_species.h"
 #include "linescaling.h"

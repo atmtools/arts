@@ -17,12 +17,7 @@
 #include <matpack.h>
 #include <rtepack.h>
 
-#include "atm.h"
 #include "gridded_fields.h"
-#include "jacobian.h"
-#include "optproperties.h"
-#include "ppath_struct.h"
-#include "surf.h"
 
 /*===========================================================================
   === structs/classes  in sun.h
@@ -76,7 +71,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
  * @date   2022-01-19
  */
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
-                          const Vector &f_grid,
-                          const Numeric &temperature);
+                           const Vector &f_grid,
+                           const Numeric &temperature);
 
 #endif /* star_h */

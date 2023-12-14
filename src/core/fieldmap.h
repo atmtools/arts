@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <type_traits>
@@ -8,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-#include "matpack_concepts.h"
+#include <configtypes.h>
 
 namespace FieldMap {
 template <typename T>

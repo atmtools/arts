@@ -18,15 +18,13 @@
   ===========================================================================*/
 
 #include <cmath>
+
 #include "arts_constants.h"
-#include "species_tags.h"
-#include "absorption.h"
 #include "check_input.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "physics_funcs.h"
 #include "refraction.h"
-#include "special_interp.h"
+#include "species_tags.h"
 
 inline constexpr Numeric ELECTRON_CHARGE=-Constant::elementary_charge;
 inline constexpr Numeric ELECTRON_MASS=Constant::electron_mass;

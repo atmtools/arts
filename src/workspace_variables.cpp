@@ -1,7 +1,5 @@
 #include "workspace_variables.h"
 
-#include <iomanip>
-
 std::unordered_map<std::string, WorkspaceVariableInternalRecord>
 internal_workspace_variables() {
   std::unordered_map<std::string, WorkspaceVariableInternalRecord> wsv_data;

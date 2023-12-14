@@ -1,12 +1,7 @@
 #include <algorithm>
-#include <cstdlib>
-#include <exception>
 #include <iomanip>
 #include <iterator>
 #include <memory>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 #include <variant>
 
 #include "atm.h"
@@ -26,7 +21,6 @@
 #include "quantum_numbers.h"
 #include "species_tags.h"
 #include "xml_io.h"
-#include "xml_io_arts_types.h"
 
 void atm_fieldTopOfAtmosphere(AtmField &atm_field,
                               const Numeric &top_of_atmosphere) {

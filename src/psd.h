@@ -9,12 +9,8 @@
 #ifndef psd_h
 #define psd_h
 
-#include "array.h"
-#include "gridded_fields.h"
-#include "interpolation.h"
 #include "matpack_data.h"
 #include "optproperties.h"
-#include "ppath.h"
 
 // ------------------------------------------------------
 // Macros to avoid duplication of code

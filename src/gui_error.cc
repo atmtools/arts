@@ -25,4 +25,4 @@ ErrorStatus error(const std::string& errmsg) {
 
   return ErrorStatus::OnHold;
 }
-}  // namespace ARTSGUI
+}  // namespace gui

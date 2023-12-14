@@ -10,13 +10,10 @@
 
 #include <algorithm>
 #include <memory>
-#include <numeric>
 
-#include "absorption.h"
 #include "check_input.h"
 #include "debug.h"
 #include "interpolation.h"
-#include "physics_funcs.h"
 
 
 void RemoveNegativeXsec(Vector& xsec) {

@@ -11,20 +11,16 @@
 
 #include <workspace.h>
 
-#include <concepts>
 #include <iomanip>
-#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
-#include <unordered_map>
 #include <variant>
 
 #include "atm.h"
 #include "cloudbox.h"
-#include "compare.h"
 #include "debug.h"
+#include "double_imanip.h"
 #include "enums.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
@@ -93,7 +89,7 @@ void xml_read_from_stream(std::istream& is_xml,
 void xml_write_to_stream(std::ostream& os_xml,
                          const CIARecord& cr,
                          bofstream* pbofs,
-                         const String& name _U_) {
+                         const String& name [[maybe_unused]]) {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
@@ -196,7 +192,7 @@ void xml_read_from_stream(std::istream& is_xml,
 void xml_write_to_stream(std::ostream& os_xml,
                          const CovarianceMatrix& covmat,
                          bofstream* pbofs,
-                         const String& name _U_) {
+                         const String& name [[maybe_unused]]) {
   ArtsXMLTag covmat_tag;
   ArtsXMLTag close_tag;
 
@@ -1020,7 +1016,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 */
 void xml_read_from_stream(std::istream& is_xml,
                           QuantumIdentifier& qi,
-                          bifstream* pbifs _U_) {
+                          bifstream* pbifs [[maybe_unused]]) {
   static_assert(QuantumIdentifier::version == 1);
 
   ArtsXMLTag tag;
@@ -1063,7 +1059,7 @@ void xml_read_from_stream(std::istream& is_xml,
 */
 void xml_write_to_stream(std::ostream& os_xml,
                          const QuantumIdentifier& qi,
-                         bofstream* pbofs _U_,
+                         bofstream* pbofs [[maybe_unused]],
                          const String& name) {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;

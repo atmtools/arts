@@ -16,7 +16,6 @@
 #ifndef optproperties_h
 #define optproperties_h
 
-#include "gridded_fields.h"
 #include "matpack_data.h"
 #include "mystring.h"
 #include <matpack.h>

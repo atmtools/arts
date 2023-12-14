@@ -15,8 +15,7 @@
 #ifndef geodetic_h
 #define geodetic_h
 
-#include "matpack_constexpr.h"
-#include "matpack_data.h"
+#include <matpack.h>
 
 
 /** Threshold for non-spherical ellipsoid

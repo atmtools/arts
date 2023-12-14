@@ -15,15 +15,13 @@
   ===========================================================================*/
 
 #include "refraction.h"
-#include <cmath>
-#include "arts_constants.h"
 
-#include "matpack_complex.h"
-#include "geodetic.h"
-#include "interpolation.h"
-#include "special_interp.h"
-#include "check_input.h"
+#include <cmath>
+
+#include "arts_constants.h"
 #include "arts_conversions.h"
+#include "check_input.h"
+#include "matpack_complex.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

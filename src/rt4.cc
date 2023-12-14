@@ -13,25 +13,21 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "atm.h"
 #include "config.h"
-#include "species_tags.h"
 
 #ifdef ENABLE_RT4
+
+#include <workspace.h>
 
 #include <complex>
 #include <stdexcept>
 
-#include <workspace.h>
 #include "check_input.h"
-#include "disort.h"
 #include "interpolation.h"
-#include "interp.h"
 #include "m_xml.h"
 #include "optproperties.h"
 #include "physics_funcs.h"
 #include "rt4.h"
-#include "rte.h"
 #include "special_interp.h"
 
 inline constexpr Numeric PI=Constant::pi;

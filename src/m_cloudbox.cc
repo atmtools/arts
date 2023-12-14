@@ -15,9 +15,8 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
-#include <cmath>
-#include <cstdlib>
-#include <memory>
+#include <workspace.h>
+
 #include <stdexcept>
 
 #include "array.h"
@@ -30,22 +29,11 @@
 #include "debug.h"
 #include "file.h"
 #include "gridded_fields.h"
-#include "interp.h"
-#include "interpolation.h"
-#include "lin_alg.h"
-#include "logic.h"
 #include "math_funcs.h"
-#include "microphysics.h"
 #include "new_jacobian.h"
 #include "optproperties.h"
-#include "parameters.h"
-#include "physics_funcs.h"
-#include "rte.h"
-#include "sorting.h"
-#include "special_interp.h"
 #include "species_tags.h"
 #include "xml_io.h"
-#include <workspace.h>
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

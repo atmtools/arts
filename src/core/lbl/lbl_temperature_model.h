@@ -2,7 +2,6 @@
 
 #include <matpack.h>
 
-#include <cmath>
 #include <limits>
 
 #include "debug.h"

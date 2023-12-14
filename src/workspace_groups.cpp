@@ -1,8 +1,5 @@
 #include "workspace_groups.h"
 
-#include <iostream>
-#include <stdexcept>
-
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;

@@ -2,14 +2,10 @@
   ===  File description
   ===========================================================================*/
 
-#include "matpack_concepts.h"
-#include "physics_funcs.h"
 #include <workspace.h>
-#include "geodetic.h"
-#include "sun.h"
-#include "surf.h"
-#include <iostream>
 
+#include "physics_funcs.h"
+#include "sun.h"
 
 /*!
   \file   m_sun.cc

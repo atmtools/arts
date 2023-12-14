@@ -11,20 +11,19 @@
  \date   2012-11-30
  */
 
-#include "arts_constants.h"
-#include "check_input.h"
 #include "cia.h"
+
 #include <cmath>
 #include <memory>
-#include <numeric>
-#include "matpack_concepts.h"
-#include "species_tags.h"
-#include "absorption.h"
+
+#include "arts_constants.h"
+#include "check_input.h"
+#include "double_imanip.h"
 #include "file.h"
 #include "interp.h"
+#include "matpack_concepts.h"
 
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
-
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfCIARecord& x) {
   for (auto& a : x) os << a << '\n';
@@ -152,26 +151,41 @@ void cia_interpolation(VectorView result,
   }
 
   // Find frequency grid positions:
-  const auto f_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
-  
+  const auto f_lag = my_interp::lagrange_interpolation_list<
+      FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
+
   // Do the rest of the interpolation.
   if (T_order == 0) {
     // No temperature interpolation in this case, just a frequency interpolation.
-    result_active = reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
+    result_active =
+        reinterp(cia_data.data(joker, 0), interpweights(f_lag), f_lag);
   } else {
     // Temperature and frequency interpolation.
     const auto Tnew = matpack::matpack_constant_data<Numeric, 1>{temperature};
     if (T_order == 1) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(Tnew, data_T_grid, T_extrapolfac);
-      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+      const auto T_lag =
+          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
+              Tnew, data_T_grid, T_extrapolfac);
+      result_active =
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reduce_rank<0>();
     } else if (T_order == 2) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(Tnew, data_T_grid, T_extrapolfac);
-      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+      const auto T_lag =
+          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
+              Tnew, data_T_grid, T_extrapolfac);
+      result_active =
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reduce_rank<0>();
     } else if (T_order == 3) {
-      const auto T_lag = my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(Tnew, data_T_grid, T_extrapolfac);
-      result_active = reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag).reduce_rank<0>();
+      const auto T_lag =
+          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
+              Tnew, data_T_grid, T_extrapolfac);
+      result_active =
+          reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
+              .reduce_rank<0>();
     } else {
-      throw std::runtime_error("Cannot have this T_order, you must update the code...");
+      throw std::runtime_error(
+          "Cannot have this T_order, you must update the code...");
     }
   }
 
@@ -225,15 +239,17 @@ std::shared_ptr<CIARecord> cia_get_data(
 }
 
 // Documentation in header file.
-void CIARecord::Extract(VectorView res, const ConstVectorView &f_grid,
-                        const Numeric &temperature,
-                        const Numeric &T_extrapolfac, const Index &robust) const {
+void CIARecord::Extract(VectorView res,
+                        const ConstVectorView& f_grid,
+                        const Numeric& temperature,
+                        const Numeric& T_extrapolfac,
+                        const Index& robust) const {
   res = 0;
-  
+
   Vector result(res.nelem());
-  for (auto &this_cia : mdata) {
-    cia_interpolation(result, f_grid, temperature, this_cia, T_extrapolfac,
-                      robust);
+  for (auto& this_cia : mdata) {
+    cia_interpolation(
+        result, f_grid, temperature, this_cia, T_extrapolfac, robust);
     res += result;
   }
 }
@@ -260,8 +276,8 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
 
   // Function species_index_from_species_name returns -1 if the species does
   // not exist. Check this:
-  ARTS_USER_ERROR_IF(not good_enum(spec_ind),
-      "Species does not exist in ARTS: ", name)
+  ARTS_USER_ERROR_IF(
+      not good_enum(spec_ind), "Species does not exist in ARTS: ", name)
 
   // Assign species:
   mspecies[i] = spec_ind;

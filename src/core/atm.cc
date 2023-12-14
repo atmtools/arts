@@ -3,25 +3,17 @@
 #include <matpack.h>
 
 #include <algorithm>
-#include <exception>
 #include <iomanip>
-#include <iterator>
 #include <limits>
-#include <numeric>
 #include <ostream>
-#include <stdexcept>
 #include <type_traits>
 #include <variant>
 #include <vector>
 
-#include "arts_omp.h"
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "fieldmap.h"
 #include "gridded_fields.h"
-#include "grids.h"
-#include "interpolation.h"
 #include "isotopologues.h"
 #include "species.h"
 

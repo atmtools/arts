@@ -13,9 +13,10 @@
   file auto_md.h.
 */
 
+#include <workspace.h>
+
 #include "arts_conversions.h"
 #include "atm.h"
-#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
@@ -413,7 +414,7 @@ void lbl_checkedCalc(Index& lbl_checked,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearsky_agenda_checkedCalc(
-    const Workspace& ws _U_,
+    const Workspace& ws [[maybe_unused]],
     Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,

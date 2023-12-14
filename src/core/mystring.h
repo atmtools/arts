@@ -2,7 +2,6 @@
 
 #include <fast_float/fast_float.h>
 
-#include <algorithm>
 #include <charconv>
 #include <sstream>
 #include <string>
@@ -10,7 +9,6 @@
 
 #include "array.h"
 #include "configtypes.h"
-#include "nonstd.h"
 
 /** The String type for ARTS. Implementation. */
 using String = std::string;
@@ -20,6 +18,9 @@ using ArrayOfString = Array<String>;
 
 /** An array of Strings. */
 using ArrayOfArrayOfString = Array<Array<String>>;
+
+/** Name string_view as we named string */
+using StringView = std::string_view;
 
 namespace std {
 std::ostream& operator<<(std::ostream& os, const ArrayOfString& x);

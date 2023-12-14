@@ -94,7 +94,7 @@ void test_voigt_no_cutoff(const bool one_by_one = false) {
   StokvecMatrix dsv(0, f_grid.size());
 
   make_wigner_ready(100, 100, 6);
-  lbl::calculate(pm, sv, dpm, dsv, f_grid, {}, bands, {}, atm);
+  lbl::calculate(pm, sv, dpm, dsv, f_grid, {}, bands, {}, atm, {}, true);
 
   Vector vpm(f_grid.size());
   for (Index i = 0; i < f_grid.size(); ++i) {

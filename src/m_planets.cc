@@ -18,15 +18,16 @@
   ===========================================================================*/
 
 #include <workspace.h>
+
+#include <cmath>
+#include <stdexcept>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
-#include "matpack_data.h"
 #include "operators.h"
 #include "surf.h"
-#include <cmath>
-#include <stdexcept>
 
 inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);

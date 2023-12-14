@@ -3,8 +3,8 @@
 
 #include "interpolation.h"
 
-#include <matpack.h>
 #include <enums.h>
+#include <matpack.h>
 #include <mystring.h>
 
 namespace Options {

@@ -1,4 +1,5 @@
 #include "mystring.h"
+#include "nonstd.h"
 
 namespace std {
 std::ostream& operator<<(std::ostream& os, const ArrayOfString& x) {

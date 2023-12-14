@@ -1,8 +1,5 @@
 #pragma once
 
-#include "matpack_concepts.h"
-#include "matpack_view.h"
-
 #pragma GCC diagnostic push
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
@@ -11,6 +8,8 @@
 #endif
 #include <Eigen/Dense>
 #pragma GCC diagnostic pop
+
+#include "matpack_concepts.h"
 
 namespace matpack::eigen {
 /** Treat the input as an Eigen matrix type

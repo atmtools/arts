@@ -3,7 +3,6 @@
 #include <rtepack.h>
 
 #include <array>
-#include <numeric>
 
 #include "arts_constants.h"
 

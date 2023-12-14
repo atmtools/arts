@@ -7,36 +7,36 @@
 */
 
 #include "artstime.h"
-#include "arts_options.h"
+
 #include <charconv>
 #include <chrono>
-#include "debug.h"
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
-#include <system_error>
+
+#include "arts_options.h"
+#include "debug.h"
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
   s >> *this;
 }
 
-TimeStep time_stepper_selection(const String& time_step)
-{
+TimeStep time_stepper_selection(const String& time_step) {
   std::istringstream x(time_step);
   Index length;
   String type;
   x >> length >> type;
   tolower(type);
-  
+
   const Options::TimeStep t = Options::toTimeStep(type);
   check_enum_error(t, "bad time step: ", time_step);
-  
+
   switch (t) {
     case Options::TimeStep::hour:
     case Options::TimeStep::hours:
     case Options::TimeStep::h:
-      return TimeStep(std::chrono::hours(length ));
+      return TimeStep(std::chrono::hours(length));
     case Options::TimeStep::minute:
     case Options::TimeStep::minutes:
     case Options::TimeStep::min:
@@ -52,32 +52,29 @@ TimeStep time_stepper_selection(const String& time_step)
   return {};
 }
 
-Time next_even(const Time& t, const TimeStep& dt)
-{
+Time next_even(const Time& t, const TimeStep& dt) {
   auto dt_internal = std::chrono::duration_cast<Time::InternalTimeStep>(dt);
-  
-  if (dt_internal.count())
-    return t + dt_internal - t.EpochTime() % dt_internal;
+
+  if (dt_internal.count()) return t + dt_internal - t.EpochTime() % dt_internal;
   return t;
 }
 
-ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
-{
+ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT) {
   Index N = times.size();
-  ARTS_USER_ERROR_IF (N < 2,
-    "Can only find time steps for 2-long or longer time grids");
-  
+  ARTS_USER_ERROR_IF(
+      N < 2, "Can only find time steps for 2-long or longer time grids");
+
   // algorithm only works with absolute times
   const TimeStep dt = std::chrono::abs(DT);
-  
+
   ArrayOfIndex time_steps{0};
-  
+
   if (N > 2) {
     Time tupp = next_even(times[0], dt);
     time_steps.emplace_back(1);
-    
+
     for (; time_steps.back() < N; time_steps.back()++) {
-      if (not (times[time_steps.back()] < tupp)) {
+      if (not(times[time_steps.back()] < tupp)) {
         tupp = next_even(tupp, dt);
         time_steps.emplace_back(time_steps.back());
       }
@@ -88,13 +85,12 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT)
   return time_steps;
 }
 
-std::ostream& operator<<(std::ostream& os, const Time& t)
-{ 
+std::ostream& operator<<(std::ostream& os, const Time& t) {
   // FIXME: C++20 has much better calendar handling (BUT NOT YET...)
   std::tm x = t.toStruct();
-  
+
   // Deal with seconds
-  std::array <char, 2 + 1 + 9 + 100> sec;
+  std::array<char, 2 + 1 + 9 + 100> sec;
   Numeric seconds = Numeric(x.tm_sec) + t.PartOfSecond();
   snprintf(sec.data(), sec.size(), "%.9lf", seconds);
 
@@ -107,7 +103,7 @@ std::ostream& operator<<(std::ostream& os, const Time& t)
             << std::setfill(' ') << std::setw(0);
 }
 
-std::istream &operator>>(std::istream &is, Time &t) {
+std::istream& operator>>(std::istream& is, Time& t) {
   String ymd, hms;
   is >> ymd >> hms;
 
@@ -117,8 +113,11 @@ std::istream &operator>>(std::istream &is, Time &t) {
   ARTS_USER_ERROR_IF(
       YMD.size() not_eq 3 or HMS.size() not_eq 3,
       "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-      "\"year-month-day\"   looks like: ", std::quoted(ymd), '\n',
-      "\"hour:min:seconds\" looks like: ", std::quoted(hms));
+      "\"year-month-day\"   looks like: ",
+      std::quoted(ymd),
+      '\n',
+      "\"hour:min:seconds\" looks like: ",
+      std::quoted(hms));
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
   int year, month, day;
@@ -129,11 +128,13 @@ std::istream &operator>>(std::istream &is, Time &t) {
   auto res_day =
       std::from_chars(YMD[2].c_str(), YMD[2].c_str() + YMD[2].size(), day);
 
-  ARTS_USER_ERROR_IF(
-      std::make_error_code(res_year.ec) or std::make_error_code(res_mon.ec) or
-          std::make_error_code(res_day.ec),
-      "Cannot understand time point for year-month-day: ", std::quoted(ymd))
-  ARTS_USER_ERROR_IF(year < 1900, "We cannot yet support times before the year 1900")
+  ARTS_USER_ERROR_IF(std::make_error_code(res_year.ec) or
+                         std::make_error_code(res_mon.ec) or
+                         std::make_error_code(res_day.ec),
+                     "Cannot understand time point for year-month-day: ",
+                     std::quoted(ymd))
+  ARTS_USER_ERROR_IF(year < 1900,
+                     "We cannot yet support times before the year 1900")
 
   int hour, minute;
   Numeric sec;
@@ -141,8 +142,8 @@ std::istream &operator>>(std::istream &is, Time &t) {
       std::from_chars(HMS[0].c_str(), HMS[0].c_str() + HMS[0].size(), hour);
   auto res_min =
       std::from_chars(HMS[1].c_str(), HMS[1].c_str() + HMS[1].size(), minute);
-  auto res_sec = fast_float::from_chars(HMS[2].c_str(),
-                                        HMS[2].c_str() + HMS[2].size(), sec);
+  auto res_sec = fast_float::from_chars(
+      HMS[2].c_str(), HMS[2].c_str() + HMS[2].size(), sec);
 
   ARTS_USER_ERROR_IF(std::make_error_code(res_hour.ec) or
                          std::make_error_code(res_min.ec) or
@@ -163,31 +164,33 @@ std::istream &operator>>(std::istream &is, Time &t) {
   return is;
 }
 
-Time mean_time(const ArrayOfTime& ts, Index s, Index E)
-{
-  Index e=0;
+Time mean_time(const ArrayOfTime& ts, Index s, Index E) {
+  Index e = 0;
   if (e == -1) e = ts.size();
-  ARTS_USER_ERROR_IF (e < 0 or e > static_cast<Index>(ts.size()),
-    "Bad last index, valid options are [-1, ts.nelem()], got: ", E);
-  
-  ARTS_USER_ERROR_IF (s < 0 or s > static_cast<Index>(ts.size()),
-    "Bad first index, valid options are [0, ts.nelem()], got: ", s);
+  ARTS_USER_ERROR_IF(
+      e < 0 or e > static_cast<Index>(ts.size()),
+      "Bad last index, valid options are [-1, ts.nelem()], got: ",
+      E);
 
-  Time::InternalTimeStep dt(0);    
-  for (Index i=s+1; i<e; i++)
-    dt += (ts[i] - ts[s])  / (e - s);
+  ARTS_USER_ERROR_IF(
+      s < 0 or s > static_cast<Index>(ts.size()),
+      "Bad first index, valid options are [0, ts.nelem()], got: ",
+      s);
+
+  Time::InternalTimeStep dt(0);
+  for (Index i = s + 1; i < e; i++) dt += (ts[i] - ts[s]) / (e - s);
   return ts[s] + dt;
 }
 
 Vector time_vector(const ArrayOfTime& times) {
   Vector t(times.size());
-  for (Size i=0; i<times.size(); i++) t[i] = Numeric(times[i]);
+  for (Size i = 0; i < times.size(); i++) t[i] = Numeric(times[i]);
   return t;
 }
 
 ArrayOfTime time_vector(const Vector& times) {
   ArrayOfTime t(times.nelem());
-  for (Index i=0; i<times.nelem(); i++) t[i].Seconds(times[i]);
+  for (Index i = 0; i < times.nelem(); i++) t[i].Seconds(times[i]);
   return t;
 }
 
@@ -195,9 +198,8 @@ TimeStep median(ArrayOfTimeStep dt) {
   const auto n = dt.size();
   if (n) {
     std::sort(dt.begin(), dt.end());
-    if (n % 2)
-      return dt[n / 2];
-    return (dt[(n-1)/2] + dt[n/2]) / 2;
+    if (n % 2) return dt[n / 2];
+    return (dt[(n - 1) / 2] + dt[n / 2]) / 2;
   }
   return TimeStep(0);
 }
@@ -205,7 +207,7 @@ TimeStep median(ArrayOfTimeStep dt) {
 TimeStep mean(const ArrayOfTimeStep& dt) {
   TimeStep t(0);
   const auto n = dt.size();
-  for (std::size_t i=0; i<n; i++) {
+  for (std::size_t i = 0; i < n; i++) {
     t += dt[i] / n;
   }
   return t;
@@ -214,7 +216,6 @@ TimeStep mean(const ArrayOfTimeStep& dt) {
 std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {
   return os << dt.count() << " seconds";
 }
-
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfTime& a) {
   for (auto& x : a) os << x << '\n';

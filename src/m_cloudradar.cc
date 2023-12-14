@@ -10,23 +10,18 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <stdexcept>
+#include <rtepack.h>
+#include <workspace.h>
 
+#include <cmath>
 
 #include "arts_constants.h"
 #include "arts_omp.h"
-#include "atm.h"
-#include <workspace.h>
 #include "debug.h"
 #include "logic.h"
 #include "matpack_data.h"
-#include "matpack_eigen.h"
 #include "matpack_view.h"
-#include "montecarlo.h"
-#include <rtepack.h>
 #include "rte.h"
-#include "sensor.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;

@@ -15,6 +15,7 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "file.h"
+#include "double_imanip.h"
 #include <iterator>
 #include <string_view>
 
@@ -662,20 +663,7 @@ void xml_write_footer_to_stream(std::ostream& os) {
 }
 
 void xml_set_stream_precision(std::ostream& os) {
-  // Determine the precision, depending on whether Numeric is double
-  // or float:
-  int precision;
-#ifdef USE_FLOAT
-  precision = FLT_DIG;
-#else
-#ifdef USE_DOUBLE
-  precision = DBL_DIG;
-#else
-#error Numeric must be double or float
-#endif
-#endif
-
-  os << std::setprecision(precision);
+  os << std::setprecision(DBL_DIG);
 }
 
 //! Get the content of an xml tag as a string

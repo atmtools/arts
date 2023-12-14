@@ -2,6 +2,8 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
+#include "debug.h"
+
 namespace Python {
 namespace py = pybind11;
 

@@ -10,9 +10,8 @@
 */
 
 #include "tessem.h"
-#include "file.h"
+#include "double_imanip.h"
 #include "matpack_data.h"
-#include "mystring.h"
 
 /*! Read TESSEM2 neural network parameters
 

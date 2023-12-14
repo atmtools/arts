@@ -1,10 +1,8 @@
-#include <workspace.h>
-
 #include <arts_omp.h>
 #include <atm_path.h>
-#include <rte.h>
-
 #include <new_jacobian.h>
+#include <rte.h>
+#include <workspace.h>
 
 void ppvar_radCalcTransmission(
     ArrayOfStokvecVector &ppvar_rad,

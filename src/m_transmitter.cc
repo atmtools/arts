@@ -15,21 +15,13 @@
   === External declarations
   ===========================================================================*/
 
+#include <workspace.h>
+
+#include <stdexcept>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include <workspace.h>
-#include "geodetic.h"
-#include "jacobian.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "matpack_complex.h"
-#include "rte.h"
-#include "rtepack.h"
-#include "rtepack_multitype.h"
 #include "sensor.h"
-#include <cmath>
-#include <stdexcept>
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PI=Constant::pi;

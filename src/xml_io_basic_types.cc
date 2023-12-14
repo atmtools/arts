@@ -12,6 +12,7 @@
 
 #include "absorptionlines.h"
 #include "debug.h"
+#include "double_imanip.h"
 #include "isotopologues.h"
 #include "quantum_numbers.h"
 #include "xml_io.h"

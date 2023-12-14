@@ -3,14 +3,14 @@
   ===========================================================================*/
 
 #include <workspace.h>
-#include "physics_funcs.h"
+
 #include "arts_conversions.h"
 #include "gas_scattering.h"
 #include "optproperties.h"
+#include "physics_funcs.h"
 #include "rte.h"
 #include "rtepack.h"
 #include "rtepack_multitype.h"
-#include <cmath>
 
 using Constant::pi;
 using Constant::boltzmann_constant;

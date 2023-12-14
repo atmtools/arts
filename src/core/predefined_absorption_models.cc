@@ -9,20 +9,14 @@
 
 #include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
-#include <iomanip>
 #include <predef.h>
 
 #include "atm.h"
 #include "debug.h"
-#include "jacobian.h"
-#include "lin_alg.h"
-#include "linescaling.h"
 #include "matpack_data.h"
 #include "new_jacobian.h"
 #include "predefined/predef_data.h"
-#include "quantum_numbers.h"
 #include "species.h"
-#include "species_tags.h"
 
 namespace Absorption::PredefinedModel {
 /** Compute the selected model and returns if it can be computed

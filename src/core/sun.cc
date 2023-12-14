@@ -12,14 +12,12 @@
 */
 
 #include "sun.h"
-#include "atm.h"
-#include "arts_conversions.h"
+
 #include "check_input.h"
 #include "debug.h"
+#include "interpolation.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
-#include "geodetic.h"
-#include "surf.h"
 
 using Constant::pi;
 

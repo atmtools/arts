@@ -3,7 +3,6 @@
 #include <map>
 
 #include "isotopologues.h"
-#include "species_tags.h"
 
 namespace Hitran {
 using HitranMap = std::map<Index, std::map<char, std::pair<Index, Numeric>>>;

@@ -1,25 +1,18 @@
 /*===========================================================================
   ===  File description
   ===========================================================================*/
-#include <algorithm>
-#include <iostream>
-#include <stdexcept>
-#include "absorption.h"
+
 #include <workspace.h>
+
+#include <algorithm>
+#include <stdexcept>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "check_input.h"
-#include "debug.h"
-#include "legendre.h"
+#include "gsl_gauss_legendre.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "sorting.h"
-#include "surf.h"
-#include "surface.h"
-#include "check_input.h"
-#include "gsl_gauss_legendre.h"
-#include "arts_omp.h"
 
 /*!
   \file   m_fluxes.cc

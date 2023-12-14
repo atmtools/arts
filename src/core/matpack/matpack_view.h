@@ -4,8 +4,6 @@
 
 #include <algorithm>
 #include <array>
-#include <concepts>
-#include <functional>
 #include <numeric>
 #include <ostream>
 #include <string>

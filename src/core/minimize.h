@@ -1,10 +1,10 @@
 #ifndef minimize_h
 #define minimize_h
 
-#include <array>
 #include <utility>
 
-#include "matpack_data.h"
+#include <matpack.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -205,23 +205,23 @@ struct DPL {
   InputType x0() const;
 };
 
-
 /*! Returns wether or not the Eigen minimize call worked
  * 
  * @param[in] status Eigen::LevenbergMarquardtSpace::Status value from minimize(x) call 
  */
 constexpr bool goodStatus(int status) {
-  if (status == Eigen::LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall) {
+  if (status ==
+      Eigen::LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall) {
     return true;
-  } else if (status == Eigen::LevenbergMarquardtSpace::RelativeReductionTooSmall) {
-    return true;
-  } else if (status == Eigen::LevenbergMarquardtSpace::RelativeErrorTooSmall) {
-    return true;
-  } else {
-    return false;
   }
+  if (status == Eigen::LevenbergMarquardtSpace::RelativeReductionTooSmall) {
+    return true;
+  }
+  if (status == Eigen::LevenbergMarquardtSpace::RelativeErrorTooSmall) {
+    return true;
+  }
+  return false;
 }
-
 
 /*! Fit a curve to data values
  * 

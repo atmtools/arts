@@ -18,11 +18,9 @@
   === External declarations
   ===========================================================================*/
 
-#include "arts_constants.h"
 #include <workspace.h>
-#include "check_input.h"
-#include "logic.h"
-#include "math_funcs.h"
+
+#include "arts_constants.h"
 #include "physics_funcs.h"
 
 inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;

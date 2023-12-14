@@ -4,19 +4,16 @@
 #include <matpack.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <exception>
 #include <functional>
 #include <limits>
-#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <variant>
 
-#include "arts_constants.h"
 #include "compare.h"
 #include "debug.h"
 #include "enums.h"

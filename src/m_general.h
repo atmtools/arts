@@ -10,8 +10,9 @@
 #ifndef m_general_h
 #define m_general_h
 
-#include <iostream>
 #include <workspace.h>
+
+#include <iostream>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <WorkspaceGroup T>

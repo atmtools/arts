@@ -14,7 +14,6 @@
 #define sorting_h
 
 #include <algorithm>
-#include <functional>
 #include <numeric>
 
 #include "array.h"

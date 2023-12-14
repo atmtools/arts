@@ -9,14 +9,14 @@
 #ifndef HITRAN_XSEC_H
 #define HITRAN_XSEC_H
 
-#include "array.h"
-#include "bifstream.h"
-#include "gridded_fields.h"
 #include <matpack.h>
-#include "mystring.h"
-#include "species.h"
 
 #include <memory>
+
+#include "array.h"
+#include "gridded_fields.h"
+#include "mystring.h"
+#include "species.h"
 
 /** Hitran crosssection class.
  *

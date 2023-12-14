@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ratio>
 #include <vector>
 
 #include <absorptionlines.h>

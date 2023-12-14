@@ -13,34 +13,26 @@
   ===========================================================================*/
 
 #include "doit.h"
+
+#include <workspace.h>
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <stdexcept>
-#include <workspace.h>
+
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "atm.h"
 #include "check_input.h"
-#include "cloudbox.h"
 #include "debug.h"
-#include "geodetic.h"
-#include "lin_alg.h"
-#include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "physics_funcs.h"
-#include "ppath.h"
-#include "rte.h"
 #include "rtepack.h"
 #include "rtepack_multitype.h"
 #include "rtepack_rtestep.h"
 #include "rtepack_stokes_vector.h"
 #include "sorting.h"
 #include "special_interp.h"
-#include "species_tags.h"
-#include "xml_io.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

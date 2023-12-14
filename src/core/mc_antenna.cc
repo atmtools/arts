@@ -13,7 +13,6 @@
 #include "mc_antenna.h"
 #include <cfloat>
 #include <random>
-#include <sstream>
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "matpack_math.h"

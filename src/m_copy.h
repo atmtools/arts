@@ -12,8 +12,6 @@
 #ifndef m_copy_h
 #define m_copy_h
 
-#include "debug.h"
-#include "mystring.h"
 #include <workspace.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */

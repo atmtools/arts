@@ -5,13 +5,13 @@
 */
 
 #include "telsem.h"
+
 #include <cmath>
 #include <utility>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "check_input.h"
 #include "double_imanip.h"
-#include "geodetic.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

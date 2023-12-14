@@ -7,8 +7,6 @@
 
 #include <Faddeeva/Faddeeva.hh>
 #include <cmath>
-#include <cstdio>
-#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <limits>

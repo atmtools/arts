@@ -18,31 +18,25 @@
   === External declarations
   ===========================================================================*/
 
+#include <workspace.h>
+
 #include <cfloat>
-#include <cmath>
 #include <vector>
+
 #include "arts_constants.h"
-#include "arts_conversions.h"
+#include "arts_omp.h"
 #include "atm.h"
 #include "auto_wsm.h"
-#include "debug.h"
-#include "species_tags.h"
-#include "absorption.h"
-#include <workspace.h>
 #include "check_input.h"
 #include "cloudbox.h"
-#include "geodetic.h"
+#include "debug.h"
 #include "gridded_fields.h"
-#include "igrf13.h"
-#include "interpolation.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "linescaling.h"
 #include "matpack_data.h"
-#include "rte.h"
 #include "special_interp.h"
-#include "surf.h"
-#include "xml_io.h"
-#include "arts_omp.h"
+#include "species_tags.h"
 
 using GriddedFieldGrids::GFIELD3_P_GRID;
 using GriddedFieldGrids::GFIELD3_LAT_GRID;
@@ -295,7 +289,7 @@ void FieldFromGriddedFieldCheckLatLonHelper(const Vector& lat_grid,
 void FieldFromGriddedField(  // WS Generic Output:
     Matrix& field_out,
     // WS Input:
-    const Vector& p_grid _U_,
+    const Vector& p_grid [[maybe_unused]],
     const Vector& lat_grid,
     const Vector& lon_grid,
     // WS Generic Input:

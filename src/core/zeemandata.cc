@@ -12,9 +12,17 @@
 #include "zeemandata.h"
 
 #include "debug.h"
-#include "matpack_data.h"
-#include "matpack_eigen.h"
+#include "double_imanip.h"
 #include "wigner_functions.h"
+
+#pragma GCC diagnostic push
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
+#else
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
+#include <Eigen/Dense>
+#pragma GCC diagnostic pop
 
 constexpr Numeric get_lande_spin_constant(
     const Species::Species species) noexcept {

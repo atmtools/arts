@@ -5,15 +5,11 @@
 #include <matpack.h>
 #include <rtepack.h>
 
-#include <algorithm>
 #include <limits>
-#include <numeric>
 #include <ostream>
-#include <type_traits>
 #include <vector>
 
 #include "lbl_data.h"
-#include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 #include "quantum_numbers.h"
 

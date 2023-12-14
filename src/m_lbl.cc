@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <exception>
 #include <filesystem>
 #include <iomanip>

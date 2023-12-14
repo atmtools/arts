@@ -8,7 +8,6 @@
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <variant>
 #include <vector>
 
 #include "debug.h"

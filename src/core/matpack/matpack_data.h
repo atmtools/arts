@@ -3,7 +3,6 @@
 #include <exception>
 #include <tuple>
 
-#include "matpack_complex.h"
 #include "matpack_concepts.h"
 #include "matpack_view.h"
 

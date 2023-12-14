@@ -11,29 +11,12 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
+#include <workspace.h>
+
 #include <ctime>
-#include <fstream>
-#include <stdexcept>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include <workspace.h>
-#include "check_input.h"
-#include "debug.h"
-#include "lin_alg.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "matpack_data.h"
-#include "mc_interp.h"
-#include "montecarlo.h"
-#include "physics_funcs.h"
-#include "ppath.h"
-#include "refraction.h"
-#include "rng.h"
-#include "rte.h"
-#include "special_interp.h"
-#include "surf.h"
-#include "xml_io.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

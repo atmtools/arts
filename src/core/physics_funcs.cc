@@ -13,12 +13,12 @@
   ===========================================================================*/
 
 #include "physics_funcs.h"
+
+#include <cmath>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "mystring.h"
 #include "physics_funcs.h"
-#include <cmath>
-#include <stdexcept>
 
 inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

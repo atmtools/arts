@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility>
-
 #include "fwd_radiance.h"
 
 namespace fwd::profile {

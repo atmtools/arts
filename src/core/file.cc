@@ -19,7 +19,6 @@
 #include <filesystem>
 #include <stdexcept>
 
-#include "array.h"
 #include "file.h"
 #include "parameters.h"
 

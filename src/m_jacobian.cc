@@ -10,22 +10,16 @@
   === External declarations
   ===========================================================================*/
 
+#include <matpack.h>
+#include <workspace.h>
+
 #include <cmath>
 #include <string>
 #include <unordered_map>
-#include "absorption.h"
-#include <workspace.h>
+
 #include "check_input.h"
-#include "cloudbox.h"
-#include "arts_conversions.h"
 #include "interp.h"
 #include "jacobian.h"
-#include "m_xml.h"
-#include "math_funcs.h"
-#include "matpack_math.h"
-#include "physics_funcs.h"
-#include "rte.h"
-#include "special_interp.h"
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -37,10 +31,10 @@
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcDoNothing(Matrix& jacobian _U_,
-                           const Index& mblock_index _U_,
-                           const Vector& iyb _U_,
-                           const Vector& yb _U_) {
+void jacobianCalcDoNothing(Matrix& jacobian [[maybe_unused]],
+                           const Index& mblock_index [[maybe_unused]],
+                           const Vector& iyb [[maybe_unused]],
+                           const Vector& yb [[maybe_unused]]) {
   /* Nothing to do here for the analytical case, this function just exists
    to satisfy the required inputs and outputs of the jacobian_agenda */
 }
@@ -144,7 +138,7 @@ void jacobianAddAbsSpecies(const Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqShift(const Workspace& ws _U_,
+void jacobianAddFreqShift(const Workspace& ws [[maybe_unused]],
                           ArrayOfRetrievalQuantity& jacobian_quantities,
                           Agenda& jacobian_agenda,
                           const Vector& f_grid,
@@ -286,7 +280,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddFreqStretch(const Workspace& ws _U_,
+void jacobianAddFreqStretch(const Workspace& ws [[maybe_unused]],
                             ArrayOfRetrievalQuantity& jacobian_quantities,
                             Agenda& jacobian_agenda,
                             const Vector& f_grid,
@@ -450,7 +444,7 @@ void jacobianCalcFreqStretch(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPointingZa(const Workspace& ws _U_,
+void jacobianAddPointingZa(const Workspace& ws [[maybe_unused]],
                            ArrayOfRetrievalQuantity& jacobian_quantities,
                            Agenda& jacobian_agenda,
                            const Matrix& sensor_pos,
@@ -525,7 +519,7 @@ void jacobianCalcPointingZaInterp(
     Matrix& jacobian,
     const Index& mblock_index,
     const Vector& iyb,
-    const Vector& yb _U_,
+    const Vector& yb [[maybe_unused]],
     const Vector& f_grid,
     const Matrix& DEBUG_ONLY(sensor_los),
     const Matrix& mblock_dlos,
@@ -652,7 +646,7 @@ void jacobianCalcPointingZaInterp(
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddPolyfit(const Workspace& ws _U_,
+void jacobianAddPolyfit(const Workspace& ws [[maybe_unused]],
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -728,8 +722,8 @@ void jacobianAddPolyfit(const Workspace& ws _U_,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPolyfit(Matrix& jacobian,
                          const Index& mblock_index,
-                         const Vector& iyb _U_,
-                         const Vector& yb _U_,
+                         const Vector& iyb [[maybe_unused]],
+                         const Vector& yb [[maybe_unused]],
                          const Sparse& sensor_response,
                          const ArrayOfIndex& sensor_response_pol_grid,
                          const Vector& sensor_response_f_grid,
@@ -851,7 +845,7 @@ void jacobianAddScatSpecies(const Workspace&,
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddSinefit(const Workspace& ws _U_,
+void jacobianAddSinefit(const Workspace& ws [[maybe_unused]],
                         ArrayOfRetrievalQuantity& jq,
                         Agenda& jacobian_agenda,
                         const ArrayOfIndex& sensor_response_pol_grid,
@@ -928,8 +922,8 @@ void jacobianAddSinefit(const Workspace& ws _U_,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcSinefit(Matrix& jacobian,
                          const Index& mblock_index,
-                         const Vector& iyb _U_,
-                         const Vector& yb _U_,
+                         const Vector& iyb [[maybe_unused]],
+                         const Vector& yb [[maybe_unused]],
                          const Sparse& sensor_response,
                          const ArrayOfIndex& sensor_response_pol_grid,
                          const Vector& sensor_response_f_grid,

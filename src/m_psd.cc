@@ -9,15 +9,14 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
+
+#include <workspace.h>
+
 #include <cmath>
 #include <cstdlib>
-#include <stdexcept>
+
 #include "array.h"
-#include <workspace.h>
-#include "check_input.h"
-#include "lin_alg.h"
 #include "math_funcs.h"
-#include "physics_funcs.h"
 #include "psd.h"
 
 /*===========================================================================
