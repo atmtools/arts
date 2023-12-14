@@ -65,6 +65,8 @@ option (NO_DOCSERVER "Turn off the document server" OFF)
 cmake_dependent_option(
     NO_FASTEM "Turn off FASTEM even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
+    NO_SURFEMOCEAN "Turn off SURFEMOCEAN even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
+cmake_dependent_option(
     NO_RT4 "Turn off RT4 even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
 cmake_dependent_option(
     NO_TMATRIX "Turn off TMATRIX even if Fortran is enabled" OFF "ENABLE_FORTRAN" ON)
@@ -96,6 +98,8 @@ endif()
 if (ENABLE_FORTRAN)
  if (NOT NO_FASTEM AND ENABLE_ARTS_LGPL)
   message(FATAL_ERROR "FASTEM is not available as LGPL.")
+ elseif(NOT NO_SURFEMOCEAN AND ENABLE_ARTS_LGPL)
+  message(FATAL_ERROR "SURFEMOCEAN is not available as LGPL.")
  elseif(NOT NO_RT4 AND ENABLE_ARTS_LGPL)
   message(FATAL_ERROR "RT4 is not available as LGPL.")
  elseif(NOT NO_TMATRIX AND ENABLE_ARTS_LGPL)
@@ -499,6 +503,11 @@ get_directory_property(ENABLE_FASTEM DIRECTORY
                        3rdparty/fastem
                        DEFINITION ENABLE_FASTEM)
 
+get_directory_property(ENABLE_SURFEMOCEAN DIRECTORY
+                       3rdparty/surfemocean
+                       DEFINITION ENABLE_SURFEMOCEAN)
+
+                       
 get_directory_property(ENABLE_TMATRIX DIRECTORY
                        3rdparty/tmatrix
                        DEFINITION ENABLE_TMATRIX)

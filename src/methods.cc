@@ -20778,6 +20778,49 @@ where N>=0 and the species name is something line "H2O".
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("SurfemOceanStandAlone"),
+      DESCRIPTION(
+          "Stand-alone usage of SURFEM-Ocean.\n"
+          "\n"
+          "SURFEM-Ocean is fast version of PARMIO developed within the\n"
+          "framework of EUMETSAT Numerical Weather Prediction Satellite\n"
+          "Application Facilities. SURFEM-Ocean extends the capability\n"
+          "of FASTEM. It computes emissivities from 500 MHz to 700 GHz,\n"
+          "for all incidence angles, for the fourth Stokes polarizations,\n" 
+          "for OWS from 0 to 50 m/s, SST from -2 to 30°C, sea surface\n"
+          "salinity from 0 to 40 psu, and for all wind directions.\n"
+          "\n"
+          "The output is four (V, H, T3, T4) emissivity and reflectivity\n"
+          "values for each frequency. Note that emissivity and reflectivity\n"
+          "do not add up to 1 due to the correction for anisotropic downward\n"
+          "radiation.\n"
+          "\n"
+          "Reference: Kilic et al., Development of the SURface Fast Emissivity\n"
+          "Model for Ocean (SURFEM‐Ocean) Based on the PARMIO Radiative Transfer\n"
+          "Model ..., 2023.\n"),
+      AUTHORS("Shaofei Wang"),
+      OUT(),
+      GOUT("emissivity", "reflectivity"),
+      GOUT_TYPE("Matrix", "Matrix"),
+      GOUT_DESC("Emission values. One row for each frequency. See above.",
+                "Reflectivity values. One row for each frequency. See above."),
+      IN("f_grid", "surface_skin_t"),
+      GIN("za",
+          "salinity",
+          "wind_speed",
+          "rel_aa",
+          "transmittance"),
+      GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Vector"),
+      GIN_DEFAULT(NODEF, "0.035", NODEF, NODEF, NODEF),
+      GIN_DESC("Zenith angle of line-of-sigh, 90 to 180 deg.",
+               "Salinity, 0-1. That is, 3% is given as 0.03.",
+               "Wind speed.",
+               "Azimuth angle between wind direction and line-of-sight. "
+               "This angle is measured clockwise from north, i.e. E=90deg.",
+               "The transmittance of the atmosphere, along the propagation "
+               "path of the downwelling radiation. One value per frequency.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("TangentPointExtract"),
       DESCRIPTION(
           "Finds the tangent point of a propagation path.\n"

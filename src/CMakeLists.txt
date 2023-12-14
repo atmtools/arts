@@ -250,6 +250,7 @@ add_library (artscore STATIC
   species_tags.cc
         sun.cc
   surface.cc
+  surfemocean.cc
   telsem.cc
   tessem.cc
   timings.cc
@@ -310,6 +311,10 @@ endif (ENABLE_RT4)
 if (ENABLE_FASTEM)
   target_link_libraries (artscore PUBLIC fastem)
 endif (ENABLE_FASTEM)
+
+if (ENABLE_SURFEMOCEAN)
+  target_link_libraries (artscore PUBLIC surfemocean)
+endif (ENABLE_SURFEMOCEAN)
 
 if (ENABLE_TMATRIX)
   target_link_libraries (artscore PUBLIC tmatrix)

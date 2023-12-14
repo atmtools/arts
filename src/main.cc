@@ -689,6 +689,12 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
+               << "   SURFEMOCEAN support:  "
+#ifdef ENABLE_SURFEMOCEAN
+               << "enabled" << endl
+#else
+               << "disabled" << endl
+#endif
                << "   OEM support:          "
 #ifdef OEM_SUPPORT
                << "enabled" << endl
