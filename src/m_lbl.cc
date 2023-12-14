@@ -1,6 +1,7 @@
 #include <absorptionlines.h>
 #include <lbl.h>
 #include <partfun.h>
+#include <workspace.h>
 
 #include <algorithm>
 #include <cmath>
@@ -246,7 +247,7 @@ void abs_linesFromAbsorptionBands(ArrayOfAbsorptionLines& abs_lines,
         }
       }
 
-      if (auto ptr = std::find_if(abs_lines.begin()+i0,
+      if (auto ptr = std::find_if(abs_lines.begin() + i0,
                                   abs_lines.end(),
                                   [&old_band](const AbsorptionLines& l) {
                                     return old_band.Match(l).first;
@@ -404,22 +405,25 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
   std::ranges::copy_if(
       std::filesystem::directory_iterator(std::filesystem::path(dir)),
       std::back_inserter(paths),
-      [](auto& entry) { return entry.is_regular_file() and entry.path().extension() == ".xml"; });
+      [](auto& entry) {
+        return entry.is_regular_file() and entry.path().extension() == ".xml";
+      });
   std::ranges::sort(paths);
 
   std::vector<AbsorptionBands> bands(paths.size());
-  std::string error;
+  std::string error{};
 
-  #pragma omp parallel for schedule(dynamic)
-  for (Size i=0; i<paths.size(); i++) {
+#pragma omp parallel for schedule(dynamic)
+  for (Size i = 0; i < paths.size(); i++) {
     try {
-    ReadXML(bands[i], paths[i]);} catch (std::exception& e) {
-      #pragma omp critical
-      error = var_string(error, e.what(), '\n');
+      ReadXML(bands[i], paths[i]);
+    } catch (std::exception& e) {
+#pragma omp critical
+      error += var_string(e.what(), '\n');
     }
   }
 
-  ARTS_USER_ERROR_IF (not error.empty(), error)
+  ARTS_USER_ERROR_IF(not error.empty(), error)
 
   absorption_bands.reserve(std::transform_reduce(
       bands.begin(),
