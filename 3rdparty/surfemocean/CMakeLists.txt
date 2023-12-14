@@ -7,6 +7,7 @@ if (ENABLE_FORTRAN AND NOT NO_SURFEMOCEAN)
     mod_rttov_fastem5_coef.F90
     rttov_surfem_ocean_coef_mod.F90
     rttov_surfem_ocean_mod.F90
+    surfem_ocean.F90
     )
   set_target_properties (surfemocean PROPERTIES
     COMPILE_FLAGS "${FORTRAN_EXTRA_FLAGS}")

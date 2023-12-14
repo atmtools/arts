@@ -166,7 +166,6 @@ CONTAINS
     reflectivity(3) = -0.5_JPRB * (zreflmod_v + zreflmod_h) * emissivity(3)
     reflectivity(4) = -0.5_JPRB * (zreflmod_v + zreflmod_h) * emissivity(4)
 
-    RETURN
   END SUBROUTINE rttov_surfem_ocean
 
   SUBROUTINE epsilon(f_GHz, SSTk, SSSi, dielec)

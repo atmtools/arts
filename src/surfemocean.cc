@@ -30,7 +30,7 @@ inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 extern "C" {
 #endif
 
-void rttov_surfem_ocean_(const Numeric& frequency,
+void surfem_ocean_(const Numeric& frequency,
                          const Numeric& za,
                          const Numeric& wind_speed,
                          const Numeric& temperature,
@@ -45,9 +45,9 @@ void rttov_surfem_ocean_(const Numeric& frequency,
 #endif
 
 // Define dummy function that throws a runtime error if ARTS is
-// compiled without FASTEM support.
+// compiled without SURFEMOCEAN support.
 #ifndef ENABLE_SURFEMOCEAN
-void rttov_surfem_ocean_(const Numeric&,
+void surfem_ocean_(const Numeric&,
                          const Numeric&,
                          const Numeric&,
                          const Numeric&,
@@ -98,7 +98,7 @@ void surfemocean(  // Output:
   emissivity.resize(4);
   reflectivity.resize(4);
 
-  rttov_surfem_ocean_(frequency / 1e9,
+  surfem_ocean_(frequency / 1e9,
                       180 - za,
                       wind_speed,
                       temperature,

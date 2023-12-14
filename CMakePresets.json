@@ -22,6 +22,7 @@
         "ENABLE_PCH": "0",
         "FASTWIGNER": "0",
         "NO_FASTEM": "0",
+        "NO_SURFEMOCEAN": "0",
         "NO_OPENMP": "0",
         "NO_RT4": "0",
         "NO_TMATRIX": "0",

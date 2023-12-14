@@ -505,7 +505,7 @@ get_directory_property(ENABLE_FASTEM DIRECTORY
 
 get_directory_property(ENABLE_SURFEMOCEAN DIRECTORY
                        3rdparty/surfemocean
-                       DEFINITION ENABLE_FASTEM)
+                       DEFINITION ENABLE_SURFEMOCEAN)
 
                        
 get_directory_property(ENABLE_TMATRIX DIRECTORY
