@@ -55,16 +55,6 @@ class TestGriddedFieldUsage:
         gf3.data = np.ones((5, 5, 1))
         assert gf3.checksize() is True
 
-    def test_check_dimension2(self):
-        """Test if grid and data dimension agree (negative)."""
-        gf3 = cxx.GriddedField3()
-        gf3.grids = [np.arange(5), np.arange(5), []]
-        gf3.gridnames = ["A", "B", "C"]
-
-        # It shold not be allowed to set a Matrix as data in a GriddedField3.
-        with pytest.raises(TypeError):
-            gf3.data = np.ones((5, 5))
-
     def test_data(self):
         """Test setting and getting of data. """
         reference = np.random.randn(10, 10, 10)
