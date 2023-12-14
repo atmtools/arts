@@ -15705,20 +15705,6 @@ Valid ``criteria`` are:
       .gin_desc = {"Internal sorting criteria",
                    "Sort in reverse order if true"}};
 
-  wsm_data["absorption_bandsAppendSplit"] = {
-      .desc = R"--(Append all bands found in a directory to *absorption_bands*
-
-The ``dir`` path has to be absolute or relative to the working path, the environment
-variables are not considered
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"absorption_bands"},
-      .in = {"absorption_bands"},
-      .gin = {"dir"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {"Absolute or relative path to the directory"}};
-
   wsm_data["absorption_bandsReadSplit"] = {
       .desc = R"--(Saves all bands fin *absorption_bands* to a directory
 

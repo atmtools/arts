@@ -15,6 +15,7 @@
 
 #include <memory>
 
+#include "config.h"
 #include "xml_io_general_types.h"
 
 #ifdef ENABLE_ZLIB

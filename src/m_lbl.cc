@@ -13,6 +13,7 @@
 #include <unordered_map>
 
 #include "arts_omp.h"
+#include "auto_wsm.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
@@ -395,25 +396,6 @@ void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
   absorption_bands = {};
 }
 
-void absorption_bandsAppendSplit(AbsorptionBands& absorption_bands,
-                                 const String& dir) {
-  const std::filesystem::path p(dir);
-  ARTS_USER_ERROR_IF(
-      not std::filesystem::exists(p), "No such directory: ", std::quoted(dir))
-
-  std::vector<std::filesystem::path> paths;
-  std::ranges::copy(std::filesystem::directory_iterator(p),
-                    std::back_inserter(paths));
-  std::ranges::sort(paths);
-
-  absorption_bands.reserve(absorption_bands.size() + paths.size());
-  for (auto& entry : paths) {
-    if (not std::filesystem::is_regular_file(entry)) continue;
-    if (entry.extension() != ".xml") continue;
-    xml_read_from_file(entry, absorption_bands.emplace_back());
-  }
-}
-
 void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
                                const String& dir) {
   absorption_bands.resize(0);
@@ -422,11 +404,33 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
   std::ranges::copy_if(
       std::filesystem::directory_iterator(std::filesystem::path(dir)),
       std::back_inserter(paths),
-      [](auto& entry) { return entry.is_directory(); });
+      [](auto& entry) { return entry.is_regular_file() and entry.path().extension() == ".xml"; });
   std::ranges::sort(paths);
 
-  for (auto& path : paths) {
-    absorption_bandsAppendSplit(absorption_bands, path);
+  std::vector<AbsorptionBands> bands(paths.size());
+  std::string error;
+
+  #pragma omp parallel for schedule(dynamic)
+  for (Size i=0; i<paths.size(); i++) {
+    try {
+    ReadXML(bands[i], paths[i]);} catch (std::exception& e) {
+      #pragma omp critical
+      error = var_string(error, e.what(), '\n');
+    }
+  }
+
+  ARTS_USER_ERROR_IF (not error.empty(), error)
+
+  absorption_bands.reserve(std::transform_reduce(
+      bands.begin(),
+      bands.end(),
+      Size{0},
+      std::plus<>{},
+      [](const AbsorptionBands& bands) { return bands.size(); }));
+  for (auto& band : bands) {
+    absorption_bands.insert(absorption_bands.end(),
+                            std::make_move_iterator(band.begin()),
+                            std::make_move_iterator(band.end()));
   }
 }
 
@@ -441,15 +445,13 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
 
   const auto p = create_if_not(dir);
 
-  std::unordered_map<SpeciesIsotopeRecord, Index> isotopologues;
+  std::unordered_map<SpeciesIsotopeRecord, AbsorptionBands> isotopologues_data;
   for (auto& band : absorption_bands) {
-    const auto& isot = band.key.Isotopologue();
-    const auto spec_p = create_if_not(p / isot.FullName());
+    isotopologues_data[band.key.Isotopologue()].push_back(band);
+  }
 
-    xml_write_to_file(spec_p / var_string(isotopologues[isot]++, ".xml"),
-                      band,
-                      FILE_TYPE_ASCII,
-                      0);
+  for (const auto& [isot, bands] : isotopologues_data) {
+    xml_write_to_file(p / var_string(isot, ".xml"), bands, FILE_TYPE_ASCII, 0);
   }
 }
 
