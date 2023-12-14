@@ -1,13 +1,11 @@
 #include <absorptionlines.h>
 #include <lbl.h>
 #include <partfun.h>
-#include <workspace.h>
 
 #include <algorithm>
 #include <cmath>
 #include <exception>
 #include <filesystem>
-#include <iomanip>
 #include <iterator>
 #include <ranges>
 #include <span>
@@ -410,13 +408,13 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
       });
   std::ranges::sort(paths);
 
-  std::vector<AbsorptionBands> bands(paths.size());
+  std::vector<AbsorptionBands> splitbands(paths.size());
   std::string error{};
 
 #pragma omp parallel for schedule(dynamic)
   for (Size i = 0; i < paths.size(); i++) {
     try {
-      ReadXML(bands[i], paths[i]);
+      xml_read_from_file(paths[i], splitbands[i]);
     } catch (std::exception& e) {
 #pragma omp critical
       error += var_string(e.what(), '\n');
@@ -426,15 +424,15 @@ void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
   ARTS_USER_ERROR_IF(not error.empty(), error)
 
   absorption_bands.reserve(std::transform_reduce(
-      bands.begin(),
-      bands.end(),
+      splitbands.begin(),
+      splitbands.end(),
       Size{0},
       std::plus<>{},
       [](const AbsorptionBands& bands) { return bands.size(); }));
-  for (auto& band : bands) {
+  for (auto& bands : splitbands) {
     absorption_bands.insert(absorption_bands.end(),
-                            std::make_move_iterator(band.begin()),
-                            std::make_move_iterator(band.end()));
+                            std::make_move_iterator(bands.begin()),
+                            std::make_move_iterator(bands.end()));
   }
 }
 
