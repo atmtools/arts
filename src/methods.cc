@@ -20813,7 +20813,7 @@ where N>=0 and the species name is something line "H2O".
       GIN_TYPE("Numeric", "Numeric", "Numeric", "Numeric", "Vector"),
       GIN_DEFAULT(NODEF, "0.035", NODEF, NODEF, NODEF),
       GIN_DESC("Zenith angle of line-of-sigh, 90 to 180 deg.",
-               "Salinity, 0-1. That is, 3% is given as 0.03.",
+               "Salinity, 0-0.04. That is, 3% is given as 0.03.",
                "Wind speed.",
                "Azimuth angle between wind direction and line-of-sight. "
                "This angle is measured clockwise from north, i.e. E=90deg.",

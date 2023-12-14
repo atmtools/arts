@@ -31,14 +31,14 @@ extern "C" {
 #endif
 
 void surfem_ocean_(const Numeric& frequency,
-                         const Numeric& za,
-                         const Numeric& wind_speed,
-                         const Numeric& temperature,
-                         const Numeric& salinity,
-                         const Numeric& rel_azimuth,
-                         const Numeric& transmittance,
-                         Numeric* emissivity,
-                         Numeric* reflectivity);
+                   const Numeric& za,
+                   const Numeric& wind_speed,
+                   const Numeric& temperature,
+                   const Numeric& salinity,
+                   const Numeric& rel_azimuth,
+                   const Numeric& transmittance,
+                   Numeric* emissivity,
+                   Numeric* reflectivity);
 
 #ifdef ENABLE_SURFEMOCEAN
 }
@@ -48,14 +48,14 @@ void surfem_ocean_(const Numeric& frequency,
 // compiled without SURFEMOCEAN support.
 #ifndef ENABLE_SURFEMOCEAN
 void surfem_ocean_(const Numeric&,
-                         const Numeric&,
-                         const Numeric&,
-                         const Numeric&,
-                         const Numeric&,
-                         const Numeric&,
-                         const Numeric&,
-                         Numeric*,
-                         Numeric*) {
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   const Numeric&,
+                   Numeric*,
+                   Numeric*) {
   throw std::runtime_error(
       "This version of ARTS was compiled without SURFEM-Ocean support.");
 }
@@ -99,12 +99,12 @@ void surfemocean(  // Output:
   reflectivity.resize(4);
 
   surfem_ocean_(frequency / 1e9,
-                      180 - za,
-                      wind_speed,
-                      temperature,
-                      salinity * 1e3,
-                      rel_azimuth,
-                      transmittance,
-                      emissivity.data_handle(),
-                      reflectivity.data_handle());
+                180 - za,
+                wind_speed,
+                temperature,
+                salinity * 1e3,
+                rel_azimuth,
+                transmittance,
+                emissivity.data_handle(),
+                reflectivity.data_handle());
 }

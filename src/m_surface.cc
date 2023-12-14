@@ -140,7 +140,7 @@ void SurfemOceanStandAlone(Matrix& emissivity,
 
   chk_if_in_range("zenith angle", za, 90, 180);
   chk_if_in_range_exclude("surface skin temperature", surface_skin_t, 271.15, 303.15);
-  chk_if_in_range_exclude_high("salinity", salinity, 0, 0.4);
+  chk_if_in_range_exclude_high("salinity", salinity, 0, 0.04);
   chk_if_in_range_exclude_high("wind speed", wind_speed, 0, 50);
   chk_if_in_range("azimuth angle", rel_aa, -180, 180);
   chk_vector_length("transmittance", "f_grid", transmittance, f_grid);

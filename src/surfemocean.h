@@ -1,9 +1,9 @@
 /*!
   \file   surfemocean_h
-  \author Sreerekha Ravi <rekha@sat.physik.uni-bremen.de>
-  \date   Tue Aug 11 18:09:31 2004
+  \author Shaofei Wang <wangshaofei224@163.com>
+  \date   Tue Dec 12 16:48:31 2023
   
-  \brief  This file contains functions that are adapted from FASTEM 
+  \brief  This file contains functions that are adapted from SURFEM-Ocean 
   code which is used to calculate surface emissivity.
 */
 

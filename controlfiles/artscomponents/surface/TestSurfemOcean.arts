@@ -1,0 +1,23 @@
+Arts2 {
+
+MatrixCreate(emissivity)
+MatrixCreate(reflectivity)
+VectorSet(f_grid, [180e9, 183e9])
+VectorCreate(transmit)
+VectorSet(transmit, [0.9, 0.9])
+SurfemOceanStandAlone(emissivity, reflectivity, f_grid, 283, 127, 0.035,
+                 3, 60, transmit)
+
+MatrixCreate(REFemissivity)
+MatrixCreate(REFreflectivity)
+
+# WriteXML("ascii", emissivity, "TestSurfemOcean.emissivityREFERENCE.xml")
+# WriteXML("ascii", reflectivity, "TestSurfemOcean.reflectivityREFERENCE.xml")
+
+ReadXML(REFemissivity, "TestSurfemOcean.emissivityREFERENCE.xml")
+ReadXML(REFreflectivity, "TestSurfemOcean.reflectivityREFERENCE.xml")
+Compare(emissivity, REFemissivity, 1e-6)
+Compare(reflectivity, REFreflectivity, 1e-6)
+
+}
+
