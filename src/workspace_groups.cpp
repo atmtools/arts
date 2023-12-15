@@ -1,8 +1,5 @@
 #include "workspace_groups.h"
 
-#include <iostream>
-#include <stdexcept>
-
 std::unordered_map<std::string, WorkspaceGroupRecord>
 internal_workspace_groups() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
@@ -11,6 +8,16 @@ internal_workspace_groups() {
       .file = "absorptionlines.h",
       .desc =
           "Contains line-by-line absorption information for a number of related absorption lines\n"};
+
+  wsg_data["AbsorptionBand"] = {
+      .file = "lbl.h",
+      .desc =
+          "Contains all information about bands of related absorption lines\n"};
+
+  wsg_data["AbsorptionBands"] = {
+      .file = "lbl.h",
+      .desc =
+          "Contains all information about bands of related absorption lines\n"};
 
   wsg_data["Agenda"] = {
       .file = "workspace_agenda_class.h",
@@ -108,11 +115,22 @@ internal_workspace_groups() {
   wsg_data["ArrayOfSingleScatteringData"] = {
       .file = "optproperties.h", .desc = "A list of *SingleScatteringData*\n"};
 
-  wsg_data["ArrayOfSpeciesTag"] = {.file = "species_tags.h",
-                                   .desc = R"--(A list of species tags
+  wsg_data["SpeciesTag"] = {.file = "species_tags.h",
+                            .desc = R"(A tagged absorption species
 
 These tags include the species and a lot of optional information
 about the isotopologue, the absorption scheme, and the frequency limits
+)"};
+
+  wsg_data["ArrayOfSpeciesTag"] = {.file = "species_tags.h",
+                                   .desc = R"--(A list of *SpeciesTag*
+)--"};
+
+  wsg_data["ArrayOfSpecies"] = {.file = "species.h",
+                                .desc = R"--(A list of *SpeciesEnum*
+)--"};
+
+  wsg_data["SpeciesEnum"] = {.file = "species.h", .desc = R"--(An atmospheric species
 )--"};
 
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
@@ -265,10 +283,21 @@ Both the data and the grid may be named
                        .desc = "A 64 bit signed integer type\n",
                        .value_type = true};
 
+  wsg_data["ErrorCorrectedSuddenData"] = {
+      .file = "linemixing.h",
+      .desc =
+          R"--(Data required for error-corrected sudden line mixing
+)--"};
+
+  wsg_data["LinemixingEcsData"] = {.file = "lbl.h",
+                                   .desc =
+                                       R"--(A map of line mixing data
+)--"};
+
   wsg_data["MapOfErrorCorrectedSuddenData"] = {
       .file = "linemixing.h",
       .desc =
-          R"--(A map of data required for computing the error-corrected-sudden relaxation matrix
+          R"--(A map of *ErrorCorrectedSuddenData* required for computing the error-corrected-sudden relaxation matrix
 
 This map contains a list of an underlying data type.  This underlying data type contains a
 *QuantumIdentifier* and a list of species dependent computational data for various components

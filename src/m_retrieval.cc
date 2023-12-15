@@ -1,6 +1,5 @@
-#include <algorithm>
-
 #include <workspace.h>
+
 #include "covariance_matrix.h"
 #include "jacobian.h"
 

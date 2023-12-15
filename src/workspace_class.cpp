@@ -19,7 +19,8 @@ Workspace::Workspace(WorkspaceInitialization how_to_initialize) : wsv{} {
   }
 }
 
-const std::shared_ptr<Wsv>& Workspace::share(const std::string& name) const try {
+const std::shared_ptr<Wsv>& Workspace::share(const std::string& name) const
+    try {
   return wsv.at(name);
 } catch (std::out_of_range&) {
   throw std::runtime_error(
@@ -27,7 +28,7 @@ const std::shared_ptr<Wsv>& Workspace::share(const std::string& name) const try 
 }
 
 std::shared_ptr<Wsv> Workspace::copy(const std::string& name) const {
-  return std::make_shared<Wsv>(share(name) -> copy());
+  return std::make_shared<Wsv>(share(name)->copy());
 }
 
 void Workspace::set(const std::string& name,
@@ -113,7 +114,9 @@ bool Workspace::contains(const std::string& name) const {
 }
 
 void Workspace::init(const std::string& name) try {
-  set(name, std::make_shared<Wsv>(Wsv::from_named_type(workspace_variables().at(name).type)));
+  set(name,
+      std::make_shared<Wsv>(
+          Wsv::from_named_type(workspace_variables().at(name).type)));
 } catch (std::out_of_range&) {
   throw std::runtime_error(
       var_string("Undefined workspace variable ", std::quoted(name)));

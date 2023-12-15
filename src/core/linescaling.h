@@ -11,8 +11,9 @@
 #ifndef linescaling_h
 #define linescaling_h
 
-#include "absorption.h"
-#include "arts_conversions.h"
+#include "arts_constants.h"
+#include "configtypes.h"
+#include "isotopologues.h"
 
 /** Computes the partition function at one temperature
  * 

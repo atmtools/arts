@@ -13,7 +13,8 @@ void py_jac(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(JacobianTargets)
       .PythonInterfaceFileIO(JacobianTargets)
       .def_property_readonly("atm", &JacobianTargets::atm, "List of atmospheric targets")
-      .def_property_readonly("surf", &JacobianTargets::surf, "List of atmospheric targets")
+      .def_property_readonly("surf", &JacobianTargets::surf, "List of surface targets")
+      .def_property_readonly("line", &JacobianTargets::line, "List of line targets")
       .PythonInterfaceWorkspaceDocumentation(JacobianTargets);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));

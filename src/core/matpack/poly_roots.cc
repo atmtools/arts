@@ -20,7 +20,6 @@
 #include "poly_roots.h"
 #include <cmath>
 #include <iostream>
-#include <stdexcept>
 
 /* C-style matrix elements */
 #define MAT(m, i, j, n) ((m)[(i) * (n) + (j)])

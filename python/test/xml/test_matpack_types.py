@@ -291,5 +291,4 @@ class TestSave:
 
 if __name__ == "__main__":
     x = TestSave()
-    x.f = "tmp.xml"
-    x.test_save_index(int)
+    x.test_save_arrayofvector()

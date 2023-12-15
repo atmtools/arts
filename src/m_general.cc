@@ -19,25 +19,13 @@
   === External declarations
   ===========================================================================*/
 
-#include <chrono>
-#include <cstdlib>
-#include <ratio>
-#include <stdexcept>
-
-#include "array.h"
-#include "arts_constants.h"
-#include "check_input.h"
-#include "m_general.h"
-#include "mystring.h"
-
-#include "math_funcs.h"
 #include <workspace.h>
 
-#include "sensor.h"
+#include <cstdlib>
 
-#include "fastem.h"
-#include "tessem.h"
+#include "arts_constants.h"
 #include "arts_omp.h"
+#include "mystring.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 

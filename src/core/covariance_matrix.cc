@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "covariance_matrix.h"
-#include "lapack.h"
 #include "lin_alg.h"
 #include "matpack_math.h"
 

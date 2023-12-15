@@ -16,7 +16,6 @@
 
 #include <stdexcept>
 
-#include "matpack_concepts.h"
 #include "mystring.h"
 
 // Special stuff for the parser:

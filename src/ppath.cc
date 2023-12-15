@@ -10,13 +10,14 @@
   === External declarations
   ===========================================================================*/
 
+#include "ppath.h"
+
+#include <workspace.h>
 
 #include <algorithm>
 
-#include <workspace.h>
 #include "geodetic.h"
 #include "lin_alg.h"
-#include "ppath.h"
 #include "ppath_struct.h"
 #include "surf.h"
 #include "surface.h"

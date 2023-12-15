@@ -12,4 +12,5 @@ struct WorkspaceVariableInternalRecord {
   std::optional<Wsv> default_value{};
 };
 
-std::unordered_map<std::string, WorkspaceVariableInternalRecord> internal_workspace_variables();
+std::unordered_map<std::string, WorkspaceVariableInternalRecord>
+internal_workspace_variables();

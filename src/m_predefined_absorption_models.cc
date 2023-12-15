@@ -6,8 +6,9 @@
  * @brief  Full absorption models of various kinds
  */
 
-#include <algorithm>
 #include <predef_data.h>
+
+#include <algorithm>
 
 #include "atm.h"
 #include "debug.h"

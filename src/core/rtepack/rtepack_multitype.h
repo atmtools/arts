@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-
 #include "rtepack_concepts.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"

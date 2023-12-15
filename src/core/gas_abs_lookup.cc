@@ -11,7 +11,6 @@
 #include <cmath>
 #include "check_input.h"
 #include "interp.h"
-#include "interpolation.h"
 #include "logic.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"

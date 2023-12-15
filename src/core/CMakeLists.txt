@@ -24,6 +24,7 @@ add_subdirectory(rtepack)
 add_subdirectory(predefined)
 add_subdirectory(operators)
 add_subdirectory(fwd)
+add_subdirectory(lbl)
 add_subdirectory(quantum)
 add_subdirectory(spec)
 add_subdirectory(griddedfield)
@@ -86,6 +87,7 @@ target_link_libraries(artscore PUBLIC
   coretypes
   griddedfield
   fwd
+  lbl
   matpack
   operators
   predef

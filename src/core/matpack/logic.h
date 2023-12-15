@@ -10,7 +10,7 @@
 #define logic_h
 
 #include <array.h>
-#include "matpack_data.h"
+#include <matpack_data.h>
 
 bool is_bool(const Index& x);
 

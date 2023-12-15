@@ -304,7 +304,7 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
 CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
-  for (Type const t : enumtyps::TypeTypes) {
+  for (const Type t : enumtyps::TypeTypes) {
     const bool ahas = has(t), bhas = other.has(t);
 
     if (ahas and bhas) {
@@ -403,16 +403,34 @@ String LocalState::values() const {
 }
 
 Species::IsotopeRecord GlobalState::Isotopologue() const noexcept {
-  return isotopologue_index < 0 ? Species::IsotopeRecord() : Species::Isotopologues[isotopologue_index];
+  return isotopologue_index < 0 ? Species::IsotopeRecord()
+                                : Species::Isotopologues[isotopologue_index];
 }
 
 Species::Species GlobalState::Species() const noexcept {
   return Isotopologue().spec;
 }
 
+std::strong_ordering ValueList::operator<=>(const ValueList& v) const {
+  const std::size_t n = std::min(values.size(), v.values.size());
+
+  if (auto f = values.size() <=> v.values.size();
+      f == std::strong_ordering::equal) {
+    return f;
+  }
+
+  for (std::size_t i = 0; i < n; i++) {
+    if (auto q = values[i] <=> v.values[i]; q != std::strong_ordering::equal) {
+      return q;
+    }
+  }
+
+  return std::strong_ordering::equal;
+}
+
 std::ostream& operator<<(std::ostream& os, const GlobalState& gs) {
   os << gs.Isotopologue().FullName();
-  for (auto& x: gs.val) {
+  for (auto& x : gs.val) {
     os << ' ' << x;
   }
   return os;
@@ -1042,7 +1060,7 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   auto n = count_items(s);
   auto specname = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
-  if(isotopologue_index < 0) return;
+  if (isotopologue_index < 0) return;
 
   if (version == v) {
     if (n > 1) val = ValueList(s.substr(specname.length() + 1));
@@ -1162,4 +1180,6 @@ std::ostream& operator<<(std::ostream& os, const Array<Type>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
+
+void ValueList::reserve(Size n) { values.reserve(n); }
 }  // namespace Quantum::Number

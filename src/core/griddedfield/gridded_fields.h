@@ -15,18 +15,18 @@
 #ifndef gridded_fields_h
 #define gridded_fields_h
 
-#include <stdexcept>
-#include <utility>
-#include "configtypes.h"
-#include "matpack_data.h"
-
 #include <array.h>
 #include <artstime.h>
 #include <matpack.h>
 #include <mystring.h>
 
+#include <utility>
+
+#include "configtypes.h"
+#include "matpack_data.h"
+
 namespace GriddedFieldGrids {
-  /** Global constant, Index of the frequency grid in GriddedField1.
+/** Global constant, Index of the frequency grid in GriddedField1.
     \author Patrick Eriksson
     \date   2008-07-02
 */
@@ -133,18 +133,13 @@ String metaErrorData(const GriddedFieldType& gf) {
     os << " = " << gf.get_grid_size(i) << "\n";
   }
   os << "Data =";
-  if constexpr (N > 6)
-    os << ' ' <<gf.data.nlibraries();
-  if constexpr (N > 5)
-    os << ' ' <<gf.data.nvitrines();
-  if constexpr (N > 4)
-    os << ' ' <<gf.data.nshelves();
-  if constexpr (N > 3)
-    os << ' ' <<gf.data.nbooks();
-  if constexpr (N > 2)
-    os << ' ' <<gf.data.npages();
+  if constexpr (N > 6) os << ' ' << gf.data.nlibraries();
+  if constexpr (N > 5) os << ' ' << gf.data.nvitrines();
+  if constexpr (N > 4) os << ' ' << gf.data.nshelves();
+  if constexpr (N > 3) os << ' ' << gf.data.nbooks();
+  if constexpr (N > 2) os << ' ' << gf.data.npages();
   if constexpr (N > 1)
-    os << ' ' <<gf.data.nrows() << ' ' << gf.data.ncols();
+    os << ' ' << gf.data.nrows() << ' ' << gf.data.ncols();
   else
     os << ' ' << gf.data.nelem();
   return os.str();
@@ -187,8 +182,9 @@ struct gridded_data {
   }
 
   template <Size... Ints>
-  [[nodiscard]] std::array<Size, dim> shape(
-      std::index_sequence<Ints...>) const requires(sizeof...(Ints) == dim) {
+  [[nodiscard]] std::array<Size, dim> shape(std::index_sequence<Ints...>) const
+    requires(sizeof...(Ints) == dim)
+  {
     return {grid<Ints>().size()...};
   }
 
@@ -267,7 +263,9 @@ class GriddedField {
      \param[in] i Grid index.
      \return      Grid name.
   */
-  [[nodiscard]] const String& get_grid_name(Index i) const { return mgridnames[i]; }
+  [[nodiscard]] const String& get_grid_name(Index i) const {
+    return mgridnames[i];
+  }
 
   //! Get the size of a grid.
   /*!
@@ -374,7 +372,7 @@ class GriddedField1 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<1, GriddedField1>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<1, GriddedField1>(*this))
   }
 
   //! Make this GriddedField1 the same size as the given one.
@@ -386,7 +384,7 @@ class GriddedField1 final : public GriddedField {
   void resize(Index n) { data.resize(n); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField1& gf);
-  
+
   friend String metaErrorData<1, GriddedField1>(const GriddedField1& gf);
 
   Vector data;
@@ -408,7 +406,7 @@ class GriddedField2 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<2, GriddedField2>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<2, GriddedField2>(*this))
   }
 
   //! Make this GriddedField2 the same size as the given one.
@@ -422,7 +420,7 @@ class GriddedField2 final : public GriddedField {
   void resize(Index r, Index c) { data.resize(r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField2& gf);
-  
+
   friend String metaErrorData<2, GriddedField2>(const GriddedField2& gf);
 
   Matrix data;
@@ -452,7 +450,7 @@ class GriddedField3 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<3, GriddedField3>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<3, GriddedField3>(*this))
   }
 
   //! Make this GriddedField3 the same size as the given one.
@@ -466,7 +464,7 @@ class GriddedField3 final : public GriddedField {
   void resize(Index p, Index r, Index c) { data.resize(p, r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField3& gf);
-  
+
   friend String metaErrorData<3, GriddedField3>(const GriddedField3& gf);
 
   Tensor3 data;
@@ -492,7 +490,7 @@ class GriddedField4 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<4, GriddedField4>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<4, GriddedField4>(*this))
   }
 
   //! Make this GriddedField4 the same size as the given one.
@@ -509,7 +507,7 @@ class GriddedField4 final : public GriddedField {
   void resize(Index b, Index p, Index r, Index c) { data.resize(b, p, r, c); }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField4& gf);
-  
+
   friend String metaErrorData<4, GriddedField4>(const GriddedField4& gf);
 
   Tensor4 data;
@@ -537,7 +535,7 @@ class GriddedField5 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<5, GriddedField5>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<5, GriddedField5>(*this))
   }
 
   //! Make this GriddedField5 the same size as the given one.
@@ -557,7 +555,7 @@ class GriddedField5 final : public GriddedField {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField5& gf);
-  
+
   friend String metaErrorData<5, GriddedField5>(const GriddedField5& gf);
 
   Tensor5 data;
@@ -587,7 +585,7 @@ class GriddedField6 final : public GriddedField {
   }
 
   void checksize_strict() const final {
-    ARTS_USER_ERROR_IF (!checksize(), metaErrorData<6, GriddedField6>(*this))
+    ARTS_USER_ERROR_IF(!checksize(), metaErrorData<6, GriddedField6>(*this))
   }
 
   //! Make this GriddedField6 the same size as the given one.
@@ -608,7 +606,7 @@ class GriddedField6 final : public GriddedField {
   }
 
   friend std::ostream& operator<<(std::ostream& os, const GriddedField6& gf);
-  
+
   friend String metaErrorData<6, GriddedField6>(const GriddedField6& gf);
 
   Tensor6 data;
@@ -625,15 +623,17 @@ using ArrayOfArrayOfGriddedField1 = Array<Array<GriddedField1>>;
 using ArrayOfArrayOfGriddedField2 = Array<Array<GriddedField2>>;
 using ArrayOfArrayOfGriddedField3 = Array<Array<GriddedField3>>;
 
-
 std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField1& a);
 std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField2& a);
 std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField3& a);
 std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField4& a);
 std::ostream& operator<<(std::ostream& os, const ArrayOfGriddedField5& a);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField1& a);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField2& a);
-std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfGriddedField3& a);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField1& a);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField2& a);
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfGriddedField3& a);
 
 #undef CHECK_ERROR_BOILERPLATE
 

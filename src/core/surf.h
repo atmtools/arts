@@ -7,7 +7,6 @@
 #include "matpack_constexpr.h"
 #include "mystring.h"
 
-#include <concepts>
 #include <limits>
 #include <ostream>
 #include <type_traits>

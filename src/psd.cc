@@ -11,24 +11,15 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
+
 #include <algorithm>
 #include <cmath>
-#include <ctime>
-#include <limits>
 #include <random>
 #include <stdexcept>
 
 #include "arts_constants.h"
-#include "check_input.h"
-#include "cloudbox.h"
-#include "lin_alg.h"
-#include "logic.h"
 #include "math_funcs.h"
-#include "mc_antenna.h"
-#include "physics_funcs.h"
-#include "ppath.h"
 #include "rng.h"
-#include "sorting.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;

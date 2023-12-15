@@ -1,5 +1,7 @@
 #include "sourcetext.h"
+
 #include <iostream>
+
 #include "file.h"
 
 void SourceText::AppendFile(const String& name) {

@@ -16,11 +16,9 @@
 #include "arts_conversions.h"
 #include "atm.h"
 #include "enums.h"
-#include "file.h"
 #include "jacobian.h"
 #include "species_tags.h"
 #include <algorithm>
-#include <numeric>
 #include <utility>
 
 /** Return the derivative type based on string input 

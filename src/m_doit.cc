@@ -15,32 +15,27 @@
   === External declarations
   ===========================================================================*/
 
+#include <workspace.h>
+
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <stdexcept>
-#include <workspace.h>
+
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "arts_omp.h"
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
 #include "doit.h"
-#include "geodetic.h"
-#include "lin_alg.h"
 #include "logic.h"
-#include "m_general.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
-#include "ppath.h"
-#include "rte.h"
 #include "special_interp.h"
 #include "species_tags.h"
-#include "surf.h"
 #include "xml_io.h"
-#include "arts_omp.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

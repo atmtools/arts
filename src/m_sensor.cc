@@ -17,25 +17,22 @@
   === External declarations
   ===========================================================================*/
 
+#include <workspace.h>
+
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include <workspace.h>
 #include "check_input.h"
 #include "debug.h"
 #include "gridded_fields.h"
 #include "interp.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
-#include "ppath.h"
-#include "rte.h"
 #include "sensor.h"
-#include "sorting.h"
-#include "special_interp.h"
-#include "xml_io.h"
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric NAT_LOG_2=Constant::ln_2;

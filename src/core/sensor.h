@@ -17,8 +17,6 @@
 #define sensor_h
 
 #include "gridded_fields.h"
-#include "interpolation.h"
-#include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_sparse.h"
 

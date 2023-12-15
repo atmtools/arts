@@ -14,13 +14,12 @@
 #ifndef nc_io_instantiation_h
 #define nc_io_instantiation_h
 
-#include <cfloat>
+#include <workspace.h>
+
 #include <stdexcept>
 
 #include "nc_io.h"
 #include "nc_io_types.h"
-
-#include <workspace.h>
 
 template <WorkspaceGroup T>
 void nca_write_to_file(const String& filename, const T& type) {

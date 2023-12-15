@@ -9,8 +9,6 @@
 #include "atm.h"
 #include "new_jacobian.h"
 #include "nlte.h"
-#include "physics_funcs.h"
-#include "quantum_numbers.h"
 #include "species_tags.h"
 
 /** Main and only way to compute Zeeman effect

@@ -6,21 +6,22 @@
  * @brief  Contains the user interaction with absorption lines
  **/
 
+#include <workspace.h>
+
+#include <algorithm>
+#include <atomic>
+#include <exception>
+#include <iterator>
+
 #include "absorptionlines.h"
 #include "array.h"
 #include "arts_omp.h"
-#include "artstime.h"
-#include <workspace.h>
 #include "debug.h"
 #include "enums.h"
 #include "file.h"
 #include "lineshapemodel.h"
 #include "m_xml.h"
 #include "quantum_numbers.h"
-#include <algorithm>
-#include <atomic>
-#include <exception>
-#include <iterator>
 
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////// Basic removal and flattening

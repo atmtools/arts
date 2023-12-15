@@ -14,11 +14,10 @@
 
 #ifndef mc_interp_h
 #define mc_interp_h
-#include "array.h"
+
 #include "interpolation.h"
 #include "matpack_data.h"
 #include "optproperties.h"
-#include "ppath_struct.h"
 
 /** A 2D sequential linear interpolation (SLI) lookup table
  * This class holds the gridded for 2D SLI as well as the

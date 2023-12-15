@@ -5,7 +5,6 @@
 
 #include "arts_constants.h"
 #include "arts_constexpr_math.h"
-#include "matpack_concepts.h"
 
 namespace Absorption::PredefinedModel::MT_CKD100 {
 Numeric XINT_FUN(const Numeric V1A,

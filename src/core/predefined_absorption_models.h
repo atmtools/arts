@@ -11,12 +11,9 @@
 #define fullmodel_h
 
 #include "atm.h"
-#include "jacobian.h"
 #include "new_jacobian.h"
 #include "predefined/predef_data.h"
-#include "species.h"
-#include <algorithm>
-#include <random>
+#include "species_tags.h"
 #include <rtepack.h>
 
 namespace Absorption::PredefinedModel {

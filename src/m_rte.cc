@@ -12,37 +12,12 @@
 
 #include <workspace.h>
 
-#include <algorithm>
 #include <cmath>
-#include <exception>
-#include <functional>
-#include <iterator>
-#include <stdexcept>
 
 #include "arts_constants.h"
-#include "arts_omp.h"
-#include "atm.h"
-#include "atm_path.h"
 #include "check_input.h"
-#include "configtypes.h"
 #include "debug.h"
-#include "geodetic.h"
-#include "gridded_fields.h"
-#include "jacobian.h"
-#include "logic.h"
-#include "math_funcs.h"
-#include "matpack_arrays.h"
-#include "matpack_constexpr.h"
-#include "matpack_data.h"
-#include "montecarlo.h"
-#include "new_jacobian.h"
-#include "physics_funcs.h"
-#include "ppath.h"
 #include "rte.h"
-#include "rtepack.h"
-#include "special_interp.h"
-#include "species_tags.h"
-#include "sun.h"
 #include "surf.h"
 
 inline constexpr Numeric PI = Constant::pi;

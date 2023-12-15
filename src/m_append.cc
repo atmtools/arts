@@ -4,7 +4,7 @@ void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     // WS Generic Input:
     const ArrayOfSpeciesTag& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   const ArrayOfSpeciesTag* in_pnt;
   ArrayOfSpeciesTag in_copy;
 
@@ -27,7 +27,7 @@ void Append(  // WS Generic Output:
     ArrayOfSpeciesTag& out,
     // WS Generic Input:
     const SpeciesTag& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Append in to end of out:
   out.push_back(in);
 }
@@ -38,7 +38,7 @@ void Append(
     ArrayOfAgenda& out,
     // WS Generic Input:
     const Agenda& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Append in to end of out:
   auto& newag = out.emplace_back(in);
   newag.finalize();
@@ -50,7 +50,7 @@ void Append(
     ArrayOfAgenda& out,
     // WS Generic Input:
     const ArrayOfAgenda& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Append in to end of out:
   for (const auto& it : in) {
     auto& newag = out.emplace_back(it);
@@ -63,7 +63,7 @@ void Append(  // WS Generic Output:
     Vector& out,
     // WS Generic Input:
     const Vector& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   const Vector* in_pnt;
   Vector in_copy;
 
@@ -184,7 +184,7 @@ void Append(  // WS Generic Output:
     Vector& out,
     // WS Generic Input:
     const Numeric& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Get backup of out:
   Vector dummy = out;
 
@@ -204,7 +204,7 @@ void Append(  // WS Generic Output:
     // WS Generic Input:
     const Matrix& in,
     //            const String& direction,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Get backup of out:
   Tensor3 dummy = out;
 
@@ -231,7 +231,7 @@ void Append(  // WS Generic Output:
     // WS Generic Input:
     const Tensor3& in,
     //            const String& direction,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   const Tensor3* in_pnt;
   Tensor3 in_copy;
 
@@ -270,7 +270,7 @@ void Append(  // WS Generic Output:
     // WS Generic Input:
     const Tensor3& in,
     //            const String& direction,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // Get backup of out:
   Tensor4 dummy = out;
 
@@ -303,7 +303,7 @@ void Append(  // WS Generic Output:
     // WS Generic Input:
     const Tensor4& in,
     //            const String& direction,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   const Tensor4* in_pnt;
   Tensor4 in_copy;
 
@@ -348,7 +348,7 @@ void Append(  // WS Generic Output:
     String& out,
     // WS Generic Input:
     const String& in,
-    const String& direction _U_) {
+    const String& direction [[maybe_unused]]) {
   // String stream for easy string operations:
   std::ostringstream os;
 

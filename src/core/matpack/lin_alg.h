@@ -11,7 +11,6 @@
 #define linalg_h
 
 #include "array.h"
-#include "matpack_complex.h"
 #include "matpack_data.h"
 
 // LU decomposition

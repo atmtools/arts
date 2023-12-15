@@ -108,7 +108,7 @@ Agenda get_iy_space_agenda(const std::string& option) {
     case FINAL:
       break;
   }
-  
+
   return std::move(agenda).finalize();
 }
 
@@ -556,7 +556,6 @@ Agenda get_doit_conv_test_agenda(const std::string& option) {
 
   return std::move(agenda).finalize();
 }
-
 
 Agenda get_ppvar_rtprop_agenda(const std::string& option) {
   AgendaCreator agenda("ppvar_rtprop_agenda");

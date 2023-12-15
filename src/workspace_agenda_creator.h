@@ -2,9 +2,8 @@
 
 #include <optional>
 
-#include "workspace_method_class.h"
-
 #include "workspace_agenda_class.h"
+#include "workspace_method_class.h"
 
 struct SetWsv {
   std::string name;
@@ -12,15 +11,16 @@ struct SetWsv {
   std::optional<Wsv> wsv{std::nullopt};
 
   SetWsv(std::string n);
-  SetWsv(const char * const n) : SetWsv(std::string{n}) {}
-  SetWsv(std::string n, WorkspaceGroup auto v) : name(std::move(n)), wsv(std::move(v)) {}
-  SetWsv(std::string n, const char * v) : name(std::move(n)), other(v) {}
+  SetWsv(const char* const n) : SetWsv(std::string{n}) {}
+  SetWsv(std::string n, WorkspaceGroup auto v)
+      : name(std::move(n)), wsv(std::move(v)) {}
+  SetWsv(std::string n, const char* v) : name(std::move(n)), other(v) {}
 };
 
 class AgendaCreator {
   Agenda a;
 
-public:
+ public:
   AgendaCreator(std::string name) : a(std::move(name)) {}
   AgendaCreator(AgendaCreator&&) = delete;
   AgendaCreator(const AgendaCreator&) = delete;
@@ -30,9 +30,9 @@ public:
   AgendaCreator& add(const std::string& name, std::vector<SetWsv>&& v);
 
   AgendaCreator& ignore(const std::string& name);
-  
-  template<std::convertible_to<SetWsv> ... T>
-  AgendaCreator& add(const std::string& name, T&& ... v) {
+
+  template <std::convertible_to<SetWsv>... T>
+  AgendaCreator& add(const std::string& name, T&&... v) {
     return add(name, std::vector<SetWsv>{std::forward<T>(v)...});
   }
 

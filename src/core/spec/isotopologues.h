@@ -31,6 +31,8 @@ struct IsotopeRecord {
   
   constexpr IsotopeRecord() noexcept : IsotopeRecord(Species::FINAL) {}
   
+  IsotopeRecord(const std::string_view) noexcept;
+  
   friend std::ostream& operator<<(std::ostream& os, const IsotopeRecord& ir) {
     return os << ir.FullName();
   }
@@ -658,6 +660,10 @@ constexpr const IsotopeRecord& select(Species spec, const std::string_view isotn
 constexpr const IsotopeRecord& select(const std::string_view spec,
                                       const std::string_view isotname) noexcept {
   return Isotopologues[find_species_index(spec, isotname)];
+}
+
+constexpr const IsotopeRecord& select(const std::string_view name) noexcept {
+  return Isotopologues[find_species_index(name)];
 }
 
 constexpr const IsotopeRecord& select_joker(Species spec) noexcept {

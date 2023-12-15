@@ -18,10 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <stdexcept>
-
-#include "sorting.h"
 
 // For checking, if a Numeric equal zero we have to take into account the
 // numerical precicion. If a value is smaller than *precision* it is

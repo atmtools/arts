@@ -15,9 +15,8 @@
 #define mc_antenna_h
 
 #include <matpack.h>
+
 #include "rng.h"
-#include <cmath>
-#include <stdexcept>
 
 enum AntennaType {
   ANTENNA_TYPE_PENCIL_BEAM = 1,

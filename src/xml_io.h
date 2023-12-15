@@ -13,6 +13,7 @@
 #ifndef xml_io_h
 #define xml_io_h
 
+#include "file.h"
 #include "xml_io_base.h"
 #include "xml_io_arts_types.h"
 #include <type_traits>

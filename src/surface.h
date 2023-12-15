@@ -14,12 +14,10 @@
 #ifndef surface_h
 #define surface_h
 
-#include "matpack_complex.h"
-#include "matpack_data.h"
+#include <matpack.h>
+
 #include "mystring.h"
-#include "ppath.h"
-#include "optproperties.h"
-#include "sun.h"
+#include "surf.h"
 
 class Agenda;
 class Workspace;

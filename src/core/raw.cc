@@ -8,7 +8,6 @@
 
 #include <algorithm>
 
-#include "arts_conversions.h"
 #include "raw.h"
 
 template <typename T>

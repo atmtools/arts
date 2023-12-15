@@ -14,16 +14,17 @@
   ===========================================================================*/
 
 #include "sensor.h"
+
 #include <cmath>
 #include <list>
-#include <stdexcept>
+
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "gridded_fields.h"
+#include "interpolation.h"
 #include "logic.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-
 #include "sensor.h"
 #include "sorting.h"
 
@@ -42,11 +43,7 @@ using GriddedFieldGrids::GFIELD4_AA_GRID;
   ===========================================================================*/
 
 void antenna1d_matrix(Sparse& H,
-#ifndef NDEBUG
-                      const Index& antenna_dim,
-#else
-                      const Index& antenna_dim _U_,
-#endif
+                      const Index& antenna_dim [[maybe_unused]],
                       ConstVectorView antenna_dza,
                       const GriddedField4& antenna_response,
                       ConstVectorView za_grid,
@@ -183,11 +180,7 @@ void antenna1d_matrix(Sparse& H,
 
 
 void antenna2d_gridded_dlos(Sparse& H,
-#ifndef NDEBUG
-                            const Index& antenna_dim,
-#else
-                            const Index& antenna_dim _U_,
-#endif
+                            const Index& antenna_dim [[maybe_unused]],
                             ConstMatrixView antenna_dlos,
                             const GriddedField4& antenna_response,
                             ConstMatrixView mblock_dlos,
@@ -425,11 +418,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 
 
 void antenna2d_interp_response(Sparse& H,
-#ifndef NDEBUG
-                               const Index& antenna_dim,
-#else
-                               const Index& antenna_dim _U_,
-#endif
+                               const Index& antenna_dim [[maybe_unused]],
                                ConstMatrixView antenna_dlos,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,

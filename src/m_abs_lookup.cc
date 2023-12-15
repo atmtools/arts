@@ -6,30 +6,19 @@
   \brief  Methods related to absorption, lookup table, etc.
 */
 
+#include <rtepack.h>
+#include <workspace.h>
+
 #include <algorithm>
 #include <cmath>
-#include <limits>
-#include <map>
 
-#include "absorption.h"
-#include <workspace.h>
-#include "arts_omp.h"
 #include "atm.h"
-#include "check_input.h"
-#include "cloudbox.h"
-#include "debug.h"
 #include "gas_abs_lookup.h"
-#include "gridded_fields.h"
 #include "interp.h"
-#include "jacobian.h"
-#include "math_funcs.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
 #include "new_jacobian.h"
-#include "physics_funcs.h"
-#include "rng.h"
-#include <rtepack.h>
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */

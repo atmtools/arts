@@ -39,7 +39,8 @@
 #include <numbers>
 
 #include "arts_constexpr_math.h"
-#include "matpack_concepts.h"
+
+#include <configtypes.h>
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {

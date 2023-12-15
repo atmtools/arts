@@ -3,7 +3,6 @@
 #include "fwd_lbl_algorithms.h"
 
 #include <algorithm>
-#include <iterator>
 #include <numeric>
 
 #include "absorptionlines.h"
@@ -12,7 +11,6 @@
 #include "linescaling.h"
 #include "lineshapemodel.h"
 #include "physics_funcs.h"
-#include "zeemandata.h"
 
 namespace fwd::lbl::mtckd {
 single::single(const AtmPoint& atm_point,
@@ -202,7 +200,6 @@ band_lm::band_lm(const AtmPoint& atm_point,
 Complex band_lm::at(Numeric f) const {
   using Conversion::hz2joule;
   using Conversion::kelvin2joule;
-
   const Numeric fscl = -f * std::expm1(-hz2joule(f) / kelvin2joule(T));
   const Numeric nscl = number_density(P, T);
 

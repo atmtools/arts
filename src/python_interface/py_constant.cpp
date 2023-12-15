@@ -3,6 +3,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 
+#include "debug.h"
+
 namespace Python {
 namespace py = pybind11;
 
@@ -19,6 +21,7 @@ void py_constants(py::module_& m) try {
   PythonInterfaceConstant(h);
   PythonInterfaceConstant(h_bar);
   PythonInterfaceConstant(k);
+  PythonInterfaceConstant(doppler_broadening_const_squared);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize constant\n", e.what()));
 }

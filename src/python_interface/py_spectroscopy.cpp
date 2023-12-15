@@ -829,8 +829,13 @@ but does not enforce it.
       m, "ArrayOfSpeciesErrorCorrectedSuddenData")
       .doc() = "List of :class:`~pyarts.arts.SpeciesErrorCorrectedSuddenData`";
 
-  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData").doc() =
-      "Data for the error corrected sudden method of line mixing";
+  artsclass<ErrorCorrectedSuddenData>(m, "ErrorCorrectedSuddenData")
+      .def(py::init([]() { return std::make_shared<ErrorCorrectedSuddenData>(); }), "Empty map")
+      .PythonInterfaceCopyValue(ErrorCorrectedSuddenData)
+      .PythonInterfaceWorkspaceVariableConversion(ErrorCorrectedSuddenData)
+      .PythonInterfaceBasicRepresentation(ErrorCorrectedSuddenData)
+      .PythonInterfaceFileIO(ErrorCorrectedSuddenData)
+      .PythonInterfaceWorkspaceDocumentation(ErrorCorrectedSuddenData);
 
   artsarray<Array<ErrorCorrectedSuddenData>>(
       m, "ArrayOfErrorCorrectedSuddenData")

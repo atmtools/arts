@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 #include "fwd_lbl_mtckd_voigt.h"
 #include "matpack_concepts.h"
 

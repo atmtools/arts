@@ -10,8 +10,6 @@
 #include <Faddeeva/Faddeeva.hh>
 #include <cinttypes>
 #include <fstream>
-#include <functional>
-#include <numeric>
 
 #include "arts_omp.h"
 #include "lin_alg.h"

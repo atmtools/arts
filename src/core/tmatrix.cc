@@ -7,12 +7,14 @@
 */
 
 #include "tmatrix.h"
+
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
+
 #include "arts_constants.h"
-#include "matpack_complex.h"
 #include "math_funcs.h"
+#include "matpack_complex.h"
 #include "matpack_data.h"
 #include "optproperties.h"
 

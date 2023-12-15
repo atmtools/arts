@@ -1,22 +1,16 @@
 #include <workspace.h>
 
 #include <atomic>
-#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <future>
-#include <iterator>
 #include <mutex>
-#include <stdexcept>
 #include <thread>
 
-#include "artstime.h"
 #include "atm.h"
 #include "debug.h"
-#include "jacobian.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-#include "new_jacobian.h"
 #include "rtepack.h"
 #include "species_tags.h"
 

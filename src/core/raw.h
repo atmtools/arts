@@ -9,8 +9,7 @@
 #ifndef RAW_H
 #define RAW_H
 
-#include "covariance_matrix.h"
-#include "matpack_data.h"
+#include <matpack.h>
 
 namespace Raw {
 namespace Calibration {

@@ -10,11 +10,7 @@
 
 */
 
-#include "exceptions.h"
-#include "file.h"
 #include "nc_io.h"
-#include "nc_io_types.h"
-#include "nc_io_instantiation.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file name

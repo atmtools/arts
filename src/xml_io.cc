@@ -13,6 +13,7 @@
 #include "xml_io.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "config.h"
 #include "debug.h"
 #include "file.h"
 #include "parameters.h"

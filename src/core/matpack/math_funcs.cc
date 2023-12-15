@@ -15,17 +15,19 @@
  *****************************************************************************/
 
 #include "math_funcs.h"
-#include "logic.h"
+#include "matpack_math.h"
 
 #include <cmath>
-#include <iostream>
-#include <stdexcept>
 
 #include <arts_constants.h>
 #include <arts_conversions.h>
 
 #include <array.h>
 #include <mystring.h>
+
+#ifndef NDEBUG
+#include "logic.h"
+#endif
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PI=Constant::pi;

@@ -2,7 +2,6 @@
 #define hitran_species_h
 
 #include "quantum_numbers.h"
-#include "enums.h"
 
 namespace Hitran {
   /** Finds the ID of the ARTS species from HITRAN */

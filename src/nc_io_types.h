@@ -16,13 +16,9 @@
 
 #include <workspace.h>
 
-#include <cfloat>
-#include <stdexcept>
-
 #include "array.h"
 #include "gas_abs_lookup.h"
 #include "matpack_arrays.h"
-#include "nc_io.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what)             \
   void nca_write_to_file(const int, const what&); \

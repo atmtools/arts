@@ -14,3 +14,5 @@
 #include "logic.h"
 
 #include "interp.h"
+
+#include "math_funcs.h"

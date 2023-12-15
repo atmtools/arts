@@ -1,6 +1,4 @@
-#include <auto_wsg.h>
-
-#include <exception>
+#include <workspace.h>
 
 #define NELEM_GET(T)                                          \
   void nelemGet(Index& size, const T& x) { size = x.size(); } \

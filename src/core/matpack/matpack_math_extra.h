@@ -11,8 +11,6 @@ functionality, but not all matpack functionality
 
 #include "matpack_concepts.h"
 
-#include <algorithm>
-#include <concepts>
 #include <numeric>
 
 template <typename T>

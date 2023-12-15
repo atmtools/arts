@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-#include "arts_constants.h"
 #include "debug.h"
 #include "matpack_data.h"
 #include "matpack_view.h"

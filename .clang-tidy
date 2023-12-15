@@ -34,3 +34,5 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
+  - key:             performance-unnecessary-value-param.AllowedTypes
+    value:           .*View

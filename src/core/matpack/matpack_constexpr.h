@@ -4,7 +4,6 @@
 #include "matpack_iter.h"
 
 #include <algorithm>
-#include <concepts>
 #include <type_traits>
 #include <utility>
 

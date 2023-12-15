@@ -1,13 +1,8 @@
 #include "rtepack_transmission.h"
 
 #include <algorithm>
-#include <functional>
 
-#include "arts_constants.h"
-#include "matpack_complex.h"
-#include "matpack_concepts.h"
 #include "rtepack_mueller_matrix.h"
-#include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
 
 namespace rtepack {

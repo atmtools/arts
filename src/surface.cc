@@ -15,21 +15,16 @@
   ===========================================================================*/
 
 #include "surface.h"
+
+#include <workspace.h>
+
 #include <cmath>
 #include <iomanip>
-#include "atm.h"
-#include <workspace.h>
-#include "check_input.h"
+
 #include "debug.h"
-#include "matpack_complex.h"
 #include "geodetic.h"
-#include "geodetic.h"
-#include "lin_alg.h"
-#include "math_funcs.h"
-#include "matpack_data.h"
 #include "physics_funcs.h"
 #include "surf.h"
-#include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

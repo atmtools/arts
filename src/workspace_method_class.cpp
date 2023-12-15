@@ -1,16 +1,17 @@
-#include "callback.h"
-#include "workspace_agenda_class.h"
 #include "workspace_method_class.h"
-
-#include "workspace_class.h"
 
 #include <auto_wsm.h>
 
 #include <algorithm>
 #include <exception>
 #include <iomanip>
+#include <ranges>
 #include <stdexcept>
 #include <string_view>
+
+#include "callback.h"
+#include "workspace_agenda_class.h"
+#include "workspace_class.h"
 
 const auto& wsms = workspace_methods();
 
@@ -19,18 +20,18 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
     const Wsv& wsv = m.setval.value();
     if (wsv.holds<CallbackOperator>()) {
       const CallbackOperator& cb = wsv.get_unsafe<CallbackOperator>();
-      for (auto& var: cb.outputs) {
+      for (auto& var : cb.outputs) {
         os << var << ", ";
       }
       os << " := " << m.name << '(';
-      for (auto& var: cb.inputs) {
+      for (auto& var : cb.inputs) {
         os << var << ", ";
       }
       os << ')';
     } else {
       os << m.name;
-      std::string var = std::visit([](auto& v) { return var_string(*v); },
-                                  wsv.value);
+      std::string var =
+          std::visit([](auto& v) { return var_string(*v); }, wsv.value);
       constexpr std::size_t maxsize = 50;
       if (var.size() > maxsize) {
         var = std::string(var.begin(), var.begin() + maxsize) + "...";
@@ -64,7 +65,6 @@ std::ostream& operator<<(std::ostream& os, const Method& m) {
   return os;
 }
 
-
 Method::Method() : name("this-is-not-a-method") {}
 
 Method::Method(const std::string& n,
@@ -77,13 +77,14 @@ Method::Method(const std::string& n,
   // FIXME: IN C++23, USE ZIP HERE INSTEAD AS WE CAN REMOVE LATER CODE DOING THAT
   std::vector<std::pair<std::string, bool>> outargs_set(nargout);
   std::vector<std::pair<std::string, bool>> inargs_set(nargin);
-  for (std::size_t i=0; i<nargout; ++i) outargs_set[i] = {outargs[i], false};
-  for (std::size_t i=0; i<nargin; ++i) inargs_set[i] = {inargs[i], false};
+  for (std::size_t i = 0; i < nargout; ++i)
+    outargs_set[i] = {outargs[i], false};
+  for (std::size_t i = 0; i < nargin; ++i) inargs_set[i] = {inargs[i], false};
 
   // Common filter
   const auto unset =
       std::views::filter([](const auto& p) { return not p.second; });
-  
+
   // Common G-name
   const auto is_gname = [](const auto& str1, auto& str2) {
     return str1.front() == '_' and
@@ -103,7 +104,8 @@ Method::Method(const std::string& n,
                    outargs.begin(),
                    outargs_set.begin(),
                    [&](auto& arg, auto& orig) {
-                     if (auto x = inargs_set | unset | fuzzy_equals(orig); bool(x)) {
+                     if (auto x = inargs_set | unset | fuzzy_equals(orig);
+                         bool(x)) {
                        auto ptr = x.begin();
                        ptr->first = arg;
                        ptr->second = true;
@@ -123,7 +125,7 @@ Method::Method(const std::string& n,
   // Named arguments
   {
     for (auto& [key, val] : kw) {
-      bool any=false;
+      bool any = false;
 
       for (auto& arg : outargs_set | unset) {
         if (arg.first == key) {
@@ -154,25 +156,26 @@ Method::Method(const std::string& n,
       }
 
       if (not any) {
-        throw std::runtime_error(var_string("No named argument ", std::quoted(key)));
+        throw std::runtime_error(
+            var_string("No named argument ", std::quoted(key)));
       }
     }
   }
 
   // FIXME: REMOVE THESE TWO IN C++23 WITH ZIP
-  for (std::size_t i=0; i<nargout; ++i) {
+  for (std::size_t i = 0; i < nargout; ++i) {
     if (outargs_set[i].second) {
       outargs[i] = outargs_set[i].first;
     }
   }
-  for (std::size_t i=0; i<nargin; ++i) {
+  for (std::size_t i = 0; i < nargin; ++i) {
     if (inargs_set[i].second) {
       inargs[i] = inargs_set[i].first;
     }
   }
 
   // Check that all non-defaulted GINS are set
-  for (std::size_t i=0; i<nargin; i++) {
+  for (std::size_t i = 0; i < nargin; i++) {
     if (inargs[i].front() == '_' and not wsms.at(n).defs.contains(inargs[i])) {
       throw std::runtime_error(
           var_string("Missing required generic input argument ",
@@ -227,10 +230,10 @@ void Method::operator()(Workspace& ws) const try {
 
 void Method::add_defaults_to_agenda(Agenda& agenda) const {
   if (not setval) {
-    const auto& map = wsms.at(name).defs; 
+    const auto& map = wsms.at(name).defs;
     for (auto& arg : inargs) {
       if (arg.front() == '_' and map.contains(arg)) {
-       agenda.add(Method{arg, map.at(arg), true});
+        agenda.add(Method{arg, map.at(arg), true});
       }
     }
   }

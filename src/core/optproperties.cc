@@ -21,7 +21,6 @@
 
 #include <cfloat>
 #include <cmath>
-#include <stdexcept>
 
 #include "check_input.h"
 #include "interpolation.h"
@@ -1237,10 +1236,10 @@ void abs_vecTransform(  //Output and Input
     //Input
     ConstTensor3View abs_vec_data,
     ConstVectorView za_datagrid,
-    ConstVectorView aa_datagrid _U_,
+    ConstVectorView aa_datagrid [[maybe_unused]],
     const PType& ptype,
-    const Numeric& za_sca _U_,
-    const Numeric& aa_sca _U_) {
+    const Numeric& za_sca [[maybe_unused]],
+    const Numeric& aa_sca [[maybe_unused]]) {
   ARTS_ASSERT(abs_vec_lab.size() == 1);
 
   switch (ptype) {
@@ -1318,10 +1317,10 @@ void ext_matTransform(  //Output and Input
     //Input
     ConstTensor3View ext_mat_data,
     ConstVectorView za_datagrid,
-    ConstVectorView aa_datagrid _U_,
+    ConstVectorView aa_datagrid [[maybe_unused]],
     const PType& ptype,
     const Numeric& za_sca,
-    const Numeric& aa_sca _U_) {
+    const Numeric& aa_sca [[maybe_unused]]) {
   ARTS_ASSERT(ext_mat_lab.size() == 1);
 
   switch (ptype) {

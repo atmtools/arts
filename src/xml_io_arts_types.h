@@ -22,6 +22,7 @@
 
 // Extras
 #include "jacobian.h"
+#include "linemixing.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "template_partfun.h"
@@ -45,6 +46,10 @@ TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
 
 //=== Compound Types =======================================================
 
+TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(ErrorCorrectedSuddenData)
+TMPL_XML_READ_WRITE_STREAM(AbsorptionBand)
+TMPL_XML_READ_WRITE_STREAM(AbsorptionBands)
 TMPL_XML_READ_WRITE_STREAM(AbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(AtmField)
@@ -63,6 +68,7 @@ TMPL_XML_READ_WRITE_STREAM(GridPos)
 TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
 TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
+TMPL_XML_READ_WRITE_STREAM(LinemixingEcsData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(Ppath)
 TMPL_XML_READ_WRITE_STREAM(PredefinedModelData)
@@ -72,6 +78,7 @@ TMPL_XML_READ_WRITE_STREAM(ScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(SLIData2)
 TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(SpeciesEnum)
 TMPL_XML_READ_WRITE_STREAM(Sun)
 TMPL_XML_READ_WRITE_STREAM(SurfaceField)
 TMPL_XML_READ_WRITE_STREAM(SurfacePoint)
@@ -107,6 +114,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfRetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfSpecies)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSun)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)

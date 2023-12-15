@@ -15,7 +15,6 @@
 
 #include <array.h>
 
-#include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 

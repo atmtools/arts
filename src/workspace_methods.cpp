@@ -162,11 +162,12 @@ were thought or found to be useful. (See variable list below.).
       .gout_desc = {R"--(The variable to append to.)--"},
 
       .gin = {"input", "dimension"},
-      .gin_type = {"Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor3, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, AbsorptionLines, Agenda, ArrayOfAbsorptionLines, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTensor3, ArrayOfTensor6, ArrayOfTime, ArrayOfVector, AtmPoint, CIARecord, GriddedField1, GriddedField2, GriddedField3, GriddedField4, Index, Matrix, MuelmatMatrix, MuelmatVector, Ppath, PropmatMatrix, PropmatVector, QuantumIdentifier, ScatteringMetaData, SingleScatteringData, Sparse, StokvecMatrix, StokvecVector, String, TelsemAtlas, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Time, Vector", "String"},
+      .gin_type = {"Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor3, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, AbsorptionLines, Agenda, ArrayOfAbsorptionLines, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTensor3, ArrayOfTensor6, ArrayOfTime, ArrayOfVector, AtmPoint, CIARecord, GriddedField1, GriddedField2, GriddedField3, GriddedField4, Index, Matrix, MuelmatMatrix, MuelmatVector, Ppath, PropmatMatrix, PropmatVector, QuantumIdentifier, ScatteringMetaData, SingleScatteringData, Sparse, StokvecMatrix, StokvecVector, String, TelsemAtlas, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Time, Vector",
+                   "String"},
       .gin_value = {std::nullopt, String("leading")},
-      .gin_desc =
-          {R"--(The variable to append.)--",
-           R"--(Where to append. Could be either the "leading" or "trailing" dimension.)--"}};
+      .gin_desc = {
+          R"--(The variable to append.)--",
+          R"--(Where to append. Could be either the "leading" or "trailing" dimension.)--"}};
 
   wsm_data["ArrayOfGriddedFieldGetNames"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Get the names of all GriddedFields stored in an Array.
@@ -578,8 +579,7 @@ free memory for heavy variables
 
       .gout = {"v"},
       .gout_type = {"Any"},
-      .gout_desc = {R"--(Variable to be deleted.)--"}
-  };
+      .gout_desc = {R"--(Variable to be deleted.)--"}};
 
   wsm_data["DiagonalMatrix"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Create a diagonal matrix from a vector.
@@ -1200,7 +1200,8 @@ element (which equals nelem-1).
       .out = {"nelem"},
 
       .gin = {"v"},
-      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
+      .gin_type =
+          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(The method is defined for these groups.)--"},
 
@@ -1974,7 +1975,9 @@ And the same is performed with respect to ``limit_high``.
 
       .gin = {"input", "limit_low", "limit_high"},
       .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, -std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
+      .gin_value = {std::nullopt,
+                    -std::numeric_limits<Numeric>::infinity(),
+                    std::numeric_limits<Numeric>::infinity()},
       .gin_desc = {R"--(Input Numeric.)--",
                    R"--(Lower limit for clipping.)--",
                    R"--(Upper limit for clipping.)--"},
@@ -2974,9 +2977,9 @@ extension. Omitting filename works as for *ReadXML*.
       .gin = {"filename", "digits"},
       .gin_type = {"String", "Index"},
       .gin_value = {String(""), Index{0}},
-      .gin_desc =
-          {R"--(File name. See above.)--",
-           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
+      .gin_desc = {
+          R"--(File name. See above.)--",
+          R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
 
   wsm_data["ReadXsecData"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Reads HITRAN Crosssection coefficients
@@ -3942,7 +3945,9 @@ The method adopts the length of ``out`` when needed.
 
       .gin = {"input", "limit_low", "limit_high"},
       .gin_type = {"Vector", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, -std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
+      .gin_value = {std::nullopt,
+                    -std::numeric_limits<Numeric>::infinity(),
+                    std::numeric_limits<Numeric>::infinity()},
       .gin_desc = {R"--(Input vector.)--",
                    R"--(Lower limit for clipping.)--",
                    R"--(Upper limit for clipping.)--"},
@@ -4578,10 +4583,10 @@ appended to the filename if the file already exists.
       .gin = {"input", "filename", "no_clobber"},
       .gin_type = {"Any", "String", "Index"},
       .gin_value = {std::nullopt, String(""), Index{0}},
-      .gin_desc =
-          {R"--(Variable to be saved.)--",
-           R"--(Name of the XML file.)--",
-           R"--(0: Overwrite existing files, 1: Use unique filenames)--"}};
+      .gin_desc = {
+          R"--(Variable to be saved.)--",
+          R"--(Name of the XML file.)--",
+          R"--(0: Overwrite existing files, 1: Use unique filenames)--"}};
 
   wsm_data["WriteXMLIndexed"] = WorkspaceMethodInternalRecord{
       .desc = R"--(As *WriteXML*, but creates indexed file names.
@@ -4601,10 +4606,10 @@ extension. Omitting filename works as for *WriteXML*.
       .gin = {"input", "filename", "digits"},
       .gin_type = {"Any", "String", "Index"},
       .gin_value = {std::nullopt, String(""), Index{0}},
-      .gin_desc =
-          {R"--(Workspace variable to be saved.)--",
-           R"--(File name. See above.)--",
-           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
+      .gin_desc = {
+          R"--(Workspace variable to be saved.)--",
+          R"--(File name. See above.)--",
+          R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
 
   wsm_data["abs_cia_dataAddCIARecord"] = WorkspaceMethodInternalRecord{
       .desc =
@@ -6700,7 +6705,8 @@ computations.
   };
 
   wsm_data["atm_fieldInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
+      .desc =
+          R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
 )--",
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
@@ -6708,7 +6714,8 @@ computations.
       .gin = {"toa", "default_isotopologue"},
       .gin_type = {"Numeric", "String"},
       .gin_value = {std::nullopt, String{"Builtin"}},
-      .gin_desc = {R"--(Top of atmosphere altitude [m].)--", "Default option for the isotopologue ratios"},
+      .gin_desc = {R"--(Top of atmosphere altitude [m].)--",
+                   "Default option for the isotopologue ratios"},
   };
 
   wsm_data["atm_pointInit"] = WorkspaceMethodInternalRecord{
@@ -7165,25 +7172,29 @@ gives a grid that is twice the FWHM.
 
   };
 
-  wsm_data["background_transmittanceFromPathPropagationBack"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *background_transmittance* to back of *ppvar_cumtramat*
+  wsm_data["background_transmittanceFromPathPropagationBack"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Sets *background_transmittance* to back of *ppvar_cumtramat*
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"background_transmittance"},
+          .author = {"Richard Larsson"},
+          .out = {"background_transmittance"},
 
-      .in = {"ppvar_cumtramat"},
+          .in = {"ppvar_cumtramat"},
 
-  };
+      };
 
-  wsm_data["background_transmittanceFromPathPropagationFront"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *background_transmittance* to front of *ppvar_cumtramat*
+  wsm_data["background_transmittanceFromPathPropagationFront"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Sets *background_transmittance* to front of *ppvar_cumtramat*
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"background_transmittance"},
+          .author = {"Richard Larsson"},
+          .out = {"background_transmittance"},
 
-      .in = {"ppvar_cumtramat"},
+          .in = {"ppvar_cumtramat"},
 
-  };
+      };
 
   wsm_data["batch_atm_fields_compactAddConstant"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Adds a constant field to batch_atm_fields_compact.
@@ -8056,6 +8067,34 @@ interpolations in the zenith angle dimension.
 
   };
 
+  wsm_data["ecs_dataAddMakarov2020NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the O2-66 microwave band data for ECS.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+      .in = {"ecs_data2"},
+  };
+
+  wsm_data["ecs_dataAddTran2011NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
+
+Sets CO2 species
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+      .in = {"ecs_data2"},
+  };
+
+  wsm_data["ecs_dataAddRodrigues1997NEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the CO2-626, CO2-628, and CO2-636 band data for ECS.
+
+Sets N2 and O2 speces
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+      .in = {"ecs_data2"},
+  };
+
   wsm_data["ecs_dataAddMeanAir"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets ECS data for air from other data if available.
 )--",
@@ -8159,6 +8198,28 @@ and that N2 VMR must be present
 )--",
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
+
+  };
+
+  wsm_data["ecs_dataInitNEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Resets/initializes the ECS data.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+
+  };
+
+  wsm_data["ecs_dataAddMeanAirNEWNEW"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets ECS data for air from other data if available.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ecs_data2"},
+
+      .in = {"ecs_data2"},
+      .gin = {"vmrs", "species"},
+      .gin_type = {"Vector", "ArrayOfSpecies"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc = {R"--(VMRs of air species)--", R"--(Air species)--"},
 
   };
 
@@ -8820,9 +8881,7 @@ in a straightforward fashion.
       .author = {"Richard Larsson"},
       .out = {"iy_aux"},
 
-      .in = {"iy_aux_vars",
-             "background_transmittance",
-             "ppath"},
+      .in = {"iy_aux_vars", "background_transmittance", "ppath"},
 
   };
 
@@ -11066,9 +11125,7 @@ This method must be used inside *propmat_clearsky_agenda* and then be called fir
               "dpropmat_clearsky_dx",
               "dnlte_source_dx"},
 
-      .in = {"jacobian_targets",
-             "f_grid",
-             "propmat_clearsky_agenda_checked"},
+      .in = {"jacobian_targets", "f_grid", "propmat_clearsky_agenda_checked"},
 
   };
 
@@ -15264,8 +15321,10 @@ Options are:
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["water_equivalent_pressure_operatorMK05"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculate equivalent water pressure according to Murphy and Koop, 2005
+  wsm_data["water_equivalent_pressure_operatorMK05"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Calculate equivalent water pressure according to Murphy and Koop, 2005
 
 Default is setting the saturation pressure to the one with respect
 to water at temperatures >= 0C, and to the one with respect to ice
@@ -15278,13 +15337,13 @@ Murphy, D. M., & Koop, T. (2005). Review of the vapour pressures of
 ice and supercooled water for atmospheric applications. Quarterly
 Journal of the Royal Meteorological Society, 131(608), 1539-1565.
 )--",
-    .author = {"Patrick Eriksson", "Richard Larsson"},
-    .out = {"water_equivalent_pressure_operator"},
-    .gin = {"only_liquid"},
-    .gin_type = {"Index"},
-    .gin_value = {Index{0}},
-    .gin_desc = {"Set to 1 to use liquid saturation pressure at all temperatures"}
-  };
+          .author = {"Patrick Eriksson", "Richard Larsson"},
+          .out = {"water_equivalent_pressure_operator"},
+          .gin = {"only_liquid"},
+          .gin_type = {"Index"},
+          .gin_value = {Index{0}},
+          .gin_desc = {
+              "Set to 1 to use liquid saturation pressure at all temperatures"}};
 
   wsm_data["atm_fieldHydrostaticPressure"] = {
       .desc = R"-x-(Add the hydrostatic pressure to the atmospheric field
@@ -15307,17 +15366,27 @@ as desribed above and the pressure of the lower or first altitude level.
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
       .in = {"atm_field", "gravity_operator"},
-      .gin = {"p0", "alts", "fixed_specific_gas_constant", "fixed_atm_temperature", "hydrostatic_option"},
+      .gin = {"p0",
+              "alts",
+              "fixed_specific_gas_constant",
+              "fixed_atm_temperature",
+              "hydrostatic_option"},
       .gin_type = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{-1}, Numeric{-1}, String{"HydrostaticEquation"}},
-      .gin_desc = {"Lowest altitude pressure field",
-                   "Altitude vector",
-                   "Specific gas constant if larger than 0",
-                   "Constant atmospheric temprature if larger than 0",
-                   "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"}};
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    Numeric{-1},
+                    Numeric{-1},
+                    String{"HydrostaticEquation"}},
+      .gin_desc = {
+          "Lowest altitude pressure field",
+          "Altitude vector",
+          "Specific gas constant if larger than 0",
+          "Constant atmospheric temprature if larger than 0",
+          "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"}};
 
   wsm_data["gravity_operatorFromGM"] = {
-      .desc = R"-x-(Sets a gravity operator from the gravitational constant and the mass of the planet
+      .desc =
+          R"-x-(Sets a gravity operator from the gravitational constant and the mass of the planet
 
 Gets the ellispoid from *surface_field*
 )-x-",
@@ -15327,7 +15396,8 @@ Gets the ellispoid from *surface_field*
       .gin = {"GM"},
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
-      .gin_desc = {"Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"}};
+      .gin_desc = {
+          "Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"}};
 
   wsm_data["background_radFromPath"] = {
       .desc = R"--(Computes the background radiation.
@@ -15350,7 +15420,8 @@ Gets the ellispoid from *surface_field*
       .in = {"f_grid"}};
 
   wsm_data["background_radSurfaceFieldEmission"] = {
-      .desc = R"--(Set surface emission from Planck function of the surface temperature
+      .desc =
+          R"--(Set surface emission from Planck function of the surface temperature
 )--",
       .author = {"Richard Larsson"},
       .out = {"background_rad", "background_drad"},
@@ -15415,6 +15486,258 @@ Size : (*jacobian_targets*, *f_grid*)
       .gin_desc =
           {"Whether or not hypsometric balance is assumed in temperature derivatives"},
       .pass_workspace = true};
+
+  wsm_data["absorption_bandsFromAbsorbtionLines"] = {
+      .desc = R"--(Gets modern line catalog from old style
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"abs_lines_per_species"}};
+
+  wsm_data["abs_linesFromAbsorptionBands"] = {
+      .desc = R"--(Gets old line catalog from modern style
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"abs_lines"},
+      .in = {"absorption_bands"}};
+
+  wsm_data["propmat_clearskyAddLines2"] = {
+      .desc = R"--(Modern line-by-line calculations
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"propmat_clearsky",
+              "nlte_source",
+              "dpropmat_clearsky_dx",
+              "dnlte_source_dx"},
+      .in = {"propmat_clearsky",
+             "nlte_source",
+             "dpropmat_clearsky_dx",
+             "dnlte_source_dx",
+             "f_grid",
+             "jacobian_targets",
+             "absorption_bands",
+             "ecs_data2",
+             "atm_point"},
+      .gin = {"no_negative_absorption"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc = {
+          "Turn off to allow individual absorbers to have negative absorption"}};
+
+  wsm_data["jacobian_targetsInit"] = {
+      .desc = R"--(Initialize or reset the *jacobian_targets*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"}};
+
+  wsm_data["jacobian_targetsFinalize"] = {
+      .desc = R"--(Finalize *jacobian_targets* for use in RT methods
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets", "atm_field"}};
+
+  wsm_data["jacobian_targetsAddTemperature"] = {
+      .desc = R"--(Set temperature derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"d"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{0.1}},
+      .gin_desc = {
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddPressure"] = {
+      .desc = R"--(Set pressure derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"d"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{0.1}},
+      .gin_desc = {
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddMagneticField"] = {
+      .desc = R"--(Set magnetic field derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"component", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {
+          "The component to use [u, v, w]",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddWindField"] = {
+      .desc = R"--(Set wind field derivative
+
+Note that the derivatives from methods that takes the freqeuncy will return
+their derivatives as if these were frequency derivatives.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"component", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {
+          "The component to use [u, v, w]",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddSpeciesVMR"] = {
+      .desc = R"--(Set volume mixing ratio derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"species", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {
+          "The species of interest (short or long name)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
+      .desc = R"--(Set isotopologue ratio derivative
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets"},
+      .gin = {"species", "d"},
+      .gin_type = {"String", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc = {
+          "The species isotopologue of interest (short name)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["jacobian_targetsAddLineParameter"] = {
+      .desc = R"--(Set line parameter derivative
+
+Note that empty ``coefficient`` means that the derivative is for a standard
+line parameter (e.g., line center), otherwise it is for a line shape parameter.
+By default, this variable is set to empty.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"jacobian_targets"},
+      .in = {"jacobian_targets", "absorption_bands"},
+      .gin = {"id", "line_index", "parameter", "species", "coefficient", "d"},
+      .gin_type = {"QuantumIdentifier",
+                   "Index",
+                   "String",
+                   "String",
+                   "String",
+                   "Numeric"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    String{""},
+                    String{""},
+                    Numeric{0.1}},
+      .gin_desc = {
+          "The quantum identifier of the band",
+          "The index of the line in the band",
+          "The parameter to compute the derivative for (see options in error message)",
+          "The coefficient in question (if non-empty, ``parameter`` refers to be a line shape parameter, otherwise, ``parameter`` referes to a standard absorption line parameter)",
+          "The species of interest (long or short name; error message shows only valid long names)",
+          "The perturbation used in methods that cannot compute derivatives analytically"}};
+
+  wsm_data["absorption_bandsSelectFrequency"] = {
+      .desc =
+          R"--(Remove all bands that strictly falls outside a frequency range
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"fmin", "fmax"},
+      .gin_type = {"Numeric", "Numeric"},
+      .gin_value = {-std::numeric_limits<Numeric>::infinity(),
+                    std::numeric_limits<Numeric>::infinity()},
+      .gin_desc = {"Minimum frequency to keep", "Maximum frequency to keep"}};
+
+  wsm_data["absorption_bandsRemoveID"] = {.desc = R"--(Remove first band of ID
+)--",
+                                          .author = {"Richard Larsson"},
+                                          .out = {"absorption_bands"},
+                                          .in = {"absorption_bands"},
+                                          .gin = {"id"},
+                                          .gin_type = {"QuantumIdentifier"},
+                                          .gin_value = {std::nullopt},
+                                          .gin_desc = {"Identifier to remove"}};
+
+  wsm_data["absorption_bandsKeepID"] = {
+      .desc = R"--(Keeps first band of ID
+
+If ``line`` is positive, also keep only the line of this index
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"id", "line"},
+      .gin_type = {"QuantumIdentifier", "Index"},
+      .gin_value = {std::nullopt, Index{-1}},
+      .gin_desc = {"Band to keep", "Line to keep (if positive)"}};
+
+  wsm_data["SortedQuantumIdentifiersOfBands"] = {
+      .desc =
+          R"--(Get the sorting of the bands by first quantum identifier then some ``criteria``
+
+The reverse sorting can also be achieved by setting ``reverse``.
+
+Valid ``criteria`` are:
+- None: No sorting after the quantum identifier sorting
+- IntegratedIntensity: Sum of the intesities of the band at 296 K
+- FrontFrequency: By first frequency
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"sorted_idxs"},
+      .gout_type = {"ArrayOfIndex"},
+      .gout_desc = {"Sorted band indices (of *absorption_bands*)"},
+      .in = {"absorption_bands"},
+      .gin = {"criteria", "reverse"},
+      .gin_type = {"String", "Index"},
+      .gin_value = {String{"None"}, Index{0}},
+      .gin_desc = {"Internal sorting criteria",
+                   "Sort in reverse order if true"}};
+
+  wsm_data["absorption_bandsReadSplit"] = {
+      .desc = R"--(Saves all bands fin *absorption_bands* to a directory
+
+This will create the directory if it does not exist.  It will also create
+subdirectories that are the short-form of the isotopologue names.  The bands
+will be stored as 0.xml, 1.xml, 2.xml, and so on
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"}};
+
+  wsm_data["absorption_bandsSaveSplit"] = {
+      .desc = R"--(Saves all bands fin *absorption_bands* to a directory
+
+This will create the directory if it does not exist.  It will also create
+subdirectories that are the short-form of the isotopologue names.  The bands
+will be stored as 0.xml, 1.xml, 2.xml, and so on
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .in = {"absorption_bands"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"}};
 
   return wsm_data;
 }

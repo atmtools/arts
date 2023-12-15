@@ -17,32 +17,26 @@
   === External declarations
   ===========================================================================*/
 
-#include <cmath>
-#include <iomanip>
-#include "array.h"
-#include "arts_constants.h"
 #include <workspace.h>
+
+#include <cmath>
+
+#include "arts_constants.h"
+#include "arts_conversions.h"
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
-#include "matpack_complex.h"
 #include "fastem.h"
-#include "geodetic.h"
+#include "gas_scattering.h"
 #include "geodetic.h"
 #include "interpolation.h"
-#include "math_funcs.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
 #include "physics_funcs.h"
-#include "ppath.h"
 #include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "surf.h"
 #include "surface.h"
 #include "tessem.h"
-#include "arts_conversions.h"
-#include "gas_scattering.h"
 
 inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);

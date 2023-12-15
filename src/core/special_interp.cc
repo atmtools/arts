@@ -43,11 +43,8 @@
  */
 
 #include <cmath>
-#include <iostream>
-#include <stdexcept>
 
 #include "check_input.h"
-#include "math_funcs.h"
 #include "special_interp.h"
 
 /*===========================================================================

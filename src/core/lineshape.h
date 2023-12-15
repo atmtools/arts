@@ -4,8 +4,6 @@
 #include <string_view>
 #include <variant>
 
-#include "arts_conversions.h"
-#include "linescaling.h"
 #include "new_jacobian.h"
 #include "nlte.h"
 #include "nonstd.h"

@@ -11,9 +11,9 @@
  * real work happens in the header file and not here
  **/
 
-#include "arts_conversions.h"
 #include "atm.h"
 #include "debug.h"
+#include "double_imanip.h"
 #include "lineshapemodel.h"
 #include "matpack_data.h"
 #include "matpack_math.h"

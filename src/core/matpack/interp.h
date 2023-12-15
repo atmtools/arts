@@ -18,15 +18,11 @@
 
 #include <algorithm>
 #include <array>
-#include <concepts>
 #include <cstddef>
 #include <exception>
-#include <functional>
 #include <iomanip>
 #include <limits>
-#include <memory>
 #include <numeric>
-#include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <vector>

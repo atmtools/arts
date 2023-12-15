@@ -4,7 +4,6 @@
 #include <array>
 #include <memory>
 #include <vector>
-#include "debug.h"
 
 #include <arts_conversions.h>
 

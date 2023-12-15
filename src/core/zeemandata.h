@@ -12,14 +12,12 @@
 #ifndef zeemandata_h
 #define zeemandata_h
 
-#include "arts_conversions.h"
-#include "file.h"
-#include "mystring.h"
 #include <matpack.h>
 #include <rtepack.h>
-#include "quantum_numbers.h"
 
 #include <limits>
+
+#include "quantum_numbers.h"
 
 /** Implements Zeeman modeling */
 namespace Zeeman {

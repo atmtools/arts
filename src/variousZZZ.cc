@@ -23,15 +23,15 @@
  * @brief  Functions to later be placed elsewhere
  */
 
-#include "arts_conversions.h"
+#include "variousZZZ.h"
+
 #include <workspace.h>
+
+#include "arts_conversions.h"
 #include "check_input.h"
-#include "geodetic.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
-#include "lin_alg.h"
 #include "logic.h"
-#include "variousZZZ.h"
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

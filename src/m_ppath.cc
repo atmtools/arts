@@ -12,6 +12,7 @@
   ===========================================================================*/
 
 #include <workspace.h>
+
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
@@ -21,7 +22,6 @@
 #include "ppath_struct.h"
 #include "surf.h"
 #include "variousZZZ.h"
-#include <limits>
 
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);

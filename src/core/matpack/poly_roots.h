@@ -15,7 +15,7 @@
 #ifndef poly_roots_h
 #define poly_roots_h
 
-#include <matpack.h>
+#include <matpack_data.h>
 
 int poly_root_solve(Matrix& roots, Vector& coeffs);
 

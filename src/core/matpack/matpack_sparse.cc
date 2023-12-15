@@ -21,14 +21,11 @@
   the same as S.ro(3,4).
 */
 
-#include "matpack_eigen.h"
 #include "matpack_sparse.h"
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>  // For debugging.
-#include <iterator>
-#include <set>
 #include <vector>
 
 

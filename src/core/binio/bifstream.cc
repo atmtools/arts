@@ -11,7 +11,6 @@
 */
 
 #include "bifstream.h"
-#include <fstream>
 #include <stdexcept>
 
 void bifstream::seek(long spos, Offset offs) {

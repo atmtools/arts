@@ -19,8 +19,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <map>
-#include <stdexcept>
 #include <utility>
 
 namespace Jacobian {

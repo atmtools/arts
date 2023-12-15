@@ -1,9 +1,5 @@
 #pragma once
 
-#include <concepts>
-#include <type_traits>
-#include <vector>
-
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_source.h"

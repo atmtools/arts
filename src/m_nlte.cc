@@ -6,11 +6,10 @@
  * @brief User interface to NLTE variables and functions
  */
 
-#include "absorption.h"
-#include "atm.h"
 #include <workspace.h>
+
+#include "atm.h"
 #include "debug.h"
-#include "lin_alg.h"
 #include "nlte.h"
 #include "xml_io.h"
 

@@ -13,9 +13,6 @@
 #include "bofstream.h"
 #include "debug.h"
 
-#include <fstream>
-#include <stdexcept>
-
 void bofstream::seek(long spos, Offset offs) {
   if (!in) {
     err = NotOpen;

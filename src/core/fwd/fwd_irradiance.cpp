@@ -1,7 +1,5 @@
 #include "fwd_irradiance.h"
 
-#include <algorithm>
-
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"

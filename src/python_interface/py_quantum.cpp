@@ -129,6 +129,11 @@ qn : ~pyarts.arts.QuantumNumberValue
             qid.isotopologue_index = res;
           }, ":class:`SpeciesIsotopeRecord` The isotopologue")
       .def(py::self == py::self)
+      .def(py::self != py::self)
+      .def(py::self <= py::self)
+      .def(py::self >= py::self)
+      .def(py::self < py::self)
+      .def(py::self > py::self)
       .def("__hash__", [](QuantumIdentifier& x) { return py::hash(py::str(var_string(x))); })
       .def("as_symbol", &Quantum::Helpers::molecular_term_symbol, R"(Get the molecular symbol as often seen in literature
 Returns

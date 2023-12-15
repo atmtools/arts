@@ -13,13 +13,7 @@
   === External declarations
   ===========================================================================*/
 
-#include <stdexcept>
 #include <workspace.h>
-#include "disort.h"
-#include "m_xml.h"
-#include "rt4.h"
-#include "species_tags.h"
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_RT4

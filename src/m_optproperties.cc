@@ -16,25 +16,22 @@
   === External declarations
   ===========================================================================*/
 
+#include <workspace.h>
+
 #include <cfloat>
 #include <cmath>
+
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "check_input.h"
-#include "exceptions.h"
-#include "interpolation.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
-#include "montecarlo.h"
 #include "optproperties.h"
 #include "rtepack.h"
-#include "sorting.h"
-#include "xml_io.h"
-
-#include <workspace.h>
 
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

@@ -16,32 +16,20 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
+
+#include <workspace.h>
+
 #include <cmath>
 #include <cstdlib>
-#include <stdexcept>
 
 #include "array.h"
 #include "arts_constants.h"
-#include "atm.h"
-#include "check_input.h"
 #include "cloudbox.h"
-#include "disort.h"
-#include "file.h"
-#include "interpolation.h"
-#include "lin_alg.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "microphysics.h"
 #include "optproperties.h"
-#include "parameters.h"
-#include "physics_funcs.h"
-#include "psd.h"
-#include "rte.h"
 #include "sorting.h"
-#include "special_interp.h"
-#include "xml_io.h"
-
-#include <workspace.h>
 
 inline constexpr Numeric PI=Constant::pi;
 

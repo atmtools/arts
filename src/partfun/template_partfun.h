@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 
 #include "enums.h"
 #include "matpack_data.h"

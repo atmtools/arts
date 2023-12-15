@@ -2,7 +2,6 @@
 #include <rtepack.h>
 
 #include <array>
-#include <cstddef>
 
 #include "arts_constants.h"
 #include "debug.h"

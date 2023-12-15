@@ -1,14 +1,16 @@
 #pragma once
 
 #include <atm.h>
+#include <lbl.h>
 #include <matpack.h>
 #include <surf.h>
 
 #include <functional>
 #include <limits>
 #include <numeric>
-#include <variant>
 #include <vector>
+
+#include "debug.h"
 
 namespace Jacobian {
 struct AtmTarget {
@@ -16,19 +18,23 @@ struct AtmTarget {
 
   Numeric d{};
 
-  Size x_start{std::numeric_limits<Size>::max()};
-  Size x_size{std::numeric_limits<Size>::max()};
   Size target_pos{std::numeric_limits<Size>::max()};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
   std::function<void(
       ExhaustiveVectorView, const AtmField&, const ExhaustiveConstVectorView&)>
       set{[](ExhaustiveVectorView xnew,
              const AtmField&,
              const ConstVectorView& xold) { xnew = xold; }};
+
   std::function<void(
       ExhaustiveVectorView, const AtmField&, const ExhaustiveConstVectorView&)>
       unset{[](VectorView xnew,
-             const AtmField&,
-             const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+               const AtmField&,
+               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
   friend std::ostream& operator<<(std::ostream& os, const AtmTarget& target) {
     return os << "Atmosphere key value: " << target.type << ", starting at "
@@ -68,33 +74,40 @@ struct AtmTarget {
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
         "Problem with sizes.  \n"
-        "Did you change your atmosphere since you set the jacobian targets?")
+        "Did you change your atmosphere since you set the jacobian targets?\n"
+        "Did you forget to finalize the JacobianTargets?")
 
     unset(xnew, atm, xold_d);
   }
 };
-
 
 struct SurfaceTarget {
   SurfaceKeyVal type;
 
   Numeric d{};
 
-  Size x_start{std::numeric_limits<Size>::max()};
-  Size x_size{std::numeric_limits<Size>::max()};
   Size target_pos{std::numeric_limits<Size>::max()};
-  std::function<void(
-      ExhaustiveVectorView, const SurfaceField&, const ExhaustiveConstVectorView&)>
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  std::function<void(ExhaustiveVectorView,
+                     const SurfaceField&,
+                     const ExhaustiveConstVectorView&)>
       set{[](ExhaustiveVectorView xnew,
              const SurfaceField&,
              const ConstVectorView& xold) { xnew = xold; }};
-  std::function<void(
-      ExhaustiveVectorView, const SurfaceField&, const ExhaustiveConstVectorView&)>
-      unset{[](VectorView xnew,
-             const SurfaceField&,
-             const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
-  friend std::ostream& operator<<(std::ostream& os, const SurfaceTarget& target) {
+  std::function<void(ExhaustiveVectorView,
+                     const SurfaceField&,
+                     const ExhaustiveConstVectorView&)>
+      unset{[](VectorView xnew,
+               const SurfaceField&,
+               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SurfaceTarget& target) {
     return os << "Surface key value: " << target.type << ", starting at "
               << target.x_start << " of size " << target.x_size;
   }
@@ -113,7 +126,8 @@ struct SurfaceTarget {
     ARTS_USER_ERROR_IF(
         xnew.size() not_eq xold_d.size(),
         "Problem with sizes.\n"
-        "Did you change your surface since you set the jacobian targets?")
+        "Did you change your surface since you set the jacobian targets?\n"
+        "Did you forget to finalize the JacobianTargets?")
 
     set(xnew, surf, xold_d);
   }
@@ -138,18 +152,57 @@ struct SurfaceTarget {
   }
 };
 
-template <typename U, typename T>
-concept target_comparable = requires(T a, U b) { a.type == b; b == a.type; };
+struct LineTarget {
+  LblLineKey type;
 
-template <typename U, typename ... T>
+  Numeric d{};
+
+  Size target_pos{std::numeric_limits<Size>::max()};
+
+  Size x_start{std::numeric_limits<Size>::max()};
+
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  std::function<void(ExhaustiveVectorView,
+                     const AbsorptionBands&,
+                     const ExhaustiveConstVectorView&)>
+      set{[](ExhaustiveVectorView xnew,
+             const AbsorptionBands&,
+             const ConstVectorView& xold) { xnew = xold; }};
+
+  std::function<void(ExhaustiveVectorView,
+                     const AbsorptionBands&,
+                     const ExhaustiveConstVectorView&)>
+      unset{[](VectorView xnew,
+               const AbsorptionBands&,
+               const ExhaustiveConstVectorView& xold) { xnew = xold; }};
+
+  friend std::ostream& operator<<(std::ostream& os, const LineTarget&) {
+    return os << "Line key value: ";
+  }
+
+  void update(AbsorptionBands&, const Vector&) const { ARTS_ASSERT(false) }
+
+  void update(Vector&, const AbsorptionBands&) const { ARTS_ASSERT(false) }
+};
+
+template <typename U, typename T>
+concept target_comparable = requires(T a, U b) {
+  a.type == b;
+  b == a.type;
+};
+
+template <typename U, typename... T>
 concept valid_target = (std::same_as<U, T> or ...);
 
-template <typename ... Targets> struct targets_t {
+template <typename... Targets>
+struct targets_t {
   static constexpr Size N = sizeof...(Targets);
 
-  std::tuple <std::vector<Targets>...> targets;
+  std::tuple<std::vector<Targets>...> targets{};
 
-  template <valid_target<Targets...> T> constexpr auto& target() {
+  template <valid_target<Targets...> T>
+  constexpr auto& target() {
     return std::get<std::vector<T>>(targets);
   }
 
@@ -160,7 +213,10 @@ template <typename ... Targets> struct targets_t {
 
   template <valid_target<Targets...> T>
   constexpr auto find(const target_comparable<T> auto& t) const {
-    auto out = std::pair{false, std::ranges::find_if(target<T>(), [&t](auto& v){return v.type == t;})};
+    auto out =
+        std::pair{false, std::ranges::find_if(target<T>(), [&t](auto& v) {
+                    return v.type == t;
+                  })};
     out.first = out.second not_eq target<T>().end();
     return out;
   }
@@ -183,13 +239,19 @@ template <typename ... Targets> struct targets_t {
 
   [[nodiscard]] constexpr Size x_size() const {
     const auto sz = [](const auto& x) { return x.x_size; };
-    return (std::transform_reduce(
-        target<Targets>().begin(), target<Targets>().end(), Size{0}, std::plus<>{}, sz) + ...);
+    return (std::transform_reduce(target<Targets>().begin(),
+                                  target<Targets>().end(),
+                                  Size{0},
+                                  std::plus<>{},
+                                  sz) +
+            ...);
   }
 
   [[nodiscard]] constexpr Size target_count() const {
     return (target<Targets>().size() + ...);
   }
+
+  [[nodiscard]] constexpr bool any() const { return target_count() != 0; }
 
   void throwing_check(Size xsize) const {
     const auto t_size = target_count();
@@ -212,11 +274,55 @@ template <typename ... Targets> struct targets_t {
          })),
      ...);
   }
+
+  void clear() { ((target<Targets>().clear()), ...); }
+
+  void zero_out_x() {
+    ((std::ranges::for_each(target<Targets>(),
+                            [](auto& a) {
+                              a.x_start = 0;
+                              a.x_size = 0;
+                            })),
+     ...);
+  }
 };
 
-struct Targets final : targets_t<AtmTarget, SurfaceTarget> {
+struct Targets final : targets_t<AtmTarget, SurfaceTarget, LineTarget> {
   [[nodiscard]] const auto& atm() const { return target<AtmTarget>(); }
   [[nodiscard]] const auto& surf() const { return target<SurfaceTarget>(); }
+  [[nodiscard]] const auto& line() const { return target<LineTarget>(); }
+
+  //! Sets the sizes and x-positions of the targets.
+  void finalize(const AtmField& atm_field) {
+    zero_out_x();
+
+    const Size Nt = target_count();
+    for (Size i = 0; i < Nt; i++) {
+      if ([&atm_field, this, pos = i]() -> bool {
+            for (auto& t : target<AtmTarget>()) {
+              if (t.target_pos == pos) {
+                ARTS_USER_ERROR_IF(
+                    not atm_field.contains(t.type),
+                    "The target ",
+                    t,
+                    " is not in the atmosphere,"
+                    " but is required by jacobian target ",
+                    this)
+                t.x_start = x_size();
+                t.x_size = atm_field[t.type].flat_view().size();
+                return true;
+              }
+            }
+            return false;
+          }())
+        continue;
+
+      ARTS_ASSERT(false, "Missing impl for surface and line parameters")
+      ARTS_USER_ERROR("Cannot reach here, there is no target position ", i)
+    }
+
+    throwing_check(x_size());
+  }
 
   friend std::ostream& operator<<(std::ostream& os, const Targets& targets) {
     os << "Jacobian targets:\n";
@@ -224,6 +330,9 @@ struct Targets final : targets_t<AtmTarget, SurfaceTarget> {
       os << "  " << t << '\n';
     }
     for (const auto& t : targets.surf()) {
+      os << "  " << t << '\n';
+    }
+    for (const auto& t : targets.line()) {
       os << "  " << t << '\n';
     }
     return os;
@@ -236,7 +345,7 @@ Numeric field_perturbation(const auto& f) {
       f.begin(),
       f.end(),
       0.0,
-      [](auto a, auto b) {  return std::max(a, b); },
+      [](auto a, auto b) { return std::max(a, b); },
       [](auto& m) { return m.first ? m.second->d : 0.0; });
 }
 
