@@ -15699,17 +15699,21 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "\n"
           "Important, the first dimension must be the frequency dimension!\n"
           "If a field  like *spectral_radiance_field* is input, the stokes dimension\n"
-          "is also removed.\n"),
+          "is also removed.\n"
+          "\n"
+          "Additional possibility to integrate over frequency using specific user defined qaudrature weights.\n"
+          "Important if using qaudrature weights, they must have the same size as the frequency grid.\n"),
       AUTHORS("Manfred Brath"),
       OUT(),
       GOUT("radiation_field"),
       GOUT_TYPE("Tensor4, Tensor5"),
       GOUT_DESC("Field similar to irradiance field or spectral irradiance field"),
       IN("f_grid"),
-      GIN("spectral_radiation_field"),
-      GIN_TYPE("Tensor5, Tensor7"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Field similar to spectral irradiance field, spectral radiance field")));
+      GIN("spectral_radiation_field", "quadrature_weights"),
+      GIN_TYPE("Tensor5, Tensor7", "Vector"),
+      GIN_DEFAULT(NODEF,"[]"),
+      GIN_DESC("Field similar to spectral irradiance field, spectral radiance field",
+      "Quadrature weights for frequency integration. Set them, if no default integration is desired.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"),
