@@ -51,5 +51,5 @@ ws.RadiationFieldSpectralIntegrate(ws.radiance_field, ws.f_grid, ws.spectral_rad
 
 
 #compare
-ws.Compare(ws.irradiance_field, irradiance_field_ref, 1e-6)
-ws.Compare(ws.radiance_field, radiance_field_ref, 1e-6)
+assert np.allclose(ws.irradiance_field.value, irradiance_field_ref, 1e-6), "spectral irradiance integration failed"
+assert np.allclose(ws.radiance_field.value, radiance_field_ref, 1e-6), "spectral radiance integration failed"
