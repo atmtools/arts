@@ -407,7 +407,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
   }
 
   if (quadrature_weights.nelem() > 0 &&
-      quadrature_weights.nelem() != spectral_radiation_field.nshelves()) {
+      quadrature_weights.nelem() != spectral_radiation_field.nlibraries()) {
     throw runtime_error(
         "The length of the quadrature_weights does not match with\n"
         " the first dimension of the spectral_radiation_field");
@@ -442,7 +442,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
       }
     }
   } else {
-    for (Index i = 0; i < spectral_radiation_field.nlibraries() - 1; i++) {
+    for (Index i = 0; i < spectral_radiation_field.nlibraries(); i++) {
       const Numeric weight = quadrature_weights[i];
 
       for (Index s = 0; s < radiation_field.nshelves(); s++) {
@@ -451,7 +451,7 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
             for (Index r = 0; r < radiation_field.nrows(); r++) {
               for (Index c = 0; c < radiation_field.ncols(); c++) {
                 radiation_field(s, b, p, r, c) +=
-                    spectral_radiation_field(i + 1, s, b, p, r, c, 0) * weight;
+                    spectral_radiation_field(i , s, b, p, r, c, 0) * weight;
               }
             }
           }
