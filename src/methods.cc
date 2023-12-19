@@ -15701,7 +15701,8 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
           "If a field  like *spectral_radiance_field* is input, the stokes dimension\n"
           "is also removed.\n"
           "\n"
-          "Additional possibility to integrate over frequency using specific user defined qaudrature weights.\n"),
+          "Additional possibility to integrate over frequency using specific user defined qaudrature weights.\n"
+          "Important if using qaudrature weights, they must have the same size as the frequency grid.\n"),
       AUTHORS("Manfred Brath"),
       OUT(),
       GOUT("radiation_field"),
