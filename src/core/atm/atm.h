@@ -19,7 +19,7 @@
 #include "enums.h"
 #include "fieldmap.h"
 #include "isotopologues.h"
-#include "quantum_numbers.h"
+#include <quantum_numbers.h>
 #include "species.h"
 
 //! A type to name particulates (and let them be type-independent)
