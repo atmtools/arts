@@ -63,14 +63,36 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
     const Numeric surface_search_accuracy = 0.1,
     const bool surface_search_safe = false);
 
-ArrayOfPropagationPathPoint& fill_geometric_atmosphere(
+ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     ArrayOfPropagationPathPoint& path,
     const SurfaceField& surface_field,
     const Numeric max_step);
 
+ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Vector& alt_grid);
+
+ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Vector& lat_grid);
+
+ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
+    ArrayOfPropagationPathPoint& path,
+    const SurfaceField& surface_field,
+    const Vector& lon_grid);
+
 PropagationPathPoint find_geometric_limb(
-    const ArrayOfPropagationPathPoint& path,
-    const SurfaceField& surface_field);
+    const ArrayOfPropagationPathPoint& path, const SurfaceField& surface_field);
+
+ArrayOfPropagationPathPoint& fill_geometric_limb(
+    ArrayOfPropagationPathPoint& x, const SurfaceField& surface_field);
+
+ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
+                                           const SurfaceField& surface_field,
+                                           const Numeric min_dist,
+                                           const bool first = true);
 
 Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
                                     const SurfaceField& surface_field);
@@ -82,3 +104,5 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
 
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path);
 }  // namespace path
+
+using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;

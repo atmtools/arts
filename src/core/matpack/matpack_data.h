@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <exception>
 #include <tuple>
 
@@ -271,6 +272,14 @@ class matpack_data {
     requires(M == N)
   {
     resize(std::array<Index, N>{static_cast<Index>(std::forward<inds>(sz))...});
+  }
+
+  template <std::convertible_to<T> U>
+  void push_back(U&& x)
+    requires(N == 1)
+  {
+    data.push_back(static_cast<T>(std::forward<U>(x)));
+    view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
   }
 
   //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
