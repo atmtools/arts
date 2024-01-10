@@ -182,6 +182,7 @@ add_library (artsworkspace STATIC
   m_refraction.cc
   m_retrieval.cc
   m_rad.cc
+  m_rad_path.cc
   m_rt4.cc
   m_rte.cc
   m_retrieval.cc

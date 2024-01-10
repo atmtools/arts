@@ -15739,5 +15739,64 @@ variables are not considered
       .gin_value = {std::nullopt},
       .gin_desc = {"Absolute or relative path to the directory"}};
 
+  wsm_data["rad_pathGeometric"] = {
+      .desc = R"--(Get a geometric radiation path
+
+The path is defined by the origo and the line of sight.
+
+The ``pos`` is either at the end or at the beginning of the path depending 
+on the ``as_sensor`` flag.  A value that evaluates to true means that it is
+at the end of the path.  If ``as_sensor`` is true, the ``los`` is therefore
+looking backwards along the path.  Basically, ``as_sensor`` true means that
+``pos`` and ``los`` behaves as sensor pos and los.
+
+The ``max_step`` is the maximum step length in meters.  The path is first
+created between the two extremes of space and surface.  Afterwards, there
+are additional points added every ``max_step`` meters between these points
+until no more fits (the last step is shorter or exactly ``max_step``).
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"rad_path"},
+      .in = {"atm_field", "surface_field"},
+      .gin = {"pos", "los", "max_step", "as_sensor"},
+      .gin_type = {"Vector3", "Vector2", "Numeric", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}, Index{1}},
+      .gin_desc = {
+          "The origo of the radiation path",
+          "The line of sight of the radiation path",
+          "The maximum step length",
+          "Whether or not the path is as seen by the sensor or by the radiation (see text)"}};
+
+  wsm_data["rad_pathGeometricTangentAltitude"] = {
+      .desc =
+          R"--(Get a geometric radiation path that crosses the tangent altitude
+
+The path is defined by an azimuth, a position, and a tangent altitude.
+
+The ``pos`` is either at the end or at the beginning of the path depending 
+on the ``as_sensor`` flag.  A value that evaluates to true means that it is
+at the end of the path.  If ``as_sensor`` is true, the ``azimuth`` is
+therefore looking backwards along the path.  Basically, ``as_sensor`` true means that
+``pos`` and ``azimuth`` behaves as sensor pos and azimuth.
+
+The ``max_step`` is the maximum step length in meters.  The path is first
+created between the two extremes of space and surface.  Afterwards, there
+are additional points added every ``max_step`` meters between these points
+until no more fits (the last step is shorter or exactly ``max_step``).
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"rad_path"},
+      .in = {"atm_field", "surface_field"},
+      .gin = {"pos", "tangent_altitude", "azimuth", "max_step", "as_sensor"},
+      .gin_type = {"Vector3", "Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value =
+          {std::nullopt, std::nullopt, std::nullopt, Numeric{1e3}, Index{1}},
+      .gin_desc = {
+          "The origo of the radiation path",
+          "The tangent altitude of the radiation path",
+          "The azimuth from the origo of the radiation path towards the tangent altitude",
+          "The maximum step length",
+          "Whether or not the path is as seen by the sensor or by the radiation (see text)"}};
+
   return wsm_data;
 }

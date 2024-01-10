@@ -543,5 +543,11 @@ radiation.
   wsg_data["ArrayOfPropagationPathPoint"] = {
       .file = "path_point.h", .desc = "A list of *PropagationPathPoint*.\n"};
 
+  wsg_data["Vector3"] = {
+      .file = "matpack.h", .desc = "A fixed-size 3D version of *Vector*.\n"};
+
+  wsg_data["Vector2"] = {
+      .file = "matpack.h", .desc = "A fixed-size 2D version of *Vector*.\n"};
+
   return wsg_data;
 }

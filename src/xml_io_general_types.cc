@@ -10,8 +10,11 @@
 
 */
 
-#include "xml_io_base.h"
+#include "xml_io_general_types.h"
+
 #include "double_imanip.h"
+#include "matpack_constexpr.h"
+#include "xml_io_base.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -1141,3 +1144,91 @@ void xml_write_to_stream(std::ostream& os_xml,
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
+
+// Begin templates
+
+template <class T = void>
+struct type {
+  static constexpr std::string_view name() { return "any"; }
+};
+
+template <>
+struct type<Numeric> {
+  static constexpr std::string_view name() { return "Numeric"; }
+};
+
+template <class T, Index... DIM>
+void xml_read_from_stream_tmpl(std::istream& is_xml,
+                               matpack::matpack_constant_data<T, DIM...>& group,
+                               bifstream* pbifs) {
+  static_assert(
+      type<T>::name() != "any",
+      "Type not supported, add a struct type<T> with a static constexpr std::string_view name() function returning other than \"any\"");
+
+  XMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name(var_string("MatpackData", type<T>::name()));
+  Index nelem;
+  tag.get_attribute_value("nelem", nelem);
+
+  if (pbifs == nullptr) {
+    for (Index i = 0; i < (DIM * ...); i++)
+      is_xml >> double_imanip{} >> group.data[i];
+  } else {
+    pbifs->readDoubleArray(group.data.data(), (DIM * ...));
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name(var_string("/MatpackData", type<T>::name()));
+}
+
+template <class T, Index... DIM>
+void xml_write_to_stream_tmpl(
+    std::ostream& os_xml,
+    const matpack::matpack_constant_data<T, DIM...>& group,
+    bofstream* pbofs,
+    const String& name) {
+  static_assert(
+      type<T>::name() != "any",
+      "Type not supported, add a struct type<T> with a static constexpr std::string_view name() function returning other than \"any\"");
+
+  XMLTag open_tag;
+  open_tag.set_name(var_string("MatpackData", type<T>::name()));
+  if (name.size()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("nelem", (DIM * ...));
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  if (pbofs == nullptr) {
+    for (Index i = 0; i < (DIM * ...); i++) os_xml << group.data[i] << '\n';
+  } else {
+    for (Index i = 0; i < (DIM * ...); i++) *pbofs << group.data[i];
+  }
+
+  XMLTag close_tag;
+  close_tag.set_name(var_string("/MatpackData", type<T>::name()));
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+// End of templates
+
+// Begin macro wrapper
+
+#define XML_IO(TYPE)                                         \
+  void xml_read_from_stream(                                 \
+      std::istream& is_xml, TYPE& group, bifstream* pbifs) { \
+    xml_read_from_stream_tmpl(is_xml, group, pbifs);         \
+  }                                                          \
+  void xml_write_to_stream(std::ostream& os_xml,             \
+                           const TYPE& group,                \
+                           bofstream* pbofs,                 \
+                           const String& name) {             \
+    xml_write_to_stream_tmpl(os_xml, group, pbofs, name);    \
+  }
+
+// End of macro wrapper
+
+XML_IO(Vector2)
+XML_IO(Vector3)

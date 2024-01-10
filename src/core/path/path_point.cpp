@@ -537,34 +537,34 @@ std::pair<Vector3, Vector2> poslos_at_distance(const Vector3 ecef,
   return ecef2geodetic_poslos(new_ecef, decef, ell);
 }
 
-ArrayOfPropagationPathPoint init(const Vector3& pos,
-                                 const Vector2& los,
-                                 const AtmField& atm_field,
-                                 const SurfaceField& surface_field,
-                                 bool as_sensor) {
+PropagationPathPoint init(const Vector3& pos,
+                          const Vector2& los,
+                          const AtmField& atm_field,
+                          const SurfaceField& surface_field,
+                          bool as_sensor) {
   using enum PositionType;
   ARTS_USER_ERROR_IF(pos[1] > 90 or pos[1] < -90, "Non-polar coordinate")
 
   if (pos[0] >= atm_field.top_of_atmosphere) {
-    return {PropagationPathPoint{.pos_type = space,
+    return PropagationPathPoint{.pos_type = space,
                                  .los_type = unknown,
                                  .pos = pos,
-                                 .los = as_sensor ? mirror(los) : los}};
+                                 .los = as_sensor ? mirror(los) : los};
   }
 
   const Numeric surface_alt = surface_altitude(surface_field, pos[1], pos[2]);
 
   if (pos[0] < surface_alt) {
-    return {PropagationPathPoint{.pos_type = subsurface,
+    return PropagationPathPoint{.pos_type = subsurface,
                                  .los_type = unknown,
                                  .pos = pos,
-                                 .los = as_sensor ? mirror(los) : los}};
+                                 .los = as_sensor ? mirror(los) : los};
   }
 
-  return {PropagationPathPoint{.pos_type = pos[0] > surface_alt ? atm : surface,
+  return PropagationPathPoint{.pos_type = pos[0] > surface_alt ? atm : surface,
                                .los_type = unknown,
                                .pos = pos,
-                               .los = as_sensor ? mirror(los) : los}};
+                               .los = as_sensor ? mirror(los) : los};
 }
 
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();

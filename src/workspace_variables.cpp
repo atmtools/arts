@@ -4540,5 +4540,10 @@ Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude 
 )--",
       .type = "JacobianTargets"};
 
+  wsv_data["rad_path"] = {
+      .desc = R"--(A list path points making up a propagation path.
+)--",
+      .type = "ArrayOfPropagationPathPoint"};
+
   return wsv_data;
 }

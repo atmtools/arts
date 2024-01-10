@@ -1,4 +1,5 @@
 #include <path_point.h>
+
 #include <exception>
 #include <stdexcept>
 
@@ -31,7 +32,8 @@ void test_0_az_at_180_za() try {
   while (n-- > 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{180, get_az()};
-    auto x = path::init(pos, los, atm_field, surface_field);
+    ArrayOfPropagationPathPoint x{
+        path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_stepwise(x, surface_field, 150e3);
     path::keep_only_atm(x);
@@ -44,7 +46,7 @@ void test_0_az_at_180_za() try {
                          " and los = ",
                          los);
   }
-} catch(std::exception& e) {
+} catch (std::exception& e) {
   ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 
@@ -67,7 +69,8 @@ void test_limb_finder() try {
     const Numeric za = path::geometric_tangent_zenith(
         pos, surface_field, tangent_altitude, az);
     const Vector2 los = path::mirror({za, az});
-    auto x = path::init(pos, los, atm_field, surface_field);
+    ArrayOfPropagationPathPoint x{
+        path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_stepwise(x, surface_field, 10e3);
     path::keep_only_atm(x);
@@ -84,7 +87,7 @@ void test_limb_finder() try {
         " and los = ",
         los);
   }
-} catch(std::exception& e) {
+} catch (std::exception& e) {
   ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 
@@ -96,7 +99,8 @@ void test_geometric_fill() try {
   const Vector lats = uniform_grid(-90, 181, 1.);
   const Vector lons = uniform_grid(-180, 361, 1.);
 
-  const auto test = [&](const ArrayOfPropagationPathPoint& x, const Numeric start_alt) {
+  const auto test = [&](const ArrayOfPropagationPathPoint& x,
+                        const Numeric start_alt) {
     for (auto& p : x) {
       const bool toa = p.pos[0] == atm_field.top_of_atmosphere;
       const bool boa = p.pos[0] == 0;
@@ -123,7 +127,8 @@ void test_geometric_fill() try {
     // Check crossing the pole
     const Vector3 pos{300e3, 75, 190};
     const Vector2 los{105, 0};
-    auto x = path::init(pos, los, atm_field, surface_field);
+    ArrayOfPropagationPathPoint x{
+        path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_altitude_crossings(x, surface_field, alts);
     path::fill_geometric_latitude_crossings(x, surface_field, lats);
@@ -135,7 +140,8 @@ void test_geometric_fill() try {
     // Check pole upwards
     const Vector3 pos{0.0, 90, 0};
     const Vector2 los{0.0, 0};
-    auto x = path::init(pos, los, atm_field, surface_field);
+    ArrayOfPropagationPathPoint x{
+        path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_altitude_crossings(x, surface_field, alts);
     path::fill_geometric_latitude_crossings(x, surface_field, lats);
@@ -154,14 +160,15 @@ void test_geometric_fill() try {
   while (n-- > 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{get_za(), get_az()};
-    auto x = path::init(pos, los, atm_field, surface_field);
+    ArrayOfPropagationPathPoint x{
+        path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_altitude_crossings(x, surface_field, alts);
     path::fill_geometric_latitude_crossings(x, surface_field, lats);
     path::fill_geometric_longitude_crossings(x, surface_field, lons);
     test(x, pos[0]);
   }
-} catch(std::exception& e) {
+} catch (std::exception& e) {
   ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 

@@ -51,10 +51,10 @@ std::ostream& operator<<(std::ostream& os,
  */
 Vector2 mirror(const Vector2 los);
 
-/** Initializes a propagation path
+/** Initializes a propagation path point
  *
- * The path is initialized with a single point at the sensor or start of radiation
- * as determined by the as_sensor flag.  If the path is initialized as a sensor
+ * The point is initialized at the sensor or start of radiation as determined 
+ * by the as_sensor flag.  If the path is initialized as a sensor
  * the line-of-sight is mirrored to fit the definition of a PropagationPathPoint.
  * 
  * @param pos The sensor or radiation position of the path
@@ -62,13 +62,13 @@ Vector2 mirror(const Vector2 los);
  * @param atm_field The atmospheric field (as the WSV) 
  * @param surface_field The surface field (as the WSV)
  * @param as_sensor Treat as sensor flag
- * @return An initialized propagation path 
+ * @return A path point that may initialize a path
  */
-ArrayOfPropagationPathPoint init(const Vector3& pos,
-                                 const Vector2& los,
-                                 const AtmField& atm_field,
-                                 const SurfaceField& surface_field,
-                                 bool as_sensor = true);
+PropagationPathPoint init(const Vector3& pos,
+                          const Vector2& los,
+                          const AtmField& atm_field,
+                          const SurfaceField& surface_field,
+                          bool as_sensor = true);
 
 /** Set the geometric extremes object
  * 
