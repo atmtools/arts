@@ -25,6 +25,7 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
+#include "path_point.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -3205,9 +3206,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //! SpeciesEnum
 
-void xml_read_from_stream(std::istream& is_xml,
-                          SpeciesEnum& s,
-                          bifstream*) {
+void xml_read_from_stream(std::istream& is_xml, SpeciesEnum& s, bifstream*) {
   const tag stag{is_xml, "SpeciesEnum", "enum"};
   s = stag.get<SpeciesEnum>("enum");
 }
@@ -3216,5 +3215,43 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const SpeciesEnum& s,
                          bofstream*,
                          const String&) {
-  const tag stag{os_xml, "SpeciesEnum", meta_data{"enum", String{Species::toShortName(s)}}};
+  const tag stag{os_xml,
+                 "SpeciesEnum",
+                 meta_data{"enum", String{Species::toShortName(s)}}};
+}
+
+//! ArrayOfPropagationPathPoint
+
+void xml_read_from_stream(std::istream& is_xml,
+                          PropagationPathPoint& ppp,
+                          bifstream* pbifs) {
+  const tag stag{is_xml, "PropagationPathPoint", "pos_t", "los_t"};
+  ppp.pos_type = path::toPositionType(stag.get("pos_t"));
+  ppp.los_type = path::toPositionType(stag.get("los_t"));
+
+  if (pbifs == nullptr) {
+    is_xml >> double_imanip{} >> ppp.pos[0] >> ppp.pos[1] >> ppp.pos[2] >>
+        ppp.los[0] >> ppp.los[1] >> ppp.nreal >> ppp.ngroup;
+  } else {
+    pbifs->readDoubleArray(&ppp.pos[0], 7);
+  }
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const PropagationPathPoint& ppp,
+                         bofstream* pbofs,
+                         const String&) {
+  const tag stag{os_xml,
+                 "PropagationPathPoint",
+                 meta_data{"pos_t", String{toString(ppp.pos_type)}},
+                 meta_data{"los_t", String{toString(ppp.los_type)}}};
+
+  if (pbofs == nullptr) {
+    os_xml << ppp.pos[0] << ' ' << ppp.pos[1] << ' ' << ppp.pos[2] << ' '
+           << ppp.los[0] << ' ' << ppp.los[1] << ' ' << ppp.nreal << ' '
+           << ppp.ngroup;
+  } else {
+    *pbofs << ppp.pos[0] << ppp.pos[1] << ppp.pos[2] << ppp.los[0] << ppp.los[1]
+           << ppp.nreal << ppp.ngroup;
+  }
 }

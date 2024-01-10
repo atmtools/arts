@@ -130,7 +130,8 @@ about the isotopologue, the absorption scheme, and the frequency limits
                                 .desc = R"--(A list of *SpeciesEnum*
 )--"};
 
-  wsg_data["SpeciesEnum"] = {.file = "species.h", .desc = R"--(An atmospheric species
+  wsg_data["SpeciesEnum"] = {.file = "species.h",
+                             .desc = R"--(An atmospheric species
 )--"};
 
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
@@ -530,6 +531,17 @@ to produce a single *Numeric*.
 This type flags the type of calculations that should be performed
 when computing the Jacobian matrix or partial derivatives.
 )--"};
+
+  wsg_data["PropagationPathPoint"] = {
+      .file = "path_point.h",
+      .desc = R"--(A simple path-point of a propagation path
+
+This point describes the origin and line-of-sight of the tracked
+radiation.
+)--"};
+
+  wsg_data["ArrayOfPropagationPathPoint"] = {
+      .file = "path_point.h", .desc = "A list of *PropagationPathPoint*.\n"};
 
   return wsg_data;
 }

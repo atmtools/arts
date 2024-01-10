@@ -1070,11 +1070,7 @@ PropagationPathPoint find_geometric_limb(
                        next = get_limb_point(distance * x);
   while (std::nextafter(next.pos[0], cur.pos[0]) != cur.pos[0]) {
     cur = next;
-    if (cur.los[0] >= 90) {
-      x0 = x;
-    } else {
-      x1 = x;
-    }
+    (cur.los[0] >= 90 ? x0 : x1) = x;
     x = std::midpoint<Numeric>(x0, x1);
     next = get_limb_point(distance * x);
   }
@@ -1140,7 +1136,7 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
 std::ostream& operator<<(std::ostream& os, const PropagationPathPoint& p) {
   os << "pos: [" << p.pos << "], los: [" << p.los
      << "], pos-type: " << p.pos_type << ", los-type: " << p.los_type
-     << ", nreal: " << p.n.nreal << ", ngroup: " << p.n.ngroup;
+     << ", nreal: " << p.nreal << ", ngroup: " << p.ngroup;
   return os;
 }
 
@@ -1151,15 +1147,6 @@ std::ostream& operator<<(std::ostream& os,
     os << std::exchange(sep, "\n") << p;
   }
   return os;
-}
-
-bool valid_los_pos_pairs(const ArrayOfPropagationPathPoint& path) {
-  return path.end() == std::adjacent_find(path.begin(),
-                                          path.end(),
-                                          [](const PropagationPathPoint& p1,
-                                             const PropagationPathPoint& p2) {
-                                            return p1.los_type != p2.pos_type;
-                                          });
 }
 
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
@@ -1176,33 +1163,24 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
                                  const SurfaceField& surface_field,
                                  const Numeric alt,
                                  const Numeric azimuth) {
-  ARTS_USER_ERROR_IF(alt > pos[0],
+  ARTS_USER_ERROR_IF(alt >= pos[0],
                      "Tangent altitude cannot be above the position")
 
-  Numeric za0 = 0.0, za1 = 90.0, za = 45.0;
-  Numeric t0 = 2 * (max(surface_field.ellipsoid) + alt),
-          t1 = std::numeric_limits<Numeric>::quiet_NaN();
+  const auto intersects =
+      [pos, alt, azimuth, ell = surface_field.ellipsoid](const Numeric za) {
+        const auto [ecef, decef] =
+            geodetic_poslos2ecef(pos, mirror({za, azimuth}), ell);
+        const auto [l0, l1] =
+            line_ellipsoid_altitude_intersect(alt, ecef, decef, ell);
+        return l0 > 0 and l1 > 0;
+      };
 
+  Numeric za0 = 0.0, za1 = 90.0;
   while (std::nextafter(za0, za1) != za1) {
-    const auto [ecef, decef] = geodetic_poslos2ecef(
-        pos, mirror({za, azimuth}), surface_field.ellipsoid);
-    const auto [l0, l1] = line_ellipsoid_altitude_intersect(
-        alt, ecef, decef, surface_field.ellipsoid);
-    if (l0 > 0 and l1 > 0) {
-      const Numeric r = l1 - l0;
-      if (t1 > t0) {
-        t1 = r;
-        za1 = za;
-      } else {
-        t0 = r;
-        za0 = za;
-      }
-    } else {
-      za1 = za;
-    }
-    za = std::midpoint(za0, za1);
+    const Numeric za = std::midpoint(za0, za1);
+    (intersects(za) ? za0 : za1) = za;
   }
 
-  return za;
+  return za0;
 }
 }  // namespace path

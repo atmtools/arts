@@ -70,7 +70,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_nlte.cpp
     py_constant.cpp
     py_convert.cpp
-    py_physics.cpp
+    py_path.cpp
     py_predefined.cpp
     py_star.cpp
     py_math.cpp

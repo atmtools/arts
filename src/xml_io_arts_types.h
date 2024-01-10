@@ -25,6 +25,7 @@
 #include "linemixing.h"
 #include "mc_interp.h"
 #include "operators.h"
+#include "path_point.h"
 #include "template_partfun.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
@@ -66,6 +67,7 @@ TMPL_XML_READ_WRITE_STREAM(GriddedField5)
 TMPL_XML_READ_WRITE_STREAM(GriddedField6)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
 TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
+TMPL_XML_READ_WRITE_STREAM(PropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
 TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(LinemixingEcsData)
@@ -110,6 +112,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfJacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfPpath)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfRetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)

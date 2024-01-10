@@ -3,6 +3,7 @@
 #include <python_interface.h>
 
 #include "atm.h"
+#include <path_point.h>
 #include "ppath_struct.h"
 #include "py_macros.h"
 
@@ -139,6 +140,9 @@ void py_options(py::module_& m) try {
   // Predef enums
   DeclareOptionRenamed(
       PredefinedModelDataKey, Absorption::PredefinedModel, DataKey);
+
+  // Position types
+  DeclareOptionRenamed(PathPositionType, path, PositionType);
 
   // Quantum numbers
   DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type);
