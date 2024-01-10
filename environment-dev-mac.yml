@@ -19,6 +19,7 @@ dependencies:
         - netcdf4
         - numpy
         - pkg-config
+        - pybind11
         - pytest
         - scipy
         - sphinx>=6
