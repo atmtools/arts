@@ -147,8 +147,13 @@ std::shared_ptr<matpack::matpack_data<T, N>> copy(const numpy_array& x) {
 }
 
 void py_matpack(py::module_& m) try {
-  register_matpack_constant_data<Numeric, 3>(m, "Vector3").doc() =
-      "A 3D vector";
+  register_matpack_constant_data<Numeric, 2>(m, "Vector2")
+      .PythonInterfaceFileIO(Vector2)
+      .PythonInterfaceWorkspaceDocumentation(Vector2);
+      
+  register_matpack_constant_data<Numeric, 3>(m, "Vector3")
+      .PythonInterfaceFileIO(Vector3)
+      .PythonInterfaceWorkspaceDocumentation(Vector3);
 
   artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
