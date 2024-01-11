@@ -20,18 +20,19 @@ void py_path(py::module_& m) try {
       .def_readwrite("pos",
                      &PropagationPathPoint::pos,
                      ":class:`~pyarts.arts.Vector3` Path position")
-      .def_readwrite("pos",
+      .def_readwrite("los",
                      &PropagationPathPoint::los,
                      ":class:`~pyarts.arts.Vector2` Path line-of-sight")
-      .def_readwrite("pos",
+      .def_readwrite("nreal",
                      &PropagationPathPoint::nreal,
                      ":class:`float` Path real refractive index")
-      .def_readwrite("pos",
+      .def_readwrite("ngroup",
                      &PropagationPathPoint::ngroup,
                      ":class:`float` Path group refractive index")
       .PythonInterfaceCopyValue(PropagationPathPoint)
       .PythonInterfaceWorkspaceVariableConversion(PropagationPathPoint)
       .PythonInterfaceFileIO(PropagationPathPoint)
+      .PythonInterfaceBasicRepresentation(PropagationPathPoint)
       .PythonInterfaceWorkspaceDocumentation(PropagationPathPoint);
 
   artsarray<ArrayOfPropagationPathPoint>(m, "ArrayOfPropagationPathPoint")

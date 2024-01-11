@@ -547,24 +547,24 @@ PropagationPathPoint init(const Vector3& pos,
 
   if (pos[0] >= atm_field.top_of_atmosphere) {
     return PropagationPathPoint{.pos_type = space,
-                                 .los_type = unknown,
-                                 .pos = pos,
-                                 .los = as_sensor ? mirror(los) : los};
+                                .los_type = unknown,
+                                .pos = pos,
+                                .los = as_sensor ? mirror(los) : los};
   }
 
   const Numeric surface_alt = surface_altitude(surface_field, pos[1], pos[2]);
 
   if (pos[0] < surface_alt) {
     return PropagationPathPoint{.pos_type = subsurface,
-                                 .los_type = unknown,
-                                 .pos = pos,
-                                 .los = as_sensor ? mirror(los) : los};
+                                .los_type = unknown,
+                                .pos = pos,
+                                .los = as_sensor ? mirror(los) : los};
   }
 
   return PropagationPathPoint{.pos_type = pos[0] > surface_alt ? atm : surface,
-                               .los_type = unknown,
-                               .pos = pos,
-                               .los = as_sensor ? mirror(los) : los};
+                              .los_type = unknown,
+                              .pos = pos,
+                              .los = as_sensor ? mirror(los) : los};
 }
 
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
@@ -842,23 +842,23 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     ArrayOfPropagationPathPoint& path,
     const SurfaceField& surface_field,
     const Numeric max_step) {
-  ARTS_USER_ERROR_IF(
-      path.size() == 0,
-      "Must have at least one path point, please call some init() first")
+  if (path.size() == 0) return path;
 
   //! NOTE: grows path as it loops, so we cannot use iterators
   for (Size i = 0; i < path.size() - 1; ++i) {
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
     if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
-      const auto [ecef, decef] =
-          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
-      const Numeric distance =
-          ecef_distance(geodetic2ecef(p1.pos, surface_field.ellipsoid), ecef);
+      const auto ecef1 = geodetic2ecef(p1.pos, surface_field.ellipsoid);
+      const auto ecef2 = geodetic2ecef(p2.pos, surface_field.ellipsoid);
+      const Numeric distance = ecef_distance(ecef1, ecef2);
+      const Vector3 decef{(ecef1[0] - ecef2[0]) / distance,
+                          (ecef1[1] - ecef2[1]) / distance,
+                          (ecef1[2] - ecef2[2]) / distance};
       path.reserve(path.size() + static_cast<Size>(distance / max_step));
       for (Numeric d = distance - max_step; d > 0; d -= max_step) {
         path.insert(path.begin() + 1 + i,
-                    path_at_distance<false>(ecef,
+                    path_at_distance<false>(ecef2,
                                             decef,
                                             surface_field.ellipsoid,
                                             d,
@@ -1065,18 +1065,17 @@ PropagationPathPoint find_geometric_limb(
         ecef, decef, ell, dist, PositionType::atm, PositionType::atm);
   };
 
-  Numeric x0 = 0, x1 = 1.0, x = 0.5;
-  PropagationPathPoint cur = *pre_limb_point,
-                       next = get_limb_point(distance * x);
-  while (std::nextafter(next.pos[0], cur.pos[0]) != cur.pos[0]) {
+  Numeric x0 = 0, x1 = distance, x = std::midpoint(x0, x1);
+  PropagationPathPoint cur = *pre_limb_point, next = get_limb_point(x);
+  while (cur.los[0] != 90.0 and std::nextafter(cur.los[0], next.los[0]) != next.los[0]) {
     cur = next;
-    (cur.los[0] >= 90 ? x0 : x1) = x;
+    (cur.los[0] >= 90.0 ? x0 : x1) = x;
     x = std::midpoint<Numeric>(x0, x1);
-    next = get_limb_point(distance * x);
+    next = get_limb_point(x);
   }
 
-  next.los[1] = next.los[1] - 180;
-  return next;
+  cur.los = mirror(cur.los);
+  return cur;
 }
 
 ArrayOfPropagationPathPoint& fill_geometric_limb(

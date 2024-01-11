@@ -247,7 +247,7 @@ void PlanetSet(Agenda &g0_agenda, SurfaceField &surface_field,
   using enum Options::planetDefaultOptions;
   switch (Options::toplanetDefaultOptionsOrThrow(option)) {
   case Earth:
-    surface_fieldEarth(surface_field, "Sphere");
+    surface_fieldEarth(surface_field, "WGS84");
     molarmass_dry_air = 28.966;
     planet_rotation_period = 86164.1;
     break;

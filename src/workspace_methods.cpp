@@ -15751,52 +15751,102 @@ looking backwards along the path.  Basically, ``as_sensor`` true means that
 ``pos`` and ``los`` behaves as sensor pos and los.
 
 The ``max_step`` is the maximum step length in meters.  The path is first
-created between the two extremes of space and surface.  Afterwards, there
-are additional points added every ``max_step`` meters between these points
-until no more fits (the last step is shorter or exactly ``max_step``).
+created between the two extremes of either space and/or surface.  Afterwards,
+there are additional points added every ``max_step`` meters between these
+points until no more fits (the last step is shorter or exactly ``max_step``).
+
+Upon closing the method, the following options are available to modify
+the output:
+
+If ``add_limb`` is true, the limb point is added to the path at the end.  It
+is computed using bisections to ensure that the zenith angle of the tangent
+point is as close to 90 degrees as it can numerically be.
+
+If ``remove_non_atm`` is true, all points that are not in the atmosphere are
+removed.  It is recommended to remove these points as multiple methods will
+either perform poorly or not at all with these points present.
 )--",
       .author = {"Richard Larsson"},
       .out = {"rad_path"},
       .in = {"atm_field", "surface_field"},
-      .gin = {"pos", "los", "max_step", "as_sensor"},
-      .gin_type = {"Vector3", "Vector2", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{1e3}, Index{1}},
+      .gin =
+          {"pos", "los", "max_step", "as_sensor", "add_limb", "remove_non_atm"},
+      .gin_type = {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    Numeric{1e3},
+                    Index{1},
+                    Index{0},
+                    Index{1}},
       .gin_desc = {
           "The origo of the radiation path",
           "The line of sight of the radiation path",
           "The maximum step length",
-          "Whether or not the path is as seen by the sensor or by the radiation (see text)"}};
+          "Whether or not the path is as seen by the sensor or by the radiation (see text)",
+          "Wheter or not to add the limb point",
+          "Wheter or not to keep only atmospheric points"}};
 
   wsm_data["rad_pathGeometricTangentAltitude"] = {
       .desc =
           R"--(Get a geometric radiation path that crosses the tangent altitude
 
 The path is defined by an azimuth, a position, and a tangent altitude.
+If the path ends up crossing the surface altitude, an error is thrown.
 
 The ``pos`` is either at the end or at the beginning of the path depending 
-on the ``as_sensor`` flag.  A value that evaluates to true means that it is
-at the end of the path.  If ``as_sensor`` is true, the ``azimuth`` is
-therefore looking backwards along the path.  Basically, ``as_sensor`` true means that
-``pos`` and ``azimuth`` behaves as sensor pos and azimuth.
+on the ``as_sensor`` flag.  A value that evaluates to true means that it
+is at the end of the path.  If ``as_sensor`` is true, the ``azimuth`` is
+therefore looking backwards along the path.  Basically, ``as_sensor`` true
+means that ``pos`` and ``azimuth`` behaves as sensor pos and azimuth.
 
 The ``max_step`` is the maximum step length in meters.  The path is first
-created between the two extremes of space and surface.  Afterwards, there
-are additional points added every ``max_step`` meters between these points
-until no more fits (the last step is shorter or exactly ``max_step``).
+created between the two extremes of space and space.  Afterwards,
+there are additional points added every ``max_step`` meters between these
+points until no more fits (the last step is shorter or exactly ``max_step``).
+
+Upon closing the method, the following options are available to modify
+the output:
+
+If ``add_limb`` is true, the limb point is added to the path at the end.  It
+is computed using bisections to ensure that the zenith angle of the tangent
+point is as close to 90 degrees as it can numerically be.
+
+If ``remove_non_atm`` is true, all points that are not in the atmosphere are
+removed.  It is recommended to remove these points as multiple methods will
+either perform poorly or not at all with these points present.
 )--",
       .author = {"Richard Larsson"},
       .out = {"rad_path"},
       .in = {"atm_field", "surface_field"},
-      .gin = {"pos", "tangent_altitude", "azimuth", "max_step", "as_sensor"},
-      .gin_type = {"Vector3", "Numeric", "Numeric", "Numeric", "Index"},
-      .gin_value =
-          {std::nullopt, std::nullopt, std::nullopt, Numeric{1e3}, Index{1}},
+      .gin = {"pos",
+              "tangent_altitude",
+              "azimuth",
+              "max_step",
+              "as_sensor",
+              "add_limb",
+              "remove_non_atm"},
+      .gin_type = {"Vector3",
+                   "Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "Index",
+                   "Index",
+                   "Index"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    Numeric{1e3},
+                    Index{1},
+                    Index{1},
+                    Index{1}},
       .gin_desc = {
           "The origo of the radiation path",
           "The tangent altitude of the radiation path",
           "The azimuth from the origo of the radiation path towards the tangent altitude",
           "The maximum step length",
-          "Whether or not the path is as seen by the sensor or by the radiation (see text)"}};
+          "Whether or not the path is as seen by the sensor or by the radiation (see text)",
+          "Wheter or not to add the limb point",
+          "Wheter or not to keep only atmospheric points"}};
 
   return wsm_data;
 }
