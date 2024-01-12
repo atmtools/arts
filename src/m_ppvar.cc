@@ -3,6 +3,8 @@
 #include <new_jacobian.h>
 #include <rte.h>
 #include <workspace.h>
+#include <path_point.h>
+#include <surf.h>
 
 void ppvar_radCalcTransmission(
     ArrayOfStokvecVector &ppvar_rad,
@@ -126,6 +128,67 @@ void ppvar_propmatCalc(const Workspace &ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void ppvar_propmatCalc2(const Workspace &ws,
+                        ArrayOfPropmatVector &ppvar_propmat,
+                        ArrayOfStokvecVector &ppvar_nlte,
+                        ArrayOfPropmatMatrix &ppvar_dpropmat,
+                        ArrayOfStokvecMatrix &ppvar_dnlte,
+                        const Agenda &propmat_clearsky_agenda,
+                        const JacobianTargets &jacobian_targets,
+                        const ArrayOfVector &ppvar_f,
+                        const ArrayOfPropagationPathPoint &rad_path,
+                        const ArrayOfAtmPoint &ppvar_atm) try {
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
+  const Size np = rad_path.size();
+  if (np == 0) {
+    ppvar_propmat.resize(0);
+    ppvar_nlte.resize(0);
+    ppvar_dpropmat.resize(0);
+    ppvar_dnlte.resize(0);
+    return;
+  }
+
+  ppvar_propmat.resize(np);
+  ppvar_nlte.resize(np);
+  ppvar_dpropmat.resize(np);
+  ppvar_dnlte.resize(np);
+
+  // Loop ppath points and determine radiative properties
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size ip = 0; ip < np; ip++) {
+    if (do_abort) continue;
+    try {
+      //! FIXME: Send in full path point instead of this
+      get_stepwise_clearsky_propmat(ws,
+                                    ppvar_propmat[ip],
+                                    ppvar_nlte[ip],
+                                    ppvar_dpropmat[ip],
+                                    ppvar_dnlte[ip],
+                                    propmat_clearsky_agenda,
+                                    jacobian_targets,
+                                    ppvar_f[ip],
+                                    Vector{path::mirror(rad_path[ip].los)},
+                                    ppvar_atm[ip]);
+    } catch (const std::runtime_error &e) {
+#pragma omp critical(iyEmissionStandard_source)
+      {
+        do_abort = true;
+        fail_msg.push_back(
+            var_string("Runtime-error in propagation radiative "
+                       "properties calculation at index ",
+                       ip,
+                       ": \n",
+                       e.what()));
+      }
+    }
+  }
+
+  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+}
+ARTS_METHOD_ERROR_CATCH
+
 void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
                           ArrayOfStokvecMatrix &ppvar_dsrc,
                           const ArrayOfPropmatVector &ppvar_propmat,
@@ -134,7 +197,7 @@ void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
                           const ArrayOfStokvecMatrix &ppvar_dnlte,
                           const ArrayOfVector &ppvar_f,
                           const ArrayOfAtmPoint &ppvar_atm,
-                          const JacobianTargets& jacobian_targets) try {
+                          const JacobianTargets &jacobian_targets) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
@@ -148,7 +211,8 @@ void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
   const Index nf = ppvar_propmat.front().size();
   const Index nq = jacobian_targets.target_count();
 
-  const Index it = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+  const Index it =
+      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
   ppvar_src.resize(np, StokvecVector(nf));
   ppvar_dsrc.resize(np, StokvecMatrix(nq, nf));
@@ -196,7 +260,8 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
   bool do_abort = false;
 
   // HSE variables
-  const Index temperature_derivative_position = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+  const Index temperature_derivative_position =
+      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
   const Index np = ppath.np;
 
@@ -255,10 +320,93 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void ppvar_tramatCalc2(ArrayOfMuelmatVector &ppvar_tramat,
+                       ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat,
+                       Vector &ppvar_distance,
+                       ArrayOfArrayOfVector &ppvar_ddistance,
+                       const ArrayOfPropmatVector &ppvar_propmat,
+                       const ArrayOfPropmatMatrix &ppvar_dpropmat,
+                       const ArrayOfPropagationPathPoint &rad_path,
+                       const ArrayOfAtmPoint &ppvar_atm,
+                       const SurfaceField &surface_field,
+                       const JacobianTargets &jacobian_targets,
+                       const Index &hse_derivative) try {
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
+  // HSE variables
+  const Index temperature_derivative_position =
+      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+
+  const Size np = rad_path.size();
+
+  if (np == 0) {
+    ppvar_tramat.resize(0);
+    ppvar_dtramat.resize(2, ArrayOfMuelmatMatrix{});
+    ppvar_distance.resize(0);
+    ppvar_ddistance.resize(2, ArrayOfVector{});
+    return;
+  }
+
+  const Index nf = ppvar_propmat.front().size();
+  const Index nq = jacobian_targets.target_count();
+
+  ppvar_tramat.resize(np, MuelmatVector(nf));
+  ppvar_dtramat.resize(2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
+  ppvar_distance.resize(np);
+  ppvar_ddistance.resize(2, ArrayOfVector(np, Vector(nq, 0)));
+
+#pragma omp parallel for if (!arts_omp_in_parallel())
+  for (Size ip = 1; ip < np; ip++) {
+    if (do_abort) continue;
+    try {
+      ppvar_distance[ip - 1] =
+          path::distance(rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
+      if (hse_derivative and temperature_derivative_position >= 0) {
+        ppvar_ddistance[0][ip][temperature_derivative_position] =
+            ppvar_distance[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature);
+        ppvar_ddistance[1][ip][temperature_derivative_position] =
+            ppvar_distance[ip - 1] / (2.0 * ppvar_atm[ip].temperature);
+      }
+
+      two_level_exp(ppvar_tramat[ip],
+                    ppvar_dtramat[0][ip],
+                    ppvar_dtramat[1][ip],
+                    ppvar_propmat[ip - 1],
+                    ppvar_propmat[ip],
+                    ppvar_dpropmat[ip - 1],
+                    ppvar_dpropmat[ip],
+                    ppvar_distance[ip - 1],
+                    ppvar_ddistance[0][ip],
+                    ppvar_ddistance[1][ip]);
+    } catch (const std::runtime_error &e) {
+#pragma omp critical(iyEmissionStandard_transmission)
+      {
+        do_abort = true;
+        fail_msg.push_back(
+            var_string("Runtime-error in transmission calculation at index ",
+                       ip,
+                       ": \n",
+                       e.what()));
+      }
+    }
+  }
+
+  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+}
+ARTS_METHOD_ERROR_CATCH
+
 void ppvar_atmFromPath(ArrayOfAtmPoint &ppvar_atm,
                        const Ppath &ppath,
                        const AtmField &atm_field) try {
   forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm_field);
+}
+ARTS_METHOD_ERROR_CATCH
+
+void ppvar_atmFromPath2(ArrayOfAtmPoint &ppvar_atm,
+                        const ArrayOfPropagationPathPoint &rad_path,
+                        const AtmField &atm_field) try {
+  forward_atm_path(atm_path_resize(ppvar_atm, rad_path), rad_path, atm_field);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -270,6 +418,19 @@ void ppvar_fFromPath(ArrayOfVector &ppvar_f,
   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm),
                     f_grid,
                     ppath,
+                    ppvar_atm,
+                    rte_alonglos_v);
+}
+ARTS_METHOD_ERROR_CATCH
+
+void ppvar_fFromPath2(ArrayOfVector &ppvar_f,
+                      const Vector &f_grid,
+                      const ArrayOfPropagationPathPoint &rad_path,
+                      const ArrayOfAtmPoint &ppvar_atm,
+                      const Numeric &rte_alonglos_v) try {
+  forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm),
+                    f_grid,
+                    rad_path,
                     ppvar_atm,
                     rte_alonglos_v);
 }

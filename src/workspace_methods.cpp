@@ -10220,9 +10220,15 @@ Options are:
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_atm"},
-
       .in = {"ppath", "atm_field"},
+  };
 
+  wsm_data["ppvar_atmFromPath2"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Gets the atmospheric points along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ppvar_atm"},
+      .in = {"rad_path", "atm_field"},
   };
 
   wsm_data["ppvar_cumtramatForward"] = WorkspaceMethodInternalRecord{
@@ -10250,9 +10256,15 @@ Options are:
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_f"},
-
       .in = {"f_grid", "ppath", "ppvar_atm", "rte_alonglos_v"},
+  };
 
+  wsm_data["ppvar_fFromPath2"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Gets the frequency grid along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ppvar_f"},
+      .in = {"f_grid", "rad_path", "ppvar_atm", "rte_alonglos_v"},
   };
 
   wsm_data["ppvar_optical_depthFromPpvar_trans_cumulat"] =
@@ -10276,15 +10288,26 @@ The values in ppvar_optical_depth are set to
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"},
-
       .in = {"propmat_clearsky_agenda",
              "jacobian_targets",
              "ppvar_f",
              "ppath",
              "ppvar_atm"},
-
       .pass_workspace = true,
+  };
 
+  wsm_data["ppvar_propmatCalc2"] = WorkspaceMethodInternalRecord{
+      .desc =
+          R"--(Gets the propagation matrix and NLTE source term along the path.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"},
+      .in = {"propmat_clearsky_agenda",
+             "jacobian_targets",
+             "ppvar_f",
+             "rad_path",
+             "ppvar_atm"},
+      .pass_workspace = true,
   };
 
   wsm_data["ppvar_radCalcEmission"] = WorkspaceMethodInternalRecord{
@@ -10356,13 +10379,33 @@ of the derivatives out of this function is 2.
               "ppvar_dtramat",
               "ppvar_distance",
               "ppvar_ddistance"},
-
       .in = {"ppvar_propmat",
              "ppvar_dpropmat",
              "ppath",
              "ppvar_atm",
              "jacobian_targets"},
+      .gin = {"hse_derivative"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc = {"Flag to compute the hypsometric distance derivatives"}};
 
+  wsm_data["ppvar_tramatCalc2"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Gets the transmission matrix in layers along the path.
+
+A layer is defined as made up by the average of 2 levels, thus the outer-most size
+of the derivatives out of this function is 2.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ppvar_tramat",
+              "ppvar_dtramat",
+              "ppvar_distance",
+              "ppvar_ddistance"},
+      .in = {"ppvar_propmat",
+             "ppvar_dpropmat",
+             "rad_path",
+             "ppvar_atm",
+             "surface_field",
+             "jacobian_targets"},
       .gin = {"hse_derivative"},
       .gin_type = {"Index"},
       .gin_value = {Index{0}},
@@ -15412,6 +15455,18 @@ Gets the ellispoid from *surface_field*
              "stop_distance_radiation_agenda"},
       .pass_workspace = true};
 
+  wsm_data["background_radFromPath2"] = {
+      .desc = R"--(Computes the background radiation.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"background_rad", "background_drad"},
+      .in = {"f_grid",
+             "jacobian_targets",
+             "rad_path",
+             "space_radiation_agenda",
+             "surface_radiation_agenda"},
+      .pass_workspace = true};
+
   wsm_data["background_radCosmicBackground"] = {
       .desc = R"--(Set the cosmic background radiation.
 )--",
@@ -15459,6 +15514,13 @@ Size : (*jacobian_targets*, *f_grid*)
       .out = {"drad"},
       .in = {"drad", "ppvar_drad", "jacobian_targets", "atm_field", "ppath"}};
 
+  wsm_data["dradAddPathPropagation2"] = {
+      .desc = R"--(Adds the propagation variables to *drad*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"drad"},
+      .in = {"drad", "ppvar_drad", "jacobian_targets", "atm_field", "rad_path"}};
+
   wsm_data["radFromPathPropagation"] = {
       .desc = R"--(Sets *rad* from front of *ppvar_rad*
 )--",
@@ -15478,6 +15540,27 @@ Size : (*jacobian_targets*, *f_grid*)
              "space_radiation_agenda",
              "surface_radiation_agenda",
              "stop_distance_radiation_agenda",
+             "propmat_clearsky_agenda",
+             "rte_alonglos_v"},
+      .gin = {"hse_derivative"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc =
+          {"Whether or not hypsometric balance is assumed in temperature derivatives"},
+      .pass_workspace = true};
+
+  wsm_data["radStandardEmission2"] = {
+      .desc = R"--(Sets *rad* and *drad* from standard emission calculations
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"rad", "drad"},
+      .in = {"f_grid",
+             "jacobian_targets",
+             "atm_field",
+             "surface_field",
+             "rad_path",
+             "space_radiation_agenda",
+             "surface_radiation_agenda",
              "propmat_clearsky_agenda",
              "rte_alonglos_v"},
       .gin = {"hse_derivative"},
@@ -15765,18 +15848,24 @@ point is as close to 90 degrees as it can numerically be.
 If ``remove_non_atm`` is true, all points that are not in the atmosphere are
 removed.  It is recommended to remove these points as multiple methods will
 either perform poorly or not at all with these points present.
+
+If ``fix_updown_azimuth`` is true, the azimuthal angle of the path is
+fixed to the initial azimuthal angle of the path.  Because calculations
+of the azimuth angle makes use of IEEE atan2, some paths may produce
+bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
       .out = {"rad_path"},
       .in = {"atm_field", "surface_field"},
       .gin =
-          {"pos", "los", "max_step", "as_sensor", "add_limb", "remove_non_atm"},
-      .gin_type = {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index"},
+          {"pos", "los", "max_step", "as_sensor", "add_limb", "remove_non_atm", "fix_updown_azimuth"},
+      .gin_type = {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index", "Index"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{1e3},
                     Index{1},
                     Index{0},
+                    Index{1},
                     Index{1}},
       .gin_desc = {
           "The origo of the radiation path",
@@ -15784,7 +15873,8 @@ either perform poorly or not at all with these points present.
           "The maximum step length",
           "Whether or not the path is as seen by the sensor or by the radiation (see text)",
           "Wheter or not to add the limb point",
-          "Wheter or not to keep only atmospheric points"}};
+          "Wheter or not to keep only atmospheric points",
+          "Whether or not to attempt fix a potential issue with the path azimuthal angle"}};
 
   wsm_data["rad_pathGeometricTangentAltitude"] = {
       .desc =
@@ -15814,6 +15904,11 @@ point is as close to 90 degrees as it can numerically be.
 If ``remove_non_atm`` is true, all points that are not in the atmosphere are
 removed.  It is recommended to remove these points as multiple methods will
 either perform poorly or not at all with these points present.
+
+If ``fix_updown_azimuth`` is true, the azimuthal angle of the path is
+fixed to the initial azimuthal angle of the path.  Because calculations
+of the azimuth angle makes use of IEEE atan2, some paths may produce
+bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
       .out = {"rad_path"},
@@ -15824,11 +15919,13 @@ either perform poorly or not at all with these points present.
               "max_step",
               "as_sensor",
               "add_limb",
-              "remove_non_atm"},
+              "remove_non_atm",
+              "fix_updown_azimuth"},
       .gin_type = {"Vector3",
                    "Numeric",
                    "Numeric",
                    "Numeric",
+                   "Index",
                    "Index",
                    "Index",
                    "Index"},
@@ -15836,6 +15933,7 @@ either perform poorly or not at all with these points present.
                     std::nullopt,
                     std::nullopt,
                     Numeric{1e3},
+                    Index{1},
                     Index{1},
                     Index{1},
                     Index{1}},
@@ -15846,7 +15944,8 @@ either perform poorly or not at all with these points present.
           "The maximum step length",
           "Whether or not the path is as seen by the sensor or by the radiation (see text)",
           "Wheter or not to add the limb point",
-          "Wheter or not to keep only atmospheric points"}};
+          "Wheter or not to keep only atmospheric points",
+          "Whether or not to attempt fix a potential issue with the path azimuthal angle"}};
 
   return wsm_data;
 }

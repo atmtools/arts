@@ -471,19 +471,13 @@ Numeric find_crossing_with_surface_z(const Vector3 pos,
   return std::midpoint(l_min, l_max);
 }
 
-constexpr bool up_or_down_los(const Vector2 los) {
-  return los[0] == 0 or los[0] == 180;
-}
-
 Vector2 enu2los(const Vector3 enu) {
   // los[0] came out as Nan for a case as enu[2] was just below -1
   // So let's be safe and normalise enu[2], and get a cheap assert for free
   const Numeric twonorm = std::hypot(enu[0], enu[1], enu[2]);
   ARTS_ASSERT(nonstd::abs(twonorm - 1.0) < 1e-6, enu);
-  Vector2 out;
-  out[0] = Conversion::acosd(enu[2] / twonorm);
-  out[1] = (not up_or_down_los(out)) * Conversion::atan2d(enu[0], enu[1]);
-  return out;
+  return {Conversion::acosd(enu[2] / twonorm),
+          Conversion::atan2d(enu[0], enu[1])};
 }
 
 std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
@@ -520,7 +514,7 @@ std::pair<Vector3, Vector2> ecef2geodetic_poslos(const Vector3 ecef,
 Vector2 mirror(const Vector2 los) {
   Vector2 los_mirrored;
   los_mirrored[0] = 180 - los[0];
-  los_mirrored[1] = (not up_or_down_los(los)) * (los[1] + 180);
+  los_mirrored[1] = los[1] + 180;
   if (los_mirrored[1] > 180) {
     los_mirrored[1] -= 360;
   }
@@ -545,7 +539,7 @@ PropagationPathPoint init(const Vector3& pos,
   using enum PositionType;
   ARTS_USER_ERROR_IF(pos[1] > 90 or pos[1] < -90, "Non-polar coordinate")
 
-  if (pos[0] >= atm_field.top_of_atmosphere) {
+  if (pos[0] > atm_field.top_of_atmosphere) {
     return PropagationPathPoint{.pos_type = space,
                                 .los_type = unknown,
                                 .pos = pos,
@@ -825,6 +819,9 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
   ARTS_USER_ERROR_IF(
       path.size() == 0,
       "Must have at least one path point, please call some init() first")
+  ARTS_USER_ERROR_IF(
+      path.back().los_type != PositionType::unknown,
+      "Cannot set extremes for path that knows where it is looking")
 
   const auto [first, second, second_is_valid] =
       pair_line_ellipsoid_intersect(path.back(),
@@ -842,6 +839,7 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     ArrayOfPropagationPathPoint& path,
     const SurfaceField& surface_field,
     const Numeric max_step) {
+  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
   if (path.size() == 0) return path;
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -849,17 +847,16 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
     if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
-      const auto ecef1 = geodetic2ecef(p1.pos, surface_field.ellipsoid);
-      const auto ecef2 = geodetic2ecef(p2.pos, surface_field.ellipsoid);
-      const Numeric distance = ecef_distance(ecef1, ecef2);
-      const Vector3 decef{(ecef1[0] - ecef2[0]) / distance,
-                          (ecef1[1] - ecef2[1]) / distance,
-                          (ecef1[2] - ecef2[2]) / distance};
+      const auto [rad_start, rad_dir] =
+          geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
+      const Numeric distance = ecef_distance(
+          rad_start, geodetic2ecef(p1.pos, surface_field.ellipsoid));
+      if (distance <= max_step) continue;
       path.reserve(path.size() + static_cast<Size>(distance / max_step));
       for (Numeric d = distance - max_step; d > 0; d -= max_step) {
         path.insert(path.begin() + 1 + i,
-                    path_at_distance<false>(ecef2,
-                                            decef,
+                    path_at_distance<false>(rad_start,
+                                            rad_dir,
                                             surface_field.ellipsoid,
                                             d,
                                             PositionType::atm,
@@ -1067,7 +1064,8 @@ PropagationPathPoint find_geometric_limb(
 
   Numeric x0 = 0, x1 = distance, x = std::midpoint(x0, x1);
   PropagationPathPoint cur = *pre_limb_point, next = get_limb_point(x);
-  while (cur.los[0] != 90.0 and std::nextafter(cur.los[0], next.los[0]) != next.los[0]) {
+  while (cur.los[0] != 90.0 and
+         std::nextafter(cur.los[0], next.los[0]) != next.los[0]) {
     cur = next;
     (cur.los[0] >= 90.0 ? x0 : x1) = x;
     x = std::midpoint<Numeric>(x0, x1);
@@ -1181,5 +1179,30 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
   }
 
   return za0;
+}
+
+Numeric distance(const Vector3 pos1,
+                 const Vector3 pos2,
+                 const SurfaceField& surface_field) {
+  return ecef_distance(geodetic2ecef(pos1, surface_field.ellipsoid),
+                       geodetic2ecef(pos2, surface_field.ellipsoid));
+}
+
+ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
+    ArrayOfPropagationPathPoint& path) {
+  if (path.size() == 0) return path;
+
+  constexpr auto atan2_failstate = [](const Vector2 los) {
+    return los[1] == 0.0 or los[1] == 90.0 or los[1] == -90.0;
+  };
+
+  if (std::ranges::all_of(path, atan2_failstate, &PropagationPathPoint::los)) {
+    std::ranges::for_each(
+        path,
+        [azimuth = path.front().los[1]](Vector2& los) { los[1] = azimuth; },
+        &PropagationPathPoint::los);
+  }
+
+  return path;
 }
 }  // namespace path

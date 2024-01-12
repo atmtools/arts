@@ -4,6 +4,7 @@
 #include <enums.h>
 #include <matpack.h>
 #include <surf.h>
+#include "matpack_constexpr.h"
 
 namespace path {
 ENUMCLASS(PositionType, char, atm, space, subsurface, surface, unknown)
@@ -189,6 +190,18 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
 Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
                                     const SurfaceField& surface_field);
 
+/** Distance between two positions in in meters
+ *
+ * The positions are given as [alt, lat, lon] in meters and degrees
+ * 
+ * @param pos1 The first position
+ * @param pos2 The second position
+ * @param surface_field The surface field (as the WSV)
+ * @return Numeric Distance in meters
+ */
+Numeric distance(const Vector3 pos1, const Vector3 pos2,
+                 const SurfaceField& surface_field);
+
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by
  * a sensor at a given position
  *
@@ -217,6 +230,30 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
  * @return The input for piping
  */
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path);
+
+/** Fix the up-down azimuth of a propagation path to the given value
+ *
+ * This compensates for the atan2 rules that:
+ *
+ *  If y is ±0 and x is negative or -0, ±π is returned.
+ *  If y is ±0 and x is positive or +0, ±0 is returned.
+ *  If x is ±0 and y is negative, -π/2 is returned.
+ *  If x is ±0 and y is positive, +π/2 is returned. 
+ * 
+ * Since the line-of-sight ECEF vector may randomly choose between +0 and -0
+ * for the output of a los vector such as [180, 0] that has been propagated
+ * forward some distance, the azimuth of an uncompensated path may randomly
+ * switch between an azimuth angle of -90, 0, and 90 degrees.
+ *
+ * This method checks that if all of the angles are 0, 90, or -90,
+ * then all azimuth angles are set to the first path point azimuth input.
+ * If this condition is false, the path is left unchanged.
+ * 
+ * @param[in] path The propagation path
+ * @return The input for piping
+ */
+ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
+    ArrayOfPropagationPathPoint& path);
 }  // namespace path
 
 using PropagationPathPoint = path::PropagationPathPoint;
