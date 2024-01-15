@@ -5,7 +5,6 @@ ws = pyarts.workspace.Workspace()
 
 # %% Calculations
 
-ws.iy_unit = "PlanckBT"
 ws.ppath_lstep = 5e2
 ws.ppath_lmax = 1e3
 ws.ppath_lraytrace = 1e3
@@ -31,6 +30,8 @@ ws.propmat_clearsky_agendaAuto()
 # %% Grids and planet
 
 ws.PlanetSet(option="Earth")
+ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
+
 ws.atm_fieldInit(toa=100e3)
 ws.atm_fieldAddGriddedData(
     key=pyarts.arts.String("t"),
@@ -56,8 +57,7 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 ws.spectral_radiance_background_space_agendaSet()
 ws.spectral_radiance_background_surface_agendaSet()
-ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
 
 # %% Core calculations
 ws.propagation_pathGeometric(pos=[300e3, 0, 0], los=[180, 0])
-ws.spectral_radianceStandardEmission2()
+ws.spectral_radianceStandardEmission()

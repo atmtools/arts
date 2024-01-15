@@ -127,48 +127,6 @@ bool ppath_l2toa_from_above(Numeric& l2toa,
                             const Numeric& z_toa);
 
 
-/** Basic algorithm for finding refracted path between two points
-
-    This is the implementation of the basic option of
-    *ppathRefractedToPosition* and see built-in doc of that WSM for a
-    short description of the algorithm and its GIN parameters.
-
-    @param[in,out]  ws
-    @param[out]     ppath
-    @param[in]      refr_index_air_ZZZ_agenda  As the WSV with same name
-    @param[in]      ppath_lstep                As the WSV with same name
-    @param[in]      ppath_lraytrace            As the WSV with same name
-    @param[in]      surface_elevation          As the WSV with same name
-    @param[in]      surface_search_accuracy    As the WSV with same name
-    @param[in]      z_toa                      As the GIN with same name
-    @param[in]      do_horizontal_gradients    As the GIN with same name
-    @param[in]      do_twosided_perturb        As the GIN with same name
-    @param[in]      start_pos                  Matches WSV *rte_pos*
-    @param[in]      target_pos                 As the GIN with same name
-    @param[in]      target_dl                  As the GIN with same name
-    @param[in]      max_iterations             As the GIN with same name
-    @param[in]      robust                     As the GIN with same name
-
-    @author Patrick Eriksson
-    @date   2023-01-08
-*/
-void refracted_link_basic(const Workspace& ws,
-                          Ppath& ppath,
-                          const Agenda& refr_index_air_ZZZ_agenda,
-                          const Numeric& ppath_lstep,
-                          const Numeric& ppath_lraytrace,
-                          const SurfaceField& surface_field,
-                          const Numeric& surface_search_accuracy,
-                          const Numeric& z_toa,
-                          const Index& do_horizontal_gradients,
-                          const Index& do_twosided_perturb,
-                          const Vector& start_pos,
-                          const Vector& target_pos,
-                          const Numeric& target_dl,
-                          const Index& max_iterations,
-                          const Index& robust);
-
-
 /** Direction of specular reflection
 
     The surface is assumed to have no roughness, but topography is

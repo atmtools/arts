@@ -23,7 +23,9 @@ Before showing you how to creating your own iy_space_agenda,
 this method call can do it for you, and it will probably do
 it faster and safer than any manual approach:
 """
-ws.iy_space_agendaSet(option="CosmicBackground")
+ws.spectral_radiance_background_space_agendaSet(
+    option="UniformCosmicBackground"
+)
 
 """
 That said, we provide interpreted ways to create agendas manually.
@@ -34,14 +36,17 @@ can be created by the following, decorated code:
 
 @pyarts.workspace.arts_agenda
 def cosmic_background(ws):
-    ws.MatrixCBR(output=ws.iy, f=ws.f_grid)
-    ws.Ignore(ws.rtp_pos)
-    ws.Ignore(ws.rtp_los)
+    ws.spectral_radiance_backgroundUniformCosmicBackground(
+        spectral_radiance_background=ws.spectral_radiance_background,
+        f_grid=ws.f_grid,
+    )
+    ws.spectral_radiance_background_jacobianEmpty()
+    ws.Ignore(ws.path_point)
 
 
-ws.iy_space_agenda = cosmic_background
+ws.spectral_radiance_background_space_agenda = cosmic_background
 print(cosmic_background)
-print(ws.iy_space_agenda)
+print(ws.spectral_radiance_background_space_agenda)
 
 
 """
@@ -58,11 +63,25 @@ on as a named argument to the agenda decorator:
 
 
 @pyarts.workspace.arts_agenda(ws=ws)
-def iy_space_agenda(ws):
-    ws.MatrixCBR(output=ws.iy, f=ws.f_grid)
-    ws.Ignore(ws.rtp_pos)
-    ws.Ignore(ws.rtp_los)
+def spectral_radiance_background_space_agenda(ws):
+    ws.spectral_radiance_backgroundUniformCosmicBackground()
+    ws.spectral_radiance_background_jacobianEmpty()
+    ws.Ignore(ws.path_point)
 
 
-print(iy_space_agenda)
-print(ws.iy_space_agenda)
+print(spectral_radiance_background_space_agenda)
+print(ws.spectral_radiance_background_space_agenda)
+
+"""
+Lastly, an advanced feature to skip typing ignores is to tell the property to
+deal with this for you by fixing the agenda.  Note that this might give you bad
+results if the agenda is ever changed in a future update of ARTS as the method
+will simply append all new input.  Still, it is convenient:
+"""
+
+@pyarts.workspace.arts_agenda(ws=ws, fix=True)
+def spectral_radiance_background_space_agenda(ws):
+    ws.spectral_radiance_backgroundUniformCosmicBackground()
+    ws.spectral_radiance_background_jacobianEmpty()
+
+print(spectral_radiance_background_space_agenda)

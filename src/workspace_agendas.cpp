@@ -29,17 +29,6 @@ that can be used here.
                 "rtp_los",
                 "atm_point"}};
 
-  wsa_data["dobatch_calc_agenda"] = {
-      .desc = R"--(Calculations to perform for each batch case.
-
-See also: *DOBatchCalc*
-)--",
-      .output = {"spectral_radiance_field",
-                 "radiance_field",
-                 "irradiance_field",
-                 "spectral_irradiance_field"},
-      .input = {"ybatch_index"}};
-
   wsa_data["doit_conv_test_agenda"] = {
       .desc = R"--(Compute the convergence test.
 
@@ -134,13 +123,6 @@ be used for test cases:
       .output = {"cloudbox_field_mono"},
       .input = {"cloudbox_field_mono", "doit_scat_field"}};
 
-  wsa_data["forloop_agenda"] = {.desc = R"--(The body for a for loop.
-
-This agenda contains the body of the for loop to be execute by the
-method *ForLoop*.
-)--",
-                                .input = {"forloop_index"}};
-
   wsa_data["gas_scattering_agenda"] = {
       .desc =
           R"--(Calculation of the gas scattering extinction and phase matrix.
@@ -172,187 +154,6 @@ Returns *g0* for given geographical position.
 )--",
       .output = {"g0"},
       .input = {"lat", "lon"}};
-
-  wsa_data["inversion_iterate_agenda"] = {
-      .desc = R"--(Work in progress ...
-
-The WSV *jacobian* is both in- and output. As input variable, *jacobian*
-is assumed to be valid for the previous iteration. For the first iteration
-the input *jacobian* shall be set to have size zero, to flag that there
-is not yet any calculated Jacobian.
-)--",
-      .output = {"yf", "jacobian"},
-      .input = {"x", "jacobian_do", "inversion_iteration_counter"}};
-
-  wsa_data["iy_cloudbox_agenda"] = {
-      .desc = R"--(Intensity at boundary or interior of the cloudbox.
-
-The task of the agenda is to determine the intensity at some point
-at the boundary of or inside the cloudbox. The actual calculations
-inside the agenda differ depending on scattering solution method.
-If DOIT is used, an interpolating of the intensity field should be
-performed. Another option is to start backward Monte Carlo 
-calculations from this point.
-
-A function calling this agenda shall set *rte_pos* and *rte_los* to
-the position and line-of-sight for which the scattered radiation
-shall be determined.
-
-The include-file 'agendas.arts' pre-defines some agendas that can
-either be used directly, or serve as examples.
-)--",
-      .output = {"iy"},
-      .input = {"f_grid", "rtp_pos", "rtp_los"}};
-
-  wsa_data["iy_loop_freqs_agenda"] = {
-      .desc = R"--(Agenda dedicated to *iyLoopFrequencies*.
-
-If *iyLoopFrequencies* is used, this agenda basically replaces
-*iy_main_agenda*.Accordingly, this agenda has exactly the same
-output as *iy_main_agenda*.
-)--",
-      .output = {"iy", "iy_aux", "ppath", "diy_dx"},
-      .input = {"diy_dx",
-                "iy_agenda_call1",
-                "iy_transmittance",
-                "iy_aux_vars",
-                "iy_id",
-                "f_grid",
-                "rte_pos",
-                "rte_los",
-                "rte_pos2"}};
-
-  wsa_data["iy_main_agenda"] = {
-      .desc = R"--(Calculation of a single monochromatic pencil beam spectrum.
-
-The task of the agenda is to calculate the monochromatic pencil beam
-spectrum for the position specified by *rte_pos* and the viewing
-direction specified by *rte_los*.
-
-Methods for this agenda can either handle the complete calculation,
-make use of e.g. *iy_cloudbox_agenda* or be restricted to special
-cases. See the documentation for the different methods.
-
-The include-file 'agendas.arts' predefines some typical alternatives
-that can be used directly, or adapted for specific applications.
-)--",
-      .output = {"iy", "iy_aux", "ppath", "diy_dx", "geo_pos"},
-      .input = {"iy_agenda_call1",
-                "iy_transmittance",
-                "iy_aux_vars",
-                "iy_id",
-                "iy_unit",
-                "cloudbox_on",
-                "jacobian_do",
-                "f_grid",
-                "atm_field",
-                "rte_pos",
-                "rte_los",
-                "rte_pos2"}};
-
-  wsa_data["iy_radar_agenda"] = {
-      .desc = R"--(Calculation of pointwise backscattering.
-
-This agenda has a similar role for ``yRadar`` as *iy_main_agenda*.
-for ``yCalc``.
-)--",
-      .output = {"iy", "iy_aux", "ppath", "diy_dx", "geo_pos"},
-      .input = {"iy_aux_vars",
-                "iy_id",
-                "cloudbox_on",
-                "jacobian_do",
-                "rte_pos",
-                "rte_los"}};
-
-  wsa_data["iy_space_agenda"] = {
-      .desc = R"--(Downwelling radiation at the top of the atmosphere.
-
-Possible terms to include in this agenda include cosmic background
-radiation and solar radiation.
-
-A function calling this agenda shall set *rtp_pos* and *rtp_los* to
-the position and line-of-sight for which the entering radiation 
-shall be determined. The position and line-of-sight must be known, 
-for example, when radiation from the sun is considered.
-
-The include-file 'agendas.arts' predefines an agenda that can be
-applied directly for most users.
-)--",
-      .output = {"iy"},
-      .input = {"f_grid", "rtp_pos", "rtp_los"}};
-
-  wsa_data["iy_surface_agenda"] = {
-      .desc = R"--(Upwelling radiation from the surface.
-
-The task of the agenda is to determine the upwelling intensity from
-the surface, for given point and direction.
-
-The standard choice should be to make use of *surface_rtprop_agenda*
-through the WSM *iySurfaceRtpropAgenda*.
-
-A function calling this agenda shall set *rtp_pos* and *rtp_los* to
-the position and line-of-sight for which the upwelling radiation
-shall be determined.
-
-See also the include-file 'agendas.arts' for a predefined agenda
-suitable to be used in most applications.
-)--",
-      .output = {"iy", "diy_dx"},
-      .input = {"diy_dx",
-                "dsurface_rmatrix_dx",
-                "dsurface_emission_dx",
-                "iy_unit",
-                "iy_transmittance",
-                "iy_id",
-                "cloudbox_on",
-                "jacobian_do",
-                "iy_main_agenda",
-                "f_grid",
-                "atm_field",
-                "rtp_pos",
-                "rtp_los",
-                "rte_pos2",
-                "surface_field",
-                "dsurface_names"}};
-
-  wsa_data["jacobian_agenda"] = {
-      .desc = R"--(Pure numerical Jacobian calculations.
-
-Parts of the Jacobian matrix can be determined by (semi-)analytical
-expressions, while other parts are calculated in a pure numerical
-manner (by perturbations). This agenda describes the calculations to
-be performed in the later case.
-
-This agenda is normally not set directly by the user, but is created
-by calling the the jacobianAdd set of methods.
-)--",
-      .output = {"jacobian"},
-      .input = {"jacobian", "mblock_index", "iyb", "yb"}};
-
-  wsa_data["met_profile_calc_agenda"] = {
-      .desc = R"--(This agenda is used for metoffice profile calculations.
-
-This agenda is called inside the method ``ybatchMetProfiles`` which is
-used to make a batch calculation for the metoffice profiles.   
-See the documentation of ``ybatchMetProfiles`` for more information.
-
-This agenda can be, for example, set up like this:
-
-1. ``AtmFieldsCalc``
-2. *abs_lookupAdapt*
-3. *DoitInit*
-4. ``DoitGetIncoming``
-5. ``cloudbox_fieldSetClearsky``
-6. *DoitCalc*
-7. ``yCalc``
-)--",
-      .output = {"y"},
-      .input = {"atm_field",
-                "pnd_field_raw",
-                "sensor_los",
-                "cloudbox_on",
-                "cloudbox_limits",
-                "surface_field"}};
 
   wsa_data["pha_mat_spt_agenda"] = {
       .desc =
@@ -388,99 +189,6 @@ Note that content of this agenda array, *scat_species* and
                 "pnd_agenda_input_names",
                 "dpnd_data_dx_names"},
       .array = true};
-
-  wsa_data["ppath_agenda"] = {
-      .desc = R"--(Calculation of complete propagation paths.
-
-In contrast to *ppath_step_agenda* that controls the ray tracing
-inside each grid box, this agenda determines how complete paths are
-determined. The standard choice is to do this in a step-by-step
-manner using *ppath_step_agenda*, with this agenda set to call
-``ppathStepByStep``.
-
-The WSV *rte_los* is both input and output as in some cases it is
-determined as part of the propagation path calculations (such as
-radio link calculations).
-)--",
-      .output = {"ppath"},
-      .input = {"ppath_lmax",
-                "ppath_lraytrace",
-                "rte_pos",
-                "rte_los",
-                "rte_pos2",
-                "cloudbox_on",
-                "ppath_inside_cloudbox_do",
-                "f_grid"}};
-
-  wsa_data["ppath_step_agenda"] = {
-      .desc = R"--(Calculation of a propagation path step.
-
-A propagation path step is defined as the path between some point 
-to a crossing with either the pressure, latitude or longitude grid,
-and this agenda performs the calculations to determine such a 
-partial propagation path. The starting point is normally a grid 
-crossing point, but can also be an arbitrary point inside the 
-atmosphere, such as the sensor position. Only points inside the 
-model atmosphere are handled.
-
-The communication between this agenda and the calling method is 
-handled by *ppath_step*. That variable is used both as input and 
-output to *ppath_step_agenda*. The agenda gets back *ppath_step* 
-as returned to the calling method and the last path point hold by 
-the structure is accordingly the starting point for the new 
-calculations. If a total propagation path shall be determined, this
-agenda is called repeatedly until the starting point of the 
-propagation path is found and *ppath_step* will hold all path 
-steps that together make up *ppath*. The starting point is included
-in the returned structure. 
-
-The path is determined by starting at the end point and moving 
-backwards to the starting point. The calculations are initiated by 
-filling *ppath_step* with the practical end point of the path. 
-This is either the position of the sensor (true or hypothetical), 
-or some point at the top of the atmosphere (determined by
-geometrical calculations starting at the sensor). This 
-initialisation is not handled by *ppath_step_agenda* (but by 
-the internal function ppath_start_stepping). 
-
-The *ppath_step_agenda* put in points along the propagation path 
-at all crossings with the grids, tangent points and points of 
-surface reflection. It is also allowed to make agendas that put in 
-additional points to fulfil some criterion, such as a maximum 
-distance along the path between the points. Accordingly, the 
-number of new points of each step can exceed one.
-
-The include file 'agendas.arts' defines some agendas that can be
-used here.
-)--",
-      .output = {"ppath_step"},
-      .input = {"ppath_step", "ppath_lmax", "ppath_lraytrace", "f_grid"}};
-
-  wsa_data["ppvar_rtprop_agenda"] = {
-      .desc = R"--(Setup propagation path variables for RTE.
-)--",
-      .output = {"ppvar_propmat",
-                 "ppvar_dpropmat",
-                 "spectral_radiance_path_source",
-                 "spectral_radiance_path_source_jacobian",
-                 "ppvar_tramat",
-                 "ppvar_dtramat",
-                 "ppvar_distance",
-                 "ppvar_ddistance",
-                 "ppvar_cumtramat"},
-      .input = {"ppath", "ppvar_atm", "ppvar_f", "jacobian_do"}};
-
-  wsa_data["rte_background_agenda"] = {
-      .desc = R"--(Compute the radiative transfer equation through 
-the propagation path.
-)--",
-      .output = {"spectral_radiance_background", "diy_dx"},
-      .input = {"ppath",
-                "atm_field",
-                "f_grid",
-                "iy_transmittance",
-                "background_transmittance",
-                "jacobian_do"}};
 
   wsa_data["refr_index_air_agenda"] = {
       .desc = R"--(Calculation of the refractive index of air.
@@ -578,15 +286,6 @@ The order of the agendas shall match the coding used in
 )--",
       .output = {"water_p_eq_field"},
       .input = {"atm_field"}};
-
-  wsa_data["ybatch_calc_agenda"] = {
-      .desc = R"--(Calculations to perform for each batch case.
-
-Must produce a new spectrum vector (*y*) and Jacobi matrix (*jacobian*).
-See further *ybatchCalc*.
-)--",
-      .output = {"y", "y_aux", "jacobian"},
-      .input = {"ybatch_index"}};
 
   wsa_data["space_radiation_agenda"] = {
       .desc = R"--(Radiation as seen of space.

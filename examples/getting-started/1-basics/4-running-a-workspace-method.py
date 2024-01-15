@@ -20,15 +20,23 @@ You can call workspace methods with named or positional arguments or any
 combination thereof that python accepts
 """
 # 1)  Name some arguments
-ws.iy_space_agendaSet(option="CosmicBackground")
+ws.spectral_radiance_background_space_agendaSet(
+    option="UniformCosmicBackground"
+)
 # 2)  Name some arguments, use positional for the others
-ws.iy_space_agendaSet(ws.iy_space_agenda, option="CosmicBackground")
+ws.spectral_radiance_background_space_agendaSet(
+    ws.spectral_radiance_background_space_agenda,
+    option="UniformCosmicBackground",
+)
 # 3)  Name all arguments
-ws.iy_space_agendaSet(
-    iy_space_agenda=ws.iy_space_agenda, option="CosmicBackground"
+ws.spectral_radiance_background_space_agendaSet(
+    spectral_radiance_background_space_agenda=ws.spectral_radiance_background_space_agenda,
+    option="UniformCosmicBackground",
 )
 # 4)  Use all positional arguments
-ws.iy_space_agendaSet(ws.iy_space_agenda, "CosmicBackground")
+ws.spectral_radiance_background_space_agendaSet(
+    ws.spectral_radiance_background_space_agenda, "UniformCosmicBackground"
+)
 
 
 """
@@ -56,6 +64,17 @@ print("A denser vector of channel frequencies:\n", ws.f_grid)
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
-assert (ws.f_grid == [ 889750000,  890250000,  909750000,  910250000,
-                      1089750000, 1090250000, 1109750000, 1110250000]).all()
+assert (
+    ws.f_grid
+    == [
+        889750000,
+        890250000,
+        909750000,
+        910250000,
+        1089750000,
+        1090250000,
+        1109750000,
+        1110250000,
+    ]
+).all()
 # END TESTING

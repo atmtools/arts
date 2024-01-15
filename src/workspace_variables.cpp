@@ -484,7 +484,7 @@ Dimensions:
   wsv_data["avk"] = {.desc = R"--(Averaging kernel matrix.
 
 This matrix is the partial derivative of the retrieved state vector
-with respect to the measurement vector (*y*).
+with respect to the measurement vector (``y``).
 
 Usage: Used and set by inversion methods.
 )--",
@@ -785,7 +785,7 @@ Usage:   Used by the retrievalAdd functions.
   wsv_data["covmat_se"] = {
       .desc = R"--(Covariance matrix for observation uncertainties.
 
-This matrix (Se) describes the uncertainty of the measurement vector (*y*),
+This matrix (Se) describes the uncertainty of the measurement vector (``y``),
 and can be writtenn as::
 
   Se = Seps + Kb * Sb * Kb'
@@ -915,88 +915,6 @@ A standard application should be to store the solid angle each
 row in *dlos* covers.
 )--",
       .type = "Vector"};
-
-  wsv_data["dobatch_cloudbox_field"] = {.desc = R"--(Batch of radiation fields.
-
-Each element of *dobatch_cloudbox_field* corresponds to a radiation field.
-See further *DOBatchCalc*.
-
-Usage: Most commonly produced by *DOBatchCalc*.
-
-Unit:  See *cloudbox_field*.
-
-Dimensions: Number of array elements equals number of batch cases.
-)--",
-                                        .type = "ArrayOfTensor7"};
-
-  wsv_data["dobatch_radiance_field"] = {.desc = R"--(Batch of radiance fields.
-
-Each element of *dobatch_radiance_field* corresponds to a radiance field.
-See further *DOBatchCalc*.
-
-Usage: Most commonly produced by *DOBatchCalc*.
-
-Unit:  See *radiance_field*.
-
-Dimensions: Number of array elements equals number of batch cases.
-)--",
-                                        .type = "ArrayOfTensor5"};
-
-  wsv_data["dobatch_irradiance_field"] = {
-      .desc = R"--(Batch of irradiance fields.
-
-Each element of *dobatch_irradiance_field* corresponds to a irradiance field.
-See further *DOBatchCalc*.
-
-Usage: Most commonly produced by *DOBatchCalc*.
-
-Unit:  See *irradiance_field*.
-
-Dimensions: Number of array elements equals number of batch cases.
-)--",
-      .type = "ArrayOfTensor4"};
-
-  wsv_data["dobatch_spectral_irradiance_field"] = {
-      .desc = R"--(Batch of spectral irradiance fields.
-
-Each element of *dobatch_spectral_irradiance_field* corresponds to a
-spectral irradiance field.
-See further *DOBatchCalc*.
-
-Usage: Most commonly produced by *DOBatchCalc*.
-
-Unit:  See *spectral_irradiance_field*.
-
-Dimensions: Number of array elements equals number of batch cases.
-)--",
-      .type = "ArrayOfTensor5"};
-
-  wsv_data["diy_dx"] = {
-      .desc = R"--(Derivative of *iy* with respect to retrieval quantities.
-
-The variable gives the derivative if *iy* with respect to some
-variables (but not all jacobian variables). Handled are only variables
-affecting monochromatic pencil beam radiances where an (semi-)
-analytical expression can be applied (and that this calculation way
-has been selected when the jacobian was been set-up).
-
-The values in *diy_dx* considers the retrieval unit selected (such as
-\"nd\", but no transformations are applied.
-
-Usage:      Output of *iy_main_agenda*.
-
-Dimensions: 
-     [n_quantities][ n_retrieval_points, f_grid, stokes_dim ]
-)--",
-      .type = "ArrayOfTensor3"};
-
-  wsv_data["diy_dpath"] = {
-      .desc = R"--(Derivative of *iy* with respect to retrieval quantities.
-
-The variable is defined along the path and has size: 
-     [n_quantities][ ppath.np, f_grid, stokes_dim ]
-)--",
-      .type = "ArrayOfTensor3"};
 
   wsv_data["dpnd_data_dx"] = {.desc = R"--(Partial derivates of *pnd_data*.
 
@@ -1176,7 +1094,7 @@ Dimensions: [dsurface_names][surface_los, f_grid, stokes_dim, stokes_dim]
   wsv_data["dxdy"] = {.desc = R"--(Contribution function (or gain) matrix.
 
 This matrix is the partial derivative of the retrieved state vector
-with respect to the measurement vector (*y*).
+with respect to the measurement vector (``y``).
 
 Usage: Used and set by inversion methods.
 )--",
@@ -1242,21 +1160,6 @@ See *WriteXMLIndexed* for further information.
 Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*.
 )--",
                             .type = "Index"};
-
-  wsv_data["forloop_index"] = {.desc = R"--(The index for for-loops.
-
-This is the index that is used by method *ForLoop* to loop over
-*forloop_agenda*.
-)--",
-                               .type = "Index"};
-
-  wsv_data["fos_iyin_za_angles"] = {.desc = R"--(So far just testing of FOS ...
-)--",
-                                    .type = "Vector"};
-
-  wsv_data["fos_scatint_angles"] = {.desc = R"--(So far just testing of FOS ...
-)--",
-                                    .type = "Matrix"};
 
   wsv_data["f_backend"] = {
       .desc =
@@ -1542,11 +1445,6 @@ Usage: Set by the user.
 )--",
       .type = "ArrayOfArrayOfIndex"};
 
-  wsv_data["inversion_iteration_counter"] = {
-      .desc = R"--(Iteration counter variable for *inversion_iterate_agenda*.
-)--",
-      .type = "Index"};
-
   wsv_data["irradiance_field"] = {
       .desc = R"--(Irradiance field also known as flux density.
 
@@ -1560,165 +1458,6 @@ Size: [ p_grid,  lat_grid,  lon_grid,  2 ]
 )--",
       .type = "Tensor4"};
 
-  wsv_data["iy"] = {.desc = R"--(Monochromatic pencil beam radiance spectrum.
-
-This variable holds a single spectrum, with values corresponding
-to infinite frequency and spatial resolution (compare to *y*).
-
-The variable is used to represent spectra at all positions of the
-propagation path and can e.g. temporarily hold radiation entering
-the atmosphere from space.
-
-Usage:      Used by radiative transfer methods.
-
-Unit:
- - For passive observations, as  selected by *iy_unit*.
- - For transmission calculations, same as for transmitted
-   signal.
-
-Dimensions: [ f_grid, stokes_dim ]
-)--",
-                    .type = "Matrix"};
-
-  wsv_data["iyb"] = {
-      .desc = R"--(Monochromatic pencil beam data for one measurement block.
-
-The data for all *iy* of a measurement block appended to a vector,
-following the sorting order used for *y*.
-
-Usage:      Used internally.
-
-Unit:       W / (m^2 Hz sr) or transmittance.
-
-Dimensions:
-            [ nlos * nf * stokes_dim ] where nlos is number of rows in
-            mblock_dlos, and nf is length of f_grid.
-)--",
-      .type = "Vector"};
-
-  wsv_data["iy_agenda_call1"] = {
-      .desc = R"--(Flag to handle recursive calls of *iy_main_agenda*
-
-The agenda *iy_main_agenda* can be used recursively and this flag
-is used to tell the methods inside the agenda which is the primary
-call. This is handled automatically for methods using
-*iy_main_agenda*, such as ``yCalc``, but the user must set this
-variable to 1 if the agenda is called directly inside the control
-file (which should be a rare case).
-)--",
-      .type = "Index"};
-
-  wsv_data["iy_aux"] = {.desc = R"--(Data auxiliary to *iy*.
-
-Different data beside the direct result of the radiative transfer
-calculations (*iy*) can be obtained by this variable. These auxilary
-data are selected by *iy_aux_vars*.
-
-Usage:      Provided by some radiative transfer methods.
-
-Dimensions: [quantity][ f_grid, stokes_dim ]
-)--",
-                        .type = "ArrayOfMatrix"};
-
-  wsv_data["iy_aux_vars"] = {
-      .desc =
-          R"--(Selection of quantities for *iy_aux* and when applicable also *y_aux*.
-
-Each element of this string array determines the quantity for the
-corresponding element in *iy_aux* and *y_aux* (i.e. the quantities
-are stored in the order given in *iy_aux_vars*).
-
-The possible choices vary between the methods. See the WSM you select
-for *iy_main_agenda* for the complete set of choices. Please not that
-if the calculations are done through ``yCalc``, you can not select
-along-the-path variables.
-)--",
-      .type = "ArrayOfString",
-      .default_value = ArrayOfString{}};
-
-  wsv_data["iy_id"] = {.desc = R"--(Identification number of *iy*.
-
-This variable is intended to be an identification number for individual
-calculations of *iy*. This id-number can e.g. be used as input to 
-*WriteXMLIndexed*, to link filenames to the different calculations.
-
-Some methods sets and updates *iy_id*. The general numbering scheme is::
-
-  xxxyyycba
-
-where xxx identifies the row in sensorPos/los (i.e. the mblock_index),
-yyy identifies pencil beam direction inside measurement block (should
-in general match a row in mblock_dlos), and cba identies later legs
-of total propagation paths, where a, b and c identifies secondary, tertiary
-and quaternary part, respectively. 1-based numbering is used. That is,
-the primary path of the first pencil beam of the first measurement block
-has iy_id = 001001000.
-
-Accordingly, the primary propagation path has cba = 000. If the primary path
-intersects with the surface, and the downwelling radiation is calculated
-for three directions, these secondary paths get cba = 001, 002 and 003.
-If tertiary paths appear, they have numbers such as 011. 
-
-As the numbering scheme has nine positions, it is suitable to store
-files as: WriteXMLIndexed(output_file_format,iy_id,in,filename,9)
-
-Setting of *iy_id* is not yet supported together with scattering
-calculations. The value of iy_id then differs, it is either set to 0
-or keeps its value set by ``yCalc``.
-)--",
-                       .type = "Index",
-                       .default_value = Index{0}};
-
-  wsv_data["iy_transmittance"] = {
-      .desc = R"--(Transmittance to be included in *iy*.
-
-The calculation of *iy* can be performed over several propation path
-branches, and there can be recursive calls of *iy_main_agenda*.
-This variable gives the transmittance from the end point of the present
-branch and the sensor for such recursive cases.
-
-This variable is used purely internally. The exact usage can vary
-between different RT integration schemes.
-
-Usage:      Internally inside iy_main_agenda.
-
-Unit:       1
-
-Dimensions: [ f_grid, stokes_dim, stokes_dim ]
-)--",
-      .type = "Tensor3"};
-
-  wsv_data["iy_transmitter"] = {
-      .desc =
-          R"--(Monochromatic pencil beam radiance spectrum of transmitter signal.
-
-This variable holds a single spectrum, with values corresponding
-to infinite frequency and spatial resolution (compare to *y*).
-
-Unit:       Depend on the transmitted signal
-
-Dimensions: [ f_grid, stokes_dim ]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["iy_unit"] = {
-      .desc = R"--(Selection of output unit for radiative transfer methods.
-
-This variable allows that the unit of the output radiance/intensity
-is changed. The possible choices differ between the radiative
-methods, including not considering the variable at all.
-Accordingly, for details see the radiative method you have selected
-(e.g., ``iyEmissionStandard``, ``iyMC`` and the like).
-)--",
-      .type = "String",
-      .default_value = String{"1"}};
-
-  wsv_data["iy_unit_radar"] = {.desc = R"--(Unit for radar simulations.
-
-See the radar methods for allowed options.
-)--",
-                               .type = "String"};
-
   wsv_data["jacobian"] = {.desc = R"--(The Jacobian matrix.
 
 The matrix holding the Jacobians of the retrieval quantities. The
@@ -1726,7 +1465,7 @@ matrix has to be initialised before the retrieval quantities can be
 defined. Initialisation is done by ``jacobianInit``. Retrieval quantities
 are then added with ``jacobianAdd...`` or ``retrievalAdd...`` methods.
 
-The order between rows and columns follows how data are stored in *y*
+The order between rows and columns follows how data are stored in ``y``
 and *x*, respectively.
 
 Units:   See the different retrieval quantities.
@@ -1842,11 +1581,9 @@ Usage: Input to MCGeneral. Set by *mc_antennaSetGaussian* and similar methods.
       .type = "MCAntenna"};
 
   wsv_data["mc_error"] = {
-      .desc = R"--(Error in simulated *y* when using a Monte Carlo approach.
+      .desc = R"--(Error in simulated ``y`` when using a Monte Carlo approach.
 
 Usage: Output from Monte Carlo functions. 
-
-Units: Depends on *iy_unit*.
 
 Size:  [ stokes_dim ]
 )--",
@@ -2174,14 +1911,14 @@ This is a vector of length 5, having the elements (0-based index):
        - 0 = converged
        - 1 = max iterations reached
        - 2 = max gamma of LM reached
-       - 9 = some error when calling *inversion_iterate_agenda*
+       - 9 = some error when calling ``inversion_iterate_agenda``
        - 99 = too high start cost.
   1. Start value of cost function.
   2. End value of cost function.
   3. End value of y-part of cost function.
   4. Number of iterations used.
 
-See WSM *OEM* for a definition of \"cost\". Values not calculated
+See WSM ``OEM`` for a definition of \"cost\". Values not calculated
 are set to NaN.
 )--",
       .type = "Vector"};
@@ -2458,23 +2195,6 @@ Size:
 )--",
       .type = "ArrayOfGriddedField3"};
 
-  wsv_data["ppath"] = {.desc = R"--(The propagation path for one observation.
-
-This variable describes the total (pencil beam) propagation path for
-a given combination of starting point and line-of-sight. The path is
-described by a data structure of type Ppath.
-
-Two important things about ARTS propagation paths are:
-  - The points are stored in backward order, i.e. the first point
-    is the one closest to the observation (end) position.
-  - The line-of-sights (LOS) are specified as the angles needed
-    to observe the radiation. That is, the radiation travel in
-    the reversed direction.
-
-Usage: Primarily output from *ppath_agenda*.
-)--",
-                       .type = "Ppath"};
-
   wsv_data["ppath_field"] = {
       .desc =
           R"--(An array meant to build up the necessary geometries for radiative
@@ -2549,31 +2269,6 @@ Unit:  m
 )--",
       .type = "Numeric",
       .default_value = Numeric{-1}};
-
-  wsv_data["ppath_step"] = {.desc = R"--(A propagation path step.
-
-The main intention of this variable is communication with the agenda
-*ppath_step_agenda*.
-
-See *ppath_step_agenda* for more information on this variable and
-the calculation of propagation paths. Or read the chapter on
-propagation paths in the ARTS user guide.
-
-Usage:   In/output to/from *ppath_step_agenda*.
-
-Members: See AUG.
-)--",
-                            .type = "Ppath"};
-
-  wsv_data["ppvar_iy"] = {.desc = R"--(iy-values along the propagation path.
-
-See ``ppvar_p`` for a general description of WSVs of ppvar-type.
-
-Dimension: [ number of frequencies, stokes_dim, ppath.np ]
-
-Usage: Output of radiative transfer methods.
-)--",
-                          .type = "Tensor3"};
 
   wsv_data["ppvar_atm"] = {
       .desc = R"--(Atmospheric points along the propagation path.
@@ -3402,11 +3097,11 @@ The standard choice to consider the polarisation response of the
 reciever is by *instrument_pol*, and this response becomes then part
 of *sensor_response*. However, that choice is not possible when the
 polartisation response changes between measurement blocks, and this
-variable combined with the *yApplySensorPol* offers an alternative for
+variable combined with the ``yApplySensorPol`` offers an alternative for
 such situations. This WSV also allows defintion of an arbitrary
 polarisation angle.
 
-When applying the polarisation response by *yApplySensorPol*, this
+When applying the polarisation response by ``yApplySensorPol``, this
 variable complements *sensor_pos* and *sensor_los*. This WSV matrix
 is also a matrix, that shall have the same number of rows as the other
 two matrices. 
@@ -3602,7 +3297,7 @@ Unit:  [ degrees ]
 
 This vector gives the frequency for each element of the measurement
 vector produced inside one measurement block. The frequencies of
-the total measurement vector, *y*, are obtained by repeating these
+the total measurement vector, ``y``, are obtained by repeating these
 frequencies n times, where n is the number of measurement blocks
 (e.g. the number of rows in *sensor_pos*).
 
@@ -4194,271 +3889,6 @@ This WSV matches directly the x_a-vector in the formalism by C.D. Rodgers.
 Usage: Used by inversion methods.
 
 Unit:  Varies, follows unit of selected retrieval quantities.
-)--",
-                    .type = "Vector"};
-
-  wsv_data["y"] = {.desc = R"--(The measurement vector.
-
-This vector holds radiances averaged in frequency and spatially,
-and can contain many spectra appended. That is, this WSV matches
-directly the y-vector in the formalism by C.D. Rodgers.
-
-The polarisation, frequency, position and line-of-sight associated
-with each element in *y* are given by *y_pol*, *y_f*, *y_pos* and
-*y_los*. For monochromatic pencil beam radiances, data are sorted
-in the following way, from the innermost to the outermost loop
-
--   Stokes
--   Frequency
--   LOS inside the measurement block
--   Measurement block
-
-With sensor response included, the order can be differ. As output
-of ``yRadar``, the order will also be different.
-
-Usage: Output from radiative transfer calculations considering sensor response.
-
-Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and optical thickness.
-)--",
-                   .type = "Vector"};
-
-  wsv_data["y_aux"] = {.desc = R"--(Data auxilary to *y*.
-
-Different data beside the direct result of the radiative transfer
-calculations can be obtained by this variable. These auxilary data
-are selected by *iy_aux_vars*.
-
-In contrast to *iy_aux*, this variable can only hold quantities such
-as optical depth, and other quantites that could be the result
-of a complete radiative transfer calculation. The data are weighted
-with sensor properties in the same way as for *y*.
-
-See also *iy_aux_vars*.
-
-Usage:      Output of ``yCalc``.
-
-Dimensions: [quantity][ element of y ]
-)--",
-                       .type = "ArrayOfVector"};
-
-  wsv_data["y_baseline"] = {.desc = R"--(The baseline of *y*.
-
-In retrieval \"lingo\", the baseline is an addiative disturbance of
-the measured spectrum. That is, it can be seen as a shift (from zero)
-of measurement. Reflections inside microwave receivers is one source to
-a baseline off-set.
-
-So far there is no module in ARTS that actually tries to physically model
-any baseline effect. *y_baseline* is just used as a pure fitting parameter
-in retrievals. One example on method to include a baseline fit is 
-``jacobianAddPolyfit``.
-
-If the baseline is totally constant, it is allowed to set *y_baseline*
-to have length one, with this element set to the baseline value.
-
-Usage: Output of retrievals.
-
-Unit:  Same as applied for *y*.
-)--",
-                            .type = "Vector"};
-
-  wsv_data["y_f"] = {.desc = R"--(The frequencies associated with *y*.
-
-A value is returned for each element of *y*. Depending on the sensor
-set-up and number of measurement blocks, this can be a copy of
-*sensor_response_f*, sveral copies of this vector appended, or some
-other frequenices.
-
-Don't confuse this variable with *yf*.
-
-Usage: Output from radiative transfer calculations considering sensor response.
-
-Unit:  [ Hz ]
-)--",
-                     .type = "Vector"};
-
-  wsv_data["y_geo"] = {
-      .desc = R"--(The geo-position assigned to each element of  *y*.
-
-The columns of this matrix matches the elements of *geo_pos*.
-
-Unit:  [ m, deg, deg, deg, deg ]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["y_geo_series"] = {
-      .desc = R"--(The geo-positioning assigned to each row of *y_series*.
-
-All channels are assumed to have the same geo-position.
-
-Otherwise as *y_geo*.
-)--",
-      .type = "Matrix"};
-
-  wsv_data["y_geo_swath"] = {
-      .desc = R"--(The geo-positioning assigned to each pixel of *y_swath*.
-
-All channels are assumed to have the same geo-position.
-
-Otherwise as *y_geo*.
-)--",
-      .type = "Tensor3"};
-
-  wsv_data["y_los"] = {.desc = R"--(The line-of-sights associated with *y*.
-
-Definition of angles matches *sensor_los* (such as first column holds
-zenith angles), but gives actual observed LOS. That is, the values of
-both *sensor_los* and *antenna_dlos* are considered. Data are provided
-for each element of *y*, following y_f, and the number of rows equals
-the length of *y*.
-
-Usage: Output from radiative transfer calculations considering sensor response.
-
-Unit:  [ degrees, degrees ]
-)--",
-                       .type = "Matrix"};
-
-  wsv_data["y_pol"] = {.desc = R"--(The polarisation states associated with *y*.
-
-Data are provided for each element of *y*, following y_f, and the
-length of this variable and *y* is equal.
-
-See *instrument_pol* for coding of polarisation components.
-
-Usage: Output from radiative transfer calculations considering sensor response.
-
-Unit:  [ - ]
-)--",
-                       .type = "ArrayOfIndex"};
-
-  wsv_data["y_pos"] = {.desc = R"--(The sensor positions associated with *y*.
-
-Definition of positions matches *sensor_pos* (such as first column
-holds the altitude). Data are provided for each element of *y*,
-following y_f, and the number of rows equals the length of *y*.
-
-Usage: Output from radiative transfer calculations considering sensor response.
-
-Unit:  [ m, deg, deg ]
-)--",
-                       .type = "Matrix"};
-
-  wsv_data["y_series"] = {
-      .desc = R"--(Two-dimensional version of the measurement vector.
-
-This WSV can be used for storing *y* reshaped when all measurement
-blocks have the same set of channels.
-
-Dimesion:  [ position, channel ]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["y_swath"] = {
-      .desc = R"--(Three-dimensional version of the measurement vector.
-
-This WSV can be used for storing *y* reshaped when all measurement
-blocks have the same set of channels, and that the data constitutes
-a part of a swath.
-
-Dimesion:  [ scan, pixel, channel ]
-)--",
-      .type = "Tensor3"};
-
-  wsv_data["yb"] = {
-      .desc = R"--(The measurement vector for a single measurement block.
-
-Exactly as *y*, but holds data only for a single measurement block.
-
-Usage: Used internally.
-)--",
-      .type = "Vector"};
-
-  wsv_data["ybatch"] = {.desc = R"--(Batch of spectra.
-
-Each element of *ybatch* corresponds to a spectrum vector *y*. 
-See further *ybatchCalc*.
-
-Usage: Most commonly produced by *ybatchCalc*.
-
-Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and optical thickness.
-
-Dimensions: Number of array elements equals number of batch cases,
-Vectors have length(y)
-)--",
-                        .type = "ArrayOfVector"};
-
-  wsv_data["ybatch_aux"] = {.desc = R"--(Data auxilary to *ybatch*.
-
-Each element of *ybatch_aux* corresponds to a auxiliary data *y_aux*. 
-See further *y_aux* and *ybatchCalc*.
-
-Usage: Most commonly produced by *ybatchCalc*.
-
-Dimensions: Number of array elements equals number of batch cases,
-)--",
-                            .type = "ArrayOfArrayOfVector"};
-
-  wsv_data["ybatch_index"] = {.desc = R"--(Index of batch case.
-
-See further *ybatchCalc*.
-
-Usage: Set by *ybatchCalc*, for communication with
-*ybatch_calc_agenda*.
-)--",
-                              .type = "Index"};
-
-  wsv_data["ybatch_corr"] = {.desc = R"--(Correction terms for *ybatch*.
-
-Dimensions: Number of array elements equals number of batch cases,
-Vectors have length depending on correction method
-)--",
-                             .type = "ArrayOfVector"};
-
-  wsv_data["ybatch_jacobians"] = {
-      .desc = R"--(All the Jacobians associated with ybatch.
-
-The batch index here is the array dimension.
-
-Usage: Most commonly produced by *ybatch*.
-
-Unit:  Depends on unit of y and on Jacobian type.
-
-Dimensions:
-
-- [number of batch cases]
-
-  -           (length(y),
-  -           number of retrieval quantities and grids)
-)--",
-      .type = "ArrayOfMatrix"};
-
-  wsv_data["ybatch_n"] = {.desc = R"--(Number of batch cases for *ybatchCalc*.
-
-See further *ybatchCalc*.
-
-Usage: Input to *ybatchCalc*.
-)--",
-                          .type = "Index"};
-
-  wsv_data["ybatch_start"] = {.desc = R"--(Start index for *ybatchCalc*.
-
-This is set to a default of zero.
-
-See further *ybatchCalc*.
-
-Usage: Input to *ybatchCalc*.
-)--",
-                              .type = "Index",
-                              .default_value = Index{0}};
-
-  wsv_data["yf"] = {.desc = R"--(A fitted measurement vector.
-
-This WSV is the measurement vector matching the retrieved state, i.e.
-the spectrum of the fit.
-
-Don't confuse this variable with *y_f*.
-
-Usage: Output from inversion methods.
 )--",
                     .type = "Vector"};
 

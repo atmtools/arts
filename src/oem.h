@@ -12,6 +12,7 @@
 #ifndef _ARTS_OEM_H_
 #define _ARTS_OEM_H_
 
+#include <stdexcept>
 #include <type_traits>
 
 #include "invlib/algebra.h"
@@ -519,8 +520,9 @@ class AgendaWrapper {
    */
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
     if (!reuse_jacobian_) {
-      inversion_iterate_agendaExecute(
-          *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
+      throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+      // inversion_iterate_agendaExecute(
+      //     *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
       yi = yi_;
       iteration_counter_ += 1;
     } else {
@@ -542,13 +544,14 @@ class AgendaWrapper {
   Vector evaluate(const Vector &xi) {
     if (!reuse_jacobian_) {
       Matrix dummy;
-      inversion_iterate_agendaExecute(*ws_,
-                                      yi_,
-                                      dummy,
-                                      xi,
-                                      0,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
+       throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+      // inversion_iterate_agendaExecute(*ws_,
+      //                                 yi_,
+      //                                 dummy,
+      //                                 xi,
+      //                                 0,
+      //                                 iteration_counter_,
+      //                                 *inversion_iterate_agenda_);
     } else {
       reuse_jacobian_ = false;
     }
@@ -745,13 +748,13 @@ void OEM_checks(const Workspace& ws,
 
   // If necessary compute yf and jacobian.
   if (x.size() == 0) {
-    x = xa;
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
+    x = xa; throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+    // inversion_iterate_agendaExecute(
+    //     ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
-  if ((yf.size() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
+  if ((yf.size() == 0) || (jacobian.empty())) { throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+    // inversion_iterate_agendaExecute(
+    //     ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
   }
 }
 

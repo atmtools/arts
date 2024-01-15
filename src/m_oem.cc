@@ -345,8 +345,9 @@ void OEM(const Workspace& ws,
   // If no precomputed value given, we compute yf and jacobian to
   // compute initial cost (and use in the first OEM iteration).
   if (yf.nelem() == 0) {
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
+     throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+    // inversion_iterate_agendaExecute(
+    //     ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
 
   ARTS_USER_ERROR_IF (yf.nelem() not_eq y.nelem(),
