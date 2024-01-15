@@ -36,9 +36,10 @@ void test_0_az_at_180_za() try {
         path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
     path::fill_geometric_stepwise(x, surface_field, 150e3);
+    path::fix_updown_azimuth_to_first(x);
     path::keep_only_atm(x);
     for (auto p : x)
-      ARTS_USER_ERROR_IF(p.los[1] != 0,
+      ARTS_USER_ERROR_IF(p.los[1] != los[1],
                          "los[1] == ",
                          p.los[1],
                          " for pos = ",

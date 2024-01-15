@@ -169,7 +169,7 @@ def _method_args(name):
     """
     m = workspace_methods().get(name)
     if m is None:
-        return f"Unknown method '{m}'"
+        return f"Unknown method '{name}'"
     out = {}
 
     for i in m.output:
@@ -258,6 +258,8 @@ def _expr_call_parser(call, ws, state):
             return f"Bad workspace {myws}, expected {ws}"
 
         mdict = _method_args(func)
+        if isinstance(mdict, str):
+            return mdict
 
         args = _call_args_parser(call, list(mdict.keys()), ws, state)
         if isinstance(args, str):

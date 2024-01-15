@@ -3485,25 +3485,26 @@ Unit:  [ degrees ]
 )--",
       .type = "Vector"};
 
-  wsv_data["background_drad"] = {
-      .desc = R"--(Radiation derivative from the background
+  wsv_data["spectral_radiance_background_jacobian"] = {
+      .desc = R"--(Spectral radiance derivative from the background
 )--",
       .type = "StokvecMatrix"};
 
-  wsv_data["background_rad"] = {.desc = R"--(Radiation from the background
+  wsv_data["spectral_radiance_background"] = {
+      .desc = R"--(Spectral radiance from the background
 )--",
-                                .type = "StokvecVector"};
+      .type = "StokvecVector"};
 
   wsv_data["background_transmittance"] = {
       .desc = R"--(Transmittance from the background
 )--",
       .type = "MuelmatVector"};
 
-  wsv_data["ppvar_rad"] = {.desc = R"--(Radiation along the propagation path
+  wsv_data["spectral_radiance_path"] = {.desc = R"--(Radiation along the propagation path
 )--",
                            .type = "ArrayOfStokvecVector"};
 
-  wsv_data["ppvar_drad"] = {
+  wsv_data["spectral_radiance_path_jacobian"] = {
       .desc = R"--(Radiation derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix"};
@@ -3528,12 +3529,12 @@ Unit:  [ degrees ]
 )--",
       .type = "ArrayOfStokvecMatrix"};
 
-  wsv_data["ppvar_src"] = {
+  wsv_data["spectral_radiance_path_source"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecVector"};
 
-  wsv_data["ppvar_dsrc"] = {
+  wsv_data["spectral_radiance_path_source_jacobian"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix"};
@@ -4527,20 +4528,25 @@ Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude 
 )--",
                                   .type = "NumericTernaryOperator"};
 
-  wsv_data["rad"] = {.desc = R"--(A radiation vector.
+  wsv_data["spectral_radiance"] = {.desc = R"--(A spectral radiance vector.
 )--",
                      .type = "StokvecVector"};
 
-  wsv_data["drad"] = {.desc = R"--(A radiation derivative matrix.
+  wsv_data["spectral_radiance_jacobian"] = {.desc = R"--(A spectral radiance derivative matrix.
 )--",
                       .type = "StokvecMatrix"};
 
   wsv_data["jacobian_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
 )--",
-      .type = "JacobianTargets"};
+      .type = "JacobianTargets",
+      .default_value = JacobianTargets{}};
 
-  wsv_data["rad_path"] = {
+  wsv_data["path_point"] = {.desc = R"--(A single path point.
+)--",
+                            .type = "PropagationPathPoint"};
+
+  wsv_data["propagation_path"] = {
       .desc = R"--(A list path points making up a propagation path.
 )--",
       .type = "ArrayOfPropagationPathPoint"};

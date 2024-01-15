@@ -613,7 +613,7 @@ void atm_fieldHydrostaticPressure(
           const Numeric lo = lons[k];
 
           const Numeric g = gravity_operator(al, la, lo);
-          const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
+          const AtmPoint atm_point{atm_field.at(al, la, lo)};
 
           const Numeric inv_specific_gas_constant =
               has_def_r ? 1.0 / fixed_specific_gas_constant

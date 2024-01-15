@@ -71,3 +71,5 @@ Agenda get_doit_mono_agenda(const std::string& option);
 Agenda get_doit_conv_test_agenda(const std::string& option);
 Agenda get_ppvar_rtprop_agenda(const std::string& option);
 Agenda get_rte_background_agenda(const std::string& option);
+Agenda get_spectral_radiance_background_space_agenda(const std::string& option);
+Agenda get_spectral_radiance_background_surface_agenda(const std::string& option);

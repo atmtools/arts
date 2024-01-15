@@ -7159,18 +7159,19 @@ gives a grid that is twice the FWHM.
 
       };
 
-  wsm_data["background_radFromMatrix"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *background_rad* to matrix input
+  wsm_data["spectral_radiance_backgroundFromMatrix"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Sets *spectral_radiance_background* to matrix input
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"background_rad"},
+          .author = {"Richard Larsson"},
+          .out = {"spectral_radiance_background"},
 
-      .gin = {"iy_mat"},
-      .gin_type = {"Matrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Background radiation)--"},
+          .gin = {"iy_mat"},
+          .gin_type = {"Matrix"},
+          .gin_value = {std::nullopt},
+          .gin_desc = {R"--(Background radiation)--"},
 
-  };
+      };
 
   wsm_data["background_transmittanceFromPathPropagationBack"] =
       WorkspaceMethodInternalRecord{
@@ -7858,6 +7859,44 @@ Options are:
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
+
+  wsm_data["spectral_radiance_background_space_agendaSet"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Sets *spectral_radiance_background_space_agenda*
+
+Options are:
+
+- ``"UniformCosmicBackground:``:
+
+  1. Calls *spectral_radiance_backgroundUniformCosmicBackground*
+)--",
+          .author = {"Richard Larsson"},
+          .out = {"spectral_radiance_background_space_agenda"},
+
+          .gin = {"option"},
+          .gin_type = {"String"},
+          .gin_value = {String{"UniformCosmicBackground"}},
+          .gin_desc = {R"--(Default agenda option (see description))--"},
+      };
+
+  wsm_data["spectral_radiance_background_surface_agendaSet"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Sets *spectral_radiance_background_surface_agenda*
+
+Options are:
+
+- ``"Blackbody"``:
+
+  1. Calls *spectral_radiance_backgroundSurfaceBlackbody*
+)--",
+          .author = {"Richard Larsson"},
+          .out = {"spectral_radiance_background_surface_agenda"},
+
+          .gin = {"option"},
+          .gin_type = {"String"},
+          .gin_value = {String{"Blackbody"}},
+          .gin_desc = {R"--(Default agenda option (see description))--"},
+      };
 
   wsm_data["doit_conv_flagAbs"] = WorkspaceMethodInternalRecord{
       .desc = R"--(DOIT convergence test (maximum absolute difference).
@@ -10228,7 +10267,7 @@ Options are:
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_atm"},
-      .in = {"rad_path", "atm_field"},
+      .in = {"propagation_path", "atm_field"},
   };
 
   wsm_data["ppvar_cumtramatForward"] = WorkspaceMethodInternalRecord{
@@ -10264,7 +10303,7 @@ Options are:
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_f"},
-      .in = {"f_grid", "rad_path", "ppvar_atm", "rte_alonglos_v"},
+      .in = {"f_grid", "propagation_path", "ppvar_atm", "rte_alonglos_v"},
   };
 
   wsm_data["ppvar_optical_depthFromPpvar_trans_cumulat"] =
@@ -10305,37 +10344,38 @@ The values in ppvar_optical_depth are set to
       .in = {"propmat_clearsky_agenda",
              "jacobian_targets",
              "ppvar_f",
-             "rad_path",
+             "propagation_path",
              "ppvar_atm"},
       .pass_workspace = true,
   };
 
-  wsm_data["ppvar_radCalcEmission"] = WorkspaceMethodInternalRecord{
+  wsm_data["spectral_radiance_pathCalcEmission"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Gets the radiation along the path by linear emission calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"ppvar_rad", "ppvar_drad"},
+      .out = {"spectral_radiance_path", "spectral_radiance_path_jacobian"},
 
-      .in = {"background_rad",
-             "ppvar_src",
-             "ppvar_dsrc",
+      .in = {"spectral_radiance_background",
+             "spectral_radiance_path_source",
+             "spectral_radiance_path_source_jacobian",
              "ppvar_tramat",
              "ppvar_cumtramat",
              "ppvar_dtramat"},
 
   };
 
-  wsm_data["ppvar_radCalcTransmission"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Gets the radiation along the path by linear emission calculations.
+  wsm_data["spectral_radiance_pathCalcTransmission"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Gets the radiation along the path by linear emission calculations.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_rad", "ppvar_drad"},
+          .author = {"Richard Larsson"},
+          .out = {"spectral_radiance_path", "spectral_radiance_path_jacobian"},
 
-      .in = {"ppvar_tramat", "ppvar_cumtramat", "ppvar_dtramat"},
+          .in = {"ppvar_tramat", "ppvar_cumtramat", "ppvar_dtramat"},
 
-  };
+      };
 
   wsm_data["ppvar_rtprop_agendaSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *ppvar_rtprop_agenda* to a default value
@@ -10352,21 +10392,23 @@ Options are:
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["ppvar_srcFromPropmat"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gets the source term along the path.
+  wsm_data["spectral_radiance_path_sourceFromPropmat"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Gets the source term along the path.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_src", "ppvar_dsrc"},
+          .author = {"Richard Larsson"},
+          .out = {"spectral_radiance_path_source",
+                  "spectral_radiance_path_source_jacobian"},
 
-      .in = {"ppvar_propmat",
-             "ppvar_nlte",
-             "ppvar_dpropmat",
-             "ppvar_dnlte",
-             "ppvar_f",
-             "ppvar_atm",
-             "jacobian_targets"},
+          .in = {"ppvar_propmat",
+                 "ppvar_nlte",
+                 "ppvar_dpropmat",
+                 "ppvar_dnlte",
+                 "ppvar_f",
+                 "ppvar_atm",
+                 "jacobian_targets"},
 
-  };
+      };
 
   wsm_data["ppvar_tramatCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Gets the transmission matrix in layers along the path.
@@ -10402,7 +10444,7 @@ of the derivatives out of this function is 2.
               "ppvar_ddistance"},
       .in = {"ppvar_propmat",
              "ppvar_dpropmat",
-             "rad_path",
+             "propagation_path",
              "ppvar_atm",
              "surface_field",
              "jacobian_targets"},
@@ -15442,11 +15484,12 @@ Gets the ellispoid from *surface_field*
       .gin_desc = {
           "Gravitation constant so that the gravity at radius ``r`` is ``GM / r^2``"}};
 
-  wsm_data["background_radFromPath"] = {
+  wsm_data["spectral_radiance_backgroundFromPath"] = {
       .desc = R"--(Computes the background radiation.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_rad", "background_drad"},
+      .out = {"spectral_radiance_background",
+              "spectral_radiance_background_jacobian"},
       .in = {"f_grid",
              "jacobian_targets",
              "ppath",
@@ -15455,84 +15498,105 @@ Gets the ellispoid from *surface_field*
              "stop_distance_radiation_agenda"},
       .pass_workspace = true};
 
-  wsm_data["background_radFromPath2"] = {
+  wsm_data["spectral_radiance_backgroundAgendasAtEndOfPath"] = {
       .desc = R"--(Computes the background radiation.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_rad", "background_drad"},
+      .out = {"spectral_radiance_background",
+              "spectral_radiance_background_jacobian"},
       .in = {"f_grid",
              "jacobian_targets",
-             "rad_path",
-             "space_radiation_agenda",
-             "surface_radiation_agenda"},
+             "propagation_path",
+             "spectral_radiance_background_space_agenda",
+             "spectral_radiance_background_surface_agenda"},
       .pass_workspace = true};
 
-  wsm_data["background_radCosmicBackground"] = {
-      .desc = R"--(Set the cosmic background radiation.
+  wsm_data["spectral_radiance_backgroundUniformCosmicBackground"] = {
+      .desc =
+          R"--(Background spectral radiance is from a uniform cosmic background temperature.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_rad"},
+      .out = {"spectral_radiance_background"},
       .in = {"f_grid"}};
 
-  wsm_data["background_radSurfaceFieldEmission"] = {
+  wsm_data["spectral_radiance_backgroundSurfaceFieldEmission"] = {
       .desc =
           R"--(Set surface emission from Planck function of the surface temperature
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_rad", "background_drad"},
+      .out = {"spectral_radiance_background",
+              "spectral_radiance_background_jacobian"},
       .in = {"f_grid", "surface_field", "jacobian_targets", "rtp_pos"}};
 
-  wsm_data["background_dradEmpty"] = {
+  wsm_data["spectral_radiance_backgroundSurfaceBlackbody"] = {
+      .desc =
+          R"--(Set surface spectral radiance from Planck function of the surface temperature
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance_background",
+              "spectral_radiance_background_jacobian"},
+      .in = {"f_grid", "surface_field", "jacobian_targets", "path_point"}};
+
+  wsm_data["spectral_radiance_background_jacobianEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.
 
 Size : (*jacobian_targets*, *f_grid*)
 )--",
       .author = {"Richard Larsson"},
-      .out = {"background_drad"},
+      .out = {"spectral_radiance_background_jacobian"},
       .in = {"f_grid", "jacobian_targets"}};
 
-  wsm_data["dradEmpty"] = {
+  wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.
 
 Size : (*jacobian_targets*, *f_grid*)
 )--",
       .author = {"Richard Larsson"},
-      .out = {"drad"},
+      .out = {"spectral_radiance_jacobian"},
       .in = {"f_grid", "jacobian_targets"}};
 
-  wsm_data["dradFromBackground"] = {
-      .desc = R"--(Sets *drad* from the background values
+  wsm_data["spectral_radiance_jacobianFromBackground"] = {
+      .desc = R"--(Sets *spectral_radiance_jacobian* from the background values
 )--",
       .author = {"Richard Larsson"},
-      .out = {"drad"},
-      .in = {"background_drad", "background_transmittance"}};
+      .out = {"spectral_radiance_jacobian"},
+      .in = {"spectral_radiance_background_jacobian",
+             "background_transmittance"}};
 
-  wsm_data["dradAddPathPropagation"] = {
-      .desc = R"--(Adds the propagation variables to *drad*
+  wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
+      .desc = R"--(Adds the propagation variables to *spectral_radiance_jacobian*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"drad"},
-      .in = {"drad", "ppvar_drad", "jacobian_targets", "atm_field", "ppath"}};
+      .out = {"spectral_radiance_jacobian"},
+      .in = {"spectral_radiance_jacobian",
+             "spectral_radiance_path_jacobian",
+             "jacobian_targets",
+             "atm_field",
+             "ppath"}};
 
-  wsm_data["dradAddPathPropagation2"] = {
-      .desc = R"--(Adds the propagation variables to *drad*
+  wsm_data["spectral_radiance_jacobianAddPathPropagation2"] = {
+      .desc = R"--(Adds the propagation variables to *spectral_radiance_jacobian*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"drad"},
-      .in = {"drad", "ppvar_drad", "jacobian_targets", "atm_field", "rad_path"}};
+      .out = {"spectral_radiance_jacobian"},
+      .in = {"spectral_radiance_jacobian",
+             "spectral_radiance_path_jacobian",
+             "jacobian_targets",
+             "atm_field",
+             "propagation_path"}};
 
-  wsm_data["radFromPathPropagation"] = {
-      .desc = R"--(Sets *rad* from front of *ppvar_rad*
+  wsm_data["spectral_radianceFromPathPropagation"] = {
+      .desc = R"--(Sets *spectral_radiance* from front of *spectral_radiance_path*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"rad"},
-      .in = {"ppvar_rad"}};
+      .out = {"spectral_radiance"},
+      .in = {"spectral_radiance_path"}};
 
-  wsm_data["radStandardEmission"] = {
-      .desc = R"--(Sets *rad* and *drad* from standard emission calculations
+  wsm_data["spectral_radianceStandardEmission"] = {
+      .desc = R"--(Sets *spectral_radiance* and *spectral_radiance_jacobian* from standard emission calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"rad", "drad"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in = {"f_grid",
              "jacobian_targets",
              "atm_field",
@@ -15549,18 +15613,18 @@ Size : (*jacobian_targets*, *f_grid*)
           {"Whether or not hypsometric balance is assumed in temperature derivatives"},
       .pass_workspace = true};
 
-  wsm_data["radStandardEmission2"] = {
-      .desc = R"--(Sets *rad* and *drad* from standard emission calculations
+  wsm_data["spectral_radianceStandardEmission2"] = {
+      .desc = R"--(Sets *spectral_radiance* and *spectral_radiance_jacobian* from standard emission calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"rad", "drad"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in = {"f_grid",
              "jacobian_targets",
              "atm_field",
              "surface_field",
-             "rad_path",
-             "space_radiation_agenda",
-             "surface_radiation_agenda",
+             "propagation_path",
+             "spectral_radiance_background_space_agenda",
+             "spectral_radiance_background_surface_agenda",
              "propmat_clearsky_agenda",
              "rte_alonglos_v"},
       .gin = {"hse_derivative"},
@@ -15822,7 +15886,7 @@ variables are not considered
       .gin_value = {std::nullopt},
       .gin_desc = {"Absolute or relative path to the directory"}};
 
-  wsm_data["rad_pathGeometric"] = {
+  wsm_data["propagation_pathGeometric"] = {
       .desc = R"--(Get a geometric radiation path
 
 The path is defined by the origo and the line of sight.
@@ -15855,11 +15919,17 @@ of the azimuth angle makes use of IEEE atan2, some paths may produce
 bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"rad_path"},
+      .out = {"propagation_path"},
       .in = {"atm_field", "surface_field"},
-      .gin =
-          {"pos", "los", "max_step", "as_sensor", "add_limb", "remove_non_atm", "fix_updown_azimuth"},
-      .gin_type = {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index", "Index"},
+      .gin = {"pos",
+              "los",
+              "max_step",
+              "as_sensor",
+              "add_limb",
+              "remove_non_atm",
+              "fix_updown_azimuth"},
+      .gin_type =
+          {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index", "Index"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{1e3},
@@ -15876,7 +15946,7 @@ bad angles if this is turned off.
           "Wheter or not to keep only atmospheric points",
           "Whether or not to attempt fix a potential issue with the path azimuthal angle"}};
 
-  wsm_data["rad_pathGeometricTangentAltitude"] = {
+  wsm_data["propagation_pathGeometricTangentAltitude"] = {
       .desc =
           R"--(Get a geometric radiation path that crosses the tangent altitude
 
@@ -15911,7 +15981,7 @@ of the azimuth angle makes use of IEEE atan2, some paths may produce
 bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"rad_path"},
+      .out = {"propagation_path"},
       .in = {"atm_field", "surface_field"},
       .gin = {"pos",
               "tangent_altitude",

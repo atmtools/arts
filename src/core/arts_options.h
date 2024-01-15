@@ -189,6 +189,13 @@ ENUMCLASS(planetDefaultOptions,
           Jupiter,
           Mars,
           Venus)
+
+/** Options for surface background radiance agenda */
+ENUMCLASS(spectral_radiance_background_surface_agendaDefaultOptions, char, Blackbody)
+
+/** Options for space background radiance agenda */
+ENUMCLASS(spectral_radiance_background_space_agendaDefaultOptions, char, UniformCosmicBackground)
+
 }  // namespace Options
 
 #endif

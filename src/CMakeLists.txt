@@ -176,13 +176,13 @@ add_library (artsworkspace STATIC
   m_poslos.cc
   m_ppath.cc
   m_ppvar.cc
+  m_propagation_path.cc
   m_psd.cc
   m_raw.cc
   m_reduce.cc
   m_refraction.cc
   m_retrieval.cc
   m_rad.cc
-  m_rad_path.cc
   m_rt4.cc
   m_rte.cc
   m_retrieval.cc

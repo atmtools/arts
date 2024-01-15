@@ -1663,7 +1663,7 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 void InterpAtmFieldToPosition(AtmPoint& atm_point,
                               const AtmField& atm_field,
                               const Vector& rtp_pos) {
-  atm_point = atm_field.at({rtp_pos[0]}, {rtp_pos[1]}, {rtp_pos[2]})[0];
+  atm_point = atm_field.at(rtp_pos[0], rtp_pos[1], rtp_pos[2]);
 }
 
 // A small help function

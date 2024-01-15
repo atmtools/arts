@@ -2,6 +2,7 @@
 
 #include <gridded_fields.h>
 #include <matpack.h>
+#include <quantum_numbers.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -19,7 +20,6 @@
 #include "enums.h"
 #include "fieldmap.h"
 #include "isotopologues.h"
-#include <quantum_numbers.h>
 #include "species.h"
 
 //! A type to name particulates (and let them be type-independent)
@@ -308,9 +308,9 @@ struct Data {
                           const Vector &lat,
                           const Vector &lon) const;
 
-  [[nodiscard]] Numeric at(const Numeric &alt,
-                           const Numeric &lat,
-                           const Numeric &lon) const;
+  [[nodiscard]] Numeric at(const Numeric alt,
+                           const Numeric lat,
+                           const Numeric lon) const;
 
   [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
 
@@ -361,6 +361,14 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] std::vector<Point> at(const Vector &alt,
                                       const Vector &lat,
                                       const Vector &lon) const;
+
+  //! Compute the values at a single point
+  [[nodiscard]] Point at(const Numeric alt,
+                         const Numeric lat,
+                         const Numeric lon) const;
+
+  //! Compute the values at a single point
+  [[nodiscard]] Point at(const Vector3 pos) const;
 
   [[nodiscard]] Index nspec() const;
   [[nodiscard]] Index nisot() const;

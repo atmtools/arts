@@ -347,7 +347,8 @@ void iyBackground(const Workspace &ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void background_radFromMatrix(StokvecVector &background_rad, const Matrix &iy) {
+void spectral_radiance_backgroundFromMatrix(StokvecVector &background_rad,
+                                            const Matrix &iy) {
   ARTS_USER_ERROR_IF(iy.ncols() not_eq 4, "Only for stokes dimensions 4.")
   background_rad = rtepack::to_stokvec_vector(iy);
 }

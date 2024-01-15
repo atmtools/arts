@@ -461,8 +461,8 @@ used here.
 )--",
       .output = {"ppvar_propmat",
                  "ppvar_dpropmat",
-                 "ppvar_src",
-                 "ppvar_dsrc",
+                 "spectral_radiance_path_source",
+                 "spectral_radiance_path_source_jacobian",
                  "ppvar_tramat",
                  "ppvar_dtramat",
                  "ppvar_distance",
@@ -474,7 +474,7 @@ used here.
       .desc = R"--(Compute the radiative transfer equation through 
 the propagation path.
 )--",
-      .output = {"background_rad", "diy_dx"},
+      .output = {"spectral_radiance_background", "diy_dx"},
       .input = {"ppath",
                 "atm_field",
                 "f_grid",
@@ -600,11 +600,30 @@ at space.
 
 The output must be sized as:
 
-- *background_rad* : (*f_grid*)
-- *background_drad* : (*jacobian_targets*, *f_grid*)
+- *spectral_radiance_background* : (*f_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"background_rad", "background_drad"},
+      .output = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
+
+  wsa_data["spectral_radiance_background_space_agenda"] = {
+      .desc = R"--(Spectral radiance as seen of space.
+
+This agenda calculates the spectral radiance as seen of space. The
+intent is to provide a background spectral radiance from space that
+is input to the atmospheric radiative transfer calculations.
+
+The input path point should be as if it is looking at space.
+
+The output must be sized as:
+
+- *spectral_radiance_background* : (*f_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
+)--",
+      .output = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
+      .input = {"f_grid", "jacobian_targets", "path_point"}};
 
   wsa_data["surface_radiation_agenda"] = {
       .desc = R"--(Radiation as seen of the surface.
@@ -614,26 +633,47 @@ The intent is to provide a background radiation from the
 surface that is input to the atmospheric radiative transfer
 calculations.
 
-The input position and line-of-sight are as if you were looking
+The input path point should be as if it is looking
 at the surface.
 
 The output must be sized as:
 
-- *background_rad* : (*f_grid*)
-- *background_drad* : (*jacobian_targets*, *f_grid*)
+- *spectral_radiance_background* : (*f_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"background_rad", "background_drad"},
+      .output = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
+
+  wsa_data["spectral_radiance_background_surface_agenda"] = {
+      .desc = R"--(Spectral radiance as seen of the surface.
+
+This agenda calculates the spectral radiance as seen of the surface.
+The intent is to provide a background spectral radiance from the
+surface that is input to the atmospheric radiative transfer
+calculations.
+
+The input path point should be as if it is looking at the surface.
+
+The output must be sized as:
+
+- *spectral_radiance_background* : (*f_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
+)--",
+      .output = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
+      .input = {"f_grid", "jacobian_targets", "path_point"}};
 
   wsa_data["stop_distance_radiation_agenda"] = {
       .desc = R"--(Radiation as seen from stopping the ppath calculations.
 
 The output must be sized as:
 
-- *background_rad* : (*f_grid*)
-- *background_drad* : (*jacobian_targets*, *f_grid*)
+- *spectral_radiance_background* : (*f_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
 )--",
-      .output = {"background_rad", "background_drad"},
+      .output = {"spectral_radiance_background",
+                 "spectral_radiance_background_jacobian"},
       .input = {"f_grid", "jacobian_targets", "rtp_pos", "rtp_los"}};
 
   return wsa_data;

@@ -39,14 +39,11 @@ ArrayOfAtmPoint forward_atm_path(const Ppath &ppath, const AtmField &atm) {
 void forward_atm_path(ArrayOfAtmPoint &atm_path,
                       const ArrayOfPropagationPathPoint &rad_path,
                       const AtmField &atm) {
-  //FIXME: THIS IS AN UGLY ALLOCATION, atm.at should take a view somehow
-  Vector alt(rad_path.size()), lat(rad_path.size()), lon(rad_path.size());
-  for (Size ip = 0; ip < rad_path.size(); ip++) {
-    alt[ip] = rad_path[ip].pos(0);
-    lat[ip] = rad_path[ip].pos(1);
-    lon[ip] = rad_path[ip].pos(2);
-  }
-  atm.at(atm_path, alt, lat, lon);
+  std::ranges::transform(
+      rad_path,
+      atm_path.begin(),
+      [&atm](const auto &p) { return atm.at(p); },
+      &PropagationPathPoint::pos);
 }
 
 ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,

@@ -63,7 +63,7 @@ Agenda get_iy_main_agenda(const std::string& option) {
       agenda.add("ppvar_rtprop_agendaExecute");
       agenda.add("background_transmittanceFromBack");
       agenda.add("rte_background_agendaExecute");
-      agenda.add("ppvar_radCalcEmission");
+      agenda.add("spectral_radiance_pathCalcEmission");
       agenda.add("iyCopyPath");
       agenda.add("diy_dxTransform");
       agenda.add("iyUnitConversion");
@@ -564,7 +564,7 @@ Agenda get_ppvar_rtprop_agenda(const std::string& option) {
   switch (Options::toppvar_rtprop_agendaDefaultOptionsOrThrow(option)) {
     case Propmat:
       agenda.add("ppvar_propmatCalc");
-      agenda.add("ppvar_srcFromPropmat");
+      agenda.add("spectral_radiance_path_sourceFromPropmat");
       agenda.add("ppvar_tramatCalc");
       agenda.add("ppvar_cumtramatForward");
       break;
@@ -583,6 +583,36 @@ Agenda get_rte_background_agenda(const std::string& option) {
     case ByPath:
       agenda.add("iyBackground");
       agenda.add("background_radFromMatrix", "iy_mat=iy");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_spectral_radiance_background_space_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+
+  using enum Options::spectral_radiance_background_space_agendaDefaultOptions;
+  switch (Options::tospectral_radiance_background_space_agendaDefaultOptionsOrThrow(option)) {
+    case UniformCosmicBackground:
+      agenda.add("spectral_radiance_backgroundUniformCosmicBackground");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_spectral_radiance_background_surface_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+
+  using enum Options::spectral_radiance_background_surface_agendaDefaultOptions;
+  switch (Options::tospectral_radiance_background_surface_agendaDefaultOptionsOrThrow(option)) {
+    case Blackbody:
+      agenda.add("spectral_radiance_backgroundSurfaceBlackbody");
       break;
     case FINAL:
       break;
