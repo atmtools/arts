@@ -1,6 +1,5 @@
 #include "atm.h"
 
-#include <__algorithm/ranges_lower_bound.h>
 #include <matpack.h>
 
 #include <algorithm>

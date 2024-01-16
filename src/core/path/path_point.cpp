@@ -1195,8 +1195,12 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
   constexpr auto atan2_failstate = [](const Vector2 los) {
     return los[1] == 0.0 or los[1] == 90.0 or los[1] == -90.0;
   };
+  constexpr auto updown_failstate = [](const Vector2 los) {
+    return los[0] == 0.0 or los[0] == 180.0;
+  };
 
-  if (std::ranges::all_of(path, atan2_failstate, &PropagationPathPoint::los)) {
+  if (std::ranges::all_of(path, atan2_failstate, &PropagationPathPoint::los) or
+      std::ranges::all_of(path, updown_failstate, &PropagationPathPoint::los)) {
     std::ranges::for_each(
         path,
         [azimuth = path.front().los[1]](Vector2& los) { los[1] = azimuth; },

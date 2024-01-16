@@ -1,5 +1,6 @@
 #include <path_point.h>
 
+#include <cstdlib>
 #include <exception>
 #include <stdexcept>
 
@@ -18,7 +19,7 @@ SurfaceField surf() {
   return surface_field;
 }
 
-void test_0_az_at_180_za() try {
+void test_0_az_at_180_za(Size n) {
   const auto atm_field = atm();
   const auto surface_field = surf();
 
@@ -26,32 +27,30 @@ void test_0_az_at_180_za() try {
   auto get_alt = rng.get<std::uniform_real_distribution>(200e3, 1200e3);
   auto get_lat = rng.get<std::uniform_real_distribution>(-90.0, 90.0);
   auto get_lon = rng.get<std::uniform_real_distribution>(-180.0, 180.0);
-  auto get_az = rng.get<std::uniform_real_distribution>(0.0, 360.0);
+  auto get_az = rng.get<std::uniform_real_distribution>(-180.0, 180.0);
 
-  Index n = 1000;
-  while (n-- > 0) {
+  while (n-- != 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{180, get_az()};
     ArrayOfPropagationPathPoint x{
         path::init(pos, los, atm_field, surface_field)};
     path::set_geometric_extremes(x, atm_field, surface_field);
-    path::fill_geometric_stepwise(x, surface_field, 150e3);
+    path::fill_geometric_stepwise(x, surface_field, 
+    1e3);
     path::fix_updown_azimuth_to_first(x);
     path::keep_only_atm(x);
     for (auto p : x)
-      ARTS_USER_ERROR_IF(p.los[1] != los[1],
+      ARTS_USER_ERROR_IF(p.los[1] != path::mirror(los)[1],
                          "los[1] == ",
                          p.los[1],
-                         " for pos = ",
+                         " for sensor pos = ",
                          pos,
-                         " and los = ",
-                         los);
+                         " and sensor los = ",
+                         path::mirror(los));
   }
-} catch (std::exception& e) {
-  ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 
-void test_limb_finder() try {
+void test_limb_finder(Size n) {
   const auto atm_field = atm();
   const auto surface_field = surf();
 
@@ -62,8 +61,7 @@ void test_limb_finder() try {
   auto get_lon = rng.get<std::uniform_real_distribution>(-180.0, 180.0);
   auto get_az = rng.get<std::uniform_real_distribution>(0.0, 360.0);
 
-  Index n = 1000;
-  while (n-- > 0) {
+  while (n-- != 0) {
     const Vector3 pos{get_sensor_alt(), get_lat(), get_lon()};
     const Numeric az = get_az();
     const Numeric tangent_altitude = get_tangent_alt();
@@ -88,11 +86,9 @@ void test_limb_finder() try {
         " and los = ",
         los);
   }
-} catch (std::exception& e) {
-  ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 
-void test_geometric_fill() try {
+void test_geometric_fill(Size n) {
   const auto atm_field = atm();
   const auto surface_field = surf();
 
@@ -157,8 +153,7 @@ void test_geometric_fill() try {
   auto get_za = rng.get<std::uniform_real_distribution>(0.0, 180.);
   auto get_az = rng.get<std::uniform_real_distribution>(0.0, 360.0);
 
-  Index n = 1000;
-  while (n-- > 0) {
+  while (n-- != 0) {
     const Vector3 pos{get_alt(), get_lat(), get_lon()};
     const Vector2 los{get_za(), get_az()};
     ArrayOfPropagationPathPoint x{
@@ -169,12 +164,15 @@ void test_geometric_fill() try {
     path::fill_geometric_longitude_crossings(x, surface_field, lons);
     test(x, pos[0]);
   }
-} catch (std::exception& e) {
-  ARTS_ASSERT(false, "Caught error and rethrowing:\n", e.what())
 }
 
-int main() {
-  test_0_az_at_180_za();
-  test_limb_finder();
-  test_geometric_fill();
+int main() try {
+  test_0_az_at_180_za(1'000);
+  test_limb_finder(1'000);
+  test_geometric_fill(1'000);
+
+  return EXIT_SUCCESS;
+} catch (std::exception& e) {
+  std::cerr << "Caught error and rethrowing:\n" << e.what() << '\n';
+  return EXIT_FAILURE;
 }
