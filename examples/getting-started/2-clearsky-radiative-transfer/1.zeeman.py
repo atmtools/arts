@@ -15,8 +15,6 @@ ws.nlteOff()
 # %% Sensor
 
 ws.f_grid = np.linspace(-4e6, 4e6, 1001) + 118750348044.712
-ws.rte_pos = [300e3, 0, 0]
-ws.rte_los = [180, 0]
 
 # %% Species and line absorption
 

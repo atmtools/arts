@@ -694,7 +694,7 @@ void OptimizeDoitPressureGrid(
                                    {},
                                    {},
                                    Vector{f_grid[Range(f_index, 1)]},
-                                   ppath_los_dummy,
+                                   {},
                                    AtmPoint{},  // FIXME: DUMMY VALUE,
                                    propmat_clearsky_agenda);
     abs_coeff += cur_propmat_clearsky[0].A();

@@ -41,7 +41,7 @@ ws.propmat_clearsky_agendaAuto()
 ws.nlte_do = 0
 
 # Settings (Standard atmosphere midlatitude-summer)
-ws.rtp_los = [45, 45]
+ws.path_point.los = [45, 45]
 ws.f_grid = pyarts.arts.convert.kaycm2freq(np.linspace(300, 3000, 1000))
 ws.atm_pointInit()
 ws.atm_point.temperature = 2.942000e+02

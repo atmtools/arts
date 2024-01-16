@@ -30,6 +30,7 @@
 #include "gas_scattering.h"
 #include "geodetic.h"
 #include "interpolation.h"
+#include "path_point.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rte.h"
@@ -123,7 +124,7 @@ void FastemStandAlone(Matrix& emissivity,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
-                                  const Vector& rtp_pos,
+                                  const PropagationPathPoint& path_point,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy) {
   ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
@@ -132,9 +133,9 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
   ARTS_USER_ERROR_IF(surface_search_accuracy < 0.0,
                      "Cannot have negative surface search accuracy")
 
-  const Numeric alt = rtp_pos[0];
-  const Numeric lat = rtp_pos[1];
-  const Numeric lon = rtp_pos[2];
+  const Numeric alt = path_point.pos[0];
+  const Numeric lat = path_point.pos[1];
+  const Numeric lon = path_point.pos[2];
   surface_point = surface_field.at(lat, lon);
 
   const bool cmp = std::abs(alt - surface_point.elevation) > surface_search_accuracy;
@@ -149,22 +150,22 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
 
 void surface_pointFromAtm(SurfacePoint& surface_point,
                           const AtmField& atm_field,
-                          const Vector& rtp_pos) {
+                          const PropagationPathPoint& path_point) {
   surface_point = SurfacePoint{};
-  surface_point.elevation = rtp_pos[0];
+  surface_point.elevation = path_point.pos[0];
   surface_point.normal = {0, 0};
   
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t),
                      "\"atm_field\" has no temperature field")
   surface_point.temperature =
-      atm_field[Atm::Key::t].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]);
+      atm_field[Atm::Key::t].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]);
   
   if (atm_field.has(Atm::Key::wind_u) and atm_field.has(Atm::Key::wind_v) and
       atm_field.has(Atm::Key::wind_w)) {
     surface_point.wind = {
-        atm_field[Atm::Key::wind_u].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]),
-        atm_field[Atm::Key::wind_v].at(rtp_pos[0], rtp_pos[1], rtp_pos[2]),
-        atm_field[Atm::Key::wind_w].at(rtp_pos[0], rtp_pos[1], rtp_pos[2])};
+        atm_field[Atm::Key::wind_u].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]),
+        atm_field[Atm::Key::wind_v].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]),
+        atm_field[Atm::Key::wind_w].at(path_point.pos[0], path_point.pos[1], path_point.pos[2])};
   }
 }
 
@@ -208,76 +209,6 @@ void surfaceBlackbody(Matrix& surface_los,
       surface_emission(iv, is) = 0;
     }
   }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceTessem(Matrix& surface_los,
-                   Tensor4& surface_rmatrix,
-                   Matrix& surface_emission,
-                   
-                   const Vector& f_grid,
-                   const Vector& rtp_pos,
-                   const Vector& rtp_los,
-                   const Numeric& surface_skin_t,
-                   const TessemNN& net_h,
-                   const TessemNN& net_v,
-                   const Numeric& salinity,
-                   const Numeric& wind_speed) {
-  // Input checks
-  chk_rte_pos(rtp_pos);
-  chk_rte_los(rtp_los);
-  chk_if_in_range_exclude(
-      "surface skin temperature", surface_skin_t, 260.0, 373.0);
-  chk_if_in_range_exclude_high("salinity", salinity, 0, 1);
-  chk_if_in_range_exclude_high("wind speed", wind_speed, 0, 100);
-
-  // Determine specular direction
-  Vector specular_los, surface_normal;
-  specular_losCalcOldNoTopography(specular_los,
-                               surface_normal,
-                               rtp_los);
-
-  // TESSEM in and out
-  //
-  Vector out(2);
-  VectorView e_h = out[Range(0, 1)];
-  VectorView e_v = out[Range(1, 1)];
-  //
-  Vector in(5);
-  in[1] = 180.0 - abs(rtp_los[0]);
-  in[2] = wind_speed;
-  in[3] = surface_skin_t;
-  in[4] = salinity;
-
-  // Get Rv and Rh
-  //
-  const Index nf = f_grid.size();
-  Matrix surface_rv_rh(nf, 2);
-  //
-  for (Index i = 0; i < nf; ++i) {
-    if (f_grid[i] < 5e9)
-      throw std::runtime_error("Only frequency >= 5 GHz are allowed");
-    if (f_grid[i] > 900e9)
-      throw std::runtime_error("Only frequency <= 900 GHz are allowed");
-
-    in[0] = f_grid[i];
-
-    tessem_prop_nn(e_h, net_h, in);
-    tessem_prop_nn(e_v, net_v, in);
-
-    surface_rv_rh(i, 0) = std::min(std::max(1 - e_v[0], (Numeric)0), (Numeric)1);
-    surface_rv_rh(i, 1) = std::min(std::max(1 - e_h[0], (Numeric)0), (Numeric)1);
-  }
-
-  surfaceFlatRvRh(surface_los,
-                  surface_rmatrix,
-                  surface_emission,
-                  f_grid,
-                  rtp_pos,
-                  rtp_los,
-                  specular_los,
-                  surface_skin_t,
-                  surface_rv_rh);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -642,40 +573,6 @@ void surface_scalar_reflectivityFromSurface_rmatrix(
       surface_scalar_reflectivity[i] += surface_rmatrix(l, i, 0, 0);
     }
   }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropFromTypesManual(const Workspace& ws,
-                                   Vector& surface_type_mix,
-                                   Numeric& surface_skin_t,
-                                   Matrix& surface_los,
-                                   Tensor4& surface_rmatrix,
-                                   Matrix& surface_emission,
-                                   const Vector& f_grid,
-                                   const Vector& rtp_pos,
-                                   const Vector& rtp_los,
-                                   const ArrayOfAgenda& surface_rtprop_agenda_array,
-                                   const Index& surface_type)
-{
-  ARTS_USER_ERROR_IF(surface_type < 0 or
-     static_cast<Size>(surface_type) >= surface_rtprop_agenda_array.size(),
-     "Provided surface type index invalid (<0 or too high w.r.t. "
-     "length of *surface_rtprop_agenda_array*).");
-  
-  surface_type_mix.resize(surface_rtprop_agenda_array.size());
-  surface_type_mix = 0.0;
-  surface_type_mix[surface_type] = 1.0;
-
-  surface_rtprop_agenda_arrayExecute(ws,
-                                     surface_skin_t,
-                                     surface_emission,
-                                     surface_los,
-                                     surface_rmatrix,
-                                     surface_type,
-                                     f_grid,
-                                     rtp_pos,
-                                     rtp_los,
-                                     surface_rtprop_agenda_array);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

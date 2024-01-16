@@ -31,6 +31,7 @@
 #include "new_jacobian.h"
 #include "nlte.h"
 #include "optproperties.h"
+#include "path_point.h"
 #include "rte.h"
 #include "species_tags.h"
 
@@ -241,13 +242,15 @@ void propmat_clearskyAddFaraday(
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const AtmPoint& atm_point,
-    const Vector& rtp_los) {
+    const PropagationPathPoint& path_point) {
   Index ife = -1;
   for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
       ife = sp;
     }
   }
+
+  const Vector rtp_los{path::mirror(path_point.los)};
 
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *abs_species* and "
@@ -341,7 +344,7 @@ void propmat_clearskyAddParticles(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
-    const Vector& rtp_los,
+    const PropagationPathPoint& path_point,
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
@@ -384,17 +387,6 @@ void propmat_clearskyAddParticles(
       ns,
       " *scat_data* elements.\n")
 
-  ARTS_USER_ERROR_IF(
-      3 == 1 && rtp_los.nelem() < 1,
-      "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(at least zenith angle component for 3==1),\n"
-      "but it is not.\n")
-  ARTS_USER_ERROR_IF(
-      3 > 1 && rtp_los.nelem() < 2,
-      "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(both zenith and azimuth angle components for 3>1),\n"
-      "but it is not.\n")
-
   // Use for rescaling vmr of particulates
   Numeric rtp_vmr_sum = 0.0;
 
@@ -402,8 +394,7 @@ void propmat_clearskyAddParticles(
   const Numeric dT = jac_temperature.first ? jac_temperature.second -> d : 0.0;
 
   const Index na = abs_species.size();
-  Vector rtp_los_back;
-  mirror_los(rtp_los_back, rtp_los);
+  const Vector rtp_los_back{path_point.los};
 
   // creating temporary output containers
   ArrayOfArrayOfTensor5 ext_mat_Nse;

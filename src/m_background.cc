@@ -82,76 +82,6 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
       ")");
 }
 
-void spectral_radiance_backgroundFromPath(
-    const Workspace& ws,
-    StokvecVector& spectral_radiance_background,
-    StokvecMatrix& spectral_radiance_background_jacobian,
-    const Vector& f_grid,
-    const JacobianTargets& jacobian_targets,
-    const Ppath& ppath,
-    const Agenda& space_radiation_agenda,
-    const Agenda& surface_radiation_agenda,
-    const Agenda& stop_distance_radiation_agenda) {
-  using enum Options::PpathBackground;
-  switch (ppath.background) {
-    case Undefined:
-      ARTS_USER_ERROR("Undefined background type in ppath.background");
-      break;
-    case Space:
-      space_radiation_agendaExecute(ws,
-                                    spectral_radiance_background,
-                                    spectral_radiance_background_jacobian,
-                                    f_grid,
-                                    jacobian_targets,
-                                    ppath.end_pos,
-                                    ppath.end_los,
-                                    space_radiation_agenda);
-      break;
-    case Surface:
-      surface_radiation_agendaExecute(ws,
-                                      spectral_radiance_background,
-                                      spectral_radiance_background_jacobian,
-                                      f_grid,
-                                      jacobian_targets,
-                                      ppath.end_pos,
-                                      ppath.end_los,
-                                      surface_radiation_agenda);
-      break;
-    case Cloudbox:
-      ARTS_USER_ERROR("Cloudbox background type not implemented");
-      break;
-    case Transmitter:
-      ARTS_USER_ERROR("Transmitter background type not implemented");
-      break;
-    case StopDistance:
-      stop_distance_radiation_agendaExecute(
-          ws,
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          f_grid,
-          jacobian_targets,
-          ppath.end_pos,
-          ppath.end_los,
-          stop_distance_radiation_agenda);
-      break;
-    case FINAL:
-      ARTS_USER_ERROR("Unkown background type in ppath.background");
-  }
-
-  ARTS_USER_ERROR_IF(
-      spectral_radiance_background.nelem() not_eq f_grid.nelem(),
-      "Bad size of spectral_radiance_background, it's dimension should match the size of f_grid");
-
-  ARTS_USER_ERROR_IF(
-      static_cast<Size>(spectral_radiance_background_jacobian.nrows()) not_eq
-          jacobian_targets.x_size(),
-      "Bad size of spectral_radiance_background_jacobian, it's inner dimension should match the size of jacobian_targets");
-
-  ARTS_USER_ERROR_IF(
-      spectral_radiance_background_jacobian.ncols() not_eq f_grid.nelem(),
-      "Bad size of spectral_radiance_background_jacobian, it's outer dimension should match the size of f_grid");
-}
-
 namespace detail {
 StokvecVector from_temp(const ExhaustiveConstVectorView& f_grid,
                         const Numeric t) {
@@ -201,48 +131,6 @@ void spectral_radiance_backgroundSurfaceBlackbody(
     const auto x_start = pair.second->x_start;
     const auto& surf_data = surface_field[key];
     const auto weights = surf_data.flat_weights(path_point.pos[1], path_point.pos[2]);
-    for (auto& w : weights) {
-      if (w.second != 0.0) {
-        const auto i = w.first + x_start;
-        ARTS_ASSERT(i < static_cast<Size>(
-                            spectral_radiance_background_jacobian.nrows()))
-
-        std::transform(f_grid.begin(),
-                       f_grid.end(),
-                       spectral_radiance_background_jacobian[i].begin(),
-                       [t, x = w.second](auto f) -> Stokvec {
-                         return {x * dplanck_dt(f, t), 0, 0, 0};
-                       });
-      }
-    }
-  }
-}
-
-void spectral_radiance_backgroundSurfaceFieldEmission(
-    StokvecVector& spectral_radiance_background,
-    StokvecMatrix& spectral_radiance_background_jacobian,
-    const Vector& f_grid,
-    const SurfaceField& surface_field,
-    const JacobianTargets& jacobian_targets,
-    const Vector& rtp_pos) {
-  constexpr auto key = Surf::Key::t;
-
-  ARTS_USER_ERROR_IF(rtp_pos.size() != 3, "Bad size of rtp_pos, must be 3-long")
-  ARTS_USER_ERROR_IF(not surface_field.contains(key),
-                     "Surface field does not contain temperature")
-
-  const auto t = surface_field.single_value(key, rtp_pos[1], rtp_pos[2]);
-  spectral_radiance_background = detail::from_temp(f_grid, t);
-
-  spectral_radiance_background_jacobianEmpty(
-      spectral_radiance_background_jacobian, f_grid, jacobian_targets);
-
-  if (auto pair =
-          jacobian_targets.find<Jacobian::SurfaceTarget>(SurfaceKeyVal{key});
-      pair.first) {
-    const auto x_start = pair.second->x_start;
-    const auto& surf_data = surface_field[key];
-    const auto weights = surf_data.flat_weights(rtp_pos[1], rtp_pos[2]);
     for (auto& w : weights) {
       if (w.second != 0.0) {
         const auto i = w.first + x_start;

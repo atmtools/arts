@@ -105,40 +105,6 @@ void cloud_fieldsCalc(const Workspace& ws,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field);
 
-//! Calculates RT in the cloudbox
-/*!
-  This function calculates RT in the cloudbox if the next intersected
-  level is the surface.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field_mono Radiation field in cloudbox
-  \param[in]     surface_rtprop_agenda Provides radiative properties of the
-                 surface
-  \param[in]     f_grid Frequency grid
-  \param[in]     f_index Frequency index of (monochromatic) scattering
-                 calculation
-  \param[in]     ppath_step Propagation path step
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     za_grid Zenith angle grid
-  \param[in]     za_index Zenith angle index
-
-
-  \author Claudia Emde
-  \date 2005-05-13
-
-*/
-void cloud_RT_surface(const Workspace& ws,
-                      //Output
-                      Tensor6View cloudbox_field_mono,
-                      //Input
-                      const Agenda& surface_rtprop_agenda,
-                      ConstVectorView f_grid,
-                      const Index& f_index,
-                      const Ppath& ppath_step,
-                      const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView za_grid,
-                      const Index& za_index);
-
 //! Convergence acceleration
 /*!
  This function accelarate the convergence of the doit iteration by extrapolation

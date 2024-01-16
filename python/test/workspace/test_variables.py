@@ -27,10 +27,6 @@ class TestVariables:
 
         ws.f_grid = 183.0e9 * np.ones(1)
 
-        ws.sensor_los = 180.0 * np.ones((1, 1))
-        ws.sensor_pos = 830e3 * np.ones((1, 1))
-        ws.sensorOff()
-
     def test_index_transfer(self):
         """
         Create and set Index WSV.

@@ -238,61 +238,6 @@ void rte_posSet(Vector& rte_pos,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losBackwardToAltitude(Vector& rte_pos,
-                                   Vector& rte_los,
-                                   const SurfaceField& surface_field,
-                                   const Numeric& altitude,
-                                   const Index &los_is_reversed)
-{
-  // Find los to apply in next step
-  Vector los2use;
-  if (los_is_reversed) {
-    los2use = rte_los;
-  } else {
-    reverse_los(los2use, rte_los);
-  }
-
-  // Move in altitude
-  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
-  start_pos(0, joker) = rte_pos;
-  start_los(0, joker) = los2use;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                start_pos,
-                                start_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  rte_pos = end_pos(0, joker);
-  reverse_los(rte_los, end_los(0, joker));
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losForwardToAltitude(Vector& rte_pos,
-                                   Vector& rte_los,
-                                   const SurfaceField& surface_field,
-                                   const Numeric &altitude)
-{
-  // Move in altitude
-  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
-  start_pos(0, joker) = rte_pos;
-  start_los(0, joker) = rte_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                start_pos,
-                                start_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  rte_pos = end_pos(0, joker);
-  rte_los = end_los(0, joker);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losEndOfPpath(Vector& rte_pos,
                            Vector& rte_los,
                            const Ppath& ppath)
@@ -363,54 +308,4 @@ void sensor_losReverse(
 {
   for (Index i = 0; i < sensor_los.nrows(); i++)
     reverse_los(sensor_los(i, joker), sensor_los(i, joker));
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
-                                      Matrix& sensor_los,
-                                      const SurfaceField& surface_field,
-                                      const Numeric& altitude,
-                                      const Index &los_is_reversed)
-{
-  // Find los to apply in next step
-  Matrix los2use = sensor_los;
-  if (!los_is_reversed) {
-    sensor_losReverse(los2use);
-  }
-
-  // Move in altitude
-  Matrix end_pos, end_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                sensor_pos,
-                                los2use,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  sensor_pos = end_pos;
-  sensor_los = end_los;
-  sensor_losReverse(sensor_los);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
-                                     Matrix& sensor_los,
-                                     const SurfaceField& surface_field,
-                                     const Numeric &altitude)
-{
-  // Move in altitude
-  Matrix end_pos, end_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                sensor_pos,
-                                sensor_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  sensor_pos = end_pos;
-  sensor_los = end_los;
 }

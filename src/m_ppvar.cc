@@ -109,7 +109,7 @@ void ppvar_propmatCalc(const Workspace &ws,
                                     propmat_clearsky_agenda,
                                     jacobian_targets,
                                     ppvar_f[ip],
-                                    Vector{path::mirror(rad_path[ip].los)},
+                                    rad_path[ip],
                                     ppvar_atm[ip]);
     } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)

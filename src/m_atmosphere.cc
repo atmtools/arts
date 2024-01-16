@@ -35,6 +35,7 @@
 #include "interpolation.h"
 #include "linescaling.h"
 #include "matpack_data.h"
+#include "path_point.h"
 #include "special_interp.h"
 #include "species_tags.h"
 
@@ -1662,8 +1663,8 @@ void AtmFieldsAndParticleBulkPropFieldFromCompact(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToPosition(AtmPoint& atm_point,
                               const AtmField& atm_field,
-                              const Vector& rtp_pos) {
-  atm_point = atm_field.at(rtp_pos[0], rtp_pos[1], rtp_pos[2]);
+                              const PropagationPathPoint& path_point) {
+  atm_point = atm_field.at(path_point.pos[0], path_point.pos[1], path_point.pos[2]);
 }
 
 // A small help function

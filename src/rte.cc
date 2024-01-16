@@ -28,6 +28,7 @@
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "new_jacobian.h"
+#include "path_point.h"
 #include "physics_funcs.h"
 #include "ppath_struct.h"
 #include "refraction.h"
@@ -441,7 +442,7 @@ void get_stepwise_clearsky_propmat(
     const Agenda& propmat_clearsky_agenda,
     const JacobianTargets& jacobian_targets,
     const Vector& ppath_f_grid,
-    const Vector& ppath_line_of_sight,
+    const PropagationPathPoint& path_point,
     const AtmPoint& atm_point) {
   static const ArrayOfSpeciesTag select_abs_species{};
   static const ArrayOfRetrievalQuantity jacobian_quantities_empty{};
@@ -456,12 +457,13 @@ void get_stepwise_clearsky_propmat(
       jacobian_targets,
       select_abs_species,
       ppath_f_grid,
-      ppath_line_of_sight,
+      path_point,
       atm_point,
       propmat_clearsky_agenda);
 
+  const Vector sensor_like_los{path::mirror(path_point.los)};
   adapt_stepwise_partial_derivatives(
-      dK_dx, dS_dx, jacobian_targets, ppath_f_grid, ppath_line_of_sight);
+      dK_dx, dS_dx, jacobian_targets, ppath_f_grid, sensor_like_los);
 }
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,

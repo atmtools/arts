@@ -298,9 +298,6 @@ void clear_rt_vars_at_gp(const Workspace& ws,
 
   temperature = t_vec[0];
 
-  const Vector rtp_mag_dummy(3, 0);
-  const Vector ppath_los_dummy;
-
   //calcualte absorption coefficient
   propmat_clearsky_agendaExecute(ws,
                                  local_propmat_clearsky,
@@ -310,7 +307,7 @@ void clear_rt_vars_at_gp(const Workspace& ws,
                                  {},
                                  {},
                                  Vector(1, f_mono),
-                                 ppath_los_dummy,
+                                 {},
                                  AtmPoint{},  // FIXME: DUMMY VALUE
                                  propmat_clearsky_agenda);
 
@@ -378,9 +375,6 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
   pnd_vec = pnd_ppath(joker, 0);
   temperature = t_ppath[0];
 
-  const Vector rtp_mag_dummy(3, 0);
-  const Vector ppath_los_dummy;
-
   //rtp_vmr    = vmr_ppath(joker,0);
   propmat_clearsky_agendaExecute(ws,
                                  local_propmat_clearsky,
@@ -390,7 +384,7 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
                                  {},
                                  {},
                                  Vector{f_grid[Range(f_index, 1)]},
-                                 ppath_los_dummy,
+                                 {},
                                  AtmPoint{},  // FIXME: DUMMY VALUE
                                  propmat_clearsky_agenda);
 

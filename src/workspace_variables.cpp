@@ -288,31 +288,6 @@ Unit:  Integer value [1-2].
 )--",
       .type = "Index"};
 
-  wsv_data["antenna_dlos"] = {
-      .desc = R"--(The relative line-of-sight of each antenna pattern.
-
-This variable describes the line-of-sight of the individual antennae
-relative to *sensor_los*. If each measurement block corresponds to
-a single antenna pattern, the normal choice is to set the angle(s) of
-this variable to zero.
-
-The first column holds the relative zenith angle. This column is
-mandatory for all atmospheric dimensionalities. For 3D, there can
-also be a second column, giving relative azimuth angles. If this
-column is not present (for 3D) zero azimuth off-sets are assumed.
-
-See further the ARTS user guide (AUG). Use the index to find where
-this variable is discussed. The variable is listed as a subentry to
-\"workspace variables\".
-
-Usage: Set by the user.
-
-Unit:  [ degrees, degrees ]
-
-Size:  [ number of antennae, 1 or 2 ]
-)--",
-      .type = "Matrix"};
-
   wsv_data["antenna_response"] = {.desc = R"--(The antenna pattern/response.
 
 This WSV describes the antenna response as a function of polarisation
@@ -891,31 +866,6 @@ The possible choices vary between the Disort methods. See the WSM you select
       .type = "ArrayOfString",
       .default_value = ArrayOfString{}};
 
-  wsv_data["dlos"] = {.desc = R"--(A set of relative angles.
-
-This variable is a matrix having two columns. The two columns hold
-relative zenith angle and relative azimuth angle, respectively.
-
-These relative angles have zenith angle 90 deg as reference. This
-means that dza and daa represent the same angle distance at dza=0.
-
-Let us say that you add relative angles to a line-of-sight of za = 90
-and aa=0. Then adding the following (dza,daa) gives los of (za,aa):
-
-- (1,0) -> (91,0)
-- (0,1) -> (90,1)
-- (-90,45) -> (0,undefined)
-)--",
-                      .type = "Matrix"};
-
-  wsv_data["dlos_weight_vector"] = {
-      .desc = R"--(A weight associated with each direction *dlos*.
-
-A standard application should be to store the solid angle each
-row in *dlos* covers.
-)--",
-      .type = "Vector"};
-
   wsv_data["dpnd_data_dx"] = {.desc = R"--(Partial derivates of *pnd_data*.
 
 The variable gives the particle derivate of *pnd_data* with respect
@@ -1212,16 +1162,12 @@ Usage: Method output.
                          .type = "Index"};
 
   wsv_data["gas_scattering_do"] = {.desc = R"--(Flag to activate gas scattering.
-
-If this variable is set to 0, no gas scattering will be considered,
-even if the gas_scattering_agenda is set.
-
 )--",
                                    .type = "Index",
                                    .default_value = Index{0}};
 
   wsv_data["gas_scattering_output_type"] = {
-      .desc = R"--(Flag to select the output of the *gas_scattering_agenda*.
+      .desc = R"--(Flag to select the output type of gas scattering.
 
 Internal communications variable, not intended to be used by user.
 If equals 0 *gas_scattering_mat* is output and *gas_scattering_fct_legendre* is empty.
@@ -1230,45 +1176,11 @@ If equals 1 *gas_scattering_fct_legendre* is output and *gas_scattering_mat* is 
 )--",
       .type = "Index"};
 
-  wsv_data["gas_scattering_los_in"] = {
-      .desc = R"--(Incoming line-of-sight for gas scattering.
-
-This variable holds a local line-of-sight. The angles of this
-vector are defined as for *rte_los*.
-
-The WSV is used as input in *gas_scattering_agenda*
-
-Usage: Communication variable.
-
-Units: [ degree, degree ]
-
-Size:  [ 2 ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["gas_scattering_los_out"] = {
-      .desc = R"--(Outgoing line-of-sight for gas scattering.
-
-This variable holds a local line-of-sight. The angles of this
-vector are defined as for *rte_los*.
-
-The WSV is used as input in *gas_scattering_agenda*
-
-Usage: Communication variable.
-
-Units: [ degree, degree ]
-
-Size:  [ 2 ]
-)--",
-      .type = "Vector"};
-
   wsv_data["gas_scattering_coef"] = {
       .desc = R"--(Spectrum of scattering coefficient matrices.
 
 This variable contains the elements of the extinction matrix solely
 due to scattering.
-
-Usage: Output of *gas_scattering_agenda*.
 
 Units: [ m^-1. ]
 
@@ -1282,8 +1194,6 @@ Size:  [fgrid, stokes_dim, stokes_dim]
 This variable contains the elements of the normalized phase matrix
 for a specific incoming and outgoing direction.
 
-Usage: Output of *gas_scattering_agenda*.
-
 Units: [ 1 ]
 
 Size:  [fgrid, stokes_dim, stokes_dim]
@@ -1296,31 +1206,11 @@ Size:  [fgrid, stokes_dim, stokes_dim]
 This variable contains the normalized phase function
 as Legendre series.
 
-Usage: Output of *gas_scattering_agenda*.
-
 Units: [ 1 ]
 
 Size:  [Number of Legendre polynomials]
 )--",
       .type = "Vector"};
-
-  wsv_data["geo_pos"] = {.desc = R"--(Geo-position of a measurement.
-
-An empty vector is allowed, then flagging that no geo-positioning
-has been performed.
-
-Otherwise, this should be a vector having length 5. The elements are:
- - altitude
- - latitude
- - longitide
- - zenith angle
- - azimuth angle
-
-Dimensions: 0 or 5
-
-Unit:  [ m, deg, deg, deg, deg ]
-)--",
-                         .type = "Vector"};
 
   wsv_data["g0"] = {.desc = R"--(Gravity at zero altitude.
 
@@ -1545,25 +1435,6 @@ Usage: Set by the user.
 Unit:  degrees
 )--",
                      .type = "Numeric"};
-
-  wsv_data["mblock_dlos"] = {
-      .desc =
-          R"--(The set of angular pencil beam directions for each measurement block.
-
-The relative angles in this variable are angular off-sets with
-respect to the angles in *sensor_los*. Defined as *dlos* but is
-allowed to only have a single column, as described below.
-
-The first column holds the relative zenith angle. This column is
-mandatory for all atmospheric dimensionalities. For 3D, there can
-also be a second column, giving relative azimuth angles. If this
-column is not present (for 3D) zero azimuth off-sets are assumed.
-
-Usage: Set by the user or output of antenna WSMs.
-
-Unit:  degrees
-)--",
-      .type = "Matrix"};
 
   wsv_data["mblock_index"] = {.desc = R"--(Measurement block index. 
 
@@ -2560,104 +2431,6 @@ Unit: [ m/s ]
       .type = "Numeric",
       .default_value = Numeric{0.0}};
 
-  wsv_data["rte_los"] = {
-      .desc =
-          R"--(A line-of-sight for (complete) radiative transfer calculations.
-
-This variable gives the observation direction for monochromatic
-pencil beam calculations. Hence, it is the line-of-sight at the end
-point of the propagation path.
-
-For 1D and 2D cases, *rte_los* is a vector of length 1 holding the 
-zenith angle. For 3D, the length of the vector is 2, where the
-additional element is the azimuthal angle. These angles are defined
-in the ARTS user guide (AUG). Look in the index for \"zenith angle\"
-and \"azimuthal angle\".
-
-Usage: See above.
-
-Units: [ degree, degree ]
-
-Size:  [ 1 or 2 ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["rte_pos"] = {
-      .desc =
-          R"--(A geographical position for starting radiative transfer calculations.
-
-This variable gives the observation position for monochromatic
-pencil beam calculations. Hence, it is the end point of the
-propagation path.
-
-This variable is a vector with a length equalling the atmospheric
-dimensionality. The first element is the geometrical altitude.
-Element 2 is the latitude and element 3 is the longitude.
-
-Usage: See above. 
-
-Units: [ m, degree, degree ]
-
-Size:  [ atmosphere_dim ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["rte_pos2"] = {
-      .desc = R"--(A second geographical position to define the geometry for
-radiative transfer calculations.
-
-This variable is used when the propagation path is defined by two
-positions, instead of a position (*rte_pos*) and a line-of-sight
-(*rte_los*). That is, this variable basically replaces *rte_los*
-for the cases of consideration. In practice, *rte_los* is determined
-by finding the propagation path between *rte_pos* and *rte_pos2*.
-
-As *rte_pos* with the exception that a \"latitude\" must also be
-specified for 1D. This is the angular distance to *rte_pos*, where
-this distance is defined as the 2D-\"latitude\".
-
-Usage: See above. 
-
-Units: [ m, degree, degree ]
-
-Size:  [ atmosphere_dim ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["rtp_los"] = {
-      .desc = R"--(Line-of-sight at a radiative transfer point.
-
-This variable holds a local line-of-sight. The angles of this
-vector are defined as for *rte_los*.
-
-The WSV is used as input to methods and agendas calculating radiative
-properties for a given conditions.
-
-Usage: Communication variable.
-
-Units: [ degree, degree ]
-
-Size:  [ 1 or 2 ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["rtp_pos"] = {.desc = R"--(Position of a radiative transfer point.
-
-This vector is defined as *rte_pos*, but holds a position along
-the propgation path, or the start point for new paths, in contrast
-to *rte_pos* that is position of the (imaginary) detector.
-
-The WSV is used as input to methods and agendas calculating radiative
-properties for a given conditions.
-
-Usage: Communication variable.
-
-Units: [ m, degree, degree ]
-
-Size:  [ atmosphere_dim ]
-)--",
-                         .type = "Vector"};
-
   wsv_data["rtp_pressure"] = {
       .desc = R"--(Pressure at a radiative transfer point.
 
@@ -3011,19 +2784,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       .type = "ArrayOfSpeciesTag",
       .default_value = ArrayOfSpeciesTag{}};
 
-  wsv_data["sensor_checked"] = {
-      .desc = R"--(OK-flag for sensor related variables.
-
-This variable flags that sensor variables are defined in a formally
-and practically correct way. For example, it checks for correct
-dimensions of *sensor_pos* and *sensor_los*.
-
-Shall be set by *sensor_checkedCalc*. See that WSM for treated WSVs.
-Only the value 1 is taken as OK.
-)--",
-      .type = "Index",
-      .default_value = Index{0}};
-
   wsv_data["sensor_description_amsu"] = {
       .desc = R"--(Sensor description for simple AMSU setup.
 
@@ -3037,43 +2797,6 @@ Usage: Set by the user.
 Unit: All entries in Hz.
 
 Size: [number of channels, 3]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["sensor_los"] = {
-      .desc = R"--(The sensor line-of-sight (LOS) for each measurement block.
-
-Line-of-sights are specified by giving the zenith and azimuth angles.
-Column 1 holds the zenith angle. This angle is simply the angle 
-between the zenith and LOS directions. For 1D and 3D the valid
-range is [0 180], while for 2D angles down to -180 degrees are
-allowed. Negative angles signifies for 2D observations towards
-lower latitudes, while positive angles means observations towards
-higher latitudes. Nadir corresponds throughout to 180 degrees.
-
-The azimuth angle is given with respect to the meridian plane. That
-is, the plane going through the north and south poles. The valid 
-range is [-180,180] where angles are counted clockwise; 0 means
-that the viewing or propagation direction is north-wise and +90 means
-that the direction of concern goes eastward.
-
-No azimuth angle shall be specified for 1D and 2D. This angle is in
-general of no concern for these atmospheric dimensionalities, but
-matter in some cases, such as with respect to the Doppler shift due
-to winds. For 1D the azimuth angle is then assumed to be 0 deg, i.e.
-the sensor is treated to be directed towards North. For 2D, the 
-implied azimuth is 0 or 180, depending of the zenith angle is positive
-or negative.
-
-See further the ARTS user guide (AUG). Use the index to find where
-this variable is discussed. The variable is listed as a subentry to
-\"workspace variables\".
-
-Usage: Set by the user.
-
-Unit:  [ degrees, degrees ]
-
-Size:  [ number of measurement blocks, 1 or 2 ]
 )--",
       .type = "Matrix"};
 
@@ -3101,11 +2824,6 @@ variable combined with the ``yApplySensorPol`` offers an alternative for
 such situations. This WSV also allows defintion of an arbitrary
 polarisation angle.
 
-When applying the polarisation response by ``yApplySensorPol``, this
-variable complements *sensor_pos* and *sensor_los*. This WSV matrix
-is also a matrix, that shall have the same number of rows as the other
-two matrices. 
-
 The columns of *sensor_pol* corresponds to the channels/frequencies
 of the receiver. Each element gives the polarisation angle. A pure
 vertical response has the angle 0 deg, and pure horisontal 90 deg.
@@ -3124,30 +2842,6 @@ Size:  [ number of measurement blocks, number of channels/frequencies ]
 )--",
                             .type = "Matrix"};
 
-  wsv_data["sensor_pos"] = {
-      .desc = R"--(The sensor position for each measurement block.
-
-The sensor positions are specified as a matrix, where the number of
-columns shall be equal to ``atmosphere_dim``. Column 1 shall contain
-the altitude of the sensor platform, column 2 the latitude and the 
-last column the longitude. The number of rows corresponds to the
-number of measurement blocks.
-
-Valid range for latitudes in 3D is [-90,90], while for 2D any value
-is accepted. Accepted range for longitudes are [-360,360].
-
-See further the ARTS user guide (AUG). Use the index to find where
-this variable is discussed. The variable is listed as a subentry to
-\"workspace variables\".
-
-Usage: Set by the user.
-
-Unit:  [ m, degrees, degrees ]
-
-Size:  [ number of measurement blocks, atmosphere_dim ]
-)--",
-      .type = "Matrix"};
-
   wsv_data["sensor_response"] = {
       .desc = R"--(The matrix modelling the total sensor response.
 
@@ -3156,8 +2850,7 @@ The response is assumed to be identical for each such block.
 
 The matrix is the product of all the individual sensor response
 matrices. Therefore its dimensions are depending on the total sensor
-configuration. The *sensor_response* has to initialised by the 
-*sensor_responseInit* method.
+configuration.
 
 Usage: Output/input to the ``sensor_response...`` methods.
 
@@ -3259,38 +2952,6 @@ Unit:  [ degrees ]
 )--",
       .type = "ArrayOfArrayOfVector"};
 
-  wsv_data["sensor_response_dlos"] = {
-      .desc =
-          R"--(The relative zenith and azimuth angles associated with the output of
-*sensor_response*.
-
-Definition of angles match *mblock_dlos*. Works otherwise as
-*sensor_response_f*.
-
-The variable shall not be set manually, it will be set together with
-*sensor_response* by sensor response WSMs.
-
-Usage: Set by sensor response methods.
-
-Unit:  [ degrees ]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["sensor_response_dlos_grid"] = {
-      .desc =
-          R"--(The zenith and azimuth angles associated with *sensor_response*.
-
-A variable for communication between sensor response WSMs. Matches
-initially *mblock_dlos*, but is later adjusted according to the
-sensor specifications. Only defined when a common grid exists. Values
-are here not repeated as in *sensor_response_dlos*.
-
-Usage: Set by sensor response methods.
-
-Unit:  [ degrees ]
-)--",
-      .type = "Matrix"};
-
   wsv_data["sensor_response_f"] = {
       .desc =
           R"--(The frequencies associated with the output of *sensor_response*.
@@ -3298,8 +2959,7 @@ Unit:  [ degrees ]
 This vector gives the frequency for each element of the measurement
 vector produced inside one measurement block. The frequencies of
 the total measurement vector, ``y``, are obtained by repeating these
-frequencies n times, where n is the number of measurement blocks
-(e.g. the number of rows in *sensor_pos*).
+frequencies n times, where n is the number of measurement blocks.
 
 The variable shall not be set manually, it will be set together with
 *sensor_response* by sensor response WSMs.
@@ -3473,18 +3133,6 @@ Size: [ p_grid, lat_grid,  lon_grid]
 )--",
                                         .type = "Tensor3"};
 
-  wsv_data["specular_los"] = {
-      .desc = R"--(The specular direction (for reflection by a flat surface).
-
-The specular direction as a standard line-of-sight vector, consisting
-of a zenith and azimuth angle.
-
-Units: degrees
-
-Size:  [ 2 ]
-)--",
-      .type = "Vector"};
-
   wsv_data["suns_do"] = {.desc = R"--(Flag to activate the sun(s).
 )--",
                          .type = "Index",
@@ -3500,32 +3148,6 @@ longitude in the sky of the planet and the type
 )--",
                       .type = "ArrayOfSun",
                       .default_value = ArrayOfSun{}};
-
-  wsv_data["stokes_rotation"] = {
-      .desc = R"--(Rotation of the Stokes H and V directions.
-
-This variable allows to introduce a rotation of the Stokes coordinate
-system. Such a rotation could be needed to handle the scanning
-procedure of some instruments, such as AMSU-A. The variable is
-applied by the *sensor_responseStokesRotation* WSM.
-
-The rotation is given as an angle for each direction. In general, the
-number of rotations to be specified follows *sensor_response_dlos_grid*.
-In more detail, if no antenna is included or a 1D antenna is used, and
-the rotation is applied before the antenna is included in 
-*sensor_response*, there should be one angle for each row of
-*mblock_dlos*. After inclusion of an antenna response, the relevant
-number of angles is determined by the rows of *antenna_dlos*.
-
-It is assumed that the rotation is common for all frequency elements.
-
-Units: degrees
-
-Size:  [ number of directions ]
-
-Usage: Set by the user.
-)--",
-      .type = "Vector"};
 
   wsv_data["surface_complex_refr_index"] = {
       .desc = R"--(Complex refractive index of the surface, at a single point.
@@ -3551,19 +3173,6 @@ Connected to *surface_point*, this describes the global surface values, such as 
 temperature but also entirerly abstract properties and types.
 )--",
       .type = "SurfaceField"};
-
-  wsv_data["surface_los"] = {
-      .desc =
-          R"--(Downwelling radiation directions to consider in surface reflection.
-
-The directions are given as a zenith and azimuth angle (the later
-only for 3D), following the definition of line-of-sights.
-
-Units: degrees
-
-Size:  [ any number, 1 or 2 ]
-)--",
-      .type = "Matrix"};
 
   wsv_data["surface_normal"] = {
       .desc = R"--(The normal vector for a point at the surface.
@@ -3600,8 +3209,9 @@ Size:  [ number of props. ]
       .default_value = ArrayOfString{}};
 
   wsv_data["surface_rmatrix"] = {
-      .desc = R"--(The reflection coefficients for the directions given by
-*surface_los* to the direction of interest.
+      .desc = R"--(The reflection coefficients for the surface
+      
+The directions are given by surface line-of-sight to the direction of interest.
 
 The rows and columns of this tensor holds the reflection
 coefficient matrix for one frequency and one LOS. The reflection
@@ -3610,8 +3220,6 @@ downwelling radiation.
 
 See specific methods generating *surface_rmatrix* and the user guide
 for more information.
-
-Usage:      Input to methods for *surface_rtprop_agenda*.
 
 Units:      -
 
@@ -3632,24 +3240,11 @@ Unit:  m
       .type = "Numeric",
       .default_value = Numeric{1}};
 
-  wsv_data["surface_search_safe"] = {
-      .desc =
-          R"--(Selection of algorithm for finding intersections with the surface.
-
-See *IntersectionGeometricSurface* for details.
-
-Unit:  m
-)--",
-      .type = "Index",
-      .default_value = Index{0}};
-
   wsv_data["surface_skin_t"] = {.desc = R"--(Surface skin temperature.
 
 This temperature shall be selected considering the radiative
 properties of the surface, and can differ from the \"bulk\"
 temperature.
-
-Usage:   Input to methods for *surface_rtprop_agenda*.
 )--",
                                 .type = "Numeric"};
 
@@ -3714,11 +3309,6 @@ Dimensions: [ f_grid or 1]
   wsv_data["surface_type_mask"] = {
       .desc = R"--(Classification of the surface using a type coding.
 
-There is no fixed type coding, it is up to the user to set up
-a system consistent with *surface_rtprop_agenda_array*. A value
-of 0 in *surface_type_mask* means that element 0 in the agenda
-array is valid for that position etc.
-
 Dimensions: 
 
 -  GriddedField2:
@@ -3731,15 +3321,6 @@ Dimensions:
 
   wsv_data["surface_type_mix"] = {
       .desc = R"--(Gives the fraction of different surface types.
-
-For cases when the surface RT properties are taken from
-*surface_rtprop_agenda_array*, this variable specifies to
-what extent each surface type has contributed to the surface
-RT variables, such as *surface_emission* and *surface_skin_t*.
-
-The length of this vector follows *surface_rtprop_agenda_array*
-and the sum of the elements is 1. The first element in the
-vector matches the first agenda element, and so on.
 )--",
       .type = "Vector"};
 
@@ -3773,33 +3354,6 @@ TESSEM2 neural network parameters for vertical polarization.
       .desc = R"--(A set of times.  Can be in random order
 )--",
       .type = "ArrayOfTime"};
-
-  wsv_data["transmitter_pos"] = {.desc = R"--(Transmitter positions.
-
-Used for radio link calculations and gives then the position of the
-transmitting device. The corresponding positions of the receiver are
-given by *sensor_pos*. The number of rows in *transmitter_pos* and
-*sensor_pos* must be equal.
-
-This WSV is also defined as *sensor_pos* regarding the content of the
-columns, accepted range for latitudes etc. With one exception, this
-WSV is demanded to have two columns also for 1D. The additional
-second value is the angular distance between the transmitter and the
-reciver. This angle is defined as \"latitude\" for 2D, with the
-sensor fixed at the angle of 0 degree.
-
-Each row this matrix defines *rte_pos2* for the measurement block,
-exactly as *sensor_pos* is translated to *rte_pos*.
-
-If no transmitter is involved in the calculations, the variable can
-be set to be empty.
-
-Usage: Set by the user.
-
-Unit:  [ m, degrees, degrees ]
-)--",
-                                 .type = "Matrix",
-                                 .default_value = Matrix{}};
 
   wsv_data["water_p_eq_field"] = {
       .desc = R"--(The field of water saturation pressure.
@@ -3934,18 +3488,6 @@ Usage: Set by the user.
 Unit:  m
 )--",
       .type = "Numeric"};
-
-  wsv_data["z_sensor"] = {.desc = R"--(The altitude of the sensor.
-
-Please note that the sensor altitude actaully applied is in general
-specified by *sensor_pos*. This WSV is only a help, to set other
-workspace variables and to call methods in a consistent manner
-
-Usage: Set by the user.
-
-Unit:  m
-)--",
-                          .type = "Numeric"};
 
   wsv_data["water_equivalent_pressure_operator"] = {
       .desc = R"--(The water equivalent pressure operator.

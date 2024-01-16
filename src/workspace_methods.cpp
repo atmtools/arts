@@ -91,84 +91,6 @@ Possible zenith angle grid types are:
 
   };
 
-  wsm_data["AntennaMultiBeamsToPencilBeams"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Maps a multi-beam case to a matching pencil beam case.
-
-Cases with overlapping beams are most efficiently handled by
-letting *antenna_dlos* have several rows. That is, there are
-multiple beams for each measurement block. The drawback is that
-many variables must be adjusted if the corresponding pencil beam
-spectra shall be calculated. This method makes this adjustment.
-That is, if you have a control file for a multiple beam case and
-for some reason want to avoid the antenna weighting, you add this
-method before *sensor_responseInit*, and remove the call of
-*sensor_responseAntenna* and you will get the matching pencil beam
-spectra.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_pos",
-              "sensor_los",
-              "antenna_dlos",
-              "antenna_dim",
-              "mblock_dlos"},
-
-      .in = {"sensor_pos",
-             "sensor_los",
-             "antenna_dlos",
-             "antenna_dim",
-             "mblock_dlos"},
-
-  };
-
-  wsm_data["AntennaOff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets some antenna related variables
-
-Use this method to set *antenna_dim* and *mblock_dlos* to
-suitable values (1 and [0], respectively) for cases when a
-sensor is included, but the antenna pattern is neglected.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"antenna_dim", "mblock_dlos"},
-
-  };
-
-  wsm_data["Append"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Append one workspace variable to another.
-
-This method can append an array to another array of the same type,
-e.g. ArrayOfIndex to ArrayOfIndex. Or a single element to an array
-such as a Tensor3 to an ArrayOfTensor3.
-
-Appending two vectors or a numeric to a vector works as for array
-variables.
-
-Both another matrix or a vector can be appended to a matrix. In
-addition, for matrices, the 'append dimension' can be selected.
-The third argument, ``dimension``, indicates how to append, where
-"leading" means to append row-wise, and "trailing" means
-column-wise.
-
-Other types (TensorX) are currently only implemented for
-appending to the leading dimension.
-
-This method is not implemented for all types, just for those that
-were thought or found to be useful. (See variable list below.).
-)--",
-      .author = {"Stefan Buehler, Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type =
-          {"Vector, Vector, Matrix, Matrix, Tensor3, Tensor3, Tensor4, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector"},
-      .gout_desc = {R"--(The variable to append to.)--"},
-
-      .gin = {"input", "dimension"},
-      .gin_type = {"Numeric, Vector, Matrix, Vector, Matrix, Tensor3, Tensor3, Tensor4, String, ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPpath, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, AbsorptionLines, Agenda, ArrayOfAbsorptionLines, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfTensor3, ArrayOfTensor6, ArrayOfTime, ArrayOfVector, AtmPoint, CIARecord, GriddedField1, GriddedField2, GriddedField3, GriddedField4, Index, Matrix, MuelmatMatrix, MuelmatVector, Ppath, PropmatMatrix, PropmatVector, QuantumIdentifier, ScatteringMetaData, SingleScatteringData, Sparse, StokvecMatrix, StokvecVector, String, TelsemAtlas, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Time, Vector",
-                   "String"},
-      .gin_value = {std::nullopt, String("leading")},
-      .gin_desc = {
-          R"--(The variable to append.)--",
-          R"--(Where to append. Could be either the "leading" or "trailing" dimension.)--"}};
-
   wsm_data["ArrayOfGriddedFieldGetNames"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Get the names of all GriddedFields stored in an Array.
 
@@ -644,37 +566,6 @@ frequency index and iY the iteration counter.
       .gin_type = {"Time", "Time"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Start time)--", R"--(End time)--"},
-
-  };
-
-  wsm_data["Error"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Issues an error and exits ARTS.
-
-This method can be placed in agendas that must be specified, but
-are expected not to be used for the particular case. An inclusion
-in *surface_rtprop_agenda* could look like::
-
-  Error{"Surface interceptions of propagation path not expected."}
-
-Ignore and other dummy method calls must still be included.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gin = {"msg"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(String describing the error.)--"},
-
-  };
-
-  wsm_data["Exit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Stops the execution and exits ARTS.
-
-This method is handy if you want to debug one of your control
-files. You can insert it anywhere in the control file. When
-it is reached, it will terminate the program.
-)--",
-      .author = {"Patrick Eriksson"},
 
   };
 
@@ -1182,39 +1073,39 @@ The result can either be stored in the same or another Index.
   wsm_data["InterpAtmFieldToPosition"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Point interpolation of atmospheric fields.
 
-The default way to specify the position is by *rtp_pos*.
+The default way to specify the position is by *path_point*.
 
 Linear interpolation is applied.
 )--",
       .author = {"Richard Larsson"},
 
       .out = {"atm_point"},
-      .in = {"atm_field", "rtp_pos"},
+      .in = {"atm_field", "path_point"},
 
   };
 
   wsm_data["surface_pointFromAtm"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Extracts a surface point from an atmospheric field
 
-The elevation is from *rtp_pos*, the normal points straight up, and
+The elevation is from *path_point*, the normal points straight up, and
 the atmosphere must contain the temperature.  If the wind is present,
 it is also extracted.
 )--",
       .author = {"Richard Larsson"},
       .out = {"surface_point"},
-      .in = {"atm_field", "rtp_pos"},
+      .in = {"atm_field", "path_point"},
   };
 
   wsm_data["InterpSurfaceFieldToPosition"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Point interpolation of surface fields.
 
-The default way to specify the position is by *rtp_pos*.
+The default way to specify the position is by *path_point*.
 
 Linear interpolation is applied.
 
 The interpolation is done for the latitude and longitude in
-*rtp_pos*, while the altitude in *rtp_pos* is not part of the
-calculations. However, it is checked that the altitude of *rtp_pos*
+*path_point*, while the altitude in *path_point* is not part of the
+calculations. However, it is checked that the altitude of *path_point*
 is inside the range covered by ``z_surface`` with a 1 m margin, to
 give a warning when the specified position is not consistent with
 the surface altitudes.
@@ -1222,127 +1113,7 @@ the surface altitudes.
       .author = {"Patrick Eriksson"},
       .out = {"surface_point"},
 
-      .in = {"rtp_pos", "surface_field", "surface_search_accuracy"},
-
-  };
-
-  wsm_data["IntersectionGeometricAltitude"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the geometrical intersection with an altitude.
-
-For each observation geometry specified by the combination of
-*sensor_pos* and *sensor_los*, the geometrical intersection with
-an altitude is determined. The intersections are described by the
-GOUT ``pos`` and ``los``.
-
-For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
-
-The GOUT ``pos`` and ``los`` can NOT be *sensor_pos* and *sensor_los*.
-If you want to store the intersections in *sensor_pos* and *sensor_los*
-use *sensor_pos_losForwardToAltitude*. For *rte_pos* and *rte_los*
-you have *rte_pos_losForwardToAltitude*.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"pos", "los"},
-      .gout_type = {"Matrix", "Matrix"},
-      .gout_desc = {R"--(Position of intersections.)--",
-                    R"--(Line-of-sight at intersections.)--"},
-      .in = {"sensor_pos", "sensor_los", "surface_field"},
-      .gin = {"altitude"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{0}},
-      .gin_desc = {R"--(Target altitude.)--"},
-
-  };
-
-  wsm_data["IntersectionGeometricLatitude"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the geometrical intersection with a latitude.
-
-For each observation geometry specified by the combination of
-*sensor_pos* and *sensor_los*, the geometrical intersection with
-a latitude is determined. The intersections are described by the
-GOUT ``pos`` and ``los``.
-
-For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"pos", "los"},
-      .gout_type = {"Matrix", "Matrix"},
-      .gout_desc = {R"--(Position of intersections.)--",
-                    R"--(Line-of-sight at intersections.)--"},
-      .in = {"sensor_pos", "sensor_los", "surface_field"},
-      .gin = {"latitude"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Target latitude.)--"},
-
-  };
-
-  wsm_data["IntersectionGeometricLongitude"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the geometrical intersection with a longitude.
-
-For each observation geometry specified by the combination of
-*sensor_pos* and *sensor_los*, the geometrical intersection with
-a longitude is determined. The intersections are described by the
-GOUT ``pos`` and ``los``.
-
-For cases with no intersection, ``pos`` and ``los`` are filled with NaN.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"pos", "los"},
-      .gout_type = {"Matrix", "Matrix"},
-      .gout_desc = {R"--(Position of intersections.)--",
-                    R"--(Line-of-sight at intersections.)--"},
-      .in = {"sensor_pos", "sensor_los", "surface_field"},
-      .gin = {"longitude"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Target longitude.)--"},
-
-  };
-
-  wsm_data["IntersectionGeometricSurface"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the geometrical intersection with the surface.
-
-For each observation geometry specified by the combination of
-*sensor_pos* and *sensor_los*, the geometrical intersection with
-the surface is determined. The intersections are described by the
-GOUT ``pos`` and ``los``. For cases with no intersection, ``pos`` and ``los``
-are filled with NaN.
-
-If the surface elevation is constant, the intersections are found
-analytically. Otherwise a search in terms of distance from the sensor
-is applied. The default is to use a bisection algorithm. This option
-should suffice in general, but it can fail if the elevation varies
-strongly and/or the incidence angle is high. The path can then cross
-the surface at several positions and the bisection search does not
-guarantee that the correct intersection is found. To avoid this, set
-*surface_search_safe* to 1 and a safe, but much more slow option, is
-used. In this case the path is simple sampled in a step-by-step
-fashion.
-
-To be clear, the faster bisection algorith can fail if the path goes
-through a mountain top. For an upward observation inside a valley, the
-bisection can also miss if the path touches the side of the valley.
-
-For both algorithms *surface_search_accuracy* governs the accuracy. In
-the first case, the bisection is stopped when the set accuracy has
-been reached, while in the safe option *surface_search_accuracy* is
-the step length used.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"pos", "los"},
-      .gout_type = {"Matrix", "Matrix"},
-      .gout_desc = {R"--(Position of intersections.)--",
-                    R"--(Line-of-sight at intersections.)--"},
-      .in = {"sensor_pos",
-             "sensor_los",
-             "surface_field",
-             "surface_search_accuracy",
-             "surface_search_safe"},
+      .in = {"path_point", "surface_field", "surface_search_accuracy"},
 
   };
 
@@ -3539,38 +3310,6 @@ The size is determined by *ncols*, *nrows* etc.
       .gin_value = {std::nullopt},
       .gin_desc =
           {R"--(NeuralNet parameters file as provided in the TESSEM 2 distribution.)--"},
-
-  };
-
-  wsm_data["TestBasicGeodeticAccuracy"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Tests the basic accuracy of the geodetic calculations.
-
-Basically all geodetic calculations involves conversion to ECEF coordinates
-and back. This method tests the accuracy of this conversion. 
-
-A random position and line-of-sights is generated and the conversion are
-made. The change of position is calculated as a distance. If the distance
-exceeds ``max_allowed_dl`` an error is issued. Otherwise a new test is made.
-This is repeated ``ntests`` times. The maximum error is returned as ``max_dl``.
-The position the maximum error is returned as *rte_pos*.
-
-Further, the maximum error for altitude, latitude etc. are returned in
-GOUTs ``max_dpos`` and ``max_dlos``. This is the max absolute error for each
-value separately (i.e. they can come from different tests/positions.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_pos"},
-      .gout = {"max_dl", "max_dpos", "max_dlos"},
-      .gout_type = {"Numeric", "Vector", "Vector"},
-      .gout_desc = {R"--(Maximum error in term of distance.)--",
-                    R"--(The maximum error for each position component.)--",
-                    R"--(The maximum error for each LOS component.)--"},
-      .in = {"surface_field"},
-      .gin = {"ntests", "max_allowed_dl"},
-      .gin_type = {"Index", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc = {R"--(Number of tests.)--",
-                   R"--(Maximum allowed error in term of distance.)--"},
 
   };
 
@@ -7517,77 +7256,6 @@ Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
 
       };
 
-  wsm_data["dlosGauss"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gives a *dlos* suitable for a circular Gaussian response.
-
-The method generates a *dlos* where each direction is meant to have
-an equal weight in terms of the product of solid angle and a circular
-Gaussian response. That is, the FWHM of the response is equal in zenith
-and azimuth directions.
-
-The points have an unequal distribution in radius. The weight in radius
-equals radius times the magnitude of the Gaussian response (this product
-peaks for a radius around 0.41 * FWHM). The points are distributed in
-polar angle simply by adding 208.8 deg from one point to next. There is
-no theoretical basis for this step in angle, just found to result in a
-relatively uniform distribution over the circle.
-
-The method should mainly be used for ``npoints`` above 10-20. For lower
-``npoints``, a rectangular pattern should give a more robust sampling
-spatially.
-
-Default is to let *dlos_weight_vector* represent the solid angle of
-each dlos direction. With ``include_response_in_weight`` set to 1, all
-elements of *dlos_weight_vector* are equal and their sum is 1.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"dlos", "dlos_weight_vector"},
-
-      .gin = {"fwhm", "npoints", "include_response_in_weight"},
-      .gin_type = {"Numeric", "Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The full width at half maximum of the Gaussian response.)--",
-           R"--(Number of dlos-directions.)--",
-           R"--(Set to 1 to include the response values in *dlos_weight_vector*.)--"},
-
-  };
-
-  wsm_data["dlosUniform"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gives *dlos* a rectangular coverage, with uniform spacing.
-
-The directions described by *dlos* are uniform with respect
-to relative zenith and azimuth (and thus are NOT uniform in
-solid angle). The same angular grid is applied in both angular
-dimensions. With width = 1 and npoints = 5, the angular grids
-both are [-0.4, -0.2, 0, 0.2, 0.4].
-
-The inner loop in is the zenith direction. That is, first comes
-all relative zenith angles for first relative azimuth angle etc.
-
-For default settings, the resulting number of dlos-directions
-is npoints * npoints.
-
-If GIN ``crop_circular`` is true, dlos-es at a radius outside of
-width/2 are removed. The resulting number of directions then
-approaches pi * npoints * npoints / 4, for high values of ``npoints``.
-There is no effect of ``crop_circular`` for npoints=2, while for
-npoints=3 the corner points are removed (despite being inside
-the radius limit) and the number of directions becomes five.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"dlos", "dlos_weight_vector"},
-
-      .gin = {"width", "npoints", "crop_circular"},
-      .gin_type = {"Numeric", "Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The full width, in each dimension, in degrees.)--",
-           R"--(Number of points over the width, in each dimension (>1).)--",
-           R"--(Set to 1, to crop dlos-es to obtain a pseudo-circular pattern.)--"},
-
-  };
-
   wsm_data["spectral_radiance_background_space_agendaSet"] =
       WorkspaceMethodInternalRecord{
           .desc = R"--(Sets *spectral_radiance_background_space_agenda*
@@ -8260,33 +7928,6 @@ Options are:
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["gas_scatteringOff"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Deactivates the gas_scattering within radiative transfer calculations.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"gas_scattering_do", "gas_scattering_agenda"},
-  };
-
-  wsm_data["gas_scattering_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *gas_scattering_agenda* to a default value
-
-Options are:
-
-- ``"Dummy"``:
-
-    1. Will *Ignore* all agenda inputs
-    2. Uses *Touch* on all agenda outputs
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"gas_scattering_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {String("Dummy")},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
   wsm_data["gas_scattering_coefAirSimple"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculates of scattering coefficient matrix for air.
 
@@ -8328,39 +7969,6 @@ by  *rtp_pressure*, *rtp_temperature*.
       .gin_type = {"Numeric"},
       .gin_value = {Numeric{0.}},
       .gin_desc = {R"--(Constant Xsec value)--"},
-
-  };
-
-  wsm_data["gas_scattering_matIsotropic"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the spectrum of normalized scattering matrices.
-Important, the angular direction are line of sight direction not the
-propagation direction.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"gas_scattering_mat", "gas_scattering_fct_legendre"},
-
-      .in = {"gas_scattering_los_in",
-             "gas_scattering_los_out",
-             "gas_scattering_output_type"},
-
-  };
-
-  wsm_data["gas_scattering_matRayleigh"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the normalized Rayleigh scattering matrix.
-
-The phase matrix for anisotropic Rayleigh particles in random orientations.Important, the angular direction are defined as line of sight direction not as
-propagation direction.
-)--",
-      .author = {"Jon Petersen"},
-      .out = {"gas_scattering_mat", "gas_scattering_fct_legendre"},
-
-      .in = {"gas_scattering_los_in",
-             "gas_scattering_los_out",
-             "gas_scattering_output_type"},
-      .gin = {"gdepolarization_factor"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{0.03}},
-      .gin_desc = {R"--(depolarization factor for air)--"},
 
   };
 
@@ -8407,27 +8015,6 @@ in later versions
       .out = {"lbl_checked"},
 
       .in = {"abs_lines_per_species", "abs_species", "atm_field"},
-
-  };
-
-  wsm_data["mblock_dlosFrom1dAntenna"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *mblock_dlos* based on a 1D gaussian antenna response.
-
-The length of *mblock_dlos* is determined by ``npoints``. The end
-points of the grid are set to be the same as for the antenna
-response. The spacing of the grid follows the magnitude of the
-response; the spacing is smaller where the response is high.
-More precisely, the grid points are determined by dividing the
-cumulative sum of the response in equal steps.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"mblock_dlos"},
-
-      .in = {"antenna_response"},
-      .gin = {"npoints"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Number of points (>1) to include in *mblock_dlos*.)--"},
 
   };
 
@@ -9363,7 +8950,7 @@ but adds further contributions.
              "select_abs_species",
              "jacobian_targets",
              "atm_point",
-             "rtp_los"},
+             "path_point"},
 
   };
 
@@ -9569,7 +9156,7 @@ this creates some unphysical emission term, hence is only suitable,
 where the source term is negligible anyways, e.g. for occultation
 simulations.
 
-A line-of-sight direction *rtp_los* is required as particles can
+A line-of-sight direction *path_point* is required as particles can
 exhibit directional dependent absorption properties, which is taken
 into account by this method.
 *ScatElementsToabs_speciesAdd* can be used to add all required
@@ -9593,7 +9180,7 @@ but adds further contributions.
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "rtp_los",
+             "path_point",
              "atm_point",
              "scat_data",
              "scat_data_checked"},
@@ -9973,7 +9560,7 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "jacobian_targets",
              "atm_point",
              "nlte_vib_energies",
-             "rtp_los",
+             "path_point",
              "nlte_do"},
       .gin = {"manual_mag_field", "H", "theta", "eta"},
       .gin_type = {"Index", "Numeric", "Numeric", "Numeric"},
@@ -11380,118 +10967,6 @@ that this will also set the corresponding error vector to be empty.
 
   };
 
-  wsm_data["rte_losGeometricToPosition"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(The geometric line-of-sight between two points.
-
-The line-of-sight angles from *rte_pos* to ``target_pos`` are calculated
-ignoring refraction. This can be done analytically. The angles are set
-without any consideration of the surface. The corresponding propagation
-path can thus end with a surface intersection.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_los"},
-
-      .in = {"surface_field", "rte_pos"},
-      .gin = {"target_pos"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(The atmospheric position that *rte_los* shall match.)--"},
-
-  };
-
-  wsm_data["rte_losReverse"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reverses the direction in *rte_los*.
-
-The method updates *rte_los* to have angles of the reversed
-direction.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_los"},
-
-      .in = {"rte_los"},
-
-  };
-
-  wsm_data["rte_losSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *rte_los* to the given angles.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_los"},
-
-      .gin = {"za", "aa"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Zenith angle [0, 180])--",
-                   R"--(Azimuth angle [-180, 180])--"},
-
-  };
-
-  wsm_data["rte_posSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *rte_pos* to the given coordinates.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_pos"},
-
-      .gin = {"z", "glat", "glon"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Altitude)--",
-                   R"--(Latitude [-90, 90])--",
-                   R"--(Longitude [-180, 360])--"},
-
-  };
-
-  wsm_data["rte_pos_losBackwardToAltitude"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Moves *rte_pos* and *rte_los* backwards to the target altitude.
-
-The method gives the *rte_pos* and *rte_los* at the target altitude
-to reach the original *rte_pos* and *rte_los* with a geometrical ppath.
-That is, the movement is backwards in terms of viewing direction.
-
-If the original *rte_los* is reversed with respect to the line-of-sight
-direction, then set the GIN los_reversed to 1. One such case is that
-if *rte_los* represents surface incidence angles, i.e. holds the
-zenith and nadir angle towards the sensor.
-
-There is also *sensor_pos_losBackwardToAltitude*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_pos", "rte_los"},
-
-      .in = {"rte_pos", "rte_los", "surface_field"},
-      .gin = {"altitude", "los_is_reversed"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Target altitude.)--",
-           R"--(Set to 1 if *rte_los* is valid for the reversed direction.)--"},
-
-  };
-
-  wsm_data["rte_pos_losForwardToAltitude"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Moves *rte_pos* and *rte_los* forward to the target altitude.
-
-The method gives the *rte_pos* and *rte_los* at the target altitude
-when forward-propagating the original *rte_pos* and *rte_los*
-geometrically.
-
-There is also *sensor_pos_losForwardToAltitude*. The WSM
-*IntersectionGeometricAltitude* performs the same operation
-with *sensor_pos* and *sensor_los* as input.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"rte_pos", "rte_los"},
-
-      .in = {"rte_pos", "rte_los", "surface_field"},
-      .gin = {"altitude"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Target altitude.)--"},
-
-  };
-
   wsm_data["scat_dataCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Prepares *scat_data* for the scattering solver.
 
@@ -11750,473 +11225,6 @@ Regarding ``ndgs``, we refer to the this comment from the documentation:
 
   };
 
-  wsm_data["sensorOff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets sensor WSVs to obtain monochromatic pencil beam values.
-
-The variables are set as follows:
- - *mblock_dlos*        : One row with zero(s).
- - *sensor_response*        : As returned by *sensor_responseInit*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid",
-              "sensor_response_pol_grid",
-              "sensor_response_dlos_grid",
-              "mblock_dlos"},
-
-      .in = {"f_grid"},
-
-  };
-
-  wsm_data["sensor_checkedCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Checks consistency of the sensor variables.
-
-The following WSVs are examined: *f_grid*, *sensor_pos*, *sensor_los*,
-*transmitter_pos*, *mblock_dlos*, *antenna_dim*,
-*sensor_response*, *sensor_response_f*, *sensor_response_pol*,
-and *sensor_response_dlos*.
-
-If any of these variables are changed, then this method shall be
-called again (no automatic check that this is fulfilled!).
-
-The main tests are that dimensions of sensor variables agree
-with other settings, e.g., the size of f_grid, atmosphere_dim,
-stokes_dim, etc.
-
-If any test fails, there is an error. Otherwise, *sensor_checked*
-is set to 1.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"sensor_checked"},
-
-      .in = {"f_grid",
-             "sensor_pos",
-             "sensor_los",
-             "transmitter_pos",
-             "mblock_dlos",
-             "sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos"},
-
-  };
-
-  wsm_data["sensor_losGeometricToPosition"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(The geometric line-of-sight to a point.
-
-Works as *rte_losGeometricToPosition*, but sets *sensor_los*.
-
-This method handles the case of a single target position. For
-multiple target positions, use: *sensor_losGeometricToPositions*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_los"},
-
-      .in = {"surface_field", "sensor_pos"},
-      .gin = {"target_pos"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(The atmospheric position that *sensor_los* shall match.)--"},
-
-  };
-
-  wsm_data["sensor_losGeometricToPositions"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(The geometric line-of-sight to multiple point.
-
-Works as *rte_losGeometricToPosition*, but sets *sensor_los*. The
-number of rows in *sensor_pos* and ``target_pos`` must be equal.
-
-This method handles the case of mutiple target positions. For
-a single target positions, use: *sensor_losGeometricToPosition*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_los"},
-
-      .in = {"surface_field", "sensor_pos"},
-      .gin = {"target_pos"},
-      .gin_type = {"Matrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(The atmospheric positions that *sensor_los* shall match.)--"},
-
-  };
-
-  wsm_data["sensor_losReverse"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reverses the directions in *sensor_los*.
-
-The method updates *sensor_los* to have angles of the reversed
-direction.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_los"},
-
-      .in = {"sensor_los"},
-
-  };
-
-  wsm_data["sensor_pos_losBackwardToAltitude"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Moves *sensor_pos* and *sensor_los* backwards to the target altitude.
-
-The method gives the *sensor_pos* and *sensor_los* at the target altitude
-to reach the original *sensor_pos* and *sensor_los* with a geometrical
-ppath. That is, the movement is backwards in terms of viewing direction.
-
-If the original *sensor_los* is reversed with respect to the line-of-sight
-direction, then set the GIN los_reversed to 1. One such case is that
-if *sensor_los* represents surface incidence angles, i.e. holds the
-zenith and nadir angle towards the sensor.
-
-There is also *rte_pos_losBackwardToAltitude*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_pos", "sensor_los"},
-
-      .in = {"sensor_pos", "sensor_los", "surface_field"},
-      .gin = {"altitude", "los_is_reversed"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Target altitude.)--",
-           R"--(Set to 1 if *rte_los* is valid for the reversed direction.)--"},
-
-  };
-
-  wsm_data["sensor_pos_losForwardToAltitude"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Moves *sensor_pos* and *sensor_los* forward to the target altitude.
-
-The method gives the *sensor_pos* and *sensor_los* at the target altitude
-when forward-propagating the original *sensor_pos* and *sensor_los*
-geometrically.
-
-The WSM *IntersectionGeometricAltitude* performs the same operation
-but allows to store the new pos and los as other variables. There is
-also *rte_pos_losForwardToAltitude*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_pos", "sensor_los"},
-
-      .in = {"sensor_pos", "sensor_los", "surface_field"},
-      .gin = {"altitude"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Target altitude.)--"},
-
-  };
-
-  wsm_data["sensor_responseAntenna"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes response of the antenna.
-
-The function returns the sensor response matrix after the antenna
-characteristics have been included.
-
-The function handles "multi-beam" cases where the polarisation
-coordinate system is the same for all beams.
-
-See *antenna_dim*, *antenna_dlos* and *antenna_response* for
-details on how to specify the antenna response.
-
-The text below refers to *mblock_dlos* despite it is not an input
-to the method. The method instead uses *sensor_response_dlos_grid*
-but the values in this WSV are likely coming from *mblock_dlos*.
-
-One dimensional antenna patterns are handled as other response
-functions. That is, both antenna response and radiances are treated
-as piece-wise linear functions, and the pencil beam calculations
-must cover the full sensor response (i.e. *mblock_dlos* shall be
-sufficiently broad).
-
-There exist different options for two dimensional antenna patterns.
-(If 2D, the GIN ``option_2d`` must be set, the default setting results
-in an error). A normalisation is always applied for 2D antennas.
-
-"interp_response"
-Both radiances and the antenna pattern are treated as step-wise
-constant functions. The antenna pattern is interpolated to the
-*mblock_dlos* directions. At extrapolation, the antenna response
-is set to zero. This option considers GIN ``solid_angles``, that
-shall be a vector with length matching the rows of *mblock_dlos*.
-The values going into *sensor_response* are the interpolated antenna
-values times the corresponding solid angle.
-
-"gridded_dlos"
-This option is more similar to the 1D case. The radiances are treated
-as a bi-linear function, but the antenna response is treated as step-
-wise constant function (in contrast to 1D). For this option
-*mblock_dlos* must match a combination of zenith and azimuth
-grids, and this for a particular order. If the zenith and azimuth
-grids have 3 and 2 values, respectively, the order shall be::
-
-  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2)]
-
-Both these grids must be strictly increasing and as for 1D must cover
-the antenna response completely.
-)--",
-      .author = {"Patrick Eriksson", "Mattias Ekstrom"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_dlos_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "antenna_dim",
-             "antenna_dlos",
-             "antenna_response",
-             "sensor_norm"},
-      .gin = {"option_2d", "solid_angles"},
-      .gin_type = {"String", "Vector"},
-      .gin_value = {String("-"), Vector{}},
-      .gin_desc =
-          {R"--(Calculation option for 2D antenna cases. See above for details.)--",
-           R"--(The solid angle of each *mblock_dlos* direction. Only considered for 2D with "interp_response".)--"},
-
-  };
-
-  wsm_data["sensor_responseBackend"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes response of the backend (spectrometer).
-
-The function returns the sensor response matrix after the backend
-characteristics have been included.
-
-See *f_backend*, *backend_channel_response* and *sensor_norm* for
-details on how to specify the backend response.
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "f_backend",
-             "backend_channel_response",
-             "sensor_norm"},
-
-  };
-
-  wsm_data["sensor_responseBackendFrequencySwitching"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Frequency switching for a pure SSB reciever.
-
-This function can be used for simulation of frequency switching.
-That is, when the final spectrum is the difference of two spectra
-shifted in frequency. The switching is performed by the LO, but
-for a pure singel sideband reciever this is most easily simulated
-by instead shifting the backend, as done here.
-
-A strightforward frequency switching is modelled (no folding)
-The channel positions for the first measurement cycle are
-f_backend+df1, and for the second f_backend+df2. The first
-measurement cycle is given the negive weight. That is, the output
-is the spectrum for cycle2 minus the spectrum for cycle1.
-Output frequency grids are set to *f_backend*.
-
-Use *sensor_responseFrequencySwitching* for double sideband cases.
-
-The method has the same general functionality as, and can replace,
-*sensor_responseBackend*.
-)--",
-          .author = {"Patrick Eriksson"},
-          .out = {"sensor_response",
-                  "sensor_response_f",
-                  "sensor_response_pol",
-                  "sensor_response_dlos",
-                  "sensor_response_f_grid"},
-
-          .in = {"sensor_response",
-                 "sensor_response_f",
-                 "sensor_response_pol",
-                 "sensor_response_dlos",
-                 "sensor_response_f_grid",
-                 "sensor_response_pol_grid",
-                 "sensor_response_dlos_grid",
-                 "f_backend",
-                 "backend_channel_response",
-                 "sensor_norm"},
-          .gin = {"df1", "df2"},
-          .gin_type = {"Numeric", "Numeric"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Frequency throw for cycle1.)--",
-                       R"--(Frequency throw for cycle2.)--"},
-
-      };
-
-  wsm_data["sensor_responseBeamSwitching"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Simulation of "beam switching".
-
-The measurement procedure is based on taking the difference between
-two spectra measured in different directions, and the calculation
-set-up must treat exactly two observation directions.
-
-The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the
-spectrum and weight for the first direction, respectively (y2 and
-(w2 defined correspondingly for the second direction).
-
-Zenith and azimuth angles after beam switching are set to the
-values of the second direction.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_dlos_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid"},
-      .gin = {"w1", "w2"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {Numeric{-1}, Numeric{1}},
-      .gin_desc = {R"--(Weight for values from first viewing direction.)--",
-                   R"--(Weight for values from second viewing direction.)--"},
-
-  };
-
-  wsm_data["sensor_responseFillFgrid"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Polynomial frequency interpolation of spectra.
-
-The sensor response methods treat the spectra to be piece-wise linear
-functions. This method is a workaround for making methods handling
-the spectra in a more elaborate way: it generates spectra on a more
-dense grid by polynomial interpolation. The interpolation is not
-done explicitly, it is incorporated into *sensor_response*.
-
-This method should in general increase the calculation accuracy for
-a given *f_grid*. However, the selection of (original) grid points
-becomes more sensitive when using this method. A poor choice of grid
-points can result in a decreased accuracy, or generation of negative
-radiances. Test calculations indicated that the error easily can
-increase with this method close the edge of *f_grid*, and it could
-be wise to make *f_grid* a bit wider than actually necessary to avoid
-this effect
-
-The method shall be inserted before the antenna stage. That is, this
-method shall normally be called directly after *sensor_responseInit*.
-
-Between each neighbouring points of *f_grid*, this method adds
-``nfill`` grid points. The polynomial order of the interpolation is
-``polyorder``.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid"},
-      .gin = {"polyorder", "nfill"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {Index{3}, Index{2}},
-      .gin_desc = {R"--(Polynomial order of interpolation)--",
-                   R"--(Number of points to insert in each gap of f_grid)--"},
-
-  };
-
-  wsm_data["sensor_responseFrequencySwitching"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Simulation of "frequency switching".
-
-A general method for frequency switching. The WSM
-*sensor_responseBackendFrequencySwitching* gives a description of
-this observation technique, and is also a more straightforward
-method for pure singel sideband cases.
-
-It is here assume that *sensor_responseMultiMixerBackend* has been
-used to calculate the spectrum for two LO positions. This method
-calculates the difference between these two spectra, where the
-second spectrum gets weight 1 and the first weight -1 (as in
-*sensor_responseBackendFrequencySwitching*).
-
-Output frequency grids are taken from the second spectrum.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid"},
-
-  };
-
-  wsm_data["sensor_responseGenericAMSU"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Simplified sensor setup for an AMSU-type instrument.
-
-This function is derived from 'sensor_responseSimpleAMSU' 
-but is more generalized since the number of passbands in each 
-can be in the range from 1 to 4 - in order to correctly simulate
-AMSU-A type sensors 
-
-This method allows quick and simple definition of AMSU-type
-sensors. Assumptions:
-
-1. Pencil beam antenna.
-2. 1-4 Passband/sidebands per channel.
-3. Sideband mode "upper"
-4. The channel response is rectangular.
-
-Under these assumptions the only inputs needed are the LO positions,
-the offsets from the LO, and the IF bandwidths. They are provided
-in sensor_description_amsu.
-)--",
-      .author = {"Oscar Isoz"},
-      .out = {"f_grid",
-              "antenna_dim",
-              "mblock_dlos",
-              "sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid",
-              "sensor_response_pol_grid",
-              "sensor_response_dlos_grid",
-              "sensor_norm"},
-
-      .in = {"sensor_description_amsu"},
-      .gin = {"spacing"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{.1e9}},
-      .gin_desc = {R"--(Desired grid spacing in Hz.)--"},
-
-  };
-
   wsm_data["sensor_responseIF2RF"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Converts sensor response variables from IF to RF.
 
@@ -12237,247 +11245,6 @@ sorted in any way.
              "lo",
              "sideband_mode"},
 
-  };
-
-  wsm_data["sensor_responseInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initialises the variables summarising the sensor response.
-
-This method sets the variables to match monochromatic pencil beam
-calculations, to be further modified by inclusion of sensor
-characteristics. Use *sensorOff* if pure monochromatic pencil
-beam calculations shall be performed.
-
-The variables are set as follows:
-
-- sensor_response: Identity matrix, with size matching *f_grid*, ``stokes_dim`` and *mblock_dlos*.
-- sensor_response_f: Repeated values of *f_grid*.
-- sensor_response_pol: Data matching ``stokes_dim``.
-- sensor_response_dlos: Repeated values of *mblock_dlos*.
-- sensor_response_f_grid: Equal to *f_grid*.
-- sensor_response_pol_grid: Set to 1:``stokes_dim``.
-- sensor_response_dlos_grid: Equal to *mblock_dlos*.
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid",
-              "sensor_response_pol_grid",
-              "sensor_response_dlos_grid"},
-
-      .in = {"f_grid", "mblock_dlos", "antenna_dim", "sensor_norm"},
-
-  };
-
-  wsm_data["sensor_responseMixer"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes response of the mixer of a heterodyne system.
-
-The function returns the sensor response matrix after the mixer
-characteristics have been included. Frequency variables are
-converted from radio frequency (RF) to intermediate frequency (IF).
-The returned frequency grid covers the range [0,max_if], where
-max_if is the highest IF covered by the sideband response grid.
-
-See *lo* and *sideband_response* for details on how to specify the
-mixer response
-)--",
-      .author = {"Mattias Ekstrom", "Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "lo",
-             "sideband_response",
-             "sensor_norm"},
-
-  };
-
-  wsm_data["sensor_responseMixerBackendPrecalcWeights"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Includes pre-calculated response covering mixer and backend.
-
-This method acts similar to *sensor_responseBackend*, but uses
-pre-calculated weights. These weights can also include the effect
-of mixer and sideband filtering.
-
-As usual, *f_backend* gives the frequency of the channels. This WSM
-has no direct influence on the result, but at least representative
-values must be set.
-
-The frequency response is defined using *channel2fgrid_indexes* and
-*channel2fgrid_weights*.
-
-Both *channel2fgrid_indexes* and *channel2fgrid_weights* are assumed
-to be common for all viewing directions.
-)--",
-          .author = {"Patrick Eriksson"},
-          .out = {"sensor_response",
-                  "sensor_response_f",
-                  "sensor_response_pol",
-                  "sensor_response_dlos",
-                  "sensor_response_f_grid"},
-
-          .in = {"sensor_response",
-                 "sensor_response_f",
-                 "sensor_response_pol",
-                 "sensor_response_dlos",
-                 "sensor_response_f_grid",
-                 "sensor_response_pol_grid",
-                 "sensor_response_dlos_grid",
-                 "f_backend",
-                 "channel2fgrid_indexes",
-                 "channel2fgrid_weights"},
-
-      };
-
-  wsm_data["sensor_responseMultiMixerBackend"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Handles mixer and backend parts for an instrument having multiple
-mixer chains.
-
-The WSMs *sensor_responseMixer*, *sensor_responseIF2RF* and
-*sensor_responseBackend* are called for each mixer chain, and a
-complete *sensor_response* is assembled. The instrument responses
-are described by *lo_multi*, *sideband_response_multi*,
-*sideband_mode_multi*, *f_backend_multi* and
-*backend_channel_response_multi*. All these WSVs must have same
-vector or array length. As *sensor_responseIF2RF* is called,
-*f_backend_multi* must hold RF (not IF) and output frequencies
-will be in absolute frequency (RF).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "lo_multi",
-             "sideband_response_multi",
-             "sideband_mode_multi",
-             "f_backend_multi",
-             "backend_channel_response_multi",
-             "sensor_norm"},
-
-  };
-
-  wsm_data["sensor_responseSimpleAMSU"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Simplified sensor setup for an AMSU-type instrument.
-
-This method allows quick and simple definition of AMSU-type
-sensors. Assumptions:
-
-1. Pencil beam antenna.
-2. Double sideband receivers.
-3. Sideband mode "upper"
-4. The channel response is rectangular.
-
-Under these assumptions the only inputs needed are the LO positions,
-the offsets from the LO, and the IF bandwidths. They are provieded
-in sensor_description_amsu.
-)--",
-      .author = {"Stefan Buehler"},
-      .out = {"f_grid",
-              "antenna_dim",
-              "mblock_dlos",
-              "sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid",
-              "sensor_response_pol_grid",
-              "sensor_response_dlos_grid",
-              "sensor_norm"},
-
-      .in = {"sensor_description_amsu"},
-      .gin = {"spacing"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{.1e9}},
-      .gin_desc = {R"--(Desired grid spacing in Hz.)--"},
-
-  };
-
-  wsm_data["sensor_responseStokesRotation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes a rotation of the Stokes H and V directions.
-
-The method applies the rotations implied by *stokes_rotation*.
-See the description of that WSV for details.
-
-This method does not change the size of *sensor_response*, and
-the auxiliary variables (sensor_response_f etc.) are not changed.
-
-To apply the method, ``stokes_dim`` must be >= 3. The complete effect
-of the rotation can not be determibed with lower ``stokes_dim``.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"sensor_response"},
-
-      .in = {"sensor_response",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "stokes_rotation"},
-
-  };
-
-  wsm_data["sensor_responseWMRF"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds WMRF weights to sensor response.
-
-This method adds a spectrometer response that has been calculated
-with the weighted mean of representative frequencies (WMRF) method. It
-consists of a set of selected frequencies, and associated weights.
-)--",
-      .author =
-          {"Stefan Buehler, based on Patrick Erikssons sensor_responseBackend"},
-      .out = {"sensor_response",
-              "sensor_response_f",
-              "sensor_response_pol",
-              "sensor_response_dlos",
-              "sensor_response_f_grid"},
-
-      .in = {"sensor_response",
-             "sensor_response_f",
-             "sensor_response_pol",
-             "sensor_response_dlos",
-             "sensor_response_f_grid",
-             "sensor_response_pol_grid",
-             "sensor_response_dlos_grid",
-             "wmrf_weights",
-             "f_backend"},
-
-  };
-
-  wsm_data["sensor_response_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *sensor_response_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"sensor_response_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
   wsm_data["sparse_f_gridFromFrequencyGrid"] = WorkspaceMethodInternalRecord{
@@ -12529,46 +11296,6 @@ This is an experimental solution.
           .in = {"spectral_radiance_profile_operator", "f_grid", "za_grid"},
 
       };
-
-  wsm_data["specular_losCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the specular direction of surface reflections.
-
-The default is to consider surface topography when calculating the
-specular direction. That is, the variation of ``surface_elevation``
-is allowed to affect the angles of *specular_los*. This impact can
-be deactivated by setting ``ignore_topography`` to 1. In this case,
-the zenith angle of the specular direction is simply 180-rtp_los[0]
-and the azimuth angle is the same as the one in *rtp_los*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"specular_los"},
-
-      .in = {"surface_field", "rtp_pos", "rtp_los"},
-      .gin = {"ignore_topography"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {R"--(Flag to control if surface slope is considered or not.)--"},
-
-  };
-
-  wsm_data["specular_losCalcOldNoTopography"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates the specular direction of surface reflections for horisontal
-surfaces.
-
-In contrast to ``specular_losCalcOld``, this method ignores the topography
-implied by ``z_surface``. That is, any slope of the surface is ignored.
-
-The typical application of this WSM should be water surfaces (lakes and
-oceans).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"specular_los", "surface_normal"},
-
-      .in = {"rtp_los"},
-
-  };
 
   wsm_data["spt_calc_agendaSet"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *spt_calc_agenda* to a default value
@@ -12676,202 +11403,6 @@ Hence, a temperature of 0 means 0s the edges of the f_grid.
 )--",
       .author = {"Jon Petersen"},
       .out = {"suns_do", "suns"},
-
-  };
-
-  wsm_data["surfaceBlackbody"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates variables to mimic a blackbody surface.
-
-This method sets up *surface_los*, *surface_rmatrix* and
-*surface_emission* for *surface_rtprop_agenda*. Here, *surface_los*
-and *surface_rmatrix* are set to be empty, and *surface_emission*
-to hold blackbody radiation for a temperature of *surface_skin_t*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid", "rtp_pos", "rtp_los", "surface_point"},
-
-  };
-
-  wsm_data["surfaceFlatReflectivity"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates variables to mimic specular reflection by a (flat) surface
-where *surface_reflectivity* is specified.
-
-Works basically as *surfaceFlatScalarReflectivity* but is more
-general as vector radiative transfer is more properly handled. See
-the ARTS theory document (ATD) for details around how
-*surface_emission* is determined. In the nomenclature of ATD,
-*surface_reflectivity* gives R.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "specular_los",
-             "surface_skin_t",
-             "surface_reflectivity"},
-
-  };
-
-  wsm_data["surfaceFlatRefractiveIndex"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates variables to mimic specular reflection by a (flat) surface
-where the complex refractive index is specified.
-
-The dielectric properties of the surface are described by
-*surface_complex_refr_index*. The Fresnel equations are used to
-calculate amplitude reflection coefficients. The method can thus
-result in that the reflection properties differ between frequencies
-and polarisations.
-
-Local thermodynamic equilibrium is assumed, which corresponds to
-that the reflection and emission coefficients add up to 1.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "specular_los",
-             "surface_skin_t",
-             "surface_complex_refr_index"},
-
-  };
-
-  wsm_data["surfaceFlatRvRh"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates variables to mimic specular reflection by a (flat) surface
-where *surface_rv_rh* is specified.
-
-This method assumes that the reflection at vertical and horizontal
-polarisation differs. As power reflection coefficients are provided
-there is no information at hand on phase shifts between polarisations,
-and they are simply assumed to be zero. These assumptions result in
-that *surface_emission* is set to zero for positions corresponding to
-U and V, and that all diagonal elementsof  *surface_rmatrix* are equal
-(the mean of rv and rh). Further, all off-diagonal elements of
-*surface_rmatrix* are all zero except for (0,1) and (1,0).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "specular_los",
-             "surface_skin_t",
-             "surface_rv_rh"},
-
-  };
-
-  wsm_data["surfaceFlatScalarReflectivity"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates variables to mimic specular reflection by a (flat) surface
-where *surface_scalar_reflectivity* is specified.
-
-This method assumes that the reflection at vertical and horizontal
-polarisation is identical. This assumption includes that there is no
-phase shift between polarisations. These assumptions result in that
-*surface_emission* is set to zero for positions corresponding to Q,
-U and V, and that *surface_rmatrix* becomes a diagonal matrix (with
-all elements on the diagonal equal to the specified reflectivity).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "specular_los",
-             "surface_skin_t",
-             "surface_scalar_reflectivity"},
-
-  };
-
-  wsm_data["surfaceLambertianSimple"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates variables to mimic a Lambertian surface.
-
-A Lambertian surface can be characterised solely by its
-reflectivity, here taken from *surface_scalar_reflectivity*.
-
-The down-welling radiation field is estimated by making calculations
-for ``lambertian_nza`` directions. The range of zenith angles ([0,90])
-is divided in an equidistant manner for 1D. For 2D and 3D see below.
-The values for *surface_rmatrix* are assuming a constant radiance
-over each zenith angle range. See AUG.
-
-Default is to select the zenith angles for *sensor_los* to be placed
-centrally in the grid ranges. For example, if ``lambertian_nza`` is set
-to 9, down-welling radiation will be calculated for zenith angles = 
-5, 15, ..., 85. The position of these angles can be shifted by
-``za_pos``. This variable specifies the fractional distance inside the
-ranges. For example, a ``za_pos`` of 0.7 (np still 9) gives the angles
-7, 17, ..., 87.
-
-Only upper-left diagonal element of the *surface_rmatrix* is
-non-zero. That is, the upwelling radiation is always unpolarised.
-
-Local thermodynamic equilibrium is assumed, which corresponds to
-that the reflection and emission coefficients "add up to 1".
-
-For 2D and 3D, the down-welling directions are placed along the
-the viewing direction, e.g. for 3D the azimuth angle is kept constant.
-In 2D and 3D surface topography can exist, and to avoid getting views
-going directly into the surface, angels are not distributed over 90 deg,
-but 90-abs(surface_normal[0]).
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "surface_normal",
-             "surface_skin_t",
-             "surface_scalar_reflectivity"},
-      .gin = {"lambertian_nza", "za_pos"},
-      .gin_type = {"Index", "Numeric"},
-      .gin_value = {Index{9}, Numeric{0.5}},
-      .gin_desc =
-          {R"--(Number of downwelling streams.)--",
-           R"--(Position of angle in *surface_los* inside ranges of zenith angle grid. See above.)--"},
-
-  };
-
-  wsm_data["surfaceTessem"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(TESSEM sea surface microwave emissivity parametrization.
-
-This method computes surface emissivity and reflectivity matrices for
-ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.
-Sea‐surface emissivity parametrization from microwaves to millimetre
-waves, QJRMS, 2017, 143.702: 596-605.
-
-The validity range of the parametrization of is 10 to 700 GHz, but for
-some extra flexibility frequencies between 5 and 900 GHz are accepted.
-The accepted temperaute range for *surface_skin_t* is [260.0 K, 373.0 K]
-
-The model itself is represented by the neural networks in
-*tessem_neth* and *tessem_netv*.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"surface_los", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid",
-             "rtp_pos",
-             "rtp_los",
-             "surface_skin_t",
-             "tessem_neth",
-             "tessem_netv"},
-      .gin = {"salinity", "wind_speed"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {Numeric{0.035}, std::nullopt},
-      .gin_desc = {R"--(Salinity, 0-1. That is, 3% is given as 0.03.)--",
-                   R"--(Wind speed.)--"},
 
   };
 
@@ -13095,49 +11626,6 @@ eccentricity and no further models should be required.
 
   };
 
-  wsm_data["surface_normalCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the surface's local normal.
-
-The default is to consider surface topography when calculating the
-normal direction. That is, the variation of ``surface_elevation``
-is allowed to affect the angles of *surface_normal*. This impact can
-be deactivated by setting ``ignore_topography`` to 1. In this case,
-the zenith angle of *surface_normal* becomes 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_normal"},
-
-      .in = {"surface_field", "rtp_pos"},
-      .gin = {"ignore_topography"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc =
-          {R"--(Flag to control if surface slope is considered or not.)--"},
-
-  };
-
-  wsm_data["surface_rtpropFromTypesManual"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Extracts surface RT properties by manual selection of surface type.
-
-The surface type to apply is selected by the GIN argument.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"surface_type_mix",
-              "surface_skin_t",
-              "surface_los",
-              "surface_rmatrix",
-              "surface_emission"},
-
-      .in = {"f_grid", "rtp_pos", "rtp_los", "surface_rtprop_agenda_array"},
-      .gin = {"surface_type"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Selected surface type)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["surface_rtpropInterpFreq"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Interpolates surface RT properties in frequency.
 
@@ -13154,61 +11642,6 @@ The function resets *f_grid* to the new grid.
       .gin_type = {"Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(New frequency grid)--"},
-
-  };
-
-  wsm_data["surface_rtprop_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *surface_rtprop_agenda* to a default value
-
-Options are:
-
-- ``"Blackbody_SurfTFromt_surface"``:
-
-    1. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=``t_surface``
-    2. Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-- ``"Blackbody_SurfTFromt_field"``:
-
-    1. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=``t_field``
-    2. Uses *surfaceBlackbody* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-- ``"Specular_NoPol_ReflFix_SurfTFromt_surface"``:
-
-    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=``t_surface``
-    3. Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-- ``"Specular_NoPol_ReflFix_SurfTFromt_field"``:
-
-    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-    2. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=``t_field``
-    3. Uses *surfaceFlatScalarReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*, and also to modify *dsurface_rmatrix_dx*, and *dsurface_emission_dx*
-
-- ``"Specular_WithPol_ReflFix_SurfTFromt_surface"``:
-
-    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=``t_surface``
-    3. Uses *surfaceFlatReflectivity* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
-
-- ``"lambertian_ReflFix_SurfTFromt_surface"``:
-
-    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-    2. Uses *InterpSurfaceFieldToPosition* using out=*surface_skin_t*, and field=``t_surface``
-    3. Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
-
-- ``"lambertian_ReflFix_SurfTFromt_field"``:
-
-    1. Uses *specular_losCalc* to set *specular_los*, and *surface_normal*
-    2. Uses *InterpAtmFieldToPosition* using out=*surface_skin_t*, and field=``t_field``
-    3. Uses *surfaceLambertianSimple* to set *surface_los*, *surface_rmatrix*, and *surface_emission*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"surface_rtprop_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
   wsm_data["surface_scalar_reflectivityFromSurface_rmatrix"] =
@@ -13497,15 +11930,6 @@ Gets the ellispoid from *surface_field*
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_background"},
       .in = {"f_grid"}};
-
-  wsm_data["spectral_radiance_backgroundSurfaceFieldEmission"] = {
-      .desc =
-          R"--(Set surface emission from Planck function of the surface temperature
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_background",
-              "spectral_radiance_background_jacobian"},
-      .in = {"f_grid", "surface_field", "jacobian_targets", "rtp_pos"}};
 
   wsm_data["spectral_radiance_backgroundSurfaceBlackbody"] = {
       .desc =

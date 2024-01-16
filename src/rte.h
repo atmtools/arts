@@ -191,7 +191,7 @@ void get_stepwise_blackbody_radiation(VectorView B,
  * @param[in] propmat_clearsky_agenda As WSA
  * @param[in] jacobian_targets As WSV
  * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
- * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] path_point As WSV
  * @param[in] atm_point As WSV
  * 
  * @author Richard Larsson 
@@ -206,7 +206,7 @@ void get_stepwise_clearsky_propmat(
     const Agenda& propmat_clearsky_agenda,
     const JacobianTargets& jacobian_targets,
     const Vector& ppath_f_grid,
-    const Vector& ppath_line_of_sight,
+    const PropagationPathPoint& path_point,
     const AtmPoint& atm_point);
 
 /** Computes the ratio that a partial derivative with regards to frequency
