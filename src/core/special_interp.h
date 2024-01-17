@@ -9,7 +9,6 @@
 #ifndef special_interp_h
 #define special_interp_h
 
-#include "gridded_fields.h"
 #include "interpolation.h"
 #include "jacobian.h"
 
@@ -620,7 +619,7 @@ void z_at_latlon(VectorView z,
  */
 void complex_n_interp(MatrixView n_real,
                       MatrixView n_imag,
-                      const GriddedField3& complex_n,
+                      const ComplexGriddedField2& complex_n,
                       const String& varname,
                       ConstVectorView f_grid,
                       ConstVectorView t_grid);

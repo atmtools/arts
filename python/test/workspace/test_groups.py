@@ -807,8 +807,8 @@ class TestGroups:
         x = cxx.AtmField()
         x["wind_u"] = 3.0
         x[cxx.SpeciesEnum("O2")] = cxx.GriddedField3(
-            [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
-            np.random.rand(3, 7, 3),
+            grids=[[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
+            data=np.random.rand(3, 7, 3),
         )
 
         def test_fun(a, b, c):
@@ -1056,4 +1056,4 @@ class TestGroups:
 if __name__ == "__main__":
     x = TestGroups()
     x.test_xml()
-    x.testAtmPoint()
+    x.testAtmField()

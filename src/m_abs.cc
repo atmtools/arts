@@ -387,9 +387,6 @@ void propmat_clearskyAddParticles(
       ns,
       " *scat_data* elements.\n")
 
-  // Use for rescaling vmr of particulates
-  Numeric rtp_vmr_sum = 0.0;
-
   const auto jac_temperature = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
   const Numeric dT = jac_temperature.first ? jac_temperature.second -> d : 0.0;
 
@@ -521,7 +518,6 @@ void propmat_clearskyAddParticles(
       }
 
       if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp].Species());jac_species.first) {
-        rtp_vmr_sum += atm_point[abs_species[sp].Species()];
         const auto iq = jac_species.second->target_pos;
         
         for (Index iv = 0; iv < f_grid.nelem(); iv++)

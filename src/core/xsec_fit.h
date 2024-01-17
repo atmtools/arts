@@ -14,7 +14,6 @@
 #include <memory>
 
 #include "array.h"
-#include "gridded_fields.h"
 #include "mystring.h"
 #include "species.h"
 
@@ -77,7 +76,7 @@ class XsecRecord {
   };
 
   /** Get coefficients */
-  [[nodiscard]] const ArrayOfGriddedField2& FitCoeffs() const {
+  [[nodiscard]] const ArrayOfGriddedField1Named& FitCoeffs() const {
     return mfitcoeffs;
   };
 
@@ -94,7 +93,7 @@ class XsecRecord {
   [[nodiscard]] Vector& FitMaxTemperatures() { return mfitmaxtemperatures; };
 
   /** Get coefficients */
-  [[nodiscard]] ArrayOfGriddedField2& FitCoeffs() { return mfitcoeffs; };
+  [[nodiscard]] ArrayOfGriddedField1Named& FitCoeffs() { return mfitcoeffs; };
 
   friend std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 
@@ -127,7 +126,7 @@ class XsecRecord {
   Vector mfitmaxpressures;
   Vector mfitmintemperatures;
   Vector mfitmaxtemperatures;
-  ArrayOfGriddedField2 mfitcoeffs;
+  ArrayOfGriddedField1Named mfitcoeffs;
 };
 
 using ArrayOfXsecRecord = Array<XsecRecord>;

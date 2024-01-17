@@ -30,7 +30,7 @@ inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadarOnionPeelingTableCalc(
     const Workspace& ws,
-    ArrayOfGriddedField3& invtable,
+    ArrayOfNamedGriddedField2& invtable,
     const Vector& f_grid,
     const ArrayOfString& scat_species,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -78,15 +78,15 @@ void RadarOnionPeelingTableCalc(
   // Allocate
   if (invtable.empty())
     invtable.resize(2);
-  invtable[iss].set_name("Radar inversion table created by *RadarOnionPeelingTableCalc*");
+  invtable[iss].data_name = "Radar inversion table created by *RadarOnionPeelingTableCalc*";
   invtable[iss].resize(2, ndb, nt);
   invtable[iss].data = 0;
-  invtable[iss].set_grid_name(0, "Radiative properties");
-  invtable[iss].set_grid(0, ArrayOfString{"Log of water content","Extinction"});
-  invtable[iss].set_grid_name(1, "Radar reflectivity");
-  invtable[iss].set_grid(1, dbze_grid);
-  invtable[iss].set_grid_name(2, "Temperature");
-  invtable[iss].set_grid(2, t_grid);  
+  invtable[iss].grid_names[0] = "Radiative properties";
+  invtable[iss].grid<0>() = ArrayOfString{"Log of water content","Extinction"};
+  invtable[iss].grid_names[1] = "Radar reflectivity";
+  invtable[iss].grid<1>() = dbze_grid;
+  invtable[iss].grid_names[2] = "Temperature";
+  invtable[iss].grid<2>() = t_grid;  
 
   // Determine back-scattering and extinction on t_grid, at each size
   const Index nse = scat_data[iss].size();

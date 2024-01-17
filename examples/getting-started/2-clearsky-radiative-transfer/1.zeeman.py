@@ -29,7 +29,9 @@ ws.propmat_clearsky_agendaAuto()
 
 ws.PlanetSet(option="Earth")
 ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
-
+t = pyarts.arts.GriddedField3.fromxml(
+    "planets/Earth/afgl/tropical/t.xml"
+)
 ws.atm_fieldInit(toa=100e3)
 ws.atm_fieldAddGriddedData(
     key=pyarts.arts.String("t"),
@@ -43,12 +45,7 @@ ws.atm_fieldAddGriddedData(
         "planets/Earth/afgl/tropical/p.xml"
     ),
 )
-ws.atm_fieldAddGriddedData(
-    key=ws.abs_species[0],
-    data=pyarts.arts.GriddedField3.fromxml(
-        "planets/Earth/afgl/tropical/O2.xml"
-    ),
-)
+ws.atm_field[ws.abs_species[0]] = 0.21
 ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings

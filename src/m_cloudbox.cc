@@ -28,7 +28,6 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "file.h"
-#include "gridded_fields.h"
 #include "math_funcs.h"
 #include "new_jacobian.h"
 #include "optproperties.h"

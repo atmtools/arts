@@ -212,64 +212,6 @@ void surfaceBlackbody(Matrix& surface_los,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatRefractiveIndex(Matrix& surface_los,
-                                Tensor4& surface_rmatrix,
-                                Matrix& surface_emission,
-                                const Vector& f_grid,
-                                     const Vector& rtp_pos,
-                                const Vector& rtp_los,
-                                const Vector& specular_los,
-                                const Numeric& surface_skin_t,
-                                const GriddedField3& surface_complex_refr_index) {
-  chk_rte_pos(rtp_pos);
-  chk_rte_los(rtp_los);
-  chk_rte_los(specular_los);
-  chk_not_negative("surface_skin_t", surface_skin_t);
-
-  // Interpolate *surface_complex_refr_index*
-  //
-  const Index nf = f_grid.size();
-  //
-  Matrix n_real(nf, 1), n_imag(nf, 1);
-  //
-  complex_n_interp(n_real,
-                   n_imag,
-                   surface_complex_refr_index,
-                   "surface_complex_refr_index",
-                   f_grid,
-                   Vector(1, surface_skin_t));
-
-  surface_los.resize(1, specular_los.size());
-  surface_los(0, joker) = specular_los;
-
-  surface_emission.resize(nf, 4);
-  surface_rmatrix.resize(1, nf, 4, 4);
-
-  // Incidence angle
-  const Numeric incang = calc_incang(rtp_los, specular_los);
-  ARTS_ASSERT(incang <= 90);
-
-  // Complex (amplitude) reflection coefficients
-  Complex Rv, Rh;
-
-  for (Index iv = 0; iv < nf; iv++) {
-    // Set n2 (refractive index of surface medium)
-    Complex n2(n_real(iv, 0), n_imag(iv, 0));
-
-    // Amplitude reflection coefficients
-    fresnel(Rv, Rh, Numeric(1.0), n2, incang);
-
-    // Fill reflection matrix and emission vector
-    surface_specular_R_and_b(surface_rmatrix(0, iv, joker, joker),
-                             surface_emission(iv, joker),
-                             Rv,
-                             Rh,
-                             f_grid[iv],
-                             surface_skin_t);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatReflectivity(Matrix& surface_los,
                              Tensor4& surface_rmatrix,
                              Matrix& surface_emission,

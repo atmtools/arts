@@ -212,73 +212,6 @@ The vector length is determined by *nelem*.
 
   };
 
-  wsm_data["AtmFieldPRegrid"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interpolates the input field along the pressure dimension from
-``p_grid_old`` to to ``p_grid_new``.
-
-Extrapolation is allowed within the common 0.5grid-step margin.
-in and out fields can be the same variable.
-)--",
-      .author = {"Jana Mendrok"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3, Tensor4"},
-      .gout_desc = {R"--(Regridded atmospheric field.)--"},
-
-      .gin = {"input", "p_grid_new", "p_grid_old", "interp_order"},
-      .gin_type = {"Tensor3, Tensor4", "Vector", "Vector", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{1}},
-      .gin_desc = {R"--(Input atmospheric field.)--",
-                   R"--(Pressure grid to regrid to)--",
-                   R"--(Pressure grid of input field)--",
-                   R"--(Interpolation order.)--"},
-
-  };
-
-  wsm_data["AtmFieldsAndParticleBulkPropFieldFromCompact"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Extract pressure grid and atmospheric fields from
-*atm_fields_compact*.
-
-An atmospheric scenario includes the following data for each
-position (pressure, latitude, longitude) in the atmosphere:
-
-1. temperature field
-2. the corresponding altitude field
-3. vmr fields for the gaseous species
-4. scattering species fields
-
-This method splits up the data found in *atm_fields_compact* to
-p_grid, lat_grid, lon_grid, vmr_field, particle_bulkprop_field,
-and particle_bulkprop_names.
-See documentation of *atm_fields_compact* for a definition of the
-data.
-
-Compact states are characterized by having all atmospheric fields
-already given on identical grids. That is, no interpolation needs
-to be and is performed. Keyword ``p_min`` allows to remove atmospheric
-levels with pressures lower than the given value (default: no
-removal). This reduces computational burden and is useful when
-upper atmospheric contributions are negligible.
-
-Possible future extensions: Add a keyword parameter to refine the
-pressure grid if it is too coarse. Or a version that interpolates
-onto given grids, instead of using and returning the original grids.
-)--",
-          .author = {"Jana Mendrok, Manfred Brath"},
-          .out = {"atm_field", "particle_bulkprop_names"},
-
-          .in = {"abs_species", "atm_fields_compact"},
-          .gin = {"delim", "check_gridnames"},
-          .gin_type = {"String", "Index"},
-          .gin_value = {String("-"), Index{0}},
-          .gin_desc =
-              {R"--(Delimiter string of *scat_species* elements.)--",
-               R"--(A flag with value 1 or 0. If set to one, the gridnames of the *atm_fields_compact* are checked.)--"},
-
-      };
-
   wsm_data["CIAInfo"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Display information about the given CIA tags.
 The CIA tags shown are in the same format as needed by *abs_speciesSet*.
@@ -824,32 +757,6 @@ See *ArrayOfGriddedFieldGetNames*.
 
   };
 
-  wsm_data["GriddedFieldLatLonExpand"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Expands the latitude and longitude grid of the GriddedField to
-[-90, 90] and [0,360], respectively.
-
-Expansion is only done in
-the dimension(s), where the grid size is 1.
-The values from the input data will be duplicated to accomodate
-for the larger size of the output field.
-output and input can be the same variable.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type =
-          {"GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3"},
-      .gout_desc = {R"--(Expanded gridded field.)--"},
-
-      .gin = {"input"},
-      .gin_type =
-          {"GriddedField2, GriddedField3, GriddedField4, ArrayOfGriddedField3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Raw input gridded field.)--"},
-
-  };
-
   wsm_data["HydrotableCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Creates a look-up table of scattering properties.
 
@@ -872,7 +779,7 @@ Four scattering properties are calculated. They are (in order)
       .author = {"Patrick Eriksson"},
 
       .gout = {"hydrotable"},
-      .gout_type = {"GriddedField4"},
+      .gout_type = {"NamedGriddedField3"},
       .gout_desc = {R"--(Generated hydrotable with format described above.)--"},
       .in = {"pnd_agenda_array",
              "pnd_agenda_array_input_names",
@@ -1067,20 +974,6 @@ The result can either be stored in the same or another Index.
       .gin_type = {"Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Input Index.)--", R"--(Subtrahend.)--"},
-
-  };
-
-  wsm_data["InterpAtmFieldToPosition"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Point interpolation of atmospheric fields.
-
-The default way to specify the position is by *path_point*.
-
-Linear interpolation is applied.
-)--",
-      .author = {"Richard Larsson"},
-
-      .out = {"atm_point"},
-      .in = {"atm_field", "path_point"},
 
   };
 
@@ -1929,7 +1822,7 @@ species and a single frequency (the one of the radar).
       .author = {"Patrick Eriksson"},
 
       .gout = {"invtable"},
-      .gout_type = {"ArrayOfGriddedField3"},
+      .gout_type = {"ArrayOfNamedGriddedField2"},
       .gout_desc = {R"--()--"},
       .in = {"f_grid",
              "scat_species",
@@ -6226,43 +6119,6 @@ computations.
       .gin_desc = {"Default option for the isotopologue ratios"},
   };
 
-  wsm_data["atm_fieldLteExternalPartitionFunction"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Turns on NTLE calculations.
-
-Sets NLTE ratios to those expected for LTE calculations
-with a known partition function
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"nlte_do", "atm_field", "abs_lines_per_species"},
-
-          .in = {"atm_field", "abs_lines_per_species"},
-          .gin = {"nlte_level_identifiers"},
-          .gin_type = {"ArrayOfQuantumIdentifier"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(List of levels to compute for)--"},
-
-      };
-
-  wsm_data["atm_fieldLteInternalPartitionFunction"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Turns on NTLE calculations.
-
-Sets NLTE ratios to those expected for LTE calculations
-with estimation of the partition function as the sum of all
-states of a species
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"nlte_do", "atm_field", "abs_lines_per_species"},
-
-          .in = {"atm_field", "abs_lines_per_species"},
-          .gin = {"nlte_level_identifiers"},
-          .gin_type = {"ArrayOfQuantumIdentifier"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(List of levels to compute for)--"},
-
-      };
-
   wsm_data["atm_fieldRead"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Reads a new atm_field from a folder or base
 
@@ -6381,160 +6237,6 @@ give the "H2O.xml" file because the internal data structure is unordered.
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Top of atmosphere altitude [m].)--"},
-
-  };
-
-  wsm_data["atm_fields_compactAddConstant"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a constant field to atm_fields_compact.
-
-This is handy, e.g., for nitrogen or oxygen. The constant value can
-be appended or prepended as an additional field to the already
-existing collection of fields. All dimensions (pressure, latitude,
-longitude) are filled up, so this works for 1D, 2D, or 3D
-atmospheres.
-
-The passed ``name`` of the field has to be in accordance with the
-tagging structure described for *atm_fields_compact*.
-
-A list of condensibles can be optionally specified if the VMR of
-the added species is assuming dry air. The VMR of the added species
-is then scaled down by the sum of the condensibles' VMR::
-
-  VMR * (1 - VMR_sum_of_condensibles).
-
-
-For Earth this should be set to ["abs_species-H2O"]
-)--",
-      .author = {"Stefan Buehler, Oliver Lemke"},
-      .out = {"atm_fields_compact"},
-
-      .in = {"atm_fields_compact"},
-      .gin = {"name", "value", "prepend", "condensibles"},
-      .gin_type = {"String", "Numeric", "Index", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}, ArrayOfString{}},
-      .gin_desc =
-          {R"--(Name of additional atmospheric field, with constant value.)--",
-           R"--(Constant value of additional field.)--",
-           R"--(0 = Append to the end, 1 = insert at the beginning.)--",
-           R"--(List of condensibles used to scale down the VMR of the added species.)--"},
-
-  };
-
-  wsm_data["atm_fields_compactAddSpecies"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a field to atm_fields_compact, with interpolation.
-
-This method appends or prepends a *GriddedField3* to *atm_fields_compact*.
-The *GriddedField3* is interpolated upon the grid of
-*atm_fields_compact*. A typical use case for this method may be to
-add a climatology of some gas when this gas is needed for radiative
-transfer calculations, but not yet present in *atm_fields_compact*.
-One case where this happens is when using the Chevalier91L dataset
-for infrared simulations.
-
-The grids in *atm_fields_compact* must fully encompass the grids in
-the *GriddedField3* to be added, for interpolation to succeed. If
-this is not the case, a RuntimeError is thrown.
-
-The passed ``name`` of the field has to be in accordance with the
-tagging structure described for *atm_fields_compact*.
-)--",
-      .author = {"Gerrit Holl"},
-      .out = {"atm_fields_compact"},
-
-      .in = {"atm_fields_compact"},
-      .gin = {"name", "value", "prepend"},
-      .gin_type = {"String", "GriddedField3", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Name of additional atmospheric field.)--",
-           R"--(Value of additional atmospheric field.)--",
-           R"--(0 = Append to the end, 1 = insert at the beginning.)--"},
-
-  };
-
-  wsm_data["atm_fields_compactCleanup"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Removes unrealistically small or erroneous data from
-*atm_fields_compact* (or other GriddedField4 data)
-
-This WSM checks if the data in *atm_fields_compact* contains
-values smaller than the given ``threshold``. In this case, these
-values will be set to zero.
-
-The method should be applied if *atm_fields_compact* contains
-unrealistically small or erroneous data (NWP/GCM model data
-occassionally contains negative values, which are numerical
-artefacts rather than physical values.)
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"atm_fields_compact"},
-
-      .in = {"atm_fields_compact"},
-      .gin = {"threshold"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(Threshold below which *atm_fields_compact* values are set to zero.)--"},
-
-  };
-
-  wsm_data["atm_fields_compactCreateFromField"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initiates *atm_fields_compact* from a field.
-
-*atm_fields_compact* will have the same size and grids as the GriddedField3,
-but with one dimension as length 1.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atm_fields_compact"},
-
-      .gin = {"name", "field"},
-      .gin_type = {"String", "GriddedField3"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Name atmospheric field.)--",
-                   R"--(The atmospheric field.)--"},
-
-  };
-
-  wsm_data["atm_fields_compactFromMatrix"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets *atm_fields_compact* from 1D fields given in form of a matrix.
-
-For batch calculations it is handy to store atmospheric
-profiles in an array of matrix. We take such a matrix, and create
-*atm_fields_compact* from it.
-
-The matrix must contain one row for each pressure level.
-
-Not all fields contained in the matrix must be selected into
-*atm_fields_compact*, but the selection must at least contain
-fields of pressure, temperature, altitude and one absorption
-species.
-The matrix can contain some additional fields which are not
-directly used by ARTS for calculations but can be required for
-further processing, e.g. wind speed and direction. These fields do
-not need to be transfered into the *atm_fields_compact* variable.
-
-Selection of fields into *atm_fields_compact* works by providing a
-field name tag in ``field_names`` for the selected fields, while
-unselected fields are tagged by 'ignore'. Order of tags in
-``field_names`` is strictly taken as corresponding to column order in
-the matrix.
-The pressure fields are by convention the first column of the
-matrix, hence must not be tagged. That is, there must be given one
-field name tag less than matrix columns.
-
-For detailed tagging conventions see *atm_fields_compact*.
-
-Works only for ``atmosphere_dim`` == 1.
-)--",
-      .author = {"Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"},
-      .out = {"atm_fields_compact"},
-
-      .gin = {"gin1", "field_names"},
-      .gin_type = {"Matrix", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(One atmosphere matrix from batch input ArrayOfMatrix.)--",
-           R"--(Order/names of atmospheric fields.)--"},
 
   };
 
@@ -6676,104 +6378,6 @@ gives a grid that is twice the FWHM.
           .out = {"background_transmittance"},
 
           .in = {"ppvar_cumtramat"},
-
-      };
-
-  wsm_data["batch_atm_fields_compactAddConstant"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a constant field to batch_atm_fields_compact.
-
-Applies *atm_fields_compactAddConstant* to each batch.
-The format is equal to that WSM.
-)--",
-      .author = {"Gerrit Holl"},
-      .out = {"batch_atm_fields_compact"},
-
-      .in = {"batch_atm_fields_compact"},
-      .gin = {"name", "value", "prepend", "condensibles"},
-      .gin_type = {"String", "Numeric", "Index", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}, ArrayOfString{}},
-      .gin_desc =
-          {R"--(Name of additional atmospheric field, with constant value.)--",
-           R"--(Constant value of additional field.)--",
-           R"--(0 = Append to the end, 1 = insert at the beginning.)--",
-           R"--(List of condensibles used to scale down the VMR of the added species.)--"},
-
-  };
-
-  wsm_data["batch_atm_fields_compactAddSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Adds a field to *batch_atm_fields_compact*, with interpolation.
-
-This method appends or prepends a *GriddedField3* to each *atm_fields_compact*.
-in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.
-)--",
-      .author = {"Gerrit Holl"},
-      .out = {"batch_atm_fields_compact"},
-
-      .in = {"batch_atm_fields_compact"},
-      .gin = {"name", "value", "prepend"},
-      .gin_type = {"String", "GriddedField3", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Name of additional atmospheric field. Use, e.g., vmr_ch4 for methane VMR)--",
-           R"--(Value of additional atmospheric field.)--",
-           R"--(0 = Append to the end, 1 = insert at the beginning.)--"},
-
-  };
-
-  wsm_data["batch_atm_fields_compactCleanup"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Removes unrealistically small or erroneous data from each data field
-of *batch_atm_fields_compact* (or other AerrayOfGriddedField4 data)
-
-This WSM checks if the data in *batch_atm_fields_compact* contains
-values smaller than the given ``threshold``. In this case, these
-values will be set to zero.
-
-The method should be applied if *batch_atm_fields_compact* contains
-unrealistically small or erroneous data (NWP/GCM model data
-occassionally contains negative values, which are numerical
-artefacts rather than physical values.)
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"batch_atm_fields_compact"},
-
-      .in = {"batch_atm_fields_compact"},
-      .gin = {"threshold"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc =
-          {R"--(Threshold below which *atm_fields_compact* values are set to zero.)--"},
-
-  };
-
-  wsm_data["batch_atm_fields_compactFromArrayOfMatrix"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Expand batch of 1D atmospheric state matrices to batch_atm_fields_compact.
-
-This is used to handle 1D batch cases, e.g. from NWP/GCM model like
-the Chevallier91L data set, stored in a matrix (it is preferred,
-though, to immediatedly store the model fields as
-*ArrayOfGriddedField4* and use *ReadXML* to load them directly into
-*batch_atm_fields_compact*).
-
-Works only for ``atmosphere_dim`` == 1.
-
-See *atm_fields_compactFromMatrix* for basic documentation.
-
-See *batch_atm_fields_compactAddConstant* and
-*batch_atm_fields_compactAddSpecies* for adding additional fields.
-)--",
-          .author = {"Stefan Buehler", "Daniel Kreyling", "Jana Mendrok"},
-          .out = {"batch_atm_fields_compact"},
-
-          .gin = {"atmospheres_fields", "field_names"},
-          .gin_type = {"ArrayOfMatrix", "ArrayOfString"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc =
-              {R"--(Batch of atmospheres stored in one array of matrix)--",
-               R"--(Order/names of atmospheric fields.)--"},
 
       };
 

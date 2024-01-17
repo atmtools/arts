@@ -7,11 +7,6 @@
 */
 
 #include "cloudbox.h"
-#include "gridded_fields.h"
-
-using GriddedFieldGrids::GFIELD3_P_GRID;
-using GriddedFieldGrids::GFIELD3_LAT_GRID;
-using GriddedFieldGrids::GFIELD3_LON_GRID;
 
 /*===========================================================================
   === External declarations
@@ -37,9 +32,9 @@ using GriddedFieldGrids::GFIELD3_LON_GRID;
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file) {
   const Vector& pfr_lat_grid =
-      pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+      pnd_field_raw.grid<1>();
   const Vector& pfr_lon_grid =
-      pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+      pnd_field_raw.grid<2>();
 
   // The consistency of the dimensions is checked in the reading routine.
   // Here we have to check whether the atmospheric dimension is correct and whether
@@ -102,7 +97,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
           v = pnd_field_raw[n].data(p_i, lat_i, lon_i);
           if (v != 0) {
             // Verify pressure is between cloudbox limits
-            p = pnd_field_raw[n].get_numeric_grid(GFIELD3_P_GRID)[p_i];
+            p = pnd_field_raw[n].grid<0>()[p_i];
             //                        if (!((p <= p_grid[cloudbox_limits[0]]) &
             //                              (p >= p_grid[cloudbox_limits[1]]))) {
             ARTS_USER_ERROR_IF ((p <= p_grid[cloudbox_limits[1]]) ||
@@ -116,7 +111,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
                  "element #", n, ".")
             // Verify latitude is too
             if (dim > 1) {
-              lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
+              lat = pnd_field_raw[n].grid<1>()[lat_i];
               ARTS_USER_ERROR_IF (!((lat > lat_grid[cloudbox_limits[2]]) and
                     (lat < lat_grid[cloudbox_limits[3]])),
                   "Found non-zero pnd outside cloudbox. "
@@ -129,7 +124,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             }
             // Etc. for longitude
             if (dim > 2) {
-              lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
+              lon = pnd_field_raw[n].grid<2>()[lon_i];
               ARTS_USER_ERROR_IF (!((lon > lon_grid[cloudbox_limits[4]]) and
                     (lon < lon_grid[cloudbox_limits[5]])),
                   "Found non-zero pnd outside cloudbox. "

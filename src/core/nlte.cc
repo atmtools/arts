@@ -208,7 +208,7 @@ void nlte_collision_factorsCalcFromCoeffs(
             
             if (lt == Quantum::Number::StateMatchType::Full) {
               // Standard linear ARTS interpolation
-              const FixedLagrangeInterpolation<1> lag(0, T, gf1.get_numeric_grid(0));
+              const FixedLagrangeInterpolation<1> lag(0, T, gf1.grid<0>());
               const auto itw = interpweights(lag);
               
               Cij[iline] += interp(gf1.data, itw, lag) * numden * isot_ratio;

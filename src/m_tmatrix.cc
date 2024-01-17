@@ -95,7 +95,7 @@ void diameter_volume_equFromDiameter_max(Numeric& diameter_volume_equ,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_singleTmatrix(SingleScatteringData& scat_data_single,
                              ScatteringMetaData& scat_meta_single,
-                             const GriddedField3& complex_refr_index,
+                             const ComplexGriddedField2& complex_refr_index,
                              const String& shape,
                              const Numeric& diameter_volume_equ,
                              const Numeric& aspect_ratio,

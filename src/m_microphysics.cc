@@ -39,7 +39,7 @@ inline constexpr Numeric PI=Constant::pi;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void HydrotableCalc(const Workspace& ws,
-                    GriddedField4& hydrotable,
+                    NamedGriddedField3& hydrotable,
                     const ArrayOfAgenda& pnd_agenda_array,
                     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -69,20 +69,20 @@ void HydrotableCalc(const Workspace& ws,
                       "consistency check (scat_data_checked=1).");
 
   // Allocate *hydrotable*
-  hydrotable.set_name("Table of particle optical properties");
+  hydrotable.data_name = "Table of particle optical properties";
   hydrotable.data.resize(4, nf, nt, nw);
   //
-  hydrotable.set_grid_name(0, "Quantity");
-  hydrotable.set_grid(0, {"Extinction [m-1]",
+  hydrotable.grid_names[0] ="Quantity";
+  hydrotable.grid<0>()= {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
-                          "Radar reflectivity [m2]"});
-  hydrotable.set_grid_name(1, "Frequency [Hz]");
-  hydrotable.set_grid(1, f_grid);
-  hydrotable.set_grid_name(2, "Temperature [K]");
-  hydrotable.set_grid(2, T_grid);
-  hydrotable.set_grid_name(3, "Particle content [kg/m3]");
-  hydrotable.set_grid(3, wc_grid);
+                          "Radar reflectivity [m2]"};
+  hydrotable.grid_names[1] = "Frequency [Hz]";
+  hydrotable.grid<1>() = f_grid;
+  hydrotable.grid_names[2] = "Temperature [K]";
+  hydrotable.grid<2>() = T_grid;
+  hydrotable.grid_names[3] = "Particle content [kg/m3]";
+  hydrotable.grid<3>() = wc_grid;
 
   // Scattering angle grid
   const Index nsa = 361;

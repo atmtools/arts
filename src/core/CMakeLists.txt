@@ -28,7 +28,6 @@ add_subdirectory(fwd)
 add_subdirectory(lbl)
 add_subdirectory(quantum)
 add_subdirectory(spec)
-add_subdirectory(griddedfield)
 add_subdirectory(artstime)
 add_subdirectory(surface)
 add_subdirectory(path)
@@ -86,7 +85,6 @@ target_link_libraries(artscore PUBLIC
   atm
   binio
   coretypes
-  griddedfield
   fwd
   lbl
   matpack

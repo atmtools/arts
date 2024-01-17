@@ -55,7 +55,7 @@ void XsecRecord::Extract(VectorView result,
 
   const Index ndatasets = mfitcoeffs.size();
   for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
-    const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
+    const Vector& data_f_grid = mfitcoeffs[this_dataset_i].grid<0>();
     const Numeric data_fmin = data_f_grid[0];
     const Numeric data_fmax = data_f_grid[data_f_grid.nelem() - 1];
 

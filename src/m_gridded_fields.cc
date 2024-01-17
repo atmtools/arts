@@ -1,4 +1,4 @@
-#include "gridded_fields.h"
+#include <matpack.h>
 #include "mystring.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -8,7 +8,7 @@ void GriddedFieldGetNamer(  // WS Generic Output:
     // WS Generic Input:
     const T& gf) {
   // Return the name of the given GriddedField.
-  name = gf.get_name();
+  name = gf.data_name;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -20,7 +20,7 @@ void ArrayOfGriddedFieldGetNamers(  // WS Generic Output:
   // Return the name of the given GriddedField.
   names.resize(aogf.size());
   for (Size i = 0; i < aogf.size(); i++) {
-    names[i] = aogf[i].get_name();
+    names[i] = aogf[i].data_name;
   }
 }
 

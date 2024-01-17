@@ -9,7 +9,6 @@
 
 #include "enums.h"
 #include "fieldmap.h"
-#include "gridded_fields.h"
 #include "mystring.h"
 
 using Vector2 = matpack::matpack_constant_data<Numeric, 2>;

@@ -16,8 +16,7 @@
 
 #include <memory>
 
-#include "gridded_fields.h"
-#include "matpack_data.h"
+#include <matpack.h>
 #include "mystring.h"
 #include "species.h"
 
@@ -100,7 +99,7 @@ class CIARecord {
   [[nodiscard]] ConstVectorView FrequencyGrid(Size dataset) const {
     ARTS_ASSERT(dataset < mdata.size());
 
-    return mdata[dataset].get_numeric_grid(0);
+    return mdata[dataset].grid<0>();
   }
 
   /** Return temperatur grid for given dataset.
@@ -108,7 +107,7 @@ class CIARecord {
   [[nodiscard]] ConstVectorView TemperatureGrid(Size dataset) const {
     ARTS_ASSERT(dataset < mdata.size());
 
-    return mdata[dataset].get_numeric_grid(1);
+    return mdata[dataset].grid<1>();
   }
 
   /** Return CIA dataset.

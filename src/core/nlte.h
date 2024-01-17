@@ -9,9 +9,8 @@
 #ifndef NLTE_H
 #define NLTE_H
 
-#include "absorption.h"
-#include "gridded_fields.h"
-#include "matpack_data.h"
+#include <absorptionlines.h>
+#include <matpack.h>
 #include "quantum_numbers.h"
 
 #include <unordered_map>

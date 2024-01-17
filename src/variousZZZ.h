@@ -18,7 +18,7 @@
 #ifndef variousZZZ_h
 #define variousZZZ_h
 
-#include "gridded_fields.h"
+#include <matpack.h>
 
 class Workspace;
 class Agenda;

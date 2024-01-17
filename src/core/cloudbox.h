@@ -11,9 +11,8 @@
 #define cloudbox_h
 
 #include "array.h"
-#include "gridded_fields.h"
 #include "interpolation.h"
-#include "matpack_data.h"
+#include <matpack.h>
 #include "optproperties.h"
 #include "ppath_struct.h"
 

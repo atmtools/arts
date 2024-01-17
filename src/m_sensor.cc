@@ -28,7 +28,6 @@
 #include "arts_conversions.h"
 #include "check_input.h"
 #include "debug.h"
-#include "gridded_fields.h"
 #include "interp.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
@@ -38,11 +37,6 @@ inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
-using GriddedFieldGrids::GFIELD1_F_GRID;
-using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
-using GriddedFieldGrids::GFIELD4_F_GRID;
-using GriddedFieldGrids::GFIELD4_ZA_GRID;
-using GriddedFieldGrids::GFIELD4_AA_GRID;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 
@@ -61,7 +55,7 @@ void AntennaOff(Index& antenna_dim,
 
 
  /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussian(GriddedField4& r,
+void antenna_responseGaussian(NamedGriddedField3& r,
                               const Vector& f_points,
                               const Vector& fwhm,
                               const Numeric& grid_width,
@@ -82,17 +76,11 @@ void antenna_responseGaussian(GriddedField4& r,
   nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
 
   // Start to fill r
-  r.set_name("Antenna response");
-  r.set_grid_name(0, "Polarisation");
-  r.set_grid(0, {"NaN"});
-  r.set_grid_name(1, "Frequency");
-  r.set_grid(1, f_points);
-  r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, grid);
-  r.set_grid_name(3, "Azimuth angle");
+  r.data_name = "Antenna response";
+  r.grid_names = {"Polarisation", "Frequency", "Zenith angle", "Azimuth angle"};
+  r.grids = {{"NaN"}, f_points, grid, grid};
 
   if (do_2d) {
-    r.set_grid(3, grid);
     r.data.resize(1, nf, grid_npoints, grid_npoints);
     for (Index i=0; i<nf; ++i) {
       ARTS_USER_ERROR_IF (fwhm[i] <= 0,
@@ -106,7 +94,7 @@ void antenna_responseGaussian(GriddedField4& r,
       r.data(0, i, joker, joker) = Y;
     }
   } else {
-    r.set_grid(3, Vector(1, 0));
+    r.grid<3>() =Vector(1, 0);
     r.data.resize(1, nf, grid_npoints, 1);
     for (Index i=0; i<nf; ++i) {
       ARTS_USER_ERROR_IF (fwhm[i] <= 0,
@@ -121,7 +109,7 @@ void antenna_responseGaussian(GriddedField4& r,
 
 
  /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussianConstant(GriddedField4& r,
+void antenna_responseGaussianConstant(NamedGriddedField3& r,
                                       const Numeric& fwhm,
                                       const Numeric& grid_width,
                                       const Index& grid_npoints,
@@ -139,7 +127,7 @@ void antenna_responseGaussianConstant(GriddedField4& r,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void antenna_responseGaussianEffectiveSize(GriddedField4& r,
+void antenna_responseGaussianEffectiveSize(NamedGriddedField3& r,
                                            const Numeric& leff,
                                            const Numeric& grid_width,
                                            const Index& grid_npoints,
@@ -159,19 +147,13 @@ void antenna_responseGaussianEffectiveSize(GriddedField4& r,
   nlinspace(grid, -gwidth/2, gwidth/2, grid_npoints);
 
   // Start to fill r
-  r.set_name("Antenna response");
-  r.set_grid_name(0, "Polarisation");
-  r.set_grid(0, {"NaN"});
+  r.data_name = "Antenna response";
+  r.grid_names = {"Polarisation", "Frequency", "Zenith angle", "Azimuth angle"};
   Vector f_grid;
   VectorNLogSpace(f_grid, nf, fstart, fstop);
-  r.set_grid_name(1, "Frequency");
-  r.set_grid(1, f_grid);
-  r.set_grid_name(2, "Zenith angle");
-  r.set_grid(2, grid);
-  r.set_grid_name(3, "Azimuth angle");
+  r.grids = {{"NaN"}, f_grid, grid, grid};
   
   if (do_2d) {
-    r.set_grid(3, grid);
     r.data.resize(1, nf, grid_npoints, grid_npoints);
     Matrix Y;
     for (Index i = 0; i < nf; i++) {
@@ -183,7 +165,7 @@ void antenna_responseGaussianEffectiveSize(GriddedField4& r,
       r.data(0, i, joker, joker) = Y;
     }
   } else {
-    r.set_grid(3, Vector(1, 0));
+    r.grid<3>() = Vector(1, 0);
     r.data.resize(1, nf, grid_npoints, 1);
     Vector y;
     for (Index i = 0; i < nf; i++) {
@@ -200,14 +182,14 @@ void antenna_responseGaussianEffectiveSize(GriddedField4& r,
 void backend_channel_responseFlat(ArrayOfGriddedField1& r,
                                   const Numeric& resolution) {
   r.resize(1);
-  r[0].set_name("Backend channel response function");
+  r[0].data_name = "Backend channel response function";
 
   Vector x(2);
 
-  r[0].set_grid_name(0, "Frequency");
+  r[0].grid_names = {"Frequency"};
   x[1] = resolution / 2.0;
   x[0] = -x[1];
-  r[0].set_grid(0, x);
+  r[0].grid<0>() = x;
 
   r[0].data.resize(2);
   r[0].data[0] = 1 / resolution;
@@ -241,9 +223,9 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
     Vector y;
     VectorGaussian(y, grid, 0, -1.0, fwhm[i]);
   
-    r[i].set_name("Backend channel response function");
-    r[i].set_grid_name(0, "Frequency");
-    r[i].set_grid(0, grid);
+    r[i].data_name = ("Backend channel response function");
+    r[i].gridname<0>() = "Frequency";
+    r[i].grid<0>() = grid;
     r[i].data = y;
   }
 }
@@ -402,7 +384,7 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
   for (Size idx = 0; idx < backend_channel_response_multi.size(); ++idx) {
     for (Size idy = 0; idy < backend_channel_response_multi[idx].size();
          ++idy) {
-      numFpoints += backend_channel_response_multi[idx][idy].get_grid_size(0);
+      numFpoints += backend_channel_response_multi[idx][idy].shape()[0];
     }
   }
 
@@ -440,21 +422,21 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
       // Signal passband :
       f_backend_flat[i] = this_f_backend;
       backend_channel_response_nonflat[i] = this_grid;
-      for (Index idy = 1;
-           idy < backend_channel_response_multi[i][ii].get_grid_size(0);
+      for (Size idy = 1;
+           idy < backend_channel_response_multi[i][ii].shape()[0];
            ++idy) {
         if ((backend_channel_response_multi[i][ii].data[idy - 1] == 0) &&
             (backend_channel_response_multi[i][ii].data[idy] > 0)) {
           FminVerbosityVect[VerbVectIdx] =
               f_backend_multi[i][ii] +
-              backend_channel_response_multi[i][ii].get_numeric_grid(0)[idy];
+              backend_channel_response_multi[i][ii].grid<0>()[idy];
           VerbosityValVect[VerbVectIdx] = verbosityVect[i];
         }
         if ((backend_channel_response_multi[i][ii].data[idy - 1] > 0) &&
             (backend_channel_response_multi[i][ii].data[idy] == 0)) {
           FmaxVerbosityVect[VerbVectIdx] =
               f_backend_multi[i][ii] +
-              backend_channel_response_multi[i][ii].get_numeric_grid(0)[idy];
+              backend_channel_response_multi[i][ii].grid<0>()[idy];
           VerbVectIdx++;
         }
       }
@@ -771,7 +753,7 @@ void mblock_dlosFrom1dAntenna(Matrix& mblock_dlos,
   ARTS_USER_ERROR_IF (npoints < 3, "*npoints* must be > 2.");
 
   // za grid for response
-  ConstVectorView r_za_grid = antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  ConstVectorView r_za_grid = antenna_response.grid<2>();
   const Index nr = r_za_grid.size();
 
   // Cumulative integral of response (factor /2 skipped, but does not matter)
@@ -807,7 +789,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             const ArrayOfIndex& sensor_response_pol_grid,
                             const Index& antenna_dim,
                             const Matrix& antenna_dlos,
-                            const GriddedField4& antenna_response,
+                            const NamedGriddedField3& antenna_response,
                             const Index& sensor_norm,
                             const String& option_2d,
                             const Vector& solid_angles) {
@@ -857,7 +839,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   // Checks of antenna_response polarisation dimension
   //
   const Index lpolgrid =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
+      antenna_response.grid<0>().size();
   //
   if (lpolgrid != 1 && lpolgrid != npol) {
     os << "The number of polarisation in *antenna_response* must be 1 or 4).\n";
@@ -867,7 +849,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   // Checks of antenna_response frequency dimension
   //
   ConstVectorView aresponse_f_grid =
-      antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+      antenna_response.grid<1>();
   //
   chk_if_increasing("f_grid of antenna_response", aresponse_f_grid);
   //
@@ -899,7 +881,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   // Checks of antenna_response za dimension
   //
   ConstVectorView aresponse_za_grid =
-      antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+      antenna_response.grid<2>();
   //
   chk_if_increasing("za_grid of *antenna_response*", aresponse_za_grid);
   //
@@ -911,7 +893,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   // Checks of antenna_response aa dimension
   //
   ConstVectorView aresponse_aa_grid =
-      antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+      antenna_response.grid<3>();
   //
   if (antenna_dim == 1) {
     if (aresponse_aa_grid.size() != 1) {
@@ -974,7 +956,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   if (error_found) throw std::runtime_error(os.str());
 
   // And finally check if grids and data size match
-  antenna_response.checksize_strict();
+  ARTS_USER_ERROR_IF(not antenna_response.check(), "This *antenna_response* is not consistent:\n", antenna_response);
 
   // Call the core function
   //
@@ -1109,7 +1091,7 @@ void sensor_responseBackend(
   for (Index i = 0; i < f_backend.size(); i++) {
     const Index irp = i * freq_full;
     ConstVectorView bchr_f_grid =
-        backend_channel_response[irp].get_numeric_grid(GFIELD1_F_GRID);
+        backend_channel_response[irp].grid<0>();
 
     if (bchr_f_grid.size() != backend_channel_response[irp].data.size()) {
       os << "Mismatch in size of grid and data in element " << i
@@ -1639,7 +1621,7 @@ void sensor_responseMixer(Sparse& sensor_response,
 
   // Frequency grid of for sideband response specification
   ConstVectorView sbresponse_f_grid =
-      sideband_response.get_numeric_grid(GFIELD1_F_GRID);
+      sideband_response.grid<0>();
 
   // Initialise a output stream for runtime errors and a flag for errors
   std::ostringstream os;
@@ -2376,11 +2358,11 @@ void sensor_responseGenericAMSU(  // WS Output:
     const Index numVal = 4;
     backend_channel_response_multi[i].resize(1);
     GriddedField1& b_resp = backend_channel_response_multi[i][0];
-    b_resp.set_name("Backend channel response function");
+    b_resp.data_name = "Backend channel response function";
     b_resp.resize(numVal * numPBpseudo[i]);
     Vector f_range(numVal * numPBpseudo[i]);
     Numeric pbOffset = 0;
-    b_resp.set_grid_name(0, "Frequency");
+    b_resp.grid_names = {"Frequency"};
 
     Numeric slope = 0;  // 1900;
     // To avoid overlapping passbands in the AMSU-A sensor, reduce the passbands of each channel by a few Hz
@@ -2475,14 +2457,14 @@ void sensor_responseGenericAMSU(  // WS Output:
         }
       }
     }
-    b_resp.set_grid(0, f_range);
+    b_resp.grid<0>() = f_range;
   }
 
   // construct sideband response
   ArrayOfGriddedField1 sideband_response_multi(n);
   for (Index i = 0; i < n; ++i) {
     GriddedField1& r = sideband_response_multi[i];
-    r.set_name("Sideband response function");
+    r.data_name="Sideband response function";
     r.resize(numPBpseudo[i]);
     Vector f(numPBpseudo[i]);
     if (numPB[i] == 1) {
@@ -2509,8 +2491,8 @@ void sensor_responseGenericAMSU(  // WS Output:
       f[3] = +offset(i, 0) + offset(i, 1) + 0.5 * width[i];
       ;
     }
-    r.set_grid_name(0, "Frequency");
-    r.set_grid(0, f);
+    r.gridname<0>() = "Frequency";
+    r.grid<0>() = f;
   }
 
   sensor_norm = 1;
@@ -2673,15 +2655,15 @@ void sensor_responseSimpleAMSU(  // WS Output:
   for (Index i = 0; i < n; ++i) {
     backend_channel_response_multi[i].resize(1);
     GriddedField1& r = backend_channel_response_multi[i][0];
-    r.set_name("Backend channel response function");
+    r.data_name = "Backend channel response function";
     r.resize(2);
 
     // Frequency range:
     Vector f(2);
     f[0] = -0.5 * width[i];
     f[1] = +0.5 * width[i];
-    r.set_grid_name(0, "Frequency");
-    r.set_grid(0, f);
+    r.grid_names = {"Frequency"};
+    r.grids = {f};
 
     // Response:
     r.data[0] = 1;
@@ -2692,15 +2674,15 @@ void sensor_responseSimpleAMSU(  // WS Output:
   ArrayOfGriddedField1 sideband_response_multi(n);
   for (Index i = 0; i < n; ++i) {
     GriddedField1& r = sideband_response_multi[i];
-    r.set_name("Sideband response function");
+    r.data_name="Sideband response function";
     r.resize(2);
 
     // Frequency range:
     Vector f(2);
     f[0] = -(offset[i] + 0.5 * width[i]);
     f[1] = +(offset[i] + 0.5 * width[i]);
-    r.set_grid_name(0, "Frequency");
-    r.set_grid(0, f);
+    r.grid_names = {"Frequency"};
+    r.grids = {f};
 
     // Response:
     r.data[0] = 0.5;

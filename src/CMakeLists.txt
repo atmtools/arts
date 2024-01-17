@@ -139,7 +139,6 @@ add_library (artsworkspace STATIC
   m_append.cc
   m_array.cc
   m_artstime.cc
-  m_atmosphere.cc
   m_atm.cc
   m_background.cc
   m_basic_types.cc

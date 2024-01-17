@@ -1,6 +1,5 @@
 #pragma once
 
-#include <gridded_fields.h>
 #include <matpack.h>
 #include <quantum_numbers.h>
 

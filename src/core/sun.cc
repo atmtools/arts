@@ -39,7 +39,7 @@ Matrix regrid_sun_spectrum(const GriddedField2 &sun_spectrum_raw,
                           const Vector &f_grid,
                           const Numeric &temperature){
   const Index nf = f_grid.size();
-  const Vector data_f_grid = sun_spectrum_raw.get_numeric_grid(0);
+  const Vector& data_f_grid = sun_spectrum_raw.grid<0>();
   const Numeric data_fmin = data_f_grid[0];
   const Numeric data_fmax = data_f_grid[data_f_grid.size() - 1];
 

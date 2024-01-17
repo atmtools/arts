@@ -322,7 +322,7 @@ a 4pi integration shall shall give 1.
 
 Dimensions: 
 
-- GriddedField4:
+- NamedGriddedField3:
 
   - ArrayOfString field_names[N_pol]
   - Vector f_grid[N_f]
@@ -330,7 +330,7 @@ Dimensions:
   - Vector aa_grid[N_aa]
   - Tensor4 data[N_pol][N_f][N_za][N_aa]
 )--",
-                                  .type = "GriddedField4"};
+                                  .type = "NamedGriddedField3"};
 
   wsv_data["atm_field"] = {.desc =
                                R"--(An atmospheric field in ARTS.
@@ -729,10 +729,9 @@ Unit:       -
 Dimensions: 
  - Vector f_grid[N_f]
  - Vector T_grid[N_T]
- - ArrayOfString Complex[2]
  - Tensor3 data[N_f][N_T][2]
 )--",
-      .type = "GriddedField3"};
+      .type = "ComplexGriddedField2"};
 
   wsv_data["covmat_block"] = {
       .desc =
@@ -3155,7 +3154,7 @@ longitude in the sky of the planet and the type
 See *complex_refr_index* for the expected format and how the data
 are treated.
 )--",
-      .type = "GriddedField3"};
+      .type = "ComplexGriddedField2"};
 
   wsv_data["surface_emission"] = {.desc = R"--(The emission from the surface.
 

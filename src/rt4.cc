@@ -194,7 +194,7 @@ void get_rt4surf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity,
     ConstTensor3View surface_reflectivity,
-    const GriddedField3& surface_complex_refr_index) {
+    const ComplexGriddedField2& surface_complex_refr_index) {
   ARTS_USER_ERROR_IF (surface_skin_t < 0. || surface_skin_t > 1000.,
     "Surface temperature is set to ", surface_skin_t, " K,\n"
     "which is not considered a meaningful value.\n")

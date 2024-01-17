@@ -16,3 +16,5 @@
 #include "interp.h"
 
 #include "math_funcs.h"
+
+#include "gridded_data.h"

@@ -54,8 +54,8 @@ void cia_interpolation(VectorView result,
   ARTS_ASSERT(result.nelem() == nf);
 
   // Get data grids:
-  ConstVectorView data_f_grid = cia_data.get_numeric_grid(0);
-  ConstVectorView data_T_grid = cia_data.get_numeric_grid(1);
+  ConstVectorView data_f_grid = cia_data.grid<0>();
+  ConstVectorView data_T_grid = cia_data.grid<1>();
 
   // Initialize result to zero (important for those frequencies outside the data grid).
   result = 0;
@@ -168,21 +168,21 @@ void cia_interpolation(VectorView result,
               Tnew, data_T_grid, T_extrapolfac);
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .reduce_rank<0>();
+              .template reduce_rank<0>();
     } else if (T_order == 2) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<2>>(
               Tnew, data_T_grid, T_extrapolfac);
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .reduce_rank<0>();
+              .template reduce_rank<0>();
     } else if (T_order == 3) {
       const auto T_lag =
           my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<3>>(
               Tnew, data_T_grid, T_extrapolfac);
       result_active =
           reinterp(cia_data.data, interpweights(f_lag, T_lag), f_lag, T_lag)
-              .reduce_rank<0>();
+              .template reduce_rank<0>();
     } else {
       throw std::runtime_error(
           "Cannot have this T_order, you must update the code...");
@@ -454,13 +454,13 @@ void CIARecord::AppendDataset(const Vector& freq,
                               const ArrayOfVector& cia) {
   GriddedField2 dataset;
   dataset.resize(freq.nelem(), temp.nelem());
-  dataset.set_grid(0, freq);
-  dataset.set_grid_name(0, "Frequency");
+  dataset.grid<0>() = freq;
+  dataset.gridname<0>() = "Frequency";
 
   Vector temp_t;
   temp_t = temp;
-  dataset.set_grid(1, temp_t);
-  dataset.set_grid_name(1, "Temperature");
+  dataset.grid<1>() = temp_t;
+  dataset.gridname<1>() = "Temperature";
 
   for (Index t = 0; t < temp.nelem(); t++) dataset.data(joker, t) = cia[t];
   mdata.push_back(dataset);

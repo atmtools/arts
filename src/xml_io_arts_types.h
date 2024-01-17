@@ -23,6 +23,7 @@
 // Extras
 #include "jacobian.h"
 #include "linemixing.h"
+#include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "path_point.h"
@@ -56,12 +57,16 @@ TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(AtmField)
 TMPL_XML_READ_WRITE_STREAM(AtmPoint)
 TMPL_XML_READ_WRITE_STREAM(CIARecord)
+TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
 TMPL_XML_READ_WRITE_STREAM(CovarianceMatrix)
 TMPL_XML_READ_WRITE_STREAM(GasAbsLookup)
-TMPL_XML_READ_WRITE_STREAM(GriddedField)
 TMPL_XML_READ_WRITE_STREAM(GriddedField1)
+TMPL_XML_READ_WRITE_STREAM(GriddedField1Named)
 TMPL_XML_READ_WRITE_STREAM(GriddedField2)
+TMPL_XML_READ_WRITE_STREAM(ComplexGriddedField2)
+TMPL_XML_READ_WRITE_STREAM(NamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM(GriddedField3)
+TMPL_XML_READ_WRITE_STREAM(NamedGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(GriddedField4)
 TMPL_XML_READ_WRITE_STREAM(GriddedField5)
 TMPL_XML_READ_WRITE_STREAM(GriddedField6)
@@ -87,6 +92,7 @@ TMPL_XML_READ_WRITE_STREAM(SurfacePoint)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
+TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
 
 //=== Array Types ==========================================================
 
@@ -105,7 +111,9 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfCIARecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField1)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField1Named)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField2)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfNamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)

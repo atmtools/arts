@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <exception>
 #include <stdexcept>
+#include <variant>
 
 #include "debug.h"
 #include "rng.h"

@@ -20,7 +20,6 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "gridded_fields.h"
 #include "interpolation.h"
 #include "logic.h"
 #include "matpack_data.h"
@@ -31,11 +30,6 @@
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-using GriddedFieldGrids::GFIELD1_F_GRID;
-using GriddedFieldGrids::GFIELD4_FIELD_NAMES;
-using GriddedFieldGrids::GFIELD4_F_GRID;
-using GriddedFieldGrids::GFIELD4_ZA_GRID;
-using GriddedFieldGrids::GFIELD4_AA_GRID;
 
 /*===========================================================================
   === The functions, besides the core integration and sum functions that are
@@ -45,7 +39,7 @@ using GriddedFieldGrids::GFIELD4_AA_GRID;
 void antenna1d_matrix(Sparse& H,
                       const Index& antenna_dim [[maybe_unused]],
                       ConstVectorView antenna_dza,
-                      const GriddedField4& antenna_response,
+                      const NamedGriddedField3& antenna_response,
                       ConstVectorView za_grid,
                       ConstVectorView f_grid,
                       const Index n_pol,
@@ -65,13 +59,13 @@ void antenna1d_matrix(Sparse& H,
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
+      antenna_response.grid<0>().size();
   ConstVectorView aresponse_f_grid =
-      antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+      antenna_response.grid<1>();
   ConstVectorView aresponse_za_grid =
-      antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+      antenna_response.grid<2>();
   DEBUG_ONLY(const Index n_ar_aa =
-                 antenna_response.get_numeric_grid(GFIELD4_AA_GRID).size();)
+                 antenna_response.grid<3>().size();)
 
   //
   const Index n_ar_f = aresponse_f_grid.size();
@@ -182,7 +176,7 @@ void antenna1d_matrix(Sparse& H,
 void antenna2d_gridded_dlos(Sparse& H,
                             const Index& antenna_dim [[maybe_unused]],
                             ConstMatrixView antenna_dlos,
-                            const GriddedField4& antenna_response,
+                            const NamedGriddedField3& antenna_response,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
                             const Index n_pol)
@@ -231,13 +225,13 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
+      antenna_response.grid<0>().size();
   ConstVectorView aresponse_f_grid =
-      antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+      antenna_response.grid<1>();
   ConstVectorView aresponse_za_grid =
-      antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+      antenna_response.grid<2>();
   ConstVectorView aresponse_aa_grid =
-      antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+      antenna_response.grid<3>();
   //
   const Index n_ar_f = aresponse_f_grid.size();
   const Index n_ar_za = aresponse_za_grid.size();
@@ -420,7 +414,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 void antenna2d_interp_response(Sparse& H,
                                const Index& antenna_dim [[maybe_unused]],
                                ConstMatrixView antenna_dlos,
-                               const GriddedField4& antenna_response,
+                               const NamedGriddedField3& antenna_response,
                                ConstMatrixView mblock_dlos,
                                ConstVectorView solid_angles,
                                ConstVectorView f_grid,
@@ -441,13 +435,13 @@ void antenna2d_interp_response(Sparse& H,
 
   // Extract antenna_response grids
   const Index n_ar_pol =
-      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).size();
+      antenna_response.grid<0>().size();
   ConstVectorView aresponse_f_grid =
-      antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+      antenna_response.grid<1>();
   ConstVectorView aresponse_za_grid =
-      antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+      antenna_response.grid<2>();
   ConstVectorView aresponse_aa_grid =
-      antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+      antenna_response.grid<3>();
   //
   const Index n_ar_f = aresponse_f_grid.size();
   const Index n_ar_za = aresponse_za_grid.size();
@@ -605,7 +599,7 @@ void mixer_matrix(Sparse& H,
                   const Index& n_sp,
                   const Index& do_norm) {
   // Frequency grid of for sideband response specification
-  ConstVectorView filter_grid = filter.get_numeric_grid(GFIELD1_F_GRID);
+  ConstVectorView filter_grid = filter.grid<0>();
 
   DEBUG_ONLY(const Index nrp = filter.data.size();)
 
@@ -936,7 +930,7 @@ void spectrometer_matrix(Sparse& H,
     const Index irp = ifr * freq_full;
 
     //The spectrometer response is shifted for each centre frequency step
-    ch_response_f = ch_response[irp].get_numeric_grid(GFIELD1_F_GRID);
+    ch_response_f = ch_response[irp].grid<0>();
     ch_response_f += ch_f[ifr];
 
     // Call *integration_func_by_vecmult* and store it in the temp vector
@@ -1097,7 +1091,7 @@ void find_effective_channel_boundaries(  // Output:
   for (Size i = 0; i < n_chan; ++i) {
     // Frequency grid for this response function:
     const Vector& backend_f_grid =
-        backend_channel_response[i].get_numeric_grid(0);
+        backend_channel_response[i].grid<0>();
 
     ARTS_USER_ERROR_IF (!is_increasing(backend_f_grid),
         "The frequency grid for the backend channel response of\n"
@@ -1170,7 +1164,7 @@ void find_effective_channel_boundaries(  // Output:
     // Isoz 2013-05-21: Added methods to ignore areas between passbands
     //
     const Vector& backend_f_grid =
-        backend_channel_response[idx].get_numeric_grid(0);
+        backend_channel_response[idx].grid<0>();
     const Vector& backend_filter = backend_channel_response[idx].data;
     if (backend_filter.size() >=
         4)  // Is the passband frequency response given explicitly ? e.g. [0,>0,>0,0]

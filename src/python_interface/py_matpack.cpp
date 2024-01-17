@@ -150,7 +150,7 @@ void py_matpack(py::module_& m) try {
   register_matpack_constant_data<Numeric, 2>(m, "Vector2")
       .PythonInterfaceFileIO(Vector2)
       .PythonInterfaceWorkspaceDocumentation(Vector2);
-      
+
   register_matpack_constant_data<Numeric, 3>(m, "Vector3")
       .PythonInterfaceFileIO(Vector3)
       .PythonInterfaceWorkspaceDocumentation(Vector3);
@@ -703,6 +703,9 @@ via x.value
 )--";
 
   artsclass<ComplexMatrix>(m, "ComplexMatrix", py::buffer_protocol())
+      .def(py::init([]() { return std::make_shared<ComplexMatrix>(); }),
+           "Default matrix")
+      .def(py::init([](const numpy_array& x) { return copy<2, Complex>(x); }))
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
@@ -724,6 +727,14 @@ via x.value
             {sizeof(Complex) * static_cast<ssize_t>(x.ncols()),
              sizeof(Complex)});
       })
+      .def(py::pickle(
+          [](const py::object& self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<ComplexMatrix>()(t[0]).cast<ComplexMatrix>();
+          }))
       .doc() = R"--(Holds complex matrix data.
 )--";
 

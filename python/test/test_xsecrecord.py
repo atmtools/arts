@@ -66,3 +66,8 @@ class TestXsecRecord:
         self.xr.to_netcdf(self.f)
         xr2 = pyarts.arts.XsecRecord.from_netcdf(self.f)
         assert self.xr == xr2
+
+if __name__ == "__main__":
+    a = TestXsecRecord()
+    a.setup_method()
+    a.test_netcdf()

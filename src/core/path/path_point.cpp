@@ -13,7 +13,6 @@
 
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
-#include "artstime.h"
 #include "atm.h"
 #include "configtypes.h"
 #include "debug.h"

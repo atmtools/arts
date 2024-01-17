@@ -1,4 +1,3 @@
-#include "gridded_fields.h"
 #include "surf.h"
 
 void surface_fieldSet(SurfaceField &surface_field, const Numeric &value,

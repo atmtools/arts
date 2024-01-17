@@ -659,26 +659,23 @@ void z_at_latlon(VectorView z,
 
 void complex_n_interp(MatrixView n_real,
                       MatrixView n_imag,
-                      const GriddedField3& complex_n,
+                      const ComplexGriddedField2& complex_n,
                       const String&,
                       ConstVectorView f_grid,
                       ConstVectorView t_grid) {
   // Set expected order of grids
-  Index gfield_fID = 0;
-  Index gfield_tID = 1;
-  Index gfield_compID = 2;
-
   // Check of complex_n
   //
-  complex_n.checksize_strict();
+  ARTS_USER_ERROR_IF(not complex_n.check(), "Bad complex_n");
   //
-  chk_griddedfield_gridname(complex_n, gfield_fID, "Frequency");
-  chk_griddedfield_gridname(complex_n, gfield_tID, "Temperature");
-  chk_griddedfield_gridname(complex_n, gfield_compID, "Complex");
+  ARTS_USER_ERROR_IF(complex_n.gridname<0>() != "Frequency",
+                     "Bad gridname for frequency");
+  ARTS_USER_ERROR_IF(complex_n.gridname<1>() != "Temperature",
+                     "Bad gridname for temperature");
 
   // Frequency and temperature grid sizes
-  const Index nf_in = complex_n.data.npages();
-  const Index nt_in = complex_n.data.nrows();
+  const Index nf_in = complex_n.data.nrows();
+  const Index nt_in = complex_n.data.ncols();
   const Index nf_out = f_grid.size();
   const Index nt_out = t_grid.size();
 
@@ -686,8 +683,8 @@ void complex_n_interp(MatrixView n_real,
   ARTS_ASSERT(n_real.nrows() == nf_out && n_real.ncols() == nt_out);
   ARTS_ASSERT(n_imag.nrows() == nf_out && n_imag.ncols() == nt_out);
 
-  const Vector& f_grid_in = complex_n.get_numeric_grid(gfield_fID);
-  const Vector& t_grid_in = complex_n.get_numeric_grid(gfield_tID);
+  const Vector& f_grid_in = complex_n.grid<0>();
+  const Vector& t_grid_in = complex_n.grid<1>();
 
   // Expand/interpolate in frequency dimension
   //
@@ -695,8 +692,8 @@ void complex_n_interp(MatrixView n_real,
   //
   if (nf_in == 1) {
     for (Index i = 0; i < nf_out; i++) {
-      nrf(i, joker) = complex_n.data(0, joker, 0);
-      nif(i, joker) = complex_n.data(0, joker, 1);
+      nrf(i, joker) = complex_n.data(0, joker).real();
+      nif(i, joker) = complex_n.data(0, joker).imag();
     }
   } else {
     chk_interpolation_grids("Frequency interpolation", f_grid_in, f_grid);
@@ -706,8 +703,8 @@ void complex_n_interp(MatrixView n_real,
     gridpos(gp, f_grid_in, f_grid);
     interpweights(itw, gp);
     for (Index i = 0; i < nt_in; i++) {
-      interp(nrf(joker, i), itw, complex_n.data(joker, i, 0), gp);
-      interp(nif(joker, i), itw, complex_n.data(joker, i, 1), gp);
+      interp(nrf(joker, i), itw, complex_n.data(joker, i).real(), gp);
+      interp(nif(joker, i), itw, complex_n.data(joker, i).imag(), gp);
     }
   }
 
