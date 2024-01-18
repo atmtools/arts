@@ -767,83 +767,35 @@ std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
 
 namespace Atm {
 namespace interp {
+using altlag1 = my_interp::Lagrange<1>;
+using altlag0 = my_interp::Lagrange<0>;
+
+using latlag1 = my_interp::Lagrange<1>;
+using latlag0 = my_interp::Lagrange<0>;
+
+using lonlag1 = my_interp::
+    Lagrange<1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag0 = my_interp::
+    Lagrange<0, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+
+using altlags = std::variant<altlag0, altlag1>;
+using latlags = std::variant<latlag0, latlag1>;
+using lonlags = std::variant<lonlag0, lonlag1>;
+
 Numeric get(const GriddedField3 &gf3,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {
-  const Vector &alts = gf3.grid<0>();
-  const Vector &lats = gf3.grid<1>();
-  const Vector &lons = gf3.grid<2>();
-
-  const Index nalt = alts.size();
-  const Index nlat = lats.size();
-  const Index nlon = lons.size();
-
-  if (nalt == 1 and nlat == 1 and nlon == 1) return gf3.data(0, 0, 0);
-
-  const auto p0 = [](const Vector &v, const Numeric x) {
-    return std::min<Index>(v.size() - 1,
-                           std::ranges::lower_bound(v, x) - v.begin());
-  };
-
-  const Index p0_alt = p0(alts, alt);
-  const Index p0_lat = p0(lats, lat);
-  const Index p0_lon = p0(lons, lon);
-
-  using altlag1 = my_interp::Lagrange<1>;
-  using altlag0 = my_interp::Lagrange<0>;
-
-  using latlag1 = my_interp::Lagrange<1>;
-  using latlag0 = my_interp::Lagrange<0>;
-
-  using lonlag1 = my_interp::Lagrange<1,
-                                      false,
-                                      my_interp::GridType::Cyclic,
-                                      my_interp::cycle_m180_p180>;
-  using lonlag0 = my_interp::Lagrange<0,
-                                      false,
-                                      my_interp::GridType::Cyclic,
-                                      my_interp::cycle_m180_p180>;
-
-  if (nlon == 1) {
-    if (nlat == 1) {
-      return my_interp::interp(gf3.data,
-                               altlag1{p0_alt, alt, alts},
-                               latlag0{p0_lat, lat, lats},
-                               lonlag0{p0_lon, lon, lons});
-    }
-
-    if (nalt == 1) {
-      return my_interp::interp(gf3.data,
-                               altlag0{p0_alt, alt, alts},
-                               latlag1{p0_lat, lat, lats},
-                               lonlag0{p0_lon, lon, lons});
-    }
-
-    return my_interp::interp(gf3.data,
-                             altlag1{p0_alt, alt, alts},
-                             latlag1{p0_lat, lat, lats},
-                             lonlag0{p0_lon, lon, lons});
-  }
-
-  if (nlat == 1) {
-    return my_interp::interp(gf3.data,
-                             altlag1{p0_alt, alt, alts},
-                             latlag0{p0_lat, lat, lats},
-                             lonlag1{p0_lon, lon, lons});
-  }
-
-  if (nalt == 1) {
-    return my_interp::interp(gf3.data,
-                             altlag0{p0_alt, alt, alts},
-                             latlag1{p0_lat, lat, lats},
-                             lonlag1{p0_lon, lon, lons});
-  }
-
-  return my_interp::interp(gf3.data,
-                           altlag1{p0_alt, alt, alts},
-                           latlag1{p0_lat, lat, lats},
-                           lonlag1{p0_lon, lon, lons});
+  return std::visit(
+      [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
+        return my_interp::interp(data, al, la, lo);
+      },
+      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
+                                : altlags{gf3.lag<0, altlag1>(alt)},
+      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
+                                : latlags{gf3.lag<1, latlag1>(lat)},
+      gf3.grid<2>().size() == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
+                                : lonlags{gf3.lag<2, lonlag1>(lon)});
 }
 
 constexpr Numeric get(const Numeric num,
