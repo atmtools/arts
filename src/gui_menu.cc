@@ -112,37 +112,6 @@ bool change_item(const char* name) {
   return false;
 }
 
-[[nodiscard]] std::string change_item_name(const JacobianTarget& target) {
-  switch (target.type) {
-    case Jacobian::Type::Atm:
-      switch (target.atm) {
-        case Jacobian::Atm::Temperature:
-          return "Temperature";
-          break;
-        case Jacobian::Atm::WindMagnitude:
-          return "Wind Magnitude";
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
-
-      break;
-    case Jacobian::Type::Line:
-      switch (target.line) {
-        case Jacobian::Line::VMR:
-          return var_string("VMR: ", target.qid.Isotopologue());
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
-      break;
-    default:
-      ARTS_USER_ERROR("Not implemented")
-  }
-
-  return "Bad Value";
-}
-
 
 bool change_item(const char* name,
                  Vector& vec,
