@@ -1073,7 +1073,7 @@ Usage: Set by the user.
 
 As *lo* but describes an instrument with multiple mixers. A vector
 element for each LO. The size of this variable and
-*sideband_response_multi* shall match, and probably also
+``sideband_response_multi`` shall match, and probably also
 ``sideband_mode_multi``.
 
 Unit:  Hz
@@ -1612,27 +1612,6 @@ Unit: 1
 )--",
                                       .type = "Numeric"};
 
-  wsv_data["retrieval_eo"] = {
-      .desc =
-          R"--(The estimated error in the retrieval due to uncertainty in the observations.
-
-The vector contains the square roots  of the diagonal elements of  the
-covariance matrix of the error due to measurement noise, S_m in Rodgers'
-book.
-)--",
-      .type = "Vector"};
-
-  wsv_data["retrieval_ss"] = {
-      .desc =
-          R"--(The estimated error in the retrieval due to limited resolution of the
-observation system.
-
-The vector contains the square roots of the diagonal
-elements of the covariance matrix of the smoothing error, S_s in Rodgers'
-book.
-)--",
-      .type = "Vector"};
-
   wsv_data["rte_alonglos_v"] = {
       .desc =
           R"--(Velocity along the line-of-sight to consider for a RT calculation.
@@ -2118,19 +2097,6 @@ instrument) that can be seen as \"main\" band. Possible choices are:
 Usage: Set by the user.
 )--",
                                .type = "String"};
-
-  wsv_data["sideband_response_multi"] = {
-      .desc = R"--(Description of multiple (mixer) sideband responses.
-
-As ``sideband_response`` but describes an instrument with multiple
-mixers. An array element for each LO. The size of this variable and
-*lo_multi* shall match.
-
-Unit: Hz
-
-Usage: Set by the user.
-)--",
-      .type = "ArrayOfGriddedField1"};
 
   wsv_data["spectral_irradiance_field"] = {
       .desc = R"--(Spectral irradiance field.
