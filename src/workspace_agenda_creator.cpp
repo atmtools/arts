@@ -146,49 +146,6 @@ Agenda get_iy_cloudbox_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-Agenda get_ppath_agenda(const std::string& option) {
-  AgendaCreator agenda("ppath_agenda");
-
-  using enum Options::ppath_agendaDefaultOptions;
-  switch (Options::toppath_agendaDefaultOptionsOrThrow(option)) {
-    case Geometric:
-      agenda.add("ppathGeometric");
-      break;
-    case FollowSensorLosPath:
-      agenda.add("ppathStepByStep");
-      break;
-    case PlaneParallel:
-      agenda.add("ppathPlaneParallel");
-      break;
-    case TransmitterReceiverPath:
-      agenda.add("rte_losGeometricFromRtePosToRtePos2");
-      agenda.add("ppathFromRtePos2");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_ppath_step_agenda(const std::string& option) {
-  AgendaCreator agenda("ppath_step_agenda");
-
-  using enum Options::ppath_step_agendaDefaultOptions;
-  switch (Options::toppath_step_agendaDefaultOptionsOrThrow(option)) {
-    case GeometricPath:
-      agenda.add("ppath_stepGeometric");
-      break;
-    case RefractedPath:
-      agenda.add("ppath_stepRefractionBasic");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
 Agenda get_refr_index_air_agenda(const std::string& option) {
   AgendaCreator agenda("refr_index_air_agenda");
 

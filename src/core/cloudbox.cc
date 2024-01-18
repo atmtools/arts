@@ -413,38 +413,6 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
   }
 }
 
-/*! Checks, whether the last point of a propagation path 
-  is inside the cloudbox.
-
-  Works only for 3D !!!
-
-    \return true is returned if the point is inside the 
-          cloudbox.
-          
-  \param ppath_step Propagation path step.
-  \param cloudbox_limits The limits of the cloudbox.
-  \param include_boundaries boolean: determines whther or not points on the 
-  boundary are considered to be inside the cloudbox.
-
-  \author Claudia Emde (rewritten by Cory Davis 2005-07-03)
-  \date 2003-06-06
-
-*/
-bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const bool include_boundaries)
-
-{
-  ARTS_ASSERT(cloudbox_limits.size() == 6);
-  const Index np = ppath_step.np;
-
-  return is_gp_inside_cloudbox(ppath_step.gp_p[np - 1],
-                               ppath_step.gp_lat[np - 1],
-                               ppath_step.gp_lon[np - 1],
-                               cloudbox_limits,
-                               include_boundaries);
-}
-
 /*! Derives weights of a bin-type quadrature for arbitrary wide bins.
  *
  * Note: Rectangular and trapezoidal rule essentially give the same weights

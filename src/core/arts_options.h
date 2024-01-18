@@ -66,20 +66,6 @@ ENUMCLASS(iy_cloudbox_agendaDefaultOptions,
           LinInterpField,
           QuarticInterpField)
 
-/** Options for setting ppath_agenda */
-ENUMCLASS(ppath_agendaDefaultOptions,
-          char,
-          FollowSensorLosPath,
-          PlaneParallel,
-          TransmitterReceiverPath,
-          Geometric)
-
-/** Options for setting ppath_step_agenda */
-ENUMCLASS(ppath_step_agendaDefaultOptions,
-          char,
-          GeometricPath,
-          RefractedPath)
-
 /** Options for setting refr_index_air_agenda */
 ENUMCLASS(refr_index_air_agendaDefaultOptions,
           char,

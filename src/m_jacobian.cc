@@ -19,6 +19,7 @@
 
 #include "check_input.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "jacobian.h"
 
 /*===========================================================================

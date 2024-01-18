@@ -3,15 +3,6 @@ import numpy as np
 
 ws = pyarts.workspace.Workspace()
 
-# %% Calculations
-
-ws.ppath_lstep = 5e2
-ws.ppath_lmax = 1e3
-ws.ppath_lraytrace = 1e3
-ws.rt_integration_option = "default"
-ws.rte_alonglos_v = 0.0
-ws.nlteOff()
-
 # %% Sensor
 
 ws.f_grid = np.linspace(-4e6, 4e6, 1001) + 118750348044.712

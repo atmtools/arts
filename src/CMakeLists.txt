@@ -173,7 +173,6 @@ add_library (artsworkspace STATIC
   m_physics.cc
   m_planets.cc
   m_poslos.cc
-  m_ppath.cc
   m_ppvar.cc
   m_propagation_path.cc
   m_psd.cc
@@ -199,7 +198,6 @@ add_library (artsworkspace STATIC
   m_xml.cc
   m_zeeman.cc
   montecarlo.cc
-  ppath.cc
   psd.cc
   rt4.cc
   rte.cc

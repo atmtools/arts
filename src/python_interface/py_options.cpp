@@ -4,7 +4,6 @@
 
 #include "atm.h"
 #include <path_point.h>
-#include "ppath_struct.h"
 #include "py_macros.h"
 
 //! See DeclareOption macro, but this may rename the python class
@@ -79,8 +78,6 @@ void py_options(py::module_& m) try {
   DeclareOption(Options, iy_space_agendaDefaultOptions);
   DeclareOption(Options, iy_surface_agendaDefaultOptions);
   DeclareOption(Options, iy_cloudbox_agendaDefaultOptions);
-  DeclareOption(Options, ppath_agendaDefaultOptions);
-  DeclareOption(Options, ppath_step_agendaDefaultOptions);
   DeclareOption(Options, refr_index_air_agendaDefaultOptions);
   DeclareOption(Options, water_p_eq_agendaDefaultOptions);
   DeclareOption(Options, gas_scattering_agendaDefaultOptions);
@@ -119,9 +116,6 @@ void py_options(py::module_& m) try {
       AbsorptionNormalizationType, Absorption, NormalizationType);
   DeclareOptionRenamed(LineShapeType, LineShape, Type);
   DeclareOptionRenamed(LineShapeVariableOLDOLD, LineShape, Variable);
-
-  // Ppath
-  DeclareOption(Options, PpathBackground);
 
   // Atm
   DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation);

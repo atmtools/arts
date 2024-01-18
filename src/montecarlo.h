@@ -24,6 +24,7 @@
 #include <workspace.h>
 
 #include "check_input.h"
+#include "interpolation.h"
 #include "optproperties.h"
 
 /** clear_rt_vars_at_gp.

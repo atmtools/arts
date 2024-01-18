@@ -14,7 +14,6 @@
 #include "interpolation.h"
 #include <matpack.h>
 #include "optproperties.h"
-#include "ppath_struct.h"
 
 namespace Cloudbox {
    /** Global constant, minimum distance of cloudbox to lat/lon_grid edges.
@@ -50,10 +49,6 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
                            const GridPos& gp_lon,
                            const ArrayOfIndex& cloudbox_limits,
                            const bool& include_boundaries);
-
-bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const bool include_boundaries);
 
 void bin_quadweights(Vector& w, const Vector& x, const Index& order = 1);
 

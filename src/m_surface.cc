@@ -32,7 +32,6 @@
 #include "interpolation.h"
 #include "path_point.h"
 #include "physics_funcs.h"
-#include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "surf.h"
@@ -577,25 +576,6 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                    dsurface_rmatrix_dx,
                    dsurface_emission_dx);
   }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalc(Vector& specular_los,
-                      const SurfaceField& surface_field,
-                      const Vector& rtp_pos,
-                      const Vector& rtp_los,
-                      const Index& ignore_topography)
-{
-  chk_rte_pos("rtp_pos", rtp_pos);
-  chk_rte_los("rtp_los", rtp_los);
-  
-  specular_los.resize(2);
-  specular_los_calc(specular_los,
-                    surface_field,
-                    rtp_pos[Range(1, 2)],
-                    rtp_los,
-                    ignore_topography);
 }
 
 

@@ -63,7 +63,6 @@ add_library(artscore STATIC
   nlte.cc
   physics_funcs.cc
   optproperties.cc
-  ppath_struct.cc
   predefined_absorption_models.cc
   radiation_field.cc
   raw.cc

@@ -44,8 +44,6 @@ Agenda get_iy_loop_freqs_agenda(const std::string& option);
 Agenda get_iy_space_agenda(const std::string& option);
 Agenda get_iy_surface_agenda(const std::string& option);
 Agenda get_iy_cloudbox_agenda(const std::string& option);
-Agenda get_ppath_agenda(const std::string& option);
-Agenda get_ppath_step_agenda(const std::string& option);
 Agenda get_refr_index_air_agenda(const std::string& option);
 Agenda get_water_p_eq_agenda(const std::string& option);
 Agenda get_gas_scattering_agenda(const std::string& option);

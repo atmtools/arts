@@ -20,14 +20,6 @@ void iy_cloudbox_agendaSet(Agenda& out, const String& option) {
   out = get_iy_cloudbox_agenda(option);
 }
 
-void ppath_agendaSet(Agenda& out, const String& option) {
-  out = get_ppath_agenda(option);
-}
-
-void ppath_step_agendaSet(Agenda& out, const String& option) {
-  out = get_ppath_step_agenda(option);
-}
-
 void refr_index_air_agendaSet(Agenda& out, const String& option) {
   out = get_refr_index_air_agenda(option);
 }

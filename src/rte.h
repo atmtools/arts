@@ -18,6 +18,7 @@
   ===========================================================================*/
 
 #include <workspace.h>
+#include "interpolation.h"
 
 /*===========================================================================
   === Functions in rte.cc
@@ -119,48 +120,6 @@ Numeric dotprod_with_los(const ConstVectorView& los,
                          const Numeric& u,
                          const Numeric& v,
                          const Numeric& w);
-
-/** Determines the particle fields along a propagation path.
-
-    @param[out]  clear2cloudy        Mapping of index. See code for details. 
-    @param[out]  ppath_pnd           The particle number density for each
-                                     path point (also outside cloudbox).
-    @param[out]  ppath_dpnd_dx       dpnd_field_dx for each path point
-                                     (also outside cloudbox).
-    @param[in]   ppath               As the WSV.    
-    @param[in]   cloubox_limits      As the WSV.    
-    @param[in]   pnd_field           As the WSV.    
-    @param[in]   dpnd_field_dx       As the WSV.    
-
-    @author Jana Mendrok, Patrick Eriksson 
-    @date   2017-09-18
- */
-void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
-                         Matrix& ppath_pnd,
-                         ArrayOfMatrix& ppath_dpnd_dx,
-                         const Ppath& ppath,
-                         const ArrayOfIndex& cloudbox_limits,
-                         const Tensor4& pnd_field,
-                         const ArrayOfTensor4& dpnd_field_dx);
-
-/** Determines the Doppler shifted frequencies along the propagation path.
-
-    ppath_doppler[ nf,np]
-
-    @param[out]  ppath_f          Doppler shifted f_grid
-    @param[in]   ppath            Propagation path.
-    @param[in]   f_grid           Original f_grid.
-    @param[in]   rte_alonglos_v   As the WSV.
-    @param[in]   ppath_wind       See get_ppath_atmvars.
-
-    @author Patrick Eriksson 
-    @date   2013-02-21
- */
-void get_ppath_f(Matrix& ppath_f,
-                 const Ppath& ppath,
-                 const ConstVectorView& f_grid,
-                 const Numeric& rte_alonglos_v,
-                 const ConstMatrixView& ppath_wind);
 
 /** Get the blackbody radiation at propagation path point
  * 
@@ -434,50 +393,6 @@ void mueller_rotation(Matrix& L,
    \date   2021-12-22
 */
 void mueller_stokes2modif(Matrix& Cm);
-
-/** This function fixes the last steps to made on the Jacobian in some
-    radiative transfer WSMs. The method applies iy_transmittance, maps from
-    ppath to the retrieval grids and applies non-standard Jacobian units.
-
-    See iyEmissonStandard for usage example.
-
-    @author Patrick Eriksson 
-    @date   2017-11-19
-*/
-void rtmethods_jacobian_finalisation(
-    const Workspace& ws,
-    ArrayOfTensor3& diy_dx,
-    ArrayOfTensor3& diy_dpath,
-    const Index& nf,
-    const Index& np,
-    const Ppath& ppath,
-    const ArrayOfAtmPoint& ppvar_atm,
-    const Index& iy_agenda_call1,
-    const Tensor3& iy_transmittance,
-    const Agenda& water_p_eq_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfIndex& jac_species_i);
-
-/** This function handles the unit conversion to be done at the end of some
-    radiative transfer WSMs. 
-
-    The method hanldes both *iy* and analytical parts of the Jacobian.
-
-    See iyEmissonStandard for usage example.
-
-    @author Patrick Eriksson 
-    @date   2017-11-19
- */
-void rtmethods_unit_conversion(
-    Matrix& iy,
-    ArrayOfTensor3& diy_dx,
-    Tensor3& ppvar_iy,
-    const Vector& f_grid,
-    const Ppath& ppath,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Index& j_analytical_do,
-    const String& iy_unit);
 
 /** Calculates factor to convert back-scattering to Ze
 

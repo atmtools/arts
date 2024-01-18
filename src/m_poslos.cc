@@ -33,8 +33,8 @@
 
 #include "check_input.h"
 #include "geodetic.h"
+#include "interpolation.h"
 #include "lin_alg.h"
-#include "ppath.h"
 #include "surf.h"
 #include "variousZZZ.h"
 
@@ -234,21 +234,6 @@ void rte_posSet(Vector& rte_pos,
   rte_pos[1] = lat;
   rte_pos[2] = lon;
   chk_rte_pos("rte_pos", rte_pos);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losEndOfPpath(Vector& rte_pos,
-                           Vector& rte_los,
-                           const Ppath& ppath)
-{
-  const Index np = ppath.np;
-
-  // Check input
-  ARTS_USER_ERROR_IF(np == 0, "The input *ppath* is empty.");
-
-  rte_pos = ppath.pos(np - 1, joker);
-  rte_los = ppath.los(np - 1, joker);
 }
 
 

@@ -40,7 +40,6 @@ NELEM_GET(ArrayOfJacobianTarget);
 NELEM_GET(ArrayOfMatrix);
 NELEM_GET(ArrayOfMuelmatMatrix);
 NELEM_GET(ArrayOfMuelmatVector);
-NELEM_GET(ArrayOfPpath);
 NELEM_GET(ArrayOfPropmatMatrix);
 NELEM_GET(ArrayOfPropmatVector);
 NELEM_GET(ArrayOfQuantumIdentifier);

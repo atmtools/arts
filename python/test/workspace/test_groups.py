@@ -364,11 +364,6 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 1)
 
-    def testArrayOfPpath(self):
-        x = cxx.ArrayOfPpath([cxx.Ppath()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfQuantumIdentifier(self):
         x = cxx.ArrayOfQuantumIdentifier(["H2O-161 J 1 1"])
         test.io(x, delete=True)
@@ -562,10 +557,6 @@ class TestGroups:
         x = cxx.GriddedField6()
         test.io(x, delete=True)
 
-    def testGridPos(self):
-        x = cxx.GridPos()
-        test.io(x, delete=True)
-
     def testHitranRelaxationMatrixData(self):
         x = cxx.HitranRelaxationMatrixData()
         test.io(x, delete=True)
@@ -616,10 +607,6 @@ class TestGroups:
         assert x == 0, f"{x} cannot evaluate as equal to 0"
         x = x + 2
         assert x == 2
-
-    def testPpath(self):
-        x = cxx.Ppath()
-        test.io(x, delete=True)
 
     def testPredefinedModelData(self):
         x = cxx.PredefinedModelData()

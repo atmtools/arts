@@ -29,6 +29,7 @@
 #include "check_input.h"
 #include "debug.h"
 #include "interp.h"
+#include "interpolation.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
 #include "sensor.h"

@@ -22,7 +22,6 @@
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpack_data.h"
-#include "ppath.h"
 #include "surf.h"
 
 /*===========================================================================
@@ -159,48 +158,6 @@ void IntersectionGeometricLongitude(Matrix& pos,
       poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
       // Check that pos matches expected longitude
       ARTS_ASSERT(abs(pos(i,2)-longitude) < 0.01);
-    }
-  }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void IntersectionGeometricSurface(Matrix& pos,
-                                  Matrix& los,
-                                  const Matrix& sensor_pos,
-                                  const Matrix& sensor_los,
-                                  const SurfaceField& surface_field,
-                                  const Numeric& surface_search_accuracy,
-                                  const Index& surface_search_safe) {
-  chk_sensor_poslos("sensor_pos", sensor_pos, "sensor_los", sensor_los);
-  chk_refellipsoid(surface_field.ellipsoid);
-  //chk_surface_elevation(surface_elevation);
-  chk_if_positive("surface_search_accuracy", surface_search_accuracy);
-  chk_if_bool("surface_search_safe", surface_search_safe);
-
-  const Index n = sensor_pos.nrows();
-  pos.resize(n, 3);
-  los.resize(n, 2);
-
-  for (Index i=0; i<n; i++) {
-    Vector ecef(3), decef(3);
-    geodetic_los2ecef(ecef,
-                      decef,
-                      sensor_pos(i,joker),
-                      sensor_los(i,joker), 
-                      surface_field.ellipsoid);
-    const Numeric l = find_crossing_with_surface_z(Vector{sensor_pos(i,joker)},
-                                                   Vector{sensor_los(i,joker)},
-                                                   ecef,
-                                                   decef,
-                                                   surface_field,
-                                                   surface_search_accuracy,
-                                                   surface_search_safe);
-    if (l<0) {
-      pos(i,joker) = NAN;
-      los(i,joker) = NAN;
-    } else {
-      poslos_at_distance(pos(i,joker), los(i,joker), ecef, decef, surface_field.ellipsoid, l);
     }
   }
 }

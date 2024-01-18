@@ -2,16 +2,6 @@
 
 #include "atm.h"
 #include "path_point.h"
-#include "ppath_struct.h"
-
-/** Helper function that resizes the input ArrayOfAtmPoint.
- *
- * @param[out] ppvar_atm As WSV
- * @param[in] ppath As WSV
- * @return ArrayOfAtmPoint& As ppvar_atm WSV
- */
-ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm,
-                                 const Ppath &ppath);
 
 /** Helper function that resizes the input ArrayOfAtmPoint.
  *
@@ -21,24 +11,6 @@ ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm,
  */
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &ppvar_atm,
                                  const ArrayOfPropagationPathPoint &rad_path);
-
-/** Fills the propagation path atmospheric point variable
- *
- * @param[out] ppvar_atm As WSV
- * @param[in] ppath As WSV
- * @param[in] atm_field As WSV
- */
-void forward_atm_path(ArrayOfAtmPoint &ppvar_atm,
-                      const Ppath &ppath,
-                      const AtmField &atm_field);
-
-/** Outputs the propagation path atmospheric point variable
- *
- * @param[in] ppath As WSV
- * @param[in] atm_field As WSV
- * @return ArrayOfAtmPoint As ppvar_atm WSV
- */
-ArrayOfAtmPoint forward_atm_path(const Ppath &ppath, const AtmField &atm_field);
 
 /** Fills the propagation path atmospheric point variable, size is known
  *
@@ -84,34 +56,6 @@ void forward_path_freq(ArrayOfVector &ppvar_f,
                        const ArrayOfPropagationPathPoint &rad_path,
                        const ArrayOfAtmPoint &ppvar_atm,
                        const Numeric rte_alonglos_v);
-
-/** Set frequency grid along the atmospheric path
- * 
- * @param[out] ppvar_f As WSV
- * @param[in] f_grid As WSV
- * @param[in] ppath As WSV
- * @param[in] ppvar_atm As WSV
- * @param[in] rte_alonglos_v As WSV
- * @return ArrayOfVector& As ppvar_f WSV
- */
-void forward_path_freq(ArrayOfVector &ppvar_f,
-                       const Vector &f_grid,
-                       const Ppath &ppath,
-                       const ArrayOfAtmPoint &ppvar_atm,
-                       const Numeric rte_alonglos_v);
-
-/** Set frequency grid along the atmospheric path
- * 
- * @param[in] f_grid As WSV
- * @param[in] ppath As WSV
- * @param[in] ppvar_atm As WSV
- * @param[in] rte_alonglos_v As WSV
- * @return ArrayOfVector As ppvar_f WSV
- */
-ArrayOfVector forward_path_freq(const Vector &f_grid,
-                                const Ppath &ppath,
-                                const ArrayOfAtmPoint &ppvar_atm,
-                                const Numeric rte_alonglos_v);
 
 /** Extracts a 1D atmospheric "path" from a 3D atmospheric field
  *

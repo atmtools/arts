@@ -11,7 +11,6 @@
 
 #include <arts_conversions.h>
 #include <arts_options.h>
-#include <ppath_struct.h>
 
 #include <matpack.h>
 #include <quantum_numbers.h>
@@ -684,23 +683,6 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lon_retr_name,
                            const Index& dim);
 
-/** Maps jacobian data for points along the propagation path, to
-    jacobian retrieval grid data.
-
-    @param[out]  diy_dx              One element of the WSV *diy_dx*.
-    @param[in]   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
-    @param[in]   diy_dpath           Jacobians along the propagation path.
-    @param[in]   ppath               As the WSV.
-    @param[in]   ppath_p             The pressure at each ppath point.
-
-    @author Patrick Eriksson 
-    @date   2009-10-08
- */
-void diy_from_path_to_rgrids(Tensor3View diy_dx,
-                             const RetrievalQuantity& jacobian_quantity,
-                             ConstTensor3View diy_dpath,
-                             const Ppath& ppath);
-
 /** diy_from_pos_to_rgrids
 
     Maps jacobian data for a surface position, to jacobian retrieval grid data.
@@ -819,24 +801,6 @@ Index do_analytical_jacobian(const ArrayOfRetrievalQuantity& jacobian_quantities
   else if constexpr (N == 2) FOR_ANALYTICAL_JACOBIANS_DO2(return 1;)
   return 0;
 }
-
-/** Adopts grid positions to extrapolation used for jacobians
-
-  The standard interpolation scheme applies a linear extrapolation, while for
-  the jacobians the extrapolation can be seen as a "closest" interpolation.
-  That is, for points outisde the covered grid, the value at closest end point
-  is taken. And here extrapolation to +-Inf is allowed.
-
-  This function modifies grid positions to the jacobian extrapolation approach.
-  For efficiency, the input grid positions are not asserted at all, and
-  "extrapolation points" are identified simply  by a fd outside [0,1].
-
-  @param[in/out] gp   Array of grid positions.
-
-  @author Patrick Eriksson 
-  @date   2015-09-10
- */
-void jacobian_type_extrapol(ArrayOfGridPos& gp);
 
 /** Calculates polynomial basis functions
 

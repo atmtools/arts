@@ -53,9 +53,6 @@ internal_workspace_groups() {
   wsg_data["ArrayOfArrayOfMatrix"] = {.file = "matpack.h",
                                       .desc = "A list of *ArrayOfMatrix*\n"};
 
-  wsg_data["ArrayOfPpath"] = {.file = "ppath_struct.h",
-                              .desc = "A list of *Ppath*\n"};
-
   wsg_data["ArrayOfArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
       .desc = "A list of *ArrayOfScatteringMetaData*\n"};
@@ -220,9 +217,6 @@ information that is necessary to use the table to extract
 absorption
 )--"};
 
-  wsg_data["GridPos"] = {.file = "interpolation.h",
-                         .desc = "A position in a grid"};
-
   wsg_data["GriddedField1"] = {
       .file = "matpack.h",
       .desc =
@@ -363,9 +357,6 @@ relaxation matrix are set
   wsg_data["Numeric"] = {.file = "matpack.h",
                          .desc = "IEEE 754 binary64 floating point number\n",
                          .value_type = true};
-
-  wsg_data["Ppath"] = {.file = "ppath_struct.h",
-                       .desc = "Describes a propagation path\n"};
 
   wsg_data["PredefinedModelData"] = {
       .file = "predef.h",
