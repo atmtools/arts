@@ -18,8 +18,8 @@ void test01() {
   //    cout << "A:" << A << std::endl;
 
   cia_data.data = A;
-  cia_data.set_grid(0, {1, 2, 3, 4, 5});
-  cia_data.set_grid(1, {100, 200, 300});
+  cia_data.grid<0>() = {1, 2, 3, 4, 5};
+  cia_data.grid<1>() = {100, 200, 300};
 
   std::cout << "cia_data:" << cia_data << std::endl;
 

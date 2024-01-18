@@ -3,7 +3,6 @@
 
 #include "array.h"
 #include "arts_conversions.h"
-#include "gridded_fields.h"
 #include "interpolation.h"
 #include "interp.h"
 #include "math_funcs.h"
