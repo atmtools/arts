@@ -1,6 +1,5 @@
 #pragma once
 
-#include <__algorithm/ranges_lower_bound.h>
 #include <array.h>
 #include <mystring.h>
 
