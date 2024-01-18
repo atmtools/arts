@@ -1,6 +1,6 @@
 #include "lbl_lineshape_voigt_nlte.h"
 
-#include <new_jacobian.h>
+#include <jacobian.h>
 #include <partfun.h>
 #include <physics_funcs.h>
 #include <sorting.h>

@@ -14,7 +14,7 @@
 #include "atm.h"
 #include "debug.h"
 #include "matpack_data.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "predefined/predef_data.h"
 #include "species.h"
 

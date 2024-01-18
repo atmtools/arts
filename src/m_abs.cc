@@ -28,7 +28,7 @@
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "nlte.h"
 #include "optproperties.h"
 #include "path_point.h"

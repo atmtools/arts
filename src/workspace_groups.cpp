@@ -562,7 +562,7 @@ to produce a single *Numeric*.
 )--"};
 
   wsg_data["JacobianTargets"] = {
-      .file = "new_jacobian.h",
+      .file = "jacobian.h",
       .desc = R"--(A list of targets for use in Jacobian Matrix calculations
 
 This type flags the type of calculations that should be performed

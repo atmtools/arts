@@ -21,7 +21,7 @@
 #include "lbl_lineshape_linemixing.h"
 #include "lineshapemodel.h"
 #include "matpack_view.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
 #include "xml_io.h"

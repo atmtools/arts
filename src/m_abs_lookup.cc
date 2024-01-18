@@ -18,7 +18,7 @@
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */

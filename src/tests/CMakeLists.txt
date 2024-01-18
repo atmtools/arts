@@ -132,11 +132,6 @@ target_link_libraries (test_time artsworkspace)
 
 ########### next testcase ###############
 
-add_executable (test_covariance_matrix test_covariance_matrix.cc)
-target_link_libraries(test_covariance_matrix test_utils artsworkspace)
-
-########### next testcase ###############
-
 add_executable (test_telsem test_telsem.cc)
 target_link_libraries(test_telsem artsworkspace)
 

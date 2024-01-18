@@ -18,7 +18,7 @@
 #include "matpack_data.h"
 #include "matpack_eigen.h"
 #include "minimize.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "physics_funcs.h"
 #include "quantum_numbers.h"
 #include "rational.h"

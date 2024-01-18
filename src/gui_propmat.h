@@ -6,7 +6,8 @@
 #include "atm.h"
 #include "enums.h"
 #include "gui.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
+#include "species_tags.h"
 #include <path_point.h>
 
 namespace gui {

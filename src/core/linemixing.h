@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "absorptionlines.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "species.h"
 #include "zeemandata.h"
 

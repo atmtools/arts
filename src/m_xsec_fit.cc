@@ -9,7 +9,7 @@
 
 #include <workspace.h>
 
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "xsec_fit.h"

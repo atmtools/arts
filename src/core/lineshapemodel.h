@@ -21,16 +21,6 @@
 #include <algorithm>
 #include <utility>
 
-/** Return the derivative type based on string input 
- * 
- * @param[in] var Variable good with LineShape::toVariable()
- * @param[in] coeff Coefficient good with Options::toLineShapeCoeff()
- * 
- * @return Derivative type
- */
-Jacobian::Line select_derivativeLineShape(const String& var,
-                                          const String& coeff);
-
 /** Computations of line shape derived parameters
  * 
  * Defines many classes and IO routines for line 
@@ -151,7 +141,7 @@ ENUMCLASS(Variable, char,
  */
 struct ModelParameters {
   static constexpr Index N = 4;
-  static_assert(Index(Options::LineShapeCoeff::FINAL) == N, "Must update either LineShapeCoeff options or ModelParameters");
+  static_assert(4 == N, "Must update either LineShapeCoeff options or ModelParameters");
   TemperatureModel type;
   Numeric X0;
   Numeric X1;
@@ -530,9 +520,7 @@ class SingleSpeciesModel {
   friend std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm);
 
   [[nodiscard]] Output at(Numeric T, Numeric T0, Numeric P) const noexcept;
-  
-  [[nodiscard]] Numeric dX(Numeric T, Numeric T0, Numeric P, Jacobian::Line) const noexcept;
-  
+    
   [[nodiscard]] Output dT(Numeric T, Numeric T0, Numeric P) const noexcept;
   
   [[nodiscard]] Output dT0(Numeric T, Numeric T0, Numeric P) const noexcept;

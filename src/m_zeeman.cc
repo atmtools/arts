@@ -10,7 +10,7 @@
  */
 
 
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "path_point.h"
 #include "rte.h"
 #include "zeeman.h"

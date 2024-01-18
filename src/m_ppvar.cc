@@ -1,6 +1,6 @@
 #include <arts_omp.h>
 #include <atm_path.h>
-#include <new_jacobian.h>
+#include <jacobian.h>
 #include <path_point.h>
 #include <rte.h>
 #include <surf.h>

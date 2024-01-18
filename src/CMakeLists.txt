@@ -158,7 +158,6 @@ add_library (artsworkspace STATIC
   m_general.cc
   m_geodetic.cc
   m_xsec_fit.cc
-  m_jacobian.cc
   m_jactargets.cc
   m_lbl.cc
   m_linemixing.cc
@@ -179,11 +178,9 @@ add_library (artsworkspace STATIC
   m_raw.cc
   m_reduce.cc
   m_refraction.cc
-  m_retrieval.cc
   m_rad.cc
   m_rt4.cc
   m_rte.cc
-  m_retrieval.cc
   m_select.cc
   m_sensor.cc
   m_sizes.cc

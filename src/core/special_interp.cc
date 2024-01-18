@@ -227,35 +227,6 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
     interp(field_new, itw, field_old, gp_lat, gp_lon);
 }
 
-void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           const RetrievalQuantity& rq,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  gp_p.resize(rq.Grids()[0].size());
-  p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
-  //
-    gp_lat.resize(rq.Grids()[1].size());
-    gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
-  //
-    gp_lon.resize(rq.Grids()[2].size());
-    gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
-}
-
-void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
-                          ArrayOfGridPos& gp_lon,
-                          const RetrievalQuantity& rq,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid) {
-    gp_lat.resize(rq.Grids()[0].size());
-    gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
-  //
-    gp_lon.resize(rq.Grids()[1].size());
-    gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
-}
-
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
                                ConstTensor3View field_old,
                                const ArrayOfGridPos& gp_p,

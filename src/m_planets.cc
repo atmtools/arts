@@ -24,6 +24,7 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "arts_options.h"
 #include "check_input.h"
 #include "debug.h"
 #include "operators.h"

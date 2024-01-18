@@ -124,13 +124,6 @@ void py_options(py::module_& m) try {
   // Surface
   DeclareOptionRenamed(SurfaceKey, Surf, Key);
 
-  // Jacobian enums
-  DeclareOptionRenamed(JacobianType, Jacobian, Type);
-  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm);
-  DeclareOptionRenamed(JacobianLine, Jacobian, Line);
-  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor);
-  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special);
-
   // Predef enums
   DeclareOptionRenamed(
       PredefinedModelDataKey, Absorption::PredefinedModel, DataKey);

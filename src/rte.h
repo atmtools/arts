@@ -24,33 +24,6 @@
   === Functions in rte.cc
   ===========================================================================*/
 
-/** Adapts clearsky partial derivatives.
- *
- * The following fields:
- * 
- *   Wind
- *   VMR
- * 
- *  Adaptation means changing unit by user input
- * 
- * @param[in,out] dK_dx Propagation matrix derivatives at propagation path point, adapted for wind and VMR units
- * @param[in,out] dS_dx NLTE source adjustment derivatives at propagation path point, adapted for wind and VMR units
- * @param[in] jacobian_quantities as WSV
- * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
- * @param[in] ppath_line_of_sight Line of sight at propagation path point
- * @param[in] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
- * @param[in] jacobian_do As WSV
- * 
- * @author Richard Larsson 
- * @date   2017-09-21
- */
-void adapt_stepwise_partial_derivatives(
-    PropmatMatrix& dK_dx,
-    StokvecMatrix& dS_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_f_grid,
-    const ConstVectorView& ppath_line_of_sight);
-
 /** Performs conversion from radiance to other units, as well as applies
     refractive index to fulfill the n2-law of radiance.
 
@@ -182,66 +155,6 @@ void get_stepwise_clearsky_propmat(
 Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
                                const ConstVectorView& f_grid,
                                const Atm::Key wind_type);
-
-/** Computes the contribution by scattering at propagation path point
- * 
- * @param[in,out] ap Absorption vector scattersky at propagation path point
- * @param[in,out] Kp Propagation matrix scattersky at propagation path point
- * @param[in,out] dap_dx Absorption vector scattersky derivatives at propagation path point
- * @param[in,out] dKp_dx Propagation matrix scattersky derivatives at propagation path point
- * @param[in] jacobian_quantities As WSV
- * @param[in] ppath_1p_pnd Particulate number density at propagation path point
- * @param[in] scat_data As WSV
- * @param[in] ppath_line_of_sight Line of sight at propagation path point
- * @param[in] ppath_temperature Temperature at propagation path point
- * @param[in] jacobian_do As WSV
- * 
- *  @author Jana Mendrok, Richard Larsson 
- *  @date   2017-09-21
- */
-void get_stepwise_scattersky_propmat(
-    StokvecVector& ap,
-    PropmatVector& Kp,
-    StokvecMatrix& dap_dx,
-    PropmatMatrix& dKp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstMatrixView& ppath_1p_pnd,  // the ppath_pnd at this ppath point
-    const ArrayOfMatrix&
-        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const ConstVectorView& ppath_line_of_sight,
-    const ConstVectorView& ppath_temperature,
-    const bool& jacobian_do);
-
-/**
- *  Calculates the stepwise scattering source terms.
- *  Uses new, unified phase matrix extraction scheme.
- * 
- *  @param[in]   Sp                    Out: The scattering source term
- *  @param[in]   dSp_dx                Out: The derivative of the scattering source term
- ...
- * 
- *  @author Jana Mendrok 
- *  \adapted from non-stepwise function
- *  @date   2018-03-29
- */
-void get_stepwise_scattersky_source(
-    StokvecVector& Sp,
-    StokvecMatrix& dSp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ConstVectorView& ppath_1p_pnd,
-    const ArrayOfMatrix& ppath_dpnd_dx,
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const ConstTensor7View& cloudbox_field,
-    const ConstVectorView& za_grid,
-    const ConstVectorView& aa_grid,
-    const ConstMatrixView& ppath_line_of_sight,
-    const GridPos& ppath_pressure,
-    const Vector& temperature,
-    const bool& jacobian_do,
-    const Index& t_interp_order = 1);
 
 /** Computes layer transmission matrix and cumulative transmission
  * 
@@ -414,20 +327,5 @@ void ze_cfac(Vector& fac,
              const Vector& f_grid,
              const Numeric& ze_tref,
              const Numeric& k2);
-
-/** Get the stepwise blackbody radiation object
- * 
- * @param B Plank function at propagation path point [size is (ppath_f_grid.nelem())]
- * @param dB Derivative of Plank function at propagation path point [size is (jacobian_quantities.nelem() x ppath_f_grid.nelem())]
- * @param ppath_f_grid Frequency grid at propagation path point
- * @param ppath_temperature Temperature of atmosphere at propagation path point
- * @param jacobian_quantities As WSV
- * @param j_analytical_do Flag for analytical Jacobian
- */
-void get_stepwise_blackbody_radiation(
-    Vector &B, Matrix &dB, const Vector &ppath_f_grid,
-    const Numeric &ppath_temperature,
-    const ArrayOfRetrievalQuantity &jacobian_quantities,
-                            const bool j_analytical_do);
 
 #endif  // rte_h

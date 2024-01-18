@@ -301,50 +301,6 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon);
 
-/** Determines grid positions for regridding of atmospheric fields to retrieval
- *  grids
- *
- * This regridding uses extpolfac=0.
- *
- * @param[out] gp_p                 Pressure grid positions.
- * @param[out] gp_lat               Latitude grid positions.
- * @param[out] gp_lon               Longitude grid positions.
- * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  p_grid               As the WSV with same name.
- * @param[in]  lat_grid             As the WSV with same name.
- * @param[in]  lon_grid             As the WSV with same name.
- *
- * @author Patrick Eriksson
- * @date   2015-09-09
- */
-void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           const RetrievalQuantity& rq,
-                            const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid);
-
-/** Determines grid positions for regridding of atmospheric surfaces to retrieval
- *  grids
- *
- * This regridding uses extpolfac=0.
- *
- * @param[out] gp_lat               Latitude grid positions.
- * @param[out] gp_lon               Longitude grid positions.
- * @param[in]  rq                   Retrieval quantity structure.
- * @param[in]  lat_grid             As the WSV with same name.
- * @param[in]  lon_grid             As the WSV with same name.
- *
- * @author Patrick Eriksson
- * @date   2018-04-12
- */
-void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
-                          ArrayOfGridPos& gp_lon,
-                          const RetrievalQuantity& rq,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid);
-
 
 /** Determines grid positions for regridding of atmospheric fields to retrieval
  *  grids

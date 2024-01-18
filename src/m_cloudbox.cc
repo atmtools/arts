@@ -29,7 +29,7 @@
 #include "debug.h"
 #include "file.h"
 #include "math_funcs.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "optproperties.h"
 #include "species_tags.h"
 #include "xml_io.h"

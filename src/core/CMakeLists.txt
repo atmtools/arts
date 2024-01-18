@@ -48,7 +48,6 @@ add_library(artscore STATIC
   hitran_species.cc
   igrf13.cc
   interpolation.cc
-  jacobian.cc
   jpl_species.cc
   legendre.cc
   linemixing.cc

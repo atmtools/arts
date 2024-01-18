@@ -1,7 +1,7 @@
 #include "atm.h"
 #include "debug.h"
 #include "lineshapemodel.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "nlte.h"
 
 #include <algorithm>

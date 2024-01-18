@@ -14,7 +14,7 @@
 
 #include "arts_conversions.h"
 #include "lineshape.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "nlte.h"
 
 #include <math_funcs.h>

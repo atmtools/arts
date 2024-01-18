@@ -20,49 +20,6 @@
 #include "species.h"
 #include <limits>
 
-Jacobian::Line select_derivativeLineShape(const String& var,
-                                          const String& coeff) {
-  // Test viability of model variables
-  const auto var_type = LineShape::toVariableOrThrow(var);
-
-  // Test viability of model coefficients
-  const auto coeff_type = Options::toLineShapeCoeffOrThrow(coeff);
-
-// Define a repetitive pattern.  Update if/when there are more coefficients in the future
-#define ReturnJacPropMatType(ID)              \
-  case LineShape::Variable::ID:               \
-    switch (coeff_type) {                     \
-      case Options::LineShapeCoeff::X0:       \
-        return Jacobian::Line::Shape##ID##X0; \
-      case Options::LineShapeCoeff::X1:       \
-        return Jacobian::Line::Shape##ID##X1; \
-      case Options::LineShapeCoeff::X2:       \
-        return Jacobian::Line::Shape##ID##X2; \
-      case Options::LineShapeCoeff::X3:       \
-        return Jacobian::Line::Shape##ID##X3; \
-      case Options::LineShapeCoeff::FINAL:    \
-        return Jacobian::Line::FINAL;         \
-  } break
-
-  switch (var_type) {
-    ReturnJacPropMatType(G0);
-    ReturnJacPropMatType(D0);
-    ReturnJacPropMatType(G2);
-    ReturnJacPropMatType(D2);
-    ReturnJacPropMatType(FVC);
-    ReturnJacPropMatType(ETA);
-    ReturnJacPropMatType(Y);
-    ReturnJacPropMatType(G);
-    ReturnJacPropMatType(DV);
-    case LineShape::Variable::FINAL: {
-      /* Leave last */ }
-  }
-
-#undef ReturnJacPropMatType
-  
-  return Jacobian::Line::FINAL;
-}
-
 std::istream& LineShape::from_artscat4(std::istream& is,
                                        Type& mtype,
                                        bool& self,
@@ -961,40 +918,6 @@ Output SingleSpeciesModel::at(Numeric T, Numeric T0, Numeric P) const noexcept {
   return {P * G0().at(T, T0), P * D0().at(T, T0),    P * G2().at(T, T0),
           P * D2().at(T, T0), P * FVC().at(T, T0),   ETA().at(T, T0),
           P * Y().at(T, T0),  P * P * G().at(T, T0), P * P * DV().at(T, T0)};
-}
-
-Numeric SingleSpeciesModel::dX(Numeric T, Numeric T0, Numeric P,
-                               Jacobian::Line target) const noexcept {
-  static_assert(nVars == 9, "Only has support for 9 variables");
-  static_assert(ModelParameters::N == 4, "Only supports 4 targets per target");
-
-#define FourParams(A, B, p)                                                    \
-  case Shape##A##B:                                                            \
-    return p * A().d##B(T, T0)
-
-#define NineVars(A, p)                                                         \
-  FourParams(A, X0, p);                                                        \
-  FourParams(A, X1, p);                                                        \
-  FourParams(A, X2, p);                                                        \
-  FourParams(A, X3, p)
-
-  using enum Jacobian::Line;
-  switch (target) {
-    NineVars(G0, P);
-    NineVars(D0, P);
-    NineVars(G2, P);
-    NineVars(D2, P);
-    NineVars(FVC, P);
-    NineVars(ETA, 1);
-    NineVars(Y, P);
-    NineVars(G, P * P);
-    NineVars(DV, P * P);
-  default:
-    return std::numeric_limits<Numeric>::signaling_NaN();
-  }
-
-#undef NineVars
-#undef FourParams
 }
 
 Output SingleSpeciesModel::dT(Numeric T, Numeric T0, Numeric P) const noexcept {
