@@ -77,11 +77,6 @@ ENUMCLASS(refr_index_air_agendaDefaultOptions,
           GasMicrowavesGeneralAndElectrons,
           GasMicrowavesEarthAndElectrons)
 
-/** Options for setting water_p_eq_agenda */
-ENUMCLASS(water_p_eq_agendaDefaultOptions,
-          char,
-          MK05)
-
 /** Options for setting gas_scattering_agenda */
 ENUMCLASS(gas_scattering_agendaDefaultOptions,
           char,
@@ -97,15 +92,6 @@ ENUMCLASS(surface_rtprop_agendaDefaultOptions,
           Specular_WithPol_ReflFix_SurfTFromt_surface,
           lambertian_ReflFix_SurfTFromt_surface,
           lambertian_ReflFix_SurfTFromt_field)
-
-/** Options for setting g0_agenda */
-ENUMCLASS(g0_agendaDefaultOptions,
-          char,
-          Earth,
-          Io,
-          Jupiter,
-          Mars,
-          Venus)
 
 /** Options for setting dobatch_calc_agenda */
 ENUMCLASS(dobatch_calc_agendaDefaultOptions, char)
@@ -130,12 +116,6 @@ ENUMCLASS(pha_mat_spt_agendaDefaultOptions, char)
 
 /** Options for setting met_profile_calc_agenda */
 ENUMCLASS(met_profile_calc_agendaDefaultOptions, char)
-
-/** Options for setting main_agenda */
-ENUMCLASS(main_agendaDefaultOptions, char)
-
-/** Options for setting jacobian_agenda */
-ENUMCLASS(jacobian_agendaDefaultOptions, char)
 
 /** Options for setting iy_radar_agenda */
 ENUMCLASS(iy_radar_agendaDefaultOptions, char)

@@ -24,20 +24,12 @@ void refr_index_air_agendaSet(Agenda& out, const String& option) {
   out = get_refr_index_air_agenda(option);
 }
 
-void water_p_eq_agendaSet(Agenda& out, const String& option) {
-  out = get_water_p_eq_agenda(option);
-}
-
 void gas_scattering_agendaSet(Agenda& out, const String& option) {
   out = get_gas_scattering_agenda(option);
 }
 
 void surface_rtprop_agendaSet(Agenda& out, const String& option) {
   out = get_surface_rtprop_agenda(option);
-}
-
-void g0_agendaSet(Agenda& out, const String& option) {
-  out = get_g0_agenda(option);
 }
 
 void dobatch_calc_agendaSet(Agenda& out, const String& option) {
@@ -70,14 +62,6 @@ void pha_mat_spt_agendaSet(Agenda& out, const String& option) {
 
 void met_profile_calc_agendaSet(Agenda& out, const String& option) {
   out = get_met_profile_calc_agenda(option);
-}
-
-void main_agendaSet(Agenda& out, const String& option) {
-  out = get_main_agenda(option);
-}
-
-void jacobian_agendaSet(Agenda& out, const String& option) {
-  out = get_jacobian_agenda(option);
 }
 
 void iy_radar_agendaSet(Agenda& out, const String& option) {

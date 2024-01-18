@@ -124,39 +124,10 @@ documentation in gas_abs_lookup.h.
 )--",
                             .type = "GasAbsLookup"};
 
-  wsv_data["abs_nls"] = {
-      .desc = R"--(Nonlinear species for absorption lookup table generation.
-
-A list of absorption species that should be treated non-linearly.
-This means that the H2O VMR should be varied when calculating the
-lookup table for those species.
-
-A typical example is for this to containt the Rosenkranz full
-absorption model species for water vapor and oxygen 
-([\"H2O-PWR98\", \"O2-PWR93\"]).
-
-See user guide and online documentation of ``abs_lookupCalc``
-for more details and usage examples.
-)--",
-      .type = "ArrayOfArrayOfSpeciesTag"};
-
-  wsv_data["abs_nls_pert"] = {
-      .desc =
-          R"--(Fractional perturbations for the nonlinear species in the absorption
-lookup table.
-
-This is a vector of fractional perturbations that should contain 1
-(the unperturbed reference profile). A value of 0 may lead to error
-messages from some absorption routines, so a possible content for this
-variable is: [1e-24, 1, 2].
-(This is similar to *abs_t_pert*, but multiplicative, not additive.)
-)--",
-      .type = "Vector"};
-
   wsv_data["abs_nls_interp_order"] = {
       .desc =
           R"--(The interpolation order to use when interpolating absorption between
-the H2O values given by *abs_nls_pert*.
+the H2O values given by ``abs_nls_pert``.
 
 This is used by methods extracting absorption coefficients
 from the lookup table, and by methods setting up
@@ -182,21 +153,10 @@ interpolation order + 1 (e.g., two for first order interpolation).
       .type = "Index",
       .default_value = Index{5}};
 
-  wsv_data["abs_t_pert"] = {
-      .desc = R"--(Temperature perturbations for the absorption lookup table.
-
-This is a vector containing temperature perturbations (in Kelvin) that
-should be added to the reference temperature profile. (Similar to
-*abs_nls_pert*, but additive, not multiplicative.) Should normally
-contain 0, to include the reference profile itself. Example content:
-[-5, 0, 5].
-)--",
-      .type = "Vector"};
-
   wsv_data["abs_t_interp_order"] = {
       .desc =
           R"--(The interpolation order to use when interpolating absorption between
-the temperature values given by *abs_t_pert*.
+the temperature values given by ``abs_t_pert``.
 
 This is used by methods
 extracting absorption coefficients from the lookup table, and by
@@ -274,20 +234,6 @@ Unit:  Integer value.
 )--",
       .type = "Index"};
 
-  wsv_data["antenna_dim"] = {
-      .desc = R"--(The dimensionality of the antenna pattern (1-2).
-
-A dimensionality of 1 means that only the respons variation in the
-zenith direction is considered. The provided respons shall then be the
-integrated in the azimuth direction. For 2D, the respons of the
-antenna has both a zenith and azimuth variation.
-
-Usage: Set by the user.
-
-Unit:  Integer value [1-2].
-)--",
-      .type = "Index"};
-
   wsv_data["antenna_response"] = {.desc = R"--(The antenna pattern/response.
 
 This WSV describes the antenna response as a function of polarisation
@@ -308,10 +254,10 @@ otherwise applied.
 
 Zenith angle dimension: This dimension must always have a size >= 2
 The response outside covered grid range is treated as zero. If
-*antenna_dim* equals 1, the data should correspond to the response
+``antenna_dim`` equals 1, the data should correspond to the response
 integrated in the azimuthal direction.
 
-Azimuth angle dimension: If *antenna_dim* equals 1, this dimension
+Azimuth angle dimension: If ``antenna_dim`` equals 1, this dimension
 must have size 1. A size >= 2 is otherwise required. The response
 outside covered grid range is treated as zero.
 
@@ -399,63 +345,6 @@ as OK.
       .type = "Index",
       .default_value = Index{0}};
 
-  wsv_data["atm_fields_compact"] = {
-      .desc = R"--(A compact set of atmospheric fields on a common set of grids.
-
-Data is supposed to contain basic atmsopheric fields for a RT
-calculation, i.e., temperature, altitude, and gas VMRs. It can
-furthermore contain fields describing scattering species like mass
-content, mass flux, number density of diverse scattering species.
-
-VMR fields are unitless, scattering species fields are supposed to be
-in SI units (i.e. kg/m3 for mass contents, kg/m2/s for mass flux,
-1/m3 for number densities).
-
-The data are stored in a *GriddedField4*.
-
-The first field in the matrix (i.e., first matrix column) has to be
-atmospheric pressure. Apart from this, the order of the fields is
-free. Field content (apart from pressure) is identified by their
-given field name tag. Furthermore, absorption species (e.g. VMR)
-fields and scattering species fields are related to *abs_species*
-and *scat_species* entries, respectively, by their field name tags.
-The tags must exhibit the following structure:
-
-0) species identifier:
-   Fields, supposed to be sorted into ``vmr_field``, must be headed the
-   tag 'abs_species'. Names of scattering species fields likewise must
-   be headed by the 'scat_species' tag. Temperature and altitude
-   fields do not hold any heading tag.
-1) species name:
-   The (core) name of the field: 'T' for temperature, 'z' for
-   altitude, the absorption species name (e.g. 'H2O, 'O3', etc.) for
-   absorption species, the scattering species name (e.g. 'IWC') for
-   scattering species. For scattering species, this part is matched
-   against the scattering species name part of the *scat_species*
-   tags.
-2) field type:
-   This has to be given for scattering species only, indicating the
-   type of the scattering species fields, i.e. 'mass_density',
-   'mass_flux', 'number_density', 'mean_mass'.
-
-Dashes ('-') serve as delimiter, separating the elements of each
-field name tag.
-
-Usage: Used inside batch calculations, to hold successive atmospheric
-states from an *ArrayOfGriddedField4*.
-
-Dimensions: 
-
-- GriddedField4:
-
-  - ArrayOfString field_names[N_fields]
-  - Vector p_grid[N_p]
-  - Vector lat_grid[N_lat]
-  - Vector lon_grid[N_lon]
-  - Tensor4 data[N_fields][N_p][N_lat][N_lon]
-)--",
-      .type = "GriddedField4"};
-
   wsv_data["avk"] = {.desc = R"--(Averaging kernel matrix.
 
 This matrix is the partial derivative of the retrieved state vector
@@ -504,37 +393,6 @@ constraints.
 Usage: Set by the user.
 )--",
       .type = "ArrayOfArrayOfGriddedField1"};
-
-  wsv_data["batch_atm_fields_compact"] = {
-      .desc = R"--(An array of compact atmospheric states.
-
-This is used to hold a set of *atm_fields_compact* for batch
-calculations. For further information see *atm_fields_compact*.
-)--",
-      .type = "ArrayOfGriddedField4"};
-
-  wsv_data["band_identifiers"] = {
-      .desc = R"--(An array of identifiers for bands.
-
-Used by line mixing calculations to identify which bands to match to the
-line database.
-)--",
-      .type = "ArrayOfQuantumIdentifier"};
-
-  wsv_data["batch_cloudbox_limits"] = {
-      .desc = R"--(An array of *cloudbox_limits*.
-
-This is used to hold a set of *cloudbox_limits* for batch
-calculations.
-)--",
-      .type = "ArrayOfArrayOfIndex"};
-
-  wsv_data["batch_pnd_fields"] = {.desc = R"--(An array of compact pnd states.
-
-This is used to hold a set of 1D *pnd_field* for batch
-calculations.
-)--",
-                                  .type = "ArrayOfTensor4"};
 
   wsv_data["channel2fgrid_indexes"] = {
       .desc = R"--(Definition of backend frequency response, link to *f_grid*.
@@ -711,8 +569,7 @@ The variable works as a lookup-table of complex refractive index.
 The matter type (water, ice ...) is unspecified, it is up to the
 user to fill the variable with data for the expected matter.
 This variable type can be used to describe n of both the surface and
-atmospheric particles. For the surface, a dedicated variable exists:
-*surface_complex_refr_index*.
+atmospheric particles.
 
 The column dimension has always size 2, where the first and second
 column holds the real and imaginary part of n, respectively. The row
@@ -732,29 +589,6 @@ Dimensions:
  - Tensor3 data[N_f][N_T][2]
 )--",
       .type = "ComplexGriddedField2"};
-
-  wsv_data["covmat_block"] = {
-      .desc =
-          R"--(Holds matrices used to set blocks in *covmat_sx* and *covmat_se*.
-
-The matrix contained in this block will be added to the blocks in
-in *covmat_sx* and *covmat_se* by the corresponding WSMs. Its dimensions
-must agree with gridpoints of the correlated retrieval quantities.
-
-Usage:   Used by the retrievalAdd functions.
-)--",
-      .type = "Sparse"};
-
-  wsv_data["covmat_inv_block"] = {
-      .desc =
-          R"--(Holds matrices used to set the inverse blocks in *covmat_sx* and *covmat_se*.
-
-The matrix contained in this block will be used as the inverse of the matrix
-contained in covmat_block.
-
-Usage:   Used by the retrievalAdd functions.
-)--",
-      .type = "Sparse"};
 
   wsv_data["covmat_se"] = {
       .desc = R"--(Covariance matrix for observation uncertainties.
@@ -827,43 +661,6 @@ Dimensions:
     [x,x]
 )--",
       .type = "Matrix"};
-
-  wsv_data["depolarization_factor"] = {
-      .desc = R"--(Depolarization factor for the scattered gas.
-
-The variable accounts for the anisotropy of the scatterer.
-It is the ratio of intensities parallel and perpendicular 
-to the plan of scattering. A table of measured values is 
-given by Penndorf (1957). Some values are: H2=0.02, N2=0.03
-O2=0.06, CO2=0.09 and atmospheric air=0.03.
-)--",
-      .type = "Numeric"};
-
-  wsv_data["disort_aux"] = {
-      .desc =
-          R"--(Auxilary data to the output of the cloudbox_fieldDisort-Methods.
-
-Different data beside the direct result of Disort
-calculations can be obtained by this variable. These auxilary
-data are selected by *disort_aux_vars*.
-
-Usage:      Provided by some radiative transfer methods.
-
-Dimensions: [quantity][ f_grid, number of disort levels/layers ]
-)--",
-      .type = "ArrayOfMatrix"};
-
-  wsv_data["disort_aux_vars"] = {
-      .desc = R"--(Selection of quantities for *disort_aux*.
-
-Each element of this string array determines the quantity for the
-corresponding element in *disort_aux* (i.e. the quantities
-are stored in the order given in *disort_aux_vars*).
-
-The possible choices vary between the Disort methods. See the WSM you select
-)--",
-      .type = "ArrayOfString",
-      .default_value = ArrayOfString{}};
 
   wsv_data["dpnd_data_dx"] = {.desc = R"--(Partial derivates of *pnd_data*.
 
@@ -1009,37 +806,6 @@ Usage: Set by user in *doit_za_interpSet*.
 )--",
       .type = "Index"};
 
-  wsv_data["dsurface_emission_dx"] = {
-      .desc =
-          R"--(The derivative of *surface_emission* with respect to quantities
-listed in *dsurface_names*.
-
-Usage: Used internally of radiative transfer methods
-
-Dimensions: [dsurface_names][f_grid, stokes_dim]
-)--",
-      .type = "ArrayOfMatrix"};
-
-  wsv_data["dsurface_names"] = {
-      .desc = R"--(Name of surface retrieval quantities.
-
-Usage: Used internally of radiative transfer methods
-
-Dimensions: [retrieval quantity]
-)--",
-      .type = "ArrayOfString"};
-
-  wsv_data["dsurface_rmatrix_dx"] = {
-      .desc =
-          R"--(The derivative of *surface_rmatrix* with respect to quantities
-listed in *dsurface_names*.
-
-Usage: Used internally of radiative transfer methods
-
-Dimensions: [dsurface_names][surface_los, f_grid, stokes_dim, stokes_dim]
-)--",
-      .type = "ArrayOfTensor4"};
-
   wsv_data["dxdy"] = {.desc = R"--(Contribution function (or gain) matrix.
 
 This matrix is the partial derivative of the retrieved state vector
@@ -1160,21 +926,6 @@ Usage: Method output.
 )--",
                          .type = "Index"};
 
-  wsv_data["gas_scattering_do"] = {.desc = R"--(Flag to activate gas scattering.
-)--",
-                                   .type = "Index",
-                                   .default_value = Index{0}};
-
-  wsv_data["gas_scattering_output_type"] = {
-      .desc = R"--(Flag to select the output type of gas scattering.
-
-Internal communications variable, not intended to be used by user.
-If equals 0 *gas_scattering_mat* is output and *gas_scattering_fct_legendre* is empty.
-If equals 1 *gas_scattering_fct_legendre* is output and *gas_scattering_mat* is empty.
-
-)--",
-      .type = "Index"};
-
   wsv_data["gas_scattering_coef"] = {
       .desc = R"--(Spectrum of scattering coefficient matrices.
 
@@ -1186,30 +937,6 @@ Units: [ m^-1. ]
 Size:  [fgrid, stokes_dim, stokes_dim]
 )--",
       .type = "PropmatVector"};
-
-  wsv_data["gas_scattering_mat"] = {
-      .desc = R"--(Spectrum of normalized phase matrices.
-
-This variable contains the elements of the normalized phase matrix
-for a specific incoming and outgoing direction.
-
-Units: [ 1 ]
-
-Size:  [fgrid, stokes_dim, stokes_dim]
-)--",
-      .type = "MuelmatVector"};
-
-  wsv_data["gas_scattering_fct_legendre"] = {
-      .desc = R"--(Normalized phase function as Legendre series.
-
-This variable contains the normalized phase function
-as Legendre series.
-
-Units: [ 1 ]
-
-Size:  [Number of Legendre polynomials]
-)--",
-      .type = "Vector"};
 
   wsv_data["g0"] = {.desc = R"--(Gravity at zero altitude.
 
@@ -1285,55 +1012,6 @@ are not used to apply the model and solely serve for informational purposes.
 )--",
       .type = "ArrayOfXsecRecord"};
 
-  wsv_data["instrument_pol"] = {
-      .desc = R"--(Definition of the polarisation of an instrument.
-
-The default for output is to give data for the selected Stokes
-elements (1:stokes_dim). This variable defines the polarisations
-that are actually measured, or are transmitted.
-
-The polarisation states/components are coded as
-  (0) Undefined.
-  (1) I, total intensity.
-  (2) Q, second Stokes component, Iv - Ih.
-  (3) U, third Stokes component, I+45 - I-45.
-  (4) V, forth Stokes component, Irc - Ilc
-  (5) Iv, intensity of vertically polarised component.
-  (6) Ih, intensity of horizontally polarised component.
-  (7) I+45, intensity of +45 deg linearly polarised component.
-  (8) I-45, intensity of -45 deg linearly polarised component.
-  (9) Ilhc, intensity of left-hand circularly polarised component.
-  (10) Irhc, intensity of right-hand circularly polarised component.
-
-See the documentation for definition of the Stokes vector and the
-different components.
-
-If the instrument measures, or transmits, vertical and horizontal
-components, this variable shall accordingly be set to [5,6].
-
-Conversion to Planck-BT of components 2-4 requires that component
-1 is kept, and must be included as first element.
-
-The shift from the Stokes vector can be made at any stage when of the
-sensor response set-up. The responses used must of course be adopted
-correspondingly. Or reversed, if the antenna response is defined for
-Iv or Ih it could be useful to shift polarisation as first sensor
-operation.
-
-Usage: Set by the user.
-)--",
-      .type = "ArrayOfIndex"};
-
-  wsv_data["instrument_pol_array"] = {
-      .desc = R"--(Multiple definition of instrument polarisation.
-
-Defined as *instrument_pol* but used when multiple polarisations
-are possible/required.
-
-Usage: Set by the user.
-)--",
-      .type = "ArrayOfArrayOfIndex"};
-
   wsv_data["irradiance_field"] = {
       .desc = R"--(Irradiance field also known as flux density.
 
@@ -1355,24 +1033,13 @@ defined. Initialisation is done by ``jacobianInit``. Retrieval quantities
 are then added with ``jacobianAdd...`` or ``retrievalAdd...`` methods.
 
 The order between rows and columns follows how data are stored in ``y``
-and *x*, respectively.
+and ``x``, respectively.
 
 Units:   See the different retrieval quantities.
 
 Dimension: [ y, number of retrieval quantities and grids ]
 )--",
                           .type = "Matrix"};
-
-  wsv_data["jacobian_do"] = {
-      .desc = R"--(Flag to activate (clear-sky) Jacobian calculations.
-
-If this variable is set to 0, no Jacobian calculations will be done,
-even if such calculations have been set-up (through the
-jacobianAddXxx methods).
-
-Needs to be 0 if cloudy-sky (Doit) Jacobians shall be calculated.
-)--",
-      .type = "Index"};
 
   wsv_data["lat"] = {.desc = R"--(A latitude.
 
@@ -1389,20 +1056,6 @@ Unit:  Boolean
 )--",
       .type = "Index",
       .default_value = Index{0}};
-
-  wsv_data["line_irradiance"] = {
-      .desc = R"--(Irradiance as seen by a single absorption line.
-
-Used internally for, e.g., NLTE effects
-)--",
-      .type = "Matrix"};
-
-  wsv_data["line_transmission"] = {
-      .desc = R"--(Transmission as seen by a single absorption line.
-
-Used internally for, e.g., NLTE effects
-)--",
-      .type = "Tensor3"};
 
   wsv_data["lo"] = {.desc = R"--(The local oscillator frequency.
 
@@ -1421,27 +1074,13 @@ Usage: Set by the user.
 As *lo* but describes an instrument with multiple mixers. A vector
 element for each LO. The size of this variable and
 *sideband_response_multi* shall match, and probably also
-*sideband_mode_multi*.
+``sideband_mode_multi``.
 
 Unit:  Hz
 
 Usage: Set by the user.
 )--",
                           .type = "Vector"};
-
-  wsv_data["lon"] = {.desc = R"--(A longitude.
-
-Unit:  degrees
-)--",
-                     .type = "Numeric"};
-
-  wsv_data["mblock_index"] = {.desc = R"--(Measurement block index. 
-
-Used to tell agendas the index of present measurement block.
-
-Usage: Used internally.
-)--",
-                              .type = "Index"};
 
   wsv_data["mc_antenna"] = {
       .desc = R"--(Antenna pattern description for dedicated MC calculaions.
@@ -1450,97 +1089,6 @@ Usage: Input to MCGeneral. Set by *mc_antennaSetGaussian* and similar methods.
 )--",
       .type = "MCAntenna"};
 
-  wsv_data["mc_error"] = {
-      .desc = R"--(Error in simulated ``y`` when using a Monte Carlo approach.
-
-Usage: Output from Monte Carlo functions. 
-
-Size:  [ stokes_dim ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["mc_iteration_count"] = {
-      .desc =
-          R"--(Counts the number of iterations (or photons) used in the MC
-scattering algorithm.
-
-Usage: Set by MCGeneral and other MC methods.
-)--",
-      .type = "Index"};
-
-  wsv_data["mc_max_iter"] = {
-      .desc = R"--(The maximum number of iterations allowed for Monte Carlo
-calculations.
-
-Usage: Set by the user.
-)--",
-      .type = "Index"};
-
-  wsv_data["mc_max_scatorder"] = {
-      .desc = R"--(The maximum scattering order allowed for Monte Carlo
-radar calculations.
-
-Usage: Set by the user.
-)--",
-      .type = "Index"};
-
-  wsv_data["mc_max_time"] = {
-      .desc = R"--(The maximum time allowed for Monte Carlo calculations.
-
-Usage: Set by the user.
-
-Unit: s
-)--",
-      .type = "Index"};
-
-  wsv_data["mc_min_iter"] = {
-      .desc = R"--(The minimum number of iterations allowed for Monte Carlo
-calculations.
-
-Usage: Set by the user.
-)--",
-      .type = "Index",
-      .default_value = Index{100}};
-
-  wsv_data["mc_points"] = {.desc = R"--(FIXMEDOC
-Source to emission, position.
-
-Counts the number of MC endpoints in each grid cell.
-
-Usage: Set by MCGeneral and other MC methods.
-)--",
-                           .type = "Tensor3"};
-
-  wsv_data["mc_scat_order"] = {
-      .desc =
-          R"--(Number of atmospheric scattering events between emission point and sensor.
-
-The first element gives the number of cases with zero scattering events,
-the second the number of single scattering cases etc.
-
-Scattering orders above what the variable can hold are not stored at all.
-The number of such cases can be determined by comparing
-*mc_iteration_count* with the sum of the elements in this array.
-
-Usage: Set by MCGeneral and other MC methods.
-)--",
-      .type = "ArrayOfIndex"};
-
-  wsv_data["mc_source_domain"] = {
-      .desc = R"--(Rough classification of source to emission.
-
-This is an array of length 4, where the elements in order represent
-space, the surface, atmospheric gas and atmospheric particle.
-The distinction between the two last elements is if the emission
-is associated with ``vmr_field`` or *pnd_field*.
-
-The values of the array give the number of cases where the emission
-source was found to be inside each \"domain\".
-
-Usage: Set by MCGeneral and other MC methods.
-)--",
-      .type = "ArrayOfIndex"};
-
   wsv_data["mc_seed"] = {
       .desc = R"--(The integer seed for the random number generator used by
 Monte Carlo methods.
@@ -1548,64 +1096,6 @@ Monte Carlo methods.
 Usage: Set by MCSetSeed.
 )--",
       .type = "Index"};
-
-  wsv_data["mc_std_err"] = {
-      .desc = R"--(Target precision (1 std. dev.) for Monte Carlo calculations.
-
-Usage: Set by the user.
-)--",
-      .type = "Numeric"};
-
-  wsv_data["mc_y_tx"] = {
-      .desc = R"--(Normalized Stokes vector for transmittance (e.g., radar).
-
-The first element (intensity) should have a value of 1.
-
-Usage: Set by user. 
-
-Units: Unitless.
-
-Size:  [ stokes_dim ]
-)--",
-      .type = "Vector"};
-
-  wsv_data["mc_taustep_limit"] = {
-      .desc =
-          R"--(Defines an upper step length in terms of optical thickness for Monte 
-Carlo calculations.
-
-Usage: Set by the user.
-)--",
-      .type = "Numeric",
-      .default_value = Numeric{0.1}};
-
-  wsv_data["met_amsu_data"] = {.desc = R"--(The AMSU data set.
-
-This is intended as input for the method ybatchMetProfiles. It holds the
-latitude, longitude, satellite zenith angle and amsu-b corrected and 
-uncorrected brightness temperatures.  It also has information about 
-the particular pixel corresponds to a land or sea point.  This will be 
-read in the method ybatchMetProfiles and the profiles corresponding to 
-each latitude and longitude will be read in.
-
-See documentation of WSM ``ybatchMetProfiles`` for more information.
-)--",
-                               .type = "Matrix"};
-
-  wsv_data["met_mm_antenna"] = {
-      .desc =
-          R"--(The antenna beam width for meteorological millimeter instruments.
-
-This Vector must match the number and order of channels in
-*met_mm_backend*.
-
-Usage: Set by the user.
-
-Unit:  [ Hz ]
-
-Size:  [ number of channels ]
-)--",
-      .type = "Vector"};
 
   wsv_data["met_mm_backend"] = {
       .desc =
@@ -1644,51 +1134,6 @@ Unit: All entries in Hz.
 Size: [number of channels, 4]
 )--",
       .type = "Matrix"};
-
-  wsv_data["met_mm_polarisation"] = {
-      .desc =
-          R"--(The polarisation for meteorological millimeter instruments.
-
-This array must match the number and order of channels in
-*met_mm_backend*.
-
-Possible values:
-
-- ``\"V\"``: Vertical polarisation
-- ``\"H\"``: Horizontal polarisation
-- ``\"LHC\"``: Left-hand circular polarisation
-- ``\"RHC\"``: Right-hand circular polarisation
-- ``\"AMSU-V\"``: Vertical polarisation dependening on AMSU zenith angle
-- ``\"AMSU-H\"``: Horizontal polarisation dependening on AMSU zenith angle
-- ``\"ISMAR-V\"``: Vertical polarisation dependening on ISMAR zenith angle
-- ``\"ISMAR-H\"``: Horizontal polarisation dependening on AMSU zenith angle
-
-Usage: Set by the user.
-
-Unit:  [ String ]
-
-Size:  [ number of channels ]
-)--",
-      .type = "ArrayOfString"};
-
-  wsv_data["level0_data"] = {.desc = R"--(List of L0 data.  Can be of any type.
-It is method-dependent how this is used to calibrated to L1
-)--",
-                             .type = "ArrayOfVector"};
-
-  wsv_data["level0_time"] = {.desc = R"--(List of L0 times.  Should be in UTC.
-It is method-dependent how this is used to calibrated to L1
-)--",
-                             .type = "ArrayOfTime"};
-
-  wsv_data["lm_ga_history"] = {
-      .desc =
-          R"--(The series of gamma values for a Marquardt-levenberg inversion.
-
-The values are stored following iteration order, i.e. the first
-is the gamma factor for the first iteration etc.
-)--",
-      .type = "Vector"};
 
   wsv_data["molarmass_dry_air"] = {
       .desc = R"--(The average molar mass of dry air.
@@ -1773,30 +1218,6 @@ Dimensions: [nza, naa, nf, stokes_dim]
 )--",
       .type = "StokvecVector"};
 
-  wsv_data["oem_diagnostics"] = {
-      .desc = R"--(Basic diagnostics of an OEM type inversion.
-
-This is a vector of length 5, having the elements (0-based index):
-  0. Convergence status, with coding
-       - 0 = converged
-       - 1 = max iterations reached
-       - 2 = max gamma of LM reached
-       - 9 = some error when calling ``inversion_iterate_agenda``
-       - 99 = too high start cost.
-  1. Start value of cost function.
-  2. End value of cost function.
-  3. End value of y-part of cost function.
-  4. Number of iterations used.
-
-See WSM ``OEM`` for a definition of \"cost\". Values not calculated
-are set to NaN.
-)--",
-      .type = "Vector"};
-  wsv_data["oem_errors"] = {
-      .desc = R"--(Errors encountered during OEM execution.
-)--",
-      .type = "ArrayOfString"};
-
   wsv_data["output_file_format"] = {.desc = R"--(Output file format.
 
 This variable sets the format for output files. It could be set to:
@@ -1811,18 +1232,6 @@ To change the value of this variable use the workspace methods
 )--",
                                     .type = "String",
                                     .default_value = String{"ascii"}};
-
-  wsv_data["particle_bulkprop_names"] = {
-      .desc = R"--(Identification of the data in ``particle_bulkprop_field``.
-
-This variable assigns a name to each field in ``particle_bulkprop_field``.
-The naming is totally free. If two fields are given the same name, the
-first one will be selected.
-
-Dimensions: length should match book-dimension of ``particle_bulkprop_field``
-)--",
-      .type = "ArrayOfString",
-      .default_value = ArrayOfString{}};
 
   wsv_data["particle_masses"] = {
       .desc = R"--(The mass of individual particles (or bulks).
@@ -1867,23 +1276,6 @@ Unit:        m^2 FIXME: really m2? not 1/m?
 Dimensions: [za_grid, aa_grid, stokes_dim, stokes_dim]
 )--",
                          .type = "Tensor4"};
-
-  wsv_data["pha_mat_doit"] = {
-      .desc = R"--(Ensemble averaged phase matrix for DOIT calculation.
-
-This workspace variable represents the actual physical phase
-matrix (averaged over all scattering elements) for given incident and 
-propagation directions. It is calculated in the method ``DoitScatteringDataPrepare``.
-
-See ARTS user guide (AUG) for further information.
-
-Usage:      Output of the method *pha_matCalc*
-
-Unit:        m^2 FIXME: really m2? not 1/m?
-
-Dimensions: [T,za_grid, aa_grid, za_grid, aa_grid, stokes_dim, stokes_dim]
-)--",
-      .type = "Tensor7"};
 
   wsv_data["pha_mat_spt"] = {
       .desc = R"--(Phase matrix for all individual scattering elements.
@@ -2095,16 +1487,6 @@ Usage: Output of radiative transfer methods.
 )--",
       .type = "ArrayOfVector"};
 
-  wsv_data["ppvar_pnd"] = {.desc = R"--(PND values along the propagation path.
-
-See ``ppvar_p`` for a general description of WSVs of ppvar-type.
-
-Dimension: [ number of scattering elements, ppath.np ]
-
-Usage: Output of radiative transfer methods.
-)--",
-                           .type = "Matrix"};
-
   wsv_data["ppvar_optical_depth"] = {
       .desc =
           R"--(The optical depth between the sensor and each point of the propagation path.
@@ -2124,25 +1506,6 @@ Usage: Output of radiative transfer methods.
   wsv_data["ppvar_trans_cumulat"] = {
       .desc =
           R"--(The transmittance between the sensor and each point of the propagation path.
-
-See ``ppvar_p`` for a general description of WSVs of ppvar-type.
-
-Dimension: [ ppath.np, f_grid, stokes_dim, stokes_dim ]
-
-Usage: Output of radiative transfer methods.
-)--",
-      .type = "Tensor4"};
-
-  wsv_data["ppvar_trans_partial"] = {
-      .desc =
-          R"--(The transmittance between the points along the propagation path.
-
-To maintain consistency in size also this variable stores np transmissivities,
-while there are only np-1 distances between the points of the ppath. The
-extra values placed at index 0 and can be seen as the transmissivities
-between the sensor and the start of the ppath. These transmissivities
-are always unity. That is, the transmissivities between ppath point i and i+1
-are found at index i+1 in *ppvar_trans_partial*.
 
 See ``ppvar_p`` for a general description of WSVs of ppvar-type.
 
@@ -2187,22 +1550,6 @@ Set by *propmat_clearsky_agenda_checkedCalc*.
       .type = "Index",
       .default_value = Index{0}};
 
-  wsv_data["propmat_clearsky_field"] = {.desc = R"--(Gas absorption field.
-
-Contains the (polarized) gas absorption coefficients for all species
-as a function of *f_grid*, ``p_grid``, ``lat_grid``, and ``lon_grid``. 
-
-This is mainly for testing and plotting gas absorption. For RT
-calculations, gas absorption is calculated or extracted locally,
-therefore there is no need to store a global field. But this variable
-is handy for easy plotting of absorption vs. pressure, for example.
-
-Unit:       1/m
-
-Dimensions: [species, f_grid, ``stokes_dim``, stokes_dim, p_grid, lat_grid, lon_grid]
-)--",
-                                        .type = "Tensor7"};
-
   wsv_data["psd_data"] = {
       .desc =
           R"--(Particle size distribution values for a set of points.
@@ -2227,33 +1574,6 @@ Dimension: [ n_sizes ]
 )--",
       .type = "Vector"};
 
-  wsv_data["p_grid_orig"] = {
-      .desc = R"--(The original pressure grid before optimization.
-
-This variable is used to interpolate *cloudbox_field* back to its original
-size after the calculation with ``OptimizeDoitPressureGrid``.
-The variable is listed as a subentry to
-\"workspace variables\".
-
-Usage: Set by the user.
-
-Unit:  Pa
-)--",
-      .type = "Vector"};
-
-  wsv_data["p_hse"] = {
-      .desc =
-          R"--(Reference pressure calculation of hydrostatic equilibrium.
-
-The altitude specified by this pressure is used as the reference
-when calculating hydrostatic equilibrium. That is, the geometrical
-altitude at this pressure is not changed.
-
-Usage: Set by the user.
-
-Unit:  Pa
-)--",
-      .type = "Numeric"};
   wsv_data["radiance_field"] = {.desc = R"--(Radiance field.
 
 Radiant flux received by a surface per unit solid angle and per unit
@@ -2269,20 +1589,6 @@ Size: [p_grid,
        N_za, N_aa
 )--",
                                 .type = "Tensor5"};
-
-  wsv_data["range_bins"] = {.desc = R"--(The range bins of an active instrument.
-
-The bins are assumed to cover a range without gaps, and the bins are
-defined by their edges. That is, the length of this vector is the
-number of bins + 1.
-
-The bins can potentially be defined in two ways, by altitude or time.
-See the method you are using, if this variable shall hold time or
-altitude (or maybe both options are treated).
-
-Unit: m or s
-)--",
-                            .type = "Vector"};
 
   wsv_data["refr_index_air"] = {
       .desc = R"--(Real part of the refractive index of air.
@@ -2305,15 +1611,6 @@ phase velocity. See also *refr_index_air*.
 Unit: 1
 )--",
                                       .type = "Numeric"};
-
-  wsv_data["retrieval_checked"] = {
-      .desc =
-          R"--(Flag indicating completeness and consistency of retrieval setup.
-
-Unit: Boolean
-)--",
-      .type = "Index",
-      .default_value = Index{0}};
 
   wsv_data["retrieval_eo"] = {
       .desc =
@@ -2383,15 +1680,6 @@ Usage: Communication variable.
 Units: [ K ]
 )--",
       .type = "Numeric"};
-
-  wsv_data["rt_integration_option"] = {
-      .desc =
-          R"--(Switch between integration approaches for radiative transfer steps.
-
-See each WSM using this varaible as input for available options.
-)--",
-      .type = "String",
-      .default_value = String{"default"}};
 
   wsv_data["rtp_vmr"] = {
       .desc =
@@ -2647,7 +1935,7 @@ the following structure with individual elements separated by dashes:
 
 - scattering species name [*String*]
   the name of the scattering species' atmospheric field. Free form,
-  but is matched to *atm_fields_compact* fields by their names.
+  but is matched to ``atm_fields_compact`` fields by their names.
   Common are, e.g., IWC (ice water content), LWC (liquid water
   content), RR (rain rate), and SR (snow rate).
 - particle size distribution [*String*]:
@@ -2707,95 +1995,6 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 )--",
       .type = "ArrayOfSpeciesTag",
       .default_value = ArrayOfSpeciesTag{}};
-
-  wsv_data["sensor_description_amsu"] = {
-      .desc = R"--(Sensor description for simple AMSU setup.
-
-This is a compact description of an AMSU-type sensor. The matrix
-contains one row for each instrument channel. Each row contains three
-elements: LO position [Hz], offset of the channel center from the LO
-[Hz], and channel width [Hz].
-
-Usage: Set by the user.
-
-Unit: All entries in Hz.
-
-Size: [number of channels, 3]
-)--",
-      .type = "Matrix"};
-
-  wsv_data["sensor_norm"] = {
-      .desc = R"--(Flag if sensor response should be normalised or not (0 or 1).
-
-If the flag is set to 1 each sensor response is normalised (where
-applicable). If set to 0 the sensor responses are left as provided.
-
-See further the ARTS user guide (AUG). Use the index to find where
-this variable is discussed. The variable is listed as a sub-entry to
-\"workspace variables\".
-
-Usage: Set by the user.
-)--",
-      .type = "Index"};
-
-  wsv_data["sensor_pol"] = {.desc = R"--(A set of polarisation response angles.
-
-The standard choice to consider the polarisation response of the
-reciever is by *instrument_pol*, and this response becomes then part
-of *sensor_response*. However, that choice is not possible when the
-polartisation response changes between measurement blocks, and this
-variable combined with the ``yApplySensorPol`` offers an alternative for
-such situations. This WSV also allows defintion of an arbitrary
-polarisation angle.
-
-The columns of *sensor_pol* corresponds to the channels/frequencies
-of the receiver. Each element gives the polarisation angle. A pure
-vertical response has the angle 0 deg, and pure horisontal 90 deg.
-If all U values (Stokes element 3) are zero, the sign of the angle does,
-not matter, and 0 and 180 degrees give the same result. With non-zero
-U, the result of e.g. -45 and +45 degrees differ.
-
-Note that a receiver with a linear response is assumed. Circular
-polarisation is not affected by any rotation.
-
-Usage: Set by the user.
-
-Unit:  [ degrees ]
-
-Size:  [ number of measurement blocks, number of channels/frequencies ]
-)--",
-                            .type = "Matrix"};
-
-  wsv_data["sensor_response"] = {
-      .desc = R"--(The matrix modelling the total sensor response.
-
-This matrix describes the sensor respons for one measurement block
-The response is assumed to be identical for each such block.
-
-The matrix is the product of all the individual sensor response
-matrices. Therefore its dimensions are depending on the total sensor
-configuration.
-
-Usage: Output/input to the ``sensor_response...`` methods.
-
-Units: -
-
-Dimension: See the individual ``sensor_response...`` method.
-)--",
-      .type = "Sparse"};
-
-  wsv_data["sensor_response_aa"] = {
-      .desc = R"--(The relative azimuth angles associated with the output of
-*sensor_response*.
-
-The variable shall not be set manually, it will be set together with
-*sensor_response* by sensor response WSMs.
-
-Usage: Set by sensor response methods.
-
-Unit:  [ degrees ]
-)--",
-      .type = "Vector"};
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
@@ -2878,7 +2077,7 @@ Unit:  [ degrees ]
 
   wsv_data["sensor_response_f"] = {
       .desc =
-          R"--(The frequencies associated with the output of *sensor_response*.
+          R"--(The frequencies associated with the output of ``sensor_response``.
 
 This vector gives the frequency for each element of the measurement
 vector produced inside one measurement block. The frequencies of
@@ -2886,7 +2085,7 @@ the total measurement vector, ``y``, are obtained by repeating these
 frequencies n times, where n is the number of measurement blocks.
 
 The variable shall not be set manually, it will be set together with
-*sensor_response* by sensor response WSMs.
+``sensor_response`` by sensor response WSMs.
 
 Usage: Set by sensor response methods.
 
@@ -2895,7 +2094,7 @@ Unit:  [ Hz ]
       .type = "Vector"};
 
   wsv_data["sensor_response_f_grid"] = {
-      .desc = R"--(The frequency grid associated with *sensor_response*.
+      .desc = R"--(The frequency grid associated with ``sensor_response``.
 
 A variable for communication between sensor response WSMs. Matches
 initially *f_grid*, but is later adjusted according to the sensor
@@ -2907,50 +2106,6 @@ Usage: Set by sensor response methods.
 Unit:  [ Hz ]
 )--",
       .type = "Vector"};
-
-  wsv_data["sensor_response_pol"] = {
-      .desc = R"--(The polarisation states associated with the output of
-*sensor_response*.
-
-Works basically as *sensor_response_f*.
-
-See *instrument_pol* for coding of polarisation states.
-
-The variable shall not be set manually, it will be set together with
-*sensor_response* by sensor response WSMs.
-
-Usage: Set by sensor response methods.
-
-Unit:  [ - ]
-)--",
-      .type = "ArrayOfIndex"};
-
-  wsv_data["sensor_response_pol_grid"] = {
-      .desc = R"--(The \"polarisation grid\" associated with *sensor_response*.
-
-A variable for communication between sensor response WSMs. It is
-initially 1:stokes_dim, but can later adjusted according to the 
-sensor specifications. Only defined when a common grid exists. 
-
-See *instrument_pol* for coding of polarisation states.
-
-Usage: Set by sensor response methods.
-
-Unit:  [ - ]
-)--",
-      .type = "ArrayOfIndex"};
-
-  wsv_data["sensor_time"] = {.desc = R"--(The time for each measurement block.
-
-This WSV is used when a time must be assigned to the measurements.
-
-Usage: Set by the user.
-
-Unit:  [ UTC date and time ]
-
-Size:  [ number of measurement blocks ]
-)--",
-                             .type = "ArrayOfTime"};
 
   wsv_data["sideband_mode"] = {.desc = R"--(Description of target sideband.
 
@@ -2964,47 +2119,10 @@ Usage: Set by the user.
 )--",
                                .type = "String"};
 
-  wsv_data["sideband_mode_multi"] = {
-      .desc = R"--(Description of target sideband for a multiple LO receiver.
-
-As *sideband_mode* but handles an instrument with several LO chains.
-See further *lo_multi* and *sideband_response_multi*. This length of
-this array must match the size of those WSVs.
-
-Usage: Set by the user.
-)--",
-      .type = "ArrayOfString"};
-
-  wsv_data["sideband_response"] = {
-      .desc = R"--(Description of (mixer) sideband response.
-
-This variable describes the response of each sideband of a heterodyne
-receiver. The response is given as a GriddedField1, with frequency as the
-grid. The actual data describe the sideband filter function at each
-frequency grid point. An interpolation is applied to obtain the
-response for other frequencies.
-
-The frequency grid should be given in terms of IF, with end points
-symmetrically placed around zero. That is, the grid must contain
-both negative and positive values. The sideband response (after 
-summation with *lo*) is not allowed to extend outside the range
-for which spectral data exist (normally determined by *f_grid*).
-
-Usage: Set by the user.
-
-Dimensions: 
-
--  GriddedField1:
-
-  -    Vector f_grid[N_f]
-  -    Vector data[N_f]
-)--",
-      .type = "GriddedField1"};
-
   wsv_data["sideband_response_multi"] = {
       .desc = R"--(Description of multiple (mixer) sideband responses.
 
-As *sideband_response* but describes an instrument with multiple
+As ``sideband_response`` but describes an instrument with multiple
 mixers. An array element for each LO. The size of this variable and
 *lo_multi* shall match.
 
@@ -3073,14 +2191,6 @@ longitude in the sky of the planet and the type
                       .type = "ArrayOfSun",
                       .default_value = ArrayOfSun{}};
 
-  wsv_data["surface_complex_refr_index"] = {
-      .desc = R"--(Complex refractive index of the surface, at a single point.
-
-See *complex_refr_index* for the expected format and how the data
-are treated.
-)--",
-      .type = "ComplexGriddedField2"};
-
   wsv_data["surface_emission"] = {.desc = R"--(The emission from the surface.
 
 See specific methods generating *surface_emission* and the user
@@ -3098,18 +2208,6 @@ temperature but also entirerly abstract properties and types.
 )--",
       .type = "SurfaceField"};
 
-  wsv_data["surface_normal"] = {
-      .desc = R"--(The normal vector for a point at the surface.
-
-The vector is given as a zenith and azimuth angle following the
-definition of line-of-sights.
-
-Units: degrees
-
-Size:  [ 2 ]
-)--",
-      .type = "Vector"};
-
   wsv_data["surface_point"] = {
       .desc = R"--(The surface point describes the surface properties.
 
@@ -3118,19 +2216,6 @@ temperature but also entirerly abstract properties and types.  As the elevation 
 known for a single point, the normal of the surface at the position is also stored.
 )--",
       .type = "SurfacePoint"};
-
-  wsv_data["surface_props_names"] = {
-      .desc = R"--(Name on surface properties found in ``surface_props_data``.
-
-Each string names a property in ``surface_props_data``. The user is free
-to include data with any name, but the surface methods making use of
-``surface_props_data`` expect data to be named in a specific way. See
-the documentation of each method for recognised choices.
-
-Size:  [ number of props. ]
-)--",
-      .type = "ArrayOfString",
-      .default_value = ArrayOfString{}};
 
   wsv_data["surface_rmatrix"] = {
       .desc = R"--(The reflection coefficients for the surface
@@ -3172,46 +2257,6 @@ temperature.
 )--",
                                 .type = "Numeric"};
 
-  wsv_data["surface_reflectivity"] = {
-      .desc = R"--(Surface reflectivity, for a given position and angle.
-
-This variable describes the surface reflectivity at one position
-and one incidence angle. It works as *surface_scalar_reflectivity*
-but is also defined for vector radiative transfer.
-
-The first dimension of the variable shall either match *f_grid* or
-be 1. The later case is interpreted as the reflectivity is the same
-for all frequencies.
-
-Usage:   Input to some surface properties methods.
-
-Dimensions: [ f_grid or 1, stokes_dim, stokes_dim]
-)--",
-      .type = "Tensor3"};
-
-  wsv_data["surface_rv_rh"] = {
-      .desc =
-          R"--(Surface reflectivity, described by rv and rh (power) reflectivities.
-
-This variable describes the surface reflectivity at one position
-and one incidence angle. For this position and angle, one or multiple
-combinations of rv and rh are specified, where rv and rh are the
-reflectivity for vertical and horizontal polarisation, respectively.
-
-This matrix shall always have two columns, where the first column
-holds rv values, and the second column rh. It is up to the user to
-make sure that data are put into the correct column, this can not
-be checked bu the methods using this WSV.
-
-The number of rows shall either match *f_grid* or be 1. The later case
-is interpreted as the reflectivities are the same for all frequencies.
-
-Usage:   Input to some surface properties methods.
-
-Dimensions: [ f_grid or 1, 2]
-)--",
-      .type = "Matrix"};
-
   wsv_data["surface_scalar_reflectivity"] = {
       .desc =
           R"--(Surface reflectivity, assuming it can be described as a scalar value.
@@ -3230,24 +2275,6 @@ Dimensions: [ f_grid or 1]
 )--",
       .type = "Vector"};
 
-  wsv_data["surface_type_mask"] = {
-      .desc = R"--(Classification of the surface using a type coding.
-
-Dimensions: 
-
--  GriddedField2:
-
-  -    Vector Latitude [N_lat]
-  -    Vector Longitude [N_lon]
-  -    Matrix data [N_lat][N_lon]
-)--",
-      .type = "GriddedField2"};
-
-  wsv_data["surface_type_mix"] = {
-      .desc = R"--(Gives the fraction of different surface types.
-)--",
-      .type = "Vector"};
-
   wsv_data["telsem_atlases"] = {.desc = R"--(TELSEM 2 emissivity atlases.
 
 Array should be filled with 12
@@ -3255,16 +2282,6 @@ atlases, one for each month. Index 0 is January, index 11 December.
 
 )--",
                                 .type = "ArrayOfTelsemAtlas"};
-
-  wsv_data["tessem_neth"] = {.desc = R"--(FIXMEDOC Add more documentation?
-TESSEM2 neural network parameters for horizontal polarization.
-)--",
-                             .type = "TessemNN"};
-
-  wsv_data["tessem_netv"] = {.desc = R"--(FIXMEDOC Add more documentation?
-TESSEM2 neural network parameters for vertical polarization.
-)--",
-                             .type = "TessemNN"};
 
   wsv_data["time"] = {.desc = R"--(A UTC time point.
 )--",
@@ -3278,18 +2295,6 @@ TESSEM2 neural network parameters for vertical polarization.
       .desc = R"--(A set of times.  Can be in random order
 )--",
       .type = "ArrayOfTime"};
-
-  wsv_data["water_p_eq_field"] = {
-      .desc = R"--(The field of water saturation pressure.
-
-This variable holds the saturation pressure of water at each crossing of
-the pressure, latitude and longitude grids.
-
-Unit:       Pa
-
-Dimensions: [ p_grid, lat_grid, lon_grid ]
-)--",
-      .type = "Tensor3"};
 
   wsv_data["wigner_initialized"] = {
       .desc = R"--(Indicates if the wigner tables are initialized.
@@ -3324,52 +2329,6 @@ of monochromatic frequencies.
 )--",
       .type = "Sparse"};
 
-  wsv_data["xml_output_type"] = {
-      .desc =
-          R"--(Flag to determine whether XML output shall be binary or ascii.
-
-This flag has to be set using the workspace method
-*output_file_formatSetAscii* or *output_file_formatSetBinary*.
-One of these methods MUST be called before writing the first
-output file.
-
-Usage: Set by user.
-)--",
-      .type = "Index"};
-
-  wsv_data["x"] = {.desc = R"--(The state vector.
-
-This WSV matches directly the x-vector in the formalism by C.D. Rodgers.
-
-Inside *x*, the elements matching one retrieval quantity, such as
-atmospheric temperatures, are kept together. That is, each retrieval
-quantity covers a continuous range inside *x*. The start and index of
-these ranges can be deduced by *jacobian_targets* (see function(s)
-inside jacobian.cc for details).
-
-The order of elements inside each retrieval quantity should be clarified
-by corresponding \"adding\" method, i.e. ``jacobianAddTemperature`` for
-atmospheric temperatures. The general rule is that data are sorted from
-left to right with respect to the order in the corresponding WSV. For
-example, inside *x* atmospheric data are stored with pressure as inner-
-most loop, followed by latitude and longitude as outermost loop.
-
-Usage: Used by inversion methods.
-
-Unit:  Varies, follows unit of selected retrieval quantities.
-)--",
-                   .type = "Vector"};
-
-  wsv_data["xa"] = {.desc = R"--(The a priori state vector.
-
-This WSV matches directly the x_a-vector in the formalism by C.D. Rodgers.
-
-Usage: Used by inversion methods.
-
-Unit:  Varies, follows unit of selected retrieval quantities.
-)--",
-                    .type = "Vector"};
-
   wsv_data["za_grid"] = {.desc = R"--(Zenith angle grid.
 
 The zenith angle grid, on which the *cloudbox_field* is stored. 
@@ -3402,16 +2361,6 @@ properties.
 Usage:    Input to the agendas *spt_calc_agenda*, *pha_mat_spt_agenda*.
 )--",
       .type = "Index"};
-
-  wsv_data["z_hse_accuracy"] = {
-      .desc =
-          R"--(Minimum accuracy for calculation of hydrostatic equilibrium.
-
-Usage: Set by the user.
-
-Unit:  m
-)--",
-      .type = "Numeric"};
 
   wsv_data["water_equivalent_pressure_operator"] = {
       .desc = R"--(The water equivalent pressure operator.

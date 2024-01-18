@@ -79,10 +79,8 @@ void py_options(py::module_& m) try {
   DeclareOption(Options, iy_surface_agendaDefaultOptions);
   DeclareOption(Options, iy_cloudbox_agendaDefaultOptions);
   DeclareOption(Options, refr_index_air_agendaDefaultOptions);
-  DeclareOption(Options, water_p_eq_agendaDefaultOptions);
   DeclareOption(Options, gas_scattering_agendaDefaultOptions);
   DeclareOption(Options, surface_rtprop_agendaDefaultOptions);
-  DeclareOption(Options, g0_agendaDefaultOptions);
   DeclareOption(Options, test_agendaDefaultOptions);
   DeclareOption(Options, dobatch_calc_agendaDefaultOptions);
   DeclareOption(Options, ybatch_calc_agendaDefaultOptions);
@@ -91,8 +89,6 @@ void py_options(py::module_& m) try {
   DeclareOption(Options, propmat_clearsky_agendaDefaultOptions);
   DeclareOption(Options, pha_mat_spt_agendaDefaultOptions);
   DeclareOption(Options, met_profile_calc_agendaDefaultOptions);
-  DeclareOption(Options, main_agendaDefaultOptions);
-  DeclareOption(Options, jacobian_agendaDefaultOptions);
   DeclareOption(Options, iy_radar_agendaDefaultOptions);
   DeclareOption(Options, iy_independent_beam_approx_agendaDefaultOptions);
   DeclareOption(Options, inversion_iterate_agendaDefaultOptions);

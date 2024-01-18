@@ -194,21 +194,6 @@ Agenda get_refr_index_air_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-Agenda get_water_p_eq_agenda(const std::string& option) {
-  AgendaCreator agenda("water_p_eq_agenda");
-
-  using enum Options::water_p_eq_agendaDefaultOptions;
-  switch (Options::towater_p_eq_agendaDefaultOptionsOrThrow(option)) {
-    case MK05:
-      agenda.add("water_p_eq_fieldMK05");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
 Agenda get_gas_scattering_agenda(const std::string& option) {
   AgendaCreator agenda("gas_scattering_agenda");
 
@@ -260,33 +245,6 @@ Agenda get_surface_rtprop_agenda(const std::string& option) {
       agenda.add("surface_pointFromAtm");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_g0_agenda(const std::string& option) {
-  AgendaCreator agenda("g0_agenda");
-
-  using enum Options::g0_agendaDefaultOptions;
-  switch (Options::tog0_agendaDefaultOptionsOrThrow(option)) {
-    case Earth:
-      agenda.add("g0Earth");
-      break;
-    case Io:
-      agenda.add("g0Io");
-      break;
-    case Jupiter:
-      agenda.add("g0Jupiter");
-      break;
-    case Mars:
-      agenda.add("g0Mars");
-      break;
-    case Venus:
-      agenda.add("g0Venus");
       break;
     case FINAL:
       break;
@@ -386,30 +344,6 @@ Agenda get_met_profile_calc_agenda(const std::string& option) {
 
   using enum Options::met_profile_calc_agendaDefaultOptions;
   switch (Options::tomet_profile_calc_agendaDefaultOptionsOrThrow(option)) {
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_main_agenda(const std::string& option) {
-  AgendaCreator agenda("main_agenda");
-
-  using enum Options::main_agendaDefaultOptions;
-  switch (Options::tomain_agendaDefaultOptionsOrThrow(option)) {
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_jacobian_agenda(const std::string& option) {
-  AgendaCreator agenda("jacobian_agenda");
-
-  using enum Options::jacobian_agendaDefaultOptions;
-  switch (Options::tojacobian_agendaDefaultOptionsOrThrow(option)) {
     case FINAL:
       break;
   }

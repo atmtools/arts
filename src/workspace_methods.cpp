@@ -1676,44 +1676,42 @@ The result can either be stored in the same or another Numeric.
 
   wsm_data["PlanetSet"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Sets *g0_agenda*, ``refellipsoid``, *molarmass_dry_air*, and *planet_rotation_period* to default values
+          R"--(Sets *molarmass_dry_air*, and *planet_rotation_period* to default values
 
-*g0_agenda* is set using *g0_agendaSet* with the same option
 Options are:
 
 - ``"Earth"``:
 
-    1. Uses ``refellipsoidEarth`` with model="Sphere"
+    1. Uses *surface_fieldEarth* with model="WGS84"
     2. Sets *molarmass_dry_air* to 28.966
     3. Sets *planet_rotation_period* to 86164.1
 
 - ``"Io"``:
 
-    1. Uses ``refellipsoidIo`` with model="Sphere"
+    1. Uses ``surface_fieldIo`` with model="Sphere"
     2. Sets *molarmass_dry_air* to 63.110068828000003
     3. Sets *planet_rotation_period* to 152853
 
 - ``"Jupiter"``:
 
-    1. Uses ``refellipsoidJupiter`` with model="Sphere"
+    1. Uses ``surface_fieldJupiter`` with model="Sphere"
     2. Sets *molarmass_dry_air* to 2.22
     3. Sets *planet_rotation_period* to 35730
 
 - ``"Mars"``:
 
-    1. Uses ``refellipsoidMars`` with model="Sphere"
+    1. Uses ``surface_fieldMars`` with model="Sphere"
     2. Sets *molarmass_dry_air* to 43.34
     3. Sets *planet_rotation_period* to 88643
 
 - ``"Venus"``:
 
-    1. Uses ``refellipsoidVenus`` with model="Sphere"
+    1. Uses ``surface_fieldVenus`` with model="Sphere"
     2. Sets *molarmass_dry_air* to 43.45
     3. Sets *planet_rotation_period* to -2.0997e7
 )--",
       .author = {"Richard Larsson"},
-      .out = {"g0_agenda",
-              "surface_field",
+      .out = {"surface_field",
               "molarmass_dry_air",
               "planet_rotation_period"},
 
@@ -3783,7 +3781,7 @@ the same WSV as any of the the other vector.
 
 The HIRS fast setup consists of a precalculated frequency grid
 covering all HIRS channels, and associated weights for each channel,
-stored in a weight matrix. (A *sensor_response* matrix.)
+stored in a weight matrix. (A ``sensor_response`` matrix.)
 
 If not all channels are requested for
 simulation, then this method can be used to remove the unwanted
@@ -7245,26 +7243,6 @@ Sets *g0*  to mean equatorial gravity on Venus. Value from Ahrens
 
   };
 
-  wsm_data["g0_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *g0_agenda* to a default value
-
-Options are:
-
-- ``"Earth"``: Uses *g0Earth* to set *g0*
-- ``"Io"``: Uses *g0Io* to set *g0*
-- ``"Jupiter"``: Uses *g0Jupiter* to set *g0*
-- ``"Mars"``: Uses *g0Mars* to set *g0*
-- ``"Venus"``: Uses *g0Venus* to set *g0*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"g0_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
   wsm_data["gas_scattering_coefAirSimple"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculates of scattering coefficient matrix for air.
 
@@ -9100,7 +9078,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be rain mass content in
 unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in *particle_bulkprop_names* and
+but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 Particles are assumed to be near-spherical, ie. *psd_size_grid* can
@@ -9219,7 +9197,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be ice hydrometeor mass
 content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
-is free but the same name must be used in *particle_bulkprop_names* and
+is free but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 *psd_size_grid* shall contain size in terms of maximum diameter.
@@ -9306,9 +9284,9 @@ This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and
 *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be hail mass content in
 unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in *particle_bulkprop_names* and
+but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
-The parameters assume a constant effective density, i.e. scat_species_b pprox 3
+The parameters assume a constant effective density, i.e. scat_species_b approx 3
 
 Derivatives are obtained analytically.
 
@@ -9347,7 +9325,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be ice hydrometeor mass
 content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
-is free but the same name must be used in *particle_bulkprop_names* and
+is free but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 *psd_size_grid* shall contain size in terms of volume equivalent diameter.
@@ -9892,7 +9870,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be number densities, in
 unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in *particle_bulkprop_names* and
+but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 The method checks that the scattering species indicated (by
@@ -9928,7 +9906,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be mass contents, in
 unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in *particle_bulkprop_names* and
+but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 The method checks that the scattering species indicated (by
@@ -10033,7 +10011,7 @@ This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
 column and *pnd_agenda_input_names* shall contain a single string.
 The input data in *pnd_agenda_input* shall be rain mass content in
 unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in *particle_bulkprop_names* and
+but the same name must be used in ``particle_bulkprop_names`` and
 *dpnd_data_dx_names*.
 
 Particles are assumed to be near-spherical, ie. *psd_size_grid* can
@@ -11116,23 +11094,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Array to sort of same size as *time_stamps*)--"},
 
-  };
-
-  wsm_data["water_p_eq_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *water_p_eq_agenda* to a default value
-
-Options are:
-
-- ``"MK05"``:
-    1. Uses ``water_p_eq_fieldMK05`` to set *water_p_eq_field*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"water_p_eq_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {String("MK05")},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
   wsm_data["water_equivalent_pressure_operatorMK05"] =

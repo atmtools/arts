@@ -123,14 +123,6 @@ be used for test cases:
       .output = {"cloudbox_field_mono"},
       .input = {"cloudbox_field_mono", "doit_scat_field"}};
 
-  wsa_data["g0_agenda"] = {
-      .desc = R"--(Calculation of the gravity at zero altitude.
-
-Returns *g0* for given geographical position.
-)--",
-      .output = {"g0"},
-      .input = {"lat", "lon"}};
-
   wsa_data["pha_mat_spt_agenda"] = {
       .desc =
           R"--(Calculates the phase matrix for individual scattering elements.
@@ -197,12 +189,6 @@ Normally you  use:
                 "rtp_temperature",
                 "za_index",
                 "aa_index"}};
-
-  wsa_data["water_p_eq_agenda"] = {
-      .desc = R"--(Calculation of the saturation pressure of water.
-)--",
-      .output = {"water_p_eq_field"},
-      .input = {"atm_field"}};
 
   wsa_data["spectral_radiance_background_space_agenda"] = {
       .desc = R"--(Spectral radiance as seen of space.
