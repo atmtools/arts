@@ -1,10 +1,12 @@
 #pragma once
 
+#include <__algorithm/ranges_lower_bound.h>
 #include <array.h>
 #include <mystring.h>
 
 #include <algorithm>
 
+#include "interp.h"
 #include "matpack_data.h"
 
 namespace matpack {
@@ -18,6 +20,9 @@ struct gridded_data {
 
   template <Size Grid>
   using grid_t = std::tuple_element_t<Grid, grids_t>;
+
+  template <Size Grid>
+  using grid_value_t = typename grid_t<Grid>::value_type;
 
   data_t data;
   grids_t grids;
@@ -93,7 +98,7 @@ struct gridded_data {
       os << "gridded_data (";
     }
 
-    for (Size i: gd.shape()) {
+    for (Size i : gd.shape()) {
       os << i << ", ";
     }
     os << ") {\n";
@@ -146,6 +151,123 @@ struct gridded_data {
   }
 
   auto operator<=>(const gridded_data&) const = default;
+
+  template <Size Grid, my_interp::lagrange_type lag_t>
+  [[nodiscard]] Array<lag_t> lag(const grid_t<Grid>& other,
+                                 Index order,
+                                 Numeric extrapol = 0.5) const
+    requires(Grid < dim and std::remove_cvref_t<lag_t>::runtime_polyorder())
+  {
+    return my_interp::lagrange_interpolation_list<lag_t>(
+        other, grid<Grid>(), order, extrapol);
+  }
+
+  template <Size Grid, my_interp::lagrange_type lag_t>
+  [[nodiscard]] Array<lag_t> lag(const grid_t<Grid>& other,
+                                 Numeric extrapol = 0.5) const
+    requires(Grid < dim and not std::remove_cvref_t<lag_t>::runtime_polyorder())
+  {
+    return my_interp::lagrange_interpolation_list<lag_t>(
+        other, grid<Grid>(), extrapol);
+  }
+
+ private:
+  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  [[nodiscard]] data_t reinterp(const Grids&... other,
+                                Index order,
+                                Numeric extrapol,
+                                std::integer_sequence<Size, sz...>) const {
+    return my_interp::reinterp(data,
+                               lag<sz, lag_ts>(other, order, extrapol)...);
+  }
+
+  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  [[nodiscard]] data_t reinterp(const Grids&... other,
+                                Numeric extrapol,
+                                std::integer_sequence<Size, sz...>) const {
+    return my_interp::reinterp(data, lag<sz, lag_ts>(other, extrapol)...);
+  }
+
+ public:
+  template <my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] data_t reinterp(const Grids&... other,
+                                Index order,
+                                Numeric extrapol = 0.5) const
+    requires(0 < dim and
+             (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
+             sizeof...(lag_ts) == dim)
+  {
+    return reinterp<lag_ts...>(
+        other..., order, extrapol, std::make_integer_sequence<Size, dim>{});
+  }
+
+  template <my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] data_t reinterp(const Grids&... other,
+                                Numeric extrapol = 0.5) const
+    requires(0 < dim and
+             ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
+              ...) and
+             sizeof...(lag_ts) == dim)
+  {
+    return reinterp<lag_ts...>(
+        other..., extrapol, std::make_integer_sequence<Size, dim>{});
+  }
+
+  template <Size Grid, my_interp::lagrange_type lag_t>
+  [[nodiscard]] lag_t lag(const grid_value_t<Grid>& other, Index order) const
+    requires(Grid < dim and std::remove_cvref_t<lag_t>::runtime_polyorder())
+  {
+    return lag_t(
+        std::ranges::lower_bound(grid<Grid>(), other) - grid<Grid>().begin(),
+        other,
+        grid<Grid>(),
+        order);
+  }
+
+  template <Size Grid, my_interp::lagrange_type lag_t>
+  [[nodiscard]] lag_t lag(const grid_value_t<Grid>& other) const
+    requires(Grid < dim and not std::remove_cvref_t<lag_t>::runtime_polyorder())
+  {
+    return lag_t(
+        std::ranges::lower_bound(grid<Grid>(), other) - grid<Grid>().begin(),
+        other,
+        grid<Grid>());
+  }
+
+ private:
+  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  [[nodiscard]] T interp(const Grids::value_type&... other,
+                         Index order,
+                         std::integer_sequence<Size, sz...>) const {
+    return my_interp::interp(data, lag<sz, lag_ts>(other, order)...);
+  }
+
+  template <my_interp::lagrange_type... lag_ts, Size... sz>
+  [[nodiscard]] T interp(const Grids::value_type&... other,
+                         std::integer_sequence<Size, sz...>) const {
+    return my_interp::interp(data, lag<sz, lag_ts>(other)...);
+  }
+
+ public:
+  template <my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] T interp(const Grids::value_type&... other, Index order) const
+    requires(0 < dim and
+             (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
+             sizeof...(lag_ts) == dim)
+  {
+    return interp<lag_ts...>(
+        other..., order, std::make_integer_sequence<Size, dim>{});
+  }
+
+  template <my_interp::lagrange_type... lag_ts>
+  [[nodiscard]] T interp(const Grids::value_type&... other) const
+    requires(0 < dim and
+             ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
+              ...) and
+             sizeof...(lag_ts) == dim)
+  {
+    return interp<lag_ts...>(other..., std::make_integer_sequence<Size, dim>{});
+  }
 };
 }  // namespace matpack
 
