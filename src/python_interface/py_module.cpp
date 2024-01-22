@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 void py_basic(py::module_&);
 void py_matpack(py::module_&);
-void py_ppath(py::module_&);
+void py_path(py::module_& m);
 void py_griddedfield(py::module_&);
 void py_time(py::module_&);
 void py_tessem(py::module_&);
@@ -106,7 +106,7 @@ PYBIND11_MODULE(arts, m) try {
   py_species(m);
   py_quantum(m);
   py_spectroscopy(m);
-  py_ppath(m);
+  py_path(m);
   py_tessem(m);
   py_rte(m);
   py_rtepack(m);

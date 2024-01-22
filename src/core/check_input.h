@@ -18,8 +18,7 @@
   ===========================================================================*/
 
 #include <exceptions.h>
-#include <gridded_fields.h>
-#include <matpack_data.h>
+#include <matpack.h>
 #include <mystring.h>
 
 //! We don't want to depend on all of ARTS in a header file.
@@ -425,10 +424,6 @@ void chk_rte_pos(ConstVectorView rte_pos,
                  const bool& is_rte_pos2 = false);
 
 void chk_rte_los(ConstVectorView rte_los);
-                           
-void chk_griddedfield_gridname(const GriddedField& gf,
-                               const Index gridindex,
-                               const String& gridname);
 
 void chk_met_mm_backend(const Matrix& bdsp);
 

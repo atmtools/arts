@@ -1,6 +1,6 @@
 #include "lbl_lineshape_voigt_ecs.h"
 
-#include <new_jacobian.h>
+#include <jacobian.h>
 #include <physics_funcs.h>
 
 #include <Faddeeva.hh>

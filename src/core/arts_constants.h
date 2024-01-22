@@ -290,6 +290,16 @@ inline constexpr Numeric earth_radius = 6.3781e6;
     \date   2000-12-19
 */
 inline constexpr Numeric temperature_at_0c = 273.15;
+
+/** Newtonian constant of graviation [m^3/(kg s^2)]
+    From: https://physics.nist.gov/cgi-bin/cuu/Value?bg
+    Date: 2024-01-22
+    Reported error: (15)
+    **/
+inline constexpr Numeric gravitational_constant = 6.67430e-11;
+
+/** Newtonian constant of graviation convenience name [m^3/(kg s^2)] **/
+inline constexpr Numeric G = gravitational_constant;
 };  // namespace Constant
 
 #endif

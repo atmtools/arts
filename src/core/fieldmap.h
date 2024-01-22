@@ -34,9 +34,6 @@ concept one_of = (std::same_as<std::remove_cvref_t<T>, Ts> or ...);
  * a std::unordered_map<std::variant<Keys...>, T>.  If something
  * can be done by std::unordered_map but not by this type, please
  * feel free to add it.
- *
- * In addition to that, it should interact well with ARTS concepts,
- * such as Index being the unit of a size.
  * 
  * @tparam T The type of data
  * @tparam Keys Any number of keys so that std::unordered_map<Key, T> is possible
@@ -140,10 +137,12 @@ struct Map {
   constexpr auto keys() const {
     if constexpr (std::same_as<Key, bool>) {
       std::vector<KeyVal> out;
+      out.reserve(size());
       append_keys<Keys...>(out);
       return out;
     } else {
       std::vector<Key> out;
+      out.reserve(size<Key>());
       append_keys<Key>(out);
       return out;
     }

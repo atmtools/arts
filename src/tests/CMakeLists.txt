@@ -14,7 +14,7 @@ target_link_libraries (test_binaryio artsworkspace)
 add_executable (test_gridded_fields
   test_gridded_fields.cc)
 
-target_link_libraries (test_gridded_fields artscore)
+target_link_libraries (test_gridded_fields matpack)
 
 ########### next testcase ###############
 
@@ -132,11 +132,6 @@ target_link_libraries (test_time artsworkspace)
 
 ########### next testcase ###############
 
-add_executable (test_covariance_matrix test_covariance_matrix.cc)
-target_link_libraries(test_covariance_matrix test_utils artsworkspace)
-
-########### next testcase ###############
-
 add_executable (test_telsem test_telsem.cc)
 target_link_libraries(test_telsem artsworkspace)
 
@@ -239,3 +234,9 @@ target_link_libraries(test_rtepack PUBLIC artstime rtepack)
 #####
 add_executable(test_lbl test_lbl.cc)
 target_link_libraries(test_lbl PUBLIC lbl artsworkspace)
+
+#####
+add_executable(test_path_point test_path_point.cc)
+target_link_libraries(test_path_point PUBLIC artstime path)
+add_test(NAME "cpp.fast.test_path_point" COMMAND test_path_point)
+add_dependencies(check-deps test_path_point)

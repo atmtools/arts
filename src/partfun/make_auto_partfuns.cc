@@ -1,5 +1,5 @@
 #include <debug.h>
-#include <gridded_fields.h>
+#include <matpack.h>
 #include <spec/isotopologues.h>
 #include <spec/species.h>
 

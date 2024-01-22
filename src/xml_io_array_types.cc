@@ -95,75 +95,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== ArrayOfRetrievalQuantity =======================================
-
-//! Reads ArrayOfRetrievalQuantity from XML input stream
-/*!
-  \param is_xml    XML Input stream
-  \param arq       ArrayOfRetrievalQuantity return value
-  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(std::istream& is_xml,
-                          ArrayOfRetrievalQuantity& arq,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-  Index nelem;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("Array");
-  tag.check_attribute("type", "RetrievalQuantity");
-
-  tag.get_attribute_value("nelem", nelem);
-  arq.resize(nelem);
-
-  Index n;
-  try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, arq[n], pbifs);
-  } catch (const std::runtime_error& e) {
-    std::ostringstream os;
-    os << "Error reading ArrayOfRetrievalQuantity: "
-       << "\n Element: " << n << "\n"
-       << e.what();
-    throw std::runtime_error(os.str());
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/Array");
-}
-
-//! Writes ArrayOfRetrivalQuantity to XML output stream
-/*!
-  \param os_xml    XML Output stream
-  \param arq       ArrayOfRetrievalQuantity
-  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
-  \param name      Optional name attribute
-*/
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ArrayOfRetrievalQuantity& arq,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("Array");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("type", "RetrievalQuantity");
-  open_tag.add_attribute("nelem", static_cast<Index>(arq.size()));
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (Size n = 0; n < arq.size(); n++)
-    xml_write_to_stream(os_xml, arq[n], pbofs, "");
-
-  close_tag.set_name("/Array");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
 //=== ArrayOfSpeciesTag ================================================
 
 //! Reads ArrayOfSpeciesTag from XML input stream
@@ -431,7 +362,6 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfIndex)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfMatrix)
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPpath)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSingleScatteringData)
@@ -446,3 +376,7 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpecies)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropagationPathPoint)
+
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfNamedGriddedField2)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField1Named)

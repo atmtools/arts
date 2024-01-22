@@ -7,6 +7,7 @@
 #include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_view.h"
+#include "matpack_constexpr.h"
 
 #include <algorithm>
 #include <numeric>
@@ -65,6 +66,18 @@ void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstCompl
  * @param C Any vector
  */
 void cross3(VectorView A, const ConstVectorView& B, const ConstVectorView& C);
+
+/** Computes the 3-dim cross-product of B and C
+ * 
+ * @param A May not point at the same data as B or C
+ * @param B Any vector
+ * @param C Any vector
+ */
+constexpr Vector3 cross3(const Vector3& a, const Vector3& b) {
+  return {a[1] * b[2] - a[2] * b[1],
+   a[2] * b[0] - a[0] * b[2],
+   a[0] * b[1] - a[1] * b[0]};
+}
 
 /** Computes the 3-dim cross-product of B and C
  * 

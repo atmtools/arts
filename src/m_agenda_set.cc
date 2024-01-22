@@ -20,20 +20,8 @@ void iy_cloudbox_agendaSet(Agenda& out, const String& option) {
   out = get_iy_cloudbox_agenda(option);
 }
 
-void ppath_agendaSet(Agenda& out, const String& option) {
-  out = get_ppath_agenda(option);
-}
-
-void ppath_step_agendaSet(Agenda& out, const String& option) {
-  out = get_ppath_step_agenda(option);
-}
-
 void refr_index_air_agendaSet(Agenda& out, const String& option) {
   out = get_refr_index_air_agenda(option);
-}
-
-void water_p_eq_agendaSet(Agenda& out, const String& option) {
-  out = get_water_p_eq_agenda(option);
 }
 
 void gas_scattering_agendaSet(Agenda& out, const String& option) {
@@ -42,10 +30,6 @@ void gas_scattering_agendaSet(Agenda& out, const String& option) {
 
 void surface_rtprop_agendaSet(Agenda& out, const String& option) {
   out = get_surface_rtprop_agenda(option);
-}
-
-void g0_agendaSet(Agenda& out, const String& option) {
-  out = get_g0_agenda(option);
 }
 
 void dobatch_calc_agendaSet(Agenda& out, const String& option) {
@@ -78,14 +62,6 @@ void pha_mat_spt_agendaSet(Agenda& out, const String& option) {
 
 void met_profile_calc_agendaSet(Agenda& out, const String& option) {
   out = get_met_profile_calc_agenda(option);
-}
-
-void main_agendaSet(Agenda& out, const String& option) {
-  out = get_main_agenda(option);
-}
-
-void jacobian_agendaSet(Agenda& out, const String& option) {
-  out = get_jacobian_agenda(option);
 }
 
 void iy_radar_agendaSet(Agenda& out, const String& option) {
@@ -126,4 +102,12 @@ void ppvar_rtprop_agendaSet(Agenda& out, const String& option) {
 
 void rte_background_agendaSet(Agenda& out, const String& option) {
   out = get_rte_background_agenda(option);
+}
+
+void spectral_radiance_background_surface_agendaSet(Agenda& out, const String& option) {
+  out = get_spectral_radiance_background_surface_agenda(option);
+}
+
+void spectral_radiance_background_space_agendaSet(Agenda& out, const String& option) {
+  out = get_spectral_radiance_background_space_agenda(option);
 }

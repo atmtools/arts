@@ -18,6 +18,7 @@ target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
 
 ######
 
+add_subdirectory(atm)
 add_subdirectory(binio)
 add_subdirectory(matpack)
 add_subdirectory(rtepack)
@@ -27,16 +28,15 @@ add_subdirectory(fwd)
 add_subdirectory(lbl)
 add_subdirectory(quantum)
 add_subdirectory(spec)
-add_subdirectory(griddedfield)
 add_subdirectory(artstime)
+add_subdirectory(surface)
+add_subdirectory(path)
 
 ######
 
 add_library(artscore STATIC
   absorption.cc
   absorptionlines.cc
-  atm.cc
-  atm_path.cc
   cia.cc
   check_input.cc
   cloudbox.cc
@@ -48,7 +48,6 @@ add_library(artscore STATIC
   hitran_species.cc
   igrf13.cc
   interpolation.cc
-  jacobian.cc
   jpl_species.cc
   legendre.cc
   linemixing.cc
@@ -63,7 +62,6 @@ add_library(artscore STATIC
   nlte.cc
   physics_funcs.cc
   optproperties.cc
-  ppath_struct.cc
   predefined_absorption_models.cc
   radiation_field.cc
   raw.cc
@@ -71,7 +69,6 @@ add_library(artscore STATIC
   sensor.cc
   special_interp.cc
   sun.cc
-  surf.cc
   telsem.cc
   tessem.cc
   tmatrix.cc
@@ -83,18 +80,20 @@ add_library(artscore STATIC
 
 target_link_libraries(artscore PUBLIC
   artstime
+  atm
   binio
   coretypes
-  griddedfield
   fwd
   lbl
   matpack
   operators
+  path
   predef
   quantum
   rtepack
   species
   species_tags
+  surface
   wigner
 )
 

@@ -12,6 +12,7 @@
 #ifndef _ARTS_OEM_H_
 #define _ARTS_OEM_H_
 
+#include <stdexcept>
 #include <type_traits>
 
 #include "invlib/algebra.h"
@@ -20,6 +21,7 @@
 #include "invlib/interfaces/arts_wrapper.h"
 #include "invlib/map.h"
 #include "invlib/optimization.h"
+#include "jacobian.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Type Aliases
@@ -519,8 +521,9 @@ class AgendaWrapper {
    */
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
     if (!reuse_jacobian_) {
-      inversion_iterate_agendaExecute(
-          *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
+      throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+      // inversion_iterate_agendaExecute(
+      //     *ws_, yi_, jacobian_, xi, 1, iteration_counter_, *inversion_iterate_agenda_);
       yi = yi_;
       iteration_counter_ += 1;
     } else {
@@ -542,13 +545,14 @@ class AgendaWrapper {
   Vector evaluate(const Vector &xi) {
     if (!reuse_jacobian_) {
       Matrix dummy;
-      inversion_iterate_agendaExecute(*ws_,
-                                      yi_,
-                                      dummy,
-                                      xi,
-                                      0,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
+       throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+      // inversion_iterate_agendaExecute(*ws_,
+      //                                 yi_,
+      //                                 dummy,
+      //                                 xi,
+      //                                 0,
+      //                                 iteration_counter_,
+      //                                 *inversion_iterate_agenda_);
     } else {
       reuse_jacobian_ = false;
     }
@@ -668,7 +672,7 @@ void OEM_checks(const Workspace& ws,
                 const CovarianceMatrix& covmat_sx,
                 const Vector& y,
                 const CovarianceMatrix& covmat_se,
-                const ArrayOfRetrievalQuantity& jacobian_quantities,
+                //const ArrayOfRetrievalQuantity& jacobian_quantities,
                 const String& method,
                 const Vector& x_norm,
                 const Index& max_iter,
@@ -676,7 +680,7 @@ void OEM_checks(const Workspace& ws,
                 const Vector& lm_ga_settings,
                 const Index& clear_matrices,
                 const Index& display_progress) {
-  const Index nq = jacobian_quantities.size();
+  // const Index nq = jacobian_quantities.size();
   const Index n = xa.size();
   const Index m = y.size();
 
@@ -699,13 +703,13 @@ void OEM_checks(const Workspace& ws,
 
   ArrayOfArrayOfIndex jacobian_indices;
   bool any_affine;
-  jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  ARTS_USER_ERROR_IF (jacobian_indices.size() != static_cast<Size>(nq),
-        "Different number of elements in *jacobian_quantities* "
-        "and *jacobian_indices*.");
-  ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
-        "Size of *covmat_sx* do not agree with Jacobian "
-        "information (*jacobian_indices*).");
+  // jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
+  // ARTS_USER_ERROR_IF (jacobian_indices.size() != static_cast<Size>(nq),
+  //       "Different number of elements in *jacobian_quantities* "
+  //       "and *jacobian_indices*.");
+  // ARTS_USER_ERROR_IF (nq && jacobian_indices[nq - 1][1] + 1 != n,
+  //       "Size of *covmat_sx* do not agree with Jacobian "
+  //       "information (*jacobian_indices*).");
 
   // Check GINs
   ARTS_USER_ERROR_IF (!(method == "li" || method == "gn" || method == "li_m" ||
@@ -745,13 +749,13 @@ void OEM_checks(const Workspace& ws,
 
   // If necessary compute yf and jacobian.
   if (x.size() == 0) {
-    x = xa;
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
+    x = xa; throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+    // inversion_iterate_agendaExecute(
+    //     ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
   }
-  if ((yf.size() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
+  if ((yf.size() == 0) || (jacobian.empty())) { throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
+    // inversion_iterate_agendaExecute(
+    //     ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
   }
 }
 

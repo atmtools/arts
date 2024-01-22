@@ -476,21 +476,21 @@ void cloudbox_field_monoIterate(const Workspace& ws,
 
     // 2.Calculate scattered field vector for all points in the cloudbox.
 
-    // Calculate the scattered field.
-    doit_scat_field_agendaExecute(
-        ws, doit_scat_field_local, cloudbox_field_mono, doit_scat_field_agenda);
+    // // Calculate the scattered field.
+    // doit_scat_field_agendaExecute(
+    //     ws, doit_scat_field_local, cloudbox_field_mono, doit_scat_field_agenda);
 
-    // Update cloudbox_field.
-    doit_rte_agendaExecute(
-        ws, cloudbox_field_mono, doit_scat_field_local, doit_rte_agenda);
+    // // Update cloudbox_field.
+    // doit_rte_agendaExecute(
+    //     ws, cloudbox_field_mono, doit_scat_field_local, doit_rte_agenda);
 
-    //Convergence test.
-    doit_conv_test_agendaExecute(ws,
-                                 doit_conv_flag_local,
-                                 doit_iteration_counter_local,
-                                 cloudbox_field_mono,
-                                 cloudbox_field_mono_old_local,
-                                 doit_conv_test_agenda);
+    // //Convergence test.
+    // doit_conv_test_agendaExecute(ws,
+    //                              doit_conv_flag_local,
+    //                              doit_iteration_counter_local,
+    //                              cloudbox_field_mono,
+    //                              cloudbox_field_mono_old_local,
+    //                              doit_conv_test_agenda);
 
     // Convergence Acceleration, if wished.
     if (accelerated > 0 && doit_conv_flag_local == 0) {
@@ -694,7 +694,7 @@ void OptimizeDoitPressureGrid(
                                    {},
                                    {},
                                    Vector{f_grid[Range(f_index, 1)]},
-                                   ppath_los_dummy,
+                                   {},
                                    AtmPoint{},  // FIXME: DUMMY VALUE,
                                    propmat_clearsky_agenda);
     abs_coeff += cur_propmat_clearsky[0].A();
@@ -1018,8 +1018,6 @@ void doit_za_interpSet(Index& doit_za_interp,
 void DoitCalc(const Workspace& ws,
               Tensor7& cloudbox_field,
               const Index& atmfields_checked,
-              const Index& atmgeom_checked,
-              const Index& cloudbox_checked,
               const Index& scat_data_checked,
               const Index& cloudbox_on,
               const Vector& f_grid,
@@ -1038,12 +1036,6 @@ void DoitCalc(const Workspace& ws,
   ARTS_USER_ERROR_IF (atmfields_checked != 1,
         "The atmospheric fields must be flagged to have "
         "passed a consistency check (atmfields_checked=1).");
-  ARTS_USER_ERROR_IF (atmgeom_checked != 1,
-        "The atmospheric geometry must be flagged to have "
-        "passed a consistency check (atmgeom_checked=1).");
-  ARTS_USER_ERROR_IF (cloudbox_checked != 1,
-        "The cloudbox must be flagged to have "
-        "passed a consistency check (cloudbox_checked=1).");
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
@@ -1084,11 +1076,11 @@ void DoitCalc(const Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local{
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker)};
-        doit_mono_agendaExecute(ws,
-                                cloudbox_field_mono_local,
-                                f_grid,
-                                f_index,
-                                doit_mono_agenda);
+        // doit_mono_agendaExecute(ws,
+        //                         cloudbox_field_mono_local,
+        //                         f_grid,
+        //                         f_index,
+        //                         doit_mono_agenda);
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
             cloudbox_field_mono_local;
       } catch (const std::exception& e) {

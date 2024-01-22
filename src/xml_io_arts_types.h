@@ -23,8 +23,10 @@
 // Extras
 #include "jacobian.h"
 #include "linemixing.h"
+#include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
+#include "path_point.h"
 #include "template_partfun.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
@@ -39,7 +41,7 @@
 //=== Basic Types ==========================================================
 
 TMPL_XML_READ_WRITE_STREAM(PartitionFunctionsData)
-TMPL_XML_READ_WRITE_STREAM(JacobianTarget)
+TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
 TMPL_XML_READ_WRITE_STREAM(Rational)
 TMPL_XML_READ_WRITE_STREAM(Time)
 TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
@@ -55,25 +57,28 @@ TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(AtmField)
 TMPL_XML_READ_WRITE_STREAM(AtmPoint)
 TMPL_XML_READ_WRITE_STREAM(CIARecord)
+TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
 TMPL_XML_READ_WRITE_STREAM(CovarianceMatrix)
 TMPL_XML_READ_WRITE_STREAM(GasAbsLookup)
-TMPL_XML_READ_WRITE_STREAM(GriddedField)
 TMPL_XML_READ_WRITE_STREAM(GriddedField1)
+TMPL_XML_READ_WRITE_STREAM(GriddedField1Named)
 TMPL_XML_READ_WRITE_STREAM(GriddedField2)
+TMPL_XML_READ_WRITE_STREAM(ComplexGriddedField2)
+TMPL_XML_READ_WRITE_STREAM(NamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM(GriddedField3)
+TMPL_XML_READ_WRITE_STREAM(NamedGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(GriddedField4)
 TMPL_XML_READ_WRITE_STREAM(GriddedField5)
 TMPL_XML_READ_WRITE_STREAM(GriddedField6)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
 TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
+TMPL_XML_READ_WRITE_STREAM(PropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
 TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(LinemixingEcsData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
-TMPL_XML_READ_WRITE_STREAM(Ppath)
 TMPL_XML_READ_WRITE_STREAM(PredefinedModelData)
 TMPL_XML_READ_WRITE_STREAM(QuantumIdentifier)
-TMPL_XML_READ_WRITE_STREAM(RetrievalQuantity)
 TMPL_XML_READ_WRITE_STREAM(ScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(SLIData2)
 TMPL_XML_READ_WRITE_STREAM(SingleScatteringData)
@@ -85,6 +90,7 @@ TMPL_XML_READ_WRITE_STREAM(SurfacePoint)
 TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
+TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
 
 //=== Array Types ==========================================================
 
@@ -103,14 +109,14 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSpeciesTag)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfCIARecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField1)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField1Named)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField2)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfNamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfJacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfPpath)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfRetrievalQuantity)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)

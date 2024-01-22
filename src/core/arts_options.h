@@ -66,20 +66,6 @@ ENUMCLASS(iy_cloudbox_agendaDefaultOptions,
           LinInterpField,
           QuarticInterpField)
 
-/** Options for setting ppath_agenda */
-ENUMCLASS(ppath_agendaDefaultOptions,
-          char,
-          FollowSensorLosPath,
-          PlaneParallel,
-          TransmitterReceiverPath,
-          Geometric)
-
-/** Options for setting ppath_step_agenda */
-ENUMCLASS(ppath_step_agendaDefaultOptions,
-          char,
-          GeometricPath,
-          RefractedPath)
-
 /** Options for setting refr_index_air_agenda */
 ENUMCLASS(refr_index_air_agendaDefaultOptions,
           char,
@@ -90,11 +76,6 @@ ENUMCLASS(refr_index_air_agendaDefaultOptions,
           FreeElectrons,
           GasMicrowavesGeneralAndElectrons,
           GasMicrowavesEarthAndElectrons)
-
-/** Options for setting water_p_eq_agenda */
-ENUMCLASS(water_p_eq_agendaDefaultOptions,
-          char,
-          MK05)
 
 /** Options for setting gas_scattering_agenda */
 ENUMCLASS(gas_scattering_agendaDefaultOptions,
@@ -111,15 +92,6 @@ ENUMCLASS(surface_rtprop_agendaDefaultOptions,
           Specular_WithPol_ReflFix_SurfTFromt_surface,
           lambertian_ReflFix_SurfTFromt_surface,
           lambertian_ReflFix_SurfTFromt_field)
-
-/** Options for setting g0_agenda */
-ENUMCLASS(g0_agendaDefaultOptions,
-          char,
-          Earth,
-          Io,
-          Jupiter,
-          Mars,
-          Venus)
 
 /** Options for setting dobatch_calc_agenda */
 ENUMCLASS(dobatch_calc_agendaDefaultOptions, char)
@@ -144,12 +116,6 @@ ENUMCLASS(pha_mat_spt_agendaDefaultOptions, char)
 
 /** Options for setting met_profile_calc_agenda */
 ENUMCLASS(met_profile_calc_agendaDefaultOptions, char)
-
-/** Options for setting main_agenda */
-ENUMCLASS(main_agendaDefaultOptions, char)
-
-/** Options for setting jacobian_agenda */
-ENUMCLASS(jacobian_agendaDefaultOptions, char)
 
 /** Options for setting iy_radar_agenda */
 ENUMCLASS(iy_radar_agendaDefaultOptions, char)
@@ -189,6 +155,13 @@ ENUMCLASS(planetDefaultOptions,
           Jupiter,
           Mars,
           Venus)
+
+/** Options for surface background radiance agenda */
+ENUMCLASS(spectral_radiance_background_surface_agendaDefaultOptions, char, Blackbody)
+
+/** Options for space background radiance agenda */
+ENUMCLASS(spectral_radiance_background_space_agendaDefaultOptions, char, UniformCosmicBackground)
+
 }  // namespace Options
 
 #endif

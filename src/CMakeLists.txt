@@ -139,7 +139,6 @@ add_library (artsworkspace STATIC
   m_append.cc
   m_array.cc
   m_artstime.cc
-  m_atmosphere.cc
   m_atm.cc
   m_background.cc
   m_basic_types.cc
@@ -159,7 +158,6 @@ add_library (artsworkspace STATIC
   m_general.cc
   m_geodetic.cc
   m_xsec_fit.cc
-  m_jacobian.cc
   m_jactargets.cc
   m_lbl.cc
   m_linemixing.cc
@@ -174,17 +172,15 @@ add_library (artsworkspace STATIC
   m_physics.cc
   m_planets.cc
   m_poslos.cc
-  m_ppath.cc
   m_ppvar.cc
+  m_propagation_path.cc
   m_psd.cc
   m_raw.cc
   m_reduce.cc
   m_refraction.cc
-  m_retrieval.cc
   m_rad.cc
   m_rt4.cc
   m_rte.cc
-  m_retrieval.cc
   m_select.cc
   m_sensor.cc
   m_sizes.cc
@@ -199,7 +195,6 @@ add_library (artsworkspace STATIC
   m_xml.cc
   m_zeeman.cc
   montecarlo.cc
-  ppath.cc
   psd.cc
   rt4.cc
   rte.cc

@@ -14,16 +14,20 @@ class TestAgendas:
     """
     Tests the calling of ARTS workspace methods.
     """
-    
+
     def test_planet_set(self):
-        options = pyarts.arts.options.planetDefaultOptions.get_options_as_strings()
+        options = (
+            pyarts.arts.options.planetDefaultOptions.get_options_as_strings()
+        )
 
         ws = pyarts.workspace.Workspace()
         for opt in options:
-            assert opt in ws.PlanetSet.__doc__, f"The {opt}-option is not documented correctly"
-            ws.PlanetSet(option=opt)
+            assert (
+                opt in ws.surface_fieldSetPlanetEllipsoid.__doc__
+            ), f"The {opt}-option is not documented correctly"
+            ws.surface_fieldSetPlanetEllipsoid(option=opt)
 
 
 if __name__ == "__main__":
-    pass
-
+    x = TestAgendas()
+    x.test_planet_set()

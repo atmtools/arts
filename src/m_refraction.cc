@@ -21,6 +21,7 @@
 
 #include "arts_constants.h"
 #include "check_input.h"
+#include "configtypes.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "refraction.h"
@@ -276,7 +277,7 @@ void refr_index_airMicrowavesGeneral(
   refr_index_air_group += n;
 }
 
-void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index,
+void complex_refr_indexWaterVisibleNIRHarvey98(ComplexGriddedField2& complex_refr_index,
                                 const Vector& data_f_grid,
                                 const Vector& data_t_grid,
                                 const Vector& density_water,    //Gin
@@ -290,13 +291,9 @@ void complex_refr_indexWaterVisibleNIRHarvey98(GriddedField3& complex_refr_index
 density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
 )--")
 
-  complex_refr_index.resize(N_f, N_t, 2);
-  complex_refr_index.set_grid_name(0, "Frequency");
-  complex_refr_index.set_grid(0, data_f_grid);
-  complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, data_t_grid);
-  complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
+  complex_refr_index.resize(N_f, N_t);
+  complex_refr_index.grid_names = {"Frequency", "Temperature"};
+  complex_refr_index.grids = {data_f_grid, data_t_grid};
 
   Numeric refractive_index;
   Numeric density = density_water[0];
@@ -311,10 +308,9 @@ density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
                                               data_t_grid[i_t],
                                               density);
 
-      complex_refr_index.data(i_f, i_t, 0) = refractive_index;
+      complex_refr_index.data(i_f, i_t) = refractive_index;
     }
   }
-  complex_refr_index.data(joker, joker, 1) = 0.;
 }
 
 /*===========================================================================
@@ -322,23 +318,18 @@ density_water must be a Vector of size 1 or must be of the size of *data_t_grid*
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_refr_indexConstant(GriddedField3& complex_refr_index,
+void complex_refr_indexConstant(ComplexGriddedField2& complex_refr_index,
                                 const Numeric& refr_index_real,
                                 const Numeric& refr_index_imag) {
-  complex_refr_index.resize(1, 1, 2);
-  complex_refr_index.set_grid_name(0, "Frequency");
-  complex_refr_index.set_grid(0, Vector(1, 0));
-  complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, Vector(1, 0));
-  complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
+  complex_refr_index.resize(1, 1);
+  complex_refr_index.grid_names = {"Frequency", "Temperature"};
+  complex_refr_index.grids = {Vector{0.}, Vector{0.}};
 
-  complex_refr_index.data(joker, joker, 0) = refr_index_real;
-  complex_refr_index.data(joker, joker, 1) = refr_index_imag;
+  complex_refr_index.data(joker, joker) = Complex{refr_index_real, refr_index_imag};
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
+void complex_refr_indexWaterLiebe93(ComplexGriddedField2& complex_refr_index,
                                     const Vector& f_grid,
                                     const Vector &t_grid) {
   if (min(t_grid) < 250) {
@@ -347,23 +338,19 @@ void complex_refr_indexWaterLiebe93(GriddedField3& complex_refr_index,
   const Index nf = f_grid.size();
   const Index nt = t_grid.size();
 
-  complex_refr_index.resize(nf, nt, 2);
-  complex_refr_index.set_grid_name(0, "Frequency");
-  complex_refr_index.set_grid(0, f_grid);
-  complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, t_grid);
-  complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
+  complex_refr_index.resize(nf, nt);
+  complex_refr_index.grid_names = {"Frequency", "Temperature"};
+  complex_refr_index.grids = {f_grid, t_grid};
 
   Matrix complex_n;
   for (Index t = 0; t < nt; ++t) {
     complex_n_water_liebe93(complex_n, f_grid, t_grid[t]);
-    complex_refr_index.data(joker, t, joker) = complex_n;
+    for (Index iv=0; iv<nf; iv++) complex_refr_index.data(iv, t) = Complex{complex_n(iv, 0), complex_n(iv, 1)};
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
+void complex_refr_indexIceMatzler06(ComplexGriddedField2& complex_refr_index,
                                     const Vector& f_grid,
                                     const Vector& t_grid) {
   const Index nf = f_grid.size();
@@ -385,23 +372,19 @@ void complex_refr_indexIceMatzler06(GriddedField3& complex_refr_index,
   chk_if_in_range(
       "max of complex_refr_index t_grid", max(t_grid), t_min, t_max);
 
-  complex_refr_index.resize(nf, nt, 2);
-  complex_refr_index.set_grid_name(0, "Frequency");
-  complex_refr_index.set_grid(0, f_grid);
-  complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, t_grid);
-  complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
+  complex_refr_index.resize(nf, nt);
+  complex_refr_index.grid_names = {"Frequency", "Temperature"};
+  complex_refr_index.grids = {f_grid, t_grid};
 
   Matrix complex_n;
   for (Index i_t = 0; i_t < nt; ++i_t) {
     complex_n_ice_matzler06(complex_n, f_grid, t_grid[i_t]);
-    complex_refr_index.data(joker, i_t, joker) = complex_n;
+    for (Index iv=0; iv<nf; iv++) complex_refr_index.data(iv, i_t) = Complex{complex_n(iv, 0), complex_n(iv, 1)};
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
+void complex_refr_indexTemperatureConstant(ComplexGriddedField2& complex_refr_index,
                                  const Vector& f_grid,
                                  const Vector& refr_index_real,
                                  const Vector& refr_index_imag,
@@ -411,14 +394,10 @@ void complex_refr_indexTemperatureConstant(GriddedField3& complex_refr_index,
 
   const Index nf = f_grid.size();
 
-  complex_refr_index.resize(nf, 1, 2);
-  complex_refr_index.set_grid_name(0, "Frequency");
-  complex_refr_index.set_grid(0, f_grid);
-  complex_refr_index.set_grid_name(1, "Temperature");
-  complex_refr_index.set_grid(1, Vector(1, temperature));
-  complex_refr_index.set_grid_name(2, "Complex");
-  complex_refr_index.set_grid(2, ArrayOfString{"real", "imaginary"});
+  complex_refr_index.resize(nf, 1);
+  complex_refr_index.grid_names = {"Frequency", "Temperature"};
+  complex_refr_index.grids = {f_grid, Vector{temperature}};
 
-  complex_refr_index.data(joker, 0, 0) = refr_index_real;
-  complex_refr_index.data(joker, 0, 1) = refr_index_imag;
+  complex_refr_index(joker, 0).real() = refr_index_real;
+  complex_refr_index(joker, 0).imag() = refr_index_imag;
 }

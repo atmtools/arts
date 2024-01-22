@@ -123,16 +123,16 @@ void cloud_fieldsCalc(const Workspace& ws,
 
         //Calculate optical properties for individual scattering elements:
         //( Execute agendas silently. )
-        spt_calc_agendaExecute(ws,
-                               ext_mat_spt_local,
-                               abs_vec_spt_local,
-                               scat_p_index_local,
-                               scat_lat_index_local,
-                               scat_lon_index_local,
-                               rtp_temperature_local,
-                               za_index,
-                               aa_index,
-                               spt_calc_agenda);
+        // spt_calc_agendaExecute(ws,
+        //                        ext_mat_spt_local,
+        //                        abs_vec_spt_local,
+        //                        scat_p_index_local,
+        //                        scat_lat_index_local,
+        //                        scat_lon_index_local,
+        //                        rtp_temperature_local,
+        //                        za_index,
+        //                        aa_index,
+        //                        spt_calc_agenda);
         /*
 // so far missing here (accessed through workspace within agenda):
 // - scat_data
@@ -151,14 +151,14 @@ void cloud_fieldsCalc(const Workspace& ws,
                                         );
 */
 
-        opt_prop_bulkCalc(ext_mat_local,
-                          abs_vec_local,
-                          ext_mat_spt_local,
-                          abs_vec_spt_local,
-                          Tensor4{pnd_field},
-                          scat_p_index_local,
-                          scat_lat_index_local,
-                          scat_lon_index_local);
+        // opt_prop_bulkCalc(ext_mat_local,
+        //                   abs_vec_local,
+        //                   ext_mat_spt_local,
+        //                   abs_vec_spt_local,
+        //                   scat_p_index_local,
+        //                   scat_lat_index_local,
+        //                   scat_lon_index_local,
+        //                   Tensor4{pnd_field});
 
         // Store coefficients in arrays for the whole cloudbox.
         auto mmat = rtepack::to_muelmat(ext_mat_local[0]);
@@ -173,77 +173,6 @@ void cloud_fieldsCalc(const Workspace& ws,
       }
     }
   }
-}
-
-void cloud_RT_surface(const Workspace& ws,
-                      //Output
-                      Tensor6View cloudbox_field_mono,
-                      //Input
-                      const Agenda& surface_rtprop_agenda,
-                      ConstVectorView f_grid,
-                      const Index& f_index,
-                      const Ppath& ppath_step,
-                      const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView za_grid,
-                      const Index& za_index) {
-
-  Matrix iy;
-
-  // Local output of surface_rtprop_agenda.
-  SurfacePoint surface_point;
-  Matrix surface_emission;
-  Matrix surface_los;
-  Tensor4 surface_rmatrix;
-
-  //Set rte_pos and rte_los to match the last point in ppath.
-
-  Index np = ppath_step.np;
-
-  Vector rte_pos;  // ppath_step.pos contains two columns for 1D
-  rte_pos.resize(ppath_step.dim);
-  rte_pos = ppath_step.pos(np - 1, Range(0, ppath_step.dim));
-
-  Vector rte_los;
-  rte_los.resize(ppath_step.los.ncols());
-  rte_los = ppath_step.los(np - 1, joker);
-
-  //Execute the surface_rtprop_agenda which gives the surface
-  //parameters.
-  surface_rtprop_agendaExecute(ws,
-                               surface_point,
-                               surface_emission,
-                               surface_los,
-                               surface_rmatrix,
-                               Vector(1, f_grid[f_index]),
-                               rte_pos,
-                               rte_los,
-                               surface_rtprop_agenda);
-
-  iy = surface_emission;
-
-  Index nlos = surface_los.nrows();
-
-  if (nlos > 0) {
-    Vector rtmp(4);  // Reflected Stokes vector for 1 frequency
-
-    for (Index ilos = 0; ilos < nlos; ilos++) {
-      // Several things needs to be fixed here. As far as I understand it,
-      // this works only for specular cases and if the lower cloudbox limit
-      // is exactly at the surface (PE, 120828)
-
-      mult(rtmp,
-           surface_rmatrix(ilos, 0, joker, joker),
-           cloudbox_field_mono(cloudbox_limits[0],
-                             0,
-                             0,
-                             (za_grid.nelem() - 1 - za_index),
-                             0,
-                             joker));
-      iy(0, joker) += rtmp;
-    }
-  }
-  cloudbox_field_mono(cloudbox_limits[0], 0, 0, za_index, 0, joker) =
-      iy(0, joker);
 }
 
 void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
@@ -318,152 +247,6 @@ void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
       cloudbox_field_mono(joker, 0, 0, joker, 0, i) = Q1;
     }
   }
-}
-
-void interp_cloud_coeff1D(  //Output
-    Tensor3View ext_mat_int,
-    MatrixView abs_vec_int,
-    MatrixView sca_vec_int,
-    MatrixView cloudbox_field_mono_int,
-    VectorView t_int,
-    MatrixView vmr_list_int,
-    VectorView p_int,
-    //Input
-    ConstTensor5View ext_mat_field,
-    ConstTensor4View abs_vec_field,
-    ConstTensor6View doit_scat_field,
-    ConstTensor6View cloudbox_field_mono,
-    ConstTensor3View t_field,
-    ConstTensor4View vmr_field,
-    ConstVectorView p_grid,
-    const Ppath& ppath_step,
-    const ArrayOfIndex& cloudbox_limits,
-    ConstVectorView za_grid,
-    const Index& scat_za_interp) {
-  // Gridpositions inside the cloudbox.
-  // The optical properties are stored only inside the
-  // cloudbox. For interpolation we use grids
-  // inside the cloudbox.
-  ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
-
-  for (Index i = 0; i < ppath_step.np; i++)
-    cloud_gp_p[i].idx -= cloudbox_limits[0];
-
-  // Grid index for points at upper limit of cloudbox must be shifted
-  const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-  gridpos_upperend_check(cloud_gp_p[0], n1);
-  gridpos_upperend_check(cloud_gp_p[ppath_step.np - 1], n1);
-
-  Matrix itw(cloud_gp_p.size(), 2);
-  interpweights(itw, cloud_gp_p);
-
-  // The zenith angles of the propagation path are needed as we have to
-  // interpolate the intensity field and the scattered field on the
-  // right angles.
-  Vector los_grid{ppath_step.los(joker, 0)};
-
-  ArrayOfGridPos gp_za(los_grid.nelem());
-  gridpos(gp_za, za_grid, los_grid);
-
-  Matrix itw_p_za(cloud_gp_p.size(), 4);
-  interpweights(itw_p_za, cloud_gp_p, gp_za);
-
-  // Calculate the average of the coefficients for the layers
-  // to be considered in the
-  // radiative transfer calculation.
-
-  for (Index i = 0; i < 4; i++) {
-    // Extinction matrix requires a second loop
-    // over 4
-    for (Index j = 0; j < 4; j++) {
-      //
-      // Interpolation of ext_mat
-      //
-      interp(ext_mat_int(i, j, joker),
-             itw,
-             ext_mat_field(joker, 0, 0, i, j),
-             cloud_gp_p);
-    }
-    // Particle absorption vector:
-    //
-    // Interpolation of abs_vec
-    //  //
-    interp(
-        abs_vec_int(i, joker), itw, abs_vec_field(joker, 0, 0, i), cloud_gp_p);
-    //
-    // Scattered field:
-    //
-    //
-
-    if (scat_za_interp == 0)  // linear interpolation
-    {
-      interp(sca_vec_int(i, joker),
-             itw_p_za,
-             doit_scat_field(joker, 0, 0, joker, 0, i),
-             cloud_gp_p,
-             gp_za);
-      interp(cloudbox_field_mono_int(i, joker),
-             itw_p_za,
-             cloudbox_field_mono(joker, 0, 0, joker, 0, i),
-             cloud_gp_p,
-             gp_za);
-    } else if (scat_za_interp == 1)  //polynomial interpolation
-    {
-      // These intermediate variables are needed because polynomial
-      // interpolation is not implemented as multidimensional
-      // interpolation.
-      Tensor3 sca_vec_int_za(
-          4, ppath_step.np, za_grid.nelem(), 0.);
-      Tensor3 cloudbox_field_mono_int_za(
-          4, ppath_step.np, za_grid.nelem(), 0.);
-      for (Index za = 0; za < za_grid.nelem(); za++) {
-        interp(sca_vec_int_za(i, joker, za),
-               itw,
-               doit_scat_field(joker, 0, 0, za, 0, i),
-               cloud_gp_p);
-        interp(cloudbox_field_mono_int_za(i, joker, za),
-               itw,
-               cloudbox_field_mono(joker, 0, 0, za, 0, i),
-               cloud_gp_p);
-      }
-      for (Index ip = 0; ip < ppath_step.np; ip++) {
-        sca_vec_int(i, ip) = interp_poly(za_grid,
-                                         sca_vec_int_za(i, ip, joker),
-                                         los_grid[ip],
-                                         gp_za[ip]);
-        cloudbox_field_mono_int(i, ip) =
-            interp_poly(za_grid,
-                        cloudbox_field_mono_int_za(i, ip, joker),
-                        los_grid[ip],
-                        gp_za[ip]);
-      }
-    }
-  }
-  //
-  // Planck function
-  //
-  // Interpolate temperature field
-  //
-  interp(t_int, itw, t_field(joker, 0, 0), ppath_step.gp_p);
-  //
-  // The vmr_field is needed for the gaseous absorption
-  // calculation.
-  //
-  const Index N_species = vmr_field.nbooks();
-  //
-  // Interpolated vmr_list, holds a vmr_list for each point in
-  // ppath_step.
-  //
-  Vector vmr_int(ppath_step.np);
-
-  for (Index i_sp = 0; i_sp < N_species; i_sp++) {
-    interp(vmr_int, itw, vmr_field(i_sp, joker, 0, 0), ppath_step.gp_p);
-    vmr_list_int(i_sp, joker) = vmr_int;
-  }
-  //
-  // Interpolate pressure
-  //
-  itw2p(p_int, p_grid, ppath_step.gp_p, itw);
 }
 
 void za_gridOpt(  //Output:

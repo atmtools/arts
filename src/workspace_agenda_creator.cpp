@@ -63,7 +63,7 @@ Agenda get_iy_main_agenda(const std::string& option) {
       agenda.add("ppvar_rtprop_agendaExecute");
       agenda.add("background_transmittanceFromBack");
       agenda.add("rte_background_agendaExecute");
-      agenda.add("ppvar_radCalcEmission");
+      agenda.add("spectral_radiance_pathCalcEmission");
       agenda.add("iyCopyPath");
       agenda.add("diy_dxTransform");
       agenda.add("iyUnitConversion");
@@ -146,49 +146,6 @@ Agenda get_iy_cloudbox_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-Agenda get_ppath_agenda(const std::string& option) {
-  AgendaCreator agenda("ppath_agenda");
-
-  using enum Options::ppath_agendaDefaultOptions;
-  switch (Options::toppath_agendaDefaultOptionsOrThrow(option)) {
-    case Geometric:
-      agenda.add("ppathGeometric");
-      break;
-    case FollowSensorLosPath:
-      agenda.add("ppathStepByStep");
-      break;
-    case PlaneParallel:
-      agenda.add("ppathPlaneParallel");
-      break;
-    case TransmitterReceiverPath:
-      agenda.add("rte_losGeometricFromRtePosToRtePos2");
-      agenda.add("ppathFromRtePos2");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_ppath_step_agenda(const std::string& option) {
-  AgendaCreator agenda("ppath_step_agenda");
-
-  using enum Options::ppath_step_agendaDefaultOptions;
-  switch (Options::toppath_step_agendaDefaultOptionsOrThrow(option)) {
-    case GeometricPath:
-      agenda.add("ppath_stepGeometric");
-      break;
-    case RefractedPath:
-      agenda.add("ppath_stepRefractionBasic");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
 Agenda get_refr_index_air_agenda(const std::string& option) {
   AgendaCreator agenda("refr_index_air_agenda");
 
@@ -229,21 +186,6 @@ Agenda get_refr_index_air_agenda(const std::string& option) {
       agenda.set("refr_index_air_group", Numeric{1.0});
       agenda.add("refr_index_airMicrowavesEarth");
       agenda.add("refr_index_airFreeElectrons");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_water_p_eq_agenda(const std::string& option) {
-  AgendaCreator agenda("water_p_eq_agenda");
-
-  using enum Options::water_p_eq_agendaDefaultOptions;
-  switch (Options::towater_p_eq_agendaDefaultOptionsOrThrow(option)) {
-    case MK05:
-      agenda.add("water_p_eq_fieldMK05");
       break;
     case FINAL:
       break;
@@ -303,33 +245,6 @@ Agenda get_surface_rtprop_agenda(const std::string& option) {
       agenda.add("surface_pointFromAtm");
       agenda.add("specular_losCalc");
       agenda.add("surfaceLambertianSimple");
-      break;
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_g0_agenda(const std::string& option) {
-  AgendaCreator agenda("g0_agenda");
-
-  using enum Options::g0_agendaDefaultOptions;
-  switch (Options::tog0_agendaDefaultOptionsOrThrow(option)) {
-    case Earth:
-      agenda.add("g0Earth");
-      break;
-    case Io:
-      agenda.add("g0Io");
-      break;
-    case Jupiter:
-      agenda.add("g0Jupiter");
-      break;
-    case Mars:
-      agenda.add("g0Mars");
-      break;
-    case Venus:
-      agenda.add("g0Venus");
       break;
     case FINAL:
       break;
@@ -429,30 +344,6 @@ Agenda get_met_profile_calc_agenda(const std::string& option) {
 
   using enum Options::met_profile_calc_agendaDefaultOptions;
   switch (Options::tomet_profile_calc_agendaDefaultOptionsOrThrow(option)) {
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_main_agenda(const std::string& option) {
-  AgendaCreator agenda("main_agenda");
-
-  using enum Options::main_agendaDefaultOptions;
-  switch (Options::tomain_agendaDefaultOptionsOrThrow(option)) {
-    case FINAL:
-      break;
-  }
-
-  return std::move(agenda).finalize();
-}
-
-Agenda get_jacobian_agenda(const std::string& option) {
-  AgendaCreator agenda("jacobian_agenda");
-
-  using enum Options::jacobian_agendaDefaultOptions;
-  switch (Options::tojacobian_agendaDefaultOptionsOrThrow(option)) {
     case FINAL:
       break;
   }
@@ -564,7 +455,7 @@ Agenda get_ppvar_rtprop_agenda(const std::string& option) {
   switch (Options::toppvar_rtprop_agendaDefaultOptionsOrThrow(option)) {
     case Propmat:
       agenda.add("ppvar_propmatCalc");
-      agenda.add("ppvar_srcFromPropmat");
+      agenda.add("spectral_radiance_path_sourceFromPropmat");
       agenda.add("ppvar_tramatCalc");
       agenda.add("ppvar_cumtramatForward");
       break;
@@ -583,6 +474,36 @@ Agenda get_rte_background_agenda(const std::string& option) {
     case ByPath:
       agenda.add("iyBackground");
       agenda.add("background_radFromMatrix", "iy_mat=iy");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_spectral_radiance_background_space_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+
+  using enum Options::spectral_radiance_background_space_agendaDefaultOptions;
+  switch (Options::tospectral_radiance_background_space_agendaDefaultOptionsOrThrow(option)) {
+    case UniformCosmicBackground:
+      agenda.add("spectral_radiance_backgroundUniformCosmicBackground");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_spectral_radiance_background_surface_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+
+  using enum Options::spectral_radiance_background_surface_agendaDefaultOptions;
+  switch (Options::tospectral_radiance_background_surface_agendaDefaultOptionsOrThrow(option)) {
+    case Blackbody:
+      agenda.add("spectral_radiance_backgroundSurfaceBlackbody");
       break;
     case FINAL:
       break;

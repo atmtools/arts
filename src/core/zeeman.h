@@ -7,7 +7,7 @@
  */
 
 #include "atm.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "nlte.h"
 #include "species_tags.h"
 

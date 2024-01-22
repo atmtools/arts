@@ -2,7 +2,7 @@
 
 #include "py_macros.h"
 
-#include "new_jacobian.h"
+#include "jacobian.h"
 
 namespace Python {
 void py_jac(py::module_& m) try {

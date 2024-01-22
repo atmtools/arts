@@ -48,6 +48,8 @@ TMPL_XML_READ_WRITE_STREAM(Tensor5)
 TMPL_XML_READ_WRITE_STREAM(Tensor6)
 TMPL_XML_READ_WRITE_STREAM(Tensor7)
 TMPL_XML_READ_WRITE_STREAM(Vector)
+TMPL_XML_READ_WRITE_STREAM(Vector2)
+TMPL_XML_READ_WRITE_STREAM(Vector3)
 
 //==========================================================================
 

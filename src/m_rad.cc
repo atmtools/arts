@@ -1,65 +1,74 @@
 #include <atm.h>
-#include <new_jacobian.h>
+#include <jacobian.h>
+#include <path_point.h>
 #include <physics_funcs.h>
-#include <ppath_struct.h>
 #include <rtepack.h>
 #include <surf.h>
 #include <workspace.h>
 
-void dradEmpty(StokvecMatrix &drad,
-               const Vector &f_grid,
-               const JacobianTargets &jacobian_targets) {
-  drad.resize(jacobian_targets.x_size(), f_grid.nelem());
-  drad = Stokvec{0.0, 0.0, 0.0, 0.0};
+#include <algorithm>
+
+#include "debug.h"
+#include "fwd.h"
+
+void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
+                                     const Vector &f_grid,
+                                     const JacobianTargets &jacobian_targets) {
+  spectral_radiance_jacobian.resize(jacobian_targets.x_size(), f_grid.nelem());
+  spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 
-void dradFromBackground(StokvecMatrix &drad,
-                        const StokvecMatrix &background_drad,
-                        const MuelmatVector &background_transmittance) {
+void spectral_radiance_jacobianFromBackground(
+    StokvecMatrix &spectral_radiance_jacobian,
+    const StokvecMatrix &spectral_radiance_background_jacobian,
+    const MuelmatVector &background_transmittance) {
   ARTS_USER_ERROR_IF(
-      background_drad.ncols() != background_transmittance.nelem(),
-      "background_drad must have same number of rows as the "
+      spectral_radiance_background_jacobian.ncols() !=
+          background_transmittance.nelem(),
+      "spectral_radiance_background_jacobian must have same number of rows as the "
       "size of jacobian_targets")
 
   //! The radiance derivative shape is the background shape
-  drad.resize(background_drad.shape());
+  spectral_radiance_jacobian.resize(
+      spectral_radiance_background_jacobian.shape());
 
   //! Set the background radiance derivative as that which is seen after "this" swath
-  for (Index i = 0; i < drad.nrows(); i++) {
+  for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
     std::transform(background_transmittance.begin(),
                    background_transmittance.end(),
-                   background_drad[i].begin(),
-                   drad[i].begin(),
+                   spectral_radiance_background_jacobian[i].begin(),
+                   spectral_radiance_jacobian[i].begin(),
                    std::multiplies<>());
   }
 }
 
-void dradAddPathPropagation(StokvecMatrix &drad,
-                            const ArrayOfStokvecMatrix &ppvar_drad,
-                            const JacobianTargets &jacobian_targets,
-                            const AtmField &atm_field,
-                            const Ppath &ppath) {
-  const auto np = ppvar_drad.size();
-  const auto nj = drad.nrows();
-  const auto nf = drad.ncols();
+void spectral_radiance_jacobianAddPathPropagation(
+    StokvecMatrix &spectral_radiance_jacobian,
+    const ArrayOfStokvecMatrix &spectral_radiance_path_jacobian,
+    const JacobianTargets &jacobian_targets,
+    const AtmField &atm_field,
+    const ArrayOfPropagationPathPoint &propagation_path) {
+  const auto np = spectral_radiance_path_jacobian.size();
+  const auto nj = spectral_radiance_jacobian.nrows();
+  const auto nf = spectral_radiance_jacobian.ncols();
 
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(drad.nrows()) != jacobian_targets.x_size(),
-      "Bad size of drad, it's inner dimension should match the size of jacobian_targets")
+      static_cast<Size>(spectral_radiance_jacobian.nrows()) !=
+          jacobian_targets.x_size(),
+      "Bad size of spectral_radiance_jacobian, it's inner dimension should match the size of jacobian_targets")
 
   ARTS_USER_ERROR_IF(
-      static_cast<Size>(ppath.pos.nrows()) != np,
-      "ppath.pos must have same number of rows as the size of ppvar_drad")
-  ARTS_USER_ERROR_IF(ppath.pos.ncols() != 3, "ppath.pos must have 3 columns")
+      propagation_path.size() != np,
+      "propagation_path must have same size as the size of spectral_radiance_path_jacobian")
 
-  for (auto &dr : ppvar_drad) {
+  for (auto &dr : spectral_radiance_path_jacobian) {
     ARTS_USER_ERROR_IF(
         dr.nrows() != nj,
-        "ppvar_drad elements must have same number of rows as the size of "
+        "spectral_radiance_path_jacobian elements must have same number of rows as the size of "
         "jacobian_targets")
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf,
-        "ppvar_drad elements must have same number of columns as the size of "
+        "spectral_radiance_path_jacobian elements must have same number of columns as the size of "
         "cumulative_transmission")
   }
 
@@ -68,13 +77,11 @@ void dradAddPathPropagation(StokvecMatrix &drad,
 
   //! The altitude, latitude and longitude vectors must be copied because of how atm_field works
   const auto [alt, lat, lon] = [&]() {
-    const auto n = ppath.pos.nrows();
-    std::array<Vector, 3> g;
-    for (auto &v : g) v.resize(n);
-    for (Index i = 0; i < n; i++) {
-      g[0][i] = ppath.pos[i][0];
-      g[1][i] = ppath.pos[i][1];
-      g[2][i] = ppath.pos[i][2];
+    std::array<Vector, 3> g{Vector(np), Vector(np), Vector(np)};
+    for (Size i = 0; i < np; i++) {
+      g[0][i] = propagation_path[i].pos[0];
+      g[1][i] = propagation_path[i].pos[1];
+      g[2][i] = propagation_path[i].pos[2];
     }
     return g;
   }();
@@ -93,12 +100,12 @@ void dradAddPathPropagation(StokvecMatrix &drad,
       for (auto &w : weights[j]) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
-          ARTS_ASSERT(i < nj)
+          ARTS_ASSERT(i < static_cast<Size>(nj))
           std::transform(
-              ppvar_drad[j][atm_block.target_pos].begin(),
-              ppvar_drad[j][atm_block.target_pos].end(),
-              drad[i].begin(),
-              drad[i].begin(),
+              spectral_radiance_path_jacobian[j][atm_block.target_pos].begin(),
+              spectral_radiance_path_jacobian[j][atm_block.target_pos].end(),
+              spectral_radiance_jacobian[i].begin(),
+              spectral_radiance_jacobian[i].begin(),
               [x = w.second](auto &a, auto &b) { return x * a + b; });
         }
       }
@@ -106,40 +113,43 @@ void dradAddPathPropagation(StokvecMatrix &drad,
   }
 }
 
-void radFromPathPropagation(StokvecVector &rad,
-                            const ArrayOfStokvecVector &ppvar_rad) {
-  ARTS_USER_ERROR_IF(ppvar_rad.empty(), "Empty ppvar_rad")
-  rad = ppvar_rad.front();
+void spectral_radianceFromPathPropagation(
+    StokvecVector &spectral_radiance,
+    const ArrayOfStokvecVector &spectral_radiance_path) {
+  ARTS_USER_ERROR_IF(spectral_radiance_path.empty(),
+                     "Empty spectral_radiance_path")
+  spectral_radiance = spectral_radiance_path.front();
 }
 
-void radStandardEmission(const Workspace &ws,
-                         StokvecVector &rad,
-                         StokvecMatrix &drad,
-                         const Vector &f_grid,
-                         const JacobianTargets &jacobian_targets,
-                         const AtmField &atm_field,
-                         const Ppath& ppath,
-                         const Agenda &space_radiation_agenda,
-                         const Agenda &surface_radiation_agenda,
-                         const Agenda &stop_distance_radiation_agenda,
-                         const Agenda &propmat_clearsky_agenda,
-                         const Numeric &rte_alonglos_v,
-                         const Index &hse_derivative) try {
-  background_radFromPath(ws,
-                         rad,
-                         drad,
-                         f_grid,
-                         jacobian_targets,
-                         ppath,
-                         space_radiation_agenda,
-                         surface_radiation_agenda,
-                         stop_distance_radiation_agenda);
+void spectral_radianceStandardEmission(
+    const Workspace &ws,
+    StokvecVector &spectral_radiance,
+    StokvecMatrix &spectral_radiance_jacobian,
+    const Vector &f_grid,
+    const JacobianTargets &jacobian_targets,
+    const AtmField &atm_field,
+    const SurfaceField &surface_field,
+    const ArrayOfPropagationPathPoint &propagation_path,
+    const Agenda &spectral_radiance_background_space_agenda,
+    const Agenda &spectral_radiance_background_surface_agenda,
+    const Agenda &propmat_clearsky_agenda,
+    const Numeric &rte_alonglos_v,
+    const Index &hse_derivative) try {
+  spectral_radiance_backgroundAgendasAtEndOfPath(
+      ws,
+      spectral_radiance,
+      spectral_radiance_jacobian,
+      f_grid,
+      jacobian_targets,
+      propagation_path,
+      spectral_radiance_background_space_agenda,
+      spectral_radiance_background_surface_agenda);
 
   ArrayOfAtmPoint ppvar_atm;
-  ppvar_atmFromPath(ppvar_atm, ppath, atm_field);
+  ppvar_atmFromPath(ppvar_atm, propagation_path, atm_field);
 
   ArrayOfVector ppvar_f;
-  ppvar_fFromPath(ppvar_f, f_grid, ppath, ppvar_atm, rte_alonglos_v);
+  ppvar_fFromPath(ppvar_f, f_grid, propagation_path, ppvar_atm, rte_alonglos_v);
 
   ArrayOfPropmatVector ppvar_propmat;
   ArrayOfStokvecVector ppvar_nlte;
@@ -153,20 +163,21 @@ void radStandardEmission(const Workspace &ws,
                     propmat_clearsky_agenda,
                     jacobian_targets,
                     ppvar_f,
-                    ppath,
+                    propagation_path,
                     ppvar_atm);
 
-  ArrayOfStokvecVector ppvar_src;
-  ArrayOfStokvecMatrix ppvar_dsrc;
-  ppvar_srcFromPropmat(ppvar_src,
-                       ppvar_dsrc,
-                       ppvar_propmat,
-                       ppvar_nlte,
-                       ppvar_dpropmat,
-                       ppvar_dnlte,
-                       ppvar_f,
-                       ppvar_atm,
-                       jacobian_targets);
+  ArrayOfStokvecVector spectral_radiance_path_source;
+  ArrayOfStokvecMatrix spectral_radiance_path_source_jacobian;
+  spectral_radiance_path_sourceFromPropmat(
+      spectral_radiance_path_source,
+      spectral_radiance_path_source_jacobian,
+      ppvar_propmat,
+      ppvar_nlte,
+      ppvar_dpropmat,
+      ppvar_dnlte,
+      ppvar_f,
+      ppvar_atm,
+      jacobian_targets);
 
   ArrayOfMuelmatVector ppvar_tramat;
   ArrayOfArrayOfMuelmatMatrix ppvar_dtramat;
@@ -178,33 +189,123 @@ void radStandardEmission(const Workspace &ws,
                    ppvar_ddistance,
                    ppvar_propmat,
                    ppvar_dpropmat,
-                   ppath,
+                   propagation_path,
                    ppvar_atm,
+                   surface_field,
                    jacobian_targets,
                    hse_derivative);
 
   ArrayOfMuelmatVector ppvar_cumtramat;
   ppvar_cumtramatForward(ppvar_cumtramat, ppvar_tramat);
 
-  ArrayOfStokvecVector ppvar_rad;
-  ArrayOfStokvecMatrix ppvar_drad;
-  ppvar_radCalcEmission(ppvar_rad,
-                        ppvar_drad,
-                        rad,
-                        ppvar_src,
-                        ppvar_dsrc,
-                        ppvar_tramat,
-                        ppvar_cumtramat,
-                        ppvar_dtramat);
+  ArrayOfStokvecVector spectral_radiance_path;
+  ArrayOfStokvecMatrix spectral_radiance_path_jacobian;
+  spectral_radiance_pathCalcEmission(spectral_radiance_path,
+                                     spectral_radiance_path_jacobian,
+                                     spectral_radiance,
+                                     spectral_radiance_path_source,
+                                     spectral_radiance_path_source_jacobian,
+                                     ppvar_tramat,
+                                     ppvar_cumtramat,
+                                     ppvar_dtramat);
 
   MuelmatVector background_transmittance;
   background_transmittanceFromPathPropagationBack(background_transmittance,
                                                   ppvar_cumtramat);
 
-  radFromPathPropagation(rad, ppvar_rad);
+  spectral_radianceFromPathPropagation(spectral_radiance,
+                                       spectral_radiance_path);
 
-  dradFromBackground(drad, drad, background_transmittance);
+  spectral_radiance_jacobianFromBackground(spectral_radiance_jacobian,
+                                           spectral_radiance_jacobian,
+                                           background_transmittance);
 
-  dradAddPathPropagation(drad, ppvar_drad, jacobian_targets, atm_field, ppath);
+  spectral_radiance_jacobianAddPathPropagation(spectral_radiance_jacobian,
+                                               spectral_radiance_path_jacobian,
+                                               jacobian_targets,
+                                               atm_field,
+                                               propagation_path);
+}
+ARTS_METHOD_ERROR_CATCH
+
+ENUMCLASS(
+    SpectralRadianceUnitType, char, RJBT, PlanckBT, W_m2_m_sr, W_m2_m1_sr, unit)
+
+void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
+                                const StokvecVector &spectral_radiance,
+                                const Vector &f_grid,
+                                const String &spectral_radiance_unit) try {
+  const SpectralRadianceUnitType unit =
+      toSpectralRadianceUnitTypeOrThrow(spectral_radiance_unit);
+
+  ARTS_USER_ERROR_IF(spectral_radiance.size() != f_grid.nelem(),
+                     "spectral_radiance must have same size as f_grid")
+
+  spectral_radiance_with_unit.resize(spectral_radiance.size());
+
+  ARTS_USER_ERROR_IF(
+      unit == SpectralRadianceUnitType::unit,
+      "No need to use this method with *spectral_radiance_unit* = \"unit\".");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(spectral_radiance,
+                          [](const Stokvec &v) { return v.I() > 1e-3; }),
+      "The spectrum matrix *spectral_radiance* is required to have original radiance\n"
+      "unit, but this seems not to be the case. This as a value above\n"
+      "1e-3 is found in *spectral_radiance*.")
+
+  switch (unit) {
+    case SpectralRadianceUnitType::unit:
+      break;
+    case SpectralRadianceUnitType::RJBT: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     f_grid.begin(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v, const Numeric f) {
+                       const Numeric scfac = invrayjean(1.0, f);
+                       return Stokvec{v.I() * scfac,
+                                      2 * v.Q() * scfac,
+                                      2 * v.U() * scfac,
+                                      2 * v.V() * scfac};
+                     });
+    } break;
+    case SpectralRadianceUnitType::PlanckBT: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     f_grid.begin(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v, const Numeric f) {
+                       return Stokvec{invplanck(v.I(), f),
+                                      invplanck(0.5 * (v.I() + v.Q()), f) -
+                                          invplanck(0.5 * (v.I() - v.Q()), f),
+                                      invplanck(0.5 * (v.I() + v.U()), f) -
+                                          invplanck(0.5 * (v.I() - v.U()), f),
+                                      invplanck(0.5 * (v.I() + v.V()), f) -
+                                          invplanck(0.5 * (v.I() - v.V()), f)};
+                     });
+    } break;
+    case SpectralRadianceUnitType::W_m2_m_sr: {
+      std::transform(
+          spectral_radiance.begin(),
+          spectral_radiance.end(),
+          f_grid.begin(),
+          spectral_radiance_with_unit.begin(),
+          [&](const Stokvec &v, const Numeric f) {
+            const Numeric scfac = f * (f / Constant::c);
+            return Stokvec{
+                v.I() * scfac, v.Q() * scfac, v.U() * scfac, v.V() * scfac};
+          });
+    } break;
+    case SpectralRadianceUnitType::W_m2_m1_sr: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v) { return v * Constant::c; });
+    } break;
+    case SpectralRadianceUnitType::FINAL: {
+      ARTS_ASSERT(false)
+    }
+  }
 }
 ARTS_METHOD_ERROR_CATCH

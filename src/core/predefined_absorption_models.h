@@ -11,7 +11,7 @@
 #define fullmodel_h
 
 #include "atm.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "predefined/predef_data.h"
 #include "species_tags.h"
 #include <rtepack.h>

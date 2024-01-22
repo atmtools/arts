@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
+#include "path_point.h"
 #include "rtepack.h"
 #include "species_tags.h"
 
@@ -33,7 +34,7 @@ void compute(const Workspace& ws,
                                  {},
                                  v.select_abs_species,
                                  v.f_grid,
-                                 v.rtp_los,
+                                 v.path_point,
                                  v.atm_point,
                                  propmat_clearsky_agenda);
 }
@@ -44,7 +45,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
          const Agenda& propmat_clearsky_agenda,
          ArrayOfSpeciesTag& select_abs_species,
          Vector& f_grid,
-         Vector& rtp_los,
+         PropagationPathPoint& path_point,
          AtmPoint& atm_point,
          Numeric& transmission_distance) {
   for (auto& v : ret) v.ok.store(false);
@@ -63,7 +64,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
 
         v.select_abs_species = select_abs_species;
         v.f_grid = f_grid;
-        v.rtp_los = rtp_los;
+        v.path_point = path_point;
         v.atm_point = atm_point;
         v.transmission_distance = transmission_distance;
       } else {
@@ -117,7 +118,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   // Initialize values to something
   ArrayOfSpeciesTag select_abs_species{};
   Vector f_grid = uniform_grid(1e9, 1000, 1e9);
-  Vector rtp_los(2, 0);
+  PropagationPathPoint path_point{.pos = {0, 0, 0}, .los = {0, 0}};
   Numeric transmission_distance{1'000};
   AtmPoint atm_point;
   atm_point.temperature = 300;
@@ -129,8 +130,8 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   // Set some defaults
   if (load) {
     if (ws.contains("f_grid")) f_grid = ws.get<Vector>("f_grid");
-    if (ws.contains("rtp_los")) rtp_los = ws.get<Vector>("rtp_los");
     if (ws.contains("atm_point")) atm_point = ws.get<AtmPoint>("atm_point");
+    if (ws.contains("path_point")) path_point = ws.get<PropagationPathPoint>("path_point");
   }
 
   auto success = std::async(std::launch::async,
@@ -141,7 +142,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                             std::cref(propmat_clearsky_agenda),
                             std::ref(select_abs_species),
                             std::ref(f_grid),
-                            std::ref(rtp_los),
+                            std::ref(path_point),
                             std::ref(atm_point),
                             std::ref(transmission_distance));
 
@@ -156,7 +157,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                  ctrl,
                  select_abs_species,
                  f_grid,
-                 rtp_los,
+                 path_point,
                  atm_point,
                  transmission_distance,
                  ArrayOfArrayOfSpeciesTag{abs_species});

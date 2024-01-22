@@ -32,7 +32,10 @@ ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 # NOTE: Using a cutoff frequency across all species like this degrades the
 # quality of the absorption calculations, which can be seen by changing the
 # Y-scale of the absorption to logarithmic
-ws.abs_lines_per_speciesCutoff(option="ByLine", value=750e9)
+for bands in ws.abs_lines_per_species:
+    for band in bands:
+        band.cutoff = pyarts.arts.options.AbsorptionCutoffType.ByLine
+        band.cutofffreq = 750e9
 
 # Use an automatic agenda
 ws.propmat_clearsky_agendaAuto()
@@ -41,11 +44,11 @@ ws.propmat_clearsky_agendaAuto()
 ws.nlte_do = 0
 
 # Settings (Standard atmosphere midlatitude-summer)
-ws.rtp_los = [45, 45]
+ws.path_point.los = [45, 45]
 ws.f_grid = pyarts.arts.convert.kaycm2freq(np.linspace(300, 3000, 1000))
 ws.atm_pointInit()
 ws.atm_point.temperature = 2.942000e+02
-ws.atm_point.pressure = ws.rtp_pressure = 110000
+ws.atm_point.pressure = 110000
 ws.atm_point[ws.abs_species[0]] = 1.000869e-09
 ws.atm_point[ws.abs_species[1]] = 1.000869e-14
 ws.atm_point[ws.abs_species[2]] = 2.850472e-06

@@ -4,10 +4,11 @@
 #include <string_view>
 #include <variant>
 
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "nlte.h"
 #include "nonstd.h"
 #include "species.h"
+#include "arts_options.h"
 
 namespace LineShape {
 struct Noshape {

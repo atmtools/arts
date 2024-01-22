@@ -16,9 +16,7 @@
 #ifndef sensor_h
 #define sensor_h
 
-#include "gridded_fields.h"
-#include "matpack_data.h"
-#include "matpack_sparse.h"
+#include <matpack.h>
 
 /*===========================================================================
   === Functions from sensor.cc
@@ -47,7 +45,7 @@
 void antenna1d_matrix(Sparse& H,
                       const Index& antenna_dim,
                       ConstVectorView antenna_dza,
-                      const GriddedField4& antenna_response,
+                      const NamedGriddedField3& antenna_response,
                       ConstVectorView za_grid,
                       ConstVectorView f_grid,
                       const Index n_pol,
@@ -75,7 +73,7 @@ void antenna1d_matrix(Sparse& H,
 void antenna2d_gridded_dlos(Sparse& H,
                             const Index& antenna_dim,
                             ConstMatrixView antenna_dlos,
-                            const GriddedField4& antenna_response,
+                            const NamedGriddedField3& antenna_response,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
                             const Index n_pol);
@@ -102,7 +100,7 @@ void antenna2d_gridded_dlos(Sparse& H,
 void antenna2d_interp_response(Sparse& H,
                                const Index& antenna_dim,
                                ConstMatrixView antenna_dlos,
-                               const GriddedField4& antenna_response,
+                               const NamedGriddedField3& antenna_response,
                                ConstMatrixView mblock_dlos,
                                ConstVectorView solid_angles,
                                ConstVectorView f_grid,

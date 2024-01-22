@@ -8,6 +8,7 @@
 #include "gui.h"
 #include "imgui.h"
 #include "jacobian.h"
+#include "path_point.h"
 
 namespace gui::MainMenu {
 ENUMCLASS(VMR, char, exact, percent, ppmv)
@@ -55,6 +56,9 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
 [[nodiscard]] bool change_item(const char *,
                                ArrayOfSpeciesTag &,ArrayOfSpeciesTag &,
                                const ArrayOfArrayOfSpeciesTag &);
+
+[[nodiscard]] bool change_item(const char *,
+                               PropagationPathPoint &,PropagationPathPoint &);
 
 template <class T, size_t N>
 void select_option(T &current,

@@ -39,22 +39,19 @@ internal_workspace_groups() {
                                .desc = "A list of *Agenda*\n"};
 
   wsg_data["ArrayOfArrayOfGriddedField1"] = {
-      .file = "gridded_fields.h", .desc = "A list of *ArrayOfGriddedField1*\n"};
+      .file = "matpack.h", .desc = "A list of *ArrayOfGriddedField1*\n"};
 
   wsg_data["ArrayOfArrayOfGriddedField2"] = {
-      .file = "gridded_fields.h", .desc = "A list of *ArrayOfGriddedField2*\n"};
+      .file = "matpack.h", .desc = "A list of *ArrayOfGriddedField2*\n"};
 
   wsg_data["ArrayOfArrayOfGriddedField3"] = {
-      .file = "gridded_fields.h", .desc = "A list of *ArrayOfGriddedField3*\n"};
+      .file = "matpack.h", .desc = "A list of *ArrayOfGriddedField3*\n"};
 
   wsg_data["ArrayOfArrayOfIndex"] = {.file = "matpack.h",
                                      .desc = "A list of *ArrayOfIndex*\n"};
 
   wsg_data["ArrayOfArrayOfMatrix"] = {.file = "matpack.h",
                                       .desc = "A list of *ArrayOfMatrix*\n"};
-
-  wsg_data["ArrayOfPpath"] = {.file = "ppath_struct.h",
-                              .desc = "A list of *Ppath*\n"};
 
   wsg_data["ArrayOfArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
@@ -88,16 +85,22 @@ internal_workspace_groups() {
   wsg_data["ArrayOfCIARecord"] = {.file = "cia.h",
                                   .desc = "A list of *CIARecord*\n"};
 
-  wsg_data["ArrayOfGriddedField1"] = {.file = "gridded_fields.h",
+  wsg_data["ArrayOfGriddedField1"] = {.file = "matpack.h",
                                       .desc = "A list of *GriddedField1*\n"};
 
-  wsg_data["ArrayOfGriddedField2"] = {.file = "gridded_fields.h",
+  wsg_data["ArrayOfGriddedField2"] = {.file = "matpack.h",
                                       .desc = "A list of *GriddedField2*\n"};
 
-  wsg_data["ArrayOfGriddedField3"] = {.file = "gridded_fields.h",
+  wsg_data["ArrayOfGriddedField1Named"] = {
+      .file = "matpack.h", .desc = "A list of *GriddedField1Named*\n"};
+
+  wsg_data["ArrayOfNamedGriddedField2"] = {
+      .file = "matpack.h", .desc = "A list of *NamedGriddedField2*\n"};
+
+  wsg_data["ArrayOfGriddedField3"] = {.file = "matpack.h",
                                       .desc = "A list of *GriddedField3*\n"};
 
-  wsg_data["ArrayOfGriddedField4"] = {.file = "gridded_fields.h",
+  wsg_data["ArrayOfGriddedField4"] = {.file = "matpack.h",
                                       .desc = "A list of *GriddedField4*\n"};
 
   wsg_data["ArrayOfIndex"] = {.file = "matpack.h",
@@ -130,7 +133,8 @@ about the isotopologue, the absorption scheme, and the frequency limits
                                 .desc = R"--(A list of *SpeciesEnum*
 )--"};
 
-  wsg_data["SpeciesEnum"] = {.file = "species.h", .desc = R"--(An atmospheric species
+  wsg_data["SpeciesEnum"] = {.file = "species.h",
+                             .desc = R"--(An atmospheric species
 )--"};
 
   wsg_data["ArrayOfSparse"] = {.file = "matpack_sparse.h",
@@ -213,64 +217,101 @@ information that is necessary to use the table to extract
 absorption
 )--"};
 
-  wsg_data["GridPos"] = {.file = "interpolation.h",
-                         .desc = "A position in a grid"};
-
   wsg_data["GriddedField1"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 1 dimensional gridded set of *Numeric* data
 
-The grid is 1 *Vector* or *ArrayOfString*
+The grid is 1 *Vector*
 
 Both the data and the grid may be named)--"};
 
   wsg_data["GriddedField2"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 2 dimensional gridded set of *Numeric* data
 
-The grid is a combination of 2 *Vector* and/or *ArrayOfString*
+The grid is a combination of 2 *Vector*
+
+Both the data and the grid may be named
+)--"};
+
+  wsg_data["ComplexGriddedField2"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 2 dimensional gridded set of complex data
+
+The grid is a combination of 2 *Vector*
+
+Both the data and the grid may be named
+)--"};
+
+  wsg_data["GriddedField1Named"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 3 dimensional gridded set of *Numeric* data
+
+The grid is a combination of 1 *Vector* and 1 *ArrayOfString*
+
+Both the data and the grid may be named
+)--"};
+
+  wsg_data["NamedGriddedField2"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 3 dimensional gridded set of *Numeric* data
+
+The grid is a combination of 1 *ArrayOfString* and 2 *Vector*
 
 Both the data and the grid may be named
 )--"};
 
   wsg_data["GriddedField3"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 3 dimensional gridded set of *Numeric* data
 
-The grid is a combination of 3 *Vector* and/or *ArrayOfString*
+The grid is a combination of 3 *Vector*
+
+Both the data and the grid may be named
+)--"};
+
+  wsg_data["NamedGriddedField3"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 4 dimensional gridded set of *Numeric* data
+
+The grid is a combination of 1 *ArrayOfString* and 3 *Vector*
 
 Both the data and the grid may be named
 )--"};
 
   wsg_data["GriddedField4"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 4 dimensional gridded set of *Numeric* data
 
-The grid is a combination of 4 *Vector* and/or *ArrayOfString*
+The grid is a combination of 4 *Vector*
 
 Both the data and the grid may be named
 )--"};
 
   wsg_data["GriddedField5"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 5 dimensional gridded set  of *Numeric* data
 
-The grid is a combination of 5 *Vector* and/or *ArrayOfString*
+The grid is a combination of 5 *Vector*
 
 Both the data and the grid may be named
 )--"};
 
   wsg_data["GriddedField6"] = {
-      .file = "gridded_fields.h",
+      .file = "matpack.h",
       .desc =
           R"--(A 6 dimensional gridded set of *Numeric* data
 
-The grid is a combination of 6 *Vector* and/or *ArrayOfString*
+The grid is a combination of 6 *Vector*
 
 Both the data and the grid may be named
 )--"};
@@ -316,9 +357,6 @@ relaxation matrix are set
   wsg_data["Numeric"] = {.file = "matpack.h",
                          .desc = "IEEE 754 binary64 floating point number\n",
                          .value_type = true};
-
-  wsg_data["Ppath"] = {.file = "ppath_struct.h",
-                       .desc = "Describes a propagation path\n"};
 
   wsg_data["PredefinedModelData"] = {
       .file = "predef.h",
@@ -524,12 +562,29 @@ to produce a single *Numeric*.
 )--"};
 
   wsg_data["JacobianTargets"] = {
-      .file = "new_jacobian.h",
+      .file = "jacobian.h",
       .desc = R"--(A list of targets for use in Jacobian Matrix calculations
 
 This type flags the type of calculations that should be performed
 when computing the Jacobian matrix or partial derivatives.
 )--"};
+
+  wsg_data["PropagationPathPoint"] = {
+      .file = "path_point.h",
+      .desc = R"--(A simple path-point of a propagation path
+
+This point describes the origin and line-of-sight of the tracked
+radiation.
+)--"};
+
+  wsg_data["ArrayOfPropagationPathPoint"] = {
+      .file = "path_point.h", .desc = "A list of *PropagationPathPoint*.\n"};
+
+  wsg_data["Vector3"] = {.file = "matpack.h",
+                         .desc = "A fixed-size 3D version of *Vector*.\n"};
+
+  wsg_data["Vector2"] = {.file = "matpack.h",
+                         .desc = "A fixed-size 2D version of *Vector*.\n"};
 
   return wsg_data;
 }

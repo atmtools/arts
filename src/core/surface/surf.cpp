@@ -2,7 +2,6 @@
 #include "arts_constexpr_math.h"
 #include "arts_conversions.h"
 #include "debug.h"
-#include "gridded_fields.h"
 #include "interp.h"
 #include "matpack_math.h"
 
@@ -184,8 +183,8 @@ Numeric
 numeric_interpolation(const GriddedField2 &data, Numeric lat, Numeric lon,
                       std::pair<Extrapolation, Extrapolation> lat_extrap,
                       std::pair<Extrapolation, Extrapolation> lon_extrap) {
-  const auto &lats = data.get_numeric_grid(0);
-  const auto &lons = data.get_numeric_grid(1);
+  const Vector &lats = data.grid<0>();
+  const Vector &lons = data.grid<1>();
 
   if (lat < lats.front()) {
     ARTS_USER_ERROR_IF(lat_extrap.first == Extrapolation::None,
@@ -446,8 +445,8 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
                                      my_interp::cycle_m180_p180>;
   using LatLag = my_interp::Lagrange<1>;
 
-  const auto slon = v.get_grid_size(1);
-  const bool d1 = v.get_grid_size(0) == 1;
+  const auto slon = v.shape()[1];
+  const bool d1 = v.shape()[0] == 1;
   const bool d2 = slon == 1;
 
   constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
@@ -458,7 +457,7 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
   }
 
   if (d1) {
-    const LonLag wlon(0, lon, v.get_numeric_grid(1));
+    const LonLag wlon(0, lon, v.grid<1>());
     return {std::pair<Index, Numeric>{wlon.pos, wlon.lx[0]},
             std::pair<Index, Numeric>{wlon.pos + 1, wlon.lx[1]},
             v0,
@@ -466,15 +465,15 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
   }
 
   if (d2) {
-    const LatLag wlat(0, lat, v.get_numeric_grid(0));
+    const LatLag wlat(0, lat, v.grid<0>());
     return {std::pair<Index, Numeric>{wlat.pos, wlat.lx[0]},
             std::pair<Index, Numeric>{wlat.pos + 1, wlat.lx[1]},
             v0,
             v0};
   }
 
-  const LatLag wlat(0, lat, v.get_numeric_grid(0));
-  const LonLag wlon(0, lon, v.get_numeric_grid(1));
+  const LatLag wlat(0, lat, v.grid<0>());
+  const LonLag wlon(0, lon, v.grid<1>());
   auto sz = [slon](auto lat_pos, auto lon_pos) {
     return lat_pos * slon + lon_pos;
   };

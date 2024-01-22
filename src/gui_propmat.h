@@ -6,7 +6,9 @@
 #include "atm.h"
 #include "enums.h"
 #include "gui.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
+#include "species_tags.h"
+#include <path_point.h>
 
 namespace gui {
 namespace PropmatClearsky {
@@ -16,7 +18,7 @@ struct ComputeValues {
 
   ArrayOfSpeciesTag select_abs_species;
   Vector f_grid;
-  Vector rtp_los;
+  PropagationPathPoint path_point;
   AtmPoint atm_point;
 
   Numeric transmission_distance;
@@ -80,7 +82,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
-             Vector& rtp_los,
+             PropagationPathPoint& path_point,
              AtmPoint& atm_point,
              Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species);

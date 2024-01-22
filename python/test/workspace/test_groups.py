@@ -364,11 +364,6 @@ class TestGroups:
         np.array(x[0], copy=False)[:] = 1
         assert not np.all(np.array(x) == 1)
 
-    def testArrayOfPpath(self):
-        x = cxx.ArrayOfPpath([cxx.Ppath()])
-        test.io(x, delete=True)
-        test.array(x)
-
     def testArrayOfQuantumIdentifier(self):
         x = cxx.ArrayOfQuantumIdentifier(["H2O-161 J 1 1"])
         test.io(x, delete=True)
@@ -562,10 +557,6 @@ class TestGroups:
         x = cxx.GriddedField6()
         test.io(x, delete=True)
 
-    def testGridPos(self):
-        x = cxx.GridPos()
-        test.io(x, delete=True)
-
     def testHitranRelaxationMatrixData(self):
         x = cxx.HitranRelaxationMatrixData()
         test.io(x, delete=True)
@@ -616,10 +607,6 @@ class TestGroups:
         assert x == 0, f"{x} cannot evaluate as equal to 0"
         x = x + 2
         assert x == 2
-
-    def testPpath(self):
-        x = cxx.Ppath()
-        test.io(x, delete=True)
 
     def testPredefinedModelData(self):
         x = cxx.PredefinedModelData()
@@ -807,8 +794,8 @@ class TestGroups:
         x = cxx.AtmField()
         x["wind_u"] = 3.0
         x[cxx.SpeciesEnum("O2")] = cxx.GriddedField3(
-            [[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
-            np.random.rand(3, 7, 3),
+            grids=[[1, 2, 3], [2, 3, 4, 5, 6, 7, 8], [5, 6, 7]],
+            data=np.random.rand(3, 7, 3),
         )
 
         def test_fun(a, b, c):
@@ -1056,4 +1043,4 @@ class TestGroups:
 if __name__ == "__main__":
     x = TestGroups()
     x.test_xml()
-    x.testAtmPoint()
+    x.testAtmField()

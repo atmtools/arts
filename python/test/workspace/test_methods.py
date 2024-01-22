@@ -39,13 +39,9 @@ class TestMethods:
             "O3",
         ]
 
-        ws.abs_speciesSet(
-            ws.abs_species, ws.propmat_clearsky_agenda_checked, species
-        )
+        ws.abs_speciesSet(ws.abs_species, species)
         ws.abs_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
-        ws.abs_speciesSet(
-            ws.abs_species_2, ws.propmat_clearsky_agenda_checked, species
-        )
+        ws.abs_speciesSet(ws.abs_species_2, species)
         ws.abs_species_3 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
         ws.abs_speciesSet(abs_species=ws.abs_species_3, species=species)
         assert ws.abs_species == ws.abs_species_3
@@ -60,26 +56,16 @@ class TestMethods:
         tempfile = NamedTemporaryFile()
 
         mat = np.ones((2, 2))
-        ws.sensor_los = np.ones((2, 2))
-        ws.WriteXML("ascii", ws.sensor_los, tempfile.name)
+        ws.avk = np.ones((2, 2))
+        ws.WriteXML("ascii", ws.avk, tempfile.name)
 
-        ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(ws.sensor_los, tempfile.name)
-        assert np.allclose(mat, ws.sensor_los.value)
+        ws.avk = np.zeros((2, 2))
+        ws.ReadXML(ws.avk, tempfile.name)
+        assert np.allclose(mat, ws.avk.value)
 
-        ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(output=ws.sensor_los, filename=tempfile.name)
-        assert np.allclose(mat, ws.sensor_los.value)
-
-    def test_supergeneric_overload_resolution(self):
-        """
-        Test resolution of supergeneric methods.
-        """
-        self.ws.array_of_index = pyarts.arts.ArrayOfIndex()
-        self.ws.array_of_array_of_index = pyarts.arts.ArrayOfArrayOfIndex()
-        self.ws.array_of_index = [1, 2, 3]
-        self.ws.Append(self.ws.array_of_array_of_index, self.ws.array_of_index)
-        self.ws.Append(self.ws.array_of_array_of_index, self.ws.array_of_index)
+        ws.avk = np.zeros((2, 2))
+        ws.ReadXML(output=ws.avk, filename=tempfile.name)
+        assert np.allclose(mat, ws.avk.value)
 
     def test_supergeneric_overload_failure(self):
         """
@@ -106,4 +92,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_predefined_doc()
+    x.test_generic_input()

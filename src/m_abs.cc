@@ -24,13 +24,14 @@
 #include "debug.h"
 #include "file.h"
 #include "hitran_species.h"
+#include "jacobian.h"
 #include "lineshape.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
-#include "new_jacobian.h"
 #include "nlte.h"
 #include "optproperties.h"
+#include "path_point.h"
 #include "rte.h"
 #include "species_tags.h"
 
@@ -40,11 +41,11 @@
 #include "nc_io.h"
 #endif
 
-inline constexpr Numeric ELECTRON_CHARGE=-Constant::elementary_charge;
-inline constexpr Numeric ELECTRON_MASS=Constant::electron_mass;
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
-inline constexpr Numeric VACUUM_PERMITTIVITY=Constant::vacuum_permittivity;
+inline constexpr Numeric ELECTRON_CHARGE = -Constant::elementary_charge;
+inline constexpr Numeric ELECTRON_MASS = Constant::electron_mass;
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
+inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCreateFromLines(  // WS Output:
@@ -62,7 +63,7 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
 #pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
   for (Size ilines = 0; ilines < abs_lines.size(); ilines++) {
     AbsorptionLines lines = abs_lines[ilines];
-    
+
     // Skip empty lines
     if (lines.NumLines() == 0) continue;
 
@@ -105,7 +106,7 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
         }
       }
     }
-  leave_inner_loop : {}
+  leave_inner_loop: {}
   }
 
   abs_lines_per_species.shrink_to_fit();
@@ -119,12 +120,8 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
-    Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
     const String& basename) {
-  // Invalidate agenda check flags
-  propmat_clearsky_agenda_checked = false;
-
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
 
@@ -154,8 +151,7 @@ void abs_speciesDefineAllInScenario(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAll(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked) {
+    ArrayOfArrayOfSpeciesTag& abs_species) {
   // Species lookup data:
 
   // We want to make lists of all species
@@ -167,9 +163,7 @@ void abs_speciesDefineAll(  // WS Output:
   }
 
   // Set the values
-  abs_speciesSet(abs_species,
-                 propmat_clearsky_agenda_checked,
-                 specs);
+  abs_speciesSet(abs_species, specs);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -182,10 +176,8 @@ void AbsInputFromAtmFields(  // WS Output:
     const Tensor3& t_field,
     const Tensor4& vmr_field) {
   // First, make sure that we really have a 1D atmosphere:
-  ARTS_USER_ERROR_IF(1 != 3,
-                     "Atmospheric dimension must be 1D, but 3 is ",
-                     3,
-                     ".")
+  ARTS_USER_ERROR_IF(
+      1 != 3, "Atmospheric dimension must be 1D, but 3 is ", 3, ".")
 
   abs_p = p_grid;
   abs_t = t_field(joker, 0, 0);
@@ -204,14 +196,9 @@ void propmat_clearskyInit(  //WS Output
     StokvecMatrix& dnlte_source_dx,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid,
-    const Index& propmat_clearsky_agenda_checked) {
+    const Vector& f_grid) {
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_targets.target_count();
-
-  ARTS_USER_ERROR_IF(
-      !propmat_clearsky_agenda_checked,
-      "You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.")
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
@@ -221,7 +208,7 @@ void propmat_clearskyInit(  //WS Output
 
   // Set size of nlte_source and reset it's values
   nlte_source.resize(nf);
-  nlte_source=0.0;
+  nlte_source = 0.0;
 
   // Set size of dpropmat_clearsky_dx and reset it's values
   dpropmat_clearsky_dx.resize(nq, nf);
@@ -233,15 +220,14 @@ void propmat_clearskyInit(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFaraday(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    const Vector& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
-    const JacobianTargets& jacobian_targets,
-    const AtmPoint& atm_point,
-    const Vector& rtp_los) {
+void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
+                                PropmatMatrix& dpropmat_clearsky_dx,
+                                const Vector& f_grid,
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const ArrayOfSpeciesTag& select_abs_species,
+                                const JacobianTargets& jacobian_targets,
+                                const AtmPoint& atm_point,
+                                const PropagationPathPoint& path_point) {
   Index ife = -1;
   for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
@@ -249,12 +235,15 @@ void propmat_clearskyAddFaraday(
     }
   }
 
+  const Vector rtp_los{path::mirror(path_point.los)};
+
   ARTS_USER_ERROR_IF(ife < 0,
                      "Free electrons not found in *abs_species* and "
                      "Faraday rotation can not be calculated.");
 
   // Allow early exit for lookup table calculations
-  if (select_abs_species.size() and select_abs_species not_eq abs_species[ife]) return;
+  if (select_abs_species.size() and select_abs_species not_eq abs_species[ife])
+    return;
 
   // All the physical constants joined into one static constant:
   // (abs as e defined as negative)
@@ -263,14 +252,14 @@ void propmat_clearskyAddFaraday(
           (8 * PI * PI * SPEED_OF_LIGHT * VACUUM_PERMITTIVITY * ELECTRON_MASS *
            ELECTRON_MASS));
 
-  const auto jacs =
-      jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::mag_u,
-                                                     Atm::Key::mag_v,
-                                                     Atm::Key::mag_w,
-                                                     Atm::Key::wind_u,
-                                                     Atm::Key::wind_v,
-                                                     Atm::Key::wind_w,
-                                                     abs_species[ife].Species());
+  const auto jacs = jacobian_targets.find_all<Jacobian::AtmTarget>(
+      Atm::Key::mag_u,
+      Atm::Key::mag_v,
+      Atm::Key::mag_w,
+      Atm::Key::wind_u,
+      Atm::Key::wind_v,
+      Atm::Key::wind_w,
+      abs_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
   const Numeric ne = atm_point[abs_species[ife].Species()];
@@ -282,29 +271,29 @@ void propmat_clearskyAddFaraday(
         dotprod_with_los(
             rtp_los, atm_point.mag[0], atm_point.mag[1], atm_point.mag[2]);
 
-    std::array<Numeric, 3> dc1{0.,0.,0.};
+    std::array<Numeric, 3> dc1{0., 0., 0.};
     if (dmag != 0.0) {
       dc1[0] = (2 * FRconst *
-                   dotprod_with_los(rtp_los,
-                                    atm_point.mag[0] + dmag,
-                                    atm_point.mag[1],
-                                    atm_point.mag[2]) -
-               c1) /
-              dmag;
+                    dotprod_with_los(rtp_los,
+                                     atm_point.mag[0] + dmag,
+                                     atm_point.mag[1],
+                                     atm_point.mag[2]) -
+                c1) /
+               dmag;
       dc1[1] = (2 * FRconst *
-                   dotprod_with_los(rtp_los,
-                                    atm_point.mag[0],
-                                    atm_point.mag[1] + dmag,
-                                    atm_point.mag[2]) -
-               c1) /
-              dmag;
+                    dotprod_with_los(rtp_los,
+                                     atm_point.mag[0],
+                                     atm_point.mag[1] + dmag,
+                                     atm_point.mag[2]) -
+                c1) /
+               dmag;
       dc1[2] = (2 * FRconst *
-                   dotprod_with_los(rtp_los,
-                                    atm_point.mag[0],
-                                    atm_point.mag[1],
-                                    atm_point.mag[2] + dmag) -
-               c1) /
-              dmag;
+                    dotprod_with_los(rtp_los,
+                                     atm_point.mag[0],
+                                     atm_point.mag[1],
+                                     atm_point.mag[2] + dmag) -
+                c1) /
+               dmag;
     }
 
     for (Index iv = 0; iv < f_grid.nelem(); iv++) {
@@ -312,15 +301,17 @@ void propmat_clearskyAddFaraday(
       const Numeric r = ne * c1 / f2;
       propmat_clearsky[iv].U() += r;
 
-      for (Size i=0; i<3; i++) {
+      for (Size i = 0; i < 3; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() += ne * dc1[i] / f2;
+          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
+              ne * dc1[i] / f2;
         }
       }
 
-      for (Size i=3; i<6; i++) {
+      for (Size i = 3; i < 6; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() += -2.0 * ne * r / f_grid[iv];
+          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
+              -2.0 * ne * r / f_grid[iv];
         }
       }
 
@@ -341,7 +332,7 @@ void propmat_clearskyAddParticles(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
-    const Vector& rtp_los,
+    const PropagationPathPoint& path_point,
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
@@ -384,26 +375,12 @@ void propmat_clearskyAddParticles(
       ns,
       " *scat_data* elements.\n")
 
-  ARTS_USER_ERROR_IF(
-      3 == 1 && rtp_los.nelem() < 1,
-      "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(at least zenith angle component for 3==1),\n"
-      "but it is not.\n")
-  ARTS_USER_ERROR_IF(
-      3 > 1 && rtp_los.nelem() < 2,
-      "For applying *propmat_clearskyAddParticles*, *rtp_los* needs to be specified\n"
-      "(both zenith and azimuth angle components for 3>1),\n"
-      "but it is not.\n")
-
-  // Use for rescaling vmr of particulates
-  Numeric rtp_vmr_sum = 0.0;
-
-  const auto jac_temperature = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
-  const Numeric dT = jac_temperature.first ? jac_temperature.second -> d : 0.0;
+  const auto jac_temperature =
+      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+  const Numeric dT = jac_temperature.first ? jac_temperature.second->d : 0.0;
 
   const Index na = abs_species.size();
-  Vector rtp_los_back;
-  mirror_los(rtp_los_back, rtp_los);
+  const Vector rtp_los_back{path_point.los};
 
   // creating temporary output containers
   ArrayOfArrayOfTensor5 ext_mat_Nse;
@@ -482,11 +459,11 @@ void propmat_clearskyAddParticles(
           }
         } else {
           for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-            internal_propmat[iv] =
-                rtepack::to_propmat(ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
+            internal_propmat[iv] = rtepack::to_propmat(
+                ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
           }
         }
-        
+
         const Numeric vmr = atm_point[abs_species[sp].Species()];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           propmat_clearsky[iv] += vmr * internal_propmat[iv];
@@ -494,17 +471,16 @@ void propmat_clearskyAddParticles(
       }
 
       // For temperature derivatives (so we don't need to check it in jac loop)
-      ARTS_USER_ERROR_IF(jac_temperature.first and
-          t_ok(i_se_flat, 1) < 0.,
-          "Temperature interpolation error (in perturbation):\n"
-          "scat species #",
-          i_ss,
-          ", scat elem #",
-          i_se,
-          "\n")
+      ARTS_USER_ERROR_IF(jac_temperature.first and t_ok(i_se_flat, 1) < 0.,
+                         "Temperature interpolation error (in perturbation):\n"
+                         "scat species #",
+                         i_ss,
+                         ", scat elem #",
+                         i_se,
+                         "\n")
 
       if (jac_temperature.first) {
-        const auto iq = jac_temperature.second -> target_pos;
+        const auto iq = jac_temperature.second->target_pos;
 
         if (use_abs_as_ext) {
           tmp(joker, joker, 0) = abs_vec_Nse[i_ss][i_se](joker, 1, 0, joker);
@@ -524,15 +500,17 @@ void propmat_clearskyAddParticles(
             dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
             dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
           } else {
-            dpropmat_clearsky_dx(iq, iv) += rtepack::to_propmat(tmp(iv, joker, joker));
+            dpropmat_clearsky_dx(iq, iv) +=
+                rtepack::to_propmat(tmp(iv, joker, joker));
           }
         }
       }
 
-      if ( const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(abs_species[sp].Species());jac_species.first) {
-        rtp_vmr_sum += atm_point[abs_species[sp].Species()];
+      if (const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(
+              abs_species[sp].Species());
+          jac_species.first) {
         const auto iq = jac_species.second->target_pos;
-        
+
         for (Index iv = 0; iv < f_grid.nelem(); iv++)
           dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
       }
@@ -592,9 +570,9 @@ void propmat_clearskyAddLines(  // Workspace reference:
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const AtmPoint& atm_point,
-    const VibrationalEnergyLevels& nlte_vib_energies,
     const Index& nlte_do,
     // WS User Generic inputs
+    const VibrationalEnergyLevels& nlte_vib_energies,
     const Numeric& sparse_df,
     const Numeric& sparse_lim,
     const String& speedup_option,
@@ -610,18 +588,24 @@ void propmat_clearskyAddLines(  // Workspace reference:
                      "*f_grid* must match *propmat_clearsky*")
   ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
                      "*f_grid* must match *nlte_source*")
-  ARTS_USER_ERROR_IF(nq not_eq dpropmat_clearsky_dx.nrows(),
+  ARTS_USER_ERROR_IF(
+      nq not_eq dpropmat_clearsky_dx.nrows(),
       "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(nf not_eq dpropmat_clearsky_dx.ncols(),
+  ARTS_USER_ERROR_IF(
+      nf not_eq dpropmat_clearsky_dx.ncols(),
       "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(nlte_do and nq not_eq dnlte_source_dx.nrows(),
+  ARTS_USER_ERROR_IF(
+      nlte_do and nq not_eq dnlte_source_dx.nrows(),
       "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(nlte_do and nf not_eq dnlte_source_dx.ncols(),
+  ARTS_USER_ERROR_IF(
+      nlte_do and nf not_eq dnlte_source_dx.ncols(),
       "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF((any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and not is_increasing(f_grid),
-                     "Must be sorted and increasing if any cutoff or speedup is used.")
+  ARTS_USER_ERROR_IF(
+      (any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and
+          not is_increasing(f_grid),
+      "Must be sorted and increasing if any cutoff or speedup is used.")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(
@@ -636,8 +620,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
   if (not nf) return;
 
   // Deal with sparse computational grid
-  const Vector f_grid_sparse = create_sparse_f_grid_internal(
-      f_grid, sparse_df, speedup_option);
+  const Vector f_grid_sparse =
+      create_sparse_f_grid_internal(f_grid, sparse_df, speedup_option);
   const Options::LblSpeedup speedup_type =
       f_grid_sparse.nelem() ? Options::toLblSpeedupOrThrow(speedup_option)
                             : Options::LblSpeedup::None;
@@ -647,8 +631,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   // Calculations data
   LineShape::ComputeData com(f_grid, jacobian_targets, nlte_do);
-  LineShape::ComputeData sparse_com(
-      f_grid_sparse, jacobian_targets, nlte_do);
+  LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_targets, nlte_do);
 
   if (arts_omp_in_parallel()) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
@@ -662,22 +645,24 @@ void propmat_clearskyAddLines(  // Workspace reference:
         continue;
       for (auto& band : abs_lines_per_species[ispecies]) {
         LineShape::compute(com,
-                          sparse_com,
-                          band,
-                          jacobian_targets,
-                          atm_point.is_lte() ? std::pair{0., 0.} : atm_point.levels(band.quantumidentity),
-                          nlte_vib_energies,
-                          band.BroadeningSpeciesVMR(atm_point),
-                          abs_species[ispecies],
-                          atm_point[band.Species()],
-                          atm_point[band.Isotopologue()],
-                          atm_point.pressure,
-                          atm_point.temperature,
-                          0,
-                          sparse_lim,
-                          Zeeman::Polarization::None,
-                          speedup_type,
-                          robust not_eq 0);
+                           sparse_com,
+                           band,
+                           jacobian_targets,
+                           atm_point.is_lte()
+                               ? std::pair{0., 0.}
+                               : atm_point.levels(band.quantumidentity),
+                           nlte_vib_energies,
+                           band.BroadeningSpeciesVMR(atm_point),
+                           abs_species[ispecies],
+                           atm_point[band.Species()],
+                           atm_point[band.Isotopologue()],
+                           atm_point.pressure,
+                           atm_point.temperature,
+                           0,
+                           sparse_lim,
+                           Zeeman::Polarization::None,
+                           speedup_type,
+                           robust not_eq 0);
       }
     }
   } else {  // In parallel
@@ -746,8 +731,8 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
     ARTS_USER_ERROR_IF(error, error_message)
 
-    for (auto& pcom: vcom) com += pcom;
-    for (auto& pcom: vsparse_com) sparse_com += pcom;
+    for (auto& pcom : vcom) com += pcom;
+    for (auto& pcom : vsparse_com) sparse_com += pcom;
   }
 
   switch (speedup_type) {
@@ -769,7 +754,7 @@ void propmat_clearskyAddLines(  // Workspace reference:
   }
 
   // Sum up the Jacobian
-  
+
   for (Index j = 0; j < nq; j++) {
     for (Index iv = 0; iv < nf; iv++) {
       dpropmat_clearsky_dx(j, iv).A() += com.dF(iv, j).real();
@@ -800,7 +785,8 @@ void propmat_clearskyZero(PropmatVector& propmat_clearsky,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyForceNegativeToZero(PropmatVector& propmat_clearsky) {
   for (Index i = 0; i < propmat_clearsky.nelem(); i++)
-    if (propmat_clearsky[i].A() < 0.0) propmat_clearsky[i] = 0.0;;
+    if (propmat_clearsky[i].A() < 0.0) propmat_clearsky[i] = 0.0;
+  ;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -829,8 +815,7 @@ void WriteMolTau(  //WS Input
   int dimids[4];
   int wvlmin_varid, wvlmax_varid, z_varid, wvl_varid, tau_varid;
 
-  ARTS_USER_ERROR_IF(3 != 1,
-                     "WriteMolTau can only be used for 3=1")
+  ARTS_USER_ERROR_IF(3 != 1, "WriteMolTau can only be used for 3=1")
 #pragma omp critical(netcdf__critical_region)
   {
     // Open file
@@ -982,9 +967,8 @@ void WriteMolTau(  //WS Input
 
 #endif /* ENABLE_NETCDF */
 
-void propmat_clearsky_agendaAuto(// Workspace reference:
+void propmat_clearsky_agendaAuto(  // Workspace reference:
     Agenda& propmat_clearsky_agenda,
-    Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -1002,10 +986,7 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
     const Index& manual_mag_field,
     const Index& no_negatives,
     const Numeric& theta,
-    const Index& use_abs_as_ext,
     const Index& use_abs_lookup_ind) {
-  propmat_clearsky_agenda_checked = 0;  // In case of crash
-
   AgendaCreator agenda("propmat_clearsky_agenda");
 
   // Use bool because logic is easier
@@ -1079,12 +1060,6 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
     agenda.add("propmat_clearskyAddPredefined");
   }
 
-  //propmat_clearskyAddParticles
-  if (any_species.Particles) {
-    agenda.add("propmat_clearskyAddParticles",
-               SetWsv{"use_abs_as_ext", use_abs_as_ext});
-  }
-
   //propmat_clearskyAddFaraday
   if (any_species.FreeElectrons) {
     agenda.add("propmat_clearskyAddFaraday");
@@ -1099,5 +1074,4 @@ void propmat_clearsky_agendaAuto(// Workspace reference:
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda = std::move(agenda).finalize();
-  propmat_clearsky_agenda_checked = 1;
 }

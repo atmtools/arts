@@ -12,7 +12,7 @@
 #include "lbl_zeeman.h"
 #include "math_funcs.h"
 #include "matpack_math.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "partfun.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"

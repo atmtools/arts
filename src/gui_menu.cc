@@ -11,6 +11,7 @@
 #include "atm.h"
 #include "jacobian.h"
 #include "math_funcs.h"
+#include "path_point.h"
 
 namespace gui::MainMenu {
 void fullscreen(Config& cfg, GLFWwindow* window) {
@@ -109,37 +110,6 @@ bool change_item(const char* name) {
   }
 
   return false;
-}
-
-[[nodiscard]] std::string change_item_name(const JacobianTarget& target) {
-  switch (target.type) {
-    case Jacobian::Type::Atm:
-      switch (target.atm) {
-        case Jacobian::Atm::Temperature:
-          return "Temperature";
-          break;
-        case Jacobian::Atm::WindMagnitude:
-          return "Wind Magnitude";
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
-
-      break;
-    case Jacobian::Type::Line:
-      switch (target.line) {
-        case Jacobian::Line::VMR:
-          return var_string("VMR: ", target.qid.Isotopologue());
-          break;
-        default:
-          ARTS_USER_ERROR("Not implemented")
-      }
-      break;
-    default:
-      ARTS_USER_ERROR("Not implemented")
-  }
-
-  return "Bad Value";
 }
 
 
@@ -318,6 +288,63 @@ bool change_item(const char* name,
         }
         ImGui::Separator();
         if (ImGui::Button("\tStore Value\t", {-1, 0})) old = vec;
+        ImGui::Separator();
+        ImGui::EndMenu();
+      }
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  return did_something;
+}
+
+bool change_item(
+    const char* name, PropagationPathPoint& point, PropagationPathPoint& old) {
+  bool did_something = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Value")) {
+      if (ImGui::BeginMenu(name)) {
+
+        ImGui::Text("\t");
+        ImGui::SameLine();
+        if (ImGui::InputDouble("\tAltitude\t", &point.pos[0], 0, 0, "%g")) {
+          did_something = true;
+        }
+
+        ImGui::Separator();
+        if (ImGui::InputDouble("\tLatitude\t", &point.pos[1], 0,0, "%g")) {
+          point.pos[1] = std::clamp<Numeric>(point.pos[1], -90, 90);
+          did_something = true;
+        }
+
+        ImGui::Separator();
+        if (ImGui::InputDouble("\tLongitude\t", &point.pos[2], 0, 0, "%g")) {
+          point.pos[2] = std::clamp<Numeric>(point.pos[2], -180, 180);
+          did_something = true;
+        }
+
+        ImGui::Separator();
+        if (ImGui::InputDouble("\tZenith\t", &point.los[0], 0,0, "%g")) {
+          point.los[0] = std::clamp<Numeric>(point.los[0], 0, 180);
+          did_something = true;
+        }
+
+        ImGui::Separator();
+        if (ImGui::InputDouble("\tAzimuth\t", &point.los[1], 0, 0, "%g")) {
+          point.los[1] = std::clamp<Numeric>(point.los[1], -180, 180);
+          did_something = true;
+        }
+
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
+          point = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = point;
         ImGui::Separator();
         ImGui::EndMenu();
       }

@@ -138,7 +138,7 @@ ws.f_grid = np.linspace(
 )  # around the band
 
 # VP LTE NO LINE MIXING
-ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+ws.propmat_clearskyInit()
 ws.propmat_clearskyAddLines2()
 pm_lte = 1.0 * ws.propmat_clearsky[:].T[0]
 
@@ -146,13 +146,13 @@ T = np.linspace(200, 320, 8)
 band = adaptband(band, T, p)
 ws.absorption_bands = [band]
 
-ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+ws.propmat_clearskyInit()
 ws.propmat_clearskyAddLines2()
 pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
 
 band.data.lineshape = "VP_ECS_HARTMANN"
 ws.absorption_bands = [band]
-ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+ws.propmat_clearskyInit()
 ws.propmat_clearskyAddLines2()
 pm_full = 1.0 * ws.propmat_clearsky[:].T[0]
 

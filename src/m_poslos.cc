@@ -33,10 +33,12 @@
 
 #include "check_input.h"
 #include "geodetic.h"
+#include "interpolation.h"
 #include "lin_alg.h"
-#include "ppath.h"
 #include "surf.h"
 #include "variousZZZ.h"
+
+#include "m_basic_types.h"
 
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
@@ -205,53 +207,6 @@ void rte_losGeometricToPosition(Vector& rte_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losRefractedToPosition(const Workspace& ws,
-                                Vector& rte_los,
-                                Ppath& ppath,
-                                const Agenda& refr_index_air_ZZZ_agenda,
-                                const Numeric& ppath_lstep,
-                                const Numeric& ppath_lraytrace,
-                                const SurfaceField& surface_field,
-                                const Numeric& surface_search_accuracy,
-                                const Vector& rte_pos,
-                                const Vector& target_pos,
-                                const Numeric& target_dl,
-                                const String& algorithm,
-                                const Index& max_iterations,
-                                const Index& robust,
-                                const Numeric& z_toa,
-                                const Index& do_horizontal_gradients,
-                                const Index& do_twosided_perturb)
-{
-    chk_rte_pos("rte_pos", rte_pos);
-    chk_rte_pos("target_pos", target_pos);
-
-    if (algorithm == "basic") {
-      refracted_link_basic(ws,
-                           ppath,
-                           refr_index_air_ZZZ_agenda,
-                           ppath_lstep,
-                           ppath_lraytrace,
-                           surface_field,
-                           surface_search_accuracy,
-                           z_toa,
-                           do_horizontal_gradients,
-                           do_twosided_perturb,
-                           rte_pos,
-                           target_pos,
-                           target_dl,
-                           max_iterations,
-                           robust);
-
-    } else {
-      ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
-    }
-
-    rte_los = ppath.start_los;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losReverse(Vector& rte_los)
 {
   reverse_los(rte_los, rte_los);
@@ -281,76 +236,6 @@ void rte_posSet(Vector& rte_pos,
   rte_pos[1] = lat;
   rte_pos[2] = lon;
   chk_rte_pos("rte_pos", rte_pos);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losBackwardToAltitude(Vector& rte_pos,
-                                   Vector& rte_los,
-                                   const SurfaceField& surface_field,
-                                   const Numeric& altitude,
-                                   const Index &los_is_reversed)
-{
-  // Find los to apply in next step
-  Vector los2use;
-  if (los_is_reversed) {
-    los2use = rte_los;
-  } else {
-    reverse_los(los2use, rte_los);
-  }
-
-  // Move in altitude
-  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
-  start_pos(0, joker) = rte_pos;
-  start_los(0, joker) = los2use;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                start_pos,
-                                start_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  rte_pos = end_pos(0, joker);
-  reverse_los(rte_los, end_los(0, joker));
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losForwardToAltitude(Vector& rte_pos,
-                                   Vector& rte_los,
-                                   const SurfaceField& surface_field,
-                                   const Numeric &altitude)
-{
-  // Move in altitude
-  Matrix start_pos(1,3), start_los(1,2), end_pos, end_los;
-  start_pos(0, joker) = rte_pos;
-  start_los(0, joker) = rte_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                start_pos,
-                                start_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  rte_pos = end_pos(0, joker);
-  rte_los = end_los(0, joker);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losEndOfPpath(Vector& rte_pos,
-                           Vector& rte_los,
-                           const Ppath& ppath)
-{
-  const Index np = ppath.np;
-
-  // Check input
-  ARTS_USER_ERROR_IF(np == 0, "The input *ppath* is empty.");
-
-  rte_pos = ppath.pos(np - 1, joker);
-  rte_los = ppath.los(np - 1, joker);
 }
 
 
@@ -405,163 +290,9 @@ void sensor_losGeometricToPositions(Matrix& sensor_los,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPosition(const Workspace& ws,
-                                   Matrix& sensor_los,
-                                   const Agenda& refr_index_air_ZZZ_agenda,
-                                   const Numeric& ppath_lstep,
-                                   const Numeric& ppath_lraytrace,
-                                   const SurfaceField& surface_field,
-                                   const Numeric& surface_search_accuracy,
-                                   const Matrix& sensor_pos,
-                                   const Vector& target_pos,
-                                   const Numeric& target_dl,
-                                   const String& algorithm,
-                                   const Index& max_iterations,
-                                   const Index& robust,
-                                   const Numeric& z_toa,
-                                   const Index& do_horizontal_gradients,
-                                   const Index& do_twosided_perturb)
-{
-    chk_sensor_pos("sensor_pos", sensor_pos);
-    chk_rte_pos("target_pos", target_pos);
-
-    const Index n = sensor_pos.nrows();
-    sensor_los.resize(n, 2);
-
-    if (algorithm == "basic") {
-      for (Index i=0; i<n; ++i) {
-        Ppath ppath;
-        refracted_link_basic(ws,
-                             ppath,
-                             refr_index_air_ZZZ_agenda,
-                             ppath_lstep,
-                             ppath_lraytrace,
-                             surface_field,
-                             surface_search_accuracy,
-                             z_toa,
-                             do_horizontal_gradients,
-                             do_twosided_perturb,
-                             Vector{sensor_pos(i, joker)},
-                             target_pos,
-                             target_dl,
-                             max_iterations,
-                             robust);
-        sensor_los(i, joker) = ppath.start_los;
-      }
-
-  } else {
-    ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
-  }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_losRefractedToPositions(const Workspace& ws,
-                                    Matrix& sensor_los,
-                                    const Agenda& refr_index_air_ZZZ_agenda,
-                                    const Numeric& ppath_lstep,
-                                    const Numeric& ppath_lraytrace,
-                                    const SurfaceField& surface_field,
-                                    const Numeric& surface_search_accuracy,
-                                    const Matrix& sensor_pos,
-                                    const Matrix& target_pos,
-                                    const Numeric& target_dl,
-                                    const String& algorithm,
-                                    const Index& max_iterations,
-                                    const Index& robust,
-                                    const Numeric& z_toa,
-                                    const Index& do_horizontal_gradients,
-                                    const Index& do_twosided_perturb)
-{
-    chk_sensor_pos("sensor_pos", sensor_pos);
-    chk_sensor_pos("target_pos", target_pos);
-
-    const Index n = sensor_pos.nrows();
-    ARTS_USER_ERROR_IF(target_pos.nrows() != n,
-        "*sensor_pos* and *target_pos* must have the same number of rows.");
-    sensor_los.resize(n, 2);
-
-    if (algorithm == "basic") {
-      for (Index i=0; i<n; ++i) {
-        Ppath ppath;
-        refracted_link_basic(ws,
-                             ppath,
-                             refr_index_air_ZZZ_agenda,
-                             ppath_lstep,
-                             ppath_lraytrace,
-                             surface_field,
-                             surface_search_accuracy,
-                             z_toa,
-                             do_horizontal_gradients,
-                             do_twosided_perturb,
-                             Vector{sensor_pos(i, joker)},
-                             Vector{target_pos(i, joker)},
-                             target_dl,
-                             max_iterations,
-                             robust);
-        sensor_los(i, joker) = ppath.start_los;
-      }
-
-  } else {
-    ARTS_USER_ERROR("Allowed options for *algorithm* are: \"basic\n");
-  }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losReverse(
     Matrix& sensor_los)
 {
   for (Index i = 0; i < sensor_los.nrows(); i++)
     reverse_los(sensor_los(i, joker), sensor_los(i, joker));
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_pos_losBackwardToAltitude(Matrix& sensor_pos,
-                                      Matrix& sensor_los,
-                                      const SurfaceField& surface_field,
-                                      const Numeric& altitude,
-                                      const Index &los_is_reversed)
-{
-  // Find los to apply in next step
-  Matrix los2use = sensor_los;
-  if (!los_is_reversed) {
-    sensor_losReverse(los2use);
-  }
-
-  // Move in altitude
-  Matrix end_pos, end_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                sensor_pos,
-                                los2use,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  sensor_pos = end_pos;
-  sensor_los = end_los;
-  sensor_losReverse(sensor_los);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_pos_losForwardToAltitude(Matrix& sensor_pos,
-                                     Matrix& sensor_los,
-                                     const SurfaceField& surface_field,
-                                     const Numeric &altitude)
-{
-  // Move in altitude
-  Matrix end_pos, end_los;
-  IntersectionGeometricAltitude(end_pos,
-                                end_los,
-                                sensor_pos,
-                                sensor_los,
-                                surface_field,
-                                altitude);
-
-  // Extract final values
-  sensor_pos = end_pos;
-  sensor_los = end_los;
 }

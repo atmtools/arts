@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <type_traits>
 #include <variant>
@@ -13,7 +14,8 @@
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "gridded_fields.h"
+#include "interp.h"
+#include "interpolation.h"
 #include "isotopologues.h"
 #include "species.h"
 
@@ -21,13 +23,17 @@ namespace Atm {
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
 }
+
 const std::unordered_map<Species::Species, Data> &Field::specs() const {
   return map<Species::Species>();
 }
+
 const std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() const {
   return map<Species::IsotopeRecord>();
 }
+
 const std::unordered_map<Key, Data> &Field::other() const { return map<Key>(); }
+
 const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
   return map<ParticulatePropertyTag>();
 }
@@ -35,13 +41,17 @@ const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
   return map<QuantumIdentifier>();
 }
+
 std::unordered_map<Species::Species, Data> &Field::specs() {
   return map<Species::Species>();
 }
+
 std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() {
   return map<Species::IsotopeRecord>();
 }
+
 std::unordered_map<Key, Data> &Field::other() { return map<Key>(); }
+
 std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
   return map<ParticulatePropertyTag>();
 }
@@ -143,17 +153,25 @@ std::vector<KeyVal> Point::keys() const {
 }
 
 Index Point::nspec() const { return static_cast<Index>(specs.size()); }
+
 Index Point::npart() const { return static_cast<Index>(partp.size()); }
+
 Index Point::nisot() const { return static_cast<Index>(isots.size()); }
+
 Index Point::nnlte() const { return static_cast<Index>(nlte.size()); }
+
 Index Point::size() const {
   return nspec() + nnlte() + nother() + npart() + nisot();
 }
 
 Index Field::nspec() const { return static_cast<Index>(specs().size()); }
+
 Index Field::nisot() const { return static_cast<Index>(isots().size()); }
+
 Index Field::npart() const { return static_cast<Index>(partp().size()); }
+
 Index Field::nnlte() const { return static_cast<Index>(nlte().size()); }
+
 Index Field::nother() const { return static_cast<Index>(other().size()); }
 
 String Data::data_type() const {
@@ -186,12 +204,12 @@ Limits find_limits(const Numeric &) { return {}; }
 Limits find_limits(const FunctionalData &) { return {}; }
 
 Limits find_limits(const GriddedField3 &gf3) {
-  return {gf3.get_numeric_grid(0).front(),
-          gf3.get_numeric_grid(0).back(),
-          gf3.get_numeric_grid(1).front(),
-          gf3.get_numeric_grid(1).back(),
-          gf3.get_numeric_grid(2).front(),
-          gf3.get_numeric_grid(2).back()};
+  return {gf3.grid<0>().front(),
+          gf3.grid<0>().back(),
+          gf3.grid<1>().front(),
+          gf3.grid<1>().back(),
+          gf3.grid<2>().front(),
+          gf3.grid<2>().back()};
 }
 
 Vector vec_interp(const Numeric &v,
@@ -341,72 +359,37 @@ Vector vec_interp(const GriddedField3 &v,
                   const Vector &alt,
                   const Vector &lat,
                   const Vector &lon) {
-  ARTS_ASSERT(v.get_grid_size(0) > 0)
-  ARTS_ASSERT(v.get_grid_size(1) > 0)
-  ARTS_ASSERT(v.get_grid_size(2) > 0)
+  ARTS_ASSERT(v.shape()[0] > 0)
+  ARTS_ASSERT(v.shape()[1] > 0)
+  ARTS_ASSERT(v.shape()[2] > 0)
 
-  const bool d1 = v.get_grid_size(0) == 1;
-  const bool d2 = v.get_grid_size(1) == 1;
-  const bool d3 = v.get_grid_size(2) == 1;
+  const bool d1 = v.shape()[0] == 1;
+  const bool d2 = v.shape()[1] == 1;
+  const bool d3 = v.shape()[2] == 1;
 
   const Index n = alt.size();
 
   if (d1 and d2 and d3) return Vector(n, v.data(0, 0, 0));
   if (d1 and d2)
-    return tvec_interp<0, 0, 1>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
+    return tvec_interp<0, 0, 1>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d1 and d3)
-    return tvec_interp<0, 1, 0>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
+    return tvec_interp<0, 1, 0>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d2 and d3)
-    return tvec_interp<1, 0, 0>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
+    return tvec_interp<1, 0, 0>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d1)
-    return tvec_interp<0, 1, 1>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
+    return tvec_interp<0, 1, 1>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d2)
-    return tvec_interp<1, 0, 1>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
+    return tvec_interp<1, 0, 1>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d3)
-    return tvec_interp<1, 1, 0>(v.data,
-                                v.get_numeric_grid(0),
-                                v.get_numeric_grid(1),
-                                v.get_numeric_grid(2),
-                                alt,
-                                lat,
-                                lon);
-  return tvec_interp<1, 1, 1>(v.data,
-                              v.get_numeric_grid(0),
-                              v.get_numeric_grid(1),
-                              v.get_numeric_grid(2),
-                              alt,
-                              lat,
-                              lon);
+    return tvec_interp<1, 1, 0>(
+        v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
+  return tvec_interp<1, 1, 1>(
+      v.data, v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
 }
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
@@ -608,12 +591,6 @@ Vector Data::at(const Vector &alt, const Vector &lat, const Vector &lon) const {
   return detail::vec_interp(*this, alt, lat, lon);
 }
 
-Numeric Data::at(const Numeric &alt,
-                 const Numeric &lat,
-                 const Numeric &lon) const {
-  return detail::vec_interp(*this, Vector{alt}, Vector{lat}, Vector{lon})[0];
-}
-
 void Point::setZero() {
   pressure = 0;
   temperature = 0;
@@ -699,60 +676,32 @@ Array<std::array<std::pair<Index, Numeric>, 8>> flat_weights_(
     const Vector &alt,
     const Vector &lat,
     const Vector &lon) {
-  const bool d1 = v.get_grid_size(0) == 1;
-  const bool d2 = v.get_grid_size(1) == 1;
-  const bool d3 = v.get_grid_size(2) == 1;
+  const bool d1 = v.shape()[0] == 1;
+  const bool d2 = v.shape()[1] == 1;
+  const bool d3 = v.shape()[2] == 1;
 
   using namespace detail;
   if (d1 and d2 and d3) return flat_weights_(Numeric{}, alt, lat, lon);
   if (d1 and d2)
-    return tvec_interpgrid_weights<0, 0, 1>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
+    return tvec_interpgrid_weights<0, 0, 1>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d1 and d3)
-    return tvec_interpgrid_weights<0, 1, 0>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
+    return tvec_interpgrid_weights<0, 1, 0>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d2 and d3)
-    return tvec_interpgrid_weights<1, 0, 0>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
+    return tvec_interpgrid_weights<1, 0, 0>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d1)
-    return tvec_interpgrid_weights<0, 1, 1>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
+    return tvec_interpgrid_weights<0, 1, 1>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d2)
-    return tvec_interpgrid_weights<1, 0, 1>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
+    return tvec_interpgrid_weights<1, 0, 1>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
   if (d3)
-    return tvec_interpgrid_weights<1, 1, 0>(v.get_numeric_grid(0),
-                                            v.get_numeric_grid(1),
-                                            v.get_numeric_grid(2),
-                                            alt,
-                                            lat,
-                                            lon);
-  return tvec_interpgrid_weights<1, 1, 1>(v.get_numeric_grid(0),
-                                          v.get_numeric_grid(1),
-                                          v.get_numeric_grid(2),
-                                          alt,
-                                          lat,
-                                          lon);
+    return tvec_interpgrid_weights<1, 1, 0>(
+        v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
+  return tvec_interpgrid_weights<1, 1, 1>(
+      v.grid<0>(), v.grid<1>(), v.grid<2>(), alt, lat, lon);
 }
 
 //! Flat weights for the positions in an atmosphere
@@ -815,3 +764,116 @@ bool operator==(const ParticulatePropertyTag &key, const KeyVal &keyval) {
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
   return os << ppt.name;
 }
+
+namespace Atm {
+namespace interp {
+using altlag1 = my_interp::Lagrange<1>;
+using altlag0 = my_interp::Lagrange<0>;
+
+using latlag1 = my_interp::Lagrange<1>;
+using latlag0 = my_interp::Lagrange<0>;
+
+using lonlag1 = my_interp::
+    Lagrange<1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag0 = my_interp::
+    Lagrange<0, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+
+using altlags = std::variant<altlag0, altlag1>;
+using latlags = std::variant<latlag0, latlag1>;
+using lonlags = std::variant<lonlag0, lonlag1>;
+
+Numeric get(const GriddedField3 &gf3,
+            const Numeric alt,
+            const Numeric lat,
+            const Numeric lon) {
+  return std::visit(
+      [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
+        return my_interp::interp(data, al, la, lo);
+      },
+      gf3.grid<0>().size() == 1 ? altlags{gf3.lag<0, altlag0>(alt)}
+                                : altlags{gf3.lag<0, altlag1>(alt)},
+      gf3.grid<1>().size() == 1 ? latlags{gf3.lag<1, latlag0>(lat)}
+                                : latlags{gf3.lag<1, latlag1>(lat)},
+      gf3.grid<2>().size() == 1 ? lonlags{gf3.lag<2, lonlag0>(lon)}
+                                : lonlags{gf3.lag<2, lonlag1>(lon)});
+}
+
+constexpr Numeric get(const Numeric num,
+                      const Numeric,
+                      const Numeric,
+                      const Numeric) {
+  return num;
+}
+
+Numeric get(const FunctionalData &fd,
+            const Numeric alt,
+            const Numeric lat,
+            const Numeric lon) {
+  return fd(alt, lat, lon);
+}
+
+struct PositionalNumeric {
+  const FieldData &data;
+  const Numeric alt;
+  const Numeric lat;
+  const Numeric lon;
+
+  operator Numeric() const {
+    return std::visit([&](auto &d) { return get(d, alt, lat, lon); }, data);
+  }
+};
+
+std::optional<Numeric> get_optional_limit(const Data &data,
+                                          const Numeric alt,
+                                          const Numeric lat,
+                                          const Numeric lon) {
+  const auto lim = detail::find_limit(
+      data,
+      std::visit([](auto &d) { return detail::find_limits(d); }, data.data),
+      alt,
+      lat,
+      lon);
+
+  ARTS_ASSERT(lim.type not_eq Extrapolation::FINAL)
+
+  ARTS_USER_ERROR_IF(lim.type == Extrapolation::None,
+                     "Altitude limit breaced.  Position (",
+                     lim.alt,
+                     ", ",
+                     lim.lat,
+                     ", ",
+                     lim.lon,
+                     ") is out-of-bounds when no extrapolation is wanted")
+
+  if (lim.type == Extrapolation::Zero) return 0.0;
+
+  if (lim.type == Extrapolation::Nearest)
+    return PositionalNumeric{data.data, lim.alt, lim.lat, lim.lon};
+
+  return std::nullopt;
+}
+}  // namespace interp
+
+Numeric Data::at(const Numeric alt,
+                 const Numeric lat,
+                 const Numeric lon) const {
+  return interp::get_optional_limit(*this, alt, lat, lon)
+      .value_or(interp::PositionalNumeric{data, alt, lat, lon});
+}
+
+Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
+  ARTS_USER_ERROR_IF(
+      alt > top_of_atmosphere,
+      "Cannot get values above the top of the atmosphere, which is at: ",
+      top_of_atmosphere,
+      " m.\nYour max input altitude is: ",
+      alt,
+      " m.")
+
+  Point out;
+  for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);
+  return out;
+}
+
+Point Field::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
+}  // namespace Atm

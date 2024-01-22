@@ -1,12 +1,14 @@
 #include <arts_omp.h>
 #include <atm_path.h>
-#include <new_jacobian.h>
+#include <jacobian.h>
+#include <path_point.h>
 #include <rte.h>
+#include <surf.h>
 #include <workspace.h>
 
-void ppvar_radCalcTransmission(
-    ArrayOfStokvecVector &ppvar_rad,
-    ArrayOfStokvecMatrix &ppvar_drad,
+void spectral_radiance_pathCalcTransmission(
+    ArrayOfStokvecVector &spectral_radiance_path,
+    ArrayOfStokvecMatrix &spectral_radiance_path_jacobian,
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
@@ -23,8 +25,8 @@ void ppvar_radCalcTransmission(
       "ppvar_dtramat must (2 x np) elements")
 
   if (np == 0) {
-    ppvar_rad.resize(0);
-    ppvar_drad.resize(0);
+    spectral_radiance_path.resize(0);
+    spectral_radiance_path_jacobian.resize(0);
     return;
   }
 
@@ -37,7 +39,7 @@ void ppvar_radCalcTransmission(
       "ppvar_tramat must have (nf) inner elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ppvar_cumtramat.begin(), ppvar_cumtramat.end(), test_nf),
-      "ppvar_src must have (nf) inner elements")
+      "spectral_radiance_path_source must have (nf) inner elements")
 
   const auto test_nfnq = [nf, nq](auto &v) {
     return v.ncols() not_eq nf or v.nrows() not_eq nq;
@@ -51,13 +53,13 @@ void ppvar_radCalcTransmission(
           ppvar_dtramat.back().begin(), ppvar_dtramat.back().end(), test_nfnq),
       "ppvar_dtramat must have (nq x nf) inner elements")
 
-  ppvar_rad.resize(np, StokvecVector(nf, Stokvec{1, 0, 0, 0}));
-  ppvar_drad.resize(np, StokvecMatrix(nq, nf));
+  spectral_radiance_path.resize(np, StokvecVector(nf, Stokvec{1, 0, 0, 0}));
+  spectral_radiance_path_jacobian.resize(np, StokvecMatrix(nq, nf));
   for (Index ip = np - 2; ip >= 0; ip--) {
-    ppvar_rad[ip] = ppvar_rad[ip + 1];
-    two_level_linear_transmission_step(ppvar_rad[ip],
-                                       ppvar_drad[ip],
-                                       ppvar_drad[ip + 1],
+    spectral_radiance_path[ip] = spectral_radiance_path[ip + 1];
+    two_level_linear_transmission_step(spectral_radiance_path[ip],
+                                       spectral_radiance_path_jacobian[ip],
+                                       spectral_radiance_path_jacobian[ip + 1],
                                        ppvar_tramat[ip + 1],
                                        ppvar_cumtramat[ip],
                                        ppvar_dtramat[0][ip + 1],
@@ -74,12 +76,12 @@ void ppvar_propmatCalc(const Workspace &ws,
                        const Agenda &propmat_clearsky_agenda,
                        const JacobianTargets &jacobian_targets,
                        const ArrayOfVector &ppvar_f,
-                       const Ppath &ppath,
+                       const ArrayOfPropagationPathPoint &rad_path,
                        const ArrayOfAtmPoint &ppvar_atm) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
-  const Index np = ppath.np;
+  const Size np = rad_path.size();
   if (np == 0) {
     ppvar_propmat.resize(0);
     ppvar_nlte.resize(0);
@@ -95,9 +97,10 @@ void ppvar_propmatCalc(const Workspace &ws,
 
   // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index ip = 0; ip < np; ip++) {
+  for (Size ip = 0; ip < np; ip++) {
     if (do_abort) continue;
     try {
+      //! FIXME: Send in full path point instead of this
       get_stepwise_clearsky_propmat(ws,
                                     ppvar_propmat[ip],
                                     ppvar_nlte[ip],
@@ -106,7 +109,7 @@ void ppvar_propmatCalc(const Workspace &ws,
                                     propmat_clearsky_agenda,
                                     jacobian_targets,
                                     ppvar_f[ip],
-                                    Vector{ppath.los(ip, joker)},
+                                    rad_path[ip],
                                     ppvar_atm[ip]);
     } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
@@ -126,40 +129,42 @@ void ppvar_propmatCalc(const Workspace &ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ppvar_srcFromPropmat(ArrayOfStokvecVector &ppvar_src,
-                          ArrayOfStokvecMatrix &ppvar_dsrc,
-                          const ArrayOfPropmatVector &ppvar_propmat,
-                          const ArrayOfStokvecVector &ppvar_nlte,
-                          const ArrayOfPropmatMatrix &ppvar_dpropmat,
-                          const ArrayOfStokvecMatrix &ppvar_dnlte,
-                          const ArrayOfVector &ppvar_f,
-                          const ArrayOfAtmPoint &ppvar_atm,
-                          const JacobianTargets& jacobian_targets) try {
+void spectral_radiance_path_sourceFromPropmat(
+    ArrayOfStokvecVector &spectral_radiance_path_source,
+    ArrayOfStokvecMatrix &spectral_radiance_path_source_jacobian,
+    const ArrayOfPropmatVector &ppvar_propmat,
+    const ArrayOfStokvecVector &ppvar_nlte,
+    const ArrayOfPropmatMatrix &ppvar_dpropmat,
+    const ArrayOfStokvecMatrix &ppvar_dnlte,
+    const ArrayOfVector &ppvar_f,
+    const ArrayOfAtmPoint &ppvar_atm,
+    const JacobianTargets &jacobian_targets) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
   const Index np = ppvar_atm.size();
   if (np == 0) {
-    ppvar_src.resize(0);
-    ppvar_dsrc.resize(0);
+    spectral_radiance_path_source.resize(0);
+    spectral_radiance_path_source_jacobian.resize(0);
     return;
   }
 
   const Index nf = ppvar_propmat.front().size();
   const Index nq = jacobian_targets.target_count();
 
-  const Index it = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+  const Index it =
+      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
-  ppvar_src.resize(np, StokvecVector(nf));
-  ppvar_dsrc.resize(np, StokvecMatrix(nq, nf));
+  spectral_radiance_path_source.resize(np, StokvecVector(nf));
+  spectral_radiance_path_source_jacobian.resize(np, StokvecMatrix(nq, nf));
 
   // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Index ip = 0; ip < np; ip++) {
     if (do_abort) continue;
     try {
-      rtepack::source::level_nlte(ppvar_src[ip],
-                                  ppvar_dsrc[ip],
+      rtepack::source::level_nlte(spectral_radiance_path_source[ip],
+                                  spectral_radiance_path_source_jacobian[ip],
                                   ppvar_propmat[ip],
                                   ppvar_nlte[ip],
                                   ppvar_dpropmat[ip],
@@ -188,17 +193,19 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
                       ArrayOfArrayOfVector &ppvar_ddistance,
                       const ArrayOfPropmatVector &ppvar_propmat,
                       const ArrayOfPropmatMatrix &ppvar_dpropmat,
-                      const Ppath &ppath,
+                      const ArrayOfPropagationPathPoint &rad_path,
                       const ArrayOfAtmPoint &ppvar_atm,
+                      const SurfaceField &surface_field,
                       const JacobianTargets &jacobian_targets,
                       const Index &hse_derivative) try {
   ArrayOfString fail_msg;
   bool do_abort = false;
 
   // HSE variables
-  const Index temperature_derivative_position = jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+  const Index temperature_derivative_position =
+      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
-  const Index np = ppath.np;
+  const Size np = rad_path.size();
 
   if (np == 0) {
     ppvar_tramat.resize(0);
@@ -217,15 +224,16 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
   ppvar_ddistance.resize(2, ArrayOfVector(np, Vector(nq, 0)));
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index ip = 1; ip < np; ip++) {
+  for (Size ip = 1; ip < np; ip++) {
     if (do_abort) continue;
     try {
-      ppvar_distance[ip - 1] = ppath.lstep[ip - 1];
+      ppvar_distance[ip - 1] =
+          path::distance(rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
       if (hse_derivative and temperature_derivative_position >= 0) {
         ppvar_ddistance[0][ip][temperature_derivative_position] =
-            ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature);
+            ppvar_distance[ip - 1] / (2.0 * ppvar_atm[ip - 1].temperature);
         ppvar_ddistance[1][ip][temperature_derivative_position] =
-            ppath.lstep[ip - 1] / (2.0 * ppvar_atm[ip].temperature);
+            ppvar_distance[ip - 1] / (2.0 * ppvar_atm[ip].temperature);
       }
 
       two_level_exp(ppvar_tramat[ip],
@@ -256,38 +264,39 @@ void ppvar_tramatCalc(ArrayOfMuelmatVector &ppvar_tramat,
 ARTS_METHOD_ERROR_CATCH
 
 void ppvar_atmFromPath(ArrayOfAtmPoint &ppvar_atm,
-                       const Ppath &ppath,
+                       const ArrayOfPropagationPathPoint &rad_path,
                        const AtmField &atm_field) try {
-  forward_atm_path(atm_path_resize(ppvar_atm, ppath), ppath, atm_field);
+  forward_atm_path(atm_path_resize(ppvar_atm, rad_path), rad_path, atm_field);
 }
 ARTS_METHOD_ERROR_CATCH
 
 void ppvar_fFromPath(ArrayOfVector &ppvar_f,
                      const Vector &f_grid,
-                     const Ppath &ppath,
+                     const ArrayOfPropagationPathPoint &rad_path,
                      const ArrayOfAtmPoint &ppvar_atm,
                      const Numeric &rte_alonglos_v) try {
   forward_path_freq(path_freq_resize(ppvar_f, f_grid, ppvar_atm),
                     f_grid,
-                    ppath,
+                    rad_path,
                     ppvar_atm,
                     rte_alonglos_v);
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ppvar_radCalcEmission(
-    ArrayOfStokvecVector &ppvar_rad,
-    ArrayOfStokvecMatrix &ppvar_drad,
+void spectral_radiance_pathCalcEmission(
+    ArrayOfStokvecVector &spectral_radiance_path,
+    ArrayOfStokvecMatrix &spectral_radiance_path_jacobian,
     const StokvecVector &background_rad,
-    const ArrayOfStokvecVector &ppvar_src,
-    const ArrayOfStokvecMatrix &ppvar_dsrc,
+    const ArrayOfStokvecVector &spectral_radiance_path_source,
+    const ArrayOfStokvecMatrix &spectral_radiance_path_source_jacobian,
     const ArrayOfMuelmatVector &ppvar_tramat,
     const ArrayOfMuelmatVector &ppvar_cumtramat,
     const ArrayOfArrayOfMuelmatMatrix &ppvar_dtramat) try {
-  const Size np = ppvar_src.size();
+  const Size np = spectral_radiance_path_source.size();
 
-  ARTS_USER_ERROR_IF(np not_eq ppvar_dsrc.size(),
-                     "ppvar_dsrc must have (np) elements")
+  ARTS_USER_ERROR_IF(
+      np not_eq spectral_radiance_path_source_jacobian.size(),
+      "spectral_radiance_path_source_jacobian must have (np) elements")
   ARTS_USER_ERROR_IF(np not_eq ppvar_tramat.size(),
                      "ppvar_tramat must have (np) elements")
   ARTS_USER_ERROR_IF(np not_eq ppvar_cumtramat.size(),
@@ -299,32 +308,37 @@ void ppvar_radCalcEmission(
       "ppvar_dtramat must (2 x np) elements")
 
   if (np == 0) {
-    ppvar_rad.resize(0);
-    ppvar_drad.resize(0);
+    spectral_radiance_path.resize(0);
+    spectral_radiance_path_jacobian.resize(0);
     return;
   }
 
-  const Index nq = ppvar_dsrc.front().nrows();
-  const Index nf = ppvar_dsrc.front().ncols();
+  const Index nq = spectral_radiance_path_source_jacobian.front().nrows();
+  const Index nf = spectral_radiance_path_source_jacobian.front().ncols();
 
   const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
   ARTS_USER_ERROR_IF(nf not_eq background_rad.size(),
                      "background_rad must have nf elements")
-  ARTS_USER_ERROR_IF(std::any_of(ppvar_src.begin(), ppvar_src.end(), test_nf),
-                     "ppvar_src must have (nf) inner elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(spectral_radiance_path_source.begin(),
+                  spectral_radiance_path_source.end(),
+                  test_nf),
+      "spectral_radiance_path_source must have (nf) inner elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ppvar_tramat.begin(), ppvar_tramat.end(), test_nf),
       "ppvar_tramat must have (nf) inner elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ppvar_cumtramat.begin(), ppvar_cumtramat.end(), test_nf),
-      "ppvar_src must have (nf) inner elements")
+      "spectral_radiance_path_source must have (nf) inner elements")
 
   const auto test_nfnq = [nf, nq](auto &v) {
     return v.ncols() not_eq nf or v.nrows() not_eq nq;
   };
   ARTS_USER_ERROR_IF(
-      std::any_of(ppvar_dsrc.begin(), ppvar_dsrc.end(), test_nfnq),
-      "ppvar_dsrc must have (nq x nf) inner elements")
+      std::any_of(spectral_radiance_path_source_jacobian.begin(),
+                  spectral_radiance_path_source_jacobian.end(),
+                  test_nfnq),
+      "spectral_radiance_path_source_jacobian must have (nq x nf) inner elements")
   ARTS_USER_ERROR_IF(std::any_of(ppvar_dtramat.front().begin(),
                                  ppvar_dtramat.front().end(),
                                  test_nfnq),
@@ -334,21 +348,22 @@ void ppvar_radCalcEmission(
           ppvar_dtramat.back().begin(), ppvar_dtramat.back().end(), test_nfnq),
       "ppvar_dtramat must have (nq x nf) inner elements")
 
-  ppvar_rad.resize(np, background_rad);
-  ppvar_drad.resize(np, StokvecMatrix(nq, nf));
+  spectral_radiance_path.resize(np, background_rad);
+  spectral_radiance_path_jacobian.resize(np, StokvecMatrix(nq, nf));
   for (Index ip = np - 2; ip >= 0; ip--) {
-    ppvar_rad[ip] = ppvar_rad[ip + 1];
-    two_level_linear_emission_step(ppvar_rad[ip],
-                                   ppvar_drad[ip],
-                                   ppvar_drad[ip + 1],
-                                   ppvar_src[ip],
-                                   ppvar_src[ip + 1],
-                                   ppvar_dsrc[ip],
-                                   ppvar_dsrc[ip + 1],
-                                   ppvar_tramat[ip + 1],
-                                   ppvar_cumtramat[ip],
-                                   ppvar_dtramat[0][ip + 1],
-                                   ppvar_dtramat[1][ip + 1]);
+    spectral_radiance_path[ip] = spectral_radiance_path[ip + 1];
+    two_level_linear_emission_step(
+        spectral_radiance_path[ip],
+        spectral_radiance_path_jacobian[ip],
+        spectral_radiance_path_jacobian[ip + 1],
+        spectral_radiance_path_source[ip],
+        spectral_radiance_path_source[ip + 1],
+        spectral_radiance_path_source_jacobian[ip],
+        spectral_radiance_path_source_jacobian[ip + 1],
+        ppvar_tramat[ip + 1],
+        ppvar_cumtramat[ip],
+        ppvar_dtramat[0][ip + 1],
+        ppvar_dtramat[1][ip + 1]);
   }
 }
 ARTS_METHOD_ERROR_CATCH

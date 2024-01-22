@@ -105,40 +105,6 @@ void cloud_fieldsCalc(const Workspace& ws,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field);
 
-//! Calculates RT in the cloudbox
-/*!
-  This function calculates RT in the cloudbox if the next intersected
-  level is the surface.
-
-  \param[in,out] ws Current workspace
-  \param[out]    cloudbox_field_mono Radiation field in cloudbox
-  \param[in]     surface_rtprop_agenda Provides radiative properties of the
-                 surface
-  \param[in]     f_grid Frequency grid
-  \param[in]     f_index Frequency index of (monochromatic) scattering
-                 calculation
-  \param[in]     ppath_step Propagation path step
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     za_grid Zenith angle grid
-  \param[in]     za_index Zenith angle index
-
-
-  \author Claudia Emde
-  \date 2005-05-13
-
-*/
-void cloud_RT_surface(const Workspace& ws,
-                      //Output
-                      Tensor6View cloudbox_field_mono,
-                      //Input
-                      const Agenda& surface_rtprop_agenda,
-                      ConstVectorView f_grid,
-                      const Index& f_index,
-                      const Ppath& ppath_step,
-                      const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView za_grid,
-                      const Index& za_index);
-
 //! Convergence acceleration
 /*!
  This function accelarate the convergence of the doit iteration by extrapolation
@@ -159,55 +125,6 @@ void cloudbox_field_ngAcceleration(  //Output
     //Input
     const ArrayOfTensor6& acceleration_input,
     const Index& accelerated);
-
-//! Interpolate all inputs of the VRTE on a propagation path step
-/*!
-  Used in the WSM cloud_ppath_update1D.
-
-  \param[out]   ext_mat_int Interpolated extinction matrix for 1D atmosphere
-  \param[out]   abs_vec_int Interpolated absorption vector for 1D atmosphere
-  \param[out]   sca_vec_int Interpolated scattering field for 1D atmosphere
-  \param[out]   cloudbox_field_mono_int Interpolated radiation field
-                for 1D atmosphere
-  \param[out]   t_int Interpolated temperature field for 1D atmosphere
-  \param[out]   vmr_list_int Interpolated vmr field for each ppath_step
-  \param[out]   p_int Interpolated pressure
-  \param[in]    ext_mat_field Extinction matrix field
-  \param[in]    abs_vec_field Absorption vector field
-  \param[in]    doit_scat_field Scattering field
-  \param[in]    cloudbox_field_mono Radiation field
-  \param[in]    t_field Atmopheric temperature field
-  \param[in]    vmr_field VMR field
-  \param[in]    p_grid Pressure grid
-  \param[in]    ppath_step Propagation path step
-  \param[in]    cloudbox_limits Cloudbox limits
-  \param[in]    za_grid Zenith angle grid
-  \param[in]    scat_za_interp Flag for interplation method in zenith angle
-                dimension
-
-  \author Claudia Emde
-  \date 2003-06-06
-*/
-void interp_cloud_coeff1D(  //Output
-    Tensor3View ext_mat_int,
-    MatrixView abs_vec_int,
-    MatrixView sca_vec_int,
-    MatrixView cloudbox_field_mono_int,
-    VectorView t_int,
-    MatrixView vmr_list_int,
-    VectorView p_int,
-    //Input
-    ConstTensor5View ext_mat_field,
-    ConstTensor4View abs_vec_field,
-    ConstTensor6View doit_scat_field,
-    ConstTensor6View cloudbox_field_mono,
-    ConstTensor3View t_field,
-    ConstTensor4View vmr_field,
-    ConstVectorView p_grid,
-    const Ppath& ppath_step,
-    const ArrayOfIndex& cloudbox_limits,
-    ConstVectorView za_grid,
-    const Index& scat_za_interp);
 
 //! Optimize the zenith angle grid
 /*!

@@ -5,7 +5,6 @@ API Reference
    :maxdepth: 2
 
    pyarts.arts
-   pyarts.arts_ext
    pyarts.cat
    pyarts.common
    pyarts.environment

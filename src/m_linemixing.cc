@@ -23,7 +23,7 @@
 #include "lbl_temperature_model.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
     HitranRelaxationMatrixData& abs_hitran_relmat_data,

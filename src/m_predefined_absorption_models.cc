@@ -13,7 +13,7 @@
 #include "atm.h"
 #include "debug.h"
 #include "logic.h"
-#include "new_jacobian.h"
+#include "jacobian.h"
 #include "predefined_absorption_models.h"
 
 void predefined_model_dataInit(PredefinedModelData& predefined_model_data) {

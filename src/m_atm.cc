@@ -9,7 +9,6 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
-#include "gridded_fields.h"
 #include "hitran_species.h"
 #include "igrf13.h"
 #include "interp.h"
@@ -513,8 +512,8 @@ struct atm_fieldHydrostaticPressureData {
       : grad_p(std::move(in_grad_p)),
         pre(grad_p),  // Init sizes
         alt(std::move(in_alt)),
-        lat(pre0.get_numeric_grid(0)),
-        lon(pre0.get_numeric_grid(1)) {
+        lat(pre0.grid<0>()),
+        lon(pre0.grid<1>()) {
     pre[0] = pre0.data;
     for (Index i = 1; i < alt.nelem(); i++) {
       for (Index j = 0; j < lat.nelem(); j++) {
@@ -574,8 +573,8 @@ void atm_fieldHydrostaticPressure(
   using enum atm_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
-  const Vector &lats = p0.get_numeric_grid(0);
-  const Vector &lons = p0.get_numeric_grid(1);
+  const Vector &lats = p0.grid<0>();
+  const Vector &lons = p0.grid<1>();
 
   const Index nalt = alts.size();
   const Index nlat = lats.size();
@@ -585,8 +584,8 @@ void atm_fieldHydrostaticPressure(
                      "Must have at least 1-sized alt, lat, and lon grids")
 
   ARTS_USER_ERROR_IF(
-      p0.get_grid_name(0) not_eq "Latitude" or
-          p0.get_grid_name(1) not_eq "Longitude" or not p0.checksize(),
+      p0.grid_names[0] not_eq "Latitude" or
+          p0.grid_names[1] not_eq "Longitude" or not p0.check(),
       "Bad gridded field, must have right size.\n"
       "Must also have \"Latitude\" as first grid and \"Longitude\" as second grid.\n"
       "Field:\n",
@@ -613,7 +612,7 @@ void atm_fieldHydrostaticPressure(
           const Numeric lo = lons[k];
 
           const Numeric g = gravity_operator(al, la, lo);
-          const AtmPoint atm_point{atm_field.at({al}, {la}, {lo}).front()};
+          const AtmPoint atm_point{atm_field.at(al, la, lo)};
 
           const Numeric inv_specific_gas_constant =
               has_def_r ? 1.0 / fixed_specific_gas_constant

@@ -1,61 +1,32 @@
-#include "gridded_fields.h"
-#include "matpack_data.h"
-#include "matpack_math.h"
+#include <matpack.h>
 
-using std::cout;
-using std::endl;
+#include "interp.h"
 
-int main(void) {
-  // Creating two gridded fields
-  //////////////////////////////////////////////////////////////////////////////
-  GriddedField1 gfone("I'm a GriddedField1");
-  GriddedField2 gftwo;
+int main() {
+  const GriddedField1 f{.data = Vector{1, 2, 3, 4, 5, 6},
+                        .grids = Vector{2, 4, 6, 8, 10, 12}};
+  std::cout << f << '\n';
 
-  gftwo.set_name("I'm a GriddedField2");
+  std::cout << f.reinterp<LagrangeInterpolation>({2, 3}, 1) << '\n';
+  std::cout << f.reinterp<FixedLagrangeInterpolation<1>>({2, 3, 4, 1}) << '\n';
+  std::cout << f.interp<LagrangeInterpolation>(20, 1) << '\n';
+  std::cout << f.interp<FixedLagrangeInterpolation<1>>(-1) << '\n';
 
-  // Initializing the grids
-  //////////////////////////////////////////////////////////////////////////////
-  Vector gfonegrid=uniform_grid(1, 5, 1);     // gfonegrid = [1,2,3,4,5]
-  gfone.set_grid(0, gfonegrid);  // Set grid for the vector elements.
+  const GriddedField2 g{.data = Vector{1, 2, 3, 4, 5, 6}.reshape(2, 3),
+                        .grids = {Vector{1, 2}, Vector{1, 2, 3}}};
+  std::cout << g << '\n';
 
-  Vector gftwogrid0=uniform_grid(1, 5, 1);  // gftwogrid0 = [1,2,3,4,5]
-  ArrayOfString gftwogrid1{"Chan1", "Chan2", "Chan3"};
-
-  gftwo.set_grid(0, gftwogrid0);  // Set grid for the matrix rows.
-  gftwo.set_grid(1, gftwogrid1);  // Set grid for the matrix columns.
-
-  gfone.set_grid_name(0, "Pressure");
-
-  gftwo.set_grid_name(0, "Pressure");
-  gftwo.set_grid_name(1, "Channel");
-
-  // Initializing the data
-  //////////////////////////////////////////////////////////////////////////////
-  Vector avector=uniform_grid(1, 4, 0.5);  // avector = [1,1.5,2,2.5]
-
-  gfone.data = avector;
-
-  cout << gfone;
-
-  Matrix amatrix(5, 3, 4.);  // amatrix = [[4,4,4],[4,4,4],...]
-
-  gftwo.data = amatrix;
-
-  // Consistency check
-  //////////////////////////////////////////////////////////////////////////////
-
-  if (!gfone.checksize())
-    cout << gfone.get_name() << ": Sizes of grid and data don't match" << endl;
-
-  // This should fail!
-  if (!gftwo.checksize())
-    cout << gftwo.get_name() << ": Sizes of grids and data don't match" << endl;
-
-  // Output
-  //////////////////////////////////////////////////////////////////////////////
-
-  cout << "GriddedField1: " << gfone << endl;
-  cout << "GriddedField2: " << gftwo << endl;
-
-  return 0;
+  std::cout << g.reinterp<LagrangeInterpolation, LagrangeInterpolation>(
+                   {1.5}, {1.5}, 1, 20)
+            << '\n';
+  std::cout << g.reinterp<FixedLagrangeInterpolation<1>,
+                          FixedLagrangeInterpolation<1>>(
+                   {2, 3, 4, 1}, {-5, 3}, 20)
+            << '\n';
+  std::cout << g.interp<LagrangeInterpolation, LagrangeInterpolation>(0, 0, 1)
+            << '\n';
+  std::cout
+      << g.interp<FixedLagrangeInterpolation<1>, FixedLagrangeInterpolation<1>>(
+             -1, -2)
+      << '\n';
 }

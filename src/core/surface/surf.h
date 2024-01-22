@@ -1,16 +1,15 @@
 #pragma once
 
-#include "enums.h"
-#include "fieldmap.h"
-#include "gridded_fields.h"
-#include "matpack_concepts.h"
-#include "matpack_constexpr.h"
-#include "mystring.h"
+#include <matpack.h>
 
 #include <limits>
 #include <ostream>
 #include <type_traits>
 #include <variant>
+
+#include "enums.h"
+#include "fieldmap.h"
+#include "mystring.h"
 
 using Vector2 = matpack::matpack_constant_data<Numeric, 2>;
 using Vector3 = matpack::matpack_constant_data<Numeric, 3>;
@@ -32,18 +31,20 @@ struct SurfacePropertyTag {
 };
 
 namespace std {
-template <> struct hash<SurfaceTypeTag> {
+template <>
+struct hash<SurfaceTypeTag> {
   std::size_t operator()(const SurfaceTypeTag &pp) const noexcept {
     return std::hash<String>{}(pp.name);
   }
 };
 
-template <> struct hash<SurfacePropertyTag> {
+template <>
+struct hash<SurfacePropertyTag> {
   std::size_t operator()(const SurfacePropertyTag &pp) const noexcept {
     return std::hash<String>{}(pp.name);
   }
 };
-} // namespace std
+}  // namespace std
 
 namespace Surf {
 ENUMCLASS(Key, char, h, t, wind_u, wind_v, wind_w)
@@ -55,63 +56,69 @@ template <typename T>
 concept isSurfaceTypeTag = std::same_as<std::remove_cvref_t<T>, SurfaceTypeTag>;
 
 template <typename T>
-concept isSurfacePropertyTag = std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
+concept isSurfacePropertyTag =
+    std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
 
 template <typename T>
 concept KeyType = isKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
 
 using KeyVal = std::variant<Key, SurfaceTypeTag, SurfacePropertyTag>;
 
-std::ostream& operator<<(std::ostream& os, const KeyVal& key);
+std::ostream &operator<<(std::ostream &os, const KeyVal &key);
 
 struct Point {
   Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};
   Numeric temperature{std::numeric_limits<Numeric>::quiet_NaN()};
-  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
-  Vector2 normal{std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector3 wind{std::numeric_limits<Numeric>::quiet_NaN(),
+               std::numeric_limits<Numeric>::quiet_NaN(),
+               std::numeric_limits<Numeric>::quiet_NaN()};
+  Vector2 normal{std::numeric_limits<Numeric>::quiet_NaN(),
+                 std::numeric_limits<Numeric>::quiet_NaN()};
   std::unordered_map<SurfaceTypeTag, Numeric> type;
   std::unordered_map<SurfacePropertyTag, Numeric> prop;
 
-  template <KeyType Key> Numeric &operator[](Key &&x) {
+  template <KeyType Key>
+  Numeric &operator[](Key &&x) {
     if constexpr (isKey<Key>) {
       switch (std::forward<Key>(x)) {
-      case Surf::Key::h:
-        return elevation;
-      case Surf::Key::t:
-        return temperature;
-      case Surf::Key::wind_u:
-        return wind[0];
-      case Surf::Key::wind_v:
-        return wind[1];
-      case Surf::Key::wind_w:
-        return wind[2];
-      case Surf::Key::FINAL:
-        return temperature;
+        case Surf::Key::h:
+          return elevation;
+        case Surf::Key::t:
+          return temperature;
+        case Surf::Key::wind_u:
+          return wind[0];
+        case Surf::Key::wind_v:
+          return wind[1];
+        case Surf::Key::wind_w:
+          return wind[2];
+        case Surf::Key::FINAL:
+          return temperature;
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type[std::forward<Key>(x)];
     } else if constexpr (isSurfacePropertyTag<Key>) {
       return prop[std::forward<Key>(x)];
     }
-    
+
     return temperature;
   }
 
-  template <KeyType Key> Numeric operator[](Key &&x) const {
+  template <KeyType Key>
+  Numeric operator[](Key &&x) const {
     if constexpr (isKey<Key>) {
       switch (std::forward<Key>(x)) {
-      case Surf::Key::h:
-        return elevation;
-      case Surf::Key::t:
-        return temperature;
-      case Surf::Key::wind_u:
-        return wind[0];
-      case Surf::Key::wind_v:
-        return wind[1];
-      case Surf::Key::wind_w:
-        return wind[2];
-      case Surf::Key::FINAL:
-        return std::numeric_limits<Numeric>::signaling_NaN();
+        case Surf::Key::h:
+          return elevation;
+        case Surf::Key::t:
+          return temperature;
+        case Surf::Key::wind_u:
+          return wind[0];
+        case Surf::Key::wind_v:
+          return wind[1];
+        case Surf::Key::wind_w:
+          return wind[2];
+        case Surf::Key::FINAL:
+          return std::numeric_limits<Numeric>::signaling_NaN();
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type.at(std::forward<Key>(x));
@@ -134,9 +141,9 @@ struct Point {
     return static_cast<Index>(enumtyps::KeyTypes.size());
   }
 
-  template <KeyType T> constexpr bool contains(T &&k) const {
-    if constexpr (isSurfaceTypeTag<T>)
-      return type.contains(std::forward<T>(k));
+  template <KeyType T>
+  constexpr bool contains(T &&k) const {
+    if constexpr (isSurfaceTypeTag<T>) return type.contains(std::forward<T>(k));
     if constexpr (isSurfacePropertyTag<T>)
       return prop.contains(std::forward<T>(k));
     else if constexpr (isKey<T>)
@@ -195,13 +202,15 @@ struct Data {
   Data &operator=(GriddedField2 &&x);
   Data &operator=(FunctionalData &&x);
 
-  template <typename T> [[nodiscard]] T get() const {
+  template <typename T>
+  [[nodiscard]] T get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
     return *out;
   }
 
-  template <typename T> [[nodiscard]] T get() {
+  template <typename T>
+  [[nodiscard]] T get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
     ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
     return *out;
@@ -212,10 +221,10 @@ struct Data {
   [[nodiscard]] ExhaustiveConstVectorView flat_view() const;
 
   [[nodiscard]] ExhaustiveVectorView flat_view();
-  
+
   //! Flat weights for the positions on the surface
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 4>
-    flat_weights(const Numeric &lat, const Numeric &lon) const;
+  [[nodiscard]] std::array<std::pair<Index, Numeric>, 4> flat_weights(
+      const Numeric &lat, const Numeric &lon) const;
 };
 
 struct Field final
@@ -243,15 +252,17 @@ struct Field final
    * @param alt The altitude of the point.  If NaN, it is computed first
    * @return Vector2 [za, aa]
    */
-  [[nodiscard]] Vector2
-  normal(Numeric lat, Numeric lon,
-         Numeric alt = std::numeric_limits<Numeric>::quiet_NaN()) const;
+  [[nodiscard]] Vector2 normal(
+      Numeric lat,
+      Numeric lon,
+      Numeric alt = std::numeric_limits<Numeric>::quiet_NaN()) const;
 
-  [[nodiscard]] Numeric single_value(const KeyVal &key, Numeric lat,
+  [[nodiscard]] Numeric single_value(const KeyVal &key,
+                                     Numeric lat,
                                      Numeric lon) const;
 
-  [[nodiscard]] std::pair<Numeric, Numeric>
-  minmax_single_value(const KeyVal &key) const;
+  [[nodiscard]] std::pair<Numeric, Numeric> minmax_single_value(
+      const KeyVal &key) const;
 
   [[nodiscard]] bool constant_value(const KeyVal &key) const;
 
@@ -262,7 +273,7 @@ static_assert(
     std::same_as<typename Field::KeyVal, KeyVal>,
     "The order of arguments in the template of which Field inherits from is "
     "wrong.  KeyVal must be defined in the same way for this to work.");
-} // namespace Surf
+}  // namespace Surf
 
 using SurfaceKeyVal = Surf::KeyVal;
 using SurfacePoint = Surf::Point;

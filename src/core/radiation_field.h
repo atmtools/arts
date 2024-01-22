@@ -11,7 +11,6 @@
 
 #include "matpack_data.h"
 #include "mystring.h"
-#include "ppath_struct.h"
 
 #include <rtepack.h>
 
@@ -91,25 +90,4 @@ Numeric integrate_convolved(const MuelmatVector& T,
 Numeric integrate_zenith(const ConstVectorView& j,
                          const Vector& cosza,
                          const Array<Index>& sorted_index);
-
-/** Get a discrete position from grid pos
- * 
- * Assumes the grid pos has been set to 
- * extend over the path
- * 
- * @param[in] gp Grid position
- * @return Index Position
- */
-Index grid_index_from_gp(const GridPos& gp);
-
-/** Get sorting of zenith angles in field of ppath
- * 
- * @param[out] sorted_index Order of zenith angles
- * @param[out] cosza cos of zenith angle
- * @param[in] ppath_field As WSV
- */
-void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
-                                 ArrayOfVector& cosza,
-                                 const ArrayOfPpath& ppath_field);
-
 #endif  // radiation_field_h

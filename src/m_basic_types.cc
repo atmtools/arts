@@ -23,15 +23,15 @@
   === External declarations
   ===========================================================================*/
 
+#include <matpack.h>
+#include <workspace.h>
+
 #include <cmath>
 
 #include "sorting.h"
 
-#include <matpack.h>
-#include <workspace.h>
-
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric NAT_LOG_2=Constant::ln_2;
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric NAT_LOG_2 = Constant::ln_2;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -65,47 +65,33 @@ void FlagOff(Index& x) { x = 0; }
 void FlagOn(Index& x) { x = 1; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexAdd(Index& out,
-              const Index& in,
-              const Index& value) {
+void IndexAdd(Index& out, const Index& in, const Index& value) {
   out = in + value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexDivide(Index& out,
-                 const Index& in,
-                 const Index& value) {
+void IndexDivide(Index& out, const Index& in, const Index& value) {
   out = in / value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexMultiply(Index& out,
-                   const Index& in,
-                   const Index& value) {
+void IndexMultiply(Index& out, const Index& in, const Index& value) {
   out = in * value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStepDown(Index& xout, const Index& xin) {
-  xout = xin - 1;
-}
+void IndexStepDown(Index& xout, const Index& xin) { xout = xin - 1; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexStepUp(Index& xout, const Index& xin) {
-  xout = xin + 1;
-}
+void IndexStepUp(Index& xout, const Index& xin) { xout = xin + 1; }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexSubtract(Index& out,
-                   const Index& in,
-                   const Index& value) {
+void IndexSubtract(Index& out, const Index& in, const Index& value) {
   out = in - value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixAdd(Matrix& out,
-               const Matrix& in,
-               const Numeric& value) {
+void MatrixAdd(Matrix& out, const Matrix& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -120,9 +106,7 @@ void MatrixAdd(Matrix& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixDivide(Matrix& out,
-                  const Matrix& in,
-                  const Numeric& value) {
+void MatrixDivide(Matrix& out, const Matrix& in, const Numeric& value) {
   // Note that in and out can be the same matrix
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -137,48 +121,46 @@ void MatrixDivide(Matrix& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixGaussian(
-    Matrix& Y,
-    const Vector& x_row,
-    const Numeric& x0_row,
-    const Numeric& si_row,
-    const Numeric& fwhm_row,
-    const Vector& x_col,
-    const Numeric& x0_col,
-    const Numeric& si_col,
-    const Numeric& fwhm_col)
-{
-  ARTS_USER_ERROR_IF ((si_row<=0 && fwhm_row<=0) ||
-                      (si_row>0 && fwhm_row>0),
-     "One of the GINs *si_row* and *fwhm_row* shall be >0, but just one.");
-  ARTS_USER_ERROR_IF ((si_col<=0 && fwhm_col<=0) ||
-                      (si_col>0 && fwhm_col>0),
-     "One of the GINs *si_col* and *fwhm_col* shall be >0, but just one.");
+void MatrixGaussian(Matrix& Y,
+                    const Vector& x_row,
+                    const Numeric& x0_row,
+                    const Numeric& si_row,
+                    const Numeric& fwhm_row,
+                    const Vector& x_col,
+                    const Numeric& x0_col,
+                    const Numeric& si_col,
+                    const Numeric& fwhm_col) {
+  ARTS_USER_ERROR_IF(
+      (si_row <= 0 && fwhm_row <= 0) || (si_row > 0 && fwhm_row > 0),
+      "One of the GINs *si_row* and *fwhm_row* shall be >0, but just one.");
+  ARTS_USER_ERROR_IF(
+      (si_col <= 0 && fwhm_col <= 0) || (si_col > 0 && fwhm_col > 0),
+      "One of the GINs *si_col* and *fwhm_col* shall be >0, but just one.");
 
   const Index nrow = x_row.nelem();
   const Index ncol = x_col.nelem();
   Y.resize(nrow, ncol);
 
-  const Numeric si4row = si_row > 0 ? si_row : fwhm_row / (2 * sqrt(2 * NAT_LOG_2));
-  const Numeric si4col = si_col > 0 ? si_col : fwhm_col / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric si4row =
+      si_row > 0 ? si_row : fwhm_row / (2 * sqrt(2 * NAT_LOG_2));
+  const Numeric si4col =
+      si_col > 0 ? si_col : fwhm_col / (2 * sqrt(2 * NAT_LOG_2));
   Vector row_term(nrow);
-  for (Index r=0; r<nrow; ++r)
+  for (Index r = 0; r < nrow; ++r)
     row_term[r] = pow((x_row[r] - x0_row) / si4row, 2.0);
   Vector col_term(ncol);
-  for (Index c=0; c<ncol; ++c)
+  for (Index c = 0; c < ncol; ++c)
     col_term[c] = pow((x_col[c] - x0_col) / si4col, 2.0);
   const Numeric fac = 1 / (2 * PI * si4row * si4col);
-  for (Index r=0; r<nrow; ++r) {
-     for (Index c=0; c<ncol; ++c) {
-       Y(r,c) = fac * exp(-0.5 * (row_term[r] + col_term[c]));
+  for (Index r = 0; r < nrow; ++r) {
+    for (Index c = 0; c < ncol; ++c) {
+      Y(r, c) = fac * exp(-0.5 * (row_term[r] + col_term[c]));
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixMultiply(Matrix& out,
-                    const Matrix& in,
-                    const Numeric& value) {
+void MatrixMultiply(Matrix& out, const Matrix& in, const Numeric& value) {
   // Note that in and out can be the same matrix
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -193,9 +175,7 @@ void MatrixMultiply(Matrix& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSubtract(Matrix& out,
-                    const Matrix& in,
-                    const Numeric& value) {
+void MatrixSubtract(Matrix& out, const Matrix& in, const Numeric& value) {
   // Note that in and out can be the same matrix
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -385,9 +365,7 @@ void Matrix3RowFromVectors(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixIdentity(Matrix& out,
-                    const Index& n,
-                    const Numeric& value) {
+void MatrixIdentity(Matrix& out, const Index& n, const Numeric& value) {
   out.resize(n, n);
   id_mat(out);
   if (value != 1) {
@@ -395,11 +373,8 @@ void MatrixIdentity(Matrix& out,
   }
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixReshapeTensor3(Matrix& m,
-                          const Tensor3& t)
-{
+void MatrixReshapeTensor3(Matrix& m, const Tensor3& t) {
   const Index npages = t.npages();
   const Index nrows = t.nrows();
   const Index ncols = t.ncols();
@@ -407,9 +382,9 @@ void MatrixReshapeTensor3(Matrix& m,
   m.resize(npages * nrows, ncols);
 
   Index i = 0;
-  for (Index p=0; p<npages; ++p) { 
-    for (Index r=0; r<nrows; ++r) {
-        m(i++, joker) = t(p, r, joker);
+  for (Index p = 0; p < npages; ++p) {
+    for (Index r = 0; r < nrows; ++r) {
+      m(i++, joker) = t(p, r, joker);
     }
   }
 }
@@ -424,9 +399,7 @@ void MatrixSetConstant(Matrix& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericAdd(Numeric& out,
-                const Numeric& in,
-                const Numeric& value) {
+void NumericAdd(Numeric& out, const Numeric& in, const Numeric& value) {
   out = in + value;
 }
 
@@ -444,16 +417,12 @@ void NumericClip(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericDivide(Numeric& out,
-                   const Numeric& in,
-                   const Numeric& value) {
+void NumericDivide(Numeric& out, const Numeric& in, const Numeric& value) {
   out = in / value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericFromVector(Numeric& out,
-                       const Vector& in,
-                       const String& op) {
+void NumericFromVector(Numeric& out, const Vector& in, const String& op) {
   if (op == "first")
     out = in[0];
   else if (op == "last")
@@ -473,30 +442,22 @@ void NumericFromVector(Numeric& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericMultiply(Numeric& out,
-                     const Numeric& in,
-                     const Numeric& value) {
+void NumericMultiply(Numeric& out, const Numeric& in, const Numeric& value) {
   out = in * value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericSubtract(Numeric& out,
-                     const Numeric& in,
-                     const Numeric& value) {
+void NumericSubtract(Numeric& out, const Numeric& in, const Numeric& value) {
   out = in - value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RationalAdd(Rational& out,
-                 const Rational& in,
-                 const Rational& value) {
+void RationalAdd(Rational& out, const Rational& in, const Rational& value) {
   out = in + value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RationalDivide(Rational& out,
-                    const Rational& in,
-                    const Rational& value) {
+void RationalDivide(Rational& out, const Rational& in, const Rational& value) {
   out = in / value;
 }
 
@@ -513,7 +474,6 @@ void RationalSubtract(Rational& out,
                       const Rational& value) {
   out = in - value;
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SparseSparseMultiply(  // WS Generic Output:
@@ -540,9 +500,7 @@ void SparseSparseMultiply(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SparseIdentity(Sparse& X,
-                    const Index& n,
-                    const Numeric& value) {
+void SparseIdentity(Sparse& X, const Index& n, const Numeric& value) {
   X.resize(n, n);
   id_mat(X);
 
@@ -575,9 +533,7 @@ void DiagonalMatrix(Sparse& X, const Vector& diag /*v*/) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Add(Tensor3& out,
-                const Tensor3& in,
-                const Numeric& value) {
+void Tensor3Add(Tensor3& out, const Tensor3& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -603,9 +559,7 @@ void Tensor3FromVector(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Multiply(Tensor3& out,
-                     const Tensor3& in,
-                     const Numeric& value) {
+void Tensor3Multiply(Tensor3& out, const Tensor3& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -688,9 +642,7 @@ void Tensor3ExtractFromTensor4(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Add(Tensor4& out,
-                const Tensor4& in,
-                const Numeric& value) {
+void Tensor4Add(Tensor4& out, const Tensor4& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -705,9 +657,7 @@ void Tensor4Add(Tensor4& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Multiply(Tensor4& out,
-                     const Tensor4& in,
-                     const Numeric& value) {
+void Tensor4Multiply(Tensor4& out, const Tensor4& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -733,9 +683,7 @@ void Tensor4SetConstant(Tensor4& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5Multiply(Tensor5& out,
-                     const Tensor5& in,
-                     const Numeric& value) {
+void Tensor5Multiply(Tensor5& out, const Tensor5& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -762,9 +710,7 @@ void Tensor5SetConstant(Tensor5& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6Multiply(Tensor6& out,
-                     const Tensor6& in,
-                     const Numeric& value) {
+void Tensor6Multiply(Tensor6& out, const Tensor6& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -797,9 +743,7 @@ void Tensor6SetConstant(Tensor6& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Multiply(Tensor7& out,
-                     const Tensor7& in,
-                     const Numeric& value) {
+void Tensor7Multiply(Tensor7& out, const Tensor7& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -834,23 +778,19 @@ void Tensor7SetConstant(Tensor7& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated  */
-void Trapz(
-    Numeric& out,
-    const Vector& x,
-    const Vector& y) {
+void Trapz(Numeric& out, const Vector& x, const Vector& y) {
   const Index n = x.nelem();
-  if (y.nelem() != n) 
-    throw std::runtime_error("The vectors *x* and *y* must have the same length.");
-    
+  if (y.nelem() != n)
+    throw std::runtime_error(
+        "The vectors *x* and *y* must have the same length.");
+
   out = 0;
-  for (Index i=1; i<n; i++)
-    out += 0.5*(y[i-1]+y[i]) * (x[i]-x[i-1]);
+  for (Index i = 1; i < n; i++)
+    out += 0.5 * (y[i - 1] + y[i]) * (x[i] - x[i - 1]);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorAdd(Vector& out,
-               const Vector& in,
-               const Numeric& value) {
+void VectorAdd(Vector& out, const Vector& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -865,9 +805,7 @@ void VectorAdd(Vector& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorDivide(Vector& out,
-                  const Vector& in,
-                  const Numeric& value) {
+void VectorDivide(Vector& out, const Vector& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -882,9 +820,7 @@ void VectorDivide(Vector& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorMultiply(Vector& out,
-                    const Vector& in,
-                    const Numeric& value) {
+void VectorMultiply(Vector& out, const Vector& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -899,9 +835,7 @@ void VectorMultiply(Vector& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSubtract(Vector& out,
-                    const Vector& in,
-                    const Numeric& value) {
+void VectorSubtract(Vector& out, const Vector& in, const Numeric& value) {
   // Note that in and out can be the same vector
   if (&out == &in) {
     // Out and in are the same. Just add the scalar value.
@@ -916,9 +850,7 @@ void VectorSubtract(Vector& out,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorAddElementwise(Vector& c,
-                          const Vector& a,
-                          const Vector& b) {
+void VectorAddElementwise(Vector& c, const Vector& a, const Vector& b) {
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -951,9 +883,7 @@ void VectorAddElementwise(Vector& c,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSubtractElementwise(Vector& c,
-                          const Vector& a,
-                          const Vector& b) {
+void VectorSubtractElementwise(Vector& c, const Vector& a, const Vector& b) {
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -986,9 +916,7 @@ void VectorSubtractElementwise(Vector& c,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorMultiplyElementwise(Vector& c,
-                               const Vector& a,
-                               const Vector& b) {
+void VectorMultiplyElementwise(Vector& c, const Vector& a, const Vector& b) {
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -1021,9 +949,7 @@ void VectorMultiplyElementwise(Vector& c,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorDivideElementwise(Vector& c,
-                             const Vector& a,
-                             const Vector& b) {
+void VectorDivideElementwise(Vector& c, const Vector& a, const Vector& b) {
   // b has length 1. Here we easily can avoid just adding 0.
   if (b.nelem() == 1) {
     // a and c are the same WSV
@@ -1061,16 +987,15 @@ void VectorClip(Vector& out,
                 const Numeric& limit_low,
                 const Numeric& limit_high) {
   const Index l = in.nelem();
-  if (out.nelem() != l)
-    out.resize(l);
-  
-  for (Index i=0; i<l; i++) {
+  if (out.nelem() != l) out.resize(l);
+
+  for (Index i = 0; i < l; i++) {
     if (in[i] < limit_low)
       out[i] = limit_low;
-   else if (in[i] > limit_high)
-     out[i] = limit_high;
-   else
-     out[i] = in[i];
+    else if (in[i] > limit_high)
+      out[i] = limit_high;
+    else
+      out[i] = in[i];
   }
 }
 
@@ -1164,15 +1089,14 @@ void VectorFlip(Vector& out, const Vector& in) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorGaussian(
-    Vector& y,
-    const Vector& x,
-    const Numeric& x0,
-    const Numeric& si,
-    const Numeric& fwhm)
-{
-  ARTS_USER_ERROR_IF ((si<=0 && fwhm<=0) || (si>0 && fwhm>0),
-     "One of the GINs *si* and *fwhm* shall be >0, but just one.");
+void VectorGaussian(Vector& y,
+                    const Vector& x,
+                    const Numeric& x0,
+                    const Numeric& si,
+                    const Numeric& fwhm) {
+  ARTS_USER_ERROR_IF(
+      (si <= 0 && fwhm <= 0) || (si > 0 && fwhm > 0),
+      "One of the GINs *si* and *fwhm* shall be >0, but just one.");
 
   const Index n = x.nelem();
 
@@ -1183,7 +1107,7 @@ void VectorGaussian(
 
   const Numeric si2use = si > 0 ? si : fwhm / (2 * sqrt(2 * NAT_LOG_2));
   const Numeric fac = 1 / (sqrt(2 * PI) * si2use);
-  for (Index i=0; i<n; ++i) {
+  for (Index i = 0; i < n; ++i) {
     y[i] = fac * exp(-0.5 * pow((x[i] - x0) / si2use, 2.0));
   }
 }
@@ -1359,9 +1283,7 @@ void VectorNLinSpace(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorNLinSpaceVector(Vector& x,
-                     const Index& n,
-                     const Vector& y) {
+void VectorNLinSpaceVector(Vector& x, const Index& n, const Vector& y) {
   VectorNLinSpace(x, n, y[0], last(y));
 }
 
@@ -1373,9 +1295,9 @@ void ArrayOfTimeNLinSpace(ArrayOfTime& x,
   Vector seconds;
   Time t0(start), t1(stop);
 
-  ARTS_USER_ERROR_IF (n < 2, "The number of points must be > 1.");
+  ARTS_USER_ERROR_IF(n < 2, "The number of points must be > 1.");
   nlinspace(seconds, t0.Seconds(), t1.Seconds(), n);
-  
+
   x = time_vector(seconds);
 }
 
@@ -1392,25 +1314,21 @@ void VectorNLogSpace(Vector& x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorPower(Vector& out,
-                 const Vector& in,
-                 const Numeric& value) {
+void VectorPower(Vector& out, const Vector& in, const Numeric& value) {
   const Index n = in.nelem();
   // Note that in and out can be the same vector
   if (&out == &in) {
-    // Out and in are the same. 
+    // Out and in are the same.
   } else {
     out.resize(n);
   }
-  for (Index i=0; i<n; i++) {
-    out[i] = pow( in[i], value );
-  }  
+  for (Index i = 0; i < n; i++) {
+    out[i] = pow(in[i], value);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorReshapeMatrix(Vector& v,
-                         const Matrix& m,
-                         const String& direction) {
+void VectorReshapeMatrix(Vector& v, const Matrix& m, const String& direction) {
   const Index nrows = m.nrows();
   const Index ncols = m.ncols();
 
@@ -1441,17 +1359,13 @@ void VectorReshapeMatrix(Vector& v,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSetConstant(Vector& x,
-                       const Index& n,
-                       const Numeric& value) {
+void VectorSetConstant(Vector& x, const Index& n, const Numeric& value) {
   x.resize(n);
   x = value;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfTimeSetConstant(ArrayOfTime& x,
-                       const Index& n,
-                       const Time& value) {
+void ArrayOfTimeSetConstant(ArrayOfTime& x, const Index& n, const Time& value) {
   x.resize(n);
   x = ArrayOfTime{1, value};
 }
@@ -1853,7 +1767,9 @@ void Compare(const ArrayOfVector& var1,
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
        << "var1 nelem: " << var1.size() << std::endl
-       << "var2" " nelem: " << var2.size() << std::endl;
+       << "var2"
+          " nelem: "
+       << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1863,11 +1779,10 @@ void Compare(const ArrayOfVector& var1,
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
-      vn2 << "var2" "[" << i << "]";
-      Compare(var1[i],
-              var2[i],
-              maxabsdiff,
-              error_message);
+      vn2 << "var2"
+             "["
+          << i << "]";
+      Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -1888,7 +1803,9 @@ void Compare(const ArrayOfMatrix& var1,
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
        << "var1 nelem: " << var1.size() << std::endl
-       << "var2" " nelem: " << var2.size() << std::endl;
+       << "var2"
+          " nelem: "
+       << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1898,11 +1815,10 @@ void Compare(const ArrayOfMatrix& var1,
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
-      vn2 << "var2" "[" << i << "]";
-      Compare(var1[i],
-              var2[i],
-              maxabsdiff,
-              error_message);
+      vn2 << "var2"
+             "["
+          << i << "]";
+      Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -1923,7 +1839,9 @@ void Compare(const ArrayOfTensor7& var1,
     std::ostringstream os;
     os << "The two arrays do not have the same size." << std::endl
        << "var1 nelem: " << var1.size() << std::endl
-       << "var2" " nelem: " << var2.size() << std::endl;
+       << "var2"
+          " nelem: "
+       << var2.size() << std::endl;
     throw std::runtime_error(os.str());
   }
 
@@ -1933,11 +1851,10 @@ void Compare(const ArrayOfTensor7& var1,
     try {
       std::ostringstream vn1, vn2;
       vn1 << "var1[" << i << "]";
-      vn2 << "var2" "[" << i << "]";
-      Compare(var1[i],
-              var2[i],
-              maxabsdiff,
-              error_message);
+      vn2 << "var2"
+             "["
+          << i << "]";
+      Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
       fail_msg << std::endl
@@ -1954,27 +1871,23 @@ void Compare(const GriddedField3& var1,
              const GriddedField3& var2,
              const Numeric& maxabsdiff,
              const String& error_message) {
-  for (Index i = 0; i < var1.get_dim(); i++) {
-    if (var1.get_grid_size(i) != var2.get_grid_size(i)) {
-      std::ostringstream os;
-      os << "var1 and var2 grid " << i
-         << " do not have the same size: " << var1.get_grid_size(i)
-         << " != " << var2.get_grid_size(i);
-      throw std::runtime_error(os.str());
-    }
-    if (var1.get_grid_name(i) != var2.get_grid_name(i)) {
-      std::ostringstream os;
-      os << "var1 and var2 grid " << i
-         << " do not have the same name: " << var1.get_grid_name(i)
-         << " != " << var2.get_grid_name(i);
-      throw std::runtime_error(os.str());
-    }
+  if (var1.data_name != var2.data_name) {
+    std::ostringstream os;
+    os << "var1 and var2 data data_name do not match: " << var1.data_name
+       << " != " << var2.data_name;
   }
 
-  Compare(var1.data,
-          var2.data,
-          maxabsdiff,
-          error_message);
+  if (var1.grid_names != var2.grid_names) {
+    std::ostringstream os;
+    os << "var1 and var2 data grid_names do not match";
+  }
+
+  if (var1.grids != var2.grids) {
+    std::ostringstream os;
+    os << "var1 and var2 data grids do not match";
+  }
+
+  Compare(var1.data, var2.data, maxabsdiff, error_message);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2045,34 +1958,13 @@ void Compare(const SingleScatteringData& var1,
        << " = " << PTypeToString(var2.ptype) << std::endl;
     throw std::runtime_error(os.str());
   }
-  Compare(var1.f_grid,
-          var2.f_grid,
-          maxabsdiff,
-          error_message);
-  Compare(var1.T_grid,
-          var2.T_grid,
-          maxabsdiff,
-          error_message);
-  Compare(var1.za_grid,
-          var2.za_grid,
-          maxabsdiff,
-          error_message);
-  Compare(var1.aa_grid,
-          var2.aa_grid,
-          maxabsdiff,
-          error_message);
-  Compare(var1.pha_mat_data,
-          var2.pha_mat_data,
-          maxabsdiff,
-          error_message);
-  Compare(var1.ext_mat_data,
-          var2.ext_mat_data,
-          maxabsdiff,
-          error_message);
-  Compare(var1.abs_vec_data,
-          var2.abs_vec_data,
-          maxabsdiff,
-          error_message);
+  Compare(var1.f_grid, var2.f_grid, maxabsdiff, error_message);
+  Compare(var1.T_grid, var2.T_grid, maxabsdiff, error_message);
+  Compare(var1.za_grid, var2.za_grid, maxabsdiff, error_message);
+  Compare(var1.aa_grid, var2.aa_grid, maxabsdiff, error_message);
+  Compare(var1.pha_mat_data, var2.pha_mat_data, maxabsdiff, error_message);
+  Compare(var1.ext_mat_data, var2.ext_mat_data, maxabsdiff, error_message);
+  Compare(var1.abs_vec_data, var2.abs_vec_data, maxabsdiff, error_message);
 }
 
 inline void _cr_internal_(const Numeric& var1,
@@ -2087,7 +1979,7 @@ inline void _cr_internal_(const Numeric& var1,
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to: " << maxabsreldiff * 100.0 << "%"
          << std::endl
-         << "but the input deviate with: " << absreldiff * 100.0 << "%\n" 
+         << "but the input deviate with: " << absreldiff * 100.0 << "%\n"
          << "If you compare non-scalar variables, the reported deviation is\n"
          << "the first one found violating the criterion. The maximum\n"
          << "difference can be higher.\n";
@@ -2104,10 +1996,7 @@ inline void _cr_internal_(const ConstVectorView var1,
   if (var2.nelem() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for (Index i = 0; i < n; i++)
-    _cr_internal_(var1[i],
-                  var2[i],
-                  maxabsreldiff,
-                  error_message);
+    _cr_internal_(var1[i], var2[i], maxabsreldiff, error_message);
 }
 
 inline void _cr_internal_(const ConstMatrixView var1,
@@ -2118,10 +2007,7 @@ inline void _cr_internal_(const ConstMatrixView var1,
   if (var2.nrows() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for (Index i = 0; i < n; i++)
-    _cr_internal_(var1(i, joker),
-                  var2(i, joker),
-                  maxabsreldiff,
-                  error_message);
+    _cr_internal_(var1(i, joker), var2(i, joker), maxabsreldiff, error_message);
 }
 
 inline void _cr_internal_(const ConstTensor3View var1,
@@ -2203,10 +2089,7 @@ inline void _cr_internal_(const Array<T>& var1,
   if (var2.size() not_eq n)
     throw std::runtime_error("Cannot compare arrays of different length");
   for (Size i = 0; i < n; i++)
-    _cr_internal_(var1[i],
-                  var2[i],
-                  maxabsreldiff,
-                  error_message);
+    _cr_internal_(var1[i], var2[i], maxabsreldiff, error_message);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2214,199 +2097,133 @@ void CompareRelative(const Numeric& var1,
                      const Numeric& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Vector& var1,
                      const Vector& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Matrix& var1,
                      const Matrix& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Tensor3& var1,
                      const Tensor3& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Tensor4& var1,
                      const Tensor4& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Tensor5& var1,
                      const Tensor5& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Tensor6& var1,
                      const Tensor6& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const Tensor7& var1,
                      const Tensor7& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfVector& var1,
                      const ArrayOfVector& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfMatrix& var1,
                      const ArrayOfMatrix& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfTensor3& var1,
                      const ArrayOfTensor3& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfTensor4& var1,
                      const ArrayOfTensor4& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfTensor5& var1,
                      const ArrayOfTensor5& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfTensor6& var1,
                      const ArrayOfTensor6& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfTensor7& var1,
                      const ArrayOfTensor7& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfVector& var1,
                      const ArrayOfArrayOfVector& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfMatrix& var1,
                      const ArrayOfArrayOfMatrix& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor3& var1,
                      const ArrayOfArrayOfTensor3& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor4& var1,
                      const ArrayOfArrayOfTensor4& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor5& var1,
                      const ArrayOfArrayOfTensor5& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor6& var1,
                      const ArrayOfArrayOfTensor6& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 void CompareRelative(const ArrayOfArrayOfTensor7& var1,
                      const ArrayOfArrayOfTensor7& var2,
                      const Numeric& maxabsreldiff,
                      const String& error_message) {
-  _cr_internal_(var1,
-                var2,
-                maxabsreldiff,
-                error_message);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message);
 }
 
 void PrintPhysicalConstants() {

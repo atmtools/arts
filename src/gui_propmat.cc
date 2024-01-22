@@ -23,6 +23,7 @@
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "gui_menu.h"
+#include "path_point.h"
 #include "physics_funcs.h"
 #include <rtepack.h>
 #include "species_tags.h"
@@ -484,7 +485,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
              ArrayOfSpeciesTag& select_abs_species,
              Vector& f_grid,
-             Vector& rtp_los,
+             PropagationPathPoint& path_point,
              AtmPoint& atm_point,
              Numeric& transmission_distance,
              const ArrayOfArrayOfSpeciesTag&& abs_species) {
@@ -516,7 +517,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   auto old_select_abs_species = select_abs_species;
   auto old_f_grid = f_grid;
   auto old_rtp_mag = atm_point.mag;
-  auto old_rtp_los = rtp_los;
+  auto old_path_point = path_point;
   auto old_rtp_pressure = atm_point.pressure;
   auto old_rtp_temperature = atm_point.temperature;
   auto old_rtp_vmr = atm_point;
@@ -558,10 +559,9 @@ void propmat(PropmatClearsky::ResultsArray& res,
               updated;
 
     updated =
-        MainMenu::change_item("\trtp_los\t",
-                              rtp_los,
-                              old_rtp_los,
-                              {"\tZenith [deg]\t", "\tAzimuth [deg]\t"}) or
+        MainMenu::change_item("\tpath_point\t",
+                              path_point,
+                              old_path_point) or
         updated;
 
     updated = MainMenu::change_item("\trtp_pressure\t",
@@ -824,10 +824,10 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Display current LOS
       ImGui::Text(
           "\tLine Of Sight:\n\t  Zenith: %g deg%c\t\n\t  Azimuth: %g deg%c\t",
-          v.rtp_los[0],
-          v.rtp_los[0] == rtp_los[0] ? ' ' : '*',
-          v.rtp_los[1],
-          v.rtp_los[1] == rtp_los[1] ? ' ' : '*');
+          v.path_point.los[0],
+          v.path_point.los[0] == path_point.los[0] ? ' ' : '*',
+          v.path_point.los[1],
+          v.path_point.los[1] == path_point.los[1] ? ' ' : '*');
       ImGui::Separator();
 
       // Display current VMR

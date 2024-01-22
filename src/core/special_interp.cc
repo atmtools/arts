@@ -227,107 +227,6 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
     interp(field_new, itw, field_old, gp_lat, gp_lon);
 }
 
-void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           const RetrievalQuantity& rq,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  gp_p.resize(rq.Grids()[0].size());
-  p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
-  //
-    gp_lat.resize(rq.Grids()[1].size());
-    gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
-  //
-    gp_lon.resize(rq.Grids()[2].size());
-    gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
-}
-
-void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
-                          ArrayOfGridPos& gp_lon,
-                          const RetrievalQuantity& rq,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid) {
-    gp_lat.resize(rq.Grids()[0].size());
-    gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
-  //
-    gp_lon.resize(rq.Grids()[1].size());
-    gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
-}
-
-void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           Index& n_p,
-                           Index& n_lat,
-                           Index& n_lon,
-                           const ArrayOfVector& ret_grids,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  // We want here an extrapolation to infinity ->
-  //                                        extremly high extrapolation factor
-  const Numeric inf_proxy = 1.0e99;
-
-  gp_p.resize(p_grid.size());
-  n_p = ret_grids[0].size();
-  if (n_p > 1) {
-    p2gridpos(gp_p, ret_grids[0], p_grid, inf_proxy);
-    jacobian_type_extrapol(gp_p);
-  } else {
-    gp4length1grid(gp_p);
-  }
-
-    gp_lat.resize(lat_grid.size());
-    n_lat = ret_grids[1].size();
-    if (n_lat > 1) {
-      gridpos(gp_lat, ret_grids[1], lat_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-  //
-    gp_lon.resize(lon_grid.size());
-    n_lon = ret_grids[2].size();
-    if (n_lon > 1) {
-      gridpos(gp_lon, ret_grids[2], lon_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lon);
-    } else {
-      gp4length1grid(gp_lon);
-    }
-}
-
-void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           Index& n_lat,
-                           Index& n_lon,
-                           const ArrayOfVector& ret_grids,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  // We want here an extrapolation to infinity ->
-  //                                        extremly high extrapolation factor
-  const Numeric inf_proxy = 1.0e99;
-
-    gp_lat.resize(lat_grid.size());
-    n_lat = ret_grids[0].size();
-    if (n_lat > 1) {
-      gridpos(gp_lat, ret_grids[0], lat_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-  //
-    gp_lon.resize(lon_grid.size());
-    n_lon = ret_grids[1].size();
-    if (n_lon > 1) {
-      gridpos(gp_lon, ret_grids[1], lon_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lon);
-    } else {
-      gp4length1grid(gp_lon);
-    }
-}
-
 void regrid_atmfield_by_gp_oem(Tensor3& field_new,
                                ConstTensor3View field_old,
                                const ArrayOfGridPos& gp_p,
@@ -659,26 +558,23 @@ void z_at_latlon(VectorView z,
 
 void complex_n_interp(MatrixView n_real,
                       MatrixView n_imag,
-                      const GriddedField3& complex_n,
+                      const ComplexGriddedField2& complex_n,
                       const String&,
                       ConstVectorView f_grid,
                       ConstVectorView t_grid) {
   // Set expected order of grids
-  Index gfield_fID = 0;
-  Index gfield_tID = 1;
-  Index gfield_compID = 2;
-
   // Check of complex_n
   //
-  complex_n.checksize_strict();
+  ARTS_USER_ERROR_IF(not complex_n.check(), "Bad complex_n");
   //
-  chk_griddedfield_gridname(complex_n, gfield_fID, "Frequency");
-  chk_griddedfield_gridname(complex_n, gfield_tID, "Temperature");
-  chk_griddedfield_gridname(complex_n, gfield_compID, "Complex");
+  ARTS_USER_ERROR_IF(complex_n.gridname<0>() != "Frequency",
+                     "Bad gridname for frequency");
+  ARTS_USER_ERROR_IF(complex_n.gridname<1>() != "Temperature",
+                     "Bad gridname for temperature");
 
   // Frequency and temperature grid sizes
-  const Index nf_in = complex_n.data.npages();
-  const Index nt_in = complex_n.data.nrows();
+  const Index nf_in = complex_n.data.nrows();
+  const Index nt_in = complex_n.data.ncols();
   const Index nf_out = f_grid.size();
   const Index nt_out = t_grid.size();
 
@@ -686,8 +582,8 @@ void complex_n_interp(MatrixView n_real,
   ARTS_ASSERT(n_real.nrows() == nf_out && n_real.ncols() == nt_out);
   ARTS_ASSERT(n_imag.nrows() == nf_out && n_imag.ncols() == nt_out);
 
-  const Vector& f_grid_in = complex_n.get_numeric_grid(gfield_fID);
-  const Vector& t_grid_in = complex_n.get_numeric_grid(gfield_tID);
+  const Vector& f_grid_in = complex_n.grid<0>();
+  const Vector& t_grid_in = complex_n.grid<1>();
 
   // Expand/interpolate in frequency dimension
   //
@@ -695,8 +591,8 @@ void complex_n_interp(MatrixView n_real,
   //
   if (nf_in == 1) {
     for (Index i = 0; i < nf_out; i++) {
-      nrf(i, joker) = complex_n.data(0, joker, 0);
-      nif(i, joker) = complex_n.data(0, joker, 1);
+      nrf(i, joker) = complex_n.data(0, joker).real();
+      nif(i, joker) = complex_n.data(0, joker).imag();
     }
   } else {
     chk_interpolation_grids("Frequency interpolation", f_grid_in, f_grid);
@@ -706,8 +602,8 @@ void complex_n_interp(MatrixView n_real,
     gridpos(gp, f_grid_in, f_grid);
     interpweights(itw, gp);
     for (Index i = 0; i < nt_in; i++) {
-      interp(nrf(joker, i), itw, complex_n.data(joker, i, 0), gp);
-      interp(nif(joker, i), itw, complex_n.data(joker, i, 1), gp);
+      interp(nrf(joker, i), itw, complex_n.data(joker, i).real(), gp);
+      interp(nif(joker, i), itw, complex_n.data(joker, i).imag(), gp);
     }
   }
 

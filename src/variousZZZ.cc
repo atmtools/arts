@@ -29,7 +29,6 @@
 
 #include "arts_conversions.h"
 #include "check_input.h"
-#include "gridded_fields.h"
 #include "interpolation.h"
 #include "logic.h"
 
@@ -67,14 +66,9 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
                      "Length of longitude grid: ", longitude_grid.size(), "\n"
                      "Longitude size of data: ", data.ncols());
 
-  gfield3.set_name(name);
-
-  gfield3.set_grid_name(0, "Altitude");
-  gfield3.set_grid(0, altitude_grid);
-  gfield3.set_grid_name(1, "Latitude");
-  gfield3.set_grid(1, latitude_grid);
-  gfield3.set_grid_name(2, "Longitude");
-  gfield3.set_grid(2, longitude_grid);
+  gfield3.data_name = name;
+  gfield3.grid_names = {"Altitude", "Latitude", "Longitude"};
+  gfield3.grids = {altitude_grid, latitude_grid, longitude_grid};
 
   gfield3.data = data;
 }
@@ -84,14 +78,9 @@ void AltLatLonFieldSet(GriddedField3& gfield3,
 void AltLatLonFieldSetConstant(GriddedField3& gfield3,
                                const Numeric& value,
                                const String& name) {
-  gfield3.set_name(name);
-
-  gfield3.set_grid_name(0, "Altitude");
-  gfield3.set_grid(0, Vector(0, 0));
-  gfield3.set_grid_name(1, "Latitude");
-  gfield3.set_grid(1, Vector(1, 0));
-  gfield3.set_grid_name(2, "Longitude");
-  gfield3.set_grid(2, Vector(1, 0));
+  gfield3.data_name = (name);
+  gfield3.grid_names = {"Altitude", "Latitude", "Longitude"};
+  gfield3.grids = {Vector(1, 0), Vector(1, 0), Vector(1, 0)};
 
   gfield3.data.resize(1, 1, 1);
   gfield3.data(0, 0, 0) = value;
@@ -121,13 +110,9 @@ void LatLonFieldSet(GriddedField2& gfield2,
                      "Length of longitude grid: ", longitude_grid.size(), "\n"
                      "Longitude size of data: ", data.ncols());
 
-  gfield2.set_name(name);
-
-  gfield2.set_grid_name(0, "Latitude");
-  gfield2.set_grid(0, latitude_grid);
-
-  gfield2.set_grid_name(1, "Longitude");
-  gfield2.set_grid(1, longitude_grid);
+  gfield2.data_name = name;
+  gfield2.grid_names = {"Latitude", "Longitude"};
+  gfield2.grids = {latitude_grid, longitude_grid};
 
   gfield2.data = data;
 }
@@ -137,12 +122,9 @@ void LatLonFieldSet(GriddedField2& gfield2,
 void LatLonFieldSetConstant(GriddedField2& gfield2,
                             const Numeric& value,
                             const String& name) {
-  gfield2.set_name(name);
-
-  gfield2.set_grid_name(0, "Latitude");
-  gfield2.set_grid(0, Vector(1, 0));
-  gfield2.set_grid_name(1, "Longitude");
-  gfield2.set_grid(1, Vector(1, 0));
+  gfield2.data_name = name;
+  gfield2.grid_names = {"Latitude", "Longitude"};
+  gfield2.grids = {Vector(1, 0), Vector(1, 0)};
 
   gfield2.data.resize(1, 1);
   gfield2.data(0, 0) = value;
@@ -154,13 +136,13 @@ void NumericInterpAltLatLonField(Numeric& value,
                                  const GriddedField3& gfield3,
                                  const Vector& pos)
 {
-  ARTS_USER_ERROR_IF(gfield3.get_grid_name(0) != "Altitude",
+  ARTS_USER_ERROR_IF(gfield3.gridname<0>() != "Altitude",
                      "Name of first grid must be \"Altitude\".");
-  ARTS_USER_ERROR_IF(gfield3.get_grid_name(1) != "Latitude",
+  ARTS_USER_ERROR_IF(gfield3.gridname<1>() != "Latitude",
                      "Name of second grid must be \"Latitude\".");
-  ARTS_USER_ERROR_IF(gfield3.get_grid_name(2) != "Longitude",
+  ARTS_USER_ERROR_IF(gfield3.gridname<2>() != "Longitude",
                      "Name of third grid must be \"Longitude\".");
-  gfield3.checksize_strict();
+  ARTS_USER_ERROR_IF(not gfield3.check(), "Inconsistent grid sizes for:\n", gfield3);
   chk_rte_pos("pos", pos);
   
   value = interp_gfield3(gfield3, pos);
@@ -172,11 +154,11 @@ void NumericInterpLatLonField(Numeric& value,
                               const GriddedField2& gfield2,
                               const Vector& pos)
 {
-  ARTS_USER_ERROR_IF(gfield2.get_grid_name(0) != "Latitude",
+  ARTS_USER_ERROR_IF(gfield2.gridname<0>() != "Latitude",
                      "Name of first grid must be \"Latitude\".");
-  ARTS_USER_ERROR_IF(gfield2.get_grid_name(1) != "Longitude",
+  ARTS_USER_ERROR_IF(gfield2.gridname<1>() != "Longitude",
                      "Name of second grid must be \"Longitude\".");
-  gfield2.checksize_strict();
+  ARTS_USER_ERROR_IF(not gfield2.check(), "Inconsistent grid sizes for:\n", gfield2);
   chk_rte_pos("pos", pos);
   
   value = interp_gfield2(gfield2, Vector{pos[Range(1, 2)]});
@@ -231,7 +213,7 @@ Numeric interp_gfield2(const GriddedField2& G,
                        const Vector& pos2D)
 {
   ARTS_ASSERT(pos2D.size() == 2);
-  ARTS_ASSERT(G.checksize());
+  ARTS_ASSERT(G.check());
 
   // Sizes
   const Index ncols = G.data.ncols();
@@ -244,8 +226,8 @@ Numeric interp_gfield2(const GriddedField2& G,
   
   // Get grid positions
   ArrayOfGridPos gp_row(1), gp_col(1);
-  gridpos_local(gp_row, G.get_numeric_grid(0), Vector(1, pos2D[0]));
-  gridpos_local(gp_col, G.get_numeric_grid(1), Vector(1, pos2D[1]));
+  gridpos_local(gp_row, G.grid<0>(), Vector(1, pos2D[0]));
+  gridpos_local(gp_col, G.grid<1>(), Vector(1, pos2D[1]));
 
   // Interpolate
   Vector itw(4);
@@ -258,7 +240,7 @@ Numeric interp_gfield3(const GriddedField3& G,
                        const Vector& pos)
 {
   ARTS_ASSERT(pos.size() == 3);
-  ARTS_ASSERT(G.checksize());
+  ARTS_ASSERT(G.check());
 
   // Sizes
   const Index npages = G.data.npages();
@@ -272,118 +254,12 @@ Numeric interp_gfield3(const GriddedField3& G,
 
   // Get grid positions
   ArrayOfGridPos gp_pages(1), gp_row(1), gp_col(1);
-  gridpos_local(gp_pages, G.get_numeric_grid(0), Vector(1, pos[0]));
-  gridpos_local(gp_row, G.get_numeric_grid(1), Vector(1, pos[1]));
-  gridpos_local(gp_col, G.get_numeric_grid(2), Vector(1, pos[2]));
+  gridpos_local(gp_pages, G.grid<0>(), Vector(1, pos[0]));
+  gridpos_local(gp_row, G.grid<1>(), Vector(1, pos[1]));
+  gridpos_local(gp_col, G.grid<2>(), Vector(1, pos[2]));
 
   // Interpolate
   Vector itw(8);
   interpweights(itw, gp_pages[0], gp_row[0], gp_col[0]);
   return interp(itw, G.data, gp_pages[0], gp_row[0], gp_col[0]);  
-}
-
-
-void refr_index_and_its_gradients(Numeric& refr_index_air,
-                                  Numeric& refr_index_air_group,
-                                  Numeric& dndz,
-                                  Numeric& dndlat,
-                                  Numeric& dndlon,
-                                  const Workspace& ws,
-                                  const Agenda& refr_index_air_agenda,
-                                  ConstVectorView pos,
-                                  const bool& do_horizontal_gradients,
-                                  const bool& do_twosided_perturb)
-{
-  // n at pos itself
-  refr_index_air_ZZZ_agendaExecute(ws,
-                                   refr_index_air,
-                                   refr_index_air_group,
-                                   Vector{pos},
-                                   refr_index_air_agenda);
-
-  // Altitude gradient
-  Numeric n, dummy;
-  {
-    const Numeric dz = 1;
-    Vector pos_shifted{pos};
-    pos_shifted[0] += dz;
-    refr_index_air_ZZZ_agendaExecute(ws,
-                                     n,
-                                     dummy,
-                                     pos_shifted,
-                                     refr_index_air_agenda);
-    if (do_twosided_perturb) {
-      pos_shifted[0] = pos[0] - dz;
-      Numeric n2;
-      refr_index_air_ZZZ_agendaExecute(ws,
-                                       n2,
-                                       dummy,
-                                       pos_shifted,
-                                       refr_index_air_agenda);
-      dndz = (n - n2) / (2 * dz);
-    } else {
-      dndz = (n - refr_index_air) / dz;
-    }
-  }
-
-  // Latitude and longitide gradients
-  if (do_horizontal_gradients) {
-    // Latitude
-    {
-      const Numeric dlat = 1e-4;
-      Vector pos_shifted{pos};
-      pos_shifted[1] += dlat;
-      if (pos_shifted[1] > 90)  // We simply cut at 90 deg, will underestimate 
-        pos_shifted[1] = 90;    // gradient but should not be of any practical
-      refr_index_air_ZZZ_agendaExecute(ws,    // consequence
-                                       n,
-                                       dummy,
-                                       pos_shifted,
-                                       refr_index_air_agenda);
-      if (do_twosided_perturb) {
-        pos_shifted[1] = pos[1] - dlat;
-        if (pos_shifted[1] < -90)  // As above, but -90 deg
-          pos_shifted[1] = -90;    
-        Numeric n2;
-        refr_index_air_ZZZ_agendaExecute(ws,
-                                         n2,
-                                         dummy,
-                                         pos_shifted,
-                                         refr_index_air_agenda);
-        dndlat = (n - n2) / (2 * dlat);
-      } else {
-        dndlat = (n - refr_index_air) / dlat;
-      }
-    }
-    // Longitude
-    { 
-      const Numeric dlon = 1e-4;
-      Vector pos_shifted{pos};
-      pos_shifted[2] += dlon;
-      if (pos_shifted[2] >= 180)  // We can't go above 180 deg
-        pos_shifted[2] -= 180;
-      refr_index_air_ZZZ_agendaExecute(ws,
-                                       n,
-                                       dummy,
-                                       pos_shifted,
-                                       refr_index_air_agenda);
-      if (do_twosided_perturb) {
-        pos_shifted[2] = pos[2] - dlon;
-        if (pos_shifted[2] < -180)  // We can't go below -180 deg
-          pos_shifted[2] += 360;
-        Numeric n2;
-        refr_index_air_ZZZ_agendaExecute(ws,
-                                         n2,
-                                         dummy,
-                                         pos_shifted,
-                                         refr_index_air_agenda);
-        dndlon = (n - n2) / (2 * dlon);
-      } else {
-        dndlon = (n - refr_index_air) / dlon;
-      }
-    }
-  } else {
-    dndlat = 0.0;
-    dndlon = 0.0;
-  }
 }

@@ -95,7 +95,7 @@ ws.f_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001)
 ws.atm_point.temperature = 295  # At room temperature
 ws.atm_point.pressure = 1e5  # At 1 bar
 ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
-ws.rtp_los = []  # No particular LOS
+ws.path_point # No particular POSLOS
 
 # Call the agenda with inputs above
 ws.propmat_clearsky_agendaExecute()

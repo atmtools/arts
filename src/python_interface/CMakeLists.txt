@@ -48,7 +48,6 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_module.cpp
     py_matpack.cpp
     py_basic.cpp
-    py_ppath.cpp
     py_griddedfield.cpp
     py_time.cpp
     py_tessem.cpp
@@ -70,7 +69,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_nlte.cpp
     py_constant.cpp
     py_convert.cpp
-    py_physics.cpp
+    py_path.cpp
     py_predefined.cpp
     py_star.cpp
     py_math.cpp

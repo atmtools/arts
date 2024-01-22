@@ -24,6 +24,7 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "arts_options.h"
 #include "check_input.h"
 #include "debug.h"
 #include "operators.h"
@@ -113,12 +114,12 @@ void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
   surface_field[Surf::Key::h] = 0.0;
 
   if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 69911e3; // From Ref. 1 (see above)
+    surface_field.ellipsoid[0] = 69911e3;  // From Ref. 1 (see above)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
   else if (model == "Ellipsoid") {
-    surface_field.ellipsoid[0] = 71492e3; // From Ref. 1
+    surface_field.ellipsoid[0] = 71492e3;  // From Ref. 1
     surface_field.ellipsoid[1] = 66854e3;
   }
 
@@ -132,12 +133,12 @@ void surface_fieldMars(SurfaceField &surface_field, const String &model) {
   surface_field[Surf::Key::h] = 0.0;
 
   if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 3389.5e3; // From Ref. 1 (see above)
+    surface_field.ellipsoid[0] = 3389.5e3;  // From Ref. 1 (see above)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
   else if (model == "Ellipsoid") {
-    surface_field.ellipsoid[0] = 3396.19e3; // From Ref. 1
+    surface_field.ellipsoid[0] = 3396.19e3;  // From Ref. 1
     surface_field.ellipsoid[1] = 3376.20e3;
   }
 
@@ -151,7 +152,7 @@ void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
   surface_field[Surf::Key::h] = 0.0;
 
   if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 1737.4e3; // From Ref. 1 (see above)
+    surface_field.ellipsoid[0] = 1737.4e3;  // From Ref. 1 (see above)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
@@ -172,7 +173,7 @@ void surface_fieldIo(SurfaceField &surface_field, const String &model) {
 
   if (model == "Sphere") {
     surface_field.ellipsoid[0] =
-        1821.6e3; // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+        1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
@@ -187,7 +188,7 @@ void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
 
   if (model == "Sphere") {
     surface_field.ellipsoid[0] =
-        1560.8e3; // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+        1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
@@ -202,7 +203,7 @@ void surface_fieldGanymede(SurfaceField &surface_field, const String &model) {
 
   if (model == "Sphere") {
     surface_field.ellipsoid[0] =
-        2631e3; // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+        2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
@@ -216,7 +217,7 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
   surface_field[Surf::Key::h] = 0.0;
 
   if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 6051.8e3; // From Ref. 1 (see above)
+    surface_field.ellipsoid[0] = 6051.8e3;  // From Ref. 1 (see above)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
   }
 
@@ -225,62 +226,58 @@ void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_fieldInit(SurfaceField &surface_field, const Numeric &r_equatorial,
+void surface_fieldInit(SurfaceField &surface_field,
+                       const Numeric &r_equatorial,
                        const Numeric &r_polar) {
   surface_field = {};
   surface_field[Surf::Key::h] = 0.0;
-  
+
   surface_field.ellipsoid[0] = r_equatorial;
   surface_field.ellipsoid[1] = r_polar;
   chk_refellipsoid(surface_field.ellipsoid);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PlanetSet(Agenda &g0_agenda, SurfaceField &surface_field,
-               Numeric &molarmass_dry_air, Numeric &planet_rotation_period,
+void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
                const String &option) {
   surface_field = {};
   surface_field[Surf::Key::h] = 0.0;
-  molarmass_dry_air = 0.0;
-  planet_rotation_period = 0.0;
 
   using enum Options::planetDefaultOptions;
   switch (Options::toplanetDefaultOptionsOrThrow(option)) {
-  case Earth:
-    surface_fieldEarth(surface_field, "Sphere");
-    molarmass_dry_air = 28.966;
-    planet_rotation_period = 86164.1;
-    break;
-  case Io:
-    surface_fieldIo(surface_field, "Sphere");
-    molarmass_dry_air = 63.110068828000003;
-    planet_rotation_period = 152853;
-    break;
-  case Jupiter:
-    surface_fieldJupiter(surface_field, "Sphere");
-    molarmass_dry_air = 2.22;
-    planet_rotation_period = 35730;
-    break;
-  case Mars:
-    surface_fieldMars(surface_field, "Sphere");
-    molarmass_dry_air = 43.34;
-    planet_rotation_period = 88643;
-    break;
-  case Venus:
-    surface_fieldVenus(surface_field, "Sphere");
-    molarmass_dry_air = 43.45;
-    planet_rotation_period = -2.0997e7;
-    break;
-  case FINAL:
-    break;
+    case Earth:
+      surface_fieldEarth(surface_field, "WGS84");
+      // molarmass_dry_air = 28.966;
+      // planet_rotation_period = 86164.1;
+      break;
+    case Io:
+      surface_fieldIo(surface_field, "Sphere");
+      // molarmass_dry_air = 63.110068828000003;
+      // planet_rotation_period = 152853;
+      break;
+    case Jupiter:
+      surface_fieldJupiter(surface_field, "Sphere");
+      // molarmass_dry_air = 2.22;
+      // planet_rotation_period = 35730;
+      break;
+    case Mars:
+      surface_fieldMars(surface_field, "Sphere");
+      // molarmass_dry_air = 43.34;
+      // planet_rotation_period = 88643;
+      break;
+    case Venus:
+      surface_fieldVenus(surface_field, "Sphere");
+      // molarmass_dry_air = 43.45;
+      // planet_rotation_period = -2.0997e7;
+      break;
+    case FINAL:
+      break;
   }
-
-  g0_agenda = get_g0_agenda(option);
 }
 
-void gravity_operatorFromGM(NumericTernaryOperator &gravity_operator,
-                            const SurfaceField &surface_field,
-                            const Numeric &GM) {
+void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
+                                 const SurfaceField &surface_field,
+                                 const Numeric &mass) {
   struct Gravity {
     Numeric GM;
     Numeric a;
@@ -316,5 +313,5 @@ void gravity_operatorFromGM(NumericTernaryOperator &gravity_operator,
       ']')
 
   gravity_operator = NumericTernaryOperator{
-      Gravity{GM, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
+      Gravity{Constant::G * mass, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
 }

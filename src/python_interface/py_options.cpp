@@ -3,7 +3,7 @@
 #include <python_interface.h>
 
 #include "atm.h"
-#include "ppath_struct.h"
+#include <path_point.h>
 #include "py_macros.h"
 
 //! See DeclareOption macro, but this may rename the python class
@@ -78,13 +78,9 @@ void py_options(py::module_& m) try {
   DeclareOption(Options, iy_space_agendaDefaultOptions);
   DeclareOption(Options, iy_surface_agendaDefaultOptions);
   DeclareOption(Options, iy_cloudbox_agendaDefaultOptions);
-  DeclareOption(Options, ppath_agendaDefaultOptions);
-  DeclareOption(Options, ppath_step_agendaDefaultOptions);
   DeclareOption(Options, refr_index_air_agendaDefaultOptions);
-  DeclareOption(Options, water_p_eq_agendaDefaultOptions);
   DeclareOption(Options, gas_scattering_agendaDefaultOptions);
   DeclareOption(Options, surface_rtprop_agendaDefaultOptions);
-  DeclareOption(Options, g0_agendaDefaultOptions);
   DeclareOption(Options, test_agendaDefaultOptions);
   DeclareOption(Options, dobatch_calc_agendaDefaultOptions);
   DeclareOption(Options, ybatch_calc_agendaDefaultOptions);
@@ -93,8 +89,6 @@ void py_options(py::module_& m) try {
   DeclareOption(Options, propmat_clearsky_agendaDefaultOptions);
   DeclareOption(Options, pha_mat_spt_agendaDefaultOptions);
   DeclareOption(Options, met_profile_calc_agendaDefaultOptions);
-  DeclareOption(Options, main_agendaDefaultOptions);
-  DeclareOption(Options, jacobian_agendaDefaultOptions);
   DeclareOption(Options, iy_radar_agendaDefaultOptions);
   DeclareOption(Options, iy_independent_beam_approx_agendaDefaultOptions);
   DeclareOption(Options, inversion_iterate_agendaDefaultOptions);
@@ -119,9 +113,6 @@ void py_options(py::module_& m) try {
   DeclareOptionRenamed(LineShapeType, LineShape, Type);
   DeclareOptionRenamed(LineShapeVariableOLDOLD, LineShape, Variable);
 
-  // Ppath
-  DeclareOption(Options, PpathBackground);
-
   // Atm
   DeclareOptionRenamed(AtmExtrapolation, Atm, Extrapolation);
   DeclareOptionRenamed(AtmKey, Atm, Key);
@@ -129,16 +120,12 @@ void py_options(py::module_& m) try {
   // Surface
   DeclareOptionRenamed(SurfaceKey, Surf, Key);
 
-  // Jacobian enums
-  DeclareOptionRenamed(JacobianType, Jacobian, Type);
-  DeclareOptionRenamed(JacobianAtm, Jacobian, Atm);
-  DeclareOptionRenamed(JacobianLine, Jacobian, Line);
-  DeclareOptionRenamed(JacobianSensor, Jacobian, Sensor);
-  DeclareOptionRenamed(JacobianSpecial, Jacobian, Special);
-
   // Predef enums
   DeclareOptionRenamed(
       PredefinedModelDataKey, Absorption::PredefinedModel, DataKey);
+
+  // Position types
+  DeclareOptionRenamed(PathPositionType, path, PositionType);
 
   // Quantum numbers
   DeclareOptionRenamed(QuantumNumberType, Quantum::Number, Type);

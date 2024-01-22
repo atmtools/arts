@@ -19,12 +19,6 @@
 #include <cfloat>
 #include <cmath>
 
-using GriddedFieldGrids::GFIELD2_LAT_GRID;
-using GriddedFieldGrids::GFIELD2_LON_GRID;
-using GriddedFieldGrids::GFIELD3_P_GRID;
-using GriddedFieldGrids::GFIELD3_LAT_GRID;
-using GriddedFieldGrids::GFIELD3_LON_GRID;
-
 /*===========================================================================
   === Functions for Index
   ===========================================================================*/
@@ -1616,16 +1610,16 @@ void chk_sensor_poslos(const String& name1,
 
 void chk_surface_elevation(const GriddedField2& surface_elevation)
 {
-  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(0) != "Latitude",
+  ARTS_USER_ERROR_IF(surface_elevation.gridname<0>() != "Latitude",
                      "Name of first grid must be \"Latitude\".");
-  ARTS_USER_ERROR_IF(surface_elevation.get_grid_name(1) != "Longitude",
+  ARTS_USER_ERROR_IF(surface_elevation.gridname<1>() != "Longitude",
                      "Name of second grid must be \"Longitude\".");
-  const Vector& lat_grid = surface_elevation.get_numeric_grid(0);
+  const Vector& lat_grid = surface_elevation.grid<0>();
   ARTS_USER_ERROR_IF(surface_elevation.data.nrows() != lat_grid.nelem(),
                      "Inconsistent latitude size in *surface_elevation*\n"
                      "Length of latitude grid: ", lat_grid.nelem(), "\n"
                      "Latitude size of data: ", surface_elevation.data.nrows());
-  const Vector& lon_grid = surface_elevation.get_numeric_grid(1);
+  const Vector& lon_grid = surface_elevation.grid<1>();
   ARTS_USER_ERROR_IF(surface_elevation.data.ncols() != lon_grid.nelem(),
                      "Inconsistent longitude size in *surface_elevation*\n"
                      "Length of longitude grid: ", lon_grid.nelem(), "\n"
@@ -1697,40 +1691,6 @@ void chk_rte_los(ConstVectorView rte_los) {
         "be in the range [-180,180].");
 }
 
-
-/*===========================================================================
- === Functions related to GriddedFields.
- ===========================================================================*/
-
-//! Check name of grid in GriddedField.
-/**
- Does a case-insensitive check to verify that the name of the grid at the
- given index in the GriddedField has the expected name.
-
- \param gf         GriddedField to check.
-                   Can be a GriddedField of any dimension.
- \param gridindex  Index of grid.
- \param gridname   Expected name of grid.
- */
-void chk_griddedfield_gridname(const GriddedField& gf,
-                               const Index gridindex,
-                               const String& gridname) {
-  ARTS_USER_ERROR_IF (gf.get_dim() - 1 < gridindex,
-    "Grid index ", gridindex, " exceeds dimension of GriddedField",
-    (gf.get_name().size()) ? var_string(" \"", gf.get_name(), "\"") : var_string())
-
-  String gfgridnameupper = gf.get_grid_name(gridindex);
-  toupper(gfgridnameupper);
-
-  String gridnameupper = gridname;
-  toupper(gridnameupper);
-
-  ARTS_USER_ERROR_IF (gfgridnameupper != gridnameupper,
-    "Name of grid ", gridindex, " in GriddedField",
-    (gf.get_name().size()) ? var_string(" \"", gf.get_name(), "\"") : var_string(),
-    " is \"", gf.get_grid_name(gridindex), "\".\n"
-      , "The expected name is \"", gridname, "\".")
-}
 
 /*===========================================================================
  === Functions checking sensor
