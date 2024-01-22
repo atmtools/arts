@@ -11,8 +11,8 @@ All workspace methods can take pure python instance or workspace variables
 """
 example_index = pyarts.arts.Index(1)
 ws.example_index = example_index
-ws.Print(example_index, 0)
-ws.Print(ws.example_index, 0)
+print(example_index)
+print(ws.example_index)
 print(type(ws.example_index), type(example_index))
 
 """

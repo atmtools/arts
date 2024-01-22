@@ -257,7 +257,7 @@ for setting in settings:
         species="Bath",
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     dpm = ws.dpropmat_clearsky_dx * 1.0
@@ -269,7 +269,7 @@ for setting in settings:
     key = pyarts.arts.SpeciesIsotopeRecord("O2-66")
     ws.atm_point[key] += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -285,7 +285,7 @@ for setting in settings:
     key = pyarts.arts.SpeciesEnum("O2")
     ws.atm_point[key] += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -299,7 +299,7 @@ for setting in settings:
     key = pyarts.arts.options.AtmKey.t
     ws.atm_point[key] += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -313,7 +313,7 @@ for setting in settings:
     orig = ws.f_grid * 1.0
     ws.f_grid += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -327,7 +327,7 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].f0 * 1.0
     ws.absorption_bands[0].data.lines[il].f0 += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -341,7 +341,7 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].e0 * 1.0
     ws.absorption_bands[0].data.lines[il].e0 += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -357,7 +357,7 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].a * 1.0
     ws.absorption_bands[0].data.lines[il].a += d
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -382,7 +382,7 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -407,7 +407,7 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -432,7 +432,7 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -457,7 +457,7 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -479,7 +479,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -501,7 +501,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -523,7 +523,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -545,7 +545,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -567,7 +567,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -589,7 +589,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -611,7 +611,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -633,7 +633,7 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -658,7 +658,7 @@ for setting in settings:
         "D0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -683,7 +683,7 @@ for setting in settings:
         "D0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -708,7 +708,7 @@ for setting in settings:
         "DV", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -733,7 +733,7 @@ for setting in settings:
         "DV", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -755,7 +755,7 @@ for setting in settings:
         "G", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
@@ -777,7 +777,7 @@ for setting in settings:
         "G", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+    ws.propmat_clearskyInit()
     ws.propmat_clearskyAddLines2(no_negative_absorption=False)
 
     pm_d = ws.propmat_clearsky * 1.0
