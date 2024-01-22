@@ -23,3 +23,23 @@ void MatrixGaussian(Matrix& Y,
                     const Numeric& x0_col,
                     const Numeric& si_col,
                     const Numeric& fwhm_col);
+
+void VectorLogSpace(Vector& x,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Numeric& step);
+
+void VectorLinSpace(Vector& x,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Numeric& step);
+
+void VectorNLinSpace(Vector& x,
+                     const Index& n,
+                     const Numeric& start,
+                     const Numeric& stop);
+
+void VectorNLogSpace(Vector& x,
+                     const Index& n,
+                     const Numeric& start,
+                     const Numeric& stop);

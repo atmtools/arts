@@ -38,9 +38,8 @@
 #include "surface.h"
 #include "tessem.h"
 
-inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
+inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
 inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
-
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -120,14 +119,13 @@ void FastemStandAlone(Matrix& emissivity,
   }
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                                   const PropagationPathPoint& path_point,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy) {
   ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
-      "No elevation in the surface field, required by method")
+                     "No elevation in the surface field, required by method")
 
   ARTS_USER_ERROR_IF(surface_search_accuracy < 0.0,
                      "Cannot have negative surface search accuracy")
@@ -137,14 +135,17 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
   const Numeric lon = path_point.pos[2];
   surface_point = surface_field.at(lat, lon);
 
-  const bool cmp = std::abs(alt - surface_point.elevation) > surface_search_accuracy;
-  ARTS_USER_ERROR_IF(cmp,
-                     "rtp_pos is not close enough to the surface.\nThe surface accuracy is: ",
-                     surface_search_accuracy,
-                     " m.\nThe surface altitude is: ",
-                     surface_point.elevation,
-                     " m.\nThe rtp_pos altitude is: ",
-                     alt, " m.\n")
+  const bool cmp =
+      std::abs(alt - surface_point.elevation) > surface_search_accuracy;
+  ARTS_USER_ERROR_IF(
+      cmp,
+      "rtp_pos is not close enough to the surface.\nThe surface accuracy is: ",
+      surface_search_accuracy,
+      " m.\nThe surface altitude is: ",
+      surface_point.elevation,
+      " m.\nThe rtp_pos altitude is: ",
+      alt,
+      " m.\n")
 }
 
 void surface_pointFromAtm(SurfacePoint& surface_point,
@@ -153,25 +154,28 @@ void surface_pointFromAtm(SurfacePoint& surface_point,
   surface_point = SurfacePoint{};
   surface_point.elevation = path_point.pos[0];
   surface_point.normal = {0, 0};
-  
+
   ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t),
                      "\"atm_field\" has no temperature field")
-  surface_point.temperature =
-      atm_field[Atm::Key::t].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]);
-  
+  surface_point.temperature = atm_field[Atm::Key::t].at(
+      path_point.pos[0], path_point.pos[1], path_point.pos[2]);
+
   if (atm_field.has(Atm::Key::wind_u) and atm_field.has(Atm::Key::wind_v) and
       atm_field.has(Atm::Key::wind_w)) {
     surface_point.wind = {
-        atm_field[Atm::Key::wind_u].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]),
-        atm_field[Atm::Key::wind_v].at(path_point.pos[0], path_point.pos[1], path_point.pos[2]),
-        atm_field[Atm::Key::wind_w].at(path_point.pos[0], path_point.pos[1], path_point.pos[2])};
+        atm_field[Atm::Key::wind_u].at(
+            path_point.pos[0], path_point.pos[1], path_point.pos[2]),
+        atm_field[Atm::Key::wind_v].at(
+            path_point.pos[0], path_point.pos[1], path_point.pos[2]),
+        atm_field[Atm::Key::wind_w].at(
+            path_point.pos[0], path_point.pos[1], path_point.pos[2])};
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void specular_losCalcOldNoTopography(Vector &specular_los,
-                                     Vector &surface_normal,
-                                     const Vector &rtp_los) {
+void specular_losCalcOldNoTopography(Vector& specular_los,
+                                     Vector& surface_normal,
+                                     const Vector& rtp_los) {
   chk_rte_los(rtp_los);
 
   specular_los = {180 - rtp_los[0], rtp_los[1]};
@@ -183,7 +187,7 @@ void surfaceBlackbody(Matrix& surface_los,
                       Tensor4& surface_rmatrix,
                       Matrix& surface_emission,
                       const Vector& f_grid,
-                      
+
                       const Vector& rtp_pos,
                       const Vector& rtp_los,
                       const SurfacePoint& surface_point) {
@@ -215,7 +219,7 @@ void surfaceFlatReflectivity(Matrix& surface_los,
                              Tensor4& surface_rmatrix,
                              Matrix& surface_emission,
                              const Vector& f_grid,
-                               const Vector& rtp_pos,
+                             const Vector& rtp_pos,
                              const Vector& rtp_los,
                              const Vector& specular_los,
                              const Numeric& surface_skin_t,
@@ -231,14 +235,18 @@ void surfaceFlatReflectivity(Matrix& surface_los,
       surface_reflectivity.nrows() != 4 && surface_reflectivity.ncols() != 4,
       "The number of rows and columns in *surface_reflectivity* must\n"
       "be 4.\nThe number of rows in *surface_reflectivity* : ",
-      surface_reflectivity.nrows(), "\n")
+      surface_reflectivity.nrows(),
+      "\n")
 
   ARTS_USER_ERROR_IF(
       surface_reflectivity.npages() != nf && surface_reflectivity.npages() != 1,
       "The number of pages in *surface_reflectivity* should\n",
-      "match length of *f_grid* or be 1.", "\n length of *f_grid* : ", nf,
+      "match length of *f_grid* or be 1.",
+      "\n length of *f_grid* : ",
+      nf,
       "\n dimension of *surface_reflectivity* : ",
-      surface_reflectivity.npages(), "\n")
+      surface_reflectivity.npages(),
+      "\n")
 
   surface_los.resize(1, specular_los.size());
   surface_los(0, joker) = specular_los;
@@ -279,7 +287,7 @@ void surfaceFlatRvRh(Matrix& surface_los,
                      Tensor4& surface_rmatrix,
                      Matrix& surface_emission,
                      const Vector& f_grid,
-                     
+
                      const Vector& rtp_pos,
                      const Vector& rtp_los,
                      const Vector& specular_los,
@@ -310,7 +318,8 @@ void surfaceFlatRvRh(Matrix& surface_los,
   }
 
   if (min(surface_rv_rh) < 0 || max(surface_rv_rh) > 1) {
-    throw std::runtime_error("All values in *surface_rv_rh* must be inside [0,1].");
+    throw std::runtime_error(
+        "All values in *surface_rv_rh* must be inside [0,1].");
   }
 
   surface_los.resize(1, specular_los.size());
@@ -353,7 +362,7 @@ void surfaceFlatScalarReflectivity(Matrix& surface_los,
                                    Tensor4& surface_rmatrix,
                                    Matrix& surface_emission,
                                    const Vector& f_grid,
-                                           const Vector& rtp_pos,
+                                   const Vector& rtp_pos,
                                    const Vector& rtp_los,
                                    const Vector& specular_los,
                                    const Numeric& surface_skin_t,
@@ -414,7 +423,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
                              Tensor4& surface_rmatrix,
                              Matrix& surface_emission,
                              const Vector& f_grid,
-                               const Vector& rtp_pos,
+                             const Vector& rtp_pos,
                              const Vector& rtp_los,
                              const Vector& surface_normal,
                              const Numeric& surface_skin_t,
@@ -458,7 +467,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
   // Help variables
   //
   const Numeric dza = (90.0 - abs(surface_normal[0])) / (Numeric)lambertian_nza;
-  const Vector za_lims=uniform_grid(0.0, lambertian_nza + 1, dza);
+  const Vector za_lims = uniform_grid(0.0, lambertian_nza + 1, dza);
 
   // surface_los
   for (Index ip = 0; ip < lambertian_nza; ip++) {
@@ -501,8 +510,7 @@ void surfaceLambertianSimple(Matrix& surface_los,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_scalar_reflectivityFromSurface_rmatrix(
-    Vector& surface_scalar_reflectivity,
-    const Tensor4& surface_rmatrix) {
+    Vector& surface_scalar_reflectivity, const Tensor4& surface_rmatrix) {
   const Index nf = surface_rmatrix.npages();
   const Index nlos = surface_rmatrix.nbooks();
 
@@ -517,22 +525,25 @@ void surface_scalar_reflectivityFromSurface_rmatrix(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_rtpropInterpFreq(Vector& f_grid,
-                              Tensor4& surface_rmatrix,
-                              Matrix& surface_emission,
-                              const Vector& f_new) {
+void SurfaceRadiationPropertyInterpFreq(Vector& f_grid,
+                                        Tensor4& surface_rmatrix,
+                                        Matrix& surface_emission,
+                                        const Vector& f_new) {
   const Index nf = f_grid.size();
   const Index ns = surface_emission.ncols();
   const Index nlos = surface_rmatrix.nbooks();
   const Index nnew = f_new.size();
 
   // Checks
-  ARTS_USER_ERROR_IF(surface_emission.nrows() not_eq nf,
-     "Different number of frequencies in *f_grid* and *surface_emission*.");
-  ARTS_USER_ERROR_IF(surface_rmatrix.npages() not_eq nf,
-     "Different number of frequencies in *f_grid* and *surface_rmatrix*.");
-  ARTS_USER_ERROR_IF(surface_rmatrix.ncols() not_eq ns,
-     "Different number of Stokes elements in *surface_emission* and *surface_rmatrix*.");
+  ARTS_USER_ERROR_IF(
+      surface_emission.nrows() not_eq nf,
+      "Different number of frequencies in *f_grid* and *surface_emission*.");
+  ARTS_USER_ERROR_IF(
+      surface_rmatrix.npages() not_eq nf,
+      "Different number of frequencies in *f_grid* and *surface_rmatrix*.");
+  ARTS_USER_ERROR_IF(
+      surface_rmatrix.ncols() not_eq ns,
+      "Different number of Stokes elements in *surface_emission* and *surface_rmatrix*.");
 
   // Set up interpolation
   chk_interpolation_grids("Frequency interpolation", f_grid, f_new);
@@ -567,8 +578,9 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
                   const ArrayOfString& surface_props_names,
                   const ArrayOfString& dsurface_names,
                   const Index& jacobian_do) {
-  ARTS_USER_ERROR_IF (surface_props_names.size(),
-        "When calling this method, *surface_props_names* should be empty.")
+  ARTS_USER_ERROR_IF(
+      surface_props_names.size(),
+      "When calling this method, *surface_props_names* should be empty.")
 
   if (jacobian_do) {
     dsurface_check(surface_props_names,
@@ -578,39 +590,32 @@ void SurfaceDummy(ArrayOfTensor4& dsurface_rmatrix_dx,
   }
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_normalCalc(Vector& surface_normal,
                         const SurfaceField& surface_field,
                         const Vector& rtp_pos,
-                        const Index& ignore_topography)
-{
+                        const Index& ignore_topography) {
   chk_rte_pos("rtp_pos", rtp_pos);
 
   surface_normal.resize(2);
-  
+
   // No surface tilt if told so or surface_elevation.data has size (1,1)
   if (ignore_topography || surface_field.constant_value(Surf::Key::h)) {
     surface_normal = 0;
 
   } else {
     Vector pos(3), ecef(3), decef(3);
-    surface_normal_calc(pos,
-                        ecef,
-                        decef,
-                        surface_field,
-                        rtp_pos[Range(1, 2)]);
-  
-    ecef2geodetic_los(pos, surface_normal, ecef, decef, surface_field.ellipsoid);
+    surface_normal_calc(pos, ecef, decef, surface_field, rtp_pos[Range(1, 2)]);
+
+    ecef2geodetic_los(
+        pos, surface_normal, ecef, decef, surface_field.ellipsoid);
   }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void transmittanceFromIy_aux(Vector& transmittance,
                              const ArrayOfString& iy_aux_vars,
-                             const ArrayOfMatrix& iy_aux)
-{
+                             const ArrayOfMatrix& iy_aux) {
   Index ihit = -1;
 
   for (Size i = 0; i < iy_aux_vars.size(); i++) {

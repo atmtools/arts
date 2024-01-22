@@ -209,4 +209,4 @@ class TestVariables:
 if __name__ == "__main__":
     ta = TestVariables()
     ta.setup_method()
-    ta.test_time()
+    ta.test_method_agenda_variables_io()

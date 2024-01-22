@@ -29,4 +29,5 @@ class TestAgendas:
 
 
 if __name__ == "__main__":
-    pass
+    x = TestAgendas()
+    x.test_planet_set()

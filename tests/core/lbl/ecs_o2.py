@@ -38,5 +38,5 @@ ws.ecs_dataAddMakarov2020NEWNEW()
 ws.ecs_dataAddMeanAirNEWNEW(vmrs=[1], species=["N2"])
 
 ws.absorption_bands[0].data.lineshape = "VP_ECS_MAKAROV"
-ws.propmat_clearskyInit(propmat_clearsky_agenda_checked=1)
+ws.propmat_clearskyInit()
 ws.propmat_clearskyAddLines2()

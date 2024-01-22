@@ -9,4 +9,4 @@ ws = pyarts.Workspace()
 
 # That's it. You have created a Workspace. You can now use it to run
 # simulations. For example, you can run the ARTS Hello World example:
-ws.Print("Hello, World!", 0)
+print("Hello, World!\n", ws)

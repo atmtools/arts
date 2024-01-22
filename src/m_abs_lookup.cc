@@ -319,12 +319,8 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
     const ArrayOfString& names) {
-  // Invalidate agenda check flags
-  propmat_clearsky_agenda_checked = false;
-
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
   for (Size i = 0; i < names.size(); ++i) {
@@ -342,12 +338,8 @@ void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesSet(  // WS Output:
     ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
     const ArrayOfString& names) {
-  // Invalidate agenda check flags
-  propmat_clearsky_agenda_checked = false;
-
   abs_species.resize(names.size());
 
   //cout << "Names: " << names << "\n";

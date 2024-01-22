@@ -14,6 +14,8 @@
 
 #include <workspace.h>
 
+#include "m_basic_types.h"
+
 void test01() {
   std::cout << "Simple interpolation cases\n"
        << "--------------------------\n";

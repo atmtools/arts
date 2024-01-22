@@ -275,9 +275,9 @@ void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
   }
 }
 
-void gravity_operatorFromGM(NumericTernaryOperator &gravity_operator,
-                            const SurfaceField &surface_field,
-                            const Numeric &GM) {
+void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
+                                 const SurfaceField &surface_field,
+                                 const Numeric &mass) {
   struct Gravity {
     Numeric GM;
     Numeric a;
@@ -313,5 +313,5 @@ void gravity_operatorFromGM(NumericTernaryOperator &gravity_operator,
       ']')
 
   gravity_operator = NumericTernaryOperator{
-      Gravity{GM, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
+      Gravity{Constant::G * mass, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
 }

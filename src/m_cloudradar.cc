@@ -23,6 +23,8 @@
 #include "matpack_view.h"
 #include "rte.h"
 
+#include "m_basic_types.h"
+
 inline constexpr Numeric PI=Constant::pi;
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;

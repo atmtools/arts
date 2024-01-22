@@ -120,12 +120,8 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
-    Index& propmat_clearsky_agenda_checked,
     // Control Parameters:
     const String& basename) {
-  // Invalidate agenda check flags
-  propmat_clearsky_agenda_checked = false;
-
   // We want to make lists of included and excluded species:
   ArrayOfString included(0), excluded(0);
 
@@ -155,8 +151,7 @@ void abs_speciesDefineAllInScenario(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesDefineAll(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked) {
+    ArrayOfArrayOfSpeciesTag& abs_species) {
   // Species lookup data:
 
   // We want to make lists of all species
@@ -168,7 +163,7 @@ void abs_speciesDefineAll(  // WS Output:
   }
 
   // Set the values
-  abs_speciesSet(abs_species, propmat_clearsky_agenda_checked, specs);
+  abs_speciesSet(abs_species, specs);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -201,14 +196,9 @@ void propmat_clearskyInit(  //WS Output
     StokvecMatrix& dnlte_source_dx,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid,
-    const Index& propmat_clearsky_agenda_checked) {
+    const Vector& f_grid) {
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_targets.target_count();
-
-  ARTS_USER_ERROR_IF(
-      !propmat_clearsky_agenda_checked,
-      "You must call *propmat_clearsky_agenda_checkedCalc* before calling this method.")
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
@@ -979,7 +969,6 @@ void WriteMolTau(  //WS Input
 
 void propmat_clearsky_agendaAuto(  // Workspace reference:
     Agenda& propmat_clearsky_agenda,
-    Index& propmat_clearsky_agenda_checked,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -998,8 +987,6 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
     const Index& no_negatives,
     const Numeric& theta,
     const Index& use_abs_lookup_ind) {
-  propmat_clearsky_agenda_checked = 0;  // In case of crash
-
   AgendaCreator agenda("propmat_clearsky_agenda");
 
   // Use bool because logic is easier
@@ -1087,5 +1074,4 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
 
   // Extra check (should really never ever fail when species exist)
   propmat_clearsky_agenda = std::move(agenda).finalize();
-  propmat_clearsky_agenda_checked = 1;
 }

@@ -13,50 +13,6 @@ std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods() {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
-  wsm_data["AltLatLonFieldSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Fills an altitude-latitude-longitude field with given input.
-
-Grids and data must match in size.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gfield3"},
-      .gout_type = {"GriddedField3"},
-      .gout_desc = {R"--(Field to set.)--"},
-
-      .gin =
-          {"altitude_grid", "latitude_grid", "longitude_grid", "data", "name"},
-      .gin_type = {"Vector", "Vector", "Vector", "Tensor3", "String"},
-      .gin_value =
-          {std::nullopt, std::nullopt, std::nullopt, std::nullopt, String("")},
-      .gin_desc = {R"--(The altitude grid of ``data``.)--",
-                   R"--(The latitude grid of ``data``.)--",
-                   R"--(The longitude grid of ``data``.)--",
-                   R"--(The data of the field (will become gfield2.data).)--",
-                   R"--(The name of the field (will become gfield2.name).)--"},
-
-  };
-
-  wsm_data["AltLatLonFieldSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets an altitude-latitude-longitude field to have a constant data value.
-
-All three grids grids are set to have length one, with the value 0.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gfield3"},
-      .gout_type = {"GriddedField3"},
-      .gout_desc = {R"--(Field to set.)--"},
-
-      .gin = {"value", "name"},
-      .gin_type = {"Numeric", "String"},
-      .gin_value = {std::nullopt, String("")},
-      .gin_desc = {R"--(The value (to place in gfield3.data).)--",
-                   R"--(The name of the field (will become gfield3.name).)--"},
-
-  };
-
   wsm_data["AngularGridsSetFluxCalc"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Sets the angular grids for the calculation of radiation fluxes. 
@@ -95,71 +51,6 @@ Possible zenith angle grid types are:
 
   };
 
-  wsm_data["ArrayOfGriddedFieldGetNames"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Get the names of all GriddedFields stored in an Array.
-
-See *GriddedFieldGetName*.
-)--",
-      .author = {"Lukas Kluft"},
-
-      .gout = {"names"},
-      .gout_type = {"ArrayOfString"},
-      .gout_desc =
-          {R"--(Names of the GriddedFields in the ArrayOfGriddedField.)--"},
-
-      .gin = {"griddedfields"},
-      .gin_type =
-          {"ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Array of GriddedFields.)--"},
-
-  };
-
-  wsm_data["ArrayOfIndexLinSpace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initializes an ArrayOfIndex with linear spacing.
-
-The first element equals always the start value, and the spacing
-equals always the step value, but the last value can deviate from
-the stop value. ``step`` can be both positive and negative.
-
-The created array is [start, start+step, start+2*step, ...]
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfIndex"},
-      .gout_desc = {R"--(Output array.)--"},
-
-      .gin = {"start", "stop", "step"},
-      .gin_type = {"Index", "Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start value.)--",
-                   R"--(Maximum/minimum value of the end value)--",
-                   R"--(Spacing of the array.)--"},
-
-  };
-
-  wsm_data["ArrayOfQuantumIdentifierFromLines"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*
-with defined quantum numbers
-
-Lines without defined quantum numbers are ignored
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfQuantumIdentifier"},
-      .gout_desc =
-          {R"--(Identifiers to all levels in *abs_lines_per_species*)--"},
-      .in = {"abs_lines_per_species"},
-      .gin = {"global"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc = {R"--(Only look at global quantum numbers)--"},
-
-  };
-
   wsm_data["CIARecordReadFromFile"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Reads CIARecord from Hitran-style file.
 )--",
@@ -175,178 +66,6 @@ Lines without defined quantum numbers are ignored
       .gin_desc =
           {R"--(SpeciesTag string to associate with this CIARecord. See *abs_speciesSet* for correct format.)--",
            R"--(Filename of HITRAN CIA data file.)--"},
-
-  };
-
-  wsm_data["CheckUnique"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Checks that *abs_lines* contains only unique absorption lines
-)--",
-      .author = {"Richard Larsson"},
-
-      .in = {"abs_lines"},
-
-  };
-
-  wsm_data["Compare"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Checks the consistency between two variables.
-
-The two variables are checked to not deviate outside the specified
-value (``maxabsdiff``). An error is issued if this is not fulfilled.
-
-The main application of this method is to be part of the test
-control files, and then used to check that a calculated value
-is consistent with an old, reference, value.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gin = {"var1", "var2", "maxabsdiff", "error_message"},
-      .gin_type =
-          {"Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7, ArrayOfVector, ArrayOfMatrix, ArrayOfTensor7, GriddedField3, Sparse, SingleScatteringData",
-           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7, ArrayOfVector, ArrayOfMatrix, ArrayOfTensor7, GriddedField3, Sparse, SingleScatteringData",
-           "Numeric",
-           "String"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{}, String("")},
-      .gin_desc = {R"--(A first variable)--",
-                   R"--(A second variable)--",
-                   R"--(Threshold for maximum absolute difference.)--",
-                   R"--(Additional error message.)--"}};
-
-  wsm_data["CompareRelative"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Checks the consistency between two variables by their relative values.
-
-The two variables are checked to not deviate outside the specified
-relative value (``maxabsreldiff``). An error is issued if this is not
-fulfilled.
-
-The main application of this method is to be part of the test
-control files, and then used to check that a calculated value
-is consistent with an old, reference, value.
-
-If either value is 0.0, the relative error is considered as 0
-for easier use.  This really means infinite differences, though
-allowing zero-crossings is useful for plenty of tests. So Be Aware!
-
-If both ``var1`` and ``var2`` are non-zero, the difference is evaluated
-as: abs(var1/var2-1)
-That is, ``var2`` is taken as the reference value.
-)--",
-      .author = {"Oliver Lemke", "Richard Larsson"},
-
-      .gin = {"var1", "var2", "maxabsreldiff", "error_message"},
-      .gin_type =
-          {"Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector, ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
-           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector, ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6",
-           "Numeric",
-           "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String("")},
-      .gin_desc = {R"--(A first variable)--",
-                   R"--(A second variable)--",
-                   R"--(Threshold for maximum relative difference.)--",
-                   R"--(Additional error message.)--"}};
-
-  wsm_data["Copy"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Copy a workspace variable.
-
-This method can copy any workspace variable
-to another workspace variable of the same group. (E.g., a Matrix to
-another Matrix.)
-
-As always, output comes first in the argument list!
-
-Usage example:
-
-Copy(f_grid, p_grid)
-
-Will copy the content of ``p_grid`` to *f_grid*. The size of *f_grid*
-is adjusted automatically (the normal behaviour for workspace
-methods).
-)--",
-      .author = {"Stefan Buehler"},
-
-      .gout = {"output"},
-      .gout_type = {"Any"},
-      .gout_desc = {R"--(Destination variable.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Any"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Source variable.)--"}};
-
-  wsm_data["Delete"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Deletes a workspace variable.
-
-The variable is not deleted from the workspace, but it is
-reset to its default value. This is useful if you want to
-free memory for heavy variables
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"v"},
-      .gout_type = {"Any"},
-      .gout_desc = {R"--(Variable to be deleted.)--"}};
-
-  wsm_data["DiagonalMatrix"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Create a diagonal matrix from a vector.
-
-This creates a dense or sparse diagonal matrix with the elements of the given vector
-on the diagonal.
-)--",
-      .author = {"Simon Pfreundschuh"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix, Sparse"},
-      .gout_desc = {R"--(The diagonal matrix)--"},
-
-      .gin = {"v"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The vector containing the diagonal elements.)--"},
-
-  };
-
-  wsm_data["Duration"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the seconds between two times.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"duration"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Time in seconds between ``start`` and ``end``)--"},
-
-      .gin = {"start", "end"},
-      .gin_type = {"Time", "Time"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start time)--", R"--(End time)--"},
-
-  };
-
-  wsm_data["Extract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extracts an element from an array.
-
-Copies the element with the given Index from the input
-variable to the output variable.
-
-For a Tensor3 as an input, it copies the page with the given
-Index from the input Tensor3 variable to the output Matrix.
-
-In other words, the selection is always done on the first dimension.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"needle"},
-      .gout_type =
-          {"Index, ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4, Tensor4, GriddedField2, GriddedField3, ArrayOfGriddedField3, GriddedField4, String, SingleScatteringData, ArrayOfSingleScatteringData, TelsemAtlas, QuantumIdentifier"},
-      .gout_desc = {R"--(Extracted element.)--"},
-
-      .gin = {"haystack", "index"},
-      .gin_type =
-          {"ArrayOfIndex, ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3, Tensor4, ArrayOfTensor4, Tensor5, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfString, ArrayOfSingleScatteringData, ArrayOfArrayOfSingleScatteringData, ArrayOfTelsemAtlas, ArrayOfQuantumIdentifier",
-           "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Variable to extract from.)--",
-                   R"--(Position of the element which should be extracted.)--"},
-
   };
 
   wsm_data["FastemStandAlone"] = WorkspaceMethodInternalRecord{
@@ -414,154 +133,6 @@ is enforced. These problems start about 15 degrees from the horizon.
 
   };
 
-  wsm_data["FlagOff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets an index variable that acts as an on/off flag to 0.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"flag"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Variable to set to 0.)--"},
-
-  };
-
-  wsm_data["FlagOn"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets an index variable that acts as an on/off flag to 1.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"flag"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Variable to set to 1.)--"},
-
-  };
-
-  wsm_data["Flatten"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Flattens an ArrayOfArray<T> to Array<T> or an Array
-of matpack-types to a larger dimension matpack (if dimensions agree)
-
-The intended transformation for arrays is (sub-arrays can have different sizes):
-    {{a, b, c}, {d, e}} -> {a, b, c, d, e}
-
-The intended transformation for arrays to matpack types is (sub-types must have same size):
-    {{a, b, c}, {d, e, f}} -> {a, b, c, d, e, f}
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type =
-          {"ArrayOfTime, ArrayOfVector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
-      .gout_desc = {R"--(Flatter array/matpack-type)--"},
-
-      .gin = {"input"},
-      .gin_type =
-          {"ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(An array)--"},
-
-  };
-
-  wsm_data["FrequencyFromCGSAngularWavenumber"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Convert from angular wavenumber [cm^-1] to frequency [Hz].
-
-This converts angular wavenumber (2*PI/wavelength) into frequency.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"frequency"},
-      .gout_type = {"Numeric, Vector"},
-      .gout_desc = {R"--(frequency [Hz])--"},
-
-      .gin = {"angular_wavenumber"},
-      .gin_type = {"Numeric, Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(angular wavenumber [cm^-1])--"},
-
-  };
-
-  wsm_data["FrequencyFromCGSKayserWavenumber"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Convert from Kayser wavenumber [cm^-1] to frequency [Hz].
-
-This converts Kayser wavenumber (1/wavelength) into frequency.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"frequency"},
-      .gout_type = {"Numeric, Vector"},
-      .gout_desc = {R"--(frequency [Hz])--"},
-
-      .gin = {"kayser_wavenumber"},
-      .gin_type = {"Numeric, Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Kayser wavenumber [cm^-1])--"},
-
-  };
-
-  wsm_data["FrequencyFromWavelength"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Convert from wavelength [m] to frequency [Hz].
-
-This is a generic method. It can take a single wavelength value or a wavelength vector as input.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"frequency"},
-      .gout_type = {"Numeric, Vector"},
-      .gout_desc = {R"--(frequency [Hz])--"},
-
-      .gin = {"wavelength"},
-      .gin_type = {"Numeric, Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(wavelength [m])--"},
-
-  };
-
-  wsm_data["GetEnvironmentVariable"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Copy the contents of an environment variable to an ARTS String or Index.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"String, Index"},
-      .gout_desc = {R"--(Contents of environment variable.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Name of environment variable.)--"},
-
-  };
-
-  wsm_data["GetNumberOfThreads"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Returns the number of threads used by ARTS.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"nthreads"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Number of threads.)--"},
-
-  };
-
-  wsm_data["GriddedFieldGetName"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Get the name of a GriddedField.
-
-See *ArrayOfGriddedFieldGetNames*.
-)--",
-      .author = {"Lukas Kluft"},
-
-      .gout = {"name"},
-      .gout_type = {"String"},
-      .gout_desc = {R"--(Name of the GriddedField.)--"},
-
-      .gin = {"griddedfield"},
-      .gin_type =
-          {"GriddedField1, GriddedField2, GriddedField3, GriddedField4, GriddedField5, GriddedField6"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(GriddedField.)--"},
-
-  };
-
   wsm_data["Ignore"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Ignore a workspace variable.
 
@@ -620,60 +191,6 @@ the surface altitudes.
 
   };
 
-  wsm_data["LatLonFieldSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Fills a latitude-longitude field with given input.
-
-Grids and data must match in size.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gfield2"},
-      .gout_type = {"GriddedField2"},
-      .gout_desc = {R"--(Field to set.)--"},
-
-      .gin = {"latitude_grid", "longitude_grid", "data", "name"},
-      .gin_type = {"Vector", "Vector", "Matrix", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String("")},
-      .gin_desc = {R"--(The latitude grid of ``data``.)--",
-                   R"--(The longitude grid of ``data``.)--",
-                   R"--(The data of the field (will become gfield2.data).)--",
-                   R"--(The name of the field (will become gfield2.name).)--"},
-
-  };
-
-  wsm_data["LatLonFieldSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets a latitude-longitude field to have a constant data value.
-
-Both latitude and longitude grids are set to have length one,
-with the value 0.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gfield2"},
-      .gout_type = {"GriddedField2"},
-      .gout_desc = {R"--(Field to set.)--"},
-
-      .gin = {"value", "name"},
-      .gin_type = {"Numeric", "String"},
-      .gin_value = {std::nullopt, String("")},
-      .gin_desc = {R"--(The value (to place in gfield2.data).)--",
-                   R"--(The name of the field (will become gfield2.name).)--"},
-
-  };
-
-  wsm_data["LocalTimeOffset"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets the seconds between localtime and gmtime representation of now().
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"dt"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Time in seconds between local and gmt)--"},
-
-  };
-
   wsm_data["surface_fieldSetPlanetEllipsoid"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Sets the planet base surface field
@@ -707,35 +224,6 @@ Options are:
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["Print"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Prints a variable on the screen.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gin = {"input", "level"},
-      .gin_type = {"Any", "Index"},
-      .gin_value = {std::nullopt, Index{1}},
-      .gin_desc = {R"--(Variable to be printed.)--",
-                   R"--(Output level to use.)--"},
-
-  };
-
-  wsm_data["PrintPhysicalConstants"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Prints (most) physical constants used in ARTS.
-)--",
-      .author = {"Richard Larsson"},
-
-  };
-
-  wsm_data["PrintWorkspace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Prints a list of the workspace variables to standard out.
-
-Each will have a short excerpt of the variable's content
-)--",
-      .author = {"Oliver Lemke"},
-      .pass_workspace = true,
   };
 
   wsm_data["RT4Test"] = WorkspaceMethodInternalRecord{
@@ -832,13 +320,13 @@ information.  Be careful setting the options!
                    R"--(Maximum frequency of read lines)--",
                    R"--(Global quantum number list (space-separated))--",
                    R"--(Local quantum number list (space-separated))--",
-                   R"--(Normalization option, see *abs_linesNormalization*)--",
-                   R"--(Mirroring option, see *abs_linesMirroring*)--",
-                   R"--(Population option, see *abs_linesPopulation*)--",
-                   R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-                   R"--(Cutoff option, see *abs_linesCutoff*)--",
-                   R"--(Cutoff value, see *abs_linesCutoff*)--",
-                   R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+                   R"--(Normalization option)--",
+                   R"--(Mirroring option)--",
+                   R"--(Population option)--",
+                   R"--(Lineshape option)--",
+                   R"--(Cutoff option)--",
+                   R"--(Cutoff value)--",
+                   R"--(Line mixing limit)--"},
 
   };
 
@@ -893,13 +381,13 @@ information.  Be careful setting the options!
                    R"--(Maximum frequency of read lines)--",
                    R"--(Global quantum number list (space-separated))--",
                    R"--(Local quantum number list (space-separated))--",
-                   R"--(Normalization option, see *abs_linesNormalization*)--",
-                   R"--(Mirroring option, see *abs_linesMirroring*)--",
-                   R"--(Population option, see *abs_linesPopulation*)--",
-                   R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-                   R"--(Cutoff option, see *abs_linesCutoff*)--",
-                   R"--(Cutoff value, see *abs_linesCutoff*)--",
-                   R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+                   R"--(Normalization option)--",
+                   R"--(Mirroring option)--",
+                   R"--(Population option)--",
+                   R"--(Lineshape option)--",
+                   R"--(Cutoff option)--",
+                   R"--(Cutoff value)--",
+                   R"--(Line mixing limit)--"},
 
   };
 
@@ -987,13 +475,13 @@ The <commit hash> required per version of Hitran are:
            R"--(Global quantum number list (space-separated, default gives all))--",
            R"--(Local quantum number list (space-separated, default gives all))--",
            R"--(Method to use to read the line data)--",
-           R"--(Normalization option, see *abs_linesNormalization*)--",
-           R"--(Mirroring option, see *abs_linesMirroring*)--",
-           R"--(Population option, see *abs_linesPopulation*)--",
-           R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-           R"--(Cutoff option, see *abs_linesCutoff*)--",
-           R"--(Cutoff value, see *abs_linesCutoff*)--",
-           R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+           R"--(Normalization option)--",
+           R"--(Mirroring option)--",
+           R"--(Population option)--",
+           R"--(Lineshape option)--",
+           R"--(Cutoff option)--",
+           R"--(Cutoff value)--",
+           R"--(Line mixing limit)--"},
 
   };
 
@@ -1046,13 +534,13 @@ Be careful setting the options!
                    R"--(Maximum frequency of read lines)--",
                    R"--(Global quantum number list (space-separated))--",
                    R"--(Local quantum number list (space-separated))--",
-                   R"--(Normalization option, see *abs_linesNormalization*)--",
-                   R"--(Mirroring option, see *abs_linesMirroring*)--",
-                   R"--(Population option, see *abs_linesPopulation*)--",
-                   R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-                   R"--(Cutoff option, see *abs_linesCutoff*)--",
-                   R"--(Cutoff value, see *abs_linesCutoff*)--",
-                   R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+                   R"--(Normalization option)--",
+                   R"--(Mirroring option)--",
+                   R"--(Population option)--",
+                   R"--(Lineshape option)--",
+                   R"--(Cutoff option)--",
+                   R"--(Cutoff value)--",
+                   R"--(Line mixing limit)--"},
 
   };
 
@@ -1105,13 +593,13 @@ Be careful setting the options!
                    R"--(Maximum frequency of read lines)--",
                    R"--(Global quantum number list (space-separated))--",
                    R"--(Local quantum number list (space-separated))--",
-                   R"--(Normalization option, see *abs_linesNormalization*)--",
-                   R"--(Mirroring option, see *abs_linesMirroring*)--",
-                   R"--(Population option, see *abs_linesPopulation*)--",
-                   R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-                   R"--(Cutoff option, see *abs_linesCutoff*)--",
-                   R"--(Cutoff value, see *abs_linesCutoff*)--",
-                   R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+                   R"--(Normalization option)--",
+                   R"--(Mirroring option)--",
+                   R"--(Population option)--",
+                   R"--(Lineshape option)--",
+                   R"--(Cutoff option)--",
+                   R"--(Cutoff value)--",
+                   R"--(Line mixing limit)--"},
 
   };
 
@@ -1192,13 +680,13 @@ information.  Be careful setting the options!
            R"--(Global quantum number list (space-separated))--",
            R"--(Local quantum number list (space-separated))--",
            R"--(Ignores instead of throws if an *abs_species* is missing)--",
-           R"--(Normalization option, see *abs_linesNormalization*)--",
-           R"--(Mirroring option, see *abs_linesMirroring*)--",
-           R"--(Population option, see *abs_linesPopulation*)--",
-           R"--(Lineshape option, see *abs_linesLineShapeType*)--",
-           R"--(Cutoff option, see *abs_linesCutoff*)--",
-           R"--(Cutoff value, see *abs_linesCutoff*)--",
-           R"--(Line mixing limit, see *abs_linesLinemixingLimit*)--"},
+           R"--(Normalization option)--",
+           R"--(Mirroring option)--",
+           R"--(Population option)--",
+           R"--(Lineshape option)--",
+           R"--(Cutoff option)--",
+           R"--(Cutoff value)--",
+           R"--(Line mixing limit)--"},
 
   };
 
@@ -1262,195 +750,6 @@ in *abs_species*.
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Basepath to the files)--"},
-
-  };
-
-  wsm_data["Reduce"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reduces a larger class to a smaller class of same size.
-
-The Reduce command reduces all "1"-dimensions to nil.  Examples:
-
-1) 1 Vector can be reduced to a Numeric
-2) 2x1 Matrix can be reduced to 2 Vector
-3) 1x3x1 Tensor3 can be reduced to 3 Vector
-4) 1x1x1x1 Tensor4 can be reduced to a Numeric
-5) 3x1x4x1x5 Tensor5 can only be reduced to 3x4x5 Tensor3
-6) 1x1x1x1x2x3 Tensor6 can be reduced to 2x3 Matrix
-7) 2x3x4x5x6x7x1 Tensor7 can be reduced to 2x3x4x5x6x7 Tensor6
-
-And so on
-)--",
-      .author = {"Oliver Lemke", "Richard Larsson"},
-
-      .gout = {"o"},
-      .gout_type =
-          {"Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Vector, Vector, Vector, Vector, Vector, Vector, Matrix, Matrix, Matrix, Matrix, Matrix, Tensor3, Tensor3, Tensor3, Tensor3, Tensor4, Tensor4, Tensor4, Tensor5, Tensor5, Tensor6"},
-      .gout_desc = {R"--(Reduced form of input.)--"},
-
-      .gin = {"i"},
-      .gin_type =
-          {"Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Tensor4, Tensor5, Tensor6, Tensor7, Tensor5, Tensor6, Tensor7, Tensor6, Tensor7, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Over-dimensioned input)--"},
-
-  };
-
-  wsm_data["Select"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Method to select some elements from one array and copy them to
-a new array. (Works also for vectors.)
-
-This works also for higher dimensional objects, where the selection is
-always performed in the first dimension.
-
-If needleindexes is set to [-1], all elements are copied.
-For example:
-
-Select(y,x,[0,3])
-
-will select the first and fourth row of matrix x and copy them to the
-output matrix y.
-
-Note that it is even safe to use this method if needles and haystack
-are the same variable.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"needles"},
-      .gout_type =
-          {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse"},
-      .gout_desc =
-          {R"--(Selected elements. Must have the same variable type as haystack.)--"},
-
-      .gin = {"haystack", "needleindexes"},
-      .gin_type = {"ArrayOfAbsorptionLines, ArrayOfAgenda, ArrayOfArrayOfAbsorptionLines, ArrayOfArrayOfGriddedField1, ArrayOfArrayOfGriddedField2, ArrayOfArrayOfGriddedField3, ArrayOfArrayOfIndex, ArrayOfArrayOfMatrix, ArrayOfArrayOfMuelmatMatrix, ArrayOfArrayOfMuelmatVector, ArrayOfArrayOfPropmatMatrix, ArrayOfArrayOfPropmatVector, ArrayOfArrayOfScatteringMetaData, ArrayOfArrayOfSingleScatteringData, ArrayOfArrayOfSpeciesTag, ArrayOfArrayOfStokvecMatrix, ArrayOfArrayOfStokvecVector, ArrayOfArrayOfString, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6, ArrayOfArrayOfTime, ArrayOfArrayOfVector, ArrayOfAtmPoint, ArrayOfCIARecord, ArrayOfGriddedField1, ArrayOfGriddedField2, ArrayOfGriddedField3, ArrayOfGriddedField4, ArrayOfIndex, ArrayOfMatrix, ArrayOfMuelmatMatrix, ArrayOfMuelmatVector, ArrayOfPropmatMatrix, ArrayOfPropmatVector, ArrayOfQuantumIdentifier, ArrayOfScatteringMetaData, ArrayOfSingleScatteringData, ArrayOfSparse, ArrayOfSpeciesTag, ArrayOfStokvecMatrix, ArrayOfStokvecVector, ArrayOfString, ArrayOfSun, ArrayOfTelsemAtlas, ArrayOfTensor3, ArrayOfTensor4, ArrayOfTensor5, ArrayOfTensor6, ArrayOfTensor7, ArrayOfTime, ArrayOfVector, ArrayOfXsecRecord, Vector, Matrix, Sparse",
-                   "ArrayOfIndex"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Variable to select from. May be the same variable as needles.)--",
-           R"--(The elements to select (zero based indexing, as always.))--"},
-
-  };
-
-  wsm_data["SetNumberOfThreads"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Change the number of threads used by ARTS.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gin = {"nthreads"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Number of threads.)--"},
-
-  };
-
-  wsm_data["Sleep"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sleeps for a number of seconds
-)--",
-      .author = {"Richard Larsson"},
-
-      .gin = {"gtime"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Time to sleep for in seconds)--"},
-
-  };
-
-  wsm_data["SparseIdentity"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Returns a sparse dentity matrix.
-
-The size of the matrix created is n x n. Default is to return a
-true identity matrix (I), but you can also select another value
-along the diagonal be setting ``value``. That is, the output is
-value*I.
-)--",
-      .author = {"Simon Pfreundschuh"},
-
-      .gout = {"output"},
-      .gout_type = {"Sparse"},
-      .gout_desc = {R"--(Sparse output matrix)--"},
-
-      .gin = {"n", "value"},
-      .gin_type = {"Index", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{1}},
-      .gin_desc = {R"--(Size of the matrix)--",
-                   R"--(The value along the diagonal.)--"},
-
-  };
-
-  wsm_data["SparseSparseMultiply"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Multiplies a Sparse with another Sparse, result stored in Sparse.
-
-Makes the calculation: M = M1 * M2
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"M"},
-      .gout_type = {"Sparse"},
-      .gout_desc =
-          {R"--(Product, can be same variable as any of the inputs.)--"},
-
-      .gin = {"M1", "M2"},
-      .gin_type = {"Sparse", "Sparse"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Left sparse matrix (dimension m x n).)--",
-                   R"--(Right sparse matrix (dimension n x p).)--"},
-
-  };
-
-  wsm_data["StringJoin"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Concatenate two or more strings.
-
-The output string is overwritten, but is allowed to appear
-in the input list. Up to 10 strings can be concatenated at once.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"String"},
-      .gout_desc = {R"--(Concatenated string.)--"},
-
-      .gin = {"in1",
-              "in2",
-              "in3",
-              "in4",
-              "in5",
-              "in6",
-              "in7",
-              "in8",
-              "in9",
-              "in10"},
-      .gin_type = {"String",
-                   "String",
-                   "String",
-                   "String",
-                   "String",
-                   "String",
-                   "String",
-                   "String",
-                   "String",
-                   "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    String(""),
-                    String(""),
-                    String(""),
-                    String(""),
-                    String(""),
-                    String(""),
-                    String(""),
-                    String("")},
-      .gin_desc = {R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--",
-                   R"--(Input text string.)--"},
 
   };
 
@@ -1525,60 +824,6 @@ In case the variable is not yet initialized, it is set to NaN.
       .gout = {"input"},
       .gout_type = {"Any"},
       .gout_desc = {R"--(Variable to do nothing with.)--"},
-
-  };
-
-  wsm_data["VectorLinSpace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initializes a vector with linear spacing.
-
-The first element equals always the start value, and the spacing
-equals always the step value, but the last value can deviate from
-the stop value. ``step`` can be both positive and negative.
-
-The created vector is [start, start+step, start+2*step, ...]
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector.)--"},
-
-      .gin = {"start", "stop", "step"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start value.)--",
-                   R"--(Maximum/minimum value of the end value)--",
-                   R"--(Spacing of the vector.)--"},
-
-  };
-
-  wsm_data["VectorLogSpace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initializes a vector with logarithmic spacing.
-
-The first element equals always the start value, and the spacing
-equals always the step value, but note that the last value can 
-deviate from the stop value. The keyword step can be both positive
-and negative.
-
-Note, that although start has to be given in direct coordinates,
-step has to be given in log coordinates.
-
-Explicitly, the vector is:
- exp([ln(start), ln(start)+step, ln(start)+2*step, ...])
-)--",
-      .author = {"Stefan Buehler"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"start", "stop", "step"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(The start value. (Direct coordinates!))--",
-           R"--(The maximum value of the end value. (Direct coordinates!))--",
-           R"--(The spacing of the vector. (Log coordinates!))--"},
 
   };
 
@@ -1657,16 +902,6 @@ The default values take about 1 Gb memory.
 )--",
       .author = {"Richard Larsson"},
       .out = {"wigner_initialized"},
-
-      .in = {"wigner_initialized"},
-
-  };
-
-  wsm_data["WignerFastInfoPrint"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Prints the fast wigner table information if compiled with this option
-)--",
-      .author = {"Richard Larsson"},
 
       .in = {"wigner_initialized"},
 
@@ -1925,144 +1160,6 @@ will crash at some point
 
   };
 
-  wsm_data["abs_linesBaseParameterMatchingLevel"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.
-
-Only works for these ``parameter_name``:
- - ``"Statistical Weight"``
- - ``"Zeeman Coefficient"``
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"QI", "parameter_name", "change"},
-      .gin_type = {"QuantumIdentifier", "String", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Information to match the level.)--",
-                   R"--(Name of parameter to be replaced)--",
-                   R"--(Value with which to set matching level's value)--"},
-
-  };
-
-  wsm_data["abs_linesBaseParameterMatchingLevels"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesBaseParameterMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines"},
-
-          .in = {"abs_lines"},
-          .gin = {"QI", "parameter_name", "change"},
-          .gin_type = {"ArrayOfQuantumIdentifier", "String", "Vector"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Information to match the level.)--",
-                       R"--(Name of parameter to be replaced)--",
-                       R"--(Value with which to set matching level's value)--"},
-
-      };
-
-  wsm_data["abs_linesBaseParameterMatchingLines"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.
-
-Only works for these ``parameter_name``:
- - ``"Central Frequency"``
- - ``"Line Strength"``
- - ``"Lower State Energy"``
- - ``"Einstein Coefficient"``
- - ``"Lower Statistical Weight"``
- - ``"Upper Statistical Weight"``
- - ``"Lower Zeeman Coefficient"``
- - ``"Upper Zeeman Coefficient"``
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"QI", "parameter_name", "change"},
-      .gin_type = {"QuantumIdentifier", "String", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Information to match the line/band.)--",
-                   R"--(Name of parameter to be replaced)--",
-                   R"--(Value with which to change matching line's value)--"},
-
-  };
-
-  wsm_data["abs_linesChangeBaseParameterForMatchingLevel"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.
-
-Only works for these ``parameter_name``:
- - ``"Statistical Weight"``
- - ``"Zeeman Coefficient"``
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines"},
-
-          .in = {"abs_lines"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"QuantumIdentifier", "String", "Numeric", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the level.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching level's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
-  wsm_data["abs_linesChangeBaseParameterForMatchingLevels"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines"},
-
-          .in = {"abs_lines"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"ArrayOfQuantumIdentifier", "String", "Vector", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the level.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching level's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
-  wsm_data["abs_linesChangeBaseParameterForMatchingLines"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.
-
-Only works for these ``parameter_name``:
- - ``"Central Frequency"``
- - ``"Line Strength"``
- - ``"Lower State Energy"``
- - ``"Einstein Coefficient"``
- - ``"Lower Statistical Weight"``
- - ``"Upper Statistical Weight"``
- - ``"Lower Zeeman Coefficient"``
- - ``"Upper Zeeman Coefficient"``
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines"},
-
-          .in = {"abs_lines"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"QuantumIdentifier", "String", "Numeric", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the line/band.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching line's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
   wsm_data["abs_linesCompact"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Removes lines that are unimportant because of their
 cutoff frequency range
@@ -2071,369 +1168,6 @@ cutoff frequency range
       .out = {"abs_lines"},
 
       .in = {"abs_lines", "f_grid"},
-
-  };
-
-  wsm_data["abs_linesCutoff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets cutoff type and magnitude for all lines.
-
-The line is cut off when this is active at the given frequency.
-The only non-zero range is from this range to its negative equivalent
-
-Available ``option``:
-
-- ``"None"``: No cutoff
-- ``"ByLine"``: Cutoff relative to a speed-independent shifted line center, highest frequency: F0+cutoff+D0
-
-For "ByLine", the negative frequency is at F0-cutoff-D0
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "value"},
-      .gin_type = {"String", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(Value of cutoff)--"},
-
-  };
-
-  wsm_data["abs_linesCutoffMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesCutoff* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "value", "ID"},
-      .gin_type = {"String", "Numeric", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(Value of cutoff)--",
-                   R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_linesDeleteBadF0"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Deletes all lines in *abs_lines* that have bad central frequencies
-
-If lower evaluates as true, deletes all lines with a frequency below f0.
-Otherwise deletes all lines with a frequency above f0.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"f0", "lower"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {std::nullopt, Index{1}},
-      .gin_desc = {R"--(Target frequency)--",
-                   R"--(Lower or upper flag (eval as boolean))--"},
-
-  };
-
-  wsm_data["abs_linesEmptyBroadeningParameters"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets a broadening parameter to empty if it is effectively empty
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-
-  };
-
-  wsm_data["abs_linesFlatten"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Makes *abs_lines* with the same ID share lines
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-
-  };
-
-  wsm_data["abs_linesKeepBand"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Keep only ``qid``-match band lines in *abs_lines*
-
-Note that other bands are technically kept but have zero lines
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"qid"},
-      .gin_type = {"QuantumIdentifier"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Band ID)--"},
-
-  };
-
-  wsm_data["abs_linesLineShapeModelParametersMatchingLines"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets line shape model data parameter in matching lines.
-
-The matching is done so that QI must be in the line identifier
-
-Acceptable ``parameter`` (s) are:
- - ``"G0"``
- - ``"D0"``
- - ``"G2"``
- - ``"D2"``
- - ``"FVC"``
- - ``"ETA"``
- - ``"Y"``
- - ``"G"``
- - ``"DV"``
-
-Acceptable ``temperaturemodel`` (s) are:
- - ``"None"``
- - ``"T0"``
- - ``"T1"``
- - ``"T2"``
- - ``"T3"``
- - ``"T4"``
- - ``"T5"``
- - ``"LM_AER"``
- - ``"DPL"``
-
-Acceptable ``species`` are:
- - ``"AIR"`` (so long as it is the broadening species list)
- - ``"SELF"`` (so long as it is the broadening species list)
- - Any species in the line broadening species
-
-See the user guide for the meanings of all of these keywords
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines"},
-
-          .in = {"abs_lines"},
-          .gin =
-              {"QI", "parameter", "species", "temperaturemodel", "new_values"},
-          .gin_type =
-              {"QuantumIdentifier", "String", "String", "String", "Vector"},
-          .gin_value = {std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        std::nullopt},
-          .gin_desc = {R"--(Information to match the line.)--",
-                       R"--(Name of parameter to be replaced)--",
-                       R"--(Species of parameter to be changed)--",
-                       R"--(Temperature model for the new values)--",
-                       R"--(Sets the values found)--"},
-
-      };
-
-  wsm_data["abs_linesLineShapeType"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets shape calculations type for all lines.
-
-Available ``option``:
-
-- ``"DP"``: Doppler profile
-- ``"LP"``: Lorentz profile
-- ``"VP"``: Voigt profile
-- ``"SDVP"``: Speed-dependent Voigt profile
-- ``"HTP"``: Hartman-Tran profile
-
-See the theory guide for more details.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--"},
-
-  };
-
-  wsm_data["abs_linesLineShapeTypeMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesLineShapeType* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "ID"},
-      .gin_type = {"String", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_linesLinemixingLimit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets line mixing limit for all lines.
-
-If value is less than 0, no limit is applied and line mixing is active.
-Otherwise, line mixing is inactive if the pressure is below the limit.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Value of limit)--"},
-
-  };
-
-  wsm_data["abs_linesLinemixingLimitMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(See *abs_linesLinemixingLimit* for values
-
-This function only acts on matches between the bands and input ID
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"value", "ID"},
-      .gin_type = {"Numeric", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value of limit)--", R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_linesManualMirroring"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Makes a copy of all lines at negative frequency setting themto manual mirroring mode
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-
-  };
-
-  wsm_data["abs_linesMirroring"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets mirroring type for all lines.
-
-Available ``option``:
-
-- ``"None"``: No mirrored line
-- ``"SameAsLineShape"``: Mirrored line broadened by line shape
-- ``"Manual"``: Manually mirrored line (be careful; allows all frequencies)
-- ``"Lorentz"``: Mirrored line broadened by Lorentz
-
-Note that mirroring is never applied for DP line shape
-
-Also note that Lorentz profile is approached by most line shapes at high frequency offset.
-
-Also note that Manual settings are potentially dangerous as other frequency
-offsets might not work as hoped.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line mirroring)--"},
-
-  };
-
-  wsm_data["abs_linesMirroringMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesMirroring* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "ID"},
-      .gin_type = {"String", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line mirroring)--",
-                   R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_linesNormalization"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets normalization type for all lines
-
-Available ``option``:
-
-- ``"VVH"``: Van Vleck and Huber
-- ``"VVW"``: Van Vleck and Weisskopf
-- ``"RQ"``: Rosenkranz quadratic
-- ``"SFS"``: Simple frequency scaling
-- ``"None"``: No extra normalization
-
-See the theory guide for more details.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line normalizations)--"},
-
-  };
-
-  wsm_data["abs_linesNormalizationMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesNormalization* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "ID"},
-      .gin_type = {"String", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line normalizations)--",
-                   R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_linesPopulation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets population type for all lines.
-
-Available ``option``:
-
-- ``"LTE"``: Assume band is in LTE
-- ``"NLTE"``: Assume band is in NLTE and the upper-to-lower ratio is known
-- ``"VibTemps"``: Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-- ``"ByHITRANRosenkranzRelmat"``: Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-- ``"ByHITRANFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-- ``"ByMakarovFullRelmat"``: Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-- ``"ByRovibLinearDipoleLineMixing"``: Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
-
-You must have set ``nlte_field`` and/or its ilk to use the NLTE methods.
-
-You must have *abs_hitran_relmat_data* for the ByHITRANXX methods.
-
-You must have *ecs_data* for the other two relaxation matrix options
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line population)--"},
-
-  };
-
-  wsm_data["abs_linesPopulationMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesPopulation* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option", "ID"},
-      .gin_type = {"String", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line population)--",
-                   R"--(ID of one or more bands)--"},
 
   };
 
@@ -2449,193 +1183,6 @@ You must have *ecs_data* for the other two relaxation matrix options
       .gin_desc =
           {R"--(The path to the split catalog files)--",
            R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
-
-  };
-
-  wsm_data["abs_linesRemoveBand"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Removes ``qid`` band from *abs_lines*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"qid"},
-      .gin_type = {"QuantumIdentifier"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Band ID)--"},
-
-  };
-
-  wsm_data["abs_linesRemoveEmptyBands"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Removes emtpy bands from *abs_lines*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-
-  };
-
-  wsm_data["abs_linesRemoveLines"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Remove lines *abs_lines* outside of specifications
-
-The specifications are:
- - The lower frequency bound (all lines of this frequency or higher may be kept)
- - The upper frequency bound (all lines of this frequency or lower may be kept)
- - The lower intensity bound (all lines with lower intensity may be removed)
-
-If safe evaluates true, all lines in an absorption band must fail the above
-tests to be removed
-
-The frequency filtering can be reversed, from keeping upper_frequency to
-lower_frequency, to instead remove lines inside the range by setting
-``flip_flims`` to 1.
-
-The method *abs_linesRemoveEmptyBands* is internally applied after the
-filtering.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"lower_frequency",
-              "upper_frequency",
-              "lower_intensity",
-              "safe",
-              "flip_flims"},
-      .gin_type = {"Numeric", "Numeric", "Numeric", "Index", "Index"},
-      .gin_value =
-          {Numeric{-1e99}, Numeric{1e99}, Numeric{0}, Index{1}, Index{0}},
-      .gin_desc =
-          {R"--(The lower frequency bound)--",
-           R"--(The upper frequency bound)--",
-           R"--(The lower intensity bound)--",
-           R"--(Remove only lines from a band if all lines of a band fail)--",
-           R"--(Reverse the frequecy filtering, see above)--"},
-
-  };
-
-  wsm_data["abs_linesRemoveLinesFromSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(As *abs_linesRemoveLines* but only for bands of the given species.
-
-``species`` must be a single entry, and must specify the isotopologue
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"species",
-              "lower_frequency",
-              "upper_frequency",
-              "lower_intensity",
-              "safe",
-              "flip_flims"},
-      .gin_type = {"ArrayOfSpeciesTag",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index",
-                   "Index"},
-      .gin_value = {std::nullopt,
-                    Numeric{-1e99},
-                    Numeric{1e99},
-                    Numeric{0},
-                    Index{1},
-                    Index{0}},
-      .gin_desc =
-          {R"--(Species to be removed)--",
-           R"--(The lower frequency bound)--",
-           R"--(The upper frequency bound)--",
-           R"--(The lower intensity bound)--",
-           R"--(Remove only lines from a band if all lines of a band fail)--",
-           R"--(Reverse the frequecy filtering)--"},
-
-  };
-
-  wsm_data["abs_linesReplaceBands"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Replace all bands in *abs_lines* that match with bands in ``replacing_bands``.
-
-Each ``replacing_bands`` must match excatly a single band in *abs_lines*.
-
-The matching requires identical quantum number signatures to work.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"replacing_bands"},
-      .gin_type = {"ArrayOfAbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Line-array that removes lines from *abs_lines*.)--"},
-
-  };
-
-  wsm_data["abs_linesReplaceLines"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Replace all lines in *abs_lines* that match with lines in replacement_lines.
-
-Each replacement_lines must match excatly a single line in *abs_lines*.
-
-The matching requires identical quantum number signatures to work
-
-Note that lines are identified by their quantum number identifier, and if the broadening or
-compute data disagree between two bands, a new band is appended unless we can work around the issue.
-This may cause *CheckUnique* to fail after running this method
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"replacing_lines"},
-      .gin_type = {"ArrayOfAbsorptionLines"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Line-array that replace lines in *abs_lines*.)--"},
-
-  };
-
-  wsm_data["abs_linesSort"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sorts first the lines then the bands by smallest first
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {String("ByFrequency")},
-      .gin_desc = {R"--(Sorting option)--"},
-
-  };
-
-  wsm_data["abs_linesT0"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets reference temperature for all lines.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Value of T0)--"},
-
-  };
-
-  wsm_data["abs_linesT0Match"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets reference temperature
-
-This function only acts on matches between the bands and input ID
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"value", "ID"},
-      .gin_type = {"Numeric", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value of T0)--", R"--(ID of one or more bands)--"},
 
   };
 
@@ -2666,25 +1213,6 @@ where N>=0 and the species name is something line "H2O".
       .gin_value = {String{"ascii"}, std::nullopt},
       .gin_desc = {"Format of the output file.",
                    R"--(Path to store the files at)--"},
-
-  };
-
-  wsm_data["abs_linesZeemanCoefficients"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the Zeeman coefficients of the lines by user input
-
-The matching is permissive, all in qid must just match.  If there
-are multiple matches, the last match rules
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines"},
-
-      .in = {"abs_lines"},
-      .gin = {"qid", "gs"},
-      .gin_type = {"ArrayOfQuantumIdentifier", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Information to match an energy level of a/many lines.)--",
-           R"--(Corresponding value to set as Zeeman coefficient)--"},
 
   };
 
@@ -2732,123 +1260,6 @@ will crash at some point
 
   };
 
-  wsm_data["abs_lines_per_speciesBaseParameterMatchingLevel"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesBaseParameterMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"QI", "parameter_name", "change"},
-          .gin_type = {"QuantumIdentifier", "String", "Numeric"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Information to match the level.)--",
-                       R"--(Name of parameter to be replaced)--",
-                       R"--(Value with which to set matching level's value)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesBaseParameterMatchingLevels"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesBaseParameterMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"QI", "parameter_name", "change"},
-          .gin_type = {"ArrayOfQuantumIdentifier", "String", "Vector"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Information to match the level.)--",
-                       R"--(Name of parameter to be replaced)--",
-                       R"--(Value with which to set matching level's value)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesChangeBaseParameterForMatchingLevel"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"QuantumIdentifier", "String", "Numeric", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the level.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching level's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesChangeBaseParameterForMatchingLevels"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesChangeBaseParameterForMatchingLevel*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"ArrayOfQuantumIdentifier", "String", "Vector", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the level.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching level's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesChangeBaseParameterForMatchingLines"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesChangeBaseParameterForMatchingLines*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"QI", "parameter_name", "change", "relative"},
-          .gin_type = {"QuantumIdentifier", "String", "Numeric", "Index"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-          .gin_desc =
-              {R"--(Information to match the line/band.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching line's value)--",
-               R"--(Flag for relative change (0 is absolute change))--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesChangeBaseParameterForSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(See *abs_linesChangeBaseParameterForMatchingLines* but for single species
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"QI", "parameter_name", "change", "relative", "species_tag"},
-          .gin_type =
-              {"QuantumIdentifier", "String", "Numeric", "Index", "String"},
-          .gin_value = {std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        Index{0},
-                        std::nullopt},
-          .gin_desc =
-              {R"--(Information to match the line/band.)--",
-               R"--(Name of parameter to be replaced)--",
-               R"--(Value with which to change matching line's value)--",
-               R"--(Flag for relative change (0 is absolute change))--",
-               R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
   wsm_data["abs_lines_per_speciesCompact"] = WorkspaceMethodInternalRecord{
       .desc = R"--(See *abs_linesCompact*
 )--",
@@ -2870,346 +1281,6 @@ There will be no respect for the internal layer of *abs_species*
           .out = {"abs_lines_per_species"},
 
           .in = {"abs_lines", "abs_species"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesCutoff"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesCutoff* but for *abs_lines_per_species*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"option", "value"},
-      .gin_type = {"String", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(Value of cutoff)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesCutoffMatch"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_lines_per_speciesCutoff* but for matching bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"option", "value", "ID"},
-      .gin_type = {"String", "Numeric", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(Value of cutoff)--",
-                   R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesCutoffSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(As *abs_lines_per_speciesCutoff* but for matching *abs_species*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species", "abs_species"},
-      .gin = {"option", "value", "species_tag"},
-      .gin_type = {"String", "Numeric", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Method of line shape calculations)--",
-                   R"--(Value of cutoff)--",
-                   R"--(The species tag from *abs_species* to change)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesFlatten"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calls *abs_linesFlatten* per internal set of bands
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesLineShapeModelParametersMatchingLines"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesLineShapeModelParametersMatchingLines*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin =
-              {"QI", "parameter", "species", "temperaturemodel", "new_values"},
-          .gin_type =
-              {"QuantumIdentifier", "String", "String", "String", "Vector"},
-          .gin_value = {std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        std::nullopt,
-                        std::nullopt},
-          .gin_desc = {R"--(Information to match the line.)--",
-                       R"--(Name of parameter to be replaced)--",
-                       R"--(Species of parameter to be changed)--",
-                       R"--(Temperature model for the new values)--",
-                       R"--(Sets the values found)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLineShapeType"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_linesLineShapeType* but for *abs_lines_per_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option"},
-          .gin_type = {"String"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Method of line shape calculations)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLineShapeTypeMatch"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesLineShapeType* but for matching bands
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option", "ID"},
-          .gin_type = {"String", "QuantumIdentifier"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line shape calculations)--",
-                       R"--(ID of one or more bands)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLineShapeTypeSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesLineShapeType* but for matching *abs_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"option", "species_tag"},
-          .gin_type = {"String", "String"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line shape calculations)--",
-                       R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLinemixingLimit"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesLinemixingLimit*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"value"},
-          .gin_type = {"Numeric"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Value of limit)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLinemixingLimitMatch"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesLinemixingLimit* for values
-
-This function only acts on matches between the bands and input ID
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"value", "ID"},
-          .gin_type = {"Numeric", "QuantumIdentifier"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Value of limit)--",
-                       R"--(ID of one or more bands)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesLinemixingLimitSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesLinemixingLimit* but for single species
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"value", "species_tag"},
-          .gin_type = {"Numeric", "String"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Value of limit)--",
-                       R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesManualMirroring"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Makes a copy of all lines at negative frequency setting them.
-to manual mirroring mode
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesManualMirroringSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Calls *abs_linesManualMirroring* for given species in *abs_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"species"},
-          .gin_type = {"ArrayOfSpeciesTag"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Species to mirror)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesMirroring"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesMirroring* but for *abs_lines_per_species*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line mirroring)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesMirroringMatch"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesMirroring* but for matching bands
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option", "ID"},
-          .gin_type = {"String", "QuantumIdentifier"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line mirroring)--",
-                       R"--(ID of one or more bands)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesMirroringSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesMirroring* but for matching *abs_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"option", "species_tag"},
-          .gin_type = {"String", "String"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line mirroring)--",
-                       R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesNormalization"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_linesNormalization* but for *abs_lines_per_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option"},
-          .gin_type = {"String"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Method of line normalizations)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesNormalizationMatch"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesNormalization* but for matching bands
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option", "ID"},
-          .gin_type = {"String", "QuantumIdentifier"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line normalizations)--",
-                       R"--(ID of one or more bands)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesNormalizationSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesNormalization* but for matching *abs_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"option", "species_tag"},
-          .gin_type = {"String", "String"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line normalizations)--",
-                       R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesPopulation"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *abs_linesPopulation* but for *abs_lines_per_species*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Method of line population)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesPopulationMatch"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesPopulation* but for matching bands
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"option", "ID"},
-          .gin_type = {"String", "QuantumIdentifier"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line population)--",
-                       R"--(ID of one or more bands)--"},
 
       };
 
@@ -3261,23 +1332,6 @@ Set type of population to change computations and expected input as:
 
       };
 
-  wsm_data["abs_lines_per_speciesPopulationSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(As *abs_lines_per_speciesPopulation* but for matching *abs_species*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species", "abs_species"},
-          .gin = {"option", "species_tag"},
-          .gin_type = {"String", "String"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Method of line population)--",
-                       R"--(The species tag from *abs_species* to change)--"},
-
-      };
-
   wsm_data["abs_lines_per_speciesReadSpeciesSplitCatalog"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -3296,67 +1350,6 @@ Set type of population to change computations and expected input as:
 
       };
 
-  wsm_data["abs_lines_per_speciesRemoveLines"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Repeats *abs_linesRemoveLines* for all inner arrays
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"lower_frequency",
-              "upper_frequency",
-              "lower_intensity",
-              "safe",
-              "flip_flims"},
-      .gin_type = {"Numeric", "Numeric", "Numeric", "Index", "Index"},
-      .gin_value =
-          {Numeric{-1e99}, Numeric{1e99}, Numeric{0}, Index{1}, Index{0}},
-      .gin_desc =
-          {R"--(The lower frequency bound)--",
-           R"--(The upper frequency bound)--",
-           R"--(The lower intensity bound)--",
-           R"--(Remove only lines from a band if all lines of a band fail)--",
-           R"--(Reverse the frequecy filtering)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesRemoveLinesFromSpecies"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Repeats *abs_linesRemoveLinesFromSpecies* for all inner arrays
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"species",
-                  "lower_frequency",
-                  "upper_frequency",
-                  "lower_intensity",
-                  "safe",
-                  "flip_flims"},
-          .gin_type = {"ArrayOfSpeciesTag",
-                       "Numeric",
-                       "Numeric",
-                       "Numeric",
-                       "Index",
-                       "Index"},
-          .gin_value = {std::nullopt,
-                        Numeric{-1e99},
-                        Numeric{1e99},
-                        Numeric{0},
-                        Index{1},
-                        Index{0}},
-          .gin_desc =
-              {R"--(Species to be removed)--",
-               R"--(The lower frequency bound)--",
-               R"--(The upper frequency bound)--",
-               R"--(The lower intensity bound)--",
-               R"--(Remove only lines from a band if all lines of a band fail)--",
-               R"--(Reverse the frequecy filtering)--"},
-
-      };
-
   wsm_data["abs_lines_per_speciesSetEmpty"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Empties *abs_lines_per_species* at the correct size.
 )--",
@@ -3364,51 +1357,6 @@ Set type of population to change computations and expected input as:
       .out = {"abs_lines_per_species"},
 
       .in = {"abs_species"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesT0"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(See *abs_linesT0*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Value of T0)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesT0Match"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets reference temperature
-
-This function only acts on matches between the bands and input ID
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species"},
-      .gin = {"value", "ID"},
-      .gin_type = {"Numeric", "QuantumIdentifier"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value of T0)--", R"--(ID of one or more bands)--"},
-
-  };
-
-  wsm_data["abs_lines_per_speciesT0Species"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(See *abs_linesT0* but for single species
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"abs_lines_per_species"},
-
-      .in = {"abs_lines_per_species", "abs_species"},
-      .gin = {"value", "species_tag"},
-      .gin_type = {"Numeric", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value of T0)--",
-                   R"--(The species tag from *abs_species* to change)--"},
 
   };
 
@@ -3436,23 +1384,6 @@ generating identifiers for the order in *abs_species*
           .gin_value = {String{"ascii"}, std::nullopt},
           .gin_desc = {"Format of the output files.",
                        R"--(Path to store the files at)--"},
-
-      };
-
-  wsm_data["abs_lines_per_speciesZeemanCoefficients"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(See *abs_linesZeemanCoefficients*
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"abs_lines_per_species"},
-
-          .in = {"abs_lines_per_species"},
-          .gin = {"qid", "gs"},
-          .gin_type = {"ArrayOfQuantumIdentifier", "Vector"},
-          .gin_value = {std::nullopt, std::nullopt},
-          .gin_desc =
-              {R"--(Information to match an energy level of a/many lines.)--",
-               R"--(Corresponding value to set as Zeeman coefficient)--"},
 
       };
 
@@ -3502,7 +1433,7 @@ See *abs_speciesSet* for details on how tags are defined and examples of
 how to input them in the control file.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"abs_species", "propmat_clearsky_agenda_checked"},
+      .out = {"abs_species"},
 
       .in = {"abs_species"},
       .gin = {"species"},
@@ -3517,7 +1448,7 @@ how to input them in the control file.
       .desc = R"--(Sets *abs_species* [i][0] to all species in ARTS
 )--",
       .author = {"Richard Larsson"},
-      .out = {"abs_species", "propmat_clearsky_agenda_checked"},
+      .out = {"abs_species"},
 
   };
 
@@ -3532,7 +1463,7 @@ goes through all defined species and tries to open the VMR file. If
 this works the tag is included, otherwise it is skipped.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"abs_species", "propmat_clearsky_agenda_checked"},
+      .out = {"abs_species"},
 
       .gin = {"basename"},
       .gin_type = {"String"},
@@ -3609,10 +1540,9 @@ Example
 For Hitran cross section species the tag consists of the species and
 the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be
 available in the *xsec_fit_data* variable.
-*propmat_clearsky_agenda_checked* is set to be false.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"abs_species", "propmat_clearsky_agenda_checked"},
+      .out = {"abs_species"},
 
       .gin = {"species"},
       .gin_type = {"ArrayOfString"},
@@ -3865,11 +1795,13 @@ computations.
       .author = {"Richard Larsson"},
       .out = {"atm_field"},
 
-      .in = {"atm_field", "time"},
-      .gin = {"parsafe"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc = {R"--(Flag for parallel safety at 3X slowdown cost)--"},
+      .in = {"atm_field"},
+      .gin = {"time", "parsafe"},
+      .gin_type = {"Time", "Index"},
+      .gin_value = {Time{}, Index{1}},
+      .gin_desc = {
+        "Time of data to use",
+        R"--(Flag for parallel safety at 3X slowdown cost)--"},
 
   };
 
@@ -4131,23 +2063,6 @@ gives a grid that is twice the FWHM.
 
       };
 
-  wsm_data["complex_refr_indexConstant"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Set complex refractive index to a constant value.
-
-Frequency and temperature grids are set to have length 1 (and
-set to the value 0).
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"complex_refr_index"},
-
-      .gin = {"refr_index_real", "refr_index_imag"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Real part of refractive index)--",
-                   R"--(Imag part of refractive index)--"},
-
-  };
-
   wsm_data["complex_refr_indexIceMatzler06"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Refractive index of ice following Matzler06 parameterization.
 
@@ -4334,66 +2249,6 @@ for convenience as well.
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Covariance matrix for state vector uncertainties.)--"},
   };
-
-  wsm_data["diameter_maxFromDiameter_volume_equ"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates maximum and area equivalent diameters from volume
-equivalent diameter.
-
-This is primarily a help function for using the T-matrix method
-and only a few particle shapes are handled. 
-For shapes handled and further comments on the input arguments, see
-``scat_data_singleTmatrix``.
-
-Area equivalent diameter is the equivalent sphere diameter
-corresponding to the "maximum axial area". This is the largest
-cross-sectional area of the particle, observed either along the
-particle's main axis or in the perpendicular direction. That is,
-for a cylinder having diameter d and thickness h, this area is
-either (pi*d^2)/4 or (h*d).
-)--",
-      .author = {"Johan Strandgren", "Patrick Eriksson"},
-
-      .gout = {"diameter_max", "diameter_area_equ"},
-      .gout_type = {"Numeric", "Numeric"},
-      .gout_desc =
-          {R"--(Maximum dimension of the particle.)--",
-           R"--(Maximum axial area equivalent diameter of the particle, see above.)--"},
-
-      .gin = {"shape", "diameter_volume_equ", "aspect_ratio"},
-      .gin_type = {"String", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Particle shape.)--",
-                   R"--(Particle equivalent volume diameter.)--",
-                   R"--(Particle aspect ratio.)--"},
-
-  };
-
-  wsm_data["diameter_volume_equFromDiameter_max"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Converts from maximum to volume equivalent diameter.
-
-This is primarily a help function for using the T-matrix part
-and only a few particle shapes are handled. 
-For shapes handled and further comments on the input arguments,
-see ``scat_data_singleTmatrix``.
-
-Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
-)--",
-          .author = {"Johan Strandgren", "Patrick Eriksson"},
-
-          .gout = {"diameter_volume_equ", "volume"},
-          .gout_type = {"Numeric", "Numeric"},
-          .gout_desc = {R"--(Particle volume equivalent diameter.)--",
-                        R"--(Volume of the particle.)--"},
-
-          .gin = {"shape", "diameter_max", "aspect_ratio"},
-          .gin_type = {"String", "Numeric", "Numeric"},
-          .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-          .gin_desc = {R"--(Particle shape.)--",
-                       R"--(Maximum dimension of the particle.)--",
-                       R"--(Particle aspect ratio.)--"},
-
-      };
 
   wsm_data["spectral_radiance_background_space_agendaSet"] =
       WorkspaceMethodInternalRecord{
@@ -4923,44 +2778,6 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 )--",
       .author = {"Oliver Lemke"},
       .out = {"nlte_do"},
-
-  };
-
-  wsm_data["particle_fieldCleanup"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Removes unrealistically small or erroneous data from particle fields.
-
-This WSM checks if the input particle field (e.g.
-``particle_bulkprop_field``) contains values
-smaller than the given ``threshold``. In this case, these values will
-be set to zero.
-
-The method should be applied if the particle fields contain
-unrealistically small or erroneous data (NWP/GCM model data, e.g.
-from the Chevallierl_91l sets, often contain very small or even
-negative values, which are numerical artefacts rather than physical
-values.)
-For the scat_species_XXX_fields, it needs to be applied separately
-per Tensor4 type field collection. This allows to use different
-thresholds for the different types of fields (not for the different
-scattering species, though).
-
-*particle_fieldCleanup* shall be called after generation of the
-atmopheric fields.
-)--",
-      .author = {"Daniel Kreyling"},
-
-      .gout = {"particle_field_out"},
-      .gout_type = {"Tensor4"},
-      .gout_desc =
-          {R"--(A particle property field, e.g. ``particle_bulkprop_field``)--"},
-
-      .gin = {"particle_field_in", "threshold"},
-      .gin_type = {"Tensor4", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(A particle property field, e.g. ``particle_bulkprop_field``)--",
-           R"--(Threshold below which the ``particle_field`` values are set to zero.)--"},
 
   };
 
@@ -5800,7 +3617,7 @@ This method must be used inside *propmat_clearsky_agenda* and then be called fir
               "dpropmat_clearsky_dx",
               "dnlte_source_dx"},
 
-      .in = {"jacobian_targets", "f_grid", "propmat_clearsky_agenda_checked"},
+      .in = {"jacobian_targets", "f_grid"},
 
   };
 
@@ -5848,7 +3665,7 @@ To perform absorption lookupo table calculation, call:
     4) Perform other calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky_agenda", "propmat_clearsky_agenda_checked"},
+      .out = {"propmat_clearsky_agenda"},
       .in = {"abs_species", "abs_lines_per_species"},
       .gin = {"H",
               "T_extrapolfac",
@@ -5949,20 +3766,6 @@ Options are:
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
-
-  wsm_data["propmat_clearsky_agenda_checkedCalc"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Checks if the *propmat_clearsky_agenda* contains all necessary
-methods to calculate all the species in *abs_species*.
-
-This method should be called if you use a manual *propmat_clearsky_agenda*
-)--",
-          .author = {"Oliver Lemke"},
-          .out = {"propmat_clearsky_agenda_checked"},
-          .in = {"abs_species", "propmat_clearsky_agenda"},
-          .pass_workspace = true,
-      };
 
   wsm_data["sensor_responseIF2RF"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Converts sensor response variables from IF to RF.
@@ -6132,7 +3935,6 @@ Hence, a temperature of 0 means 0s the edges of the f_grid.
 )--",
       .author = {"Jon Petersen"},
       .out = {"suns"},
-
   };
 
   wsm_data["surface_fieldEarth"] = WorkspaceMethodInternalRecord{
@@ -6194,9 +3996,9 @@ From Wikipedia
   wsm_data["surface_fieldInit"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Manual setting of the reference ellipsoid.
 
-The two values of ``refellipsoid`` can here be set manually. The two
+The two values of the reference ellipsoid are set manually. The two
 arguments correspond directly to first and second element of
-``refellipsoid``.
+reference ellipsoid.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -6355,7 +4157,7 @@ eccentricity and no further models should be required.
 
   };
 
-  wsm_data["surface_rtpropInterpFreq"] = WorkspaceMethodInternalRecord{
+  wsm_data["SurfaceRadiationPropertyInterpFreq"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Interpolates surface RT properties in frequency.
 
 The WSVs *surface_rmatrix* and *surface_emission* are inter-
@@ -6438,76 +4240,6 @@ month and stores the result in the provided output atlas.
 
   };
 
-  wsm_data["timeNow"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets time to system_clock::now().
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"time"},
-
-  };
-
-  wsm_data["timeOffset"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Offsets time for some seconds
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"time"},
-
-      .in = {"time"},
-      .gin = {"offset"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Time in seconds)--"},
-
-  };
-
-  wsm_data["timeSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the time.
-
-The time format is similar to C:s strftime format
-    %Y-%m-%d %H:%M:%S
-
-The one exception is that our format accepts, but does not need to use,
-decimals of the second in addtion.  Note that the native time resolution
-for the decimal is the most that can be kept.  For some systems, this is
-nano-seconds, and for others that is micro-seconds.  Please see with your
-vendor.
-
-A default argument is a close approximation to the formal first commit to
-the ARTS codebase.  It is there to give an example of how the format looks.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"time"},
-
-      .gin = {"time_str"},
-      .gin_type = {"String"},
-      .gin_value = {String("2000-03-11 14:39:37.0")},
-      .gin_desc = {R"--(A time stamp string in the default format)--"},
-
-  };
-
-  wsm_data["timeSleep"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sleeps until time has been reached.
-)--",
-      .author = {"Richard Larsson"},
-
-      .in = {"time"},
-
-  };
-
-  wsm_data["time_gridOffset"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Offsets a time grid by some seconds.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"time_grid"},
-
-      .in = {"time_grid"},
-      .gin = {"dt"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Time in seconds to add)--"},
-
-  };
-
   wsm_data["water_equivalent_pressure_operatorMK05"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -6573,7 +4305,7 @@ as desribed above and the pressure of the lower or first altitude level.
           "Constant atmospheric temprature if larger than 0",
           "Computational option for levels, [HydrostaticEquation, HypsometricEquation]"}};
 
-  wsm_data["gravity_operatorFromGM"] = {
+  wsm_data["gravity_operatorCentralMass"] = {
       .desc =
           R"-x-(Sets a gravity operator from the gravitational constant and the mass of the planet
 
@@ -6582,7 +4314,7 @@ Gets the ellispoid from *surface_field*
       .author = {"Richard Larsson"},
       .out = {"gravity_operator"},
       .in = {"surface_field"},
-      .gin = {"GM"},
+      .gin = {"mass"},
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc = {

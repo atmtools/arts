@@ -39,13 +39,9 @@ class TestMethods:
             "O3",
         ]
 
-        ws.abs_speciesSet(
-            ws.abs_species, ws.propmat_clearsky_agenda_checked, species
-        )
+        ws.abs_speciesSet(ws.abs_species, species)
         ws.abs_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
-        ws.abs_speciesSet(
-            ws.abs_species_2, ws.propmat_clearsky_agenda_checked, species
-        )
+        ws.abs_speciesSet(ws.abs_species_2, species)
         ws.abs_species_3 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
         ws.abs_speciesSet(abs_species=ws.abs_species_3, species=species)
         assert ws.abs_species == ws.abs_species_3
@@ -96,4 +92,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_predefined_doc()
+    x.test_generic_input()

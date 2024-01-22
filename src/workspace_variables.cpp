@@ -406,14 +406,6 @@ Unit: 1/m
 )--",
       .type = "PropmatVector"};
 
-  wsv_data["propmat_clearsky_agenda_checked"] = {
-      .desc = R"--(OK-flag for *propmat_clearsky_agenda*.
-
-Set by *propmat_clearsky_agenda_checkedCalc*.
-)--",
-      .type = "Index",
-      .default_value = Index{0}};
-
   wsv_data["select_abs_species"] = {
       .desc = R"--(A select species tag group from *abs_species*
 
@@ -586,14 +578,6 @@ Units:      -
 Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]
 )--",
       .type = "Tensor4"};
-
-  wsv_data["time"] = {.desc = R"--(A UTC time point.
-)--",
-                      .type = "Time"};
-
-  wsv_data["time_grid"] = {.desc = R"--(A grid of times.  Should be increasing
-)--",
-                           .type = "ArrayOfTime"};
 
   wsv_data["wigner_initialized"] = {
       .desc = R"--(Indicates if the wigner tables are initialized.

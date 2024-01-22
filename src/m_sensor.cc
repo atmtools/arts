@@ -35,6 +35,7 @@
 #include "sensor.h"
 
 #include "m_basic_types.h"
+#include "m_select.h"
 
 inline constexpr Numeric PI = Constant::pi;
 inline constexpr Numeric NAT_LOG_2 = Constant::ln_2;

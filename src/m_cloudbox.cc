@@ -169,7 +169,6 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,
     AtmField& atm_field,
     ArrayOfArrayOfSpeciesTag& abs_species,
-    Index& propmat_clearsky_agenda_checked,
     // WS Input (needed for checking the datafiles):
     const Vector& f_grid,
     // Keywords:
@@ -203,7 +202,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   ArrayOfString species(1);
   species[0] = "particles";
 
-  abs_speciesAdd(abs_species, propmat_clearsky_agenda_checked, species);
+  abs_speciesAdd(abs_species, species);
 
   for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
