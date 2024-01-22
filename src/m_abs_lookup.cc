@@ -21,6 +21,8 @@
 #include "jacobian.h"
 #include "species_tags.h"
 
+#include "m_basic_types.h"
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& x) {
   x = GasAbsLookup();
@@ -376,17 +378,17 @@ void propmat_clearskyAddFromLookup(
     PropmatMatrix& dpropmat_clearsky_dx,
     const GasAbsLookup& abs_lookup,
     const Index& abs_lookup_is_adapted,
-    const Index& abs_p_interp_order,
-    const Index& abs_t_interp_order,
-    const Index& abs_nls_interp_order,
-    const Index& abs_f_interp_order,
     const Vector& f_grid,
     const AtmPoint& atm_point,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const Numeric& extpolfac,
-    const Index& no_negatives) {
+    const Index& no_negatives,
+    const Index& abs_p_interp_order,
+    const Index& abs_t_interp_order,
+    const Index& abs_nls_interp_order,
+    const Index& abs_f_interp_order) {
   // Variables needed by abs_lookup.Extract:
   Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
 

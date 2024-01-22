@@ -18,7 +18,7 @@ ws.propmat_clearsky_agendaAuto()
 
 # %% Grids and planet
 
-ws.PlanetSet(option="Earth")
+ws.surface_fieldSetPlanetEllipsoid(option="Earth")
 ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
 t = pyarts.arts.GriddedField3.fromxml(
     "planets/Earth/afgl/tropical/t.xml"

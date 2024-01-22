@@ -238,41 +238,37 @@ void surface_fieldInit(SurfaceField &surface_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void PlanetSet(SurfaceField &surface_field,
-               Numeric &molarmass_dry_air,
-               Numeric &planet_rotation_period,
+void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
                const String &option) {
   surface_field = {};
   surface_field[Surf::Key::h] = 0.0;
-  molarmass_dry_air = 0.0;
-  planet_rotation_period = 0.0;
 
   using enum Options::planetDefaultOptions;
   switch (Options::toplanetDefaultOptionsOrThrow(option)) {
     case Earth:
       surface_fieldEarth(surface_field, "WGS84");
-      molarmass_dry_air = 28.966;
-      planet_rotation_period = 86164.1;
+      // molarmass_dry_air = 28.966;
+      // planet_rotation_period = 86164.1;
       break;
     case Io:
       surface_fieldIo(surface_field, "Sphere");
-      molarmass_dry_air = 63.110068828000003;
-      planet_rotation_period = 152853;
+      // molarmass_dry_air = 63.110068828000003;
+      // planet_rotation_period = 152853;
       break;
     case Jupiter:
       surface_fieldJupiter(surface_field, "Sphere");
-      molarmass_dry_air = 2.22;
-      planet_rotation_period = 35730;
+      // molarmass_dry_air = 2.22;
+      // planet_rotation_period = 35730;
       break;
     case Mars:
       surface_fieldMars(surface_field, "Sphere");
-      molarmass_dry_air = 43.34;
-      planet_rotation_period = 88643;
+      // molarmass_dry_air = 43.34;
+      // planet_rotation_period = 88643;
       break;
     case Venus:
       surface_fieldVenus(surface_field, "Sphere");
-      molarmass_dry_air = 43.45;
-      planet_rotation_period = -2.0997e7;
+      // molarmass_dry_air = 43.45;
+      // planet_rotation_period = -2.0997e7;
       break;
     case FINAL:
       break;

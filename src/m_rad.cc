@@ -6,6 +6,11 @@
 #include <surf.h>
 #include <workspace.h>
 
+#include <algorithm>
+
+#include "debug.h"
+#include "fwd.h"
+
 void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
                                      const Vector &f_grid,
                                      const JacobianTargets &jacobian_targets) {
@@ -220,5 +225,87 @@ void spectral_radianceStandardEmission(
                                                jacobian_targets,
                                                atm_field,
                                                propagation_path);
+}
+ARTS_METHOD_ERROR_CATCH
+
+ENUMCLASS(
+    SpectralRadianceUnitType, char, RJBT, PlanckBT, W_m2_m_sr, W_m2_m1_sr, unit)
+
+void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
+                                const StokvecVector &spectral_radiance,
+                                const Vector &f_grid,
+                                const String &spectral_radiance_unit) try {
+  const SpectralRadianceUnitType unit =
+      toSpectralRadianceUnitTypeOrThrow(spectral_radiance_unit);
+
+  ARTS_USER_ERROR_IF(spectral_radiance.size() != f_grid.nelem(),
+                     "spectral_radiance must have same size as f_grid")
+
+  spectral_radiance_with_unit.resize(spectral_radiance.size());
+
+  ARTS_USER_ERROR_IF(
+      unit == SpectralRadianceUnitType::unit,
+      "No need to use this method with *spectral_radiance_unit* = \"unit\".");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(spectral_radiance,
+                          [](const Stokvec &v) { return v.I() > 1e-3; }),
+      "The spectrum matrix *spectral_radiance* is required to have original radiance\n"
+      "unit, but this seems not to be the case. This as a value above\n"
+      "1e-3 is found in *spectral_radiance*.")
+
+  switch (unit) {
+    case SpectralRadianceUnitType::unit:
+      break;
+    case SpectralRadianceUnitType::RJBT: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     f_grid.begin(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v, const Numeric f) {
+                       const Numeric scfac = invrayjean(1.0, f);
+                       return Stokvec{v.I() * scfac,
+                                      2 * v.Q() * scfac,
+                                      2 * v.U() * scfac,
+                                      2 * v.V() * scfac};
+                     });
+    } break;
+    case SpectralRadianceUnitType::PlanckBT: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     f_grid.begin(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v, const Numeric f) {
+                       return Stokvec{invplanck(v.I(), f),
+                                      invplanck(0.5 * (v.I() + v.Q()), f) -
+                                          invplanck(0.5 * (v.I() - v.Q()), f),
+                                      invplanck(0.5 * (v.I() + v.U()), f) -
+                                          invplanck(0.5 * (v.I() - v.U()), f),
+                                      invplanck(0.5 * (v.I() + v.V()), f) -
+                                          invplanck(0.5 * (v.I() - v.V()), f)};
+                     });
+    } break;
+    case SpectralRadianceUnitType::W_m2_m_sr: {
+      std::transform(
+          spectral_radiance.begin(),
+          spectral_radiance.end(),
+          f_grid.begin(),
+          spectral_radiance_with_unit.begin(),
+          [&](const Stokvec &v, const Numeric f) {
+            const Numeric scfac = f * (f / Constant::c);
+            return Stokvec{
+                v.I() * scfac, v.Q() * scfac, v.U() * scfac, v.V() * scfac};
+          });
+    } break;
+    case SpectralRadianceUnitType::W_m2_m1_sr: {
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     spectral_radiance_with_unit.begin(),
+                     [&](const Stokvec &v) { return v * Constant::c; });
+    } break;
+    case SpectralRadianceUnitType::FINAL: {
+      ARTS_ASSERT(false)
+    }
+  }
 }
 ARTS_METHOD_ERROR_CATCH

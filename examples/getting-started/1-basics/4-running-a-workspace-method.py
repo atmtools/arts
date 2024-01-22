@@ -44,37 +44,73 @@ All arguments that are marked as input must be provided.  An alternative
 way to provide input arguments is to set the corresponding workspace
 variable before calling the method.  The following are equivalent:
 """
-ws.met_mm_backend = [[1e9, 1e8, 1e7, 1e6]]
-ws.f_gridMetMM(met_mm_backend=[[1e9, 1e8, 1e7, 1e6]])
-print("A  vector of channel frequencies:\n", ws.f_grid)
-ws.met_mm_backend = [[1e9, 1e8, 1e7, 1e6]]
-ws.f_gridMetMM()
-print("A vector of channel frequencies:\n", ws.f_grid)
+f = 1e9
+# 1
+ws.backend_channel_responseGaussian(f_backend=[f], fwhm=[f])
+print("Var:", ws.backend_channel_response)
+# 2
+ws.f_backend = [f]
+ws.backend_channel_responseGaussian(fwhm=[f])
+print("Var:", ws.backend_channel_response)
 
 """
 Some methods take input arguments that do not have a corresponding
 workspace variable.  These arguments may have a default value, or they
-may be required.  The example function has some input that are default
-and this must be modified when calling the function by setting the argument
-manually (by position or, as in the example, by name)
+may be required.  The example function has one input that is requires and some
+that are not. We can change both (by position or, as in the example, by name):
 """
-ws.f_gridMetMM(freq_spacing=[5e5])
-print("A denser vector of channel frequencies:\n", ws.f_grid)
+ws.backend_channel_responseGaussian(
+    fwhm=[f], grid_width=f / 2.0, grid_npoints=41
+)
+print("Var:", ws.backend_channel_response)
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT
 # THE CONTENT OF THE VARIABLES ARE GOOD.
 assert (
-    ws.f_grid
+    ws.backend_channel_response[0].grids[0]
     == [
-        889750000,
-        890250000,
-        909750000,
-        910250000,
-        1089750000,
-        1090250000,
-        1109750000,
-        1110250000,
+        -2.5e08,
+        -2.375e08,
+        -2.25e08,
+        -2.125e08,
+        -2e08,
+        -1.875e08,
+        -1.75e08,
+        -1.625e08,
+        -1.5e08,
+        -1.375e08,
+        -1.25e08,
+        -1.125e08,
+        -1e08,
+        -8.75e07,
+        -7.5e07,
+        -6.25e07,
+        -5e07,
+        -3.75e07,
+        -2.5e07,
+        -1.25e07,
+        0,
+        1.25e07,
+        2.5e07,
+        3.75e07,
+        5e07,
+        6.25e07,
+        7.5e07,
+        8.75e07,
+        1e08,
+        1.125e08,
+        1.25e08,
+        1.375e08,
+        1.5e08,
+        1.625e08,
+        1.75e08,
+        1.875e08,
+        2e08,
+        2.125e08,
+        2.25e08,
+        2.375e08,
+        2.5e08,
     ]
 ).all()
 # END TESTING

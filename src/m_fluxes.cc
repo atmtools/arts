@@ -25,8 +25,8 @@
   file auto_md.h.
 */
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 
 /*===========================================================================
   === The functions
@@ -164,15 +164,17 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void heating_ratesFromIrradiance(Tensor3 &heating_rates,
-                                 const ArrayOfAtmPoint &ppvar_atm,
-                                 const Tensor4 &irradiance_field,
-                                 const Tensor3 &specific_heat_capacity,
-                                 const Numeric &g0) {
+void heating_ratesFromIrradiance(Tensor3& heating_rates,
+                                 const ArrayOfAtmPoint& ppvar_atm,
+                                 const Tensor4& irradiance_field,
+                                 const Numeric& g0,
+                                 const Tensor3& specific_heat_capacity) {
   const Vector p_grid = [&] {
     Vector out(ppvar_atm.size());
-    std::transform(ppvar_atm.begin(), ppvar_atm.end(), out.begin(),
-                   [](auto &point) { return point.pressure; });
+    std::transform(
+        ppvar_atm.begin(), ppvar_atm.end(), out.begin(), [](auto& point) {
+          return point.pressure;
+        });
     return out;
   }();
 
@@ -233,17 +235,18 @@ void heating_ratesFromIrradiance(Tensor3 &heating_rates,
 
       heating_rates(idx - 1, p, r) =
           -(-3 * net_flux_t + 4 * net_flux_c - net_flux_b) /
-          (p_grid[idx-1] - p_grid[idx-3]) * g0 / specific_heat_capacity(0, p, r);
+          (p_grid[idx - 1] - p_grid[idx - 3]) * g0 /
+          specific_heat_capacity(0, p, r);
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
-                                  const Tensor5& radiance_field,
                                   const Vector& za_grid,
                                   const Vector& aa_grid,
-                                  const Vector& za_grid_weights) {
+                                  const Vector& za_grid_weights,
+                                  const Tensor5& radiance_field) {
   // Number of zenith angles.
   const Index N_scat_za = za_grid.nelem();
   const Index N_scat_aa = aa_grid.nelem();
@@ -468,9 +471,11 @@ void spectral_radiance_fieldCopyCloudboxField(
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
     const Tensor7& cloudbox_field) {
-  throw std::runtime_error("This method can only be used for 1D calculations.\n");
+  throw std::runtime_error(
+      "This method can only be used for 1D calculations.\n");
   if (!cloudbox_on)
-    throw std::runtime_error("Cloudbox is off. This is not handled by this method.");
+    throw std::runtime_error(
+        "Cloudbox is off. This is not handled by this method.");
   if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem() - 1)
     throw std::runtime_error(
         "The cloudbox must cover all pressure levels "

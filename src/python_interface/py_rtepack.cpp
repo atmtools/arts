@@ -358,12 +358,15 @@ void py_rtepack(py::module_ &m) try {
   artsarray<ArrayOfMuelmatVector>(m, "ArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMuelmatVector);
+
   artsarray<ArrayOfMuelmatMatrix>(m, "ArrayOfMuelmatMatrix")
       .PythonInterfaceFileIO(ArrayOfMuelmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMuelmatMatrix);
+
   artsarray<ArrayOfArrayOfMuelmatVector>(m, "ArrayOfArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatVector);
+      
   artsarray<ArrayOfArrayOfMuelmatMatrix>(m, "ArrayOfArrayOfMuelmatMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatMatrix);

@@ -38,6 +38,8 @@
 #include "surf.h"
 #include "variousZZZ.h"
 
+#include "m_basic_types.h"
+
 inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
 inline constexpr Numeric PI=Constant::pi;

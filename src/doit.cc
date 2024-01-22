@@ -123,16 +123,16 @@ void cloud_fieldsCalc(const Workspace& ws,
 
         //Calculate optical properties for individual scattering elements:
         //( Execute agendas silently. )
-        spt_calc_agendaExecute(ws,
-                               ext_mat_spt_local,
-                               abs_vec_spt_local,
-                               scat_p_index_local,
-                               scat_lat_index_local,
-                               scat_lon_index_local,
-                               rtp_temperature_local,
-                               za_index,
-                               aa_index,
-                               spt_calc_agenda);
+        // spt_calc_agendaExecute(ws,
+        //                        ext_mat_spt_local,
+        //                        abs_vec_spt_local,
+        //                        scat_p_index_local,
+        //                        scat_lat_index_local,
+        //                        scat_lon_index_local,
+        //                        rtp_temperature_local,
+        //                        za_index,
+        //                        aa_index,
+        //                        spt_calc_agenda);
         /*
 // so far missing here (accessed through workspace within agenda):
 // - scat_data
@@ -151,14 +151,14 @@ void cloud_fieldsCalc(const Workspace& ws,
                                         );
 */
 
-        opt_prop_bulkCalc(ext_mat_local,
-                          abs_vec_local,
-                          ext_mat_spt_local,
-                          abs_vec_spt_local,
-                          Tensor4{pnd_field},
-                          scat_p_index_local,
-                          scat_lat_index_local,
-                          scat_lon_index_local);
+        // opt_prop_bulkCalc(ext_mat_local,
+        //                   abs_vec_local,
+        //                   ext_mat_spt_local,
+        //                   abs_vec_spt_local,
+        //                   scat_p_index_local,
+        //                   scat_lat_index_local,
+        //                   scat_lon_index_local,
+        //                   Tensor4{pnd_field});
 
         // Store coefficients in arrays for the whole cloudbox.
         auto mmat = rtepack::to_muelmat(ext_mat_local[0]);

@@ -31,7 +31,7 @@
 #include "optproperties.h"
 #include "sorting.h"
 
-inline constexpr Numeric PI=Constant::pi;
+inline constexpr Numeric PI = Constant::pi;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -47,33 +47,34 @@ void HydrotableCalc(const Workspace& ws,
                     const Vector& f_grid,
                     const Index& iss,
                     const Vector& T_grid,
-                    const Vector& wc_grid)
-{
+                    const Vector& wc_grid) {
   // Sizes
-  const Index nss = scat_data.size(); 
+  const Index nss = scat_data.size();
   const Index nf = f_grid.nelem();
   const Index nt = T_grid.nelem();
   const Index nw = wc_grid.nelem();
 
-  ARTS_USER_ERROR_IF (pnd_agenda_array.size() != static_cast<Size>(nss),
-        "*scat_data* and *pnd_agenda_array* are inconsistent "
-        "in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names.size() != static_cast<Size>(nss),
-        "*scat_data* and *pnd_agenda_array_input_names* are "
-        "inconsistent in size.");
-  ARTS_USER_ERROR_IF (pnd_agenda_array_input_names[iss].size() != 1,
-        "This method requires one-moment PSDs, but *pnd_agenda_array_input_names* "
-        "for the selected scattering species does not have length one.");
-  ARTS_USER_ERROR_IF (!scat_data_checked,
-                      "The scat_data must be flagged to have passed a "
-                      "consistency check (scat_data_checked=1).");
+  ARTS_USER_ERROR_IF(pnd_agenda_array.size() != static_cast<Size>(nss),
+                     "*scat_data* and *pnd_agenda_array* are inconsistent "
+                     "in size.");
+  ARTS_USER_ERROR_IF(
+      pnd_agenda_array_input_names.size() != static_cast<Size>(nss),
+      "*scat_data* and *pnd_agenda_array_input_names* are "
+      "inconsistent in size.");
+  ARTS_USER_ERROR_IF(
+      pnd_agenda_array_input_names[iss].size() != 1,
+      "This method requires one-moment PSDs, but *pnd_agenda_array_input_names* "
+      "for the selected scattering species does not have length one.");
+  ARTS_USER_ERROR_IF(!scat_data_checked,
+                     "The scat_data must be flagged to have passed a "
+                     "consistency check (scat_data_checked=1).");
 
   // Allocate *hydrotable*
   hydrotable.data_name = "Table of particle optical properties";
   hydrotable.data.resize(4, nf, nt, nw);
   //
-  hydrotable.grid_names[0] ="Quantity";
-  hydrotable.grid<0>()= {"Extinction [m-1]",
+  hydrotable.grid_names[0] = "Quantity";
+  hydrotable.grid<0>() = {"Extinction [m-1]",
                           "Single scattering albedo [-]",
                           "Asymmetry parameter [-]",
                           "Radar reflectivity [m2]"};
@@ -98,21 +99,21 @@ void HydrotableCalc(const Workspace& ws,
   Matrix abs(nf, nt);
   Tensor3 pfun(nf, nt, nsa);
   const Numeric fourpi = 4.0 * PI;
-  ArrayOfIndex cbox_limits = {0, nt-1};
-  
+  ArrayOfIndex cbox_limits = {0, nt - 1};
+
   // Loop and fill table
   for (Index iw = 0; iw < nw; iw++) {
     // Call pnd_agenda
     pnd_agenda_input = wc_grid[iw];
-    pnd_agenda_arrayExecute(ws,
-                            pnd_data,
-                            dpnd_data_dx,
-                            iss,
-                            T_grid,
-                            pnd_agenda_input,
-                            pnd_agenda_array_input_names[iss],
-                            dpnd_data_dx_names,
-                            pnd_agenda_array);
+    // pnd_agenda_arrayExecute(ws,
+    //                         pnd_data,
+    //                         dpnd_data_dx,
+    //                         iss,
+    //                         T_grid,
+    //                         pnd_agenda_input,
+    //                         pnd_agenda_array_input_names[iss],
+    //                         dpnd_data_dx_names,
+    //                         pnd_agenda_array);
 
     // Calculate extinsion, absorbtion and phase function
     ext = 0.0;
@@ -127,20 +128,19 @@ void HydrotableCalc(const Workspace& ws,
                           cbox_limits,
                           T_grid,
                           sa_grid);
-    
+
     // Fill the hydrotable for present particle content
     for (Index iv = 0; iv < nf; iv++) {
       for (Index it = 0; it < nt; it++) {
-        hydrotable.data(0,iv,it,iw) = ext(iv,it);
-        hydrotable.data(1,iv,it,iw) = 1.0 - (abs(iv,it) / ext(iv,it));
-        hydrotable.data(2,iv,it,iw) = asymmetry_parameter(sa_grid,
-                                                          pfun(iv,it,joker));
-        hydrotable.data(3,iv,it,iw) = fourpi * pfun(iv,it,nsa-1);
+        hydrotable.data(0, iv, it, iw) = ext(iv, it);
+        hydrotable.data(1, iv, it, iw) = 1.0 - (abs(iv, it) / ext(iv, it));
+        hydrotable.data(2, iv, it, iw) =
+            asymmetry_parameter(sa_grid, pfun(iv, it, joker));
+        hydrotable.data(3, iv, it, iw) = fourpi * pfun(iv, it, nsa - 1);
       }
     }
   }
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_massesFromMetaDataSingleCategory(
@@ -153,11 +153,17 @@ void particle_massesFromMetaDataSingleCategory(
   Index i_se_flat = 0;
   for (Size i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
     for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
-      ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
-          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
-          "A presumably incorrect value found for "
-          "scat_meta[", i_ss, "][", i_se, "].mass.\n"
-          "The value is ", scat_meta[i_ss][i_se].mass)
+      ARTS_USER_ERROR_IF(std::isnan(scat_meta[i_ss][i_se].mass) ||
+                             scat_meta[i_ss][i_se].mass <= 0 ||
+                             scat_meta[i_ss][i_se].mass > 1.,
+                         "A presumably incorrect value found for "
+                         "scat_meta[",
+                         i_ss,
+                         "][",
+                         i_se,
+                         "].mass.\n"
+                         "The value is ",
+                         scat_meta[i_ss][i_se].mass)
 
       particle_masses(i_se_flat, 0) = scat_meta[i_ss][i_se].mass;
 
@@ -179,11 +185,17 @@ void particle_massesFromMetaData(  //WS Output:
   Index i_se_flat = 0;
   for (Size i_ss = 0; i_ss < scat_meta.size(); i_ss++) {
     for (Size i_se = 0; i_se < scat_meta[i_ss].size(); i_se++) {
-      ARTS_USER_ERROR_IF (std::isnan(scat_meta[i_ss][i_se].mass) ||
-          scat_meta[i_ss][i_se].mass <= 0 || scat_meta[i_ss][i_se].mass > 1.,
-          "A presumably incorrect value found for "
-          "scat_meta[", i_ss, "][", i_se, "].mass.\n"
-          "The value is ", scat_meta[i_ss][i_se].mass)
+      ARTS_USER_ERROR_IF(std::isnan(scat_meta[i_ss][i_se].mass) ||
+                             scat_meta[i_ss][i_se].mass <= 0 ||
+                             scat_meta[i_ss][i_se].mass > 1.,
+                         "A presumably incorrect value found for "
+                         "scat_meta[",
+                         i_ss,
+                         "][",
+                         i_se,
+                         "].mass.\n"
+                         "The value is ",
+                         scat_meta[i_ss][i_se].mass)
 
       particle_masses(i_se_flat, i_ss) = scat_meta[i_ss][i_se].mass;
       i_se_flat++;
@@ -194,10 +206,10 @@ void particle_massesFromMetaData(  //WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsdBasic(Matrix& pnd_data,
                      Tensor3& dpnd_data_dx,
-                     const Vector& pnd_size_grid,
                      const Matrix& psd_data,
-                     const Vector& psd_size_grid,
                      const Tensor3& dpsd_data_dx,
+                     const Vector& psd_size_grid,
+                     const Vector& pnd_size_grid,
                      const Index& quad_order) {
   // Some sizes
   const Index np = psd_data.nrows();
@@ -206,25 +218,25 @@ void pndFromPsdBasic(Matrix& pnd_data,
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
-  ARTS_USER_ERROR_IF (ng < 2,
-        "The method requires that length of *psd_size_grid* is >= 2.");
-  ARTS_USER_ERROR_IF (ng != pnd_size_grid.nelem(),
-        "So far, the method requires that *psd_size_grid* and "
-        "*pnd_size_grid* have same length.");
+  ARTS_USER_ERROR_IF(
+      ng < 2, "The method requires that length of *psd_size_grid* is >= 2.");
+  ARTS_USER_ERROR_IF(ng != pnd_size_grid.nelem(),
+                     "So far, the method requires that *psd_size_grid* and "
+                     "*pnd_size_grid* have same length.");
   for (Index i = 0; i < ng; i++) {
-    ARTS_USER_ERROR_IF (psd_size_grid[i] != pnd_size_grid[i],
-          "So far, the method requires that *psd_size_grid* and "
-          "*pnd_size_grid* are identical.");
+    ARTS_USER_ERROR_IF(psd_size_grid[i] != pnd_size_grid[i],
+                       "So far, the method requires that *psd_size_grid* and "
+                       "*pnd_size_grid* are identical.");
   }
-  ARTS_USER_ERROR_IF (psd_data.ncols() != ng,
-        "Number of columns in *psd_data* and length of "
-        "*psd_size_grid* must match.");
+  ARTS_USER_ERROR_IF(psd_data.ncols() != ng,
+                     "Number of columns in *psd_data* and length of "
+                     "*psd_size_grid* must match.");
 
   pnd_data.resize(np, ng);
   if (do_dx) {
-    ARTS_USER_ERROR_IF (dpsd_data_dx.ncols() != ng,
-          "Number of columns in *dpsd_data_dx* and length of "
-          "*psd_size_grid* must match.");
+    ARTS_USER_ERROR_IF(dpsd_data_dx.ncols() != ng,
+                       "Number of columns in *dpsd_data_dx* and length of "
+                       "*psd_size_grid* must match.");
     ndx = dpsd_data_dx.npages();
     dpnd_data_dx.resize(ndx, np, ng);
   } else {
@@ -239,9 +251,9 @@ void pndFromPsdBasic(Matrix& pnd_data,
   for (Index i = 0; i < ng; i++)
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
 
-  ARTS_USER_ERROR_IF (!is_increasing(psd_size_grid_sorted),
-        "*psd_size_grid* is not allowed to contain "
-        "duplicate values.");
+  ARTS_USER_ERROR_IF(!is_increasing(psd_size_grid_sorted),
+                     "*psd_size_grid* is not allowed to contain "
+                     "duplicate values.");
 
   // Calculate pnd by intrgation of psd for given nodes/bins
   Vector quadweights(ng);
@@ -266,13 +278,13 @@ void pndFromPsdBasic(Matrix& pnd_data,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pndFromPsd(Matrix& pnd_data,
                 Tensor3& dpnd_data_dx,
-                const Vector& pnd_size_grid,
                 const Matrix& psd_data,
-                const Vector& psd_size_grid,
                 const Tensor3& dpsd_data_dx,
                 const ArrayOfArrayOfSingleScatteringData& scat_data,
                 const Vector& f_grid,
                 const Index& scat_data_checked,
+                const Vector& psd_size_grid,
+                const Vector& pnd_size_grid,
                 const Index& quad_order,
                 const Index& scat_index,
                 const Numeric& threshold_rsec,
@@ -285,42 +297,42 @@ void pndFromPsd(Matrix& pnd_data,
   const bool do_dx = !dpsd_data_dx.empty();
 
   // Checks
-  ARTS_USER_ERROR_IF (ng < 3,
-        "The method requires that length of *psd_size_grid* is >= 3.");
-  ARTS_USER_ERROR_IF (ng != pnd_size_grid.nelem(),
-        "So far, the method requires that *psd_size_grid* and"
-        " *pnd_size_grid* have the same length.");
+  ARTS_USER_ERROR_IF(
+      ng < 3, "The method requires that length of *psd_size_grid* is >= 3.");
+  ARTS_USER_ERROR_IF(ng != pnd_size_grid.nelem(),
+                     "So far, the method requires that *psd_size_grid* and"
+                     " *pnd_size_grid* have the same length.");
   for (Index i = 0; i < ng; i++) {
-    ARTS_USER_ERROR_IF (psd_size_grid[i] != pnd_size_grid[i],
-          "So far, the method requires that *psd_size_grid* and"
-          " *pnd_size_grid* are identical.");
+    ARTS_USER_ERROR_IF(psd_size_grid[i] != pnd_size_grid[i],
+                       "So far, the method requires that *psd_size_grid* and"
+                       " *pnd_size_grid* are identical.");
   }
-  ARTS_USER_ERROR_IF (psd_data.ncols() != ng,
-        "Number of columns in *psd_data* and length of"
-        " *psd_size_grid* must match.");
+  ARTS_USER_ERROR_IF(psd_data.ncols() != ng,
+                     "Number of columns in *psd_data* and length of"
+                     " *psd_size_grid* must match.");
 
   pnd_data.resize(np, ng);
   if (do_dx) {
-    ARTS_USER_ERROR_IF (dpsd_data_dx.ncols() != ng,
-          "Number of columns in *dpsd_data_dx* and length of"
-          " *psd_size_grid* must match.");
+    ARTS_USER_ERROR_IF(dpsd_data_dx.ncols() != ng,
+                       "Number of columns in *dpsd_data_dx* and length of"
+                       " *psd_size_grid* must match.");
     ndx = dpsd_data_dx.npages();
     dpnd_data_dx.resize(ndx, np, ng);
   } else {
     dpnd_data_dx.resize(0, 0, 0);
   }
 
-  ARTS_USER_ERROR_IF (!scat_data_checked,
-        "*scat_data* must have passed a consistency check"
-        " (scat_data_checked=1).\n"
-        "Alternatively, use *pndFromPsdBasic*.");
-  ARTS_USER_ERROR_IF (static_cast<Size>(scat_index) >= scat_data.size(),
-        "*scat_index* exceeds the number of available"
-        " scattering species.");
-  ARTS_USER_ERROR_IF (scat_data[scat_index].size() != static_cast<Size>(ng),
-        "Number of scattering elements in this scattering"
-        " species (*scat_index*) inconsistent with length of"
-        " *pnd_size_grid*.");
+  ARTS_USER_ERROR_IF(!scat_data_checked,
+                     "*scat_data* must have passed a consistency check"
+                     " (scat_data_checked=1).\n"
+                     "Alternatively, use *pndFromPsdBasic*.");
+  ARTS_USER_ERROR_IF(static_cast<Size>(scat_index) >= scat_data.size(),
+                     "*scat_index* exceeds the number of available"
+                     " scattering species.");
+  ARTS_USER_ERROR_IF(scat_data[scat_index].size() != static_cast<Size>(ng),
+                     "Number of scattering elements in this scattering"
+                     " species (*scat_index*) inconsistent with length of"
+                     " *pnd_size_grid*.");
 
   // Get sorted version of psd_size_grid (and, since pnd_size_grid so far is
   // identical, of this as well implicitly)
@@ -330,9 +342,9 @@ void pndFromPsd(Matrix& pnd_data,
   for (Index i = 0; i < ng; i++)
     psd_size_grid_sorted[i] = psd_size_grid[intarr[i]];
 
-  ARTS_USER_ERROR_IF (!is_increasing(psd_size_grid_sorted),
-        "*psd_size_grid* is not allowed to contain "
-        "duplicate values.");
+  ARTS_USER_ERROR_IF(!is_increasing(psd_size_grid_sorted),
+                     "*psd_size_grid* is not allowed to contain "
+                     "duplicate values.");
 
   // Calculate pnd by integration of psd for given nodes/bins
   Vector quadweights(ng);
@@ -456,39 +468,64 @@ void pndFromPsd(Matrix& pnd_data,
         // check that bin-width normalized extinction (or ext*psd) is
         // decreasing.
         if (abs(bulkext(ip, f)) > 1e-2 * threshold_bext) {
-          ARTS_USER_ERROR_IF (abs(psd_data(ip, intarr[0])) > 0. and
-              ext_s0[f] * abs(psd_data(ip, intarr[0])) >=
-                  ext_s1[f] * abs(psd_data(ip, intarr[1])),
+          ARTS_USER_ERROR_IF(
+              abs(psd_data(ip, intarr[0])) > 0. and
+                  ext_s0[f] * abs(psd_data(ip, intarr[0])) >=
+                      ext_s1[f] * abs(psd_data(ip, intarr[1])),
               "  Bin-width normalized extinction (ext*psd) not decreasing"
               " at small size edge\n"
-              "  at atm level #", ip, " and freq point #", f, ".\n"
-              "  ext_s0=", ext_s0[f],
-              ", psd_s0=", abs(psd_data(ip, intarr[0])),
-              ", ext_s0*psd_s0=", ext_s0[f] * abs(psd_data(ip, intarr[0])),
+              "  at atm level #",
+              ip,
+              " and freq point #",
+              f,
+              ".\n"
+              "  ext_s0=",
+              ext_s0[f],
+              ", psd_s0=",
+              abs(psd_data(ip, intarr[0])),
+              ", ext_s0*psd_s0=",
+              ext_s0[f] * abs(psd_data(ip, intarr[0])),
               "\n    LARGER EQUAL\n"
-              "  ext_s1=", ext_s1[f],
-              ", psd_s1=", abs(psd_data(ip, intarr[1])),
-              ", ext_s1*psd_s1=", ext_s1[f] * abs(psd_data(ip, intarr[1])),
+              "  ext_s1=",
+              ext_s1[f],
+              ", psd_s1=",
+              abs(psd_data(ip, intarr[1])),
+              ", ext_s1*psd_s1=",
+              ext_s1[f] * abs(psd_data(ip, intarr[1])),
               "\n"
-              "    Total bulk ext = ", abs(bulkext(ip, f)), "\n"
+              "    Total bulk ext = ",
+              abs(bulkext(ip, f)),
+              "\n"
               "  Need to add smaller sized particles!\n")
 
-          ARTS_USER_ERROR_IF (abs(psd_data(ip, intarr[ng - 1])) > 0. and
-              ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])) >=
-                  ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
+          ARTS_USER_ERROR_IF(
+              abs(psd_data(ip, intarr[ng - 1])) > 0. and
+                  ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])) >=
+                      ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
               "Bin-width normalized extinction (ext*psd) not decreasing"
               " at large size edge\n"
-              "at atm level #", ip, " and freq point #", f, ".\n"
-              "  ext_l0=", ext_l0[f],
-              ", psd_l0=", abs(psd_data(ip, intarr[ng - 1])),
+              "at atm level #",
+              ip,
+              " and freq point #",
+              f,
+              ".\n"
+              "  ext_l0=",
+              ext_l0[f],
+              ", psd_l0=",
+              abs(psd_data(ip, intarr[ng - 1])),
               ", ext_l0*psd_l0=",
               ext_l0[f] * abs(psd_data(ip, intarr[ng - 1])),
               "\n    LARGER EQUAL\n"
-              "  ext_l1=", ext_l1[f],
-              ", psd_l1=", abs(psd_data(ip, intarr[ng - 2])),
+              "  ext_l1=",
+              ext_l1[f],
+              ", psd_l1=",
+              abs(psd_data(ip, intarr[ng - 2])),
               ", ext_l1*psd_l1=",
-              ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])), "\n"
-              "    Total bulk ext = ", abs(bulkext(ip, f)), "\n"
+              ext_l1[f] * abs(psd_data(ip, intarr[ng - 2])),
+              "\n"
+              "    Total bulk ext = ",
+              abs(bulkext(ip, f)),
+              "\n"
               "  Need to add larger sized particles!\n")
         }
 
@@ -501,12 +538,20 @@ void pndFromPsd(Matrix& pnd_data,
             //cout << "    small edge contrib = pnd*ext/bext = "
             //     << abs(pnd_data(ip,intarr[0])) << "*" << ext_s0[f] << "/"
             //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
-            ARTS_USER_ERROR_IF (abs(pnd_data(ip, intarr[0])) * ext_s0[f] >
-                threshold_rsec * abs(bulkext(ip, f)),
+            ARTS_USER_ERROR_IF(
+                abs(pnd_data(ip, intarr[0])) * ext_s0[f] >
+                    threshold_rsec * abs(bulkext(ip, f)),
                 "Contribution of edge bin to total extinction too high"
-                " (", contrib * 1e2, "% of ", abs(bulkext(ip, f)),
+                " (",
+                contrib * 1e2,
+                "% of ",
+                abs(bulkext(ip, f)),
                 ") at small size edge\n"
-                "at atm level #", ip, " and freq point #", f, ".\n"
+                "at atm level #",
+                ip,
+                " and freq point #",
+                f,
+                ".\n"
                 "  Need to add smaller sized particles or refine the size"
                 " grid on the small size edge!\n")
           }
@@ -516,12 +561,20 @@ void pndFromPsd(Matrix& pnd_data,
             //cout << "    large edge contrib = pnd*ext/bext = "
             //     << abs(pnd_data(ip,ng-1)) << "*" << ext_l0[f] << "/"
             //     << abs(bulkext(ip,f)) << " = " << contrib << "\n";
-            ARTS_USER_ERROR_IF (abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] >
-                threshold_rsec * abs(bulkext(ip, f)),
+            ARTS_USER_ERROR_IF(
+                abs(pnd_data(ip, intarr[ng - 1])) * ext_l0[f] >
+                    threshold_rsec * abs(bulkext(ip, f)),
                 "Contribution of edge bin to total extinction too high"
-                " (", contrib * 1e2, "% of ", abs(bulkext(ip, f)),
+                " (",
+                contrib * 1e2,
+                "% of ",
+                abs(bulkext(ip, f)),
                 ") at large size edge\n"
-                "at atm level #", ip, " and freq point #", f, ".\n"
+                "at atm level #",
+                ip,
+                " and freq point #",
+                f,
+                ".\n"
                 "  Need to add larger sized particles or refine the size"
                 " grid on the large size edge!\n")
           }
@@ -531,11 +584,10 @@ void pndFromPsd(Matrix& pnd_data,
   }
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
-                             Numeric& scat_species_a,
+void ScatSpeciesSizeMassInfo(Numeric& scat_species_a,
                              Numeric& scat_species_b,
+                             Vector& scat_species_x,
                              const ArrayOfArrayOfScatteringMetaData& scat_meta,
                              const Index& species_index,
                              const String& x_unit,
@@ -544,16 +596,19 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
                              const Index& do_only_x) {
   // Checks
   const Index nss = scat_meta.size();
-  ARTS_USER_ERROR_IF (nss == 0, "*scat_meta* is empty!");
-  ARTS_USER_ERROR_IF (nss < species_index + 1,
-      "Selected scattering species index is ", species_index,
-      " but this "
-      "is not allowed since *scat_meta* has only ", nss, " elements.")
+  ARTS_USER_ERROR_IF(nss == 0, "*scat_meta* is empty!");
+  ARTS_USER_ERROR_IF(nss < species_index + 1,
+                     "Selected scattering species index is ",
+                     species_index,
+                     " but this "
+                     "is not allowed since *scat_meta* has only ",
+                     nss,
+                     " elements.")
   //
   const Index nse = scat_meta[species_index].size();
-  ARTS_USER_ERROR_IF (nse < 2,
-        "The scattering species must have at least two "
-        "elements to use this method.");
+  ARTS_USER_ERROR_IF(nse < 2,
+                     "The scattering species must have at least two "
+                     "elements to use this method.");
 
   // Extract particle masses
   //
@@ -627,7 +682,9 @@ void ScatSpeciesSizeMassInfo(Vector& scat_species_x,
   }
 
   else {
-    ARTS_USER_ERROR ("You have selected the x_unit: ", x_unit, "\nwhile accepted "
-                     "choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"")
+    ARTS_USER_ERROR("You have selected the x_unit: ",
+                    x_unit,
+                    "\nwhile accepted "
+                    "choices are: \"dveq\", \"dmax\", \"mass\" and \"area\"")
   }
 }

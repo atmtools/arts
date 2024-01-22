@@ -3,7 +3,11 @@
 #include <limits>
 #include <optional>
 
+#include "nlte.h"
+
 #pragma clang optimize off
+
+using std::nullopt;
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods() {
@@ -135,23 +139,6 @@ The created array is [start, start+step, start+2*step, ...]
 
   };
 
-  wsm_data["ArrayOfIndexSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates an ArrayOfIndex of length *nelem*, with all values
-identical.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfIndex"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"value"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Array value..)--"},
-
-  };
-
   wsm_data["ArrayOfQuantumIdentifierFromLines"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*
@@ -170,45 +157,6 @@ Lines without defined quantum numbers are ignored
       .gin_type = {"Index"},
       .gin_value = {Index{1}},
       .gin_desc = {R"--(Only look at global quantum numbers)--"},
-
-  };
-
-  wsm_data["ArrayOfTimeNLinSpace"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a time array with length *nelem*, equally spaced between the
-given end values.
-
-The length (*nelem*) must be larger than 1.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTime"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"start", "stop"},
-      .gin_type = {"String", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start value.)--", R"--(End value.)--"},
-
-  };
-
-  wsm_data["ArrayOfTimeSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates an ArrayOfTime and sets all elements to the specified value.
-
-The vector length is determined by *nelem*.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTime"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"value"},
-      .gin_type = {"Time"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Time value.)--"},
 
   };
 
@@ -325,42 +273,6 @@ methods).
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Source variable.)--"}};
 
-  wsm_data["DOAngularGridsSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the angular grids for Discrete Ordinate type scattering
-calculations.
-
-This method sets the angular grids for the Discrete Ordinate type
-scattering calculations (DOIT, DISORT). For down- und up-looking
-geometries it suffices to define ``N_za_grid`` (both solvers) and
-``N_aa_grid`` (DOIT). From these numbers equally spaced grids are
-created and stored in the WSVs *za_grid* and *aa_grid*.
-
-For limb simulations it is important to use an optimized zenith
-angle grid with a very fine resolution around the horizon
-(za=90 degrees). Such a grid can be generated using
-*doit_za_grid_optCalc*. To be applied, the name of the file holding
-the optimized angle grid has to be given (``za_grid_opt_file``).
-
-When an optimized grid is present, the equidistant grid is used for
-the calculation of the scattering integrals, while the optimized
-grid is applied for the integration of the radiative transfer
-equation. Otherwise the equidistant grid is used throughout. For
-down-looking cases using the equidistant grid typically suffices
-and speeds up the calculations.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_za_grid_size", "aa_grid", "za_grid"},
-
-      .gin = {"N_za_grid", "N_aa_grid", "za_grid_opt_file"},
-      .gin_type = {"Index", "Index", "String"},
-      .gin_value = {std::nullopt, Index{1}, String("")},
-      .gin_desc =
-          {R"--(Number of grid points in zenith angle grid. Recommended value is 19.)--",
-           R"--(Number of grid points in azimuth angle grid. Recommended value is 37.)--",
-           R"--(Name of special grid for RT part.)--"},
-
-  };
-
   wsm_data["Delete"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Deletes a workspace variable.
 
@@ -390,84 +302,6 @@ on the diagonal.
       .gin_type = {"Vector"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(The vector containing the diagonal elements.)--"},
-
-  };
-
-  wsm_data["DoitCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Main DOIT method.
-
-This method executes *doit_mono_agenda* for each frequency
-in *f_grid*. The output is the radiation field inside the cloudbox
-(*cloudbox_field*).
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"cloudbox_field"},
-
-      .in = {"cloudbox_field",
-             "atmfields_checked",
-             "atmgeom_checked",
-             "cloudbox_checked",
-             "scat_data_checked",
-             "cloudbox_on",
-             "f_grid",
-             "doit_mono_agenda",
-             "doit_is_initialized"},
-
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["DoitInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initialises variables for DOIT scattering calculations.
-
-Note that multi-dimensional output variables (Tensors, specifically)
-are NaN-initialized. That is, this methods needs to be called
-BEFORE other WSMs that provide input to *DoitCalc*, e.g. before
-``DoitGetIncoming``.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_scat_field", "cloudbox_field", "doit_is_initialized"},
-
-      .in = {"f_grid",
-             "za_grid",
-             "aa_grid",
-             "doit_za_grid_size",
-             "cloudbox_on",
-             "cloudbox_limits"},
-
-  };
-
-  wsm_data["DoitWriteIterationFields"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Writes DOIT iteration fields.
-
-This method writes intermediate iteration fields to xml-files. The
-method can be used as a part of *doit_conv_test_agenda*.
-
-The iterations to be stored are specified by ``iterations``, e.g. ::
-
-  iterations = [3, 6, 9]
-
-In this case the 3rd, 6th and 9th iterations are stored.
-If a number is larger than the total number of iterations, this
-number is ignored. If all iterations should be stored set::
-
-  iterations = [-1]
-
-The frequencies to be stored are specified by ``frequencies`` in the
-same way as the iterations. The frequency index corresponds to the
-order of frequencies in *f_grid*.
-
-The output files are named doit_iteration_fX_iY.xml with X being the
-frequency index and iY the iteration counter.
-)--",
-      .author = {"Claudia Emde"},
-
-      .in = {"doit_iteration_counter", "cloudbox_field_mono", "f_index"},
-      .gin = {"iterations", "frequencies"},
-      .gin_type = {"ArrayOfIndex", "ArrayOfIndex"},
-      .gin_value = {ArrayOfIndex{-1}, ArrayOfIndex{-1}},
-      .gin_desc = {R"--(Selection of iterations to store.)--",
-                   R"--(Selection of frequencies to store.)--"},
 
   };
 
@@ -515,28 +349,6 @@ In other words, the selection is always done on the first dimension.
 
   };
 
-  wsm_data["ExtractFromMetaSingleScatSpecies"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Extract (numeric) parameters from scat_meta of a single scattering
-species.
-
-...
-)--",
-      .author = {"Jana Mendrok"},
-
-      .gout = {"meta_param"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(The extracted meta parameter values.)--"},
-      .in = {"scat_meta"},
-      .gin = {"meta_name", "scat_species_index"},
-      .gin_type = {"String", "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Name of the meta parameter to extract.)--",
-           R"--(Array index of scattering species from which to extract.)--"},
-
-  };
-
   wsm_data["FastemStandAlone"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Stand-alone usage of FASTEM.
 
@@ -569,23 +381,31 @@ is enforced. These problems start about 15 degrees from the horizon.
       .gout_desc =
           {R"--(Emission values. One row for each frequency. See above.)--",
            R"--(Reflectivity values. One row for each frequency. See above.)--"},
-      .in = {"f_grid", "surface_skin_t"},
-      .gin = {"za",
+      .in = {"f_grid"},
+      .gin = {"surface_skin_t",
+              "za",
               "salinity",
               "wind_speed",
               "rel_aa",
               "transmittance",
               "fastem_version"},
-      .gin_type =
-          {"Numeric", "Numeric", "Numeric", "Numeric", "Vector", "Index"},
+      .gin_type = {"Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "Vector",
+                   "Index"},
       .gin_value = {std::nullopt,
+                    std::nullopt,
                     Numeric{0.035},
                     std::nullopt,
                     std::nullopt,
                     std::nullopt,
                     Index{6}},
       .gin_desc =
-          {R"--(Zenith angle of line-of-sigh, 90 to 180 deg.)--",
+          {"Surface skin temperature [K]",
+           R"--(Zenith angle of line-of-sigh, 90 to 180 deg.)--",
            R"--(Salinity, 0-1. That is, 3% is given as 0.03.)--",
            R"--(Wind speed.)--",
            R"--(Azimuth angle between wind direction and line-of-sight. This angle is measured clockwise from north, i.e. E=90deg.)--",
@@ -742,79 +562,6 @@ See *ArrayOfGriddedFieldGetNames*.
 
   };
 
-  wsm_data["HydrotableCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates a look-up table of scattering properties.
-
-The table produced largely follows the format used in RTTOV-SCATT for
-its "hydrotables". The table is returned as a GriddedField4, with
-dimensions (in order):
-
-1. Scattering property
-2. Frequency (equals WSV f_grid)
-3. Temperature (equals GIN T_grid)
-4. Particle content [kg/m3]  (equals GIN wc_grid)
-
-Four scattering properties are calculated. They are (in order)
-
-1. Extinction [m-1]
-2. Single scattering albedo [-]
-3. Asymmetry parameter [-]
-4. Radar reflectivity [m2]
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"hydrotable"},
-      .gout_type = {"NamedGriddedField3"},
-      .gout_desc = {R"--(Generated hydrotable with format described above.)--"},
-      .in = {"pnd_agenda_array",
-             "pnd_agenda_array_input_names",
-             "scat_data",
-             "scat_data_checked",
-             "f_grid"},
-      .gin = {"iss", "T_grid", "wc_grid"},
-      .gin_type = {"Index", "Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Index of scattering species.)--",
-                   R"--(Temperature grid of table.)--",
-                   R"--(Water content grid of table.)--"},
-      .pass_workspace = true,
-
-  };
-
-  wsm_data["INCLUDE"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Includes the contents of another controlfile.
-
-The INCLUDE statement inserts the contents of the controlfile
-with the given name into the current controlfile.
-If the filename is given without path information, ARTS will
-first search for the file in all directories specified with the
--I (see arts -h) commandline option and then in directories given
-in the environment variable ARTS_INCLUDE_PATH. In the environment
-variable multiple paths have to be separated by colons.
-
-Note that INCLUDE is not a workspace method and thus the
-syntax is different::
-
-  Arts {
-    INCLUDE "agendas.arts"
-  }
-
-Includes can also be nested. In the example above agendas.arts
-can contain further includes which will then be treated
-the same way.
-
-The idea behind this mechanism is that you can write common settings
-for a bunch of calculations into one file. Then, you can create
-several controlfiles which include the basic settings and tweak them
-for different cases. When you decide to make changes to your setup
-that should apply to all calculations, you only have to make a
-single change in the include file instead of modifying all your
-controlfiles.
-)--",
-      .author = {"Oliver Lemke"},
-
-  };
-
   wsm_data["Ignore"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Ignore a workspace variable.
 
@@ -833,117 +580,6 @@ This method can ignore any workspace variable you want.
 
   };
 
-  wsm_data["IndexAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a Index and a value (output = input + value).
-
-The result can either be stored in the same or another Index.
-)--",
-      .author = {"Patrick Eriksson, Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output Index.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Index.)--", R"--(Value to add.)--"},
-
-  };
-
-  wsm_data["IndexDivide"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Integer division of a Index and a value (output = input / value).
-
-Please note that integer divison is applied, and e.g. 5/3=1.
-
-The result can either be stored in the same or another Index.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output Index.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Index (numerator).)--", R"--(Denominator.)--"},
-
-  };
-
-  wsm_data["IndexMultiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies a Index and a value (output = input * value).
-
-The result can either be stored in the same or another Index.
-)--",
-      .author = {"Patrick Eriksson, Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output index.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Index.)--", R"--(Multiplier.)--"},
-
-  };
-
-  wsm_data["IndexStepDown"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Performas: output = input - 1
-
-Input and output can be same variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output index variable.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Input index variable.)--"},
-
-  };
-
-  wsm_data["IndexStepUp"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Performas: output = input + 1
-
-Input and output can be same variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output index variable.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Index"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Input index variable.)--"},
-
-  };
-
-  wsm_data["IndexSubtract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Subtracts a Index value (output = input - value).
-
-The result can either be stored in the same or another Index.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Index"},
-      .gout_desc = {R"--(Output Index.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Index.)--", R"--(Subtrahend.)--"},
-
-  };
-
   wsm_data["surface_pointFromAtm"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Extracts a surface point from an atmospheric field
 
@@ -952,7 +588,9 @@ the atmosphere must contain the temperature.  If the wind is present,
 it is also extracted.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"surface_point"},
+      .gout = {"surface_point"},
+      .gout_type = {"SurfacePoint"},
+      .gout_desc = {R"--(Surface point.)--"},
       .in = {"atm_field", "path_point"},
   };
 
@@ -971,9 +609,14 @@ give a warning when the specified position is not consistent with
 the surface altitudes.
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"surface_point"},
-
-      .in = {"path_point", "surface_field", "surface_search_accuracy"},
+      .gout = {"surface_point"},
+      .gout_type = {"SurfacePoint"},
+      .gout_desc = {R"--(Surface point.)--"},
+      .in = {"path_point", "surface_field"},
+      .gin = {"surface_search_accuracy"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{1.0}},
+      .gin_desc = {R"--(Accuracy of surface search in meters.)--"},
 
   };
 
@@ -1031,689 +674,34 @@ with the value 0.
 
   };
 
-  wsm_data["MCSetSeedFromTime"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the value of mc_seed from system time
-)--",
-      .author = {"Cory Davis"},
-      .out = {"mc_seed"},
-
-  };
-
-  wsm_data["Matrix1ColFromVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing one column from a vector.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The vector to be copied.)--"},
-
-  };
-
-  wsm_data["Matrix1RowFromVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing one row from a vector.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The vector to be copied.)--"},
-
-  };
-
-  wsm_data["Matrix2ColFromVectors"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing two columns from two vectors.
-
-The vectors are included as columns in the matrix in the same order
-as they are given.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v1", "v2"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The vector to be copied into the first column.)--",
-                   R"--(The vector to be copied into the second column.)--"},
-
-  };
-
-  wsm_data["Matrix2RowFromVectors"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing two rows from two vectors.
-
-The vectors are included as rows in the matrix in the same order
-as they are given.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v1", "v2"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The vector to be copied into the first row.)--",
-                   R"--(The vector to be copied into the second row.)--"},
-
-  };
-
-  wsm_data["Matrix3ColFromVectors"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing three columns from three vectors.
-
-The vectors are included as columns in the matrix in the same order
-as they are given.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v1", "v2", "v3"},
-      .gin_type = {"Vector", "Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The vector to be copied into the first column.)--",
-                   R"--(The vector to be copied into the second column.)--",
-                   R"--(The vector to be copied into the third column.)--"},
-
-  };
-
-  wsm_data["Matrix3RowFromVectors"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a matrix containing three rows from three vectors.
-
-The vectors are included as rows in the matrix in the same order
-as they are given.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"v1", "v2", "v3"},
-      .gin_type = {"Vector", "Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The vector to be copied into the first row.)--",
-                   R"--(The vector to be copied into the second row.)--",
-                   R"--(The vector to be copied into the third row.)--"},
-
-  };
-
-  wsm_data["MatrixAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a scalar to all elements of a matrix.
-
-The result can either be stored in the same or another matrix.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output Matrix)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Matrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Matrix.)--",
-                   R"--(The value to be added to the matrix.)--"},
-
-  };
-
-  wsm_data["MatrixCBR"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a matrix to hold cosmic background radiation (CBR).
-
-The CBR is assumed to be un-polarized and Stokes components 2-4
-are zero. Number of Stokes components, that equals the number
-of columns in the created matrix, is determined by ``stokes_dim``.
-The number of rows in the created matrix equals the length of the
-given frequency vector.
-
-The cosmic radiation is modelled as blackbody radiation for the
-temperature given by the global constant COSMIC_BG_TEMP, set in
-the file constants.cc. The frequencies are taken from the generic
-input vector.
-
-The standard definition, in ARTS, of the Planck function is
-followed and the unit of the returned data is W/(m3 * Hz * sr).
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"f"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Frequency vector.)--"},
-
-  };
-
-  wsm_data["MatrixCopySparse"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates a matrix by copying a variable of type Sparse.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Created (full) matrix.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Sparse"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(The sparse matrix to be copied.)--"},
-
-  };
-
-  wsm_data["MatrixDivide"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Divides all elements of a matrix with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output Matrix)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Matrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Matrix.)--", R"--(Denominator.)--"},
-
-  };
-
-  wsm_data["MatrixExtractFromTensor3"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extracts a Matrix from a Tensor3.
-
-Copies page or row or column with given Index from input Tensor3
-variable to output Matrix.
-Higher order equivalent of *VectorExtractFromMatrix*.
-)--",
-      .author = {"Jana Mendrok"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Extracted matrix.)--"},
-
-      .gin = {"input", "i", "direction"},
-      .gin_type = {"Tensor3", "Index", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input matrix.)--",
-                   R"--(Index of page or row or column to extract.)--",
-                   R"--(Direction. "page" or "row" or "column".)--"},
-
-  };
-
-  wsm_data["MatrixFromCovarianceMatrix"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Turns a covariance matrix into a Matrix.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Dense Matrix.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"CovarianceMatrix"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Input covariance matrix.)--"},
-
-  };
-
-  wsm_data["MatrixGaussian"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Fills a matrix with a Gaussian function.
-
-Works as *VectorGaussian* but grid, mean and si/fwhm must be
-specified for each dimension.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"Y"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output Matrix.)--"},
-
-      .gin = {"x_row",
-              "x0_row",
-              "si_row",
-              "fwhm_row",
-              "x_col",
-              "x0_col",
-              "si_col",
-              "fwhm_col"},
-      .gin_type = {"Vector",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Vector",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric"},
-      .gin_value = {std::nullopt,
-                    Numeric{0},
-                    Numeric{-1},
-                    Numeric{-1},
-                    std::nullopt,
-                    Numeric{0},
-                    Numeric{-1},
-                    Numeric{-1}},
-      .gin_desc =
-          {R"--(Grid of the function for row dimension.)--",
-           R"--(Centre/mean point of the function for row dimension.)--",
-           R"--(Row standard deviation of the function, ignored if <=0.)--",
-           R"--(Row full width at half-max of the function, ignored if <=0.)--",
-           R"--(Grid of the function for column dimension.)--",
-           R"--(Centre/mean point of the function for column dimension.)--",
-           R"--(Column standard deviation of the function, ignored if <=0.)--",
-           R"--(Column full width at half-max of the function, ignored if <=0.)--"},
-
-  };
-
-  wsm_data["MatrixIdentity"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Returns the identity matrix.
-
-The size if the matrix created is n x n. Default is to return a
-true identity matrix (I), but you can also select another value
-along the diagonal by setting ``value``. That is, the output is
-value * I.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output matrix)--"},
-
-      .gin = {"n", "value"},
-      .gin_type = {"Index", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{1}},
-      .gin_desc = {R"--(Size of the matrix)--",
-                   R"--(The value along the diagonal.)--"},
-
-  };
-
-  wsm_data["MatrixMatrixMultiply"] = WorkspaceMethodInternalRecord{
+  wsm_data["surface_fieldSetPlanetEllipsoid"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Multiply a Matrix with another Matrix and store the result in the result
-Matrix.
-
-This just computes the normal Matrix-Matrix product, Y = M * X. It is ok
-if Y and X are the same Matrix.
-)--",
-      .author = {"Stefan Buehler"},
-
-      .gout = {"Y"},
-      .gout_type = {"Matrix"},
-      .gout_desc =
-          {R"--(The result of the multiplication (dimension m x c).)--"},
-
-      .gin = {"M", "X"},
-      .gin_type = {"Matrix", "Matrix"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The Matrix to multiply (dimension m x n).)--",
-                   R"--(The original Matrix (dimension n x c).)--"},
-
-  };
-
-  wsm_data["MatrixMultiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a matrix with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output Matrix)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Matrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Matrix.)--",
-                   R"--(The value to be multiplied with the matrix.)--"},
-
-  };
-
-  wsm_data["MatrixPlanck"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets a matrix to hold blackbody radiation.
-
-The radiation is assumed to be un-polarized and Stokes components
-2-4 are zero. Number of Stokes components, that equals the number
-of columns in the created matrix, is determined by ``stokes_dim``.
-The number of rows in the created matrix equals the length of the
-given frequency vector.
-
-The standard definition, in ARTS, of the Planck function is
-followed and the unit of the returned data is W/(m3 * Hz * sr).
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"f", "t"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Frequency vector.)--", R"--(Temperature [K].)--"},
-
-  };
-
-  wsm_data["MatrixReshapeTensor3"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates a matrix as reshaped version of a tenor3.
-
-If the size of the tensor is [npages, nrows, ncols], the created
-matrix gets size [npages * nrows, ncols]. The matrix is filled with
-the tensor's page dimension as the outermost loop.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Matrix to fill.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Tensor3"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor3 to copy.)--"},
-
-  };
-
-  wsm_data["MatrixSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a matrix and sets all elements to the specified value.
-
-The size is determined by *ncols* and *nrows*.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nrows", "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Matrix value.)--"},
-
-  };
-
-  wsm_data["MatrixSubtract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Subtracts a scalar from all elements of a matrix.
-
-The result can either be stored in the same or another matrix.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Output Matrix)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Matrix", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Matrix.)--",
-                   R"--(The value to be subtracted from the matrix.)--"},
-
-  };
-
-  wsm_data["MatrixUnitIntensity"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets a matrix to hold unpolarised radiation with unit intensity.
-
-Works as MatrixPlanck where the radiation is set to 1.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-
-      .gin = {"f"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Frequency vector.)--"},
-
-  };
-
-  wsm_data["NumericAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a Numeric and a value (output = input + value).
-
-The result can either be stored in the same or another Numeric.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Numeric.)--", R"--(Value to add.)--"},
-
-  };
-
-  wsm_data["NumericClip"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Clipping of a Numeric.
-
-The input value is copied to the output one (that can be same WSV)
-but ensures that ``out`` is inside the range [limit_low,limit_high].
-When the input value is below ``limit_low``, ``output`` is set to ``limit_low``.
-And the same is performed with respect to ``limit_high``.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "limit_low", "limit_high"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt,
-                    -std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity()},
-      .gin_desc = {R"--(Input Numeric.)--",
-                   R"--(Lower limit for clipping.)--",
-                   R"--(Upper limit for clipping.)--"},
-
-  };
-
-  wsm_data["NumericDivide"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Divides a Numeric with a value (output = input / value).
-
-The result can either be stored in the same or another Numeric.
-)--",
-      .author = {"Jana Mendrok"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Numeric (numerator).)--", R"--(Denominator.)--"},
-
-  };
-
-  wsm_data["NumericFromVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Derivs a Numeric from a vector, following selected operation.
-
-The following operations can be selected:
-
-- ``"first"``: Selects the first element of the vector.
-- ``"last"``: Selects the last element of the vector.
-- ``"max"``: Selects the maximum element of the vector.
-- ``"min"``: Selects the minimum element of the vector.
-- ``"mean"``: Calculates the mean of the vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "op"},
-      .gin_type = {"Vector", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input vector.)--", R"--(Selected operation.)--"},
-
-  };
-
-  wsm_data["NumericInterpAltLatLonField"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Interpolates an altitude-latitude-longitiude field.
-
-The gridded field must have "Altitude", "Latitude" and
-"Longitude" as dimensions.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"value"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Result of interpolation)--"},
-
-      .gin = {"gfield3", "pos"},
-      .gin_type = {"GriddedField3", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Gridded field to be interpolated.)--",
-                   R"--(Interpolate to this position [z, lat, lon].)--"},
-
-  };
-
-  wsm_data["NumericInterpLatLonField"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interpolates a latitude-longitiude field to the selected position.
-
-The gridded field must have "Latitude" and "Longitude" as dimensions.
-
-The position shall be given as a full atmospheric position. The altitude
-in ``pos`` is ignored.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"value"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Result of interpolation)--"},
-
-      .gin = {"gfield2", "pos"},
-      .gin_type = {"GriddedField2", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Gridded field to be interpolated.)--",
-                   R"--(Interpolate to this position [z, lat, lon].)--"},
-
-  };
-
-  wsm_data["NumericInterpVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Interpolates a vector to the selected position.
-
-Returns y(xv) given y(x).
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"value"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Result of interpolation)--"},
-
-      .gin = {"gx", "gy", "xv"},
-      .gin_type = {"Vector", "Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Positions (grid) where ``y`` given.)--",
-                   R"--(Values of function to interpolate.)--",
-                   R"--(Interpolate to this value.)--"},
-
-  };
-
-  wsm_data["NumericMultiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies a Numeric with a value (output = input * value).
-
-The result can either be stored in the same or another Numeric.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Numeric.)--", R"--(Multiplier.)--"},
-
-  };
-
-  wsm_data["NumericSubtract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Subtracts a Numeric value (output = input - value).
-
-The result can either be stored in the same or another Numeric.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Output Numeric.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Numeric.)--", R"--(Subtrahend.)--"},
-
-  };
-
-  wsm_data["PlanetSet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Sets *molarmass_dry_air*, and *planet_rotation_period* to default values
+          R"--(Sets the planet base surface field
 
 Options are:
 
 - ``"Earth"``:
 
     1. Uses *surface_fieldEarth* with model="WGS84"
-    2. Sets *molarmass_dry_air* to 28.966
-    3. Sets *planet_rotation_period* to 86164.1
 
 - ``"Io"``:
 
     1. Uses ``surface_fieldIo`` with model="Sphere"
-    2. Sets *molarmass_dry_air* to 63.110068828000003
-    3. Sets *planet_rotation_period* to 152853
 
 - ``"Jupiter"``:
 
     1. Uses ``surface_fieldJupiter`` with model="Sphere"
-    2. Sets *molarmass_dry_air* to 2.22
-    3. Sets *planet_rotation_period* to 35730
 
 - ``"Mars"``:
 
     1. Uses ``surface_fieldMars`` with model="Sphere"
-    2. Sets *molarmass_dry_air* to 43.34
-    3. Sets *planet_rotation_period* to 88643
 
 - ``"Venus"``:
 
     1. Uses ``surface_fieldVenus`` with model="Sphere"
-    2. Sets *molarmass_dry_air* to 43.45
-    3. Sets *planet_rotation_period* to -2.0997e7
 )--",
       .author = {"Richard Larsson"},
-      .out = {"surface_field",
-              "molarmass_dry_air",
-              "planet_rotation_period"},
+      .out = {"surface_field"},
 
       .gin = {"option"},
       .gin_type = {"String"},
@@ -1770,70 +758,12 @@ data files converted to arts-xml). Output written to (xml-)file.
 
   };
 
-  wsm_data["RadarOnionPeelingTableCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates a radar inversion table.
-
-This method is tailored to make inversion tables that fit
-``particle_bulkpropRadarOnionPeeling``. See that method for
-format of the table.
-
-The method needs to be called twice to form a complete table,
-once for liquid and ice hydrometeors. The table can be empty at
-the first call.
-
-The input data (*scat_data* etc.) must match two scattering
-species and a single frequency (the one of the radar).
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"invtable"},
-      .gout_type = {"ArrayOfNamedGriddedField2"},
-      .gout_desc = {R"--()--"},
-      .in = {"f_grid",
-             "scat_species",
-             "scat_data",
-             "scat_meta",
-             "pnd_agenda_array",
-             "pnd_agenda_array_input_names"},
-      .gin = {"i_species",
-              "dbze_grid",
-              "t_grid",
-              "wc_min",
-              "wc_max",
-              "ze_tref",
-              "k2"},
-      .gin_type = {"Index",
-                   "Vector",
-                   "Vector",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{1e-8},
-                    Numeric{2e-2},
-                    Numeric{273.15},
-                    Numeric{-1}},
-      .gin_desc =
-          {R"--(Index of *scat_species* to do. Can be 0 or 1.)--",
-           R"--(Grid of dBZe values to use for the table.)--",
-           R"--(Temperature grid to use for the table.)--",
-           R"--(A water content value that gives a dBZe smaller than first value of ``dbze_grid``.)--",
-           R"--(A water content value that gives a dBZe larger than last value of ``dbze_grid``.)--",
-           R"--(Reference temperature for conversion to Ze. See further ``yRadar``.)--",
-           R"--(Reference dielectric factor. See further ``yRadar``.)--"},
-      .pass_workspace = true,
-
-  };
-
   wsm_data["RadiationFieldSpectralIntegrate"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Integrates fields like *spectral_irradiance_field* or *spectral_radiance_field* over frequency.
+          R"--(Integrates fields like ``spectral_irradiance_field`` or *spectral_radiance_field* over frequency.
 
 Important, the first dimension must be the frequency dimension!
-If a field  like *spectral_radiance_field* is input, the stokes dimension
+If a field like *spectral_radiance_field* is input, the stokes dimension
 is also removed.
 )--",
       .author = {"Manfred Brath"},
@@ -1848,78 +778,6 @@ is also removed.
       .gin_value = {std::nullopt},
       .gin_desc =
           {R"--(Field similar to spectral irradiance field, spectral radiance field)--"},
-
-  };
-
-  wsm_data["RationalAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a Rational and a value (output = input + value).
-
-The result can either be stored in the same or another Rational.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"Rational"},
-      .gout_desc = {R"--(Output Rational.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Rational", "Rational"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Rational.)--", R"--(Value to add.)--"},
-
-  };
-
-  wsm_data["RationalDivide"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Divides a Rational with a value (output = input / value).
-
-The result can either be stored in the same or another Rational.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"Rational"},
-      .gout_desc = {R"--(Output Rational.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Rational", "Rational"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Rational.)--", R"--(Denominator.)--"},
-
-  };
-
-  wsm_data["RationalMultiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies a Rational with a value (output = input * value).
-
-The result can either be stored in the same or another Rational.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"Rational"},
-      .gout_desc = {R"--(Output Rational.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Rational", "Rational"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Rational.)--", R"--(Multiplier.)--"},
-
-  };
-
-  wsm_data["RationalSubtract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Subtracts a Rational value (output = input - value).
-
-The result can either be stored in the same or another Rational.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"Rational"},
-      .gout_desc = {R"--(Output Rational.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Rational", "Rational"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Rational.)--", R"--(Subtrahend.)--"},
 
   };
 
@@ -2382,11 +1240,11 @@ extension. Omitting filename works as for *ReadXML*.
       .gout = {"output"},
       .gout_type = {"Any"},
       .gout_desc = {R"--(Workspace variable to be read.)--"},
-      .in = {"file_index"},
-      .gin = {"filename", "digits"},
-      .gin_type = {"String", "Index"},
-      .gin_value = {String(""), Index{0}},
+      .gin = {"file_index", "filename", "digits"},
+      .gin_type = {"Index", "String", "Index"},
+      .gin_value = {std::nullopt, String(""), Index{0}},
       .gin_desc = {
+          R"--(Index of the file to read.)--",
           R"--(File name. See above.)--",
           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
 
@@ -2434,273 +1292,6 @@ And so on
           {"Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Tensor4, Tensor5, Tensor6, Tensor7, Tensor5, Tensor6, Tensor7, Tensor6, Tensor7, Tensor7"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Over-dimensioned input)--"},
-
-  };
-
-  wsm_data["ScatElementsPndAndScatAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds single scattering data and particle number density for
-individual scattering elements.
-
-The methods reads the specified files and appends the obtained data
-to *scat_data* and *pnd_field_raw*. Scattering data is appended to
-the current last existing scattering species in *scat_data*.
-)--",
-      .author = {"Claudia Emde, Jana Mendrok"},
-      .out = {"scat_data_raw", "pnd_field_raw"},
-
-      .in = {"scat_data_raw", "pnd_field_raw"},
-      .gin = {"scat_data_files", "pnd_field_files"},
-      .gin_type = {"ArrayOfString", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(List of names of single scattering data files.)--",
-           R"--(List of names of the corresponding pnd_field files.)--"},
-
-  };
-
-  wsm_data["ScatElementsSelect"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Allows to limit considered scattering elements according to size.
-
-Scattering elements of a specified scattering species are removed
-from *scat_data_raw* and *scat_meta*, i.e. removed from further
-calculations, if their particle size exceeds the specified limits.
-Specification of the scattering species is done by name matching the
-scattering species name part of *scat_species* tag.
-As size parameter, all size parameters reported by the meta data
-can be used (see *scat_meta_single* for offered parameters and
-their naming).
-)--",
-      .author = {"Daniel Kreyling, Oliver Lemke, Jana Mendrok"},
-      .out = {"scat_data_raw", "scat_meta"},
-
-      .in = {"scat_data_raw", "scat_meta", "scat_species"},
-      .gin =
-          {"species", "sizeparam", "sizemin", "sizemax", "tolerance", "delim"},
-      .gin_type =
-          {"String", "String", "Numeric", "Numeric", "Numeric", "String"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    Numeric{0.},
-                    Numeric{-1.},
-                    Numeric{1e-6},
-                    String("-")},
-      .gin_desc =
-          {R"--(Species on which to apply size selection.)--",
-           R"--(Size parameter to apply for size selection.)--",
-           R"--(Minimum size [m] of the scattering elements to consider)--",
-           R"--(Maximum size [m] of the scattering elements to consider (if negative, no max. limitation is applied).)--",
-           R"--(Relative numerical tolerance of size limit values.)--",
-           R"--(Delimiter string of *scat_species* elements.)--"},
-
-  };
-
-  wsm_data["ScatElementsToabs_speciesAdd"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Appends scattering elements to *abs_species* including reading
-single scattering data and corresponding pnd field.
-
-The methods reads the specified single scattering and pnd_field
-data of individual scattering elements and appends the obtained data
-to *scat_data* (appending to its last scattering species) and
-``vmr_field_raw``. Per scattering element, it also appends one
-instance of species 'particles' to *abs_species*.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data_raw",
-              "atm_field",
-              "abs_species",
-              "propmat_clearsky_agenda_checked"},
-
-      .in = {"scat_data_raw",
-             "atm_field",
-             "abs_species",
-             "propmat_clearsky_agenda_checked",
-             "f_grid"},
-      .gin = {"scat_data_files", "pnd_field_files"},
-      .gin_type = {"ArrayOfString", "ArrayOfString"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(List of names of single scattering data files.)--",
-           R"--(List of names of the corresponding pnd_field files.)--"},
-
-  };
-
-  wsm_data["ScatSpeciesExtendTemperature"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extends valid temperature range of single scattering data.
-
-The method allows to extend the temperature range of given single
-scattering data by duplicating optical property data at the low
-and/or high limits of the associated temperature grid. ``T_low`` and
-``T_high`` specify the temperature grid points that are added.
-Extension is only performed if ``T_low`` is lower and ``T_high`` is
-higher than the original lowest and highest temperatures,
-respectively, and if the original data contains more than one
-temperature grid point (i.e., when not assumed constant anyways).
-
-The method is thought, e.g., for atmospheric ice falling into
-atmospheric layers with temperatures above the melting point of
-ice, where ambient and particle temperature deviate (as long as
-frozen the ice temperature remains at the melting point
-temperature). It is not internally checked, whether the original
-data includes the melting point.
-The method can be used in a wider sense. However, it remains in the
-responsibility of the user to apply the method in a meaningful
-sense and on meaningful single scattering data.
-
-The temperature extension is applied on all scattering elements of
-a scattering species. If *scat_species* is defined, ``species`` can
-be used to select the species on which the extension shall be
-applied comparing ``species`` with the scattering species name part
-of *scat_species*. If no ``species`` is specified, the method is
-applied on the current last existing scattering species in
-*scat_data*. Through the latter the method can be applied for cases
-when *scat_species* is not defined (e.g. when *pnd_field* data is
-created externally instead of from hydrometeor fields 
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data_raw"},
-
-      .in = {"scat_data_raw", "scat_species"},
-      .gin = {"species", "scat_species_delim", "T_low", "T_high"},
-      .gin_type = {"String", "String", "Numeric", "Numeric"},
-      .gin_value = {String(""), String("-"), Numeric{-1.}, Numeric{-1.}},
-      .gin_desc =
-          {R"--(Scattering species to act on (see WSM description for details).)--",
-           R"--(Delimiter string of *scat_species* elements.)--",
-           R"--(Temperature grid extension point at low temperature limit.)--",
-           R"--(Temperature grid extension point at high temperature limit.)--"},
-
-  };
-
-  wsm_data["ScatSpeciesInit"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Initializes the scattering species related data variables.
-
-This method initializes the *scat_species* WSV, the variables that
-will hold the raw optical properties and the raw particle number
-distributions of the scattering elements (*scat_data_raw* and
-*pnd_field_raw*, respectively) as well as the one holding the meta
-information about the scattering elements (*scat_meta*).
-
-This method has to be executed before WSM reading/adding to the
-said variable, e.g. before *ScatSpeciesPndAndScatAdd*.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_species",
-              "scat_data_raw",
-              "scat_meta",
-              "scat_data_checked",
-              "pnd_field_raw"},
-
-  };
-
-  wsm_data["ScatSpeciesPndAndScatAdd"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Adds single scattering data and particle number densities for one
-scattering species.
-
-The WSV *pnd_field_raw* containing particle number densities for
-all scattering species can be generated outside ARTS, for example
-by using PyARTS or atmlab. This method reads this data as well as
-its corresponding single scattering data, which is added as a new
-scattering species to *scat_data*.
-This method needs as input an ArrayOfString holding the filenames
-of the single scattering data for each scattering element and a
-file containing the corresponding *pnd_field_raw*. In contrast to
-the scattering data, the pnd-fields are stored in a single XML-file
-containing an ArrayofGriddedField3, i.e. holding the pnd-field data
-of all scattering elements.
-
-Important note:
-The order of the filenames for the scattering data files has to
-correspond to the order of the pnd-fields, stored in the variable
-*pnd_field_raw*.
-)--",
-      .author = {"Claudia Emde, Jana Mendrok"},
-      .out = {"scat_data_raw", "pnd_field_raw"},
-
-      .in = {"scat_data_raw", "pnd_field_raw"},
-      .gin = {"scat_data_files", "pnd_fieldarray_file"},
-      .gin_type = {"ArrayOfString", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Array of names of files containing the single scattering data.)--",
-           R"--(Name of file holding the corresponding array of pnd_field data.)--"},
-
-  };
-
-  wsm_data["ScatSpeciesScatAndMetaRead"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reads single scattering data and scattering meta data for one
-scattering species.
-
-This method takes a string array as input containing the location
-(path and filename) of the single scattering data. Location of
-corresponding scattering meta data is derived applying a naming
-convention: ending '.xml*' is replaced by '.meta.xml' (search for
-zipped files is done automatically).
-
-All scattering elements read in one call of the method are assigned
-to one and the same scattering species. That is, reading in data for
-a bunch of scattering species can be realized by multiple call of
-this method. Assignment to scattering species is in the order of the
-calls (i.e., first method call reads data for first *scat_species*
-entry, second call for second scat_species entry and so on).
-Note that no two scattering elements of the same scattering species
-are allowed to be equal in size*
-
-Important note:
-The order of the filenames for the single scattering data files has to
-exactly correspond to the order of the scattering meta data files.
-)--",
-      .author = {"Daniel Kreyling, Oliver Lemke, Jana Mendrok"},
-      .out = {"scat_data_raw", "scat_meta"},
-
-      .in = {"scat_data_raw", "scat_meta"},
-      .gin = {"scat_data_files"},
-      .gin_type = {"ArrayOfString"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Array of single scattering data file names.)--"},
-
-  };
-
-  wsm_data["ScatSpeciesSizeMassInfo"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Derives size and mass information for a scattering species.
-This method assumes that the mass-size relationship can described
-by *scat_species_a* and *scat_species_b*. See documentation of 
-*scat_species_a* for details.
-
-The quantity to be used as size descriptor is here denoted as x, and
-is selected by setting ``x_unit``. The options are:
-
-- ``"dveq"``: The size grid is set to scat_meta.diameter_volume_equ
-- ``"dmax"``: The size grid is set to scat_meta.diameter_max
-- ``"area"``: The size grid is set to scat_meta.diameter_area_equ_aerodynamical
-- ``"mass"``: The size grid is set to scat_meta.mass
-
-This selection determines *scat_species_x*.
-
-The parameters *scat_species_a* and *scat_species_b* are determined by
-a numeric fit between *scat_species_x* and corresponding masses in
-*scat_meta*. This fit is performed over sizes inside the range
-[x_fit_start,x_fit_end]. This range is allowed to be broader than
-the coverage of *scat_species_x*. There must be at least two sizes
-inside [x_fit_start,x_fit_end].
-)--",
-      .author = {"Manfred Brath", "Jana Mendrok", "Patrick Eriksson"},
-      .out = {"scat_species_x", "scat_species_a", "scat_species_b"},
-
-      .in = {"scat_meta"},
-      .gin =
-          {"species_index", "x_unit", "x_fit_start", "x_fit_end", "do_only_x"},
-      .gin_type = {"Index", "String", "Numeric", "Numeric", "Index"},
-      .gin_value =
-          {std::nullopt, std::nullopt, Numeric{0}, Numeric{1e9}, Index{0}},
-      .gin_desc =
-          {R"--(Take data from scattering species of this index (0-based) in *scat_meta*.)--",
-           R"--(Unit for size grid, allowed options listed above.)--",
-           R"--(Smallest size to consider in fit to determine a and b.)--",
-           R"--(Largest size to consider in fit to determine a and b.)--",
-           R"--(A flag to deactivate calculation of a and b, to possibly save some time. The a and b parameters are then set to -1.Default is to calculate a and b.)--"},
 
   };
 
@@ -2874,285 +1465,6 @@ Should give the same as running the tmatrix_lp executable in
 
   };
 
-  wsm_data["Tensor3Add"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a scalar value to all elements of a tensor3.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor3", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be added to the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor3ExtractFromTensor4"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extracts a Tensor3 from a Tensor4.
-
-Copies book, page, row or column with given Index from input Tensor4
-variable to output Tensor3.
-Higher order equivalent of *VectorExtractFromMatrix*.
-)--",
-      .author = {"Oliver Lemke"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Extracted tensor.)--"},
-
-      .gin = {"input", "i", "direction"},
-      .gin_type = {"Tensor4", "Index", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor4.)--",
-                   R"--(Index of book, page, row or column to extract.)--",
-                   R"--(Direction. "book" or "page" or "row" or "column".)--"},
-
-  };
-
-  wsm_data["Tensor3FromVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Forms a Tensor3 of size nx1x1 from a vector of length n.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Output tensor.)--"},
-
-      .gin = {"v"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Input vector.)--"},
-
-  };
-
-  wsm_data["Tensor3Multiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a tensor with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor3", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be multiplied with the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor3SetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a tensor and sets all elements to the specified value.
-
-The size is determined by *ncols*, *nrows* etc.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor3"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"npages", "nrows", "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor value.)--"},
-
-  };
-
-  wsm_data["Tensor4Add"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a scalar value to all elements of a tensor4.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor4"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor4", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be added to the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor4Multiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a tensor with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor4"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor4", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be multiplied with the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor4SetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a tensor and sets all elements to the specified value.
-
-The size is determined by *ncols*, *nrows* etc.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor4"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nbooks", "npages", "nrows", "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor value.)--"},
-
-  };
-
-  wsm_data["Tensor5Multiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a tensor with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor5"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor5", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be multiplied with the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor5SetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a tensor and sets all elements to the specified value.
-
-The size is determined by *ncols*, *nrows* etc.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor5"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nshelves", "nbooks", "npages", "nrows", "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor value.)--"},
-
-  };
-
-  wsm_data["Tensor6Multiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a tensor with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor6"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor6", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be multiplied with the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor6SetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a tensor and sets all elements to the specified value.
-
-The size is determined by *ncols*, *nrows* etc.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor6"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor value.)--"},
-
-  };
-
-  wsm_data["Tensor7Multiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a tensor with the specified value.
-
-The result can either be stored in the same or another
-variable.
-)--",
-      .author = {"Mattias Ekstrom"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor7"},
-      .gout_desc = {R"--(Output Tensor.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Tensor7", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Tensor.)--",
-                   R"--(The value to be multiplied with the tensor.)--"},
-
-  };
-
-  wsm_data["Tensor7SetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a tensor and sets all elements to the specified value.
-
-The size is determined by *ncols*, *nrows* etc.
-)--",
-      .author = {"Claudia Emde"},
-
-      .gout = {"output"},
-      .gout_type = {"Tensor7"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nlibraries",
-             "nvitrines",
-             "nshelves",
-             "nbooks",
-             "npages",
-             "nrows",
-             "ncols"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Tensor value.)--"},
-
-  };
-
   wsm_data["TessemNNReadAscii"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Reads the initialization data for the TESSEM NeuralNet from an ASCII file.
@@ -3216,264 +1528,6 @@ In case the variable is not yet initialized, it is set to NaN.
 
   };
 
-  wsm_data["Trapz"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Intregrates a vector of over its grid range
-
-The method integrates y(x) by the trapezoidal method.
-
-The vector x is the positions where the integrand, y, is known.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Numeric"},
-      .gout_desc = {R"--(Value of integral)--"},
-
-      .gin = {"gx", "gy"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Grid.)--", R"--(Integrand.)--"},
-
-  };
-
-  wsm_data["VectorAdd"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds a scalar to all elements of a vector.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output Vector)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Vector.)--",
-                   R"--(The value to be added to the vector.)--"},
-
-  };
-
-  wsm_data["VectorAddElementwise"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Element-wise addition of two vectors.
-
-The method calculates c = a + b.
-
-The variable ``b`` is allowed to have length 1, for any length of
-``a``. This single value in ``b`` is then added to every element of ``a``.
-
-The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
-the same WSV as any of the the other vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"c"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector)--"},
-
-      .gin = {"a", "b"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input vector.)--", R"--(Vector to be added.)--"},
-
-  };
-
-  wsm_data["VectorClip"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Clipping of a vector.
-
-The input vector is copied to the output one (that can be same WSV)
-but ensures that all values in ``output`` are inside the range [limit_low,
-limit_high]. Where the input vector is below ``limit_low``, ``out`` is set
-to ``limit_low``. And the same is performed with respect to ``limit_high``.
-That is, the method works as *NumericClip* for each element of the
-vector.
-
-The method adopts the length of ``out`` when needed.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector.)--"},
-
-      .gin = {"input", "limit_low", "limit_high"},
-      .gin_type = {"Vector", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt,
-                    -std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity()},
-      .gin_desc = {R"--(Input vector.)--",
-                   R"--(Lower limit for clipping.)--",
-                   R"--(Upper limit for clipping.)--"},
-
-  };
-
-  wsm_data["VectorCrop"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Keeps only values of a vector inside the specified range.
-
-All values outside the range [min_value,max-value] are removed.
-Note the default values, that basically should act as -+Inf.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Cropped vector)--"},
-
-      .gin = {"input", "min_value", "max_value"},
-      .gin_type = {"Vector", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{-99e99}, Numeric{99e99}},
-      .gin_desc = {R"--(Original vector)--",
-                   R"--(Minimum value to keep)--",
-                   R"--(Maximum value to keep)--"},
-
-  };
-
-  wsm_data["VectorDivide"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Divides all elements of a vector with the same value.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output Vector.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Vector.)--", R"--(Denominator.)--"},
-
-  };
-
-  wsm_data["VectorDivideElementwise"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Element-wise division of two vectors.
-
-The method calculates c = a / b.
-
-The variable ``b`` is allowed to have length 1, for any length of
-``a``. This single value in ``b`` is then applied to every element of ``a``.
-
-The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
-the same WSV as any of the the other vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"c"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector)--"},
-
-      .gin = {"a", "b"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input vector.)--", R"--(Denominator Vector.)--"},
-
-  };
-
-  wsm_data["VectorExtractFromMatrix"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Extracts a Vector from a Matrix.
-
-Copies row or column with given Index from input Matrix variable
-to create output Vector.
-)--",
-      .author = {"Patrick Eriksson, Oliver Lemke, Stefan Buehler"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Extracted vector.)--"},
-
-      .gin = {"input", "i", "direction"},
-      .gin_type = {"Matrix", "Index", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input matrix.)--",
-                   R"--(Index of row or column.)--",
-                   R"--(Direction. "row" or "column".)--"},
-
-  };
-
-  wsm_data["VectorFlip"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Flips a vector.
-
-The output is the input vector in reversed order. The result can
-either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector.)--"},
-
-      .gin = {"input"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Input vector.)--"},
-
-  };
-
-  wsm_data["VectorGaussian"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Fills a vector with a Gaussian function.
-
-The width can be set in two ways, either by standard deviation or
-the full width at half maximum. Only one of the corresponding GINs
-can be >0 and that value will determine the width.
-
-The vectors ``x`` and ``y`` can be the same variable.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gy"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector.)--"},
-
-      .gin = {"gx", "x0", "si", "fwhm"},
-      .gin_type = {"Vector", "Numeric", "Numeric", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{0}, Numeric{-1}, Numeric{-1}},
-      .gin_desc =
-          {R"--(Grid of the function.)--",
-           R"--(Centre/mean point of the function.)--",
-           R"--(Standard deviation of the function, ignored if <=0.)--",
-           R"--(Full width at half-max of the function, ignored if <=0.)--"},
-
-  };
-
-  wsm_data["VectorInsertGridPoints"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Insert some additional points into a grid.
-
-This method can for example be used to add line center frequencies to
-a regular frequency grid. If the original grid is [1,2,3], and the
-additional points are [2.2,2.4], the result will be [1,2,2.2,2.4,3].
-
-It is assumed that the original grid is sorted, otherwise a runtime
-error is thrown. The vector with the points to insert does not have to
-be sorted. If some of the input points are already in the grid, these
-points are not inserted again. New points outside the original grid are
-appended at the appropriate end. Input vector and output vector can be
-the same.
-
-Generic output:
- - Vector : The new grid vector.
-
-Generic input:
- - Vector : The original grid vector.
- - Vector : The points to insert.
-)--",
-      .author = {"Stefan Buehler"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(The new grid vector)--"},
-
-      .gin = {"input", "points"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The original grid vector)--",
-                   R"--(The points to insert)--"},
-
-  };
-
   wsm_data["VectorLinSpace"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Initializes a vector with linear spacing.
 
@@ -3528,254 +1582,6 @@ Explicitly, the vector is:
 
   };
 
-  wsm_data["VectorMatrixMultiply"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Multiply a Vector with a Matrix and store the result in another
-Vector.
-
-This just computes the normal matrix-vector product, y=M*x. It is ok
-if input and output Vector are the same.
-)--",
-      .author = {"Stefan Buehler"},
-
-      .gout = {"gy"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(The result of the multiplication (dimension m).)--"},
-
-      .gin = {"M", "gx"},
-      .gin_type = {"Matrix", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The Matrix to multiply (dimension m x n).)--",
-                   R"--(The original Vector (dimension n).)--"},
-
-  };
-
-  wsm_data["VectorMultiply"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Multiplies all elements of a vector with the same value.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output Vector.)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Vector.)--", R"--(Scaling value.)--"},
-
-  };
-
-  wsm_data["VectorMultiplyElementwise"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Element-wise multiplication of two vectors.
-
-The method calculates c = a * b.
-
-The variable ``b`` is allowed to have length 1, for any length of
-``a``. This single value in ``b`` is then multiplied with every element
-of ``a``.
-
-The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
-the same WSV as any of the the other vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"c"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector)--"},
-
-      .gin = {"a", "b"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input vector.)--", R"--(Multiplier.)--"},
-
-  };
-
-  wsm_data["VectorNLinSpace"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a vector with length *nelem*, equally spaced between the
-given end values.
-
-The length (*nelem*) must be larger than 1.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"start", "stop"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start value.)--", R"--(End value.)--"},
-
-  };
-
-  wsm_data["VectorNLinSpaceVector"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(As *VectorNLinSpace* but end points taken from a vector.
-
-The method gives a vector with equidistant spacing between
-first and last element of the reference vector.
-
-The length (*nelem*) must be larger than 1.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"gy"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Reference vector.)--"},
-
-  };
-
-  wsm_data["VectorNLogSpace"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Creates a vector with length *nelem*, equally logarithmically
-spaced between the given end values.
-
-The length (*nelem*) must be larger than 1.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"start", "stop"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Start value.)--", R"--(End value.)--"},
-
-  };
-
-  wsm_data["VectorPower"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the power of each element in a vector.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output Vector.)--"},
-
-      .gin = {"input", "power"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Vector.)--", R"--(Power (exponent).)--"},
-
-  };
-
-  wsm_data["VectorReshapeMatrix"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Converts a Matrix to a Vector.
-
-The matrix is reshaped into a vector. That is, all elements of the matrix
-are kept. The elements can be extracted both in column (default) and row
-order. The output vector has the same length for both options.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Created vector.)--"},
-
-      .gin = {"input", "direction"},
-      .gin_type = {"Matrix", "String"},
-      .gin_value = {std::nullopt, String("column")},
-      .gin_desc = {R"--(Input matrix.)--",
-                   R"--(Direction. "row" or "column".)--"},
-
-  };
-
-  wsm_data["VectorSetConstant"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Creates a vector and sets all elements to the specified value.
-
-The vector length is determined by *nelem*.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Variable to initialize.)--"},
-      .in = {"nelem"},
-      .gin = {"value"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Vector value.)--"},
-
-  };
-
-  wsm_data["VectorSparseMultiply"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Multiply a Vector with a Sparse and store the result in another
-Vector.
-
-This just computes the normal matrix-vector product, y=M*x, with
-m being a Sparse. It is ok if input and output Vector are the same.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"gy"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(The result of the multiplication (dimension m).)--"},
-
-      .gin = {"M", "gx"},
-      .gin_type = {"Sparse", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The Sparse to multiply (dimension m x n).)--",
-                   R"--(The original Vector (dimension n).)--"},
-
-  };
-
-  wsm_data["VectorSubtract"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Subtracts a scalar from all elements of a vector.
-
-The result can either be stored in the same or another vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"output"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output Vector)--"},
-
-      .gin = {"input", "value"},
-      .gin_type = {"Vector", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input Vector.)--",
-                   R"--(The value to be subtracted from the vector.)--"},
-
-  };
-
-  wsm_data["VectorSubtractElementwise"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Element-wise subtraction of two vectors.
-
-The method calculates c = a - b.
-
-The variable ``b`` is allowed to have length 1, for any length of
-``a``. This single value in ``b`` is then subtracted to every element of ``a``.
-
-The vectors ``a`` and ``c`` can be the same WSV, while ``b`` can not be
-the same WSV as any of the the other vector.
-)--",
-      .author = {"Patrick Eriksson"},
-
-      .gout = {"c"},
-      .gout_type = {"Vector"},
-      .gout_desc = {R"--(Output vector)--"},
-
-      .gin = {"a", "b"},
-      .gin_type = {"Vector", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Input vector.)--", R"--(Vector to be subtracted.)--"},
-
-  };
-
   wsm_data["WMRFSelectChannels"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Select some channels for WMRF calculation.
 
@@ -3795,8 +1601,11 @@ channels. It changes a number of variables in consistent fashion:
       .author = {"Stefan Buehler"},
       .out = {"f_grid", "wmrf_weights", "f_backend"},
 
-      .in = {"f_grid", "f_backend", "wmrf_weights", "wmrf_channels"},
-
+      .in = {"f_grid", "f_backend", "wmrf_weights"},
+      .gin = {"wmrf_channels"},
+      .gin_type = {"ArrayOfIndex"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {R"--(The channels to keep.)--"},
   };
 
   wsm_data["Wigner3Init"] = WorkspaceMethodInternalRecord{
@@ -3872,12 +1681,15 @@ in the select directory
 The temperature will be linearly spaced between [Tlow, Tupp] with N values
 )--",
       .author = {"Richard Larsson"},
-
-      .in = {"output_file_format"},
-      .gin = {"dir", "Tlow", "Tupp", "N"},
-      .gin_type = {"String", "Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {R"--(The directory to write the data towards)--",
+      .gin = {"output_file_format", "dir", "Tlow", "Tupp", "N"},
+      .gin_type = {"String", "String", "Numeric", "Numeric", "Index"},
+      .gin_value = {String{"ascii"},
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt,
+                    std::nullopt},
+      .gin_desc = {"The format of the output",
+                   R"--(The directory to write the data towards)--",
                    R"--(The lowest temperature)--",
                    R"--(The highest temperature)--",
                    R"--(The number of temperature points)--"},
@@ -3912,13 +1724,15 @@ to <basename>.<variable_name>.nc.
 )--",
       .author = {"Oliver Lemke"},
 
-      .in = {"file_index"},
-      .gin = {"input", "filename"},
+      .in = {},
+      .gin = {"file_index", "input", "filename"},
       .gin_type =
-          {"Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector, ArrayOfMatrix, GasAbsLookup",
+          {"Index",
+           "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector, ArrayOfMatrix, GasAbsLookup",
            "String"},
-      .gin_value = {std::nullopt, String("")},
-      .gin_desc = {R"--(Variable to be saved.)--",
+      .gin_value = {std::nullopt, std::nullopt, String("")},
+      .gin_desc = {R"--(Index number for files.)--",
+                   R"--(Variable to be saved.)--",
                    R"--(Name of the NetCDF file.)--"}};
 
   wsm_data["WriteXML"] = WorkspaceMethodInternalRecord{
@@ -3932,12 +1746,11 @@ If no_clobber is set to 1, an increasing number will be
 appended to the filename if the file already exists.
 )--",
       .author = {"Oliver Lemke"},
-
-      .in = {"output_file_format"},
-      .gin = {"input", "filename", "no_clobber"},
-      .gin_type = {"Any", "String", "Index"},
-      .gin_value = {std::nullopt, String(""), Index{0}},
+      .gin = {"output_file_format", "input", "filename", "no_clobber"},
+      .gin_type = {"String", "Any", "String", "Index"},
+      .gin_value = {String("ascii"), std::nullopt, String(""), Index{0}},
       .gin_desc = {
+          "The format of the output",
           R"--(Variable to be saved.)--",
           R"--(Name of the XML file.)--",
           R"--(0: Overwrite existing files, 1: Use unique filenames)--"}};
@@ -3955,12 +1768,14 @@ This means that ``filename`` shall here not include the .xml
 extension. Omitting filename works as for *WriteXML*.
 )--",
       .author = {"Patrick Eriksson, Oliver Lemke"},
-
-      .in = {"output_file_format", "file_index"},
-      .gin = {"input", "filename", "digits"},
-      .gin_type = {"Any", "String", "Index"},
-      .gin_value = {std::nullopt, String(""), Index{0}},
+      .gin =
+          {"output_file_format", "file_index", "input", "filename", "digits"},
+      .gin_type = {"String", "Index", "Any", "String", "Index"},
+      .gin_value =
+          {String("ascii"), std::nullopt, std::nullopt, String(""), Index{0}},
       .gin_desc = {
+          "The format of the output",
+          R"--(Index number for files.)--",
           R"--(Workspace variable to be saved.)--",
           R"--(File name. See above.)--",
           R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"}};
@@ -4845,11 +2660,12 @@ where N>=0 and the species name is something line "H2O".
 )--",
       .author = {"Richard Larsson"},
 
-      .in = {"output_file_format", "abs_lines"},
-      .gin = {"basename"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Path to store the files at)--"},
+      .in = {"abs_lines"},
+      .gin = {"output_file_format", "basename"},
+      .gin_type = {"String", "String"},
+      .gin_value = {String{"ascii"}, std::nullopt},
+      .gin_desc = {"Format of the output file.",
+                   R"--(Path to store the files at)--"},
 
   };
 
@@ -5398,8 +3214,7 @@ to manual mirroring mode
       };
 
   wsm_data["abs_lines_per_speciesPopulationNlteField"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Turns on NTLE calculations.
+      WorkspaceMethodInternalRecord{.desc = R"--(Turns on NTLE calculations.
 
 Takes the quantum identifers for NLTE temperatures and matches it to
 lines in *abs_lines_per_species*.  *abs_species* must be set and is used
@@ -5431,10 +3246,18 @@ Set type of population to change computations and expected input as:
 - ``"TV"``: Compute population by ratios found from NLTE vibrational temperatures
 - ``"ND"``: Compute population by ratios found from NLTE number densities
 )--",
-          .author = {"Richard Larsson"},
-          .out = {"nlte_do", "abs_lines_per_species"},
+                                    .author = {"Richard Larsson"},
+                                    .out = {"nlte_do", "abs_lines_per_species"},
 
-          .in = {"abs_lines_per_species", "atm_field", "nlte_vib_energies"},
+                                    .in =
+                                        {
+                                            "abs_lines_per_species",
+                                            "atm_field",
+                                        },
+                                    .gin = {"nlte_vib_energies"},
+                                    .gin_type = {"VibrationalEnergyLevels"},
+                                    .gin_value = {VibrationalEnergyLevels{}},
+                                    .gin_desc = {"A map of energy levels"}
 
       };
 
@@ -5607,11 +3430,12 @@ generating identifiers for the order in *abs_species*
 )--",
           .author = {"Richard Larsson"},
 
-          .in = {"output_file_format", "abs_lines_per_species"},
-          .gin = {"basename"},
-          .gin_type = {"String"},
-          .gin_value = {std::nullopt},
-          .gin_desc = {R"--(Path to store the files at)--"},
+          .in = {"abs_lines_per_species"},
+          .gin = {"output_file_format", "basename"},
+          .gin_type = {"String", "String"},
+          .gin_value = {String{"ascii"}, std::nullopt},
+          .gin_desc = {"Format of the output files.",
+                       R"--(Path to store the files at)--"},
 
       };
 
@@ -5798,33 +3622,21 @@ available in the *xsec_fit_data* variable.
 
   };
 
-  wsm_data["abs_vecAddGas"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Add gas absorption to first element of absorption vector.
-
-The task of this method is to sum up the gas absorption of the
-different gas species and add the result to the first element of the
-absorption vector.
-)--",
-      .author = {"Stefan Buehler"},
-      .out = {"abs_vec"},
-
-      .in = {"abs_vec", "propmat_clearsky"},
-
-  };
-
   wsm_data["antenna_responseGaussian"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets up a Gaussian antenna response.
 
 This method works as *antenna_responseGaussianConstant* but allows
 to inlude a frequency variation of the antenna width. Here the FWHM
 is specified at a set of frequencies. These frequencies will also be
-the frequency grid of *antenna_response*.
+the frequency grid of ``antenna_response``.
 
 If ``grid_width`` is set to <=0, the grid width will be twice the max
 value in ``fwhm``.
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"antenna_response"},
+      .gout = {"antenna_response"},
+      .gout_type = {"NamedGriddedField3"},
+      .gout_desc = {"The antenna pattern/response."},
 
       .gin = {"f_points", "fwhm", "grid_width", "grid_npoints", "do_2d"},
       .gin_type = {"Vector", "Vector", "Numeric", "Index", "Index"},
@@ -5866,7 +3678,9 @@ response is 1. Otherwise the integral is smaller than 1. That
 is, no normalisation is applied.
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"antenna_response"},
+      .gout = {"antenna_response"},
+      .gout_type = {"NamedGriddedField3"},
+      .gout_desc = {"The antenna pattern/response."},
 
       .gin = {"fwhm", "grid_width", "grid_npoints", "do_2d"},
       .gin_type = {"Numeric", "Numeric", "Index", "Index"},
@@ -5897,8 +3711,7 @@ the antenna. Normally, ``leff`` is smaller than the physical antenna
 size.
 
 Antenna responses are created for ``nf`` frequencies spanning the
-range [``fstart``,``fstop``], with a logarithmic spacing. That is, the
-frequency grid of the responses is taken from *VectorNLogSpace*.
+range [``fstart``,``fstop``], with a logarithmic spacing.
 
 The responses have a common angular grid. The parameters to define
 the grid are the same as for *antenna_responseGaussianConstant*. If
@@ -5906,7 +3719,9 @@ the grid are the same as for *antenna_responseGaussianConstant*. If
 frequency.
 )--",
           .author = {"Patrick Eriksson"},
-          .out = {"antenna_response"},
+          .gout = {"antenna_response"},
+          .gout_type = {"NamedGriddedField3"},
+          .gout_desc = {"The antenna pattern/response."},
 
           .gin = {"leff",
                   "grid_width",
@@ -6205,52 +4020,22 @@ give the "H2O.xml" file because the internal data structure is unordered.
 
   };
 
-  wsm_data["atmfields_checkedCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Checks consistency of (clear sky) atmospheric fields.
-
-The following WSVs are treated: ``p_grid``, ``lat_grid``, ``lon_grid``,
-``t_field``, ``vmr_field``, wind_u/v/w_field and mag_u/v/w_field.
-
-If any of the variables above is changed, then this method shall be
-called again (no automatic check that this is fulfilled!).
-
-The tests include that:
- 1. Atmospheric grids (p/lat/lon_grid) are OK with respect to
-    ``atmosphere_dim`` (and vmr_field also regarding *abs_species*).
- 2. Atmospheric fields have sizes consistent with the atmospheric
-    grids.
- 3. *abs_f_interp_order* is not zero if any wind is nonzero.
- 4. All values in ``t_field`` are > 0.
-
-Default is that values in ``vmr_field`` are demanded to be >= 0
-(ie. zero allowed, in contrast to ``t_field``), but this
-requirement can be removed by the ``negative_vmr_ok`` argument.
-
-If any test fails, there is an error. Otherwise,
-*atmfields_checked* is set to 1.
-
-The cloudbox is covered by *cloudbox_checked*, ``z_field`` is
-part of the checks done around *atmgeom_checked*.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"atmfields_checked"},
-
-      .in = {"abs_species", "atm_field"},
-
-  };
-
   wsm_data["avkCalc"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculate the averaging kernel matrix.
 
 This is done by describing the sensitivity of the
 OEM retrieval with respect to the true state of the system. A prerequisite
 for the calculation of the averaging kernel matrix is a successful OEM
-calculation in which the *jacobian* and the gain matrix *dxdy* have been calculated.
+calculation in which the ``jacobian`` and the gain matrix ``dxdy`` have been calculated.
 )--",
       .author = {"Simon Pfreundschuh"},
       .out = {"avk"},
 
-      .in = {"dxdy", "jacobian"},
+      .gin = {"dxdy", "jacobian"},
+      .gin_type = {"Matrix", "Matrix"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc = {R"--(Gain matrix of the OEM calculation.)--",
+                   R"--(Jacobian matrix of the OEM calculation.)--"},
 
   };
 
@@ -6343,25 +4128,6 @@ gives a grid that is twice the FWHM.
           .out = {"background_transmittance"},
 
           .in = {"ppvar_cumtramat"},
-
-      };
-
-  wsm_data["collision_coefficientsFromSplitFiles"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Reads *collision_coefficients* and *collision_line_identifiers* from files.
-
-The species in in these files must match *abs_species*.  The location
-must also contain an *ArrayOfQuantumIdentifier* file ending with ``qid.xml``
-)--",
-          .author = {"Richard Larsson"},
-          .out = {"collision_coefficients", "collision_line_identifiers"},
-
-          .in = {"abs_species"},
-          .gin = {"basename"},
-          .gin_type = {"String"},
-          .gin_value = {String("./")},
-          .gin_desc = {R"--(path to files to read)--"},
 
       };
 
@@ -6504,16 +4270,32 @@ the real part. The imaginry part is zero.
 in the observation system.
 
 The uncertainties of the observation system are
-described by *covmat_se*, which must be set by the user to include the
+described by ``covmat_se``, which must be set by the user to include the
 relevant contributions from the measurement and the forward model.
 
-Prerequisite for the calculation of *covmat_so* is a successful OEM
-computation where also the gain matrix has been computed.
+The ``covmat_se`` (``Se``) describes the uncertainty of the measurement vector (``y``),
+and can be writtenn as::
+
+  Se = Seps + Kb * Sb * Kb'
+
+where Seps describes direct measurement errors (such as thermal noise),
+Kb is Jacobian for forward model parameters, and Sb describes the uncertainty
+of the forwatrd model parameters.
+
+Prerequisite for the calculation of ``covmat_so`` is a successful OEM
+computation where also the gain matrix has been computed. 
+That is: So = G * Se * G', where G is the gain matrix (``dxdy``).
 )--",
       .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_so"},
-
-      .in = {"dxdy", "covmat_se"},
+      .gout = {"covmat_so"},
+      .gout_type = {"Matrix"},
+      .gout_desc =
+          {R"--(Covariance matrix describing the retrieval error due to uncertainties of the observation system.)--"},
+      .gin = {"dxdy", "covmat_se"},
+      .gin_type = {"Matrix", "CovarianceMatrix"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc = {R"--(Gain matrix.)--",
+                   R"--(Covariance matrix for observation uncertainties.)--"},
 
   };
 
@@ -6521,14 +4303,36 @@ computation where also the gain matrix has been computed.
       .desc =
           R"--(Calculates the covariance matrix describing the error due to smoothing.
 
-The calculation of *covmat_ss* also requires the averaging kernel matrix *avk*
+The calculation of ``covmat_ss`` also requires the averaging kernel matrix *avk*
 to be computed after a successful OEM calculation.
+
+That is: Ss = (A-I) * Sx * (A-I)', where A is the averaging kernel 
+matrix (*avk*).
+
+The ``covmat_ss`` covariance matrix describes the Gaussian a priori distribution
+for an OEM retrieval. It is represented using a symmetric block matrix.
+covmat_sx can be used in two ways: Either with a block for each retrieval
+quantity or with a single block containing the full covariance matrix.
+
+Using a single block for each retrieval quantity has is advantageous for
+if the retrieval quantities are assumed to be independent. In this case,
+the covariance blocks can be added separately for each quantity and will
+allow optimizing matrix multiplications and inverses required for the OEM
+calculation.
+
+The other case of using a single-block covariance matrix is supported
+for convenience as well.
 )--",
       .author = {"Simon Pfreundschuh"},
-      .out = {"covmat_ss"},
-
-      .in = {"avk", "covmat_sx"},
-
+      .gout = {"covmat_ss"},
+      .gout_type = {"Matrix"},
+      .gout_desc =
+          {R"--(Covariance matrix describing the retrieval error due to smoothing.)--"},
+      .in = {"avk"},
+      .gin = {"covmat_sx"},
+      .gin_type = {"CovarianceMatrix"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {R"--(Covariance matrix for state vector uncertainties.)--"},
   };
 
   wsm_data["diameter_maxFromDiameter_volume_equ"] = WorkspaceMethodInternalRecord{
@@ -6538,7 +4342,7 @@ equivalent diameter.
 This is primarily a help function for using the T-matrix method
 and only a few particle shapes are handled. 
 For shapes handled and further comments on the input arguments, see
-*scat_data_singleTmatrix*.
+``scat_data_singleTmatrix``.
 
 Area equivalent diameter is the equivalent sphere diameter
 corresponding to the "maximum axial area". This is the largest
@@ -6571,7 +4375,7 @@ either (pi*d^2)/4 or (h*d).
 This is primarily a help function for using the T-matrix part
 and only a few particle shapes are handled. 
 For shapes handled and further comments on the input arguments,
-see *scat_data_singleTmatrix*.
+see ``scat_data_singleTmatrix``.
 
 Also the volume is provided. It is simply sqrt(pi*dveq^3/6).
 )--",
@@ -6629,204 +4433,6 @@ Options are:
           .gin_value = {String{"Blackbody"}},
           .gin_desc = {R"--(Default agenda option (see description))--"},
       };
-
-  wsm_data["doit_conv_flagAbs"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(DOIT convergence test (maximum absolute difference).
-
-The function calculates the absolute differences for two successive
-iteration fields. It picks out the maximum values for each Stokes
-component separately. The convergence test is fullfilled under the
-following conditions:
-
-- ``|I(m+1) - I(m)| < epsilon_1``: Intensity.
-- ``|Q(m+1) - Q(m)| < epsilon_2``: The other Stokes components.
-- ``|U(m+1) - U(m)| < epsilon_3``: 
-- ``|V(m+1) - V(m)| < epsilon_4``: 
-
-These conditions have to be valid for all positions in the
-cloudbox and for all directions.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_conv_flag",
-              "doit_iteration_counter",
-              "cloudbox_field_mono"},
-
-      .in = {"doit_conv_flag",
-             "doit_iteration_counter",
-             "cloudbox_field_mono",
-             "cloudbox_field_mono_old"},
-      .gin = {"epsilon", "max_iterations", "nonconv_return_nan"},
-      .gin_type = {"Vector", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{100}, Index{0}},
-      .gin_desc =
-          {R"--(Limits for convergence. A vector with length matching ``stokes_dim`` with unit [W / (m^2 Hz sr)].)--",
-           R"--(Maximum number of iterations allowed to reach convergencelimit.)--",
-           R"--(Flag whether to accept result at max_iterations (0=default)or whether to return NaNs in case of non-convergence atmax_iterations)--"},
-
-  };
-
-  wsm_data["doit_conv_flagAbsBT"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(DOIT convergence test (maximum absolute difference in Rayleigh Jeans BT)
-
-As *doit_conv_flagAbs* but convergence limits are specified in
-Rayleigh-Jeans brighntess temperatures.
-)--",
-      .author = {"Sreerekha T.R.", "Claudia Emde"},
-      .out = {"doit_conv_flag",
-              "doit_iteration_counter",
-              "cloudbox_field_mono"},
-
-      .in = {"doit_conv_flag",
-             "doit_iteration_counter",
-             "cloudbox_field_mono",
-             "cloudbox_field_mono_old",
-             "f_grid",
-             "f_index"},
-      .gin = {"epsilon", "max_iterations", "nonconv_return_nan"},
-      .gin_type = {"Vector", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{100}, Index{0}},
-      .gin_desc =
-          {R"--(Limits for convergence. A vector with length matching ``stokes_dim`` with unit [K].)--",
-           R"--(Maximum number of iterations allowed to reach convergencelimit.)--",
-           R"--(Flag whether to accept result at max_iterations (0=default)or whether to return NaNs in case of non-convergence atmax_iterations)--"},
-
-  };
-
-  wsm_data["doit_conv_flagLsq"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(DOIT convergence test (least squares).
-
-As *doit_conv_flagAbsBT* but applies a least squares convergence
-test between two successive iteration fields.
-
-Warning: This method is not recommended because this kind of
-convergence test is not sufficiently strict, so that the
-DOIT result might be wrong.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_conv_flag",
-              "doit_iteration_counter",
-              "cloudbox_field_mono"},
-
-      .in = {"doit_conv_flag",
-             "doit_iteration_counter",
-             "cloudbox_field_mono",
-             "cloudbox_field_mono_old",
-             "f_grid",
-             "f_index"},
-      .gin = {"epsilon", "max_iterations", "nonconv_return_nan"},
-      .gin_type = {"Vector", "Index", "Index"},
-      .gin_value = {std::nullopt, Index{100}, Index{0}},
-      .gin_desc =
-          {R"--(Limits for convergence. A vector with length matching ``stokes_dim`` with unit [K].)--",
-           R"--(Maximum number of iterations allowed to reach convergencelimit.)--",
-           R"--(Flag whether to accept result at max_iterations (0=default)or whether to return NaNs in case of non-convergence atmax_iterations)--"},
-
-  };
-
-  wsm_data["doit_conv_test_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *doit_conv_test_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"doit_conv_test_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["doit_mono_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *doit_mono_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"doit_mono_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["doit_rte_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *doit_rte_agenda* to a default value
-
-Options are:
-
-- There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"doit_rte_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["doit_scat_field_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *doit_scat_field_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"doit_scat_field_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["doit_za_grid_optCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Zenith angle grid optimization for scattering calculation.
-
-This method optimizes the zenith angle grid. As input it requires
-a radiation field (*cloudbox_field*) which is calculated on a very
-fine zenith angle grid (*za_grid*). Based on this field
-zenith angle grid points are selected, such that the maximum
-difference between the radiation field represented on the very
-fine zenith angle grid and the radiation field represented on the
-optimized grid (*doit_za_grid_opt*) is less than the accuracy
-(``acc``). Between the grid points the radiation field is interpolated
-linearly or polynomially depending on *doit_za_interp*.
-
-Note: The method works only for a 1D atmosphere and for one
-frequency.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_za_grid_opt"},
-
-      .in = {"cloudbox_field_mono", "za_grid", "doit_za_interp"},
-      .gin = {"acc"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Accuracy to achieve [%].)--"},
-
-  };
-
-  wsm_data["doit_za_interpSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Define interpolation method for zenith angle dimension.
-
-You can use this method to choose the interpolation method for
-interpolations in the zenith angle dimension.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"doit_za_interp"},
-
-      .gin = {"interp_method"},
-      .gin_type = {"String"},
-      .gin_value = {String("linear")},
-      .gin_desc = {R"--(Interpolation method ("linear" or "polynomial").)--"},
-
-  };
 
   wsm_data["ecs_dataAddMakarov2020"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets the O2-66 microwave band data for ECS.
@@ -6994,20 +4600,6 @@ and that N2 VMR must be present
 
   };
 
-  wsm_data["ext_matAddGas"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Add gas absorption to all diagonal elements of extinction matrix.
-
-The task of this method is to sum up the gas absorption of the
-different gas species and add the result to the extinction matrix.
-)--",
-      .author = {"Stefan Buehler"},
-      .out = {"ext_mat"},
-
-      .in = {"ext_mat", "propmat_clearsky"},
-
-  };
-
   wsm_data["f_gridFromAbsorptionLines"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets *f_grid* to a grid relative to *abs_lines_per_species*
 
@@ -7055,9 +4647,9 @@ as for MHS, is handled correctly. But the case that channels overlap
 is not (yet) handled and results in an error message.
 
 The method calculates *f_grid* to match the instrument, as given by
-the local oscillator frequencies *lo_multi*, the backend
-frequencies *f_backend_multi*, and the backend channel
-responses *backend_channel_response_multi*.
+the local oscillator frequencies ``lo_multi``, the backend
+frequencies ``f_backend_multi``, and the backend channel
+responses ``backend_channel_response_multi``.
 
 You have to specify the desired spacing in the keyword ``spacing``,
 which has a default value of 100 MHz. (The actual value is 0.1e9,
@@ -7073,12 +4665,20 @@ see *f_gridFromSensorHIRS*.
 )--",
       .author = {"Stefan Buehler, Mathias Milz"},
       .out = {"f_grid"},
-
-      .in = {"lo_multi", "f_backend_multi", "backend_channel_response_multi"},
-      .gin = {"spacing"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{.1e9}},
-      .gin_desc = {R"--(Desired grid spacing in Hz.)--"},
+      .gin = {"lo_multi",
+              "spacing",
+              "backend_channel_response_multi",
+              "f_backend_multi"},
+      .gin_type = {"Vector",
+                   "Numeric",
+                   "ArrayOfArrayOfGriddedField1",
+                   "ArrayOfVector"},
+      .gin_value = {std::nullopt, Numeric{.1e9}, std::nullopt, std::nullopt},
+      .gin_desc =
+          {"The local oscillator frequencies",
+           R"--(Desired grid spacing in Hz.)--",
+           "As *backend_channel_response* but describes an instrument with muliple mixer/receiver chains.",
+           "As *f_backend* but describes an instrument with muliple mixer/receiver chains."},
 
   };
 
@@ -7100,13 +4700,20 @@ fine as requested.
 )--",
       .author = {"Oscar Isoz"},
       .out = {"f_grid"},
-
-      .in = {"f_backend_multi", "backend_channel_response_multi"},
-      .gin = {"spacing", "verbosityVect"},
-      .gin_type = {"Numeric", "Vector"},
-      .gin_value = {Numeric{.1e9}, Vector{}},
-      .gin_desc = {R"--(Desired grid spacing in Hz.)--",
-                   R"--(Bandwidth adjusted spacing)--"},
+      .gin = {"spacing",
+              "verbosityVect",
+              "backend_channel_response_multi",
+              "f_backend_multi"},
+      .gin_type = {"Numeric",
+                   "Vector",
+                   "ArrayOfArrayOfGriddedField1",
+                   "ArrayOfVector"},
+      .gin_value = {Numeric{.1e9}, Vector{}, std::nullopt, std::nullopt},
+      .gin_desc =
+          {R"--(Desired grid spacing in Hz.)--",
+           R"--(Bandwidth adjusted spacing)--",
+           "As *backend_channel_response* but describes an instrument with muliple mixer/receiver chains.",
+           "As *f_backend* but describes an instrument with muliple mixer/receiver chains."},
 
   };
 
@@ -7146,7 +4753,7 @@ There is a similar method for AMSU-type instruments, see
       .desc = R"--(Sets *f_grid* and associated variables match MetMM settings.
 
 The method calculates *f_grid* to match the specifications of a
-*met_mm_backend* table and method arguments.
+``met_mm_backend`` table and method arguments.
 
 You have to specify the desired spacing using the keyword ``freq_spacing``.
 You can pass a *Vector* with one element to apply the same spacing to all
@@ -7170,19 +4777,49 @@ generated *f_grid* are merged together. This value should be left at
 the default value. This is only meant to compensate for numerical
 inaccuracies in the frequency calculation to merge frequency that are
 supposed to be identical.
+
+``met_mm_backend`` is a compact description of a passband-type sensor, e.g. AMSU-A. The matrix
+contains one row for each instrument channel. Each row contains four elements:
+
+ - LO position [Hz]
+ - first offset from the LO [Hz]
+ - second offset from the LO+offset1 [Hz]
+ - channel width [Hz]
+
+Overview::
+
+                            LO
+                             |
+                 offset1     |    offset1
+             ----------------+----------------
+             |                               |
+             |                               |
+    offset2  |  offset2             offset2  |  offset2
+    ---------+---------             ---------+---------
+    |                 |             |                 |
+    |                 |             |                 |
+  #####             #####         #####             #####
+  width             width         width             width
+
+For a sensor with 1 passband, offset1 and offset2 are zero.
+For a sensor with 2 passbands, only offset2 is zero.
 )--",
       .author = {"Oliver Lemke", "Patrick Eriksson"},
-      .out = {"f_grid",
-              "f_backend",
-              "channel2fgrid_indexes",
-              "channel2fgrid_weights"},
-
-      .in = {"met_mm_backend"},
-      .gin = {"freq_spacing", "freq_number", "freq_merge_threshold"},
-      .gin_type = {"Vector", "ArrayOfIndex", "Numeric"},
-      .gin_value = {Vector{.1e9}, ArrayOfIndex{-1}, Numeric{1}},
+      .out = {"f_grid", "f_backend"},
+      .gout = {"channel2fgrid_indexes", "channel2fgrid_weights"},
+      .gout_type = {"ArrayOfArrayOfIndex", "ArrayOfVector"},
+      .gout_desc =
+          {"Definition of backend frequency response, link to *f_grid*.",
+           "Definition of backend frequency response, weighting of *f_grid*."},
+      .gin = {"met_mm_backend",
+              "freq_spacing",
+              "freq_number",
+              "freq_merge_threshold"},
+      .gin_type = {"Matrix", "Vector", "ArrayOfIndex", "Numeric"},
+      .gin_value = {std::nullopt, Vector{.1e9}, ArrayOfIndex{-1}, Numeric{1}},
       .gin_desc =
-          {R"--(Desired grid spacing in Hz.)--",
+          {"Backend description for meteorological millimeter sensors with passbands.",
+           R"--(Desired grid spacing in Hz.)--",
            R"--(Number of frequencies per passband for each channel.)--",
            R"--(Merge frequencies that are closer than this value in Hz.)--"},
 
@@ -7196,7 +4833,10 @@ Sets *g0* for the given latitude using a standard parameterisation.
       .author = {"Patrick Eriksson"},
       .out = {"g0"},
 
-      .in = {"lat"},
+      .gin = {"lat"},
+      .gin_type = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {R"--(Latitude [degrees].)--"},
 
   };
 
@@ -7243,50 +4883,6 @@ Sets *g0*  to mean equatorial gravity on Venus. Value from Ahrens
 
   };
 
-  wsm_data["gas_scattering_coefAirSimple"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates of scattering coefficient matrix for air.
-
-This function calculates the scattering coefficient for air using a
-fitted version from Stamnes et al., 2017 of the numerical results of
-Bates, 1984. Internally it calculates the spectrum of scattering
-coefficient matrices from the spectrum of scattering cross section matrices,
-atmospheric pressure, temperature for one point in the atmosphere. The
-function multiplies the cross sections with the number density of gas
-molecules under the assumption of an ideal gas to get the coefficients.
-The result is returned in *gas_scattering_coef*. The atmospheric  pressure  and 
-temperature  state  has  to  be  specified by  *rtp_pressure*,
-*rtp_temperature*. The formula is accurate to 0.3 percent for wavelengths
-between 0.205 and 1.05 micrometer.
-)--",
-      .author = {"Jon Petersen"},
-      .out = {"gas_scattering_coef"},
-
-      .in = {"f_grid", "rtp_pressure", "rtp_temperature"},
-
-  };
-
-  wsm_data["gas_scattering_coefXsecConst"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the spectrum of scattering coefficient matrices.
-
-It calculates the spectrum of scattering coefficient matrices from 
-constant spectrum of scattering cross section matrices, atmospheric pressure,
-temperature for one point in the atmosphere. Basically, it multiplies
-the cross sections with the number density of gas molecules under the
-assumption of an ideal gas. The result is returned in *gas_scattering_coef*. The
-atmospheric  pressure  and  temperature  state  has  to  be  specified
-by  *rtp_pressure*, *rtp_temperature*.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"gas_scattering_coef"},
-
-      .in = {"f_grid", "rtp_pressure", "rtp_temperature"},
-      .gin = {"ConstXsec"},
-      .gin_type = {"Numeric"},
-      .gin_value = {Numeric{0.}},
-      .gin_desc = {R"--(Constant Xsec value)--"},
-
-  };
-
   wsm_data["heating_ratesFromIrradiance"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculates heating rates from the *irradiance_field*.
 
@@ -7296,341 +4892,37 @@ vertical derivation of the net flux. The net flux is the sum of the
 in downward direction
 )--",
       .author = {"Manfred Brath"},
-      .out = {"heating_rates"},
-
-      .in = {"ppvar_atm", "irradiance_field", "specific_heat_capacity", "g0"},
-
+      .gout = {"heating_rates"},
+      .gout_type = {"Tensor3"},
+      .gout_desc = {R"--(Heating rates)--"},
+      .in = {"ppvar_atm", "irradiance_field", "g0"},
+      .gin = {"specific_heat_capacity"},
+      .gin_type = {"Tensor3"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {R"--(Specific heat capacity)--"},
   };
 
   wsm_data["irradiance_fieldFromRadiance"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the irradiance from the *radiance_field*.
+      .desc = R"--(Calculates the irradiance from the ``radiance_field``.
 
-The *radiance_field* is integrated over the angular grids according to
+The ``radiance_field`` is integrated over the angular grids according to
 the grids set by *AngularGridsSetFluxCalc*. 
 See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 *za_grid_weights*
 )--",
       .author = {"Manfred Brath"},
       .out = {"irradiance_field"},
-
-      .in = {"radiance_field", "za_grid", "aa_grid", "za_grid_weights"},
-
-  };
-
-  wsm_data["lbl_checkedCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Checks that the line-by-line parameters are OK.
-
-On failure, will throw.  On success, lbl_checked evals as true
-
-Note that checks may become more stringent as ARTS evolves, especially for
-"new" options.  This test might succeed in one version of ARTS but fail
-in later versions
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"lbl_checked"},
-
-      .in = {"abs_lines_per_species", "abs_species", "atm_field"},
-
-  };
-
-  wsm_data["mc_antennaSetGaussian"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.
-
-The gaussian antenna pattern is determined by ``za_sigma`` and
-``aa_sigma``, which represent the standard deviations in the
-uncorrelated bivariate normal distribution.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"mc_antenna"},
-
-      .gin = {"za_sigma", "aa_sigma"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Width in the zenith angle dimension as described above.)--",
-           R"--(Width in the azimuth angle dimension as described above.)--"},
-
-  };
-
-  wsm_data["mc_antennaSetGaussianByFWHM"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.
-
-The gaussian antenna pattern is determined by ``za_fwhm`` and
-``aa_fwhm``, which represent the full width half maximum (FWHM)
-of the antenna response, in the zenith and azimuthal planes.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"mc_antenna"},
-
-      .gin = {"za_fwhm", "aa_fwhm"},
-      .gin_type = {"Numeric", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Width in the zenith angle dimension as described above.)--",
-           R"--(Width in the azimuth angle dimension as described above.)--"},
-
-  };
-
-  wsm_data["mc_antennaSetPencilBeam"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Makes mc_antenna (used by MCGeneral) a pencil beam.
-
-This WSM makes the subsequent MCGeneral WSM perform pencil beam
-RT calculations.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"mc_antenna"},
-
-  };
-
-  wsm_data["nbooksGet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Retrieve nbooks from given variable and store the value in the
-workspace variable *nbooks*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"nbooks"},
-
-      .gin = {"v"},
-      .gin_type = {"Tensor4, Tensor5, Tensor6, Tensor7"},
+      .in = {"za_grid", "aa_grid", "za_grid_weights"},
+      .gin = {"radiance_field"},
+      .gin_type = {"Tensor5"},
       .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of books from.)--"},
-
-  };
-
-  wsm_data["ncolsGet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Retrieve ncols from given variable and store the value in the
-workspace variable *ncols*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"ncols"},
-
-      .gin = {"v"},
-      .gin_type =
-          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of columns from.)--"},
-
-  };
-
-  wsm_data["nlibrariesGet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Retrieve nlibraries from given variable and store the value in the
-workspace variable *nlibraries*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"nlibraries"},
-
-      .gin = {"v"},
-      .gin_type = {"Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of libraries from.)--"},
-
-  };
+      .gin_desc = {R"--(Radiance field)--"}};
 
   wsm_data["nlteOff"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Disable Non-LTE calculations.
 )--",
       .author = {"Oliver Lemke"},
       .out = {"nlte_do"},
-
-  };
-
-  wsm_data["npagesGet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Retrieve npages from given variable and store the value in the
-workspace variable *npages*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"npages"},
-
-      .gin = {"v"},
-      .gin_type = {"Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of pages from.)--"},
-
-  };
-
-  wsm_data["nrowsGet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Retrieve nrows from given variable and store the value in the
-workspace variable *nrows*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"nrows"},
-
-      .gin = {"v"},
-      .gin_type =
-          {"Matrix, Sparse, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of rows from.)--"},
-
-  };
-
-  wsm_data["nshelvesGet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Retrieve nshelves from given variable and store the value in the
-workspace variable *nshelves*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"nshelves"},
-
-      .gin = {"v"},
-      .gin_type = {"Tensor5, Tensor6, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of shelves from.)--"},
-
-  };
-
-  wsm_data["nvitrinesGet"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Retrieve nvitrines from given variable and store the value in the
-workspace variable *nvitrines*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"nvitrines"},
-
-      .gin = {"v"},
-      .gin_type = {"Tensor6, Tensor7"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Variable to get the number of vitrines from.)--"},
-
-  };
-
-  wsm_data["opt_prop_bulkCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates bulk absorption extinction at one atmospheric grid point.
-
-This WSM sums up the monochromatic absorption vectors and
-extinction matrices of all scattering elements (*abs_vec_spt* and
-*ext_mat_spt*, respectively) weighted by their respective
-particle number density given by *pnd_field*, for a single location
-within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and
-*scat_lon_index*.
-The resulting  extinction matrix is added to the workspace variable
-*ext_mat*.
-)--",
-      .author = {"Jana Mendrok, Sreerekha T.R."},
-      .out = {"ext_mat", "abs_vec"},
-
-      .in = {"ext_mat",
-             "abs_vec",
-             "ext_mat_spt",
-             "abs_vec_spt",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["opt_prop_sptFromData"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates monochromatic optical properties for all scattering
-elements.
-
-In this function the extinction matrix and the absorption vector
-are calculated in the laboratory frame. An interpolation of the
-data on the actual frequency is the first step in this function.
-The next step is a transformation from the database coordinate
-system to the laboratory coordinate system.
-
-Output of the function are *ext_mat_spt* and *abs_vec_spt*, which
-hold the optical properties for a specified propagation direction
-for each scattering element.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"ext_mat_spt", "abs_vec_spt"},
-
-      .in = {"ext_mat_spt",
-             "abs_vec_spt",
-             "scat_data",
-             "za_grid",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "f_index",
-             "f_grid",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["opt_prop_sptFromMonoData"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates optical properties for the scattering elements.
-
-As *opt_prop_sptFromData* but no frequency interpolation is
-performed. The single scattering data is here obtained from
-*scat_data_mono*, instead of *scat_data*.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"ext_mat_spt", "abs_vec_spt"},
-
-      .in = {"ext_mat_spt",
-             "abs_vec_spt",
-             "scat_data_mono",
-             "za_grid",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["opt_prop_sptFromScat_data"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Derives monochromatic optical properties for all scattering
-elements.
-
-As *opt_prop_sptFromData*, but using frequency pre-interpolated
-data (as produced by *scat_dataCalc*), i.e. in here no frequency
-interpolation is done anymore.
-)--",
-      .author = {"Jana Mendrok, Claudia Emde"},
-      .out = {"ext_mat_spt", "abs_vec_spt"},
-
-      .in = {"ext_mat_spt",
-             "abs_vec_spt",
-             "scat_data",
-             "scat_data_checked",
-             "za_grid",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "f_index",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["output_file_formatSetAscii"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the output file format to ASCII.
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"output_file_format"},
-
-  };
-
-  wsm_data["output_file_formatSetBinary"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the output file format to binary.
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"output_file_format"},
-
-  };
-
-  wsm_data["output_file_formatSetZippedAscii"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the output file format to zipped ASCII.
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"output_file_format"},
 
   };
 
@@ -7672,342 +4964,6 @@ atmopheric fields.
 
   };
 
-  wsm_data["particle_massesFromMetaData"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Derives *particle_masses* from *scat_meta*.
-
-It extracts the mass information of the scattering elements
-from *scat_meta*. Each scattering species is taken as a
-separate category of particle_masses, i.e., the resulting
-*particle_masses* matrix will contain as many columns as
-scattering species are present in *scat_meta*.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"particle_masses"},
-
-      .in = {"scat_meta"},
-
-  };
-
-  wsm_data["particle_massesFromMetaDataSingleCategory"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets *particle_masses* based on *scat_meta* assuming
-all particles are of the same mass category.
-
-This method derives the particle masses from the mass entry
-of each scattering element. It is assumed that all scattering
-elements represent particles of the same (bulk) matter
-(e.g. water or ice). With other words, a single mass category
-is assumed (see *particle_masses* for a definition of "mass
-category").
-
-If just having clouds, the resulting mass category can be seen as
-the total cloud water content, with possible contribution from
-both ice and liquid phase.
-)--",
-          .author = {"Jana Mendrok", "Patrick Eriksson"},
-          .out = {"particle_masses"},
-
-          .in = {"scat_meta"},
-
-      };
-
-  wsm_data["pha_matCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the total phase matrix of all scattering elements.
-
-This function sums up the monochromatic phase matrices of all
-scattering elements *pha_mat_spt* weighted with  their respective
-particle number density, given by *pnd_field*, for a single location
-within the cloudbox, given by *scat_p_index*, *scat_lat_index*, and
-*scat_lon_index*.
-)--",
-      .author = {"Sreerekha T.R."},
-      .out = {"pha_mat"},
-
-      .in = {"pha_mat_spt",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["pha_mat_sptFromData"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculation of the phase matrix of the individual scattering elements.
-
-This function can be used in *pha_mat_spt_agenda* as part of
-the calculation of the scattering integral.
-
-First, data at the requested frequency (given by *f_grid* and
-*f_index*) and temperature (given by *rtp_temperature*) is
-extracted. This is followed by a transformation from the database
-coordinate system to the laboratory coordinate system.
-
-Frequency extraction is always done by (linear) interpolation.
-Temperature is (linearly) interpolated when at least two
-temperature grid points are present in the *scat_data* and
-*rtp_temperature* is positive. If only a single temperature point
-is available, data for this point is used without modification. In
-order to speed up calculations, temperature interpolation can be
-avoided by passing a *rtp_temperature* < 0. In this case, a specific
-temperature grid from the *scat_data* grid is used without
-modification. The selection is as follows:
-
-- -10 < *rtp_temperature* <   0   T_grid[0]     lowest temperature
-- -20 < *rtp_temperature* < -10   T_grid[nT-1]  highest temperature
-- *rtp_temperature* < -20   T_grid[nT/2]  median grid point
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"pha_mat_spt"},
-
-      .in = {"pha_mat_spt",
-             "scat_data",
-             "za_grid",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "f_index",
-             "f_grid",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["pha_mat_sptFromDataDOITOpt"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculation of the phase matrix of the individual scattering elements.
-
-In this function the phase matrix is extracted from
-*pha_mat_sptDOITOpt*. It can be used in the agenda
-*pha_mat_spt_agenda*. This method must be used in combination with
-``DoitScatteringDataPrepare``.
-
-Temperature is considered as described for *pha_mat_sptFromData*
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"pha_mat_spt"},
-
-      .in = {"pha_mat_spt",
-             "pha_mat_sptDOITOpt",
-             "scat_data_mono",
-             "doit_za_grid_size",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["pha_mat_sptFromMonoData"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculation of the phase matrix of the individual scattering elements.
-
-This function is the monochromatic version of *pha_mat_sptFromData*.
-)--",
-      .author = {"Claudia Emde"},
-      .out = {"pha_mat_spt"},
-
-      .in = {"pha_mat_spt",
-             "scat_data_mono",
-             "doit_za_grid_size",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["pha_mat_sptFromScat_data"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculation of the phase matrix of the individual scattering elements.
-
-As *pha_mat_sptFromData*, but using frequency pre-interpolated
-data (as produced by *scat_dataCalc*), i.e. in here no frequency
-interpolation is done anymore.
-)--",
-      .author = {"Jana Mendrok, Claudia Emde"},
-      .out = {"pha_mat_spt"},
-
-      .in = {"pha_mat_spt",
-             "scat_data",
-             "scat_data_checked",
-             "za_grid",
-             "aa_grid",
-             "za_index",
-             "aa_index",
-             "f_index",
-             "rtp_temperature",
-             "pnd_field",
-             "scat_p_index",
-             "scat_lat_index",
-             "scat_lon_index"},
-
-  };
-
-  wsm_data["pha_mat_spt_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *pha_mat_spt_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"pha_mat_spt_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["pndFromPsd"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates *pnd_data* from given *psd_data* for one scattering species.
-
-Performs integration of the size distribution over the size grid
-bin deriving pnd (units #/m3) from psd (units #/m3/m). Some checks
-on the sufficiency of the size grid range and coverage are applied.
-
-``quad_order`` can be 0 for rectangular or 1 for trapezoidal
-integration. The only difference is the treatment of the start and
-end nodes. For trapezoidal their corresponding bins end exactly at
-the nodes, while for rectangular they extend further out by the half
-distance to the neighbor node (but not beyond 0).
-
-Attempts to check that the size grids and *scat_data* represent the
-bulk extinction sufficiently. Specifically, it is tested that
-
-(a) psd*ext is decreasing at the small and large particle size
-    ends of the size grid - but only if scattering species bulk
-    extinction exceeds 1% of ``threshold_ss_ext``.
-(b) removing the smallest and largest particles changes the
-    resulting bulk extinction by less then a fraction of
-    ``threshold_se_ext`` - but only if scattering species bulk
-    extinction exceeds ``threshold_ss_ext`` and number density (pnd)
-    of the edge size point at this atmospheric level is larger
-    than ``threshold_se_pnd`` times the maximum pnd of this
-    scattering element over all atmospheric levels.
-
-Skipping tests in case of low extinction is done in order to
-minimize issues arising from very low mass densities,
-particularly at single atmospheric levels, and very low bulk
-extinctions, i.e. in cases where the effects on the radiance fields
-are estimated to be low.
-NOTE: The tests are only approximate and do not guarantee the
-validity of the resulting bulk properties (and increasing the
-thresholds will decrease the reliability of the bulk properties).
-)--",
-      .author = {"Jana Mendrok, Patrick Eriksson"},
-      .out = {"pnd_data", "dpnd_data_dx"},
-
-      .in = {"pnd_size_grid",
-             "psd_data",
-             "psd_size_grid",
-             "dpsd_data_dx",
-             "scat_data",
-             "f_grid",
-             "scat_data_checked"},
-      .gin = {"quad_order",
-              "scat_index",
-              "threshold_se_ext",
-              "threshold_ss_ext",
-              "threshold_se_pnd"},
-      .gin_type = {"Index", "Index", "Numeric", "Numeric", "Numeric"},
-      .gin_value =
-          {Index{1}, std::nullopt, Numeric{0.02}, Numeric{1e-8}, Numeric{0.02}},
-      .gin_desc =
-          {R"--(Order of bin quadrature.)--",
-           R"--(Take data from scattering species of this index (0-based) in *scat_data*.)--",
-           R"--(Maximum allowed extinction fraction in each of the edge size bins.)--",
-           R"--(Minimum bulk extinction in the processed scattering species for which to apply size grid representation checks.)--",
-           R"--(Minimum ratio of edge point pnd to maximum pnd of this scattering element over all pressure levels.)--"},
-
-  };
-
-  wsm_data["pndFromPsdBasic"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates *pnd_data* from given *psd_data*.
-
-As *pndFromPsdBasic*, but without bulk extinction representation
-checks.
-)--",
-      .author = {"Jana Mendrok, Patrick Eriksson"},
-      .out = {"pnd_data", "dpnd_data_dx"},
-
-      .in = {"pnd_size_grid", "psd_data", "psd_size_grid", "dpsd_data_dx"},
-      .gin = {"quad_order"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc = {R"--(Order of bin quadrature.)--"},
-
-  };
-
-  wsm_data["pnd_fieldExpand1D"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.
-
-This method takes a 1D *pnd_field* and converts it to a 2D or 3D
-"cloud". It is assumed that a complete 1D case has been created,
-and after this ``atmosphere_dim``, ``lat_grid``, ``lon_grid`` and
-*cloudbox_limits* have been changed to a 2D or 3D case (without
-changing the vertical extent of the cloudbox.
-
-No modification of *pnd_field* is made for the pressure dimension.
-At the latitude and longitude cloudbox edge points *pnd_field* is set to
-zero. This corresponds to nzero=1. If you want a larger margin between
-the lat and lon cloudbox edges and the "cloud" you increase
-``nzero``, where ``nzero`` is the number of grid points for which
-*pnd_field* shall be set to 0, counted from each lat and lon edge.
-
-See further ``AtmFieldsExpand1D``.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"pnd_field"},
-
-      .in = {"pnd_field", "cloudbox_on", "cloudbox_limits"},
-      .gin = {"nzero"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc = {R"--(Number of zero values inside lat and lon limits.)--"},
-
-  };
-
-  wsm_data["pnd_fieldZero"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *pnd_field* to zero.
-
-Creates an empty *pnd_field* of cloudbox size according to
-*cloudbox_limits* and with number of scattering elemements
-according to *scat_data*. If *scat_data* is not set yet, it will be
-filled with one dummy scattering element.
-
-The method works with both *scat_data* and *scat_data_raw*.
-This method primarily exists for testing purposes.
-On the one hand, empty *pnd_field* runs can be used to test the
-agreement between true clear-sky (``cloudboxOff``) solutions and the
-scattering solver solution in factual clear-sky conditions. It is
-important to avoid discontinuities when switching from thin-cloud
-to clear-sky conditions.
-Moreover, scattering calculations using the DOIT method include
-interpolation errors. If one is interested in this effect, one
-should compare the DOIT result with an empty cloudbox to a clearsky
-calculation. That means that the iterative method is performed for
-a cloudbox with no particles.
-)--",
-      .author = {"Claudia Emde, Jana Mendrok"},
-      .out = {"pnd_field", "dpnd_field_dx", "scat_data"},
-
-      .in = {"scat_data", "f_grid", "cloudbox_limits", "jacobian_targets"},
-
-  };
-
   wsm_data["ppvar_atmFromPath"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Gets the atmospheric points along the path.
 )--",
@@ -8041,23 +4997,13 @@ a cloudbox with no particles.
 )--",
       .author = {"Richard Larsson"},
       .out = {"ppvar_f"},
-      .in = {"f_grid", "propagation_path", "ppvar_atm", "rte_alonglos_v"},
+      .in = {"f_grid", "propagation_path", "ppvar_atm"},
+      .gin = {"rte_alonglos_v"},
+      .gin_type = {"Numeric"},
+      .gin_value = {Numeric{0.0}},
+      .gin_desc =
+          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--"},
   };
-
-  wsm_data["ppvar_optical_depthFromPpvar_trans_cumulat"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Sets *ppvar_optical_depth* according to provided transmittance data.
-
-The values in ppvar_optical_depth are set to
--log( ppvar_trans_cumulat(joker,joker,0,0) ).
-)--",
-          .author = {"Patrick Eriksson"},
-          .out = {"ppvar_optical_depth"},
-
-          .in = {"ppvar_trans_cumulat"},
-
-      };
 
   wsm_data["ppvar_propmatCalc"] = WorkspaceMethodInternalRecord{
       .desc =
@@ -8126,10 +5072,11 @@ A layer is defined as made up by the average of 2 levels, thus the outer-most si
 of the derivatives out of this function is 2.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"ppvar_tramat",
-              "ppvar_dtramat",
-              "ppvar_distance",
-              "ppvar_ddistance"},
+      .out = {"ppvar_tramat", "ppvar_dtramat"},
+      .gout = {"ppvar_distance", "ppvar_ddistance"},
+      .gout_type = {"Vector", "ArrayOfArrayOfVector"},
+      .gout_desc = {R"--(Distance between layers.)--",
+                    R"--(Derivative of distance between layers.)--"},
       .in = {"ppvar_propmat",
              "ppvar_dpropmat",
              "propagation_path",
@@ -8266,15 +5213,15 @@ Some special species are ignored, for example Zeeman species and free
 electrons, since their absorption properties are not simple scalars
 and cannot be handled by the lookup table.
 
-The interpolation order in T and H2O is given by *abs_t_interp_order*
-and *abs_nls_interp_order*, respectively.
+The interpolation order in T and H2O is given by ``abs_t_interp_order``
+and ``abs_nls_interp_order``, respectively.
 
 Extraction is done for the frequencies in f_grid. Frequency
-interpolation is controlled by *abs_f_interp_order*. If this is zero,
+interpolation is controlled by ``abs_f_interp_order``. If this is zero,
 then f_grid must either be the same as the internal frequency grid of
 the lookup table (for efficiency reasons, only the first and last
 element of f_grid are checked), or must have only a single element.
-If *abs_f_interp_order* is above zero, then frequency is interpolated
+If ``abs_f_interp_order`` is above zero, then frequency is interpolated
 along with the other interpolation dimensions. This is useful for
 calculations with Doppler shift.
 
@@ -8295,21 +5242,30 @@ limit can here be adjusted by the ``extpolfac`` argument.
              "dpropmat_clearsky_dx",
              "abs_lookup",
              "abs_lookup_is_adapted",
-             "abs_p_interp_order",
-             "abs_t_interp_order",
-             "abs_nls_interp_order",
-             "abs_f_interp_order",
              "f_grid",
              "atm_point",
              "jacobian_targets",
              "abs_species",
              "select_abs_species"},
-      .gin = {"extpolfac", "no_negatives"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {Numeric{0.5}, Index{1}},
+      .gin =
+          {
+              "extpolfac",
+              "no_negatives",
+              "abs_p_interp_order",
+              "abs_t_interp_order",
+              "abs_nls_interp_order",
+              "abs_f_interp_order",
+          },
+      .gin_type = {"Numeric", "Index", "Index", "Index", "Index", "Index"},
+      .gin_value =
+          {Numeric{0.5}, Index{1}, Index{5}, Index{7}, Index{5}, Index{0}},
       .gin_desc =
           {R"--(Extrapolation factor (for temperature and VMR grid edges).)--",
-           R"--(Boolean. If it is true negative values due to interpolation are set to zero.)--"},
+           R"--(Boolean. If it is true negative values due to interpolation are set to zero.)--",
+           "The interpolation order to use when interpolating absorption between pressure levels.",
+           "The interpolation order to use when interpolating absorption between the temperature values given by ``abs_t_pert``.",
+           "The interpolation order to use when interpolating absorption between the H2O values given by ``abs_nls_pert``.",
+           "Frequency interpolation order for absorption lookup table."},
 
   };
 
@@ -8372,7 +5328,6 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
               "nlte_source",
               "dpropmat_clearsky_dx",
               "dnlte_source_dx"},
-
       .in = {"propmat_clearsky",
              "nlte_source",
              "dpropmat_clearsky_dx",
@@ -8383,20 +5338,25 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
              "jacobian_targets",
              "abs_lines_per_species",
              "atm_point",
-             "nlte_vib_energies",
              "nlte_do"},
-      .gin = {"lines_sparse_df",
+      .gin = {"nlte_vib_energies",
+              "lines_sparse_df",
               "lines_sparse_lim",
               "lines_speedup_option",
               "no_negatives"},
-      .gin_type = {"Numeric", "Numeric", "String", "Index"},
-      .gin_value = {Numeric{0}, Numeric{0}, String("None"), Index{1}},
+      .gin_type =
+          {"VibrationalEnergyLevels", "Numeric", "Numeric", "String", "Index"},
+      .gin_value = {VibrationalEnergyLevels{},
+                    Numeric{0},
+                    Numeric{0},
+                    String("None"),
+                    Index{1}},
       .gin_desc =
-          {R"--(The grid sparse separation)--",
+          {"A map of energy levels",
+           R"--(The grid sparse separation)--",
            R"--(The dense-to-sparse limit)--",
            R"--(Speedup logic)--",
            R"--(Boolean.  If it is true, line mixed bands each allocate their own compute data to ensure that they cannot produce negative absorption)--"},
-
   };
 
   wsm_data["propmat_clearskyAddOnTheFlyLineMixing"] =
@@ -8428,69 +5388,6 @@ to compensate the calculations for the pressure limit
                  "atm_point"},
 
       };
-
-  wsm_data["propmat_clearskyAddParticles"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates absorption coefficients of particles to be used in
-clearsky (non-cloudbox) calculations.
-
-This is a method to include particles (neglecting possible
-scattering components) in a clearsky calculation, i.e. without
-applying the cloudbox and scattering solvers. Particles are handled
-as absorbing species with one instance of 'particles' per scattering
-element considered added to *abs_species*. Particle absorption cross-
-sections at current atmospheric conditions are extracted from the
-single scattering data stored in *scat_data*, i.e., one array
-element per 'particles' instance in *abs_species* is required. Number
-densities are stored in ``vmr_field_raw`` or ``vmr_field`` as for all
-*abs_species*, but can be taken from (raw) pnd_field type data.
-
-Note that the absorption coefficient is applied both in the
-extinction term (neglecting scattering out of the line of sight)
-and the emission term (neglecting the scattering source term, i.e.
-scattering into the line of sight).
-
-Optionally, particle extinction (sum of absorption and scattering
-coefficient) can be used instead of absorption only. To choose this
-case, set the ``use_abs_as_ext`` flag to 0. However, be aware that
-this creates some unphysical emission term, hence is only suitable,
-where the source term is negligible anyways, e.g. for occultation
-simulations.
-
-A line-of-sight direction *path_point* is required as particles can
-exhibit directional dependent absorption properties, which is taken
-into account by this method.
-*ScatElementsToabs_speciesAdd* can be used to add all required
-settings/data for individual scattering elements at once, i.e. a
-'particles' tag to *abs_species*, a set of single scattering data to
-*scat_data* and a number density field to ``vmr_field_raw``
-(``vmr_field`` is derived applying AtmFieldsCalc once VMRs for all
-*abs_species* have been added) is appended for each scattering
-element.
-
-Like all 'propmat_clearskyAdd*' methods, the method is additive,
-i.e., does not overwrite the propagation matrix *propmat_clearsky*,
-but adds further contributions.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
-
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
-             "f_grid",
-             "abs_species",
-             "select_abs_species",
-             "jacobian_targets",
-             "path_point",
-             "atm_point",
-             "scat_data",
-             "scat_data_checked"},
-      .gin = {"use_abs_as_ext"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {R"--(A flag with value 1 or 0. If set to one, particle absorption is used in extinction and emission parts of the RT equation, and scattering out of LOS as well as into LOS is neglected. Otherwise, particle extinction (absorption+scattering) is applied in both the extinction as well as the emission part of the RT equation. That is, true extinction is applied, but emission also includes a pseudo-emission contribution from the scattering coefficient. )--"},
-
-  };
 
   wsm_data["propmat_clearskyAddPredefined"] = WorkspaceMethodInternalRecord{
       .desc =
@@ -8859,13 +5756,18 @@ Otherwise as *propmat_clearskyAddFromLookup*
              "select_abs_species",
              "jacobian_targets",
              "atm_point",
-             "nlte_vib_energies",
              "path_point",
              "nlte_do"},
-      .gin = {"manual_mag_field", "H", "theta", "eta"},
-      .gin_type = {"Index", "Numeric", "Numeric", "Numeric"},
-      .gin_value = {Index{0}, Numeric{1.0}, Numeric{0.0}, Numeric{0.0}},
-      .gin_desc = {R"--(Manual angles tag)--",
+      .gin = {"nlte_vib_energies", "manual_mag_field", "H", "theta", "eta"},
+      .gin_type =
+          {"VibrationalEnergyLevels", "Index", "Numeric", "Numeric", "Numeric"},
+      .gin_value = {VibrationalEnergyLevels{},
+                    Index{0},
+                    Numeric{1.0},
+                    Numeric{0.0},
+                    Numeric{0.0}},
+      .gin_desc = {"A map of energy levels",
+                   R"--(Manual angles tag)--",
                    R"--(Manual Magnetic Field Strength)--",
                    R"--(Manual theta given positive tag)--",
                    R"--(Manual eta given positive tag)--"},
@@ -8934,7 +5836,6 @@ The following methods are considered for addition:
     4) *propmat_clearskyAddZeeman*
     5) *propmat_clearskyAddFaraday*
     6) *propmat_clearskyAddXsecFit*
-    7) *propmat_clearskyAddParticles*
     8) *propmat_clearskyAddFromLookup*
     9) *propmat_clearskyAddPredefined*
     10) *propmat_clearskyAddOnTheFlyLineMixing*
@@ -8962,7 +5863,6 @@ To perform absorption lookupo table calculation, call:
               "manual_mag_field",
               "no_negatives",
               "theta",
-              "use_abs_as_ext",
               "use_abs_lookup"},
       .gin_type = {"Numeric",
                    "Numeric",
@@ -8977,7 +5877,6 @@ To perform absorption lookupo table calculation, call:
                    "Index",
                    "Index",
                    "Numeric",
-                   "Index",
                    "Index"},
       .gin_value = {Numeric{1.0},
                     Numeric{0.5},
@@ -8992,7 +5891,6 @@ To perform absorption lookupo table calculation, call:
                     Index{0},
                     Index{1},
                     Numeric{0.0},
-                    Index{1},
                     Index{0}},
       .gin_desc =
           {R"--(See *propmat_clearskyAddZeeman*)--",
@@ -9008,7 +5906,6 @@ To perform absorption lookupo table calculation, call:
            R"--(See *propmat_clearskyAddZeeman*)--",
            R"--(See *propmat_clearskyAddLines*; See *propmat_clearskyAddFromLookup*)--",
            R"--(See *propmat_clearskyAddZeeman*)--",
-           R"--(See *propmat_clearskyAddParticles*)--",
            R"--(Uses lookup calculations if true, ignores methods that can be part of the lookup table)--"},
   };
 
@@ -9067,1445 +5964,6 @@ This method should be called if you use a manual *propmat_clearsky_agenda*
           .pass_workspace = true,
       };
 
-  wsm_data["psdAbelBoutle12"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Abel and Boutle [2012] particle size distribution for rain.
-
-Reference: Abel and Boutle, An improved representation of the 
-raindrop size distribution for single-moment microphysics schemes,
-QJRMS, 2012.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be rain mass content in
-unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-Particles are assumed to be near-spherical, ie. *psd_size_grid* can
-either be in terms of volume (or mass) equivalent diameter or
-maximum diameter.
-
-Derivatives are obtained analytically.
-
-The validity range of mass content is not limited. Negative mass
-contents will produce negative psd values following a distribution
-given by abs(RWC), ie. abs(psd)=f(abs(RWC)).
-
-If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"t_min", "t_max", "picky"},
-      .gin_type = {"Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{273}, Numeric{373}, Index{0}},
-      .gin_desc =
-          {R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdDelanoeEtAl14"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Normalized PSD as proposed in Delanoë et al. ((2014)),
-
-Title and journal:
-'Normalized particle size distribution for remote sensing
-application', J. Geophys. Res. Atmos., 119, 4204–422.
-
-The PSD has two independent parameters ``n0Star``, the intercept
-parameter, and ``Dm``, the volume-weighted diameter.
-This implementation expects as input two out of the following
-three quantities: ``iwc``, ``n0Star``, ``Dm``. In this case one of
-the input parameters ``iwc``, ``n0Star``, ``Dm`` must be set to -999.
-It is also possible to provide only ``iwc``, in which case an a
-priori assumption will be used to deduce ``n0Star`` from temperature.
-In this case both ``n0Star`` and ``Dm`` must be set to -999.0.
-
-This PSD is not defined for vanishing concentrations of
-scatterers as it requires normalization by ``Dm``. It is up
-to the user to ensure that the value of ``Dm`` is sufficiently
-large. An error is thrown if ``Dm`` is zero or below the value
-provided by ``dm_min``.
-)--",
-      .author = {"Simon Pfreundschuh"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names"},
-      .gin = {"iwc",
-              "n0Star",
-              "Dm",
-              "rho",
-              "alpha",
-              "beta",
-              "t_min",
-              "t_max",
-              "dm_min",
-              "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    Numeric{916.7},
-                    Numeric{-0.237},
-                    Numeric{1.839},
-                    std::nullopt,
-                    std::nullopt,
-                    Numeric{-1.0},
-                    Index{0}},
-      .gin_desc =
-          {R"--(Ice water content)--",
-           R"--(Intercept parameter)--",
-           R"--(Volume weighted diameter)--",
-           R"--(Density of ice)--",
-           R"--(``alpha`` parameter of the shape function)--",
-           R"--(``beta`` paramter of the shape function)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Lower threshold for ``Dm`` below which an error is thrown.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdFieldEtAl07"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(The Field et al. [2007] particle size distribution for snow and
-cloud ice.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be ice hydrometeor mass
-content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
-is free but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-*psd_size_grid* shall contain size in terms of maximum diameter.
-
-Derivatives are obtained by perturbation of 0.1%, but not less than
-1e-9 kg/m3.
-
-Both parametrization for tropics and midlatitudes are handled,
-governed by setting of ``regime``, where "TR" selectes the tropical
-case, and "ML" the midlatitude one.
-
-The validity range of mass content is not limited. Negative mass
-contents will produce negative psd values following a distribution
-given by abs(IWC), ie. abs(psd)=f(abs(IWC)).
-
-If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-
-For temperatures below `t_min_psd``, the size distribution is
-calculated for T = `t_min_psd``. Likewise, for temperatures above
-``t_max_psd``, the distribution is derived for T = ``t_max_psd``.
-
-Defaults of `t_min_psd`` and ``t_max_psd`` were set considering that
-the parametrization has been derived from measurements over
-temperatures of -60C to 0C.
-Checks of the sanity of the mass-dimension relationship are performed
-Errors are thrown if:
-
-- Mass-dimension relation exponent *scat_species_b* is outside [``beta_min``, ``beta_max``].
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"regime",
-              "t_min",
-              "t_max",
-              "t_min_psd",
-              "t_max_psd",
-              "beta_min",
-              "beta_max",
-              "picky"},
-      .gin_type = {"String",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::nullopt,
-                    Numeric{0},
-                    Numeric{290.},
-                    Numeric{200.},
-                    Numeric{273.15},
-                    Numeric{1.01},
-                    Numeric{4},
-                    Index{0}},
-      .gin_desc =
-          {R"--(Parametrization regime ("TR"=tropical or "ML"=midlatitude).)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Low temperature limit to use as paramtrization temperature.)--",
-           R"--(High temperature limit to use as paramtrization temperature.)--",
-           R"--(Low ``b`` limit (only if picky).)--",
-           R"--(High ``b`` limit (only if picky).)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdFieldEtAl19"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(The Field [2019] particle size distribution for hail.
-
-Reference: Field, Normalized hail particle size distributions from the T-28
-storm-penetrating aircraft, JAMC, 2019
-
-This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and
-*pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be hail mass content in
-unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-The parameters assume a constant effective density, i.e. scat_species_b approx 3
-
-Derivatives are obtained analytically.
-
-The validity range of mass content is not limited. Negative mass
-contents will produce negative psd values following a distribution
-given by abs(HWC), ie. abs(psd)=f(abs(HWC)).
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Stuart Fox"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"t_min", "t_max", "picky"},
-      .gin_type = {"Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdMcFarquaharHeymsfield97"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(McFarquahar and Heymsfield [1997] particle size distribution
-for cloud ice.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be ice hydrometeor mass
-content in unit of [kg/m3]. The naming used is *pnd_agenda_input_names*
-is free but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-*psd_size_grid* shall contain size in terms of volume equivalent diameter.
-
-Derivatives are obtained by perturbation of 0.1%, but not less than
-1e-9 kg/m3.
-
-The validity range of mass content is not limited. Negative mass
-contents will produce negative psd values following a distribution
-given by abs(IWC), ie. abs(psd)=f(abs(IWC)).
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-
-For temperatures below `t_min_psd``, the size distribution is
-calculated for T = `t_min_psd``. Likewise, for temperatures above
-``t_max_psd``, the distribution is derived for T = ``t_max_psd``.
-
-Defaults of ``t_min_psd`` and ``t_max_psd`` were set considering that
-the parametrization has been derived from measurements over
-temperatures of -70C to -20C.
-The noisy option can not be used together with calculation of
-derivatives (ie. when *dpnd_data_dx_names* is not empty).
-)--",
-      .author = {"Patrick Eriksson, Jana Mendrok"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"t_min", "t_max", "t_min_psd", "t_max_psd", "picky", "noisy"},
-      .gin_type =
-          {"Numeric", "Numeric", "Numeric", "Numeric", "Index", "Index"},
-      .gin_value = {Numeric{0},
-                    Numeric{280.},
-                    Numeric{180},
-                    Numeric{273.15},
-                    Index{0},
-                    Index{0}},
-      .gin_desc =
-          {R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Low temperature limit to use as paramtrization temperature.)--",
-           R"--(High temperature limit to use as paramtrization temperature.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--",
-           R"--(Distribution parameter perturbance flag)--"},
-
-  };
-
-  wsm_data["psdMilbrandtYau05"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)
-two moment particle size distribution for cloud water, cloud ice,
-rain, snow, graupel and hail, which is used in the GEM model.
-
-WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
-to *pnd_field* using ``pnd_fieldCalcFromParticleBulkProps``.
-Produces the particle size distribution values (dN/dD) and their
-derivates with respect to independent variables x by *dpnd_data_dx_names*
-over multiple particle sizes and atmospheric levels (or SWC/T
-combinations).
-
-*psd_size_grid* is considered to be in terms of maximum diameter.
-WC is considered to be in terms of mass content (or mass density),
-ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3].
-
-Derivatives with respect to WC and N_tot are obtained analytically.
-
-Six particle size distributions for the different hydrometeors are handled,
-governed by setting of ``hydrometeor_type``, where 
-
-(1) "cloud_water" selects cloud liquid water , 
-(2) "cloud_ice" selects cloud ice, 
-(3) "snow" selects snow, 
-(4) "rain" selects rain, 
-(5) "graupel" selects graupel, and 
-(6) "hail" selects hail, 
-
-Requirements:
-
-*pnd_agenda_input_names* must include::
-
-    ["X-mass_density", "X-number_density" ]. "X" is an arbitrary name
-
-The entries in  *dpnd_data_dx_names* (ie. the allowed
-independent variablea ) can be "X-mass_density" and\or 
-"X-number_density".
-
-The validity range of WC is not limited. Negative WC will produce
-negative psd values following a distribution given by abs(WC), ie.
-abs(psd)=f(abs(WC)).
-
-If temperature is outside [``t_min``,``t_max``] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names"},
-      .gin = {"hydrometeor_type", "t_min", "t_max", "picky"},
-      .gin_type = {"String", "Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, Numeric{0}, Numeric{999}, Index{0}},
-      .gin_desc =
-          {R"--(Hydrometeor type (see above description).)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGamma"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution PSD using n0, mu, la and ga as parameters.
-
-The modified gamma distribution is a 4-parameter (n0, mu, la and ga)
-distribution [Petty & Huang, JAS, 2011)]::
-
-  n(x) = n0 * x^mu * exp( -la*x^ga )
-
-where x is particle size or mass.
-
-The parameters can be given in two ways, either by *pnd_agenda_input* or
-as GIN arguments. The first option allows the parameter to vary, while
-in the second case the parameter gets a constant value. If a parameter is
-part of *pnd_agenda_input*, the corresponding GIN argument must be set
-to NaN (which is default). This means that the number of columns in
-*pnd_agenda_input* and the number of non-NaN choices for n0, mu, la and
-ga must add up to four.
-
-Data in *pnd_agenda_input* are linked to the MGD parameters in term of
-order, the naming in *pnd_agenda_input_names* is free. If all four
-parameteras are specified by *pnd_agenda_input*, the data in the first
-column are taken as n0, the second column as mu etc. If a parameter is
-given as a GIN argument, the columns are just shifted with one position.
-For example, if mu and ga are specified as GIN arguments, *pnd_agenda_input*
-shall have two columns, with n0-values in the first one and la-values in
-the second one.
-
-The GIN route is especially suitable for selecting special cases of MGD.
-For example, by setting mu=0 and ga=1, an exponential PSD is obtained::
-
-  n(x) = n0 * exp( -la * x )
-
-With mu=1 and ga=1, the gamma PSD is obtained::
-
-  n(x) = n0 * x^mu * exp( -la * x )
-
-There should be little overhead in using the method for exponential
-and gamma PSDs, there is an internal switch to dedicated expressions
-for those PSDs.
-
-Derivatives can only be obtained for parameters that are specified by
-*pnd_agenda_input*.
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-
-These requirements apply to the MGD parameters:
-
-(1) la > 0
-(2) ga > 0
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMass"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution (MGD) PSD, with mass content as input.
-
-See *psdModifiedGamma* for a defintion of MGD parameters and how
-this PSD is handled in ARTS. Only deviations with respect to
-*psdModifiedGamma* are described here.
-
-This version of MGD PSD takes mass content as first input argument.
-This means that the first column of *pnd_agenda_input* shall hold
-mass content data.
-
-The mass content basically replaces one of the standard parameters
-(n0, mu, la and ga). This parameter is denoted as the dependent one.
-The dependent parameter is selected by setting the corresponding GIN
-to -999. So far only n0 and la are allowed to be dependent.
-
-Regarding remaining columns in *pnd_agenda_input* and constant
-parameter values (by GIN) follows the same principle as for
-*psdModifiedGamma* except that mass is always in column one (as
-mentioned) and that there is no position in *pnd_agenda_input*
-for the dependent parameter.
-
-These requirements apply to the MGD parameters:
- (1) mu + scat_species_b + 1 > 0
- (2) la > 0
- (3) ga > 0
- (4) If la is the dependent parameter, mass content must be > 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMassMeanParticleMass"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution PSD, with mass content and mean particle
-mass (Mmean) as inputs.
-
-"Mean particle mass" is here defined as the mass content divided with
-the total number density.
-
-This version of MGD PSD works as *psdModifiedGammaMass*, but takes
-mass content and mean particle mass as first two arguments. This
-means that the first and second column of *pnd_agenda_input* shall
-hold mass content and Mmean, respectively. Accordingly, the number
-of dependent parameters is two.
-
-These requirements apply to the MGD parameters:
- (1) mu + 1 > 0
- (2) la > 0
- (3) ga > 0
- (4) Mmean must be > 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMassNtot"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution PSD, with mass content and total number
-density (Ntot) as inputs.
-
-This version of MGD PSD works as *psdModifiedGammaMass*, but takes
-mass content and total number density as first two arguments. This
-means that the first and second column of *pnd_agenda_input* shall
-hold mass content and Ntot, respectively. Accordingly, the number
-of dependent parameters is two.
-
-These requirements apply:
- (1) mu + 1 > 0
- (2) la > 0
- (3) ga > 0
- (4) Ntot must be > 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMassSingleMoment"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Modified gamma distribution PSD, with mass content as input.
-
-The intercept parameter N0 is assumed dependent on the slope parameter
-lambda, such that N0=N_alpha*lambda^n_b with fixed N_alpha and n_b.
-This is a common form for many PSD parametrizations for use with
-single-moment mass-based schemes.
-
-This version of MGD PSD takes mass content as first input argument.
-This means that the first column of *pnd_agenda_input* shall hold
-mass content data. The dependent parameter is assumed to be lambda.
-)--",
-      .author = {"Stuart Fox"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n_alpha", "n_b", "mu", "gamma", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n_alpha)--",
-           R"--(n_b)--",
-           R"--(mu)--",
-           R"--(gamma)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMassXmean"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution PSD, with mass content and mean size
-(Xmean) as inputs.
-
-"Mean size" is here defined as mass weighted size. Remembering that
-mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b
-is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).
-
-This version of MGD PSD works as *psdModifiedGammaMass*, but takes
-mass content and mass size as first two arguments. This means that
-the first and second column of *pnd_agenda_input* shall hold mass
-content and Xmean, respectively. Accordingly, the number of dependent
-parameters is two.
-
-These requirements apply to the MGD parameters:
- (1) mu + scat_species_b + 1 > 0
- (2) la > 0
- (3) ga > 0
- (4) Xmean must be > 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdModifiedGammaMassXmedian"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Modified gamma distribution PSD, with mass content and median size
-(Xmedian) as inputs.
-
-
-This version of MGD PSD works as *psdModifiedGammaMass*, but takes
-mass content and median size as first two arguments. This means that
-the first and second column of *pnd_agenda_input* shall hold mass
-content and Xmedian, respectively. Accordingly, the number of
-dependent parameters is two.
-
-These requirements apply to the MGD parameters:
- (1) mu + scat_species_b + 1 > 0
- (2) la > 0
- (3) ga > 0
- (4) Xmedian must be > 0.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"n0", "mu", "la", "ga", "t_min", "t_max", "picky"},
-      .gin_type = {"Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "Index"},
-      .gin_value = {std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    Index{0}},
-      .gin_desc =
-          {R"--(n0)--",
-           R"--(mu)--",
-           R"--(la)--",
-           R"--(ga)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdMonoDispersive"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Mono-dispersive PSD, with number density given.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be number densities, in
-unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-The method checks that the scattering species indicated (by
-``species_index``) has a single element, and just inserts the provided
-number density in *psd_data*.
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_meta"},
-      .gin = {"species_index", "t_min", "t_max", "picky"},
-      .gin_type = {"Index", "Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The index of the scattering species of concern (0-based).)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdMonoMass"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Mono-dispersive PSD, with mass content given.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be mass contents, in
-unit of [#/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-The method checks that the scattering species indicated (by
-``species_index``) has a single element, and sets *psd_data* based
-on the mass contents given and the particle mass (derived from
-*scat_meta*).
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_meta"},
-      .gin = {"species_index", "t_min", "t_max", "picky"},
-      .gin_type = {"Index", "Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(The index of the scattering species of concern (0-based).)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdSeifertBeheng06"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Calculates *psd_data* and *dpsd_data_dx* following Seifert and Beheng (2006)
-two moment particle size distribution for cloud water, cloud ice,
-rain, snow, graupel and hail, which is used in the ICON model.
-
-WSM for use in *pnd_agenda_array* for mapping ``particle_bulkprop_field``
-to *pnd_field* using ``pnd_fieldCalcFromParticleBulkProps``.
-Produces the particle size distribution values (dN/dD) and their
-derivates with respect to independent variables x by *dpnd_data_dx_names*
-over multiple particle sizes and atmospheric levels (or SWC/T
-combinations).
-
-*psd_size_grid* is considered to be in terms of mass.
-WC is considered to be in terms of mass content (or mass density),
-ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] .
-Derivatives with respect to WC and N_tot are obtained analytically.
-
-Six particle size distributions for the different hydrometeors are handled,
-governed by setting of ``hydrometeor_type``, where 
-
-(1) "cloud_water" selects cloud liquid water , 
-(2) "cloud_ice" selects cloud ice, 
-(3) "snow" selects snow, 
-(4) "rain" selects rain, 
-(5) "graupel" selects graupel, and 
-(6) "hail" selects hail, 
-
-Requirements:
-
-*pnd_agenda_input_names* must include::
-
-  ["X-mass_density", "X-number_density" ]. "X" is an arbitrary name
-
-The entries in  *dpnd_data_dx_names* (ie. the allowed
-independent variablea ) can be "X-mass_density" and\or 
-"X-number_density".
-
-The validity range of WC is not limited. Negative WC will produce
-negative psd values following a distribution given by abs(WC), ie.
-abs(psd)=f(abs(WC)).
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Manfred Brath"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names"},
-      .gin = {"hydrometeor_type", "t_min", "t_max", "picky"},
-      .gin_type = {"String", "Numeric", "Numeric", "Index"},
-      .gin_value = {std::nullopt, Numeric{0}, Numeric{999}, Index{0}},
-      .gin_desc =
-          {R"--(Hydrometeor type (see above description).)--",
-           R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["psdWangEtAl16"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Wang et al. [2016] particle size distribution for rain.
-
-Reference: Wang et al., Investigation of liquid cloud microphysical
-properties of deep convective systems: 1. Parameterization raindrop
-size distribution and its application ..., 2016.
-
-This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one
-column and *pnd_agenda_input_names* shall contain a single string.
-The input data in *pnd_agenda_input* shall be rain mass content in
-unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free
-but the same name must be used in ``particle_bulkprop_names`` and
-*dpnd_data_dx_names*.
-
-Particles are assumed to be near-spherical, ie. *psd_size_grid* can
-either be in terms of volume (or mass) equivalent diameter or
-maximum diameter.
-
-Derivatives are obtained analytically.
-
-The validity range of mass content is not limited. Negative mass
-contents will produce negative psd values following a distribution
-given by abs(RWC), ie. abs(psd)=f(abs(RWC)).
-
-If temperature is outside [ ``t_min`` , ``t_max`` ] psd=0 and dpsd=0 if
-picky=0, or an error is thrown if picky=1.
-)--",
-      .author = {"Jana Mendrok, Patrick Eriksson"},
-      .out = {"psd_data", "dpsd_data_dx"},
-
-      .in = {"psd_size_grid",
-             "pnd_agenda_input_t",
-             "pnd_agenda_input",
-             "pnd_agenda_input_names",
-             "dpnd_data_dx_names",
-             "scat_species_a",
-             "scat_species_b"},
-      .gin = {"t_min", "t_max", "picky"},
-      .gin_type = {"Numeric", "Numeric", "Index"},
-      .gin_value = {Numeric{273}, Numeric{373}, Index{0}},
-      .gin_desc =
-          {R"--(Low temperature limit to calculate a psd.)--",
-           R"--(High temperature limit to calculate a psd.)--",
-           R"--(Flag whether to be strict with parametrization value checks.)--"},
-
-  };
-
-  wsm_data["refr_index_airFreeElectrons"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Microwave refractive index due to free electrons.
-
-The refractive index of free electrons is added to *refr_index_air*.
-To obtain the complete value, *refr_index_air* should be set to 1
-before calling this WSM. This applies also to *refr_index_air_group*.
-
-The expression applied is n=sqrt(1-wp^2/w^2) where wp is the plasma
-frequency, and w is the angular frequency (the function returns
-n-1, that here is slightly negative). This expressions is found in
-many textbooks, e.g. Rybicki and Lightman (1979). The above refers
-to *refr_index_air*. *refr_index_air_group* is sqrt(1+wp^2/w^2).
-
-The expression is dispersive. The frequency applied is the mean of
-first and last element of *f_grid* is selected. This frequency must
-be at least twice the plasma frequency.
-
-An error is issued if free electrons not are part of *abs_species*
-(and there exist a corresponding "vmr"-value). This demand is
-removed if ``demand_vmr_value`` is set to 0, but use this option
-with care.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"refr_index_air", "refr_index_air_group"},
-
-      .in = {"refr_index_air",
-             "refr_index_air_group",
-             "f_grid",
-             "abs_species",
-             "rtp_vmr"},
-      .gin = {"demand_vmr_value"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc =
-          {R"--(Flag to control if it is demanded that free electrons are in *abs_species*. Default is that this is demanded.)--"},
-
-  };
-
-  wsm_data["refr_index_airInfraredEarth"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Calculates the IR refractive index due to gases in the
-Earth's atmosphere.
-
-Only refractivity of dry air is considered. The formula used is
-contributed by Michael Hoepfner, Forschungszentrum Karlsruhe.
-
-The refractivity of dry air is added to *refr_index_air*. To obtain
-the complete value, *refr_index_air* should be set to 1 before
-calling this WSM. This applies also to *refr_index_air_group*.
-
-The expression used is non-dispersive. Hence, *refr_index_air* and
-*refr_index_air_group* are identical.
-)--",
-      .author = {"Mattias Ekstrom"},
-      .out = {"refr_index_air", "refr_index_air_group"},
-
-      .in = {"refr_index_air",
-             "refr_index_air_group",
-             "rtp_pressure",
-             "rtp_temperature"},
-
-  };
-
-  wsm_data["refr_index_airMicrowavesEarth"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Microwave refractive index in Earth's atmosphere.
-
-This method just considers pressure, temperature and water
-vapour, which should suffice for Earth. For a more general
-method, see *refr_index_airMicrowavesGeneral*.
-
-The refractivity of dry air and water vapour is added to
-*refr_index_air*. To obtain the complete value, *refr_index_air*
-should be set to 1 before calling this WSM. This applies also to
-*refr_index_air_group*.
-
-The expression used is non-dispersive. Hence, *refr_index_air*
-and *refr_index_air_group* are identical.
-
-The standard expression for Earth and microwaves is used:
-
-  N = k1*(P-e)/T + k2*e/T + k3*e/T^2
-
-where N is refractivity, P is pressure, T is temperature and
-e is water vapour partial pressure. The values of k1, k2 and k3
-can be modified.
-
-Many different values of k1, k2 and k3 can be found in the
-literature. The default values applied here are taken from
-Bevis et al., GPS meteorology: Mapping ..., JAM, 1994.
-More specifically, these value are found in Table 1, listed
-as "Present study". Note that in ARTS Pa is used for pressure
-and k1, k2 and k3 must be adjusted accordingly.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"refr_index_air", "refr_index_air_group"},
-
-      .in = {"refr_index_air",
-             "refr_index_air_group",
-             "rtp_pressure",
-             "rtp_temperature",
-             "rtp_vmr",
-             "abs_species"},
-      .gin = {"k1", "k2", "k3"},
-      .gin_type = {"Numeric", "Numeric", "Numeric"},
-      .gin_value = {Numeric{77.6e-8}, Numeric{70.4e-8}, Numeric{3.739e-3}},
-      .gin_desc = {R"--(Coefficient a, see above)--",
-                   R"--(Coefficient b, see above)--",
-                   R"--(Coefficient c, see above)--"},
-
-  };
-
-  wsm_data["refr_index_airMicrowavesGeneral"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Microwave refractive index due to gases in planetary atmospheres.
-
-The refractivity of a specified gas mixture is calculated and added
-to *refr_index_air*. To obtain the complete value, *refr_index_air*
-should be set to 1 before calling this WSM. This applies also to
-*refr_index_air_group*.
-
-The expression used is non-dispersive. Hence, *refr_index_air* and
-*refr_index_air_group* are identical.
-
-Uses the methodology introduced by Newell&Baird (1965) for calculating
-refractivity of variable gas mixtures based on refractivity of the
-individual gases at reference conditions. Assuming ideal gas law for
-converting reference refractivity to actual pressure and temperature
-conditions. Reference refractivities are also taken from Newell&Baird (1965)
-and are vailable for N2, O2, CO2, H2, and He. Additionally, H2O reference
-refractivity has been derived from H2O contribution in Thayer (see
-*refr_index_airMicrowavesEarth*) for T0=273.15K. Any mixture of these gases
-can be taken into account.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"refr_index_air", "refr_index_air_group"},
-
-      .in = {"refr_index_air",
-             "refr_index_air_group",
-             "rtp_pressure",
-             "rtp_temperature",
-             "rtp_vmr",
-             "abs_species"},
-
-  };
-
-  wsm_data["refr_index_air_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *refr_index_air_agenda* to a default value
-
-Options are:
-
-- ``"NoRefrac"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-
-- ``"GasMicrowavesEarth"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
-
-- ``"GasInfraredEarth"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airInfraredEarth* to modify *refr_index_air*, and *refr_index_air_group*
-
-- ``"GasMicrowavesGeneral"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
-
-- ``"FreeElectrons"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
-
-- ``"GasMicrowavesGeneralAndElectrons"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airMicrowavesGeneral* to modify *refr_index_air*, and *refr_index_air_group*
-    4. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
-
-- ``"GasMicrowavesEarthAndElectrons"``:
-
-    1. Sets *refr_index_air* to 1
-    2. Sets *refr_index_air_group* to 1
-    3. Uses *refr_index_airMicrowavesEarth* to modify *refr_index_air*, and *refr_index_air_group*
-    4. Uses *refr_index_airFreeElectrons* to modify *refr_index_air*, and *refr_index_air_group*
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"refr_index_air_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
-
-  wsm_data["scat_dataCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Prepares *scat_data* for the scattering solver.
-
-Derives single scattering data for the frequencies given by
-*f_grid* by interpolation from *scat_data_raw*. *f_grid* should be
-the actual WSV *f_grid* or a single-element Vector.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data"},
-
-      .in = {"scat_data_raw", "f_grid"},
-      .gin = {"interp_order"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
-      .gin_desc = {R"--(Interpolation order.)--"},
-
-  };
-
-  wsm_data["scat_dataCheck"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Method for checking the validity and consistency of the single
-scattering properties in *scat_data*.
-
-It checks that *scat_data* does not contain any invalid values,
-that is any NaN elements in K, Z, or a or any negative values in
-the 'scalar' properties K11, Z11, and a1.
-
-When ``check_type`` is 'all', it is furthermore checked that the
-scattering matrix is properly normalized, that is that the solid
-sphere integrated scattering matrix (int_Z11), which is supposed to
-be normalized to the scattering cross section, is sufficiently
-consistent with the scattering cross section (C_sca) derived from
-the difference of extinction (K11) and absorption (a1):
-int_z11 ~ C_sca = K11-a1.
-Sufficient consistency is defined by the maximum allowed deviation
-in single scattering albedo, ``sca_mat_threshold``, testing for::
-
-  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.
-
-The check is skipped if ``check_type`` is 'sane'.
-)--",
-      .author = {"Claudia Emde", "Jana Mendrok"},
-
-      .in = {"scat_data"},
-      .gin = {"check_type", "sca_mat_threshold"},
-      .gin_type = {"String", "Numeric"},
-      .gin_value = {String("all"), Numeric{5e-2}},
-      .gin_desc =
-          {R"--(The level of checks to apply on scat_data ('sane' or 'all'; see above).)--",
-           R"--(Threshold for allowed albedo deviation (see above).)--"},
-
-  };
-
-  wsm_data["scat_dataReduceT"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Reduces temperature dimension of single scattering to a single entry.
-
-FIXME...
-Derives single scattering data for the frequencies given by
-*f_grid* by interpolation from *scat_data*. *f_grid* should be
-the actual WSV *f_grid* or a single-element Vector.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data"},
-
-      .in = {"scat_data"},
-      .gin = {"scat_index",
-              "temperature",
-              "interp_order",
-              "phamat_only",
-              "sca_mat_threshold"},
-      .gin_type = {"Index", "Numeric", "Index", "Index", "Numeric"},
-      .gin_value =
-          {std::nullopt, std::nullopt, Index{1}, Index{1}, Numeric{5e-2}},
-      .gin_desc =
-          {R"--(Apply on *scat_data* from scattering species of this index (0-based).)--",
-           R"--(Temperature to interpolate *scat_data* to.)--",
-           R"--(Interpolation order.)--",
-           R"--(Flag whether to apply temperture reduction on phase matrix data only (1) or on all single scattering properties (0).)--",
-           R"--(Threshold for allowed albedo deviation.)--"},
-
-  };
-
-  wsm_data["scat_data_checkedCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Checks dimensions, grids and single scattering properties of all
-scattering elements in *scat_data*.
-
-Dimension and grid equirements:
-
-- The scattering element's f_grid is either identical to *f_grid* or
-  of dimension 1.
-- In the latter case, the scattering element's f_grid value must
-  not deviate from any of the *f_grid* values by more than a
-  fraction of ``dfrel_threshold``.
-- The frequency dimension of pha_mat_data, ext_mat_data, and
-  abs_vec_data is either equal to the scattering element's f_grid
-  or 1.
-- The temperature dimension of pha_mat_data, ext_mat_data, and
-  abs_vec_data is either equal to the scattering element's T_grid
-  or 1.
-- The temperature dimension of ext_mat_data, and abs_vec_data is
-  identical.
-
-The single scattering property contents are checked using
-*scat_dataCheck*. For details, see there. The depth of these checks
-and their rigour can adapted (see description of parameters
-``check_level`` and ``sca_mat_threshold`` in *scat_dataCheck*) or can
-be skipped entirely (setting ``check_level`` to 'none').
-NOTE: These test shall only be skipped when one is confident that
-the data is correct, e.g. by having run *scat_dataCheck* on the set
-of data before, e.g. in a separate ARTS run.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data_checked"},
-
-      .in = {"scat_data", "f_grid"},
-      .gin = {"dfrel_threshold", "check_level", "sca_mat_threshold"},
-      .gin_type = {"Numeric", "String", "Numeric"},
-      .gin_value = {Numeric{0.1}, String("all"), Numeric{5e-2}},
-      .gin_desc =
-          {R"--(Maximum relative frequency deviation between (single entry) scattering element f_grid values and the RT calculation's *f_grid*.)--",
-           R"--(See ``check_level`` in *scat_dataCheck*.)--",
-           R"--(See ``sca_mat_threshold`` in *scat_dataCheck*.)--"},
-
-  };
-
-  wsm_data["scat_data_monoCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Interpolates *scat_data* by frequency to give *scat_data_mono*.
-)--",
-      .author = {"Cory Davis"},
-      .out = {"scat_data_mono"},
-
-      .in = {"scat_data", "f_grid", "f_index"},
-
-  };
-
-  wsm_data["scat_data_monoExtract"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Extracts data at *f_index* from *scat_data* to give *scat_data_mono*.
-)--",
-      .author = {"Jana Mendrok"},
-      .out = {"scat_data_mono"},
-
-      .in = {"scat_data", "f_index"},
-
-  };
-
-  wsm_data["scat_data_singleTmatrix"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(A basic interface to Mishchenko's T-matrix code linked to ARTS.
-
-The method performs a T-matrix calculation for a single scattering
-element, i.e. a combination of particle shape, size, aspect ratio
-and orientation.
-
-Particle shape (``shape``) has two options::
-
-  "spheroidal" and "cylindrical"
-
-Particle size (``diameter_volume_equ``) is given as the equivalent
-volume sphere diameter. That is, the diameter obtained if all the
-particle's material is rearranged into a (solid) sphere.
-
-Particle aspect ratio ar (``aspect_ratio``) is a numeric value, defined
-according to Mishchenko's definition as ratio of horizontal axis a to
-vertical (rotational) axis b: ar=a/b. That is, oblates have ar>1,
-prolates ar<1.
-Perfect spheres (spheroidals with ar=1) can trigger numerical issues.
-To avoid these, we internally increase their aspect ratio by 1e-6,
-i.e. turning perfect spheres into very light oblates.
-
-Particle type (``ptype``) has two options::
-
-  "totally_random" and "azimuthally_random"
-
-For totally randomly oriented particles, ``data_aa_grid`` is not taken
-into account (but a Vector type container needs to be passed).
-
-For further information on how aspect ratio and the different shapes
-and orientations are defined, see the documentation of the T-matrix
-code found http://www.giss.nasa.gov/staff/mmishchenko/t_matrix.html
-
-Regarding ``ndgs``, we refer to the this comment from the documentation:
-   "Parameter controlling the number of division points
-   in computing integrals over the particle surface.
-   For compact particles, the recommended value is 2.
-   For highly aspherical particles larger values (3, 4,...)
-   may be necessary to obtain convergence.
-   The code does not check convergence over this parameter.
-   Therefore, control comparisons of results obtained with
-   different NDGS-values are recommended."
-)--",
-      .author = {"Johan Strandgren", "Patrick Eriksson"},
-      .out = {"scat_data_single", "scat_meta_single"},
-
-      .in = {"complex_refr_index"},
-      .gin = {"shape",
-              "diameter_volume_equ",
-              "aspect_ratio",
-              "mass",
-              "ptype",
-              "data_f_grid",
-              "data_t_grid",
-              "data_za_grid",
-              "data_aa_grid",
-              "precision",
-              "cri_source",
-              "ndgs",
-              "robust",
-              "quiet"},
-      .gin_type = {"String",
-                   "Numeric",
-                   "Numeric",
-                   "Numeric",
-                   "String",
-                   "Vector",
-                   "Vector",
-                   "Vector",
-                   "Vector",
-                   "Numeric",
-                   "String",
-                   "Index",
-                   "Index",
-                   "Index"},
-      .gin_value = {std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::numeric_limits<Numeric>::quiet_NaN(),
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    std::nullopt,
-                    Vector{},
-                    Numeric{0.001},
-                    String("Set by user, unknown source."),
-                    Index{2},
-                    Index{0},
-                    Index{1}},
-      .gin_desc =
-          {R"--(Particle shape. Options listed above.)--",
-           R"--(Particle volume equivalent diameter [m]. See defintion above.)--",
-           R"--(Particle aspect ratio.)--",
-           R"--(Particle mass. This information is just included in the meta data, and does not affect the T-matrix calculations.)--",
-           R"--(Particle type/orientation. Options listed above.)--",
-           R"--(Frequency grid of the scattering data to be calculated.)--",
-           R"--(Temperature grid of the scattering data to be calculated.)--",
-           R"--(Zenith angle grid of the scattering data to be calculated.)--",
-           R"--(Azimuth angle grid of the scattering data to be calculated.)--",
-           R"--(Accuracy of the computations.)--",
-           R"--(String describing the source of *complex_refr_index*, for inclusion in meta data.)--",
-           R"--(See above. So far only applied for random orientation.)--",
-           R"--(Continue even if individual T-matrix calculations fail. Respective scattering element data will be NAN.)--",
-           R"--(Suppress print output from tmatrix fortran code.)--"},
-
-  };
-
   wsm_data["sensor_responseIF2RF"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Converts sensor response variables from IF to RF.
 
@@ -10521,10 +5979,12 @@ sorted in any way.
       .author = {"Patrick Eriksson"},
       .out = {"sensor_response_f", "sensor_response_f_grid"},
 
-      .in = {"sensor_response_f",
-             "sensor_response_f_grid",
-             "lo",
-             "sideband_mode"},
+      .in = {"sensor_response_f", "sensor_response_f_grid"},
+      .gin = {"lo", "sideband_mode"},
+      .gin_type = {"Numeric", "String"},
+      .gin_value = {nullopt, std::nullopt},
+      .gin_desc = {R"--(Local oscillator frequency.)--",
+                   R"("lower" or "upper" sideband mode.)"},
 
   };
 
@@ -10556,13 +6016,13 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 *za_grid_weights*.
 )--",
           .author = {"Manfred Brath"},
-          .out = {"spectral_irradiance_field"},
-
+          .gout = {"spectral_irradiance_field"},
+          .gout_type = {"Tensor5"},
+          .gout_desc = {R"--(The spectral irradiance field)--"},
           .in = {"spectral_radiance_field",
                  "za_grid",
                  "aa_grid",
                  "za_grid_weights"},
-
       };
 
   wsm_data["spectral_radiance_fieldPlaneParallelSpectralRadianceOperator"] =
@@ -10574,24 +6034,12 @@ This is an experimental solution.
           .author = {"Richard Larsson"},
           .out = {"spectral_radiance_field"},
 
-          .in = {"spectral_radiance_profile_operator", "f_grid", "za_grid"},
-
+          .in = {"f_grid", "za_grid"},
+          .gin = {"spectral_radiance_profile_operator"},
+          .gin_type = {"SpectralRadianceProfileOperator"},
+          .gin_value = {std::nullopt},
+          .gin_desc = {R"--(The spectral radiance profile operator)--"},
       };
-
-  wsm_data["spt_calc_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *spt_calc_agenda* to a default value
-
-Options are:
-    There are currently no options, calling this function is an error.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"spt_calc_agenda"},
-
-      .gin = {"option"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
-  };
 
   wsm_data["sunsAddSingleBlackbody"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Adds a single blackbody to *suns*
@@ -10601,7 +6049,7 @@ For a Sol-like sun there are huge differences in the UV-range
 between the actual sun spectrum and the blackbody spectrumwith the effective temperature of the sun. The blackbody sun"strongly overestimates the UV radiation.
 )--",
       .author = {"Jon Petersen"},
-      .out = {"suns", "suns_do"},
+      .out = {"suns"},
 
       .in = {"suns", "f_grid"},
       .gin = {"radius", "distance", "temperature", "latitude", "longitude"},
@@ -10644,7 +6092,7 @@ are initialized according to planck's law of the temperature variable.
 Hence, a temperature of 0 means 0s the edges of the f_grid.
 )--",
       .author = {"Jon Petersen"},
-      .out = {"suns", "suns_do"},
+      .out = {"suns"},
 
       .in = {"suns", "f_grid"},
       .gin = {"sun_spectrum_raw",
@@ -10683,7 +6131,7 @@ Hence, a temperature of 0 means 0s the edges of the f_grid.
       .desc = R"--(Turns all calculations with suns off 
 )--",
       .author = {"Jon Petersen"},
-      .out = {"suns_do", "suns"},
+      .out = {"suns"},
 
   };
 
@@ -10928,16 +6376,16 @@ The function resets *f_grid* to the new grid.
   wsm_data["surface_scalar_reflectivityFromSurface_rmatrix"] =
       WorkspaceMethodInternalRecord{
           .desc =
-              R"--(Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.
+              R"--(Sets surface scalar reflectivity based on *surface_rmatrix*.
 
-For each frequency f, *surface_scalar_reflectivity* is set to
+For each frequency f, surface scalar reflectivity is set to
 the sum of surface_rmatrix(joker,f,0,0).
 )--",
           .author = {"Patrick Eriksson"},
-          .out = {"surface_scalar_reflectivity"},
-
+          .gout = {"surface_scalar_reflectivity"},
+          .gout_type = {"Vector"},
+          .gout_desc = {R"--(The scalar reflectivity)--"},
           .in = {"surface_rmatrix"},
-
       };
 
   wsm_data["telsemAtlasLookup"] = WorkspaceMethodInternalRecord{
@@ -10956,7 +6404,7 @@ vector is returned.
       .gout_type = {"Vector"},
       .gout_desc = {R"--(The SSMI emissivities from the atlas)--"},
 
-      .gin = {"glat", "glon", "atlas"},
+      .gin = {"lat", "lon", "atlas"},
       .gin_type = {"Numeric", "Numeric", "TelsemAtlas"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt},
       .gin_desc = {R"--(The latitude for which to compute the emissivities.)--",
@@ -10986,26 +6434,6 @@ month and stores the result in the provided output atlas.
       .gin_desc =
           {R"--(Directory with TELSEM 2 SSMI atlas files.)--",
            R"--(The month for which the atlas should be read.)--",
-           R"--(Filename pattern (@MM@ gets replaced by month number))--"},
-
-  };
-
-  wsm_data["telsem_atlasesReadAscii"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reads TELSEM atlas files.
-
-'directory' needs to contain the original 12 Telsem atlas files
-and the correlations file.
-The whole data is combined into the WSV *telsem_atlases*
-)--",
-      .author = {"Oliver Lemke"},
-      .out = {"telsem_atlases"},
-
-      .gin = {"directory", "filename_pattern"},
-      .gin_type = {"String", "String"},
-      .gin_value = {std::nullopt,
-                    String("ssmi_mean_emis_climato_@MM@_cov_interpol_M2")},
-      .gin_desc =
-          {R"--(Directory with TELSEM 2 SSMI atlas files.)--",
            R"--(Filename pattern (@MM@ gets replaced by month number))--"},
 
   };
@@ -11080,22 +6508,6 @@ the ARTS codebase.  It is there to give an example of how the format looks.
 
   };
 
-  wsm_data["time_stampsSort"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sort ``input`` by *time_stamps* into ``output``.
-)--",
-      .author = {"Richard Larsson"},
-
-      .gout = {"output"},
-      .gout_type = {"ArrayOfTime, ArrayOfVector"},
-      .gout_desc = {R"--(Array sorted by time)--"},
-      .in = {"time_stamps"},
-      .gin = {"input"},
-      .gin_type = {"ArrayOfTime, ArrayOfVector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Array to sort of same size as *time_stamps*)--"},
-
-  };
-
   wsm_data["water_equivalent_pressure_operatorMK05"] =
       WorkspaceMethodInternalRecord{
           .desc =
@@ -11113,7 +6525,9 @@ ice and supercooled water for atmospheric applications. Quarterly
 Journal of the Royal Meteorological Society, 131(608), 1539-1565.
 )--",
           .author = {"Patrick Eriksson", "Richard Larsson"},
-          .out = {"water_equivalent_pressure_operator"},
+          .gout = {"water_equivalent_pressure_operator"},
+          .gout_type = {"NumericUnaryOperator"},
+          .gout_desc = {"The water equivalent pressure operator."},
           .gin = {"only_liquid"},
           .gin_type = {"Index"},
           .gin_value = {Index{0}},
@@ -11231,7 +6645,8 @@ Size : (*jacobian_targets*, *f_grid*)
              "background_transmittance"}};
 
   wsm_data["spectral_radiance_jacobianAddPathPropagation"] = {
-      .desc = R"--(Adds the propagation variables to *spectral_radiance_jacobian*
+      .desc =
+          R"--(Adds the propagation variables to *spectral_radiance_jacobian*
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_jacobian"},
@@ -11241,15 +6656,29 @@ Size : (*jacobian_targets*, *f_grid*)
              "atm_field",
              "propagation_path"}};
 
+  wsm_data["spectral_radianceApplyUnit"] = {
+      .desc = "Applies a unit to *spectral_radiance*, returning a new field\n",
+      .author = {"Richard Larsson"},
+      .gout = {"spectral_radiance_with_unit"},
+      .gout_type = {"StokvecVector"},
+      .gout_desc = {"The spectral radiance with unit"},
+      .in = {"spectral_radiance", "f_grid"},
+      .gin = {"spectral_radiance_unit"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"The unit to apply"}};
+
   wsm_data["spectral_radianceFromPathPropagation"] = {
-      .desc = R"--(Sets *spectral_radiance* from front of *spectral_radiance_path*
+      .desc =
+          R"--(Sets *spectral_radiance* from front of *spectral_radiance_path*
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
       .in = {"spectral_radiance_path"}};
 
   wsm_data["spectral_radianceStandardEmission"] = {
-      .desc = R"--(Sets *spectral_radiance* and *spectral_radiance_jacobian* from standard emission calculations
+      .desc =
+          R"--(Sets *spectral_radiance* and *spectral_radiance_jacobian* from standard emission calculations
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
@@ -11260,13 +6689,13 @@ Size : (*jacobian_targets*, *f_grid*)
              "propagation_path",
              "spectral_radiance_background_space_agenda",
              "spectral_radiance_background_surface_agenda",
-             "propmat_clearsky_agenda",
-             "rte_alonglos_v"},
-      .gin = {"hse_derivative"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{1}},
+             "propmat_clearsky_agenda"},
+      .gin = {"rte_alonglos_v", "hse_derivative"},
+      .gin_type = {"Numeric", "Index"},
+      .gin_value = {Numeric{0.0}, Index{1}},
       .gin_desc =
-          {"Whether or not hypsometric balance is assumed in temperature derivatives"},
+          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
+           "Whether or not hypsometric balance is assumed in temperature derivatives"},
       .pass_workspace = true};
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {

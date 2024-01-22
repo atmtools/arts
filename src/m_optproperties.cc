@@ -432,13 +432,13 @@ void opt_prop_sptFromData(  // Output and Input:
     const Vector& aa_grid,
     const Index& za_index,  // propagation directions
     const Index& aa_index,
-    const Index& f_index,
     const Vector& f_grid,
     const Numeric& rtp_temperature,
-    const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index) {
+    const Index& scat_lon_index,
+    const Tensor4& pnd_field,
+    const Index& f_index) {
   const Index N_ss = scat_data.size();
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];
@@ -634,12 +634,12 @@ void opt_prop_sptFromScat_data(  // Output and Input:
     const Vector& aa_grid,
     const Index& za_index,  // propagation directions
     const Index& aa_index,
-    const Index& f_index,
     const Numeric& rtp_temperature,
-    const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index) {
+    const Index& scat_lon_index,
+    const Tensor4& pnd_field,
+    const Index& f_index) {
   if (scat_data_checked != 1)
     throw std::runtime_error(
         "The scattering data must be flagged to have "
@@ -816,10 +816,10 @@ void opt_prop_bulkCalc(  // Output and Input:
     // Input:
     const ArrayOfPropmatVector& ext_mat_spt,
     const ArrayOfStokvecVector& abs_vec_spt,
-    const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index) {
+    const Index& scat_lon_index,
+    const Tensor4& pnd_field) {
   const Size N_se = abs_vec_spt.size();
 
   if (ext_mat_spt.size() not_eq N_se) {
@@ -1882,10 +1882,10 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Index& za_index,  // propagation directions
     const Index& aa_index,
     const Numeric& rtp_temperature,
-    const Tensor4& pnd_field,
     const Index& scat_p_index,
     const Index& scat_lat_index,
-    const Index& scat_lon_index) {
+    const Index& scat_lon_index,
+    const Tensor4& pnd_field) {
   DEBUG_ONLY(const Size N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Numeric za_sca = za_grid[za_index];
   const Numeric aa_sca = aa_grid[aa_index];

@@ -130,15 +130,15 @@ void RadarOnionPeelingTableCalc(
     pnd_agenda_input = wc_grid[w];
     Matrix pnd_data;
     Tensor3 dpnd_data_dx;    
-    pnd_agenda_arrayExecute(ws,
-                            pnd_data,
-                            dpnd_data_dx,
-                            iss,
-                            pnd_agenda_input_t,
-                            pnd_agenda_input,
-                            pnd_agenda_array_input_names[iss],
-                            dpnd_data_dx_names,
-                            pnd_agenda_array);
+    // pnd_agenda_arrayExecute(ws,
+    //                         pnd_data,
+    //                         dpnd_data_dx,
+    //                         iss,
+    //                         pnd_agenda_input_t,
+    //                         pnd_agenda_input,
+    //                         pnd_agenda_array_input_names[iss],
+    //                         dpnd_data_dx_names,
+    //                         pnd_agenda_array);
     
     // Sum up to get bulk back-scattering and extinction
     for (Index t=0; t<nt; t++) {

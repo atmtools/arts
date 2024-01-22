@@ -28,16 +28,16 @@
 #include "cloudbox.h"
 #include "debug.h"
 #include "file.h"
-#include "math_funcs.h"
 #include "jacobian.h"
+#include "math_funcs.h"
 #include "optproperties.h"
 #include "species_tags.h"
 #include "xml_io.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
-inline constexpr Numeric DENSITY_OF_ICE=Constant::density_of_ice_at_0c;
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
+inline constexpr Numeric DENSITY_OF_ICE = Constant::density_of_ice_at_0c;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_fieldCleanup(  //WS Output:
@@ -93,7 +93,8 @@ void ScatElementsPndAndScatAdd(  //WS Output:
 
   //--- Reading the data ---------------------------------------------------
 
-  ARTS_USER_ERROR_IF (scat_data_files.size() != pnd_field_files.size(),
+  ARTS_USER_ERROR_IF(
+      scat_data_files.size() != pnd_field_files.size(),
       "Number of elements in scat_data and pnd_field filelists is"
       "inconsistent.")
 
@@ -121,8 +122,7 @@ void ScatElementsPndAndScatAdd(  //WS Output:
       xml_read_from_file(pnd_field_files[i],
                          pnd_field_raw[pnd_field_raw.size() - 1]);
 
-      chk_pnd_data(pnd_field_raw[pnd_field_raw.size() - 1],
-                   pnd_field_files[i]);
+      chk_pnd_data(pnd_field_raw[pnd_field_raw.size() - 1], pnd_field_files[i]);
     }
   }
 }
@@ -161,8 +161,7 @@ void ScatSpeciesPndAndScatAdd(  //WS Output:
   chk_pnd_raw_data(pnd_tmp, pnd_fieldarray_file);
 
   // append to pnd_field_raw
-  for (Size i = 0; i < pnd_tmp.size(); ++i)
-    pnd_field_raw.push_back(pnd_tmp[i]);
+  for (Size i = 0; i < pnd_tmp.size(); ++i) pnd_field_raw.push_back(pnd_tmp[i]);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -182,12 +181,13 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   //chk_atm_grids( 3, p_grid, lat_grid, lon_grid );
 
   // Frequency grid
-  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
+  ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
 
   //--- Reading the data ---------------------------------------------------
 
-  ARTS_USER_ERROR_IF (scat_data_files.size() != pnd_field_files.size(),
+  ARTS_USER_ERROR_IF(
+      scat_data_files.size() != pnd_field_files.size(),
       "Number of elements in scat_data and pnd_field filelists is"
       "inconsistent.")
 
@@ -203,9 +203,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   ArrayOfString species(1);
   species[0] = "particles";
 
-  abs_speciesAdd(abs_species,
-                  propmat_clearsky_agenda_checked,
-                  species);
+  abs_speciesAdd(abs_species, propmat_clearsky_agenda_checked, species);
 
   for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.
@@ -225,8 +223,9 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
     if (pnd_field_files[i].size() < 1) {
     } else {
       try {
-        xml_read_from_file(pnd_field_files[i],
-                           atm_field[abs_species.back().Species()].get<GriddedField3&>());
+        xml_read_from_file(
+            pnd_field_files[i],
+            atm_field[abs_species.back().Species()].get<GriddedField3&>());
       } catch (...) {
         ArrayOfGriddedField3 tmp;
         try {
@@ -234,22 +233,28 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
           if (tmp.size() == 1) {
             atm_field[abs_species.back().Species()] = tmp[0];
           } else {
-            ARTS_USER_ERROR (
-              "The file ", pnd_field_files[i], "\n"
-              "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
+            ARTS_USER_ERROR(
+                "The file ",
+                pnd_field_files[i],
+                "\n"
+                "is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
           }
         } catch (...) {
-          ARTS_USER_ERROR (
-                              "The file ", pnd_field_files[i], " does not exist or\n"
-                              "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
+          ARTS_USER_ERROR(
+              "The file ",
+              pnd_field_files[i],
+              " does not exist or\n"
+              "its type is neither GriddedField3 nor a 1-long ArrayOfGriddedField3.\n")
         }
       }
 
-      chk_pnd_data(atm_field[abs_species.back().Species()].get<const GriddedField3&>(),
-                   pnd_field_files[i]);
+      chk_pnd_data(
+          atm_field[abs_species.back().Species()].get<const GriddedField3&>(),
+          pnd_field_files[i]);
     }
   }
-  scat_dataCheck(scat_data_raw, "sane", 1e-2);
+  assert(false);
+  // scat_dataCheck(scat_data_raw, "sane", 1e-2);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -290,23 +295,25 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
       } else {
         try {
           split(strarr, scat_data_files[i], "scat_data");
-          ARTS_USER_ERROR_IF (strarr.size() < 2,
-                "Splitting scattering data filename up at 'scat_data' also failed.");
+          ARTS_USER_ERROR_IF(
+              strarr.size() < 2,
+              "Splitting scattering data filename up at 'scat_data' also failed.");
           scat_meta_file = strarr[0] + "scat_meta" + strarr[1];
 
           xml_read_from_file(scat_meta_file, arr_smd[i]);
 
           meta_naming_conv = 2;
         } catch (const std::runtime_error& e) {
-          ARTS_USER_ERROR (
-                              "No meta data file following one of the allowed naming "
-                              "conventions was found.\n"
-                              "Allowed are "
-                              "*.meta.xml from *.xml and "
-                              "*scat_meta* from *scat_data*\n"
-                              "Scattering meta data file not found: ", scat_meta_file,
-                              "\n",
-                              e.what())
+          ARTS_USER_ERROR(
+              "No meta data file following one of the allowed naming "
+              "conventions was found.\n"
+              "Allowed are "
+              "*.meta.xml from *.xml and "
+              "*scat_meta* from *scat_data*\n"
+              "Scattering meta data file not found: ",
+              scat_meta_file,
+              "\n",
+              e.what())
         }
       }
     }
@@ -315,10 +322,10 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
   ArrayOfString fail_msg;
 
 #pragma omp parallel for if (!arts_omp_in_parallel() &&                       \
-                             scat_data_files.size() > 1)                     \
+                                 scat_data_files.size() > 1)                  \
     num_threads(arts_omp_get_max_threads() > 16 ? 16                          \
                                                 : arts_omp_get_max_threads()) \
-        shared(scat_data_files, arr_ssd, arr_smd)
+    shared(scat_data_files, arr_ssd, arr_smd)
   for (Size i = 1; i < scat_data_files.size(); i++) {
     // make meta data name from scat data name
     ArrayOfString strarr;
@@ -360,7 +367,7 @@ void ScatSpeciesScatAndMetaRead(  //WS Output:
     std::ostringstream os;
     for (auto& msg : fail_msg) os << msg << '\n';
 
-    ARTS_USER_ERROR ( os.str());
+    ARTS_USER_ERROR(os.str());
   }
 
   // check if arrays have same size
@@ -385,13 +392,18 @@ void ScatElementsSelect(  //WS Output:
     const String& delim) {
   // first check that sizes of scat_species and scat_data_raw/scat_meta agree
   const Size nspecies = scat_species.size();
-  ARTS_USER_ERROR_IF (nspecies != scat_data_raw.size() || nspecies != scat_meta.size(),
+  ARTS_USER_ERROR_IF(
+      nspecies != scat_data_raw.size() || nspecies != scat_meta.size(),
       "Number of scattering species specified by scat_species does\n"
       "not agree with number of scattering species in\n"
       "scat_data_raw or scat_meta:\n"
-      "scat_species has ", nspecies,
-      " entries, while scat_data_raw has ", scat_data_raw.size(),
-      " and scat_meta has ", scat_meta.size(), ".")
+      "scat_species has ",
+      nspecies,
+      " entries, while scat_data_raw has ",
+      scat_data_raw.size(),
+      " and scat_meta has ",
+      scat_meta.size(),
+      ".")
 
   // create temporary containers for selected elements
   ArrayOfSingleScatteringData scat_data_raw_tmp;
@@ -405,8 +417,10 @@ void ScatElementsSelect(  //WS Output:
     parse_partfield_name(partfield_name, scat_species[i], delim);
     if (partfield_name == species) i_ss = i;
   }
-  ARTS_USER_ERROR_IF (i_ss < 0,
-    "Scattering species ", species, " not found among scat_species.")
+  ARTS_USER_ERROR_IF(i_ss < 0,
+                     "Scattering species ",
+                     species,
+                     " not found among scat_species.")
 
   // choosing the specified SingleScatteringData and ScatteringMetaData
   if (sizeparam == "diameter_max")
@@ -448,15 +462,17 @@ void ScatElementsSelect(  //WS Output:
       }
     }
   else {
-    ARTS_USER_ERROR (
-                        "Size parameter ", sizeparam, "is unknown.")
+    ARTS_USER_ERROR("Size parameter ", sizeparam, "is unknown.")
   }
 
   // To use a particle species field without associated scattering element
   // data poses a high risk of accidentially neglecting these species. That's
   // unlikely what the user intends. Hence throw error.
-  ARTS_USER_ERROR_IF (scat_meta_tmp.size() < 1,
-      "For scattering species ", species, " no scattering "
+  ARTS_USER_ERROR_IF(
+      scat_meta_tmp.size() < 1,
+      "For scattering species ",
+      species,
+      " no scattering "
       "element matching the requested size range found.\n"
       "Check *scat_data_raw* and *scat_meta* input as well as your size limit "
       "selection!")
@@ -486,17 +502,21 @@ void ScatSpeciesExtendTemperature(  //WS Output:
     Index i_ss = -1;
     if (species == "") {
       i_ss = scat_data_raw.size() - 1;
-      ARTS_USER_ERROR_IF (i_ss == -1,
+      ARTS_USER_ERROR_IF(
+          i_ss == -1,
           "No *scat_data* available. Can not extend temperature range on "
           "inexistent data.")
     } else {
       // first check that sizes of scat_species and scat_data_raw agree
       Size nspecies = scat_species.size();
-      ARTS_USER_ERROR_IF (nspecies != scat_data_raw.size(),
+      ARTS_USER_ERROR_IF(
+          nspecies != scat_data_raw.size(),
           "Number of scattering species specified by scat_species does\n"
           "not agree with number of scattering species in *scat_data*:\n"
-          "scat_species has ", nspecies,
-          " entries, while *scat_data* has ", scat_data_raw.size(),
+          "scat_species has ",
+          nspecies,
+          " entries, while *scat_data* has ",
+          scat_data_raw.size(),
           ".")
       String partfield_name;
       //find the species to handle: compare 'species' to 'partfield' part of
@@ -506,8 +526,10 @@ void ScatSpeciesExtendTemperature(  //WS Output:
             partfield_name, scat_species[i], scat_species_delim);
         if (partfield_name == species) i_ss = i;
       }
-      ARTS_USER_ERROR_IF (i_ss < 0,
-        "Scattering species ", species, " not found among scat_species.")
+      ARTS_USER_ERROR_IF(i_ss < 0,
+                         "Scattering species ",
+                         species,
+                         " not found among scat_species.")
     }
 
     for (Size i_se = 0; i_se < scat_data_raw[i_ss].size(); i_se++) {
@@ -616,10 +638,9 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
                        const Index& cloudbox_on,
                        const ArrayOfIndex& cloudbox_limits,
                        const Index& nzero) {
-  ARTS_USER_ERROR_IF (!cloudbox_on,
-                      "No use in calling this method with cloudbox off.");
-  ARTS_USER_ERROR_IF (nzero < 1,
-                      "The argument *nzero* must be > 0.");
+  ARTS_USER_ERROR_IF(!cloudbox_on,
+                     "No use in calling this method with cloudbox off.");
+  ARTS_USER_ERROR_IF(nzero < 1, "The argument *nzero* must be > 0.");
 
   // Sizes
   const Index npart = pnd_field.nbooks();
@@ -627,11 +648,10 @@ void pnd_fieldExpand1D(Tensor4& pnd_field,
   const Index nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
   Index nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
-  ARTS_USER_ERROR_IF (pnd_field.npages() != np ||
-                      pnd_field.nrows() != 1 ||
-                      pnd_field.ncols() != 1,
-        "The input *pnd_field* is either not 1D or does not "
-        "match pressure size of cloudbox.");
+  ARTS_USER_ERROR_IF(pnd_field.npages() != np || pnd_field.nrows() != 1 ||
+                         pnd_field.ncols() != 1,
+                     "The input *pnd_field* is either not 1D or does not "
+                     "match pressure size of cloudbox.");
 
   // Temporary container
   Tensor4 pnd_temp = pnd_field;
@@ -660,18 +680,17 @@ void pnd_fieldZero(  //WS Output:
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
     const JacobianTargets& jacobian_targets) {
-
-  ARTS_USER_ERROR_IF (cloudbox_limits.size() != 2 * 3,
-        "*cloudbox_limits* is a vector which contains the"
-        "upper and lower limit of the cloud for all "
-        "atmospheric dimensions. So its dimension must"
-        "be 2 x *3*");
+  ARTS_USER_ERROR_IF(cloudbox_limits.size() != 2 * 3,
+                     "*cloudbox_limits* is a vector which contains the"
+                     "upper and lower limit of the cloud for all "
+                     "atmospheric dimensions. So its dimension must"
+                     "be 2 x *3*");
 
   // Resize pnd_field and set it to 0:
   Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index nlat = 1, nlon = 1;
-    nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-      nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  nlon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
   // no (cloudy) Jacobians with this WSM, hence no setting.
   // but we need to size dpnd_field to be consistent with jacobian_quantities.

@@ -29,7 +29,8 @@ void spectral_radiance_profile_operatorPlaneParallel(
                      "z_grid must be sorted in ascending order\nz_grid: ",
                      z_grid)
 
-  const ArrayOfAtmPoint ppvar_atm = extract1D(atm_field, z_grid, lat_grid, lon_grid);
+  const ArrayOfAtmPoint ppvar_atm =
+      extract1D(atm_field, z_grid, lat_grid, lon_grid);
 
   spectral_radiance_profile_operator =
       SpectralRadianceProfileOperator(z_grid,
@@ -45,11 +46,10 @@ void spectral_radiance_profile_operatorPlaneParallel(
 }
 
 void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
-        Tensor7& spectral_radiance_field,
-        const SpectralRadianceProfileOperator&
-            spectral_radiance_profile_operator,
-        const Vector& f_grid,
-        const Vector& za_grid) {
+    Tensor7& spectral_radiance_field,
+    const Vector& f_grid,
+    const Vector& za_grid,
+    const SpectralRadianceProfileOperator& spectral_radiance_profile_operator) {
   const Index n = f_grid.size();
   const Index m = za_grid.size();
 

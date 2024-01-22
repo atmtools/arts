@@ -37,7 +37,7 @@ ws.path_point.los = [45, 45]
 ws.f_grid = np.linspace(1e9, 3e12, 1000)
 ws.atm_pointInit()
 ws.atm_point.temperature = 2.942000e+02
-ws.atm_point.pressure = ws.rtp_pressure = 110000
+ws.atm_point.pressure = 110000
 ws.atm_point[ws.abs_species[0]] = 1.000869e-09
 ws.atm_point[ws.abs_species[1]] = 1.000869e-14
 ws.atm_point[ws.abs_species[2]] = 2.850472e-06

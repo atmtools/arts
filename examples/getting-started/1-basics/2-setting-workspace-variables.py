@@ -51,14 +51,6 @@ ws.g0 = np.float64(9.81)  # from numpy float
 print("Should contain 9.81, again: ", ws.g0)
 
 
-# String
-ws.sideband_mode = "dB"  # from builtin str
-print("Should contain dB:          ", ws.sideband_mode)
-
-ws.sideband_mode = b'avc'  # from builtin bytes
-print("Should contain avc:         ", ws.sideband_mode)
-
-
 # Vector
 ws.f_grid = [1, 2, 3]  # from builtin list
 print("Should contain 1 2 3:       ", ws.f_grid)
@@ -85,7 +77,6 @@ respective Workspace Group for more information on how to initialize them.
 assert np.isclose(ws.example_index, 2)
 assert np.isclose(ws.nlte_do, 3)
 assert np.isclose(ws.g0, 9.81)
-assert ws.sideband_mode == "avc"
 assert np.allclose(ws.f_grid, [4, 5, 6])
 assert np.allclose(ws.avk, [[5, 6], [7, 8]])
 # END TESTING
