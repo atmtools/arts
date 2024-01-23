@@ -18,16 +18,16 @@ internal_workspace_methods() {
           R"--(Sets the angular grids for the calculation of radiation fluxes. 
 
 This method sets the angular grids for the radiation fluxes type
-calculations and calculates the integration weights *za_grid_weights*
+calculations and calculates the integration weights *zenith_grid_weights*
 for the zenith angle integration. For down- und up-looking geometries
-it suffices to use the default values of N_za_grid and N_aa_grid.
-From N_aa_grid an equally spaced grid is created and stored in the
-WSV *aa_grid*.
+it suffices to use the default values of N_zenith_grid and N_azimuth_grid.
+From N_azimuth_grid an equally spaced grid is created and stored in the
+WSV *azimuth_grid*.
 
-Depending on the desired za_grid_type *za_grid* will be
+Depending on the desired zenith_grid_type *zenith_grid* will be
 equally spaced ('linear') or unequally ('linear_mu','double_gauss')
-Important, N_za_grid must be an even number because for the 
-integration over each hemisphere N_za_grid / 2 zenith angles are needed.
+Important, N_zenith_grid must be an even number because for the 
+integration over each hemisphere N_zenith_grid / 2 zenith angles are needed.
 
 Possible zenith angle grid types are:
 
@@ -40,9 +40,9 @@ Possible zenith angle grid types are:
   which results a unequally spaced angular grid
 )--",
       .author = {"Manfred Brath"},
-      .out = {"za_grid", "aa_grid", "za_grid_weights"},
+      .out = {"zenith_grid", "azimuth_grid", "zenith_grid_weights"},
 
-      .gin = {"N_za_grid", "N_aa_grid", "za_grid_type"},
+      .gin = {"N_zenith_grid", "N_azimuth_grid", "zenith_grid_type"},
       .gin_type = {"Index", "Index", "String"},
       .gin_value = {Index{2}, Index{1}, String("linear_mu")},
       .gin_desc = {R"--(Number of zenith angles)--",
@@ -100,7 +100,7 @@ is enforced. These problems start about 15 degrees from the horizon.
       .gout_desc =
           {R"--(Emission values. One row for each frequency. See above.)--",
            R"--(Reflectivity values. One row for each frequency. See above.)--"},
-      .in = {"f_grid"},
+      .in = {"frequency_grid"},
       .gin = {"surface_skin_t",
               "za",
               "salinity",
@@ -260,7 +260,7 @@ is also removed.
       .gout_type = {"Tensor4, Tensor5"},
       .gout_desc =
           {R"--(Field similar to irradiance field or spectral irradiance field)--"},
-      .in = {"f_grid"},
+      .in = {"frequency_grid"},
       .gin = {"spectral_radiation_field"},
       .gin_type = {"Tensor5, Tensor7"},
       .gin_value = {std::nullopt},
@@ -840,13 +840,13 @@ channels. It changes a number of variables in consistent fashion:
 
 - Unwanted channels are removed from f_backend. 
 - Unwanted channels are removed from wmrf_weights.
-- Unnecessary frequencies are removed from f_grid.
+- Unnecessary frequencies are removed from frequency_grid.
 - Unnecessary frequencies are removed from wmrf_weights.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"f_grid", "wmrf_weights", "f_backend"},
+      .out = {"frequency_grid", "wmrf_weights", "f_backend"},
 
-      .in = {"f_grid", "f_backend", "wmrf_weights"},
+      .in = {"frequency_grid", "f_backend", "wmrf_weights"},
       .gin = {"wmrf_channels"},
       .gin_type = {"ArrayOfIndex"},
       .gin_value = {std::nullopt},
@@ -1147,7 +1147,7 @@ will crash at some point
       .out = {"abs_lines"},
 
       .in = {"abs_lines", "ecs_data"},
-      .gin = {"t_grid", "pressure", "order", "robust", "rosenkranz_adaptation"},
+      .gin = {"temperature_grid", "pressure", "order", "robust", "rosenkranz_adaptation"},
       .gin_type = {"Vector", "Numeric", "Index", "Index", "Index"},
       .gin_value =
           {std::nullopt, std::nullopt, std::nullopt, Index{1}, Index{0}},
@@ -1167,7 +1167,7 @@ cutoff frequency range
       .author = {"Stefan Buehler", "Richard Larsson"},
       .out = {"abs_lines"},
 
-      .in = {"abs_lines", "f_grid"},
+      .in = {"abs_lines", "frequency_grid"},
 
   };
 
@@ -1230,7 +1230,7 @@ will crash at some point
           .out = {"abs_lines_per_species"},
 
           .in = {"abs_lines_per_species", "abs_hitran_relmat_data"},
-          .gin = {"t_grid", "pressure", "order"},
+          .gin = {"temperature_grid", "pressure", "order"},
           .gin_type = {"Vector", "Numeric", "Index"},
           .gin_value = {std::nullopt, std::nullopt, std::nullopt},
           .gin_desc = {R"--(The sorted temperature grid)--",
@@ -1247,7 +1247,7 @@ will crash at some point
       .out = {"abs_lines_per_species"},
 
       .in = {"abs_lines_per_species", "ecs_data"},
-      .gin = {"t_grid", "pressure", "order", "robust", "rosenkranz_adaptation"},
+      .gin = {"temperature_grid", "pressure", "order", "robust", "rosenkranz_adaptation"},
       .gin_type = {"Vector", "Numeric", "Index", "Index", "Index"},
       .gin_value =
           {std::nullopt, std::nullopt, std::nullopt, Index{1}, Index{0}},
@@ -1266,7 +1266,7 @@ will crash at some point
       .author = {"Stefan Buehler", "Richard Larsson"},
       .out = {"abs_lines_per_species"},
 
-      .in = {"abs_lines_per_species", "f_grid"},
+      .in = {"abs_lines_per_species", "frequency_grid"},
 
   };
 
@@ -1407,7 +1407,7 @@ always use this method to set it!
       .author = {"Stefan Buehler"},
       .out = {"abs_lookup", "abs_lookup_is_adapted"},
 
-      .in = {"abs_lookup", "abs_species", "f_grid"},
+      .in = {"abs_lookup", "abs_species", "frequency_grid"},
 
   };
 
@@ -2086,7 +2086,7 @@ J. Geophys. Res., 113, D14220, doi:10.1029/2007JD009744.
       .author = {"Jana Mendrok"},
       .out = {"complex_refr_index"},
 
-      .gin = {"data_f_grid", "data_T_grid"},
+      .gin = {"data_frequency_grid", "data_temperature_grid"},
       .gin_type = {"Vector", "Vector"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Frequency grid for refractive index calculation)--",
@@ -2103,7 +2103,7 @@ set to the value 0).
       .author = {"Manfred Brath"},
       .out = {"complex_refr_index"},
 
-      .in = {"f_grid"},
+      .in = {"frequency_grid"},
       .gin = {"refr_index_real", "refr_index_imag", "temperature"},
       .gin_type = {"Vector", "Vector", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, Numeric{273.15}},
@@ -2130,7 +2130,7 @@ accuracy of the parametrization below 0 C is not known by us.
       .author = {"Patrick Eriksson", "Oliver Lemke"},
       .out = {"complex_refr_index"},
 
-      .gin = {"data_f_grid", "data_T_grid"},
+      .gin = {"data_frequency_grid", "data_temperature_grid"},
       .gin_type = {"Vector", "Vector"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(Frequency grid for refractive index calculation)--",
@@ -2159,7 +2159,7 @@ Range of validity:
 - 157.785504THz < frequency < 1498.96229THz or  0.2µm < wavelength < 1.9µm
 
 Density can be set as Vector of size 1 or it must have the same size as
-as data_t_grid.
+as data_temperature_grid.
 
 IMPORTANT: Though the output is *complex_refr_index*, it only contains
 the real part. The imaginry part is zero.
@@ -2168,8 +2168,8 @@ the real part. The imaginry part is zero.
       .out = {"complex_refr_index"},
 
       .in = {"complex_refr_index"},
-      .gin = {"data_f_grid",
-              "data_t_grid",
+      .gin = {"data_frequency_grid",
+              "data_temperature_grid",
               "density_water",
               "only_valid_range"},
       .gin_type = {"Vector", "Vector", "Vector", "Index"},
@@ -2458,20 +2458,20 @@ and that N2 VMR must be present
 
   };
 
-  wsm_data["f_gridFromAbsorptionLines"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *f_grid* to a grid relative to *abs_lines_per_species*
+  wsm_data["frequency_gridFromAbsorptionLines"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *frequency_grid* to a grid relative to *abs_lines_per_species*
 
 Each line will have *abs_lines_per_species* will have a grid
 of ``num_freqs`` grid points in [ f0 + ``delta_f_low``, f0 + ``delta_f_upp`` ],
 where f0 is the line center.
 
-Before leaving the function, *f_grid* is sorted.
+Before leaving the function, *frequency_grid* is sorted.
 
-Note that this method could generate significantly large *f_grid*
+Note that this method could generate significantly large *frequency_grid*
 if used carelessly
 )--",
       .author = {"Richard Larsson"},
-      .out = {"f_grid"},
+      .out = {"frequency_grid"},
 
       .in = {"abs_lines_per_species"},
       .gin = {"delta_f_low", "delta_f_upp", "num_freqs"},
@@ -2483,28 +2483,28 @@ if used carelessly
 
   };
 
-  wsm_data["f_gridFromGasAbsLookup"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *f_grid* to the frequency grid of *abs_lookup*.
+  wsm_data["frequency_gridFromGasAbsLookup"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *frequency_grid* to the frequency grid of *abs_lookup*.
 
 Must be called between importing/creating raw absorption table and
 call of *abs_lookupAdapt*.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"f_grid"},
+      .out = {"frequency_grid"},
 
       .in = {"abs_lookup"},
 
   };
 
-  wsm_data["f_gridFromSensorAMSU"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Automatically calculate f_grid to match the sensor.
+  wsm_data["frequency_gridFromSensorAMSU"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Automatically calculate frequency_grid to match the sensor.
 
 This method is handy if you are simulating an AMSU-type instrument,
 consisting of a few discrete channels. The case that channels touch,
 as for MHS, is handled correctly. But the case that channels overlap
 is not (yet) handled and results in an error message.
 
-The method calculates *f_grid* to match the instrument, as given by
+The method calculates *frequency_grid* to match the instrument, as given by
 the local oscillator frequencies ``lo_multi``, the backend
 frequencies ``f_backend_multi``, and the backend channel
 responses ``backend_channel_response_multi``.
@@ -2519,10 +2519,10 @@ edges, then adds additional points until the spacing is at least as
 fine as requested.
 
 There is a similar method for HIRS-type instruments,
-see *f_gridFromSensorHIRS*.
+see *frequency_gridFromSensorHIRS*.
 )--",
       .author = {"Stefan Buehler, Mathias Milz"},
-      .out = {"f_grid"},
+      .out = {"frequency_grid"},
       .gin = {"lo_multi",
               "spacing",
               "backend_channel_response_multi",
@@ -2540,11 +2540,11 @@ see *f_gridFromSensorHIRS*.
 
   };
 
-  wsm_data["f_gridFromSensorAMSUgeneric"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Automatcially calculate f_grid to match the sensor. 
-This function is based on 'f_gridFromSensorAMSU' 
+  wsm_data["frequency_gridFromSensorAMSUgeneric"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Automatcially calculate frequency_grid to match the sensor. 
+This function is based on 'frequency_gridFromSensorAMSU' 
 
-The method calculates *f_grid* to match the instrument, as given by
+The method calculates *frequency_grid* to match the instrument, as given by
 the backend frequencies *f_backend*, and the backend channel
 responses *backend_channel_response*.
 
@@ -2557,7 +2557,7 @@ edges, then adds additional points until the spacing is at least as
 fine as requested.
 )--",
       .author = {"Oscar Isoz"},
-      .out = {"f_grid"},
+      .out = {"frequency_grid"},
       .gin = {"spacing",
               "verbosityVect",
               "backend_channel_response_multi",
@@ -2575,13 +2575,13 @@ fine as requested.
 
   };
 
-  wsm_data["f_gridFromSensorHIRS"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Automatically calculate f_grid to match the sensor.
+  wsm_data["frequency_gridFromSensorHIRS"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Automatically calculate frequency_grid to match the sensor.
 
 This method is handy if you are simulating a HIRS-type instrument,
 consisting of a few discrete channels.
 
-It calculates f_grid to match the instrument, as given by the nominal
+It calculates frequency_grid to match the instrument, as given by the nominal
 band frequencies *f_backend* and the spectral channel response
 functions given by *backend_channel_response*.
 
@@ -2594,10 +2594,10 @@ edges, then adds additional points until the spacing is at least as
 fine as requested.
 
 There is a similar method for AMSU-type instruments, see
-*f_gridFromSensorAMSU*.
+*frequency_gridFromSensorAMSU*.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"f_grid"},
+      .out = {"frequency_grid"},
 
       .in = {"f_backend", "backend_channel_response"},
       .gin = {"spacing"},
@@ -2607,10 +2607,10 @@ There is a similar method for AMSU-type instruments, see
 
   };
 
-  wsm_data["f_gridMetMM"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *f_grid* and associated variables match MetMM settings.
+  wsm_data["frequency_gridMetMM"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *frequency_grid* and associated variables match MetMM settings.
 
-The method calculates *f_grid* to match the specifications of a
+The method calculates *frequency_grid* to match the specifications of a
 ``met_mm_backend`` table and method arguments.
 
 You have to specify the desired spacing using the keyword ``freq_spacing``.
@@ -2631,7 +2631,7 @@ the bandwidth of the channel, one frequency is placed in the middle of
 each passband.
 
 Frequencies that would be closer than ``freq_merge_threshold`` in the
-generated *f_grid* are merged together. This value should be left at
+generated *frequency_grid* are merged together. This value should be left at
 the default value. This is only meant to compensate for numerical
 inaccuracies in the frequency calculation to merge frequency that are
 supposed to be identical.
@@ -2663,12 +2663,12 @@ For a sensor with 1 passband, offset1 and offset2 are zero.
 For a sensor with 2 passbands, only offset2 is zero.
 )--",
       .author = {"Oliver Lemke", "Patrick Eriksson"},
-      .out = {"f_grid", "f_backend"},
+      .out = {"frequency_grid", "f_backend"},
       .gout = {"channel2fgrid_indexes", "channel2fgrid_weights"},
       .gout_type = {"ArrayOfArrayOfIndex", "ArrayOfVector"},
       .gout_desc =
-          {"Definition of backend frequency response, link to *f_grid*.",
-           "Definition of backend frequency response, weighting of *f_grid*."},
+          {"Definition of backend frequency response, link to *frequency_grid*.",
+           "Definition of backend frequency response, weighting of *frequency_grid*."},
       .gin = {"met_mm_backend",
               "freq_spacing",
               "freq_number",
@@ -2765,12 +2765,12 @@ in downward direction
 
 The ``radiance_field`` is integrated over the angular grids according to
 the grids set by *AngularGridsSetFluxCalc*. 
-See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
-*za_grid_weights*
+See *AngularGridsSetFluxCalc* to set *zenith_grid*, *azimuth_grid*, and
+*zenith_grid_weights*
 )--",
       .author = {"Manfred Brath"},
       .out = {"irradiance_field"},
-      .in = {"za_grid", "aa_grid", "za_grid_weights"},
+      .in = {"zenith_grid", "azimuth_grid", "zenith_grid_weights"},
       .gin = {"radiance_field"},
       .gin_type = {"Tensor5"},
       .gin_value = {std::nullopt},
@@ -2822,7 +2822,7 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_path_frequency_grid"},
-      .in = {"f_grid",
+      .in = {"frequency_grid",
              "propagation_path",
              "propagation_path_atmospheric_point"},
       .gin = {"rte_alonglos_v"},
@@ -2997,7 +2997,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "f_grid",
+             "frequency_grid",
              "atmospheric_point",
              "abs_cia_data"},
       .gin = {"T_extrapolfac", "ignore_errors"},
@@ -3031,7 +3031,7 @@ but adds further contributions.
 
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
-             "f_grid",
+             "frequency_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
@@ -3055,11 +3055,11 @@ and cannot be handled by the lookup table.
 The interpolation order in T and H2O is given by ``abs_t_interp_order``
 and ``abs_nls_interp_order``, respectively.
 
-Extraction is done for the frequencies in f_grid. Frequency
+Extraction is done for the frequencies in frequency_grid. Frequency
 interpolation is controlled by ``abs_f_interp_order``. If this is zero,
-then f_grid must either be the same as the internal frequency grid of
+then frequency_grid must either be the same as the internal frequency grid of
 the lookup table (for efficiency reasons, only the first and last
-element of f_grid are checked), or must have only a single element.
+element of frequency_grid are checked), or must have only a single element.
 If ``abs_f_interp_order`` is above zero, then frequency is interpolated
 along with the other interpolation dimensions. This is useful for
 calculations with Doppler shift.
@@ -3081,7 +3081,7 @@ limit can here be adjusted by the ``extpolfac`` argument.
              "propagation_matrix_jacobian",
              "abs_lookup",
              "abs_lookup_is_adapted",
-             "f_grid",
+             "frequency_grid",
              "atmospheric_point",
              "jacobian_targets",
              "abs_species",
@@ -3127,7 +3127,7 @@ Please ensure you cite the original authors when you use this function:
           .in = {"propagation_matrix",
                  "abs_hitran_relmat_data",
                  "abs_lines_per_species",
-                 "f_grid",
+                 "frequency_grid",
                  "abs_species",
                  "select_abs_species",
                  "jacobian_targets",
@@ -3145,19 +3145,19 @@ Valid speed-up logic other than "None" includes:
 
 - ``"LinearIndependent"``:
   Using a sparse-grid, the points are separated as [f0, f0+df[0], f0+df[0], f0+df[1]...]
-  until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+  until the entire *frequency_grid* is covered.  All sparse bins are on *frequency_grid* so df changes.
   A linear interpolation scheme is used between the bins to fill up the dense
   absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
   transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
 
 - ``"QuadraticIndependent"``:
   Using a sparse-grid, the points are separated as [f0, f0+0.5*df[0], f0+df[0], f0+df[0], f0+0.5*df[1], f0+df[1]...]
-  until the entire *f_grid* is covered.  All sparse bins are on *f_grid* so df changes.
+  until the entire *frequency_grid* is covered.  All sparse bins are on *frequency_grid* so df changes.
   A quadratic interpolation scheme is used between the bins to fill up the dense
   absorption.  The maximum of df[n] is given by ``lines_sparse_df`` and the minimum
   transition between dense-to-sparse grid calculations are given by ``lines_sparse_lim``.
 
-Please use *sparse_f_gridFromFrequencyGrid* to see the sparse frequency grid
+Please use *sparse_frequency_gridFromFrequencyGrid* to see the sparse frequency grid
 
 By default we discourage negative values, which are common when using one of the line mixing
 approximations.   Change the value of no_negatives to 0 to allow these negative absorptions.
@@ -3171,7 +3171,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
              "source_vector_nonlte",
              "propagation_matrix_jacobian",
              "source_vector_nonlte_jacobian",
-             "f_grid",
+             "frequency_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
@@ -3220,7 +3220,7 @@ to compensate the calculations for the pressure limit
                  "propagation_matrix_jacobian",
                  "abs_lines_per_species",
                  "ecs_data",
-                 "f_grid",
+                 "frequency_grid",
                  "abs_species",
                  "select_abs_species",
                  "jacobian_targets",
@@ -3539,7 +3539,7 @@ Available models:
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "f_grid",
+             "frequency_grid",
              "atmospheric_point"},
   };
 
@@ -3548,7 +3548,7 @@ Available models:
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
 This broadens the cross section data from *xsec_fit_data* and
-interpolates it onto the current f_grid.
+interpolates it onto the current frequency_grid.
 
 Model data needs to be read in with *ReadXsecData* before calling
 this method.
@@ -3561,7 +3561,7 @@ this method.
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "f_grid",
+             "frequency_grid",
              "atmospheric_point",
              "xsec_fit_data"},
       .gin = {"force_p", "force_t"},
@@ -3590,7 +3590,7 @@ Otherwise as *propagation_matrixAddFromLookup*
              "propagation_matrix_jacobian",
              "source_vector_nonlte_jacobian",
              "abs_lines_per_species",
-             "f_grid",
+             "frequency_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
@@ -3639,7 +3639,7 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
               "propagation_matrix_jacobian",
               "source_vector_nonlte_jacobian"},
 
-      .in = {"jacobian_targets", "f_grid"},
+      .in = {"jacobian_targets", "frequency_grid"},
 
   };
 
@@ -3655,7 +3655,7 @@ Ignore statements (don't include *propagation_matrixInit*).
       .author = {"Patrick Eriksson"},
       .out = {"propagation_matrix"},
 
-      .in = {"f_grid"},
+      .in = {"frequency_grid"},
 
   };
 
@@ -3793,7 +3793,7 @@ Options are:
       .desc = R"--(Converts sensor response variables from IF to RF.
 
 The function converts intermediate frequencies (IF) in
-*sensor_response_f* and *sensor_response_f_grid* to radio
+*sensor_response_f* and *sensor_response_frequency_grid* to radio
 frequencies (RF). This conversion is needed if the frequency
 translation of a mixer is included and the position of backend
 channels are specified in RF.
@@ -3802,9 +3802,9 @@ A direct frequency conversion is performed. Values are not
 sorted in any way.
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"sensor_response_f", "sensor_response_f_grid"},
+      .out = {"sensor_response_f", "sensor_response_frequency_grid"},
 
-      .in = {"sensor_response_f", "sensor_response_f_grid"},
+      .in = {"sensor_response_f", "sensor_response_frequency_grid"},
       .gin = {"lo", "sideband_mode"},
       .gin_type = {"Numeric", "String"},
       .gin_value = {nullopt, std::nullopt},
@@ -3813,16 +3813,16 @@ sorted in any way.
 
   };
 
-  wsm_data["sparse_f_gridFromFrequencyGrid"] = WorkspaceMethodInternalRecord{
+  wsm_data["sparse_frequency_gridFromFrequencyGrid"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Outputs the sparse frequency grid in *propagation_matrixAddLines*
 )--",
       .author = {"Richard Larsson"},
 
-      .gout = {"sparse_f_grid"},
+      .gout = {"sparse_frequency_grid"},
       .gout_type = {"Vector"},
       .gout_desc = {R"--(A sparse frequency grid.)--"},
-      .in = {"f_grid"},
+      .in = {"frequency_grid"},
       .gin = {"sparse_df", "speedup_option"},
       .gin_type = {"Numeric", "String"},
       .gin_value = {Numeric{0}, String("None")},
@@ -3837,17 +3837,17 @@ sorted in any way.
 
 The *spectral_radiance_field* is integrated over the angular grids
 according to the grids set by *AngularGridsSetFluxCalc*.
-See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and 
-*za_grid_weights*.
+See *AngularGridsSetFluxCalc* to set *zenith_grid*, *azimuth_grid*, and 
+*zenith_grid_weights*.
 )--",
           .author = {"Manfred Brath"},
           .gout = {"spectral_irradiance_field"},
           .gout_type = {"Tensor5"},
           .gout_desc = {R"--(The spectral irradiance field)--"},
           .in = {"spectral_radiance_field",
-                 "za_grid",
-                 "aa_grid",
-                 "za_grid_weights"},
+                 "zenith_grid",
+                 "azimuth_grid",
+                 "zenith_grid_weights"},
       };
 
   wsm_data["spectral_radiance_fieldPlaneParallelSpectralRadianceOperator"] =
@@ -3859,7 +3859,7 @@ This is an experimental solution.
           .author = {"Richard Larsson"},
           .out = {"spectral_radiance_field"},
 
-          .in = {"f_grid", "za_grid"},
+          .in = {"frequency_grid", "zenith_grid"},
           .gin = {"spectral_radiance_profile_operator"},
           .gin_type = {"SpectralRadianceProfileOperator"},
           .gin_value = {std::nullopt},
@@ -3876,7 +3876,7 @@ between the actual sun spectrum and the blackbody spectrumwith the effective tem
       .author = {"Jon Petersen"},
       .out = {"suns"},
 
-      .in = {"suns", "f_grid"},
+      .in = {"suns", "frequency_grid"},
       .gin = {"radius", "distance", "temperature", "latitude", "longitude"},
       .gin_type = {"Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
       .gin_value = {Numeric{6.963242e8},
@@ -3906,20 +3906,20 @@ Unit:
 
 - GriddedField2: [W m-2 Hz-1]
 
-  - Vector *f_grid* [Hz]
+  - Vector *frequency_grid* [Hz]
   - Vector ``stokes_dim`` [1]
 
-Dimensions: [f_grid, stokes_dim]
+Dimensions: [frequency_grid, stokes_dim]
 
-This method performs an interpolation onto the f_grid.
-The point of *f_grid* that are outside the data frequency grid
+This method performs an interpolation onto the frequency_grid.
+The point of *frequency_grid* that are outside the data frequency grid
 are initialized according to planck's law of the temperature variable.
-Hence, a temperature of 0 means 0s the edges of the f_grid.
+Hence, a temperature of 0 means 0s the edges of the frequency_grid.
 )--",
       .author = {"Jon Petersen"},
       .out = {"suns"},
 
-      .in = {"suns", "f_grid"},
+      .in = {"suns", "frequency_grid"},
       .gin = {"sun_spectrum_raw",
               "radius",
               "distance",
@@ -3945,7 +3945,7 @@ Hence, a temperature of 0 means 0s the edges of the f_grid.
           {R"--(Raw data for monochromatic irradiance spectra. )--",
            R"--(The radius of the sun in meter. Default is the radius of our sun. )--",
            R"--(The average distance between the center of the sun and the  center of the planet in meter. Default value is set to 1 a.u. )--",
-           R"--(The temperature of the padding if the f_grid is outside the  sun spectrum data. Choose 0 for 0 at the edges or a effective temperature for a padding using plack's law. )--",
+           R"--(The temperature of the padding if the frequency_grid is outside the  sun spectrum data. Choose 0 for 0 at the edges or a effective temperature for a padding using plack's law. )--",
            R"--(The latitude or the zenith position of the sun in the sky. )--",
            R"--(The longitude or azimuthal position of the sun in the sky. )--",
            R"--(The description of the sun. )--"},
@@ -4315,7 +4315,7 @@ Gets the ellispoid from *surface_field*
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_background",
               "spectral_radiance_background_jacobian"},
-      .in = {"f_grid",
+      .in = {"frequency_grid",
              "jacobian_targets",
              "propagation_path",
              "spectral_radiance_background_space_agenda",
@@ -4328,7 +4328,7 @@ Gets the ellispoid from *surface_field*
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_background"},
-      .in = {"f_grid"}};
+      .in = {"frequency_grid"}};
 
   wsm_data["spectral_radiance_backgroundSurfaceBlackbody"] = {
       .desc =
@@ -4337,25 +4337,25 @@ Gets the ellispoid from *surface_field*
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_background",
               "spectral_radiance_background_jacobian"},
-      .in = {"f_grid", "surface_field", "jacobian_targets", "path_point"}};
+      .in = {"frequency_grid", "surface_field", "jacobian_targets", "path_point"}};
 
   wsm_data["spectral_radiance_background_jacobianEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.
 
-Size : (*jacobian_targets*, *f_grid*)
+Size : (*jacobian_targets*, *frequency_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_background_jacobian"},
-      .in = {"f_grid", "jacobian_targets"}};
+      .in = {"frequency_grid", "jacobian_targets"}};
 
   wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.
 
-Size : (*jacobian_targets*, *f_grid*)
+Size : (*jacobian_targets*, *frequency_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_jacobian"},
-      .in = {"f_grid", "jacobian_targets"}};
+      .in = {"frequency_grid", "jacobian_targets"}};
 
   wsm_data["spectral_radiance_jacobianFromBackground"] = {
       .desc = R"--(Sets *spectral_radiance_jacobian* from the background values
@@ -4383,7 +4383,7 @@ Size : (*jacobian_targets*, *f_grid*)
       .gout = {"spectral_radiance_with_unit"},
       .gout_type = {"StokvecVector"},
       .gout_desc = {"The spectral radiance with unit"},
-      .in = {"spectral_radiance", "f_grid"},
+      .in = {"spectral_radiance", "frequency_grid"},
       .gin = {"spectral_radiance_unit"},
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
@@ -4403,7 +4403,7 @@ Size : (*jacobian_targets*, *f_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in = {"f_grid",
+      .in = {"frequency_grid",
              "jacobian_targets",
              "atmospheric_field",
              "surface_field",
@@ -4445,7 +4445,7 @@ Size : (*jacobian_targets*, *f_grid*)
              "source_vector_nonlte",
              "propagation_matrix_jacobian",
              "source_vector_nonlte_jacobian",
-             "f_grid",
+             "frequency_grid",
              "jacobian_targets",
              "absorption_bands",
              "ecs_data2",

@@ -5,7 +5,7 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sensor
 
-ws.f_grid = np.linspace(-4e6, 4e6, 1001) + 118750348044.712
+ws.frequency_grid = np.linspace(-4e6, 4e6, 1001) + 118750348044.712
 
 # %% Species and line absorption
 

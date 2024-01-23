@@ -18,7 +18,7 @@ one point in the atmosphere. The result is returned in
                  "source_vector_nonlte_jacobian"},
       .input = {"jacobian_targets",
                 "select_abs_species",
-                "f_grid",
+                "frequency_grid",
                 "path_point",
                 "atmospheric_point"}};
 
@@ -33,12 +33,12 @@ The input path point should be as if it is looking at space.
 
 The output must be sized as:
 
-- *spectral_radiance_background* : (*f_grid*)
-- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
+- *spectral_radiance_background* : (*frequency_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output = {"spectral_radiance_background",
                  "spectral_radiance_background_jacobian"},
-      .input = {"f_grid", "jacobian_targets", "path_point"}};
+      .input = {"frequency_grid", "jacobian_targets", "path_point"}};
 
   wsa_data["spectral_radiance_background_surface_agenda"] = {
       .desc = R"--(Spectral radiance as seen of the surface.
@@ -52,12 +52,12 @@ The input path point should be as if it is looking at the surface.
 
 The output must be sized as:
 
-- *spectral_radiance_background* : (*f_grid*)
-- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *f_grid*)
+- *spectral_radiance_background* : (*frequency_grid*)
+- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output = {"spectral_radiance_background",
                  "spectral_radiance_background_jacobian"},
-      .input = {"f_grid", "jacobian_targets", "path_point"}};
+      .input = {"frequency_grid", "jacobian_targets", "path_point"}};
 
   return wsa_data;
 }

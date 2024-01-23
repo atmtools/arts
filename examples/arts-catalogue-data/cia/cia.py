@@ -91,7 +91,7 @@ inputs required to initialize the propagation matrix
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
-ws.f_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
+ws.frequency_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
 ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
@@ -104,7 +104,7 @@ ws.propagation_matrix_agendaExecute()
 plt.figure(1)
 plt.clf()
 plt.plot(
-    1e9 * pyarts.arts.convert.freq2wavelen(ws.f_grid.value),
+    1e9 * pyarts.arts.convert.freq2wavelen(ws.frequency_grid.value),
     ws.propagation_matrix[:, 0],
 )
 plt.xlabel("Wavelength [nm]")

@@ -357,8 +357,8 @@ void abs_speciesSet(  // WS Output:
 void abs_lookupAdapt(GasAbsLookup& abs_lookup,
                      Index& abs_lookup_is_adapted,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Vector& f_grid) {
-  abs_lookup.Adapt(abs_species, f_grid);
+                     const Vector& frequency_grid) {
+  abs_lookup.Adapt(abs_species, frequency_grid);
   abs_lookup_is_adapted = 1;
 }
 
@@ -368,7 +368,7 @@ void propagation_matrixAddFromLookup(
     PropmatMatrix& propagation_matrix_jacobian,
     const GasAbsLookup& abs_lookup,
     const Index& abs_lookup_is_adapted,
-    const Vector& f_grid,
+    const Vector& frequency_grid,
     const AtmPoint& atm_point,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -429,10 +429,10 @@ void propagation_matrixAddFromLookup(
                      atm_point.pressure,
                      atm_point.temperature,
                      a_vmr_list,
-                     f_grid,
+                     frequency_grid,
                      extpolfac);
   if (df != 0.0) {
-    Vector dfreq = f_grid;
+    Vector dfreq = frequency_grid;
     dfreq += df;
     abs_lookup.Extract(dabs_scalar_gas_df,
                        select_abs_species,
@@ -457,7 +457,7 @@ void propagation_matrixAddFromLookup(
                        atm_point.pressure,
                        dtemp,
                        a_vmr_list,
-                       f_grid,
+                       frequency_grid,
                        extpolfac);
   }
 
@@ -503,10 +503,11 @@ void propagation_matrixAddFromLookup(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridFromGasAbsLookup(Vector& f_grid, const GasAbsLookup& abs_lookup) {
-  const Vector& lookup_f_grid = abs_lookup.GetFgrid();
-  f_grid.resize(lookup_f_grid.nelem());
-  f_grid = lookup_f_grid;
+void frequency_gridFromGasAbsLookup(Vector& frequency_grid,
+                                    const GasAbsLookup& abs_lookup) {
+  const Vector& lookup_frequency_grid = abs_lookup.GetFgrid();
+  frequency_grid.resize(lookup_frequency_grid.nelem());
+  frequency_grid = lookup_frequency_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

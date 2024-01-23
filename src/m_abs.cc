@@ -196,8 +196,8 @@ void propagation_matrixInit(  //WS Output
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid) {
-  const Index nf = f_grid.nelem();
+    const Vector& frequency_grid) {
+  const Index nf = frequency_grid.nelem();
   const Index nq = jacobian_targets.target_count();
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
@@ -222,7 +222,7 @@ void propagation_matrixInit(  //WS Output
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                                   PropmatMatrix& propagation_matrix_jacobian,
-                                  const Vector& f_grid,
+                                  const Vector& frequency_grid,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
                                   const ArrayOfSpeciesTag& select_abs_species,
                                   const JacobianTargets& jacobian_targets,
@@ -296,8 +296,8 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
                dmag;
     }
 
-    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-      const Numeric f2 = f_grid[iv] * f_grid[iv];
+    for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
+      const Numeric f2 = frequency_grid[iv] * frequency_grid[iv];
       const Numeric r = ne * c1 / f2;
       propagation_matrix[iv].U() += r;
 
@@ -311,7 +311,7 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
       for (Size i = 3; i < 6; i++) {
         if (jacs[i].first) {
           propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
-              -2.0 * ne * r / f_grid[iv];
+              -2.0 * ne * r / frequency_grid[iv];
         }
       }
 
@@ -328,7 +328,7 @@ void propagation_matrixAddParticles(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
-    const Vector& f_grid,
+    const Vector& frequency_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
@@ -451,21 +451,21 @@ void propagation_matrixAddParticles(
                            i_se,
                            "\n")
         if (use_abs_as_ext) {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+          for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 0);
             internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 1);
             internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 2);
             internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 3);
           }
         } else {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+          for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv] = rtepack::to_propmat(
                 ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
           }
         }
 
         const Numeric vmr = atm_point[abs_species[sp].Species()];
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
           propagation_matrix[iv] += vmr * internal_propmat[iv];
         }
       }
@@ -493,7 +493,7 @@ void propagation_matrixAddParticles(
         tmp *= atm_point[abs_species[sp].Species()];
         tmp /= dT;
 
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
             propagation_matrix_jacobian(iq, iv).A() += tmp(iv, 0, 0);
             propagation_matrix_jacobian(iq, iv).B() += tmp(iv, 1, 0);
@@ -511,7 +511,7 @@ void propagation_matrixAddParticles(
           jac_species.first) {
         const auto iq = jac_species.second->target_pos;
 
-        for (Index iv = 0; iv < f_grid.nelem(); iv++)
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++)
           propagation_matrix_jacobian(iq, iv) += internal_propmat[iv];
       }
 
@@ -521,39 +521,42 @@ void propagation_matrixAddParticles(
   }
 }
 
-void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
-                                    const Vector& f_grid,
-                                    const Numeric& sparse_df,
-                                    const String& speedup_option) {
+void sparse_frequency_gridFromFrequencyGrid(Vector& sparse_frequency_grid,
+                                            const Vector& frequency_grid,
+                                            const Numeric& sparse_df,
+                                            const String& speedup_option) {
   // Return empty for nothing
-  if (not f_grid.nelem()) {
-    sparse_f_grid.resize(0);
+  if (not frequency_grid.nelem()) {
+    sparse_frequency_grid.resize(0);
     return;
   };
 
   switch (Options::toLblSpeedupOrThrow(speedup_option)) {
     case Options::LblSpeedup::LinearIndependent:
-      sparse_f_grid = LineShape::linear_sparse_f_grid(f_grid, sparse_df);
-      ARTS_ASSERT(LineShape::good_linear_sparse_f_grid(f_grid, sparse_f_grid))
+      sparse_frequency_grid =
+          LineShape::linear_sparse_frequency_grid(frequency_grid, sparse_df);
+      ARTS_ASSERT(LineShape::good_linear_sparse_frequency_grid(
+          frequency_grid, sparse_frequency_grid))
       break;
     case Options::LblSpeedup::QuadraticIndependent:
-      sparse_f_grid = LineShape::triple_sparse_f_grid(f_grid, sparse_df);
+      sparse_frequency_grid =
+          LineShape::triple_sparse_frequency_grid(frequency_grid, sparse_df);
       break;
     case Options::LblSpeedup::None:
-      sparse_f_grid.resize(0);
+      sparse_frequency_grid.resize(0);
       break;
     case Options::LblSpeedup::FINAL: { /* Leave last */
     }
   }
 }
 
-Vector create_sparse_f_grid_internal(const Vector& f_grid,
-                                     const Numeric& sparse_df,
-                                     const String& speedup_option) {
-  Vector sparse_f_grid;
-  sparse_f_gridFromFrequencyGrid(
-      sparse_f_grid, f_grid, sparse_df, speedup_option);
-  return sparse_f_grid;
+Vector create_sparse_frequency_grid_internal(const Vector& frequency_grid,
+                                             const Numeric& sparse_df,
+                                             const String& speedup_option) {
+  Vector sparse_frequency_grid;
+  sparse_frequency_gridFromFrequencyGrid(
+      sparse_frequency_grid, frequency_grid, sparse_df, speedup_option);
+  return sparse_frequency_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -564,7 +567,7 @@ void propagation_matrixAddLines(  // Workspace reference:
     PropmatMatrix& propagation_matrix_jacobian,
     StokvecMatrix& source_vector_nonlte_jacobian,
     // WS Input:
-    const Vector& f_grid,
+    const Vector& frequency_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
@@ -578,33 +581,33 @@ void propagation_matrixAddLines(  // Workspace reference:
     const String& speedup_option,
     const Index& robust) {
   // Size of problem
-  const Index nf = f_grid.nelem();
+  const Index nf = frequency_grid.nelem();
   const Index nq = jacobian_targets.target_count();
   const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
   ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
-                     "*f_grid* must match *propagation_matrix*")
+                     "*frequency_grid* must match *propagation_matrix*")
   ARTS_USER_ERROR_IF(source_vector_nonlte.nelem() not_eq nf,
-                     "*f_grid* must match *source_vector_nonlte*")
+                     "*frequency_grid* must match *source_vector_nonlte*")
   ARTS_USER_ERROR_IF(
       nq not_eq propagation_matrix_jacobian.nrows(),
       "*propagation_matrix_jacobian* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(
       nf not_eq propagation_matrix_jacobian.ncols(),
-      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
+      "*propagation_matrix_jacobian* must have frequency dim same as *frequency_grid*")
   ARTS_USER_ERROR_IF(
       nlte_do and nq not_eq source_vector_nonlte_jacobian.nrows(),
       "*source_vector_nonlte_jacobian* must match derived form of *jacobian_quantities* when non-LTE is on")
   ARTS_USER_ERROR_IF(
       nlte_do and nf not_eq source_vector_nonlte_jacobian.ncols(),
-      "*source_vector_nonlte_jacobian* must have frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(any_negative(f_grid),
+      "*source_vector_nonlte_jacobian* must have frequency dim same as *frequency_grid* when non-LTE is on")
+  ARTS_USER_ERROR_IF(any_negative(frequency_grid),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(
       (any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and
-          not is_increasing(f_grid),
+          not is_increasing(frequency_grid),
       "Must be sorted and increasing if any cutoff or speedup is used.")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
@@ -620,18 +623,20 @@ void propagation_matrixAddLines(  // Workspace reference:
   if (not nf) return;
 
   // Deal with sparse computational grid
-  const Vector f_grid_sparse =
-      create_sparse_f_grid_internal(f_grid, sparse_df, speedup_option);
+  const Vector frequency_grid_sparse = create_sparse_frequency_grid_internal(
+      frequency_grid, sparse_df, speedup_option);
   const Options::LblSpeedup speedup_type =
-      f_grid_sparse.nelem() ? Options::toLblSpeedupOrThrow(speedup_option)
-                            : Options::LblSpeedup::None;
+      frequency_grid_sparse.nelem()
+          ? Options::toLblSpeedupOrThrow(speedup_option)
+          : Options::LblSpeedup::None;
   ARTS_USER_ERROR_IF(
       sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
       "Must have a sparse limit if you set speedup_option")
 
   // Calculations data
-  LineShape::ComputeData com(f_grid, jacobian_targets, nlte_do);
-  LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_targets, nlte_do);
+  LineShape::ComputeData com(frequency_grid, jacobian_targets, nlte_do);
+  LineShape::ComputeData sparse_com(
+      frequency_grid_sparse, jacobian_targets, nlte_do);
 
   if (arts_omp_in_parallel()) {
     for (Index ispecies = 0; ispecies < ns; ispecies++) {
@@ -675,11 +680,12 @@ void propagation_matrixAddLines(  // Workspace reference:
     std::vector<LineShape::ComputeData> vcom(
         arts_omp_get_max_threads(),
         LineShape::ComputeData{
-            f_grid, jacobian_targets, static_cast<bool>(nlte_do)});
+            frequency_grid, jacobian_targets, static_cast<bool>(nlte_do)});
     std::vector<LineShape::ComputeData> vsparse_com(
         arts_omp_get_max_threads(),
-        LineShape::ComputeData{
-            f_grid_sparse, jacobian_targets, static_cast<bool>(nlte_do)});
+        LineShape::ComputeData{frequency_grid_sparse,
+                               jacobian_targets,
+                               static_cast<bool>(nlte_do)});
 
     std::atomic<bool> error{false};
     std::string error_message;
@@ -778,8 +784,8 @@ void propagation_matrixAddLines(  // Workspace reference:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixZero(PropmatVector& propagation_matrix,
-                            const Vector& f_grid) {
-  propagation_matrix = PropmatVector(f_grid.nelem());
+                            const Vector& frequency_grid) {
+  propagation_matrix = PropmatVector(frequency_grid.nelem());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -805,7 +811,7 @@ void isotopologue_ratiosInitFromHitran(
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* Included by Claudia Emde, 20100707 */
 void WriteMolTau(  //WS Input
-    const Vector& f_grid,
+    const Vector& frequency_grid,
     const Tensor3& z_field,
     const Tensor7& propagation_matrix_field,
     //Keyword
@@ -830,7 +836,8 @@ void WriteMolTau(  //WS Input
              nc_def_dim(ncid, "nlyr", (int)z_field.npages() - 1, &nlyr_dimid)))
       nca_error(retval, "nc_def_dim");
 
-    if ((retval = nc_def_dim(ncid, "nwvl", (int)f_grid.nelem(), &nwvl_dimid)))
+    if ((retval = nc_def_dim(
+             ncid, "nwvl", (int)frequency_grid.nelem(), &nwvl_dimid)))
       nca_error(retval, "nc_def_dim");
 
     if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
@@ -889,12 +896,13 @@ void WriteMolTau(  //WS Input
 
     // Assign data
     double wvlmin[1];
-    wvlmin[0] = SPEED_OF_LIGHT / f_grid[f_grid.nelem() - 1] * 1e9;
+    wvlmin[0] =
+        SPEED_OF_LIGHT / frequency_grid[frequency_grid.nelem() - 1] * 1e9;
     if ((retval = nc_put_var_double(ncid, wvlmin_varid, &wvlmin[0])))
       nca_error(retval, "nc_put_var");
 
     double wvlmax[1];
-    wvlmax[0] = SPEED_OF_LIGHT / f_grid[0] * 1e9;
+    wvlmax[0] = SPEED_OF_LIGHT / frequency_grid[0] * 1e9;
     if ((retval = nc_put_var_double(ncid, wvlmax_varid, &wvlmax[0])))
       nca_error(retval, "nc_put_var");
 
@@ -905,15 +913,16 @@ void WriteMolTau(  //WS Input
     if ((retval = nc_put_var_double(ncid, z_varid, &z[0])))
       nca_error(retval, "nc_put_var");
 
-    double wvl[f_grid.nelem()];
-    for (int iv = 0; iv < f_grid.nelem(); iv++)
-      wvl[iv] = SPEED_OF_LIGHT / f_grid[f_grid.nelem() - 1 - iv] * 1e9;
+    double wvl[frequency_grid.nelem()];
+    for (int iv = 0; iv < frequency_grid.nelem(); iv++)
+      wvl[iv] = SPEED_OF_LIGHT /
+                frequency_grid[frequency_grid.nelem() - 1 - iv] * 1e9;
 
     if ((retval = nc_put_var_double(ncid, wvl_varid, &wvl[0])))
       nca_error(retval, "nc_put_var");
 
     const Index zfnp = z_field.npages() - 1;
-    const Index fgne = f_grid.nelem();
+    const Index fgne = frequency_grid.nelem();
     const Index amfnb = propagation_matrix_field.nbooks();
 
     Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
@@ -928,14 +937,14 @@ void WriteMolTau(  //WS Input
               tau(iz, iv, is1, is2) +=
                   0.5 *
                   (propagation_matrix_field(is,
-                                            f_grid.nelem() - 1 - iv,
+                                            frequency_grid.nelem() - 1 - iv,
                                             is1,
                                             is2,
                                             z_field.npages() - 1 - iz,
                                             0,
                                             0) +
                    propagation_matrix_field(is,
-                                            f_grid.nelem() - 1 - iv,
+                                            frequency_grid.nelem() - 1 - iv,
                                             is1,
                                             is2,
                                             z_field.npages() - 2 - iz,
@@ -955,7 +964,7 @@ void WriteMolTau(  //WS Input
 #else
 
 void WriteMolTau(  //WS Input
-    const Vector& f_grid [[maybe_unused]],
+    const Vector& frequency_grid [[maybe_unused]],
     const Tensor3& z_field [[maybe_unused]],
     const Tensor7& propagation_matrix_field [[maybe_unused]],
     //Keyword

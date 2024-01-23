@@ -52,11 +52,11 @@ print("Should contain 9.81, again: ", ws.g0)
 
 
 # Vector
-ws.f_grid = [1, 2, 3]  # from builtin list
-print("Should contain 1 2 3:       ", ws.f_grid)
+ws.frequency_grid = [1, 2, 3]  # from builtin list
+print("Should contain 1 2 3:       ", ws.frequency_grid)
 
-ws.f_grid = np.array([4, 5, 6])  # from numpy array
-print("Should contain 4 5 6:       ", ws.f_grid)
+ws.frequency_grid = np.array([4, 5, 6])  # from numpy array
+print("Should contain 4 5 6:       ", ws.frequency_grid)
 
 
 # Matrix
@@ -77,6 +77,6 @@ respective Workspace Group for more information on how to initialize them.
 assert np.isclose(ws.example_index, 2)
 assert np.isclose(ws.nlte_do, 3)
 assert np.isclose(ws.g0, 9.81)
-assert np.allclose(ws.f_grid, [4, 5, 6])
+assert np.allclose(ws.frequency_grid, [4, 5, 6])
 assert np.allclose(ws.avk, [[5, 6], [7, 8]])
 # END TESTING

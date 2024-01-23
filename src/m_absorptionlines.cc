@@ -6,9 +6,9 @@
  * @brief  Contains the user interaction with absorption lines
  **/
 
-#include <workspace.h>
-
 #include "m_absorptionlines.h"
+
+#include <workspace.h>
 
 #include <algorithm>
 #include <atomic>
@@ -2269,9 +2269,10 @@ void abs_lines_per_speciesSetEmpty(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines, const Vector& f_grid) {
-  const Numeric fmax = max(f_grid);
-  const Numeric fmin = min(f_grid);
+void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines,
+                      const Vector& frequency_grid) {
+  const Numeric fmax = max(frequency_grid);
+  const Numeric fmin = min(frequency_grid);
 
   for (auto& band : abs_lines) {
     for (Index k = band.NumLines() - 1; k >= 0; k--) {
@@ -2288,9 +2289,9 @@ void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines, const Vector& f_grid) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCompact(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Vector& f_grid) {
+    const Vector& frequency_grid) {
   for (auto& lines : abs_lines_per_species) {
-    abs_linesCompact(lines, f_grid);
+    abs_linesCompact(lines, frequency_grid);
   }
 }
 
@@ -2330,8 +2331,8 @@ std::vector<T> linspace(T s,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridFromAbsorptionLines(
-    Vector& f_grid,
+void frequency_gridFromAbsorptionLines(
+    Vector& frequency_grid,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& delta_f_low,
     const Numeric& delta_f_upp,
@@ -2344,7 +2345,7 @@ void f_gridFromAbsorptionLines(
   ARTS_USER_ERROR_IF(num_freqs == 0, "Need more than zero frequency points");
   ARTS_USER_ERROR_IF(n < 1,
                      "No lines found.  Error?  Use *VectorSet* "
-                     "to resize *f_grid*");
+                     "to resize *frequency_grid*");
 
   std::vector<Numeric> fout(0);
   for (auto& lines : abs_lines_per_species) {
@@ -2367,8 +2368,8 @@ void f_gridFromAbsorptionLines(
 
   std::sort(fout.begin(), fout.end());
   fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
-  f_grid.resize(fout.size());
-  for (Index i = 0; i < f_grid.size(); i++) f_grid[i] = fout[i];
+  frequency_grid.resize(fout.size());
+  for (Index i = 0; i < frequency_grid.size(); i++) frequency_grid[i] = fout[i];
 }
 
 /////////////////////////////////////////////////////////

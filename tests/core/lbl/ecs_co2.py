@@ -131,7 +131,7 @@ y = pyarts.arts.AbsorptionBands(ws.absorption_bands)
 
 band = y[i]
 ws.absorption_bands = [band]
-ws.f_grid = np.linspace(
+ws.frequency_grid = np.linspace(
     ws.absorption_bands[0].data.lines[0].f0 * 0.9,
     ws.absorption_bands[0].data.lines[-1].f0 * 1.1,
     10001,
@@ -157,9 +157,9 @@ ws.propagation_matrixAddLines2()
 pm_full = 1.0 * ws.propagation_matrix[:].T[0]
 
 import matplotlib.pyplot as plt
-plt.semilogy(f2c(ws.f_grid), pm_lte)
-plt.semilogy(f2c(ws.f_grid), pm_adapted_lte, '--')
-plt.semilogy(f2c(ws.f_grid), pm_full, ':')
+plt.semilogy(f2c(ws.frequency_grid), pm_lte)
+plt.semilogy(f2c(ws.frequency_grid), pm_adapted_lte, '--')
+plt.semilogy(f2c(ws.frequency_grid), pm_full, ':')
 plt.legend(["lte", "adapt", "full"])
 
 assert np.all(pm_adapted_lte > 0), "Adaptation failed"

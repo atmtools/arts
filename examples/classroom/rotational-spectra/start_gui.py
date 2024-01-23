@@ -34,7 +34,7 @@ ws.nlte_do = 0
 
 # Settings (Standard atmosphere midlatitude-summer)
 ws.path_point.los = [45, 45]
-ws.f_grid = np.linspace(1e9, 3e12, 1000)
+ws.frequency_grid = np.linspace(1e9, 3e12, 1000)
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 2.942000e+02
 ws.atmospheric_point.pressure = 110000

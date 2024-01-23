@@ -20,7 +20,7 @@ for a in ws.absorption_bands[0].data.lines:
 ws.absorption_bands[0].data.lines = t
 
 ws.Wigner6Init()
-ws.f_grid = np.linspace(40e9, 130e9, 10001)  # around the band
+ws.frequency_grid = np.linspace(40e9, 130e9, 10001)  # around the band
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species

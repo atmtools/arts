@@ -9,7 +9,7 @@ internal_workspace_variables() {
 )--",
       .type = "AbsorptionBands"};
 
-  wsv_data["aa_grid"] = {.desc = R"--(Azimuthal angle grid.
+  wsv_data["azimuth_grid"] = {.desc = R"--(Azimuthal angle grid.
 
 The grid must be sorted in increasing order, with no repetitions.
 
@@ -202,8 +202,8 @@ a bi-linear interpolation is applied.
 Unit:       -
 
 Dimensions: 
- - Vector f_grid[N_f]
- - Vector T_grid[N_T]
+ - Vector frequency_grid[N_f]
+ - Vector temperature_grid[N_T]
  - Tensor3 data[N_f][N_T][2]
 )--",
       .type = "ComplexGriddedField2"};
@@ -252,7 +252,7 @@ Unit:  Hz
 )--",
       .type = "Vector"};
 
-  wsv_data["f_grid"] = {
+  wsv_data["frequency_grid"] = {
       .desc =
           R"--(The frequency grid for monochromatic pencil beam calculations.
 
@@ -332,7 +332,7 @@ the downward irradiance and the second component is the upward irradiance
 
 Units: W m^-2
 
-Size: [ p_grid,  lat_grid,  lon_grid,  2 ]
+Size: [ pressure_grid,  latitude_grid,  longitude_grid,  2 ]
 )--",
       .type = "Tensor4"};
 
@@ -374,7 +374,7 @@ Usage: Output of radiative transfer methods.
   wsv_data["propagation_path_frequency_grid"] = {
       .desc = R"--(Atmospheric frequency grids along the propagation path.
 
-See *f_grid* for information about the frequency grid
+See *frequency_grid* for information about the frequency grid
 
 Dimension: [ ppath.np ]
 
@@ -504,11 +504,11 @@ Unit:  [ Hz ]
 )--",
       .type = "Vector"};
 
-  wsv_data["sensor_response_f_grid"] = {
+  wsv_data["sensor_response_frequency_grid"] = {
       .desc = R"--(The frequency grid associated with ``sensor_response``.
 
 A variable for communication between sensor response WSMs. Matches
-initially *f_grid*, but is later adjusted according to the sensor
+initially *frequency_grid*, but is later adjusted according to the sensor
 specifications. Only defined when a common grid exists. Values are
 here not repeated as in *sensor_response_f*
 
@@ -521,11 +521,11 @@ Unit:  [ Hz ]
   wsv_data["spectral_radiance_field"] = {.desc = R"--(Spectral radiance field.
 
 This variable holds a calculation of the radiance field through
-the atmosphere, for the directions matching *za_grid* and *aa_grid*.
+the atmosphere, for the directions matching *zenith_grid* and *azimuth_grid*.
 
 Units: W / (m^2 Hz sr)
 
- Size: [f_grid, p_grid,  lat_grid,  lon_grid,  za_grid, aa_grid, stokes_dim ]
+ Size: [frequency_grid, pressure_grid,  latitude_grid,  longitude_grid,  zenith_grid, azimuth_grid, stokes_dim ]
 
 Note:
  For 1D, the size of the latitude, longitude and azimuth
@@ -576,7 +576,7 @@ of monochromatic frequencies.
 )--",
       .type = "Sparse"};
 
-  wsv_data["za_grid"] = {.desc = R"--(Zenith angle grid.
+  wsv_data["zenith_grid"] = {.desc = R"--(Zenith angle grid.
 
 The grid must be sorted in increasing order, with no repetitions.
 
@@ -586,7 +586,7 @@ Unit:       degrees
 )--",
                          .type = "Vector"};
 
-  wsv_data["za_grid_weights"] = {.desc = R"--(Zenith angle integration weights.
+  wsv_data["zenith_grid_weights"] = {.desc = R"--(Zenith angle integration weights.
 
 The integration weight are needed for calculation of radiation fluxes
 

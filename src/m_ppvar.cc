@@ -304,14 +304,14 @@ ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_frequency_gridFromPath(
     ArrayOfVector &propagation_path_frequency_grid,
-    const Vector &f_grid,
+    const Vector &frequency_grid,
     const ArrayOfPropagationPathPoint &rad_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const Numeric &rte_alonglos_v) try {
   forward_path_freq(path_freq_resize(propagation_path_frequency_grid,
-                                     f_grid,
+                                     frequency_grid,
                                      propagation_path_atmospheric_point),
-                    f_grid,
+                    frequency_grid,
                     rad_path,
                     propagation_path_atmospheric_point,
                     rte_alonglos_v);

@@ -77,7 +77,7 @@ class TestMethods:
             self.ws.Copy(self.ws.string_wsv, self.ws.numeric_wsv)
 
     def test_predefined_doc(self):
-        m = "propmat_clearskyAddPredefined"
+        m = "propagation_matrixAddPredefined"
         isots = pyarts.arts.globals.get_isotopologues()
         desc = pyarts.arts.globals.workspace_methods()[m].desc
 
@@ -92,4 +92,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_generic_input()
+    x.test_predefined_doc()

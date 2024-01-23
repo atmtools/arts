@@ -136,7 +136,7 @@ inputs required to initialize the propagation matrix
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
-ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
+ws.frequency_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
 ws.path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
@@ -149,7 +149,7 @@ ws.propagation_matrix_agendaExecute()
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
-plt.semilogy(ws.f_grid.value / 1e9, ws.propagation_matrix)
+plt.semilogy(ws.frequency_grid.value / 1e9, ws.propagation_matrix)
 plt.xlabel("Frequency [GHz]")
 plt.ylabel("Absorption [1/m]")
 plt.title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")

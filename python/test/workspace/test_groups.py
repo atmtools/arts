@@ -392,7 +392,7 @@ class TestGroups:
 
     def testArrayOfSun(self):
         ws = Workspace()
-        ws.f_grid = [1e9, 2e9, 3e9]
+        ws.frequency_grid = [1e9, 2e9, 3e9]
 
         ws.sunsAddSingleBlackbody(
             radius=20,
