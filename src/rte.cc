@@ -24,9 +24,9 @@
 #include "check_input.h"
 #include "cloudbox.h"
 #include "debug.h"
+#include "jacobian.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
-#include "jacobian.h"
 #include "path_point.h"
 #include "physics_funcs.h"
 #include "refraction.h"
@@ -34,8 +34,8 @@
 #include "special_interp.h"
 #include "species_tags.h"
 
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
-inline constexpr Numeric TEMP_0_C=Constant::temperature_at_0c;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
+inline constexpr Numeric TEMP_0_C = Constant::temperature_at_0c;
 
 /*===========================================================================
   === The functions in alphabetical order
@@ -144,10 +144,11 @@ void apply_iy_unit(MatrixView iy,
   }
 
   else {
-    ARTS_USER_ERROR (
-      "Unknown option: iy_unit = \"", iy_unit, "\"\n"
-      "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
-      "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
+    ARTS_USER_ERROR("Unknown option: iy_unit = \"",
+                    iy_unit,
+                    "\"\n"
+                    "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+                    "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
   }
 }
 
@@ -231,10 +232,11 @@ void apply_iy_unit2(Tensor3View J,
   }
 
   else {
-    ARTS_USER_ERROR (
-      "Unknown option: iy_unit = \"", iy_unit, "\"\n"
-      "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
-      "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
+    ARTS_USER_ERROR("Unknown option: iy_unit = \"",
+                    iy_unit,
+                    "\"\n"
+                    "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+                    "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\"")
   }
 }
 
@@ -258,45 +260,48 @@ Numeric dotprod_with_los(const ConstVectorView& los,
   return f * (cos(za_f) * cos(za_p) + sin(za_f) * sin(za_p) * cos(aa_f - aa_p));
 }
 
-void get_stepwise_blackbody_radiation(VectorView B, VectorView dB_dT,
-                                      const ConstVectorView &ppath_f_grid,
-                                      const Numeric &ppath_temperature,
-                                      const bool &do_temperature_derivative) {
-  std::transform(ppath_f_grid.begin(), ppath_f_grid.end(), B.begin(),
-                 [T = ppath_temperature](auto &&f) { return planck(f, T); });
+void get_stepwise_blackbody_radiation(VectorView B,
+                                      VectorView dB_dT,
+                                      const ConstVectorView& ppath_f_grid,
+                                      const Numeric& ppath_temperature,
+                                      const bool& do_temperature_derivative) {
+  std::transform(ppath_f_grid.begin(),
+                 ppath_f_grid.end(),
+                 B.begin(),
+                 [T = ppath_temperature](auto&& f) { return planck(f, T); });
 
   if (do_temperature_derivative)
     std::transform(
-        ppath_f_grid.begin(), ppath_f_grid.end(), dB_dT.begin(),
-        [T = ppath_temperature](auto &&f) { return dplanck_dt(f, T); });
+        ppath_f_grid.begin(),
+        ppath_f_grid.end(),
+        dB_dT.begin(),
+        [T = ppath_temperature](auto&& f) { return dplanck_dt(f, T); });
 }
 
-void get_stepwise_clearsky_propmat(
-    const Workspace& ws,
-    PropmatVector& K,
-    StokvecVector& S,
-    PropmatMatrix& dK_dx,
-    StokvecMatrix& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const JacobianTargets& jacobian_targets,
-    const Vector& ppath_f_grid,
-    const PropagationPathPoint& path_point,
-    const AtmPoint& atm_point) {
+void get_stepwise_clearsky_propmat(const Workspace& ws,
+                                   PropmatVector& K,
+                                   StokvecVector& S,
+                                   PropmatMatrix& dK_dx,
+                                   StokvecMatrix& dS_dx,
+                                   const Agenda& propagation_matrix_agenda,
+                                   const JacobianTargets& jacobian_targets,
+                                   const Vector& ppath_f_grid,
+                                   const PropagationPathPoint& path_point,
+                                   const AtmPoint& atm_point) {
   static const ArrayOfSpeciesTag select_abs_species{};
 
   // Perform the propagation matrix computations
-  propmat_clearsky_agendaExecute(
-      ws,
-      K,
-      S,
-      dK_dx,
-      dS_dx,
-      jacobian_targets,
-      select_abs_species,
-      ppath_f_grid,
-      path_point,
-      atm_point,
-      propmat_clearsky_agenda);
+  propagation_matrix_agendaExecute(ws,
+                                   K,
+                                   S,
+                                   dK_dx,
+                                   dS_dx,
+                                   jacobian_targets,
+                                   select_abs_species,
+                                   ppath_f_grid,
+                                   path_point,
+                                   atm_point,
+                                   propagation_matrix_agenda);
 
   const Vector sensor_like_los{path::mirror(path_point.los)};
   adapt_stepwise_partial_derivatives(
@@ -308,34 +313,33 @@ Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const Atm::Key wind_type) {
   // Doppler relevant velocity
   Numeric dv_doppler_dx = 0.0;
-  
+
   Vector deriv(f_grid);
-  
+
   switch (wind_type) {
     case Atm::Key::wind_u:
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 1, 0, 0));
+      dv_doppler_dx = (dotprod_with_los(line_of_sight, 1, 0, 0));
       break;
     case Atm::Key::wind_v:
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 1, 0));
+      dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 1, 0));
       break;
     case Atm::Key::wind_w:
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 0, 1));
+      dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 0, 1));
       break;
     default:
-      ARTS_ASSERT(false, "Not allowed to call this function without a wind parameter as wind_type");
+      ARTS_ASSERT(
+          false,
+          "Not allowed to call this function without a wind parameter as wind_type");
       break;
   }
-  
-  deriv *= - dv_doppler_dx / Constant::c;
+
+  deriv *= -dv_doppler_dx / Constant::c;
   return deriv;
 }
 
 void iy_transmittance_mult(Tensor3& iy_trans_total,
-                          const ConstTensor3View& iy_trans_old,
-                          const ConstTensor3View& iy_trans_new) {
+                           const ConstTensor3View& iy_trans_old,
+                           const ConstTensor3View& iy_trans_new) {
   const Index nf = iy_trans_old.npages();
   const Index ns = iy_trans_old.ncols();
 
@@ -354,8 +358,8 @@ void iy_transmittance_mult(Tensor3& iy_trans_total,
 }
 
 void iy_transmittance_mult(Matrix& iy_new,
-                          const ConstTensor3View& iy_trans,
-                          const ConstMatrixView& iy_old) {
+                           const ConstTensor3View& iy_trans,
+                           const ConstMatrixView& iy_old) {
   const Index nf = iy_trans.npages();
   const Index ns = iy_trans.ncols();
 
@@ -370,8 +374,7 @@ void iy_transmittance_mult(Matrix& iy_new,
   }
 }
 
-void mirror_los(Vector& los_mirrored,
-                const ConstVectorView& los) {
+void mirror_los(Vector& los_mirrored, const ConstVectorView& los) {
   los_mirrored.resize(2);
   //
   los_mirrored[0] = 180 - los[0];
@@ -381,7 +384,7 @@ void mirror_los(Vector& los_mirrored,
   }
 }
 
-void mueller_modif2stokes(Matrix &Cs) {
+void mueller_modif2stokes(Matrix& Cs) {
   //
   Cs.resize(4, 4);
   Cs(0, 0) = 1;
@@ -393,34 +396,33 @@ void mueller_modif2stokes(Matrix &Cs) {
   Cs(3, 3) = 1;
 }
 
-void mueller_rotation(Matrix& L,
-                      const Numeric& rotangle) {
+void mueller_rotation(Matrix& L, const Numeric& rotangle) {
   //
   L.resize(4, 4);
   L(0, 0) = 1;
-    const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
-    const Numeric c2 = cos(alpha);
-    L(0,1) = L(1,0) = 0;
-    L(1,1) = c2;
-      const Numeric s2 = sin(alpha);
-      L(0,2) = L(2,0) = 0;
-      L(1,2) = s2;
-      L(2,1) = -s2;      
-      L(2,2) = c2;
-        L(0,3) = L(1,3) = L(2,3) = L(3,0) = L(3,1) = L(3,2) = 0;
-        L(3,3) = 1;   
+  const Numeric alpha = 2 * Conversion::deg2rad(1) * rotangle;
+  const Numeric c2 = cos(alpha);
+  L(0, 1) = L(1, 0) = 0;
+  L(1, 1) = c2;
+  const Numeric s2 = sin(alpha);
+  L(0, 2) = L(2, 0) = 0;
+  L(1, 2) = s2;
+  L(2, 1) = -s2;
+  L(2, 2) = c2;
+  L(0, 3) = L(1, 3) = L(2, 3) = L(3, 0) = L(3, 1) = L(3, 2) = 0;
+  L(3, 3) = 1;
 }
 
 void mueller_stokes2modif(Matrix& Cm) {
   //
   Cm.resize(4, 4);
-  Cm(0,0) = 0.5;
-    Cm(0,1) = Cm(1,0) = 0.5;
-    Cm(1,1) = -0.5;
-      Cm(0,2) = Cm(1,2) = Cm(2,0) = Cm(2,1) = 0;
-      Cm(2,2) = 1;
-        Cm(0,3) = Cm(1,3) = Cm(2,3) = Cm(3,0) = Cm(3,1) = Cm(3,2) = 0;
-        Cm(3,3) = 1;   
+  Cm(0, 0) = 0.5;
+  Cm(0, 1) = Cm(1, 0) = 0.5;
+  Cm(1, 1) = -0.5;
+  Cm(0, 2) = Cm(1, 2) = Cm(2, 0) = Cm(2, 1) = 0;
+  Cm(2, 2) = 1;
+  Cm(0, 3) = Cm(1, 3) = Cm(2, 3) = Cm(3, 0) = Cm(3, 1) = Cm(3, 2) = 0;
+  Cm(3, 3) = 1;
 }
 
 void ze_cfac(Vector& fac,

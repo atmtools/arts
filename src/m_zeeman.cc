@@ -9,19 +9,17 @@
  * Zeeman effect calculations are implemented in this file
  */
 
-
 #include "jacobian.h"
 #include "path_point.h"
 #include "rte.h"
 #include "zeeman.h"
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddZeeman(
-    PropmatVector& propmat_clearsky,
-    StokvecVector& nlte_source,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    StokvecMatrix& dnlte_source_dx,
+void propagation_matrixAddZeeman(
+    PropmatVector& propagation_matrix,
+    StokvecVector& source_vector_nonlte,
+    PropmatMatrix& propagation_matrix_jacobian,
+    StokvecMatrix& source_vector_nonlte_jacobian,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -41,10 +39,10 @@ void propmat_clearskyAddZeeman(
   const Vector rtp_los{path_point.los};
 
   // Main computations
-  zeeman_on_the_fly(propmat_clearsky,
-                    nlte_source,
-                    dpropmat_clearsky_dx,
-                    dnlte_source_dx,
+  zeeman_on_the_fly(propagation_matrix,
+                    source_vector_nonlte,
+                    propagation_matrix_jacobian,
+                    source_vector_nonlte_jacobian,
                     abs_species,
                     select_abs_species,
                     jacobian_targets,
@@ -63,15 +61,17 @@ void propmat_clearskyAddZeeman(
 void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
                                  const ArrayOfQuantumIdentifier& qid,
                                  const Vector& gs) {
-  ARTS_USER_ERROR_IF (qid.size() not_eq static_cast<Size>(gs.size()), "Inputs not matching in size");
-  for (Size i=0; i<qid.size(); i++) {
+  ARTS_USER_ERROR_IF(qid.size() not_eq static_cast<Size>(gs.size()),
+                     "Inputs not matching in size");
+  for (Size i = 0; i < qid.size(); i++) {
     const QuantumIdentifier& id = qid[i];
     const Numeric g = gs[i];
-    
-    for (AbsorptionLines& band: abs_lines) {
-      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index) continue;
 
-      for (auto& line: band.lines) {
+    for (AbsorptionLines& band : abs_lines) {
+      if (id.isotopologue_index not_eq band.quantumidentity.isotopologue_index)
+        continue;
+
+      for (auto& line : band.lines) {
         auto test = id.part_of(band.quantumidentity, line.localquanta);
 
         if (test.upp) line.zeeman.gu(g);
@@ -81,11 +81,12 @@ void abs_linesZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-void abs_lines_per_speciesZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                const ArrayOfQuantumIdentifier& qid,
-                                                const Vector& gs) {
-  for (auto& abs_lines: abs_lines_per_species) {
-    for (Size i=0; i<qid.size(); i++) {
+void abs_lines_per_speciesZeemanCoefficients(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfQuantumIdentifier& qid,
+    const Vector& gs) {
+  for (auto& abs_lines : abs_lines_per_species) {
+    for (Size i = 0; i < qid.size(); i++) {
       abs_linesZeemanCoefficients(abs_lines, qid, gs);
     }
   }

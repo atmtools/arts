@@ -44,11 +44,11 @@ void spectral_radiance_jacobianFromBackground(
 
 void spectral_radiance_jacobianAddPathPropagation(
     StokvecMatrix &spectral_radiance_jacobian,
-    const ArrayOfStokvecMatrix &spectral_radiance_path_jacobian,
+    const ArrayOfStokvecMatrix &propagation_path_spectral_radiance_jacobian,
     const JacobianTargets &jacobian_targets,
     const AtmField &atm_field,
     const ArrayOfPropagationPathPoint &propagation_path) {
-  const auto np = spectral_radiance_path_jacobian.size();
+  const auto np = propagation_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
   const auto nf = spectral_radiance_jacobian.ncols();
 
@@ -59,16 +59,16 @@ void spectral_radiance_jacobianAddPathPropagation(
 
   ARTS_USER_ERROR_IF(
       propagation_path.size() != np,
-      "propagation_path must have same size as the size of spectral_radiance_path_jacobian")
+      "propagation_path must have same size as the size of propagation_path_spectral_radiance_jacobian")
 
-  for (auto &dr : spectral_radiance_path_jacobian) {
+  for (auto &dr : propagation_path_spectral_radiance_jacobian) {
     ARTS_USER_ERROR_IF(
         dr.nrows() != nj,
-        "spectral_radiance_path_jacobian elements must have same number of rows as the size of "
+        "propagation_path_spectral_radiance_jacobian elements must have same number of rows as the size of "
         "jacobian_targets")
     ARTS_USER_ERROR_IF(
         dr.ncols() != nf,
-        "spectral_radiance_path_jacobian elements must have same number of columns as the size of "
+        "propagation_path_spectral_radiance_jacobian elements must have same number of columns as the size of "
         "cumulative_transmission")
   }
 
@@ -102,8 +102,12 @@ void spectral_radiance_jacobianAddPathPropagation(
           const auto i = w.first + atm_block.x_start;
           ARTS_ASSERT(i < static_cast<Size>(nj))
           std::transform(
-              spectral_radiance_path_jacobian[j][atm_block.target_pos].begin(),
-              spectral_radiance_path_jacobian[j][atm_block.target_pos].end(),
+              propagation_path_spectral_radiance_jacobian[j]
+                                                         [atm_block.target_pos]
+                                                             .begin(),
+              propagation_path_spectral_radiance_jacobian[j]
+                                                         [atm_block.target_pos]
+                                                             .end(),
               spectral_radiance_jacobian[i].begin(),
               spectral_radiance_jacobian[i].begin(),
               [x = w.second](auto &a, auto &b) { return x * a + b; });
@@ -115,10 +119,10 @@ void spectral_radiance_jacobianAddPathPropagation(
 
 void spectral_radianceFromPathPropagation(
     StokvecVector &spectral_radiance,
-    const ArrayOfStokvecVector &spectral_radiance_path) {
-  ARTS_USER_ERROR_IF(spectral_radiance_path.empty(),
-                     "Empty spectral_radiance_path")
-  spectral_radiance = spectral_radiance_path.front();
+    const ArrayOfStokvecVector &propagation_path_spectral_radiance) {
+  ARTS_USER_ERROR_IF(propagation_path_spectral_radiance.empty(),
+                     "Empty propagation_path_spectral_radiance")
+  spectral_radiance = propagation_path_spectral_radiance.front();
 }
 
 void spectral_radianceStandardEmission(
@@ -132,7 +136,7 @@ void spectral_radianceStandardEmission(
     const ArrayOfPropagationPathPoint &propagation_path,
     const Agenda &spectral_radiance_background_space_agenda,
     const Agenda &spectral_radiance_background_surface_agenda,
-    const Agenda &propmat_clearsky_agenda,
+    const Agenda &propagation_matrix_agenda,
     const Numeric &rte_alonglos_v,
     const Index &hse_derivative) try {
   spectral_radiance_backgroundAgendasAtEndOfPath(
@@ -145,86 +149,98 @@ void spectral_radianceStandardEmission(
       spectral_radiance_background_space_agenda,
       spectral_radiance_background_surface_agenda);
 
-  ArrayOfAtmPoint ppvar_atm;
-  ppvar_atmFromPath(ppvar_atm, propagation_path, atm_field);
+  ArrayOfAtmPoint propagation_path_atmospheric_point;
+  propagation_path_atmospheric_pointFromPath(
+      propagation_path_atmospheric_point, propagation_path, atm_field);
 
-  ArrayOfVector ppvar_f;
-  ppvar_fFromPath(ppvar_f, f_grid, propagation_path, ppvar_atm, rte_alonglos_v);
+  ArrayOfVector propagation_path_frequency_grid;
+  propagation_path_frequency_gridFromPath(propagation_path_frequency_grid,
+                                          f_grid,
+                                          propagation_path,
+                                          propagation_path_atmospheric_point,
+                                          rte_alonglos_v);
 
-  ArrayOfPropmatVector ppvar_propmat;
-  ArrayOfStokvecVector ppvar_nlte;
-  ArrayOfPropmatMatrix ppvar_dpropmat;
-  ArrayOfStokvecMatrix ppvar_dnlte;
-  ppvar_propmatCalc(ws,
-                    ppvar_propmat,
-                    ppvar_nlte,
-                    ppvar_dpropmat,
-                    ppvar_dnlte,
-                    propmat_clearsky_agenda,
-                    jacobian_targets,
-                    ppvar_f,
-                    propagation_path,
-                    ppvar_atm);
+  ArrayOfPropmatVector propagation_path_propagation_matrix;
+  ArrayOfStokvecVector propagation_path_source_vector_nonlte;
+  ArrayOfPropmatMatrix propagation_path_propagation_matrix_jacobian;
+  ArrayOfStokvecMatrix propagation_path_source_vector_nonlte_jacobian;
+  propagation_path_propagation_matrixCalc(
+      ws,
+      propagation_path_propagation_matrix,
+      propagation_path_source_vector_nonlte,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path_source_vector_nonlte_jacobian,
+      propagation_matrix_agenda,
+      jacobian_targets,
+      propagation_path_frequency_grid,
+      propagation_path,
+      propagation_path_atmospheric_point);
 
-  ArrayOfStokvecVector spectral_radiance_path_source;
-  ArrayOfStokvecMatrix spectral_radiance_path_source_jacobian;
-  spectral_radiance_path_sourceFromPropmat(
-      spectral_radiance_path_source,
-      spectral_radiance_path_source_jacobian,
-      ppvar_propmat,
-      ppvar_nlte,
-      ppvar_dpropmat,
-      ppvar_dnlte,
-      ppvar_f,
-      ppvar_atm,
+  ArrayOfStokvecVector propagation_path_spectral_radiance_source;
+  ArrayOfStokvecMatrix propagation_path_spectral_radiance_source_jacobian;
+  propagation_path_spectral_radiance_sourceFromPropmat(
+      propagation_path_spectral_radiance_source,
+      propagation_path_spectral_radiance_source_jacobian,
+      propagation_path_propagation_matrix,
+      propagation_path_source_vector_nonlte,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path_source_vector_nonlte_jacobian,
+      propagation_path_frequency_grid,
+      propagation_path_atmospheric_point,
       jacobian_targets);
 
-  ArrayOfMuelmatVector ppvar_tramat;
-  ArrayOfArrayOfMuelmatMatrix ppvar_dtramat;
-  Vector ppvar_distance;
-  ArrayOfArrayOfVector ppvar_ddistance;
-  ppvar_tramatCalc(ppvar_tramat,
-                   ppvar_dtramat,
-                   ppvar_distance,
-                   ppvar_ddistance,
-                   ppvar_propmat,
-                   ppvar_dpropmat,
-                   propagation_path,
-                   ppvar_atm,
-                   surface_field,
-                   jacobian_targets,
-                   hse_derivative);
+  ArrayOfMuelmatVector propagation_path_transmission_matrix;
+  ArrayOfArrayOfMuelmatMatrix propagation_path_transmission_matrix_jacobian;
+  Vector propagation_path_distance;
+  ArrayOfArrayOfVector propagation_path_distance_jacobian;
+  propagation_path_transmission_matrixCalc(
+      propagation_path_transmission_matrix,
+      propagation_path_transmission_matrix_jacobian,
+      propagation_path_distance,
+      propagation_path_distance_jacobian,
+      propagation_path_propagation_matrix,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path,
+      propagation_path_atmospheric_point,
+      surface_field,
+      jacobian_targets,
+      hse_derivative);
 
-  ArrayOfMuelmatVector ppvar_cumtramat;
-  ppvar_cumtramatForward(ppvar_cumtramat, ppvar_tramat);
+  ArrayOfMuelmatVector propagation_path_transmission_matrix_cumulative;
+  propagation_path_transmission_matrix_cumulativeForward(
+      propagation_path_transmission_matrix_cumulative,
+      propagation_path_transmission_matrix);
 
-  ArrayOfStokvecVector spectral_radiance_path;
-  ArrayOfStokvecMatrix spectral_radiance_path_jacobian;
-  spectral_radiance_pathCalcEmission(spectral_radiance_path,
-                                     spectral_radiance_path_jacobian,
-                                     spectral_radiance,
-                                     spectral_radiance_path_source,
-                                     spectral_radiance_path_source_jacobian,
-                                     ppvar_tramat,
-                                     ppvar_cumtramat,
-                                     ppvar_dtramat);
+  ArrayOfStokvecVector propagation_path_spectral_radiance;
+  ArrayOfStokvecMatrix propagation_path_spectral_radiance_jacobian;
+  propagation_path_spectral_radianceCalcEmission(
+      propagation_path_spectral_radiance,
+      propagation_path_spectral_radiance_jacobian,
+      spectral_radiance,
+      propagation_path_spectral_radiance_source,
+      propagation_path_spectral_radiance_source_jacobian,
+      propagation_path_transmission_matrix,
+      propagation_path_transmission_matrix_cumulative,
+      propagation_path_transmission_matrix_jacobian);
 
   MuelmatVector background_transmittance;
-  background_transmittanceFromPathPropagationBack(background_transmittance,
-                                                  ppvar_cumtramat);
+  background_transmittanceFromPathPropagationBack(
+      background_transmittance,
+      propagation_path_transmission_matrix_cumulative);
 
   spectral_radianceFromPathPropagation(spectral_radiance,
-                                       spectral_radiance_path);
+                                       propagation_path_spectral_radiance);
 
   spectral_radiance_jacobianFromBackground(spectral_radiance_jacobian,
                                            spectral_radiance_jacobian,
                                            background_transmittance);
 
-  spectral_radiance_jacobianAddPathPropagation(spectral_radiance_jacobian,
-                                               spectral_radiance_path_jacobian,
-                                               jacobian_targets,
-                                               atm_field,
-                                               propagation_path);
+  spectral_radiance_jacobianAddPathPropagation(
+      spectral_radiance_jacobian,
+      propagation_path_spectral_radiance_jacobian,
+      jacobian_targets,
+      atm_field,
+      propagation_path);
 }
 ARTS_METHOD_ERROR_CATCH
 

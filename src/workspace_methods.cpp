@@ -162,7 +162,7 @@ it is also extracted.
       .gout = {"surface_point"},
       .gout_type = {"SurfacePoint"},
       .gout_desc = {R"--(Surface point.)--"},
-      .in = {"atm_field", "path_point"},
+      .in = {"atmospheric_field", "path_point"},
   };
 
   wsm_data["InterpSurfaceFieldToPosition"] = WorkspaceMethodInternalRecord{
@@ -1323,7 +1323,7 @@ Set type of population to change computations and expected input as:
                                     .in =
                                         {
                                             "abs_lines_per_species",
-                                            "atm_field",
+                                            "atmospheric_field",
                                         },
                                     .gin = {"nlte_vib_energies"},
                                     .gin_type = {"VibrationalEnergyLevels"},
@@ -1520,7 +1520,7 @@ Example:
    The third tag group selects H2O, with one of the complete
    absorption models (Rosenkranz 98). No spectrocopic line catalogue
    data will be used for that third tag group.  For more available full
-   absorption models see *propmat_clearskyAddPredefined*
+   absorption models see *propagation_matrixAddPredefined*
 
    Note that order of tag groups in the species list matters. In our
    example, changing the order of the first two tag group will give
@@ -1685,8 +1685,9 @@ frequency.
 
       };
 
-  wsm_data["atm_fieldAddCustomDataFile"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Add some custom data from file to the atm_field
+  wsm_data["atmospheric_fieldAddCustomDataFile"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Add some custom data from file to the atmospheric_field
 
 The key field is used to determine the type of data that is added by input type.
 
@@ -1711,36 +1712,37 @@ content (VMR, LWC, etc).
 The file can contain any of GriddedField3, Tensor3, or Numeric data.  Note
 that the method iterates over these using a slow exception-handling routine,
 so it would be much more efficient to use either of
-*atm_fieldAddGriddedData*, or *atm_fieldAddNumericData* to set the data.
+*atmospheric_fieldAddGriddedData*, or *atmospheric_fieldAddNumericData* to set the data.
 Nevertheless this method is provided to make it easier to compose atmospheric
 reading.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+          .author = {"Richard Larsson"},
+          .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
-      .gin = {"key", "filename", "extrapolation_type"},
-      .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier",
-                   "String",
-                   "String"},
-      .gin_value = {std::nullopt, std::nullopt, String("Nearest")},
-      .gin_desc = {R"--(Atmospheric data key.)--",
-                   R"--(Filename)--",
-                   R"--(Style of extrapolation)--"},
+          .in = {"atmospheric_field"},
+          .gin = {"key", "filename", "extrapolation_type"},
+          .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier",
+                       "String",
+                       "String"},
+          .gin_value = {std::nullopt, std::nullopt, String("Nearest")},
+          .gin_desc = {R"--(Atmospheric data key.)--",
+                       R"--(Filename)--",
+                       R"--(Style of extrapolation)--"},
 
-  };
+      };
 
-  wsm_data["atm_fieldAddField"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Add another atm_field from file to the current atm_field
+  wsm_data["atmospheric_fieldAddField"] = WorkspaceMethodInternalRecord{
+      .desc =
+          R"--(Add another atmospheric_field from file to the current atmospheric_field
 
 The optional flag set_toa determines if the old (default) or
-new (if it evaluates as true) atm_field's top of the atmosphere altitude
+new (if it evaluates as true) atmospheric_field's top of the atmosphere altitude
 is used in the output
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"filename", "set_toa"},
       .gin_type = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
@@ -1749,68 +1751,67 @@ is used in the output
 
   };
 
-  wsm_data["atm_fieldAddGriddedData"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds data to the atm_field
+  wsm_data["atmospheric_fieldAddGriddedData"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Adds data to the atmospheric_field
 
 The field must not be regular
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"key", "data", "extrapolation_type"},
       .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier",
                    "GriddedField3",
                    "String"},
       .gin_value = {std::nullopt, std::nullopt, String("Nearest")},
-      .gin_desc = {R"--(See *atm_fieldAddCustomDataFile*)--",
+      .gin_desc = {R"--(See *atmospheric_fieldAddCustomDataFile*)--",
                    R"--(Some data)--",
                    R"--(Style of extrapolation)--"},
 
   };
 
-  wsm_data["atm_fieldAddNumericData"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Adds data to the atm_field
+  wsm_data["atmospheric_fieldAddNumericData"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Adds data to the atmospheric_field
 
 The field must not be regular
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"key", "data"},
       .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(See *atm_fieldAddCustomDataFile*)--",
+      .gin_desc = {R"--(See *atmospheric_fieldAddCustomDataFile*)--",
                    R"--(Some data)--"},
 
   };
 
-  wsm_data["atm_fieldIGRF"] = WorkspaceMethodInternalRecord{
+  wsm_data["atmospheric_fieldIGRF"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Use IGRF to compute the magnetic field at each point
 
 The flag ``parsafe`` exists if you need the calculations to be safe in parallel
 computations.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"time", "parsafe"},
       .gin_type = {"Time", "Index"},
       .gin_value = {Time{}, Index{1}},
-      .gin_desc = {
-        "Time of data to use",
-        R"--(Flag for parallel safety at 3X slowdown cost)--"},
+      .gin_desc = {"Time of data to use",
+                   R"--(Flag for parallel safety at 3X slowdown cost)--"},
 
   };
 
-  wsm_data["atm_fieldInit"] = WorkspaceMethodInternalRecord{
+  wsm_data["atmospheric_fieldInit"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
       .gin = {"toa", "default_isotopologue"},
       .gin_type = {"Numeric", "String"},
@@ -1819,11 +1820,11 @@ computations.
                    "Default option for the isotopologue ratios"},
   };
 
-  wsm_data["atm_pointInit"] = WorkspaceMethodInternalRecord{
+  wsm_data["atmospheric_pointInit"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Initialize an atmospheric point with some isotopologue ratios
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_point"},
+      .out = {"atmospheric_point"},
 
       .gin = {"default_isotopologue"},
       .gin_type = {"String"},
@@ -1831,8 +1832,8 @@ computations.
       .gin_desc = {"Default option for the isotopologue ratios"},
   };
 
-  wsm_data["atm_fieldRead"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Reads a new atm_field from a folder or base
+  wsm_data["atmospheric_fieldRead"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Reads a new atmospheric_field from a folder or base
 
 There are several indices to indicate what data should be read by the routine
 At the end of the routine, a check is performed, throwing a warning if the
@@ -1867,7 +1868,7 @@ unique species.  Some examples:
 - abs_species=["H2O-161", "O2-66", "O2-PWR98"], - ["H2O.xml", "O2.xml"]
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
       .in = {"abs_species"},
       .gin = {"basename",
@@ -1896,39 +1897,41 @@ unique species.  Some examples:
 
   };
 
-  wsm_data["atm_fieldRescalePopulationLevels"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Rescale NLTE field to expected total distribution amongst levels
+  wsm_data["atmospheric_fieldRescalePopulationLevels"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Rescale NLTE field to expected total distribution amongst levels
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+          .author = {"Richard Larsson"},
+          .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
-      .gin = {"s"},
-      .gin_type = {"Numeric"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
+          .in = {"atmospheric_field"},
+          .gin = {"s"},
+          .gin_type = {"Numeric"},
+          .gin_value = {std::nullopt},
+          .gin_desc =
+              {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
 
-  };
+      };
 
-  wsm_data["atm_fieldSave"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Saves an atm_field to a folder or base
+  wsm_data["atmospheric_fieldSave"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Saves an atmospheric_field to a folder or base
 
-The output files are split to fit with what *atm_fieldRead* can read, so see it
+The output files are split to fit with what *atmospheric_fieldRead* can read, so see it
 for most of the filenames that may be generated, depending on the content of the
-atm_field of course
+atmospheric_field of course
 
 Note that there are some exceptions.  If no_clobber is true, the new files will
 not overwrite old files.  Also, if there are more than one species with the same
 short-name, e.g., "H2O-161" and "H2O-181" both have short-name "H2O", only one of
 these will print the "H2O.xml" file whereas the other will print "H2O.2.xml".
-The latter is not read by *atm_fieldRead*.  Even worse, we can give no guarantee
+The latter is not read by *atmospheric_fieldRead*.  Even worse, we can give no guarantee
 at all for whether it is the values from the "H2O-161" or "H2O-181" tags that
 give the "H2O.xml" file because the internal data structure is unordered.
 )--",
       .author = {"Richard Larsson"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"basename", "filetype", "no_clobber"},
       .gin_type = {"String", "String", "Index"},
       .gin_value = {std::nullopt, String("ascii"), Index{0}},
@@ -1938,13 +1941,13 @@ give the "H2O.xml" file because the internal data structure is unordered.
 
   };
 
-  wsm_data["atm_fieldTopOfAtmosphere"] = WorkspaceMethodInternalRecord{
+  wsm_data["atmospheric_fieldTopOfAtmosphere"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Sets the top of the atmosphere altitude to the field
 )--",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
+      .out = {"atmospheric_field"},
 
-      .in = {"atm_field"},
+      .in = {"atmospheric_field"},
       .gin = {"toa"},
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
@@ -2042,24 +2045,24 @@ gives a grid that is twice the FWHM.
   wsm_data["background_transmittanceFromPathPropagationBack"] =
       WorkspaceMethodInternalRecord{
           .desc =
-              R"--(Sets *background_transmittance* to back of *ppvar_cumtramat*
+              R"--(Sets *background_transmittance* to back of *propagation_path_transmission_matrix_cumulative*
 )--",
           .author = {"Richard Larsson"},
           .out = {"background_transmittance"},
 
-          .in = {"ppvar_cumtramat"},
+          .in = {"propagation_path_transmission_matrix_cumulative"},
 
       };
 
   wsm_data["background_transmittanceFromPathPropagationFront"] =
       WorkspaceMethodInternalRecord{
           .desc =
-              R"--(Sets *background_transmittance* to front of *ppvar_cumtramat*
+              R"--(Sets *background_transmittance* to front of *propagation_path_transmission_matrix_cumulative*
 )--",
           .author = {"Richard Larsson"},
           .out = {"background_transmittance"},
 
-          .in = {"ppvar_cumtramat"},
+          .in = {"propagation_path_transmission_matrix_cumulative"},
 
       };
 
@@ -2295,7 +2298,7 @@ Options are:
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "atm_field"},
+      .in = {"ecs_data", "atmospheric_field"},
 
   };
 
@@ -2350,7 +2353,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "atm_field"},
+      .in = {"ecs_data", "atmospheric_field"},
 
   };
 
@@ -2360,7 +2363,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "atm_field"},
+      .in = {"ecs_data", "atmospheric_field"},
       .gin = {"qid",
               "species",
               "scaling_type",
@@ -2411,7 +2414,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "atm_field"},
+      .in = {"ecs_data", "atmospheric_field"},
 
   };
 
@@ -2421,7 +2424,7 @@ and that N2 VMR must be present
       .author = {"Richard Larsson"},
       .out = {"ecs_data"},
 
-      .in = {"ecs_data", "atm_field"},
+      .in = {"ecs_data", "atmospheric_field"},
 
   };
 
@@ -2750,7 +2753,7 @@ in downward direction
       .gout = {"heating_rates"},
       .gout_type = {"Tensor3"},
       .gout_desc = {R"--(Heating rates)--"},
-      .in = {"ppvar_atm", "irradiance_field", "g0"},
+      .in = {"propagation_path_atmospheric_point", "irradiance_field", "g0"},
       .gin = {"specific_heat_capacity"},
       .gin_type = {"Tensor3"},
       .gin_value = {std::nullopt},
@@ -2781,40 +2784,47 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
 
   };
 
-  wsm_data["ppvar_atmFromPath"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gets the atmospheric points along the path.
+  wsm_data["propagation_path_atmospheric_pointFromPath"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Gets the atmospheric points along the path.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_atm"},
-      .in = {"propagation_path", "atm_field"},
-  };
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_atmospheric_point"},
+          .in = {"propagation_path", "atmospheric_field"},
+      };
 
-  wsm_data["ppvar_cumtramatForward"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *ppvar_cumtramat* by forward iteration of *ppvar_tramat*
+  wsm_data["propagation_path_transmission_matrix_cumulativeForward"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Sets *propagation_path_transmission_matrix_cumulative* by forward iteration of *propagation_path_transmission_matrix*
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_cumtramat"},
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_transmission_matrix_cumulative"},
 
-      .in = {"ppvar_tramat"},
+          .in = {"propagation_path_transmission_matrix"},
 
-  };
+      };
 
-  wsm_data["ppvar_cumtramatReverse"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *ppvar_cumtramat* by reverse iteration of *ppvar_tramat*
+  wsm_data["propagation_path_transmission_matrix_cumulativeReverse"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Sets *propagation_path_transmission_matrix_cumulative* by reverse iteration of *propagation_path_transmission_matrix*
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_cumtramat"},
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_transmission_matrix_cumulative"},
 
-      .in = {"ppvar_tramat"},
+          .in = {"propagation_path_transmission_matrix"},
 
-  };
+      };
 
-  wsm_data["ppvar_fFromPath"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_path_frequency_gridFromPath"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Gets the frequency grid along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"ppvar_f"},
-      .in = {"f_grid", "propagation_path", "ppvar_atm"},
+      .out = {"propagation_path_frequency_grid"},
+      .in = {"f_grid",
+             "propagation_path",
+             "propagation_path_atmospheric_point"},
       .gin = {"rte_alonglos_v"},
       .gin_type = {"Numeric"},
       .gin_value = {Numeric{0.0}},
@@ -2822,88 +2832,100 @@ See *AngularGridsSetFluxCalc* to set *za_grid*, *aa_grid*, and
           {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--"},
   };
 
-  wsm_data["ppvar_propmatCalc"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Gets the propagation matrix and NLTE source term along the path.
+  wsm_data["propagation_path_propagation_matrixCalc"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Gets the propagation matrix and NLTE source term along the path.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_propmat", "ppvar_nlte", "ppvar_dpropmat", "ppvar_dnlte"},
-      .in = {"propmat_clearsky_agenda",
-             "jacobian_targets",
-             "ppvar_f",
-             "propagation_path",
-             "ppvar_atm"},
-      .pass_workspace = true,
-  };
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_propagation_matrix",
+                  "propagation_path_source_vector_nonlte",
+                  "propagation_path_propagation_matrix_jacobian",
+                  "propagation_path_source_vector_nonlte_jacobian"},
+          .in = {"propagation_matrix_agenda",
+                 "jacobian_targets",
+                 "propagation_path_frequency_grid",
+                 "propagation_path",
+                 "propagation_path_atmospheric_point"},
+          .pass_workspace = true,
+      };
 
-  wsm_data["spectral_radiance_pathCalcEmission"] = WorkspaceMethodInternalRecord{
-      .desc =
-          R"--(Gets the radiation along the path by linear emission calculations.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_path", "spectral_radiance_path_jacobian"},
-
-      .in = {"spectral_radiance_background",
-             "spectral_radiance_path_source",
-             "spectral_radiance_path_source_jacobian",
-             "ppvar_tramat",
-             "ppvar_cumtramat",
-             "ppvar_dtramat"},
-
-  };
-
-  wsm_data["spectral_radiance_pathCalcTransmission"] =
+  wsm_data["propagation_path_spectral_radianceCalcEmission"] =
       WorkspaceMethodInternalRecord{
           .desc =
               R"--(Gets the radiation along the path by linear emission calculations.
 )--",
           .author = {"Richard Larsson"},
-          .out = {"spectral_radiance_path", "spectral_radiance_path_jacobian"},
+          .out = {"propagation_path_spectral_radiance",
+                  "propagation_path_spectral_radiance_jacobian"},
 
-          .in = {"ppvar_tramat", "ppvar_cumtramat", "ppvar_dtramat"},
+          .in = {"spectral_radiance_background",
+                 "propagation_path_spectral_radiance_source",
+                 "propagation_path_spectral_radiance_source_jacobian",
+                 "propagation_path_transmission_matrix",
+                 "propagation_path_transmission_matrix_cumulative",
+                 "propagation_path_transmission_matrix_jacobian"},
 
       };
 
-  wsm_data["spectral_radiance_path_sourceFromPropmat"] =
+  wsm_data["propagation_path_spectral_radianceCalcTransmission"] =
+      WorkspaceMethodInternalRecord{
+          .desc =
+              R"--(Gets the radiation along the path by linear emission calculations.
+)--",
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_spectral_radiance",
+                  "propagation_path_spectral_radiance_jacobian"},
+
+          .in = {"propagation_path_transmission_matrix",
+                 "propagation_path_transmission_matrix_cumulative",
+                 "propagation_path_transmission_matrix_jacobian"},
+
+      };
+
+  wsm_data["propagation_path_spectral_radiance_sourceFromPropmat"] =
       WorkspaceMethodInternalRecord{
           .desc = R"--(Gets the source term along the path.
 )--",
           .author = {"Richard Larsson"},
-          .out = {"spectral_radiance_path_source",
-                  "spectral_radiance_path_source_jacobian"},
+          .out = {"propagation_path_spectral_radiance_source",
+                  "propagation_path_spectral_radiance_source_jacobian"},
 
-          .in = {"ppvar_propmat",
-                 "ppvar_nlte",
-                 "ppvar_dpropmat",
-                 "ppvar_dnlte",
-                 "ppvar_f",
-                 "ppvar_atm",
+          .in = {"propagation_path_propagation_matrix",
+                 "propagation_path_source_vector_nonlte",
+                 "propagation_path_propagation_matrix_jacobian",
+                 "propagation_path_source_vector_nonlte_jacobian",
+                 "propagation_path_frequency_grid",
+                 "propagation_path_atmospheric_point",
                  "jacobian_targets"},
 
       };
 
-  wsm_data["ppvar_tramatCalc"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Gets the transmission matrix in layers along the path.
+  wsm_data["propagation_path_transmission_matrixCalc"] =
+      WorkspaceMethodInternalRecord{
+          .desc = R"--(Gets the transmission matrix in layers along the path.
 
 A layer is defined as made up by the average of 2 levels, thus the outer-most size
 of the derivatives out of this function is 2.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ppvar_tramat", "ppvar_dtramat"},
-      .gout = {"ppvar_distance", "ppvar_ddistance"},
-      .gout_type = {"Vector", "ArrayOfArrayOfVector"},
-      .gout_desc = {R"--(Distance between layers.)--",
-                    R"--(Derivative of distance between layers.)--"},
-      .in = {"ppvar_propmat",
-             "ppvar_dpropmat",
-             "propagation_path",
-             "ppvar_atm",
-             "surface_field",
-             "jacobian_targets"},
-      .gin = {"hse_derivative"},
-      .gin_type = {"Index"},
-      .gin_value = {Index{0}},
-      .gin_desc = {"Flag to compute the hypsometric distance derivatives"}};
+          .author = {"Richard Larsson"},
+          .out = {"propagation_path_transmission_matrix",
+                  "propagation_path_transmission_matrix_jacobian"},
+          .gout = {"propagation_path_distance",
+                   "propagation_path_distance_jacobian"},
+          .gout_type = {"Vector", "ArrayOfArrayOfVector"},
+          .gout_desc = {R"--(Distance between layers.)--",
+                        R"--(Derivative of distance between layers.)--"},
+          .in = {"propagation_path_propagation_matrix",
+                 "propagation_path_propagation_matrix_jacobian",
+                 "propagation_path",
+                 "propagation_path_atmospheric_point",
+                 "surface_field",
+                 "jacobian_targets"},
+          .gin = {"hse_derivative"},
+          .gin_type = {"Index"},
+          .gin_value = {Index{0}},
+          .gin_desc = {"Flag to compute the hypsometric distance derivatives"}};
 
   wsm_data["predefined_model_dataAddWaterMTCKD400"] =
       WorkspaceMethodInternalRecord{
@@ -2958,7 +2980,7 @@ must be as described by each vector.
 
   };
 
-  wsm_data["propmat_clearskyAddCIA"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddCIA"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Calculate absorption coefficients per tag group for HITRAN CIA continua.
 
@@ -2968,15 +2990,15 @@ The robust option is intended only for testing. Do not use for normal
 runs, since subsequent functions will not be able to deal with NAN values.
 )--",
       .author = {"Stefan Buehler, Oliver Lemke"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
+      .in = {"propagation_matrix",
+             "propagation_matrix_jacobian",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
              "f_grid",
-             "atm_point",
+             "atmospheric_point",
              "abs_cia_data"},
       .gin = {"T_extrapolfac", "ignore_errors"},
       .gin_type = {"Numeric", "Index"},
@@ -2987,7 +3009,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
 
   };
 
-  wsm_data["propmat_clearskyAddFaraday"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddFaraday"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Calculates absorption matrix describing Faraday rotation.
 
 Faraday rotation is a change of polarization state of an
@@ -3000,25 +3022,25 @@ interaction with a magnetic field. Hence, this method requires
 Faraday rotation affects Stokes parameters 2 and 3 (but not
 intensity!). Therefore, this method requires stokes_dim>2.
 
-Like all 'propmat_clearskyAdd*' methods, the method is additive,
-i.e., does not overwrite the propagation matrix *propmat_clearsky*,
+Like all 'propagation_matrixAdd*' methods, the method is additive,
+i.e., does not overwrite the propagation matrix *propagation_matrix*,
 but adds further contributions.
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
+      .in = {"propagation_matrix",
+             "propagation_matrix_jacobian",
              "f_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "atm_point",
+             "atmospheric_point",
              "path_point"},
 
   };
 
-  wsm_data["propmat_clearskyAddFromLookup"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddFromLookup"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Extract gas absorption coefficients from lookup table.
 
 This extracts the absorption coefficient for all species from the
@@ -3053,14 +3075,14 @@ default for temperature and VMR interpolation, but the extrapolation
 limit can here be adjusted by the ``extpolfac`` argument.
 )--",
       .author = {"Stefan Buehler, Richard Larsson"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
+      .in = {"propagation_matrix",
+             "propagation_matrix_jacobian",
              "abs_lookup",
              "abs_lookup_is_adapted",
              "f_grid",
-             "atm_point",
+             "atmospheric_point",
              "jacobian_targets",
              "abs_species",
              "select_abs_species"},
@@ -3086,36 +3108,36 @@ limit can here be adjusted by the ``extpolfac`` argument.
 
   };
 
-  wsm_data["propmat_clearskyAddHitranLineMixingLines"] =
+  wsm_data["propagation_matrixAddHitranLineMixingLines"] =
       WorkspaceMethodInternalRecord{
           .desc =
               R"--(Calculates gas absorption coefficients line-by-line for HITRAN line mixed data.
 
 *Wigner6Init* or *Wigner3Init* must be called before this function.
 
-Note that you need to have *propmat_clearskyAddLines* in addition to this method
+Note that you need to have *propagation_matrixAddLines* in addition to this method
 to compensate the calculations for the pressure limit
 
 Please ensure you cite the original authors when you use this function:
 	J. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96
 )--",
           .author = {"Richard Larsson"},
-          .out = {"propmat_clearsky"},
+          .out = {"propagation_matrix"},
 
-          .in = {"propmat_clearsky",
+          .in = {"propagation_matrix",
                  "abs_hitran_relmat_data",
                  "abs_lines_per_species",
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
                  "jacobian_targets",
-                 "atm_point"},
+                 "atmospheric_point"},
 
       };
 
-  wsm_data["propmat_clearskyAddLines"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddLines"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Computes the line-by-line unpolarized absorption and adds
-it to the diagonal of *propmat_clearsky* and derivates to other variables.
+it to the diagonal of *propagation_matrix* and derivates to other variables.
 Does the same for NLTE variables if required.
 
 If ``lines_speedup_option`` is not "None", then some speed-up logic is applied.
@@ -3141,20 +3163,20 @@ By default we discourage negative values, which are common when using one of the
 approximations.   Change the value of no_negatives to 0 to allow these negative absorptions.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky",
-              "nlte_source",
-              "dpropmat_clearsky_dx",
-              "dnlte_source_dx"},
-      .in = {"propmat_clearsky",
-             "nlte_source",
-             "dpropmat_clearsky_dx",
-             "dnlte_source_dx",
+      .out = {"propagation_matrix",
+              "source_vector_nonlte",
+              "propagation_matrix_jacobian",
+              "source_vector_nonlte_jacobian"},
+      .in = {"propagation_matrix",
+             "source_vector_nonlte",
+             "propagation_matrix_jacobian",
+             "source_vector_nonlte_jacobian",
              "f_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
              "abs_lines_per_species",
-             "atm_point",
+             "atmospheric_point",
              "nlte_do"},
       .gin = {"nlte_vib_energies",
               "lines_sparse_df",
@@ -3176,7 +3198,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
            R"--(Boolean.  If it is true, line mixed bands each allocate their own compute data to ensure that they cannot produce negative absorption)--"},
   };
 
-  wsm_data["propmat_clearskyAddOnTheFlyLineMixing"] =
+  wsm_data["propagation_matrixAddOnTheFlyLineMixing"] =
       WorkspaceMethodInternalRecord{
           .desc =
               R"--(Compute the line mixing of matching lines and add it to the propagation matrix
@@ -3188,27 +3210,27 @@ Presently only supports one method: ByMakarovFullRelmat, based on Makarov et al 
 
 *Wigner6Init* or *Wigner3Init* must be called before this function.
 
-Note that you need to have *propmat_clearskyAddLines* addition to this method
+Note that you need to have *propagation_matrixAddLines* addition to this method
 to compensate the calculations for the pressure limit
 )--",
           .author = {"Richard Larsson"},
-          .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+          .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-          .in = {"propmat_clearsky",
-                 "dpropmat_clearsky_dx",
+          .in = {"propagation_matrix",
+                 "propagation_matrix_jacobian",
                  "abs_lines_per_species",
                  "ecs_data",
                  "f_grid",
                  "abs_species",
                  "select_abs_species",
                  "jacobian_targets",
-                 "atm_point"},
+                 "atmospheric_point"},
 
       };
 
-  wsm_data["propmat_clearskyAddPredefined"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddPredefined"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Adds all of the predefined models in *abs_species* to the propmat_clearsky
+          R"--(Adds all of the predefined models in *abs_species* to the propagation_matrix
 
 Only supports temperature and wind speed derivatives
 
@@ -3509,19 +3531,19 @@ Available models:
   J. Phys. Chem. Ref. Data, Vol. 36, No. 1, 2007
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
+      .in = {"propagation_matrix",
+             "propagation_matrix_jacobian",
              "predefined_model_data",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
              "f_grid",
-             "atm_point"},
+             "atmospheric_point"},
   };
 
-  wsm_data["propmat_clearskyAddXsecFit"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddXsecFit"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
@@ -3532,15 +3554,15 @@ Model data needs to be read in with *ReadXsecData* before calling
 this method.
 )--",
       .author = {"Oliver Lemke"},
-      .out = {"propmat_clearsky", "dpropmat_clearsky_dx"},
+      .out = {"propagation_matrix", "propagation_matrix_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "dpropmat_clearsky_dx",
+      .in = {"propagation_matrix",
+             "propagation_matrix_jacobian",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
              "f_grid",
-             "atm_point",
+             "atmospheric_point",
              "xsec_fit_data"},
       .gin = {"force_p", "force_t"},
       .gin_type = {"Numeric", "Numeric"},
@@ -3550,29 +3572,29 @@ this method.
 
   };
 
-  wsm_data["propmat_clearskyAddZeeman"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixAddZeeman"] = WorkspaceMethodInternalRecord{
       .desc =
           R"--(Calculates Zeeman-affected polarized propagation matrix and its
 derivatives.
 
-Otherwise as *propmat_clearskyAddFromLookup*
+Otherwise as *propagation_matrixAddFromLookup*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky",
-              "nlte_source",
-              "dpropmat_clearsky_dx",
-              "dnlte_source_dx"},
+      .out = {"propagation_matrix",
+              "source_vector_nonlte",
+              "propagation_matrix_jacobian",
+              "source_vector_nonlte_jacobian"},
 
-      .in = {"propmat_clearsky",
-             "nlte_source",
-             "dpropmat_clearsky_dx",
-             "dnlte_source_dx",
+      .in = {"propagation_matrix",
+             "source_vector_nonlte",
+             "propagation_matrix_jacobian",
+             "source_vector_nonlte_jacobian",
              "abs_lines_per_species",
              "f_grid",
              "abs_species",
              "select_abs_species",
              "jacobian_targets",
-             "atm_point",
+             "atmospheric_point",
              "path_point",
              "nlte_do"},
       .gin = {"nlte_vib_energies", "manual_mag_field", "H", "theta", "eta"},
@@ -3591,81 +3613,81 @@ Otherwise as *propmat_clearskyAddFromLookup*
 
   };
 
-  wsm_data["propmat_clearskyForceNegativeToZero"] =
+  wsm_data["propagation_matrixForceNegativeToZero"] =
       WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets *propmat_clearsky* to match zero attenuation
+          .desc = R"--(Sets *propagation_matrix* to match zero attenuation
 if negative value.  Useful for line mixing in some cases.
 
 Use this method just if you know what you are doing!
 )--",
           .author = {"Richard Larsson"},
-          .out = {"propmat_clearsky"},
+          .out = {"propagation_matrix"},
 
-          .in = {"propmat_clearsky"},
+          .in = {"propagation_matrix"},
 
       };
 
-  wsm_data["propmat_clearskyInit"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrixInit"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Initialize *propmat_clearsky*, *nlte_source*, and their derivatives to zeroes.
+          R"--(Initialize *propagation_matrix*, *source_vector_nonlte*, and their derivatives to zeroes.
 
-This method must be used inside *propmat_clearsky_agenda* and then be called first.
+This method must be used inside *propagation_matrix_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
-      .out = {"propmat_clearsky",
-              "nlte_source",
-              "dpropmat_clearsky_dx",
-              "dnlte_source_dx"},
+      .out = {"propagation_matrix",
+              "source_vector_nonlte",
+              "propagation_matrix_jacobian",
+              "source_vector_nonlte_jacobian"},
 
       .in = {"jacobian_targets", "f_grid"},
 
   };
 
-  wsm_data["propmat_clearskyZero"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *propmat_clearsky* to match zero attenuation.
+  wsm_data["propagation_matrixZero"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *propagation_matrix* to match zero attenuation.
 
 Use this method just if you know what you are doing!
 
 If you want to make a calculation with no clear-sky attenuation at
-all, fill *propmat_clearsky_agenda* with this method and required
-Ignore statements (don't include *propmat_clearskyInit*).
+all, fill *propagation_matrix_agenda* with this method and required
+Ignore statements (don't include *propagation_matrixInit*).
 )--",
       .author = {"Patrick Eriksson"},
-      .out = {"propmat_clearsky"},
+      .out = {"propagation_matrix"},
 
       .in = {"f_grid"},
 
   };
 
-  wsm_data["propmat_clearsky_agendaAuto"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets the *propmat_clearsky_agenda* automatically
+  wsm_data["propagation_matrix_agendaAuto"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets the *propagation_matrix_agenda* automatically
 
 This method introspects the input and uses it for generating the
-*propmat_clearsky_agenda* automatically.  If ``use_abs_lookup``, all
+*propagation_matrix_agenda* automatically.  If ``use_abs_lookup``, all
 methods that can be used to generate the absorption lookup table
 are ignored and instead the calculations from the absorption
 lookup are used.
 
 The following methods are considered for addition:
-    1) *propmat_clearskyInit*
-    2) *propmat_clearskyAddCIA*
-    3) *propmat_clearskyAddLines*
-    4) *propmat_clearskyAddZeeman*
-    5) *propmat_clearskyAddFaraday*
-    6) *propmat_clearskyAddXsecFit*
-    8) *propmat_clearskyAddFromLookup*
-    9) *propmat_clearskyAddPredefined*
-    10) *propmat_clearskyAddOnTheFlyLineMixing*
-    11) *propmat_clearskyAddHitranLineMixingLines*
+    1) *propagation_matrixInit*
+    2) *propagation_matrixAddCIA*
+    3) *propagation_matrixAddLines*
+    4) *propagation_matrixAddZeeman*
+    5) *propagation_matrixAddFaraday*
+    6) *propagation_matrixAddXsecFit*
+    8) *propagation_matrixAddFromLookup*
+    9) *propagation_matrixAddPredefined*
+    10) *propagation_matrixAddOnTheFlyLineMixing*
+    11) *propagation_matrixAddHitranLineMixingLines*
 
 To perform absorption lookupo table calculation, call:
-    1) *propmat_clearsky_agendaAuto*
+    1) *propagation_matrix_agendaAuto*
     2) ``abs_lookupCalc``  FIXME: HOW TO COMPUTE IT
-    3) *propmat_clearsky_agendaAuto* (use_abs_lookup=1)
+    3) *propagation_matrix_agendaAuto* (use_abs_lookup=1)
     4) Perform other calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky_agenda"},
+      .out = {"propagation_matrix_agenda"},
       .in = {"abs_species", "abs_lines_per_species"},
       .gin = {"H",
               "T_extrapolfac",
@@ -3710,23 +3732,23 @@ To perform absorption lookupo table calculation, call:
                     Numeric{0.0},
                     Index{0}},
       .gin_desc =
-          {R"--(See *propmat_clearskyAddZeeman*)--",
-           R"--(See *propmat_clearskyAddCIA*)--",
-           R"--(See *propmat_clearskyAddZeeman*)--",
-           R"--(See *propmat_clearskyAddFromLookup*)--",
-           R"--(See *propmat_clearskyAddXsecFit*)--",
-           R"--(See *propmat_clearskyAddXsecFit*)--",
-           R"--(See *propmat_clearskyAddCIA*)--",
-           R"--(See *propmat_clearskyAddLines*)--",
-           R"--(See *propmat_clearskyAddLines*)--",
-           R"--(See *propmat_clearskyAddLines*)--",
-           R"--(See *propmat_clearskyAddZeeman*)--",
-           R"--(See *propmat_clearskyAddLines*; See *propmat_clearskyAddFromLookup*)--",
-           R"--(See *propmat_clearskyAddZeeman*)--",
+          {R"--(See *propagation_matrixAddZeeman*)--",
+           R"--(See *propagation_matrixAddCIA*)--",
+           R"--(See *propagation_matrixAddZeeman*)--",
+           R"--(See *propagation_matrixAddFromLookup*)--",
+           R"--(See *propagation_matrixAddXsecFit*)--",
+           R"--(See *propagation_matrixAddXsecFit*)--",
+           R"--(See *propagation_matrixAddCIA*)--",
+           R"--(See *propagation_matrixAddLines*)--",
+           R"--(See *propagation_matrixAddLines*)--",
+           R"--(See *propagation_matrixAddLines*)--",
+           R"--(See *propagation_matrixAddZeeman*)--",
+           R"--(See *propagation_matrixAddLines*; See *propagation_matrixAddFromLookup*)--",
+           R"--(See *propagation_matrixAddZeeman*)--",
            R"--(Uses lookup calculations if true, ignores methods that can be part of the lookup table)--"},
   };
 
-  wsm_data["propmat_clearsky_agendaGUI"] = WorkspaceMethodInternalRecord{
+  wsm_data["propagation_matrix_agendaGUI"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Opens a GUI for running the propagation matrix agenda
 
 Note that this is not thread-safe and should be executed on the main workspace
@@ -3736,7 +3758,7 @@ if they are defined.  Otherwise some values are just selected
 )--",
       .author = {"Richard Larsson"},
 
-      .in = {"propmat_clearsky_agenda", "abs_species"},
+      .in = {"propagation_matrix_agenda", "abs_species"},
       .gin = {"load"},
       .gin_type = {"Index"},
       .gin_value = {Index{1}},
@@ -3745,10 +3767,10 @@ if they are defined.  Otherwise some values are just selected
 
   };
 
-  wsm_data["propmat_clearsky_agendaSet"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Sets *propmat_clearsky_agenda* to a default value
+  wsm_data["propagation_matrix_agendaSet"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *propagation_matrix_agenda* to a default value
 
-Please consider using *propmat_clearsky_agendaAuto* instead of one of these options
+Please consider using *propagation_matrix_agendaAuto* instead of one of these options
 as it will ensure you have the best coverage of use cases.  The options below are
 available for feature testing
 
@@ -3756,10 +3778,10 @@ Options are:
 
 - ``"Empty"``:
 
-    1. Uses *propmat_clearskyInit* to set *propmat_clearsky*, *nlte_source*, *dpropmat_clearsky_dx*, and *dnlte_source_dx*
+    1. Uses *propagation_matrixInit* to set *propagation_matrix*, *source_vector_nonlte*, *propagation_matrix_jacobian*, and *source_vector_nonlte_jacobian*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky_agenda"},
+      .out = {"propagation_matrix_agenda"},
 
       .gin = {"option"},
       .gin_type = {"String"},
@@ -3793,7 +3815,7 @@ sorted in any way.
 
   wsm_data["sparse_f_gridFromFrequencyGrid"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Outputs the sparse frequency grid in *propmat_clearskyAddLines*
+          R"--(Outputs the sparse frequency grid in *propagation_matrixAddLines*
 )--",
       .author = {"Richard Larsson"},
 
@@ -4157,39 +4179,6 @@ eccentricity and no further models should be required.
 
   };
 
-  wsm_data["SurfaceRadiationPropertyInterpFreq"] = WorkspaceMethodInternalRecord{
-      .desc = R"--(Interpolates surface RT properties in frequency.
-
-The WSVs *surface_rmatrix* and *surface_emission* are inter-
-polated linearly in frequency. The original frequency is given
-by *f_grid*, and there is an interpolation to new frequency grid.
-The function resets *f_grid* to the new grid.
-)--",
-      .author = {"Patrick Eriksson"},
-      .out = {"f_grid", "surface_rmatrix", "surface_emission"},
-
-      .in = {"f_grid", "surface_rmatrix", "surface_emission"},
-      .gin = {"f_new"},
-      .gin_type = {"Vector"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {R"--(New frequency grid)--"},
-  };
-
-  wsm_data["surface_scalar_reflectivityFromSurface_rmatrix"] =
-      WorkspaceMethodInternalRecord{
-          .desc =
-              R"--(Sets surface scalar reflectivity based on *surface_rmatrix*.
-
-For each frequency f, surface scalar reflectivity is set to
-the sum of surface_rmatrix(joker,f,0,0).
-)--",
-          .author = {"Patrick Eriksson"},
-          .gout = {"surface_scalar_reflectivity"},
-          .gout_type = {"Vector"},
-          .gout_desc = {R"--(The scalar reflectivity)--"},
-          .in = {"surface_rmatrix"},
-      };
-
   wsm_data["telsemAtlasLookup"] = WorkspaceMethodInternalRecord{
       .desc = R"--(Lookup SSMI emissivities from Telsem Atlas.
 
@@ -4266,7 +4255,7 @@ Journal of the Royal Meteorological Society, 131(608), 1539-1565.
           .gin_desc = {
               "Set to 1 to use liquid saturation pressure at all temperatures"}};
 
-  wsm_data["atm_fieldHydrostaticPressure"] = {
+  wsm_data["atmospheric_fieldHydrostaticPressure"] = {
       .desc = R"-x-(Add the hydrostatic pressure to the atmospheric field
     
 The field must already be able to compute temperature as a function of
@@ -4285,12 +4274,12 @@ $P_1 = P_0 - g * h * \rho$ by means of the specific gas constant omputed
 as desribed above and the pressure of the lower or first altitude level.
 )-x-",
       .author = {"Richard Larsson"},
-      .out = {"atm_field"},
-      .in = {"atm_field", "gravity_operator"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "gravity_operator"},
       .gin = {"p0",
               "alts",
               "fixed_specific_gas_constant",
-              "fixed_atm_temperature",
+              "fixed_atmospheric_temperature",
               "hydrostatic_option"},
       .gin_type = {"GriddedField2", "Vector", "Numeric", "Numeric", "String"},
       .gin_value = {std::nullopt,
@@ -4383,9 +4372,9 @@ Size : (*jacobian_targets*, *f_grid*)
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_jacobian"},
       .in = {"spectral_radiance_jacobian",
-             "spectral_radiance_path_jacobian",
+             "propagation_path_spectral_radiance_jacobian",
              "jacobian_targets",
-             "atm_field",
+             "atmospheric_field",
              "propagation_path"}};
 
   wsm_data["spectral_radianceApplyUnit"] = {
@@ -4402,11 +4391,11 @@ Size : (*jacobian_targets*, *f_grid*)
 
   wsm_data["spectral_radianceFromPathPropagation"] = {
       .desc =
-          R"--(Sets *spectral_radiance* from front of *spectral_radiance_path*
+          R"--(Sets *spectral_radiance* from front of *propagation_path_spectral_radiance*
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
-      .in = {"spectral_radiance_path"}};
+      .in = {"propagation_path_spectral_radiance"}};
 
   wsm_data["spectral_radianceStandardEmission"] = {
       .desc =
@@ -4416,12 +4405,12 @@ Size : (*jacobian_targets*, *f_grid*)
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in = {"f_grid",
              "jacobian_targets",
-             "atm_field",
+             "atmospheric_field",
              "surface_field",
              "propagation_path",
              "spectral_radiance_background_space_agenda",
              "spectral_radiance_background_surface_agenda",
-             "propmat_clearsky_agenda"},
+             "propagation_matrix_agenda"},
       .gin = {"rte_alonglos_v", "hse_derivative"},
       .gin_type = {"Numeric", "Index"},
       .gin_value = {Numeric{0.0}, Index{1}},
@@ -4444,23 +4433,23 @@ Size : (*jacobian_targets*, *f_grid*)
       .out = {"abs_lines"},
       .in = {"absorption_bands"}};
 
-  wsm_data["propmat_clearskyAddLines2"] = {
+  wsm_data["propagation_matrixAddLines2"] = {
       .desc = R"--(Modern line-by-line calculations
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propmat_clearsky",
-              "nlte_source",
-              "dpropmat_clearsky_dx",
-              "dnlte_source_dx"},
-      .in = {"propmat_clearsky",
-             "nlte_source",
-             "dpropmat_clearsky_dx",
-             "dnlte_source_dx",
+      .out = {"propagation_matrix",
+              "source_vector_nonlte",
+              "propagation_matrix_jacobian",
+              "source_vector_nonlte_jacobian"},
+      .in = {"propagation_matrix",
+             "source_vector_nonlte",
+             "propagation_matrix_jacobian",
+             "source_vector_nonlte_jacobian",
              "f_grid",
              "jacobian_targets",
              "absorption_bands",
              "ecs_data2",
-             "atm_point"},
+             "atmospheric_point"},
       .gin = {"no_negative_absorption"},
       .gin_type = {"Index"},
       .gin_value = {Index{1}},
@@ -4478,7 +4467,7 @@ Size : (*jacobian_targets*, *f_grid*)
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
-      .in = {"jacobian_targets", "atm_field"}};
+      .in = {"jacobian_targets", "atmospheric_field"}};
 
   wsm_data["jacobian_targetsAddTemperature"] = {
       .desc = R"--(Set temperature derivative
@@ -4716,7 +4705,7 @@ bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_path"},
-      .in = {"atm_field", "surface_field"},
+      .in = {"atmospheric_field", "surface_field"},
       .gin = {"pos",
               "los",
               "max_step",
@@ -4778,7 +4767,7 @@ bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_path"},
-      .in = {"atm_field", "surface_field"},
+      .in = {"atmospheric_field", "surface_field"},
       .gin = {"pos",
               "tangent_altitude",
               "azimuth",

@@ -107,37 +107,41 @@ more detailed information how tag groups work and some examples.
 )--",
                              .type = "ArrayOfArrayOfSpeciesTag"};
 
-  wsv_data["atm_field"] = {.desc =
-                               R"--(An atmospheric field in ARTS.
+  wsv_data["atmospheric_field"] = {.desc =
+                                       R"--(An atmospheric field in ARTS.
 
 The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
-calculations along a path through the atmosphere.
+calculations along a path through the atmosphere.  The field can be 
+accessed at any altitude, latitude, longitude path that is within the
+atmosphere to access the relevant atmospheric point data (*atmospheric_point*).
 
-This atmospheric field may exist on a regular grid but can also be
-free-form. Some methods require the atmospheric field to be on a regular
-grid, so we provide INSERT-METHOD-NAME-HERE to regularize the field grid.
+Note that constraints on the various field parameters may be imposed by
+extrapolation limitations on the field parameter itself, causing some or
+large swaths of the atmosphere to be inaccessible.
 
 The atmospheric field may, but does not have to, consist of the following:
-    Temperature         - Kelvin
-    Pressure            - Pascal
-    Wind                - Meters per second
-    Magnetic Field      - Tesla
-    Species content     - See user guide for relevant species
-    NLTE ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
+    Temperature                             - Kelvin
+    Pressure                                - Pascal
+    Wind                                    - Meters per second
+    Magnetic Field                          - Tesla
+    Species content                         - See user guide for relevant species
+    Isotopologue ratios                     - Unitless
+    Non-local thermodynamics ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
+    Scattering species content              - See user guide for relevant species
 )--",
-                           .type = "AtmField"};
+                                   .type = "AtmField"};
 
-  wsv_data["atm_point"] = {.desc =
-                               R"--(An atmospheric point in ARTS.
+  wsv_data["atmospheric_point"] = {.desc =
+                                       R"--(An atmospheric point in ARTS.
 
 The atmospheric point consists of all the relevant atmospheric field data
 at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
 at a single altitude-latitude-longitude but may of course be generated manually.
 
-See *atm_field* for the data that may be available in the atmospheric point.
+See *atmospheric_field* for the data that may be available in the atmospheric point.
 )--",
-                           .type = "AtmPoint"};
+                                   .type = "AtmPoint"};
 
   wsv_data["avk"] = {.desc = R"--(Averaging kernel matrix.
 
@@ -204,30 +208,18 @@ Dimensions:
 )--",
       .type = "ComplexGriddedField2"};
 
-  wsv_data["dpropmat_clearsky_dx"] = {.desc = R"--( FIXMEDOC
-Partial derivative of absorption coefficients.
+  wsv_data["propagation_matrix_jacobian"] = {.desc = R"--(
+Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
 
-This contains the partial derivative of absorption coefficients for
-one point in the atmosphere (one set of pressure, temperature, zn
-magnetic field, and VMR values) with respect to one of the input
-parameters.
-
-Dimension: [ n_quantities ] [naa, nza, nf, f(stokes_dim)]
-
-*jacobian_targets* should be used to set the input variable for
-partial derivation
-
-Unit: 1/m/jacobian_targets
+The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
 )--",
-                                      .type = "PropmatMatrix"};
+                                             .type = "PropmatMatrix"};
 
-  wsv_data["dnlte_source_dx"] = {
+  wsv_data["source_vector_nonlte_jacobian"] = {
       .desc =
-          R"--(NLTE partial derivatives output is two parts:  S * dB/dx + dS/dx * B.
+          R"--(Partial derivative of the *source_vector_nonlte* with regards to *jacobian_targets*.
 
-Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]
-
-Unit: 1/m/jacobian_targets
+The units are *spectral_radiance_jacobian* per meter.
 )--",
       .type = "StokvecMatrix"};
 
@@ -349,22 +341,29 @@ Size: [ p_grid,  lat_grid,  lon_grid,  2 ]
                          .type = "Index",
                          .default_value = Index{0}};
 
-  wsv_data["nlte_source"] = {
+  wsv_data["source_vector_nonlte"] = {
       .desc =
-          R"--(Variable to contain the additional source function due to NLTE effects.
+          R"--(The part of the source vector that is due to non-LTE.
 
-Dimensions: [nza, naa, nf, stokes_dim]
+This is closely related to *propagation_matrix*.
+
+Gven the level source term:
+
+.. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
+
+this variable holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
+column of :math:`\mathbf{K}`, which is from the *propagation_matrix* variable.
+:math:`B` is the Planck function.  The ellipsis denotes other terms that can
+come from more sources, such as scattering and/or transmitting equipment.
+
+The unit is in *spectral_radiance* per meter.
 )--",
       .type = "StokvecVector"};
 
-  wsv_data["ppvar_atm"] = {
+  wsv_data["propagation_path_atmospheric_point"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
-ppvar stands for propagation path variable. The variables named in is
-way describe the atmosphere and its properties at each point of the
-propagation path
-
-See *atm_point* for information about atmospheric points
+See *atmospheric_point* for information about atmospheric points
 
 Dimension: [ ppath.np ]
 
@@ -372,12 +371,8 @@ Usage: Output of radiative transfer methods.
 )--",
       .type = "ArrayOfAtmPoint"};
 
-  wsv_data["ppvar_f"] = {
+  wsv_data["propagation_path_frequency_grid"] = {
       .desc = R"--(Atmospheric frequency grids along the propagation path.
-
-ppvar stands for propagation path variable. The variables named in is
-way describe the atmosphere and its properties at each point of the
-propagation path
 
 See *f_grid* for information about the frequency grid
 
@@ -396,13 +391,19 @@ Can currently only contain data for new MT CKD models of water.
       .type = "PredefinedModelData",
       .default_value = PredefinedModelData{}};
 
-  wsv_data["propmat_clearsky"] = {
+  wsv_data["propagation_matrix"] = {
       .desc =
-          R"--(This contains the absorption coefficients for one point in the atmosphere.
+          R"--(This contains the propagation matrix for the current path point.
 
-Dimensions: [naa, nza, nf, f(stokes_dim)]
+The propagation matrix can be used to computed the transmission through a layer
+as:
 
-Unit: 1/m
+.. math:: \mathbf{T} = \exp\left(-\mathbf{K} r\right),
+
+where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distance
+over which it is considered constant.
+
+The unit is [1 / m]
 )--",
       .type = "PropmatVector"};
 
@@ -430,57 +431,57 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 )--",
       .type = "MuelmatVector"};
 
-  wsv_data["spectral_radiance_path"] = {
-      .desc = R"--(Radiation along the propagation path
+  wsv_data["propagation_path_spectral_radiance"] = {
+      .desc = R"--(Spectral radiance along the propagation path
 )--",
       .type = "ArrayOfStokvecVector"};
 
-  wsv_data["spectral_radiance_path_jacobian"] = {
-      .desc = R"--(Radiation derivative along the propagation path
+  wsv_data["propagation_path_spectral_radiance_jacobian"] = {
+      .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix"};
 
-  wsv_data["ppvar_propmat"] = {
+  wsv_data["propagation_path_propagation_matrix"] = {
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector"};
 
-  wsv_data["ppvar_dpropmat"] = {
+  wsv_data["propagation_path_propagation_matrix_jacobian"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix"};
 
-  wsv_data["ppvar_nlte"] = {
-      .desc = R"--(Additional NLTE along the propagation path
+  wsv_data["propagation_path_source_vector_nonlte"] = {
+      .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector"};
 
-  wsv_data["ppvar_dnlte"] = {
-      .desc = R"--(Additional NLTE derivative along the propagation path
+  wsv_data["propagation_path_source_vector_nonlte_jacobian"] = {
+      .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix"};
 
-  wsv_data["spectral_radiance_path_source"] = {
+  wsv_data["propagation_path_spectral_radiance_source"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecVector"};
 
-  wsv_data["spectral_radiance_path_source_jacobian"] = {
+  wsv_data["propagation_path_spectral_radiance_source_jacobian"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix"};
 
-  wsv_data["ppvar_tramat"] = {
+  wsv_data["propagation_path_transmission_matrix"] = {
       .desc = R"--(Transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector"};
 
-  wsv_data["ppvar_cumtramat"] = {
+  wsv_data["propagation_path_transmission_matrix_cumulative"] = {
       .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector"};
 
-  wsv_data["ppvar_dtramat"] = {
+  wsv_data["propagation_path_transmission_matrix_jacobian"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path
 )--",
       .type = "ArrayOfArrayOfMuelmatMatrix"};
@@ -543,15 +544,6 @@ longitude in the sky of the planet and the type
                       .type = "ArrayOfSun",
                       .default_value = ArrayOfSun{}};
 
-  wsv_data["surface_emission"] = {.desc = R"--(The emission from the surface.
-
-See specific methods generating *surface_emission* and the user
-guide for more information.
-
-Dimensions: [ f_grid, stokes_dim ]
-)--",
-                                  .type = "Matrix"};
-
   wsv_data["surface_field"] = {
       .desc = R"--(The surface field describes the surface properties.
 
@@ -559,25 +551,6 @@ This describes the global surface values, such as elevation and
 temperature but also entirerly abstract properties and types.
 )--",
       .type = "SurfaceField"};
-
-  wsv_data["surface_rmatrix"] = {
-      .desc = R"--(The reflection coefficients for the surface
-      
-The directions are given by surface line-of-sight to the direction of interest.
-
-The rows and columns of this tensor holds the reflection
-coefficient matrix for one frequency and one LOS. The reflection
-coefficients shall take into accound the angular weighting of the
-downwelling radiation.
-
-See specific methods generating *surface_rmatrix* and the user guide
-for more information.
-
-Units:      -
-
-Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]
-)--",
-      .type = "Tensor4"};
 
   wsv_data["wigner_initialized"] = {
       .desc = R"--(Indicates if the wigner tables are initialized.

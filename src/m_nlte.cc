@@ -22,11 +22,12 @@ void ArrayOfQuantumIdentifierFromLines(
   qid.resize(0);
 
   QuantumIdentifier lower, upper;
-  
+
   // For all lines' upper and lower energy levels
-  for (const auto& lines: abs_lines_per_species) {
-    for (const auto& band: lines) {
-      for (Index k=0; k<band.NumLines() and (global ? (k==0) : false); k++) {
+  for (const auto& lines : abs_lines_per_species) {
+    for (const auto& band : lines) {
+      for (Index k = 0; k < band.NumLines() and (global ? (k == 0) : false);
+           k++) {
         if (global) {
           lower = band.quantumidentity.LowerLevel();
           upper = band.quantumidentity.UpperLevel();
@@ -35,10 +36,12 @@ void ArrayOfQuantumIdentifierFromLines(
           lower = x.LowerLevel();
           upper = x.UpperLevel();
         }
-        
-        if (std::none_of(qid.begin(), qid.end(), [&](auto& x){return x == lower;}))
+
+        if (std::none_of(
+                qid.begin(), qid.end(), [&](auto& x) { return x == lower; }))
           qid.push_back(lower);
-        if (std::none_of(qid.begin(), qid.end(), [&](auto& x){return x == upper;}))
+        if (std::none_of(
+                qid.begin(), qid.end(), [&](auto& x) { return x == upper; }))
           qid.push_back(upper);
       }
     }
@@ -46,9 +49,9 @@ void ArrayOfQuantumIdentifierFromLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void atm_fieldRescalePopulationLevels(AtmField& atm_field,
-                                       const Numeric& scale) {
-  for (auto& nlte: atm_field.nlte()) {
+void atmospheric_fieldRescalePopulationLevels(AtmField& atmospheric_field,
+                                              const Numeric& scale) {
+  for (auto& nlte : atmospheric_field.nlte()) {
     nlte.second.rescale(scale);
   }
 }
@@ -58,7 +61,7 @@ void collision_coefficientsFromSplitFiles(
     ArrayOfArrayOfGriddedField1& collision_coefficients,
     ArrayOfQuantumIdentifier& collision_line_identifiers,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String &basename) {
+    const String& basename) {
   // Standard ARTS basename-assumption
   String tmp_basename = basename, filename;
   if (basename.length() && basename[basename.length() - 1] != '/')
@@ -78,15 +81,15 @@ void collision_coefficientsFromSplitFiles(
     ArrayOfGriddedField1 aogf1;
 
     // Read the file for a species and check that the size is correct of the array
-    filename = tmp_basename + String(Species::toShortName(abs_species[i].Species())) + ".xml";
+    filename = tmp_basename +
+               String(Species::toShortName(abs_species[i].Species())) + ".xml";
     xml_read_from_file(filename, aogf1);
-    ARTS_USER_ERROR_IF (aogf1.size() not_eq n,
-          "Mismatch between collision_line_identifiers and some collision_coefficients");
+    ARTS_USER_ERROR_IF(
+        aogf1.size() not_eq n,
+        "Mismatch between collision_line_identifiers and some collision_coefficients");
     collision_coefficients[i] = aogf1;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteOff(Index& nlte_do) {
-  nlte_do = 0;
-}
+void nlteOff(Index& nlte_do) { nlte_do = 0; }

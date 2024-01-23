@@ -14,7 +14,7 @@ ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 ws.Wigner6Init()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
-ws.propmat_clearsky_agendaAuto()
+ws.propagation_matrix_agendaAuto()
 
 # %% Grids and planet
 
@@ -23,21 +23,21 @@ ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
 t = pyarts.arts.GriddedField3.fromxml(
     "planets/Earth/afgl/tropical/t.xml"
 )
-ws.atm_fieldInit(toa=100e3)
-ws.atm_fieldAddGriddedData(
+ws.atmospheric_fieldInit(toa=100e3)
+ws.atmospheric_fieldAddGriddedData(
     key=pyarts.arts.String("t"),
     data=pyarts.arts.GriddedField3.fromxml(
         "planets/Earth/afgl/tropical/t.xml"
     ),
 )
-ws.atm_fieldAddGriddedData(
+ws.atmospheric_fieldAddGriddedData(
     key=pyarts.arts.String("p"),
     data=pyarts.arts.GriddedField3.fromxml(
         "planets/Earth/afgl/tropical/p.xml"
     ),
 )
-ws.atm_field[ws.abs_species[0]] = 0.21
-ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
+ws.atmospheric_field[ws.abs_species[0]] = 0.21
+ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 

@@ -36,8 +36,8 @@ def lblvals(band, T, T0=296):
             ls = line.ls.single_models[i]
             lbl_val[-1].append(
                 line.f0
-                + ls.D0(T0, T, ws.atm_point.pressure)
-                + 1j * ls.G0(T0, T, ws.atm_point.pressure)
+                + ls.D0(T0, T, ws.atmospheric_point.pressure)
+                + 1j * ls.G0(T0, T, ws.atmospheric_point.pressure)
             )
 
     return np.array(lbl_str), np.array(lbl_val)
@@ -49,7 +49,7 @@ def eqvvals(band, T):
         line.ls.one_by_one = True
 
     eqv_str, eqv_val = pyarts.arts.lbl.equivalent_lines(
-        band, ws.ecs_data2, ws.atm_point, T
+        band, ws.ecs_data2, ws.atmospheric_point, T
     )
     eqv_val = np.array(eqv_val)
     eqv_str = np.array(eqv_str)
@@ -109,13 +109,13 @@ ws.absorption_bandsFromAbsorbtionLines()
 p = 1e5
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
-ws.atm_pointInit()
-ws.atm_point.temperature = 295  # At room temperature
-ws.atm_point.pressure = p
-ws.atm_point[ws.abs_species[0]] = 400e-6
-ws.atm_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
-ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
-ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 295  # At room temperature
+ws.atmospheric_point.pressure = p
+ws.atmospheric_point[ws.abs_species[0]] = 400e-6
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
+ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 ws.jacobian_targetsInit()
 ws.Wigner6Init()
@@ -138,23 +138,23 @@ ws.f_grid = np.linspace(
 )  # around the band
 
 # VP LTE NO LINE MIXING
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_lte = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines2()
+pm_lte = 1.0 * ws.propagation_matrix[:].T[0]
 
 T = np.linspace(200, 320, 8)
 band = adaptband(band, T, p)
 ws.absorption_bands = [band]
 
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines2()
+pm_adapted_lte = 1.0 * ws.propagation_matrix[:].T[0]
 
 band.data.lineshape = "VP_ECS_HARTMANN"
 ws.absorption_bands = [band]
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_full = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines2()
+pm_full = 1.0 * ws.propagation_matrix[:].T[0]
 
 import matplotlib.pyplot as plt
 plt.semilogy(f2c(ws.f_grid), pm_lte)

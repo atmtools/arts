@@ -98,7 +98,8 @@ void spectral_radiance_background_jacobianEmpty(
     StokvecMatrix& spectral_radiance_background_jacobian,
     const Vector& f_grid,
     const JacobianTargets& jacobian_targets) {
-  spectral_radiance_jacobianEmpty(spectral_radiance_background_jacobian, f_grid, jacobian_targets);
+  spectral_radiance_jacobianEmpty(
+      spectral_radiance_background_jacobian, f_grid, jacobian_targets);
 }
 
 void spectral_radiance_backgroundUniformCosmicBackground(
@@ -119,7 +120,8 @@ void spectral_radiance_backgroundSurfaceBlackbody(
   ARTS_USER_ERROR_IF(not surface_field.contains(key),
                      "Surface field does not contain temperature")
 
-  const auto t = surface_field.single_value(key, path_point.pos[1], path_point.pos[2]);
+  const auto t =
+      surface_field.single_value(key, path_point.pos[1], path_point.pos[2]);
   spectral_radiance_background = detail::from_temp(f_grid, t);
 
   spectral_radiance_background_jacobianEmpty(
@@ -130,7 +132,8 @@ void spectral_radiance_backgroundSurfaceBlackbody(
       pair.first) {
     const auto x_start = pair.second->x_start;
     const auto& surf_data = surface_field[key];
-    const auto weights = surf_data.flat_weights(path_point.pos[1], path_point.pos[2]);
+    const auto weights =
+        surf_data.flat_weights(path_point.pos[1], path_point.pos[2]);
     for (auto& w : weights) {
       if (w.second != 0.0) {
         const auto i = w.first + x_start;
@@ -150,16 +153,22 @@ void spectral_radiance_backgroundSurfaceBlackbody(
 
 void background_transmittanceFromPathPropagationBack(
     MuelmatVector& background_transmittance,
-    const ArrayOfMuelmatVector& ppvar_cumtramat) {
-  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0,
-                     "Cannot extract from empty list.")
-  background_transmittance = ppvar_cumtramat.back();
+    const ArrayOfMuelmatVector&
+        propagation_path_transmission_matrix_cumulative) {
+  ARTS_USER_ERROR_IF(
+      propagation_path_transmission_matrix_cumulative.size() == 0,
+      "Cannot extract from empty list.")
+  background_transmittance =
+      propagation_path_transmission_matrix_cumulative.back();
 }
 
 void background_transmittanceFromPathPropagationFront(
     MuelmatVector& background_transmittance,
-    const ArrayOfMuelmatVector& ppvar_cumtramat) {
-  ARTS_USER_ERROR_IF(ppvar_cumtramat.size() == 0,
-                     "Cannot extract from empty list.")
-  background_transmittance = ppvar_cumtramat.front();
+    const ArrayOfMuelmatVector&
+        propagation_path_transmission_matrix_cumulative) {
+  ARTS_USER_ERROR_IF(
+      propagation_path_transmission_matrix_cumulative.size() == 0,
+      "Cannot extract from empty list.")
+  background_transmittance =
+      propagation_path_transmission_matrix_cumulative.front();
 }

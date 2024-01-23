@@ -15,18 +15,15 @@
 #include "atm.h"
 #include "gas_abs_lookup.h"
 #include "interp.h"
+#include "jacobian.h"
+#include "m_basic_types.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
-#include "jacobian.h"
 #include "species_tags.h"
 
-#include "m_basic_types.h"
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupInit(GasAbsLookup& x) {
-  x = GasAbsLookup();
-}
+void abs_lookupInit(GasAbsLookup& x) { x = GasAbsLookup(); }
 
 //! Find continuum species in abs_species.
 /*! 
@@ -134,9 +131,8 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
 
   // Add all H2O species as non-linear:
   Index next_h2o = 0;
-  while (-1 !=
-         (next_h2o = find_next_species(
-              abs_species, Species::fromShortName("H2O"), next_h2o))) {
+  while (-1 != (next_h2o = find_next_species(
+                    abs_species, Species::fromShortName("H2O"), next_h2o))) {
     abs_nls.push_back(abs_species[next_h2o]);
     ++next_h2o;
   }
@@ -183,11 +179,12 @@ void choose_abs_t_pert(Vector& abs_t_pert,
   Numeric mindev = 1e9;
   Numeric maxdev = -1e9;
 
-  Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
+  Vector the_grid = uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
+    const Index idx0 =
+        my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
-    for (Index j = 0; j < p_interp_order+1; ++j) {
+    for (Index j = 0; j < p_interp_order + 1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
       // the original one for the batch cases. This may lead to max/min
       // values in the original data that exceed those we assumed
@@ -212,7 +209,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_t_pert =uniform_grid(mindev, div, effective_step);
+  abs_t_pert = uniform_grid(mindev, div, effective_step);
 }
 
 //! Chose the H2O perturbations abs_nls_pert
@@ -249,16 +246,17 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   // mindev is set to zero from the start, since we always want to
   // include 0.
 
-  Vector the_grid=uniform_grid(0, refprof.nelem(), 1);
+  Vector the_grid = uniform_grid(0, refprof.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
     //       cout << "!!!!!! i = " << i << "\n";
     //       cout << " min/ref/max = " << minprof[i] << " / "
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
-    
-    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
-    for (Index j = 0; j < p_interp_order+1; ++j) {
+    const Index idx0 =
+        my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
+
+    for (Index j = 0; j < p_interp_order + 1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
       //           cout << "  ref[j] = " << refprof[gp.idx[j]] << "   ";
       //           cout << "  minfrac[j] = " << minprof[i] / refprof[gp.idx[j]] << "   ";
@@ -365,9 +363,9 @@ void abs_lookupAdapt(GasAbsLookup& abs_lookup,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFromLookup(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddFromLookup(
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     const GasAbsLookup& abs_lookup,
     const Index& abs_lookup_is_adapted,
     const Vector& f_grid,
@@ -390,15 +388,21 @@ void propmat_clearskyAddFromLookup(
         "Gas absorption lookup table must be adapted,\n"
         "use method abs_lookupAdapt.");
 
-  const auto do_freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
-  const auto do_temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+  const auto do_freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
+      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+  const auto do_temp_jac =
+      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
   const Numeric df = field_perturbation(do_freq_jac);
   const Numeric dt = field_perturbation(std::span{&do_temp_jac, 1});
 
   const Vector a_vmr_list = [&]() {
     Vector vmr(abs_species.size());
-    std::transform(abs_species.begin(), abs_species.end(), vmr.begin(),
-                   [&](const ArrayOfSpeciesTag& spec) -> Numeric { return atm_point[spec.Species()]; });
+    std::transform(abs_species.begin(),
+                   abs_species.end(),
+                   vmr.begin(),
+                   [&](const ArrayOfSpeciesTag& spec) -> Numeric {
+                     return atm_point[spec.Species()];
+                   });
     return vmr;
   }();
 
@@ -407,11 +411,12 @@ void propmat_clearskyAddFromLookup(
   // interpolation order for the table is zero, the Jacobian will be
   // zero, and the cause for this may be difficult for a user to
   // find. So we do not allow this combination.
-  if (df!=0.0 and (1 > abs_f_interp_order))
-    throw std::runtime_error("Wind/frequency Jacobian is not possible without at least first\n"
-			     "order frequency interpolation in the lookup table.  Please use\n"
-			     "abs_f_interp_order>0 or remove wind/frequency Jacobian.");
-  
+  if (df != 0.0 and (1 > abs_f_interp_order))
+    throw std::runtime_error(
+        "Wind/frequency Jacobian is not possible without at least first\n"
+        "order frequency interpolation in the lookup table.  Please use\n"
+        "abs_f_interp_order>0 or remove wind/frequency Jacobian.");
+
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically.
@@ -426,7 +431,7 @@ void propmat_clearskyAddFromLookup(
                      a_vmr_list,
                      f_grid,
                      extpolfac);
-  if (df!=0.0) {
+  if (df != 0.0) {
     Vector dfreq = f_grid;
     dfreq += df;
     abs_lookup.Extract(dabs_scalar_gas_df,
@@ -456,11 +461,11 @@ void propmat_clearskyAddFromLookup(
                        extpolfac);
   }
 
-  if (no_negatives){
+  if (no_negatives) {
     //Check for negative values due to interpolation and set them to zero
-    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++){
-      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++){
-        if (abs_scalar_gas(ir, ic)<0) abs_scalar_gas(ir, ic)=0;
+    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++) {
+      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++) {
+        if (abs_scalar_gas(ir, ic) < 0) abs_scalar_gas(ir, ic) = 0;
       }
     }
   }
@@ -468,27 +473,27 @@ void propmat_clearskyAddFromLookup(
   // Now add to the right place in the absorption matrix.
   for (Index isp = 0; isp < abs_scalar_gas.nrows(); isp++) {
     for (Index iv = 0; iv < abs_scalar_gas.ncols(); iv++) {
-      propmat_clearsky[iv].A() += abs_scalar_gas(isp, iv);
+      propagation_matrix[iv].A() += abs_scalar_gas(isp, iv);
 
       if (do_temp_jac.first) {
         const auto iq = do_temp_jac.second->target_pos;
-        dpropmat_clearsky_dx(iq, iv).A() +=
+        propagation_matrix_jacobian(iq, iv).A() +=
             (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
       }
 
       for (auto& j : do_freq_jac) {
         if (j.first) {
           const auto iq = j.second->target_pos;
-          dpropmat_clearsky_dx(iq, iv).A() +=
+          propagation_matrix_jacobian(iq, iv).A() +=
               (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
         }
       }
 
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[isp].Species());
+      if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
+              abs_species[isp].Species());
           j.first) {
         const auto iq = j.second->target_pos;
-        dpropmat_clearsky_dx(iq, iv).A() +=
+        propagation_matrix_jacobian(iq, iv).A() +=
             (std::isnormal(a_vmr_list[isp]))
                 ? abs_scalar_gas(isp, iv) / a_vmr_list[isp]
                 : 0;
@@ -498,16 +503,14 @@ void propmat_clearskyAddFromLookup(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridFromGasAbsLookup(Vector& f_grid,
-                            const GasAbsLookup& abs_lookup) {
+void f_gridFromGasAbsLookup(Vector& f_grid, const GasAbsLookup& abs_lookup) {
   const Vector& lookup_f_grid = abs_lookup.GetFgrid();
   f_grid.resize(lookup_f_grid.nelem());
   f_grid = lookup_f_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void p_gridFromGasAbsLookup(Vector& p_grid,
-                            const GasAbsLookup& abs_lookup) {
+void p_gridFromGasAbsLookup(Vector& p_grid, const GasAbsLookup& abs_lookup) {
   const Vector& lookup_p_grid = abs_lookup.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
   p_grid = lookup_p_grid;

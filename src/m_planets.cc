@@ -239,12 +239,12 @@ void surface_fieldInit(SurfaceField &surface_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
-               const String &option) {
+                                     const String &option) {
   surface_field = {};
   surface_field[Surf::Key::h] = 0.0;
 
-  using enum Options::planetDefaultOptions;
-  switch (Options::toplanetDefaultOptionsOrThrow(option)) {
+  using enum Options::planetOption;
+  switch (Options::toplanetOptionOrThrow(option)) {
     case Earth:
       surface_fieldEarth(surface_field, "WGS84");
       // molarmass_dry_air = 28.966;
@@ -312,6 +312,8 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
       surface_field.ellipsoid,
       ']')
 
-  gravity_operator = NumericTernaryOperator{
-      Gravity{Constant::G * mass, surface_field.ellipsoid[0], surface_field.ellipsoid[1]}};
+  gravity_operator =
+      NumericTernaryOperator{Gravity{Constant::G * mass,
+                                     surface_field.ellipsoid[0],
+                                     surface_field.ellipsoid[1]}};
 }

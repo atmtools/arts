@@ -4,23 +4,23 @@ std::unordered_map<std::string, WorkspaceAgendaInternalRecord>
 internal_workspace_agendas() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
-  wsa_data["propmat_clearsky_agenda"] = {
+  wsa_data["propagation_matrix_agenda"] = {
       .desc = R"--(Calculate the absorption coefficient matrix.
 
 This agenda calculates the absorption coefficient matrix for all
 absorption species as a function of the given atmospheric state for
 one point in the atmosphere. The result is returned in
-*propmat_clearsky*.
+*propagation_matrix*.
 )--",
-      .output = {"propmat_clearsky",
-                 "nlte_source",
-                 "dpropmat_clearsky_dx",
-                 "dnlte_source_dx"},
+      .output = {"propagation_matrix",
+                 "source_vector_nonlte",
+                 "propagation_matrix_jacobian",
+                 "source_vector_nonlte_jacobian"},
       .input = {"jacobian_targets",
                 "select_abs_species",
                 "f_grid",
                 "path_point",
-                "atm_point"}};
+                "atmospheric_point"}};
 
   wsa_data["spectral_radiance_background_space_agenda"] = {
       .desc = R"--(Spectral radiance as seen of space.

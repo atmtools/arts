@@ -27,7 +27,7 @@ ws.abs_speciesSet(
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
 
 # Use an automatic agenda
-ws.propmat_clearsky_agendaAuto()
+ws.propagation_matrix_agendaAuto()
 
 # Arts setup (No NLTE, no polarization, and standard isotopologue ratios)
 ws.nlte_do = 0
@@ -35,15 +35,15 @@ ws.nlte_do = 0
 # Settings (Standard atmosphere midlatitude-summer)
 ws.path_point.los = [45, 45]
 ws.f_grid = np.linspace(1e9, 3e12, 1000)
-ws.atm_pointInit()
-ws.atm_point.temperature = 2.942000e+02
-ws.atm_point.pressure = 110000
-ws.atm_point[ws.abs_species[0]] = 1.000869e-09
-ws.atm_point[ws.abs_species[1]] = 1.000869e-14
-ws.atm_point[ws.abs_species[2]] = 2.850472e-06
-ws.atm_point[ws.abs_species[3]] = 1.501303e-07
-ws.atm_point[ws.abs_species[4]] = 3.019448e-08
-ws.atm_point.mag = [10e-6, 20e-6, 40e-6]
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 2.942000e+02
+ws.atmospheric_point.pressure = 110000
+ws.atmospheric_point[ws.abs_species[0]] = 1.000869e-09
+ws.atmospheric_point[ws.abs_species[1]] = 1.000869e-14
+ws.atmospheric_point[ws.abs_species[2]] = 2.850472e-06
+ws.atmospheric_point[ws.abs_species[3]] = 1.501303e-07
+ws.atmospheric_point[ws.abs_species[4]] = 3.019448e-08
+ws.atmospheric_point.mag = [10e-6, 20e-6, 40e-6]
 
 # Start the explorer
-ws.propmat_clearsky_agendaGUI()
+ws.propagation_matrix_agendaGUI()

@@ -10,7 +10,7 @@ class Setting:
         self.f_grid = frange
 
     def apply(self, ws, il):
-        ws.atm_point.pressure = self.pressure
+        ws.atmospheric_point.pressure = self.pressure
         ws.absorption_bands[0].data.lines[il].z.on = self.zeeman
         for x in ws.absorption_bands[0].data.lines:
             x.ls.one_by_one = self.one_by_one
@@ -107,10 +107,10 @@ ws.Wigner3Init()
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
-ws.atm_pointInit()
-ws.atm_point.temperature = 295  # At room temperature
-ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
-ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 295  # At room temperature
+ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 for setting in settings:
     print(setting.title("Running test"))
@@ -257,23 +257,23 @@ for setting in settings:
         species="Bath",
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    dpm = ws.dpropmat_clearsky_dx * 1.0
-    pm = ws.propmat_clearsky * 1.0
+    dpm = ws.propagation_matrix_jacobian * 1.0
+    pm = ws.propagation_matrix * 1.0
     ws.jacobian_targetsInit()
 
     # ISOTOPOLOGUE RATIO
     d = 0.0001
     key = pyarts.arts.SpeciesIsotopeRecord("O2-66")
-    ws.atm_point[key] += d
+    ws.atmospheric_point[key] += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
-    ws.atm_point[key] -= d
+    pm_d = ws.propagation_matrix * 1.0
+    ws.atmospheric_point[key] -= d
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(
@@ -283,13 +283,13 @@ for setting in settings:
     # VMR
     d = 0.00001
     key = pyarts.arts.SpeciesEnum("O2")
-    ws.atm_point[key] += d
+    ws.atmospheric_point[key] += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
-    ws.atm_point[key] -= d
+    pm_d = ws.propagation_matrix * 1.0
+    ws.atmospheric_point[key] -= d
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(ws.f_grid, dpm[1][:, 0], dpm_dX[:, 0], "VMR", setting)
@@ -297,13 +297,13 @@ for setting in settings:
     # Temperature
     d = 1e-6
     key = pyarts.arts.options.AtmKey.t
-    ws.atm_point[key] += d
+    ws.atmospheric_point[key] += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
-    ws.atm_point[key] -= d
+    pm_d = ws.propagation_matrix * 1.0
+    ws.atmospheric_point[key] -= d
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(ws.f_grid, dpm[2][:, 0], dpm_dX[:, 0], "Temperature", setting)
@@ -313,10 +313,10 @@ for setting in settings:
     orig = ws.f_grid * 1.0
     ws.f_grid += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.f_grid = orig
 
     dpm_dX = (pm_d - pm) / d
@@ -327,10 +327,10 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].f0 * 1.0
     ws.absorption_bands[0].data.lines[il].f0 += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].f0 = orig
 
     dpm_dX = (pm_d - pm) / d
@@ -341,10 +341,10 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].e0 * 1.0
     ws.absorption_bands[0].data.lines[il].e0 += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].e0 = orig
 
     dpm_dX = (pm_d - pm) / d
@@ -357,10 +357,10 @@ for setting in settings:
     orig = ws.absorption_bands[0].data.lines[il].a * 1.0
     ws.absorption_bands[0].data.lines[il].a += d
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].a = orig
 
     dpm_dX = (pm_d - pm) / d
@@ -382,10 +382,10 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "G0", orig
     )
@@ -407,10 +407,10 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "G0", orig
     )
@@ -432,10 +432,10 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "G0", orig
     )
@@ -457,10 +457,10 @@ for setting in settings:
         "G0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "G0", orig
     )
@@ -479,10 +479,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "Y", orig
     )
@@ -501,10 +501,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "Y", orig
     )
@@ -523,10 +523,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "Y", orig
     )
@@ -545,10 +545,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "Y", orig
     )
@@ -567,10 +567,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "Y", orig
     )
@@ -589,10 +589,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "Y", orig
     )
@@ -611,10 +611,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "Y", orig
     )
@@ -633,10 +633,10 @@ for setting in settings:
         "Y", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "Y", orig
     )
@@ -658,10 +658,10 @@ for setting in settings:
         "D0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "D0", orig
     )
@@ -683,10 +683,10 @@ for setting in settings:
         "D0", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "D0", orig
     )
@@ -695,7 +695,7 @@ for setting in settings:
     compare_fn(ws.f_grid, dpm[20][:, 0], dpm_dX[:, 0], "Bath D0 X0", setting)
 
     # O2 DV X0
-    d = 1e-1 / ws.atm_point.pressure
+    d = 1e-1 / ws.atmospheric_point.pressure
     orig = (
         ws.absorption_bands[0]
         .data.lines[il]
@@ -708,10 +708,10 @@ for setting in settings:
         "DV", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "DV", orig
     )
@@ -720,7 +720,7 @@ for setting in settings:
     compare_fn(ws.f_grid, dpm[21][:, 0], dpm_dX[:, 0], "O2 DV X0", setting)
 
     # Bath DV X0
-    d = 1e4 / ws.atm_point.pressure**2
+    d = 1e4 / ws.atmospheric_point.pressure**2
     orig = (
         ws.absorption_bands[0]
         .data.lines[il]
@@ -733,10 +733,10 @@ for setting in settings:
         "DV", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "DV", orig
     )
@@ -755,10 +755,10 @@ for setting in settings:
         "G", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
         "G", orig
     )
@@ -777,10 +777,10 @@ for setting in settings:
         "G", pyarts.arts.TemperatureModel(orig.type, data)
     )
 
-    ws.propmat_clearskyInit()
-    ws.propmat_clearskyAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixInit()
+    ws.propagation_matrixAddLines2(no_negative_absorption=False)
 
-    pm_d = ws.propmat_clearsky * 1.0
+    pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
         "G", orig
     )

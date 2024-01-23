@@ -17,11 +17,11 @@
 #include "debug.h"
 #include "enums.h"
 #include "isotopologues.h"
+#include "jacobian.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "lineshapemodel.h"
 #include "matpack_view.h"
-#include "jacobian.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
 #include "xml_io.h"
@@ -457,16 +457,16 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
   }
 }
 
-void propmat_clearskyAddLines2(PropmatVector& pm,
-                               StokvecVector& sv,
-                               PropmatMatrix& dpm,
-                               StokvecMatrix& dsv,
-                               const Vector& f_grid,
-                               const JacobianTargets& jacobian_targets,
-                               const AbsorptionBands& absorption_bands,
-                               const LinemixingEcsData& ecs_data,
-                               const AtmPoint& atm_point,
-                               const Index& no_negative_absorption) {
+void propagation_matrixAddLines2(PropmatVector& pm,
+                                 StokvecVector& sv,
+                                 PropmatMatrix& dpm,
+                                 StokvecMatrix& dsv,
+                                 const Vector& f_grid,
+                                 const JacobianTargets& jacobian_targets,
+                                 const AbsorptionBands& absorption_bands,
+                                 const LinemixingEcsData& ecs_data,
+                                 const AtmPoint& atm_point,
+                                 const Index& no_negative_absorption) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
     lbl::calculate(pm,

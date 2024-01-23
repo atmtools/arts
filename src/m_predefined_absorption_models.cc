@@ -12,8 +12,8 @@
 
 #include "atm.h"
 #include "debug.h"
-#include "logic.h"
 #include "jacobian.h"
+#include "logic.h"
 #include "predefined_absorption_models.h"
 
 void predefined_model_dataInit(PredefinedModelData& predefined_model_data) {
@@ -59,9 +59,9 @@ void predefined_model_dataAddWaterMTCKD400(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddPredefined(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddPredefined(
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     const PredefinedModelData& predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -69,16 +69,17 @@ void propmat_clearskyAddPredefined(
     const Vector& f_grid,
     const AtmPoint& atm_point) {
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.size() not_eq f_grid.size(),
+      propagation_matrix.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
-  if (dpropmat_clearsky_dx.nrows()) {
+  if (propagation_matrix_jacobian.nrows()) {
     ARTS_USER_ERROR_IF(
-        static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_targets.target_count(),
+        static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
+            jacobian_targets.target_count(),
         "Mismatch dimensions on xsec derivatives and Jacobian grids");
     ARTS_USER_ERROR_IF(
-        dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
+        propagation_matrix_jacobian.ncols() not_eq f_grid.size(),
         "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
   }
 
@@ -87,8 +88,8 @@ void propmat_clearskyAddPredefined(
     if (select_abs_species.size() and select_abs_species not_eq tag_groups)
       continue;
     for (auto& tag : tag_groups) {
-      Absorption::PredefinedModel::compute(propmat_clearsky,
-                                           dpropmat_clearsky_dx,
+      Absorption::PredefinedModel::compute(propagation_matrix,
+                                           propagation_matrix_jacobian,
                                            tag.Isotopologue(),
                                            f_grid,
                                            atm_point.pressure,

@@ -189,11 +189,11 @@ void AbsInputFromAtmFields(  // WS Output:
 //======================================================================
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyInit(  //WS Output
-    PropmatVector& propmat_clearsky,
-    StokvecVector& nlte_source,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    StokvecMatrix& dnlte_source_dx,
+void propagation_matrixInit(  //WS Output
+    PropmatVector& propagation_matrix,
+    StokvecVector& source_vector_nonlte,
+    PropmatMatrix& propagation_matrix_jacobian,
+    StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jacobian_targets,
     const Vector& f_grid) {
@@ -202,32 +202,32 @@ void propmat_clearskyInit(  //WS Output
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
-  // Set size of propmat_clearsky and reset it's values
-  propmat_clearsky.resize(nf);
-  propmat_clearsky = 0.0;
+  // Set size of propagation_matrix and reset it's values
+  propagation_matrix.resize(nf);
+  propagation_matrix = 0.0;
 
-  // Set size of nlte_source and reset it's values
-  nlte_source.resize(nf);
-  nlte_source = 0.0;
+  // Set size of source_vector_nonlte and reset it's values
+  source_vector_nonlte.resize(nf);
+  source_vector_nonlte = 0.0;
 
-  // Set size of dpropmat_clearsky_dx and reset it's values
-  dpropmat_clearsky_dx.resize(nq, nf);
-  dpropmat_clearsky_dx = 0.0;
+  // Set size of propagation_matrix_jacobian and reset it's values
+  propagation_matrix_jacobian.resize(nq, nf);
+  propagation_matrix_jacobian = 0.0;
 
-  // Set size of dnlte_source_dx and reset it's values
-  dnlte_source_dx.resize(nq, nf);
-  dnlte_source_dx = 0.0;
+  // Set size of source_vector_nonlte_jacobian and reset it's values
+  source_vector_nonlte_jacobian.resize(nq, nf);
+  source_vector_nonlte_jacobian = 0.0;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
-                                PropmatMatrix& dpropmat_clearsky_dx,
-                                const Vector& f_grid,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const ArrayOfSpeciesTag& select_abs_species,
-                                const JacobianTargets& jacobian_targets,
-                                const AtmPoint& atm_point,
-                                const PropagationPathPoint& path_point) {
+void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
+                                  PropmatMatrix& propagation_matrix_jacobian,
+                                  const Vector& f_grid,
+                                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                                  const ArrayOfSpeciesTag& select_abs_species,
+                                  const JacobianTargets& jacobian_targets,
+                                  const AtmPoint& atm_point,
+                                  const PropagationPathPoint& path_point) {
   Index ife = -1;
   for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
     if (abs_species[sp].FreeElectrons()) {
@@ -299,34 +299,34 @@ void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
     for (Index iv = 0; iv < f_grid.nelem(); iv++) {
       const Numeric f2 = f_grid[iv] * f_grid[iv];
       const Numeric r = ne * c1 / f2;
-      propmat_clearsky[iv].U() += r;
+      propagation_matrix[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
+          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
               ne * dc1[i] / f2;
         }
       }
 
       for (Size i = 3; i < 6; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
+          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
               -2.0 * ne * r / f_grid[iv];
         }
       }
 
       if (jacs[6].first) {
-        dpropmat_clearsky_dx(jacs[6].second->target_pos, iv).U() += r;
+        propagation_matrix_jacobian(jacs[6].second->target_pos, iv).U() += r;
       }
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddParticles(
+void propagation_matrixAddParticles(
     // WS Output:
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -362,7 +362,7 @@ void propmat_clearskyAddParticles(
 
   ARTS_USER_ERROR_IF(
       np == 0,
-      "For applying propmat_clearskyAddParticles, *abs_species* needs to"
+      "For applying propagation_matrixAddParticles, *abs_species* needs to"
       "contain species 'particles', but it does not.\n")
 
   ARTS_USER_ERROR_IF(
@@ -415,7 +415,7 @@ void propmat_clearskyAddParticles(
   Tensor3 tmp(nf, 4, 4);
 
   // Internal computations necessary since it relies on zero start
-  PropmatVector internal_propmat(propmat_clearsky.nelem());
+  PropmatVector internal_propmat(propagation_matrix.nelem());
 
   // loop over the scat_data and link them with correct vmr_field entry according
   // to the position of the particle type entries in abs_species.
@@ -466,7 +466,7 @@ void propmat_clearskyAddParticles(
 
         const Numeric vmr = atm_point[abs_species[sp].Species()];
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          propmat_clearsky[iv] += vmr * internal_propmat[iv];
+          propagation_matrix[iv] += vmr * internal_propmat[iv];
         }
       }
 
@@ -495,12 +495,12 @@ void propmat_clearskyAddParticles(
 
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
-            dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
-            dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
-            dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
-            dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
+            propagation_matrix_jacobian(iq, iv).A() += tmp(iv, 0, 0);
+            propagation_matrix_jacobian(iq, iv).B() += tmp(iv, 1, 0);
+            propagation_matrix_jacobian(iq, iv).C() += tmp(iv, 2, 0);
+            propagation_matrix_jacobian(iq, iv).D() += tmp(iv, 3, 0);
           } else {
-            dpropmat_clearsky_dx(iq, iv) +=
+            propagation_matrix_jacobian(iq, iv) +=
                 rtepack::to_propmat(tmp(iv, joker, joker));
           }
         }
@@ -512,7 +512,7 @@ void propmat_clearskyAddParticles(
         const auto iq = jac_species.second->target_pos;
 
         for (Index iv = 0; iv < f_grid.nelem(); iv++)
-          dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
+          propagation_matrix_jacobian(iq, iv) += internal_propmat[iv];
       }
 
       sp++;
@@ -557,12 +557,12 @@ Vector create_sparse_f_grid_internal(const Vector& f_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddLines(  // Workspace reference:
+void propagation_matrixAddLines(  // Workspace reference:
     // WS Output:
-    PropmatVector& propmat_clearsky,
-    StokvecVector& nlte_source,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    StokvecMatrix& dnlte_source_dx,
+    PropmatVector& propagation_matrix,
+    StokvecVector& source_vector_nonlte,
+    PropmatMatrix& propagation_matrix_jacobian,
+    StokvecMatrix& source_vector_nonlte_jacobian,
     // WS Input:
     const Vector& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -584,22 +584,22 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
-                     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
-                     "*f_grid* must match *nlte_source*")
+  ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
+                     "*f_grid* must match *propagation_matrix*")
+  ARTS_USER_ERROR_IF(source_vector_nonlte.nelem() not_eq nf,
+                     "*f_grid* must match *source_vector_nonlte*")
   ARTS_USER_ERROR_IF(
-      nq not_eq dpropmat_clearsky_dx.nrows(),
-      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
+      nq not_eq propagation_matrix_jacobian.nrows(),
+      "*propagation_matrix_jacobian* must match derived form of *jacobian_quantities*")
   ARTS_USER_ERROR_IF(
-      nf not_eq dpropmat_clearsky_dx.ncols(),
-      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
+      nf not_eq propagation_matrix_jacobian.ncols(),
+      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(
-      nlte_do and nq not_eq dnlte_source_dx.nrows(),
-      "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
+      nlte_do and nq not_eq source_vector_nonlte_jacobian.nrows(),
+      "*source_vector_nonlte_jacobian* must match derived form of *jacobian_quantities* when non-LTE is on")
   ARTS_USER_ERROR_IF(
-      nlte_do and nf not_eq dnlte_source_dx.ncols(),
-      "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
+      nlte_do and nf not_eq source_vector_nonlte_jacobian.ncols(),
+      "*source_vector_nonlte_jacobian* must have frequency dim same as *f_grid* when non-LTE is on")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(
@@ -750,42 +750,42 @@ void propmat_clearskyAddLines(  // Workspace reference:
 
   // Sum up the propagation matrix
   for (Index iv = 0; iv < nf; iv++) {
-    propmat_clearsky[iv].A() += com.F[iv].real();
+    propagation_matrix[iv].A() += com.F[iv].real();
   }
 
   // Sum up the Jacobian
 
   for (Index j = 0; j < nq; j++) {
     for (Index iv = 0; iv < nf; iv++) {
-      dpropmat_clearsky_dx(j, iv).A() += com.dF(iv, j).real();
+      propagation_matrix_jacobian(j, iv).A() += com.dF(iv, j).real();
     }
   }
 
   if (nlte_do) {
     // Sum up the source vector
     for (Index iv = 0; iv < nf; iv++) {
-      nlte_source[iv].I() += com.N[iv].real();
+      source_vector_nonlte[iv].I() += com.N[iv].real();
     }
 
     // Sum up the Jacobian
     for (Index j = 0; j < nq; j++) {
       for (Index iv = 0; iv < nf; iv++) {
-        dnlte_source_dx(j, iv).I() += com.dN(iv, j).real();
+        source_vector_nonlte_jacobian(j, iv).I() += com.dN(iv, j).real();
       }
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyZero(PropmatVector& propmat_clearsky,
-                          const Vector& f_grid) {
-  propmat_clearsky = PropmatVector(f_grid.nelem());
+void propagation_matrixZero(PropmatVector& propagation_matrix,
+                            const Vector& f_grid) {
+  propagation_matrix = PropmatVector(f_grid.nelem());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyForceNegativeToZero(PropmatVector& propmat_clearsky) {
-  for (Index i = 0; i < propmat_clearsky.nelem(); i++)
-    if (propmat_clearsky[i].A() < 0.0) propmat_clearsky[i] = 0.0;
+void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
+  for (Index i = 0; i < propagation_matrix.nelem(); i++)
+    if (propagation_matrix[i].A() < 0.0) propagation_matrix[i] = 0.0;
   ;
 }
 
@@ -807,7 +807,7 @@ void isotopologue_ratiosInitFromHitran(
 void WriteMolTau(  //WS Input
     const Vector& f_grid,
     const Tensor3& z_field,
-    const Tensor7& propmat_clearsky_field,
+    const Tensor7& propagation_matrix_field,
     //Keyword
     const String& filename) {
   int retval, ncid;
@@ -838,7 +838,7 @@ void WriteMolTau(  //WS Input
 
     if ((retval = nc_def_dim(ncid,
                              "nstk",
-                             (int)propmat_clearsky_field.nbooks(),
+                             (int)propagation_matrix_field.nbooks(),
                              &stokes_dimid)))
       nca_error(retval, "nc_def_dim");
 
@@ -914,12 +914,12 @@ void WriteMolTau(  //WS Input
 
     const Index zfnp = z_field.npages() - 1;
     const Index fgne = f_grid.nelem();
-    const Index amfnb = propmat_clearsky_field.nbooks();
+    const Index amfnb = propagation_matrix_field.nbooks();
 
     Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
 
     // Calculate average tau for layers
-    for (int is = 0; is < propmat_clearsky_field.nlibraries(); is++)
+    for (int is = 0; is < propagation_matrix_field.nlibraries(); is++)
       for (int iz = 0; iz < zfnp; iz++)
         for (int iv = 0; iv < fgne; iv++)
           for (int is1 = 0; is1 < amfnb; is1++)
@@ -927,20 +927,20 @@ void WriteMolTau(  //WS Input
               // sum up all species
               tau(iz, iv, is1, is2) +=
                   0.5 *
-                  (propmat_clearsky_field(is,
-                                          f_grid.nelem() - 1 - iv,
-                                          is1,
-                                          is2,
-                                          z_field.npages() - 1 - iz,
-                                          0,
-                                          0) +
-                   propmat_clearsky_field(is,
-                                          f_grid.nelem() - 1 - iv,
-                                          is1,
-                                          is2,
-                                          z_field.npages() - 2 - iz,
-                                          0,
-                                          0)) *
+                  (propagation_matrix_field(is,
+                                            f_grid.nelem() - 1 - iv,
+                                            is1,
+                                            is2,
+                                            z_field.npages() - 1 - iz,
+                                            0,
+                                            0) +
+                   propagation_matrix_field(is,
+                                            f_grid.nelem() - 1 - iv,
+                                            is1,
+                                            is2,
+                                            z_field.npages() - 2 - iz,
+                                            0,
+                                            0)) *
                   (z_field(z_field.npages() - 1 - iz, 0, 0) -
                    z_field(z_field.npages() - 2 - iz, 0, 0));
 
@@ -957,7 +957,7 @@ void WriteMolTau(  //WS Input
 void WriteMolTau(  //WS Input
     const Vector& f_grid [[maybe_unused]],
     const Tensor3& z_field [[maybe_unused]],
-    const Tensor7& propmat_clearsky_field [[maybe_unused]],
+    const Tensor7& propagation_matrix_field [[maybe_unused]],
     //Keyword
     const String& filename [[maybe_unused]]) {
   ARTS_USER_ERROR_IF(true,
@@ -967,8 +967,8 @@ void WriteMolTau(  //WS Input
 
 #endif /* ENABLE_NETCDF */
 
-void propmat_clearsky_agendaAuto(  // Workspace reference:
-    Agenda& propmat_clearsky_agenda,
+void propagation_matrix_agendaAuto(  // Workspace reference:
+    Agenda& propagation_matrix_agenda,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -987,7 +987,7 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
     const Index& no_negatives,
     const Numeric& theta,
     const Index& use_abs_lookup_ind) {
-  AgendaCreator agenda("propmat_clearsky_agenda");
+  AgendaCreator agenda("propagation_matrix_agenda");
 
   // Use bool because logic is easier
   const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
@@ -995,83 +995,83 @@ void propmat_clearsky_agendaAuto(  // Workspace reference:
   const SpeciesTagTypeStatus any_species(abs_species);
   const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
 
-  // propmat_clearskyInit
-  agenda.add("propmat_clearskyInit");
+  // propagation_matrixInit
+  agenda.add("propagation_matrixInit");
 
-  // propmat_clearskyAddFromLookup
+  // propagation_matrixAddFromLookup
   if (use_abs_lookup) {
-    agenda.add("propmat_clearskyAddFromLookup",
+    agenda.add("propagation_matrixAddFromLookup",
                SetWsv{"extpolfac", extpolfac},
                SetWsv{"no_negatives", no_negatives});
   }
 
-  // propmat_clearskyAddLines
+  // propagation_matrixAddLines
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.LTE or any_lines.population.NLTE or
        any_lines.population.VibTemps)) {
-    agenda.add("propmat_clearskyAddLines",
+    agenda.add("propagation_matrixAddLines",
                SetWsv{"lines_sparse_df", lines_sparse_df},
                SetWsv{"lines_sparse_lim", lines_sparse_lim},
                SetWsv{"lines_speedup_option", lines_speedup_option},
                SetWsv{"no_negatives", no_negatives});
   }
 
-  // propmat_clearskyAddZeeman
+  // propagation_matrixAddZeeman
   if (any_species.Zeeman and
       (any_lines.population.LTE or any_lines.population.NLTE or
        any_lines.population.VibTemps)) {
-    agenda.add("propmat_clearskyAddZeeman",
+    agenda.add("propagation_matrixAddZeeman",
                SetWsv{"manual_mag_field", manual_mag_field},
                SetWsv{"H", H},
                SetWsv{"theta", theta},
                SetWsv{"eta", eta});
   }
 
-  //propmat_clearskyAddHitranXsec
+  //propagation_matrixAddHitranXsec
   if (not use_abs_lookup and any_species.XsecFit) {
-    agenda.add("propmat_clearskyAddXsecFit",
+    agenda.add("propagation_matrixAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
   }
 
-  //propmat_clearskyAddOnTheFlyLineMixing
+  //propagation_matrixAddOnTheFlyLineMixing
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.ByMakarovFullRelmat or
        any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propmat_clearskyAddOnTheFlyLineMixing");
+    agenda.add("propagation_matrixAddOnTheFlyLineMixing");
   }
 
-  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
+  //propagation_matrixAddOnTheFlyLineMixingWithZeeman
   if (any_species.Zeeman and
       (any_lines.population.ByMakarovFullRelmat or
        any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
+    agenda.add("propagation_matrixAddOnTheFlyLineMixingWithZeeman");
   }
 
-  //propmat_clearskyAddCIA
+  //propagation_matrixAddCIA
   if (not use_abs_lookup and any_species.Cia) {
-    agenda.add("propmat_clearskyAddCIA",
+    agenda.add("propagation_matrixAddCIA",
                SetWsv{"T_extrapolfac", T_extrapolfac},
                SetWsv{"ignore_errors", ignore_errors});
   }
 
-  //propmat_clearskyAddPredefined
+  //propagation_matrixAddPredefined
   if (not use_abs_lookup and any_species.Predefined) {
-    agenda.add("propmat_clearskyAddPredefined");
+    agenda.add("propagation_matrixAddPredefined");
   }
 
-  //propmat_clearskyAddFaraday
+  //propagation_matrixAddFaraday
   if (any_species.FreeElectrons) {
-    agenda.add("propmat_clearskyAddFaraday");
+    agenda.add("propagation_matrixAddFaraday");
   }
 
-  // propmat_clearskyAddHitranLineMixingLines
+  // propagation_matrixAddHitranLineMixingLines
   if (not use_abs_lookup and any_species.Plain and
       (any_lines.population.ByHITRANFullRelmat or
        any_lines.population.ByHITRANRosenkranzRelmat)) {
-    agenda.add("propmat_clearskyAddHitranLineMixingLines");
+    agenda.add("propagation_matrixAddHitranLineMixingLines");
   }
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda = std::move(agenda).finalize();
+  propagation_matrix_agenda = std::move(agenda).finalize();
 }

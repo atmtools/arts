@@ -10,23 +10,23 @@
 
 #include "disort.h"
 
+#include <workspace.h>
+
 #include <cinttypes>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
-#include <workspace.h>
 #include "array.h"
 #include "arts_constants.h"
-#include "atm.h"
-#include "arts_omp.h"
-#include "check_input.h"
 #include "arts_conversions.h"
+#include "arts_omp.h"
+#include "atm.h"
+#include "check_input.h"
 #include "rtepack.h"
-#include "species_tags.h"
-
 #include "special_interp.h"
+#include "species_tags.h"
 
 #if not ARTS_LGPL
 #include "cdisort.h"
@@ -44,11 +44,12 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
-inline constexpr Numeric PLANCK_CONST=Constant::planck_constant;
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
-inline constexpr Numeric COSMIC_BG_TEMP=Constant::cosmic_microwave_background_temperature;
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
+inline constexpr Numeric PLANCK_CONST = Constant::planck_constant;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
+inline constexpr Numeric COSMIC_BG_TEMP =
+    Constant::cosmic_microwave_background_temperature;
 
 void add_normed_phase_functions(Tensor3View pfct1,
                                 const MatrixView& sca1,
@@ -58,14 +59,13 @@ void add_normed_phase_functions(Tensor3View pfct1,
   const Index nr1 = pfct1.nrows();
   const Index nc1 = pfct1.ncols();
 
-
   ARTS_ASSERT(pfct2.nrows() == nr1);
 
   ARTS_ASSERT(pfct2.ncols() == nc1);
 
-  for (Index i = 0; i < np1; i++) {        // frequncy loop
-    for (Index j = 0; j < nr1 ; j++) {  // layer loop
-      for (Index k = 0; k < nc1; k++)      // polynomial loop
+  for (Index i = 0; i < np1; i++) {    // frequncy loop
+    for (Index j = 0; j < nr1; j++) {  // layer loop
+      for (Index k = 0; k < nc1; k++)  // polynomial loop
 
         pfct1(i, j, k) =
             (sca1(i, j) * pfct1(i, j, k) + sca2(i, j) * pfct2(j, k)) /
@@ -173,7 +173,8 @@ void check_disort_input(  // Input
   Index i = 1;
   while (za_grid[i] <= 90) {
     if (za_grid[i] == 90)
-      throw std::runtime_error("*za_grid* is not allowed to contain the value 90");
+      throw std::runtime_error(
+          "*za_grid* is not allowed to contain the value 90");
     i++;
   }
 
@@ -311,7 +312,7 @@ void get_disortsurf_props(  // Output
 
 void get_gasoptprop(const Workspace& ws,
                     MatrixView ext_bulk_gas,
-                    const Agenda& propmat_clearsky_agenda,
+                    const Agenda& propagation_matrix_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
                     const Vector& f_grid) {
   const Index Np = ppvar_atm.size();
@@ -328,24 +329,24 @@ void get_gasoptprop(const Workspace& ws,
   StokvecMatrix partial_nlte_dummy;
   PropmatMatrix partial_dummy;
 
-  PropmatVector propmat_clearsky_local;
+  PropmatVector propagation_matrix_local;
   for (Index ip = 0; ip < Np; ip++) {
-    propmat_clearsky_agendaExecute(ws,
-                                   propmat_clearsky_local,
-                                   nlte_dummy,
-                                   partial_dummy,
-                                   partial_nlte_dummy,
-                                   {},
-                                   {},
-                                   f_grid,
-                                   {},
-                                   ppvar_atm[ip],
-                                   propmat_clearsky_agenda);
-    //! Really ugly that cdisort owns the letter A... workaround follows
-    #undef A
+    propagation_matrix_agendaExecute(ws,
+                                     propagation_matrix_local,
+                                     nlte_dummy,
+                                     partial_dummy,
+                                     partial_nlte_dummy,
+                                     {},
+                                     {},
+                                     f_grid,
+                                     {},
+                                     ppvar_atm[ip],
+                                     propagation_matrix_agenda);
+//! Really ugly that cdisort owns the letter A... workaround follows
+#undef A
     for (Index iv = 0; iv < f_grid.nelem(); iv++)
-      ext_bulk_gas[iv][ip] += propmat_clearsky_local[iv].A();
-    #define A(i,j)           a[i-1+(j-1)*lda]
+      ext_bulk_gas[iv][ip] += propagation_matrix_local[iv].A();
+#define A(i, j) a[i - 1 + (j - 1) * lda]
   }
 }
 
@@ -411,12 +412,9 @@ void get_paroptprop(MatrixView ext_bulk_par,
                 abs_vec_ssbulk,
                 ptype_ssbulk);
 
-
-  for (Index ip = 0; ip < Np_cloud; ip++){
-      ext_bulk_par(0, ip + cloudbox_limits[0]) =
-          ext_mat_bulk(0, ip, 0, 0, 0);
-      abs_bulk_par(0, ip + cloudbox_limits[0]) =
-          abs_vec_bulk(0, ip, 0, 0);
+  for (Index ip = 0; ip < Np_cloud; ip++) {
+    ext_bulk_par(0, ip + cloudbox_limits[0]) = ext_mat_bulk(0, ip, 0, 0, 0);
+    abs_bulk_par(0, ip + cloudbox_limits[0]) = abs_vec_bulk(0, ip, 0, 0);
   }
 }
 
@@ -453,9 +451,12 @@ void get_dtauc_ssalb(MatrixView dtauc,
 
         ARTS_USER_ERROR_IF((ext - abs) / ext > 1,
                            "ssalb > 1 @ \n",
-                           "pressure level   = ", ip,"\n",
-                           "frequency number = ", f_index,"\n");
-
+                           "pressure level   = ",
+                           ip,
+                           "\n",
+                           "frequency number = ",
+                           f_index,
+                           "\n");
       }
 
       dtauc(f_index, Np - 2 - ip) = ext * (z_profile[ip + 1] - z_profile[ip]);
@@ -629,8 +630,8 @@ void get_pmom(Tensor3View pmom,
 
           // Check if phase function is properly normalized
           // For highly peaked phasefunctions, integrating over the angle instead
-          // of over the cosine of the angle is numerically more exact though both 
-          // ways are analytically equal. Furthermore in *scat_dataCalc* the 
+          // of over the cosine of the angle is numerically more exact though both
+          // ways are analytically equal. Furthermore in *scat_dataCalc* the
           // integration is also done over the angle.
           Numeric pint = 0.;
           for (Index ia = 0; ia < nang - 1; ia++) {
@@ -662,7 +663,7 @@ void get_pmom(Tensor3View pmom,
                    px(ia, l, 1) * pfct[ia + 1] *
                        sin(pfct_angs[ia + 1] * PI / 180.));
             }
-          }            
+          }
         }
       }
 }
@@ -696,7 +697,7 @@ void get_scat_bulk_layer(MatrixView sca_bulk_layer,
 
 /** Verbosity enabled replacement for the original cdisort function. */
 void c_errmsg(const char* messag, int type) {
-  #if not ARTS_LGPL
+#if not ARTS_LGPL
   static int warning_limit = FALSE, num_warnings = 0;
 
   ARTS_USER_ERROR_IF(type == DS_ERROR, "DISORT ERROR >>>  ", messag);
@@ -708,9 +709,9 @@ void c_errmsg(const char* messag, int type) {
     warning_limit = TRUE;
   }
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 
   return;
 }
@@ -719,7 +720,7 @@ void c_errmsg(const char* messag, int type) {
 
 /** Verbosity enabled replacement for the original cdisort function. */
 int c_write_bad_var(int quiet, const char*) {
-  #if not ARTS_LGPL
+#if not ARTS_LGPL
   const int maxmsg = 50;
   static int nummsg = 0;
 
@@ -740,9 +741,9 @@ int c_write_too_small_dim(int quiet, const char*, int) {
 
   return TRUE;
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 }
 
 void reduced_1datm(Vector& p,
@@ -834,7 +835,7 @@ void run_cdisort(const Workspace& ws,
                  const ArrayOfArrayOfSpeciesTag& specs,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const ArrayOfSun& suns,
-                 const Agenda& propmat_clearsky_agenda,
+                 const Agenda& propagation_matrix_agenda,
                  const Agenda& gas_scattering_agenda,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
@@ -875,14 +876,14 @@ void run_cdisort(const Workspace& ws,
 
   //check if pnd field is zero, if yes we do not need to calculate particle
   //scattering properties
-  bool pnd_non_zero=false;
+  bool pnd_non_zero = false;
   for (Index i = 0; i < pnd.nrows(); i++) {
-    for (Index j = 0; j < pnd.ncols(); j++){
-      pnd_non_zero+=bool(pnd(i,j));
+    for (Index j = 0; j < pnd.ncols(); j++) {
+      pnd_non_zero += bool(pnd(i, j));
     }
   }
 
-  #if not ARTS_LGPL
+#if not ARTS_LGPL
   disort_state ds;
   disort_output out;
 
@@ -898,7 +899,7 @@ void run_cdisort(const Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
-  Index N_lev= p_grid.nelem();
+  Index N_lev = p_grid.nelem();
 
   if (suns_do) {
     nphi = aa_grid.nelem();
@@ -967,7 +968,7 @@ void run_cdisort(const Workspace& ws,
   // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
 
-  if  (ds.flag.planck==TRUE){
+  if (ds.flag.planck == TRUE) {
     for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
   }
 
@@ -976,20 +977,20 @@ void run_cdisort(const Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  const ArrayOfAtmPoint ppvar_atm = [&](){
+  const ArrayOfAtmPoint ppvar_atm = [&]() {
     ArrayOfAtmPoint atm(p_grid.nelem());
-    for (Index ip=0; ip<p_grid.nelem(); ip++) {
+    for (Index ip = 0; ip < p_grid.nelem(); ip++) {
       atm[ip].pressure = p_grid[ip];
       atm[ip].temperature = t_profile[ip];
-      for (Size ispec=0; ispec<specs.size(); ispec++) {
+      for (Size ispec = 0; ispec < specs.size(); ispec++) {
         //atm[ip][specs[ispec]] = vmr_profiles(ispec, ip);
         ARTS_ASSERT(false)
       }
     }
     return atm;
   }();
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, ppvar_atm, Vector{f_grid});
-
+  get_gasoptprop(
+      ws, ext_bulk_gas, propagation_matrix_agenda, ppvar_atm, Vector{f_grid});
 
   //get angles and number of angles
   Index nang;
@@ -1030,8 +1031,7 @@ void run_cdisort(const Workspace& ws,
 
   // loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-
-    f_grid_i=f_grid[f_index];
+    f_grid_i = f_grid[f_index];
 
     // Get particle bulk properties
     if (pnd_non_zero) {
@@ -1108,8 +1108,9 @@ void run_cdisort(const Workspace& ws,
 
     // Optical depth of layers
     // Single scattering albedo of layers
-    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+    ext_bulk_gas_i(0, joker) = ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(
+        dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1131,7 +1132,6 @@ void run_cdisort(const Workspace& ws,
     ds.bc.btemp = surface_skin_t;
     ds.bc.temis = 1.;
 
-
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
@@ -1151,8 +1151,8 @@ void run_cdisort(const Workspace& ws,
 
     // Set irradiance of incident solar beam at top boundary
     if (suns_do) {
-      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
-              (100 * SPEED_OF_LIGHT)*scale_factor;
+      fbeam = suns[0].spectrum(f_index, 0) * (ds.wvnmhi - ds.wvnmlo) *
+              (100 * SPEED_OF_LIGHT) * scale_factor;
     }
     ds.bc.fbeam = fbeam;
 
@@ -1162,7 +1162,7 @@ void run_cdisort(const Workspace& ws,
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
     Status tries = Status::FIRST_TRY;
-    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
     do {
       try {
         c_disort(&ds, &out);
@@ -1176,7 +1176,7 @@ void run_cdisort(const Workspace& ws,
           } else if (umu0 > 1 - eps) {
             umu0 -= eps;
           }
-          
+
           ds.bc.umu0 = umu0;
           tries = Status::RETRY;
         } else
@@ -1203,7 +1203,7 @@ void run_cdisort(const Workspace& ws,
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
       deltatau(f_index, k - 1 + ncboxremoved) =
-          dtauc(0, ds.nlyr - k  + cboxlims[0]);
+          dtauc(0, ds.nlyr - k + cboxlims[0]);
     }
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
@@ -1211,14 +1211,14 @@ void run_cdisort(const Workspace& ws,
           ssalb(0, ds.nlyr - k + cboxlims[0]);
     }
 
-    if (suns_do){
+    if (suns_do) {
       directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
-          suns[0].spectrum(f_index, 0)/PI;
+          suns[0].spectrum(f_index, 0) / PI;
 
       for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
         directbeam(f_index, k - 1 + ncboxremoved) =
             directbeam(f_index, k + ncboxremoved) *
-            exp(-dtauc(0, ds.nlyr - k + cboxlims[0])/umu0);
+            exp(-dtauc(0, ds.nlyr - k + cboxlims[0]) / umu0);
       }
     }
   }
@@ -1226,28 +1226,26 @@ void run_cdisort(const Workspace& ws,
   // Allocate aux data
   disort_aux.resize(disort_aux_vars.size());
   // Allocate and set (if possible here) iy_aux
-  Index cnt=-1;
+  Index cnt = -1;
   for (Size i = 0; i < disort_aux_vars.size(); i++) {
-
-
-    if (disort_aux_vars[i] == "Layer optical thickness"){
+    if (disort_aux_vars[i] == "Layer optical thickness") {
       cnt += 1;
       disort_aux[cnt] = deltatau;
-    }
-    else if (disort_aux_vars[i] == "Single scattering albedo"){
-      cnt+=1;
-      disort_aux[cnt]=snglsctalbedo;
-    }
-    else if (disort_aux_vars[i] == "Direct beam") {
+    } else if (disort_aux_vars[i] == "Single scattering albedo") {
       cnt += 1;
-      disort_aux[cnt]=directbeam;
+      disort_aux[cnt] = snglsctalbedo;
+    } else if (disort_aux_vars[i] == "Direct beam") {
+      cnt += 1;
+      disort_aux[cnt] = directbeam;
     } else {
-      ARTS_USER_ERROR (
+      ARTS_USER_ERROR(
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
           "  \"Direct beam\"\n"
-          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+          "but you have selected: \"",
+          disort_aux_vars[i],
+          "\"\n");
     }
   }
 
@@ -1255,9 +1253,9 @@ void run_cdisort(const Workspace& ws,
   c_disort_out_free(&ds, &out);
   c_disort_state_free(&ds);
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 }
 
 void run_cdisort_flux(const Workspace& ws,
@@ -1273,7 +1271,7 @@ void run_cdisort_flux(const Workspace& ws,
                       const ArrayOfArrayOfSpeciesTag& specs,
                       const ArrayOfArrayOfSingleScatteringData& scat_data,
                       const ArrayOfSun& suns,
-                      const Agenda& propmat_clearsky_agenda,
+                      const Agenda& propagation_matrix_agenda,
                       const Agenda& gas_scattering_agenda,
                       const ArrayOfIndex& cloudbox_limits,
                       const Numeric& surface_skin_t,
@@ -1312,13 +1310,12 @@ void run_cdisort_flux(const Workspace& ws,
 
   //check if pnd field is zero, if yes we do not need to calculate particle
   //scattering properties
-  bool pnd_non_zero=false;
+  bool pnd_non_zero = false;
   for (Index i = 0; i < pnd.nrows(); i++) {
-    for (Index j = 0; j < pnd.ncols(); j++){
-      pnd_non_zero+=bool(pnd(i,j));
+    for (Index j = 0; j < pnd.ncols(); j++) {
+      pnd_non_zero += bool(pnd(i, j));
     }
   }
-
 
 #if not ARTS_LGPL
 
@@ -1396,9 +1393,9 @@ void run_cdisort_flux(const Workspace& ws,
   ds.bc.fluor = 0.;
 
   //
-  Index N_lev= p_grid.nelem();
+  Index N_lev = p_grid.nelem();
   Matrix spectral_direct_irradiance_field;
-  if (suns_do){
+  if (suns_do) {
     //Resize direct field
     spectral_direct_irradiance_field.resize(nf, N_lev);
     spectral_direct_irradiance_field = 0;
@@ -1406,19 +1403,20 @@ void run_cdisort_flux(const Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  const ArrayOfAtmPoint ppvar_atm = [&](){
+  const ArrayOfAtmPoint ppvar_atm = [&]() {
     ArrayOfAtmPoint atm(p.nelem());
-    for (Index ip=0; ip<p.nelem(); ip++) {
+    for (Index ip = 0; ip < p.nelem(); ip++) {
       atm[ip].pressure = p[ip];
       atm[ip].temperature = t[ip];
-      for (Size ispec=0; ispec<specs.size(); ispec++) {
+      for (Size ispec = 0; ispec < specs.size(); ispec++) {
         //atm[ip][specs[ispec]] = vmr(ispec, ip);
         ARTS_ASSERT(false)
       }
     }
     return atm;
   }();
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, ppvar_atm, Vector{f_grid});
+  get_gasoptprop(
+      ws, ext_bulk_gas, propagation_matrix_agenda, ppvar_atm, Vector{f_grid});
 
   //get angles and number of angles
   Index nang;
@@ -1447,7 +1445,16 @@ void run_cdisort_flux(const Workspace& ws,
 
   // start loop over all frequencies
 #pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
-    firstprivate(ds, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, pha_bulk_par, umu0, pmom, ssalb, dtauc, out)
+    firstprivate(ds,                                                        \
+                     ext_bulk_gas_i,                                        \
+                     ext_bulk_par,                                          \
+                     abs_bulk_par,                                          \
+                     pha_bulk_par,                                          \
+                     umu0,                                                  \
+                     pmom,                                                  \
+                     ssalb,                                                 \
+                     dtauc,                                                 \
+                     out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     Vector f_grid_i(1);
 
@@ -1462,7 +1469,7 @@ void run_cdisort_flux(const Workspace& ws,
       for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
     }
 
-    f_grid_i=f_grid[f_index];
+    f_grid_i = f_grid[f_index];
 
     // Get particle bulk properties but onl if pnd_field is non-zero
     if (pnd_non_zero && (suns_do || emission)) {
@@ -1522,9 +1529,9 @@ void run_cdisort_flux(const Workspace& ws,
       get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
 
       // call gas_scattering_properties
-      sca_coeff_gas_layer=0;
-      sca_coeff_gas_level=0;
-      pmom_gas=0;
+      sca_coeff_gas_layer = 0;
+      sca_coeff_gas_level = 0;
+      pmom_gas = 0;
 
       get_gas_scattering_properties(ws,
                                     sca_coeff_gas_layer,
@@ -1547,8 +1554,9 @@ void run_cdisort_flux(const Workspace& ws,
 
     // Optical depth of layers
     // Single scattering albedo of layers
-    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+    ext_bulk_gas_i(0, joker) = ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(
+        dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1570,9 +1578,6 @@ void run_cdisort_flux(const Workspace& ws,
     ds.bc.btemp = surface_skin_t;
     ds.bc.temis = 1.;
 
-
-
-
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
@@ -1592,8 +1597,8 @@ void run_cdisort_flux(const Workspace& ws,
 
     // Set irradiance of incident solar beam at top boundary
     if (suns_do) {
-      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
-              (100 * SPEED_OF_LIGHT)*scale_factor;
+      fbeam = suns[0].spectrum(f_index, 0) * (ds.wvnmhi - ds.wvnmlo) *
+              (100 * SPEED_OF_LIGHT) * scale_factor;
     }
     ds.bc.fbeam = fbeam;
 
@@ -1603,7 +1608,7 @@ void run_cdisort_flux(const Workspace& ws,
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
     Status tries = Status::FIRST_TRY;
-    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
     do {
       try {
         c_disort(&ds, &out);
@@ -1626,38 +1631,41 @@ void run_cdisort_flux(const Workspace& ws,
     } while (tries != Status::SUCCESS);
 
     //factor for converting it into spectral radiance units
-    const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
+    const Numeric conv_fac = (ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
 
     for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-      if (suns_do){
+      if (suns_do) {
         // downward direct flux
         spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
-            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir / conv_fac;
 
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
             -(out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
-            out.rad[ds.nlyr - k - cboxlims[0]].rfldn)/conv_fac;
+              out.rad[ds.nlyr - k - cboxlims[0]].rfldn) /
+            conv_fac;
 
       } else {
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
-            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn / conv_fac;
       }
 
       // upward flux
       spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 1) =
-          out.rad[ds.nlyr - k - cboxlims[0]].flup/conv_fac;
+          out.rad[ds.nlyr - k - cboxlims[0]].flup / conv_fac;
 
       // flux divergence in tau space
       dFdtau(f_index, k + ncboxremoved) =
-           -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
+          -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
 
       // k is running over the number of levels but deltatau, ssalb is defined for layers,
       // therefore we need to exlude k==0 and remove one from the index.
-      if (k>0){
-        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
-        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
+      if (k > 0) {
+        deltatau(f_index, k - 1 + ncboxremoved) =
+            ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
+        snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+            ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
       }
     }
 
@@ -1682,42 +1690,37 @@ void run_cdisort_flux(const Workspace& ws,
   // Allocate aux data
   disort_aux.resize(disort_aux_vars.size());
   // Allocate and set (if possible here) iy_aux
-  Index cnt=-1;
+  Index cnt = -1;
   for (Size i = 0; i < disort_aux_vars.size(); i++) {
-
-
-    if (disort_aux_vars[i] == "Layer optical thickness"){
-      cnt+=1;
-      disort_aux[cnt]=deltatau;
-    }
-    else if (disort_aux_vars[i] == "Single scattering albedo"){
-      cnt+=1;
-      disort_aux[cnt]=snglsctalbedo;
-    }
-    else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
+    if (disort_aux_vars[i] == "Layer optical thickness") {
+      cnt += 1;
+      disort_aux[cnt] = deltatau;
+    } else if (disort_aux_vars[i] == "Single scattering albedo") {
+      cnt += 1;
+      disort_aux[cnt] = snglsctalbedo;
+    } else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
       cnt += 1;
       disort_aux[cnt] = spectral_direct_irradiance_field;
-    }
-    else if (disort_aux_vars[i] == "dFdtau") {
+    } else if (disort_aux_vars[i] == "dFdtau") {
       cnt += 1;
       disort_aux[cnt] = dFdtau;
-    }
-    else {
-      ARTS_USER_ERROR (
+    } else {
+      ARTS_USER_ERROR(
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
           "  \"Direct downward spectral irradiance\"\n"
           "  \"dFdtau\"\n"
-          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+          "but you have selected: \"",
+          disort_aux_vars[i],
+          "\"\n");
     }
   }
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 }
-
 
 #if ARTS_LGPL
 #pragma GCC diagnostic pop

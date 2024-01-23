@@ -52,9 +52,9 @@ void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddXsecFit(  // WS Output:
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddXsecFit(  // WS Output:
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -66,14 +66,14 @@ void propmat_clearskyAddXsecFit(  // WS Output:
     const Numeric& force_t) {
   // Forward simulations and their error handling
   ARTS_USER_ERROR_IF(
-      propmat_clearsky.size() not_eq f_grid.size(),
+      propagation_matrix.size() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec and frequency");
 
   // Derivatives and their error handling
   ARTS_USER_ERROR_IF(
-    static_cast<Size>(dpropmat_clearsky_dx.nrows()) not_eq jacobian_targets.target_count()
-    or
-    dpropmat_clearsky_dx.ncols() not_eq f_grid.size(),
+      static_cast<Size>(propagation_matrix_jacobian.nrows()) not_eq
+              jacobian_targets.target_count() or
+          propagation_matrix_jacobian.ncols() not_eq f_grid.size(),
       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
 
   // Jacobian overhead START
@@ -88,7 +88,8 @@ void propmat_clearskyAddXsecFit(  // WS Output:
   const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
       Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
   const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
-  const bool do_freq_jac = std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
+  const bool do_freq_jac =
+      std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
   const bool do_temp_jac = temp_jac.first;
   const Numeric df = field_perturbation(freq_jac);
   const Numeric dt = temp_jac.first;
@@ -135,7 +136,7 @@ void propmat_clearskyAddXsecFit(  // WS Output:
                          this_species.Name(),
                          " not found in *xsec_fit_data*.")
       const XsecRecord& this_xdata = xsec_fit_data[this_xdata_index];
-      // ArrayOfMatrix& this_dxsec = do_jac ? dpropmat_clearsky_dx[i] : empty;
+      // ArrayOfMatrix& this_dxsec = do_jac ? propagation_matrix_jacobian[i] : empty;
 
       if (do_abort) continue;
       const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
@@ -144,43 +145,42 @@ void propmat_clearskyAddXsecFit(  // WS Output:
       // Get the absorption cross sections from the HITRAN data:
       this_xdata.Extract(xsec_temp, f_grid, current_p, current_t);
       if (do_freq_jac) {
-        this_xdata.Extract(
-            dxsec_temp_dF, dfreq, current_p, current_t);
+        this_xdata.Extract(dxsec_temp_dF, dfreq, current_p, current_t);
       }
       if (do_temp_jac) {
-        this_xdata.Extract(
-            dxsec_temp_dT, f_grid, current_p, current_t + dt);
+        this_xdata.Extract(dxsec_temp_dT, f_grid, current_p, current_t + dt);
       }
     }
 
     // Add to result variable:
     Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
 
-    Numeric dnd_dt = dnumber_density_dt(atm_point.pressure, atm_point.temperature);
+    Numeric dnd_dt =
+        dnumber_density_dt(atm_point.pressure, atm_point.temperature);
     for (Index f = 0; f < f_grid.size(); f++) {
-      propmat_clearsky[f].A() += xsec_temp[f] * nd * vmr;
+      propagation_matrix[f].A() += xsec_temp[f] * nd * vmr;
 
       if (temp_jac.first) {
         const auto iq = temp_jac.second->target_pos;
-        dpropmat_clearsky_dx(iq, f).A() +=
+        propagation_matrix_jacobian(iq, f).A() +=
             ((dxsec_temp_dT[f] - xsec_temp[f]) / dt * nd +
              xsec_temp[f] * dnd_dt) *
             vmr;
       }
 
-      for (auto&j : freq_jac) {
+      for (auto& j : freq_jac) {
         if (j.first) {
           const auto iq = j.second->target_pos;
-          dpropmat_clearsky_dx(iq, f).A() +=
+          propagation_matrix_jacobian(iq, f).A() +=
               (dxsec_temp_dF[f] - xsec_temp[f]) * nd * vmr / df;
         }
       }
 
-      if (const auto j =
-              jacobian_targets.find<Jacobian::AtmTarget>(abs_species[i].Species());
+      if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
+              abs_species[i].Species());
           j.first) {
         const auto iq = j.second->target_pos;
-        dpropmat_clearsky_dx(iq, f).A() += xsec_temp[f] * nd * vmr;
+        propagation_matrix_jacobian(iq, f).A() += xsec_temp[f] * nd * vmr;
       }
     }
   }

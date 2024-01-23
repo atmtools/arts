@@ -29,9 +29,9 @@
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddCIA(  // WS Output:
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddCIA(  // WS Output:
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
@@ -49,12 +49,12 @@ void propmat_clearskyAddCIA(  // WS Output:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
-                     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nq,
-      "*dpropmat_clearsky_dx* must match derived form of *jacobian_targets*")
-  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.ncols() not_eq nf,
-      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
+                     "*f_grid* must match *propagation_matrix*")
+  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.nrows() not_eq nq,
+      "*propagation_matrix_jacobian* must match derived form of *jacobian_targets*")
+  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.ncols() not_eq nf,
+      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(not is_increasing(f_grid),
@@ -177,12 +177,12 @@ void propmat_clearskyAddCIA(  // WS Output:
       const Numeric dnd_dt_sec =
           dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
       for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-        propmat_clearsky[iv].A() +=
+        propagation_matrix[iv].A() +=
             nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
         if (jac_temps.first) {
           const auto iq = jac_temps.second->target_pos;
-          dpropmat_clearsky_dx(iq, iv).A() +=
+          propagation_matrix_jacobian(iq, iv).A() +=
               ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                 xsec_temp[iv] * dnd_dt_sec) *
                    nd +
@@ -193,7 +193,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         for (auto& j : jac_freqs) {
           if (j.first) {
             const auto iq = j.second->target_pos;
-            dpropmat_clearsky_dx(iq, iv).A() +=
+            propagation_matrix_jacobian(iq, iv).A() +=
                 nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
                 atm_point[this_cia.Species(1)];
           }
@@ -203,7 +203,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                 abs_species[ispecies].Species());
             j.first) {
           const auto iq = j.second->target_pos;
-          dpropmat_clearsky_dx(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+          propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
         }
 
         // FIXME: Missing secondary species !

@@ -19,11 +19,11 @@
 #include "debug.h"
 #include "hitran_species.h"
 #include "isotopologues.h"
+#include "jacobian.h"
 #include "lbl_lineshape_linemixing.h"
 #include "lbl_temperature_model.h"
 #include "linemixing.h"
 #include "linemixing_hitran.h"
-#include "jacobian.h"
 
 void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
     HitranRelaxationMatrixData& abs_hitran_relmat_data,
@@ -94,8 +94,8 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
   }
 }
 
-void propmat_clearskyAddHitranLineMixingLines(
-    PropmatVector& propmat_clearsky,
+void propagation_matrixAddHitranLineMixingLines(
+    PropmatVector& propagation_matrix,
     const HitranRelaxationMatrixData& abs_hitran_relmat_data,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Vector& f_grid,
@@ -126,7 +126,7 @@ void propmat_clearskyAddHitranLineMixingLines(
       //     abs_hitran_relmat_data, abs_lines_per_species[i], isotopologue_ratios,
       //     atm_point.pressure, atm_point.temperature, vmrs, f_grid);
       // for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-      //   propmat_clearsky[iv].A() += compres[iv];
+      //   propagation_matrix[iv].A() += compres[iv];
       // }
       ARTS_ASSERT(false, "Fix isotopologues")
     }
@@ -151,9 +151,9 @@ void abs_lines_per_speciesAdaptHitranLineMixing(
   }
 }
 
-void propmat_clearskyAddOnTheFlyLineMixing(
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddOnTheFlyLineMixing(
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const MapOfErrorCorrectedSuddenData& ecs_data,
     const Vector& f_grid,
@@ -185,18 +185,18 @@ void propmat_clearskyAddOnTheFlyLineMixing(
             band,
             jacobian_targets);
         for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          propmat_clearsky[iv].A() += abs[iv].real();
+          propagation_matrix[iv].A() += abs[iv].real();
         }
 
         for (auto& atm : jacobian_targets.atm()) {
           const auto j = atm.target_pos;
           if (atm.type == abs_species[i].Species()) {
             for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-              dpropmat_clearsky_dx[j][iv].A() += abs[iv].real();
+              propagation_matrix_jacobian[j][iv].A() += abs[iv].real();
             }
           } else {
             for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-              dpropmat_clearsky_dx[j][iv].A() += dabs[j][iv].real();
+              propagation_matrix_jacobian[j][iv].A() += dabs[j][iv].real();
             }
           }
         }

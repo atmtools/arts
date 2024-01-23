@@ -74,13 +74,13 @@ for a tropical atmosphere scenario below, so we extend it a small bit.  Play
 with this "T_extrapolfac" value to see the relevant error message
 
 """
-ws.propmat_clearsky_agendaAuto(T_extrapolfac=1)
+ws.propagation_matrix_agendaAuto(T_extrapolfac=1)
 
 """
 
 Compute absorption
 
-Now we can use the propmat_clearsky_agenda to compute the absorption of O2-66.
+Now we can use the propagation_matrix_agenda to compute the absorption of O2-66.
 We can also use this agenda in more complicated setups that might require
 absorption calculations, but that is for other examples
 
@@ -92,20 +92,20 @@ inputs required to initialize the propagation matrix
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.select_abs_species = []  # All species
 ws.f_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
-ws.atm_point.temperature = 295  # At room temperature
-ws.atm_point.pressure = 1e5  # At 1 bar
-ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point.temperature = 295  # At room temperature
+ws.atmospheric_point.pressure = 1e5  # At 1 bar
+ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
 ws.path_point # No particular POSLOS
 
 # Call the agenda with inputs above
-ws.propmat_clearsky_agendaExecute()
+ws.propagation_matrix_agendaExecute()
 
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
 plt.plot(
     1e9 * pyarts.arts.convert.freq2wavelen(ws.f_grid.value),
-    ws.propmat_clearsky[:, 0],
+    ws.propagation_matrix[:, 0],
 )
 plt.xlabel("Wavelength [nm]")
 plt.ylabel("Absorption [1/m]")
@@ -118,11 +118,11 @@ be safely ignored
 
 """
 # Save test results
-# ws.propmat_clearsky.savexml("cia_test_result.xml", type="ascii")
+# ws.propagation_matrix.savexml("cia_test_result.xml", type="ascii")
 
 # test that we are still OK
-propmat_clearsky_agenda = \
+propagation_matrix_agenda = \
     pyarts.arts.PropmatVector.fromxml("cia_test_result.xml")
 assert np.allclose(
-    propmat_clearsky_agenda, ws.propmat_clearsky
+    propagation_matrix_agenda, ws.propagation_matrix
 ), "O2 Absorption has changed"
