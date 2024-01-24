@@ -60,6 +60,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_sparse.cpp
     py_mcantenna.cpp
     py_scattering.cpp
+    py_scattering_species.cpp
     py_quantum.cpp
     py_physics.cpp
     py_spectroscopy.cpp
