@@ -166,6 +166,33 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== ArrayOfScatteringSpecies =========================================================
+
+//! Reads ArrayOfScatteringSpecis from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param astar   astar return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          ArrayOfScatteringSpecies& species,
+                          bifstream* pbifs) {
+  // Placeholder for now.
+}
+
+//! Writes ArrayOfScatteringSpecies to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param species   ArrayOfScatteringSpecies
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const ArrayOfScatteringSpecies& species,
+                         bofstream* pbofs,
+                         const String& name) {
+}
+
 
 //=== ArrayOfSun =========================================================
 

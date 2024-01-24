@@ -60,7 +60,7 @@ add_library(workspace_internals STATIC
   auto_wsg_init.cpp
   auto_wsg_share.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
+target_link_libraries(workspace_internals PUBLIC workspace_group artscore scattering)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

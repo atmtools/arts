@@ -9,7 +9,6 @@
   \brief This file contains basic functions to handle XML data files.
 
 */
-
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -618,3 +617,51 @@ void xml_write_to_stream(std::ostream& os_xml,
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
+
+//=== VibrationalEnergyLevels ================================================================
+
+//! Reads VibrationalEnergyLevels from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param vib     VibrationalEnergyLevels return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream& is_xml,
+                          HenyeyGreenstein& hg,
+                          bifstream* pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("HenyeyGreenstein");
+  const Numeric g = [&]() {
+    Numeric x;
+    tag.get_attribute_value("g", x);
+    return x;
+  }();
+  hg.set_g(g);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/HenyeyGreenstein");
+}
+
+//! Writes VibrationalEnergyLevels to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param vib     VibrationalEnergyLevels
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream& os_xml,
+                         const HenyeyGreenstein& hg,
+                         bofstream* pbofs [[maybe_unused]],
+                         const String&) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("HenyeyGreenstein");
+  open_tag.add_attribute("g", hg.get_g());
+  open_tag.write_to_stream(os_xml);
+  close_tag.set_name("/HenyeyGreenstein");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
