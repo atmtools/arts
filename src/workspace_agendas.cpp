@@ -22,42 +22,63 @@ one point in the atmosphere. The result is returned in
                 "propagation_path_point",
                 "atmospheric_point"}};
 
-  wsa_data["spectral_radiance_background_space_agenda"] = {
+  wsa_data["spectral_radiance_agenda"] = {
+      .desc = R"--(Spectral radiance as seen from the input position and environment
+
+The intent of this agenda is to provide a spectral radiance as it would be at the
+end of the propagation path from the input start position.
+
+The output must be sized as:
+
+- *spectral_radiance* : (*frequency_grid*)
+- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
+)--",
+      .output = {"spectral_radiance",
+                 "spectral_radiance_jacobian"},
+      .input = {"frequency_grid",
+                "jacobian_targets",
+                "spectral_radiance_observer_position",
+                "spectral_radiance_observer_line_of_sight",
+                "atmospheric_field",
+                "surface_field"}};
+
+  wsa_data["spectral_radiance_space_agenda"] = {
       .desc = R"--(Spectral radiance as seen of space.
 
-This agenda calculates the spectral radiance as seen of space. The
-intent is to provide a background spectral radiance from space that
-is input to the atmospheric radiative transfer calculations.
+This agenda calculates the spectral radiance as seen of space.
+One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
 
 The output must be sized as:
 
-- *spectral_radiance_background* : (*frequency_grid*)
-- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *frequency_grid*)
+- *spectral_radiance* : (*frequency_grid*)
+- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
-      .output = {"spectral_radiance_background",
-                 "spectral_radiance_background_jacobian"},
-      .input = {"frequency_grid", "jacobian_targets", "propagation_path_point"}};
+      .output = {"spectral_radiance",
+                 "spectral_radiance_jacobian"},
+      .input = {
+          "frequency_grid", "jacobian_targets", "propagation_path_point"}};
 
-  wsa_data["spectral_radiance_background_surface_agenda"] = {
+  wsa_data["spectral_radiance_surface_agenda"] = {
       .desc = R"--(Spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
-The intent is to provide a background spectral radiance from the
-surface that is input to the atmospheric radiative transfer
-calculations.
+One common use-case us to provide a background spectral radiance.
 
 The input path point should be as if it is looking at the surface.
 
 The output must be sized as:
 
-- *spectral_radiance_background* : (*frequency_grid*)
-- *spectral_radiance_background_jacobian* : (*jacobian_targets*, *frequency_grid*)
+- *spectral_radiance* : (*frequency_grid*)
+- *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
-      .output = {"spectral_radiance_background",
-                 "spectral_radiance_background_jacobian"},
-      .input = {"frequency_grid", "jacobian_targets", "propagation_path_point"}};
+      .output = {"spectral_radiance",
+                 "spectral_radiance_jacobian"},
+      .input = {"frequency_grid",
+                "jacobian_targets",
+                "propagation_path_point",
+                "surface_field"}};
 
   return wsa_data;
 }

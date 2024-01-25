@@ -7,15 +7,21 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <exception>
 
+#include "arts_omp.h"
+#include "auto_wsa.h"
+#include "auto_wsm.h"
 #include "debug.h"
 #include "fwd.h"
 #include "sorted_grid.h"
+#include "workspace_agenda_class.h"
 
 void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
-                                     const AscendingGrid &f_grid,
+                                     const AscendingGrid &frequency_grid,
                                      const JacobianTargets &jacobian_targets) {
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(), f_grid.size());
+  spectral_radiance_jacobian.resize(jacobian_targets.x_size(),
+                                    frequency_grid.size());
   spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 
@@ -47,7 +53,7 @@ void spectral_radiance_jacobianAddPathPropagation(
     StokvecMatrix &spectral_radiance_jacobian,
     const ArrayOfStokvecMatrix &propagation_path_spectral_radiance_jacobian,
     const JacobianTargets &jacobian_targets,
-    const AtmField &atm_field,
+    const AtmField &atmospheric_field,
     const ArrayOfPropagationPathPoint &propagation_path) {
   const auto np = propagation_path_spectral_radiance_jacobian.size();
   const auto nj = spectral_radiance_jacobian.nrows();
@@ -76,7 +82,7 @@ void spectral_radiance_jacobianAddPathPropagation(
   //! Checks that the jacobian_targets can be used and throws if not
   jacobian_targets.throwing_check(nj);
 
-  //! The altitude, latitude and longitude vectors must be copied because of how atm_field works
+  //! The altitude, latitude and longitude vectors must be copied because of how atmospheric_field works
   const auto [alt, lat, lon] = [&]() {
     std::array<Vector, 3> g{Vector(np), Vector(np), Vector(np)};
     for (Size i = 0; i < np; i++) {
@@ -89,11 +95,11 @@ void spectral_radiance_jacobianAddPathPropagation(
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jacobian_targets.atm()) {
-    ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type),
+    ARTS_USER_ERROR_IF(not atmospheric_field.contains(atm_block.type),
                        "No ",
                        atm_block.type,
-                       " in atm_field but in jacobian_targets")
-    const auto &data = atm_field[atm_block.type];
+                       " in atmospheric_field but in jacobian_targets")
+    const auto &data = atmospheric_field[atm_block.type];
     const auto weights = data.flat_weights(alt, lat, lon);
     ARTS_ASSERT(weights.size() == np)
 
@@ -130,9 +136,9 @@ void spectral_radianceStandardEmission(
     const Workspace &ws,
     StokvecVector &spectral_radiance,
     StokvecMatrix &spectral_radiance_jacobian,
-    const AscendingGrid &f_grid,
+    const AscendingGrid &frequency_grid,
     const JacobianTargets &jacobian_targets,
-    const AtmField &atm_field,
+    const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
     const ArrayOfPropagationPathPoint &propagation_path,
     const Agenda &spectral_radiance_background_space_agenda,
@@ -144,19 +150,20 @@ void spectral_radianceStandardEmission(
       ws,
       spectral_radiance,
       spectral_radiance_jacobian,
-      f_grid,
+      frequency_grid,
       jacobian_targets,
       propagation_path,
+      surface_field,
       spectral_radiance_background_space_agenda,
       spectral_radiance_background_surface_agenda);
 
   ArrayOfAtmPoint propagation_path_atmospheric_point;
   propagation_path_atmospheric_pointFromPath(
-      propagation_path_atmospheric_point, propagation_path, atm_field);
+      propagation_path_atmospheric_point, propagation_path, atmospheric_field);
 
   ArrayOfAscendingGrid propagation_path_frequency_grid;
   propagation_path_frequency_gridFromPath(propagation_path_frequency_grid,
-                                          f_grid,
+                                          frequency_grid,
                                           propagation_path,
                                           propagation_path_atmospheric_point,
                                           rte_alonglos_v);
@@ -240,7 +247,7 @@ void spectral_radianceStandardEmission(
       spectral_radiance_jacobian,
       propagation_path_spectral_radiance_jacobian,
       jacobian_targets,
-      atm_field,
+      atmospheric_field,
       propagation_path);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -250,13 +257,13 @@ ENUMCLASS(
 
 void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
                                 const StokvecVector &spectral_radiance,
-                                const AscendingGrid &f_grid,
+                                const AscendingGrid &frequency_grid,
                                 const String &spectral_radiance_unit) try {
   const SpectralRadianceUnitType unit =
       toSpectralRadianceUnitTypeOrThrow(spectral_radiance_unit);
 
-  ARTS_USER_ERROR_IF(spectral_radiance.size() != f_grid.size(),
-                     "spectral_radiance must have same size as f_grid")
+  ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
+                     "spectral_radiance must have same size as frequency_grid")
 
   spectral_radiance_with_unit.resize(spectral_radiance.size());
 
@@ -277,7 +284,7 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
     case SpectralRadianceUnitType::RJBT: {
       std::transform(spectral_radiance.begin(),
                      spectral_radiance.end(),
-                     f_grid.begin(),
+                     frequency_grid.begin(),
                      spectral_radiance_with_unit.begin(),
                      [&](const Stokvec &v, const Numeric f) {
                        const Numeric scfac = invrayjean(1.0, f);
@@ -290,7 +297,7 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
     case SpectralRadianceUnitType::PlanckBT: {
       std::transform(spectral_radiance.begin(),
                      spectral_radiance.end(),
-                     f_grid.begin(),
+                     frequency_grid.begin(),
                      spectral_radiance_with_unit.begin(),
                      [&](const Stokvec &v, const Numeric f) {
                        return Stokvec{invplanck(v.I(), f),
@@ -306,7 +313,7 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
       std::transform(
           spectral_radiance.begin(),
           spectral_radiance.end(),
-          f_grid.begin(),
+          frequency_grid.begin(),
           spectral_radiance_with_unit.begin(),
           [&](const Stokvec &v, const Numeric f) {
             const Numeric scfac = f * (f / Constant::c);
@@ -323,6 +330,141 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
     case SpectralRadianceUnitType::FINAL: {
       ARTS_ASSERT(false)
     }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void sensor_radianceFromWeightedObservers(
+    const Workspace &ws,
+    StokvecVector &sensor_radiance,
+    StokvecMatrix &sensor_radiance_jacobian,
+    const AscendingGrid &frequency_grid,
+    const JacobianTargets &jacobian_targets,
+    const AtmField &atmospheric_field,
+    const SurfaceField &surface_field,
+    const Agenda &spectral_radiance_agenda,
+    const ArrayOfVector3 &sensor_radiance_observer_position,
+    const ArrayOfVector2 &sensor_radiance_observer_line_of_sight,
+    const Vector &sensor_radiance_observer_weight) try {
+  const Index nx = jacobian_targets.x_size();
+  const Index nf = frequency_grid.size();
+  const Size np = sensor_radiance_observer_position.size();
+
+  ARTS_USER_ERROR_IF(
+      np != sensor_radiance_observer_line_of_sight.size() or
+          np != static_cast<Size>(sensor_radiance_observer_weight.size()),
+      "sensor_radiance_observer_position, "
+      "sensor_radiance_observer_line_of_sight, and "
+      "sensor_radiance_observer_weight must all have the same "
+      "size.\nThey do not, but have instead the sizes: ",
+      np,
+      ", ",
+      sensor_radiance_observer_line_of_sight.size(),
+      ", and ",
+      sensor_radiance_observer_weight.size(),
+      ", respectively.")
+
+  sensor_radiance.resize(nf);
+  sensor_radiance_jacobian.resize(nx, nf);
+  sensor_radiance = 0.;
+  sensor_radiance_jacobian = 0.;
+
+  StokvecVector spectral_radiance(nf);
+  StokvecMatrix spectral_radiance_jacobian(nx, nf);
+
+  if (arts_omp_in_parallel()) {
+    for (Size ipos = 0; ipos < np; ipos++) {
+      spectral_radiance_agendaExecute(
+          ws,
+          spectral_radiance,
+          spectral_radiance_jacobian,
+          frequency_grid,
+          jacobian_targets,
+          sensor_radiance_observer_position[ipos],
+          sensor_radiance_observer_line_of_sight[ipos],
+          atmospheric_field,
+          surface_field,
+          spectral_radiance_agenda);
+
+      ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
+                         "spectral_radiance has wrong shape")
+      ARTS_USER_ERROR_IF(spectral_radiance_jacobian.shape() !=
+                             sensor_radiance_jacobian.shape(),
+                         "spectral_radiance has wrong shape")
+
+      const auto binary_op = [w = sensor_radiance_observer_weight[ipos]](
+                                 const Stokvec &v1, const Stokvec &v2) {
+        return v1 * w + v2;
+      };
+
+      std::transform(spectral_radiance.begin(),
+                     spectral_radiance.end(),
+                     sensor_radiance.begin(),
+                     sensor_radiance.begin(),
+                     binary_op);
+      std::transform(spectral_radiance_jacobian.elem_begin(),
+                     spectral_radiance_jacobian.elem_end(),
+                     sensor_radiance_jacobian.elem_begin(),
+                     sensor_radiance_jacobian.elem_begin(),
+                     binary_op);
+    }
+  } else {
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
+#pragma omp parallel for firstprivate(spectral_radiance, \
+                                          spectral_radiance_jacobian)
+    for (Size ipos = 0; ipos < np; ipos++) {
+      if (do_abort) continue;
+      try {
+        spectral_radiance_agendaExecute(
+            ws,
+            spectral_radiance,
+            spectral_radiance_jacobian,
+            frequency_grid,
+            jacobian_targets,
+            sensor_radiance_observer_position[ipos],
+            sensor_radiance_observer_line_of_sight[ipos],
+            atmospheric_field,
+            surface_field,
+            spectral_radiance_agenda);
+
+        ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
+                           "spectral_radiance has wrong shape")
+        ARTS_USER_ERROR_IF(spectral_radiance_jacobian.shape() !=
+                               sensor_radiance_jacobian.shape(),
+                           "spectral_radiance has wrong shape")
+
+        const auto binary_op = [w = sensor_radiance_observer_weight[ipos]](
+                                   const Stokvec &v1, const Stokvec &v2) {
+          return v1 * w + v2;
+        };
+
+#pragma omp critical
+        {
+          std::transform(spectral_radiance.begin(),
+                         spectral_radiance.end(),
+                         sensor_radiance.begin(),
+                         sensor_radiance.begin(),
+                         binary_op);
+          std::transform(spectral_radiance_jacobian.elem_begin(),
+                         spectral_radiance_jacobian.elem_end(),
+                         sensor_radiance_jacobian.elem_begin(),
+                         sensor_radiance_jacobian.elem_begin(),
+                         binary_op);
+        }
+      } catch (const std::exception &e) {
+#pragma omp critical
+        {
+          fail_msg.emplace_back(var_string(
+              "Error executing agenda at position ", ipos, ":\n", e.what()));
+          do_abort = true;
+        }
+      }
+    }
+
+    ARTS_USER_ERROR_IF(
+        do_abort, "Error messages from failed cases:\n", fail_msg)
   }
 }
 ARTS_METHOD_ERROR_CATCH

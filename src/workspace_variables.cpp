@@ -386,5 +386,19 @@ Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude 
 )--",
       .type = "ArrayOfPropagationPathPoint"};
 
+  wsv_data["spectral_radiance_observer_position"] = {
+      .desc = R"--(The position of an observer of spectral radiance.
+
+Most likely only makes sense in combination with *spectral_radiance_observer_line_of_sight*.
+)--",
+      .type = "Vector3"};
+
+  wsv_data["spectral_radiance_observer_line_of_sight"] = {
+      .desc = R"--(The position of the observer of spectral radiance.
+
+Most likely only makes sense in combination with *spectral_radiance_observer_position*.
+)--",
+      .type = "Vector2"};
+
   return wsv_data;
 }

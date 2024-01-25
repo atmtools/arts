@@ -882,38 +882,56 @@ give the "H2O.xml" file because the internal data structure is unordered.
 
       };
 
-  wsm_data["spectral_radiance_background_space_agendaSet"] =
-      WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets *spectral_radiance_background_space_agenda*
+  wsm_data["spectral_radiance_agendaSet"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *spectral_radiance_space_agenda*
+
+Options are:
+
+- ``"GeometricEmission:``:
+
+  1. Calls *propagation_pathGeometric*
+  2. Calls *spectral_radianceStandardEmission*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance_space_agenda"},
+
+      .gin = {"option"},
+      .gin_type = {"String"},
+      .gin_value = {String{"UniformCosmicBackground"}},
+      .gin_desc = {R"--(Default agenda option (see description))--"},
+  };
+
+  wsm_data["spectral_radiance_space_agendaSet"] = WorkspaceMethodInternalRecord{
+      .desc = R"--(Sets *spectral_radiance_space_agenda*
 
 Options are:
 
 - ``"UniformCosmicBackground:``:
 
-  1. Calls *spectral_radiance_backgroundUniformCosmicBackground*
-  2. Calls *spectral_radiance_background_jacobianEmpty*
+  1. Calls *spectral_radianceUniformCosmicBackground*
+  2. Calls *spectral_radiance_jacobianEmpty*
 )--",
-          .author = {"Richard Larsson"},
-          .out = {"spectral_radiance_background_space_agenda"},
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance_space_agenda"},
 
-          .gin = {"option"},
-          .gin_type = {"String"},
-          .gin_value = {String{"UniformCosmicBackground"}},
-          .gin_desc = {R"--(Default agenda option (see description))--"},
-      };
+      .gin = {"option"},
+      .gin_type = {"String"},
+      .gin_value = {String{"UniformCosmicBackground"}},
+      .gin_desc = {R"--(Default agenda option (see description))--"},
+  };
 
-  wsm_data["spectral_radiance_background_surface_agendaSet"] =
+  wsm_data["spectral_radiance_surface_agendaSet"] =
       WorkspaceMethodInternalRecord{
-          .desc = R"--(Sets *spectral_radiance_background_surface_agenda*
+          .desc = R"--(Sets *spectral_radiance_surface_agenda*
 
 Options are:
 
 - ``"Blackbody"``:
 
-  1. Calls *spectral_radiance_backgroundSurfaceBlackbody*
+  1. Calls *spectral_radianceSurfaceBlackbody*
 )--",
           .author = {"Richard Larsson"},
-          .out = {"spectral_radiance_background_surface_agenda"},
+          .out = {"spectral_radiance_surface_agenda"},
 
           .gin = {"option"},
           .gin_type = {"String"},
@@ -1034,7 +1052,9 @@ call of *propagation_matrix_absorption_lookupAdapt*.
 
   wsm_data["propagation_path_propagation_matrixCalc"] = WorkspaceMethodInternalRecord{
       .desc =
-          R"--(Gets the propagation matrix and NLTE source term along the path.
+          R"--(Gets the propagation matrix and non-LTE source term along the path.
+
+The calculations are in parallel if the program is not in parallel already.
 )--",
       .author = {"Richard Larsson"},
       .out =
@@ -2124,37 +2144,37 @@ Gets the ellispoid from *surface_field*
       .in = {"frequency_grid",
              "jacobian_targets",
              "propagation_path",
-             "spectral_radiance_background_space_agenda",
-             "spectral_radiance_background_surface_agenda"},
+             "surface_field",
+             "spectral_radiance_space_agenda",
+             "spectral_radiance_surface_agenda"},
       .pass_workspace = true};
 
-  wsm_data["spectral_radiance_backgroundUniformCosmicBackground"] = {
+  wsm_data["spectral_radianceUniformCosmicBackground"] = {
       .desc =
           R"--(Background spectral radiance is from a uniform cosmic background temperature.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_background"},
+      .out = {"spectral_radiance"},
       .in = {"frequency_grid"}};
 
-  wsm_data["spectral_radiance_backgroundSurfaceBlackbody"] = {
+  wsm_data["spectral_radianceSurfaceBlackbody"] = {
       .desc =
           R"--(Set surface spectral radiance from Planck function of the surface temperature
 )--",
       .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_background",
-              "spectral_radiance_background_jacobian"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
       .in = {"frequency_grid",
              "surface_field",
              "jacobian_targets",
              "propagation_path_point"}};
 
-  wsm_data["spectral_radiance_background_jacobianEmpty"] = {
+  wsm_data["spectral_radiance_jacobianEmpty"] = {
       .desc = R"--(Set the cosmic background radiation derivative to empty.
 
 Size : (*jacobian_targets*, *frequency_grid*)
 )--",
       .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_background_jacobian"},
+      .out = {"spectral_radiance_jacobian"},
       .in = {"frequency_grid", "jacobian_targets"}};
 
   wsm_data["spectral_radiance_jacobianEmpty"] = {
@@ -2217,8 +2237,8 @@ Size : (*jacobian_targets*, *frequency_grid*)
              "atmospheric_field",
              "surface_field",
              "propagation_path",
-             "spectral_radiance_background_space_agenda",
-             "spectral_radiance_background_surface_agenda",
+             "spectral_radiance_space_agenda",
+             "spectral_radiance_surface_agenda",
              "propagation_matrix_agenda"},
       .gin = {"rte_alonglos_v", "hse_derivative"},
       .gin_type = {"Numeric", "Index"},
@@ -2226,6 +2246,32 @@ Size : (*jacobian_targets*, *frequency_grid*)
       .gin_desc =
           {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
            "Whether or not hypsometric balance is assumed in temperature derivatives"},
+      .pass_workspace = true};
+
+  wsm_data["sensor_radianceFromWeightedObservers"] = {
+      .desc =
+          R"--(Sets sensor radiance by looping over a list of observers
+
+The core calculations happens inside the *spectral_radiance_agenda*.
+
+The calculations are in parallel if the program is not in parallel already.
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"sensor_radiance", "sensor_radiance_jacobian"},
+      .gout_type = {"StokvecVector", "StokvecMatrix"},
+      .gout_desc = {"The sensor radiance", "The sensor radiance jacobian"},
+      .in = {"frequency_grid",
+             "jacobian_targets",
+             "atmospheric_field",
+             "surface_field",
+             "spectral_radiance_agenda"},
+      .gin = {"pos", "los", "weight"},
+      .gin_type = {"ArrayOfVector3", "ArrayOfVector2", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc =
+          {R"--(Position of observers to use while computing spectral radiance)--",
+           "Line of sight of observers to use while computing spectral radiance",
+           "Weight of observers to use while computing spectral radiance"},
       .pass_workspace = true};
 
   wsm_data["propagation_matrixAddLines"] = {

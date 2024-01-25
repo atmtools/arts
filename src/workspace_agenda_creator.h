@@ -12,9 +12,9 @@ struct SetWsv {
 
   SetWsv(std::string n);
   SetWsv(const char* const n) : SetWsv(std::string{n}) {}
-  SetWsv(std::string n, WorkspaceGroup auto v)
-      : name(std::move(n)), wsv(std::move(v)) {}
-  SetWsv(std::string n, const char* v) : name(std::move(n)), other(v) {}
+  SetWsv(std::string n, WorkspaceGroup auto wsv_value)
+      : name(std::move(n)), wsv(std::move(wsv_value)) {}
+  SetWsv(std::string n, const char* wsv_name) : name(std::move(n)), other(wsv_name) {}
 };
 
 class AgendaCreator {
@@ -40,5 +40,7 @@ class AgendaCreator {
 };
 
 Agenda get_propagation_matrix_agenda(const std::string& option);
-Agenda get_spectral_radiance_background_space_agenda(const std::string& option);
-Agenda get_spectral_radiance_background_surface_agenda(const std::string& option);
+
+Agenda get_spectral_radiance_agenda(const std::string& option);
+Agenda get_spectral_radiance_space_agenda(const std::string& option);
+Agenda get_spectral_radiance_surface_agenda(const std::string& option);

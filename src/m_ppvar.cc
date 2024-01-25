@@ -5,6 +5,7 @@
 #include <rte.h>
 #include <surf.h>
 #include <workspace.h>
+
 #include "sorted_grid.h"
 
 void propagation_path_spectral_radianceCalcTransmission(
@@ -96,9 +97,6 @@ void propagation_path_propagation_matrixCalc(
     const ArrayOfAscendingGrid &propagation_path_frequency_grid,
     const ArrayOfPropagationPathPoint &rad_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point) try {
-  ArrayOfString fail_msg;
-  bool do_abort = false;
-
   const Size np = rad_path.size();
   if (np == 0) {
     propagation_path_propagation_matrix.resize(0);
@@ -113,12 +111,8 @@ void propagation_path_propagation_matrixCalc(
   propagation_path_propagation_matrix_jacobian.resize(np);
   propagation_path_source_vector_nonlte_jacobian.resize(np);
 
-  // Loop ppath points and determine radiative properties
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size ip = 0; ip < np; ip++) {
-    if (do_abort) continue;
-    try {
-      //! FIXME: Send in full path point instead of this
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 0; ip < np; ip++) {
       get_stepwise_clearsky_propmat(
           ws,
           propagation_path_propagation_matrix[ip],
@@ -130,21 +124,42 @@ void propagation_path_propagation_matrixCalc(
           propagation_path_frequency_grid[ip],
           rad_path[ip],
           propagation_path_atmospheric_point[ip]);
-    } catch (const std::runtime_error &e) {
+    }
+  } else {
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+#pragma omp parallel for if (!arts_omp_in_parallel())
+    for (Size ip = 0; ip < np; ip++) {
+      if (do_abort) continue;
+      try {
+        get_stepwise_clearsky_propmat(
+            ws,
+            propagation_path_propagation_matrix[ip],
+            propagation_path_source_vector_nonlte[ip],
+            propagation_path_propagation_matrix_jacobian[ip],
+            propagation_path_source_vector_nonlte_jacobian[ip],
+            propagation_matrix_agenda,
+            jacobian_targets,
+            propagation_path_frequency_grid[ip],
+            rad_path[ip],
+            propagation_path_atmospheric_point[ip]);
+      } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
-      {
-        do_abort = true;
-        fail_msg.push_back(
-            var_string("Runtime-error in propagation radiative "
-                       "properties calculation at index ",
-                       ip,
-                       ": \n",
-                       e.what()));
+        {
+          do_abort = true;
+          fail_msg.push_back(
+              var_string("Runtime-error in propagation radiative "
+                         "properties calculation at index ",
+                         ip,
+                         ": \n",
+                         e.what()));
+        }
       }
     }
-  }
 
-  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+    ARTS_USER_ERROR_IF(
+        do_abort, "Error messages from failed cases:\n", fail_msg)
+  }
 }
 ARTS_METHOD_ERROR_CATCH
 

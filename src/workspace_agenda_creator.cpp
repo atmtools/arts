@@ -64,15 +64,19 @@ Agenda get_propagation_matrix_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-ENUMCLASS(spectral_radiance_background_space_agendaOption, char, UniformCosmicBackground)
+ENUMCLASS(spectral_radiance_agendaOption, char, GeometricEmission)
 
-Agenda get_spectral_radiance_background_space_agenda(const std::string& option) {
-  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+Agenda get_spectral_radiance_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_agenda");
 
-  using enum spectral_radiance_background_space_agendaOption;
-  switch (tospectral_radiance_background_space_agendaOptionOrThrow(option)) {
-    case UniformCosmicBackground:
-      agenda.add("spectral_radiance_backgroundUniformCosmicBackground");
+  using enum spectral_radiance_agendaOption;
+  switch (tospectral_radiance_agendaOptionOrThrow(option)) {
+    case GeometricEmission:
+      agenda.add("propagation_pathGeometric",
+                 SetWsv{"pos", "spectral_radiance_observer_position"},
+                 SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
+                 SetWsv{"as_observer", Index{1}});
+      agenda.add("spectral_radianceStandardEmission");
       break;
     case FINAL:
       break;
@@ -81,15 +85,32 @@ Agenda get_spectral_radiance_background_space_agenda(const std::string& option) 
   return std::move(agenda).finalize();
 }
 
-ENUMCLASS(spectral_radiance_background_surface_agendaOption, char, Blackbody)
+ENUMCLASS(spectral_radiance_space_agendaOption, char, UniformCosmicBackground)
 
-Agenda get_spectral_radiance_background_surface_agenda(const std::string& option) {
-  AgendaCreator agenda("spectral_radiance_background_surface_agenda");
+Agenda get_spectral_radiance_space_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_space_agenda");
 
-  using enum spectral_radiance_background_surface_agendaOption;
-  switch (tospectral_radiance_background_surface_agendaOptionOrThrow(option)) {
+  using enum spectral_radiance_space_agendaOption;
+  switch (tospectral_radiance_space_agendaOptionOrThrow(option)) {
+    case UniformCosmicBackground:
+      agenda.add("spectral_radianceUniformCosmicBackground");
+      break;
+    case FINAL:
+      break;
+  }
+
+  return std::move(agenda).finalize();
+}
+
+ENUMCLASS(spectral_radiance_surface_agendaOption, char, Blackbody)
+
+Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_surface_agenda");
+
+  using enum spectral_radiance_surface_agendaOption;
+  switch (tospectral_radiance_surface_agendaOptionOrThrow(option)) {
     case Blackbody:
-      agenda.add("spectral_radiance_backgroundSurfaceBlackbody");
+      agenda.add("spectral_radianceSurfaceBlackbody");
       break;
     case FINAL:
       break;

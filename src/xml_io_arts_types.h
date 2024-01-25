@@ -145,6 +145,8 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfVector3)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfVector2)
 
 
 //=== Not storable Types ===================================================

@@ -567,6 +567,12 @@ radiation.
   wsg_data["Vector2"] = {.file = "matpack.h",
                          .desc = "A fixed-size 2D version of *Vector*.\n"};
 
+  wsg_data["ArrayOfVector3"] = {.file = "matpack.h",
+                                .desc = "A list of *Vector3*\n"};
+
+  wsg_data["ArrayOfVector2"] = {.file = "matpack.h",
+                                .desc = "A list of *Vector2*\n"};
+
   wsg_data["AscendingGrid"] = {
       .file = "matpack.h",
       .desc = "A sorted grid of always ascending values.\n"};

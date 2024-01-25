@@ -151,9 +151,17 @@ void py_matpack(py::module_& m) try {
       .PythonInterfaceFileIO(Vector2)
       .PythonInterfaceWorkspaceDocumentation(Vector2);
 
+  artsarray<ArrayOfVector2>(m, "ArrayOfVector2")
+      .PythonInterfaceFileIO(ArrayOfVector2)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfVector2);
+
   register_matpack_constant_data<Numeric, 3>(m, "Vector3")
       .PythonInterfaceFileIO(Vector3)
       .PythonInterfaceWorkspaceDocumentation(Vector3);
+
+  artsarray<ArrayOfVector3>(m, "ArrayOfVector3")
+      .PythonInterfaceFileIO(ArrayOfVector3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfVector3);
 
   artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
