@@ -576,8 +576,8 @@ void lines_push_back(std::vector<single_shape>& lines,
                      const Size iline) {
   if (line.ls.one_by_one) {
     for (Size i = 0; i < line.ls.single_models.size(); ++i) {
-      if ((line.z.active() and pol != zeeman::pol::no) or
-          (not line.z.active() and pol == zeeman::pol::no)) {
+      if ((line.z.on and pol != zeeman::pol::no) or
+          (not line.z.on and pol == zeeman::pol::no)) {
         zeeman_push_back(lines,
                          pos,
                          single_shape_builder{spec, line, atm, i},
@@ -589,8 +589,8 @@ void lines_push_back(std::vector<single_shape>& lines,
       }
     }
   } else {
-    if ((line.z.active() and pol != zeeman::pol::no) or
-        (not line.z.active() and pol == zeeman::pol::no)) {
+    if ((line.z.on and pol != zeeman::pol::no) or
+        (not line.z.on and pol == zeeman::pol::no)) {
       zeeman_push_back(lines,
                        pos,
                        single_shape_builder{spec, line, atm},
@@ -2018,7 +2018,6 @@ void calculate(PropmatVectorView pm,
 
   band_shape_helper(
       com_data.lines, com_data.pos, spec, bnd, atm, fmin, fmax, pol);
-
   if (com_data.lines.empty()) return;
 
   //! Not const to save lines for reuse

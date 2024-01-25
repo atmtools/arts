@@ -32,16 +32,16 @@ ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
   return atm_path;
 }
 
-ArrayOfVector &path_freq_resize(ArrayOfVector &path_freq,
-                                const Vector &main_freq,
-                                const ArrayOfAtmPoint &atm_path) {
+ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &path_freq,
+                                       const AscendingGrid &main_freq,
+                                       const ArrayOfAtmPoint &atm_path) {
   path_freq.resize(atm_path.size());
-  for (auto &v : path_freq) v.resize(main_freq.nelem());
+  for (auto &v : path_freq) v.unsafe_resize(main_freq.nelem());
   return path_freq;
 }
 
-void forward_path_freq(ArrayOfVector &path_freq,
-                       const Vector &main_freq,
+void forward_path_freq(ArrayOfAscendingGrid &path_freq,
+                       const AscendingGrid &main_freq,
                        const ArrayOfPropagationPathPoint &rad_path,
                        const ArrayOfAtmPoint &atm_path,
                        const Numeric along_path_atm_speed) {
@@ -63,11 +63,12 @@ void forward_path_freq(ArrayOfVector &path_freq,
   for (Size ip = 0; ip < atm_path.size(); ip++) {
     std::transform(main_freq.begin(),
                    main_freq.end(),
-                   path_freq[ip].begin(),
+                   path_freq[ip].unsafe_begin(),
                    [fac = 1.0 - (along_path_atm_speed + dot_prod(ip)) /
                                     Constant::speed_of_light](const auto &f) {
                      return fac * f;
                    });
+    path_freq[ip].assert_sorted();
   }
 }
 

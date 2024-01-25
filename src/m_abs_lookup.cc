@@ -1,5 +1,5 @@
 /*!
-  \file   m_abs_lookup.cc
+  \file   m_propagation_matrix_absorption_lookup.cc
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Wed Nov 20 18:04:20 2002
   
@@ -20,14 +20,17 @@
 #include "matpack_data.h"
 #include "matpack_math.h"
 #include "matpack_view.h"
+#include "sorted_grid.h"
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupInit(GasAbsLookup& x) { x = GasAbsLookup(); }
+void propagation_matrix_absorption_lookupInit(GasAbsLookup& x) {
+  x = GasAbsLookup();
+}
 
-//! Find continuum species in abs_species.
+//! Find continuum species in absorption_species.
 /*! 
-  Returns an index array with indexes of those species in abs_species
+  Returns an index array with indexes of those species in absorption_species
   that have continuum tags that require h2o_abs, and hence require
   nonlinear treatment in the absorption lookup table.
 
@@ -38,13 +41,13 @@ void abs_lookupInit(GasAbsLookup& x) { x = GasAbsLookup(); }
   improve the guessing here.
 
   \retval   cont         indices of those species with continua.
-  \param    abs_species  list of absorption species.
+  \param    absorption_species  list of absorption species.
   
   \author Stefan Buehler
   \date   2007-11-16
 */
-void find_nonlinear_continua(ArrayOfIndex& cont,
-                             const ArrayOfArrayOfSpeciesTag& abs_species) {
+void find_nonlinear_continua(
+    ArrayOfIndex& cont, const ArrayOfArrayOfSpeciesTag& absorption_species) {
   cont.resize(0);
 
   // This is quite complicated, unfortunately. The approach here
@@ -52,13 +55,13 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
   // see there.
 
   // Loop tag groups:
-  for (Size i = 0; i < abs_species.size(); ++i) {
+  for (Size i = 0; i < absorption_species.size(); ++i) {
     // Loop tags in tag group
-    for (Size s = 0; s < abs_species[i].size(); ++s) {
+    for (Size s = 0; s < absorption_species[i].size(); ++s) {
       // Check for continuum tags
-      if (abs_species[i][s].type == Species::TagType::Predefined ||
-          abs_species[i][s].type == Species::TagType::Cia) {
-        const String thisname = abs_species[i][s].Name();
+      if (absorption_species[i][s].type == Species::TagType::Predefined ||
+          absorption_species[i][s].type == Species::TagType::Cia) {
+        const String thisname = absorption_species[i][s].Name();
         // Ok, now we know this is a continuum tag.
 
         // Check whether we want nonlinear treatment for
@@ -74,7 +77,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
         // 1. Continua known to not use h2o_abs
         // We take also H2O itself here, since this is
         // handled separately
-        if (Species::fromShortName("H2O") == abs_species[i][s].Spec() ||
+        if (Species::fromShortName("H2O") == absorption_species[i][s].Spec() ||
             "N2-" == thisname.substr(0, 3) || "CO2-" == thisname.substr(0, 4) ||
             "O2-CIA" == thisname.substr(0, 6) ||
             "O2-v0v" == thisname.substr(0, 6) ||
@@ -93,7 +96,7 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
           break;
         }
 
-        // 3. abs_species tags that are NOT allowed in LUT
+        // 3. absorption_species tags that are NOT allowed in LUT
         // calculations
         if ("icecloud-" == thisname.substr(0, 9) ||
             "rain-" == thisname.substr(0, 5)) {
@@ -118,33 +121,34 @@ void find_nonlinear_continua(ArrayOfIndex& cont,
 
 //! Choose species for abs_nls
 /*!
-  Make an intelligent choice for abs_nls, based on abs_species.
+  Make an intelligent choice for abs_nls, based on absorption_species.
 
   \author Stefan Buehler
 
   \param[out] abs_nls     The list of nonlinear species.
-  \param[in]  abs_species Absorption species.
+  \param[in]  absorption_species Absorption species.
 */
 void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
-                    const ArrayOfArrayOfSpeciesTag& abs_species) {
+                    const ArrayOfArrayOfSpeciesTag& absorption_species) {
   abs_nls.resize(0);
 
   // Add all H2O species as non-linear:
   Index next_h2o = 0;
-  while (-1 != (next_h2o = find_next_species(
-                    abs_species, Species::fromShortName("H2O"), next_h2o))) {
-    abs_nls.push_back(abs_species[next_h2o]);
+  while (-1 !=
+         (next_h2o = find_next_species(
+              absorption_species, Species::fromShortName("H2O"), next_h2o))) {
+    abs_nls.push_back(absorption_species[next_h2o]);
     ++next_h2o;
   }
 
   // Certain continuum models also depend on abs_h2o. There is a
   // helper function that contains a list of these.
   ArrayOfIndex cont;
-  find_nonlinear_continua(cont, abs_species);
+  find_nonlinear_continua(cont, absorption_species);
 
   // Add these to abs_nls:
   for (Size i = 0; i < cont.size(); ++i) {
-    abs_nls.push_back(abs_species[cont[i]]);
+    abs_nls.push_back(absorption_species[cont[i]]);
   }
 }
 
@@ -315,30 +319,30 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesAdd(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species,
+void absorption_speciesAdd(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& absorption_species,
     // Control Parameters:
     const ArrayOfString& names) {
   // Each element of the array of Strings names defines one tag
   // group. Let's work through them one by one.
   for (Size i = 0; i < names.size(); ++i) {
-    abs_species.emplace_back(names[i]);
+    absorption_species.emplace_back(names[i]);
   }
 
-  check_abs_species(abs_species);
+  check_abs_species(absorption_species);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesInit(ArrayOfArrayOfSpeciesTag& abs_species) {
-  abs_species.resize(0);
+void absorption_speciesInit(ArrayOfArrayOfSpeciesTag& absorption_species) {
+  absorption_species.resize(0);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesSet(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species,
+void absorption_speciesSet(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& absorption_species,
     // Control Parameters:
     const ArrayOfString& names) {
-  abs_species.resize(names.size());
+  absorption_species.resize(names.size());
 
   //cout << "Names: " << names << "\n";
 
@@ -347,46 +351,39 @@ void abs_speciesSet(  // WS Output:
   for (Size i = 0; i < names.size(); ++i) {
     // This part has now been moved to array_species_tag_from_string.
     // Call this function.
-    abs_species[i] = ArrayOfSpeciesTag(names[i]);
+    absorption_species[i] = ArrayOfSpeciesTag(names[i]);
   }
 
-  check_abs_species(abs_species);
+  check_abs_species(absorption_species);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupAdapt(GasAbsLookup& abs_lookup,
-                     Index& abs_lookup_is_adapted,
-                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Vector& frequency_grid) {
-  abs_lookup.Adapt(abs_species, frequency_grid);
-  abs_lookup_is_adapted = 1;
+void propagation_matrix_absorption_lookupAdapt(
+    GasAbsLookup& propagation_matrix_absorption_lookup,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const AscendingGrid& frequency_grid) {
+  propagation_matrix_absorption_lookup.Adapt(absorption_species,
+                                             frequency_grid);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddFromLookup(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
-    const GasAbsLookup& abs_lookup,
-    const Index& abs_lookup_is_adapted,
-    const Vector& frequency_grid,
+    const GasAbsLookup& propagation_matrix_absorption_lookup,
+    const AscendingGrid& frequency_grid,
     const AtmPoint& atm_point,
     const JacobianTargets& jacobian_targets,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const SpeciesEnum& select_species,
     const Numeric& extpolfac,
     const Index& no_negatives,
     const Index& abs_p_interp_order,
     const Index& abs_t_interp_order,
     const Index& abs_nls_interp_order,
     const Index& abs_f_interp_order) {
-  // Variables needed by abs_lookup.Extract:
+  // Variables needed by propagation_matrix_absorption_lookup.Extract:
   Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
-
-  // Check if the table has been adapted:
-  if (1 != abs_lookup_is_adapted)
-    throw std::runtime_error(
-        "Gas absorption lookup table must be adapted,\n"
-        "use method abs_lookupAdapt.");
 
   const auto do_freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
       Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
@@ -396,9 +393,9 @@ void propagation_matrixAddFromLookup(
   const Numeric dt = field_perturbation(std::span{&do_temp_jac, 1});
 
   const Vector a_vmr_list = [&]() {
-    Vector vmr(abs_species.size());
-    std::transform(abs_species.begin(),
-                   abs_species.end(),
+    Vector vmr(absorption_species.size());
+    std::transform(absorption_species.begin(),
+                   absorption_species.end(),
                    vmr.begin(),
                    [&](const ArrayOfSpeciesTag& spec) -> Numeric {
                      return atm_point[spec.Species()];
@@ -420,45 +417,45 @@ void propagation_matrixAddFromLookup(
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically.
-  abs_lookup.Extract(abs_scalar_gas,
-                     select_abs_species,
-                     abs_p_interp_order,
-                     abs_t_interp_order,
-                     abs_nls_interp_order,
-                     abs_f_interp_order,
-                     atm_point.pressure,
-                     atm_point.temperature,
-                     a_vmr_list,
-                     frequency_grid,
-                     extpolfac);
+  propagation_matrix_absorption_lookup.Extract(abs_scalar_gas,
+                                               select_species,
+                                               abs_p_interp_order,
+                                               abs_t_interp_order,
+                                               abs_nls_interp_order,
+                                               abs_f_interp_order,
+                                               atm_point.pressure,
+                                               atm_point.temperature,
+                                               a_vmr_list,
+                                               frequency_grid,
+                                               extpolfac);
   if (df != 0.0) {
     Vector dfreq = frequency_grid;
     dfreq += df;
-    abs_lookup.Extract(dabs_scalar_gas_df,
-                       select_abs_species,
-                       abs_p_interp_order,
-                       abs_t_interp_order,
-                       abs_nls_interp_order,
-                       abs_f_interp_order,
-                       atm_point.pressure,
-                       atm_point.temperature,
-                       a_vmr_list,
-                       dfreq,
-                       extpolfac);
+    propagation_matrix_absorption_lookup.Extract(dabs_scalar_gas_df,
+                                                 select_species,
+                                                 abs_p_interp_order,
+                                                 abs_t_interp_order,
+                                                 abs_nls_interp_order,
+                                                 abs_f_interp_order,
+                                                 atm_point.pressure,
+                                                 atm_point.temperature,
+                                                 a_vmr_list,
+                                                 dfreq,
+                                                 extpolfac);
   }
   if (do_temp_jac.first) {
     const Numeric dtemp = atm_point.temperature + dt;
-    abs_lookup.Extract(dabs_scalar_gas_dt,
-                       select_abs_species,
-                       abs_p_interp_order,
-                       abs_t_interp_order,
-                       abs_nls_interp_order,
-                       abs_f_interp_order,
-                       atm_point.pressure,
-                       dtemp,
-                       a_vmr_list,
-                       frequency_grid,
-                       extpolfac);
+    propagation_matrix_absorption_lookup.Extract(dabs_scalar_gas_dt,
+                                                 select_species,
+                                                 abs_p_interp_order,
+                                                 abs_t_interp_order,
+                                                 abs_nls_interp_order,
+                                                 abs_f_interp_order,
+                                                 atm_point.pressure,
+                                                 dtemp,
+                                                 a_vmr_list,
+                                                 frequency_grid,
+                                                 extpolfac);
   }
 
   if (no_negatives) {
@@ -490,7 +487,7 @@ void propagation_matrixAddFromLookup(
       }
 
       if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
-              abs_species[isp].Species());
+              absorption_species[isp].Species());
           j.first) {
         const auto iq = j.second->target_pos;
         propagation_matrix_jacobian(iq, iv).A() +=
@@ -503,16 +500,18 @@ void propagation_matrixAddFromLookup(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void frequency_gridFromGasAbsLookup(Vector& frequency_grid,
-                                    const GasAbsLookup& abs_lookup) {
-  const Vector& lookup_frequency_grid = abs_lookup.GetFgrid();
-  frequency_grid.resize(lookup_frequency_grid.nelem());
+void frequency_gridFromGasAbsLookup(
+    AscendingGrid& frequency_grid,
+    const GasAbsLookup& propagation_matrix_absorption_lookup) {
+  const Vector& lookup_frequency_grid =
+      propagation_matrix_absorption_lookup.GetFgrid();
   frequency_grid = lookup_frequency_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void p_gridFromGasAbsLookup(Vector& p_grid, const GasAbsLookup& abs_lookup) {
-  const Vector& lookup_p_grid = abs_lookup.GetPgrid();
+void p_gridFromGasAbsLookup(
+    Vector& p_grid, const GasAbsLookup& propagation_matrix_absorption_lookup) {
+  const Vector& lookup_p_grid = propagation_matrix_absorption_lookup.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
   p_grid = lookup_p_grid;
 }

@@ -14,7 +14,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const Workspace& ws,
     StokvecVector& spectral_radiance_background,
     StokvecMatrix& spectral_radiance_background_jacobian,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const JacobianTargets& jacobian_targets,
     const ArrayOfPropagationPathPoint& rad_path,
     const Agenda& spectral_radiance_background_space_agenda,
@@ -96,14 +96,14 @@ StokvecVector from_temp(const ExhaustiveConstVectorView& f_grid,
 
 void spectral_radiance_background_jacobianEmpty(
     StokvecMatrix& spectral_radiance_background_jacobian,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const JacobianTargets& jacobian_targets) {
   spectral_radiance_jacobianEmpty(
       spectral_radiance_background_jacobian, f_grid, jacobian_targets);
 }
 
 void spectral_radiance_backgroundUniformCosmicBackground(
-    StokvecVector& spectral_radiance_background, const Vector& f_grid) {
+    StokvecVector& spectral_radiance_background, const AscendingGrid& f_grid) {
   constexpr auto t = Constant::cosmic_microwave_background_temperature;
   spectral_radiance_background = detail::from_temp(f_grid, t);
 }
@@ -111,7 +111,7 @@ void spectral_radiance_backgroundUniformCosmicBackground(
 void spectral_radiance_backgroundSurfaceBlackbody(
     StokvecVector& spectral_radiance_background,
     StokvecMatrix& spectral_radiance_background_jacobian,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& path_point) {

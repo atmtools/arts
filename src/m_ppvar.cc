@@ -5,6 +5,7 @@
 #include <rte.h>
 #include <surf.h>
 #include <workspace.h>
+#include "sorted_grid.h"
 
 void propagation_path_spectral_radianceCalcTransmission(
     ArrayOfStokvecVector &propagation_path_spectral_radiance,
@@ -92,7 +93,7 @@ void propagation_path_propagation_matrixCalc(
     ArrayOfStokvecMatrix &propagation_path_source_vector_nonlte_jacobian,
     const Agenda &propagation_matrix_agenda,
     const JacobianTargets &jacobian_targets,
-    const ArrayOfVector &propagation_path_frequency_grid,
+    const ArrayOfAscendingGrid &propagation_path_frequency_grid,
     const ArrayOfPropagationPathPoint &rad_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point) try {
   ArrayOfString fail_msg;
@@ -154,7 +155,7 @@ void propagation_path_spectral_radiance_sourceFromPropmat(
     const ArrayOfStokvecVector &propagation_path_source_vector_nonlte,
     const ArrayOfPropmatMatrix &propagation_path_propagation_matrix_jacobian,
     const ArrayOfStokvecMatrix &propagation_path_source_vector_nonlte_jacobian,
-    const ArrayOfVector &propagation_path_frequency_grid,
+    const ArrayOfAscendingGrid &propagation_path_frequency_grid,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const JacobianTargets &jacobian_targets) try {
   ArrayOfString fail_msg;
@@ -303,8 +304,8 @@ void propagation_path_atmospheric_pointFromPath(
 ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_frequency_gridFromPath(
-    ArrayOfVector &propagation_path_frequency_grid,
-    const Vector &frequency_grid,
+    ArrayOfAscendingGrid &propagation_path_frequency_grid,
+    const AscendingGrid &frequency_grid,
     const ArrayOfPropagationPathPoint &rad_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const Numeric &rte_alonglos_v) try {

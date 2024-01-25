@@ -39,6 +39,7 @@
 #include "debug.h"
 #include "optproperties.h"
 #include "rte.h"
+#include "sorted_grid.h"
 #include "special_interp.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
@@ -307,7 +308,7 @@ void clear_rt_vars_at_gp(const Workspace& ws,
                                    local_dnlte_source_dx_dummy,
                                    {},
                                    {},
-                                   Vector(1, f_mono),
+                                   AscendingGrid(Vector(1, f_mono)),
                                    {},
                                    AtmPoint{},  // FIXME: DUMMY VALUE
                                    propagation_matrix_agenda);
@@ -385,7 +386,7 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
                                    local_dnlte_source_dx_dummy,
                                    {},
                                    {},
-                                   Vector{f_grid[Range(f_index, 1)]},
+                                   AscendingGrid{f_grid[Range(f_index, 1)]},
                                    {},
                                    AtmPoint{},  // FIXME: DUMMY VALUE
                                    propagation_matrix_agenda);

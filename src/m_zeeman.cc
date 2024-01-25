@@ -21,7 +21,7 @@ void propagation_matrixAddZeeman(
     PropmatMatrix& propagation_matrix_jacobian,
     StokvecMatrix& source_vector_nonlte_jacobian,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,

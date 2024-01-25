@@ -41,7 +41,7 @@ def cosmic_background(ws):
         frequency_grid=ws.frequency_grid,
     )
     ws.spectral_radiance_background_jacobianEmpty()
-    ws.Ignore(ws.path_point)
+    ws.Ignore(ws.propagation_path_point)
 
 
 ws.spectral_radiance_background_space_agenda = cosmic_background
@@ -66,7 +66,7 @@ on as a named argument to the agenda decorator:
 def spectral_radiance_background_space_agenda(ws):
     ws.spectral_radiance_backgroundUniformCosmicBackground()
     ws.spectral_radiance_background_jacobianEmpty()
-    ws.Ignore(ws.path_point)
+    ws.Ignore(ws.propagation_path_point)
 
 
 print(spectral_radiance_background_space_agenda)

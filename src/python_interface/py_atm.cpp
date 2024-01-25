@@ -1,15 +1,14 @@
 
-#include <memory>
-
+#include <atm.h>
+#include <debug.h>
 #include <python_interface.h>
+#include <quantum_numbers.h>
+#include <species_tags.h>
+
+#include <memory>
 
 #include "isotopologues.h"
 #include "py_macros.h"
-
-#include <atm.h>
-#include <debug.h>
-#include <quantum_numbers.h>
-#include <species_tags.h>
 
 namespace Python {
 
@@ -36,8 +35,13 @@ void py_atm(py::module_ &m) try {
       .def_readwrite("lon_low", &Atm::Data::lon_low)
       .def(py::pickle(
           [](const Atm::Data &t) {
-            return py::make_tuple(t.data, t.alt_low, t.alt_upp, t.lat_low,
-                                  t.lat_upp, t.lon_low, t.lon_upp);
+            return py::make_tuple(t.data,
+                                  t.alt_low,
+                                  t.alt_upp,
+                                  t.lat_low,
+                                  t.lat_upp,
+                                  t.lon_low,
+                                  t.lon_upp);
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
@@ -72,53 +76,56 @@ void py_atm(py::module_ &m) try {
       .def(
           "__getitem__",
           [](AtmPoint &atm, Atm::Key x) {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const QuantumIdentifier &x) {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const Species::Species &x) {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const SpeciesIsotopeRecord &x) {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmPoint &atm, const ArrayOfSpeciesTag &x) {
-            if (not atm.has(x.Species()))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x.Species())) throw py::key_error(var_string(x));
             return atm[x.Species()];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
            [](AtmPoint &atm, Atm::Key x, Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const QuantumIdentifier &x,
-                             Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const Species::Species &x,
-                             Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const SpeciesIsotopeRecord &x,
-                             Numeric data) { atm[x] = data; })
-      .def("__setitem__", [](AtmPoint &atm, const ArrayOfSpeciesTag &x,
-                             Numeric data) { atm[x.Species()] = data; })
+      .def("__setitem__",
+           [](AtmPoint &atm, const QuantumIdentifier &x, Numeric data) {
+             atm[x] = data;
+           })
+      .def("__setitem__",
+           [](AtmPoint &atm, const Species::Species &x, Numeric data) {
+             atm[x] = data;
+           })
+      .def("__setitem__",
+           [](AtmPoint &atm, const SpeciesIsotopeRecord &x, Numeric data) {
+             atm[x] = data;
+           })
+      .def("__setitem__",
+           [](AtmPoint &atm, const ArrayOfSpeciesTag &x, Numeric data) {
+             atm[x.Species()] = data;
+           })
       .def("keys", &AtmPoint::keys)
       .PythonInterfaceCopyValue(AtmPoint)
       .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
@@ -154,32 +161,28 @@ void py_atm(py::module_ &m) try {
   fld.def(
          "__getitem__",
          [](AtmField &atm, Atm::Key x) -> Atm::Data & {
-           if (not atm.has(x))
-             throw py::key_error(var_string(x));
+           if (not atm.has(x)) throw py::key_error(var_string(x));
            return atm[x];
          },
          py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const QuantumIdentifier &x) -> Atm::Data & {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const Species::Species &x) -> Atm::Data & {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
           [](AtmField &atm, const SpeciesIsotopeRecord &x) -> Atm::Data & {
-            if (not atm.has(x))
-              throw py::key_error(var_string(x));
+            if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
           py::return_value_policy::reference_internal)
@@ -191,18 +194,38 @@ void py_atm(py::module_ &m) try {
             return atm[x.Species()];
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__", [](AtmField &atm, Atm::Key x,
-                             const Atm::Data &data) { atm[x] = data; })
-      .def("__setitem__", [](AtmField &atm, const QuantumIdentifier &x,
-                             const Atm::Data &data) { atm[x] = data; })
-      .def("__setitem__", [](AtmField &atm, const Species::Species &x,
-                             const Atm::Data &data) { atm[x] = data; })
-      .def("__setitem__", [](AtmField &atm, const ArrayOfSpeciesTag &x,
-                             const Atm::Data &data) { atm[x.Species()] = data; })
-      .def("__setitem__", [](AtmField &atm, const SpeciesIsotopeRecord &x,
-                             const Atm::Data &data) { atm[x] = data; })
-      .def("at", [](const AtmField &atm, const Vector& h, const Vector& lat,
-                    const Vector& lon) { return atm.at(h, lat, lon); })
+      .def("__setitem__",
+           [](AtmField &atm, Atm::Key x, const Atm::Data &data) {
+             atm[x] = data;
+           })
+      .def(
+          "__setitem__",
+          [](AtmField &atm, const QuantumIdentifier &x, const Atm::Data &data) {
+            atm[x] = data;
+          })
+      .def("__setitem__",
+           [](AtmField &atm, const Species::Species &x, const Atm::Data &data) {
+             atm[x] = data;
+           })
+      .def(
+          "__setitem__",
+          [](AtmField &atm, const ArrayOfSpeciesTag &x, const Atm::Data &data) {
+            atm[x.Species()] = data;
+          })
+      .def("__setitem__",
+           [](AtmField &atm,
+              const SpeciesIsotopeRecord &x,
+              const Atm::Data &data) { atm[x] = data; })
+      .def("at",
+           [](const AtmField &atm,
+              const Vector &h,
+              const Vector &lat,
+              const Vector &lon) { return atm.at(h, lat, lon); })
+      .def("at",
+           [](const AtmField &atm,
+              const Numeric &h,
+              const Numeric &lat,
+              const Numeric &lon) { return atm.at(h, lat, lon); })
       .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
       .PythonInterfaceCopyValue(AtmField)
       .PythonInterfaceWorkspaceVariableConversion(AtmField)
@@ -242,7 +265,8 @@ void py_atm(py::module_ &m) try {
   artsarray<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint")
       .PythonInterfaceFileIO(ArrayOfAtmPoint)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAtmPoint);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
+} catch (std::exception &e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));
 }
-} // namespace Python
+}  // namespace Python

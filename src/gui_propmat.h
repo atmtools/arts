@@ -16,7 +16,7 @@ struct ComputeValues {
   PropmatVector pm;
   StokvecVector sv;
 
-  ArrayOfSpeciesTag select_abs_species;
+  Species::Species select_species;
   Vector f_grid;
   PropagationPathPoint path_point;
   AtmPoint atm_point;
@@ -80,7 +80,7 @@ struct DisplayOptions {
 
 void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
-             ArrayOfSpeciesTag& select_abs_species,
+             SpeciesEnum& select_species,
              Vector& f_grid,
              PropagationPathPoint& path_point,
              AtmPoint& atm_point,

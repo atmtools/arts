@@ -235,7 +235,7 @@ void backend_channel_responseGaussianConstant(ArrayOfGriddedField1& r,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void frequency_gridFromSensorAMSU(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     const Vector& lo,
     const Numeric& spacing,
     const ArrayOfArrayOfGriddedField1& backend_channel_response,
@@ -351,7 +351,7 @@ void frequency_gridFromSensorAMSU(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void frequency_gridFromSensorAMSUgeneric(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     const Numeric& spacing,
     const Vector& verbosityVect,
     const ArrayOfArrayOfGriddedField1& backend_channel_response_multi,
@@ -483,12 +483,12 @@ void frequency_gridFromSensorAMSUgeneric(  // WS Output:
   }
 
   // Copy result to output vector:
-  frequency_grid = frequency_grid_array;
+  frequency_grid = std::move(frequency_grid_array);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void frequency_gridFromSensorHIRS(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     // WS Input:
     const Vector& f_backend,
     const ArrayOfGriddedField1& backend_channel_response,
@@ -540,13 +540,13 @@ void frequency_gridFromSensorHIRS(  // WS Output:
   }
 
   // Copy result to output vector:
-  frequency_grid = frequency_grid_array;
+  frequency_grid = std::move(frequency_grid_array);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void frequency_gridMetMM(
     // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     Vector& f_backend,
     ArrayOfArrayOfIndex& channel2fgrid_indexes,
     ArrayOfVector& channel2fgrid_weights,
@@ -693,11 +693,7 @@ void frequency_gridMetMM(
   }
 
   // Create frequency_grid
-  frequency_grid.resize(nf);
-  //
-  for (size_t f_index = 0; f_index < nf; f_index++) {
-    frequency_grid[move2index[f_index]] = frequency_grid_unsorted[f_index];
-  }
+  frequency_grid = std::move(frequency_grid_unsorted);
 
   // Create channel2 fgrid variables
   channel2fgrid_indexes.resize(nchannels);
@@ -2209,7 +2205,7 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseGenericAMSU(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     Index& antenna_dim,
     Matrix& mblock_dlos,
     Sparse& sensor_response,
@@ -2558,7 +2554,7 @@ void sensor_responseGenericAMSU(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseSimpleAMSU(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     Index& antenna_dim,
     Matrix& mblock_dlos,
     Sparse& sensor_response,
@@ -2684,7 +2680,7 @@ void sensor_responseSimpleAMSU(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WMRFSelectChannels(  // WS Output:
-    Vector& frequency_grid,
+    AscendingGrid& frequency_grid,
     Sparse& wmrf_weights,
     Vector& f_backend,
     // WS Input:

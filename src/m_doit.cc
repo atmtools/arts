@@ -33,6 +33,7 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
+#include "sorted_grid.h"
 #include "special_interp.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -694,7 +695,7 @@ void OptimizeDoitPressureGrid(
                                      partial_nlte_dummy,
                                      {},
                                      {},
-                                     Vector{f_grid[Range(f_index, 1)]},
+                                     AscendingGrid{f_grid[Range(f_index, 1)]},
                                      {},
                                      AtmPoint{},  // FIXME: DUMMY VALUE,
                                      propagation_matrix_agenda);

@@ -7,8 +7,10 @@
 */
 
 #include "gas_abs_lookup.h"
+
 #include <cfloat>
 #include <cmath>
+
 #include "check_input.h"
 #include "interp.h"
 #include "logic.h"
@@ -46,7 +48,8 @@ void find_new_grid_in_old_grid(ArrayOfIndex& pos,
     // use the fact here.
 
     while (std::abs(new_grid[i] - old_grid[j]) >
-           std::max(std::abs(new_grid[i]), std::abs(old_grid[j])) * DBL_EPSILON) {
+           std::max(std::abs(new_grid[i]), std::abs(old_grid[j])) *
+               DBL_EPSILON) {
       ++j;
       if (j >= n_old_grid) {
         std::ostringstream os;
@@ -240,7 +243,6 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   //    included in the table exactly once.
   ArrayOfIndex i_current_species(n_current_species);
   for (Index i = 0; i < n_current_species; ++i) {
-
     try {
       i_current_species[i] =
           chk_contains("abs_species", species, current_species[i]);
@@ -274,7 +276,6 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     {
       // Check if this is a nonlinear species:
       if (non_linear[i_current_species[i]]) {
-
         current_non_linear[i] = 1;
         ++n_current_nonlinear_species;
       }
@@ -293,8 +294,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   // We need no error checking for the next statement, since the
   // function called throws a runtime error if a frequency
   // is not found, or if the grids are not ok.
-  find_new_grid_in_old_grid(
-      i_current_f_grid, f_grid, current_f_grid);
+  find_new_grid_in_old_grid(i_current_f_grid, f_grid, current_f_grid);
 
   // 3. Use the species and frequency index lists to build the new lookup
   // table.
@@ -407,7 +407,8 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   transform(log_p_grid, log, p_grid);
 
   // 6. Initialize flag_default.
-  flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(f_grid, f_grid, 0);
+  flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+      f_grid, f_grid, 0);
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table.
@@ -465,7 +466,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
   \author Stefan Buehler
 */
 void GasAbsLookup::Extract(Matrix& sga,
-                           const ArrayOfSpeciesTag& select_abs_species,
+                           const SpeciesEnum& select_species,
                            const Index& p_interp_order,
                            const Index& t_interp_order,
                            const Index& h2o_interp_order,
@@ -625,22 +626,20 @@ void GasAbsLookup::Extract(Matrix& sga,
   // do no frequency interpolation at all. (We set the frequency grid positions
   // to the predefined ones that come with the lookup table.)
   if (f_interp_order == 0) {
-
     // We do some superficial checks below, to make sure that the
     // frequency grid is the same as in the lookup table (only first
     // and last element of f_grid are tested). As margin for
     // agreement, we pick a value that is just slightly smaller than
     // the perturbation that is used by the wind jacobian, which is 0.1.
     const Numeric allowed_f_margin = 0.09;
-    
+
     if (n_new_f_grid == n_f_grid) {
       // Use the default flag that is stored in the lookup table itself
       // (which effectively means no frequency interpolation)
       flag = &flag_default;
 
       // Check first f_grid element:
-      if (abs(f_grid[0] - new_f_grid[0]) > allowed_f_margin)
-      {
+      if (abs(f_grid[0] - new_f_grid[0]) > allowed_f_margin) {
         std::ostringstream os;
         os << "First frequency in f_grid inconsistent with lookup table.\n"
            << "f_grid[0]        = " << f_grid[0] << "\n"
@@ -649,8 +648,8 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // Check last f_grid element:
-      if (abs(f_grid[n_f_grid - 1] - new_f_grid[n_new_f_grid - 1]) > allowed_f_margin)
-      {
+      if (abs(f_grid[n_f_grid - 1] - new_f_grid[n_new_f_grid - 1]) >
+          allowed_f_margin) {
         std::ostringstream os;
         os << "Last frequency in f_grid inconsistent with lookup table.\n"
            << "f_grid[n_f_grid-1]              = " << f_grid[n_f_grid - 1]
@@ -661,17 +660,18 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
     } else if (n_new_f_grid == 1) {
       flag = &flag_local;
-      flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(new_f_grid, f_grid, 0);
+      flag_local =
+          my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+              new_f_grid, f_grid, 0);
 
       // Check that we really are on a frequency grid point, for safety's sake.
-      if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin)
-      {
-	std::ostringstream os;
-	os << "Cannot find a matching lookup table frequency for frequency "
-	   << new_f_grid[0] << ".\n"
-	   << "(This check has not been properly tested, so perhaps this is\n"
-	   << "a false alarm. Check for this in file gas_abs_lookup.cc.)";
-	throw std::runtime_error(os.str());
+      if (abs(f_grid[flag_local[0].pos] - new_f_grid[0]) > allowed_f_margin) {
+        std::ostringstream os;
+        os << "Cannot find a matching lookup table frequency for frequency "
+           << new_f_grid[0] << ".\n"
+           << "(This check has not been properly tested, so perhaps this is\n"
+           << "a false alarm. Check for this in file gas_abs_lookup.cc.)";
+        throw std::runtime_error(os.str());
       }
     } else {
       std::ostringstream os;
@@ -703,7 +703,8 @@ void GasAbsLookup::Extract(Matrix& sga,
 
     // We do have real frequency interpolation (f_interp_order!=0).
     flag = &flag_local;
-    flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(new_f_grid, f_grid, f_interp_order);
+    flag_local = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+        new_f_grid, f_grid, f_interp_order);
   }
 
   // 4.b Other stuff
@@ -746,9 +747,11 @@ void GasAbsLookup::Extract(Matrix& sga,
   // For sure, we need to store the pressure grid position.
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly.
-  const auto plog=std::log(p);
+  const auto plog = std::log(p);
   ConstVectorView plog_v{plog};
-  const auto plag = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(plog_v, log_p_grid, p_interp_order);
+  const auto plag =
+      my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          plog_v, log_p_grid, p_interp_order);
 
   // Pressure interpolation weights:
   const auto pitw = interpweights(plag[0]);
@@ -761,7 +764,8 @@ void GasAbsLookup::Extract(Matrix& sga,
 
   // Temperature grid positions.
   ArrayOfLagrangeInterpolation tlag_withT(1);  // Only a scalar.
-  const ArrayOfLagrangeInterpolation* tlag;  // Pointer to either tlag_withT or lag_trivial.
+  const ArrayOfLagrangeInterpolation*
+      tlag;  // Pointer to either tlag_withT or lag_trivial.
 
   // Set this_t_interp_order, depending on whether we do T interpolation or not.
   if (do_T) {
@@ -803,7 +807,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // We will make itw point to either the weights with H2O interpolation, or
   // the ones without.
   Tensor6 itw_withH2O{}, itw_noH2O{};
-  const Tensor6 *itw;
+  const Tensor6* itw;
 
   for (Index pi = 0; pi < p_interp_order + 1; ++pi) {
     // Throw a runtime error if one of the reference VMR profiles is zero, but
@@ -884,7 +888,8 @@ void GasAbsLookup::Extract(Matrix& sga,
         }
       }
 
-      tlag_withT[0] = LagrangeInterpolation(0, T_offset, t_pert, t_interp_order);
+      tlag_withT[0] =
+          LagrangeInterpolation(0, T_offset, t_pert, t_interp_order);
     }
 
     // Determine the H2O VMR grid position. We need to do this only
@@ -943,7 +948,8 @@ void GasAbsLookup::Extract(Matrix& sga,
       }
 
       // For now, do linear interpolation in the fractional VMR.
-      vlag_h2o[0] = LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order);
+      vlag_h2o[0] =
+          LagrangeInterpolation(0, VMR_frac, nls_pert, h2o_interp_order);
     }
 
     // Precalculate interpolation weights.
@@ -974,7 +980,8 @@ void GasAbsLookup::Extract(Matrix& sga,
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
-      if (species[si].Zeeman() or species[si].FreeElectrons() or species[si].Particles()) {
+      if (species[si].Zeeman() or species[si].FreeElectrons() or
+          species[si].Particles()) {
         if (do_VMR) {
           std::ostringstream os;
           os << "Problem with gas absorption lookup table.\n"
@@ -1059,11 +1066,9 @@ void GasAbsLookup::Extract(Matrix& sga,
   // with the total number density n, times the VMR of the
   // species:
   for (Index si = 0; si < n_species; ++si) {
-    if (select_abs_species.size()) {
-      if (species[si] == select_abs_species)
-        sga(si, Range(joker)) *= (n * abs_vmrs[si]);
-      else
-        sga(si, Range(joker)) = 0.;
+    if (select_species != SpeciesEnum::Bath and
+        species[si].Species() != select_species) {
+      sga(si, Range(joker)) = 0.;
     } else {
       sga(si, Range(joker)) *= (n * abs_vmrs[si]);
     }

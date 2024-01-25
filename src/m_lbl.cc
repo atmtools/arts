@@ -24,6 +24,8 @@
 #include "matpack_view.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
+#include "species.h"
+#include "species_tags.h"
 #include "xml_io.h"
 #include "xml_io_base.h"
 
@@ -40,7 +42,11 @@ lbl::Lineshape toLineshape(const LineShape::Type old_ls,
 
 void absorption_bandsFromAbsorbtionLines(
     AbsorptionBands& absorption_bands,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
+ARTS_USER_ERROR_IF(absorption_species.size() != abs_lines_per_species.size(),
+                   absorption_species.size(), " != ", abs_lines_per_species.size())
+
   absorption_bands.resize(0);
   absorption_bands.reserve(std::transform_reduce(
       abs_lines_per_species.begin(),
@@ -49,7 +55,9 @@ void absorption_bandsFromAbsorbtionLines(
       std::plus<>{},
       [](const ArrayOfAbsorptionLines& lines) { return lines.size(); }));
 
-  for (auto& abs_lines : abs_lines_per_species) {
+for (Size kspec=0; kspec<abs_lines_per_species.size(); kspec++){
+  auto& abs_lines = abs_lines_per_species[kspec];
+  auto& spec_tags = absorption_species[kspec];
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
       new_key = old_band.quantumidentity;
@@ -69,6 +77,7 @@ void absorption_bandsFromAbsorbtionLines(
         new_line.gl = old_line.glow;
         new_line.z.gu() = old_line.zeeman.gu();
         new_line.z.gl() = old_line.zeeman.gl();
+        if (spec_tags.Zeeman()) new_line.z.on = true;
         new_line.qn = old_line.localquanta;
 
         new_line.ls.one_by_one = false;
@@ -457,12 +466,13 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
   }
 }
 
-void propagation_matrixAddLines2(PropmatVector& pm,
+void propagation_matrixAddLines(PropmatVector& pm,
                                  StokvecVector& sv,
                                  PropmatMatrix& dpm,
                                  StokvecMatrix& dsv,
-                                 const Vector& f_grid,
+                                 const AscendingGrid& f_grid,
                                  const JacobianTargets& jacobian_targets,
+                                 const SpeciesEnum& species,
                                  const AbsorptionBands& absorption_bands,
                                  const LinemixingEcsData& ecs_data,
                                  const AtmPoint& atm_point,
@@ -475,6 +485,7 @@ void propagation_matrixAddLines2(PropmatVector& pm,
                    dsv,
                    f_grid,
                    jacobian_targets,
+                   species,
                    absorption_bands,
                    ecs_data,
                    atm_point,
@@ -490,8 +501,9 @@ void propagation_matrixAddLines2(PropmatVector& pm,
                        sv.slice(ompv[i].first, ompv[i].second),
                        dpm(joker, Range(ompv[i].first, ompv[i].second)),
                        dsv(joker, Range(ompv[i].first, ompv[i].second)),
-                       f_grid.slice(ompv[i].first, ompv[i].second),
+                       static_cast<const Vector&>(f_grid).slice(ompv[i].first, ompv[i].second),
                        jacobian_targets,
+                   species,
                        absorption_bands,
                        ecs_data,
                        atm_point,

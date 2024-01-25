@@ -13,6 +13,8 @@
 #include "matpack_math.h"
 #include "path_point.h"
 #include "rtepack.h"
+#include "sorted_grid.h"
+#include "species.h"
 #include "species_tags.h"
 
 #ifdef ARTS_GUI_ENABLED
@@ -32,8 +34,8 @@ void compute(const Workspace& ws,
                                    empty_propmat,
                                    empty_stokvec,
                                    {},
-                                   v.select_abs_species,
-                                   v.f_grid,
+                                   v.select_species,
+                                   AscendingGrid{v.f_grid},
                                    v.path_point,
                                    v.atm_point,
                                    propagation_matrix_agenda);
@@ -43,7 +45,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
          gui::PropmatClearsky::Control& ctrl,
          const Workspace& ws,
          const Agenda& propagation_matrix_agenda,
-         ArrayOfSpeciesTag& select_abs_species,
+         SpeciesEnum& select_species,
          Vector& f_grid,
          PropagationPathPoint& path_point,
          AtmPoint& atm_point,
@@ -62,7 +64,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       if (ctrl.run.load()) {
         std::lock_guard allow_copy{ctrl.copy};
 
-        v.select_abs_species = select_abs_species;
+        v.select_species = select_species;
         v.f_grid = f_grid;
         v.path_point = path_point;
         v.atm_point = atm_point;
@@ -116,7 +118,7 @@ void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
   gui::PropmatClearsky::Control ctrl;
 
   // Initialize values to something
-  ArrayOfSpeciesTag select_abs_species{};
+  SpeciesEnum select_species{};
   Vector f_grid = uniform_grid(1e9, 1000, 1e9);
   PropagationPathPoint path_point{.pos = {0, 0, 0}, .los = {0, 0}};
   Numeric transmission_distance{1'000};
@@ -141,7 +143,7 @@ void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
                             std::ref(ctrl),
                             std::cref(ws),
                             std::cref(propagation_matrix_agenda),
-                            std::ref(select_abs_species),
+                            std::ref(select_species),
                             std::ref(f_grid),
                             std::ref(path_point),
                             std::ref(atm_point),
@@ -156,7 +158,7 @@ void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
   } else {
     gui::propmat(res,
                  ctrl,
-                 select_abs_species,
+                 select_species,
                  f_grid,
                  path_point,
                  atm_point,

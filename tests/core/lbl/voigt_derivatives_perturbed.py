@@ -78,14 +78,19 @@ settings = [
 
 ws = pyarts.Workspace()
 
-ws.abs_speciesSet(species=["O2-66"])
+ws.absorption_speciesSet(species=["O2-66"])
 
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
+    ws.abs_lines_per_species, basename="lines/"
+)
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
 il = 95
 
-ws.absorption_bandsFromAbsorbtionLines()
+ws.absorption_bandsFromAbsorbtionLines(
+    abs_lines_per_species=ws.abs_lines_per_species
+)
 ws.absorption_bandsSelectFrequency(fmax=120e9)
 ws.absorption_bandsKeepID(id=bandkey)
 
@@ -106,10 +111,9 @@ assert np.allclose(ws.absorption_bands[0].data.lines[il].f0, lc), (
 ws.Wigner3Init()
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
-ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("Oxygen")] = 0.21  # At 21% atmospheric Oxygen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 for setting in settings:
@@ -258,7 +262,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     dpm = ws.propagation_matrix_jacobian * 1.0
     pm = ws.propagation_matrix * 1.0
@@ -270,14 +274,18 @@ for setting in settings:
     ws.atmospheric_point[key] += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.atmospheric_point[key] -= d
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(
-        ws.frequency_grid, dpm[0][:, 0], dpm_dX[:, 0], "Isotopologue ratio", setting
+        ws.frequency_grid,
+        dpm[0][:, 0],
+        dpm_dX[:, 0],
+        "Isotopologue ratio",
+        setting,
     )
 
     # VMR
@@ -286,7 +294,7 @@ for setting in settings:
     ws.atmospheric_point[key] += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.atmospheric_point[key] -= d
@@ -300,27 +308,31 @@ for setting in settings:
     ws.atmospheric_point[key] += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.atmospheric_point[key] -= d
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[2][:, 0], dpm_dX[:, 0], "Temperature", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[2][:, 0], dpm_dX[:, 0], "Temperature", setting
+    )
 
     # Frequency
     d = 1e3
     orig = ws.frequency_grid * 1.0
-    ws.frequency_grid += d
+    ws.frequency_grid = orig + d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.frequency_grid = orig
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[3][:, 0], dpm_dX[:, 0], "Frequency", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[3][:, 0], dpm_dX[:, 0], "Frequency", setting
+    )
 
     # line center
     d = 1e3
@@ -328,13 +340,15 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].f0 += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].f0 = orig
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[4][:, 0], dpm_dX[:, 0], "Line center", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[4][:, 0], dpm_dX[:, 0], "Line center", setting
+    )
 
     # lower state energy
     d = 1e-26
@@ -342,14 +356,18 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].e0 += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].e0 = orig
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(
-        ws.frequency_grid, dpm[5][:, 0], dpm_dX[:, 0], "Lower state energy", setting
+        ws.frequency_grid,
+        dpm[5][:, 0],
+        dpm_dX[:, 0],
+        "Lower state energy",
+        setting,
     )
 
     # einstein coefficient
@@ -358,14 +376,18 @@ for setting in settings:
     ws.absorption_bands[0].data.lines[il].a += d
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].a = orig
 
     dpm_dX = (pm_d - pm) / d
     compare_fn(
-        ws.frequency_grid, dpm[6][:, 0], dpm_dX[:, 0], "Einstein coefficient", setting
+        ws.frequency_grid,
+        dpm[6][:, 0],
+        dpm_dX[:, 0],
+        "Einstein coefficient",
+        setting,
     )
 
     # O2 G0 X0
@@ -383,7 +405,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -391,7 +413,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[7][:, 0], dpm_dX[:, 0], "O2 G0 X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[7][:, 0], dpm_dX[:, 0], "O2 G0 X0", setting
+    )
 
     # O2 G0 X1
     d = 1e-4
@@ -408,7 +432,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -416,7 +440,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[8][:, 0], dpm_dX[:, 0], "O2 G0 X1", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[8][:, 0], dpm_dX[:, 0], "O2 G0 X1", setting
+    )
 
     # Bath G0 X0
     d = 1e-3
@@ -433,7 +459,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -441,7 +467,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[9][:, 0], dpm_dX[:, 0], "Bath G0 X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[9][:, 0], dpm_dX[:, 0], "Bath G0 X0", setting
+    )
 
     # Bath G0 X1
     d = 1e-3
@@ -458,7 +486,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -466,7 +494,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[10][:, 0], dpm_dX[:, 0], "Bath G0 X1", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[10][:, 0], dpm_dX[:, 0], "Bath G0 X1", setting
+    )
 
     # O2 Y X0
     d = 1e-10
@@ -480,7 +510,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -488,7 +518,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[11][:, 0], dpm_dX[:, 0], "O2 Y X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[11][:, 0], dpm_dX[:, 0], "O2 Y X0", setting
+    )
 
     # O2 Y X1
     d = 1e-10
@@ -502,7 +534,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -510,7 +542,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[12][:, 0], dpm_dX[:, 0], "O2 Y X1", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[12][:, 0], dpm_dX[:, 0], "O2 Y X1", setting
+    )
 
     # O2 Y X2
     d = 1e-10
@@ -524,7 +558,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -532,7 +566,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[13][:, 0], dpm_dX[:, 0], "O2 Y X2", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[13][:, 0], dpm_dX[:, 0], "O2 Y X2", setting
+    )
 
     # O2 Y X3
     d = 1e-10
@@ -546,7 +582,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -554,7 +590,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[14][:, 0], dpm_dX[:, 0], "O2 Y X3", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[14][:, 0], dpm_dX[:, 0], "O2 Y X3", setting
+    )
 
     # Bath Y X0
     d = 1e-10
@@ -568,7 +606,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -576,7 +614,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[15][:, 0], dpm_dX[:, 0], "Bath Y X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[15][:, 0], dpm_dX[:, 0], "Bath Y X0", setting
+    )
 
     # Bath Y X1
     d = 1e-10
@@ -590,7 +630,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -598,7 +638,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[16][:, 0], dpm_dX[:, 0], "Bath Y X1", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[16][:, 0], dpm_dX[:, 0], "Bath Y X1", setting
+    )
 
     # O2 Y X2
     d = 1e-10
@@ -612,7 +654,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -620,7 +662,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[17][:, 0], dpm_dX[:, 0], "Bath Y X2", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[17][:, 0], dpm_dX[:, 0], "Bath Y X2", setting
+    )
 
     # O2 Y X3
     d = 1e-10
@@ -634,7 +678,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -642,7 +686,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[18][:, 0], dpm_dX[:, 0], "Bath Y X3", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[18][:, 0], dpm_dX[:, 0], "Bath Y X3", setting
+    )
 
     # O2 D0 X0
     d = 1e-3
@@ -659,7 +705,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -667,7 +713,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[19][:, 0], dpm_dX[:, 0], "O2 D0 X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[19][:, 0], dpm_dX[:, 0], "O2 D0 X0", setting
+    )
 
     # Bath D0 X0
     d = 1e-3
@@ -684,7 +732,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -692,7 +740,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[20][:, 0], dpm_dX[:, 0], "Bath D0 X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[20][:, 0], dpm_dX[:, 0], "Bath D0 X0", setting
+    )
 
     # O2 DV X0
     d = 1e-1 / ws.atmospheric_point.pressure
@@ -709,7 +759,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -717,7 +767,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[21][:, 0], dpm_dX[:, 0], "O2 DV X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[21][:, 0], dpm_dX[:, 0], "O2 DV X0", setting
+    )
 
     # Bath DV X0
     d = 1e4 / ws.atmospheric_point.pressure**2
@@ -734,7 +786,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -742,7 +794,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[22][:, 0], dpm_dX[:, 0], "Bath DV X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[22][:, 0], dpm_dX[:, 0], "Bath DV X0", setting
+    )
 
     # O2 G X0
     d = 1e-3
@@ -756,7 +810,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[0].data.set(
@@ -764,7 +818,9 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[23][:, 0], dpm_dX[:, 0], "O2 G X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[23][:, 0], dpm_dX[:, 0], "O2 G X0", setting
+    )
 
     # Bath G X0
     d = 1
@@ -778,7 +834,7 @@ for setting in settings:
     )
 
     ws.propagation_matrixInit()
-    ws.propagation_matrixAddLines2(no_negative_absorption=False)
+    ws.propagation_matrixAddLines(no_negative_absorption=False)
 
     pm_d = ws.propagation_matrix * 1.0
     ws.absorption_bands[0].data.lines[il].ls.single_models[1].data.set(
@@ -786,4 +842,6 @@ for setting in settings:
     )
 
     dpm_dX = (pm_d - pm) / d
-    compare_fn(ws.frequency_grid, dpm[24][:, 0], dpm_dX[:, 0], "Bath G X0", setting)
+    compare_fn(
+        ws.frequency_grid, dpm[24][:, 0], dpm_dX[:, 0], "Bath G X0", setting
+    )

@@ -324,28 +324,9 @@ Both the data and the grid may be named
                        .desc = "A 64 bit signed integer type\n",
                        .value_type = true};
 
-  wsg_data["ErrorCorrectedSuddenData"] = {
-      .file = "linemixing.h",
-      .desc =
-          R"--(Data required for error-corrected sudden line mixing
-)--"};
-
   wsg_data["LinemixingEcsData"] = {.file = "lbl.h",
                                    .desc =
                                        R"--(A map of line mixing data
-)--"};
-
-  wsg_data["MapOfErrorCorrectedSuddenData"] = {
-      .file = "linemixing.h",
-      .desc =
-          R"--(A map of *ErrorCorrectedSuddenData* required for computing the error-corrected-sudden relaxation matrix
-
-This map contains a list of an underlying data type.  This underlying data type contains a
-*QuantumIdentifier* and a list of species dependent computational data for various components
-required to compute the relaxation matrix
-
-If there is no identifier or species avaialable, default values that approximates a diagonal
-relaxation matrix are set
 )--"};
 
   wsg_data["MCAntenna"] = {.file = "mc_antenna.h",
@@ -585,6 +566,13 @@ radiation.
 
   wsg_data["Vector2"] = {.file = "matpack.h",
                          .desc = "A fixed-size 2D version of *Vector*.\n"};
+
+  wsg_data["AscendingGrid"] = {
+      .file = "matpack.h",
+      .desc = "A sorted grid of always ascending values.\n"};
+
+  wsg_data["ArrayOfAscendingGrid"] = {.file = "matpack.h",
+                                      .desc = "A list of *AscendingGrid*.\n"};
 
   return wsg_data;
 }

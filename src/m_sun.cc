@@ -28,7 +28,7 @@ using Constant::pi;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sunsAddSingleBlackbody(ArrayOfSun &suns,
                             // Inputs:
-                            const Vector &f_grid,
+                            const AscendingGrid &f_grid,
                             const Numeric &radius,
                             const Numeric &distance,
                             const Numeric &temperature,
@@ -61,7 +61,7 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sunsAddSingleFromGrid(ArrayOfSun &suns,
                            // Inputs:
-                           const Vector &f_grid,
+                           const AscendingGrid &f_grid,
                            const GriddedField2 &sun_spectrum_raw,
                            const Numeric &radius,
                            const Numeric &distance,

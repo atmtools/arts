@@ -39,7 +39,7 @@ as this is the only way to pass the volume mixing ratio of the atmosphere into
 ARTS
 
 """
-ws.abs_speciesSet(species=["O2-CIA-O2"])
+ws.absorption_speciesSet(species=["O2-CIA-O2"])
 
 """
 
@@ -48,7 +48,7 @@ Loads all CIA data from a given folder.  This command expects the file
 user-defined search paths.
 
 """
-ws.abs_cia_dataReadSpeciesSplitCatalog(basename="cia/")
+ws.propagation_matrix_cia_dataReadSpeciesSplitCatalog(basename="cia/")
 
 
 """
@@ -58,7 +58,7 @@ ensure that the line-by-line catalog has the correct size and that it has been
 set so that our automatic agenda routine can do its work
 
 """
-ws.abs_lines_per_speciesSetEmpty()
+ws.absorption_bands = []
 
 """
 
@@ -90,12 +90,11 @@ inputs required to initialize the propagation matrix
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
 ws.frequency_grid = pyarts.arts.convert.wavelen2freq(np.linspace(6900e-9, 5900e-9, 1001))
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
-ws.path_point # No particular POSLOS
+ws.atmospheric_point[ws.absorption_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.propagation_path_point # No particular POSLOS
 
 # Call the agenda with inputs above
 ws.propagation_matrix_agendaExecute()

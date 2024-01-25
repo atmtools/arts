@@ -11,6 +11,7 @@
 #include "lbl_lineshape_voigt_nlte.h"
 #include "lbl_zeeman.h"
 #include "quantum_numbers.h"
+#include "species.h"
 
 namespace lbl {
 std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
@@ -64,6 +65,7 @@ void calculate(PropmatVectorView pm,
                matpack::matpack_view<Stokvec, 2, false, true> dsv,
                const ExhaustiveConstVectorView& f_grid,
                const Jacobian::Targets& jacobian_targets,
+               const SpeciesEnum species,
                const std::span<const lbl::band>& bnds,
                const linemixing::isot_map& ecs_data,
                const AtmPoint& atm,
@@ -147,14 +149,16 @@ void calculate(PropmatVectorView pm,
   };
 
   for (auto& [bnd_key, bnd] : bnds) {
-    calc_switch(bnd_key, bnd, zeeman::pol::no);
+    if (species == bnd_key.Species() or species == SpeciesEnum::Bath){
+      calc_switch(bnd_key, bnd, zeeman::pol::no);}
   }
 
   for (auto pol : {zeeman::pol::pi, zeeman::pol::sm, zeeman::pol::sp}) {
     if (voigt_lte_data) voigt_lte_data->update_zeeman(los, atm.mag, pol);
 
     for (auto& [bnd_key, bnd] : bnds) {
-      calc_switch(bnd_key, bnd, pol);
+      if (species == bnd_key.Species() or species == SpeciesEnum::Bath){
+        calc_switch(bnd_key, bnd, pol);}
     }
   }
 }

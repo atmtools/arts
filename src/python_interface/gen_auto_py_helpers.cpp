@@ -420,7 +420,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\nInput\n=====\n\n",
+      val += var_string("\n\nInput to\n========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[0]),
@@ -432,7 +432,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[1].size()) {
-      val += var_string("\n\nInput and output\n================\n\n",
+      val += var_string("\n\nModified by\n===========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[1]),
@@ -442,8 +442,9 @@ String variable_used_by(const String& name) {
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
+
     if (io[2].size()) {
-      val += var_string("\n\nOutput\n======\n\n",
+      val += var_string("\n\nOutput from\n===========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[2]),
@@ -475,7 +476,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[0].size()) {
-      val += var_string("\n\nInput\n=====\n\n",
+      val += var_string("\n\nInput to\n========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[0]),
@@ -487,7 +488,7 @@ String variable_used_by(const String& name) {
     }
 
     if (io[1].size()) {
-      val += var_string("\n\nInput and output\n================\n\n",
+      val += var_string("\n\nModified by\n===========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[1]),
@@ -497,8 +498,9 @@ String variable_used_by(const String& name) {
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
+    
     if (io[2].size()) {
-      val += var_string("\n\nOutput\n======\n\n",
+      val += var_string("\n\nOutput from\n===========\n\n",
                         "\n\n.. hlist::",
                         "\n    :columns: ",
                         hlist_num_cols(io[2]),

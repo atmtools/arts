@@ -3,13 +3,18 @@ import numpy as np
 
 ws = pyarts.Workspace()
 
-ws.abs_speciesSet(species=["O2-66"])
+ws.absorption_speciesSet(species=["O2-66"])
 
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
+    ws.abs_lines_per_species, basename="lines/"
+)
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
 
-ws.absorption_bandsFromAbsorbtionLines()
+ws.absorption_bandsFromAbsorbtionLines(
+    abs_lines_per_species=ws.abs_lines_per_species
+)
 ws.absorption_bandsSelectFrequency(fmax=120e9)
 ws.absorption_bandsKeepID(id=bandkey)
 
@@ -23,20 +28,19 @@ ws.Wigner6Init()
 ws.frequency_grid = np.linspace(40e9, 130e9, 10001)  # around the band
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5
-ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% Oxygen
-ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 21% Oxygen
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 ws.jacobian_targetsInit()
 
-ws.ecs_dataInitNEWNEW()
-ws.ecs_dataAddMakarov2020NEWNEW()
-ws.ecs_dataAddMeanAirNEWNEW(vmrs=[1], species=["N2"])
+ws.ecs_dataInit()
+ws.ecs_dataAddMakarov2020()
+ws.ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
 
 ws.absorption_bands[0].data.lineshape = "VP_ECS_MAKAROV"
 ws.propagation_matrixInit()
-ws.propagation_matrixAddLines2()
+ws.propagation_matrixAddLines()

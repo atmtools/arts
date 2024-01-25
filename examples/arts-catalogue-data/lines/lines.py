@@ -65,7 +65,7 @@ of what is possible:
     write "O2-66,O2".
 
 """
-ws.abs_speciesSet(species=["O2-66"])
+ws.absorption_speciesSet(species=["O2-66"])
 
 """
 
@@ -107,7 +107,10 @@ are the consequences:
     also has the len 2, but that all lines are now in the first entry.
 
 """
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+# FIXME
+ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
+ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
 
 """
 
@@ -135,13 +138,12 @@ inputs required to initialize the propagation matrix
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
 ws.frequency_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
-ws.path_point  # No particular POSLOS
+ws.propagation_path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar
-ws.atmospheric_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.atmospheric_point[ws.absorption_species[0]] = 0.21  # At 21% atmospheric Oxygen
 
 # Call the agenda with inputs above
 ws.propagation_matrix_agendaExecute()

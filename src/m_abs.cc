@@ -25,6 +25,7 @@
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"
+#include "lbl_data.h"
 #include "lineshape.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
@@ -33,6 +34,7 @@
 #include "optproperties.h"
 #include "path_point.h"
 #include "rte.h"
+#include "species.h"
 #include "species_tags.h"
 
 #ifdef ENABLE_NETCDF
@@ -48,77 +50,7 @@ inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesCreateFromLines(  // WS Output:
-    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    // WS Input:
-    const ArrayOfAbsorptionLines& abs_lines,
-    const ArrayOfArrayOfSpeciesTag& abs_species) {
-  // Size is set but inner size will now change from the original definition of species tags...
-  abs_lines_per_species.resize(abs_species.size());
-
-  // The inner arrays need to be emptied, because they may contain lines
-  // from a previous calculation
-  for (auto& lines : abs_lines_per_species) lines.resize(0);
-
-#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
-  for (Size ilines = 0; ilines < abs_lines.size(); ilines++) {
-    AbsorptionLines lines = abs_lines[ilines];
-
-    // Skip empty lines
-    if (lines.NumLines() == 0) continue;
-
-    // Loop all the tags
-    for (Size i = 0; i < abs_species.size() and lines.NumLines(); i++) {
-      for (auto& this_tag : abs_species[i]) {
-        // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
-          continue;
-
-        // If there is a frequency range, we have to check so that only selected lines are included
-        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
-          const Numeric low = (this_tag.lower_freq >= 0)
-                                  ? this_tag.lower_freq
-                                  : std::numeric_limits<Numeric>::lowest();
-          const Numeric upp = (this_tag.upper_freq >= 0)
-                                  ? this_tag.upper_freq
-                                  : std::numeric_limits<Numeric>::max();
-
-          // Fill up a copy of the line record to match with the wished frequency criteria
-          AbsorptionLines these_lines = lines;
-          these_lines.lines.resize(0);
-          for (Index k = lines.NumLines() - 1; k >= 0; k--)
-            if (low <= lines.lines[k].F0 and upp >= lines.lines[k].F0)
-              these_lines.AppendSingleLine(lines.PopLine(k));
-
-          // Append these lines after sorting them if there are any of them
-          if (these_lines.NumLines()) {
-            these_lines.ReverseLines();
-#pragma omp critical
-            abs_lines_per_species[i].push_back(these_lines);
-          }
-
-          // If this means we have deleted all lines, then we leave
-          if (lines.NumLines() == 0) goto leave_inner_loop;
-        } else {
-#pragma omp critical
-          abs_lines_per_species[i].push_back(lines);
-          goto leave_inner_loop;
-        }
-      }
-    }
-  leave_inner_loop: {}
-  }
-
-  abs_lines_per_species.shrink_to_fit();
-  for (auto& spec_band : abs_lines_per_species)
-    std::sort(spec_band.begin(), spec_band.end(), [](auto& a, auto& b) {
-      return a.lines.size() and b.lines.size() and
-             a.lines.front().F0 < b.lines.front().F0;
-    });
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesDefineAllInScenario(  // WS Output:
+void absorption_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
     // Control Parameters:
     const String& basename) {
@@ -150,8 +82,8 @@ void abs_speciesDefineAllInScenario(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesDefineAll(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species) {
+void absorption_speciesDefineAll(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& absorption_species) {
   // Species lookup data:
 
   // We want to make lists of all species
@@ -163,7 +95,7 @@ void abs_speciesDefineAll(  // WS Output:
   }
 
   // Set the values
-  abs_speciesSet(abs_species, specs);
+  absorption_speciesSet(absorption_species, specs);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -196,7 +128,7 @@ void propagation_matrixInit(  //WS Output
     StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const Vector& frequency_grid) {
+    const AscendingGrid& frequency_grid) {
   const Index nf = frequency_grid.nelem();
   const Index nq = jacobian_targets.target_count();
 
@@ -220,17 +152,18 @@ void propagation_matrixInit(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
-                                  PropmatMatrix& propagation_matrix_jacobian,
-                                  const Vector& frequency_grid,
-                                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const ArrayOfSpeciesTag& select_abs_species,
-                                  const JacobianTargets& jacobian_targets,
-                                  const AtmPoint& atm_point,
-                                  const PropagationPathPoint& path_point) {
+void propagation_matrixAddFaraday(
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
+    const AscendingGrid& frequency_grid,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const SpeciesEnum& select_absorption_species,
+    const JacobianTargets& jacobian_targets,
+    const AtmPoint& atm_point,
+    const PropagationPathPoint& path_point) {
   Index ife = -1;
-  for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
-    if (abs_species[sp].FreeElectrons()) {
+  for (Size sp = 0; sp < absorption_species.size() && ife < 0; sp++) {
+    if (absorption_species[sp].FreeElectrons()) {
       ife = sp;
     }
   }
@@ -238,11 +171,12 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
   const Vector rtp_los{path::mirror(path_point.los)};
 
   ARTS_USER_ERROR_IF(ife < 0,
-                     "Free electrons not found in *abs_species* and "
+                     "Free electrons not found in *absorption_species* and "
                      "Faraday rotation can not be calculated.");
 
   // Allow early exit for lookup table calculations
-  if (select_abs_species.size() and select_abs_species not_eq abs_species[ife])
+  if (select_absorption_species != SpeciesEnum::Bath and
+      select_absorption_species != absorption_species[ife].Species())
     return;
 
   // All the physical constants joined into one static constant:
@@ -259,10 +193,10 @@ void propagation_matrixAddFaraday(PropmatVector& propagation_matrix,
       Atm::Key::wind_u,
       Atm::Key::wind_v,
       Atm::Key::wind_w,
-      abs_species[ife].Species());
+      absorption_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
-  const Numeric ne = atm_point[abs_species[ife].Species()];
+  const Numeric ne = atm_point[absorption_species[ife].Species()];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
@@ -329,16 +263,16 @@ void propagation_matrixAddParticles(
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const Vector& frequency_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const ArrayOfSpeciesTag& select_absorption_species,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& path_point,
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& use_abs_as_ext) {
-  ARTS_USER_ERROR_IF(select_abs_species.size(), R"--(
-  We do not yet support select_abs_species for lookup table calculations
+  ARTS_USER_ERROR_IF(select_absorption_species.size(), R"--(
+  We do not yet support select_absorption_species for lookup table calculations
   )--")
 
   // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
@@ -354,20 +288,20 @@ void propagation_matrixAddParticles(
 
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
-  for (Size sp = 0; sp < abs_species.size(); sp++) {
-    if (abs_species[sp].Particles()) {
+  for (Size sp = 0; sp < absorption_species.size(); sp++) {
+    if (absorption_species[sp].Particles()) {
       np++;
     }
   }
 
   ARTS_USER_ERROR_IF(
       np == 0,
-      "For applying propagation_matrixAddParticles, *abs_species* needs to"
+      "For applying propagation_matrixAddParticles, *absorption_species* needs to"
       "contain species 'particles', but it does not.\n")
 
   ARTS_USER_ERROR_IF(
       ns != np,
-      "Number of 'particles' entries in abs_species and of elements in\n"
+      "Number of 'particles' entries in absorption_species and of elements in\n"
       "*scat_data* needs to be identical. But you have ",
       np,
       " 'particles' entries\n"
@@ -379,7 +313,7 @@ void propagation_matrixAddParticles(
       jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
   const Numeric dT = jac_temperature.first ? jac_temperature.second->d : 0.0;
 
-  const Index na = abs_species.size();
+  const Index na = absorption_species.size();
   const Vector rtp_los_back{path_point.los};
 
   // creating temporary output containers
@@ -418,20 +352,20 @@ void propagation_matrixAddParticles(
   PropmatVector internal_propmat(propagation_matrix.nelem());
 
   // loop over the scat_data and link them with correct vmr_field entry according
-  // to the position of the particle type entries in abs_species.
+  // to the position of the particle type entries in absorption_species.
   Index sp = 0;
   Index i_se_flat = 0;
   for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
     for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
-      // forward to next particle entry in abs_species
-      while (sp < na && not abs_species[sp].Particles()) sp++;
+      // forward to next particle entry in absorption_species
+      while (sp < na && not absorption_species[sp].Particles()) sp++;
       internal_propmat = 0.0;
 
-      // running beyond number of abs_species entries when looking for next
+      // running beyond number of absorption_species entries when looking for next
       // particle entry. shouldn't happen, though.
       ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF(
-          atm_point[abs_species[sp].Species()] < 0.,
+          atm_point[absorption_species[sp].Species()] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
           "scat species #",
@@ -442,7 +376,7 @@ void propagation_matrixAddParticles(
           sp,
           ")\n")
 
-      if (atm_point[abs_species[sp].Species()] > 0.) {
+      if (atm_point[absorption_species[sp].Species()] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
                            "scat species #",
@@ -464,7 +398,7 @@ void propagation_matrixAddParticles(
           }
         }
 
-        const Numeric vmr = atm_point[abs_species[sp].Species()];
+        const Numeric vmr = atm_point[absorption_species[sp].Species()];
         for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
           propagation_matrix[iv] += vmr * internal_propmat[iv];
         }
@@ -490,7 +424,7 @@ void propagation_matrixAddParticles(
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
-        tmp *= atm_point[abs_species[sp].Species()];
+        tmp *= atm_point[absorption_species[sp].Species()];
         tmp /= dT;
 
         for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
@@ -507,7 +441,7 @@ void propagation_matrixAddParticles(
       }
 
       if (const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(
-              abs_species[sp].Species());
+              absorption_species[sp].Species());
           jac_species.first) {
         const auto iq = jac_species.second->target_pos;
 
@@ -521,270 +455,9 @@ void propagation_matrixAddParticles(
   }
 }
 
-void sparse_frequency_gridFromFrequencyGrid(Vector& sparse_frequency_grid,
-                                            const Vector& frequency_grid,
-                                            const Numeric& sparse_df,
-                                            const String& speedup_option) {
-  // Return empty for nothing
-  if (not frequency_grid.nelem()) {
-    sparse_frequency_grid.resize(0);
-    return;
-  };
-
-  switch (Options::toLblSpeedupOrThrow(speedup_option)) {
-    case Options::LblSpeedup::LinearIndependent:
-      sparse_frequency_grid =
-          LineShape::linear_sparse_frequency_grid(frequency_grid, sparse_df);
-      ARTS_ASSERT(LineShape::good_linear_sparse_frequency_grid(
-          frequency_grid, sparse_frequency_grid))
-      break;
-    case Options::LblSpeedup::QuadraticIndependent:
-      sparse_frequency_grid =
-          LineShape::triple_sparse_frequency_grid(frequency_grid, sparse_df);
-      break;
-    case Options::LblSpeedup::None:
-      sparse_frequency_grid.resize(0);
-      break;
-    case Options::LblSpeedup::FINAL: { /* Leave last */
-    }
-  }
-}
-
-Vector create_sparse_frequency_grid_internal(const Vector& frequency_grid,
-                                             const Numeric& sparse_df,
-                                             const String& speedup_option) {
-  Vector sparse_frequency_grid;
-  sparse_frequency_gridFromFrequencyGrid(
-      sparse_frequency_grid, frequency_grid, sparse_df, speedup_option);
-  return sparse_frequency_grid;
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrixAddLines(  // Workspace reference:
-    // WS Output:
-    PropmatVector& propagation_matrix,
-    StokvecVector& source_vector_nonlte,
-    PropmatMatrix& propagation_matrix_jacobian,
-    StokvecMatrix& source_vector_nonlte_jacobian,
-    // WS Input:
-    const Vector& frequency_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
-    const JacobianTargets& jacobian_targets,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const AtmPoint& atm_point,
-    const Index& nlte_do,
-    // WS User Generic inputs
-    const VibrationalEnergyLevels& nlte_vib_energies,
-    const Numeric& sparse_df,
-    const Numeric& sparse_lim,
-    const String& speedup_option,
-    const Index& robust) {
-  // Size of problem
-  const Index nf = frequency_grid.nelem();
-  const Index nq = jacobian_targets.target_count();
-  const Index ns = abs_species.size();
-
-  // Possible things that can go wrong in this code (excluding line parameters)
-  check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
-                     "*frequency_grid* must match *propagation_matrix*")
-  ARTS_USER_ERROR_IF(source_vector_nonlte.nelem() not_eq nf,
-                     "*frequency_grid* must match *source_vector_nonlte*")
-  ARTS_USER_ERROR_IF(
-      nq not_eq propagation_matrix_jacobian.nrows(),
-      "*propagation_matrix_jacobian* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(
-      nf not_eq propagation_matrix_jacobian.ncols(),
-      "*propagation_matrix_jacobian* must have frequency dim same as *frequency_grid*")
-  ARTS_USER_ERROR_IF(
-      nlte_do and nq not_eq source_vector_nonlte_jacobian.nrows(),
-      "*source_vector_nonlte_jacobian* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(
-      nlte_do and nf not_eq source_vector_nonlte_jacobian.ncols(),
-      "*source_vector_nonlte_jacobian* must have frequency dim same as *frequency_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(any_negative(frequency_grid),
-                     "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(
-      (any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and
-          not is_increasing(frequency_grid),
-      "Must be sorted and increasing if any cutoff or speedup is used.")
-  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
-  ARTS_USER_ERROR_IF(
-      sparse_lim > 0 and sparse_df > sparse_lim,
-      "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
-      "The limit is ",
-      sparse_lim,
-      " Hz and the grid_spacing is ",
-      sparse_df,
-      " Hz")
-
-  if (not nf) return;
-
-  // Deal with sparse computational grid
-  const Vector frequency_grid_sparse = create_sparse_frequency_grid_internal(
-      frequency_grid, sparse_df, speedup_option);
-  const Options::LblSpeedup speedup_type =
-      frequency_grid_sparse.nelem()
-          ? Options::toLblSpeedupOrThrow(speedup_option)
-          : Options::LblSpeedup::None;
-  ARTS_USER_ERROR_IF(
-      sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
-      "Must have a sparse limit if you set speedup_option")
-
-  // Calculations data
-  LineShape::ComputeData com(frequency_grid, jacobian_targets, nlte_do);
-  LineShape::ComputeData sparse_com(
-      frequency_grid_sparse, jacobian_targets, nlte_do);
-
-  if (arts_omp_in_parallel()) {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_abs_species.size() and
-          select_abs_species not_eq abs_species[ispecies])
-        continue;
-
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].size())
-        continue;
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com,
-                           sparse_com,
-                           band,
-                           jacobian_targets,
-                           atm_point.is_lte()
-                               ? std::pair{0., 0.}
-                               : atm_point.levels(band.quantumidentity),
-                           nlte_vib_energies,
-                           band.BroadeningSpeciesVMR(atm_point),
-                           abs_species[ispecies],
-                           atm_point[band.Species()],
-                           atm_point[band.Isotopologue()],
-                           atm_point.pressure,
-                           atm_point.temperature,
-                           0,
-                           sparse_lim,
-                           Zeeman::Polarization::None,
-                           speedup_type,
-                           robust not_eq 0);
-      }
-    }
-  } else {  // In parallel
-    const Index nbands = [](auto& lines) {
-      Index n = 0;
-      for (auto& abs_lines : lines) n += abs_lines.size();
-      return n;
-    }(abs_lines_per_species);
-
-    std::vector<LineShape::ComputeData> vcom(
-        arts_omp_get_max_threads(),
-        LineShape::ComputeData{
-            frequency_grid, jacobian_targets, static_cast<bool>(nlte_do)});
-    std::vector<LineShape::ComputeData> vsparse_com(
-        arts_omp_get_max_threads(),
-        LineShape::ComputeData{frequency_grid_sparse,
-                               jacobian_targets,
-                               static_cast<bool>(nlte_do)});
-
-    std::atomic<bool> error{false};
-    std::string error_message;
-
-#pragma omp parallel for
-    for (Index i = 0; i < nbands; i++) {
-      if (error.load()) continue;
-
-      try {
-        const auto [ispecies, iband] =
-            flat_index(i, abs_species, abs_lines_per_species);
-
-        if (select_abs_species.size() and
-            select_abs_species not_eq abs_species[ispecies])
-          continue;
-
-        // Skip it if there are no species or there is Zeeman requested
-        if (not abs_species[ispecies].size() or
-            abs_species[ispecies].Zeeman() or
-            not abs_lines_per_species[ispecies].size())
-          continue;
-
-        auto& band = abs_lines_per_species[ispecies][iband];
-        LineShape::compute(vcom[arts_omp_get_thread_num()],
-                           vsparse_com[arts_omp_get_thread_num()],
-                           band,
-                           jacobian_targets,
-                           atm_point.is_lte()
-                               ? std::pair{0., 0.}
-                               : atm_point.levels(band.quantumidentity),
-                           nlte_vib_energies,
-                           band.BroadeningSpeciesVMR(atm_point),
-                           abs_species[ispecies],
-                           atm_point[band.Species()],
-                           atm_point[band.Isotopologue()],
-                           atm_point.pressure,
-                           atm_point.temperature,
-                           0,
-                           sparse_lim,
-                           Zeeman::Polarization::None,
-                           speedup_type,
-                           robust not_eq 0);
-      } catch (std::exception& e) {
-        error.store(true);
-#pragma omp critical
-        error_message = e.what();
-      }
-    }
-
-    ARTS_USER_ERROR_IF(error, error_message)
-
-    for (auto& pcom : vcom) com += pcom;
-    for (auto& pcom : vsparse_com) sparse_com += pcom;
-  }
-
-  switch (speedup_type) {
-    case Options::LblSpeedup::LinearIndependent:
-      com.interp_add_even(sparse_com);
-      break;
-    case Options::LblSpeedup::QuadraticIndependent:
-      com.interp_add_triplequad(sparse_com);
-      break;
-    case Options::LblSpeedup::None: /* Do nothing */
-      break;
-    case Options::LblSpeedup::FINAL: { /* Leave last */
-    }
-  }
-
-  // Sum up the propagation matrix
-  for (Index iv = 0; iv < nf; iv++) {
-    propagation_matrix[iv].A() += com.F[iv].real();
-  }
-
-  // Sum up the Jacobian
-
-  for (Index j = 0; j < nq; j++) {
-    for (Index iv = 0; iv < nf; iv++) {
-      propagation_matrix_jacobian(j, iv).A() += com.dF(iv, j).real();
-    }
-  }
-
-  if (nlte_do) {
-    // Sum up the source vector
-    for (Index iv = 0; iv < nf; iv++) {
-      source_vector_nonlte[iv].I() += com.N[iv].real();
-    }
-
-    // Sum up the Jacobian
-    for (Index j = 0; j < nq; j++) {
-      for (Index iv = 0; iv < nf; iv++) {
-        source_vector_nonlte_jacobian(j, iv).I() += com.dN(iv, j).real();
-      }
-    }
-  }
-}
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixZero(PropmatVector& propagation_matrix,
-                            const Vector& frequency_grid) {
+                            const AscendingGrid& frequency_grid) {
   propagation_matrix = PropmatVector(frequency_grid.nelem());
 }
 
@@ -979,30 +652,22 @@ void WriteMolTau(  //WS Input
 void propagation_matrix_agendaAuto(  // Workspace reference:
     Agenda& propagation_matrix_agenda,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const AbsorptionBands& absorption_bands,
     // WS Generic Input:
-    const Numeric& H,
     const Numeric& T_extrapolfac,
-    const Numeric& eta,
     const Numeric& extpolfac,
     const Numeric& force_p,
     const Numeric& force_t,
     const Index& ignore_errors,
-    const Numeric& lines_sparse_df,
-    const Numeric& lines_sparse_lim,
-    const String& lines_speedup_option,
-    const Index& manual_mag_field,
     const Index& no_negatives,
-    const Numeric& theta,
     const Index& use_abs_lookup_ind) {
   AgendaCreator agenda("propagation_matrix_agenda");
 
   // Use bool because logic is easier
   const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
 
-  const SpeciesTagTypeStatus any_species(abs_species);
-  const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
+  const SpeciesTagTypeStatus any_species(absorption_species);
 
   // propagation_matrixInit
   agenda.add("propagation_matrixInit");
@@ -1015,25 +680,8 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   }
 
   // propagation_matrixAddLines
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.LTE or any_lines.population.NLTE or
-       any_lines.population.VibTemps)) {
-    agenda.add("propagation_matrixAddLines",
-               SetWsv{"lines_sparse_df", lines_sparse_df},
-               SetWsv{"lines_sparse_lim", lines_sparse_lim},
-               SetWsv{"lines_speedup_option", lines_speedup_option},
-               SetWsv{"no_negatives", no_negatives});
-  }
-
-  // propagation_matrixAddZeeman
-  if (any_species.Zeeman and
-      (any_lines.population.LTE or any_lines.population.NLTE or
-       any_lines.population.VibTemps)) {
-    agenda.add("propagation_matrixAddZeeman",
-               SetWsv{"manual_mag_field", manual_mag_field},
-               SetWsv{"H", H},
-               SetWsv{"theta", theta},
-               SetWsv{"eta", eta});
+  if (not use_abs_lookup and absorption_bands.size()) {
+    agenda.add("propagation_matrixAddLines");
   }
 
   //propagation_matrixAddHitranXsec
@@ -1041,20 +689,6 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
     agenda.add("propagation_matrixAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
-  }
-
-  //propagation_matrixAddOnTheFlyLineMixing
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.ByMakarovFullRelmat or
-       any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propagation_matrixAddOnTheFlyLineMixing");
-  }
-
-  //propagation_matrixAddOnTheFlyLineMixingWithZeeman
-  if (any_species.Zeeman and
-      (any_lines.population.ByMakarovFullRelmat or
-       any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propagation_matrixAddOnTheFlyLineMixingWithZeeman");
   }
 
   //propagation_matrixAddCIA
@@ -1072,13 +706,6 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   //propagation_matrixAddFaraday
   if (any_species.FreeElectrons) {
     agenda.add("propagation_matrixAddFaraday");
-  }
-
-  // propagation_matrixAddHitranLineMixingLines
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.ByHITRANFullRelmat or
-       any_lines.population.ByHITRANRosenkranzRelmat)) {
-    agenda.add("propagation_matrixAddHitranLineMixingLines");
   }
 
   // Extra check (should really never ever fail when species exist)

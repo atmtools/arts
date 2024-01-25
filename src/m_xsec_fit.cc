@@ -11,6 +11,7 @@
 
 #include "jacobian.h"
 #include "physics_funcs.h"
+#include "species.h"
 #include "xml_io.h"
 #include "xsec_fit.h"
 
@@ -57,9 +58,9 @@ void propagation_matrixAddXsecFit(  // WS Output:
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
+    const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
     const ArrayOfXsecRecord& xsec_fit_data,
     const Numeric& force_p,
@@ -118,7 +119,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
   for (Size i = 0; i < abs_species.size(); i++) {
-    if (select_abs_species.size() and abs_species[i] not_eq select_abs_species)
+    if (select_species != SpeciesEnum::Bath and
+        abs_species[i].Species() != select_species)
       continue;
 
     const Numeric vmr = atm_point[abs_species[i].Species()];

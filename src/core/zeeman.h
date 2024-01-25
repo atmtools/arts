@@ -49,7 +49,7 @@ void zeeman_on_the_fly(
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,
     const Vector& rtp_los,

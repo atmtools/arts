@@ -7,6 +7,7 @@
 #include "atm_path.h"
 #include "debug.h"
 #include "matpack_data.h"
+#include "sorted_grid.h"
 
 void spectral_radiance_profile_operatorPlaneParallel(
     SpectralRadianceProfileOperator& spectral_radiance_profile_operator,
@@ -47,8 +48,8 @@ void spectral_radiance_profile_operatorPlaneParallel(
 
 void spectral_radiance_fieldPlaneParallelSpectralRadianceOperator(
     Tensor7& spectral_radiance_field,
-    const Vector& f_grid,
-    const Vector& za_grid,
+    const AscendingGrid& f_grid,
+    const AscendingGrid& za_grid,
     const SpectralRadianceProfileOperator& spectral_radiance_profile_operator) {
   const Index n = f_grid.size();
   const Index m = za_grid.size();

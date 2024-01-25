@@ -38,9 +38,9 @@ ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path,
  * @param[in] ppvar_atm As WSV
  * @return ArrayOfVector& As ppvar_f WSV
  */
-ArrayOfVector &path_freq_resize(ArrayOfVector &ppvar_f,
-                                const Vector &f_grid,
-                                const ArrayOfAtmPoint &ppvar_atm);
+ArrayOfAscendingGrid &path_freq_resize(ArrayOfAscendingGrid &ppvar_f,
+                                       const AscendingGrid &f_grid,
+                                       const ArrayOfAtmPoint &ppvar_atm);
 
 /** Set frequency grid along the atmospheric path
  * 
@@ -51,8 +51,8 @@ ArrayOfVector &path_freq_resize(ArrayOfVector &ppvar_f,
  * @param[in] rte_alonglos_v As WSV
  * @return ArrayOfVector& As ppvar_f WSV
  */
-void forward_path_freq(ArrayOfVector &ppvar_f,
-                       const Vector &f_grid,
+void forward_path_freq(ArrayOfAscendingGrid &ppvar_f,
+                       const AscendingGrid &f_grid,
                        const ArrayOfPropagationPathPoint &rad_path,
                        const ArrayOfAtmPoint &ppvar_atm,
                        const Numeric rte_alonglos_v);

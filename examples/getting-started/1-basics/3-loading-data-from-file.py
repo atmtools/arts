@@ -20,7 +20,7 @@ a clear sky or a cloudy sky.
 The folders that ARTS looks in are called search paths.  You can
 print the search paths that ARTS uses by doing:
 """
-print ("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
+print("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
 
 
 """
@@ -42,7 +42,7 @@ permanent.
 It is always possible to add additional search paths from within python:
 """
 pyarts.arts.globals.parameters.datapath.append("/my_data")
-print ("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
+print("ARTS search paths:", pyarts.arts.globals.parameters.datapath)
 
 
 """
@@ -55,8 +55,9 @@ the workspace.  There is no "best" way to do this, it depends on the
 context, and what you find most readable.
 """
 
+# FIXME
 # Call the WorkspaceVariable member method "readxml" to load data from file
-ws.abs_lines.readxml("lines/O2-66.xml")
+# ws.abs_lines.readxml("lines/O2-66.xml")
 
 # TESTING
 # AS THIS FILE IS RUN TO TEST ARTS, WE NEED TO CHECK THAT

@@ -385,7 +385,7 @@ void complex_refr_indexIceMatzler06(ComplexGriddedField2& complex_refr_index,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void complex_refr_indexTemperatureConstant(ComplexGriddedField2& complex_refr_index,
-                                 const Vector& f_grid,
+                                 const AscendingGrid& f_grid,
                                  const Vector& refr_index_real,
                                  const Vector& refr_index_imag,
                                  const Numeric& temperature) {

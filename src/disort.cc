@@ -25,7 +25,9 @@
 #include "atm.h"
 #include "check_input.h"
 #include "rtepack.h"
+#include "sorted_grid.h"
 #include "special_interp.h"
+#include "species.h"
 #include "species_tags.h"
 
 #if not ARTS_LGPL
@@ -314,7 +316,7 @@ void get_gasoptprop(const Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propagation_matrix_agenda,
                     const ArrayOfAtmPoint& ppvar_atm,
-                    const Vector& f_grid) {
+                    const AscendingGrid& f_grid) {
   const Index Np = ppvar_atm.size();
 
   ARTS_ASSERT(ext_bulk_gas.nrows() == f_grid.nelem());

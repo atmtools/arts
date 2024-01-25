@@ -91,9 +91,11 @@ TMPL_XML_READ_WRITE_STREAM(TelsemAtlas)
 TMPL_XML_READ_WRITE_STREAM(TessemNN)
 TMPL_XML_READ_WRITE_STREAM(XsecRecord)
 TMPL_XML_READ_WRITE_STREAM(ComplexMatrix)
+TMPL_XML_READ_WRITE_STREAM(AscendingGrid)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(ArrayOfAscendingGrid)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)

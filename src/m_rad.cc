@@ -10,11 +10,12 @@
 
 #include "debug.h"
 #include "fwd.h"
+#include "sorted_grid.h"
 
 void spectral_radiance_jacobianEmpty(StokvecMatrix &spectral_radiance_jacobian,
-                                     const Vector &f_grid,
+                                     const AscendingGrid &f_grid,
                                      const JacobianTargets &jacobian_targets) {
-  spectral_radiance_jacobian.resize(jacobian_targets.x_size(), f_grid.nelem());
+  spectral_radiance_jacobian.resize(jacobian_targets.x_size(), f_grid.size());
   spectral_radiance_jacobian = Stokvec{0.0, 0.0, 0.0, 0.0};
 }
 
@@ -129,7 +130,7 @@ void spectral_radianceStandardEmission(
     const Workspace &ws,
     StokvecVector &spectral_radiance,
     StokvecMatrix &spectral_radiance_jacobian,
-    const Vector &f_grid,
+    const AscendingGrid &f_grid,
     const JacobianTargets &jacobian_targets,
     const AtmField &atm_field,
     const SurfaceField &surface_field,
@@ -153,7 +154,7 @@ void spectral_radianceStandardEmission(
   propagation_path_atmospheric_pointFromPath(
       propagation_path_atmospheric_point, propagation_path, atm_field);
 
-  ArrayOfVector propagation_path_frequency_grid;
+  ArrayOfAscendingGrid propagation_path_frequency_grid;
   propagation_path_frequency_gridFromPath(propagation_path_frequency_grid,
                                           f_grid,
                                           propagation_path,
@@ -249,12 +250,12 @@ ENUMCLASS(
 
 void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
                                 const StokvecVector &spectral_radiance,
-                                const Vector &f_grid,
+                                const AscendingGrid &f_grid,
                                 const String &spectral_radiance_unit) try {
   const SpectralRadianceUnitType unit =
       toSpectralRadianceUnitTypeOrThrow(spectral_radiance_unit);
 
-  ARTS_USER_ERROR_IF(spectral_radiance.size() != f_grid.nelem(),
+  ARTS_USER_ERROR_IF(spectral_radiance.size() != f_grid.size(),
                      "spectral_radiance must have same size as f_grid")
 
   spectral_radiance_with_unit.resize(spectral_radiance.size());

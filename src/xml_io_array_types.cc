@@ -12,6 +12,7 @@
 
 #include "absorptionlines.h"
 #include "debug.h"
+#include "sorted_grid.h"
 #include "species_tags.h"
 #include <workspace.h>
 #include "xml_io.h"
@@ -377,6 +378,6 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpecies)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropagationPathPoint)
-
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfNamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField1Named)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAscendingGrid)

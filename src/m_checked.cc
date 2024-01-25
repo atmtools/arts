@@ -601,7 +601,7 @@ void propmat_clearsky_agenda_checkedCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_checkedCalc(Index& sensor_checked,
-                        const Vector& f_grid,
+                        const AscendingGrid& f_grid,
                         const Matrix& sensor_pos,
                         const Matrix& sensor_los,
                         const Matrix& transmitter_pos,
@@ -616,11 +616,6 @@ void sensor_checkedCalc(Index& sensor_checked,
   const Index n1y = sensor_response.nrows();
   const Index nmblock = sensor_pos.nrows();
   const Index niyb = nf * nlos * 4;
-
-  // Sensor position and LOS.
-  //
-  ARTS_USER_ERROR_IF(!is_increasing(f_grid),
-                     "*f_grid* must be a strictly increasing vector.");
 
   // Sensor position and LOS.
   //

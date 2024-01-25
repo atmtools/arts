@@ -32,6 +32,7 @@
 #include "refraction.h"
 #include "rtepack.h"
 #include "special_interp.h"
+#include "species.h"
 #include "species_tags.h"
 
 inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
@@ -285,10 +286,10 @@ void get_stepwise_clearsky_propmat(const Workspace& ws,
                                    StokvecMatrix& dS_dx,
                                    const Agenda& propagation_matrix_agenda,
                                    const JacobianTargets& jacobian_targets,
-                                   const Vector& ppath_f_grid,
+                                   const AscendingGrid& ppath_f_grid,
                                    const PropagationPathPoint& path_point,
                                    const AtmPoint& atm_point) {
-  static const ArrayOfSpeciesTag select_abs_species{};
+  static const SpeciesEnum select_abs_species{};
 
   // Perform the propagation matrix computations
   propagation_matrix_agendaExecute(ws,
