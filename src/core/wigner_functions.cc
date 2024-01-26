@@ -386,7 +386,7 @@ std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
 }
 
 void WignerInformation::initalize() {
-  ARTS_USER_ERROR_IF(init, "Must not be initialized.", *this)
+  ARTS_USER_ERROR_IF(init, "Must not be initialized.", WignerInformation{})
 
   if (sixj) {
     make_wigner_ready(largest, fastest, 6);
@@ -439,21 +439,21 @@ WignerInformation::WignerInformation(int largest_symbol,
 }
 
 void WignerInformation::assert_valid_wigner3(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", *this)
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", WignerInformation{})
 
   ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
                      "Wigner library not ready for Wigner 3j symbols with J = ",
                      J,
                      "\nPlease initialize it properly.\n",
-                     *this);
+                     WignerInformation{});
 }
 
 void WignerInformation::assert_valid_wigner6(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", *this)
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", WignerInformation{})
 
   ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
                      "Wigner library not ready for Wigner 6j symbols with J = ",
                      J,
                      "\nPlease initialize it properly.\n",
-                     *this);
+                     WignerInformation{});
 }

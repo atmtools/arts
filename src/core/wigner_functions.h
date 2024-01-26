@@ -32,9 +32,9 @@ class WignerInformation {
   static bool init;
 
 public:
-  void initalize();
+  static void initalize();
 
-  void unload();
+  static void unload();
 
   WignerInformation() = default;
 
@@ -43,9 +43,9 @@ public:
                     bool three,
                     bool six);
 
-  void assert_valid_wigner3(const Rational J);
+  static void assert_valid_wigner3(const Rational J);
 
-  void assert_valid_wigner6(const Rational J);
+  static void assert_valid_wigner6(const Rational J);
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const WignerInformation& wi);
