@@ -39,13 +39,15 @@ class TestMethods:
             "O3",
         ]
 
-        ws.abs_speciesSet(ws.abs_species, species)
-        ws.abs_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
-        ws.abs_speciesSet(ws.abs_species_2, species)
-        ws.abs_species_3 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
-        ws.abs_speciesSet(abs_species=ws.abs_species_3, species=species)
-        assert ws.abs_species == ws.abs_species_3
-        assert ws.abs_species_2 == ws.abs_species_3
+        ws.absorption_speciesSet(ws.absorption_species, species)
+        ws.absorption_species_2 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
+        ws.absorption_speciesSet(ws.absorption_species_2, species)
+        ws.absorption_species_3 = pyarts.arts.ArrayOfArrayOfSpeciesTag()
+        ws.absorption_speciesSet(
+            absorption_species=ws.absorption_species_3, species=species
+        )
+        assert ws.absorption_species == ws.absorption_species_3
+        assert ws.absorption_species_2 == ws.absorption_species_3
 
     def test_generic_output(self):
         """
@@ -54,18 +56,19 @@ class TestMethods:
         ws = self.ws
 
         tempfile = NamedTemporaryFile()
+        ws.mat = pyarts.arts.Matrix()
 
         mat = np.ones((2, 2))
-        ws.avk = np.ones((2, 2))
-        ws.WriteXML("ascii", ws.avk, tempfile.name)
+        ws.mat = np.ones((2, 2))
+        ws.WriteXML("ascii", ws.mat, tempfile.name)
 
-        ws.avk = np.zeros((2, 2))
-        ws.ReadXML(ws.avk, tempfile.name)
-        assert np.allclose(mat, ws.avk.value)
+        ws.mat = np.zeros((2, 2))
+        ws.ReadXML(ws.mat, tempfile.name)
+        assert np.allclose(mat, ws.mat.value)
 
-        ws.avk = np.zeros((2, 2))
-        ws.ReadXML(output=ws.avk, filename=tempfile.name)
-        assert np.allclose(mat, ws.avk.value)
+        ws.mat = np.zeros((2, 2))
+        ws.ReadXML(output=ws.mat, filename=tempfile.name)
+        assert np.allclose(mat, ws.mat)
 
     def test_supergeneric_overload_failure(self):
         """
@@ -77,7 +80,7 @@ class TestMethods:
             self.ws.Copy(self.ws.string_wsv, self.ws.numeric_wsv)
 
     def test_predefined_doc(self):
-        m = "propmat_clearskyAddPredefined"
+        m = "propagation_matrixAddPredefined"
         isots = pyarts.arts.globals.get_isotopologues()
         desc = pyarts.arts.globals.workspace_methods()[m].desc
 
@@ -92,4 +95,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_generic_input()
+    x.test_generic_output()

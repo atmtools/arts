@@ -33,12 +33,13 @@
 #include "math_funcs.h"
 #include "matpack_data.h"
 #include "physics_funcs.h"
+#include "sorted_grid.h"
 #include "special_interp.h"
 #include "species_tags.h"
 #include "xml_io.h"
 
-inline constexpr Numeric PI=Constant::pi;
-inline constexpr Numeric RAD2DEG=Conversion::rad2deg(1);
+inline constexpr Numeric PI = Constant::pi;
+inline constexpr Numeric RAD2DEG = Conversion::rad2deg(1);
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -58,24 +59,24 @@ void DOAngularGridsSet(  // WS Output:
   if (N_aa_grid > 1)
     nlinspace(aa_grid, 0, 360, N_aa_grid);
   else {
-    ARTS_USER_ERROR_IF (N_aa_grid < 1,
-      "N_aa_grid must be > 0 (even for 1D / DISORT cases).")
+    ARTS_USER_ERROR_IF(N_aa_grid < 1,
+                       "N_aa_grid must be > 0 (even for 1D / DISORT cases).")
     aa_grid.resize(1);
     aa_grid[0] = 0.;
   }
 
   // Zenith angle grid:
   // Number of zenith angle grid points (only for scattering integral):
-  ARTS_USER_ERROR_IF (N_za_grid < 0,
-    "N_za_grid must be >= 0.")
+  ARTS_USER_ERROR_IF(N_za_grid < 0, "N_za_grid must be >= 0.")
   doit_za_grid_size = N_za_grid;
 
   if (za_grid_opt_file == "")
     if (N_za_grid == 0)
       za_grid.resize(0);
     else {
-      ARTS_USER_ERROR_IF (N_za_grid == 1,
-        "N_za_grid must be >1 or =0 (the latter only allowed for RT4).")
+      ARTS_USER_ERROR_IF(
+          N_za_grid == 1,
+          "N_za_grid must be >1 or =0 (the latter only allowed for RT4).")
       nlinspace(za_grid, 0, 180, N_za_grid);
     }
   else
@@ -94,10 +95,10 @@ void doit_conv_flagAbs(  //WS Input and Output:
     const Index& max_iterations,
     const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
-  ARTS_USER_ERROR_IF (doit_conv_flag != 0,
-        "Convergence flag is non-zero, which means that this\n"
-        "WSM is not used correctly. *doit_conv_flagAbs* should\n"
-        "be used only in *doit_conv_test_agenda*\n");
+  ARTS_USER_ERROR_IF(doit_conv_flag != 0,
+                     "Convergence flag is non-zero, which means that this\n"
+                     "WSM is not used correctly. *doit_conv_flagAbs* should\n"
+                     "be used only in *doit_conv_test_agenda*\n");
 
   const Index N_p = cloudbox_field_mono.nvitrines();
   const Index N_lat = cloudbox_field_mono.nshelves();
@@ -106,18 +107,18 @@ void doit_conv_flagAbs(  //WS Input and Output:
   const Index N_aa = cloudbox_field_mono.nrows();
 
   // Check keyword "epsilon":
-  ARTS_USER_ERROR_IF (epsilon.nelem() != 4,
-        "You have to specify limiting values for the "
-        "convergence test for each Stokes component "
-        "separately. That means that *epsilon* must "
-        "have *4* elements!");
+  ARTS_USER_ERROR_IF(epsilon.nelem() != 4,
+                     "You have to specify limiting values for the "
+                     "convergence test for each Stokes component "
+                     "separately. That means that *epsilon* must "
+                     "have *4* elements!");
 
   // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
-  ARTS_USER_ERROR_IF (!is_size(
-          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
-        "The fields (Tensor6) *cloudbox_field* and \n"
-        "*cloudbox_field_old* which are compared in the \n"
-        "convergence test do not have the same size.\n");
+  ARTS_USER_ERROR_IF(
+      !is_size(cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
+      "The fields (Tensor6) *cloudbox_field* and \n"
+      "*cloudbox_field_old* which are compared in the \n"
+      "convergence test do not have the same size.\n");
 
   //-----------End of checks-------------------------------------------------
 
@@ -150,8 +151,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
           for (Index za_index = 0; za_index < N_za; za_index++) {
             for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
-              for (Index stokes_index = 0; stokes_index < 4;
-                   stokes_index++) {
+              for (Index stokes_index = 0; stokes_index < 4; stokes_index++) {
                 Numeric diff = (cloudbox_field_mono(p_index,
                                                     lat_index,
                                                     lon_index,
@@ -200,10 +200,10 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
     const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
 
-  ARTS_USER_ERROR_IF (doit_conv_flag != 0,
-        "Convergence flag is non-zero, which means that this \n"
-        "WSM is not used correctly. *doit_conv_flagAbs* should\n"
-        "be used only in *doit_conv_test_agenda*\n");
+  ARTS_USER_ERROR_IF(doit_conv_flag != 0,
+                     "Convergence flag is non-zero, which means that this \n"
+                     "WSM is not used correctly. *doit_conv_flagAbs* should\n"
+                     "be used only in *doit_conv_test_agenda*\n");
 
   const Index N_p = cloudbox_field_mono.nvitrines();
   const Index N_lat = cloudbox_field_mono.nshelves();
@@ -212,28 +212,28 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
   const Index N_aa = cloudbox_field_mono.nrows();
 
   // Check keyword "epsilon":
-  ARTS_USER_ERROR_IF (epsilon.nelem() != 4,
-        "You have to specify limiting values for the "
-        "convergence test for each Stokes component "
-        "separately. That means that *epsilon* must "
-        "have *4* elements!");
+  ARTS_USER_ERROR_IF(epsilon.nelem() != 4,
+                     "You have to specify limiting values for the "
+                     "convergence test for each Stokes component "
+                     "separately. That means that *epsilon* must "
+                     "have *4* elements!");
 
   // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
-  ARTS_USER_ERROR_IF (!is_size(
-          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
-        "The fields (Tensor6) *cloudbox_field* and \n"
-        "*cloudbox_field_old* which are compared in the \n"
-        "convergence test do not have the same size.\n");
+  ARTS_USER_ERROR_IF(
+      !is_size(cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
+      "The fields (Tensor6) *cloudbox_field* and \n"
+      "*cloudbox_field_old* which are compared in the \n"
+      "convergence test do not have the same size.\n");
 
   // Frequency grid
   //
-  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
+  ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
 
   // Is the frequency index valid?
-  ARTS_USER_ERROR_IF (f_index >= f_grid.nelem(),
-        "*f_index* is greater than number of elements in the\n"
-        "frequency grid.\n");
+  ARTS_USER_ERROR_IF(f_index >= f_grid.nelem(),
+                     "*f_index* is greater than number of elements in the\n"
+                     "frequency grid.\n");
 
   //-----------End of checks--------------------------------
 
@@ -268,8 +268,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
           for (Index za_index = 0; za_index < N_za; za_index++) {
             for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
-              for (Index stokes_index = 0; stokes_index < 4;
-                   stokes_index++) {
+              for (Index stokes_index = 0; stokes_index < 4; stokes_index++) {
                 Numeric diff = cloudbox_field_mono(p_index,
                                                    lat_index,
                                                    lon_index,
@@ -324,10 +323,10 @@ void doit_conv_flagLsq(  //WS Output:
     const Index& throw_nonconv_error) {
   //------------Check the input---------------------------------------
 
-  ARTS_USER_ERROR_IF (doit_conv_flag != 0,
-        "Convergence flag is non-zero, which means that this \n"
-        "WSM is not used correctly. *doit_conv_flagAbs* should\n"
-        "be used only in *doit_conv_test_agenda*\n");
+  ARTS_USER_ERROR_IF(doit_conv_flag != 0,
+                     "Convergence flag is non-zero, which means that this \n"
+                     "WSM is not used correctly. *doit_conv_flagAbs* should\n"
+                     "be used only in *doit_conv_test_agenda*\n");
 
   const Index N_p = cloudbox_field_mono.nvitrines();
   const Index N_lat = cloudbox_field_mono.nshelves();
@@ -336,28 +335,28 @@ void doit_conv_flagLsq(  //WS Output:
   const Index N_aa = cloudbox_field_mono.nrows();
 
   // Check keyword "epsilon":
-  ARTS_USER_ERROR_IF (epsilon.nelem() != 4,
-        "You have to specify limiting values for the "
-        "convergence test for each Stokes component "
-        "separately. That means that *epsilon* must "
-        "have *4* elements!");
+  ARTS_USER_ERROR_IF(epsilon.nelem() != 4,
+                     "You have to specify limiting values for the "
+                     "convergence test for each Stokes component "
+                     "separately. That means that *epsilon* must "
+                     "have *4* elements!");
 
   // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
-  ARTS_USER_ERROR_IF (!is_size(
-          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
-        "The fields (Tensor6) *cloudbox_field* and \n"
-        "*cloudbox_field_old* which are compared in the \n"
-        "convergence test do not have the same size.\n");
+  ARTS_USER_ERROR_IF(
+      !is_size(cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, 4),
+      "The fields (Tensor6) *cloudbox_field* and \n"
+      "*cloudbox_field_old* which are compared in the \n"
+      "convergence test do not have the same size.\n");
 
   // Frequency grid
   //
-  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
+  ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
 
   // Is the frequency index valid?
-  ARTS_USER_ERROR_IF (f_index >= f_grid.nelem(),
-        "*f_index* is greater than number of elements in the\n"
-        "frequency grid.\n");
+  ARTS_USER_ERROR_IF(f_index >= f_grid.nelem(),
+                     "*f_index* is greater than number of elements in the\n"
+                     "frequency grid.\n");
 
   //-----------End of checks--------------------------------
 
@@ -440,9 +439,10 @@ void cloudbox_field_monoIterate(const Workspace& ws,
         for (Index p = 0; p < cloudbox_field_mono.npages(); p++)
           for (Index r = 0; r < cloudbox_field_mono.nrows(); r++)
             for (Index c = 0; c < cloudbox_field_mono.ncols(); c++)
-              ARTS_USER_ERROR_IF (std::isnan(cloudbox_field_mono(v, s, b, p, r, c)),
-                    "*cloudbox_field_mono* contains at least one NaN value.\n"
-                    "This indicates an improper initialization of *cloudbox_field*.");
+              ARTS_USER_ERROR_IF(
+                  std::isnan(cloudbox_field_mono(v, s, b, p, r, c)),
+                  "*cloudbox_field_mono* contains at least one NaN value.\n"
+                  "This indicates an improper initialization of *cloudbox_field*.");
 
   //cloudbox_field_mono can not be further checked here, because there is no way
   //to find out the size without including a lot more interface
@@ -511,7 +511,7 @@ void DoitInit(  //WS Output
     Tensor7& cloudbox_field,
     Index& doit_is_initialized,
     // WS Input
-    
+
     const Vector& f_grid,
     const Vector& za_grid,
     const Vector& aa_grid,
@@ -532,40 +532,40 @@ void DoitInit(  //WS Output
   // The recommended values were found by testing the accuracy and the speed of
   // 1D DOIT calculations for different grid sizes. For 3D calculations it can
   // be necessary to use more grid points.
-  ARTS_USER_ERROR_IF (N_scat_za < 16,
-        "For accurate results, za_grid must have "
-        "more than 15 elements.");
+  ARTS_USER_ERROR_IF(N_scat_za < 16,
+                     "For accurate results, za_grid must have "
+                     "more than 15 elements.");
   if (N_scat_za > 100) {
   }
 
-  ARTS_USER_ERROR_IF (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.,
-                      "The range of *za_grid* must [0 180].");
+  ARTS_USER_ERROR_IF(za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.,
+                     "The range of *za_grid* must [0 180].");
 
-  ARTS_USER_ERROR_IF (!is_increasing(za_grid),
-                      "*za_grid* must be increasing.");
+  ARTS_USER_ERROR_IF(!is_increasing(za_grid), "*za_grid* must be increasing.");
 
   // Number of azimuth angles.
   const Index N_scat_aa = aa_grid.nelem();
 
-  ARTS_USER_ERROR_IF (N_scat_aa < 6,
-        "For accurate results, aa_grid must have "
-        "more than 5 elements.");
+  ARTS_USER_ERROR_IF(N_scat_aa < 6,
+                     "For accurate results, aa_grid must have "
+                     "more than 5 elements.");
   if (N_scat_aa > 100) {
   }
 
-  ARTS_USER_ERROR_IF (aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.,
-                      "The range of *aa_grid* must [0 360].");
+  ARTS_USER_ERROR_IF(aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.,
+                     "The range of *aa_grid* must [0 360].");
 
-  ARTS_USER_ERROR_IF (doit_za_grid_size < 16,
-        "*doit_za_grid_size* must be greater than 15 for accurate results");
+  ARTS_USER_ERROR_IF(
+      doit_za_grid_size < 16,
+      "*doit_za_grid_size* must be greater than 15 for accurate results");
   if (doit_za_grid_size > 100) {
   }
 
-  ARTS_USER_ERROR_IF (cloudbox_limits.size() != 6,
-        "*cloudbox_limits* is a vector which contains the"
-        "upper and lower limit of the cloud for all "
-        "atmospheric dimensions. So its dimension must"
-        "be 2 x *3*");
+  ARTS_USER_ERROR_IF(cloudbox_limits.size() != 6,
+                     "*cloudbox_limits* is a vector which contains the"
+                     "upper and lower limit of the cloud for all "
+                     "atmospheric dimensions. So its dimension must"
+                     "be 2 x *3*");
 
   //------------- end of checks ---------------------------------------
 
@@ -598,7 +598,7 @@ void cloudbox_field_monoOptimizeReverse(  //WS input
   Matrix itw_z(Z_gp.size(), 2);
   // We only need the p_grid inside the cloudbox as cloudbox_field_mono is only defined in the
   // cloudbox
-  Vector p_grid_cloudbox {p_grid[Range(
+  Vector p_grid_cloudbox{p_grid[Range(
       cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)]};
   std::ostringstream os;
   os << "There is a problem with the pressure grid interpolation";
@@ -634,19 +634,21 @@ void OptimizeDoitPressureGrid(
     Vector& p_grid_orig,
     const Vector& f_grid,
     const Index& f_index,
-    const Agenda& propmat_clearsky_agenda,
+    const Agenda& propagation_matrix_agenda,
     const Numeric& tau_scat_max,
     const Numeric& sgl_alb_max,
     const Index& cloudbox_size_max) {
   // Make sure that 4 = 1 and that ScatSpeciesMerge has been applied:
-  ARTS_USER_ERROR_IF (cloudbox_field_mono.ncols() != 1,
-        " This method currently only works for unpolarized radiation "
-        "( 4 = 1)");
+  ARTS_USER_ERROR_IF(
+      cloudbox_field_mono.ncols() != 1,
+      " This method currently only works for unpolarized radiation "
+      "( 4 = 1)");
   // If ScatSpeciesMerged has been applied, then scat_data_mono should have only one element, and
   // pnd_field should have the number of pressure grid points in the cloudbox as first dimension
-  ARTS_USER_ERROR_IF (scat_data_mono.size() > 1 ||
-      pnd_field.nbooks() != cloudbox_limits[1] - cloudbox_limits[0] + 1,
-        " ScatSpeciesMerge has to be applied in order to use this method");
+  ARTS_USER_ERROR_IF(
+      scat_data_mono.size() > 1 ||
+          pnd_field.nbooks() != cloudbox_limits[1] - cloudbox_limits[0] + 1,
+      " ScatSpeciesMerge has to be applied in order to use this method");
 
   bool was_too_much = false;
   Numeric tau_scat_max_internal = tau_scat_max;
@@ -670,7 +672,7 @@ void OptimizeDoitPressureGrid(
   StokvecVector nlte_dummy;
   PropmatMatrix partial_dummy;
   StokvecMatrix partial_nlte_dummy;
-  PropmatVector cur_propmat_clearsky;
+  PropmatVector cur_propagation_matrix;
 
   Index scat_data_insert_offset = 0;
   Vector single_scattering_albedo(cloudbox_limits[1] - cloudbox_limits[0] + 1,
@@ -686,19 +688,20 @@ void OptimizeDoitPressureGrid(
     scat_vec[cloudbox_index] =
         ext_mat[cloudbox_index] - abs_vec[cloudbox_index];
     // Calculate scalar gas absorption
-    propmat_clearsky_agendaExecute(ws,
-                                   cur_propmat_clearsky,
-                                   nlte_dummy,
-                                   partial_dummy,
-                                   partial_nlte_dummy,
-                                   {},
-                                   {},
-                                   Vector{f_grid[Range(f_index, 1)]},
-                                   {},
-                                   AtmPoint{},  // FIXME: DUMMY VALUE,
-                                   propmat_clearsky_agenda);
-    abs_coeff += cur_propmat_clearsky[0].A();
-    abs_coeff /= (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???
+    propagation_matrix_agendaExecute(ws,
+                                     cur_propagation_matrix,
+                                     nlte_dummy,
+                                     partial_dummy,
+                                     partial_nlte_dummy,
+                                     {},
+                                     {},
+                                     AscendingGrid{f_grid[Range(f_index, 1)]},
+                                     {},
+                                     AtmPoint{},  // FIXME: DUMMY VALUE,
+                                     propagation_matrix_agenda);
+    abs_coeff += cur_propagation_matrix[0].A();
+    abs_coeff /=
+        (Numeric)vmr_field.nbooks();  // FIXME: Is this really as intended???
     single_scattering_albedo[cloudbox_index] =
         scat_vec[cloudbox_index] / (ext_mat[cloudbox_index] + abs_coeff);
   }
@@ -919,20 +922,16 @@ void DoitWriteIterationFields(  //WS input
     if (f_index == frequencies[j] || (!j && frequencies[j] == -1)) {
       // All iterations are written to files
       if (iterations[0] == -1) {
-        xml_write_to_file(os.str() + ".xml",
-                          cloudbox_field_mono,
-                          FILE_TYPE_ASCII,
-                          0);
+        xml_write_to_file(
+            os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
       }
 
       // Only the iterations given by the keyword are written to a file
       else {
         for (Size i = 0; i < iterations.size(); i++) {
           if (doit_iteration_counter == iterations[i])
-            xml_write_to_file(os.str() + ".xml",
-                              cloudbox_field_mono,
-                              FILE_TYPE_ASCII,
-                              0);
+            xml_write_to_file(
+                os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
         }
       }
     }
@@ -962,15 +961,16 @@ void doit_za_grid_optCalc(  //WS Output
            1,
            cloudbox_field_mono.ncols());
 
-  ARTS_USER_ERROR_IF (cloudbox_field_mono.ncols() < 1 || cloudbox_field_mono.ncols() > 4,
-        "The last dimension of *cloudbox_field* corresponds\n"
-        "to the Stokes dimension, therefore the number of\n"
-        "columns in *cloudbox_field* must be a number between\n"
-        "1 and 4, but it is not!");
+  ARTS_USER_ERROR_IF(
+      cloudbox_field_mono.ncols() < 1 || cloudbox_field_mono.ncols() > 4,
+      "The last dimension of *cloudbox_field* corresponds\n"
+      "to the Stokes dimension, therefore the number of\n"
+      "columns in *cloudbox_field* must be a number between\n"
+      "1 and 4, but it is not!");
 
-  ARTS_USER_ERROR_IF (!(doit_za_interp == 0 || doit_za_interp == 1),
-        "Interpolation method is not defined. Use \n"
-        "*doit_za_interpSet*.\n");
+  ARTS_USER_ERROR_IF(!(doit_za_interp == 0 || doit_za_interp == 1),
+                     "Interpolation method is not defined. Use \n"
+                     "*doit_za_interpSet*.\n");
 
   if (za_grid.nelem() < 500) {
     /*    throw runtime_error("The fine grid (*za_grid*) has less than \n"
@@ -997,18 +997,18 @@ void doit_za_grid_optCalc(  //WS Output
 void doit_za_interpSet(Index& doit_za_interp,
                        //Keyword
                        const String& method) {
-  ARTS_USER_ERROR_IF (3 != 1 && method == "polynomial",
-        "Polynomial interpolation is only implemented for\n"
-        "1D DOIT calculations as \n"
-        "in 3D there can be numerical problems.\n"
-        "Please use 'linear' interpolation method.");
+  ARTS_USER_ERROR_IF(3 != 1 && method == "polynomial",
+                     "Polynomial interpolation is only implemented for\n"
+                     "1D DOIT calculations as \n"
+                     "in 3D there can be numerical problems.\n"
+                     "Please use 'linear' interpolation method.");
 
   if (method == "linear")
     doit_za_interp = 0;
   else if (method == "polynomial")
     doit_za_interp = 1;
   else {
-    ARTS_USER_ERROR (
+    ARTS_USER_ERROR(
         "Possible interpolation methods are 'linear' "
         "and 'polynomial'.\n");
   }
@@ -1033,26 +1033,26 @@ void DoitCalc(const Workspace& ws,
 
   //-------- Check input -------------------------------------------
 
-  ARTS_USER_ERROR_IF (atmfields_checked != 1,
-        "The atmospheric fields must be flagged to have "
-        "passed a consistency check (atmfields_checked=1).");
+  ARTS_USER_ERROR_IF(atmfields_checked != 1,
+                     "The atmospheric fields must be flagged to have "
+                     "passed a consistency check (atmfields_checked=1).");
 
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) return;
 
-  ARTS_USER_ERROR_IF (scat_data_checked != 1,
-        "The scattering data must be flagged to have "
-        "passed a consistency check (scat_data_checked=1).");
+  ARTS_USER_ERROR_IF(scat_data_checked != 1,
+                     "The scattering data must be flagged to have "
+                     "passed a consistency check (scat_data_checked=1).");
 
   // Frequency grid
   //
-  ARTS_USER_ERROR_IF (f_grid.empty(), "The frequency grid is empty.");
+  ARTS_USER_ERROR_IF(f_grid.empty(), "The frequency grid is empty.");
   chk_if_increasing("f_grid", f_grid);
 
   // Check whether DoitInit was executed
-  ARTS_USER_ERROR_IF (!doit_is_initialized,
-    "Initialization method *DoitInit* has to be called before "
-    "*DoitCalc*")
+  ARTS_USER_ERROR_IF(!doit_is_initialized,
+                     "Initialization method *DoitInit* has to be called before "
+                     "*DoitCalc*")
 
   //-------- end of checks ----------------------------------------
 
@@ -1098,7 +1098,7 @@ void DoitCalc(const Workspace& ws,
       }
     }
 
-    ARTS_USER_ERROR_IF (failed, fail_msg);
+    ARTS_USER_ERROR_IF(failed, fail_msg);
   }
 }
 
@@ -1115,17 +1115,17 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
   if (!cloudbox_on) return;
 
   // Check whether DoitInit was executed
-  ARTS_USER_ERROR_IF (!doit_is_initialized,
-      "Initialization method *DoitInit* has to be called before "
-      "*cloudbox_fieldSetClearsky*.")
+  ARTS_USER_ERROR_IF(!doit_is_initialized,
+                     "Initialization method *DoitInit* has to be called before "
+                     "*cloudbox_fieldSetClearsky*.")
 
   // Initial field only needs to be calculated from clearsky field for the
   // first frequency. For the next frequencies the solution field from the
   // previous frequencies is used.
   {
-    ARTS_USER_ERROR_IF (all_frequencies == false,
-          "Error in cloudbox_fieldSetClearsky: For 3D "
-          "all_frequencies option is not implemented \n");
+    ARTS_USER_ERROR_IF(all_frequencies == false,
+                       "Error in cloudbox_fieldSetClearsky: For 3D "
+                       "all_frequencies option is not implemented \n");
 
     for (Index f_index = 0; f_index < cloudbox_field.nvitrines(); f_index++) {
       Index N_p = cloudbox_field.nvitrines();

@@ -1140,12 +1140,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-////////////////////////////////////////////////////////////////////////////
-//   Dummy funtion for groups for which
-//   IO function have not yet been implemented
-////////////////////////////////////////////////////////////////////////////
-
-// Begin templates
+// Begin templates for matpack::matpack_constant_data
 
 template <class T = void>
 struct type {

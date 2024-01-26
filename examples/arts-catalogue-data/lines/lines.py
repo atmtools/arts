@@ -65,7 +65,7 @@ of what is possible:
     write "O2-66,O2".
 
 """
-ws.abs_speciesSet(species=["O2-66"])
+ws.absorption_speciesSet(species=["O2-66"])
 
 """
 
@@ -107,7 +107,10 @@ are the consequences:
     also has the len 2, but that all lines are now in the first entry.
 
 """
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+# FIXME
+ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
+ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
 
 """
 
@@ -119,13 +122,13 @@ flag, ARTS should be configured correctly either 1) to compute the lookup-table,
 or to 2) compute the absorption on-the-fly
 
 """
-ws.propmat_clearsky_agendaAuto()
+ws.propagation_matrix_agendaAuto()
 
 """
 
 Compute absorption
 
-Now we can use the propmat_clearsky_agenda to compute the absorption of O2-66.
+Now we can use the propagation_matrix_agenda to compute the absorption of O2-66.
 We can also use this agenda in more complicated setups that might require
 absorption calculations, but that is for other examples
 
@@ -135,21 +138,20 @@ inputs required to initialize the propagation matrix
 """
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
-ws.f_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
-ws.path_point  # No particular POSLOS
-ws.atm_pointInit()
-ws.atm_point.temperature = 295  # At room temperature
-ws.atm_point.pressure = 1e5  # At 1 bar
-ws.atm_point[ws.abs_species[0]] = 0.21  # At 21% atmospheric Oxygen
+ws.frequency_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
+ws.propagation_path_point  # No particular POSLOS
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 295  # At room temperature
+ws.atmospheric_point.pressure = 1e5  # At 1 bar
+ws.atmospheric_point[ws.absorption_species[0]] = 0.21  # At 21% atmospheric Oxygen
 
 # Call the agenda with inputs above
-ws.propmat_clearsky_agendaExecute()
+ws.propagation_matrix_agendaExecute()
 
 # Plot the absorption of this example
 plt.figure(1)
 plt.clf()
-plt.semilogy(ws.f_grid.value / 1e9, ws.propmat_clearsky)
+plt.semilogy(ws.frequency_grid.value / 1e9, ws.propagation_matrix)
 plt.xlabel("Frequency [GHz]")
 plt.ylabel("Absorption [1/m]")
 plt.title("O2-66 absorption from examples/arts-cat-data/lines/lines.py")
@@ -161,11 +163,11 @@ be safely ignored
 
 """
 # Save test results
-# ws.propmat_clearsky.savexml("lines_test_result.xml", type="ascii")
+# ws.propagation_matrix.savexml("lines_test_result.xml", type="ascii")
 
 # test that we are still OK
-propmat_clearsky_agenda = \
+propagation_matrix_agenda = \
     pyarts.arts.PropmatVector.fromxml("lines_test_result.xml")
 assert np.allclose(
-    propmat_clearsky_agenda, ws.propmat_clearsky
+    propagation_matrix_agenda, ws.propagation_matrix
 ), "O2 Absorption has changed"

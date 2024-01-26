@@ -16,6 +16,7 @@
 
 #include <cfloat>
 #include <stdexcept>
+#include "sorted_grid.h"
 
 #include <supergeneric.h>
 

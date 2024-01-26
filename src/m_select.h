@@ -1,9 +1,14 @@
 #pragma once
 
 #include <matpack.h>
+#include "sorted_grid.h"
 
 void Select(Vector& needles,
             const Vector& haystack,
+            const ArrayOfIndex& needleind);
+
+void Select(AscendingGrid& needles,
+            const AscendingGrid& haystack,
             const ArrayOfIndex& needleind);
 
 void Select(Sparse& needles,

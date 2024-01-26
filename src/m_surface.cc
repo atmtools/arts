@@ -48,7 +48,7 @@ inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FastemStandAlone(Matrix& emissivity,
                       Matrix& reflectivity,
-                      const Vector& f_grid,
+                      const AscendingGrid& f_grid,
                       const Numeric& surface_skin_t,
                       const Numeric& za,
                       const Numeric& salinity,

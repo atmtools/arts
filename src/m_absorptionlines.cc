@@ -6,9 +6,9 @@
  * @brief  Contains the user interaction with absorption lines
  **/
 
-#include <workspace.h>
-
 #include "m_absorptionlines.h"
+
+#include <workspace.h>
 
 #include <algorithm>
 #include <atomic>
@@ -29,6 +29,76 @@
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////// Basic removal and flattening
 /////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesCreateFromLines(  // WS Output:
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    // WS Input:
+    const ArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
+  // Size is set but inner size will now change from the original definition of species tags...
+  abs_lines_per_species.resize(abs_species.size());
+
+  // The inner arrays need to be emptied, because they may contain lines
+  // from a previous calculation
+  for (auto& lines : abs_lines_per_species) lines.resize(0);
+
+#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
+  for (Size ilines = 0; ilines < abs_lines.size(); ilines++) {
+    AbsorptionLines lines = abs_lines[ilines];
+
+    // Skip empty lines
+    if (lines.NumLines() == 0) continue;
+
+    // Loop all the tags
+    for (Size i = 0; i < abs_species.size() and lines.NumLines(); i++) {
+      for (auto& this_tag : abs_species[i]) {
+        // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
+        if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
+          continue;
+
+        // If there is a frequency range, we have to check so that only selected lines are included
+        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
+          const Numeric low = (this_tag.lower_freq >= 0)
+                                  ? this_tag.lower_freq
+                                  : std::numeric_limits<Numeric>::lowest();
+          const Numeric upp = (this_tag.upper_freq >= 0)
+                                  ? this_tag.upper_freq
+                                  : std::numeric_limits<Numeric>::max();
+
+          // Fill up a copy of the line record to match with the wished frequency criteria
+          AbsorptionLines these_lines = lines;
+          these_lines.lines.resize(0);
+          for (Index k = lines.NumLines() - 1; k >= 0; k--)
+            if (low <= lines.lines[k].F0 and upp >= lines.lines[k].F0)
+              these_lines.AppendSingleLine(lines.PopLine(k));
+
+          // Append these lines after sorting them if there are any of them
+          if (these_lines.NumLines()) {
+            these_lines.ReverseLines();
+#pragma omp critical
+            abs_lines_per_species[i].push_back(these_lines);
+          }
+
+          // If this means we have deleted all lines, then we leave
+          if (lines.NumLines() == 0) goto leave_inner_loop;
+        } else {
+#pragma omp critical
+          abs_lines_per_species[i].push_back(lines);
+          goto leave_inner_loop;
+        }
+      }
+    }
+  leave_inner_loop: {}
+  }
+
+  abs_lines_per_species.shrink_to_fit();
+  for (auto& spec_band : abs_lines_per_species)
+    std::sort(spec_band.begin(), spec_band.end(), [](auto& a, auto& b) {
+      return a.lines.size() and b.lines.size() and
+             a.lines.front().F0 < b.lines.front().F0;
+    });
+}
 
 void abs_linesRemoveEmptyBands(ArrayOfAbsorptionLines& abs_lines) {
   abs_lines.erase(std::remove_if(abs_lines.begin(),
@@ -766,7 +836,7 @@ void abs_linesWriteSpeciesSplitCatalog(const ArrayOfAbsorptionLines& abs_lines,
 
   // Make all species into a species tag array
   ArrayOfArrayOfSpeciesTag as;
-  abs_speciesSet(as, specs);
+  absorption_speciesSet(as, specs);
 
   // Split lines by species
   ArrayOfArrayOfAbsorptionLines alps;
@@ -1287,7 +1357,7 @@ void abs_lines_per_speciesCutoffSpecies(
     const Numeric& x,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1343,7 +1413,7 @@ void abs_lines_per_speciesMirroringSpecies(
     const String& type,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1458,7 +1528,7 @@ void abs_lines_per_speciesPopulationSpecies(
     const String& type,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1515,7 +1585,7 @@ void abs_lines_per_speciesNormalizationSpecies(
     const String& type,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1573,7 +1643,7 @@ void abs_lines_per_speciesLineShapeTypeSpecies(
     const String& type,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1628,7 +1698,7 @@ void abs_lines_per_speciesLinemixingLimitSpecies(
     const Numeric& x,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1681,7 +1751,7 @@ void abs_lines_per_speciesT0Species(
     const Numeric& x,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1811,7 +1881,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
     const Index& relative,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -1909,7 +1979,7 @@ void abs_lines_per_speciesChangeBaseParameterForSpecies(
     const Numeric& change,
     const String& species_tag) {
   ArrayOfArrayOfSpeciesTag target_species;
-  abs_speciesSet(target_species, {species_tag});
+  absorption_speciesSet(target_species, {species_tag});
   for (Size ispec = 0; ispec < abs_species.size(); ispec++) {
     if (std::equal(abs_species[ispec].begin(),
                    abs_species[ispec].end(),
@@ -2269,9 +2339,10 @@ void abs_lines_per_speciesSetEmpty(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines, const Vector& f_grid) {
-  const Numeric fmax = max(f_grid);
-  const Numeric fmin = min(f_grid);
+void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines,
+                      const AscendingGrid& frequency_grid) {
+  const Numeric fmax = max(frequency_grid);
+  const Numeric fmin = min(frequency_grid);
 
   for (auto& band : abs_lines) {
     for (Index k = band.NumLines() - 1; k >= 0; k--) {
@@ -2288,9 +2359,9 @@ void abs_linesCompact(ArrayOfAbsorptionLines& abs_lines, const Vector& f_grid) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesCompact(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Vector& f_grid) {
+    const AscendingGrid& frequency_grid) {
   for (auto& lines : abs_lines_per_species) {
-    abs_linesCompact(lines, f_grid);
+    abs_linesCompact(lines, frequency_grid);
   }
 }
 
@@ -2330,8 +2401,8 @@ std::vector<T> linspace(T s,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridFromAbsorptionLines(
-    Vector& f_grid,
+void frequency_gridFromAbsorptionLines(
+    AscendingGrid& frequency_grid,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& delta_f_low,
     const Numeric& delta_f_upp,
@@ -2344,7 +2415,7 @@ void f_gridFromAbsorptionLines(
   ARTS_USER_ERROR_IF(num_freqs == 0, "Need more than zero frequency points");
   ARTS_USER_ERROR_IF(n < 1,
                      "No lines found.  Error?  Use *VectorSet* "
-                     "to resize *f_grid*");
+                     "to resize *frequency_grid*");
 
   std::vector<Numeric> fout(0);
   for (auto& lines : abs_lines_per_species) {
@@ -2367,8 +2438,7 @@ void f_gridFromAbsorptionLines(
 
   std::sort(fout.begin(), fout.end());
   fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
-  f_grid.resize(fout.size());
-  for (Index i = 0; i < f_grid.size(); i++) f_grid[i] = fout[i];
+  frequency_grid = std::move(fout);
 }
 
 /////////////////////////////////////////////////////////

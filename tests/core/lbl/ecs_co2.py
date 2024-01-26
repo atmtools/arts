@@ -20,12 +20,14 @@ def lblvals(band, T, T0=296):
     Q = pyarts.arts.lbl.Q(T, band.key.isotopologue)
     lbl_str = []
     lbl_val = []
-    
+
     f0 = 0
     for line in band.data.lines:
-        assert line.f0 >= f0, f"Previous f0 {f0} larger than current f0 {line.f0}"
+        assert (
+            line.f0 >= f0
+        ), f"Previous f0 {f0} larger than current f0 {line.f0}"
         f0 = line.f0
-        
+
         lbl_str.append(
             line.s(T, Q)
             * pyarts.arts.constants.c**2
@@ -36,8 +38,8 @@ def lblvals(band, T, T0=296):
             ls = line.ls.single_models[i]
             lbl_val[-1].append(
                 line.f0
-                + ls.D0(T0, T, ws.atm_point.pressure)
-                + 1j * ls.G0(T0, T, ws.atm_point.pressure)
+                + ls.D0(T0, T, ws.atmospheric_point.pressure)
+                + 1j * ls.G0(T0, T, ws.atmospheric_point.pressure)
             )
 
     return np.array(lbl_str), np.array(lbl_val)
@@ -49,7 +51,7 @@ def eqvvals(band, T):
         line.ls.one_by_one = True
 
     eqv_str, eqv_val = pyarts.arts.lbl.equivalent_lines(
-        band, ws.ecs_data2, ws.atm_point, T
+        band, ws.ecs_data, ws.atmospheric_point, T
     )
     eqv_val = np.array(eqv_val)
     eqv_str = np.array(eqv_str)
@@ -102,28 +104,32 @@ def adaptband(band, T, p, second_order=False):
 i = 4
 
 ws = pyarts.Workspace()
-ws.abs_speciesSet(species=["CO2-626"])
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
-ws.absorption_bandsFromAbsorbtionLines()
+ws.absorption_speciesSet(species=["CO2-626"])
+ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
+    ws.abs_lines_per_species, basename="lines/"
+)
+ws.absorption_bandsFromAbsorbtionLines(
+    abs_lines_per_species=ws.abs_lines_per_species
+)
 
 p = 1e5
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
-ws.select_abs_species = []  # All species
-ws.atm_pointInit()
-ws.atm_point.temperature = 295  # At room temperature
-ws.atm_point.pressure = p
-ws.atm_point[ws.abs_species[0]] = 400e-6
-ws.atm_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
-ws.atm_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
-ws.atm_point.mag = [40e-6, 20e-6, 10e-6]
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 295  # At room temperature
+ws.atmospheric_point.pressure = p
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("CO2")] = 400e-6
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
+ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
+ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 ws.jacobian_targetsInit()
 ws.Wigner6Init()
 
-ws.ecs_dataInitNEWNEW()
-ws.ecs_dataAddTran2011NEWNEW()
-ws.ecs_dataAddRodrigues1997NEWNEW()
-ws.ecs_dataAddMeanAirNEWNEW(vmrs=[0.21, 0.79], species=["O2", "N2"])
+ws.ecs_dataInit()
+ws.ecs_dataAddTran2011()
+ws.ecs_dataAddRodrigues1997()
+ws.ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 
@@ -131,35 +137,36 @@ y = pyarts.arts.AbsorptionBands(ws.absorption_bands)
 
 band = y[i]
 ws.absorption_bands = [band]
-ws.f_grid = np.linspace(
+ws.frequency_grid = np.linspace(
     ws.absorption_bands[0].data.lines[0].f0 * 0.9,
     ws.absorption_bands[0].data.lines[-1].f0 * 1.1,
     10001,
 )  # around the band
 
 # VP LTE NO LINE MIXING
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_lte = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines()
+pm_lte = 1.0 * ws.propagation_matrix[:].T[0]
 
 T = np.linspace(200, 320, 8)
 band = adaptband(band, T, p)
 ws.absorption_bands = [band]
 
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_adapted_lte = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines()
+pm_adapted_lte = 1.0 * ws.propagation_matrix[:].T[0]
 
 band.data.lineshape = "VP_ECS_HARTMANN"
 ws.absorption_bands = [band]
-ws.propmat_clearskyInit()
-ws.propmat_clearskyAddLines2()
-pm_full = 1.0 * ws.propmat_clearsky[:].T[0]
+ws.propagation_matrixInit()
+ws.propagation_matrixAddLines()
+pm_full = 1.0 * ws.propagation_matrix[:].T[0]
 
 import matplotlib.pyplot as plt
-plt.semilogy(f2c(ws.f_grid), pm_lte)
-plt.semilogy(f2c(ws.f_grid), pm_adapted_lte, '--')
-plt.semilogy(f2c(ws.f_grid), pm_full, ':')
+
+plt.semilogy(f2c(ws.frequency_grid), pm_lte)
+plt.semilogy(f2c(ws.frequency_grid), pm_adapted_lte, "--")
+plt.semilogy(f2c(ws.frequency_grid), pm_full, ":")
 plt.legend(["lte", "adapt", "full"])
 
 assert np.all(pm_adapted_lte > 0), "Adaptation failed"

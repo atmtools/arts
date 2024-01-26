@@ -257,7 +257,7 @@ struct data {
  */
 struct model {
   data mdata{};
-  bool mon{false};
+  bool on{false};
 
   /** Default init */
   constexpr model() noexcept = default;
@@ -266,7 +266,7 @@ struct model {
   constexpr model &operator=(model &&) noexcept = default;
   constexpr model &operator=(const model &) noexcept = default;
   constexpr auto operator<=>(const model &) const noexcept = default;
-  constexpr model(data d) noexcept : mdata(d), mon(not empty()){};
+  constexpr model(data d) noexcept : mdata(d), on(not empty()){};
 
   /** Attempts to compute Zeeman input if available
    * 
@@ -284,14 +284,6 @@ struct model {
   [[nodiscard]] constexpr bool empty() const noexcept {
     return 0.0 == mdata.gu and mdata.gl == 0.0;
   }
-
-  constexpr void active(bool o) {
-    ARTS_USER_ERROR_IF(o and empty(),
-                       "Cannot activate Zeeman effect with empty Zeeman data")
-    mon = o;
-  }
-
-  [[nodiscard]] constexpr bool active() const { return mon; }
 
   /** Returns the upper state g */
   constexpr Numeric &gu() noexcept { return mdata.gu; }

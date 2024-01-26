@@ -27,7 +27,7 @@ class TestVariables:
     def setup_workspace(self):
         ws = self.ws
 
-        ws.f_grid = 183.0e9 * np.ones(1)
+        ws.frequency_grid = 183.0e9 * np.ones(1)
 
     def test_index_transfer(self):
         """
@@ -101,7 +101,7 @@ class TestVariables:
         m = sp.sparse.diags(
             diagonals=[d2, d1, d, d1, d2], offsets=[2, 1, 0, -1, -2]
         ).tocsc()
-        self.ws.wmrf_weights = m
+        self.ws.wmrf_weights = pyarts.arts.Sparse(m)
         assert np.all(m.toarray() == self.ws.wmrf_weights.value.toarray())
 
     def test_creation(self):
@@ -117,9 +117,9 @@ class TestVariables:
         """
         Test initialization of workspace variables.
         """
-        self.ws.f_grid = np.array([94e9])
-        self.ws.f_grid = []
-        assert self.ws.f_grid.value.size == 0
+        self.ws.frequency_grid = np.array([94e9])
+        self.ws.frequency_grid = []
+        assert self.ws.frequency_grid.value.size == 0
 
     def test_convert(self):
         """
@@ -160,10 +160,10 @@ class TestVariables:
 
     def test_typeerror(self):
         with pytest.raises(TypeError):
-            self.ws.f_grid = 1
+            self.ws.frequency_grid = 1
 
         with pytest.raises(TypeError):
-            self.ws.f_grid = "c"
+            self.ws.frequency_grid = "c"
 
     def test_method_agenda_variables_io(self):
         allvars = pyarts.arts.globals.workspace_variables()
@@ -198,15 +198,13 @@ class TestVariables:
                     bad_vars.append(var)
 
         bad_vars.sort()
-        for var in bad_vars:
-            print(var)
         assert len(bad_vars) == 0, (
             "Should have no pure input/output variables,\n"
-            "the above breaks this"
+            f"these breaks that: {bad_vars}"
         )
 
 
 if __name__ == "__main__":
     ta = TestVariables()
     ta.setup_method()
-    ta.test_method_agenda_variables_io()
+    ta.test_sparse_transfer()

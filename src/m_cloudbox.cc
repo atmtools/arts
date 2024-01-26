@@ -202,7 +202,7 @@ void ScatElementsToabs_speciesAdd(  //WS Output:
   ArrayOfString species(1);
   species[0] = "particles";
 
-  abs_speciesAdd(abs_species, species);
+  absorption_speciesAdd(abs_species, species);
 
   for (Size i = 0; i < scat_data_files.size(); i++) {
     // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors.

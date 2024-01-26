@@ -21,31 +21,31 @@
 #include "species_tags.h"
 #include "xml_io.h"
 
-void atm_fieldTopOfAtmosphere(AtmField &atm_field,
-                              const Numeric &top_of_atmosphere) {
-  atm_field.top_of_atmosphere = top_of_atmosphere;
+void atmospheric_fieldTopOfAtmosphere(AtmField &atmospheric_field,
+                                      const Numeric &top_of_atmosphere) {
+  atmospheric_field.top_of_atmosphere = top_of_atmosphere;
 }
 
 ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
 
-void atm_fieldInit(AtmField &atm_field,
-                   const Numeric &top_of_atmosphere,
-                   const String &default_isotopologue) {
-  atm_field = AtmField{};
-  atm_fieldTopOfAtmosphere(atm_field, top_of_atmosphere);
+void atmospheric_fieldInit(AtmField &atmospheric_field,
+                           const Numeric &top_of_atmosphere,
+                           const String &default_isotopologue) {
+  atmospheric_field = AtmField{};
+  atmospheric_fieldTopOfAtmosphere(atmospheric_field, top_of_atmosphere);
 
   switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_field[Species::Isotopologues[i]] = x.data[i];
+        atmospheric_field[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_field[Species::Isotopologues[i]] = x.data[i];
+        atmospheric_field[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::None:
@@ -54,21 +54,22 @@ void atm_fieldInit(AtmField &atm_field,
   }
 }
 
-void atm_pointInit(AtmPoint &atm_point, const String &default_isotopologue) {
-  atm_point = AtmPoint{};
+void atmospheric_pointInit(AtmPoint &atmospheric_point,
+                           const String &default_isotopologue) {
+  atmospheric_point = AtmPoint{};
 
   switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_point[Species::Isotopologues[i]] = x.data[i];
+        atmospheric_point[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
-        atm_point[Species::Isotopologues[i]] = x.data[i];
+        atmospheric_point[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::None:
@@ -80,31 +81,31 @@ void atm_pointInit(AtmPoint &atm_point, const String &default_isotopologue) {
 namespace detail {
 /** Tries to read a file as if it were some type T
  *
- * Assigns the value of the read to the atm_field at key_val
+ * Assigns the value of the read to the atmospheric_field at key_val
  *
  * @tparam T The type
- * @param atm_field As WSV
+ * @param atmospheric_field As WSV
  * @param key_val A key value
  * @param filename A filename
  * @return true If everything went well
  * @return false If everything went wrong
  */
 template <typename T>
-bool try_read(AtmField &atm_field,
+bool try_read(AtmField &atmospheric_field,
               const Atm::KeyVal &key_val,
               const String &filename) {
   try {
     T v;
     xml_read_from_file(filename, v);
-    std::visit([&](auto &key) { atm_field[key] = v; }, key_val);
+    std::visit([&](auto &key) { atmospheric_field[key] = v; }, key_val);
 
     // Return success state
     return true;
   } catch (...) {
     //! CONTROL FLOW --- ARTS CANNOT READ VARIADICALLY
 
-    // We must clean the atm_field so it can work again in the future
-    std::visit([&](auto &key) { atm_field.erase(key); }, key_val);
+    // We must clean the atmospheric_field so it can work again in the future
+    std::visit([&](auto &key) { atmospheric_field.erase(key); }, key_val);
 
     // Return failure state
     return false;
@@ -113,29 +114,30 @@ bool try_read(AtmField &atm_field,
 
 /** Wraps try_read for multiple types
  *
- * The atm_field is updated, the order of short-circuiting is as
+ * The atmospheric_field is updated, the order of short-circuiting is as
  * given by the types, i.e., the execution is (T1 or T2 or T3 or ...)
  *
  * @tparam T... The types
- * @param atm_field As WSV
+ * @param atmospheric_field As WSV
  * @param key_val A key value
  * @param filename A filename
  * @return true If everything went well
  * @return false If everything went wrong
  */
 template <typename... T>
-bool try_reading(AtmField &atm_field,
+bool try_reading(AtmField &atmospheric_field,
                  const Atm::KeyVal &key_val,
                  const String &filename) {
-  return (try_read<T>(atm_field, key_val, filename) or ...);
+  return (try_read<T>(atmospheric_field, key_val, filename) or ...);
 }
 
-void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
-                                    const Atm::KeyVal &key_val,
-                                    const String &filename,
-                                    const Atm::Extrapolation &extrapolation) {
+void atmospheric_fieldAddCustomDataFileImpl(
+    AtmField &atmospheric_field,
+    const Atm::KeyVal &key_val,
+    const String &filename,
+    const Atm::Extrapolation &extrapolation) {
   const bool ok =
-      try_reading<GriddedField3, Numeric>(atm_field, key_val, filename);
+      try_reading<GriddedField3, Numeric>(atmospheric_field, key_val, filename);
 
   ARTS_USER_ERROR_IF(not ok,
                      "The file ",
@@ -146,70 +148,71 @@ void atm_fieldAddCustomDataFileImpl(AtmField &atm_field,
                      "that its type is one that can be handled by "
                      "ARTS atmospheric fields")
 
-  atm_field[key_val].alt_low = extrapolation;
-  atm_field[key_val].lat_low = extrapolation;
-  atm_field[key_val].lon_low = extrapolation;
-  atm_field[key_val].alt_upp = extrapolation;
-  atm_field[key_val].lat_upp = extrapolation;
-  atm_field[key_val].lon_upp = extrapolation;
+  atmospheric_field[key_val].alt_low = extrapolation;
+  atmospheric_field[key_val].lat_low = extrapolation;
+  atmospheric_field[key_val].lon_low = extrapolation;
+  atmospheric_field[key_val].alt_upp = extrapolation;
+  atmospheric_field[key_val].lat_upp = extrapolation;
+  atmospheric_field[key_val].lon_upp = extrapolation;
 }
 }  // namespace detail
 
-void atm_fieldAddCustomDataFile(AtmField &atm_field,
-                                const String &atmospheric_key,
-                                const String &filename,
-                                const String &extrapolation_type) {
-  detail::atm_fieldAddCustomDataFileImpl(
-      atm_field,
+void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
+                                        const String &atmospheric_key,
+                                        const String &filename,
+                                        const String &extrapolation_type) {
+  detail::atmospheric_fieldAddCustomDataFileImpl(
+      atmospheric_field,
       Atm::toKeyOrThrow(atmospheric_key),
       filename,
       Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
-void atm_fieldAddCustomDataFile(AtmField &atm_field,
-                                const QuantumIdentifier &nlte_key,
-                                const String &filename,
-                                const String &extrapolation_type) {
-  detail::atm_fieldAddCustomDataFileImpl(
-      atm_field,
+void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
+                                        const QuantumIdentifier &nlte_key,
+                                        const String &filename,
+                                        const String &extrapolation_type) {
+  detail::atmospheric_fieldAddCustomDataFileImpl(
+      atmospheric_field,
       Atm::KeyVal{nlte_key},
       filename,
       Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
-void atm_fieldAddCustomDataFile(AtmField &atm_field,
-                                const ArrayOfSpeciesTag &spec_key,
-                                const String &filename,
-                                const String &extrapolation_type) {
-  detail::atm_fieldAddCustomDataFileImpl(
-      atm_field,
+void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
+                                        const ArrayOfSpeciesTag &spec_key,
+                                        const String &filename,
+                                        const String &extrapolation_type) {
+  detail::atmospheric_fieldAddCustomDataFileImpl(
+      atmospheric_field,
       Atm::KeyVal{spec_key.Species()},
       filename,
       Atm::toExtrapolationOrThrow(extrapolation_type));
 }
 
-void atm_fieldAddField(AtmField &atm_field,
-                       const String &filename,
-                       const Index &set_top_of_atmosphere) {
-  AtmField atm_field_other;
-  xml_read_from_file(filename, atm_field_other);
-  for (auto &key : atm_field_other.keys()) {
-    atm_field[key] = atm_field_other[key];
+void atmospheric_fieldAddField(AtmField &atmospheric_field,
+                               const String &filename,
+                               const Index &set_top_of_atmosphere) {
+  AtmField atmospheric_field_other;
+  xml_read_from_file(filename, atmospheric_field_other);
+  for (auto &key : atmospheric_field_other.keys()) {
+    atmospheric_field[key] = atmospheric_field_other[key];
   }
 
   if (set_top_of_atmosphere)
-    atm_field.top_of_atmosphere = atm_field_other.top_of_atmosphere;
+    atmospheric_field.top_of_atmosphere =
+        atmospheric_field_other.top_of_atmosphere;
 }
 
-void atm_fieldRead(AtmField &atm_field,
-                   const ArrayOfArrayOfSpeciesTag &abs_species,
-                   const String &basename,
-                   const Numeric &top_of_atmosphere,
-                   const Index &read_tp,
-                   const Index &read_mag,
-                   const Index &read_wind,
-                   const Index &read_specs,
-                   const Index &read_nlte) {
+void atmospheric_fieldRead(AtmField &atmospheric_field,
+                           const ArrayOfArrayOfSpeciesTag &abs_species,
+                           const String &basename,
+                           const Numeric &top_of_atmosphere,
+                           const Index &read_tp,
+                           const Index &read_mag,
+                           const Index &read_wind,
+                           const Index &read_specs,
+                           const Index &read_nlte) {
   using enum Atm::Key;
 
   // Fix filename
@@ -218,26 +221,26 @@ void atm_fieldRead(AtmField &atm_field,
     tmp_basename += ".";
 
   // Reset and initialize
-  atm_fieldInit(atm_field, top_of_atmosphere, "None");
+  atmospheric_fieldInit(atmospheric_field, top_of_atmosphere, "None");
 
   if (read_tp) {
     for (auto &key : {t, p}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0);
+      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
     }
   }
 
   if (read_mag) {
     for (auto &key : {mag_u, mag_v, mag_w}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0);
+      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
     }
   }
 
   if (read_wind) {
     for (auto &key : {wind_u, wind_v, wind_w}) {
       const String file_name{var_string(tmp_basename, key, ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0);
+      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
     }
   }
 
@@ -245,20 +248,20 @@ void atm_fieldRead(AtmField &atm_field,
     for (auto &spec : abs_species) {
       const String file_name{
           var_string(tmp_basename, toShortName(spec.Species()), ".xml")};
-      atm_fieldAddField(atm_field, file_name, 0);
+      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
     }
   }
 
   if (read_nlte) {
     const String file_name{var_string(tmp_basename, "nlte.xml")};
-    atm_fieldAddField(atm_field, file_name, 0);
+    atmospheric_fieldAddField(atmospheric_field, file_name, 0);
   }
 }
 
-void atm_fieldSave(const AtmField &atm_field,
-                   const String &basename,
-                   const String &filetype,
-                   const Index &no_clobber) {
+void atmospheric_fieldSave(const AtmField &atmospheric_field,
+                           const String &basename,
+                           const String &filetype,
+                           const Index &no_clobber) {
   const auto ftype = string2filetype(filetype);
 
   // Fix filename
@@ -266,7 +269,7 @@ void atm_fieldSave(const AtmField &atm_field,
   if (basename.length() && basename[basename.length() - 1] != '/')
     tmp_basename += ".";
 
-  const auto keys = atm_field.keys();
+  const auto keys = atmospheric_field.keys();
 
   //
   ArrayOfSpecies specs{};
@@ -274,11 +277,11 @@ void atm_fieldSave(const AtmField &atm_field,
 
   //
   AtmField nlte;
-  nlte.top_of_atmosphere = atm_field.top_of_atmosphere;
+  nlte.top_of_atmosphere = atmospheric_field.top_of_atmosphere;
 
   for (auto &key : keys) {
     if (std::holds_alternative<QuantumIdentifier>(key)) {
-      nlte[key] = atm_field[key];
+      nlte[key] = atmospheric_field[key];
     } else {
       String keyname;
       if (std::holds_alternative<Species::Species>(key)) {
@@ -302,8 +305,8 @@ void atm_fieldSave(const AtmField &atm_field,
       }
 
       AtmField out;
-      out.top_of_atmosphere = atm_field.top_of_atmosphere;
-      out[key] = atm_field[key];
+      out.top_of_atmosphere = atmospheric_field.top_of_atmosphere;
+      out[key] = atmospheric_field[key];
       const String filename{var_string(tmp_basename, keyname, ".xml")};
       xml_write_to_file(filename, out, ftype, no_clobber);
     }
@@ -315,11 +318,11 @@ void atm_fieldSave(const AtmField &atm_field,
   }
 }
 
-void atm_fieldAddGriddedData(AtmField &atm_field,
-                             const String &key,
-                             const GriddedField3 &data,
-                             const String &extrapolation_type) {
-  auto &fld = atm_field[Atm::toKeyOrThrow(key)] = data;
+void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
+                                     const String &key,
+                                     const GriddedField3 &data,
+                                     const String &extrapolation_type) {
+  auto &fld = atmospheric_field[Atm::toKeyOrThrow(key)] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
 
@@ -331,11 +334,11 @@ void atm_fieldAddGriddedData(AtmField &atm_field,
   fld.lon_upp = extrapolation;
 }
 
-void atm_fieldAddGriddedData(AtmField &atm_field,
-                             const ArrayOfSpeciesTag &key,
-                             const GriddedField3 &data,
-                             const String &extrapolation_type) {
-  auto &fld = atm_field[key.Species()] = data;
+void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
+                                     const ArrayOfSpeciesTag &key,
+                                     const GriddedField3 &data,
+                                     const String &extrapolation_type) {
+  auto &fld = atmospheric_field[key.Species()] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
 
@@ -347,11 +350,11 @@ void atm_fieldAddGriddedData(AtmField &atm_field,
   fld.lon_upp = extrapolation;
 }
 
-void atm_fieldAddGriddedData(AtmField &atm_field,
-                             const QuantumIdentifier &key,
-                             const GriddedField3 &data,
-                             const String &extrapolation_type) {
-  auto &fld = atm_field[key] = data;
+void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
+                                     const QuantumIdentifier &key,
+                                     const GriddedField3 &data,
+                                     const String &extrapolation_type) {
+  auto &fld = atmospheric_field[key] = data;
 
   const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
 
@@ -363,27 +366,27 @@ void atm_fieldAddGriddedData(AtmField &atm_field,
   fld.lon_upp = extrapolation;
 }
 
-void atm_fieldAddNumericData(AtmField &atm_field,
-                             const String &key,
-                             const Numeric &data) {
-  atm_field[Atm::toKeyOrThrow(key)] = data;
+void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
+                                     const String &key,
+                                     const Numeric &data) {
+  atmospheric_field[Atm::toKeyOrThrow(key)] = data;
 }
 
-void atm_fieldAddNumericData(AtmField &atm_field,
-                             const ArrayOfSpeciesTag &key,
-                             const Numeric &data) {
-  atm_field[key.Species()] = data;
+void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
+                                     const ArrayOfSpeciesTag &key,
+                                     const Numeric &data) {
+  atmospheric_field[key.Species()] = data;
 }
 
-void atm_fieldAddNumericData(AtmField &atm_field,
-                             const QuantumIdentifier &key,
-                             const Numeric &data) {
-  atm_field[key] = data;
+void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
+                                     const QuantumIdentifier &key,
+                                     const Numeric &data) {
+  atmospheric_field[key] = data;
 }
 
-void atm_fieldIGRF(AtmField &atm_field,
-                   const Time &time,
-                   const Index &parsafe) {
+void atmospheric_fieldIGRF(AtmField &atmospheric_field,
+                           const Time &time,
+                           const Index &parsafe) {
   using namespace IGRF;
 
   //! We need explicit planet-size as IGRF requires the radius
@@ -439,45 +442,45 @@ void atm_fieldIGRF(AtmField &atm_field,
    * reused by v and w (with no regards for order) */
   if (parsafe == 0) {
     const std::shared_ptr igrf_ptr = std::make_shared<res>(time);
-    atm_field[Atm::Key::mag_u] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_u] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_u(h, lat, lon);
         }};
-    atm_field[Atm::Key::mag_v] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_v] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_v(h, lat, lon);
         }};
-    atm_field[Atm::Key::mag_w] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_w] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_w(h, lat, lon);
         }};
   } else {
-    atm_field[Atm::Key::mag_u] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_u] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_u(h, lat, lon);
         }};
-    atm_field[Atm::Key::mag_v] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_v] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_v(h, lat, lon);
         }};
-    atm_field[Atm::Key::mag_w] = Atm::FunctionalData{
+    atmospheric_field[Atm::Key::mag_w] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_w(h, lat, lon);
         }};
   }
 }
 
-enum class atm_fieldHydrostaticPressureDataOptions : char {
+enum class atmospheric_fieldHydrostaticPressureDataOptions : char {
   Lat,
   Lon,
   Hypsometric,
   Hydrostatic,
 };
 
-template <atm_fieldHydrostaticPressureDataOptions... input_opts>
-struct atm_fieldHydrostaticPressureData {
-  using enum atm_fieldHydrostaticPressureDataOptions;
-  static constexpr std::array<atm_fieldHydrostaticPressureDataOptions,
+template <atmospheric_fieldHydrostaticPressureDataOptions... input_opts>
+struct atmospheric_fieldHydrostaticPressureData {
+  using enum atmospheric_fieldHydrostaticPressureDataOptions;
+  static constexpr std::array<atmospheric_fieldHydrostaticPressureDataOptions,
                               sizeof...(input_opts)>
       opts{input_opts...};
   static constexpr bool do_lat = std::ranges::any_of(opts, Cmp::eq(Lat));
@@ -489,7 +492,7 @@ struct atm_fieldHydrostaticPressureData {
                                      my_interp::GridType::Cyclic,
                                      my_interp::cycle_m180_p180>;
 
-  template <atm_fieldHydrostaticPressureDataOptions X>
+  template <atmospheric_fieldHydrostaticPressureDataOptions X>
   static constexpr bool is = std::ranges::any_of(opts, Cmp::eq(X));
 
   Tensor3 grad_p;
@@ -506,9 +509,9 @@ struct atm_fieldHydrostaticPressureData {
     }
   }
 
-  atm_fieldHydrostaticPressureData(Tensor3 in_grad_p,
-                                   const GriddedField2 &pre0,
-                                   Vector in_alt)
+  atmospheric_fieldHydrostaticPressureData(Tensor3 in_grad_p,
+                                           const GriddedField2 &pre0,
+                                           Vector in_alt)
       : grad_p(std::move(in_grad_p)),
         pre(grad_p),  // Init sizes
         alt(std::move(in_alt)),
@@ -561,8 +564,8 @@ ENUMCLASS(HydrostaticPressureOption,
           HydrostaticEquation,
           HypsometricEquation)
 
-void atm_fieldHydrostaticPressure(
-    AtmField &atm_field,
+void atmospheric_fieldHydrostaticPressure(
+    AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
     const GriddedField2 &p0,
     const Vector &alts,
@@ -570,7 +573,7 @@ void atm_fieldHydrostaticPressure(
     const Numeric &fixed_atm_temperature,
     const String &hydrostatic_option) {
   ARTS_ASSERT(false, "Fix isotopologues")
-  using enum atm_fieldHydrostaticPressureDataOptions;
+  using enum atmospheric_fieldHydrostaticPressureDataOptions;
   using enum HydrostaticPressureOption;
 
   const Vector &lats = p0.grid<0>();
@@ -595,12 +598,12 @@ void atm_fieldHydrostaticPressure(
   const bool has_def_r = fixed_specific_gas_constant > 0;
 
   ARTS_USER_ERROR_IF(
-      not has_def_t and not atm_field.contains(Atm::Key::t),
-      "atm_field lacks temperature and no default temperature given")
+      not has_def_t and not atmospheric_field.contains(Atm::Key::t),
+      "atmospheric_field lacks temperature and no default temperature given")
 
   ARTS_USER_ERROR_IF(
-      not has_def_r and atm_field.nspec() == 0,
-      "atm_field lacks species and no default specific gas constant given")
+      not has_def_r and atmospheric_field.nspec() == 0,
+      "atmospheric_field lacks species and no default specific gas constant given")
 
   const Tensor3 scale_factor = [&]() {
     Tensor3 scl(nalt, nlat, nlon);
@@ -612,13 +615,14 @@ void atm_fieldHydrostaticPressure(
           const Numeric lo = lons[k];
 
           const Numeric g = gravity_operator(al, la, lo);
-          const AtmPoint atm_point{atm_field.at(al, la, lo)};
+          const AtmPoint atmospheric_point{atmospheric_field.at(al, la, lo)};
 
           const Numeric inv_specific_gas_constant =
               has_def_r ? 1.0 / fixed_specific_gas_constant
-                        : (1e-3 * atm_point.mean_mass() / Constant::R);
-          const Numeric inv_temp = has_def_t ? 1.0 / fixed_atm_temperature
-                                             : 1.0 / atm_point.temperature;
+                        : (1e-3 * atmospheric_point.mean_mass() / Constant::R);
+          const Numeric inv_temp = has_def_t
+                                       ? 1.0 / fixed_atm_temperature
+                                       : 1.0 / atmospheric_point.temperature;
 
           // Partial rho, no pressure
           scl(i, j, k) = g * inv_specific_gas_constant * inv_temp;
@@ -632,40 +636,40 @@ void atm_fieldHydrostaticPressure(
   switch (toHydrostaticPressureOptionOrThrow(hydrostatic_option)) {
     case HypsometricEquation:
       if (nlon > 1 and nlat > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hypsometric, Lat, Lon>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat, Lon>(
                 scale_factor, p0, alts)};
       } else if (nlat > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hypsometric, Lat>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat>(
                 scale_factor, p0, alts)};
       } else if (nlon > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hypsometric, Lon>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hypsometric, Lon>(
                 scale_factor, p0, alts)};
       } else {
-        atm_field[Atm::Key::p] =
-            Atm::FunctionalData{atm_fieldHydrostaticPressureData<Hypsometric>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hypsometric>(
                 scale_factor, p0, alts)};
       }
       break;
 
     case HydrostaticEquation:
       if (nlon > 1 and nlat > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
                 scale_factor, p0, alts)};
       } else if (nlat > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hydrostatic, Lat>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat>(
                 scale_factor, p0, alts)};
       } else if (nlon > 1) {
-        atm_field[Atm::Key::p] = Atm::FunctionalData{
-            atm_fieldHydrostaticPressureData<Hydrostatic, Lon>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lon>(
                 scale_factor, p0, alts)};
       } else {
-        atm_field[Atm::Key::p] =
-            Atm::FunctionalData{atm_fieldHydrostaticPressureData<Hydrostatic>(
+        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+            atmospheric_fieldHydrostaticPressureData<Hydrostatic>(
                 scale_factor, p0, alts)};
       }
       break;

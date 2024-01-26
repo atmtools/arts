@@ -12,9 +12,9 @@ struct SetWsv {
 
   SetWsv(std::string n);
   SetWsv(const char* const n) : SetWsv(std::string{n}) {}
-  SetWsv(std::string n, WorkspaceGroup auto v)
-      : name(std::move(n)), wsv(std::move(v)) {}
-  SetWsv(std::string n, const char* v) : name(std::move(n)), other(v) {}
+  SetWsv(std::string n, WorkspaceGroup auto wsv_value)
+      : name(std::move(n)), wsv(std::move(wsv_value)) {}
+  SetWsv(std::string n, const char* wsv_name) : name(std::move(n)), other(wsv_name) {}
 };
 
 class AgendaCreator {
@@ -39,31 +39,8 @@ class AgendaCreator {
   Agenda finalize() &&;
 };
 
-Agenda get_iy_main_agenda(const std::string& option);
-Agenda get_iy_loop_freqs_agenda(const std::string& option);
-Agenda get_iy_space_agenda(const std::string& option);
-Agenda get_iy_surface_agenda(const std::string& option);
-Agenda get_iy_cloudbox_agenda(const std::string& option);
-Agenda get_refr_index_air_agenda(const std::string& option);
-Agenda get_gas_scattering_agenda(const std::string& option);
-Agenda get_surface_rtprop_agenda(const std::string& option);
-Agenda get_dobatch_calc_agenda(const std::string& option);
-Agenda get_ybatch_calc_agenda(const std::string& option);
-Agenda get_test_agenda(const std::string& option);
-Agenda get_spt_calc_agenda(const std::string& option);
-Agenda get_sensor_response_agenda(const std::string& option);
-Agenda get_propmat_clearsky_agenda(const std::string& option);
-Agenda get_pha_mat_spt_agenda(const std::string& option);
-Agenda get_met_profile_calc_agenda(const std::string& option);
-Agenda get_iy_radar_agenda(const std::string& option);
-Agenda get_iy_independent_beam_approx_agenda(const std::string& option);
-Agenda get_inversion_iterate_agenda(const std::string& option);
-Agenda get_forloop_agenda(const std::string& option);
-Agenda get_doit_scat_field_agenda(const std::string& option);
-Agenda get_doit_rte_agenda(const std::string& option);
-Agenda get_doit_mono_agenda(const std::string& option);
-Agenda get_doit_conv_test_agenda(const std::string& option);
-Agenda get_ppvar_rtprop_agenda(const std::string& option);
-Agenda get_rte_background_agenda(const std::string& option);
-Agenda get_spectral_radiance_background_space_agenda(const std::string& option);
-Agenda get_spectral_radiance_background_surface_agenda(const std::string& option);
+Agenda get_propagation_matrix_agenda(const std::string& option);
+
+Agenda get_spectral_radiance_agenda(const std::string& option);
+Agenda get_spectral_radiance_space_agenda(const std::string& option);
+Agenda get_spectral_radiance_surface_agenda(const std::string& option);

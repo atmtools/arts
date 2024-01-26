@@ -11,7 +11,7 @@ namespace Species {
 /** named species */
 ENUMCLASS(Species,
           unsigned char,
-          Bath,
+          Bath,  // This must be first, it represents any non-specific gas!
           Water,
           CarbonDioxide,
           Ozone,

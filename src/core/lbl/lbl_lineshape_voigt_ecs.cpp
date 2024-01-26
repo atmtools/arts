@@ -427,7 +427,7 @@ void calculate(PropmatVectorView pm,
   if (pol != zeeman::pol::no) {
     ARTS_USER_ERROR_IF(
         std::ranges::any_of(
-            bnd, [](auto& zee) { return zee.active(); }, &line::z),
+            bnd, [](auto& zee) { return zee.on; }, &line::z),
         "Zeeman effect and ECS in combination is not yet possible.")
     return;
   }
@@ -453,7 +453,6 @@ void calculate(PropmatVectorView pm,
                    com_data.scl[i] * com_data.shape[i];
     if (no_negative_absorption and F.real() < 0) continue;
     pm[i] += zeeman::scale(com_data.npm, F);
-    
   }
 }
 

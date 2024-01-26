@@ -12,6 +12,7 @@
 #include "jacobian.h"
 #include "math_funcs.h"
 #include "path_point.h"
+#include "species.h"
 
 namespace gui::MainMenu {
 void fullscreen(Config& cfg, GLFWwindow* window) {
@@ -112,7 +113,6 @@ bool change_item(const char* name) {
   return false;
 }
 
-
 bool change_item(const char* name,
                  Vector& vec,
                  Vector& old,
@@ -149,8 +149,6 @@ bool change_item(const char* name,
 
   return did_something;
 }
-
-
 
 bool change_item(const char* name,
                  Vector3& vec,
@@ -300,14 +298,14 @@ bool change_item(const char* name,
   return did_something;
 }
 
-bool change_item(
-    const char* name, PropagationPathPoint& point, PropagationPathPoint& old) {
+bool change_item(const char* name,
+                 PropagationPathPoint& point,
+                 PropagationPathPoint& old) {
   bool did_something = false;
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Value")) {
       if (ImGui::BeginMenu(name)) {
-
         ImGui::Text("\t");
         ImGui::SameLine();
         if (ImGui::InputDouble("\tAltitude\t", &point.pos[0], 0, 0, "%g")) {
@@ -315,7 +313,7 @@ bool change_item(
         }
 
         ImGui::Separator();
-        if (ImGui::InputDouble("\tLatitude\t", &point.pos[1], 0,0, "%g")) {
+        if (ImGui::InputDouble("\tLatitude\t", &point.pos[1], 0, 0, "%g")) {
           point.pos[1] = std::clamp<Numeric>(point.pos[1], -90, 90);
           did_something = true;
         }
@@ -327,7 +325,7 @@ bool change_item(
         }
 
         ImGui::Separator();
-        if (ImGui::InputDouble("\tZenith\t", &point.los[0], 0,0, "%g")) {
+        if (ImGui::InputDouble("\tZenith\t", &point.los[0], 0, 0, "%g")) {
           point.los[0] = std::clamp<Numeric>(point.los[0], 0, 180);
           did_something = true;
         }
@@ -452,6 +450,49 @@ bool change_item(const char* name,
   return did_something;
 }
 
+[[nodiscard]] bool change_item(const char* name,
+                               SpeciesEnum& out,
+                               SpeciesEnum& old) {
+  bool did_something = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::BeginMenu("Value")) {
+      if (ImGui::BeginMenu(name)) {
+        if (ImGui::Selectable(" *All* ",
+                              out == SpeciesEnum::Bath,
+                              ImGuiSelectableFlags_DontClosePopups)) {
+          out = SpeciesEnum::Bath;
+          did_something = true;
+        }
+        for (auto& spec :
+             Species::enumtyps::SpeciesTypes | std::views::drop(1)) {
+          ImGui::Separator();
+          const std::string str{var_string(' ', toString(spec), ' ')};
+          if (ImGui::Selectable(str.c_str(),
+                                spec == out,
+                                ImGuiSelectableFlags_DontClosePopups)) {
+            out = spec;
+            did_something = true;
+          }
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tRestore Value\t", {-1, 0})) {
+          out = old;
+          did_something = true;
+        }
+        ImGui::Separator();
+        if (ImGui::Button("\tStore Value\t", {-1, 0})) old = out;
+        ImGui::EndMenu();
+      }
+      ImGui::Separator();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+  return did_something;
+}
+
 bool change_item(const char* name,
                  ArrayOfSpeciesTag& out,
                  ArrayOfSpeciesTag& old,
@@ -495,8 +536,6 @@ bool change_item(const char* name,
   return did_something;
 }
 
-
-
 void tooltip(const char* tip, const Config& config) {
   if (ImGui::IsItemHovered()) {
     if (ImGui::GetCurrentContext()->HoveredIdTimer > config.hover_time_limit) {
@@ -525,7 +564,8 @@ void show_plot_controls() {
   }
 
   if (ImGui::BeginPopupModal("Plot Controls")) {
-    ImGui::Text(R"--(    The following controls are available to manipulate the plot panel                
+    ImGui::Text(
+        R"--(    The following controls are available to manipulate the plot panel                
     Note that gui has to be selected for any interactions to work
 
     Inside the plot panel:
@@ -561,7 +601,8 @@ void show_propmat_controls() {
 
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Help")) {
-      if (ImGui::MenuItem("Show Propagation Matrix Agenda Controls")) doit = true;
+      if (ImGui::MenuItem("Show Propagation Matrix Agenda Controls"))
+        doit = true;
       ImGui::Separator();
       ImGui::EndMenu();
     }
@@ -574,7 +615,8 @@ void show_propmat_controls() {
   }
 
   if (ImGui::BeginPopupModal("Propagation Matrix Agenda Controls")) {
-    ImGui::Text(R"--(    The following controls are available to manipulate agenda                              
+    ImGui::Text(
+        R"--(    The following controls are available to manipulate agenda                              
     Note that gui has to be selected for any interactions to work
 
     The Panel Control Panel:
@@ -619,4 +661,4 @@ void show_propmat_controls() {
     }
   }
 }
-}  // namespace ARTSGUI::MainMenu
+}  // namespace gui::MainMenu

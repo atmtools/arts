@@ -28,7 +28,7 @@ void zeeman_on_the_fly(
     const ArrayOfSpeciesTag& select_abs_species,
     const JacobianTargets& jacobian_targets,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
     const VibrationalEnergyLevels& nlte_vib_energies,
     const Vector& rtp_los,
@@ -56,8 +56,6 @@ void zeeman_on_the_fly(
       nlte_do and (nq not_eq dnlte_source_dx.nrows() or
                    nf not_eq dnlte_source_dx.ncols()),
       "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(any_negative(f_grid),
-                     "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
   ARTS_USER_ERROR_IF(manual_tag and H0 < 0,

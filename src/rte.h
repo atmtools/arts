@@ -19,6 +19,7 @@
 
 #include <workspace.h>
 #include "interpolation.h"
+#include "sorted_grid.h"
 
 /*===========================================================================
   === Functions in rte.cc
@@ -137,7 +138,7 @@ void get_stepwise_clearsky_propmat(
     StokvecMatrix& dS_dx,
     const Agenda& propmat_clearsky_agenda,
     const JacobianTargets& jacobian_targets,
-    const Vector& ppath_f_grid,
+    const AscendingGrid& ppath_f_grid,
     const PropagationPathPoint& path_point,
     const AtmPoint& atm_point);
 

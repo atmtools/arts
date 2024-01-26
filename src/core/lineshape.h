@@ -4,11 +4,11 @@
 #include <string_view>
 #include <variant>
 
+#include "arts_options.h"
 #include "jacobian.h"
 #include "nlte.h"
 #include "nonstd.h"
 #include "species.h"
-#include "arts_options.h"
 
 namespace LineShape {
 struct Noshape {
@@ -372,8 +372,7 @@ struct SimpleFrequencyScaling {
             F0_,
             T_) {}
 
-  [[nodiscard]] Numeric dNdT(Numeric t_ [[maybe_unused]],
-                             Numeric f) const ;
+  [[nodiscard]] Numeric dNdT(Numeric t_ [[maybe_unused]], Numeric f) const;
   [[nodiscard]] Numeric dNdf(Numeric f) const noexcept;
   [[nodiscard]] constexpr Numeric dNdF0() const noexcept {
     return -N / F0 + N * Constant::h * expF0 / (Constant::k * T * expm1F0);
@@ -598,13 +597,13 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibrium {
                       r * QT0 / QT * dK1dT * K2 * K3 +
                       r * QT0 / QT * K1 * dK2dT * K3 +
                       r * QT0 / QT * K1 * K2 * dK3dT)),
-        dNdTval(I0 * (dBdT * r * QT0 / QT * K1 * K2 * (K4 - K3) +
-                      B * drdT * QT0 / QT * K1 * K2 * (K4 - K3) -
-                      B * r * dQTdT * QT0 / Math::pow2(QT) * K1 * K2 *
-                          (K4 - K3) +
-                      B * r * QT0 / QT * dK1dT * K2 * (K4 - K3) +
-                      B * r * QT0 / QT * K1 * dK2dT * (K4 - K3) +
-                      B * r * QT0 / QT * K1 * K2 * (dK4dT - dK3dT))),
+        dNdTval(I0 *
+                (dBdT * r * QT0 / QT * K1 * K2 * (K4 - K3) +
+                 B * drdT * QT0 / QT * K1 * K2 * (K4 - K3) -
+                 B * r * dQTdT * QT0 / Math::pow2(QT) * K1 * K2 * (K4 - K3) +
+                 B * r * QT0 / QT * dK1dT * K2 * (K4 - K3) +
+                 B * r * QT0 / QT * K1 * dK2dT * (K4 - K3) +
+                 B * r * QT0 / QT * K1 * K2 * (dK4dT - dK3dT))),
         dSdF0val(I0 * (r * QT0 / QT * K1 * dK2dF0 * K3 +
                        r * QT0 / QT * K1 * K2 * dK3dF0)),
         dNdF0val(I0 * (dBdF0 * r * QT0 / QT * K1 * K2 * (K4 - K3) +
@@ -747,7 +746,7 @@ class IntensityCalculator {
                    FullNonLocalThermodynamicEquilibrium,
                    VibrationalTemperaturesNonLocalThermodynamicEquilibrium>;
   Variant ls_str;
-  
+
   Numeric scale{1.0};
   Species::Species self_species{Species::Species::Bath};
   Species::Species scaling_species{Species::Species::FINAL};
@@ -818,7 +817,7 @@ class IntensityCalculator {
                       const Numeric drdSELFVMR,
                       const Numeric drdT,
                       const std::pair<Numeric, Numeric> &nlte,
-                      const VibrationalEnergyLevels& nlte_vib_energies,
+                      const VibrationalEnergyLevels &nlte_vib_energies,
                       const Absorption::Lines &band,
                       const Index line_index) noexcept;
 
@@ -833,7 +832,8 @@ class IntensityCalculator {
    * @param other The species that rescales this intensity
    * @return IntensityCalculator&
    */
-  IntensityCalculator &adaptive_scaling(Numeric x, Species::Species self,
+  IntensityCalculator &adaptive_scaling(Numeric x,
+                                        Species::Species self,
                                         Species::Species other) noexcept;
 };  // IntensityCalculator
 
@@ -841,7 +841,7 @@ class IntensityCalculator {
 struct ComputeData {
   ComplexVector F, N;
   ComplexMatrix dF, dN;
-  const Vector &f_grid;
+  const Vector &frequency_grid;
   const bool do_nlte;
 
   ComputeData(const Vector &f,
@@ -851,7 +851,7 @@ struct ComputeData {
         N(nlte ? f.nelem() : 0, 0),
         dF(f.nelem(), jacobian_targets.target_count(), 0),
         dN(nlte ? f.nelem() : 0, nlte ? jacobian_targets.target_count() : 0, 0),
-        f_grid(f),
+        frequency_grid(f),
         do_nlte(nlte) {}
 
   void reset() noexcept {
@@ -865,17 +865,17 @@ struct ComputeData {
     *
     * @param[in] sparse The sparsely gridded data
   */
-  void interp_add_even(const ComputeData &sparse) ;
+  void interp_add_even(const ComputeData &sparse);
 
   /** Add a sparse grid to this grid via square interpolation
     *
     * @param[in] sparse The sparsely gridded data
   */
-  void interp_add_triplequad(const ComputeData &sparse) ;
+  void interp_add_triplequad(const ComputeData &sparse);
 
   /** All four fields are set to zero at i if F[i].real() < 0 */
   void enforce_positive_absorption() noexcept {
-    const Index nf = f_grid.nelem();
+    const Index nf = frequency_grid.nelem();
     for (Index i = 0; i < nf; i++) {
       if (F[i].real() < 0) {
         F[i] = 0;
@@ -942,7 +942,7 @@ void compute(ComputeData &com,
              const AbsorptionLines &band,
              const JacobianTargets &jacobian_targets,
              const std::pair<Numeric, Numeric> &rtp_nlte,
-             const VibrationalEnergyLevels& nlte_vib_energies,
+             const VibrationalEnergyLevels &nlte_vib_energies,
              const Vector &vmrs,
              const ArrayOfSpeciesTag &self_tag,
              const Numeric &self_vmr,
@@ -953,16 +953,17 @@ void compute(ComputeData &com,
              const Numeric &sparse_lim,
              const Zeeman::Polarization zeeman_polarization,
              const Options::LblSpeedup speedup_type,
-             const bool robust) ;
+             const bool robust);
 
-Vector linear_sparse_f_grid(const Vector &f_grid,
-                            const Numeric &sparse_df) ;
+Vector linear_sparse_frequency_grid(const Vector &frequency_grid,
+                                    const Numeric &sparse_df);
 
-bool good_linear_sparse_f_grid(const Vector &f_grid_dense,
-                               const Vector &f_grid_sparse) noexcept;
+bool good_linear_sparse_frequency_grid(
+    const Vector &frequency_grid_dense,
+    const Vector &frequency_grid_sparse) noexcept;
 
-Vector triple_sparse_f_grid(const Vector &f_grid,
-                            const Numeric &sparse_df) noexcept;
+Vector triple_sparse_frequency_grid(const Vector &frequency_grid,
+                                    const Numeric &sparse_df) noexcept;
 
 }  // namespace LineShape
 

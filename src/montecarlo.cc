@@ -37,10 +37,12 @@
 #include "arts_conversions.h"
 #include "atm.h"
 #include "debug.h"
+#include "optproperties.h"
 #include "rte.h"
+#include "sorted_grid.h"
 #include "special_interp.h"
 
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 // Some root-finding helper functions (for MCRadar) that don't need
 // visibility outside this source file
@@ -250,7 +252,7 @@ void clear_rt_vars_at_gp(const Workspace& ws,
                          MatrixView ext_mat_mono,
                          VectorView abs_vec_mono,
                          Numeric& temperature,
-                         const Agenda& propmat_clearsky_agenda,
+                         const Agenda& propagation_matrix_agenda,
                          const Numeric& f_mono,
                          const GridPos& gp_p,
                          const GridPos& gp_lat,
@@ -269,7 +271,7 @@ void clear_rt_vars_at_gp(const Workspace& ws,
   StokvecVector local_abs_vec;
   StokvecVector local_nlte_source_dummy;
   PropmatVector local_ext_mat;
-  PropmatVector local_propmat_clearsky;
+  PropmatVector local_propagation_matrix;
   PropmatMatrix local_partial_dummy;
   StokvecMatrix local_dnlte_source_dx_dummy;
   ao_gp_p[0] = gp_p;
@@ -299,20 +301,20 @@ void clear_rt_vars_at_gp(const Workspace& ws,
   temperature = t_vec[0];
 
   //calcualte absorption coefficient
-  propmat_clearsky_agendaExecute(ws,
-                                 local_propmat_clearsky,
-                                 local_nlte_source_dummy,
-                                 local_partial_dummy,
-                                 local_dnlte_source_dx_dummy,
-                                 {},
-                                 {},
-                                 Vector(1, f_mono),
-                                 {},
-                                 AtmPoint{},  // FIXME: DUMMY VALUE
-                                 propmat_clearsky_agenda);
+  propagation_matrix_agendaExecute(ws,
+                                   local_propagation_matrix,
+                                   local_nlte_source_dummy,
+                                   local_partial_dummy,
+                                   local_dnlte_source_dx_dummy,
+                                   {},
+                                   {},
+                                   AscendingGrid(Vector(1, f_mono)),
+                                   {},
+                                   AtmPoint{},  // FIXME: DUMMY VALUE
+                                   propagation_matrix_agenda);
 
   opt_prop_sum_propmat_clearsky(
-      local_ext_mat, local_abs_vec, local_propmat_clearsky);
+      local_ext_mat, local_abs_vec, local_propagation_matrix);
 
   ext_mat_mono = to_matrix(local_ext_mat[0]);
   abs_vec_mono = to_vector(local_abs_vec[0]);
@@ -323,7 +325,7 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
                           VectorView abs_vec_mono,
                           VectorView pnd_vec,
                           Numeric& temperature,
-                          const Agenda& propmat_clearsky_agenda,
+                          const Agenda& propagation_matrix_agenda,
                           const Index f_index,
                           const Vector& f_grid,
                           const GridPos& gp_p,
@@ -350,8 +352,9 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
   //local versions of workspace variables
   PropmatMatrix
       local_partial_dummy;  // This is right since there should be only clearsky partials
-  StokvecMatrix local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
-  PropmatVector local_propmat_clearsky;
+  StokvecMatrix
+      local_dnlte_source_dx_dummy;  // This is right since there should be only clearsky partials
+  PropmatVector local_propagation_matrix;
   StokvecVector local_nlte_source_dummy;  //FIXME: Do this right?
   StokvecVector local_abs_vec;
   PropmatVector local_ext_mat;
@@ -376,20 +379,20 @@ void cloudy_rt_vars_at_gp(const Workspace& ws,
   temperature = t_ppath[0];
 
   //rtp_vmr    = vmr_ppath(joker,0);
-  propmat_clearsky_agendaExecute(ws,
-                                 local_propmat_clearsky,
-                                 local_nlte_source_dummy,
-                                 local_partial_dummy,
-                                 local_dnlte_source_dx_dummy,
-                                 {},
-                                 {},
-                                 Vector{f_grid[Range(f_index, 1)]},
-                                 {},
-                                 AtmPoint{},  // FIXME: DUMMY VALUE
-                                 propmat_clearsky_agenda);
+  propagation_matrix_agendaExecute(ws,
+                                   local_propagation_matrix,
+                                   local_nlte_source_dummy,
+                                   local_partial_dummy,
+                                   local_dnlte_source_dx_dummy,
+                                   {},
+                                   {},
+                                   AscendingGrid{f_grid[Range(f_index, 1)]},
+                                   {},
+                                   AtmPoint{},  // FIXME: DUMMY VALUE
+                                   propagation_matrix_agenda);
 
   opt_prop_sum_propmat_clearsky(
-      local_ext_mat, local_abs_vec, local_propmat_clearsky);
+      local_ext_mat, local_abs_vec, local_propagation_matrix);
 
   ext_mat_mono = to_matrix(local_ext_mat[0]);
   abs_vec_mono = to_vector(local_abs_vec[0]);
@@ -486,8 +489,7 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   // each propagation path point
   Matrix itw_field;
   //
-  interp_atmfield_gp2itw(
-      itw_field, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
+  interp_atmfield_gp2itw(itw_field, gp_p_cloud, gp_lat_cloud, gp_lon_cloud);
   //
   interp_atmfield_by_itw(temperature,
                          t_field_cloud,
@@ -519,8 +521,7 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   }
 }
 
-void ext_mat_case(Index& icase,
-                  ConstMatrixView ext_mat) {
+void ext_mat_case(Index& icase, ConstMatrixView ext_mat) {
   if (icase == 0) {
     icase = 1;  // Start guess is diagonal
 
@@ -614,12 +615,13 @@ void ext2trans(MatrixView trans_mat,
       trans_mat(i, i) = trans_mat(0, 0);
     }
   }
-  
+
   else {
     Matrix ext_mat_ds{ext_mat};
     ext_mat_ds *= -lstep;
     //
-    constexpr Index q = 10;  // index for the precision of the matrix exp function
+    constexpr Index q =
+        10;  // index for the precision of the matrix exp function
     matrix_exp(trans_mat, ext_mat_ds, q);
   }
 }
@@ -627,8 +629,7 @@ void ext2trans(MatrixView trans_mat,
 bool is_anyptype_nonTotRan(
     const ArrayOfArrayOfSingleScatteringData& scat_data) {
   bool is_anyptype_nonTotRan = false;
-  for (Size i_ss = 0;
-       is_anyptype_nonTotRan == false && i_ss < scat_data.size();
+  for (Size i_ss = 0; is_anyptype_nonTotRan == false && i_ss < scat_data.size();
        i_ss++) {
     for (Size i_se = 0;
          is_anyptype_nonTotRan == false && i_se < scat_data[i_ss].size();

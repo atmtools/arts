@@ -310,7 +310,7 @@ Numeric model::Splitting(const QuantumNumberValueList& qn,
 }
 
 Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
-  if (mon) {
+  if (on) {
     if (type == pol::no) return 0;
 
     const auto& J = qn[QuantumNumberType::J];
@@ -322,14 +322,14 @@ Index model::size(const QuantumNumberValueList& qn, pol type) const noexcept {
 }
 
 std::ostream& operator<<(std::ostream& os, const model& m) {
-  os << std::noboolalpha << m.mon << ' ' << m.mdata.gu << ' ' << m.mdata.gl;
+  os << std::noboolalpha << m.on << ' ' << m.mdata.gu << ' ' << m.mdata.gl;
   return os;
 }
 
 std::istream& operator>>(std::istream& is, model& m) {
   Index i;
   is >> i >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
-  m.mon = static_cast<bool>(i);
+  m.on = static_cast<bool>(i);
   return is;
 }
 

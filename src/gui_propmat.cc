@@ -483,7 +483,7 @@ void start_run(Index pos, Control& ctrl, Time& start_time, Time& end_time) {
 
 void propmat(PropmatClearsky::ResultsArray& res,
              PropmatClearsky::Control& ctrl,
-             ArrayOfSpeciesTag& select_abs_species,
+             SpeciesEnum& select_species,
              Vector& f_grid,
              PropagationPathPoint& path_point,
              AtmPoint& atm_point,
@@ -514,7 +514,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
   auto fileBrowser = Files::xmlfile_chooser();
 
   // Old copies
-  auto old_select_abs_species = select_abs_species;
+  auto old_select_species = select_species;
   auto old_f_grid = f_grid;
   auto old_rtp_mag = atm_point.mag;
   auto old_path_point = path_point;
@@ -543,10 +543,9 @@ void propmat(PropmatClearsky::ResultsArray& res,
   {
     std::lock_guard lock{ctrl.copy};
 
-    updated = MainMenu::change_item("\tselect_abs_species\t",
-                                    select_abs_species,
-                                    old_select_abs_species,
-                                    abs_species) or
+    updated = MainMenu::change_item("\\tselect_species\t",
+                                    select_species,
+                                    old_select_species) or
               updated;
 
     updated =
@@ -842,10 +841,10 @@ void propmat(PropmatClearsky::ResultsArray& res,
       ImGui::Separator();
 
       // Display current select species
-      auto spec_str = var_string(v.select_abs_species);
+      auto spec_str = var_string(v.select_species);
       ImGui::Text("\tSelect Species:%c\t\n\t  %s",
-                  spec_str == var_string(select_abs_species) ? ' ' : '*',
-                  spec_str.length() == 0 ? "All" : spec_str.c_str());
+                  spec_str == var_string(select_species) ? ' ' : '*',
+                  select_species == SpeciesEnum::Bath ? "All" : spec_str.c_str());
       ImGui::Separator();
 
       // Display current transmissio distance

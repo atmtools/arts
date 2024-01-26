@@ -27,6 +27,7 @@
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
 #include "path_point.h"
+#include "sorted_grid.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
@@ -356,7 +357,8 @@ void xml_read_from_stream(std::istream& is_xml,
   matrix.resize(nrows, ncols);
 
   if (pbifs) {
-    pbifs->readDoubleArray(reinterpret_cast<Numeric*>(matrix.data_handle()), nrows * ncols);
+    pbifs->readDoubleArray(reinterpret_cast<Numeric*>(matrix.data_handle()),
+                           nrows * ncols);
   } else {
     for (Index r = 0; r < nrows; r++) {
       for (Index c = 0; c < ncols; c++) {
@@ -444,12 +446,14 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     tag.get_attribute_value("name", name);
 
     if constexpr (std::same_as<U, Vector>) {
-      ARTS_USER_ERROR_IF(tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
+      ARTS_USER_ERROR_IF(
+          tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
       xml_parse_from_stream(is_xml, grid, pbifs, tag);
       tag.read_from_stream(is_xml);
       tag.check_name("/Vector");
     } else {
-      ARTS_USER_ERROR_IF(tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
+      ARTS_USER_ERROR_IF(
+          tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
       String s;
       tag.get_attribute_value("type", s);
       ARTS_USER_ERROR_IF(
@@ -3002,4 +3006,23 @@ void xml_write_to_stream(std::ostream& os_xml,
     *pbofs << ppp.pos[0] << ppp.pos[1] << ppp.pos[2] << ppp.los[0] << ppp.los[1]
            << ppp.nreal << ppp.ngroup;
   }
+}
+
+//! AscendingGrid
+
+void xml_read_from_stream(std::istream& is_xml,
+                          AscendingGrid& g,
+                          bifstream* pbifs) {
+  const tag stag{is_xml, "AscendingGrid"};
+  Vector x;
+  xml_read_from_stream(is_xml, x, pbifs);
+  g = std::move(x);
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const AscendingGrid& g,
+                         bofstream* pbofs,
+                         const String&) {
+  const tag stag{os_xml, "AscendingGrid"};
+  xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
 }

@@ -29,16 +29,16 @@
 inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddCIA(  // WS Output:
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+void propagation_matrixAddCIA(  // WS Output:
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
+    const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid,
+    const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfCIARecord& abs_cia_data,
+    const ArrayOfCIARecord& propagation_matrix_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
@@ -49,16 +49,14 @@ void propmat_clearskyAddCIA(  // WS Output:
 
   // Possible things that can go wrong in this code (excluding line parameters)
   check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
-                     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.nrows() not_eq nq,
-      "*dpropmat_clearsky_dx* must match derived form of *jacobian_targets*")
-  ARTS_USER_ERROR_IF(dpropmat_clearsky_dx.ncols() not_eq nf,
-      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
+  ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
+                     "*f_grid* must match *propagation_matrix*")
+  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.nrows() not_eq nq,
+      "*propagation_matrix_jacobian* must match derived form of *jacobian_targets*")
+  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.ncols() not_eq nf,
+      "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(not is_increasing(f_grid),
-                     "Must be sorted and increasing.")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
@@ -99,8 +97,8 @@ void propmat_clearskyAddCIA(  // WS Output:
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
   for (Index ispecies = 0; ispecies < ns; ispecies++) {
-    if (select_abs_species.size() and
-        select_abs_species not_eq abs_species[ispecies])
+    if (select_species != SpeciesEnum::Bath and
+        select_species != abs_species[ispecies].Species())
       continue;
 
     // Skip it if there are no species or there is Zeeman requested
@@ -118,11 +116,11 @@ void propmat_clearskyAddCIA(  // WS Output:
       // Get convenient references of this CIA data record and this
       // absorption cross-section record:
       Index this_cia_index = cia_get_index(
-          abs_cia_data, this_species.Spec(), this_species.cia_2nd_species);
+          propagation_matrix_cia_data, this_species.Spec(), this_species.cia_2nd_species);
 
       ARTS_ASSERT(this_cia_index != -1);
 
-      const CIARecord& this_cia = abs_cia_data[this_cia_index];
+      const CIARecord& this_cia = propagation_matrix_cia_data[this_cia_index];
 
       // Find out index of VMR for the second CIA species.
       // (The index for the first species is simply i.)
@@ -177,12 +175,12 @@ void propmat_clearskyAddCIA(  // WS Output:
       const Numeric dnd_dt_sec =
           dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
       for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-        propmat_clearsky[iv].A() +=
+        propagation_matrix[iv].A() +=
             nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
 
         if (jac_temps.first) {
           const auto iq = jac_temps.second->target_pos;
-          dpropmat_clearsky_dx(iq, iv).A() +=
+          propagation_matrix_jacobian(iq, iv).A() +=
               ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                 xsec_temp[iv] * dnd_dt_sec) *
                    nd +
@@ -193,7 +191,7 @@ void propmat_clearskyAddCIA(  // WS Output:
         for (auto& j : jac_freqs) {
           if (j.first) {
             const auto iq = j.second->target_pos;
-            dpropmat_clearsky_dx(iq, iv).A() +=
+            propagation_matrix_jacobian(iq, iv).A() +=
                 nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
                 atm_point[this_cia.Species(1)];
           }
@@ -203,7 +201,7 @@ void propmat_clearskyAddCIA(  // WS Output:
                 abs_species[ispecies].Species());
             j.first) {
           const auto iq = j.second->target_pos;
-          dpropmat_clearsky_dx(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+          propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
         }
 
         // FIXME: Missing secondary species !
@@ -229,24 +227,24 @@ void CIARecordReadFromFile(  // WS GOutput:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_cia_dataAddCIARecord(  // WS Output:
-    ArrayOfCIARecord& abs_cia_data,
+void propagation_matrix_cia_dataAddCIARecord(  // WS Output:
+    ArrayOfCIARecord& propagation_matrix_cia_data,
     // WS GInput:
     const CIARecord& cia_record,
     const Index& clobber) {
   Index cia_index =
-      cia_get_index(abs_cia_data, cia_record.Species(0), cia_record.Species(1));
+      cia_get_index(propagation_matrix_cia_data, cia_record.Species(0), cia_record.Species(1));
   if (cia_index == -1)
-    abs_cia_data.push_back(cia_record);
+    propagation_matrix_cia_data.push_back(cia_record);
   else if (clobber)
-    abs_cia_data[cia_index] = cia_record;
+    propagation_matrix_cia_data[cia_index] = cia_record;
   else
-    abs_cia_data[cia_index].AppendDataset(cia_record);
+    propagation_matrix_cia_data[cia_index].AppendDataset(cia_record);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_cia_dataReadFromCIA(  // WS Output:
-    ArrayOfCIARecord& abs_cia_data,
+void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
+    ArrayOfCIARecord& propagation_matrix_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
@@ -254,7 +252,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
 
-  abs_cia_data.resize(0);
+  propagation_matrix_cia_data.resize(0);
 
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
@@ -265,7 +263,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
       ArrayOfString cia_names;
 
-      Index cia_index = cia_get_index(abs_cia_data,
+      Index cia_index = cia_get_index(propagation_matrix_cia_data,
                                       abs_species[sp][iso].Spec(),
                                       abs_species[sp][iso].cia_2nd_species);
 
@@ -313,7 +311,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
                             abs_species[sp][iso].cia_2nd_species);
             ciar.ReadFromCIA(catfile);
 
-            abs_cia_data.push_back(ciar);
+            propagation_matrix_cia_data.push_back(ciar);
           }
         }
       }
@@ -327,12 +325,12 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_cia_dataReadFromXML(  // WS Output:
-    ArrayOfCIARecord& abs_cia_data,
+void propagation_matrix_cia_dataReadFromXML(  // WS Output:
+    ArrayOfCIARecord& propagation_matrix_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& filename) {
-  xml_read_from_file(filename, abs_cia_data);
+  xml_read_from_file(filename, propagation_matrix_cia_data);
 
   // Check that all CIA tags from abs_species are present in the
   // XML file
@@ -346,7 +344,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
     for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
-      Index cia_index = cia_get_index(abs_cia_data,
+      Index cia_index = cia_get_index(propagation_matrix_cia_data,
                                       abs_species[sp][iso].Spec(),
                                       abs_species[sp][iso].cia_2nd_species);
 
@@ -376,8 +374,8 @@ void abs_cia_dataReadFromXML(  // WS Output:
   }
 }
 
-void abs_cia_dataReadSpeciesSplitCatalog(
-    ArrayOfCIARecord& abs_cia_data,
+void propagation_matrix_cia_dataReadSpeciesSplitCatalog(
+    ArrayOfCIARecord& propagation_matrix_cia_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& robust) {
@@ -406,9 +404,9 @@ void abs_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    xml_read_from_file(fil.c_str(), abs_cia_data.emplace_back());
+    xml_read_from_file(fil.c_str(), propagation_matrix_cia_data.emplace_back());
 
-    ARTS_USER_ERROR_IF(robust == 0 and abs_cia_data.back().DatasetCount() == 0,
+    ARTS_USER_ERROR_IF(robust == 0 and propagation_matrix_cia_data.back().DatasetCount() == 0,
                        "Cannot find any data for ", std::quoted(name),
                        " in file at ", fil)
   }

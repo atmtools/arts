@@ -15,6 +15,7 @@
 #include "nonstd.h"
 #include "python_interface/pydocs.h"
 #include "workspace_agendas.h"
+#include "workspace_variables.h"
 
 String as_pyarts(const String& x) {
   const static auto& wsgs = internal_workspace_groups();
@@ -38,8 +39,9 @@ String as_pyarts(const String& x) {
       "variable or group, please remove it from the documentation!\n"));
 }
 
-uint32_t hlist_num_cols(const std::vector<String>& v) {
-  return v.size() < 5 ? 1 : 2;
+uint32_t hlist_num_cols(const std::vector<String>& v1,
+                        const std::vector<String>& v2) {
+  return (v1.size() + v2.size()) < 5 ? 1 : 2;
 };
 
 bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
@@ -344,6 +346,7 @@ String method_docs(const String& name) try {
 }
 
 String variable_used_by(const String& name) {
+  const static auto& wsvs = internal_workspace_variables();
   const static auto& wsms = internal_workspace_methods();
   const static auto& wsas = internal_workspace_agendas();
 
@@ -352,6 +355,7 @@ String variable_used_by(const String& name) {
     std::vector<String> wsm_in;
     std::vector<String> ag_out;
     std::vector<String> ag_in;
+    std::vector<String> wsvs;
   };
 
   wsv_io usedocs;
@@ -371,60 +375,154 @@ String variable_used_by(const String& name) {
       usedocs.ag_in.emplace_back(aname);
   }
 
-  String val;
-  if (usedocs.wsm_out.size()) {
-    val += var_string("\n\nWorkspace methods that can generate ",
-                      name,
-                      "\n",
-                      String(36 + name.size(), '-'),
-                      "\n\n.. hlist::",
-                      "\n    :columns: ",
-                      hlist_num_cols(usedocs.wsm_out),
-                      "\n");
-    for (auto& m : usedocs.wsm_out)
-      val += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
-    val += "\n";
+  const static std::array wsv_keyname{"jacobian",
+                                      "spectral_radiance",
+                                      "propagation_matrix",
+                                      "source_vector",
+                                      "nonlte",
+                                      "propagation_path",
+                                      "grid"};
+  for (auto& [vname, var] : wsvs) {
+    if (vname != name and
+        (vname.find(name) != vname.npos or
+         std::ranges::any_of(wsv_keyname,
+                             [a1 = vname, a2 = name](auto& keyname) {
+                               return a1.find(keyname) != a1.npos and
+                                      a2.find(keyname) != a2.npos;
+                             }))) {
+      usedocs.wsvs.emplace_back(vname);
+    }
   }
 
-  if (usedocs.wsm_in.size()) {
-    val += var_string("\n\nWorkspace methods that require ",
-                      name,
-                      "\n",
-                      String(31 + name.size(), '-'),
-                      "\n\n.. hlist::",
-                      "\n    :columns: ",
-                      hlist_num_cols(usedocs.wsm_in),
-                      "\n");
-    for (auto& m : usedocs.wsm_in)
-      val += var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+  std::ranges::sort(usedocs.wsm_out);
+  std::ranges::sort(usedocs.wsm_in);
+  std::ranges::sort(usedocs.ag_out);
+  std::ranges::sort(usedocs.ag_in);
+  std::ranges::sort(usedocs.wsvs);
+
+  String val;
+  if (usedocs.wsm_out.size() or usedocs.wsm_out.size()) {
+    val +=
+        var_string("\n\nRelated workspace methods\n", String(25, '-'), "\n\n");
+
+    std::array<std::vector<std::string>, 3> io;
+    for (auto& m : usedocs.wsm_out) {
+      if (std::ranges::any_of(usedocs.wsm_in, Cmp::eq(m))) {
+        io[1].emplace_back(m);
+      } else {
+        io[2].emplace_back(m);
+      }
+    }
+    for (auto& m : usedocs.wsm_in) {
+      if (std::ranges::none_of(usedocs.wsm_out, Cmp::eq(m))) {
+        io[0].emplace_back(m);
+      }
+    }
+
+    if (io[0].size()) {
+      val += var_string("\n\nInput to\n========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[0]),
+                        "\n");
+      for (auto& m : io[0]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
+
+    if (io[1].size()) {
+      val += var_string("\n\nModified by\n===========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[1]),
+                        "\n");
+      for (auto& m : io[1]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
+
+    if (io[2].size()) {
+      val += var_string("\n\nOutput from\n===========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[2]),
+                        "\n");
+      for (auto& m : io[2]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
     val += "\n";
   }
 
   if (usedocs.ag_out.size()) {
-    val += var_string("\n\nWorkspace agendas that can generate ",
-                      name,
-                      "\n",
-                      String(36 + name.size(), '-'),
-                      "\n\n.. hlist::",
-                      "\n    :columns: ",
-                      hlist_num_cols(usedocs.ag_out),
-                      "\n");
-    for (auto& m : usedocs.ag_out)
-      val += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    val +=
+        var_string("\n\nRelated workspace agendas\n", String(25, '-'), "\n\n");
+
+    std::array<std::vector<std::string>, 3> io;
+    for (auto& m : usedocs.ag_out) {
+      if (std::ranges::any_of(usedocs.ag_in, Cmp::eq(m))) {
+        io[1].emplace_back(m);
+      } else {
+        io[2].emplace_back(m);
+      }
+    }
+    for (auto& m : usedocs.ag_in) {
+      if (std::ranges::none_of(usedocs.ag_out, Cmp::eq(m))) {
+        io[0].emplace_back(m);
+      }
+    }
+
+    if (io[0].size()) {
+      val += var_string("\n\nInput to\n========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[0]),
+                        "\n");
+      for (auto& m : io[0]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
+
+    if (io[1].size()) {
+      val += var_string("\n\nModified by\n===========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[1]),
+                        "\n");
+      for (auto& m : io[1]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
+    
+    if (io[2].size()) {
+      val += var_string("\n\nOutput from\n===========\n\n",
+                        "\n\n.. hlist::",
+                        "\n    :columns: ",
+                        hlist_num_cols(io[2]),
+                        "\n");
+      for (auto& m : io[2]) {
+        val +=
+            var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
+      }
+    }
     val += "\n";
   }
 
-  if (usedocs.ag_in.size()) {
-    val += var_string("\n\nWorkspace agendas that require ",
-                      name,
-                      "\n",
-                      String(31 + name.size(), '-'),
+  if (usedocs.wsvs.size()) {
+    val += var_string("\n\nRelated workspace variables\n",
+                      String(27, '-'),
                       "\n\n.. hlist::",
                       "\n    :columns: ",
-                      hlist_num_cols(usedocs.ag_in),
+                      hlist_num_cols(usedocs.wsvs),
                       "\n");
-    for (auto& m : usedocs.ag_in)
-      val += var_string("\n    * :attr:`~pyarts.workspace.Workspace.", m, '`');
+    for (auto& m : usedocs.wsvs) {
+      val += var_string("\n    *  :attr:`~pyarts.workspace.Workspace.", m, '`');
+    }
     val += "\n";
   }
 

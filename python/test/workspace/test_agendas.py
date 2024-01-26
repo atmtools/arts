@@ -17,7 +17,7 @@ class TestAgendas:
 
     def test_planet_set(self):
         options = (
-            pyarts.arts.options.planetDefaultOptions.get_options_as_strings()
+            pyarts.arts.options.planetOption.get_options_as_strings()
         )
 
         ws = pyarts.workspace.Workspace()

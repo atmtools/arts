@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
@@ -33,23 +34,25 @@ inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AngularGridsSetFluxCalc(Vector& za_grid,
-                             Vector& aa_grid,
+void AngularGridsSetFluxCalc(AscendingGrid& za_grid,
+                             AscendingGrid& aa_grid,
                              Vector& za_grid_weights,
                              // Keywords:
                              const Index& N_za_grid,
                              const Index& N_aa_grid,
                              const String& za_grid_type) {
   // Azimuth angle grid
-  if (N_aa_grid > 1)
-    nlinspace(aa_grid, -180, 180, N_aa_grid);
-  else if (N_aa_grid < 1) {
+  if (N_aa_grid > 1){
+    Vector aa_grid_temp;
+    nlinspace(aa_grid_temp, -180, 180, N_aa_grid);
+    aa_grid = std::move(aa_grid_temp);
+  }else if (N_aa_grid < 1) {
     std::ostringstream os;
     os << "N_aa_grid must be > 0 (even for 1D).";
     throw std::runtime_error(os.str());
   } else {
-    aa_grid.resize(1);
-    aa_grid[0] = 0.;
+    aa_grid.unsafe_resize(1);
+    *aa_grid.unsafe_begin() = 0.;
   }
 
   if (N_za_grid % 2 == 1) {
@@ -61,8 +64,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
   Index nph = N_za_grid / 2;
 
   //calculate zenith angle grid
-  za_grid.resize(N_za_grid);
-  za_grid = 0.;
+  Vector za_grid_temp2(N_za_grid, 0.);
   za_grid_weights.resize(N_za_grid);
   za_grid_weights = 0;
 
@@ -106,8 +108,8 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     for (Index i = 0; i < nph; i++) {
       //set the angles
       //theta=x[i];//acos((x[i]+1)/2)/DEG2RAD;
-      za_grid[i] = x[i];
-      za_grid[za_grid.nelem() - 1 - i] = 180 - x[i];
+      za_grid_temp2[i] = x[i];
+      za_grid_temp2[za_grid_temp2.nelem() - 1 - i] = 180 - x[i];
 
       // set the weights to the right component
       za_grid_weights[i] = w[i];
@@ -120,11 +122,11 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     calculate_weights_linear(x, w, nph);
 
     for (Index i = 0; i < N_za_grid; i++) {
-      za_grid[i] = (x[i] + 1) * 90.;
+      za_grid_temp2[i] = (x[i] + 1) * 90.;
 
       // set the weights to the right component
       // by adjusting the domain, we also have to adjust the weights
-      za_grid_weights[i] = w[i] * sin(za_grid[i] * DEG2RAD);
+      za_grid_weights[i] = w[i] * sin(za_grid_temp2[i] * DEG2RAD);
     }
   } else if (za_grid_type == "linear_mu") {
     Vector x;
@@ -142,7 +144,7 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
     }
 
     //#sort weights and theta in increasing direction of za_grid
-    za_grid = reverse(za_grid_temp);
+    za_grid_temp2 = reverse(za_grid_temp);
     za_grid_weights = reverse(w);
 
   } else {
@@ -154,13 +156,15 @@ void AngularGridsSetFluxCalc(Vector& za_grid,
   //be sure that the first and the last angle are within the closed interval
   //between 0 and 180 deg, because ARTS is picky if the angles are due to numerics
   // slightly below and above,respectively.
-  if (za_grid[0] < 0) {
-    za_grid[0] = 0.;
+  if (za_grid_temp2[0] < 0) {
+    za_grid_temp2[0] = 0.;
   }
 
-  if (za_grid[za_grid.nelem() - 1] > 180) {
-    za_grid[za_grid.nelem() - 1] = 180.;
+  if (za_grid_temp2[za_grid_temp2.nelem() - 1] > 180) {
+    za_grid_temp2[za_grid_temp2.nelem() - 1] = 180.;
   }
+
+  za_grid = std::move(za_grid_temp2);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -243,8 +247,8 @@ void heating_ratesFromIrradiance(Tensor3& heating_rates,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
-                                  const Vector& za_grid,
-                                  const Vector& aa_grid,
+                                  const AscendingGrid& za_grid,
+                                  const AscendingGrid& aa_grid,
                                   const Vector& za_grid_weights,
                                   const Tensor5& radiance_field) {
   // Number of zenith angles.
@@ -314,7 +318,7 @@ void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
-                                     const Vector& f_grid,
+                                     const AscendingGrid& f_grid,
                                      const Tensor5& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nshelves()) {
     throw std::runtime_error(
@@ -350,7 +354,7 @@ void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
-                                     const Vector& f_grid,
+                                     const AscendingGrid& f_grid,
                                      const Tensor7& spectral_radiation_field) {
   if (f_grid.nelem() != spectral_radiation_field.nlibraries()) {
     throw std::runtime_error(
@@ -391,8 +395,8 @@ void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
 void spectral_irradiance_fieldFromSpectralRadianceField(
     Tensor5& spectral_irradiance_field,
     const Tensor7& spectral_radiance_field,
-    const Vector& za_grid,
-    const Vector& aa_grid,
+    const AscendingGrid& za_grid,
+    const AscendingGrid& aa_grid,
     const Vector& za_grid_weights) {
   // Number of zenith angles.
   const Index N_scat_za = spectral_radiance_field.npages();

@@ -98,10 +98,7 @@ void py_lbl(py::module_& m) try {
            &lbl::line_shape::model::G0,
            "The G0 coefficient",
            py::arg("atm"))
-      .def("Y",
-           &lbl::line_shape::model::Y,
-           "The Y coefficient",
-           py::arg("atm"))
+      .def("Y", &lbl::line_shape::model::Y, "The Y coefficient", py::arg("atm"))
       .def("D0",
            &lbl::line_shape::model::D0,
            "The D0 coefficient",
@@ -120,10 +117,9 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(lbl::line_shape::model);
 
   artsclass<lbl::zeeman::model>(m, "ZeemanLineModel")
-      .def_property(
+      .def_readwrite(
           "on",
-          [](const lbl::zeeman::model& z) { return z.active(); },
-          [](lbl::zeeman::model& z, bool x) { z.active(x); },
+          &lbl::zeeman::model::on,
           ":class:`~pyarts.arts.Bool` If True, the Zeeman effect is included")
       .def_property(
           "gl",

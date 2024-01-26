@@ -58,6 +58,9 @@ bool exportdata(const Config &cfg, ImGui::FileBrowser &fileBrowser, const char *
                                const ArrayOfArrayOfSpeciesTag &);
 
 [[nodiscard]] bool change_item(const char *,
+                               SpeciesEnum &,SpeciesEnum &);
+
+[[nodiscard]] bool change_item(const char *,
                                PropagationPathPoint &,PropagationPathPoint &);
 
 template <class T, size_t N>

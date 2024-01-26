@@ -82,12 +82,6 @@ std::string variable(const std::string& name,
 
   os << variable_used_by(name) << '\n';
 
-  os << "\n\nGeneric workspace methods that can generate or use " << name
-     << "\n"
-     << String(51 + name.size(), '-') << "\n\nSee :class:`~pyarts.arts."
-     << wsv.type << "`";
-  if (wsv.type not_eq "Any") os << " and/or :class:`~pyarts.arts.Any`\n";
-
   return fix_newlines(os.str()) + ")-x-\"));\n\n";
 } catch (std::exception& e) {
   std::cerr << "Error in variable " << std::quoted(name) << ":\n"

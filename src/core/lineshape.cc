@@ -1,20 +1,19 @@
-#include "atm.h"
-#include "debug.h"
-#include "lineshapemodel.h"
-#include "jacobian.h"
-#include "nlte.h"
+#include "lineshape.h"
 
+#include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
+#include "atm.h"
+#include "debug.h"
+#include "jacobian.h"
 #include "linescaling.h"
-#include "lineshape.h"
+#include "lineshapemodel.h"
+#include "nlte.h"
 #include "physics_funcs.h"
 #include "species.h"
 #include "species_tags.h"
-
-#include <Faddeeva/Faddeeva.hh>
-#include <limits>
 
 using Constant::inv_pi;
 using Constant::inv_sqrt_pi;
@@ -42,368 +41,377 @@ Complex Voigt::operator()(Numeric f) noexcept {
   return F;
 }
 
-SpeedDependentVoigt::SpeedDependentVoigt(Numeric F0_noshift, const Output &ls,
-                                         Numeric GD_div_F0, Numeric dZ) noexcept
+SpeedDependentVoigt::SpeedDependentVoigt(Numeric F0_noshift,
+                                         const Output &ls,
+                                         Numeric GD_div_F0,
+                                         Numeric dZ) noexcept
     : mF0(F0_noshift + dZ + ls.D0 - 1.5 * ls.D2),
       invGD(sqrt_ln_2 / nonstd::abs(GD_div_F0 * mF0)),
-      invc2(1.0 / Complex(ls.G2, ls.D2)), dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)),
-      x(dx * invc2), sqrty(invc2 / (2 * invGD)),
+      invc2(1.0 / Complex(ls.G2, ls.D2)),
+      dx(Complex(ls.G0 - 1.5 * ls.G2, mF0)),
+      x(dx * invc2),
+      sqrty(invc2 / (2 * invGD)),
       calcs(init(Complex(ls.G2, ls.D2))) {
   calc();
 }
 
 Complex SpeedDependentVoigt::dFdf() const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return invGD * invc2 * (dw1 - dw2) / (2 * sqrt_pi * sq);
-  case CalcType::Voigt:
-    return dw1 * pow2(invGD) * inv_sqrt_pi;
-  case CalcType::LowXandHighY:
-    return dw1 * pow2(invGD) * inv_sqrt_pi -
-           dw2 * invGD * invc2 / (2 * sqrt_pi * sq);
-  case CalcType::LowYandLowX:
-    return pow2(invc2) * (-dw1 * sq + 1i * w1) / (sqrt_pi * sq);
-  case CalcType::LowYandHighX:
-    return 1i * pow2(invc2) * (x - 3) / (pi * pow3(x));
+    case CalcType::Full:
+      return invGD * invc2 * (dw1 - dw2) / (2 * sqrt_pi * sq);
+    case CalcType::Voigt:
+      return dw1 * pow2(invGD) * inv_sqrt_pi;
+    case CalcType::LowXandHighY:
+      return dw1 * pow2(invGD) * inv_sqrt_pi -
+             dw2 * invGD * invc2 / (2 * sqrt_pi * sq);
+    case CalcType::LowYandLowX:
+      return pow2(invc2) * (-dw1 * sq + 1i * w1) / (sqrt_pi * sq);
+    case CalcType::LowYandHighX:
+      return 1i * pow2(invc2) * (x - 3) / (pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdF0() const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return (4 * pow2(invGD) * (-w1 + w2) * sq +
-            1i * invc2 *
-                (dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
-                        invc2) -
-                 dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                        invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::Voigt:
-    return -invGD * (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
-           (sqrt_pi * mF0);
-  case CalcType::LowXandHighY:
-    return (4 * pow2(invGD) * (-w1 + w2) * sq -
-            1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
-                  dw2 * invc2 *
-                      (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                       invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::LowYandLowX:
-    return pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
-  case CalcType::LowYandHighX:
-    return 1i * pow2(invc2) * (3 - x) / (pi * pow3(x));
+    case CalcType::Full:
+      return (4 * pow2(invGD) * (-w1 + w2) * sq +
+              1i * invc2 *
+                  (dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
+                          invc2) -
+                   dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                          invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::Voigt:
+      return -invGD * (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
+             (sqrt_pi * mF0);
+    case CalcType::LowXandHighY:
+      return (4 * pow2(invGD) * (-w1 + w2) * sq -
+              1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
+                    dw2 * invc2 *
+                        (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                         invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::LowYandLowX:
+      return pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
+    case CalcType::LowYandHighX:
+      return 1i * pow2(invc2) * (3 - x) / (pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdD0(Numeric dD0dD0) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return -dD0dD0 *
-           (4 * pow2(invGD) * (w1 - w2) * sq +
-            1i * invc2 *
-                (-dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
-                         invc2) +
-                 dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                        invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::Voigt:
-    return -dD0dD0 * invGD *
-           (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
-           (sqrt_pi * mF0);
-  case CalcType::LowXandHighY:
-    return -dD0dD0 *
-           (4 * pow2(invGD) * (w1 - w2) * sq +
-            1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
-                  dw2 * invc2 *
-                      (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                       invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::LowYandLowX:
-    return dD0dD0 * pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
-  case CalcType::LowYandHighX:
-    return -Complex(0, dD0dD0) * pow2(invc2) * (x - 3) / (pi * pow3(x));
+    case CalcType::Full:
+      return -dD0dD0 *
+             (4 * pow2(invGD) * (w1 - w2) * sq +
+              1i * invc2 *
+                  (-dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
+                           invc2) +
+                   dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                          invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::Voigt:
+      return -dD0dD0 * invGD *
+             (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
+             (sqrt_pi * mF0);
+    case CalcType::LowXandHighY:
+      return -dD0dD0 *
+             (4 * pow2(invGD) * (w1 - w2) * sq +
+              1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
+                    dw2 * invc2 *
+                        (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                         invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::LowYandLowX:
+      return dD0dD0 * pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
+    case CalcType::LowYandHighX:
+      return -Complex(0, dD0dD0) * pow2(invc2) * (x - 3) / (pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdG0(Numeric dG0dG0) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return Complex(0, dG0dG0) * invGD * invc2 * (dw1 - dw2) /
-           (2 * sqrt_pi * sq);
-  case CalcType::Voigt:
-    return Complex(0, dG0dG0) * dw1 * pow2(invGD) * inv_sqrt_pi;
-  case CalcType::LowXandHighY:
-    return Complex(0, dG0dG0) * invGD * (2 * dw1 * invGD * sq - dw2 * invc2) /
-           (2 * sqrt_pi * sq);
-  case CalcType::LowYandLowX:
-    return -dG0dG0 * pow2(invc2) * (1i * dw1 * sq + w1) / (sqrt_pi * sq);
-  case CalcType::LowYandHighX:
-    return -dG0dG0 * pow2(invc2) * (x - 3) / (pi * pow3(x));
+    case CalcType::Full:
+      return Complex(0, dG0dG0) * invGD * invc2 * (dw1 - dw2) /
+             (2 * sqrt_pi * sq);
+    case CalcType::Voigt:
+      return Complex(0, dG0dG0) * dw1 * pow2(invGD) * inv_sqrt_pi;
+    case CalcType::LowXandHighY:
+      return Complex(0, dG0dG0) * invGD * (2 * dw1 * invGD * sq - dw2 * invc2) /
+             (2 * sqrt_pi * sq);
+    case CalcType::LowYandLowX:
+      return -dG0dG0 * pow2(invc2) * (1i * dw1 * sq + w1) / (sqrt_pi * sq);
+    case CalcType::LowYandHighX:
+      return -dG0dG0 * pow2(invc2) * (x - 3) / (pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdD2(Numeric dD2dD2) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return dD2dD2 *
-           (12 * pow2(invGD) * (w1 - w2) * sq +
-            1i * invc2 *
-                (dw1 * (-Complex(0, 2 * mF0 * pow2(invGD)) *
-                            (2 * dx * invc2 + 3) +
-                        4 * Complex(0, invGD) * invc2 * mF0 * sq +
-                        6 * invGD * sq - Complex(0, 2 * mF0) * pow2(invc2) -
-                        3 * invc2) +
-                 dw2 *
-                     (Complex(0, 2 * mF0 * pow2(invGD)) * (2 * dx * invc2 + 3) +
-                      4 * Complex(0, invGD) * invc2 * mF0 * sq +
-                      6 * invGD * sq + Complex(0, 2 * mF0) * pow2(invc2) +
-                      3 * invc2))) /
-           (8 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::Voigt:
-    return 3 * dD2dD2 * invGD *
-           (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
-           (2 * sqrt_pi * mF0);
-  case CalcType::LowXandHighY:
-    return dD2dD2 *
-           (12 * pow2(invGD) * (w1 - w2) * sq +
-            1i *
-                (12 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
-                 dw2 * invc2 *
-                     (Complex(0, 2 * mF0 * pow2(invGD)) * (2 * dx * invc2 + 3) +
-                      4 * Complex(0, invGD) * invc2 * mF0 * sq +
-                      6 * invGD * sq + Complex(0, 2 * mF0) * pow2(invc2) +
-                      3 * invc2))) /
-           (8 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::LowYandLowX:
-    return dD2dD2 * pow2(invc2) *
-           (4 * 1i * sq * (sqrt_pi * w1 * sq - 1) -
-            sqrt_pi * (dw1 * sq - 1i * w1) * (2 * dx * invc2 + 3)) /
-           (2 * pi * sq);
-  case CalcType::LowYandHighX:
-    return Complex(0, dD2dD2) * pow2(invc2) *
-           (-x * (2 * x - 3) + (x - 3) * (2 * dx * invc2 + 3)) /
-           (2 * pi * pow3(x));
+    case CalcType::Full:
+      return dD2dD2 *
+             (12 * pow2(invGD) * (w1 - w2) * sq +
+              1i * invc2 *
+                  (dw1 * (-Complex(0, 2 * mF0 * pow2(invGD)) *
+                              (2 * dx * invc2 + 3) +
+                          4 * Complex(0, invGD) * invc2 * mF0 * sq +
+                          6 * invGD * sq - Complex(0, 2 * mF0) * pow2(invc2) -
+                          3 * invc2) +
+                   dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) *
+                              (2 * dx * invc2 + 3) +
+                          4 * Complex(0, invGD) * invc2 * mF0 * sq +
+                          6 * invGD * sq + Complex(0, 2 * mF0) * pow2(invc2) +
+                          3 * invc2))) /
+             (8 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::Voigt:
+      return 3 * dD2dD2 * invGD *
+             (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
+             (2 * sqrt_pi * mF0);
+    case CalcType::LowXandHighY:
+      return dD2dD2 *
+             (12 * pow2(invGD) * (w1 - w2) * sq +
+              1i * (12 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
+                    dw2 * invc2 *
+                        (Complex(0, 2 * mF0 * pow2(invGD)) *
+                             (2 * dx * invc2 + 3) +
+                         4 * Complex(0, invGD) * invc2 * mF0 * sq +
+                         6 * invGD * sq + Complex(0, 2 * mF0) * pow2(invc2) +
+                         3 * invc2))) /
+             (8 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::LowYandLowX:
+      return dD2dD2 * pow2(invc2) *
+             (4 * 1i * sq * (sqrt_pi * w1 * sq - 1) -
+              sqrt_pi * (dw1 * sq - 1i * w1) * (2 * dx * invc2 + 3)) /
+             (2 * pi * sq);
+    case CalcType::LowYandHighX:
+      return Complex(0, dD2dD2) * pow2(invc2) *
+             (-x * (2 * x - 3) + (x - 3) * (2 * dx * invc2 + 3)) /
+             (2 * pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdG2(Numeric dG2dG2) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return Complex(0, dG2dG2) * invc2 *
-           (dw1 * (-pow2(invGD) * (2 * dx * invc2 + 3) +
-                   2 * invGD * invc2 * sq - pow2(invc2)) +
-            dw2 * (pow2(invGD) * (2 * dx * invc2 + 3) + 2 * invGD * invc2 * sq +
+    case CalcType::Full:
+      return Complex(0, dG2dG2) * invc2 *
+             (dw1 * (-pow2(invGD) * (2 * dx * invc2 + 3) +
+                     2 * invGD * invc2 * sq - pow2(invc2)) +
+              dw2 * (pow2(invGD) * (2 * dx * invc2 + 3) +
+                     2 * invGD * invc2 * sq + pow2(invc2))) /
+             (4 * sqrt_pi * invGD * sq);
+    case CalcType::Voigt:
+      return -3 * Complex(0, dG2dG2) * dw1 * pow2(invGD) / (2 * sqrt_pi);
+    case CalcType::LowXandHighY:
+      return Complex(0, dG2dG2) *
+             (-6 * dw1 * pow3(invGD) * sq +
+              dw2 * invc2 *
+                  (pow2(invGD) * (2 * dx * invc2 + 3) + 2 * invGD * invc2 * sq +
                    pow2(invc2))) /
-           (4 * sqrt_pi * invGD * sq);
-  case CalcType::Voigt:
-    return -3 * Complex(0, dG2dG2) * dw1 * pow2(invGD) / (2 * sqrt_pi);
-  case CalcType::LowXandHighY:
-    return Complex(0, dG2dG2) *
-           (-6 * dw1 * pow3(invGD) * sq +
-            dw2 * invc2 *
-                (pow2(invGD) * (2 * dx * invc2 + 3) + 2 * invGD * invc2 * sq +
-                 pow2(invc2))) /
-           (4 * sqrt_pi * invGD * sq);
-  case CalcType::LowYandLowX:
-    return dG2dG2 * pow2(invc2) *
-           (4 * sq * (sqrt_pi * w1 * sq - 1) +
-            sqrt_pi * (2 * dx * invc2 + 3) * (1i * dw1 * sq + w1)) /
-           (2 * pi * sq);
-  case CalcType::LowYandHighX:
-    return dG2dG2 * pow2(invc2) *
-           (-x * (2 * x - 3) + (x - 3) * (2 * dx * invc2 + 3)) /
-           (2 * pi * pow3(x));
+             (4 * sqrt_pi * invGD * sq);
+    case CalcType::LowYandLowX:
+      return dG2dG2 * pow2(invc2) *
+             (4 * sq * (sqrt_pi * w1 * sq - 1) +
+              sqrt_pi * (2 * dx * invc2 + 3) * (1i * dw1 * sq + w1)) /
+             (2 * pi * sq);
+    case CalcType::LowYandHighX:
+      return dG2dG2 * pow2(invc2) *
+             (-x * (2 * x - 3) + (x - 3) * (2 * dx * invc2 + 3)) /
+             (2 * pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdH(Numeric dZ) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return -dZ *
-           (4 * pow2(invGD) * (w1 - w2) * sq +
-            1i * invc2 *
-                (-dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
-                         invc2) +
-                 dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                        invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::Voigt:
-    return -dZ * invGD *
-           (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
-           (sqrt_pi * mF0);
-  case CalcType::LowXandHighY:
-    return -dZ *
-           (4 * pow2(invGD) * (w1 - w2) * sq +
-            1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
-                  dw2 * invc2 *
-                      (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
-                       invc2))) /
-           (4 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::LowYandLowX:
-    return dZ * pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
-  case CalcType::LowYandHighX:
-    return -Complex(0, dZ) * pow2(invc2) * (x - 3) / (pi * pow3(x));
+    case CalcType::Full:
+      return -dZ *
+             (4 * pow2(invGD) * (w1 - w2) * sq +
+              1i * invc2 *
+                  (-dw1 * (Complex(0, 2 * mF0 * pow2(invGD)) - 2 * invGD * sq +
+                           invc2) +
+                   dw2 * (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                          invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::Voigt:
+      return -dZ * invGD *
+             (Complex(0, invGD) * dw1 * (dx - Complex(0, mF0)) + w1) /
+             (sqrt_pi * mF0);
+    case CalcType::LowXandHighY:
+      return -dZ *
+             (4 * pow2(invGD) * (w1 - w2) * sq +
+              1i * (4 * dw1 * pow3(invGD) * (dx - Complex(0, mF0)) * sq +
+                    dw2 * invc2 *
+                        (Complex(0, 2 * mF0 * pow2(invGD)) + 2 * invGD * sq +
+                         invc2))) /
+             (4 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::LowYandLowX:
+      return dZ * pow2(invc2) * (dw1 * sq - 1i * w1) / (sqrt_pi * sq);
+    case CalcType::LowYandHighX:
+      return -Complex(0, dZ) * pow2(invc2) * (x - 3) / (pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdVMR(const Output &d) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return (-4 * pow2(invGD) * (2 * d.D0 - 3 * d.D2) * (w1 - w2) * sq +
-            1i * invc2 *
-                (dw1 * (-2 * pow2(invGD) * mF0 *
+    case CalcType::Full:
+      return (-4 * pow2(invGD) * (2 * d.D0 - 3 * d.D2) * (w1 - w2) * sq +
+              1i * invc2 *
+                  (dw1 *
+                       (-2 * pow2(invGD) * mF0 *
                             (Complex(3 * d.G2 - 2 * d.G0, 3 * d.D2 - 2 * d.D0) +
                              2 * dx * invc2 * Complex(d.G2, d.D2)) +
                         4 * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) -
                         2 * invGD * (2 * d.D0 - 3 * d.D2) * sq -
                         2 * pow2(invc2) * mF0 * Complex(d.G2, d.D2) +
                         invc2 * (2 * d.D0 - 3 * d.D2)) -
-                 dw2 * (-2 * pow2(invGD) * mF0 *
+                   dw2 *
+                       (-2 * pow2(invGD) * mF0 *
                             (Complex(3 * d.G2 - 2 * d.G0, 3 * d.D2 - 2 * d.D0) +
                              2 * dx * invc2 * Complex(d.G2, d.D2)) -
                         4 * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) +
                         2 * invGD * (2 * d.D0 - 3 * d.D2) * sq -
                         2 * pow2(invc2) * mF0 * Complex(d.G2, d.D2) +
                         invc2 * (2 * d.D0 - 3 * d.D2)))) /
-           (8 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::Voigt:
-    return -invGD *
-           (Complex(0, invGD) * dw1 *
-                (dx * (2 * d.D0 - 3 * d.D2) -
-                 mF0 * Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2)) +
-            w1 * (2 * d.D0 - 3 * d.D2)) /
-           (2 * sqrt_pi * mF0);
-  case CalcType::LowXandHighY:
-    return -(4 * pow2(invGD) * (2 * d.D0 - 3 * d.D2) * (w1 - w2) * sq +
-             1i * (4 * dw1 * pow3(invGD) * sq *
-                       (dx * (2 * d.D0 - 3 * d.D2) -
-                        mF0 *
-                            Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2)) +
-                   dw2 * invc2 *
-                       (2 * pow2(invGD) * mF0 *
-                            (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                             2 * dx * invc2 * Complex(d.G2, d.D2)) -
-                        4 * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) +
-                        2 * invGD * (2 * d.D0 - 3 * d.D2) * sq -
-                        2 * pow2(invc2) * mF0 * Complex(d.G2, d.D2) +
-                        invc2 * (2 * d.D0 - 3 * d.D2)))) /
-           (8 * sqrt_pi * invGD * mF0 * sq);
-  case CalcType::LowYandLowX:
-    return pow2(invc2) *
-           (4 * sq * Complex(d.G2, d.D2) * (sqrt_pi * w1 * sq - 1) -
-            sqrt_pi * (1i * dw1 * sq + w1) *
-                (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                 2 * dx * invc2 * Complex(d.G2, d.D2))) /
-           (2 * pi * sq);
-  case CalcType::LowYandHighX:
-    return -pow2(invc2) *
-           (x * (2 * x - 3) * Complex(d.G2, d.D2) +
-            (x - 3) * (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                       2 * dx * invc2 * Complex(d.G2, d.D2))) /
-           (2 * pi * pow3(x));
+             (8 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::Voigt:
+      return -invGD *
+             (Complex(0, invGD) * dw1 *
+                  (dx * (2 * d.D0 - 3 * d.D2) -
+                   mF0 * Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2)) +
+              w1 * (2 * d.D0 - 3 * d.D2)) /
+             (2 * sqrt_pi * mF0);
+    case CalcType::LowXandHighY:
+      return -(4 * pow2(invGD) * (2 * d.D0 - 3 * d.D2) * (w1 - w2) * sq +
+               1i * (4 * dw1 * pow3(invGD) * sq *
+                         (dx * (2 * d.D0 - 3 * d.D2) -
+                          mF0 * Complex(2 * d.G0 - 3 * d.G2,
+                                        2 * d.D0 - 3 * d.D2)) +
+                     dw2 * invc2 *
+                         (2 * pow2(invGD) * mF0 *
+                              (Complex(2 * d.G0 - 3 * d.G2,
+                                       2 * d.D0 - 3 * d.D2) -
+                               2 * dx * invc2 * Complex(d.G2, d.D2)) -
+                          4 * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) +
+                          2 * invGD * (2 * d.D0 - 3 * d.D2) * sq -
+                          2 * pow2(invc2) * mF0 * Complex(d.G2, d.D2) +
+                          invc2 * (2 * d.D0 - 3 * d.D2)))) /
+             (8 * sqrt_pi * invGD * mF0 * sq);
+    case CalcType::LowYandLowX:
+      return pow2(invc2) *
+             (4 * sq * Complex(d.G2, d.D2) * (sqrt_pi * w1 * sq - 1) -
+              sqrt_pi * (1i * dw1 * sq + w1) *
+                  (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
+                   2 * dx * invc2 * Complex(d.G2, d.D2))) /
+             (2 * pi * sq);
+    case CalcType::LowYandHighX:
+      return -pow2(invc2) *
+             (x * (2 * x - 3) * Complex(d.G2, d.D2) +
+              (x - 3) * (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
+                         2 * dx * invc2 * Complex(d.G2, d.D2))) /
+             (2 * pi * pow3(x));
   }
   return {};
 }
 
 Complex SpeedDependentVoigt::dFdT(const Output &d, Numeric T) const noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    return (-pow2(invGD) * (w1 - w2) * sq *
-                (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0) *
-                ln_16 +
-            1i * invc2 *
-                (dw1 *
-                     (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
-                          ln_16 -
-                      2 * invGD * sq *
-                          (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
-                           pow3(invGD) * mF0) *
-                          sqrt_ln_2 -
-                      (2 * T * pow2(invGD) * mF0 *
-                           (Complex(3 * d.G2 - 2 * d.G0, 3 * d.D2 - 2 * d.D0) +
-                            2 * dx * invc2 * Complex(d.G2, d.D2)) *
-                           sqrt_ln_2 +
-                       2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
-                           sqrt_ln_2 +
-                       invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
-                                pow3(invGD) * mF0)) *
-                          sqrt_ln_2) +
-                 dw2 *
-                     (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
-                          ln_16 +
-                      2 * invGD * sq *
-                          (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
-                           pow3(invGD) * mF0) *
-                          sqrt_ln_2 +
-                      (-2 * T * pow2(invGD) * mF0 *
-                           (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                            2 * dx * invc2 * Complex(d.G2, d.D2)) *
-                           sqrt_ln_2 +
-                       2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
-                           sqrt_ln_2 +
-                       invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
-                                pow3(invGD) * mF0)) *
-                          sqrt_ln_2)) *
-                sqrt_ln_2) /
-           (8 * sqrt_pi * T * invGD * mF0 * sq * pow3(sqrt_ln_2));
-  case CalcType::Voigt:
-    return -invGD *
-           (-Complex(0, invGD) * dw1 *
-                (T * mF0 * Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) *
-                     sqrt_ln_2 -
-                 dx * (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
-                       pow3(invGD) * mF0)) +
-            w1 * (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0)) /
-           (2 * sqrt_pi * T * mF0 * sqrt_ln_2);
-  case CalcType::LowXandHighY:
-    return (-pow2(invGD) * (w1 - w2) * sq *
-                (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0) *
-                ln_16 +
-            1i * (dw1 * pow3(invGD) * sq *
-                      (T * mF0 *
-                           Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) *
-                           sqrt_ln_2 -
-                       dx * (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
-                             pow3(invGD) * mF0)) *
-                      ln_16 +
-                  dw2 * invc2 *
-                      (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
-                           ln_16 +
-                       2 * invGD * sq *
-                           (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
-                            pow3(invGD) * mF0) *
-                           sqrt_ln_2 +
-                       (-2 * T * pow2(invGD) * mF0 *
-                            (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                             2 * dx * invc2 * Complex(d.G2, d.D2)) *
-                            sqrt_ln_2 +
-                        2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
-                            sqrt_ln_2 +
-                        invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
-                                 pow3(invGD) * mF0)) *
-                           sqrt_ln_2) *
-                      sqrt_ln_2)) /
-           (8 * sqrt_pi * T * invGD * mF0 * sq * pow3(sqrt_ln_2));
-  case CalcType::LowYandLowX:
-    return pow2(invc2) *
-           (4 * sq * Complex(d.G2, d.D2) * (sqrt_pi * w1 * sq - 1) -
-            sqrt_pi * (1i * dw1 * sq + w1) *
-                (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                 2 * dx * invc2 * Complex(d.G2, d.D2))) /
-           (2 * pi * sq);
-  case CalcType::LowYandHighX:
-    return -pow2(invc2) *
-           (x * (2 * x - 3) * Complex(d.G2, d.D2) +
-            (x - 3) * (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
-                       2 * dx * invc2 * Complex(d.G2, d.D2))) /
-           (2 * pi * pow3(x));
+    case CalcType::Full:
+      return (-pow2(invGD) * (w1 - w2) * sq *
+                  (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0) *
+                  ln_16 +
+              1i * invc2 *
+                  (dw1 * (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
+                              ln_16 -
+                          2 * invGD * sq *
+                              (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
+                               pow3(invGD) * mF0) *
+                              sqrt_ln_2 -
+                          (2 * T * pow2(invGD) * mF0 *
+                               (Complex(3 * d.G2 - 2 * d.G0,
+                                        3 * d.D2 - 2 * d.D0) +
+                                2 * dx * invc2 * Complex(d.G2, d.D2)) *
+                               sqrt_ln_2 +
+                           2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
+                               sqrt_ln_2 +
+                           invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
+                                    pow3(invGD) * mF0)) *
+                              sqrt_ln_2) +
+                   dw2 * (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
+                              ln_16 +
+                          2 * invGD * sq *
+                              (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
+                               pow3(invGD) * mF0) *
+                              sqrt_ln_2 +
+                          (-2 * T * pow2(invGD) * mF0 *
+                               (Complex(2 * d.G0 - 3 * d.G2,
+                                        2 * d.D0 - 3 * d.D2) -
+                                2 * dx * invc2 * Complex(d.G2, d.D2)) *
+                               sqrt_ln_2 +
+                           2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
+                               sqrt_ln_2 +
+                           invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
+                                    pow3(invGD) * mF0)) *
+                              sqrt_ln_2)) *
+                  sqrt_ln_2) /
+             (8 * sqrt_pi * T * invGD * mF0 * sq * pow3(sqrt_ln_2));
+    case CalcType::Voigt:
+      return -invGD *
+             (-Complex(0, invGD) * dw1 *
+                  (T * mF0 * Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) *
+                       sqrt_ln_2 -
+                   dx * (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
+                         pow3(invGD) * mF0)) +
+              w1 *
+                  (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0)) /
+             (2 * sqrt_pi * T * mF0 * sqrt_ln_2);
+    case CalcType::LowXandHighY:
+      return (-pow2(invGD) * (w1 - w2) * sq *
+                  (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 - pow3(invGD) * mF0) *
+                  ln_16 +
+              1i * (dw1 * pow3(invGD) * sq *
+                        (T * mF0 *
+                             Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) *
+                             sqrt_ln_2 -
+                         dx * (T * (2 * d.D0 - 3 * d.D2) * sqrt_ln_2 -
+                               pow3(invGD) * mF0)) *
+                        ln_16 +
+                    dw2 * invc2 *
+                        (T * invGD * invc2 * mF0 * sq * Complex(d.G2, d.D2) *
+                             ln_16 +
+                         2 * invGD * sq *
+                             (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
+                              pow3(invGD) * mF0) *
+                             sqrt_ln_2 +
+                         (-2 * T * pow2(invGD) * mF0 *
+                              (Complex(2 * d.G0 - 3 * d.G2,
+                                       2 * d.D0 - 3 * d.D2) -
+                               2 * dx * invc2 * Complex(d.G2, d.D2)) *
+                              sqrt_ln_2 +
+                          2 * T * pow2(invc2) * mF0 * Complex(d.G2, d.D2) *
+                              sqrt_ln_2 +
+                          invc2 * (T * (-2 * d.D0 + 3 * d.D2) * sqrt_ln_2 +
+                                   pow3(invGD) * mF0)) *
+                             sqrt_ln_2) *
+                        sqrt_ln_2)) /
+             (8 * sqrt_pi * T * invGD * mF0 * sq * pow3(sqrt_ln_2));
+    case CalcType::LowYandLowX:
+      return pow2(invc2) *
+             (4 * sq * Complex(d.G2, d.D2) * (sqrt_pi * w1 * sq - 1) -
+              sqrt_pi * (1i * dw1 * sq + w1) *
+                  (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
+                   2 * dx * invc2 * Complex(d.G2, d.D2))) /
+             (2 * pi * sq);
+    case CalcType::LowYandHighX:
+      return -pow2(invc2) *
+             (x * (2 * x - 3) * Complex(d.G2, d.D2) +
+              (x - 3) * (Complex(2 * d.G0 - 3 * d.G2, 2 * d.D0 - 3 * d.D2) -
+                         2 * dx * invc2 * Complex(d.G2, d.D2))) /
+             (2 * pi * pow3(x));
   }
   return {};
 }
@@ -420,63 +428,68 @@ constexpr Numeric abs_squared(Complex z) noexcept {
   return pow2(z.real()) + pow2(z.imag());
 }
 
-SpeedDependentVoigt::CalcType
-SpeedDependentVoigt::init(const Complex c2) const noexcept {
-  if (abs_squared(c2) == 0)
-    return CalcType::Voigt;
+SpeedDependentVoigt::CalcType SpeedDependentVoigt::init(
+    const Complex c2) const noexcept {
+  if (abs_squared(c2) == 0) return CalcType::Voigt;
   if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
     return CalcType::LowXandHighY;
   if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and
       abs_squared(std::sqrt(x)) <= 16.e6)
-    return CalcType::LowYandLowX; // Weird case, untested
+    return CalcType::LowYandLowX;  // Weird case, untested
   if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
     return CalcType::LowYandHighX;
   return CalcType::Full;
 }
 
 void SpeedDependentVoigt::update_calcs() noexcept {
-  if (calcs not_eq CalcType::Voigt)
-    calcs = init(Complex(1, 1));
+  if (calcs not_eq CalcType::Voigt) calcs = init(Complex(1, 1));
 }
 
 void SpeedDependentVoigt::calc() noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    sq = std::sqrt(x + sqrty * sqrty);
-    w1 = Faddeeva::w(1i * (sq - sqrty));
-    w2 = Faddeeva::w(1i * (sq + sqrty));
-    F = inv_sqrt_pi * invGD * (w1 - w2);
-    dw1 = 2i * (inv_sqrt_pi - (sq - sqrty) * w1);
-    dw2 = 2i * (inv_sqrt_pi - (sq + sqrty) * w2);
-    break;
-  case CalcType::Voigt:
-    w1 = Faddeeva::w(1i * dx * invGD);
-    F = inv_sqrt_pi * invGD * w1;
-    dw1 = 2i * (inv_sqrt_pi - dx * invGD * w1);
-    break;
-  case CalcType::LowXandHighY:
-    sq = std::sqrt(x + sqrty * sqrty);
-    w1 = Faddeeva::w(1i * dx * invGD);
-    w2 = Faddeeva::w(1i * (sq + sqrty));
-    F = inv_sqrt_pi * invGD * (w1 - w2);
-    dw1 = 2i * (inv_sqrt_pi - dx * invGD * w1);
-    dw2 = 2i * (inv_sqrt_pi - (sq + sqrty) * w2);
-    break;
-  case CalcType::LowYandLowX:
-    sq = std::sqrt(x);
-    w1 = Faddeeva::w(1i * sq);
-    F = 2 * inv_pi * invc2 * (1 - sqrt_pi * sq * w1);
-    dw1 = 2i * (inv_sqrt_pi - sq * w1);
-    break;
-  case CalcType::LowYandHighX:
-    F = inv_pi * invc2 * (1 / x - 1.5 / pow2(x));
-    break;
+    case CalcType::Full:
+      sq = std::sqrt(x + sqrty * sqrty);
+      w1 = Faddeeva::w(1i * (sq - sqrty));
+      w2 = Faddeeva::w(1i * (sq + sqrty));
+      F = inv_sqrt_pi * invGD * (w1 - w2);
+      dw1 = 2i * (inv_sqrt_pi - (sq - sqrty) * w1);
+      dw2 = 2i * (inv_sqrt_pi - (sq + sqrty) * w2);
+      break;
+    case CalcType::Voigt:
+      w1 = Faddeeva::w(1i * dx * invGD);
+      F = inv_sqrt_pi * invGD * w1;
+      dw1 = 2i * (inv_sqrt_pi - dx * invGD * w1);
+      break;
+    case CalcType::LowXandHighY:
+      sq = std::sqrt(x + sqrty * sqrty);
+      w1 = Faddeeva::w(1i * dx * invGD);
+      w2 = Faddeeva::w(1i * (sq + sqrty));
+      F = inv_sqrt_pi * invGD * (w1 - w2);
+      dw1 = 2i * (inv_sqrt_pi - dx * invGD * w1);
+      dw2 = 2i * (inv_sqrt_pi - (sq + sqrty) * w2);
+      break;
+    case CalcType::LowYandLowX:
+      sq = std::sqrt(x);
+      w1 = Faddeeva::w(1i * sq);
+      F = 2 * inv_pi * invc2 * (1 - sqrt_pi * sq * w1);
+      dw1 = 2i * (inv_sqrt_pi - sq * w1);
+      break;
+    case CalcType::LowYandHighX:
+      F = inv_pi * invc2 * (1 / x - 1.5 / pow2(x));
+      break;
   }
 }
 
-HartmannTran::HartmannTran(Numeric F0_noshift, const Output &ls,
-                           Numeric GD_div_F0, Numeric dZ) noexcept
-    : G0(ls.G0), D0(ls.D0), G2(ls.G2), D2(ls.D2), FVC(ls.FVC), ETA(ls.ETA),
+HartmannTran::HartmannTran(Numeric F0_noshift,
+                           const Output &ls,
+                           Numeric GD_div_F0,
+                           Numeric dZ) noexcept
+    : G0(ls.G0),
+      D0(ls.D0),
+      G2(ls.G2),
+      D2(ls.D2),
+      FVC(ls.FVC),
+      ETA(ls.ETA),
       mF0(F0_noshift + dZ + (1 - ls.ETA) * (ls.D0 - 1.5 * ls.D2)),
       invGD(sqrt_ln_2 / nonstd::abs(GD_div_F0 * mF0)),
       deltax(ls.FVC + (1 - ls.ETA) * (ls.G0 - 3 * ls.G2 / 2), mF0),
@@ -490,76 +503,84 @@ Complex HartmannTran::dFdf() const noexcept {
   const Complex dsqrtxy = dx / (2 * sqrtxy);
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB =
-        sqrt_pi *
-        ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-         2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
-        (2 * sqrty * (ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB =
-        -invGD *
-        (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) - dz1);
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (sqrt_pi * w2 * z2 - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx + (2 * x - 3) * x * dx / 2) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB =
+          sqrt_pi *
+          ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+           2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
+          (2 * sqrty * (ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB =
+          -invGD *
+          (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+           dz1);
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (sqrt_pi * w2 * z2 - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx +
+           (2 * x - 3) * x * dx / 2) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -574,91 +595,99 @@ Complex HartmannTran::dFdF0() const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        sqrt_pi *
-        ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-         ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-          2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
-             sqrty) /
-        (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-         (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          sqrt_pi *
+          ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+           ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+            2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
+               sqrty) /
+          (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+           (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -674,91 +703,99 @@ Complex HartmannTran::dFdD0(Numeric dD0) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        sqrt_pi *
-        ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-         ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-          2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
-             sqrty) /
-        (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-         (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          sqrt_pi *
+          ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+           ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+            2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
+               sqrty) /
+          (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+           (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + Complex(0, ETA * dD0) * A +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -769,76 +806,84 @@ Complex HartmannTran::dFdG0(Numeric dG0) const noexcept {
   const Complex dsqrtxy = dx / (2 * sqrtxy);
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB =
-        sqrt_pi *
-        ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-         2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
-        (2 * sqrty * (ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB =
-        -invGD *
-        (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) - dz1);
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (sqrt_pi * w2 * z2 - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx + (2 * x - 3) * x * dx / 2) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB =
+          sqrt_pi *
+          ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+           2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
+          (2 * sqrty * (ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB =
+          -invGD *
+          (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+           dz1);
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (sqrt_pi * w2 * z2 - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx +
+           (2 * x - 3) * x * dx / 2) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB + ETA * A * dG0 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -855,123 +900,125 @@ Complex HartmannTran::dFdD2(Numeric dD2) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        (sqrt_pi * Complex(G2, D2) *
-             ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-              ((pow2(z1) - 1) * 1i * dw1 * dz1 -
-               (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
-               2 * w2 * z2 * dz2) *
-                  sqrty) -
-         1i *
-             (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-              2 * sqrty) *
-             sqrty * dD2) /
-        (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow2(sqrty));
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA =
-        2 *
-        (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) -
-         1i * (sqrt_pi * w2 * z2 - 1) * dD2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)));
-    const Complex dB =
-        (-2 * Complex(G2, D2) *
-             (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-                  (2 * pow2(sqrty) + x - 1) +
-              sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
-              (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
-         1i *
-             (2 * sqrt_pi * w1 * z1 +
-              2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
-             dD2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)));
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA =
-        (Complex(G2, D2) * (x - 3) * dx + 1i * (2 * x - 3) * x * dD2 / 2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
-    const Complex dB =
-        (Complex(G2, D2) *
-             (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-              (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
-              2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
-         1i *
-             (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-              (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             x * dD2) /
-        (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB -
-                       Complex(0, 1.5 * dD2 * ETA) * A +
-                       Complex(0, dD2 * ETA) * B +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          (sqrt_pi * Complex(G2, D2) *
+               ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+                ((pow2(z1) - 1) * 1i * dw1 * dz1 -
+                 (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
+                 2 * w2 * z2 * dz2) *
+                    sqrty) -
+           1i *
+               (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+                2 * sqrty) *
+               sqrty * dD2) /
+          (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow2(sqrty));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA =
+          2 *
+          (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) -
+           1i * (sqrt_pi * w2 * z2 - 1) * dD2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)));
+      const Complex dB =
+          (-2 * Complex(G2, D2) *
+               (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                    (2 * pow2(sqrty) + x - 1) +
+                sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
+                (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
+           1i *
+               (2 * sqrt_pi * w1 * z1 +
+                2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
+               dD2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA =
+          (Complex(G2, D2) * (x - 3) * dx + 1i * (2 * x - 3) * x * dD2 / 2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
+      const Complex dB =
+          (Complex(G2, D2) *
+               (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+                (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
+                2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
+           1i *
+               (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+                (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               x * dD2) /
+          (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - Complex(0, 1.5 * dD2 * ETA) * A +
+          Complex(0, dD2 * ETA) * B +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -984,102 +1031,103 @@ Complex HartmannTran::dFdG2(Numeric dG2) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB =
-        (sqrt_pi * Complex(G2, D2) *
-             ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-              ((pow2(z1) - 1) * 1i * dw1 * dz1 -
-               (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
-               2 * w2 * z2 * dz2) *
-                  sqrty) -
-         (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-          2 * sqrty) *
-             sqrty * dG2) /
-        (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow2(sqrty));
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB =
-        -invGD *
-        (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) - dz1);
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA =
-        2 *
-        (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) -
-         (sqrt_pi * w2 * z2 - 1) * dG2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)));
-    const Complex dB =
-        (-2 * Complex(G2, D2) *
-             (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-                  (2 * pow2(sqrty) + x - 1) +
-              sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
-              (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
-         (2 * sqrt_pi * w1 * z1 +
-          2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
-             dG2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)));
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA =
-        (Complex(G2, D2) * (x - 3) * dx + (2 * x - 3) * x * dG2 / 2) /
-        ((ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
-    const Complex dB =
-        (Complex(G2, D2) *
-             (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-              (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
-              2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
-         (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-          (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             x * dG2) /
-        (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 +
-                       ETA * B * dG2 +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB =
+          (sqrt_pi * Complex(G2, D2) *
+               ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+                ((pow2(z1) - 1) * 1i * dw1 * dz1 -
+                 (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
+                 2 * w2 * z2 * dz2) *
+                    sqrty) -
+           (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+            2 * sqrty) *
+               sqrty * dG2) /
+          (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow2(sqrty));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB =
+          -invGD *
+          (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+           dz1);
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA =
+          2 *
+          (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) -
+           (sqrt_pi * w2 * z2 - 1) * dG2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)));
+      const Complex dB =
+          (-2 * Complex(G2, D2) *
+               (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                    (2 * pow2(sqrty) + x - 1) +
+                sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
+                (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
+           (2 * sqrt_pi * w1 * z1 +
+            2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
+               dG2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA =
+          (Complex(G2, D2) * (x - 3) * dx + (2 * x - 3) * x * dG2 / 2) /
+          ((ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
+      const Complex dB =
+          (Complex(G2, D2) *
+               (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+                (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
+                2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
+           (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+            (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               x * dG2) /
+          (2 * (ETA - 1) * pow2(Complex(G2, D2)) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB - 3 * ETA * A * dG2 / 2 + ETA * B * dG2 +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1090,82 +1138,84 @@ Complex HartmannTran::dFdFVC(Numeric dFVC) const noexcept {
   const Complex dsqrtxy = dx / (2 * sqrtxy);
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB =
-        sqrt_pi *
-        ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-         2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
-        (2 * sqrty * (ETA - 1) * Complex(G2, D2));
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB =
-        -invGD *
-        (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) - dz1);
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = invGD * ddeltax;
-    const Complex dz2 = dsqrtxy;
-    const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
-    const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
-                       invGD * dz1 / (2 * pow2(z1)) +
-                       9 * invGD * dz1 / (4 * pow4(z1));
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (sqrt_pi * w2 * z2 - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx + (2 * x - 3) * x * dx / 2) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK =
-        ETA * Complex(G2, D2) * dB +
-        (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB =
+          sqrt_pi *
+          ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+           2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) /
+          (2 * sqrty * (ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB =
+          -invGD *
+          (sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+           dz1);
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * dw1 * dz1;
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = invGD * ddeltax;
+      const Complex dz2 = dsqrtxy;
+      const Complex dA = Complex(0, sqrt_pi * invGD) * (dw1 * dz1 - dw2 * dz2);
+      const Complex dB = Complex(0, sqrt_pi * invGD) * dw1 * dz1 -
+                         invGD * dz1 / (2 * pow2(z1)) +
+                         9 * invGD * dz1 / (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (sqrt_pi * w2 * z2 - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx +
+           (2 * x - 3) * x * dx / 2) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA - A * dFVC;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1182,119 +1232,123 @@ Complex HartmannTran::dFdETA(Numeric dETA) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        (sqrt_pi *
-             ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-              ((pow2(z1) - 1) * 1i * dw1 * dz1 -
-               (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
-               2 * w2 * z2 * dz2) *
-                  sqrty) *
-             (ETA - 1) -
-         (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-          2 * sqrty) *
-             sqrty * dETA) /
-        (2 * Complex(G2, D2) * pow2(ETA - 1) * pow2(sqrty));
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 *
-                       (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) * (ETA - 1) -
-                        (sqrt_pi * w2 * z2 - 1) * dETA) /
-                       (Complex(G2, D2) * pow2(ETA - 1));
-    const Complex dB =
-        (-2 * (ETA - 1) *
-             (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-                  (2 * pow2(sqrty) + x - 1) +
-              sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
-              (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
-         (2 * sqrt_pi * w1 * z1 +
-          2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
-             dETA) /
-        (Complex(G2, D2) * pow2(ETA - 1));
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = ((ETA - 1) * (x - 3) * dx + (2 * x - 3) * x * dETA / 2) /
-                       (Complex(G2, D2) * pow2(ETA - 1) * pow3(x));
-    const Complex dB =
-        (-(2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-           (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             x * dETA +
-         (ETA - 1) *
-             (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-              (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
-              2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx)) /
-        (2 * Complex(G2, D2) * pow2(ETA - 1) * pow3(x));
-    const Complex dK =
-        (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
-        Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
-        Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          (sqrt_pi *
+               ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+                ((pow2(z1) - 1) * 1i * dw1 * dz1 -
+                 (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
+                 2 * w2 * z2 * dz2) *
+                    sqrty) *
+               (ETA - 1) -
+           (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+            2 * sqrty) *
+               sqrty * dETA) /
+          (2 * Complex(G2, D2) * pow2(ETA - 1) * pow2(sqrty));
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA =
+          2 *
+          (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) * (ETA - 1) -
+           (sqrt_pi * w2 * z2 - 1) * dETA) /
+          (Complex(G2, D2) * pow2(ETA - 1));
+      const Complex dB =
+          (-2 * (ETA - 1) *
+               (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                    (2 * pow2(sqrty) + x - 1) +
+                sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
+                (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
+           (2 * sqrt_pi * w1 * z1 +
+            2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
+               dETA) /
+          (Complex(G2, D2) * pow2(ETA - 1));
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA =
+          ((ETA - 1) * (x - 3) * dx + (2 * x - 3) * x * dETA / 2) /
+          (Complex(G2, D2) * pow2(ETA - 1) * pow3(x));
+      const Complex dB =
+          (-(2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+             (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               x * dETA +
+           (ETA - 1) *
+               (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+                (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
+                2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx)) /
+          (2 * Complex(G2, D2) * pow2(ETA - 1) * pow3(x));
+      const Complex dK =
+          (-FVC + Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA) * dA +
+          Complex(G2, D2) * B * dETA + Complex(G2, D2) * ETA * dB -
+          Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * A * dETA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1310,91 +1364,99 @@ Complex HartmannTran::dFdH(Numeric dZ) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        sqrt_pi *
-        ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-         ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
-          2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
-             sqrty) /
-        (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
-                       ((ETA - 1) * Complex(G2, D2));
-    const Complex dB =
-        -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-              (2 * pow2(sqrty) + x - 1) +
-          2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
-          2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
-        ((ETA - 1) * Complex(G2, D2));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dB =
-        (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-         (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
-         (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
-        ((ETA - 1) * Complex(G2, D2) * pow3(x));
-    const Complex dK = ETA * Complex(G2, D2) * dB +
-                       (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          sqrt_pi *
+          ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+           ((pow2(z1) - 1) * 1i * dw1 * dz1 - (pow2(z2) - 1) * 1i * dw2 * dz2 +
+            2 * w1 * z1 * dz1 - 2 * w2 * z2 * dz2) *
+               sqrty) /
+          (2 * (ETA - 1) * Complex(G2, D2) * pow2(sqrty));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA = 2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) /
+                         ((ETA - 1) * Complex(G2, D2));
+      const Complex dB =
+          -(2 * sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                (2 * pow2(sqrty) + x - 1) +
+            2 * sqrt_pi * w1 * dz1 + Complex(0, 2 * sqrt_pi) * z1 * dw1 * dz1 +
+            2 * (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) /
+          ((ETA - 1) * Complex(G2, D2));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (x - 3) * dx / ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dB =
+          (-2 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+           (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x / 2 -
+           (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) /
+          ((ETA - 1) * Complex(G2, D2) * pow3(x));
+      const Complex dK =
+          ETA * Complex(G2, D2) * dB +
+          (ETA * Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) - FVC) * dA;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1418,156 +1480,158 @@ Complex HartmannTran::dFdVMR(const Output &d) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        (sqrt_pi * Complex(G2, D2) *
-             ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-              ((pow2(z1) - 1) * 1i * dw1 * dz1 -
-               (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
-               2 * w2 * z2 * dz2) *
-                  sqrty) *
-             (ETA - 1) -
-         Complex(G2, D2) *
-             (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-              2 * sqrty) *
-             sqrty * d.ETA -
-         Complex(d.G2, d.D2) * (ETA - 1) *
-             (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-              2 * sqrty) *
-             sqrty) /
-        (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow2(sqrty));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA =
-        2 *
-        (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-             (ETA - 1) -
-         Complex(G2, D2) * (sqrt_pi * w2 * z2 - 1) * d.ETA -
-         Complex(d.G2, d.D2) * (sqrt_pi * w2 * z2 - 1) * (ETA - 1)) /
-        (pow2(Complex(G2, D2)) * pow2(ETA - 1));
-    const Complex dB =
-        (-2 * Complex(G2, D2) * (ETA - 1) *
-             (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-                  (2 * pow2(sqrty) + x - 1) +
-              sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
-              (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
-         Complex(G2, D2) *
-             (2 * sqrt_pi * w1 * z1 +
-              2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
-             d.ETA +
-         Complex(d.G2, d.D2) * (ETA - 1) *
-             (2 * sqrt_pi * w1 * z1 +
-              2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1)) /
-        (pow2(Complex(G2, D2)) * pow2(ETA - 1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (2 * Complex(G2, D2) * (ETA - 1) * (x - 3) * dx +
-                        Complex(G2, D2) * (2 * x - 3) * x * d.ETA +
-                        Complex(d.G2, d.D2) * (ETA - 1) * (2 * x - 3) * x) /
-                       (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
-    const Complex dB =
-        (-Complex(G2, D2) *
-             (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-              (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             x * d.ETA +
-         Complex(G2, D2) * (ETA - 1) *
-             (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-              (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
-              2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
-         Complex(d.G2, d.D2) *
-             (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-              (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             (ETA - 1) * x) /
-        (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          (sqrt_pi * Complex(G2, D2) *
+               ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+                ((pow2(z1) - 1) * 1i * dw1 * dz1 -
+                 (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
+                 2 * w2 * z2 * dz2) *
+                    sqrty) *
+               (ETA - 1) -
+           Complex(G2, D2) *
+               (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+                2 * sqrty) *
+               sqrty * d.ETA -
+           Complex(d.G2, d.D2) * (ETA - 1) *
+               (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+                2 * sqrty) *
+               sqrty) /
+          (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow2(sqrty));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA =
+          2 *
+          (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+               (ETA - 1) -
+           Complex(G2, D2) * (sqrt_pi * w2 * z2 - 1) * d.ETA -
+           Complex(d.G2, d.D2) * (sqrt_pi * w2 * z2 - 1) * (ETA - 1)) /
+          (pow2(Complex(G2, D2)) * pow2(ETA - 1));
+      const Complex dB =
+          (-2 * Complex(G2, D2) * (ETA - 1) *
+               (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                    (2 * pow2(sqrty) + x - 1) +
+                sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
+                (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
+           Complex(G2, D2) *
+               (2 * sqrt_pi * w1 * z1 +
+                2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
+               d.ETA +
+           Complex(d.G2, d.D2) * (ETA - 1) *
+               (2 * sqrt_pi * w1 * z1 +
+                2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1)) /
+          (pow2(Complex(G2, D2)) * pow2(ETA - 1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (2 * Complex(G2, D2) * (ETA - 1) * (x - 3) * dx +
+                          Complex(G2, D2) * (2 * x - 3) * x * d.ETA +
+                          Complex(d.G2, d.D2) * (ETA - 1) * (2 * x - 3) * x) /
+                         (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
+      const Complex dB =
+          (-Complex(G2, D2) *
+               (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+                (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               x * d.ETA +
+           Complex(G2, D2) * (ETA - 1) *
+               (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+                (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
+                2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
+           Complex(d.G2, d.D2) *
+               (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+                (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               (ETA - 1) * x) /
+          (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1592,156 +1656,158 @@ Complex HartmannTran::dFdT(const Output &d, Numeric T) const noexcept {
   const Complex dsqrtxy = (sqrty * dsqrty + dx / 2) / sqrtxy;
 
   switch (calcs) {
-  case CalcType::Full: {
-    const Complex dz1 = dsqrtxy - dsqrty;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        (sqrt_pi * Complex(G2, D2) *
-             ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
-              ((pow2(z1) - 1) * 1i * dw1 * dz1 -
-               (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
-               2 * w2 * z2 * dz2) *
-                  sqrty) *
-             (ETA - 1) -
-         Complex(G2, D2) *
-             (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-              2 * sqrty) *
-             sqrty * d.ETA -
-         Complex(d.G2, d.D2) * (ETA - 1) *
-             (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
-              2 * sqrty) *
-             sqrty) /
-        (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow2(sqrty));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tLowZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
-          dz1) *
-            invGD -
-        (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::Noc2tHighZ: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dA = sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowXandHighY: {
-    const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
-    const Complex dz2 = dsqrtxy + dsqrty;
-    const Complex dA =
-        sqrt_pi *
-        ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
-    const Complex dB =
-        ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
-         (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 - 2 * pow2(z1) * dz1 +
-          9 * dz1) *
-             invGD) /
-        (4 * pow4(z1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandLowX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dz2 = dx / (2 * sqrtx);
-    const Complex dA =
-        2 *
-        (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-             (ETA - 1) -
-         Complex(G2, D2) * (sqrt_pi * w2 * z2 - 1) * d.ETA -
-         Complex(d.G2, d.D2) * (sqrt_pi * w2 * z2 - 1) * (ETA - 1)) /
-        (pow2(Complex(G2, D2)) * pow2(ETA - 1));
-    const Complex dB =
-        (-2 * Complex(G2, D2) * (ETA - 1) *
-             (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
-                  (2 * pow2(sqrty) + x - 1) +
-              sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
-              (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
-         Complex(G2, D2) *
-             (2 * sqrt_pi * w1 * z1 +
-              2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
-             d.ETA +
-         Complex(d.G2, d.D2) * (ETA - 1) *
-             (2 * sqrt_pi * w1 * z1 +
-              2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1)) /
-        (pow2(Complex(G2, D2)) * pow2(ETA - 1));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
-  case CalcType::LowYandHighX: {
-    const Complex dz1 = dsqrtxy;
-    const Complex dA = (2 * Complex(G2, D2) * (ETA - 1) * (x - 3) * dx +
-                        Complex(G2, D2) * (2 * x - 3) * x * d.ETA +
-                        Complex(d.G2, d.D2) * (ETA - 1) * (2 * x - 3) * x) /
-                       (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
-    const Complex dB =
-        (-Complex(G2, D2) *
-             (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-              (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             x * d.ETA +
-         Complex(G2, D2) * (ETA - 1) *
-             (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
-              (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
-              2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
-         Complex(d.G2, d.D2) *
-             (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
-              (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
-             (ETA - 1) * x) /
-        (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
-    const Complex dK =
-        Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
-        Complex(d.G2, d.D2) * B * ETA +
-        (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
-        (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
-         Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
-            A;
-    return inv_pi * (-A * dK + K * dA) / pow2(K);
-  }
+    case CalcType::Full: {
+      const Complex dz1 = dsqrtxy - dsqrty;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          (sqrt_pi * Complex(G2, D2) *
+               ((-(pow2(z1) - 1) * w1 + (pow2(z2) - 1) * w2) * dsqrty +
+                ((pow2(z1) - 1) * 1i * dw1 * dz1 -
+                 (pow2(z2) - 1) * 1i * dw2 * dz2 + 2 * w1 * z1 * dz1 -
+                 2 * w2 * z2 * dz2) *
+                    sqrty) *
+               (ETA - 1) -
+           Complex(G2, D2) *
+               (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+                2 * sqrty) *
+               sqrty * d.ETA -
+           Complex(d.G2, d.D2) * (ETA - 1) *
+               (sqrt_pi * (pow2(z1) - 1) * w1 - sqrt_pi * (pow2(z2) - 1) * w2 +
+                2 * sqrty) *
+               sqrty) /
+          (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow2(sqrty));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tLowZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          -(sqrt_pi * ((pow2(z1) - 1) * 1i * dw1 * dz1 + 2 * w1 * z1 * dz1) -
+            dz1) *
+              invGD -
+          (sqrt_pi * (pow2(z1) - 1) * w1 - z1) * dinvGD;
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::Noc2tHighZ: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dA =
+          sqrt_pi * (Complex(0, invGD) * dw1 * dz1 + w1 * dinvGD);
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowXandHighY: {
+      const Complex dz1 = deltax * dinvGD + invGD * ddeltax;
+      const Complex dz2 = dsqrtxy + dsqrty;
+      const Complex dA =
+          sqrt_pi *
+          ((w1 - w2) * dinvGD + (Complex(0, invGD) * (dw1 * dz1 - dw2 * dz2)));
+      const Complex dB =
+          ((4 * sqrt_pi * w1 * pow3(z1) + 2 * pow2(z1) - 3) * z1 * dinvGD +
+           (Complex(0, 4 * sqrt_pi) * pow4(z1) * dw1 * dz1 -
+            2 * pow2(z1) * dz1 + 9 * dz1) *
+               invGD) /
+          (4 * pow4(z1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandLowX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dz2 = dx / (2 * sqrtx);
+      const Complex dA =
+          2 *
+          (sqrt_pi * Complex(G2, D2) * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+               (ETA - 1) -
+           Complex(G2, D2) * (sqrt_pi * w2 * z2 - 1) * d.ETA -
+           Complex(d.G2, d.D2) * (sqrt_pi * w2 * z2 - 1) * (ETA - 1)) /
+          (pow2(Complex(G2, D2)) * pow2(ETA - 1));
+      const Complex dB =
+          (-2 * Complex(G2, D2) * (ETA - 1) *
+               (sqrt_pi * (w2 * dz2 + z2 * 1i * dw2 * dz2) *
+                    (2 * pow2(sqrty) + x - 1) +
+                sqrt_pi * w1 * dz1 + Complex(0, sqrt_pi) * z1 * dw1 * dz1 +
+                (4 * sqrty * dsqrty + dx) * (sqrt_pi * w2 * z2 - 1)) +
+           Complex(G2, D2) *
+               (2 * sqrt_pi * w1 * z1 +
+                2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1) *
+               d.ETA +
+           Complex(d.G2, d.D2) * (ETA - 1) *
+               (2 * sqrt_pi * w1 * z1 +
+                2 * (sqrt_pi * w2 * z2 - 1) * (2 * pow2(sqrty) + x - 1) - 1)) /
+          (pow2(Complex(G2, D2)) * pow2(ETA - 1));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
+    case CalcType::LowYandHighX: {
+      const Complex dz1 = dsqrtxy;
+      const Complex dA = (2 * Complex(G2, D2) * (ETA - 1) * (x - 3) * dx +
+                          Complex(G2, D2) * (2 * x - 3) * x * d.ETA +
+                          Complex(d.G2, d.D2) * (ETA - 1) * (2 * x - 3) * x) /
+                         (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
+      const Complex dB =
+          (-Complex(G2, D2) *
+               (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+                (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               x * d.ETA +
+           Complex(G2, D2) * (ETA - 1) *
+               (-4 * sqrt_pi * (w1 * dz1 + z1 * 1i * dw1 * dz1) * pow3(x) +
+                (4 * sqrty * dsqrty + dx) * (2 * x - 3) * x -
+                2 * (x - 3) * (2 * pow2(sqrty) + x - 1) * dx) -
+           Complex(d.G2, d.D2) *
+               (2 * (-2 * sqrt_pi * w1 * z1 + 1) * pow2(x) +
+                (2 * x - 3) * (2 * pow2(sqrty) + x - 1)) *
+               (ETA - 1) * x) /
+          (2 * pow2(Complex(G2, D2)) * pow2(ETA - 1) * pow3(x));
+      const Complex dK =
+          Complex(G2, D2) * B * d.ETA + Complex(G2, D2) * ETA * dB +
+          Complex(d.G2, d.D2) * B * ETA +
+          (Complex(G0 - 1.5 * G2, D0 - 1.5 * D2) * ETA - FVC) * dA +
+          (-Complex(1.5 * G2 - G0, 1.5 * D2 - D0) * d.ETA -
+           Complex(1.5 * d.G2 - d.G0, 1.5 * d.D2 - d.D0) * ETA - d.FVC) *
+              A;
+      return inv_pi * (-A * dK + K * dA) / pow2(K);
+    }
   }
   return {};
 }
@@ -1757,12 +1823,12 @@ Complex HartmannTran::operator()(Numeric f) noexcept {
 
 HartmannTran::CalcType HartmannTran::init(const Complex c2t) const noexcept {
   if (abs_squared(c2t) == 0)
-    return CalcType::Noc2tHighZ; // nb. Value of high/low changes elsewhere
+    return CalcType::Noc2tHighZ;  // nb. Value of high/low changes elsewhere
   if (abs_squared(x) <= 9e-16 * abs_squared(sqrty * sqrty))
     return CalcType::LowXandHighY;
   if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)) and
       abs_squared(std::sqrt(x)) <= 16.e6)
-    return CalcType::LowYandLowX; // Weird case, untested
+    return CalcType::LowYandLowX;  // Weird case, untested
   if ((abs_squared(sqrty * sqrty) <= 1.e-30 * abs_squared(x)))
     return CalcType::LowYandHighX;
   return CalcType::Full;
@@ -1774,57 +1840,58 @@ void HartmannTran::update_calcs() noexcept {
 
 void HartmannTran::calc() noexcept {
   switch (calcs) {
-  case CalcType::Full:
-    z1 = sqrtxy - sqrty;
-    z2 = sqrtxy + sqrty;
-    w1 = Faddeeva::w(1i * z1);
-    w2 = Faddeeva::w(1i * z2);
-    A = sqrt_pi * invGD * (w1 - w2);
-    B = (-1 + sqrt_pi / (2 * sqrty) * (1 - pow2(z1)) * w1 -
-         sqrt_pi / (2 * sqrty) * (1 - pow2(z2)) * w2) /
-        ((1 - ETA) * Complex(G2, D2));
-    break;
-  case CalcType::Noc2tLowZ:
-  case CalcType::Noc2tHighZ:
-    z1 = deltax * invGD;
-    w1 = Faddeeva::w(1i * z1);
-    A = sqrt_pi * invGD * w1;
-    if (abs_squared(z1) < 16e6) {
-      calcs = CalcType::Noc2tLowZ;
-      B = sqrt_pi * invGD * ((1 - pow2(z1)) * w1 + z1 / sqrt_pi);
-    } else {
-      calcs = CalcType::Noc2tHighZ;
+    case CalcType::Full:
+      z1 = sqrtxy - sqrty;
+      z2 = sqrtxy + sqrty;
+      w1 = Faddeeva::w(1i * z1);
+      w2 = Faddeeva::w(1i * z2);
+      A = sqrt_pi * invGD * (w1 - w2);
+      B = (-1 + sqrt_pi / (2 * sqrty) * (1 - pow2(z1)) * w1 -
+           sqrt_pi / (2 * sqrty) * (1 - pow2(z2)) * w2) /
+          ((1 - ETA) * Complex(G2, D2));
+      break;
+    case CalcType::Noc2tLowZ:
+    case CalcType::Noc2tHighZ:
+      z1 = deltax * invGD;
+      w1 = Faddeeva::w(1i * z1);
+      A = sqrt_pi * invGD * w1;
+      if (abs_squared(z1) < 16e6) {
+        calcs = CalcType::Noc2tLowZ;
+        B = sqrt_pi * invGD * ((1 - pow2(z1)) * w1 + z1 / sqrt_pi);
+      } else {
+        calcs = CalcType::Noc2tHighZ;
+        B = invGD * (sqrt_pi * w1 + 1 / z1 / 2 - 3 / pow3(z1) / 4);
+      }
+      break;
+    case CalcType::LowXandHighY:
+      z1 = deltax * invGD;
+      z2 = sqrtxy + sqrty;
+      w1 = Faddeeva::w(1i * z1);
+      w2 = Faddeeva::w(1i * z2);
+      A = sqrt_pi * invGD * (w1 - w2);
       B = invGD * (sqrt_pi * w1 + 1 / z1 / 2 - 3 / pow3(z1) / 4);
-    }
-    break;
-  case CalcType::LowXandHighY:
-    z1 = deltax * invGD;
-    z2 = sqrtxy + sqrty;
-    w1 = Faddeeva::w(1i * z1);
-    w2 = Faddeeva::w(1i * z2);
-    A = sqrt_pi * invGD * (w1 - w2);
-    B = invGD * (sqrt_pi * w1 + 1 / z1 / 2 - 3 / pow3(z1) / 4);
-    break;
-  case CalcType::LowYandLowX:
-    sqrtx = std::sqrt(x);
-    z1 = sqrtxy;
-    z2 = sqrtx;
-    w1 = Faddeeva::w(1i * z1);
-    w2 = Faddeeva::w(1i * z2);
-    A = (2 * sqrt_pi / ((1 - ETA) * Complex(G2, D2))) * (inv_sqrt_pi - z2 * w2);
-    B = (1 / ((1 - ETA) * Complex(G2, D2))) *
-        (-1 +
-         2 * sqrt_pi * (1 - x - 2 * sqrty * sqrty) * (1 / sqrt_pi - z2 * w2) +
-         2 * sqrt_pi * z1 * w1);
-    break;
-  case CalcType::LowYandHighX:
-    z1 = sqrtxy;
-    w1 = Faddeeva::w(1i * z1);
-    A = (1 / ((1 - ETA) * Complex(G2, D2))) * (1 / x - 3 / pow2(x) / 2);
-    B = (1 / ((1 - ETA) * Complex(G2, D2))) *
-        (-1 + (1 - x - 2 * sqrty * sqrty) * (1 / x - 3 / pow2(x) / 2) +
-         2 * sqrt_pi * z1 * w1);
-    break;
+      break;
+    case CalcType::LowYandLowX:
+      sqrtx = std::sqrt(x);
+      z1 = sqrtxy;
+      z2 = sqrtx;
+      w1 = Faddeeva::w(1i * z1);
+      w2 = Faddeeva::w(1i * z2);
+      A = (2 * sqrt_pi / ((1 - ETA) * Complex(G2, D2))) *
+          (inv_sqrt_pi - z2 * w2);
+      B = (1 / ((1 - ETA) * Complex(G2, D2))) *
+          (-1 +
+           2 * sqrt_pi * (1 - x - 2 * sqrty * sqrty) * (1 / sqrt_pi - z2 * w2) +
+           2 * sqrt_pi * z1 * w1);
+      break;
+    case CalcType::LowYandHighX:
+      z1 = sqrtxy;
+      w1 = Faddeeva::w(1i * z1);
+      A = (1 / ((1 - ETA) * Complex(G2, D2))) * (1 / x - 3 / pow2(x) / 2);
+      B = (1 / ((1 - ETA) * Complex(G2, D2))) *
+          (-1 + (1 - x - 2 * sqrty * sqrty) * (1 / x - 3 / pow2(x) / 2) +
+           2 * sqrt_pi * z1 * w1);
+      break;
   }
 
   dw1 = 2i * (inv_sqrt_pi - z1 * w1);
@@ -1835,7 +1902,8 @@ void HartmannTran::calc() noexcept {
 }
 
 VanVleckHuber::VanVleckHuber(Numeric F0, Numeric T) noexcept
-    : c1(Constant::h / (2.0 * Constant::k * T)), tanh_c1f0(std::tanh(c1 * F0)),
+    : c1(Constant::h / (2.0 * Constant::k * T)),
+      tanh_c1f0(std::tanh(c1 * F0)),
       inv_denom(1.0 / (F0 * tanh_c1f0)) {}
 
 Numeric VanVleckHuber::dNdT(Numeric T, Numeric f) const noexcept {
@@ -1901,7 +1969,10 @@ Numeric SimpleFrequencyScaling::dNdT(Numeric t_ [[maybe_unused]],
               "you have encountered\n"
               "a path of the code that should never be encountered.  The two "
               "temperatures are: ",
-              T, " and ", t_, " K")
+              T,
+              " and ",
+              t_,
+              " K")
 
   return -N * Constant::h * F0 * expF0 / (Constant::k * t_ * t_ * expm1F0) +
          Constant::h * f * f *
@@ -1922,11 +1993,26 @@ Numeric SimpleFrequencyScaling::operator()(Numeric f) noexcept {
 }
 
 LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
-    Numeric I0, Numeric T0, Numeric T, Numeric F0, Numeric E0, Numeric QT,
-    Numeric QT0, Numeric dQTdT, Numeric r, Numeric drdSELFVMR,
+    Numeric I0,
+    Numeric T0,
+    Numeric T,
+    Numeric F0,
+    Numeric E0,
+    Numeric QT,
+    Numeric QT0,
+    Numeric dQTdT,
+    Numeric r,
+    Numeric drdSELFVMR,
     const Numeric drdT) noexcept
     : LocalThermodynamicEquilibrium(
-          I0, r, drdSELFVMR, drdT, QT0, QT, dQTdT, boltzman_ratio(T, T0, E0),
+          I0,
+          r,
+          drdSELFVMR,
+          drdT,
+          QT0,
+          QT,
+          dQTdT,
+          boltzman_ratio(T, T0, E0),
           dboltzman_ratio_dT_div_boltzmann_ratio(T, E0),
           stimulated_relative_emission(F0, T0, T),
           dstimulated_relative_emission_dT(F0, T0, T),
@@ -1935,14 +2021,21 @@ LocalThermodynamicEquilibrium::LocalThermodynamicEquilibrium(
 struct FullNonLocalThermodynamicEquilibriumInitialization {
   Numeric k, dkdF0, dkdr1, dkdr2, e, dedF0, dedr2, B, dBdT, dBdF0;
 
-  FullNonLocalThermodynamicEquilibriumInitialization(Numeric F0, Numeric A21,
-                                                     Numeric T, Numeric r1,
-                                                     Numeric r2, Numeric c2,
+  FullNonLocalThermodynamicEquilibriumInitialization(Numeric F0,
+                                                     Numeric A21,
+                                                     Numeric T,
+                                                     Numeric r1,
+                                                     Numeric r2,
+                                                     Numeric c2,
                                                      Numeric c3,
                                                      Numeric x) noexcept
-      : k(c3 * (r1 * x - r2) * (A21 / c2)), dkdF0(-2.0 * k / F0),
-        dkdr1(c3 * x * (A21 / c2)), dkdr2(-c3 * (A21 / c2)), e(c3 * r2 * A21),
-        dedF0(e / F0), dedr2(c3 * A21),
+      : k(c3 * (r1 * x - r2) * (A21 / c2)),
+        dkdF0(-2.0 * k / F0),
+        dkdr1(c3 * x * (A21 / c2)),
+        dkdr2(-c3 * (A21 / c2)),
+        e(c3 * r2 * A21),
+        dedF0(e / F0),
+        dedr2(c3 * A21),
         B(2 * Constant::h / Math::pow2(Constant::c) * Math::pow3(F0) /
           std::expm1((Constant::h / Constant::k * F0) / T)),
         dBdT(Math::pow2(B) * Math::pow2(Constant::c) *
@@ -1952,30 +2045,59 @@ struct FullNonLocalThermodynamicEquilibriumInitialization {
                                std::exp((Constant::h / Constant::k * F0) / T) /
                                (2 * Constant::k * T * Math::pow3(F0))) {}
 
-  constexpr FullNonLocalThermodynamicEquilibrium
-  operator()(Numeric r, Numeric drdSELFVMR, Numeric drdT) &&noexcept {
-    return {r, drdSELFVMR, drdT,  k, dkdF0, dkdr1, dkdr2,
-            e, dedF0,      dedr2, B, dBdT,  dBdF0};
+  constexpr FullNonLocalThermodynamicEquilibrium operator()(
+      Numeric r, Numeric drdSELFVMR, Numeric drdT) && noexcept {
+    return {r,
+            drdSELFVMR,
+            drdT,
+            k,
+            dkdF0,
+            dkdr1,
+            dkdr2,
+            e,
+            dedF0,
+            dedr2,
+            B,
+            dBdT,
+            dBdF0};
   }
 };
 
 FullNonLocalThermodynamicEquilibrium::FullNonLocalThermodynamicEquilibrium(
-    Numeric F0, Numeric A21, Numeric T, Numeric g1, Numeric g2, Numeric r1,
-    Numeric r2, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept
+    Numeric F0,
+    Numeric A21,
+    Numeric T,
+    Numeric g1,
+    Numeric g2,
+    Numeric r1,
+    Numeric r2,
+    Numeric r,
+    Numeric drdSELFVMR,
+    Numeric drdT) noexcept
     : FullNonLocalThermodynamicEquilibrium(
           FullNonLocalThermodynamicEquilibriumInitialization(
-              F0, A21, T, r1, r2, c0 * F0 * F0 * F0, c1 * F0,
-              g2 / g1)(r, drdSELFVMR, drdT)) {}
+              F0, A21, T, r1, r2, c0 * F0 * F0 * F0, c1 * F0, g2 / g1)(
+              r, drdSELFVMR, drdT)) {}
 
 struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
   Numeric K1, dK1dT, K2, dK2dT, dK2dF0, K3, dK3dT, dK3dF0, dK3dTl, dK3dTu, K4,
       dK4dT, dK4dTu, B, dBdT, dBdF0;
 
   VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer(
-      Numeric T, Numeric T0, Numeric F0, Numeric E0, Numeric Tl, Numeric Evl,
-      Numeric Tu, Numeric Evu, Numeric gamma, Numeric gamma_ref, Numeric r_low,
+      Numeric T,
+      Numeric T0,
+      Numeric F0,
+      Numeric E0,
+      Numeric Tl,
+      Numeric Evl,
+      Numeric Tu,
+      Numeric Evu,
+      Numeric gamma,
+      Numeric gamma_ref,
+      Numeric r_low,
       Numeric r_upp) noexcept
-      : K1(boltzman_ratio(T, T0, E0)), dK1dT(dboltzman_ratio_dT(K1, T, E0)),
+      : K1(boltzman_ratio(T, T0, E0)),
+        dK1dT(dboltzman_ratio_dT(K1, T, E0)),
         K2(stimulated_relative_emission(gamma, gamma_ref)),
         dK2dT(dstimulated_relative_emission_dT(gamma, gamma_ref, F0, T)),
         dK2dF0(dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0)),
@@ -1984,7 +2106,8 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
         dK3dF0(dabsorption_nlte_rate_dF0(gamma, T, K4, r_low)),
         dK3dTl(dabsorption_nlte_rate_dTl(gamma, T, Tl, Evl, r_low)),
         dK3dTu(dabsorption_nlte_rate_dTu(gamma, T, Tu, Evu, K4)),
-        K4(boltzman_ratio(Tu, T, Evu)), dK4dT(dboltzman_ratio_dT(K4, T, Evu)),
+        K4(boltzman_ratio(Tu, T, Evu)),
+        dK4dT(dboltzman_ratio_dT(K4, T, Evu)),
         dK4dTu(dboltzman_ratio_dT(K4, Tu, Evu)),
         B(2 * Constant::h / Math::pow2(Constant::c) * Math::pow3(F0) /
           std::expm1((Constant::h / Constant::k * F0) / T)),
@@ -1995,9 +2118,14 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
                                std::exp((Constant::h / Constant::k * F0) / T) /
                                (2 * Constant::k * T * Math::pow3(F0))) {}
 
-  constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium
-  operator()(Numeric I0, Numeric QT0, Numeric QT, Numeric dQTdT, Numeric r,
-             Numeric drdSELFVMR, Numeric drdT) &&noexcept {
+  constexpr VibrationalTemperaturesNonLocalThermodynamicEquilibrium operator()(
+      Numeric I0,
+      Numeric QT0,
+      Numeric QT,
+      Numeric dQTdT,
+      Numeric r,
+      Numeric drdSELFVMR,
+      Numeric drdT) && noexcept {
     return {I0,     QT0, QT,    dQTdT,  r,  drdSELFVMR, drdT,   K1,
             dK1dT,  K2,  dK2dT, dK2dF0, K3, dK3dT,      dK3dF0, dK3dTl,
             dK3dTu, K4,  dK4dT, dK4dTu, B,  dBdT,       dBdF0};
@@ -2006,15 +2134,36 @@ struct VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer {
 
 VibrationalTemperaturesNonLocalThermodynamicEquilibrium::
     VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
-        Numeric I0, Numeric T0, Numeric T, Numeric Tl, Numeric Tu, Numeric F0,
-        Numeric E0, Numeric Evl, Numeric Evu, Numeric QT, Numeric QT0,
-        Numeric dQTdT, Numeric r, Numeric drdSELFVMR, Numeric drdT) noexcept
+        Numeric I0,
+        Numeric T0,
+        Numeric T,
+        Numeric Tl,
+        Numeric Tu,
+        Numeric F0,
+        Numeric E0,
+        Numeric Evl,
+        Numeric Evu,
+        Numeric QT,
+        Numeric QT0,
+        Numeric dQTdT,
+        Numeric r,
+        Numeric drdSELFVMR,
+        Numeric drdT) noexcept
     : VibrationalTemperaturesNonLocalThermodynamicEquilibrium(
           VibrationalTemperaturesNonLocalThermodynamicEquilibriumInitializer(
-              T, T0, F0, E0, Tl, Evl, Tu, Evu, stimulated_emission(T, F0),
-              stimulated_emission(T0, F0), boltzman_ratio(Tl, T, Evl),
-              boltzman_ratio(Tu, T, Evu))(I0, QT0, QT, dQTdT, r, drdSELFVMR,
-                                          drdT)) {}
+              T,
+              T0,
+              F0,
+              E0,
+              Tl,
+              Evl,
+              Tu,
+              Evu,
+              stimulated_emission(T, F0),
+              stimulated_emission(T0, F0),
+              boltzman_ratio(Tl, T, Evl),
+              boltzman_ratio(Tu, T, Evu))(
+              I0, QT0, QT, dQTdT, r, drdSELFVMR, drdT)) {}
 
 //! Struct to keep the cutoff limited range values
 struct CutoffRange {
@@ -2023,20 +2172,21 @@ struct CutoffRange {
 
 /** Gets the start and size of a range such that
  *
- * \f[ fl \leq f_grid[i] \leq fu \f]
+ * \f[ fl \leq frequency_grid[i] \leq fu \f]
  *
- * for i such that all fl <= f_grid[Range(out.first, out.second, 1)] <= fu
+ * for i such that all fl <= frequency_grid[Range(out.first, out.second, 1)] <= fu
  *
  * @param[in] fl Lower frequency limit
  * @param[in] fu Upper frequency limit
- * @param[in] f_grid As WSV, must be sorted
+ * @param[in] frequency_grid As WSV, must be sorted
  * @return out so that the Range above can be formed
  */
-CutoffRange limited_range(const Numeric fl, const Numeric fu,
-                          const Vector &f_grid) {
+CutoffRange limited_range(const Numeric fl,
+                          const Numeric fu,
+                          const Vector &frequency_grid) {
   ARTS_ASSERT(fu > fl);
-  const Numeric *it0 = f_grid.data_handle();
-  const Numeric *itn = it0 + f_grid.size();
+  const Numeric *it0 = frequency_grid.data_handle();
+  const Numeric *itn = it0 + frequency_grid.size();
   const Numeric *itl = std::lower_bound(it0, itn, fl);
   return CutoffRange{std::distance(it0, itl),
                      std::distance(itl, std::upper_bound(itl, itn, fu))};
@@ -2050,23 +2200,27 @@ struct SparseLimitRange {
 };
 
 SparseLimitRange linear_sparse_limited_range(
-    const Numeric flc, const Numeric fuc, const Numeric fls, const Numeric fus,
-    const Vector &f_grid, const Vector &sparse_f_grid) {
+    const Numeric flc,
+    const Numeric fuc,
+    const Numeric fls,
+    const Numeric fus,
+    const Vector &frequency_grid,
+    const Vector &sparse_frequency_grid) {
   ARTS_ASSERT(fls > flc);
   ARTS_ASSERT(fus > fls);
   ARTS_ASSERT(fuc > fus);
 
-  const Index nvs = sparse_f_grid.size();
+  const Index nvs = sparse_frequency_grid.size();
 
   // Find bounds in sparse
-  const Numeric *it0s = sparse_f_grid.data_handle();
+  const Numeric *it0s = sparse_frequency_grid.data_handle();
   const Numeric *itns = it0s + nvs;
   const Numeric *itlc =
-      std::lower_bound(it0s, itns, std::nextafter(flc, fuc)); // lower cutoff
+      std::lower_bound(it0s, itns, std::nextafter(flc, fuc));  // lower cutoff
   const Numeric *ituc =
-      std::upper_bound(itlc, itns, std::nextafter(fuc, flc)); // upper cutoff
-  const Numeric *itls = std::upper_bound(itlc, ituc, fls);    // lower sparse
-  const Numeric *itus = std::lower_bound(itls, ituc, fus);    // upper sparse
+      std::upper_bound(itlc, itns, std::nextafter(fuc, flc));  // upper cutoff
+  const Numeric *itls = std::upper_bound(itlc, ituc, fls);     // lower sparse
+  const Numeric *itus = std::lower_bound(itls, ituc, fus);     // upper sparse
 
   /* Start and size of sparse adjusted to the 2-grid
    *
@@ -2078,26 +2232,24 @@ SparseLimitRange linear_sparse_limited_range(
   const Index beg_lr =
       std::distance(it0s, itlc); /*while (beg_lr % 2) --beg_lr;*/
   Index end_lr = std::distance(it0s, itls);
-  while (end_lr % 2)
-    --end_lr;
+  while (end_lr % 2) --end_lr;
   Index beg_ur = std::distance(it0s, itus);
-  while (beg_ur % 2)
-    ++beg_ur;
+  while (beg_ur % 2) ++beg_ur;
   const Index end_ur =
       std::distance(it0s, ituc); /*while (end_ur % 2) ++end_ur;*/
 
   // Find new limits
   const Numeric fl =
-      (end_lr <= 0 or end_lr >= nvs) ? flc : sparse_f_grid[end_lr];
+      (end_lr <= 0 or end_lr >= nvs) ? flc : sparse_frequency_grid[end_lr];
   const Numeric fu =
-      (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_f_grid[beg_ur];
+      (beg_ur <= 0 or beg_ur >= nvs) ? fuc : sparse_frequency_grid[beg_ur];
 
   // Find bounds in dense
-  const Numeric *it0 = f_grid.data_handle();
-  const Numeric *itn = it0 + f_grid.size();
-  const Numeric *itl = std::lower_bound(it0, itn, fl); // include boundary
+  const Numeric *it0 = frequency_grid.data_handle();
+  const Numeric *itn = it0 + frequency_grid.size();
+  const Numeric *itl = std::lower_bound(it0, itn, fl);  // include boundary
   const Numeric *itu =
-      std::upper_bound(itl, itn, std::nextafter(fu, fl)); // dismiss boundary
+      std::upper_bound(itl, itn, std::nextafter(fu, fl));  // dismiss boundary
 
   return {std::distance(it0, itl),
           std::distance(itl, itu),
@@ -2108,26 +2260,30 @@ SparseLimitRange linear_sparse_limited_range(
 }
 
 SparseLimitRange quad_sparse_limited_range(
-    const Numeric flc, const Numeric fuc, const Numeric fls, const Numeric fus,
-    const Vector &f_grid, const Vector &sparse_f_grid) {
+    const Numeric flc,
+    const Numeric fuc,
+    const Numeric fls,
+    const Numeric fus,
+    const Vector &frequency_grid,
+    const Vector &sparse_frequency_grid) {
   ARTS_ASSERT(fls > flc);
   ARTS_ASSERT(fus > fls);
   ARTS_ASSERT(fuc > fus);
 
-  const Index nvs = sparse_f_grid.size();
-  const Index nv = f_grid.size();
+  const Index nvs = sparse_frequency_grid.size();
+  const Index nv = frequency_grid.size();
 
   // Find bounds in sparse
-  const Numeric *const it0s = sparse_f_grid.data_handle();
+  const Numeric *const it0s = sparse_frequency_grid.data_handle();
   const Numeric *const itns = it0s + nvs;
   const Numeric *itlc =
-      std::lower_bound(it0s, itns, std::nextafter(flc, fuc)); // lower cutoff
+      std::lower_bound(it0s, itns, std::nextafter(flc, fuc));  // lower cutoff
   const Numeric *ituc =
-      std::upper_bound(itlc, itns, std::nextafter(fuc, flc)); // upper cutoff
+      std::upper_bound(itlc, itns, std::nextafter(fuc, flc));  // upper cutoff
   const Numeric *itls =
-      std::upper_bound(itlc, ituc, std::nextafter(fls, flc)); // lower sparse
+      std::upper_bound(itlc, ituc, std::nextafter(fls, flc));  // lower sparse
   const Numeric *itus =
-      std::lower_bound(itls, ituc, std::nextafter(fus, fuc)); // upper sparse
+      std::lower_bound(itls, ituc, std::nextafter(fus, fuc));  // upper sparse
 
   /* Start and size of sparse adjusted to the 3-grid
    *
@@ -2144,38 +2300,37 @@ SparseLimitRange quad_sparse_limited_range(
    * in the outer range.  So there's a small range that has to
    * be ignored
    */
-  while (std::distance(it0s, itls) % 3)
-    --itls;
-  while (std::distance(itlc, itls) % 3 == 1)
-    ++itlc; // skip some cutoff
-  while (std::distance(it0s, itus) % 3)
-    ++itus;
-  while (std::distance(itus, ituc) % 3 == 1)
-    --ituc; // skip some cutoff
+  while (std::distance(it0s, itls) % 3) --itls;
+  while (std::distance(itlc, itls) % 3 == 1) ++itlc;  // skip some cutoff
+  while (std::distance(it0s, itus) % 3) ++itus;
+  while (std::distance(itus, ituc) % 3 == 1) --ituc;  // skip some cutoff
 
   // Find bounds in dense
-  const Numeric *const it0 = f_grid.data_handle();
+  const Numeric *const it0 = frequency_grid.data_handle();
   const Numeric *const itn = it0 + nv;
   const Numeric *itl;
   const Numeric *itu;
 
   if (itls not_eq itns) {
-    itl = std::lower_bound(it0, itn, *itls); // include boundary
+    itl = std::lower_bound(it0, itn, *itls);  // include boundary
   } else {
-    itl = std::lower_bound(it0, itn, flc); // include boundary
+    itl = std::lower_bound(it0, itn, flc);  // include boundary
   }
 
   if (itus not_eq itns and itl not_eq itn) {
-    itu = std::upper_bound(itl, itn,
-                           std::nextafter(*itus, *itl)); // dismiss boundary
+    itu = std::upper_bound(
+        itl, itn, std::nextafter(*itus, *itl));  // dismiss boundary
   } else {
-    itu = std::lower_bound(itl, itn,
-                           std::nextafter(fuc, flc)); // include boundary
+    itu = std::lower_bound(
+        itl, itn, std::nextafter(fuc, flc));  // include boundary
   }
 
-  return {std::distance(it0, itl),   std::distance(itl, itu),
-          std::distance(it0s, itlc), std::distance(itlc, itls),
-          std::distance(it0s, itus), std::distance(itus, ituc)};
+  return {std::distance(it0, itl),
+          std::distance(itl, itu),
+          std::distance(it0s, itlc),
+          std::distance(itlc, itls),
+          std::distance(it0s, itus),
+          std::distance(itus, ituc)};
 }
 
 /** Data struct for keeping derivative keys and values
@@ -2194,12 +2349,10 @@ struct Derivatives {
     Numeric n;
     constexpr Values() noexcept : n() {}
   } value{};
-  
-  constexpr bool operator==(Atm::Key k) const {
-    return k == atm_target;
-  }
-  
-  constexpr bool operator==(const ArrayOfSpeciesTag& k) const {
+
+  constexpr bool operator==(Atm::Key k) const { return k == atm_target; }
+
+  constexpr bool operator==(const ArrayOfSpeciesTag &k) const {
     return std::ranges::equal(k, species_tags);
   }
 };
@@ -2220,7 +2373,7 @@ struct ComputeValues {
                 ComplexMatrix &dF_,
                 ComplexVector &N_,
                 ComplexMatrix &dN_,
-                const Vector &f_grid,
+                const Vector &frequency_grid,
                 const Index start,
                 const Index nv,
                 const std::span<const Derivatives> &derivs_,
@@ -2229,7 +2382,7 @@ struct ComputeValues {
         dF(dF_.slice(start, nv)),
         N(N_.slice(start, nv)),
         dN(dN_.slice(start, nv)),
-        f(f_grid.slice(start, nv)),
+        f(frequency_grid.slice(start, nv)),
         derivs(derivs_),
         do_nlte(do_nlte_) {}
 
@@ -2237,7 +2390,7 @@ struct ComputeValues {
     ARTS_ASSERT(cut.f.size() == 1, "Not a cutoff limit")
 
     F -= cut.F;
-    for (auto& d: derivs) {
+    for (auto &d : derivs) {
       if (not d.use) break;
       dF(joker, d.target_pos) -= cut.dF(joker, d.target_pos);
     }
@@ -2249,7 +2402,7 @@ struct ComputeValues {
         dN(joker, d.target_pos) -= cut.dN(joker, d.target_pos);
       }
     }
-    
+
     return *this;
   }
 };
@@ -2389,25 +2542,26 @@ Numeric Normalizer::operator()(Numeric f) noexcept {
 }
 
 Normalizer::Normalizer(const Absorption::NormalizationType type,
-                       const Numeric F0, const Numeric T) noexcept
+                       const Numeric F0,
+                       const Numeric T) noexcept
     : ls_norm(Nonorm{}) {
   switch (type) {
-  case Absorption::NormalizationType::None:
-    break;
-  case Absorption::NormalizationType::RQ:
-    ls_norm = RosenkranzQuadratic(F0, T);
-    break;
-  case Absorption::NormalizationType::VVH:
-    ls_norm = VanVleckHuber(F0, T);
-    break;
-  case Absorption::NormalizationType::VVW:
-    ls_norm = VanVleckWeisskopf(F0);
-    break;
-  case Absorption::NormalizationType::SFS:
-    ls_norm = SimpleFrequencyScaling(F0, T);
-    break;
-  case Absorption::NormalizationType::FINAL: { /*leave last*/
-  }
+    case Absorption::NormalizationType::None:
+      break;
+    case Absorption::NormalizationType::RQ:
+      ls_norm = RosenkranzQuadratic(F0, T);
+      break;
+    case Absorption::NormalizationType::VVH:
+      ls_norm = VanVleckHuber(F0, T);
+      break;
+    case Absorption::NormalizationType::VVW:
+      ls_norm = VanVleckWeisskopf(F0);
+      break;
+    case Absorption::NormalizationType::SFS:
+      ls_norm = SimpleFrequencyScaling(F0, T);
+      break;
+    case Absorption::NormalizationType::FINAL: { /*leave last*/
+    }
   }
 }
 
@@ -2485,9 +2639,8 @@ Numeric IntensityCalculator::dNdOTHERVMR_if() const noexcept {
              : std::visit([](auto &&S) { return S.N; }, ls_str);
 }
 
-IntensityCalculator &
-IntensityCalculator::adaptive_scaling(Numeric x, Species::Species self,
-                                      Species::Species other) noexcept {
+IntensityCalculator &IntensityCalculator::adaptive_scaling(
+    Numeric x, Species::Species self, Species::Species other) noexcept {
   scale = x;
   self_species = self;
   scaling_species = other;
@@ -2570,9 +2723,9 @@ IntensityCalculator::IntensityCalculator(
     const Numeric d = value.n;                                                \
     const Complex dFm = std::conj(ls_mirr.dFd##X(d) - ls_mirr_cut.dFd##X(d)); \
     const Complex dFls = ls.dFd##X(d) - ls_cut.dFd##X(d) + dFm;               \
-    com.dF(iv, ij) += S * LM * dFls;                             \
+    com.dF(iv, ij) += S * LM * dFls;                                          \
     if (do_nlte) {                                                            \
-      com.dN(iv, ij) += DS * LM * dFls;                          \
+      com.dN(iv, ij) += DS * LM * dFls;                                       \
     }                                                                         \
   }
 
@@ -2585,9 +2738,9 @@ IntensityCalculator::IntensityCalculator(
     const Numeric d = value.n;                        \
     const Complex dFm = std::conj(ls_mirr.dFd##X(d)); \
     const Complex dFls = ls.dFd##X(d) + dFm;          \
-    com.dF(iv, ij) += S * LM * dFls;     \
+    com.dF(iv, ij) += S * LM * dFls;                  \
     if (do_nlte) {                                    \
-      com.dN(iv, ij) += DS * LM * dFls;  \
+      com.dN(iv, ij) += DS * LM * dFls;               \
     }                                                 \
   }
 
@@ -2595,26 +2748,26 @@ IntensityCalculator::IntensityCalculator(
   InternalDerivativesImpl(X, X0) InternalDerivativesImpl(X, X1) \
       InternalDerivativesImpl(X, X2) InternalDerivativesImpl(X, X3)
 
-#define InternalDerivativesGImpl(X)                  \
-  else if (deriv == Jacobian::Line::ShapeG##X) {     \
-    const Numeric dLM = value.n;                     \
-    com.dF(iv, ij) += dLM * S * Fls;    \
-    if (do_nlte) {                                   \
-      com.dN(iv, ij) += dLM * DS * Fls; \
-    }                                                \
+#define InternalDerivativesGImpl(X)              \
+  else if (deriv == Jacobian::Line::ShapeG##X) { \
+    const Numeric dLM = value.n;                 \
+    com.dF(iv, ij) += dLM * S * Fls;             \
+    if (do_nlte) {                               \
+      com.dN(iv, ij) += dLM * DS * Fls;          \
+    }                                            \
   }
 
 #define InternalDerivativesG                                \
   InternalDerivativesGImpl(X0) InternalDerivativesGImpl(X1) \
       InternalDerivativesGImpl(X2) InternalDerivativesGImpl(X3)
 
-#define InternalDerivativesYImpl(X)                  \
-  else if (deriv == Jacobian::Line::ShapeY##X) {     \
-    const Complex dLM = Complex(0, -value.n);        \
-    com.dF(iv, ij) += dLM * S * Fls;    \
-    if (do_nlte) {                                   \
-      com.dN(iv, ij) += dLM * DS * Fls; \
-    }                                                \
+#define InternalDerivativesYImpl(X)              \
+  else if (deriv == Jacobian::Line::ShapeY##X) { \
+    const Complex dLM = Complex(0, -value.n);    \
+    com.dF(iv, ij) += dLM * S * Fls;             \
+    if (do_nlte) {                               \
+      com.dN(iv, ij) += dLM * DS * Fls;          \
+    }                                            \
   }
 
 #define InternalDerivativesY                                \
@@ -2695,7 +2848,7 @@ IntensityCalculator::IntensityCalculator(
  * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
  * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
  * \f$ \partial N / \partial x \f$
- * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] frequency_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
  * @param[in] dfdH The derivative of the change of frequency w.r.t. magnetic
  * field strength
  * @param[in] Sz The relative Zeeman strength. \f$ S_z \f$
@@ -2713,7 +2866,7 @@ void cutoff_frequency_loop(ComputeValues &com,
                            const Numeric &T,
                            const Numeric &dfdH,
                            const Numeric &Sz,
-                           const ArrayOfSpeciesTag& species_tags) {
+                           const ArrayOfSpeciesTag &species_tags) {
   const auto nv = com.f.size();
   const bool do_nlte = com.do_nlte;
 
@@ -2751,9 +2904,10 @@ void cutoff_frequency_loop(ComputeValues &com,
         if (do_nlte) {
           const Numeric dDSi = ls_str.dNdT();
           com.dN(iv, ij) += DS * (LM * dFls + dLM * Fls) +
-                                         Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
+                            Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
         }
-      } else if (deriv == Atm::Key::wind_u or deriv == Atm::Key::wind_v or deriv == Atm::Key::wind_w) {
+      } else if (deriv == Atm::Key::wind_u or deriv == Atm::Key::wind_v or
+                 deriv == Atm::Key::wind_w) {
         const Complex dFm = std::conj(ls_mirr.dFdf() - ls_mirr_cut.dFdf());
         const Complex dFls = ls.dFdf() - ls_cut.dFdf() + dFm;
         const Numeric dS = Sz * ls_norm.dNdf(f) * Si;
@@ -2762,7 +2916,8 @@ void cutoff_frequency_loop(ComputeValues &com,
           const Numeric dDS = Sz * ls_norm.dNdf(f) * DNi;
           com.dN(iv, ij) += DS * LM * dFls + dDS * LM * Fls;
         }
-      } else if (deriv == Atm::Key::mag_u or deriv == Atm::Key::mag_v or deriv == Atm::Key::mag_w) {
+      } else if (deriv == Atm::Key::mag_u or deriv == Atm::Key::mag_v or
+                 deriv == Atm::Key::mag_w) {
         const Complex dFm =
             std::conj(ls_mirr.dFdH(-dfdH) - ls_mirr_cut.dFdH(-dfdH));
         const Complex dFls = ls.dFdH(dfdH) - ls_cut.dFdH(dfdH) + dFm;
@@ -2773,8 +2928,7 @@ void cutoff_frequency_loop(ComputeValues &com,
       } else if (deriv == species_tags) {
         com.dF(iv, ij) += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
         if (do_nlte) {
-          com.dN(iv, ij) +=
-              Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
+          com.dN(iv, ij) += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
         }
       }
     }
@@ -2835,7 +2989,7 @@ void cutoff_frequency_loop(ComputeValues &com,
  * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
  * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
  * \f$ \partial N / \partial x \f$
- * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] frequency_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
  * @param[in] dfdH The derivative of the change of frequency w.r.t. magnetic
  * field strength
  * @param[in] Sz The relative Zeeman strength. \f$ S_z \f$
@@ -2851,7 +3005,7 @@ void frequency_loop(ComputeValues &com,
                     const Numeric &T,
                     const Numeric &dfdH,
                     const Numeric &Sz,
-                    const ArrayOfSpeciesTag& species_tags) {
+                    const ArrayOfSpeciesTag &species_tags) {
   const auto nv = com.f.size();
   const bool do_nlte = com.do_nlte;
 
@@ -2887,9 +3041,10 @@ void frequency_loop(ComputeValues &com,
         if (do_nlte) {
           const Numeric dDSi = ls_str.dNdT();
           com.dN(iv, ij) += DS * (LM * dFls + dLM * Fls) +
-                                         Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
+                            Sz * (dSn * Si + Sn * dDSi) * LM * Fls;
         }
-      } else if (deriv == Atm::Key::wind_u or deriv == Atm::Key::wind_v or deriv == Atm::Key::wind_w) {
+      } else if (deriv == Atm::Key::wind_u or deriv == Atm::Key::wind_v or
+                 deriv == Atm::Key::wind_w) {
         const Complex dFm = std::conj(ls_mirr.dFdf());
         const Complex dFls = ls.dFdf() + dFm;
         const Numeric dS = Sz * ls_norm.dNdf(f) * Si;
@@ -2898,7 +3053,8 @@ void frequency_loop(ComputeValues &com,
           const Numeric dDS = Sz * ls_norm.dNdf(f) * DNi;
           com.dN(iv, ij) += DS * LM * dFls + dDS * LM * Fls;
         }
-      } else if (deriv == Atm::Key::mag_u or deriv == Atm::Key::mag_v or deriv == Atm::Key::mag_w) {
+      } else if (deriv == Atm::Key::mag_u or deriv == Atm::Key::mag_v or
+                 deriv == Atm::Key::mag_w) {
         const Complex dFm = std::conj(ls_mirr.dFdH(-dfdH));
         const Complex dFls = ls.dFdH(dfdH) + dFm;
         com.dF(iv, ij) += S * LM * dFls;
@@ -2908,8 +3064,7 @@ void frequency_loop(ComputeValues &com,
       } else if (deriv == species_tags) {
         com.dF(iv, ij) += Sz * Sn * ls_str.dSdSELFVMR() * LM * Fls;
         if (do_nlte) {
-          com.dN(iv, ij) +=
-              Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
+          com.dN(iv, ij) += Sz * Sn * ls_str.dNdSELFVMR() * LM * Fls;
         }
       }
     }
@@ -2935,7 +3090,7 @@ void frequency_loop(ComputeValues &com,
  * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
  * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
  * \f$ \partial N / \partial x \f$
- * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] frequency_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
  * @param[in] band The absorption band
  * @param[in] jacobian_quantities As WSV
  * @param[in] T The atmospheric temperature
@@ -2959,16 +3114,15 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                Normalizer ls_norm,
                                const IntensityCalculator ls_str,
                                const AbsorptionLines &band,
-                               const ArrayOfDerivatives& derivs,
+                               const ArrayOfDerivatives &derivs,
                                const Output X,
                                const Numeric &T,
                                const Numeric &H,
                                const Numeric &sparse_lim,
                                const Numeric &DC,
-                               const ArrayOfSpeciesTag& species_tags,
+                               const ArrayOfSpeciesTag &species_tags,
                                const Index i,
-                               const Zeeman::Polarization zeeman_polarization)
-   {
+                               const Zeeman::Polarization zeeman_polarization) {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
   const bool do_cutoff = band.cutoff not_eq Absorption::CutoffType::None;
@@ -2985,7 +3139,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
               sparse_upp_start,
               sparse_upp_size] =
       linear_sparse_limited_range(
-          fl, fu, fls, fus, com.f_grid, sparse_com.f_grid);
+          fl, fu, fls, fus, com.frequency_grid, sparse_com.frequency_grid);
   if ((dense_size + sparse_low_size + sparse_upp_size) == 0) return;
 
   // Get the compute data view
@@ -2993,7 +3147,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                        com.dF,
                        com.N,
                        com.dN,
-                       com.f_grid,
+                       com.frequency_grid,
                        dense_start,
                        dense_size,
                        derivs,
@@ -3004,7 +3158,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                  sparse_com.dF,
                                  sparse_com.N,
                                  sparse_com.dN,
-                                 sparse_com.f_grid,
+                                 sparse_com.frequency_grid,
                                  sparse_low_start,
                                  sparse_low_size,
                                  derivs,
@@ -3013,7 +3167,7 @@ void cutoff_loop_sparse_linear(ComputeData &com,
                                  sparse_com.dF,
                                  sparse_com.N,
                                  sparse_com.dN,
-                                 sparse_com.f_grid,
+                                 sparse_com.frequency_grid,
                                  sparse_upp_start,
                                  sparse_upp_size,
                                  derivs,
@@ -3084,16 +3238,8 @@ void cutoff_loop_sparse_linear(ComputeData &com,
       }
 
     } else {
-      frequency_loop(comval,
-                     ls,
-                     ls_mirr,
-                     ls_norm,
-                     ls_str,
-                     LM,
-                     T,
-                     dfdH,
-                     Sz,
-                     species_tags);
+      frequency_loop(
+          comval, ls, ls_mirr, ls_norm, ls_str, LM, T, dfdH, Sz, species_tags);
 
       if (sparse_low_size) {
         frequency_loop(sparse_low_range,
@@ -3135,10 +3281,9 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                const Numeric &H,
                                const Numeric &sparse_lim,
                                const Numeric &DC,
-                               const ArrayOfSpeciesTag& species_tags,
+                               const ArrayOfSpeciesTag &species_tags,
                                const Index i,
-                               const Zeeman::Polarization zeeman_polarization)
-   {
+                               const Zeeman::Polarization zeeman_polarization) {
   // Basic settings
   const bool do_nlte = ls_str.do_nlte();
   const bool do_cutoff = band.cutoff not_eq Absorption::CutoffType::None;
@@ -3155,7 +3300,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
               sparse_upp_start,
               sparse_upp_size] =
       quad_sparse_limited_range(
-          fl, fu, fls, fus, com.f_grid, sparse_com.f_grid);
+          fl, fu, fls, fus, com.frequency_grid, sparse_com.frequency_grid);
   if ((dense_size + sparse_low_size + sparse_upp_size) == 0) return;
 
   // Get the compute data view
@@ -3163,7 +3308,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                        com.dF,
                        com.N,
                        com.dN,
-                       com.f_grid,
+                       com.frequency_grid,
                        dense_start,
                        dense_size,
                        derivs,
@@ -3174,7 +3319,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                  sparse_com.dF,
                                  sparse_com.N,
                                  sparse_com.dN,
-                                 sparse_com.f_grid,
+                                 sparse_com.frequency_grid,
                                  sparse_low_start,
                                  sparse_low_size,
                                  derivs,
@@ -3183,7 +3328,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
                                  sparse_com.dF,
                                  sparse_com.N,
                                  sparse_com.dN,
-                                 sparse_com.f_grid,
+                                 sparse_com.frequency_grid,
                                  sparse_upp_start,
                                  sparse_upp_size,
                                  derivs,
@@ -3305,7 +3450,7 @@ void cutoff_loop_sparse_triple(ComputeData &com,
  * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
  * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
  * \f$ \partial N / \partial x \f$
- * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] frequency_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
  * @param[in] band The absorption band
  * @param[in] jacobian_quantities As WSV
  * @param[in] T The atmospheric temperature
@@ -3333,7 +3478,7 @@ void cutoff_loop(ComputeData &com,
                  const Numeric &T,
                  const Numeric &H,
                  const Numeric &DC,
-                 const ArrayOfSpeciesTag& species_tags,
+                 const ArrayOfSpeciesTag &species_tags,
                  const Index i,
                  const Zeeman::Polarization zeeman_polarization) {
   // Basic settings
@@ -3343,7 +3488,7 @@ void cutoff_loop(ComputeData &com,
   const Numeric fl = band.CutoffFreqMinus(i, X.D0);
 
   // Only for the cutoff-range
-  const auto [cutstart, cutsize] = limited_range(fl, fu, com.f_grid);
+  const auto [cutstart, cutsize] = limited_range(fl, fu, com.frequency_grid);
   if (not cutsize) return;
 
   // Get the compute data view
@@ -3351,7 +3496,7 @@ void cutoff_loop(ComputeData &com,
                        com.dF,
                        com.N,
                        com.dN,
-                       com.f_grid,
+                       com.frequency_grid,
                        cutstart,
                        cutsize,
                        derivs,
@@ -3392,16 +3537,8 @@ void cutoff_loop(ComputeData &com,
                             species_tags);
 
     } else {
-      frequency_loop(comval,
-                     ls,
-                     ls_mirr,
-                     ls_norm,
-                     ls_str,
-                     LM,
-                     T,
-                     dfdH,
-                     Sz,
-                     species_tags);
+      frequency_loop(
+          comval, ls, ls_mirr, ls_norm, ls_str, LM, T, dfdH, Sz, species_tags);
     }
   }
 }
@@ -3417,7 +3554,7 @@ void cutoff_loop(ComputeData &com,
  * @param[in,out] N The cross-section ratio of the NLTE source. \f$ N \f$
  * @param[in,out] dN The cross-section ratio of the NLTE source's derivatives.
  * \f$ \partial N / \partial x \f$
- * @param[in] f_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
+ * @param[in] frequency_grid The frequency grid. \f$ \left[ f_0, \cdots, f_n \right] \f$
  * @param[in] band The absorption band
  * @param[in] jacobian_targets As WSV
  * @param[in] nlte A map of NLTE data
@@ -3674,41 +3811,68 @@ void line_loop(ComputeData &com,
   }
 }
 
-void compute(ComputeData &com, ComputeData &sparse_com,
+void compute(ComputeData &com,
+             ComputeData &sparse_com,
              const AbsorptionLines &band,
              const JacobianTargets &jacobian_targets,
-             const std::pair<Numeric, Numeric> &nlte, 
-             const VibrationalEnergyLevels& nlte_vib_energies,
+             const std::pair<Numeric, Numeric> &nlte,
+             const VibrationalEnergyLevels &nlte_vib_energies,
              const Vector &vmrs,
-             const ArrayOfSpeciesTag &self_tag, const Numeric &self_vmr,
-             const Numeric &isot_ratio, const Numeric &P, const Numeric &T,
-             const Numeric &H, const Numeric &sparse_lim,
+             const ArrayOfSpeciesTag &self_tag,
+             const Numeric &self_vmr,
+             const Numeric &isot_ratio,
+             const Numeric &P,
+             const Numeric &T,
+             const Numeric &H,
+             const Numeric &sparse_lim,
              const Zeeman::Polarization zeeman_polarization,
              const Options::LblSpeedup speedup_type,
              const bool robust) {
   [[maybe_unused]] const Index nj = jacobian_targets.target_count();
   const Index nl = band.NumLines();
-  const Index nv = com.f_grid.nelem();
+  const Index nv = com.frequency_grid.nelem();
 
   // Tests that must be true while calling this function
   ARTS_ASSERT(H >= 0, "Only for positive H.  You provided: ", H)
   ARTS_ASSERT(P > 0, "Only for abs positive P.  You provided: ", P)
   ARTS_ASSERT(T > 0, "Only for abs positive T.  You provided: ", T)
-  ARTS_ASSERT(band.OK(), "Band is poorly constructed.  You need to use "
-                         "a detailed debugger to find out why.")
-  ARTS_ASSERT(com.F.size() == nv, "F is wrong size.  Size is (", com.F.size(),
-              ") but should be: (", nv, ')')
+  ARTS_ASSERT(band.OK(),
+              "Band is poorly constructed.  You need to use "
+              "a detailed debugger to find out why.")
+  ARTS_ASSERT(com.F.size() == nv,
+              "F is wrong size.  Size is (",
+              com.F.size(),
+              ") but should be: (",
+              nv,
+              ')')
   ARTS_ASSERT(not com.do_nlte or com.N.size() == nv,
-              "N is wrong size.  Size is (", com.N.size(), ") but should be (",
-              nv, ')')
+              "N is wrong size.  Size is (",
+              com.N.size(),
+              ") but should be (",
+              nv,
+              ')')
   ARTS_ASSERT(nj == 0 or (com.dF.nrows() == nv and com.dF.ncols() == nj),
-              "dF is wrong size.  Size is (", com.dF.nrows(), " x ",
-              com.dF.ncols(), ") but should be: (", nv, " x ", nj, ")")
+              "dF is wrong size.  Size is (",
+              com.dF.nrows(),
+              " x ",
+              com.dF.ncols(),
+              ") but should be: (",
+              nv,
+              " x ",
+              nj,
+              ")")
   ARTS_ASSERT(nj == 0 or not com.do_nlte or
                   (com.dN.nrows() == nv and com.dN.ncols() == nj),
-              "dN is wrong size.  Size is (", com.dN.nrows(), " x ",
-              com.dN.ncols(), ") but should be: (", nv, " x ", nj, ")")
-  ARTS_ASSERT((sparse_lim > 0 and sparse_com.f_grid.size() > 1) or
+              "dN is wrong size.  Size is (",
+              com.dN.nrows(),
+              " x ",
+              com.dN.ncols(),
+              ") but should be: (",
+              nv,
+              " x ",
+              nj,
+              ")")
+  ARTS_ASSERT((sparse_lim > 0 and sparse_com.frequency_grid.size() > 1) or
                   (sparse_lim == 0),
               "Sparse limit is either 0, or the sparse frequency grid has to "
               "have upper and lower values")
@@ -3717,24 +3881,36 @@ void compute(ComputeData &com, ComputeData &sparse_com,
   if (nv == 0 or nl == 0 or
       (Absorption::relaxationtype_relmat(band.population) and
        band.DoLineMixing(P))) {
-    return; // No line-by-line computations required/wanted
+    return;  // No line-by-line computations required/wanted
   }
 
   const Numeric dnumdensdVMR = isot_ratio * number_density(P, T);
 
   if (robust and band.DoLineMixing(P) and band.AnyLinemixing()) {
-    ComputeData com_safe(com.f_grid, jacobian_targets, com.do_nlte);
-    ComputeData sparse_com_safe(sparse_com.f_grid, jacobian_targets,
-                                sparse_com.do_nlte);
+    ComputeData com_safe(com.frequency_grid, jacobian_targets, com.do_nlte);
+    ComputeData sparse_com_safe(
+        sparse_com.frequency_grid, jacobian_targets, sparse_com.do_nlte);
 
-    line_loop(com_safe, sparse_com_safe, band, jacobian_targets, nlte, nlte_vib_energies, vmrs,
-              self_tag, P, T, H, sparse_lim,
+    line_loop(com_safe,
+              sparse_com_safe,
+              band,
+              jacobian_targets,
+              nlte,
+              nlte_vib_energies,
+              vmrs,
+              self_tag,
+              P,
+              T,
+              H,
+              sparse_lim,
               single_partition_function(T, band.Isotopologue()),
               single_partition_function(band.T0, band.Isotopologue()),
               dsingle_partition_function_dT(T, band.Isotopologue()),
-              self_vmr * dnumdensdVMR, dnumdensdVMR,
+              self_vmr * dnumdensdVMR,
+              dnumdensdVMR,
               self_vmr * isot_ratio * dnumber_density_dt(P, T),
-              zeeman_polarization, speedup_type);
+              zeeman_polarization,
+              speedup_type);
 
     com_safe.enforce_positive_absorption();
     sparse_com_safe.enforce_positive_absorption();
@@ -3742,14 +3918,26 @@ void compute(ComputeData &com, ComputeData &sparse_com,
     com += com_safe;
     sparse_com += sparse_com_safe;
   } else {
-    line_loop(com, sparse_com, band, jacobian_targets, nlte, nlte_vib_energies, vmrs, self_tag,
-              P, T, H, sparse_lim,
+    line_loop(com,
+              sparse_com,
+              band,
+              jacobian_targets,
+              nlte,
+              nlte_vib_energies,
+              vmrs,
+              self_tag,
+              P,
+              T,
+              H,
+              sparse_lim,
               single_partition_function(T, band.Isotopologue()),
               single_partition_function(band.T0, band.Isotopologue()),
               dsingle_partition_function_dT(T, band.Isotopologue()),
-              self_vmr * dnumdensdVMR, dnumdensdVMR,
+              self_vmr * dnumdensdVMR,
+              dnumdensdVMR,
               self_vmr * isot_ratio * dnumber_density_dt(P, T),
-              zeeman_polarization, speedup_type);
+              zeeman_polarization,
+              speedup_type);
   }
 }
 
@@ -3757,106 +3945,111 @@ void compute(ComputeData &com, ComputeData &sparse_com,
 #undef InternalDerivativesG
 #undef InternalDerivativesY
 
-Index sparse_f_grid_red(const Vector &f_grid,
-                        const Numeric &sparse_df) noexcept {
-  if (f_grid.nelem())
-    return f_grid.nelem() /
-           Index(1 +
-                 std::abs(f_grid[f_grid.nelem() - 1] - f_grid[0]) / sparse_df);
+Index sparse_frequency_grid_red(const Vector &frequency_grid,
+                                const Numeric &sparse_df) noexcept {
+  if (frequency_grid.nelem())
+    return frequency_grid.nelem() /
+           Index(1 + std::abs(frequency_grid[frequency_grid.nelem() - 1] -
+                              frequency_grid[0]) /
+                         sparse_df);
   return 0;
 }
 
-Vector linear_sparse_f_grid(const Vector &f_grid,
-                            const Numeric &sparse_df) {
-  const Index n = sparse_f_grid_red(f_grid, sparse_df);
-  const Index nv = f_grid.nelem();
+Vector linear_sparse_frequency_grid(const Vector &frequency_grid,
+                                    const Numeric &sparse_df) {
+  const Index n = sparse_frequency_grid_red(frequency_grid, sparse_df);
+  const Index nv = frequency_grid.nelem();
 
   if (nv and n) {
-    std::vector<Numeric> sparse_f_grid;
+    std::vector<Numeric> sparse_frequency_grid;
     for (Index iv = 0; iv < nv - n; iv += n) {
-      sparse_f_grid.emplace_back(f_grid[iv]);
-      sparse_f_grid.emplace_back(f_grid[iv + n]);
+      sparse_frequency_grid.emplace_back(frequency_grid[iv]);
+      sparse_frequency_grid.emplace_back(frequency_grid[iv + n]);
     }
 
-    const Numeric f0 = sparse_f_grid.back();
-    if (f0 not_eq f_grid[nv - 1]) {
-      sparse_f_grid.emplace_back(f0);
-      sparse_f_grid.emplace_back(f_grid[nv - 1]);
+    const Numeric f0 = sparse_frequency_grid.back();
+    if (f0 not_eq frequency_grid[nv - 1]) {
+      sparse_frequency_grid.emplace_back(f0);
+      sparse_frequency_grid.emplace_back(frequency_grid[nv - 1]);
     }
 
-    return sparse_f_grid;
+    return sparse_frequency_grid;
   }
   return {};
 }
 
-bool good_linear_sparse_f_grid(const Vector &f_grid_dense,
-                               const Vector &f_grid_sparse) noexcept {
-  const Index nf_sparse = f_grid_sparse.nelem();
-  const Index nf_dense = f_grid_dense.nelem();
+bool good_linear_sparse_frequency_grid(
+    const Vector &frequency_grid_dense,
+    const Vector &frequency_grid_sparse) noexcept {
+  const Index nf_sparse = frequency_grid_sparse.nelem();
+  const Index nf_dense = frequency_grid_dense.nelem();
 
-  if (nf_sparse == 1)
-    return false;
+  if (nf_sparse == 1) return false;
 
   if (nf_sparse and nf_dense)
-    return f_grid_dense[0] >= f_grid_sparse[0] and
-           f_grid_dense[nf_dense - 1] <= f_grid_sparse[nf_sparse - 1];
+    return frequency_grid_dense[0] >= frequency_grid_sparse[0] and
+           frequency_grid_dense[nf_dense - 1] <=
+               frequency_grid_sparse[nf_sparse - 1];
 
   return true;
 }
 
-Vector triple_sparse_f_grid(const Vector &f_grid,
-                            const Numeric &sparse_df) noexcept {
-  const Index n = sparse_f_grid_red(f_grid, sparse_df);
-  const Index nv = f_grid.nelem();
+Vector triple_sparse_frequency_grid(const Vector &frequency_grid,
+                                    const Numeric &sparse_df) noexcept {
+  const Index n = sparse_frequency_grid_red(frequency_grid, sparse_df);
+  const Index nv = frequency_grid.nelem();
 
   if (nv and n > 2) {
-    std::vector<Numeric> sparse_f_grid;
+    std::vector<Numeric> sparse_frequency_grid;
     for (Index iv = 0; iv < nv - n; iv += n) {
-      sparse_f_grid.emplace_back(f_grid[iv]);
-      sparse_f_grid.emplace_back(f_grid[iv] +
-                                 0.5 * (f_grid[iv + n] - f_grid[iv]));
-      sparse_f_grid.emplace_back(f_grid[iv + n]);
+      sparse_frequency_grid.emplace_back(frequency_grid[iv]);
+      sparse_frequency_grid.emplace_back(
+          frequency_grid[iv] +
+          0.5 * (frequency_grid[iv + n] - frequency_grid[iv]));
+      sparse_frequency_grid.emplace_back(frequency_grid[iv + n]);
     }
 
-    const Numeric f0 = sparse_f_grid.back();
-    if (f0 not_eq f_grid[nv - 1]) {
-      sparse_f_grid.emplace_back(f0);
-      sparse_f_grid.emplace_back(f0 + 0.5 * (f_grid[nv - 1] - f0));
-      sparse_f_grid.emplace_back(f_grid[nv - 1]);
+    const Numeric f0 = sparse_frequency_grid.back();
+    if (f0 not_eq frequency_grid[nv - 1]) {
+      sparse_frequency_grid.emplace_back(f0);
+      sparse_frequency_grid.emplace_back(f0 +
+                                         0.5 * (frequency_grid[nv - 1] - f0));
+      sparse_frequency_grid.emplace_back(frequency_grid[nv - 1]);
     }
 
-    return sparse_f_grid;
+    return sparse_frequency_grid;
   }
   return {};
 }
 
 void ComputeData::interp_add_even(const ComputeData &sparse) {
-  const Index nv = f_grid.nelem();
-  const Index sparse_nv = sparse.f_grid.nelem();
+  const Index nv = frequency_grid.nelem();
+  const Index sparse_nv = sparse.frequency_grid.nelem();
   const Index nj = dF.ncols();
 
   ARTS_ASSERT(do_nlte == sparse.do_nlte, "Must have the same NLTE status")
   ARTS_ASSERT(sparse_nv > 1, "Must have at least two sparse grid-points")
-  ARTS_ASSERT(nv == 0 or (f_grid[0] == sparse.f_grid[0] and
-                          f_grid[nv - 1] >= sparse.f_grid[sparse_nv - 1]),
+  ARTS_ASSERT(nv == 0 or (frequency_grid[0] == sparse.frequency_grid[0] and
+                          frequency_grid[nv - 1] >=
+                              sparse.frequency_grid[sparse_nv - 1]),
               "If there are any dense frequency points, then the sparse "
               "frequency points must fully cover them")
   ARTS_ASSERT(not(sparse_nv % 2), "Must be multiple of to")
 
   Index sparse_iv = 0;
-  Numeric f1 = sparse.f_grid[sparse_iv + 1];
-  Numeric f0 = sparse.f_grid[sparse_iv];
+  Numeric f1 = sparse.frequency_grid[sparse_iv + 1];
+  Numeric f0 = sparse.frequency_grid[sparse_iv];
   Numeric inv = 1.0 / (f1 - f0);
   for (Index iv = 0; iv < nv; iv++) {
-    if (sparse_iv < (sparse_nv - 2) and f1 == f_grid[iv]) {
+    if (sparse_iv < (sparse_nv - 2) and f1 == frequency_grid[iv]) {
       sparse_iv += 2;
-      f1 = sparse.f_grid[sparse_iv + 1];
-      f0 = sparse.f_grid[sparse_iv];
+      f1 = sparse.frequency_grid[sparse_iv + 1];
+      f0 = sparse.frequency_grid[sparse_iv];
       inv = 1.0 / (f1 - f0);
     }
 
-    const Numeric xm0 = f_grid[iv] - f0;
-    const Numeric xm1 = f_grid[iv] - f1;
+    const Numeric xm0 = frequency_grid[iv] - f0;
+    const Numeric xm1 = frequency_grid[iv] - f1;
     const Numeric l0 = -xm1 * inv;
     const Numeric l1 = xm0 * inv;
 
@@ -3875,49 +4068,57 @@ void ComputeData::interp_add_even(const ComputeData &sparse) {
   }
 }
 
-void ComputeData::interp_add_triplequad(const ComputeData &sparse)
-   {
-  const Index nv = f_grid.nelem();
-  const Index sparse_nv = sparse.f_grid.nelem();
+void ComputeData::interp_add_triplequad(const ComputeData &sparse) {
+  const Index nv = frequency_grid.nelem();
+  const Index sparse_nv = sparse.frequency_grid.nelem();
   const Index nj = dF.ncols();
 
   ARTS_ASSERT(do_nlte == sparse.do_nlte, "Must have the same NLTE status")
   ARTS_ASSERT(sparse_nv > 2, "Must have at least three sparse grid-points")
-  ARTS_ASSERT(nv == 0 or (f_grid[0] == sparse.f_grid[0] and
-                          f_grid[nv - 1] >= sparse.f_grid[sparse_nv - 1]),
+  ARTS_ASSERT(nv == 0 or (frequency_grid[0] == sparse.frequency_grid[0] and
+                          frequency_grid[nv - 1] >=
+                              sparse.frequency_grid[sparse_nv - 1]),
               "If there are any dense frequency points, then the sparse "
               "frequency points must fully cover them")
   ARTS_ASSERT(not(sparse_nv % 3), "Must be multiple of three")
 
   Index sparse_iv = 0;
-  Numeric f2 = sparse.f_grid[sparse_iv + 2];
-  Numeric f1 = sparse.f_grid[sparse_iv + 1];
-  Numeric f0 = sparse.f_grid[sparse_iv];
+  Numeric f2 = sparse.frequency_grid[sparse_iv + 2];
+  Numeric f1 = sparse.frequency_grid[sparse_iv + 1];
+  Numeric f0 = sparse.frequency_grid[sparse_iv];
   Numeric inv = 1.0 / Math::pow2(f1 - f0);
   for (Index iv = 0; iv < nv; iv++) {
-    if (sparse_iv < (sparse_nv - 3) and f2 == f_grid[iv]) {
+    if (sparse_iv < (sparse_nv - 3) and f2 == frequency_grid[iv]) {
       sparse_iv += 3;
-      f2 = sparse.f_grid[sparse_iv + 2];
-      f1 = sparse.f_grid[sparse_iv + 1];
-      f0 = sparse.f_grid[sparse_iv];
+      f2 = sparse.frequency_grid[sparse_iv + 2];
+      f1 = sparse.frequency_grid[sparse_iv + 1];
+      f0 = sparse.frequency_grid[sparse_iv];
       inv = 1.0 / Math::pow2(f1 - f0);
     }
-    ARTS_ASSERT(
-        f_grid[iv] >= f0 and (f_grid[iv] < f2 or (f2 == f_grid[iv] and
-                                                  sparse_iv == sparse_nv - 3)),
-        "Out of range frequency grid.  Must be caught earlier.\n"
-        "The sparse range is from: ",
-        f0, " to ", f2, " with ", f1,
-        " as the half-way grid point.\n"
-        "The dense frequency is ",
-        f_grid[iv], " and the indices are: sparse_iv=", sparse_iv, "; iv=", iv)
+    ARTS_ASSERT(frequency_grid[iv] >= f0 and
+                    (frequency_grid[iv] < f2 or
+                     (f2 == frequency_grid[iv] and sparse_iv == sparse_nv - 3)),
+                "Out of range frequency grid.  Must be caught earlier.\n"
+                "The sparse range is from: ",
+                f0,
+                " to ",
+                f2,
+                " with ",
+                f1,
+                " as the half-way grid point.\n"
+                "The dense frequency is ",
+                frequency_grid[iv],
+                " and the indices are: sparse_iv=",
+                sparse_iv,
+                "; iv=",
+                iv)
 
-    const Numeric xm0 = f_grid[iv] - f0;
-    const Numeric xm1 = f_grid[iv] - f1;
-    const Numeric xm2 = f_grid[iv] - f2;
-    const Numeric l0 = 0.5 * xm1 * xm2 * inv; // --
-    const Numeric l1 = -xm0 * xm2 * inv;      // +-
-    const Numeric l2 = 0.5 * xm0 * xm1 * inv; // ++
+    const Numeric xm0 = frequency_grid[iv] - f0;
+    const Numeric xm1 = frequency_grid[iv] - f1;
+    const Numeric xm2 = frequency_grid[iv] - f2;
+    const Numeric l0 = 0.5 * xm1 * xm2 * inv;  // --
+    const Numeric l1 = -xm0 * xm2 * inv;       // +-
+    const Numeric l2 = 0.5 * xm0 * xm1 * inv;  // ++
 
     F[iv] += l0 * sparse.F[sparse_iv] + l1 * sparse.F[sparse_iv + 1] +
              l2 * sparse.F[sparse_iv + 2];
@@ -3937,4 +4138,4 @@ void ComputeData::interp_add_triplequad(const ComputeData &sparse)
     }
   }
 }
-} // namespace LineShape
+}  // namespace LineShape

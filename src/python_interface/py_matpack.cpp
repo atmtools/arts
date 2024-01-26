@@ -151,9 +151,17 @@ void py_matpack(py::module_& m) try {
       .PythonInterfaceFileIO(Vector2)
       .PythonInterfaceWorkspaceDocumentation(Vector2);
 
+  artsarray<ArrayOfVector2>(m, "ArrayOfVector2")
+      .PythonInterfaceFileIO(ArrayOfVector2)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfVector2);
+
   register_matpack_constant_data<Numeric, 3>(m, "Vector3")
       .PythonInterfaceFileIO(Vector3)
       .PythonInterfaceWorkspaceDocumentation(Vector3);
+
+  artsarray<ArrayOfVector3>(m, "ArrayOfVector3")
+      .PythonInterfaceFileIO(ArrayOfVector3)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfVector3);
 
   artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
@@ -765,6 +773,61 @@ via x.value
       })
       .doc() = R"--(Holds complex tensor3 data.
 )--";
+
+  artsclass<AscendingGrid>(m, "AscendingGrid", py::buffer_protocol())
+      .def(py::init<>(), "Empty grid")
+      .def(py::init<Vector>(), py::arg("x"), "From :class:`Vector`")
+      .def(py::init([](const numpy_array& x) -> AscendingGrid {
+             return AscendingGrid{*copy<1, Numeric>(x)};
+           }),
+           py::arg("vec").none(false),
+           py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+             return py::cast<AscendingGrid>(x.cast<numpy_array>());
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
+      .PythonInterfaceCopyValue(AscendingGrid)
+      .PythonInterfaceWorkspaceVariableConversion(AscendingGrid)
+      .PythonInterfaceBasicRepresentation(AscendingGrid)
+      .PythonInterfaceFileIO(AscendingGrid)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](AscendingGrid& x) -> py::buffer_info {
+        return py::buffer_info(x.data_handle(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {x.size()},
+                               {sizeof(Numeric)},
+                               true);
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](AscendingGrid& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](AscendingGrid& x, Vector& y) { x = y; },
+          py::doc(":class:`~numpy.ndarray` Data array"))
+      .def(py::pickle(
+          [](const py::object& self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple& t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<AscendingGrid>()(t[0]).cast<AscendingGrid>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(AscendingGrid);
+
+  py::implicitly_convertible<numpy_array, AscendingGrid>();
+  py::implicitly_convertible<py::list, AscendingGrid>();
+  py::implicitly_convertible<Vector, AscendingGrid>();
+
+  artsarray<ArrayOfAscendingGrid>(m, "ArrayOfAscendingGrid")
+      .PythonInterfaceFileIO(ArrayOfAscendingGrid)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAscendingGrid);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));

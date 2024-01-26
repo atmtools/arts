@@ -25,6 +25,7 @@
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"
+#include "lbl_data.h"
 #include "lineshape.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
@@ -33,6 +34,7 @@
 #include "optproperties.h"
 #include "path_point.h"
 #include "rte.h"
+#include "species.h"
 #include "species_tags.h"
 
 #ifdef ENABLE_NETCDF
@@ -48,77 +50,7 @@ inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 inline constexpr Numeric VACUUM_PERMITTIVITY = Constant::vacuum_permittivity;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesCreateFromLines(  // WS Output:
-    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    // WS Input:
-    const ArrayOfAbsorptionLines& abs_lines,
-    const ArrayOfArrayOfSpeciesTag& abs_species) {
-  // Size is set but inner size will now change from the original definition of species tags...
-  abs_lines_per_species.resize(abs_species.size());
-
-  // The inner arrays need to be emptied, because they may contain lines
-  // from a previous calculation
-  for (auto& lines : abs_lines_per_species) lines.resize(0);
-
-#pragma omp parallel for schedule(dynamic) if (!arts_omp_in_parallel())
-  for (Size ilines = 0; ilines < abs_lines.size(); ilines++) {
-    AbsorptionLines lines = abs_lines[ilines];
-
-    // Skip empty lines
-    if (lines.NumLines() == 0) continue;
-
-    // Loop all the tags
-    for (Size i = 0; i < abs_species.size() and lines.NumLines(); i++) {
-      for (auto& this_tag : abs_species[i]) {
-        // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
-          continue;
-
-        // If there is a frequency range, we have to check so that only selected lines are included
-        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
-          const Numeric low = (this_tag.lower_freq >= 0)
-                                  ? this_tag.lower_freq
-                                  : std::numeric_limits<Numeric>::lowest();
-          const Numeric upp = (this_tag.upper_freq >= 0)
-                                  ? this_tag.upper_freq
-                                  : std::numeric_limits<Numeric>::max();
-
-          // Fill up a copy of the line record to match with the wished frequency criteria
-          AbsorptionLines these_lines = lines;
-          these_lines.lines.resize(0);
-          for (Index k = lines.NumLines() - 1; k >= 0; k--)
-            if (low <= lines.lines[k].F0 and upp >= lines.lines[k].F0)
-              these_lines.AppendSingleLine(lines.PopLine(k));
-
-          // Append these lines after sorting them if there are any of them
-          if (these_lines.NumLines()) {
-            these_lines.ReverseLines();
-#pragma omp critical
-            abs_lines_per_species[i].push_back(these_lines);
-          }
-
-          // If this means we have deleted all lines, then we leave
-          if (lines.NumLines() == 0) goto leave_inner_loop;
-        } else {
-#pragma omp critical
-          abs_lines_per_species[i].push_back(lines);
-          goto leave_inner_loop;
-        }
-      }
-    }
-  leave_inner_loop: {}
-  }
-
-  abs_lines_per_species.shrink_to_fit();
-  for (auto& spec_band : abs_lines_per_species)
-    std::sort(spec_band.begin(), spec_band.end(), [](auto& a, auto& b) {
-      return a.lines.size() and b.lines.size() and
-             a.lines.front().F0 < b.lines.front().F0;
-    });
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesDefineAllInScenario(  // WS Output:
+void absorption_speciesDefineAllInScenario(  // WS Output:
     ArrayOfArrayOfSpeciesTag& tgs,
     // Control Parameters:
     const String& basename) {
@@ -150,8 +82,8 @@ void abs_speciesDefineAllInScenario(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesDefineAll(  // WS Output:
-    ArrayOfArrayOfSpeciesTag& abs_species) {
+void absorption_speciesDefineAll(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& absorption_species) {
   // Species lookup data:
 
   // We want to make lists of all species
@@ -163,7 +95,7 @@ void abs_speciesDefineAll(  // WS Output:
   }
 
   // Set the values
-  abs_speciesSet(abs_species, specs);
+  absorption_speciesSet(absorption_species, specs);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -189,48 +121,49 @@ void AbsInputFromAtmFields(  // WS Output:
 //======================================================================
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyInit(  //WS Output
-    PropmatVector& propmat_clearsky,
-    StokvecVector& nlte_source,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    StokvecMatrix& dnlte_source_dx,
+void propagation_matrixInit(  //WS Output
+    PropmatVector& propagation_matrix,
+    StokvecVector& source_vector_nonlte,
+    PropmatMatrix& propagation_matrix_jacobian,
+    StokvecMatrix& source_vector_nonlte_jacobian,
     //WS Input
     const JacobianTargets& jacobian_targets,
-    const Vector& f_grid) {
-  const Index nf = f_grid.nelem();
+    const AscendingGrid& frequency_grid) {
+  const Index nf = frequency_grid.nelem();
   const Index nq = jacobian_targets.target_count();
 
   ARTS_USER_ERROR_IF(not nf, "No frequencies");
 
-  // Set size of propmat_clearsky and reset it's values
-  propmat_clearsky.resize(nf);
-  propmat_clearsky = 0.0;
+  // Set size of propagation_matrix and reset it's values
+  propagation_matrix.resize(nf);
+  propagation_matrix = 0.0;
 
-  // Set size of nlte_source and reset it's values
-  nlte_source.resize(nf);
-  nlte_source = 0.0;
+  // Set size of source_vector_nonlte and reset it's values
+  source_vector_nonlte.resize(nf);
+  source_vector_nonlte = 0.0;
 
-  // Set size of dpropmat_clearsky_dx and reset it's values
-  dpropmat_clearsky_dx.resize(nq, nf);
-  dpropmat_clearsky_dx = 0.0;
+  // Set size of propagation_matrix_jacobian and reset it's values
+  propagation_matrix_jacobian.resize(nq, nf);
+  propagation_matrix_jacobian = 0.0;
 
-  // Set size of dnlte_source_dx and reset it's values
-  dnlte_source_dx.resize(nq, nf);
-  dnlte_source_dx = 0.0;
+  // Set size of source_vector_nonlte_jacobian and reset it's values
+  source_vector_nonlte_jacobian.resize(nq, nf);
+  source_vector_nonlte_jacobian = 0.0;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
-                                PropmatMatrix& dpropmat_clearsky_dx,
-                                const Vector& f_grid,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const ArrayOfSpeciesTag& select_abs_species,
-                                const JacobianTargets& jacobian_targets,
-                                const AtmPoint& atm_point,
-                                const PropagationPathPoint& path_point) {
+void propagation_matrixAddFaraday(
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
+    const AscendingGrid& frequency_grid,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const SpeciesEnum& select_absorption_species,
+    const JacobianTargets& jacobian_targets,
+    const AtmPoint& atm_point,
+    const PropagationPathPoint& path_point) {
   Index ife = -1;
-  for (Size sp = 0; sp < abs_species.size() && ife < 0; sp++) {
-    if (abs_species[sp].FreeElectrons()) {
+  for (Size sp = 0; sp < absorption_species.size() && ife < 0; sp++) {
+    if (absorption_species[sp].FreeElectrons()) {
       ife = sp;
     }
   }
@@ -238,11 +171,12 @@ void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
   const Vector rtp_los{path::mirror(path_point.los)};
 
   ARTS_USER_ERROR_IF(ife < 0,
-                     "Free electrons not found in *abs_species* and "
+                     "Free electrons not found in *absorption_species* and "
                      "Faraday rotation can not be calculated.");
 
   // Allow early exit for lookup table calculations
-  if (select_abs_species.size() and select_abs_species not_eq abs_species[ife])
+  if (select_absorption_species != SpeciesEnum::Bath and
+      select_absorption_species != absorption_species[ife].Species())
     return;
 
   // All the physical constants joined into one static constant:
@@ -259,10 +193,10 @@ void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
       Atm::Key::wind_u,
       Atm::Key::wind_v,
       Atm::Key::wind_w,
-      abs_species[ife].Species());
+      absorption_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
-  const Numeric ne = atm_point[abs_species[ife].Species()];
+  const Numeric ne = atm_point[absorption_species[ife].Species()];
 
   if (ne != 0 && not atm_point.zero_mag()) {
     // Include remaining terms, beside /f^2
@@ -296,49 +230,49 @@ void propmat_clearskyAddFaraday(PropmatVector& propmat_clearsky,
                dmag;
     }
 
-    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-      const Numeric f2 = f_grid[iv] * f_grid[iv];
+    for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
+      const Numeric f2 = frequency_grid[iv] * frequency_grid[iv];
       const Numeric r = ne * c1 / f2;
-      propmat_clearsky[iv].U() += r;
+      propagation_matrix[iv].U() += r;
 
       for (Size i = 0; i < 3; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
+          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
               ne * dc1[i] / f2;
         }
       }
 
       for (Size i = 3; i < 6; i++) {
         if (jacs[i].first) {
-          dpropmat_clearsky_dx(jacs[i].second->target_pos, iv).U() +=
-              -2.0 * ne * r / f_grid[iv];
+          propagation_matrix_jacobian(jacs[i].second->target_pos, iv).U() +=
+              -2.0 * ne * r / frequency_grid[iv];
         }
       }
 
       if (jacs[6].first) {
-        dpropmat_clearsky_dx(jacs[6].second->target_pos, iv).U() += r;
+        propagation_matrix_jacobian(jacs[6].second->target_pos, iv).U() += r;
       }
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddParticles(
+void propagation_matrixAddParticles(
     // WS Output:
-    PropmatVector& propmat_clearsky,
-    PropmatMatrix& dpropmat_clearsky_dx,
+    PropmatVector& propagation_matrix,
+    PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
-    const Vector& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
+    const Vector& frequency_grid,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const ArrayOfSpeciesTag& select_absorption_species,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& path_point,
     const AtmPoint& atm_point,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
     const Index& use_abs_as_ext) {
-  ARTS_USER_ERROR_IF(select_abs_species.size(), R"--(
-  We do not yet support select_abs_species for lookup table calculations
+  ARTS_USER_ERROR_IF(select_absorption_species.size(), R"--(
+  We do not yet support select_absorption_species for lookup table calculations
   )--")
 
   // (i)yCalc only checks scat_data_checked if cloudbox is on. It is off here,
@@ -354,20 +288,20 @@ void propmat_clearskyAddParticles(
 
   const Index ns = TotalNumberOfElements(scat_data);
   Index np = 0;
-  for (Size sp = 0; sp < abs_species.size(); sp++) {
-    if (abs_species[sp].Particles()) {
+  for (Size sp = 0; sp < absorption_species.size(); sp++) {
+    if (absorption_species[sp].Particles()) {
       np++;
     }
   }
 
   ARTS_USER_ERROR_IF(
       np == 0,
-      "For applying propmat_clearskyAddParticles, *abs_species* needs to"
+      "For applying propagation_matrixAddParticles, *absorption_species* needs to"
       "contain species 'particles', but it does not.\n")
 
   ARTS_USER_ERROR_IF(
       ns != np,
-      "Number of 'particles' entries in abs_species and of elements in\n"
+      "Number of 'particles' entries in absorption_species and of elements in\n"
       "*scat_data* needs to be identical. But you have ",
       np,
       " 'particles' entries\n"
@@ -379,7 +313,7 @@ void propmat_clearskyAddParticles(
       jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
   const Numeric dT = jac_temperature.first ? jac_temperature.second->d : 0.0;
 
-  const Index na = abs_species.size();
+  const Index na = absorption_species.size();
   const Vector rtp_los_back{path_point.los};
 
   // creating temporary output containers
@@ -415,23 +349,23 @@ void propmat_clearskyAddParticles(
   Tensor3 tmp(nf, 4, 4);
 
   // Internal computations necessary since it relies on zero start
-  PropmatVector internal_propmat(propmat_clearsky.nelem());
+  PropmatVector internal_propmat(propagation_matrix.nelem());
 
   // loop over the scat_data and link them with correct vmr_field entry according
-  // to the position of the particle type entries in abs_species.
+  // to the position of the particle type entries in absorption_species.
   Index sp = 0;
   Index i_se_flat = 0;
   for (Size i_ss = 0; i_ss < scat_data.size(); i_ss++) {
     for (Size i_se = 0; i_se < scat_data[i_ss].size(); i_se++) {
-      // forward to next particle entry in abs_species
-      while (sp < na && not abs_species[sp].Particles()) sp++;
+      // forward to next particle entry in absorption_species
+      while (sp < na && not absorption_species[sp].Particles()) sp++;
       internal_propmat = 0.0;
 
-      // running beyond number of abs_species entries when looking for next
+      // running beyond number of absorption_species entries when looking for next
       // particle entry. shouldn't happen, though.
       ARTS_ASSERT(sp < na);
       ARTS_USER_ERROR_IF(
-          atm_point[abs_species[sp].Species()] < 0.,
+          atm_point[absorption_species[sp].Species()] < 0.,
           "Negative absorbing particle 'vmr' (aka number density)"
           " encountered:\n"
           "scat species #",
@@ -442,7 +376,7 @@ void propmat_clearskyAddParticles(
           sp,
           ")\n")
 
-      if (atm_point[abs_species[sp].Species()] > 0.) {
+      if (atm_point[absorption_species[sp].Species()] > 0.) {
         ARTS_USER_ERROR_IF(t_ok(i_se_flat, 0) < 0.,
                            "Temperature interpolation error:\n"
                            "scat species #",
@@ -451,22 +385,22 @@ void propmat_clearskyAddParticles(
                            i_se,
                            "\n")
         if (use_abs_as_ext) {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+          for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv].A() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 0);
             internal_propmat[iv].B() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 1);
             internal_propmat[iv].C() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 2);
             internal_propmat[iv].D() += abs_vec_Nse[i_ss][i_se](iv, 0, 0, 3);
           }
         } else {
-          for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+          for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
             internal_propmat[iv] = rtepack::to_propmat(
                 ext_mat_Nse[i_ss][i_se](iv, 0, 0, joker, joker));
           }
         }
 
-        const Numeric vmr = atm_point[abs_species[sp].Species()];
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-          propmat_clearsky[iv] += vmr * internal_propmat[iv];
+        const Numeric vmr = atm_point[absorption_species[sp].Species()];
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
+          propagation_matrix[iv] += vmr * internal_propmat[iv];
         }
       }
 
@@ -490,29 +424,29 @@ void propmat_clearskyAddParticles(
           tmp -= ext_mat_Nse[i_ss][i_se](joker, 0, 0, joker, joker);
         }
 
-        tmp *= atm_point[abs_species[sp].Species()];
+        tmp *= atm_point[absorption_species[sp].Species()];
         tmp /= dT;
 
-        for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++) {
           if (use_abs_as_ext) {
-            dpropmat_clearsky_dx(iq, iv).A() += tmp(iv, 0, 0);
-            dpropmat_clearsky_dx(iq, iv).B() += tmp(iv, 1, 0);
-            dpropmat_clearsky_dx(iq, iv).C() += tmp(iv, 2, 0);
-            dpropmat_clearsky_dx(iq, iv).D() += tmp(iv, 3, 0);
+            propagation_matrix_jacobian(iq, iv).A() += tmp(iv, 0, 0);
+            propagation_matrix_jacobian(iq, iv).B() += tmp(iv, 1, 0);
+            propagation_matrix_jacobian(iq, iv).C() += tmp(iv, 2, 0);
+            propagation_matrix_jacobian(iq, iv).D() += tmp(iv, 3, 0);
           } else {
-            dpropmat_clearsky_dx(iq, iv) +=
+            propagation_matrix_jacobian(iq, iv) +=
                 rtepack::to_propmat(tmp(iv, joker, joker));
           }
         }
       }
 
       if (const auto jac_species = jacobian_targets.find<Jacobian::AtmTarget>(
-              abs_species[sp].Species());
+              absorption_species[sp].Species());
           jac_species.first) {
         const auto iq = jac_species.second->target_pos;
 
-        for (Index iv = 0; iv < f_grid.nelem(); iv++)
-          dpropmat_clearsky_dx(iq, iv) += internal_propmat[iv];
+        for (Index iv = 0; iv < frequency_grid.nelem(); iv++)
+          propagation_matrix_jacobian(iq, iv) += internal_propmat[iv];
       }
 
       sp++;
@@ -521,271 +455,16 @@ void propmat_clearskyAddParticles(
   }
 }
 
-void sparse_f_gridFromFrequencyGrid(Vector& sparse_f_grid,
-                                    const Vector& f_grid,
-                                    const Numeric& sparse_df,
-                                    const String& speedup_option) {
-  // Return empty for nothing
-  if (not f_grid.nelem()) {
-    sparse_f_grid.resize(0);
-    return;
-  };
-
-  switch (Options::toLblSpeedupOrThrow(speedup_option)) {
-    case Options::LblSpeedup::LinearIndependent:
-      sparse_f_grid = LineShape::linear_sparse_f_grid(f_grid, sparse_df);
-      ARTS_ASSERT(LineShape::good_linear_sparse_f_grid(f_grid, sparse_f_grid))
-      break;
-    case Options::LblSpeedup::QuadraticIndependent:
-      sparse_f_grid = LineShape::triple_sparse_f_grid(f_grid, sparse_df);
-      break;
-    case Options::LblSpeedup::None:
-      sparse_f_grid.resize(0);
-      break;
-    case Options::LblSpeedup::FINAL: { /* Leave last */
-    }
-  }
-}
-
-Vector create_sparse_f_grid_internal(const Vector& f_grid,
-                                     const Numeric& sparse_df,
-                                     const String& speedup_option) {
-  Vector sparse_f_grid;
-  sparse_f_gridFromFrequencyGrid(
-      sparse_f_grid, f_grid, sparse_df, speedup_option);
-  return sparse_f_grid;
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propagation_matrixZero(PropmatVector& propagation_matrix,
+                            const AscendingGrid& frequency_grid) {
+  propagation_matrix = PropmatVector(frequency_grid.nelem());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddLines(  // Workspace reference:
-    // WS Output:
-    PropmatVector& propmat_clearsky,
-    StokvecVector& nlte_source,
-    PropmatMatrix& dpropmat_clearsky_dx,
-    StokvecMatrix& dnlte_source_dx,
-    // WS Input:
-    const Vector& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
-    const JacobianTargets& jacobian_targets,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const AtmPoint& atm_point,
-    const Index& nlte_do,
-    // WS User Generic inputs
-    const VibrationalEnergyLevels& nlte_vib_energies,
-    const Numeric& sparse_df,
-    const Numeric& sparse_lim,
-    const String& speedup_option,
-    const Index& robust) {
-  // Size of problem
-  const Index nf = f_grid.nelem();
-  const Index nq = jacobian_targets.target_count();
-  const Index ns = abs_species.size();
-
-  // Possible things that can go wrong in this code (excluding line parameters)
-  check_abs_species(abs_species);
-  ARTS_USER_ERROR_IF(propmat_clearsky.nelem() not_eq nf,
-                     "*f_grid* must match *propmat_clearsky*")
-  ARTS_USER_ERROR_IF(nlte_source.nelem() not_eq nf,
-                     "*f_grid* must match *nlte_source*")
-  ARTS_USER_ERROR_IF(
-      nq not_eq dpropmat_clearsky_dx.nrows(),
-      "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*")
-  ARTS_USER_ERROR_IF(
-      nf not_eq dpropmat_clearsky_dx.ncols(),
-      "*dpropmat_clearsky_dx* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(
-      nlte_do and nq not_eq dnlte_source_dx.nrows(),
-      "*dnlte_source_dx* must match derived form of *jacobian_quantities* when non-LTE is on")
-  ARTS_USER_ERROR_IF(
-      nlte_do and nf not_eq dnlte_source_dx.ncols(),
-      "*dnlte_source_dx* must have frequency dim same as *f_grid* when non-LTE is on")
-  ARTS_USER_ERROR_IF(any_negative(f_grid),
-                     "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(
-      (any_cutoff(abs_lines_per_species) or speedup_option not_eq "None") and
-          not is_increasing(f_grid),
-      "Must be sorted and increasing if any cutoff or speedup is used.")
-  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
-  ARTS_USER_ERROR_IF(
-      sparse_lim > 0 and sparse_df > sparse_lim,
-      "If sparse grids are to be used, the limit must be larger than the grid-spacing.\n"
-      "The limit is ",
-      sparse_lim,
-      " Hz and the grid_spacing is ",
-      sparse_df,
-      " Hz")
-
-  if (not nf) return;
-
-  // Deal with sparse computational grid
-  const Vector f_grid_sparse =
-      create_sparse_f_grid_internal(f_grid, sparse_df, speedup_option);
-  const Options::LblSpeedup speedup_type =
-      f_grid_sparse.nelem() ? Options::toLblSpeedupOrThrow(speedup_option)
-                            : Options::LblSpeedup::None;
-  ARTS_USER_ERROR_IF(
-      sparse_lim <= 0 and speedup_type not_eq Options::LblSpeedup::None,
-      "Must have a sparse limit if you set speedup_option")
-
-  // Calculations data
-  LineShape::ComputeData com(f_grid, jacobian_targets, nlte_do);
-  LineShape::ComputeData sparse_com(f_grid_sparse, jacobian_targets, nlte_do);
-
-  if (arts_omp_in_parallel()) {
-    for (Index ispecies = 0; ispecies < ns; ispecies++) {
-      if (select_abs_species.size() and
-          select_abs_species not_eq abs_species[ispecies])
-        continue;
-
-      // Skip it if there are no species or there is Zeeman requested
-      if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman() or
-          not abs_lines_per_species[ispecies].size())
-        continue;
-      for (auto& band : abs_lines_per_species[ispecies]) {
-        LineShape::compute(com,
-                           sparse_com,
-                           band,
-                           jacobian_targets,
-                           atm_point.is_lte()
-                               ? std::pair{0., 0.}
-                               : atm_point.levels(band.quantumidentity),
-                           nlte_vib_energies,
-                           band.BroadeningSpeciesVMR(atm_point),
-                           abs_species[ispecies],
-                           atm_point[band.Species()],
-                           atm_point[band.Isotopologue()],
-                           atm_point.pressure,
-                           atm_point.temperature,
-                           0,
-                           sparse_lim,
-                           Zeeman::Polarization::None,
-                           speedup_type,
-                           robust not_eq 0);
-      }
-    }
-  } else {  // In parallel
-    const Index nbands = [](auto& lines) {
-      Index n = 0;
-      for (auto& abs_lines : lines) n += abs_lines.size();
-      return n;
-    }(abs_lines_per_species);
-
-    std::vector<LineShape::ComputeData> vcom(
-        arts_omp_get_max_threads(),
-        LineShape::ComputeData{
-            f_grid, jacobian_targets, static_cast<bool>(nlte_do)});
-    std::vector<LineShape::ComputeData> vsparse_com(
-        arts_omp_get_max_threads(),
-        LineShape::ComputeData{
-            f_grid_sparse, jacobian_targets, static_cast<bool>(nlte_do)});
-
-    std::atomic<bool> error{false};
-    std::string error_message;
-
-#pragma omp parallel for
-    for (Index i = 0; i < nbands; i++) {
-      if (error.load()) continue;
-
-      try {
-        const auto [ispecies, iband] =
-            flat_index(i, abs_species, abs_lines_per_species);
-
-        if (select_abs_species.size() and
-            select_abs_species not_eq abs_species[ispecies])
-          continue;
-
-        // Skip it if there are no species or there is Zeeman requested
-        if (not abs_species[ispecies].size() or
-            abs_species[ispecies].Zeeman() or
-            not abs_lines_per_species[ispecies].size())
-          continue;
-
-        auto& band = abs_lines_per_species[ispecies][iband];
-        LineShape::compute(vcom[arts_omp_get_thread_num()],
-                           vsparse_com[arts_omp_get_thread_num()],
-                           band,
-                           jacobian_targets,
-                           atm_point.is_lte()
-                               ? std::pair{0., 0.}
-                               : atm_point.levels(band.quantumidentity),
-                           nlte_vib_energies,
-                           band.BroadeningSpeciesVMR(atm_point),
-                           abs_species[ispecies],
-                           atm_point[band.Species()],
-                           atm_point[band.Isotopologue()],
-                           atm_point.pressure,
-                           atm_point.temperature,
-                           0,
-                           sparse_lim,
-                           Zeeman::Polarization::None,
-                           speedup_type,
-                           robust not_eq 0);
-      } catch (std::exception& e) {
-        error.store(true);
-#pragma omp critical
-        error_message = e.what();
-      }
-    }
-
-    ARTS_USER_ERROR_IF(error, error_message)
-
-    for (auto& pcom : vcom) com += pcom;
-    for (auto& pcom : vsparse_com) sparse_com += pcom;
-  }
-
-  switch (speedup_type) {
-    case Options::LblSpeedup::LinearIndependent:
-      com.interp_add_even(sparse_com);
-      break;
-    case Options::LblSpeedup::QuadraticIndependent:
-      com.interp_add_triplequad(sparse_com);
-      break;
-    case Options::LblSpeedup::None: /* Do nothing */
-      break;
-    case Options::LblSpeedup::FINAL: { /* Leave last */
-    }
-  }
-
-  // Sum up the propagation matrix
-  for (Index iv = 0; iv < nf; iv++) {
-    propmat_clearsky[iv].A() += com.F[iv].real();
-  }
-
-  // Sum up the Jacobian
-
-  for (Index j = 0; j < nq; j++) {
-    for (Index iv = 0; iv < nf; iv++) {
-      dpropmat_clearsky_dx(j, iv).A() += com.dF(iv, j).real();
-    }
-  }
-
-  if (nlte_do) {
-    // Sum up the source vector
-    for (Index iv = 0; iv < nf; iv++) {
-      nlte_source[iv].I() += com.N[iv].real();
-    }
-
-    // Sum up the Jacobian
-    for (Index j = 0; j < nq; j++) {
-      for (Index iv = 0; iv < nf; iv++) {
-        dnlte_source_dx(j, iv).I() += com.dN(iv, j).real();
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyZero(PropmatVector& propmat_clearsky,
-                          const Vector& f_grid) {
-  propmat_clearsky = PropmatVector(f_grid.nelem());
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyForceNegativeToZero(PropmatVector& propmat_clearsky) {
-  for (Index i = 0; i < propmat_clearsky.nelem(); i++)
-    if (propmat_clearsky[i].A() < 0.0) propmat_clearsky[i] = 0.0;
+void propagation_matrixForceNegativeToZero(PropmatVector& propagation_matrix) {
+  for (Index i = 0; i < propagation_matrix.nelem(); i++)
+    if (propagation_matrix[i].A() < 0.0) propagation_matrix[i] = 0.0;
   ;
 }
 
@@ -805,9 +484,9 @@ void isotopologue_ratiosInitFromHitran(
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* Included by Claudia Emde, 20100707 */
 void WriteMolTau(  //WS Input
-    const Vector& f_grid,
+    const Vector& frequency_grid,
     const Tensor3& z_field,
-    const Tensor7& propmat_clearsky_field,
+    const Tensor7& propagation_matrix_field,
     //Keyword
     const String& filename) {
   int retval, ncid;
@@ -830,7 +509,8 @@ void WriteMolTau(  //WS Input
              nc_def_dim(ncid, "nlyr", (int)z_field.npages() - 1, &nlyr_dimid)))
       nca_error(retval, "nc_def_dim");
 
-    if ((retval = nc_def_dim(ncid, "nwvl", (int)f_grid.nelem(), &nwvl_dimid)))
+    if ((retval = nc_def_dim(
+             ncid, "nwvl", (int)frequency_grid.nelem(), &nwvl_dimid)))
       nca_error(retval, "nc_def_dim");
 
     if ((retval = nc_def_dim(ncid, "none", 1, &none_dimid)))
@@ -838,7 +518,7 @@ void WriteMolTau(  //WS Input
 
     if ((retval = nc_def_dim(ncid,
                              "nstk",
-                             (int)propmat_clearsky_field.nbooks(),
+                             (int)propagation_matrix_field.nbooks(),
                              &stokes_dimid)))
       nca_error(retval, "nc_def_dim");
 
@@ -889,12 +569,13 @@ void WriteMolTau(  //WS Input
 
     // Assign data
     double wvlmin[1];
-    wvlmin[0] = SPEED_OF_LIGHT / f_grid[f_grid.nelem() - 1] * 1e9;
+    wvlmin[0] =
+        SPEED_OF_LIGHT / frequency_grid[frequency_grid.nelem() - 1] * 1e9;
     if ((retval = nc_put_var_double(ncid, wvlmin_varid, &wvlmin[0])))
       nca_error(retval, "nc_put_var");
 
     double wvlmax[1];
-    wvlmax[0] = SPEED_OF_LIGHT / f_grid[0] * 1e9;
+    wvlmax[0] = SPEED_OF_LIGHT / frequency_grid[0] * 1e9;
     if ((retval = nc_put_var_double(ncid, wvlmax_varid, &wvlmax[0])))
       nca_error(retval, "nc_put_var");
 
@@ -905,21 +586,22 @@ void WriteMolTau(  //WS Input
     if ((retval = nc_put_var_double(ncid, z_varid, &z[0])))
       nca_error(retval, "nc_put_var");
 
-    double wvl[f_grid.nelem()];
-    for (int iv = 0; iv < f_grid.nelem(); iv++)
-      wvl[iv] = SPEED_OF_LIGHT / f_grid[f_grid.nelem() - 1 - iv] * 1e9;
+    double wvl[frequency_grid.nelem()];
+    for (int iv = 0; iv < frequency_grid.nelem(); iv++)
+      wvl[iv] = SPEED_OF_LIGHT /
+                frequency_grid[frequency_grid.nelem() - 1 - iv] * 1e9;
 
     if ((retval = nc_put_var_double(ncid, wvl_varid, &wvl[0])))
       nca_error(retval, "nc_put_var");
 
     const Index zfnp = z_field.npages() - 1;
-    const Index fgne = f_grid.nelem();
-    const Index amfnb = propmat_clearsky_field.nbooks();
+    const Index fgne = frequency_grid.nelem();
+    const Index amfnb = propagation_matrix_field.nbooks();
 
     Tensor4 tau(zfnp, fgne, amfnb, amfnb, 0.);
 
     // Calculate average tau for layers
-    for (int is = 0; is < propmat_clearsky_field.nlibraries(); is++)
+    for (int is = 0; is < propagation_matrix_field.nlibraries(); is++)
       for (int iz = 0; iz < zfnp; iz++)
         for (int iv = 0; iv < fgne; iv++)
           for (int is1 = 0; is1 < amfnb; is1++)
@@ -927,20 +609,20 @@ void WriteMolTau(  //WS Input
               // sum up all species
               tau(iz, iv, is1, is2) +=
                   0.5 *
-                  (propmat_clearsky_field(is,
-                                          f_grid.nelem() - 1 - iv,
-                                          is1,
-                                          is2,
-                                          z_field.npages() - 1 - iz,
-                                          0,
-                                          0) +
-                   propmat_clearsky_field(is,
-                                          f_grid.nelem() - 1 - iv,
-                                          is1,
-                                          is2,
-                                          z_field.npages() - 2 - iz,
-                                          0,
-                                          0)) *
+                  (propagation_matrix_field(is,
+                                            frequency_grid.nelem() - 1 - iv,
+                                            is1,
+                                            is2,
+                                            z_field.npages() - 1 - iz,
+                                            0,
+                                            0) +
+                   propagation_matrix_field(is,
+                                            frequency_grid.nelem() - 1 - iv,
+                                            is1,
+                                            is2,
+                                            z_field.npages() - 2 - iz,
+                                            0,
+                                            0)) *
                   (z_field(z_field.npages() - 1 - iz, 0, 0) -
                    z_field(z_field.npages() - 2 - iz, 0, 0));
 
@@ -955,9 +637,9 @@ void WriteMolTau(  //WS Input
 #else
 
 void WriteMolTau(  //WS Input
-    const Vector& f_grid [[maybe_unused]],
+    const Vector& frequency_grid [[maybe_unused]],
     const Tensor3& z_field [[maybe_unused]],
-    const Tensor7& propmat_clearsky_field [[maybe_unused]],
+    const Tensor7& propagation_matrix_field [[maybe_unused]],
     //Keyword
     const String& filename [[maybe_unused]]) {
   ARTS_USER_ERROR_IF(true,
@@ -967,111 +649,65 @@ void WriteMolTau(  //WS Input
 
 #endif /* ENABLE_NETCDF */
 
-void propmat_clearsky_agendaAuto(  // Workspace reference:
-    Agenda& propmat_clearsky_agenda,
+void propagation_matrix_agendaAuto(  // Workspace reference:
+    Agenda& propagation_matrix_agenda,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const AbsorptionBands& absorption_bands,
     // WS Generic Input:
-    const Numeric& H,
     const Numeric& T_extrapolfac,
-    const Numeric& eta,
     const Numeric& extpolfac,
     const Numeric& force_p,
     const Numeric& force_t,
     const Index& ignore_errors,
-    const Numeric& lines_sparse_df,
-    const Numeric& lines_sparse_lim,
-    const String& lines_speedup_option,
-    const Index& manual_mag_field,
     const Index& no_negatives,
-    const Numeric& theta,
     const Index& use_abs_lookup_ind) {
-  AgendaCreator agenda("propmat_clearsky_agenda");
+  AgendaCreator agenda("propagation_matrix_agenda");
 
   // Use bool because logic is easier
   const bool use_abs_lookup = static_cast<bool>(use_abs_lookup_ind);
 
-  const SpeciesTagTypeStatus any_species(abs_species);
-  const AbsorptionTagTypesStatus any_lines(abs_lines_per_species);
+  const SpeciesTagTypeStatus any_species(absorption_species);
 
-  // propmat_clearskyInit
-  agenda.add("propmat_clearskyInit");
+  // propagation_matrixInit
+  agenda.add("propagation_matrixInit");
 
-  // propmat_clearskyAddFromLookup
+  // propagation_matrixAddFromLookup
   if (use_abs_lookup) {
-    agenda.add("propmat_clearskyAddFromLookup",
+    agenda.add("propagation_matrixAddFromLookup",
                SetWsv{"extpolfac", extpolfac},
                SetWsv{"no_negatives", no_negatives});
   }
 
-  // propmat_clearskyAddLines
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.LTE or any_lines.population.NLTE or
-       any_lines.population.VibTemps)) {
-    agenda.add("propmat_clearskyAddLines",
-               SetWsv{"lines_sparse_df", lines_sparse_df},
-               SetWsv{"lines_sparse_lim", lines_sparse_lim},
-               SetWsv{"lines_speedup_option", lines_speedup_option},
-               SetWsv{"no_negatives", no_negatives});
+  // propagation_matrixAddLines
+  if (not use_abs_lookup and absorption_bands.size()) {
+    agenda.add("propagation_matrixAddLines");
   }
 
-  // propmat_clearskyAddZeeman
-  if (any_species.Zeeman and
-      (any_lines.population.LTE or any_lines.population.NLTE or
-       any_lines.population.VibTemps)) {
-    agenda.add("propmat_clearskyAddZeeman",
-               SetWsv{"manual_mag_field", manual_mag_field},
-               SetWsv{"H", H},
-               SetWsv{"theta", theta},
-               SetWsv{"eta", eta});
-  }
-
-  //propmat_clearskyAddHitranXsec
+  //propagation_matrixAddHitranXsec
   if (not use_abs_lookup and any_species.XsecFit) {
-    agenda.add("propmat_clearskyAddXsecFit",
+    agenda.add("propagation_matrixAddXsecFit",
                SetWsv{"force_p", force_p},
                SetWsv{"force_t", force_t});
   }
 
-  //propmat_clearskyAddOnTheFlyLineMixing
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.ByMakarovFullRelmat or
-       any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propmat_clearskyAddOnTheFlyLineMixing");
-  }
-
-  //propmat_clearskyAddOnTheFlyLineMixingWithZeeman
-  if (any_species.Zeeman and
-      (any_lines.population.ByMakarovFullRelmat or
-       any_lines.population.ByRovibLinearDipoleLineMixing)) {
-    agenda.add("propmat_clearskyAddOnTheFlyLineMixingWithZeeman");
-  }
-
-  //propmat_clearskyAddCIA
+  //propagation_matrixAddCIA
   if (not use_abs_lookup and any_species.Cia) {
-    agenda.add("propmat_clearskyAddCIA",
+    agenda.add("propagation_matrixAddCIA",
                SetWsv{"T_extrapolfac", T_extrapolfac},
                SetWsv{"ignore_errors", ignore_errors});
   }
 
-  //propmat_clearskyAddPredefined
+  //propagation_matrixAddPredefined
   if (not use_abs_lookup and any_species.Predefined) {
-    agenda.add("propmat_clearskyAddPredefined");
+    agenda.add("propagation_matrixAddPredefined");
   }
 
-  //propmat_clearskyAddFaraday
+  //propagation_matrixAddFaraday
   if (any_species.FreeElectrons) {
-    agenda.add("propmat_clearskyAddFaraday");
-  }
-
-  // propmat_clearskyAddHitranLineMixingLines
-  if (not use_abs_lookup and any_species.Plain and
-      (any_lines.population.ByHITRANFullRelmat or
-       any_lines.population.ByHITRANRosenkranzRelmat)) {
-    agenda.add("propmat_clearskyAddHitranLineMixingLines");
+    agenda.add("propagation_matrixAddFaraday");
   }
 
   // Extra check (should really never ever fail when species exist)
-  propmat_clearsky_agenda = std::move(agenda).finalize();
+  propagation_matrix_agenda = std::move(agenda).finalize();
 }

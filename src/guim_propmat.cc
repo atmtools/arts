@@ -13,6 +13,8 @@
 #include "matpack_math.h"
 #include "path_point.h"
 #include "rtepack.h"
+#include "sorted_grid.h"
+#include "species.h"
 #include "species_tags.h"
 
 #ifdef ARTS_GUI_ENABLED
@@ -23,27 +25,27 @@ using namespace std::chrono_literals;
 namespace PropmatClearskyAgendaGUI {
 void compute(const Workspace& ws,
              gui::PropmatClearsky::ComputeValues& v,
-             const Agenda& propmat_clearsky_agenda) {
+             const Agenda& propagation_matrix_agenda) {
   PropmatMatrix empty_propmat{};
   StokvecMatrix empty_stokvec{};
-  propmat_clearsky_agendaExecute(ws,
-                                 v.pm,
-                                 v.sv,
-                                 empty_propmat,
-                                 empty_stokvec,
-                                 {},
-                                 v.select_abs_species,
-                                 v.f_grid,
-                                 v.path_point,
-                                 v.atm_point,
-                                 propmat_clearsky_agenda);
+  propagation_matrix_agendaExecute(ws,
+                                   v.pm,
+                                   v.sv,
+                                   empty_propmat,
+                                   empty_stokvec,
+                                   {},
+                                   v.select_species,
+                                   AscendingGrid{v.f_grid},
+                                   v.path_point,
+                                   v.atm_point,
+                                   propagation_matrix_agenda);
 }
 
 bool run(gui::PropmatClearsky::ResultsArray& ret,
          gui::PropmatClearsky::Control& ctrl,
          const Workspace& ws,
-         const Agenda& propmat_clearsky_agenda,
-         ArrayOfSpeciesTag& select_abs_species,
+         const Agenda& propagation_matrix_agenda,
+         SpeciesEnum& select_species,
          Vector& f_grid,
          PropagationPathPoint& path_point,
          AtmPoint& atm_point,
@@ -62,7 +64,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       if (ctrl.run.load()) {
         std::lock_guard allow_copy{ctrl.copy};
 
-        v.select_abs_species = select_abs_species;
+        v.select_species = select_species;
         v.f_grid = f_grid;
         v.path_point = path_point;
         v.atm_point = atm_point;
@@ -70,7 +72,7 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
       } else {
         continue;
       }
-      compute(ws, v, propmat_clearsky_agenda);
+      compute(ws, v, propagation_matrix_agenda);
 
       v.tm = MuelmatVector(v.pm.size());
       MuelmatMatrix empty_muelmat{};
@@ -105,18 +107,18 @@ bool run(gui::PropmatClearsky::ResultsArray& ret,
 }  // namespace PropmatClearskyAgendaGUI
 #endif  // ARTS_GUI_ENABLED
 
-void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
-                                const Agenda& propmat_clearsky_agenda
-                                [[maybe_unused]],
-                                const ArrayOfArrayOfSpeciesTag& abs_species
-                                [[maybe_unused]],
-                                const Index& load [[maybe_unused]]) {
+void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
+                                  const Agenda& propagation_matrix_agenda
+                                  [[maybe_unused]],
+                                  const ArrayOfArrayOfSpeciesTag& abs_species
+                                  [[maybe_unused]],
+                                  const Index& load [[maybe_unused]]) {
 #ifdef ARTS_GUI_ENABLED
   gui::PropmatClearsky::ResultsArray res;
   gui::PropmatClearsky::Control ctrl;
 
   // Initialize values to something
-  ArrayOfSpeciesTag select_abs_species{};
+  SpeciesEnum select_species{};
   Vector f_grid = uniform_grid(1e9, 1000, 1e9);
   PropagationPathPoint path_point{.pos = {0, 0, 0}, .los = {0, 0}};
   Numeric transmission_distance{1'000};
@@ -131,7 +133,8 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   if (load) {
     if (ws.contains("f_grid")) f_grid = ws.get<Vector>("f_grid");
     if (ws.contains("atm_point")) atm_point = ws.get<AtmPoint>("atm_point");
-    if (ws.contains("path_point")) path_point = ws.get<PropagationPathPoint>("path_point");
+    if (ws.contains("path_point"))
+      path_point = ws.get<PropagationPathPoint>("path_point");
   }
 
   auto success = std::async(std::launch::async,
@@ -139,8 +142,8 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
                             std::ref(res),
                             std::ref(ctrl),
                             std::cref(ws),
-                            std::cref(propmat_clearsky_agenda),
-                            std::ref(select_abs_species),
+                            std::cref(propagation_matrix_agenda),
+                            std::ref(select_species),
                             std::ref(f_grid),
                             std::ref(path_point),
                             std::ref(atm_point),
@@ -155,7 +158,7 @@ void propmat_clearsky_agendaGUI(const Workspace& ws [[maybe_unused]],
   } else {
     gui::propmat(res,
                  ctrl,
-                 select_abs_species,
+                 select_species,
                  f_grid,
                  path_point,
                  atm_point,

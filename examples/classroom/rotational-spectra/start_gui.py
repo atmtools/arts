@@ -16,7 +16,7 @@ ws = pyarts.workspace.Workspace()
 # removes absorption from the wings of stronger absorption lines that lie
 # outside of the given freqeuncy range.  This migth affect the accuracy of the
 # total absorption that is computed
-ws.abs_speciesSet(
+ws.absorption_speciesSet(
     species=[f"HCl-*-{fmin}-{fmax}",
              f"ClO-*-{fmin}-{fmax}",
              f"CO-*-{fmin}-{fmax}",
@@ -24,26 +24,26 @@ ws.abs_speciesSet(
              f"O3-*-{fmin}-{fmax}"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename="lines/")
+# FIXME
+ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
+ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
 
 # Use an automatic agenda
-ws.propmat_clearsky_agendaAuto()
-
-# Arts setup (No NLTE, no polarization, and standard isotopologue ratios)
-ws.nlte_do = 0
+ws.propagation_matrix_agendaAuto()
 
 # Settings (Standard atmosphere midlatitude-summer)
-ws.path_point.los = [45, 45]
-ws.f_grid = np.linspace(1e9, 3e12, 1000)
-ws.atm_pointInit()
-ws.atm_point.temperature = 2.942000e+02
-ws.atm_point.pressure = 110000
-ws.atm_point[ws.abs_species[0]] = 1.000869e-09
-ws.atm_point[ws.abs_species[1]] = 1.000869e-14
-ws.atm_point[ws.abs_species[2]] = 2.850472e-06
-ws.atm_point[ws.abs_species[3]] = 1.501303e-07
-ws.atm_point[ws.abs_species[4]] = 3.019448e-08
-ws.atm_point.mag = [10e-6, 20e-6, 40e-6]
+ws.propagation_path_point.los = [45, 45]
+ws.frequency_grid = np.linspace(1e9, 3e12, 1000)
+ws.atmospheric_pointInit()
+ws.atmospheric_point.temperature = 2.942000e+02
+ws.atmospheric_point.pressure = 110000
+ws.atmospheric_point[ws.absorption_species[0]] = 1.000869e-09
+ws.atmospheric_point[ws.absorption_species[1]] = 1.000869e-14
+ws.atmospheric_point[ws.absorption_species[2]] = 2.850472e-06
+ws.atmospheric_point[ws.absorption_species[3]] = 1.501303e-07
+ws.atmospheric_point[ws.absorption_species[4]] = 3.019448e-08
+ws.atmospheric_point.mag = [10e-6, 20e-6, 40e-6]
 
 # Start the explorer
-ws.propmat_clearsky_agendaGUI()
+ws.propagation_matrix_agendaGUI()

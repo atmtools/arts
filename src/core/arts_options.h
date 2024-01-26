@@ -39,129 +39,14 @@ ENUMCLASS(LblSpeedup, char, None, QuadraticIndependent, LinearIndependent)
 
 ENUMCLASS(SortingOption, char, ByFrequency, ByEinstein)
 
-/** Options for setting iy_main_agenda */
-ENUMCLASS(iy_main_agendaDefaultOptions,
-          char,
-          GeometricEmission)
-
-/** Options for setting iy_loop_freqs_agenda */
-ENUMCLASS(iy_loop_freqs_agendaDefaultOptions,
-          char,
-          Emission,
-          Transmission)
-
-/** Options for setting iy_space_agenda */
-ENUMCLASS(iy_space_agendaDefaultOptions,
-          char,
-          CosmicBackground)
-
-/** Options for setting iy_surface_agenda */
-ENUMCLASS(iy_surface_agendaDefaultOptions,
-          char,
-          UseSurfaceRtprop)
-
-/** Options for setting iy_cloudbox_agenda */
-ENUMCLASS(iy_cloudbox_agendaDefaultOptions,
-          char,
-          LinInterpField,
-          QuarticInterpField)
-
-/** Options for setting refr_index_air_agenda */
-ENUMCLASS(refr_index_air_agendaDefaultOptions,
-          char,
-          NoRefrac,
-          GasMicrowavesEarth,
-          GasInfraredEarth,
-          GasMicrowavesGeneral,
-          FreeElectrons,
-          GasMicrowavesGeneralAndElectrons,
-          GasMicrowavesEarthAndElectrons)
-
-/** Options for setting gas_scattering_agenda */
-ENUMCLASS(gas_scattering_agendaDefaultOptions,
-          char,
-          Dummy)
-
-/** Options for setting surface_rtprop_agenda */
-ENUMCLASS(surface_rtprop_agendaDefaultOptions,
-          char,
-          Blackbody_SurfTFromt_surface,
-          Blackbody_SurfTFromt_field,
-          Specular_NoPol_ReflFix_SurfTFromt_surface,
-          Specular_NoPol_ReflFix_SurfTFromt_field,
-          Specular_WithPol_ReflFix_SurfTFromt_surface,
-          lambertian_ReflFix_SurfTFromt_surface,
-          lambertian_ReflFix_SurfTFromt_field)
-
-/** Options for setting dobatch_calc_agenda */
-ENUMCLASS(dobatch_calc_agendaDefaultOptions, char)
-
-/** Options for setting ybatch_calc_agenda */
-ENUMCLASS(ybatch_calc_agendaDefaultOptions, char)
-
-/** Options for setting test_agenda */
-ENUMCLASS(test_agendaDefaultOptions, char)
-
-/** Options for setting spt_calc_agenda */
-ENUMCLASS(spt_calc_agendaDefaultOptions, char)
-
-/** Options for setting sensor_response_agenda */
-ENUMCLASS(sensor_response_agendaDefaultOptions, char)
-
-/** Options for setting propmat_clearsky_agenda */
-ENUMCLASS(propmat_clearsky_agendaDefaultOptions, char, Empty)
-
-/** Options for setting pha_mat_spt_agenda */
-ENUMCLASS(pha_mat_spt_agendaDefaultOptions, char)
-
-/** Options for setting met_profile_calc_agenda */
-ENUMCLASS(met_profile_calc_agendaDefaultOptions, char)
-
-/** Options for setting iy_radar_agenda */
-ENUMCLASS(iy_radar_agendaDefaultOptions, char)
-
-/** Options for setting iy_independent_beam_approx_agenda */
-ENUMCLASS(iy_independent_beam_approx_agendaDefaultOptions, char)
-
-/** Options for setting inversion_iterate_agenda */
-ENUMCLASS(inversion_iterate_agendaDefaultOptions, char)
-
-/** Options for setting forloop_agenda */
-ENUMCLASS(forloop_agendaDefaultOptions, char)
-
-/** Options for setting doit_scat_field_agenda */
-ENUMCLASS(doit_scat_field_agendaDefaultOptions, char)
-
-/** Options for setting doit_rte_agenda */
-ENUMCLASS(doit_rte_agendaDefaultOptions, char)
-
-/** Options for setting doit_mono_agenda */
-ENUMCLASS(doit_mono_agendaDefaultOptions, char)
-
-/** Options for setting doit_conv_test_agenda */
-ENUMCLASS(doit_conv_test_agendaDefaultOptions, char)
-
-/** Options for setting doit_conv_test_agenda */
-ENUMCLASS(ppvar_rtprop_agendaDefaultOptions, char, Propmat)
-
-/** Options for setting doit_conv_test_agenda */
-ENUMCLASS(rte_background_agendaDefaultOptions, char, ByPath)
-
 /** Options for setting planets */
-ENUMCLASS(planetDefaultOptions,
+ENUMCLASS(planetOption,
           char,
           Earth,
           Io,
           Jupiter,
           Mars,
           Venus)
-
-/** Options for surface background radiance agenda */
-ENUMCLASS(spectral_radiance_background_surface_agendaDefaultOptions, char, Blackbody)
-
-/** Options for space background radiance agenda */
-ENUMCLASS(spectral_radiance_background_space_agendaDefaultOptions, char, UniformCosmicBackground)
-
 }  // namespace Options
 
 #endif
