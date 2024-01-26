@@ -344,18 +344,6 @@ temperature but also entirerly abstract properties and types.
 )--",
       .type = "SurfaceField"};
 
-  wsv_data["wigner_initialized"] = {
-      .desc = R"--(Indicates if the wigner tables are initialized.
-If they are not, computations will be aborted.
-
-Will hold the value of provided maximum factorial value
-
-The developer should always test this variable in functions
-that might require computing wigner symbols because the error
-handling is otherwise offloaded to third party software...
-)--",
-      .type = "Index"};
-
   wsv_data["gravity_operator"] = {.desc = R"--(The gravity operator.
 
 Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude [deg].

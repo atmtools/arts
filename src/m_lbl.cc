@@ -44,8 +44,10 @@ void absorption_bandsFromAbsorbtionLines(
     AbsorptionBands& absorption_bands,
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
-ARTS_USER_ERROR_IF(absorption_species.size() != abs_lines_per_species.size(),
-                   absorption_species.size(), " != ", abs_lines_per_species.size())
+  ARTS_USER_ERROR_IF(absorption_species.size() != abs_lines_per_species.size(),
+                     absorption_species.size(),
+                     " != ",
+                     abs_lines_per_species.size())
 
   absorption_bands.resize(0);
   absorption_bands.reserve(std::transform_reduce(
@@ -55,9 +57,9 @@ ARTS_USER_ERROR_IF(absorption_species.size() != abs_lines_per_species.size(),
       std::plus<>{},
       [](const ArrayOfAbsorptionLines& lines) { return lines.size(); }));
 
-for (Size kspec=0; kspec<abs_lines_per_species.size(); kspec++){
-  auto& abs_lines = abs_lines_per_species[kspec];
-  auto& spec_tags = absorption_species[kspec];
+  for (Size kspec = 0; kspec < abs_lines_per_species.size(); kspec++) {
+    auto& abs_lines = abs_lines_per_species[kspec];
+    auto& spec_tags = absorption_species[kspec];
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
       new_key = old_band.quantumidentity;
@@ -315,10 +317,11 @@ void absorption_bandsRemoveID(AbsorptionBands& absorption_bands,
 
 ENUMCLASS(SortingOption, char, IntegratedIntensity, FrontFrequency, None)
 
-void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
-                                     const AbsorptionBands& absorption_bands,
-                                     const String& criteria,
-                                     const Index& reverse) {
+void sortedIndexOfBands(ArrayOfIndex& sorted_idxs,
+                        const AbsorptionBands& absorption_bands,
+                        const String& criteria,
+                        const Index& reverse,
+                        const Numeric& temperature) {
   struct order {
     QuantumIdentifier qid;
     Numeric value;
@@ -340,7 +343,7 @@ void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
             band.lines.end(),
             Numeric{0},
             std::plus<>{},
-            [T = 296., ir = key.Isotopologue()](const lbl::line& l) {
+            [T = temperature, ir = key.Isotopologue()](const lbl::line& l) {
               return -l.f0 *
                      std::expm1(-Constant::h * l.f0 / (Constant::k * T)) *
                      l.s(T, 1);
@@ -378,7 +381,8 @@ void SortedQuantumIdentifiersOfBands(ArrayOfIndex& sorted_idxs,
 
   sorted_idxs.resize(0);
   sorted_idxs.reserve(qid_sorter.size());
-  for (auto& [qid, value, idx] : qid_sorter) sorted_idxs.push_back(idx);
+  std::ranges::move(qid_sorter | std::views::transform(&order::idx),
+                    std::back_inserter(sorted_idxs));
 }
 
 void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
@@ -467,16 +471,16 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
 }
 
 void propagation_matrixAddLines(PropmatVector& pm,
-                                 StokvecVector& sv,
-                                 PropmatMatrix& dpm,
-                                 StokvecMatrix& dsv,
-                                 const AscendingGrid& f_grid,
-                                 const JacobianTargets& jacobian_targets,
-                                 const SpeciesEnum& species,
-                                 const AbsorptionBands& absorption_bands,
-                                 const LinemixingEcsData& ecs_data,
-                                 const AtmPoint& atm_point,
-                                 const Index& no_negative_absorption) {
+                                StokvecVector& sv,
+                                PropmatMatrix& dpm,
+                                StokvecMatrix& dsv,
+                                const AscendingGrid& f_grid,
+                                const JacobianTargets& jacobian_targets,
+                                const SpeciesEnum& species,
+                                const AbsorptionBands& absorption_bands,
+                                const LinemixingEcsData& ecs_data,
+                                const AtmPoint& atm_point,
+                                const Index& no_negative_absorption) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
     lbl::calculate(pm,
@@ -501,9 +505,10 @@ void propagation_matrixAddLines(PropmatVector& pm,
                        sv.slice(ompv[i].first, ompv[i].second),
                        dpm(joker, Range(ompv[i].first, ompv[i].second)),
                        dsv(joker, Range(ompv[i].first, ompv[i].second)),
-                       static_cast<const Vector&>(f_grid).slice(ompv[i].first, ompv[i].second),
+                       static_cast<const Vector&>(f_grid).slice(ompv[i].first,
+                                                                ompv[i].second),
                        jacobian_targets,
-                   species,
+                       species,
                        absorption_bands,
                        ecs_data,
                        atm_point,

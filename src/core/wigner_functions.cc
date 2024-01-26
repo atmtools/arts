@@ -8,11 +8,11 @@
 
 #include "wigner_functions.h"
 
+#include <math_funcs.h>
+
 #include <algorithm>
 
 #include "debug.h"
-
-#include <math_funcs.h>
 
 #if DO_FAST_WIGNER
 #define WIGNER3 fw3jja6
@@ -132,18 +132,30 @@ Index make_wigner_ready(int largest, [[maybe_unused]] int fastest, int size) {
   return 0;
 }
 
+constexpr int wigner3_size(const Rational& J) { return 1 + 2 * J.toInt(6); }
+
+constexpr int wigner6_size(const Rational& J) { return J.toInt(4) + 1; }
+
+constexpr Rational wigner3_revere_size(const int j) {
+  return Rational{(j - 1) / 2, 6};
+}
+
+constexpr Rational wigner6_revere_size(const int j) {
+  return Rational{j - 1, 4};
+}
+
 bool is_wigner_ready(int j) {
   extern int wigxjpf_max_prime_decomp;
   return not(j > wigxjpf_max_prime_decomp);
 }
 
 bool is_wigner3_ready(const Rational& J) {
-  const int test = J.toInt(6) / 2 + 1;  // nb. J can be half-valued
+  const int test = wigner3_size(J);
   return is_wigner_ready(test);
 }
 
 bool is_wigner6_ready(const Rational& J) {
-  const int test = J.toInt(4) + 1;  // nb. J can be half-valued
+  const int test = wigner6_size(J);  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
 
@@ -337,4 +349,111 @@ x32:
 x1000:
   SIXJ = 0.;
   return SIXJ;
+}
+
+int WignerInformation::largest = -1;
+int WignerInformation::fastest = -1;
+bool WignerInformation::threej = false;
+bool WignerInformation::sixj = false;
+bool WignerInformation::init = false;
+
+std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
+  os << "Wigner Information: ";
+  if (wi.init) {
+    os << "Initialized.  Run *WignerUnload* to clear initialization.";
+    os << "\n  Max allowed 3j symbol: J = ";
+    if (wi.threej) {
+      os << wigner3_revere_size(wi.largest);
+    } else {
+      os << "N/A";
+    }
+    os << "\n  Max allowed 6j symbol: J = ";
+    if (wi.sixj) {
+      os << wigner6_revere_size(wi.largest);
+    } else {
+      os << "N/A";
+    }
+
+    if (wi.fastest) {
+      os << "\n  Fast symbols are active (up to " << wi.fastest << " symbols)";
+    } else {
+      os << "\n  Fast symbols are inactive";
+    }
+  } else {
+    os << "Not initialized.  Run *WignerInit* first with appropriate sizes";
+  }
+  return os;
+}
+
+void WignerInformation::initalize() {
+  ARTS_USER_ERROR_IF(init, "Must not be initialized.", *this)
+
+  if (sixj) {
+    make_wigner_ready(largest, fastest, 6);
+  } else if (threej) {
+    make_wigner_ready(largest, fastest, 3);
+  }
+
+  init = true;
+}
+
+void WignerInformation::unload() {
+  if (sixj) {
+#if DO_FAST_WIGNER
+    fastwigxj_unload(3);
+    fastwigxj_unload(6);
+#endif
+    wig_table_free();
+  } else if (threej) {
+#if DO_FAST_WIGNER
+    fastwigxj_unload(3);
+#endif
+    wig_table_free();
+  }
+
+  init = false;
+}
+
+WignerInformation::WignerInformation(int largest_symbol,
+                                     int fastest_symbol,
+                                     bool three,
+                                     bool six) {
+  ARTS_USER_ERROR_IF(init, "Must not be initialized.", *this)
+
+  ARTS_USER_ERROR_IF(largest_symbol < 0,
+                     "You must specify a non-negative integer for largest.\n",
+                     *this);
+  ARTS_USER_ERROR_IF(fastest_symbol < 0,
+                     "You must specify a non-negative integer for fastest.\n",
+                     *this);
+  ARTS_USER_ERROR_IF(not(three or six),
+                     "You must specify at least one of threej or sixj.\n",
+                     *this);
+
+  largest = largest_symbol;
+  fastest = fastest_symbol;
+  threej = three;
+  sixj = six;
+
+  initalize();
+}
+
+void WignerInformation::assert_valid_wigner3(const Rational J) {
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", *this)
+
+  ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
+                     "Wigner library not ready for Wigner 3j symbols with J = ",
+                     J,
+                     "\nPlease initialize it properly.\n",
+                     *this);
+}
+
+void WignerInformation::assert_valid_wigner6(const Rational J) {
+  ARTS_USER_ERROR_IF(not init, "Must not be initialized.", *this)
+
+  ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
+                     "Wigner library not ready for Wigner 6j symbols with J = ",
+                     J,
+                     "\nPlease initialize it properly.\n",
+                     *this);
 }

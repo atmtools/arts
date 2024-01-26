@@ -124,7 +124,7 @@ ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
 
 ws.jacobian_targetsInit()
-ws.Wigner6Init()
+ws.WignerInit()
 
 ws.ecs_dataInit()
 ws.ecs_dataAddTran2011()
@@ -161,12 +161,5 @@ ws.absorption_bands = [band]
 ws.propagation_matrixInit()
 ws.propagation_matrixAddLines()
 pm_full = 1.0 * ws.propagation_matrix[:].T[0]
-
-import matplotlib.pyplot as plt
-
-plt.semilogy(f2c(ws.frequency_grid), pm_lte)
-plt.semilogy(f2c(ws.frequency_grid), pm_adapted_lte, "--")
-plt.semilogy(f2c(ws.frequency_grid), pm_full, ":")
-plt.legend(["lte", "adapt", "full"])
 
 assert np.all(pm_adapted_lte > 0), "Adaptation failed"
