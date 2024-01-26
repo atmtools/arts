@@ -5,6 +5,7 @@
 #include "workspace_groups.h"
 #include "workspace_methods.h"
 #include "workspace_variables.h"
+#include "workspace_variables_keywords.h"
 
 // Core logic
 #include "workspace_agenda_class.h"

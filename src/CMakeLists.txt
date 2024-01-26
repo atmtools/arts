@@ -49,6 +49,7 @@ add_library(workspace_internals STATIC
   workspace_agendas.cpp
   workspace_methods.cpp
   workspace_variables.cpp
+  workspace_variables_keywords.cpp
   auto_wsg.cpp
 )
 target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
