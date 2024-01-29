@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <ranges>
 #include <string_view>
