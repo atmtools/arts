@@ -9,7 +9,6 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
-#include "hitran_species.h"
 #include "igrf13.h"
 #include "interp.h"
 #include "interpolation.h"
