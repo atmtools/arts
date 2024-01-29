@@ -68,12 +68,12 @@ auto artsgf(py::module_& m, const char* name) {
       },
       [](const py::tuple& t) {
         ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-        auto gf = std::make_shared<GF>();
-        gf->data = t[0].cast<typename GF::data_t>();
-        gf->grids = t[1].cast<typename GF::grids_t>();
-        gf->data_name = t[2].cast<std::string>();
-        gf->grid_names = t[3].cast<std::array<std::string, GF::dim>>();
-        return gf;
+        auto gd = std::make_shared<GF>();
+        gd->data = t[0].cast<typename GF::data_t>();
+        gd->grids = t[1].cast<typename GF::grids_t>();
+        gd->data_name = t[2].cast<std::string>();
+        gd->grid_names = t[3].cast<std::array<std::string, GF::dim>>();
+        return gd;
       }));
 
   gf.def("to_dict", [](const py::object& gd) {
@@ -100,9 +100,9 @@ auto artsgf(py::module_& m, const char* name) {
     return out;
   });
 
-  gf.def("to_xarray", [](const py::object& gf) {
+  gf.def("to_xarray", [](const py::object& gd) {
     py::module_ xarray = py::module_::import("xarray");
-    return xarray.attr("DataArray").attr("from_dict")(gf.attr("to_dict")());
+    return xarray.attr("DataArray").attr("from_dict")(gd.attr("to_dict")());
   });
 
   gf.def_static("from_dict", [](const py::dict& d) {

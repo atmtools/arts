@@ -61,16 +61,16 @@ void rte_step_doit_replacement(  //Output and Input:
       inv(ext_mat_av) * (abs_vec_av * rtp_planck_value + sca_vec_av));
 }
 
-void cloud_fieldsCalc(const Workspace& ws,
+void cloud_fieldsCalc(const Workspace&,// ws,
                       // Output and Input:
                       Tensor5View ext_mat_field,
                       Tensor4View abs_vec_field,
                       // Input:
-                      const Agenda& spt_calc_agenda,
-                      const Index& za_index,
-                      const Index& aa_index,
+                      const Agenda&,// spt_calc_agenda,
+                      const Index&,// za_index,
+                      const Index&,/// aa_index,
                       const ArrayOfIndex& cloudbox_limits,
-                      ConstTensor3View t_field,
+                      ConstTensor3View,// t_field,
                       ConstTensor4View pnd_field) {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from
   // where this function is called.
@@ -97,7 +97,7 @@ void cloud_fieldsCalc(const Workspace& ws,
 
   StokvecVector abs_vec_local;
   PropmatVector ext_mat_local;
-  Numeric rtp_temperature_local;
+  // Numeric rtp_temperature_local;
 
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
   // sca_vec can be obtained from the workspace variable doit_scat_field.
@@ -116,10 +116,10 @@ void cloud_fieldsCalc(const Workspace& ws,
          scat_lat_index_local++) {
       for (Index scat_lon_index_local = 0; scat_lon_index_local < Nlon_cloud;
            scat_lon_index_local++) {
-        rtp_temperature_local =
-            t_field(scat_p_index_local + cloudbox_limits[0],
-                    scat_lat_index_local + cloudbox_limits[2],
-                    scat_lon_index_local + cloudbox_limits[4]);
+        // rtp_temperature_local =
+        //     t_field(scat_p_index_local + cloudbox_limits[0],
+        //             scat_lat_index_local + cloudbox_limits[2],
+        //             scat_lon_index_local + cloudbox_limits[4]);
 
         //Calculate optical properties for individual scattering elements:
         //( Execute agendas silently. )
@@ -188,7 +188,7 @@ void cloudbox_field_ngAcceleration(Tensor6& cloudbox_field_mono,
     ConstMatrixView S3 = acceleration_input[2](joker, 0, 0, joker, 0, i);
     ConstMatrixView S4 = acceleration_input[3](joker, 0, 0, joker, 0, i);
 
-    ConstMatrixView J = S4;
+    ConstMatrixView& J = S4;
     Matrix Q1;
     Matrix Q2;
     Matrix Q3;

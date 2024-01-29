@@ -422,14 +422,14 @@ void doit_conv_flagLsq(  //WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void cloudbox_field_monoIterate(const Workspace& ws,
+void cloudbox_field_monoIterate(const Workspace&,  // ws,
                                 // WS Input and Output:
                                 Tensor6& cloudbox_field_mono,
 
                                 // WS Input:
-                                const Agenda& doit_scat_field_agenda,
-                                const Agenda& doit_rte_agenda,
-                                const Agenda& doit_conv_test_agenda,
+                                const Agenda&,  // doit_scat_field_agenda,
+                                const Agenda&,  // doit_rte_agenda,
+                                const Agenda&,  // doit_conv_test_agenda,
                                 const Index& accelerated)
 
 {
@@ -1015,13 +1015,13 @@ void doit_za_interpSet(Index& doit_za_interp,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void DoitCalc(const Workspace& ws,
+void DoitCalc(const Workspace&,  // ws,
               Tensor7& cloudbox_field,
               const Index& atmfields_checked,
               const Index& scat_data_checked,
               const Index& cloudbox_on,
               const Vector& f_grid,
-              const Agenda& doit_mono_agenda,
+              const Agenda&,  // doit_mono_agenda,
               const Index& doit_is_initialized)
 
 {
@@ -1087,7 +1087,7 @@ void DoitCalc(const Workspace& ws,
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
         std::ostringstream os;
         os << "Error for f_index = " << f_index << " (" << f_grid[f_index]
-           << " Hz)" << std::endl
+           << " Hz)" << '\n'
            << e.what();
 #pragma omp critical(DoitCalc_fail)
         {

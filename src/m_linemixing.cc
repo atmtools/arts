@@ -94,45 +94,6 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(
   }
 }
 
-void propagation_matrixAddHitranLineMixingLines(
-    PropmatVector& propagation_matrix,
-    const HitranRelaxationMatrixData& abs_hitran_relmat_data,
-    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const AscendingGrid& f_grid,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfSpeciesTag& select_abs_species,
-    const JacobianTargets& jacobian_targets,
-    const AtmPoint& atm_point) {
-  ARTS_USER_ERROR_IF(jacobian_targets.target_count(),
-                     "Cannot support any Jacobian at this time");
-  ARTS_USER_ERROR_IF(abs_species.size() not_eq abs_lines_per_species.size(),
-                     "Bad size of input species+lines");
-
-  // vmrs should be [air, water, co2]  FIXME: confirm, because code disagreed
-  const Numeric water = atm_point[Species::Species::Water];
-  const Numeric co2 = atm_point[Species::Species::CarbonDioxide];
-  const Vector vmrs{co2, water, 1.0 - co2 - water};
-
-  for (Size i = 0; i < abs_species.size(); i++) {
-    if (select_abs_species.size() and select_abs_species not_eq abs_species[i])
-      continue;
-
-    if (abs_lines_per_species[i].size() and
-        (abs_lines_per_species[i].front().population ==
-             Absorption::PopulationType::ByHITRANFullRelmat or
-         abs_lines_per_species[i].front().population ==
-             Absorption::PopulationType::ByHITRANRosenkranzRelmat)) {
-      // const auto compres = lm_hitran_2017::compute(
-      //     abs_hitran_relmat_data, abs_lines_per_species[i], isotopologue_ratios,
-      //     atm_point.pressure, atm_point.temperature, vmrs, f_grid);
-      // for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-      //   propagation_matrix[iv].A() += compres[iv];
-      // }
-      ARTS_ASSERT(false, "Fix isotopologues")
-    }
-  }
-}
-
 void abs_lines_per_speciesAdaptHitranLineMixing(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const HitranRelaxationMatrixData& abs_hitran_relmat_data,

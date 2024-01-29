@@ -50,7 +50,9 @@ void ArrayOfIndexLinSpace(ArrayOfIndex& x,
                           const Index& start,
                           const Index& stop,
                           const Index& step) {
-  Index n = (Index)floor((stop - start) / step) + 1;
+  auto n = static_cast<Index>(std::floor(static_cast<Numeric>(stop - start) /
+                                         static_cast<Numeric>(step))) +
+           1;
   if (n < 1) n = 1;
 
   x.resize(n);
@@ -1074,18 +1076,8 @@ void VectorExtractFromMatrix(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorFlip(Vector& out, const Vector& in) {
-  const Index n = in.nelem();
-
-  // Note that in and out can be the same vector
-  if (&out == &in) {
-    // Out and in are the same. A copy is needed
-    const Vector v = in;
-    for (Index i = 0; i < n; i++) out[i] = v[n - 1 - i];
-  } else {
-    // Out and in are different.
-    out.resize(n);
-    for (Index i = 0; i < n; i++) out[i] = in[n - 1 - i];
-  }
+  out = in;
+  std::ranges::reverse(out);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1399,8 +1391,8 @@ void Compare(const Numeric& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << std::endl
-       << "but the value deviates with:  " << maxdiff << std::endl;
+    os << "Max allowed deviation set to: " << maxabsdiff << '\n'
+       << "but the value deviates with:  " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1450,8 +1442,8 @@ void Compare(const Vector& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to: " << maxabsdiff << std::endl
-       << "but the vectors deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to: " << maxabsdiff << '\n'
+       << "but the vectors deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1506,8 +1498,8 @@ void Compare(const Matrix& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the matrices deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the matrices deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1562,8 +1554,8 @@ void Compare(const Tensor3& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the tensors deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the tensors deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1620,8 +1612,8 @@ void Compare(const Tensor4& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the tensors deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the tensors deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1683,8 +1675,8 @@ void Compare(const Tensor5& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the tensors deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the tensors deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1752,8 +1744,8 @@ void Compare(const Tensor7& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the tensors deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the tensors deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1765,11 +1757,11 @@ void Compare(const ArrayOfVector& var1,
              const String& error_message) {
   if (var1.size() != var2.size()) {
     std::ostringstream os;
-    os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.size() << std::endl
+    os << "The two arrays do not have the same size." << '\n'
+       << "var1 nelem: " << var1.size() << '\n'
        << "var2"
           " nelem: "
-       << var2.size() << std::endl;
+       << var2.size() << '\n';
     throw std::runtime_error(os.str());
   }
 
@@ -1785,9 +1777,9 @@ void Compare(const ArrayOfVector& var1,
       Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << std::endl
-               << e.what() << std::endl
-               << "Mismatch at array index: " << i << std::endl;
+      fail_msg << '\n'
+               << e.what() << '\n'
+               << "Mismatch at array index: " << i << '\n';
     }
   }
 
@@ -1801,11 +1793,11 @@ void Compare(const ArrayOfMatrix& var1,
              const String& error_message) {
   if (var1.size() != var2.size()) {
     std::ostringstream os;
-    os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.size() << std::endl
+    os << "The two arrays do not have the same size." << '\n'
+       << "var1 nelem: " << var1.size() << '\n'
        << "var2"
           " nelem: "
-       << var2.size() << std::endl;
+       << var2.size() << '\n';
     throw std::runtime_error(os.str());
   }
 
@@ -1821,9 +1813,9 @@ void Compare(const ArrayOfMatrix& var1,
       Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << std::endl
-               << e.what() << std::endl
-               << "Mismatch at array index: " << i << std::endl;
+      fail_msg << '\n'
+               << e.what() << '\n'
+               << "Mismatch at array index: " << i << '\n';
     }
   }
 
@@ -1837,11 +1829,11 @@ void Compare(const ArrayOfTensor7& var1,
              const String& error_message) {
   if (var1.size() != var2.size()) {
     std::ostringstream os;
-    os << "The two arrays do not have the same size." << std::endl
-       << "var1 nelem: " << var1.size() << std::endl
+    os << "The two arrays do not have the same size." << '\n'
+       << "var1 nelem: " << var1.size() << '\n'
        << "var2"
           " nelem: "
-       << var2.size() << std::endl;
+       << var2.size() << '\n';
     throw std::runtime_error(os.str());
   }
 
@@ -1857,9 +1849,9 @@ void Compare(const ArrayOfTensor7& var1,
       Compare(var1[i], var2[i], maxabsdiff, error_message);
     } catch (const std::runtime_error& e) {
       failed = true;
-      fail_msg << std::endl
-               << e.what() << std::endl
-               << "Mismatch at array index: " << i << std::endl;
+      fail_msg << '\n'
+               << e.what() << '\n'
+               << "Mismatch at array index: " << i << '\n';
     }
   }
 
@@ -1940,8 +1932,8 @@ void Compare(const Sparse& var1,
     std::ostringstream os;
     os << "var1-var2 FAILED!\n";
     if (error_message.length()) os << error_message << "\n";
-    os << "Max allowed deviation set to : " << maxabsdiff << std::endl
-       << "but the matrices deviate with: " << maxdiff << std::endl;
+    os << "Max allowed deviation set to : " << maxabsdiff << '\n'
+       << "but the matrices deviate with: " << maxdiff << '\n';
     throw std::runtime_error(os.str());
   }
 }
@@ -1953,9 +1945,9 @@ void Compare(const SingleScatteringData& var1,
              const String& error_message) {
   if (var1.ptype != var2.ptype) {
     std::ostringstream os;
-    os << "The particle types don't match: " << std::endl
+    os << "The particle types don't match: " << '\n'
        << "var1 = " << PTypeToString(var1.ptype) << ", var2"
-       << " = " << PTypeToString(var2.ptype) << std::endl;
+       << " = " << PTypeToString(var2.ptype) << '\n';
     throw std::runtime_error(os.str());
   }
   Compare(var1.f_grid, var2.f_grid, maxabsdiff, error_message);
@@ -1978,7 +1970,7 @@ inline void _cr_internal_(const Numeric& var1,
       os << "var1-var2 FAILED!\n";
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to: " << maxabsreldiff * 100.0 << "%"
-         << std::endl
+         << '\n'
          << "but the input deviate with: " << absreldiff * 100.0 << "%\n"
          << "If you compare non-scalar variables, the reported deviation is\n"
          << "the first one found violating the criterion. The maximum\n"
