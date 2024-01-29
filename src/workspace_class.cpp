@@ -1,6 +1,7 @@
 #include "workspace_class.h"
 
 #include <iomanip>
+#include <ranges>
 #include <stdexcept>
 #include <type_traits>
 
@@ -111,6 +112,15 @@ std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
 
 bool Workspace::contains(const std::string& name) const {
   return wsv.contains(name);
+}
+
+bool Workspace::wsv_and_contains(const std::string& name) const {
+  ARTS_USER_ERROR_IF(
+      std::ranges::none_of(wsv_data | std::views::keys,
+                           [&name](const auto& n) { return n == name; }),
+      "Invalid workspace variable: ",
+      std::quoted(name))
+  return contains(name);
 }
 
 void Workspace::init(const std::string& name) try {

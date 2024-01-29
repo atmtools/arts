@@ -14,12 +14,56 @@
 #include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
+#include "hitran_species.h"
 #include "interp.h"
-#include "interpolation.h"
 #include "isotopologues.h"
 #include "species.h"
 
 namespace Atm {
+ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
+
+Point::Point (const std::string_view isots_key) {
+  switch (toIsoRatioOptionOrThrow(isots_key)) {
+    case IsoRatioOption::Builtin: {
+      const SpeciesIsotopologueRatios x =
+          Species::isotopologue_ratiosInitFromBuiltin();
+      for (Index i = 0; i < x.maxsize; i++) {
+        isots[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::Hitran: {
+      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
+      for (Index i = 0; i < x.maxsize; i++) {
+        isots[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::None:
+    default:
+      break;
+  }
+}
+
+Field::Field (const std::string_view isots_key) {
+  switch (toIsoRatioOptionOrThrow(isots_key)) {
+    case IsoRatioOption::Builtin: {
+      const SpeciesIsotopologueRatios x =
+          Species::isotopologue_ratiosInitFromBuiltin();
+      for (Index i = 0; i < x.maxsize; i++) {
+        isots()[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::Hitran: {
+      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
+      for (Index i = 0; i < x.maxsize; i++) {
+        isots()[Species::Isotopologues[i]] = x.data[i];
+      }
+    } break;
+    case IsoRatioOption::None:
+    default:
+      break;
+  }
+}
+
 const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
 }

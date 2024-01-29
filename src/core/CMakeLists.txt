@@ -45,7 +45,6 @@ add_library(artscore STATIC
   gas_abs_lookup.cc
   gas_scattering.cc
   geodetic.cc
-  hitran_species.cc
   igrf13.cc
   interpolation.cc
   jpl_species.cc

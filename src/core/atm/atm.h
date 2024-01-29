@@ -91,11 +91,16 @@ struct Point {
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
- public:
   Numeric pressure{0};
   Numeric temperature{0};
   Vector3 wind{0, 0, 0};
   Vector3 mag{0, 0, 0};
+
+  Point(const std::string_view isots_key="Builtin");
+  Point(const Point &) = default;
+  Point(Point &&) = default;
+  Point &operator=(const Point &) = default;
+  Point &operator=(Point &&) = default;
 
   template <KeyType T>
   constexpr Numeric operator[](T &&x) const try {
@@ -335,6 +340,12 @@ struct Field final : FieldMap::Map<Data,
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
+
+  Field(const std::string_view isots_key="Builtin");
+  Field(const Field &) = default;
+  Field(Field &&) = default;
+  Field &operator=(const Field &) = default;
+  Field &operator=(Field &&) = default;
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<Species::Species, Data> &specs() const;
