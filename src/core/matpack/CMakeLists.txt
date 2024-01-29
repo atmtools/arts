@@ -1,4 +1,5 @@
 add_library(matpack STATIC
+  double_imanip.cc
   lin_alg.cc
   logic.cc
   matpack_math.cc
