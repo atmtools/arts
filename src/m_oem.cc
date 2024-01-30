@@ -90,7 +90,7 @@ void OEM(const Workspace& ws,
          const CovarianceMatrix& covmat_sx,
          const Vector& y,
          const CovarianceMatrix& covmat_se,
-         const JacobianTargets& jacobian_targets,
+         const JacobianTargets&,// jacobian_targets,
          const Agenda& inversion_iterate_agenda,
          const String& method,
          const Numeric& max_start_cost,
@@ -185,9 +185,9 @@ void OEM(const Workspace& ws,
     //
     if (display_progress) {
       std::cout << "\n   No OEM inversion, too high start cost:\n"
-           << "        Set limit : " << max_start_cost << std::endl
-           << "      Found value : " << cost_start << std::endl
-           << std::endl;
+           << "        Set limit : " << max_start_cost << '\n'
+           << "      Found value : " << cost_start << '\n'
+           << '\n';
     }
   }
   // Otherwise do inversion
@@ -428,7 +428,7 @@ void avkCalc(Matrix& avk,
 
 void covmat_soCalc(Matrix& /* covmat_so */,
                    const Matrix& /* dxdy */,
-                   const CovarianceMatrix& /* covmat_ /*v*/) {
+                   const CovarianceMatrix& /* covmat_ v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -436,7 +436,7 @@ void covmat_soCalc(Matrix& /* covmat_so */,
 
 void covmat_ssCalc(Matrix& /*covmat_ss*/,
                    const Matrix& /*avk*/,
-                   const CovarianceMatrix& /*covmat_ /*v*/) {
+                   const CovarianceMatrix& /*covmat_ v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
@@ -444,7 +444,7 @@ void covmat_ssCalc(Matrix& /*covmat_ss*/,
 
 void avkCalc(Matrix& /* avk */,
              const Matrix& /* dxdy */,
-             const Matrix& /* jacobia /*v*/) {
+             const Matrix& /* jacobia v*/) {
   ARTS_USER_ERROR (
       "WSM is not available because ARTS was compiled without "
       "OEM support.");

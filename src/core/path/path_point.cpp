@@ -804,9 +804,10 @@ Intersections pair_line_ellipsoid_intersect(
       return {get_point(get_r_atm().first, atm, space), path, false};
     case subsurface:
       ARTS_USER_ERROR("Unsupported subsurface start position")
-    case FINAL:
-      throw std::runtime_error("Invalid start position");
+    case FINAL: { /*leave last*/
+    }
   }
+  ARTS_USER_ERROR("Invalid start position type");
 }
 
 ArrayOfPropagationPathPoint& set_geometric_extremes(

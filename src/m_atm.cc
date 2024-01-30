@@ -9,7 +9,6 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
-#include "hitran_species.h"
 #include "igrf13.h"
 #include "interp.h"
 #include "interpolation.h"
@@ -26,56 +25,16 @@ void atmospheric_fieldTopOfAtmosphere(AtmField &atmospheric_field,
   atmospheric_field.top_of_atmosphere = top_of_atmosphere;
 }
 
-ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
-
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
                            const String &default_isotopologue) {
-  atmospheric_field = AtmField{};
+  atmospheric_field = AtmField{default_isotopologue};
   atmospheric_fieldTopOfAtmosphere(atmospheric_field, top_of_atmosphere);
-
-  switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
-    case IsoRatioOption::Builtin: {
-      const SpeciesIsotopologueRatios x =
-          Species::isotopologue_ratiosInitFromBuiltin();
-      for (Index i = 0; i < x.maxsize; i++) {
-        atmospheric_field[Species::Isotopologues[i]] = x.data[i];
-      }
-    } break;
-    case IsoRatioOption::Hitran: {
-      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
-      for (Index i = 0; i < x.maxsize; i++) {
-        atmospheric_field[Species::Isotopologues[i]] = x.data[i];
-      }
-    } break;
-    case IsoRatioOption::None:
-    default:
-      break;
-  }
 }
 
 void atmospheric_pointInit(AtmPoint &atmospheric_point,
                            const String &default_isotopologue) {
-  atmospheric_point = AtmPoint{};
-
-  switch (toIsoRatioOptionOrThrow(default_isotopologue)) {
-    case IsoRatioOption::Builtin: {
-      const SpeciesIsotopologueRatios x =
-          Species::isotopologue_ratiosInitFromBuiltin();
-      for (Index i = 0; i < x.maxsize; i++) {
-        atmospheric_point[Species::Isotopologues[i]] = x.data[i];
-      }
-    } break;
-    case IsoRatioOption::Hitran: {
-      const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
-      for (Index i = 0; i < x.maxsize; i++) {
-        atmospheric_point[Species::Isotopologues[i]] = x.data[i];
-      }
-    } break;
-    case IsoRatioOption::None:
-    default:
-      break;
-  }
+  atmospheric_point = AtmPoint{default_isotopologue};
 }
 
 namespace detail {

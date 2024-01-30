@@ -38,7 +38,7 @@ inline constexpr Numeric PI = Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void HydrotableCalc(const Workspace& ws,
+void HydrotableCalc(const Workspace&,// ws,
                     NamedGriddedField3& hydrotable,
                     const ArrayOfAgenda& pnd_agenda_array,
                     const ArrayOfArrayOfString& pnd_agenda_array_input_names,

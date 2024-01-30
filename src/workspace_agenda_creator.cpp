@@ -64,13 +64,13 @@ Agenda get_propagation_matrix_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-ENUMCLASS(spectral_radiance_agendaOption, char, GeometricEmission)
+ENUMCLASS(spectral_radiance_observer_agendaOption, char, GeometricEmission)
 
-Agenda get_spectral_radiance_agenda(const std::string& option) {
-  AgendaCreator agenda("spectral_radiance_agenda");
+Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
+  AgendaCreator agenda("spectral_radiance_observer_agenda");
 
-  using enum spectral_radiance_agendaOption;
-  switch (tospectral_radiance_agendaOptionOrThrow(option)) {
+  using enum spectral_radiance_observer_agendaOption;
+  switch (tospectral_radiance_observer_agendaOptionOrThrow(option)) {
     case GeometricEmission:
       agenda.add("propagation_pathGeometric",
                  SetWsv{"pos", "spectral_radiance_observer_position"},

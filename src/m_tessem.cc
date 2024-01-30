@@ -11,8 +11,7 @@
 #include "tessem.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void TessemNNReadAscii(TessemNN& net,
-                       const String& net_file) {
+void tessem_nnReadAscii(TessemNN& net, const String& net_file) {
   std::ifstream net_is;
 
   open_input_file(net_is, net_file);

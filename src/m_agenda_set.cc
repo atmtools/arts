@@ -13,6 +13,6 @@ void spectral_radiance_space_agendaSet(Agenda& out, const String& option) {
 }
 
 
-void spectral_radiance_agendaSet(Agenda& out, const String& option) {
-  out = get_spectral_radiance_agenda(option);
+void spectral_radiance_observer_agendaSet(Agenda& out, const String& option) {
+  out = get_spectral_radiance_observer_agenda(option);
 }

@@ -12,14 +12,14 @@
 #include "mystring.h"
 #include "telsem.h"
 
-inline constexpr Numeric EARTH_RADIUS=Constant::earth_radius;
-inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);
+inline constexpr Numeric EARTH_RADIUS = Constant::earth_radius;
+inline constexpr Numeric DEG2RAD = Conversion::deg2rad(1);
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void telsemAtlasLookup(Vector &emis,
-                       const Numeric &lat,
-                       const Numeric &lon,
-                       const TelsemAtlas &atlas) {
+void emissivitiesTelsemAtlasLookup(Vector &emis,
+                                   const Numeric &lat,
+                                   const Numeric &lon,
+                                   const TelsemAtlas &atlas) {
   chk_if_in_range("Latitude input to TELSEM2", lat, -90.0, 90.0);
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 
@@ -32,10 +32,10 @@ void telsemAtlasLookup(Vector &emis,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void telsem_atlasReadAscii(TelsemAtlas &atlas,
-                           const String &directory,
-                           const Index &month,
-                           const String &filename_pattern) {
+void atlasReadAscii(TelsemAtlas &atlas,
+                    const String &directory,
+                    const Index &month,
+                    const String &filename_pattern) {
   const Size imonth = filename_pattern.find("@MM@");
   ARTS_USER_ERROR_IF(imonth == String::npos,
                      "Substring '@MM@' not found in filename_pattern for\n",
@@ -68,8 +68,7 @@ void telsem_atlasReadAscii(TelsemAtlas &atlas,
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
         corr_is >> double_imanip() >> correlation(i, j, k);
-        ARTS_USER_ERROR_IF (corr_is.fail(),
-                            "Error reading correlation.");
+        ARTS_USER_ERROR_IF(corr_is.fail(), "Error reading correlation.");
       }
       std::getline(corr_is, s);
     }
@@ -112,7 +111,7 @@ void telsem_atlasesReadAscii(ArrayOfTelsemAtlas &telsem_atlases,
     for (Index j = 0; j < 7; j++) {
       for (Index k = 0; k < 7; k++) {
         is >> double_imanip() >> correlation(i, j, k);
-        ARTS_USER_ERROR_IF (is.fail(), "Error reading correlation.");
+        ARTS_USER_ERROR_IF(is.fail(), "Error reading correlation.");
       }
       std::getline(is, s);
     }

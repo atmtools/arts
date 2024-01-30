@@ -63,7 +63,11 @@ class Workspace {
   template <WorkspaceGroup T>
   [[nodiscard]] T& get_or(const std::string& name);
 
+  //! Checks if the workspace variable with the given name exists.
   [[nodiscard]] bool contains(const std::string& name) const;
+
+  //! As contains, but also checks if the variable is a workspace variable
+  [[nodiscard]] bool wsv_and_contains(const std::string& name) const;
 
   friend std::ostream& operator<<(std::ostream& os, const Workspace& ws);
 

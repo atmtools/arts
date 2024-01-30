@@ -375,24 +375,11 @@ String variable_used_by(const String& name) {
       usedocs.ag_in.emplace_back(aname);
   }
 
-  const static std::array wsv_keyname{"jacobian",
-                                      "spectral_radiance",
-                                      "propagation_matrix",
-                                      "source_vector",
-                                      "nonlte",
-                                      "propagation_path",
-                                      "grid"};
-  for (auto& [vname, var] : wsvs) {
-    if (vname != name and
-        (vname.find(name) != vname.npos or
-         std::ranges::any_of(wsv_keyname,
-                             [a1 = vname, a2 = name](auto& keyname) {
-                               return a1.find(keyname) != a1.npos and
-                                      a2.find(keyname) != a2.npos;
-                             }))) {
-      usedocs.wsvs.emplace_back(vname);
-    }
-  }
+  std::ranges::copy_if(wsvs | std::views::keys,
+                       std::back_inserter(usedocs.wsvs),
+                       [&name](auto& vname) {
+                         return workspace_variables_keywords_match(vname, name);
+                       });
 
   std::ranges::sort(usedocs.wsm_out);
   std::ranges::sort(usedocs.wsm_in);
@@ -498,7 +485,7 @@ String variable_used_by(const String& name) {
             var_string("\n    * :func:`~pyarts.workspace.Workspace.", m, '`');
       }
     }
-    
+
     if (io[2].size()) {
       val += var_string("\n\nOutput from\n===========\n\n",
                         "\n\n.. hlist::",

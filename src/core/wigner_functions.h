@@ -9,12 +9,13 @@
 #ifndef wigner_functions_h
 #define wigner_functions_h
 
-#include "rational.h"
-
 #include <wigner/wigxjpf/inc/wigxjpf.h>
 
 #include <algorithm>
 #include <array>
+#include <ostream>
+
+#include "rational.h"
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1
@@ -23,6 +24,32 @@
 #define DO_FAST_WIGNER 0
 #endif
 
+class WignerInformation {
+  static int largest;
+  static int fastest;
+  static bool threej;
+  static bool sixj;
+  static bool init;
+
+public:
+  static void initalize();
+
+  static void unload();
+
+  WignerInformation() = default;
+
+  WignerInformation(int largest_symbol,
+                    int fastest_symbol,
+                    bool three,
+                    bool six);
+
+  static void assert_valid_wigner3(const Rational J);
+
+  static void assert_valid_wigner6(const Rational J);
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const WignerInformation& wi);
+};
 
 /*! Refine limits from multiple inputs
  * 
@@ -30,7 +57,8 @@
  * @param[in] a Another limit
  * @return [low, high] for valid ranges of numbers or two undefined rationals
  */
-std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std::pair<Rational, Rational> b);
+std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a,
+                                            std::pair<Rational, Rational> b);
 
 /*! Return the limits where a wigner3j symbol can be non-zero
  * 
@@ -76,18 +104,20 @@ std::pair<Rational, Rational> wigner_limits(std::pair<Rational, Rational> a, std
  * @param[in] e An input
  * @return A valid range where both start and end are valid, or invalid numbers
  */
-template<Index pos> constexpr
-std::pair<Rational, Rational> wigner3j_limits([[maybe_unused]] const Rational a=0,
-                                              [[maybe_unused]] const Rational b=0,
-                                              [[maybe_unused]] const Rational c=0,
-                                              [[maybe_unused]] const Rational d=0,
-                                              [[maybe_unused]] const Rational e=0) {
-  static_assert(pos < 7 and pos > 0, "Only valid for pos := 1, 2, 3, 4, 5, and 6");
+template <Index pos>
+constexpr std::pair<Rational, Rational> wigner3j_limits(
+    [[maybe_unused]] const Rational a = 0,
+    [[maybe_unused]] const Rational b = 0,
+    [[maybe_unused]] const Rational c = 0,
+    [[maybe_unused]] const Rational d = 0,
+    [[maybe_unused]] const Rational e = 0) {
+  static_assert(pos < 7 and pos > 0,
+                "Only valid for pos := 1, 2, 3, 4, 5, and 6");
   using std::swap;
-  
+
   if constexpr (pos == 1 or pos == 2) {
     const Rational maxX = b - a;
-    std::pair<Rational, Rational> out {-maxX, a + b};
+    std::pair<Rational, Rational> out{-maxX, a + b};
     if (out.first > out.second) swap(out.first, out.second);
     if (out.second > maxX) out.second = maxX;
     if (out.first > maxX) out = {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
@@ -98,10 +128,11 @@ std::pair<Rational, Rational> wigner3j_limits([[maybe_unused]] const Rational a=
     if (maxX >= minX) return {minX, maxX};
     return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   } else {
-    const Rational lim = pos == 4 ? abs(a) :
-                         pos == 5 ? abs(b) :
-                       /*pos == 6*/ abs(c);
-    const Rational val = - e - d;
+    const Rational lim = pos == 4   ? abs(a)
+                         : pos == 5 ? abs(b)
+                                    :
+                                    /*pos == 6*/ abs(c);
+    const Rational val = -e - d;
     if (-lim <= val and val <= lim) return {val, val};
     return {RATIONAL_UNDEFINED, RATIONAL_UNDEFINED};
   }
@@ -194,8 +225,8 @@ bool is_wigner3_ready(const Rational& J);
  */
 bool is_wigner6_ready(const Rational& J);
 
-template <class ... Integer> constexpr
-int temp_init_size(Integer... vals) noexcept {
+template <class... Integer>
+constexpr int temp_init_size(Integer... vals) noexcept {
   constexpr auto N = sizeof...(Integer);
   static_assert(N > 0);
   const std::array<int, N> v{int(vals)...};

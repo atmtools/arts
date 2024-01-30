@@ -22,11 +22,13 @@ one point in the atmosphere. The result is returned in
                 "propagation_path_point",
                 "atmospheric_point"}};
 
-  wsa_data["spectral_radiance_agenda"] = {
+  wsa_data["spectral_radiance_observer_agenda"] = {
       .desc = R"--(Spectral radiance as seen from the input position and environment
 
-The intent of this agenda is to provide a spectral radiance as it would be at the
-end of the propagation path from the input start position.
+The intent of this agenda is to provide a spectral radiance as seen from the observer
+position and line of sight. This is useful for providing several samples of the
+spectral radiance that can be averaged to provide the spectral radiance a sensor
+observes.
 
 The output must be sized as:
 

@@ -31,13 +31,13 @@ inline constexpr Numeric LOG10_EULER_NUMBER=Constant::log10_euler;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RadarOnionPeelingTableCalc(
-    const Workspace& ws,
+    const Workspace&,// ws,
     ArrayOfNamedGriddedField2& invtable,
     const Vector& f_grid,
     const ArrayOfString& scat_species,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const ArrayOfArrayOfScatteringMetaData& scat_meta,
-    const ArrayOfAgenda& pnd_agenda_array,
+    const ArrayOfAgenda&,// pnd_agenda_array,
     const ArrayOfArrayOfString& pnd_agenda_array_input_names,
     const Index& i_species,
     const Vector& dbze_grid,
@@ -120,7 +120,7 @@ void RadarOnionPeelingTableCalc(
   //
   Tensor3 D(2, nwc, nt, 0);
   //
-  const Vector& pnd_agenda_input_t = t_grid;
+ // const Vector& pnd_agenda_input_t = t_grid;
   Matrix pnd_agenda_input(nt, 1);
   ArrayOfString dpnd_data_dx_names(0);
   //
@@ -172,7 +172,7 @@ void RadarOnionPeelingTableCalc(
   for (Index t=0; t<nt; t++) {
     if (!is_increasing(D(0,joker,t))) {
       for (Index w=0; w<nwc; w++) {
-        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << '\n';
       }
       ARTS_USER_ERROR (
         "A case found of non-increasing dBZe.\n"
@@ -180,7 +180,7 @@ void RadarOnionPeelingTableCalc(
     }
     if (D(0,0,t) > dbze_grid[0]) {
       for (Index w=0; w<nwc; w++) {
-        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << '\n';
       }
       ARTS_USER_ERROR (
         "A case found where start of dbze_grid not covered.\n"
@@ -188,7 +188,7 @@ void RadarOnionPeelingTableCalc(
     }
     if (D(0,nwc-1,t) < dbze_grid[ndb-1]) {
       for (Index w=0; w<nwc; w++) {
-        std::cout << wc_grid[w] << " " << D(0,w,t) << std::endl;
+        std::cout << wc_grid[w] << " " << D(0,w,t) << '\n';
       }
       ARTS_USER_ERROR (
         "A case found where end of dbze_grid not covered.\n"

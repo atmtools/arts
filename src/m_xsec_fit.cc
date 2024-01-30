@@ -16,9 +16,9 @@
 #include "xsec_fit.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReadXsecData(ArrayOfXsecRecord& xsec_fit_data,
-                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const String& basename) {
+void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
+                       const ArrayOfArrayOfSpeciesTag& abs_species,
+                       const String& basename) {
   // Build a set of species indices. Duplicates are ignored.
   std::set<Species::Species> unique_species;
   for (auto& asp : abs_species) {

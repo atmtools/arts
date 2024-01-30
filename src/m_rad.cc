@@ -334,7 +334,7 @@ void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void sensor_radianceFromWeightedObservers(
+void sensor_radianceFromObservers(
     const Workspace &ws,
     StokvecVector &sensor_radiance,
     StokvecMatrix &sensor_radiance_jacobian,
@@ -342,49 +342,53 @@ void sensor_radianceFromWeightedObservers(
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
-    const Agenda &spectral_radiance_agenda,
-    const ArrayOfVector3 &sensor_radiance_observer_position,
-    const ArrayOfVector2 &sensor_radiance_observer_line_of_sight,
-    const Vector &sensor_radiance_observer_weight) try {
+    const Agenda &spectral_radiance_observer_agenda,
+    const ArrayOfVector3 &pos,
+    const ArrayOfVector2 &los) try {
   const Index nx = jacobian_targets.x_size();
   const Index nf = frequency_grid.size();
-  const Size np = sensor_radiance_observer_position.size();
+  const Size np = pos.size();
 
-  ARTS_USER_ERROR_IF(
-      np != sensor_radiance_observer_line_of_sight.size() or
-          np != static_cast<Size>(sensor_radiance_observer_weight.size()),
-      "sensor_radiance_observer_position, "
-      "sensor_radiance_observer_line_of_sight, and "
-      "sensor_radiance_observer_weight must all have the same "
-      "size.\nThey do not, but have instead the sizes: ",
-      np,
-      ", ",
-      sensor_radiance_observer_line_of_sight.size(),
-      ", and ",
-      sensor_radiance_observer_weight.size(),
-      ", respectively.")
+  ARTS_USER_ERROR_IF(np != los.size(),
+                     "pos, "
+                     "los, and "
+                     "sensor_radiance_observer_weight must all have the same "
+                     "size.\nThey do not, but have instead the sizes: ",
+                     np,
+                     ", ",
+                     pos.size(),
+                     ", and ",
+                     los.size(),
+                     ", respectively.")
 
   sensor_radiance.resize(nf);
   sensor_radiance_jacobian.resize(nx, nf);
   sensor_radiance = 0.;
   sensor_radiance_jacobian = 0.;
 
+  if (np == 0) return;
+
+  const auto summing_up = [w = 1.0 / static_cast<Numeric>(np)](
+                              const Stokvec &v1, const Stokvec &v2) {
+    return v1 * w + v2;
+  };
+
   StokvecVector spectral_radiance(nf);
   StokvecMatrix spectral_radiance_jacobian(nx, nf);
 
   if (arts_omp_in_parallel()) {
     for (Size ipos = 0; ipos < np; ipos++) {
-      spectral_radiance_agendaExecute(
+      spectral_radiance_observer_agendaExecute(
           ws,
           spectral_radiance,
           spectral_radiance_jacobian,
           frequency_grid,
           jacobian_targets,
-          sensor_radiance_observer_position[ipos],
-          sensor_radiance_observer_line_of_sight[ipos],
+          pos[ipos],
+          los[ipos],
           atmospheric_field,
           surface_field,
-          spectral_radiance_agenda);
+          spectral_radiance_observer_agenda);
 
       ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
                          "spectral_radiance has wrong shape")
@@ -392,21 +396,16 @@ void sensor_radianceFromWeightedObservers(
                              sensor_radiance_jacobian.shape(),
                          "spectral_radiance has wrong shape")
 
-      const auto binary_op = [w = sensor_radiance_observer_weight[ipos]](
-                                 const Stokvec &v1, const Stokvec &v2) {
-        return v1 * w + v2;
-      };
-
       std::transform(spectral_radiance.begin(),
                      spectral_radiance.end(),
                      sensor_radiance.begin(),
                      sensor_radiance.begin(),
-                     binary_op);
+                     summing_up);
       std::transform(spectral_radiance_jacobian.elem_begin(),
                      spectral_radiance_jacobian.elem_end(),
                      sensor_radiance_jacobian.elem_begin(),
                      sensor_radiance_jacobian.elem_begin(),
-                     binary_op);
+                     summing_up);
     }
   } else {
     ArrayOfString fail_msg;
@@ -417,41 +416,35 @@ void sensor_radianceFromWeightedObservers(
     for (Size ipos = 0; ipos < np; ipos++) {
       if (do_abort) continue;
       try {
-        spectral_radiance_agendaExecute(
+        spectral_radiance_observer_agendaExecute(
             ws,
             spectral_radiance,
             spectral_radiance_jacobian,
             frequency_grid,
             jacobian_targets,
-            sensor_radiance_observer_position[ipos],
-            sensor_radiance_observer_line_of_sight[ipos],
+            pos[ipos],
+            los[ipos],
             atmospheric_field,
             surface_field,
-            spectral_radiance_agenda);
+            spectral_radiance_observer_agenda);
 
         ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
                            "spectral_radiance has wrong shape")
         ARTS_USER_ERROR_IF(spectral_radiance_jacobian.shape() !=
                                sensor_radiance_jacobian.shape(),
                            "spectral_radiance has wrong shape")
-
-        const auto binary_op = [w = sensor_radiance_observer_weight[ipos]](
-                                   const Stokvec &v1, const Stokvec &v2) {
-          return v1 * w + v2;
-        };
-
 #pragma omp critical
         {
           std::transform(spectral_radiance.begin(),
                          spectral_radiance.end(),
                          sensor_radiance.begin(),
                          sensor_radiance.begin(),
-                         binary_op);
+                         summing_up);
           std::transform(spectral_radiance_jacobian.elem_begin(),
                          spectral_radiance_jacobian.elem_end(),
                          sensor_radiance_jacobian.elem_begin(),
                          sensor_radiance_jacobian.elem_begin(),
-                         binary_op);
+                         summing_up);
         }
       } catch (const std::exception &e) {
 #pragma omp critical

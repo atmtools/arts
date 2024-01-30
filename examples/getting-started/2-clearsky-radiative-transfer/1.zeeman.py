@@ -17,7 +17,7 @@ ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
 ws.absorption_bandsFromAbsorbtionLines(
     abs_lines_per_species=ws.abs_lines_per_species
 )
-ws.Wigner6Init()
+ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
 ws.propagation_matrix_agendaAuto()

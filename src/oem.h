@@ -23,6 +23,8 @@
 #include "invlib/optimization.h"
 #include "jacobian.h"
 
+#include <workspace.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 //  Type Aliases
 ////////////////////////////////////////////////////////////////////////////////
@@ -257,11 +259,11 @@ class ArtsLog {
   /** Finalizes log output if necessary.*/
   ~ArtsLog() {
     if ((verbosity_ >= 1) && (!finalized_)) {
-      std::cout << invlib::separator() << std::endl << std::endl;
-      std::cout << "Error during OEM computation." << std::endl;
-      std::cout << std::endl;
-      std::cout << invlib::center("----") << std::endl;
-      std::cout << std::endl;
+      std::cout << invlib::separator() << '\n' << '\n';
+      std::cout << "Error during OEM computation." << '\n';
+      std::cout << '\n';
+      std::cout << invlib::center("----") << '\n';
+      std::cout << '\n';
     }
   }
 
@@ -277,21 +279,21 @@ class ArtsLog {
 
       auto &y = std::get<4>(tuple);
       scaling_factor_ = 1.0 / static_cast<Numeric>(y.size());
-      std::cout << std::endl;
-      std::cout << invlib::center("MAP Computation") << std::endl;
+      std::cout << '\n';
+      std::cout << invlib::center("MAP Computation") << '\n';
 
       // Print formulation.
       int formulation = static_cast<int>(std::get<6>(tuple));
       switch (formulation) {
         case 0:
-          std::cout << "Formulation: Standard" << std::endl;
+          std::cout << "Formulation: Standard" << '\n';
           break;
         case 1:
-          std::cout << "Formulation: N-Form" << std::endl;
+          std::cout << "Formulation: N-Form" << '\n';
           break;
 
         case 2:
-          std::cout << "Formulation: M-Form" << std::endl;
+          std::cout << "Formulation: M-Form" << '\n';
           break;
       }
 
@@ -300,14 +302,14 @@ class ArtsLog {
           typename std::tuple_element<5, decltype(tuple)>::type>::type;
       std::cout << "Method:      "
                 << invlib::OptimizerLog<OptimizationType>::name;
-      std::cout << std::endl;
+      std::cout << '\n';
 
-      std::cout << std::endl;
+      std::cout << '\n';
       std::cout << std::setw(5) << "Step" << std::setw(15) << "Total Cost";
       std::cout << std::setw(15) << "x-Cost" << std::setw(15) << "y-Cost";
       std::cout << std::setw(15) << "Conv. Crit.";
       std::cout << std::setw(15) << OptimizerLog<OptimizationType>::header();
-      std::cout << std::endl << invlib::separator() << std::endl;
+      std::cout << '\n' << invlib::separator() << '\n';
     }
   }
 
@@ -339,7 +341,7 @@ class ArtsLog {
       }
       std::cout << OptimizerLog<OptimizationType>::log(
           std::get<5>(tuple), gamma_history_, std::get<0>(tuple));
-      std::cout << std::endl;
+      std::cout << '\n';
     }
   }
 
@@ -351,23 +353,23 @@ class ArtsLog {
   template <typename... Params>
   void finalize(const Params &... params) {
     if (verbosity_ >= 1) {
-      std::cout << invlib::separator() << std::endl;
+      std::cout << invlib::separator() << '\n';
 
       std::tuple<const Params &...> tuple(params...);
-      std::cout << std::endl;
+      std::cout << '\n';
 
       std::cout << "Total number of steps:            ";
-      std::cout << std::get<1>(tuple) << std::endl;
+      std::cout << std::get<1>(tuple) << '\n';
       std::cout << "Final scaled cost function value: ";
-      std::cout << std::get<2>(tuple) * scaling_factor_ << std::endl;
+      std::cout << std::get<2>(tuple) * scaling_factor_ << '\n';
 
       bool converged = std::get<0>(tuple);
       if (converged) {
-        std::cout << "OEM computation converged." << std::endl;
+        std::cout << "OEM computation converged." << '\n';
       } else if (linear_) {
-        std::cout << "Linear OEM computation finished." << std::endl;
+        std::cout << "Linear OEM computation finished." << '\n';
       } else {
-        std::cout << "OEM computation DID NOT converge!" << std::endl;
+        std::cout << "OEM computation DID NOT converge!" << '\n';
       }
     }
 
@@ -379,17 +381,17 @@ class ArtsLog {
   void time(const Params &... params) {
     if (verbosity_ >= 1) {
       std::tuple<const Params &...> tuple(params...);
-      std::cout << std::endl;
+      std::cout << '\n';
       std::cout << "Elapsed Time for Retrieval:                       ";
-      std::cout << std::get<0>(tuple) << std::endl;
+      std::cout << std::get<0>(tuple) << '\n';
       std::cout << "Time in inversion_iterate Agenda (No Jacobian):   ";
-      std::cout << std::get<1>(tuple) << std::endl;
+      std::cout << std::get<1>(tuple) << '\n';
       std::cout << "Time in inversion_iterate Agenda (With Jacobian): ";
-      std::cout << std::get<2>(tuple) << std::endl;
+      std::cout << std::get<2>(tuple) << '\n';
 
-      std::cout << std::endl;
-      std::cout << invlib::center("----") << std::endl;
-      std::cout << std::endl;
+      std::cout << '\n';
+      std::cout << invlib::center("----") << '\n';
+      std::cout << '\n';
     }
   }
 
@@ -519,7 +521,7 @@ class AgendaWrapper {
    * \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
    * \param[in] x The current state vector x.
    */
-  MatrixReference Jacobian(const Vector &xi, Vector &yi) {
+  MatrixReference Jacobian(const Vector &/*xi*/, Vector &yi) {
     if (!reuse_jacobian_) {
       throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
       // inversion_iterate_agendaExecute(
@@ -542,7 +544,7 @@ class AgendaWrapper {
    * @return The observation vector y contained in the yf WSV after
    *   executing the inversion_iterate_agenda.
    */
-  Vector evaluate(const Vector &xi) {
+  Vector evaluate(const Vector &/*xi*/) {
     if (!reuse_jacobian_) {
       Matrix dummy;
        throw std::runtime_error("Jacobian matrix not available. FIXME!!!.");
@@ -663,11 +665,11 @@ void Tensor4Clip(Tensor4& x,
  * @param display_progress Whether or not to display iteration progress. Checked
  * to be 1 or 0.
  */
-void OEM_checks(const Workspace& ws,
+void OEM_checks(const Workspace&,// ws,
                 Vector& x,
                 Vector& yf,
                 Matrix& jacobian,
-                const Agenda& inversion_iterate_agenda,
+                const Agenda&,// inversion_iterate_agenda,
                 const Vector& xa,
                 const CovarianceMatrix& covmat_sx,
                 const Vector& y,
@@ -702,7 +704,7 @@ void OEM_checks(const Workspace& ws,
                       "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
 
   ArrayOfArrayOfIndex jacobian_indices;
-  bool any_affine;
+  //bool any_affine;
   // jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
   // ARTS_USER_ERROR_IF (jacobian_indices.size() != static_cast<Size>(nq),
   //       "Different number of elements in *jacobian_quantities* "
