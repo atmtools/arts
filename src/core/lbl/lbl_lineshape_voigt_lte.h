@@ -111,12 +111,6 @@ struct single_shape {
   [[nodiscard]] Complex dY(const Complex ds_dY, const Numeric f) const noexcept;
 };
 
-struct line_pos {
-  Size line;
-  Size spec{std::numeric_limits<Size>::max()};
-  Size iz{std::numeric_limits<Size>::max()};
-};
-
 Size count_lines(const band_data& bnd, const zeeman::pol type);
 
 void zeeman_set_back(std::vector<single_shape>& lines,

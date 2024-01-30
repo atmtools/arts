@@ -19,8 +19,8 @@ struct full {
        const ArrayOfArrayOfSpeciesTag& allspecs,
        const std::shared_ptr<PredefinedModelData>& data);
 
-  [[nodiscard]] Complex at(Numeric f) const;
-  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-  [[nodiscard]] ComplexVector at(const Vector& fs) const;
+  [[nodiscard]] Complex operator()(Numeric f) const;
+  void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;
+  [[nodiscard]] ComplexVector operator()(const Vector& fs) const;
 };
 }  // namespace fwd::predef

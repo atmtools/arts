@@ -11,7 +11,10 @@
 #include <implot_internal.h>
 #include <stdio.h>
 
-#include <iostream>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
 
 extern "C" {
 /** A C error handling for GLFW */

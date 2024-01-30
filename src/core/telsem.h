@@ -17,7 +17,8 @@
 #define telsem_h
 
 #include <array>
-#include <iostream>
+#include <istream>
+#include <ostream>
 
 #include "array.h"
 #include "bifstream.h"

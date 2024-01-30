@@ -1059,10 +1059,13 @@ void calculate(PropmatVectorView pm,
 
   for (Index i = 0; i < nf; i++) {
     const auto F = com_data.scl[i] * com_data.shape[i].first;
+    const auto N = com_data.scl[i] * com_data.shape[i].second;
     if (no_negative_absorption and F.real() < 0) continue;
-    const Propmat propmat = zeeman::scale(com_data.npm, F);
-    pm[i] += propmat;
-    sv[i] += {propmat.A(), propmat.B(), propmat.C(), propmat.D()};
+
+    pm[i] += zeeman::scale(com_data.npm, F);
+
+    const auto srcvec = zeeman::scale(com_data.npm, N);
+    sv[i] += {srcvec.A(), srcvec.B(), srcvec.C(), srcvec.D()};
   }
 
   for (auto& atm_target : jacobian_targets.atm()) {

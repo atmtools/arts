@@ -212,10 +212,7 @@ struct DebugTime {
   Time start{};
   std::string_view msg;
   DebugTime(const std::string_view s="Time") : msg(s) {}
-  ~DebugTime() {
-    #pragma omp critical
-    std::cerr << msg << ':' << ' ' << Time{} - start << '\n';
-  }
+  ~DebugTime();
 };
 
 #endif  // ARTSTIME_H

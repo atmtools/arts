@@ -226,14 +226,14 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 
  \returns Correct CIA record or nullptr if not found.
  */
-std::shared_ptr<CIARecord> cia_get_data(
-    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+CIARecord* cia_get_data(
+    const std::shared_ptr<std::vector<CIARecord>>& cia_data,
     const Species::Species sp1,
     const Species::Species sp2) {
-  for (auto& data : cia_data)
-    if ((data->Species(0) == sp1 && data->Species(1) == sp2) ||
-        (data->Species(0) == sp2 && data->Species(1) == sp1))
-      return data;
+  for (auto& data : *cia_data)
+    if ((data.Species(0) == sp1 && data.Species(1) == sp2) ||
+        (data.Species(0) == sp2 && data.Species(1) == sp1))
+      return &data;
 
   return nullptr;
 }

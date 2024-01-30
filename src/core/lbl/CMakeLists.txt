@@ -1,5 +1,6 @@
 add_library(lbl STATIC
   lbl_data.cpp
+  lbl_fwd.cpp
   lbl_lineshape.cpp
   lbl_lineshape_linemixing.cpp
   lbl_lineshape_model.cpp

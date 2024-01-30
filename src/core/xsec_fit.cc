@@ -199,11 +199,11 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
 
  \returns Correct CIA record or nullptr if not found.
  */
-std::shared_ptr<XsecRecord> hitran_xsec_get_data(
-    const std::vector<std::shared_ptr<XsecRecord>>& xsec_data,
+XsecRecord* hitran_xsec_get_data(
+    const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
     const Species::Species species) {
-  for (auto& xsec : xsec_data) {
-    if (xsec->Species() == species) return xsec;
+  for (auto& xsec : *xsec_data) {
+    if (xsec.Species() == species) return &xsec;
   }
   return nullptr;
 }

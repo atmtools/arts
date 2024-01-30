@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
-#include <ostream>
+#include <iostream>
 #include <sstream>
 #include <string>
 

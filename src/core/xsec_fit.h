@@ -136,8 +136,8 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x);
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
                             Species::Species species);
 
-std::shared_ptr<XsecRecord> hitran_xsec_get_data(
-    const std::vector<std::shared_ptr<XsecRecord>>& xsec_data,
+XsecRecord* hitran_xsec_get_data(
+    const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
     const Species::Species species);
 
 #endif  // HITRAN_XSEC_H

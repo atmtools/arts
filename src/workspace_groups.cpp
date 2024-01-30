@@ -361,18 +361,6 @@ and can thus be used to identify one of the following:
 6. the energy level of absorption line(s) of an isotopologue
 )--"};
 
-  wsg_data["SpectralRadianceProfileOperator"] = {
-      .file = "fwd.h",
-      .desc =
-          R"--(An operator that turns a frequency and zenith angle into a spectral radiance profile
-
-The operations on this object are through methods and not through the call-operator
-
-Currently, the only supported operation is plane-parallel geometry
-
-This is still a work in progress, and the interface will change in the future
-)--"};
-
   wsg_data["Rational"] = {
       .file = "matpack.h",
       .desc = "Holds a rational number as two *Index* n / d\n"};

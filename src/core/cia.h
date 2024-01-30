@@ -40,8 +40,8 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
                     const Species::Species sp1,
                     const Species::Species sp2);
 
-std::shared_ptr<CIARecord> cia_get_data(
-    const std::vector<std::shared_ptr<CIARecord>>& cia_data,
+CIARecord* cia_get_data(
+    const std::shared_ptr<std::vector<CIARecord>>& cia_data,
     const Species::Species sp1,
     const Species::Species sp2);
 

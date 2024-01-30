@@ -21,7 +21,7 @@
 #ifndef matpackII_h
 #define matpackII_h
 
-#include <iostream>
+#include <ostream>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"

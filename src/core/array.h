@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <array>
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <vector>
 

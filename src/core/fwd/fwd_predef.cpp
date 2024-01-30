@@ -23,7 +23,7 @@ full::full(const AtmPoint& atm_point,
   }
 }
 
-Complex full::at(Numeric f) const {
+Complex full::operator()(Numeric f) const {
   PropmatVector propmat_clearsky(1);
   PropmatMatrix dpropmat_clearsky_dx;
   JacobianTargets jacobian_targets;
@@ -44,15 +44,18 @@ Complex full::at(Numeric f) const {
   return propmat_clearsky[0].A();
 }
 
-void full::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
-  std::transform(fs.begin(), fs.end(), abs.begin(), [this](const auto& f) {
-    return at(f);
-  });
+void full::operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const {
+  std::transform(
+      fs.begin(),
+      fs.end(),
+      abs.begin(),
+      abs.begin(),
+      [this](const Numeric& f, const Complex& s) { return s + operator()(f); });
 }
 
-ComplexVector full::at(const Vector& fs) const {
+ComplexVector full::operator()(const Vector& fs) const {
   ComplexVector abs(fs.size());
-  at(abs, fs);
+  operator()(abs, fs);
   return abs;
 }
 }  // namespace fwd::predef

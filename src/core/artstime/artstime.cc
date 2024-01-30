@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <iostream>
 
 #include "arts_options.h"
 #include "debug.h"
@@ -230,4 +231,9 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTime& a) {
 std::ostream& operator<<(std::ostream& os, const ArrayOfTimeStep& a) {
   for (auto& x : a) os << x << '\n';
   return os;
+}
+
+DebugTime::~DebugTime() {
+#pragma omp critical
+  std::cerr << msg << ':' << ' ' << Time{} - start << '\n';
 }

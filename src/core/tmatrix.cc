@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 #include "arts_constants.h"

@@ -2,7 +2,7 @@
 #define grids_h
 
 #include <array>
-#include <iostream>
+#include <ostream>
 #include <vector>
 
 /*! Compute the multiplication of all inds */
