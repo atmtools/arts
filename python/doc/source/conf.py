@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Pyarts documentation build configuration file, created by
+# ARTS documentation build configuration file, created by
 # sphinx-quickstart on Mon Oct  5 12:51:17 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
+    'sphinx_favicon',
     'matplotlib.sphinxext.plot_directive',
 ]
 
@@ -56,7 +57,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'pyarts'
+project = 'ARTS'
 copyright = 'The ARTS Developers'
 author = 'The ARTS Developers'
 
@@ -128,7 +129,10 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
+html_theme_options = {
+    'logo_only': True,
+    'display_version': True,
+}
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
@@ -141,7 +145,7 @@ html_theme = 'sphinx_rtd_theme'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '_images/arts-logo-light-bg.svg'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -217,7 +221,7 @@ html_css_files = [
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyartsdoc'
+htmlhelp_basename = 'artsdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -239,8 +243,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'pyarts.tex', 'Arts Documentation',
-   'The Arts Developers', 'manual'),
+  (master_doc, 'arts.tex', 'ARTS Documentation',
+   'The ARTS Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -269,7 +273,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pyarts', 'Arts Documentation',
+    (master_doc, 'ARTS', 'ARTS Documentation',
      [author], 1)
 ]
 
@@ -283,8 +287,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'Pyarts', 'Arts Documentation',
-   author, 'Pyarts', 'Atmospheric radiative transfer module.',
+  (master_doc, 'ARTS', 'ARTS Documentation',
+   author, 'ARTS', 'Atmospheric Radiative Transfer Simulator',
    'Miscellaneous'),
 ]
 
@@ -327,3 +331,10 @@ plot_rcparams = {
     'font.size': 16,
     'savefig.bbox': 'tight',
 }
+
+# -- Favicon ----------------------------------------------------------------
+favicons = [
+    "favicon-16x16.png",
+    "favicon-32x32.png",
+    {"rel": "apple-touch-icon", "sizes": "180x180", "href": "apple-touch-icon.png"},
+]
