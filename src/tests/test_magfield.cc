@@ -1,4 +1,5 @@
 #include "legendre.h"
+#include <iostream>
 
 std::string gstr =
 " 0 0 0 0 0 0 0 0 0 0 0 0 0 0"

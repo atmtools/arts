@@ -8,6 +8,7 @@
 
 #include "cia.h"
 #include "matpack_math.h"
+#include <iostream>
 
 void test01() {
   std::cout << "Testing CIA Interpolation.\n";

@@ -2,7 +2,7 @@
 #include <matpack.h>
 
 #include <cstdlib>
-#include <ostream>
+#include <iostream>
 #include <stdexcept>
 
 struct Timing {

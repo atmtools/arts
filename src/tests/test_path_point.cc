@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <variant>
 

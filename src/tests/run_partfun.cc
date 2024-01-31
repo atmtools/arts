@@ -3,6 +3,7 @@
 #include "partfun.h"
 #include <cstddef>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <vector>
 

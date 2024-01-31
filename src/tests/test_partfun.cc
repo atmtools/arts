@@ -1,5 +1,6 @@
 #include "isotopologues.h"
 #include "partfun.h"
+#include <iostream>
 
 //! Don't call this manually, it only exists to catch a developer error
 constexpr std::size_t nonexistentPartfun() noexcept {

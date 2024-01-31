@@ -2,6 +2,8 @@
 
 #include "interp.h"
 
+#include <iostream>
+
 int main() {
   const GriddedField1 f{.data = Vector{1, 2, 3, 4, 5, 6},
                         .grids = Vector{2, 4, 6, 8, 10, 12}};

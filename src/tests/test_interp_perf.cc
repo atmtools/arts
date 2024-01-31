@@ -8,7 +8,7 @@
 
 #include <concepts>
 #include <cstdlib>
-#include <ostream>
+#include <iostream>
 #include <stdexcept>
 
 using LinearRuntime = my_interp::Lagrange<-1>;
