@@ -30,7 +30,7 @@
       }
     },
     {
-      "name": "default-gcc-mamba",
+      "name": "default-gcc-conda",
       "inherits": "base-default",
       "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
@@ -48,16 +48,16 @@
       }
     },
     {
-      "name": "perf-gcc-mamba",
-      "inherits": "default-gcc-mamba",
+      "name": "perf-gcc-conda",
+      "inherits": "default-gcc-conda",
       "environment": {
         "CFLAGS": "-isystem $env{CONDA_PREFIX}/include -fno-omit-frame-pointer",
         "CXXFLAGS": "$env{CFLAGS}"
       }
     },
     {
-      "name": "default-clang-mamba",
-      "inherits": "default-gcc-mamba",
+      "name": "default-clang-conda",
+      "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
@@ -65,8 +65,8 @@
       }
     },
     {
-      "name": "mac-gcc13-hb-mamba",
-      "inherits": "default-gcc-mamba",
+      "name": "mac-gcc13-hb-conda",
+      "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc-13",
         "CMAKE_CXX_COMPILER": "g++-13",
@@ -74,8 +74,8 @@
       }
     },
     {
-      "name": "macm1-clang-hb-mamba",
-      "inherits": "default-gcc-mamba",
+      "name": "macm1-clang-hb-conda",
+      "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++",
         "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
@@ -83,8 +83,8 @@
       }
     },
     {
-      "name": "macintel-clang-hb-mamba",
-      "inherits": "default-gcc-mamba",
+      "name": "macintel-clang-hb-conda",
+      "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "/usr/local/opt/llvm/bin/clang++",
         "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang",
@@ -92,7 +92,7 @@
       }
     },
     {
-      "name": "levante-gcc-mamba",
+      "name": "levante-gcc-conda",
       "inherits": "base-default",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/sw/spack-levante/gcc-11.2.0-bcn7mb/bin/gcc",
