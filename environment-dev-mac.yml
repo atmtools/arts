@@ -1,6 +1,4 @@
-name: pyarts-dev
 dependencies:
-        - python=3.10
         - build
         - ccache
         - clang=16.*
@@ -22,7 +20,8 @@ dependencies:
         - pybind11
         - pytest
         - scipy
-        - sphinx>=6
+        - sphinx
+        - sphinx-favicon
         - sphinx_rtd_theme
         - xarray
         - zlib
