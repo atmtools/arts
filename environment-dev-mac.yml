@@ -3,7 +3,7 @@ dependencies:
         - python=3.10
         - build
         - ccache
-        - clang
+        - clang=16.*
         - clangxx
         - cmake
         - docutils
@@ -11,7 +11,7 @@ dependencies:
         - glew
         - glfw
         - lark-parser
-        - libclang
+        - libclang=16.*
         - libcxx
         - libmicrohttpd
         - llvm-openmp
