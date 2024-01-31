@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Typhon documentation build configuration file, created by
+# ARTS documentation build configuration file, created by
 # sphinx-quickstart on Mon Oct  5 12:51:17 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -221,7 +221,7 @@ html_css_files = [
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Typhondoc'
+htmlhelp_basename = 'artsdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -243,8 +243,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'Typhon.tex', 'Typhon Documentation',
-   'The Typhon Developers', 'manual'),
+  (master_doc, 'arts.tex', 'ARTS Documentation',
+   'The ARTS Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -273,7 +273,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'typhon', 'Typhon Documentation',
+    (master_doc, 'ARTS', 'ARTS Documentation',
      [author], 1)
 ]
 
@@ -287,8 +287,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'Typhon', 'Typhon Documentation',
-   author, 'Typhon', 'One line description of project.',
+  (master_doc, 'ARTS', 'ARTS Documentation',
+   author, 'ARTS', 'Atmospheric Radiative Transfer Simulator',
    'Miscellaneous'),
 ]
 
