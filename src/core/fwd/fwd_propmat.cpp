@@ -10,12 +10,12 @@ std::pair<Propmat, Stokvec> propmat_operator::operator()(
 
   const auto [a, s] = lines(f);
 
-  const auto pol = lines.polarization(los);
+  const auto propmat_pol = lbl::zeeman::norm_view(pol, atm->mag, los);
 
-  propmat += lbl::zeeman::scale(pol, s);
+  propmat += lbl::zeeman::scale(propmat_pol, s);
   propmat.A() += cia(f).real() + predef(f).real() + hxsec(f).real();
 
-  const auto srcvec = lbl::zeeman::scale(pol, s);
+  const auto srcvec = lbl::zeeman::scale(propmat_pol, s);
   stokvec += {srcvec.A(), srcvec.B(), srcvec.C(), srcvec.D()};
 
   return {propmat, stokvec};

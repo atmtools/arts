@@ -14,9 +14,6 @@ class line_storage {
   std::shared_ptr<AtmPoint> atm{nullptr};
   zeeman::pol pol{};
 
-  void adapt();
-
-public:
   std::vector<voigt::lte::single_shape> lte_shapes{};
   std::vector<voigt::lte::single_shape> cutoff_lte_shapes{};
 
@@ -26,6 +23,9 @@ public:
   std::vector<voigt::nlte::single_shape> nlte_shapes{};
   std::vector<voigt::nlte::single_shape> cutoff_nlte_shapes{};
 
+  void adapt();
+
+public:
   line_storage() = default;
   line_storage(const line_storage&) = default;
   line_storage(line_storage&&) = default;

@@ -24,14 +24,14 @@ struct full {
     [[nodiscard]] ComplexVector at(const Vector& fs) const;
   };
 
-  std::shared_ptr<std::vector<XsecRecord>> xsecrec;
+  std::shared_ptr<ArrayOfXsecRecord> xsecrec;
   std::vector<single> models{};
 
   full() = default;
 
   full(const AtmPoint& atm_point,
        const ArrayOfArrayOfSpeciesTag& allspecs,
-       const std::shared_ptr<std::vector<XsecRecord>>& xsec);
+       const std::shared_ptr<ArrayOfXsecRecord>& xsec);
 
   [[nodiscard]] Complex operator()(Numeric f) const;
   void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;

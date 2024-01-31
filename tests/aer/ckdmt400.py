@@ -6,7 +6,7 @@ p = 1e4
 t = 250
 x_h2o=1e-2
 
-data = pyarts.arts.PredefinedModelData.fromxml("model/mt_ckd_4.0/H2O.xml")
+data = pyarts.arts.PredefinedModelData.fromcatalog("predef/", ["H2O-ForeignContCKDMT400", "H2O-SelfContCKDMT400"])
 
 self_abs400 = pyarts.arts.predef.get_self_h2o_ckdmt400(f, p, t, x_h2o, data)
 

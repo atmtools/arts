@@ -1,67 +1,36 @@
 #include "predef_data.h"
 
-#include <iostream>
-#include <variant>
-#include <vector>
-
 #include <debug.h>
 #include <double_imanip.h>
 
+#include <iomanip>
+#include <iostream>
+#include <string_view>
+#include <utility>
+#include <variant>
+#include <vector>
+
 namespace Absorption::PredefinedModel {
-
-Model::DataHolder construct_empty(PredefinedModelDataKey key) {
-  switch (key) {
-  case PredefinedModelDataKey::water_mt_ckd_4d0:
-    return MT_CKD400::WaterData{};
-  case PredefinedModelDataKey::FINAL: { /* do nothing */
-  }
-  }
-  return std::monostate{};
-}
-
-Model::Model(const Model &d) {
-  for (auto &x : d.data) {
-    std::visit([&](auto &v) { data[x.first] = v; }, x.second);
-  }
-}
-
-Model &Model::operator=(const Model &d) {
-  data.clear();
-
-  for (auto &x : d.data) {
-    std::visit([&](auto &v) { data[x.first] = v; }, x.second);
-  }
-  return *this;
-}
-
 namespace MT_CKD400 {
 std::ostream &operator<<(std::ostream &os, const WaterData &data) {
   os << data.ref_temp << ' ' << data.ref_press << ' ' << data.ref_h2o_vmr
      << '\n';
-  for (auto &x : data.for_absco_ref)
-    os << x << ' ';
+  for (auto &x : data.for_absco_ref) os << x << ' ';
   os << '\n';
-  for (auto &x : data.self_absco_ref)
-    os << x << ' ';
+  for (auto &x : data.self_absco_ref) os << x << ' ';
   os << '\n';
-  for (auto &x : data.wavenumbers)
-    os << x << ' ';
+  for (auto &x : data.wavenumbers) os << x << ' ';
   os << '\n';
-  for (auto &x : data.self_texp)
-    os << x << ' ';
+  for (auto &x : data.self_texp) os << x << ' ';
   return os;
 }
 
 std::istream &operator>>(std::istream &is, WaterData &data) {
   is >> double_imanip() >> data.ref_temp >> data.ref_press >> data.ref_h2o_vmr;
-  for (auto &x : data.for_absco_ref)
-    is >> double_imanip() >> x;
-  for (auto &x : data.self_absco_ref)
-    is >> double_imanip() >> x;
-  for (auto &x : data.wavenumbers)
-    is >> double_imanip() >> x;
-  for (auto &x : data.self_texp)
-    is >> double_imanip() >> x;
+  for (auto &x : data.for_absco_ref) is >> double_imanip() >> x;
+  for (auto &x : data.self_absco_ref) is >> double_imanip() >> x;
+  for (auto &x : data.wavenumbers) is >> double_imanip() >> x;
+  for (auto &x : data.self_texp) is >> double_imanip() >> x;
   return is;
 }
 
@@ -72,92 +41,66 @@ void WaterData::resize(const std::vector<std::size_t> &inds) {
   wavenumbers.resize(inds.front());
   self_texp.resize(inds.front());
 }
-} // namespace MT_CKD400
 
-void Model::set_all(const PredefinedModelData &d) {
-  for (auto &x : d.data) {
-    std::visit([&](auto &v) { data[x.first] = v; }, x.second);
-  }
-}
-
-std::vector<PredefinedModelDataKey> Model::keys() const {
-  std::vector<PredefinedModelDataKey> out;
-  out.reserve(data.size());
-  for (auto &x : data)
-    out.emplace_back(x.first);
-  return out;
-}
-
-struct SizesInterface {
-  template <typename T> std::vector<std::size_t> operator()(const T &x) const {
-    return x.sizes();
-  }
-
-  std::vector<std::size_t> operator()(const std::monostate &) const {
-    ARTS_USER_ERROR("The data is corrupt")
-  }
+std::vector<std::size_t> WaterData::sizes() const {
+  return {static_cast<std::size_t>(self_absco_ref.size())};
 };
+}  // namespace MT_CKD400
 
-[[nodiscard]] std::vector<std::size_t>
-Model::data_size(PredefinedModelDataKey key) const {
-  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  return std::visit(SizesInterface{}, data.at(key));
-}
+std::ostream &operator<<(std::ostream &os, const ModelName &) { return os; }
 
-struct ReizeInterface {
-  const std::vector<std::size_t> &inds;
+std::istream &operator>>(std::istream &is, ModelName &) { return is; }
 
-  template <typename T> void operator()(T &x) const { x.resize(inds); }
+std::ostream &operator<<(std::ostream &os, const Model &m) {
+  std::string_view nline = "";
 
-  void operator()(std::monostate &) const {
-    ARTS_USER_ERROR("The data is corrupt")
+  for (auto &[tag, data] : m.data) {
+    os << std::exchange(nline, "\n") << tag << ':' << '\n';
+    std::visit([&os](auto &&arg) { os << arg; }, data);
   }
-};
 
-void Model::resize(const std::vector<std::size_t> &inds,
-                   PredefinedModelDataKey key) {
-  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  if (data.find(key) == data.end())
-    data[key] = construct_empty(key);
-
-  std::visit(ReizeInterface{inds}, data.at(key));
-}
-
-struct OutputInterface {
-  std::ostream &os;
-
-  template <typename T> void operator()(const T &x) { os << x; }
-
-  void operator()(const std::monostate &) {
-    ARTS_USER_ERROR("The data is corrupt")
-  }
-};
-
-void Model::output_data_to_stream(std::ostream &os,
-                                  PredefinedModelDataKey key) const {
-  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  std::visit(OutputInterface{os}, data.at(key));
-}
-
-struct InputInterface {
-  std::istream &is;
-
-  template <typename T> void operator()(T &x) { is >> x; }
-
-  void operator()(std::monostate &) { ARTS_USER_ERROR("The data is corrupt") }
-};
-
-void Model::set_data_from_stream(std::istream &is, PredefinedModelDataKey key) {
-  ARTS_USER_ERROR_IF(not good_enum(key), "Bad key")
-  std::visit(InputInterface{is}, data.at(key));
-}
-
-std::ostream &operator<<(std::ostream &os, const Model &data) {
-  for (auto &x : data.data) {
-    os << x.first << '\n';
-    data.output_data_to_stream(os, x.first);
-    os << '\n';
-  }
   return os;
 }
-} // namespace Absorption::PredefinedModel
+
+const ModelVariant &Model::at(const SpeciesIsotopeRecord &tag) const try {
+  ARTS_USER_ERROR_IF(not is_predefined_model(tag),
+                     "The tag must be of type PredefinedModel")
+  return data.at(tag);
+} catch (std::out_of_range &) {
+  throw std::runtime_error(
+      var_string("The tag ", tag, " does not exist in the model"));
+}
+
+ModelVariant &Model::at(const SpeciesIsotopeRecord &tag) try {
+  ARTS_USER_ERROR_IF(not is_predefined_model(tag),
+                     "The tag must be of type PredefinedModel")
+  return data.at(tag);
+} catch (std::out_of_range &) {
+  throw std::runtime_error(
+      var_string("The tag ", tag, " does not exist in the model"));
+}
+
+std::string_view model_name(const ModelVariant &data) {
+  if (std::holds_alternative<ModelName>(data)) {
+    return "ModelName";
+  }
+
+  if (std::holds_alternative<MT_CKD400::WaterData>(data)) {
+    return "MT_CKD400::WaterData";
+  }
+
+  throw std::runtime_error("Unspecificed model type, this is a developer bug");
+}
+
+ModelVariant model_data(const std::string_view name) {
+  if (name == "ModelName") {
+    return ModelName{};
+  }
+
+  if (name == "MT_CKD400::WaterData") {
+    return MT_CKD400::WaterData{};
+  }
+
+  throw std::runtime_error(var_string("Unknown model name: ", std::quoted(name), ". Are all models defined?"));
+}
+}  // namespace Absorption::PredefinedModel

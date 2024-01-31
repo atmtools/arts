@@ -1,29 +1,42 @@
 #pragma once
 
 #include <lbl.h>
+
+#include <memory>
+
+#include "atm.h"
 #include "fwd_cia.h"
 #include "fwd_hxsec.h"
 #include "fwd_predef.h"
+#include "lbl_data.h"
 #include "rtepack.h"
 
 namespace fwd {
-struct propmat_operator {
-lbl::fwd::line_storage lines{};
-cia::full cia{};
-predef::full predef{};
-hxsec::full hxsec{};
+class propmat_operator {
+  lbl::fwd::line_storage lines{};
+  cia::full cia{};
+  predef::full predef{};
+  hxsec::full hxsec{};
 
-propmat_operator() = default;
-propmat_operator(const propmat_operator&) = default;
-propmat_operator(propmat_operator&&) = default;
-propmat_operator& operator=(const propmat_operator&) = default;
-propmat_operator& operator=(propmat_operator&&) = default;
+  std::shared_ptr<AtmPoint> atm{};
+  lbl::zeeman::pol pol{lbl::zeeman::pol::no};
 
-propmat_operator(const lbl::fwd::line_storage& lines,
-                 const cia::full& cia,
-                 const predef::full& predef,
-                 const hxsec::full& hxsec);
+  void adapt();
 
-std::pair<Propmat, Stokvec> operator()(const Numeric frequency, const Vector2 los={0, 0}) const;
+ public:
+  propmat_operator() = default;
+  propmat_operator(const propmat_operator&) = default;
+  propmat_operator(propmat_operator&&) = default;
+  propmat_operator& operator=(const propmat_operator&) = default;
+  propmat_operator& operator=(propmat_operator&&) = default;
+
+  propmat_operator(std::shared_ptr<AbsorptionBands> bands,
+                   std::shared_ptr<AtmPoint> atm,
+                   std::shared_ptr<ArrayOfCIARecord> cia,
+                   std::shared_ptr<ArrayOfXsecRecord> xsec,
+                   lbl::zeeman::pol pol = lbl::zeeman::pol::no);
+
+  std::pair<Propmat, Stokvec> operator()(const Numeric frequency,
+                                         const Vector2 los) const;
 };  // struct propmat_operator
 }  // namespace fwd

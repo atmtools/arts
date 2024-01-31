@@ -1594,7 +1594,9 @@ void xml_read_from_stream(std::istream& is_xml,
     // Get key
     String key_str;
     internal_open_tag.get_attribute_value("key", key_str);
-    auto key = Absorption::PredefinedModel::toDataKeyOrThrow(key_str);
+    SpeciesIsotopeRecord isot{key_str};
+    ARTS_USER_ERROR_IF(
+        not isot.OK(), "Cannot understand key: ", std::quoted(key_str))
 
     String sizes_str;
     internal_open_tag.get_attribute_value("sizes", sizes_str);
@@ -1602,12 +1604,21 @@ void xml_read_from_stream(std::istream& is_xml,
     Index sizes_len;
     internal_open_tag.get_attribute_value("sizes_nelem", sizes_len);
 
+    String data_type;
+    internal_open_tag.get_attribute_value("type", data_type);
+    auto data = Absorption::PredefinedModel::model_data(data_type);
+
     std::vector<std::size_t> sizes(sizes_len);
     std::istringstream values(sizes_str);
     for (auto& sz : sizes) values >> sz;
 
-    pmd.resize(sizes, key);
-    pmd.set_data_from_stream(is_xml, key);
+    std::visit(
+        [&](auto& v) {
+          v.resize(sizes);
+          is_xml >> v;
+          pmd.set(isot, v);
+        },
+        data);
 
     ArtsXMLTag internal_close_tag;
     internal_close_tag.read_from_stream(is_xml);
@@ -1640,15 +1651,13 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_set_stream_precision(os_xml);
-  const auto keys = pmd.keys();
-
-  for (auto& key : keys) {
+  for (auto& [key, data] : pmd) {
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("Data");
-    internal_open_tag.add_attribute("key", String{toString(key)});
+    internal_open_tag.add_attribute("key", key.FullName());
+    internal_open_tag.add_attribute("type", String{Absorption::PredefinedModel::model_name(data)});
 
-    auto sizes = pmd.data_size(key);
+    const std::vector<Size> sizes = std::visit([&](auto& v) { return v.sizes(); }, data);
     internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
 
     String sizes_str = "";
@@ -1662,7 +1671,7 @@ void xml_write_to_stream(std::ostream& os_xml,
     os_xml << '\n';
 
     // Set values
-    pmd.output_data_to_stream(os_xml, key);
+    std::visit([&](auto& v) { os_xml << v; }, data);
     os_xml << '\n';
 
     ArtsXMLTag internal_close_tag;
