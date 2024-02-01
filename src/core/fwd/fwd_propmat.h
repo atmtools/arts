@@ -12,7 +12,7 @@
 #include "rtepack.h"
 
 namespace fwd {
-class propmat_operator {
+class propmat {
   std::shared_ptr<AtmPoint> atm{};
   lbl::zeeman::pol pol{lbl::zeeman::pol::no};
 
@@ -22,13 +22,13 @@ class propmat_operator {
   hxsec::full xsec{};
 
  public:
-  propmat_operator() = default;
-  propmat_operator(const propmat_operator&) = default;
-  propmat_operator(propmat_operator&&) = default;
-  propmat_operator& operator=(const propmat_operator&) = default;
-  propmat_operator& operator=(propmat_operator&&) = default;
+  propmat() = default;
+  propmat(const propmat&) = default;
+  propmat(propmat&&) = default;
+  propmat& operator=(const propmat&) = default;
+  propmat& operator=(propmat&&) = default;
 
-  propmat_operator(std::shared_ptr<AtmPoint> atm,
+  propmat(std::shared_ptr<AtmPoint> atm,
                    std::shared_ptr<AbsorptionBands> lines,
                    std::shared_ptr<ArrayOfCIARecord> cia,
                    std::shared_ptr<ArrayOfXsecRecord> xsec,
@@ -48,6 +48,5 @@ class propmat_operator {
   void set_cia(std::shared_ptr<ArrayOfCIARecord> cia);
   void set_predef(std::shared_ptr<PredefinedModelData> predef);
   void set_model(std::shared_ptr<ArrayOfXsecRecord> xsec);
-
-};  // struct propmat_operator
+};  // struct propmat
 }  // namespace fwd

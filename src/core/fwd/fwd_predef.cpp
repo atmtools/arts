@@ -15,11 +15,11 @@ full::full(std::shared_ptr<AtmPoint> atm_,
   adapt();
 }
 
-Complex full::operator()(Numeric f) const {
+Complex full::operator()(const Numeric frequency) const {
   PropmatVector propmat_clearsky(1);
   PropmatMatrix dpropmat_clearsky_dx;
   JacobianTargets jacobian_targets;
-  Vector f_grid{f};
+  Vector f_grid{frequency};
 
   for (auto& [tag, mod] : *data) {
     Absorption::PredefinedModel::compute(propmat_clearsky,
@@ -34,21 +34,6 @@ Complex full::operator()(Numeric f) const {
   }
 
   return propmat_clearsky[0].A();
-}
-
-void full::operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const {
-  std::transform(
-      fs.begin(),
-      fs.end(),
-      abs.begin(),
-      abs.begin(),
-      [this](const Numeric& f, const Complex& s) { return s + operator()(f); });
-}
-
-ComplexVector full::operator()(const Vector& fs) const {
-  ComplexVector abs(fs.size());
-  operator()(abs, fs);
-  return abs;
 }
 
 void full::set_model(std::shared_ptr<PredefinedModelData> data_) {

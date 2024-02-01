@@ -3,7 +3,7 @@
 #include "lbl_zeeman.h"
 
 namespace fwd {
-propmat_operator::propmat_operator(std::shared_ptr<AtmPoint> atm_,
+propmat::propmat(std::shared_ptr<AtmPoint> atm_,
                                    std::shared_ptr<AbsorptionBands> lines_,
                                    std::shared_ptr<ArrayOfCIARecord> cia,
                                    std::shared_ptr<ArrayOfXsecRecord> xsec,
@@ -18,7 +18,7 @@ propmat_operator::propmat_operator(std::shared_ptr<AtmPoint> atm_,
       predef(atm, std::move(predef)),
       xsec(atm, std::move(xsec)) {}
 
-std::pair<Propmat, Stokvec> propmat_operator::operator()(
+std::pair<Propmat, Stokvec> propmat::operator()(
     const Numeric f, const Vector2 los) const {
   Propmat propmat{};
   Stokvec stokvec{};
@@ -36,7 +36,7 @@ std::pair<Propmat, Stokvec> propmat_operator::operator()(
   return {propmat, stokvec};
 }
 
-void propmat_operator::set_atm(std::shared_ptr<AtmPoint> atm_) {
+void propmat::set_atm(std::shared_ptr<AtmPoint> atm_) {
   atm = std::move(atm_);
   lines.set_atm(atm);
   cia.set_atm(atm);
@@ -44,29 +44,29 @@ void propmat_operator::set_atm(std::shared_ptr<AtmPoint> atm_) {
   xsec.set_atm(atm);
 }
 
-void propmat_operator::set_pol(lbl::zeeman::pol pol_) {
+void propmat::set_pol(lbl::zeeman::pol pol_) {
   pol = pol_;
   lines.set_pol(pol);
 }
 
-void propmat_operator::set_ciaextrap(Numeric extrap) { cia.set_extrap(extrap); }
+void propmat::set_ciaextrap(Numeric extrap) { cia.set_extrap(extrap); }
 
-void propmat_operator::set_ciarobust(Index robust) { cia.set_robust(robust); }
+void propmat::set_ciarobust(Index robust) { cia.set_robust(robust); }
 
-void propmat_operator::set_bands(std::shared_ptr<AbsorptionBands> lines_) {
+void propmat::set_bands(std::shared_ptr<AbsorptionBands> lines_) {
   lines.set_model(std::move(lines_));
 }
 
-void propmat_operator::set_cia(std::shared_ptr<ArrayOfCIARecord> cia_) {
+void propmat::set_cia(std::shared_ptr<ArrayOfCIARecord> cia_) {
   cia.set_model(std::move(cia_));
 }
 
-void propmat_operator::set_predef(
+void propmat::set_predef(
     std::shared_ptr<PredefinedModelData> predef_) {
   predef.set_model(std::move(predef_));
 }
 
-void propmat_operator::set_model(std::shared_ptr<ArrayOfXsecRecord> xsec_) {
+void propmat::set_model(std::shared_ptr<ArrayOfXsecRecord> xsec_) {
   xsec.set_model(std::move(xsec_));
 }
 }  // namespace fwd

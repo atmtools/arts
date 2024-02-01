@@ -24,23 +24,8 @@ full::single::single(Numeric p,
       ignore_errors(robust),
       ciarecords(cia) {}
 
-Complex full::single::at(Numeric f) const {
-  return scl * ciarecords->Extract(f, T, extrapol, ignore_errors);
-}
-
-void full::single::at(ExhaustiveComplexVectorView abs, const Vector& fs) const {
-  std::transform(
-      fs.begin(),
-      fs.end(),
-      abs.begin(),
-      abs.begin(),
-      [this](const Numeric& f, const Complex& s) { return s + at(f); });
-}
-
-ComplexVector full::single::at(const Vector& fs) const {
-  ComplexVector abs(fs.size());
-  at(abs, fs);
-  return abs;
+Complex full::single::at(const Numeric frequency) const {
+  return scl * ciarecords->Extract(frequency, T, extrapol, ignore_errors);
 }
 
 void full::adapt() {
@@ -66,23 +51,13 @@ full::full(std::shared_ptr<AtmPoint> atm_,
   adapt();
 }
 
-Complex full::operator()(Numeric f) const {
+Complex full::operator()(const Numeric frequency) const {
   return std::transform_reduce(
-      models.begin(), models.end(), Complex{}, std::plus<>{}, [f](auto& mod) {
-        return mod.at(f);
-      });
-}
-
-void full::operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const {
-  for (auto& mod : models) {
-    mod.at(abs, fs);
-  }
-}
-
-ComplexVector full::operator()(const Vector& fs) const {
-  ComplexVector abs(fs.size());
-  operator()(abs, fs);
-  return abs;
+      models.begin(),
+      models.end(),
+      Complex{},
+      std::plus<>{},
+      [f = frequency](auto& mod) { return mod.at(f); });
 }
 
 void full::set_extrap(Numeric extrap_) {

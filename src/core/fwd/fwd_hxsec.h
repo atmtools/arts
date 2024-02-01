@@ -19,9 +19,7 @@ class full {
 
     single(Numeric p, Numeric t, Numeric VMR, XsecRecord* xsec);
 
-    [[nodiscard]] Complex at(Numeric f) const;
-    void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-    [[nodiscard]] ComplexVector at(const Vector& fs) const;
+    [[nodiscard]] Complex at(const Numeric frequency) const;
   };
 
   std::shared_ptr<AtmPoint> atm{};
@@ -36,9 +34,7 @@ public:
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<ArrayOfXsecRecord> xsecrec);
 
-  [[nodiscard]] Complex operator()(Numeric f) const;
-  void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-  [[nodiscard]] ComplexVector operator()(const Vector& fs) const;
+  [[nodiscard]] Complex operator()(const Numeric frequency) const;
 
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_model(std::shared_ptr<ArrayOfXsecRecord> xsecrec);
