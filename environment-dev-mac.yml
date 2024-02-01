@@ -1,9 +1,7 @@
-name: pyarts-dev
 dependencies:
-        - python=3.10
         - build
         - ccache
-        - clang
+        - clang=16.*
         - clangxx
         - cmake
         - docutils
@@ -11,7 +9,7 @@ dependencies:
         - glew
         - glfw
         - lark-parser
-        - libclang
+        - libclang=16.*
         - libcxx
         - libmicrohttpd
         - llvm-openmp
@@ -22,7 +20,8 @@ dependencies:
         - pybind11
         - pytest
         - scipy
-        - sphinx>=6
+        - sphinx
+        - sphinx-favicon
         - sphinx_rtd_theme
         - xarray
         - zlib
