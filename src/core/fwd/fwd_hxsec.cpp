@@ -27,23 +27,21 @@ ComplexVector full::single::at(const Vector& fs) const {
   return abs;
 }
 
-full::full(const AtmPoint& atm_point,
-           const ArrayOfArrayOfSpeciesTag& allspecs,
-           const std::shared_ptr<std::vector<XsecRecord>>& xsec)
-    : xsecrec(xsec) {
-  for (auto& specs : allspecs) {
-    for (auto& spec : specs) {
-      if (spec.type == Species::TagType::XsecFit) {
-        auto* data = hitran_xsec_get_data(xsec, spec.Spec());
-        ARTS_USER_ERROR_IF(not data, "Cannot find XSEC data for tag: ", spec)
-
-        const Numeric VMR = atm_point[spec.Spec()];
-
-        models.emplace_back(
-            atm_point.pressure, atm_point.temperature, VMR, data);
-      }
-    }
+void full::adapt() {
+  models.resize(0);
+  models.reserve(xsecrec->size());
+  for (auto& model : *xsecrec) {
+    models.emplace_back(atm->pressure,
+                        atm->temperature,
+                        atm->operator[](model.Species()),
+                        &model);
   }
+}
+
+full::full(std::shared_ptr<AtmPoint> atm_,
+           std::shared_ptr<ArrayOfXsecRecord> xsecrec_)
+    : atm(std::move(atm_)), xsecrec(std::move(xsecrec_)) {
+  adapt();
 }
 
 Complex full::operator()(Numeric f) const {
@@ -63,5 +61,15 @@ ComplexVector full::operator()(const Vector& fs) const {
   ComplexVector abs(fs.size());
   operator()(abs, fs);
   return abs;
+}
+
+void full::set_atm(std::shared_ptr<AtmPoint> atm_) {
+  atm = std::move(atm_);
+  adapt();
+}
+
+void full::set_model(std::shared_ptr<ArrayOfXsecRecord> xsecrec_) {
+  xsecrec = std::move(xsecrec_);
+  adapt();
 }
 }  // namespace fwd::hxsec

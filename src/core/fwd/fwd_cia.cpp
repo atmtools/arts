@@ -95,7 +95,7 @@ void full::set_robust(Index robust_) {
   adapt();
 }
 
-void full::set_lines(std::shared_ptr<ArrayOfCIARecord> cia) {
+void full::set_model(std::shared_ptr<ArrayOfCIARecord> cia) {
   ciarecords = std::move(cia);
   adapt();
 }

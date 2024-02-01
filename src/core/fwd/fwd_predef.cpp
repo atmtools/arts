@@ -7,20 +7,12 @@
 #include "rtepack.h"
 
 namespace fwd::predef {
-full::full(const AtmPoint& atm_point,
-           const ArrayOfArrayOfSpeciesTag& allspecs,
-           const std::shared_ptr<PredefinedModelData>& data)
-    : P(atm_point.pressure),
-      T(atm_point.temperature),
-      vmrs(Absorption::PredefinedModel::VMRS(atm_point)),
-      predefined_model_data(data) {
-  for (auto& specs : allspecs) {
-    for (auto& spec : specs) {
-      if (spec.type == Species::TagType::Predefined) {
-        tags.push_back(spec.Isotopologue());
-      }
-    }
-  }
+void full::adapt() { vmrs = Absorption::PredefinedModel::VMRS(*atm); }
+
+full::full(std::shared_ptr<AtmPoint> atm_,
+           std::shared_ptr<PredefinedModelData> data_)
+    : atm(std::move(atm_)), data(std::move(data_)) {
+  adapt();
 }
 
 Complex full::operator()(Numeric f) const {
@@ -29,16 +21,16 @@ Complex full::operator()(Numeric f) const {
   JacobianTargets jacobian_targets;
   Vector f_grid{f};
 
-  for (auto& tag : tags) {
+  for (auto& [tag, mod] : *data) {
     Absorption::PredefinedModel::compute(propmat_clearsky,
                                          dpropmat_clearsky_dx,
                                          tag,
                                          f_grid,
-                                         P,
-                                         T,
+                                         atm->pressure,
+                                         atm->temperature,
                                          vmrs,
                                          jacobian_targets,
-                                         *predefined_model_data);
+                                         mod);
   }
 
   return propmat_clearsky[0].A();
@@ -57,5 +49,15 @@ ComplexVector full::operator()(const Vector& fs) const {
   ComplexVector abs(fs.size());
   operator()(abs, fs);
   return abs;
+}
+
+void full::set_model(std::shared_ptr<PredefinedModelData> data_) {
+  data = std::move(data_);
+  adapt();
+}
+
+void full::set_atm(std::shared_ptr<AtmPoint> atm_) {
+  atm = std::move(atm_);
+  adapt();
 }
 }  // namespace fwd::predef

@@ -8,7 +8,7 @@
 
 namespace fwd::hxsec {
 
-struct full {
+class full {
   struct single {
     Numeric scl{};
     Numeric P{};
@@ -24,17 +24,23 @@ struct full {
     [[nodiscard]] ComplexVector at(const Vector& fs) const;
   };
 
-  std::shared_ptr<ArrayOfXsecRecord> xsecrec;
+  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<ArrayOfXsecRecord> xsecrec{};
   std::vector<single> models{};
 
+  void adapt();
+
+public:
   full() = default;
 
-  full(const AtmPoint& atm_point,
-       const ArrayOfArrayOfSpeciesTag& allspecs,
-       const std::shared_ptr<ArrayOfXsecRecord>& xsec);
+  full(std::shared_ptr<AtmPoint> atm,
+       std::shared_ptr<ArrayOfXsecRecord> xsecrec);
 
   [[nodiscard]] Complex operator()(Numeric f) const;
   void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;
   [[nodiscard]] ComplexVector operator()(const Vector& fs) const;
+
+  void set_atm(std::shared_ptr<AtmPoint> atm);
+  void set_model(std::shared_ptr<ArrayOfXsecRecord> xsecrec);
 };
 }  // namespace fwd::hxsec

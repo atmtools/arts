@@ -13,15 +13,13 @@
 
 namespace fwd {
 class propmat_operator {
-  lbl::fwd::line_storage lines{};
-  cia::full cia{};
-  predef::full predef{};
-  hxsec::full hxsec{};
-
   std::shared_ptr<AtmPoint> atm{};
   lbl::zeeman::pol pol{lbl::zeeman::pol::no};
 
-  void adapt();
+  lbl::fwd::line_storage lines{};
+  cia::full cia{};
+  predef::full predef{};
+  hxsec::full xsec{};
 
  public:
   propmat_operator() = default;
@@ -30,13 +28,26 @@ class propmat_operator {
   propmat_operator& operator=(const propmat_operator&) = default;
   propmat_operator& operator=(propmat_operator&&) = default;
 
-  propmat_operator(std::shared_ptr<AbsorptionBands> bands,
-                   std::shared_ptr<AtmPoint> atm,
+  propmat_operator(std::shared_ptr<AtmPoint> atm,
+                   std::shared_ptr<AbsorptionBands> lines,
                    std::shared_ptr<ArrayOfCIARecord> cia,
                    std::shared_ptr<ArrayOfXsecRecord> xsec,
+                   std::shared_ptr<PredefinedModelData> predef,
+                   Numeric ciaextrap = {},
+                   Index ciarobust = {},
                    lbl::zeeman::pol pol = lbl::zeeman::pol::no);
 
   std::pair<Propmat, Stokvec> operator()(const Numeric frequency,
                                          const Vector2 los) const;
+
+  void set_atm(std::shared_ptr<AtmPoint> atm);
+  void set_pol(lbl::zeeman::pol pol);
+  void set_ciaextrap(Numeric extrap);
+  void set_ciarobust(Index robust);
+  void set_bands(std::shared_ptr<AbsorptionBands> lines);
+  void set_cia(std::shared_ptr<ArrayOfCIARecord> cia);
+  void set_predef(std::shared_ptr<PredefinedModelData> predef);
+  void set_model(std::shared_ptr<ArrayOfXsecRecord> xsec);
+
 };  // struct propmat_operator
 }  // namespace fwd

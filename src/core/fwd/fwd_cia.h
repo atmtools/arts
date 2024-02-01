@@ -30,10 +30,10 @@ class full {
     [[nodiscard]] ComplexVector at(const Vector& fs) const;
   };
 
-  std::shared_ptr<AtmPoint> atm;
-  std::shared_ptr<ArrayOfCIARecord> ciarecords;
-  Numeric extrap;
-  Index robust;
+  std::shared_ptr<AtmPoint> atm{};
+  std::shared_ptr<ArrayOfCIARecord> ciarecords{};
+  Numeric extrap{};
+  Index robust{};
 
   std::vector<single> models{};
 
@@ -53,7 +53,7 @@ class full {
 
   void set_extrap(Numeric extrap);
   void set_robust(Index robust);
-  void set_lines(std::shared_ptr<ArrayOfCIARecord> cia);
+  void set_model(std::shared_ptr<ArrayOfCIARecord> cia);
   void set_atm(std::shared_ptr<AtmPoint> atm);
 };
 }  // namespace fwd::cia

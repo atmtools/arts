@@ -87,7 +87,7 @@ void compute(
     const Numeric& rtp_temperature,
     const VMRS& vmr,
     const JacobianTargets& jacobian_targets,
-    const PredefinedModelData& predefined_model_data);
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
 } // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h

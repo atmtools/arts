@@ -1,11 +1,12 @@
-if (ARTS_CAT_DATA_DIR)
-    set (DOWNLOAD_CATDATA "")  # empty
+if(ARTS_CAT_DATA_DIR)
+    set(DOWNLOAD_CATDATA "") # empty
 else()
     list(APPEND DOWNLOAD_CATDATA
         cia/O2-CIA-O2.xml
         lines/O2-66.xml
         lines/CO2-626.xml
-        model/mt_ckd_4.0/H2O.xml
+        predef/H2O-SelfContCKDMT400.xml
+        predef/H2O-ForeignContCKDMT400.xml
     )
 endif()
 
@@ -29,14 +30,13 @@ if(DOWNLOAD_CATDATA_DEPS)
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES arts-cat-data)
 endif()
 
-
-if (ARTS_XML_DATA_DIR)
-    set(DOWNLOAD_XMLDATA "")  # empty
+if(ARTS_XML_DATA_DIR)
+    set(DOWNLOAD_XMLDATA "") # empty
 else()
     list(APPEND DOWNLOAD_XMLDATA
-    planets/Earth/afgl/tropical/t.xml
-    planets/Earth/afgl/tropical/p.xml
-    planets/Earth/afgl/tropical/O2.xml
+        planets/Earth/afgl/tropical/t.xml
+        planets/Earth/afgl/tropical/p.xml
+        planets/Earth/afgl/tropical/O2.xml
         star/Sun/solar_spectrum_May_2004.xml
     )
 endif()
@@ -59,5 +59,4 @@ if(DOWNLOAD_XMLDATA_DEPS)
     # Clean
     #
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES arts-xml-data)
-
 endif()

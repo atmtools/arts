@@ -109,14 +109,14 @@ void line_storage::adapt() {
   }
 }
 
-line_storage::line_storage(std::shared_ptr<AbsorptionBands> bands_,
-                           std::shared_ptr<AtmPoint> atm_,
+line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
+                           std::shared_ptr<AbsorptionBands> bands_,
                            const zeeman::pol pol_)
-    : bands(std::move(bands_)), atm(std::move(atm_)), pol(pol_) {
+    : atm(std::move(atm_)), bands(std::move(bands_)), pol(pol_) {
   adapt();
 }
 
-void line_storage::set_lines(std::shared_ptr<AbsorptionBands> bands_) {
+void line_storage::set_model(std::shared_ptr<AbsorptionBands> bands_) {
   bands = std::move(bands_);
   adapt();
 }

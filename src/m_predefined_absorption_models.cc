@@ -73,7 +73,6 @@ void propagation_matrixAddPredefined(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     const PredefinedModelData& propagation_matrix_predefined_model_data,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
@@ -94,21 +93,17 @@ void propagation_matrixAddPredefined(
   }
 
   const Absorption::PredefinedModel::VMRS vmr(atm_point);
-  for (auto& tag_groups : abs_species) {
-    if (select_species != SpeciesEnum::Bath and
-        tag_groups.Species() != select_species)
+  for (auto& [isot, data] : propagation_matrix_predefined_model_data) {
+    if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
-    for (auto& tag : tag_groups) {
-      Absorption::PredefinedModel::compute(
-          propagation_matrix,
-          propagation_matrix_jacobian,
-          tag.Isotopologue(),
-          f_grid,
-          atm_point.pressure,
-          atm_point.temperature,
-          vmr,
-          jacobian_targets,
-          propagation_matrix_predefined_model_data);
-    }
+    Absorption::PredefinedModel::compute(propagation_matrix,
+                                         propagation_matrix_jacobian,
+                                         isot,
+                                         f_grid,
+                                         atm_point.pressure,
+                                         atm_point.temperature,
+                                         vmr,
+                                         jacobian_targets,
+                                         data);
   }
 }

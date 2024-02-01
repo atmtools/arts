@@ -257,8 +257,7 @@ void CIARecord::Extract(VectorView res,
 // Documentation in header file.
 String CIARecord::MoleculeName(const Index i) const {
   // Assert that i is 0 or 1:
-  ARTS_ASSERT(i >= 0);
-  ARTS_ASSERT(i <= 1);
+  ARTS_ASSERT(i == 0 or i == 1);
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.

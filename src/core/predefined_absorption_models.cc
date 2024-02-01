@@ -11,6 +11,8 @@
 
 #include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
+#include <stdexcept>
+#include <variant>
 
 #include "atm.h"
 #include "debug.h"
@@ -38,21 +40,17 @@ namespace Absorption::PredefinedModel {
  * @return false When there are no computations that can be or have been performed
  */
 template <bool check_exist>
-bool compute_selection(PropmatVector& pm [[maybe_unused]],
-                       const SpeciesIsotopeRecord& model,
-                       const Vector& f [[maybe_unused]],
-                       const Numeric& p [[maybe_unused]],
-                       const Numeric& t [[maybe_unused]],
-                       const VMRS& vmr [[maybe_unused]],
-                       const PredefinedModelData& predefined_model_data
-                       [[maybe_unused]]) {
-  constexpr Index ForeignContCKDMT400 =
-      find_species_index(Species::Species::Water, "ForeignContCKDMT400");
-  constexpr Index SelfContCKDMT400 =
-      find_species_index(Species::Species::Water, "SelfContCKDMT400");
-
+bool compute_selection(
+    PropmatVector& pm [[maybe_unused]],
+    const SpeciesIsotopeRecord& model,
+    const Vector& f [[maybe_unused]],
+    const Numeric& p [[maybe_unused]],
+    const Numeric& t [[maybe_unused]],
+    const VMRS& vmr [[maybe_unused]],
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data
+    [[maybe_unused]]) try {
   switch (Species::find_species_index(model)) {
-    case ForeignContCKDMT400:
+    case find_species_index(Species::Species::Water, "ForeignContCKDMT400"):
       if constexpr (not check_exist)
         MT_CKD400::compute_foreign_h2o(
             pm,
@@ -60,8 +58,7 @@ bool compute_selection(PropmatVector& pm [[maybe_unused]],
             p,
             t,
             vmr.H2O,
-            predefined_model_data
-                .get<MT_CKD400::WaterData, ForeignContCKDMT400>());
+            std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT400"):
       if constexpr (not check_exist)
@@ -71,8 +68,7 @@ bool compute_selection(PropmatVector& pm [[maybe_unused]],
             p,
             t,
             vmr.H2O,
-            predefined_model_data
-                .get<MT_CKD400::WaterData, SelfContCKDMT400>());
+            std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
@@ -182,6 +178,11 @@ bool compute_selection(PropmatVector& pm [[maybe_unused]],
       break;
   }
   return false;
+} catch (std::bad_variant_access& e) {
+  throw std::runtime_error(
+      var_string("Data for model ", model, " is not of correct type"));
+} catch (std::exception&) {
+  throw;
 }
 
 bool can_compute(const SpeciesIsotopeRecord& model) {
@@ -215,7 +216,7 @@ void compute_vmr_deriv(PropmatVector& dpm,
                        VMRS vmr,
                        const Numeric dvmr,
                        const Species::Species spec,
-                       const PredefinedModelData& predefined_model_data
+                       const Absorption::PredefinedModel::ModelVariant& predefined_model_data
                        [[maybe_unused]]) {
   switch (spec) {
     case Species::Species::Oxygen:
@@ -254,7 +255,7 @@ void compute(PropmatVector& propmat_clearsky,
              const Numeric& rtp_temperature,
              const VMRS& vmr,
              const JacobianTargets& jacobian_targets,
-             const PredefinedModelData& predefined_model_data) {
+             const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
   if (not compute_selection<true>(propmat_clearsky,
                                   model,
                                   f_grid,

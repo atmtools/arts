@@ -57,7 +57,6 @@ void propagation_matrixAddXsecFit(  // WS Output:
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
@@ -118,40 +117,23 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Size i = 0; i < abs_species.size(); i++) {
+  for (auto& this_xdata : xsec_fit_data) {
     if (select_species != SpeciesEnum::Bath and
-        abs_species[i].Species() != select_species)
+        this_xdata.Species() != select_species)
       continue;
+    if (do_abort) continue;
 
-    const Numeric vmr = atm_point[abs_species[i].Species()];
+    const Numeric vmr = atm_point[this_xdata.Species()];
+    const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
+    const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
 
-    for (Size s = 0; s < abs_species[i].size(); s++) {
-      const SpeciesTag& this_species = abs_species[i][s];
-
-      // Check if this is a HITRAN cross section tag
-      if (this_species.Type() != Species::TagType::XsecFit) continue;
-
-      Index this_xdata_index =
-          hitran_xsec_get_index(xsec_fit_data, this_species.Spec());
-      ARTS_USER_ERROR_IF(this_xdata_index < 0,
-                         "Cross-section species ",
-                         this_species.Name(),
-                         " not found in *xsec_fit_data*.")
-      const XsecRecord& this_xdata = xsec_fit_data[this_xdata_index];
-      // ArrayOfMatrix& this_dxsec = do_jac ? propagation_matrix_jacobian[i] : empty;
-
-      if (do_abort) continue;
-      const Numeric current_p = force_p < 0 ? atm_point.pressure : force_p;
-      const Numeric current_t = force_t < 0 ? atm_point.temperature : force_t;
-
-      // Get the absorption cross sections from the HITRAN data:
-      this_xdata.Extract(xsec_temp, f_grid, current_p, current_t);
-      if (do_freq_jac) {
-        this_xdata.Extract(dxsec_temp_dF, dfreq, current_p, current_t);
-      }
-      if (do_temp_jac) {
-        this_xdata.Extract(dxsec_temp_dT, f_grid, current_p, current_t + dt);
-      }
+    // Get the absorption cross sections from the HITRAN data:
+    this_xdata.Extract(xsec_temp, f_grid, current_p, current_t);
+    if (do_freq_jac) {
+      this_xdata.Extract(dxsec_temp_dF, dfreq, current_p, current_t);
+    }
+    if (do_temp_jac) {
+      this_xdata.Extract(dxsec_temp_dT, f_grid, current_p, current_t + dt);
     }
 
     // Add to result variable:
@@ -178,8 +160,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
         }
       }
 
-      if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
-              abs_species[i].Species());
+      if (const auto j =
+              jacobian_targets.find<Jacobian::AtmTarget>(this_xdata.Species());
           j.first) {
         const auto iq = j.second->target_pos;
         propagation_matrix_jacobian(iq, f).A() += xsec_temp[f] * nd * vmr;
