@@ -27,7 +27,7 @@ Dependencies
 
 Build Prerequisites (provided by Miniforge3):
 
-- gcc/g++ >=11 (or llvm/clang >=15)
+- gcc/g++ >=12 (or llvm/clang >=16)
 - cmake (>=3.18)
 - zlib
 - openblas
