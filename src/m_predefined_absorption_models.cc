@@ -12,6 +12,7 @@
 
 #include "atm.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "jacobian.h"
 #include "logic.h"
 #include "predefined_absorption_models.h"
@@ -41,7 +42,8 @@ void propagation_matrix_predefined_model_dataAddWaterMTCKD400(
   ARTS_USER_ERROR_IF(not is_regularly_increasing_within_epsilon(wavenumbers),
                      "The wavenumbers must be increasing in a regular manner")
 
-  Absorption::PredefinedModel::MT_CKD400::WaterData x;
+  using Model = Absorption::PredefinedModel::MT_CKD400::WaterData;
+  Model x;
   x.ref_temp = ref_temp;
   x.ref_press = ref_press;
   x.ref_h2o_vmr = ref_h2o_vmr;
@@ -57,7 +59,13 @@ void propagation_matrix_predefined_model_dataAddWaterMTCKD400(
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
-  propagation_matrix_predefined_model_data.set(std::move(x));
+  propagation_matrix_predefined_model_data
+      .set<Model,
+           find_species_index(Species::Species::Water, "ForeignContCKDMT400")>(
+          x);
+  propagation_matrix_predefined_model_data
+      .set<Model,
+           find_species_index(Species::Species::Water, "SelfContCKDMT400")>(x);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -65,7 +73,6 @@ void propagation_matrixAddPredefined(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     const PredefinedModelData& propagation_matrix_predefined_model_data,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
@@ -86,21 +93,17 @@ void propagation_matrixAddPredefined(
   }
 
   const Absorption::PredefinedModel::VMRS vmr(atm_point);
-  for (auto& tag_groups : abs_species) {
-    if (select_species != SpeciesEnum::Bath and
-        tag_groups.Species() != select_species)
+  for (auto& [isot, data] : propagation_matrix_predefined_model_data) {
+    if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
-    for (auto& tag : tag_groups) {
-      Absorption::PredefinedModel::compute(
-          propagation_matrix,
-          propagation_matrix_jacobian,
-          tag.Isotopologue(),
-          f_grid,
-          atm_point.pressure,
-          atm_point.temperature,
-          vmr,
-          jacobian_targets,
-          propagation_matrix_predefined_model_data);
-    }
+    Absorption::PredefinedModel::compute(propagation_matrix,
+                                         propagation_matrix_jacobian,
+                                         isot,
+                                         f_grid,
+                                         atm_point.pressure,
+                                         atm_point.temperature,
+                                         vmr,
+                                         jacobian_targets,
+                                         data);
   }
 }

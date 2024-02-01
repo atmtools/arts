@@ -1,4 +1,5 @@
 #include <array>
+#include <iostream>
 #include "hitran_species.h"
 
 void test001() {

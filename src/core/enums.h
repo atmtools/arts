@@ -3,7 +3,10 @@
 
 #include <algorithm>
 #include <array>
-#include <iostream>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <string_view>

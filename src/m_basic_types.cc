@@ -27,6 +27,7 @@
 #include <workspace.h>
 
 #include <cmath>
+#include <iostream>
 
 #include "sorting.h"
 

@@ -1,5 +1,7 @@
 #include "isotopologues.h"
 
+#include <iostream>
+
 int main() {
   std::cout << "Test correctness of Species fails here:\n";
   for (std::size_t i=0; i<Species::Isotopologues.size(); i++) {

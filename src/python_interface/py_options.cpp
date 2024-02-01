@@ -92,10 +92,6 @@ void py_options(py::module_& m) try {
   // Surface
   DeclareOptionRenamed(SurfaceKey, Surf, Key);
 
-  // Predef enums
-  DeclareOptionRenamed(
-      PredefinedModelDataKey, Absorption::PredefinedModel, DataKey);
-
   // Position types
   DeclareOptionRenamed(PathPositionType, path, PositionType);
 

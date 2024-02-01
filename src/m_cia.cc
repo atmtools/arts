@@ -19,21 +19,20 @@
 #include "cia.h"
 #include "debug.h"
 #include "file.h"
-#include "m_general.h"
 #include "jacobian.h"
+#include "m_general.h"
 #include "physics_funcs.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
 
-inline constexpr Numeric SPEED_OF_LIGHT=Constant::speed_of_light;
+inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddCIA(  // WS Output:
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
@@ -45,15 +44,15 @@ void propagation_matrixAddCIA(  // WS Output:
   // Size of problem
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_targets.target_count();
-  const Index ns = abs_species.size();
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  check_abs_species(abs_species);
   ARTS_USER_ERROR_IF(propagation_matrix.nelem() not_eq nf,
                      "*f_grid* must match *propagation_matrix*")
-  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.nrows() not_eq nq,
+  ARTS_USER_ERROR_IF(
+      propagation_matrix_jacobian.nrows() not_eq nq,
       "*propagation_matrix_jacobian* must match derived form of *jacobian_targets*")
-  ARTS_USER_ERROR_IF(propagation_matrix_jacobian.ncols() not_eq nf,
+  ARTS_USER_ERROR_IF(
+      propagation_matrix_jacobian.ncols() not_eq nf,
       "*propagation_matrix_jacobian* must have frequency dim same as *f_grid*")
   ARTS_USER_ERROR_IF(any_negative(f_grid),
                      "Negative frequency (at least one value).")
@@ -61,10 +60,13 @@ void propagation_matrixAddCIA(  // WS Output:
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
   // Jacobian overhead START
-  const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
-  const auto jac_temps = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+  const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(
+      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+  const auto jac_temps =
+      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
 
-  const bool do_wind_jac = std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
+  const bool do_wind_jac =
+      std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
   const bool do_temp_jac = jac_temps.first;
   const Numeric dt = field_perturbation(std::span{&jac_temps, 1});
   const Numeric df = field_perturbation(std::span{jac_freqs});
@@ -77,12 +79,15 @@ void propagation_matrixAddCIA(  // WS Output:
     for (Index iv = 0; iv < f_grid.nelem(); iv++) dfreq[iv] = f_grid[iv] + df;
   }
 
-  Vector dxsec_temp_dF(do_wind_jac ? f_grid.nelem() : 0), dxsec_temp_dT(do_temp_jac ? f_grid.nelem() : 0);
+  Vector dxsec_temp_dF(do_wind_jac ? f_grid.nelem() : 0),
+      dxsec_temp_dT(do_temp_jac ? f_grid.nelem() : 0);
 
-  ARTS_USER_ERROR_IF(do_wind_jac and 
-      !std::isnormal(df), "df must be >0 and not NaN or Inf: ", df)
-  ARTS_USER_ERROR_IF(do_temp_jac and
-      !std::isnormal(dt), "dt must be >0 and not NaN or Inf: ", dt)
+  ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df),
+                     "df must be >0 and not NaN or Inf: ",
+                     df)
+  ARTS_USER_ERROR_IF(do_temp_jac and !std::isnormal(dt),
+                     "dt must be >0 and not NaN or Inf: ",
+                     dt)
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
@@ -96,115 +101,91 @@ void propagation_matrixAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (Index ispecies = 0; ispecies < ns; ispecies++) {
+  for (const auto& this_cia : propagation_matrix_cia_data) {
     if (select_species != SpeciesEnum::Bath and
-        select_species != abs_species[ispecies].Species())
+        select_species != this_cia.Species(0))
       continue;
 
-    // Skip it if there are no species or there is Zeeman requested
-    if (not abs_species[ispecies].size() or abs_species[ispecies].Zeeman())
-      continue;
+    // We have to multiply with the number density of the second CIA species.
+    // We do not have to multiply with the first, since we still
+    // want to return a (unary) absorption cross-section, not an
+    // absorption coefficient.
+    const Numeric nd_sec =
+        number_density(atm_point.pressure, atm_point.temperature) *
+        atm_point[this_cia.Species(1)];
+    // Get the binary absorption cross sections from the CIA data:
 
-    // Go through the tags in the current tag group to see if they
-    // are continuum tags:
-    for (Size s = 0; s < abs_species[ispecies].size(); ++s) {
-      const SpeciesTag& this_species = abs_species[ispecies][s];
-
-      // Check if this is a CIA tag
-      if (this_species.Type() != Species::TagType::Cia) continue;
-
-      // Get convenient references of this CIA data record and this
-      // absorption cross-section record:
-      Index this_cia_index = cia_get_index(
-          propagation_matrix_cia_data, this_species.Spec(), this_species.cia_2nd_species);
-
-      ARTS_ASSERT(this_cia_index != -1);
-
-      const CIARecord& this_cia = propagation_matrix_cia_data[this_cia_index];
-
-      // Find out index of VMR for the second CIA species.
-      // (The index for the first species is simply i.)
-      Index i_sec = find_first_species(abs_species, this_cia.Species(1));
-
-      // Catch the case that the VMR for the second species does not exist:
-      ARTS_USER_ERROR_IF(
-          i_sec < 0,
-          "VMR profile for second species in CIA species pair does not exist.\n"
-          "Tag ",
-          this_species.Name(),
-          " needs a VMR profile of ",
-          this_cia.MoleculeName(1),
-          "!")
-
-      // We have to multiply with the number density of the second CIA species.
-      // We do not have to multiply with the first, since we still
-      // want to return a (unary) absorption cross-section, not an
-      // absorption coefficient.
-      const Numeric nd_sec =
-          number_density(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
-      // Get the binary absorption cross sections from the CIA data:
-
-      try {
-        this_cia.Extract(xsec_temp,
-                         f_grid,
+    try {
+      this_cia.Extract(xsec_temp,
+                       f_grid,
+                       atm_point.temperature,
+                       T_extrapolfac,
+                       ignore_errors);
+      if (do_wind_jac) {
+        this_cia.Extract(dxsec_temp_dF,
+                         dfreq,
                          atm_point.temperature,
                          T_extrapolfac,
                          ignore_errors);
-        if (do_wind_jac) {
-          this_cia.Extract(dxsec_temp_dF,
-                           dfreq,
-                           atm_point.temperature,
-                           T_extrapolfac,
-                           ignore_errors);
-        }
-        if (do_temp_jac) {
-          this_cia.Extract(dxsec_temp_dT,
-                           f_grid,
-                           atm_point.temperature + dt,
-                           T_extrapolfac,
-                           ignore_errors);
-        }
-      } catch (const std::runtime_error& e) {
-        ARTS_USER_ERROR(
-            "Problem with CIA species ", this_species.Name(), ":\n", e.what())
+      }
+      if (do_temp_jac) {
+        this_cia.Extract(dxsec_temp_dT,
+                         f_grid,
+                         atm_point.temperature + dt,
+                         T_extrapolfac,
+                         ignore_errors);
+      }
+    } catch (const std::runtime_error& e) {
+      ARTS_USER_ERROR("Problem with CIA species ",
+                      this_cia.MoleculeName(0),
+                      '-',
+                      this_cia.MoleculeName(1),
+                      ":\n",
+                      e.what())
+    }
+
+    const Numeric nd =
+        number_density(atm_point.pressure, atm_point.temperature);
+    const Numeric dnd_dt =
+        dnumber_density_dt(atm_point.pressure, atm_point.temperature);
+    const Numeric dnd_dt_sec =
+        dnumber_density_dt(atm_point.pressure, atm_point.temperature) *
+        atm_point[this_cia.Species(1)];
+    for (Index iv = 0; iv < f_grid.nelem(); iv++) {
+      propagation_matrix[iv].A() +=
+          nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
+
+      if (jac_temps.first) {
+        const auto iq = jac_temps.second->target_pos;
+        propagation_matrix_jacobian(iq, iv).A() +=
+            ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
+              xsec_temp[iv] * dnd_dt_sec) *
+                 nd +
+             xsec_temp[iv] * nd_sec * dnd_dt) *
+            atm_point[this_cia.Species(0)];
       }
 
-      const Numeric nd = number_density(atm_point.pressure, atm_point.temperature);
-      const Numeric dnd_dt =
-          dnumber_density_dt(atm_point.pressure, atm_point.temperature);
-      const Numeric dnd_dt_sec =
-          dnumber_density_dt(atm_point.pressure, atm_point.temperature) * atm_point[this_cia.Species(1)];
-      for (Index iv = 0; iv < f_grid.nelem(); iv++) {
-        propagation_matrix[iv].A() +=
-            nd_sec * xsec_temp[iv] * nd * atm_point[this_cia.Species(0)];
-
-        if (jac_temps.first) {
-          const auto iq = jac_temps.second->target_pos;
-          propagation_matrix_jacobian(iq, iv).A() +=
-              ((nd_sec * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
-                xsec_temp[iv] * dnd_dt_sec) *
-                   nd +
-               xsec_temp[iv] * nd_sec * dnd_dt) *
-              atm_point[this_cia.Species(0)];
-        }
-
-        for (auto& j : jac_freqs) {
-          if (j.first) {
-            const auto iq = j.second->target_pos;
-            propagation_matrix_jacobian(iq, iv).A() +=
-                nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
-                atm_point[this_cia.Species(1)];
-          }
-        }
-
-        if (const auto j = jacobian_targets.find<Jacobian::AtmTarget>(
-                abs_species[ispecies].Species());
-            j.first) {
+      for (auto& j : jac_freqs) {
+        if (j.first) {
           const auto iq = j.second->target_pos;
-          propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+          propagation_matrix_jacobian(iq, iv).A() +=
+              nd_sec * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df * nd *
+              atm_point[this_cia.Species(1)];
         }
+      }
 
-        // FIXME: Missing secondary species !
+      if (const auto j =
+              jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(0));
+          j.first) {
+        const auto iq = j.second->target_pos;
+        propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
+      }
+
+      if (const auto j =
+              jacobian_targets.find<Jacobian::AtmTarget>(this_cia.Species(1));
+          j.first) {
+        const auto iq = j.second->target_pos;
+        propagation_matrix_jacobian(iq, iv).A() += nd_sec * xsec_temp[iv] * nd;
       }
     }
   }
@@ -218,9 +199,11 @@ void CIARecordReadFromFile(  // WS GOutput:
     const String& filename) {
   SpeciesTag species(species_tag);
 
-  ARTS_USER_ERROR_IF (species.Type() != Species::TagType::Cia,
-      "Invalid species tag ", species_tag, ".\n"
-      "This is not recognized as a CIA type.\n")
+  ARTS_USER_ERROR_IF(species.Type() != Species::TagType::Cia,
+                     "Invalid species tag ",
+                     species_tag,
+                     ".\n"
+                     "This is not recognized as a CIA type.\n")
 
   cia_record.SetSpecies(species.Spec(), species.cia_2nd_species);
   cia_record.ReadFromCIA(filename);
@@ -232,8 +215,9 @@ void propagation_matrix_cia_dataAddCIARecord(  // WS Output:
     // WS GInput:
     const CIARecord& cia_record,
     const Index& clobber) {
-  Index cia_index =
-      cia_get_index(propagation_matrix_cia_data, cia_record.Species(0), cia_record.Species(1));
+  Index cia_index = cia_get_index(propagation_matrix_cia_data,
+                                  cia_record.Species(0),
+                                  cia_record.Species(1));
   if (cia_index == -1)
     propagation_matrix_cia_data.push_back(cia_record);
   else if (clobber)
@@ -270,14 +254,13 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
       // If cia_index is not -1, we have already read this datafile earlier
       if (cia_index != -1) continue;
 
-      cia_names.push_back(String(Species::toShortName(abs_species[sp][iso].Spec())) +
-          "-" +
+      cia_names.push_back(
+          String(Species::toShortName(abs_species[sp][iso].Spec())) + "-" +
           String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
 
       cia_names.push_back(
           String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)) +
-          "-" +
-          String(Species::toShortName(abs_species[sp][iso].Spec())));
+          "-" + String(Species::toShortName(abs_species[sp][iso].Spec())));
 
       ArrayOfString checked_dirs;
 
@@ -316,10 +299,12 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
         }
       }
 
-      ARTS_USER_ERROR_IF (!found,
-          "Error: No data file found for CIA species ", cia_names[0],
-           "\n"
-           "Looked in directories: ", checked_dirs)
+      ARTS_USER_ERROR_IF(!found,
+                         "Error: No data file found for CIA species ",
+                         cia_names[0],
+                         "\n"
+                         "Looked in directories: ",
+                         checked_dirs)
     }
   }
 }
@@ -351,8 +336,7 @@ void propagation_matrix_cia_dataReadFromXML(  // WS Output:
       // If cia_index is -1, this CIA tag was not present in the input file
       if (cia_index == -1) {
         missing_tags.push_back(
-            String(Species::toShortName(abs_species[sp][iso].Spec())) +
-            "-" +
+            String(Species::toShortName(abs_species[sp][iso].Spec())) + "-" +
             String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
       }
     }
@@ -370,7 +354,7 @@ void propagation_matrix_cia_dataReadFromXML(  // WS Output:
         first = false;
       os << missing_tags[i];
     }
-    ARTS_USER_ERROR (os.str());
+    ARTS_USER_ERROR(os.str());
   }
 }
 
@@ -394,8 +378,9 @@ void propagation_matrix_cia_dataReadSpeciesSplitCatalog(
   names.erase(std::unique(names.begin(), names.end()), names.end());
 
   const std::filesystem::path inpath{basename.c_str()};
-  const bool is_dir = basename.back() == '/' or std::filesystem::is_directory(inpath);
-  
+  const bool is_dir =
+      basename.back() == '/' or std::filesystem::is_directory(inpath);
+
   for (auto& name : names) {
     auto fil{inpath};
     if (is_dir) {
@@ -406,8 +391,11 @@ void propagation_matrix_cia_dataReadSpeciesSplitCatalog(
 
     xml_read_from_file(fil.c_str(), propagation_matrix_cia_data.emplace_back());
 
-    ARTS_USER_ERROR_IF(robust == 0 and propagation_matrix_cia_data.back().DatasetCount() == 0,
-                       "Cannot find any data for ", std::quoted(name),
-                       " in file at ", fil)
+    ARTS_USER_ERROR_IF(
+        robust == 0 and propagation_matrix_cia_data.back().DatasetCount() == 0,
+        "Cannot find any data for ",
+        std::quoted(name),
+        " in file at ",
+        fil)
   }
 }

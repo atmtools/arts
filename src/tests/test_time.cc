@@ -7,6 +7,7 @@
 */
 
 #include "artstime.h"
+#include <iostream>
 
 void test01() {
   auto x=ArrayOfTime(40000, Time(4));

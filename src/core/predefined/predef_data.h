@@ -3,80 +3,120 @@
 
 #include <debug.h>
 #include <enums.h>
+#include <isotopologues.h>
+#include <matpack.h>
 
 #include <exception>
-#include <map>
 #include <ostream>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "matpack_data.h"
+
 namespace Absorption::PredefinedModel {
-  ENUMCLASS(DataKey, char, 
-  water_mt_ckd_4d0
-  )
 namespace MT_CKD400 {
 struct WaterData {
-  static constexpr DataKey key = DataKey::water_mt_ckd_4d0;
-  double ref_press;
-  double ref_temp;
-  double ref_h2o_vmr;
-  std::vector<double> self_absco_ref;
-  std::vector<double> for_absco_ref;
-  std::vector<double> wavenumbers;
-  std::vector<double> self_texp;
+  Numeric ref_press;
+  Numeric ref_temp;
+  Numeric ref_h2o_vmr;
+  Vector self_absco_ref;
+  Vector for_absco_ref;
+  Vector wavenumbers;
+  Vector self_texp;
 
   void resize(const std::vector<std::size_t>&);
-  [[nodiscard]] std::vector<std::size_t> sizes() const {
-    return {self_absco_ref.size()};
-  };
+  [[nodiscard]] std::vector<std::size_t> sizes() const;
 
   friend std::ostream& operator<<(std::ostream&, const WaterData&);
   friend std::istream& operator>>(std::istream&, WaterData&);
 };
 }  // namespace MT_CKD400
 
-struct Model {
-  using DataHolder = std::variant<std::monostate, MT_CKD400::WaterData>;
-  using DataMap = std::map<DataKey, DataHolder>;
+struct ModelName {
+  static std::vector<std::size_t> sizes() { return {}; };
+  static constexpr void resize(const std::vector<std::size_t>&) {}
 
-  DataMap data;
-  
+  friend std::ostream& operator<<(std::ostream&, const ModelName&);
+  friend std::istream& operator>>(std::istream&, ModelName&);
+};
+
+using ModelVariant = std::variant<ModelName, MT_CKD400::WaterData>;
+
+template <typename T>
+concept ModelVariantType = requires(T t) {
+  { std::get<T>(static_cast<ModelVariant>(t)) };
+};
+
+template <typename T>
+concept ModelVariantConvertible = ModelVariantType<T> or requires(T t) {
+  { static_cast<ModelVariant>(t) };
+};
+
+class Model {
+  using ModelData = std::unordered_map<SpeciesIsotopeRecord, ModelVariant>;
+
+  ModelData data;
+
+ public:
   Model() = default;
-  Model(const Model&);
-  Model& operator=(const Model&);
+  Model(const Model& d) = default;
+  Model(Model&& d) = default;
+  Model& operator=(const Model& d) = default;
+  Model& operator=(Model&& d) = default;
 
-  template <typename T>
-  [[nodiscard]] const T& get() const try {
-    ARTS_USER_ERROR_IF(not good_enum(T::key), "Bad key")
-    ARTS_USER_ERROR_IF(data.find(T::key) == data.end(), "No data")
-    return std::get<T>(data.at(T::key));
-  } catch (std::exception& e) {
-    ARTS_USER_ERROR(
-        "Cannot find data for continua with error: ",
-        e.what())
+  template <ModelVariantConvertible T>
+  void set(const SpeciesIsotopeRecord& tag, const T& t) {
+    ARTS_USER_ERROR_IF(not is_predefined_model(tag),
+                       "The tag must be of type PredefinedModel")
+    data[tag] = static_cast<ModelVariant>(t);
   }
 
-  template <typename T>
-  void set(T x) {
-    ARTS_USER_ERROR_IF(not good_enum(T::key), "Bad key")
-    data[T::key] = std::move(x);
+  template <ModelVariantConvertible T, Index tag>
+  void set(const T& t)
+    requires(tag < Species::Isotopologues.size())
+  {
+    set(Species::Isotopologues[tag], t);
   }
 
-  void set_all(const Model&);
+  template <ModelVariantType T>
+  [[nodiscard]] const T& get(const SpeciesIsotopeRecord& tag) const try {
+    ARTS_USER_ERROR_IF(not is_predefined_model(tag),
+                       "The tag must be of type PredefinedModel")
+    return std::get<T>(data.at(tag));
+  } catch (const std::bad_variant_access&) {
+    throw std::runtime_error(
+        var_string("The tag ", tag, " does not have the requested type"));
+  } catch (std::out_of_range&) {
+    throw std::runtime_error(
+        var_string("The tag ", tag, " does not exist in the model"));
+  }
 
-  [[nodiscard]] std::vector<std::size_t> data_size(DataKey) const;
-  [[nodiscard]] std::size_t size() const {return data.size();}
-  void resize(const std::vector<std::size_t>&, DataKey);
-  [[nodiscard]] std::vector<DataKey> keys() const;
-  void output_data_to_stream(std::ostream&, DataKey) const;
-  void set_data_from_stream(std::istream&, DataKey);
+  template <ModelVariantType T, Index tag>
+  [[nodiscard]] const T& get() const
+    requires(tag < Species::Isotopologues.size())
+  {
+    return get<T>(Species::Isotopologues[tag]);
+  }
+
+  [[nodiscard]] const ModelVariant& at(const SpeciesIsotopeRecord& tag) const;
+
+  [[nodiscard]] ModelVariant& at(const SpeciesIsotopeRecord& tag);
+
+  [[nodiscard]] auto size() const { return data.size(); }
+  [[nodiscard]] auto empty() const { return data.empty(); }
+  [[nodiscard]] auto begin() const { return data.begin(); }
+  [[nodiscard]] auto end() const { return data.end(); }
 
   friend std::ostream& operator<<(std::ostream&, const Model&);
 };
+
+std::string_view model_name(const ModelVariant&);
+ModelVariant model_data(const std::string_view);
 }  // namespace Absorption::PredefinedModel
 
 using PredefinedModelData = Absorption::PredefinedModel::Model;
-using PredefinedModelDataKey = Absorption::PredefinedModel::DataKey;
 
 #endif  // predefined_predef_data_h

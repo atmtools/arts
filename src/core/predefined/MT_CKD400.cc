@@ -138,8 +138,8 @@ void compute_foreign_h2o(PropmatVector& propmat_clearsky,
                             std::lower_bound(data.wavenumbers.begin(),
                                              data.wavenumbers.end(),
                                              freq2kaycm(f_grid[0]) - 2 * dvc));
-  const Numeric* v = data.wavenumbers.data() + cur;
-  const Numeric* y = data.for_absco_ref.data() + cur;
+  const Numeric* v = data.wavenumbers.data_handle() + cur;
+  const Numeric* y = data.for_absco_ref.data_handle() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
 
   //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)
@@ -215,9 +215,9 @@ void compute_self_h2o(PropmatVector& propmat_clearsky,
                             std::lower_bound(data.wavenumbers.begin(),
                                              data.wavenumbers.end(),
                                              freq2kaycm(f_grid[0]) - 2 * dvc));
-  const Numeric* v = data.wavenumbers.data() + cur;
-  const Numeric* y = data.self_absco_ref.data() + cur;
-  const Numeric* e = data.self_texp.data() + cur;
+  const Numeric* v = data.wavenumbers.data_handle() + cur;
+  const Numeric* y = data.self_absco_ref.data_handle() + cur;
+  const Numeric* e = data.self_texp.data_handle() + cur;
   std::array<Numeric, 4> k{0, 0, 0, 0};
 
   //! Follow the Fortran idea (and old MT CKD implementations in ARTS to mirror the zero-frequency values)

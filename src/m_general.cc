@@ -22,6 +22,7 @@
 #include <workspace.h>
 
 #include <cstdlib>
+#include <iostream>
 
 #include "arts_constants.h"
 #include "arts_omp.h"

@@ -20,6 +20,7 @@
 
 #include <cfloat>
 #include <cmath>
+#include <iostream>
 
 #include "array.h"
 #include "arts_constants.h"

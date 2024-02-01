@@ -6,21 +6,24 @@
 #include <memory>
 
 namespace fwd::predef {
-struct full {
-  std::vector<Species::IsotopeRecord> tags;
-  Numeric P;
-  Numeric T;
+class full {
   Absorption::PredefinedModel::VMRS vmrs;
-  std::shared_ptr<PredefinedModelData> predefined_model_data;
+  std::shared_ptr<AtmPoint> atm;
+  std::shared_ptr<PredefinedModelData> data;
 
+  void adapt();
+
+public:
   full() = default;
 
-  full(const AtmPoint& atm_point,
-       const ArrayOfArrayOfSpeciesTag& allspecs,
-       const std::shared_ptr<PredefinedModelData>& data);
+  full(std::shared_ptr<AtmPoint> atm,
+      std::shared_ptr<PredefinedModelData> data);
 
-  [[nodiscard]] Complex at(Numeric f) const;
-  void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-  [[nodiscard]] ComplexVector at(const Vector& fs) const;
+  [[nodiscard]] Complex operator()(Numeric f) const;
+  void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;
+  [[nodiscard]] ComplexVector operator()(const Vector& fs) const;
+
+  void set_model(std::shared_ptr<PredefinedModelData> data);
+  void set_atm(std::shared_ptr<AtmPoint> atm);
 };
 }  // namespace fwd::predef

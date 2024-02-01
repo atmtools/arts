@@ -1175,7 +1175,6 @@ runs, since subsequent functions will not be able to deal with NAN values.
 
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
-             "absorption_species",
              "propagation_matrix_select_species",
              "jacobian_targets",
              "frequency_grid",
@@ -1596,7 +1595,6 @@ Available models:
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
              "propagation_matrix_predefined_model_data",
-             "absorption_species",
              "propagation_matrix_select_species",
              "jacobian_targets",
              "frequency_grid",
@@ -1617,7 +1615,6 @@ this method.
       .out = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
-             "absorption_species",
              "propagation_matrix_select_species",
              "jacobian_targets",
              "frequency_grid",

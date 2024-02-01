@@ -185,6 +185,12 @@ struct band {
   friend std::ostream& operator<<(std::ostream& os, const band&);
 };
 
+struct line_pos {
+  Size line;
+  Size spec{std::numeric_limits<Size>::max()};
+  Size iz{std::numeric_limits<Size>::max()};
+};
+
 //! The key to finding any absorption line
 struct line_key {
   //! The band the line belongs to

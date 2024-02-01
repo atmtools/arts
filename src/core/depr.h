@@ -1,7 +1,10 @@
 #ifndef depr_h
 #define depr_h
 
-#include <iostream>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
 
 #include "debug.h"
 

@@ -7,14 +7,18 @@
  */
 #include "predefined_absorption_models.h"
 
+#include <predef.h>
+
 #include <Faddeeva/Faddeeva.hh>
 #include <algorithm>
-#include <predef.h>
+#include <stdexcept>
+#include <variant>
 
 #include "atm.h"
 #include "debug.h"
-#include "matpack_data.h"
+#include "isotopologues.h"
 #include "jacobian.h"
+#include "matpack_data.h"
 #include "predefined/predef_data.h"
 #include "species.h"
 
@@ -36,108 +40,149 @@ namespace Absorption::PredefinedModel {
  * @return false When there are no computations that can be or have been performed
  */
 template <bool check_exist>
-bool compute_selection(PropmatVector& pm [[maybe_unused]],
-                       const SpeciesIsotopeRecord& model,
-                       const Vector& f [[maybe_unused]],
-                       const Numeric& p [[maybe_unused]],
-                       const Numeric& t [[maybe_unused]],
-                       const VMRS& vmr [[maybe_unused]],
-                       const PredefinedModelData& predefined_model_data
-                       [[maybe_unused]]) {
+bool compute_selection(
+    PropmatVector& pm [[maybe_unused]],
+    const SpeciesIsotopeRecord& model,
+    const Vector& f [[maybe_unused]],
+    const Numeric& p [[maybe_unused]],
+    const Numeric& t [[maybe_unused]],
+    const VMRS& vmr [[maybe_unused]],
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data
+    [[maybe_unused]]) try {
   switch (Species::find_species_index(model)) {
     case find_species_index(Species::Species::Water, "ForeignContCKDMT400"):
-      if constexpr (not check_exist) MT_CKD400::compute_foreign_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD400::WaterData>());
+      if constexpr (not check_exist)
+        MT_CKD400::compute_foreign_h2o(
+            pm,
+            f,
+            p,
+            t,
+            vmr.H2O,
+            std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT400"):
-      if constexpr (not check_exist) MT_CKD400::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD400::WaterData>());
+      if constexpr (not check_exist)
+        MT_CKD400::compute_self_h2o(
+            pm,
+            f,
+            p,
+            t,
+            vmr.H2O,
+            std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;
     case find_species_index(Species::Species::Oxygen, "PWR2021"):
-      if constexpr (not check_exist) PWR20xx::compute_o2_2021(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR20xx::compute_o2_2021(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "PWR2021"):
-      if constexpr (not check_exist) PWR20xx::compute_h2o_2021(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR20xx::compute_h2o_2021(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Nitrogen, "SelfContPWR2021"):
-      if constexpr (not check_exist) PWR20xx::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR20xx::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "PWR2022"):
-      if constexpr (not check_exist) PWR20xx::compute_o2_2022(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR20xx::compute_o2_2022(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "PWR2022"):
-      if constexpr (not check_exist) PWR20xx::compute_h2o_2022(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR20xx::compute_h2o_2022(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "PWR98"):
-      if constexpr (not check_exist) PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "TRE05"):
-      if constexpr (not check_exist) TRE05::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        TRE05::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "PWR98"):
       if constexpr (not check_exist) PWR98::water(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "MPM89"):
-      if constexpr (not check_exist) MPM89::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        MPM89::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "MPM89"):
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Nitrogen, "SelfContMPM93"):
-      if constexpr (not check_exist) MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
+      if constexpr (not check_exist)
+        MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
-      if constexpr (not check_exist) CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT350"):
-      if constexpr (not check_exist) CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "ForeignContCKDMT320"):
-      if constexpr (not check_exist) CKDMT320::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        CKDMT320::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "SelfContCKDMT320"):
-      if constexpr (not check_exist) CKDMT320::compute_self_h2o(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        CKDMT320::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "ForeignContStandardType"):
-      if constexpr (not check_exist) Standard::water_foreign(pm, f, p, t, vmr.H2O);
+      if constexpr (not check_exist)
+        Standard::water_foreign(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Water, "SelfContStandardType"):
       if constexpr (not check_exist) Standard::water_self(pm, f, p, t, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Oxygen, "SelfContStandardType"):
-      if constexpr (not check_exist) Standard::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
+      if constexpr (not check_exist)
+        Standard::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
     case find_species_index(Species::Species::Nitrogen, "SelfContStandardType"):
       if constexpr (not check_exist) Standard::nitrogen(pm, f, p, t, vmr.N2);
       return true;
     case find_species_index(Species::Species::CarbonDioxide, "CKDMT252"):
-      if constexpr (not check_exist) MT_CKD252::carbon_dioxide(pm, f, p, t, vmr.CO2);
+      if constexpr (not check_exist)
+        MT_CKD252::carbon_dioxide(pm, f, p, t, vmr.CO2);
       return true;
     case find_species_index(Species::Species::Oxygen, "visCKDMT252"):
       if constexpr (not check_exist) MT_CKD252::oxygen_vis(pm, f, p, t, vmr.O2);
       return true;
     case find_species_index(Species::Species::Nitrogen, "CIAfunCKDMT252"):
-      if constexpr (not check_exist) MT_CKD252::nitrogen_fun(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
+      if constexpr (not check_exist)
+        MT_CKD252::nitrogen_fun(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
     case find_species_index(Species::Species::Nitrogen, "CIArotCKDMT252"):
-      if constexpr (not check_exist) MT_CKD252::nitrogen_rot(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
+      if constexpr (not check_exist)
+        MT_CKD252::nitrogen_rot(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
     case find_species_index(Species::Species::Oxygen, "CIAfunCKDMT100"):
       if constexpr (not check_exist) MT_CKD100::oxygen_cia(pm, f, p, t, vmr.O2);
       return true;
     case find_species_index(Species::Species::Oxygen, "v0v0CKDMT100"):
-      if constexpr (not check_exist) MT_CKD100::oxygen_v0v0(pm, f, p, t, vmr.O2, vmr.N2);
+      if constexpr (not check_exist)
+        MT_CKD100::oxygen_v0v0(pm, f, p, t, vmr.O2, vmr.N2);
       return true;
     case find_species_index(Species::Species::Oxygen, "v1v0CKDMT100"):
-      if constexpr (not check_exist) MT_CKD100::oxygen_v0v1(pm, f, p, t, vmr.O2);
+      if constexpr (not check_exist)
+        MT_CKD100::oxygen_v0v1(pm, f, p, t, vmr.O2);
       return true;
     case find_species_index(Species::Species::liquidcloud, "ELL07"):
       if constexpr (not check_exist) ELL07::compute(pm, f, t, vmr.LWC);
       return true;
-    case find_species_index(Species::Species::FINAL, "Not A Model"): break;
+    case find_species_index(Species::Species::FINAL, "Not A Model"):
+      break;
   }
   return false;
+} catch (std::bad_variant_access& e) {
+  throw std::runtime_error(
+      var_string("Data for model ", model, " is not of correct type"));
+} catch (std::exception&) {
+  throw;
 }
 
 bool can_compute(const SpeciesIsotopeRecord& model) {
@@ -171,7 +216,7 @@ void compute_vmr_deriv(PropmatVector& dpm,
                        VMRS vmr,
                        const Numeric dvmr,
                        const Species::Species spec,
-                       const PredefinedModelData& predefined_model_data
+                       const Absorption::PredefinedModel::ModelVariant& predefined_model_data
                        [[maybe_unused]]) {
   switch (spec) {
     case Species::Species::Oxygen:
@@ -210,7 +255,7 @@ void compute(PropmatVector& propmat_clearsky,
              const Numeric& rtp_temperature,
              const VMRS& vmr,
              const JacobianTargets& jacobian_targets,
-             const PredefinedModelData& predefined_model_data) {
+             const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
   if (not compute_selection<true>(propmat_clearsky,
                                   model,
                                   f_grid,
@@ -226,9 +271,11 @@ void compute(PropmatVector& propmat_clearsky,
   const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
   const auto vmrs_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
       CarbonDioxide, Oxygen, Nitrogen, Water, liquidcloud);
-  const bool do_freq_jac = std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
+  const bool do_freq_jac =
+      std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
   const bool do_temp_jac = temp_jac.first;
-  const bool do_vmrs_jac = std::ranges::any_of(vmrs_jac, [](auto& x) { return x.first; });
+  const bool do_vmrs_jac =
+      std::ranges::any_of(vmrs_jac, [](auto& x) { return x.first; });
 
   if (do_freq_jac or do_temp_jac or do_vmrs_jac) {
     PropmatVector pm(f_grid.nelem());
@@ -245,8 +292,8 @@ void compute(PropmatVector& propmat_clearsky,
     propmat_clearsky += pm;
 
     if (do_temp_jac) {
-      const Numeric d = temp_jac.second -> d;
-      const auto iq = temp_jac.second -> target_pos;
+      const Numeric d = temp_jac.second->d;
+      const auto iq = temp_jac.second->target_pos;
       ARTS_ASSERT(d not_eq 0)
 
       dpm = 0;
@@ -289,17 +336,16 @@ void compute(PropmatVector& propmat_clearsky,
       if (j.first) {
         const Numeric d = j.second->d;
         const auto iq = j.second->target_pos;
-        compute_vmr_deriv(
-            dpm,
-            pm,
-            model,
-            f_grid,
-            rtp_pressure,
-            rtp_temperature,
-            vmr,
-            d,
-            *std::get_if<Species::Species>(&j.second->type),
-            predefined_model_data);
+        compute_vmr_deriv(dpm,
+                          pm,
+                          model,
+                          f_grid,
+                          rtp_pressure,
+                          rtp_temperature,
+                          vmr,
+                          d,
+                          *std::get_if<Species::Species>(&j.second->type),
+                          predefined_model_data);
         dpropmat_clearsky_dx[iq] += dpm;
       }
     }

@@ -819,7 +819,6 @@ class TestGroups:
             "CallbackOperator",
             "NumericUnaryOperator",
             "NumericTernaryOperator",
-            "SpectralRadianceProfileOperator",
             "SingleScatteringData",
             "JacobianTargets",
         ]

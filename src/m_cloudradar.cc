@@ -14,6 +14,7 @@
 #include <workspace.h>
 
 #include <cmath>
+#include <iostream>
 
 #include "arts_constants.h"
 #include "arts_omp.h"

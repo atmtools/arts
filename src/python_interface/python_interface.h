@@ -21,7 +21,10 @@
 #include <algorithm>
 #include <filesystem>
 #include <iomanip>
-#include <iostream>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
 #include <iterator>
 #include <memory>
 #include <optional>

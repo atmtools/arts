@@ -92,12 +92,6 @@ struct single_shape {
                                                const Numeric f) const noexcept;
 };
 
-struct line_pos {
-  Size line;
-  Size spec{std::numeric_limits<Size>::max()};
-  Size iz{std::numeric_limits<Size>::max()};
-};
-
 //! A band shape is a collection of single shapes.  The shapes are sorted by frequency.
 struct band_shape {
   //! Line absorption shapes (lacking the f * (1 - exp(-hf/kt)) factor)
@@ -161,6 +155,15 @@ struct band_shape {
           const ExhaustiveConstComplexVectorView& dz_dT,
           const ExhaustiveConstVectorView& dz_dT_fac) const;
 };
+
+void band_shape_helper(std::vector<single_shape>& lines,
+                       std::vector<line_pos>& pos,
+                       const QuantumIdentifier& qid,
+                       const band_data& bnd,
+                       const AtmPoint& atm,
+                       const Numeric fmin,
+                       const Numeric fmax,
+                       const zeeman::pol pol);
 
 struct ComputeData {
   std::vector<single_shape>
