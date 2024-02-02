@@ -14,6 +14,13 @@ Complex full::single::at(const Numeric frequency) const {
 
 void full::adapt() {
   models.resize(0);
+
+  if (not xsecrec) {
+    return;
+  }
+
+  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+
   models.reserve(xsecrec->size());
   for (auto& model : *xsecrec) {
     models.emplace_back(atm->pressure,

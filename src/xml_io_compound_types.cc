@@ -891,7 +891,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/QuantumIdentifier");
   close_tag.write_to_stream(os_xml);
-  os_xml << std::endl;
+  os_xml << '\n';
 }
 
 //=== SingleScatteringData ======================================
@@ -2599,6 +2599,21 @@ void xml_read_from_stream(std::istream&,
 
 void xml_write_to_stream(std::ostream&,
                          const JacobianTargets&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+//=== SpectralRadianceOperator =========================================
+
+void xml_read_from_stream(std::istream&,
+                          SpectralRadianceOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const SpectralRadianceOperator&,
                          bofstream* /* pbofs */,
                          const String& /* name */) {
   ARTS_USER_ERROR("Method not implemented!");

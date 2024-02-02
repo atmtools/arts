@@ -5,11 +5,11 @@ ws = pyarts.workspace.Workspace()
 
 # %% Sensor
 
-ws.frequency_grid = np.linspace(-4e6, 4e6, 1001) + 118750348044.712
+ws.frequency_grid = np.linspace(-50e6, 50e6, 101) + 118750348044.712
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-Z-66-118e9-119e9"])
+ws.absorption_speciesSet(species=["O2-66-118e9-119e9"])
 ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
     ws.abs_lines_per_species, basename="lines/"
@@ -49,5 +49,15 @@ ws.spectral_radiance_space_agendaSet()
 ws.spectral_radiance_surface_agendaSet()
 
 # %% Core calculations
-ws.propagation_pathGeometric(pos=[300e3, 0, 0], los=[180, 0])
+ws.propagation_pathGeometric(pos=[50e3, 0, 0], los=[0, 0], max_step=1e2)
 ws.spectral_radianceStandardEmission()
+
+
+import matplotlib.pyplot as plt
+alts = np.linspace(0, 1e5, 1001)
+s = pyarts.arts.SpectralRadianceOperator()
+ws.spectral_radiance_operatorGeometricPlanar(s, altitude_grid=alts)
+srad = s.geometric_planar(ws.frequency_grid, [50e3,0,0], [180,180])
+plt.semilogy(ws.frequency_grid, ws.spectral_radiance)
+plt.show()
+plt.semilogy(ws.frequency_grid, srad)

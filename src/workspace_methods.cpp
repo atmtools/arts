@@ -112,14 +112,14 @@ extension. Omitting filename works as for *ReadXML*.
            R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
   };
 
-  wsm_data["xsec_fit_dataRead"] = {
+  wsm_data["absorption_xsec_fit_dataRead"] = {
       .desc = R"--(Reads HITRAN Crosssection coefficients
 
 Reads coefficient files for HITRAN Xsec species defined
 in *absorption_species*.
 )--",
       .author = {"Oliver Lemke"},
-      .out = {"xsec_fit_data"},
+      .out = {"absorption_xsec_fit_data"},
 
       .in = {"absorption_species"},
       .gin = {"basename"},
@@ -304,29 +304,28 @@ extension. Omitting filename works as for *WriteXML*.
            R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
   };
 
-  wsm_data["propagation_matrix_cia_dataAddCIARecord"] = {
+  wsm_data["absorption_cia_dataAddCIARecord"] = {
       .desc =
           R"--(Takes CIARecord as input and appends the results in the appropriate place.
 
-If CIARecord has same species as species in *propagation_matrix_cia_data*, then the array
+If CIARecord has same species as species in *absorption_cia_data*, then the array
 position is used to append all of the CIARecord into the array.  If clobber
-evaluates as true, cia_record overwrites the appropriate *propagation_matrix_cia_data*.  If
-species in cia_record are not in *propagation_matrix_cia_data*, the CIARecord is pushed back.
+evaluates as true, cia_record overwrites the appropriate *absorption_cia_data*.  If
+species in cia_record are not in *absorption_cia_data*, the CIARecord is pushed back.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_matrix_cia_data"},
+      .out = {"absorption_cia_data"},
 
-      .in = {"propagation_matrix_cia_data"},
+      .in = {"absorption_cia_data"},
       .gin = {"cia_record", "clobber"},
       .gin_type = {"CIARecord", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc =
-          {R"--(CIA record to append to *propagation_matrix_cia_data*.)--",
-           R"--(If true, the new input clobbers the old cia data.)--"},
+      .gin_desc = {R"--(CIA record to append to *absorption_cia_data*.)--",
+                   R"--(If true, the new input clobbers the old cia data.)--"},
 
   };
 
-  wsm_data["propagation_matrix_cia_dataReadFromCIA"] = {
+  wsm_data["absorption_cia_dataReadFromCIA"] = {
       .desc =
           R"--(Read data from a CIA data file for all CIA molecules defined
 in *absorption_species*.
@@ -339,7 +338,7 @@ Upon reading we convert this to the ARTS internal SI units
 of Hz and m^5 molec^(-2).
 )--",
       .author = {"Oliver Lemke"},
-      .out = {"propagation_matrix_cia_data"},
+      .out = {"absorption_cia_data"},
 
       .in = {"absorption_species"},
       .gin = {"catalogpath"},
@@ -349,15 +348,15 @@ of Hz and m^5 molec^(-2).
 
   };
 
-  wsm_data["propagation_matrix_cia_dataReadFromXML"] = {
+  wsm_data["absorption_cia_dataReadFromXML"] = {
       .desc =
           R"--(Read data from a CIA XML file and check that all CIA tags defined
 in *absorption_species* are present in the file.
 
-The units of the data are described in *propagation_matrix_cia_dataReadFromCIA*.
+The units of the data are described in *absorption_cia_dataReadFromCIA*.
 )--",
       .author = {"Oliver Lemke"},
-      .out = {"propagation_matrix_cia_data"},
+      .out = {"absorption_cia_data"},
 
       .in = {"absorption_species"},
       .gin = {"filename"},
@@ -367,11 +366,11 @@ The units of the data are described in *propagation_matrix_cia_dataReadFromCIA*.
 
   };
 
-  wsm_data["propagation_matrix_cia_dataReadSpeciesSplitCatalog"] = {
+  wsm_data["absorption_cia_dataReadSpeciesSplitCatalog"] = {
       .desc = R"--(Reads a species split CIA dataset.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_matrix_cia_data"},
+      .out = {"absorption_cia_data"},
 
       .in = {"absorption_species"},
       .gin = {"basename", "robust"},
@@ -555,7 +554,7 @@ Example:
 For CIA species the tag consists of the two involved species and
 a dataset index. CIA species can be defined for multiple regions
 The dataset index determines which region to use from the corresponding
-CIARecord in *propagation_matrix_cia_data*.
+CIARecord in *absorption_cia_data*.
 
 Example
 
@@ -563,7 +562,7 @@ Example
 
 For Hitran cross section species the tag consists of the species and
 the tagtype XFIT, e.g. CFC11-XFIT. The data for the species must be
-available in the *xsec_fit_data* variable.
+available in the *absorption_xsec_fit_data* variable.
 )--",
       .author = {"Stefan Buehler"},
       .out = {"absorption_species"},
@@ -1109,7 +1108,7 @@ of the derivatives out of this function is 2.
       .gin_desc = {"Flag to compute the hypsometric distance derivatives"},
   };
 
-  wsm_data["propagation_matrix_predefined_model_dataAddWaterMTCKD400"] = {
+  wsm_data["absorption_predefined_model_dataAddWaterMTCKD400"] = {
       .desc = R"--(Sets the data for MT CKD 4.0 Water model
 
 Note that the vectors must have the same length, and that wavenumbers must be growing
@@ -1119,9 +1118,9 @@ Note also that as this is predefined model data, the units of the values of the 
 must be as described by each vector.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_matrix_predefined_model_data"},
+      .out = {"absorption_predefined_model_data"},
 
-      .in = {"propagation_matrix_predefined_model_data"},
+      .in = {"absorption_predefined_model_data"},
       .gin = {"ref_temp",
               "ref_press",
               "ref_h2o_vmr",
@@ -1153,11 +1152,11 @@ must be as described by each vector.
 
   };
 
-  wsm_data["propagation_matrix_predefined_model_dataInit"] = {
+  wsm_data["absorption_predefined_model_dataInit"] = {
       .desc = R"--(Initialize the predefined model data
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_matrix_predefined_model_data"},
+      .out = {"absorption_predefined_model_data"},
 
   };
 
@@ -1165,7 +1164,7 @@ must be as described by each vector.
       .desc =
           R"--(Calculate absorption coefficients per tag group for HITRAN CIA continua.
 
-This interpolates the cross sections from *propagation_matrix_cia_data*.
+This interpolates the cross sections from *absorption_cia_data*.
 
 The robust option is intended only for testing. Do not use for normal
 runs, since subsequent functions will not be able to deal with NAN values.
@@ -1179,7 +1178,7 @@ runs, since subsequent functions will not be able to deal with NAN values.
              "jacobian_targets",
              "frequency_grid",
              "atmospheric_point",
-             "propagation_matrix_cia_data"},
+             "absorption_cia_data"},
       .gin = {"T_extrapolfac", "ignore_errors"},
       .gin_type = {"Numeric", "Index"},
       .gin_value = {Numeric{0.5}, Index{0}},
@@ -1337,8 +1336,8 @@ Available models:
 
   Note that this model comes with the copyright statement [1].
 
-  Note also that this model requires *propagation_matrix_predefined_model_data* to contain relevant data set either using
-  *propagation_matrix_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+  Note also that this model requires *absorption_predefined_model_data* to contain relevant data set either using
+  *absorption_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
 
 - H2O-ForeignContCKDMT400:
   Foreign continuum for water.  General reference: Mlawer et al. (2012), doi:10.1098/rsta.2011.0295
@@ -1347,8 +1346,8 @@ Available models:
 
   Note that this model comes with the copyright statement [1].
 
-  Note also that this model requires *propagation_matrix_predefined_model_data* to contain relevant data set either using
-  *propagation_matrix_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
+  Note also that this model requires *absorption_predefined_model_data* to contain relevant data set either using
+  *absorption_predefined_model_dataAddWaterMTCKD400* or via some file reading routine.
 
 - H2O-ForeignContStandardType:
   Water microwave continua
@@ -1594,7 +1593,7 @@ Available models:
 
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
-             "propagation_matrix_predefined_model_data",
+             "absorption_predefined_model_data",
              "propagation_matrix_select_species",
              "jacobian_targets",
              "frequency_grid",
@@ -1605,10 +1604,10 @@ Available models:
       .desc =
           R"--(Calculate absorption cross sections per tag group for HITRAN xsec species.
 
-This broadens the cross section data from *xsec_fit_data* and
+This broadens the cross section data from *absorption_xsec_fit_data* and
 interpolates it onto the current frequency_grid.
 
-Model data needs to be read in with *xsec_fit_dataRead* before calling
+Model data needs to be read in with *absorption_xsec_fit_dataRead* before calling
 this method.
 )--",
       .author = {"Oliver Lemke"},
@@ -1619,7 +1618,7 @@ this method.
              "jacobian_targets",
              "frequency_grid",
              "atmospheric_point",
-             "xsec_fit_data"},
+             "absorption_xsec_fit_data"},
       .gin = {"force_p", "force_t"},
       .gin_type = {"Numeric", "Numeric"},
       .gin_value = {Numeric{-1}, Numeric{-1}},
@@ -2263,7 +2262,8 @@ The calculations are in parallel if the program is not in parallel already.
              "propagation_matrix_select_species",
              "absorption_bands",
              "ecs_data",
-             "atmospheric_point"},
+             "atmospheric_point",
+             "propagation_path_point"},
       .gin = {"no_negative_absorption"},
       .gin_type = {"Index"},
       .gin_value = {Index{1}},
@@ -2634,6 +2634,29 @@ bad angles if this is turned off.
            "Wheter or not to add the limb point",
            "Wheter or not to keep only atmospheric points",
            "Whether or not to attempt fix a potential issue with the path azimuthal angle"},
+  };
+
+  wsm_data["spectral_radiance_operatorGeometricPlanar"] = {
+      .desc = "Sets up a geometric planar spectral radiance operator\n",
+      .author = {"Richard Larsson"},
+      .gout = {"spectral_radiance_operator"},
+      .gout_type = {"SpectralRadianceOperator"},
+      .gout_desc = {"The spectral radiance operator"},
+      .in = {"atmospheric_field", "surface_field"},
+      .gin = {"altitude_grid",
+              "latitude",
+              "longitude",
+              "cia_extrapolation",
+              "cia_robust"},
+      .gin_type = {"AscendingGrid", "Numeric", "Numeric", "Numeric", "Index"},
+      .gin_value =
+          {std::nullopt, Numeric{0.0}, Numeric{0.0}, Numeric{0.0}, Index{0}},
+      .gin_desc = {"The altitude grid",
+                   "The latitude",
+                   "The longitude",
+                   "The extrapolation distance for cia",
+                   "The robustness of the cia extrapolation"},
+      .pass_workspace = true,
   };
 
   return wsm_data;

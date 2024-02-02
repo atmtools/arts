@@ -3,7 +3,8 @@
 #include <ranges>
 #include <string_view>
 
-static constexpr std::array keywords{"jacobian",
+static constexpr std::array keywords{"absorption",
+                                          "jacobian",
                                      "spectral_radiance",
                                      "propagation_matrix",
                                      "source_vector",

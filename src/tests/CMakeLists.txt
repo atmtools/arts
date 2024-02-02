@@ -236,3 +236,9 @@ add_executable(test_path_point test_path_point.cc)
 target_link_libraries(test_path_point PUBLIC artstime path)
 add_test(NAME "cpp.fast.test_path_point" COMMAND test_path_point)
 add_dependencies(check-deps test_path_point)
+
+#####
+add_executable(test_fwd test_fwd.cc)
+target_link_libraries(test_fwd PUBLIC fwd)
+add_test(NAME "cpp.fast.test_fwd" COMMAND test_fwd)
+add_dependencies(check-deps test_fwd)

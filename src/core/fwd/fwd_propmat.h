@@ -14,9 +14,12 @@
 namespace fwd {
 class propmat {
   std::shared_ptr<AtmPoint> atm{};
-  lbl::zeeman::pol pol{lbl::zeeman::pol::no};
 
   lbl::fwd::line_storage lines{};
+  lbl::fwd::line_storage sm_lines{};
+  lbl::fwd::line_storage pi_lines{};
+  lbl::fwd::line_storage sp_lines{};
+
   cia::full cia{};
   predef::full predef{};
   hxsec::full xsec{};
@@ -29,19 +32,17 @@ class propmat {
   propmat& operator=(propmat&&) = default;
 
   propmat(std::shared_ptr<AtmPoint> atm,
-                   std::shared_ptr<AbsorptionBands> lines,
-                   std::shared_ptr<ArrayOfCIARecord> cia,
-                   std::shared_ptr<ArrayOfXsecRecord> xsec,
-                   std::shared_ptr<PredefinedModelData> predef,
-                   Numeric ciaextrap = {},
-                   Index ciarobust = {},
-                   lbl::zeeman::pol pol = lbl::zeeman::pol::no);
+          std::shared_ptr<AbsorptionBands> lines,
+          std::shared_ptr<ArrayOfCIARecord> cia,
+          std::shared_ptr<ArrayOfXsecRecord> xsec,
+          std::shared_ptr<PredefinedModelData> predef,
+          Numeric ciaextrap = {},
+          Index ciarobust = {});
 
   std::pair<Propmat, Stokvec> operator()(const Numeric frequency,
                                          const Vector2 los) const;
 
   void set_atm(std::shared_ptr<AtmPoint> atm);
-  void set_pol(lbl::zeeman::pol pol);
   void set_ciaextrap(Numeric extrap);
   void set_ciarobust(Index robust);
   void set_bands(std::shared_ptr<AbsorptionBands> lines);

@@ -9,7 +9,7 @@ internal_workspace_variables() {
 )--",
       .type = "AbsorptionBands"};
 
-  wsv_data["propagation_matrix_cia_data"] = {
+  wsv_data["absorption_cia_data"] = {
       .desc = R"--(HITRAN Collision Induced Absorption (CIA) Data.
 
 This variable holds HITRAN CIA data (binary absorption
@@ -136,7 +136,7 @@ Unit:  Hz
 )--",
       .type = "AscendingGrid"};
 
-  wsv_data["xsec_fit_data"] = {
+  wsv_data["absorption_xsec_fit_data"] = {
       .desc = R"--(Fitting model coefficients for cross section species.
 
 Dimensions: [ n_species ]
@@ -231,7 +231,7 @@ Usage: Output of radiative transfer methods.
 )--",
       .type = "ArrayOfAscendingGrid"};
 
-  wsv_data["propagation_matrix_predefined_model_data"] = {
+  wsv_data["absorption_predefined_model_data"] = {
       .desc =
           R"--(This contains predefined model data.
 

@@ -15,6 +15,10 @@ class full {
 
 public:
   full() = default;
+  full(const full&) = default;
+  full(full&&) = default;
+  full& operator=(const full&) = default;
+  full& operator=(full&&) = default;
 
   full(std::shared_ptr<AtmPoint> atm,
       std::shared_ptr<PredefinedModelData> data);

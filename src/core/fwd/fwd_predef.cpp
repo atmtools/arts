@@ -7,7 +7,10 @@
 #include "rtepack.h"
 
 namespace fwd::predef {
-void full::adapt() { vmrs = Absorption::PredefinedModel::VMRS(*atm); }
+void full::adapt() {
+  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  vmrs = Absorption::PredefinedModel::VMRS(*atm);
+}
 
 full::full(std::shared_ptr<AtmPoint> atm_,
            std::shared_ptr<PredefinedModelData> data_)
@@ -16,6 +19,10 @@ full::full(std::shared_ptr<AtmPoint> atm_,
 }
 
 Complex full::operator()(const Numeric frequency) const {
+  if (not data) {
+    return {};
+  }
+
   PropmatVector propmat_clearsky(1);
   PropmatMatrix dpropmat_clearsky_dx;
   JacobianTargets jacobian_targets;

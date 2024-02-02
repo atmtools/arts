@@ -16,9 +16,9 @@
 #include "xsec_fit.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
-                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const String& basename) {
+void absorption_xsec_fit_dataRead(ArrayOfXsecRecord& absorption_xsec_fit_data,
+                                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                                  const String& basename) {
   // Build a set of species indices. Duplicates are ignored.
   std::set<Species::Species> unique_species;
   for (auto& asp : abs_species) {
@@ -34,8 +34,8 @@ void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
     tmpbasename += '.';
   }
 
-  // Read xsec data for all active species and collect them in xsec_fit_data
-  xsec_fit_data.clear();
+  // Read xsec data for all active species and collect them in absorption_xsec_fit_data
+  absorption_xsec_fit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
     const String filename{tmpbasename +
@@ -44,7 +44,7 @@ void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
     try {
       xml_read_from_file(filename, xsec_coeffs);
 
-      xsec_fit_data.push_back(xsec_coeffs);
+      absorption_xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
       ARTS_USER_ERROR(
           "Error reading coefficients file:\n", filename, "\n", e.what());
@@ -61,7 +61,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfXsecRecord& xsec_fit_data,
+    const ArrayOfXsecRecord& absorption_xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t) {
   // Forward simulations and their error handling
@@ -117,7 +117,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (auto& this_xdata : xsec_fit_data) {
+  for (auto& this_xdata : absorption_xsec_fit_data) {
     if (select_species != SpeciesEnum::Bath and
         this_xdata.Species() != select_species)
       continue;

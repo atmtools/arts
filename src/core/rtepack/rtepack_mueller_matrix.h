@@ -37,10 +37,18 @@ constexpr auto operator+(muelmat a, const muelmat &b) {
   return a;
 }
 
+constexpr auto operator+(Numeric a, muelmat b) {
+  return muelmat{a} + b;
+}
+
 //! Subtraction between muelmat matrices
 constexpr auto operator-(muelmat a, const muelmat &b) {
   a -= b;
   return a;
+}
+
+constexpr auto operator-(Numeric a, muelmat b) {
+  return muelmat{a} - b;
 }
 
 //! Scaling a muelmat matrix

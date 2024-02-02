@@ -34,7 +34,7 @@ class line_storage {
 
   line_storage(std::shared_ptr<AtmPoint> atm,
                std::shared_ptr<AbsorptionBands> bands,
-               const zeeman::pol pol = zeeman::pol::no);
+               const zeeman::pol pol);
 
   std::pair<Complex, Complex> operator()(const Numeric frequency) const;
 

@@ -568,5 +568,13 @@ radiation.
   wsg_data["ArrayOfAscendingGrid"] = {.file = "matpack.h",
                                       .desc = "A list of *AscendingGrid*.\n"};
 
+  wsg_data["SpectralRadianceOperator"] = {
+      .file = "fwd.h",
+      .desc = R"--(An operator for getting the *spectral_radiance*
+
+An object of this type can be called with a frequency, position and
+line-of-sight to get the corresponding spectral radiance.
+)--"};
+
   return wsg_data;
 }

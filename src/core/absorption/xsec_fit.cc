@@ -11,10 +11,8 @@
 #include <algorithm>
 #include <memory>
 
-#include "check_input.h"
 #include "debug.h"
-#include "interpolation.h"
-
+#include "interp.h"
 
 void RemoveNegativeXsec(Vector& xsec) {
   Numeric sum_xsec{};
@@ -129,19 +127,13 @@ void XsecRecord::Extract(VectorView result,
 
     RemoveNegativeXsec(fit_result);
 
-    // Check if frequency is inside the range covered by the data:
-    chk_interpolation_grids("Frequency interpolation for cross sections",
-                            data_f_grid,
-                            f_grid_active);
-
     {
+      const auto f_gp =
+          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
+              data_f_grid_active, f_grid_active);
+      const auto f_itw = interpweights(f_gp);
       // Find frequency grid positions:
-      ArrayOfGridPos f_gp(f_grid_active.nelem());
-      gridpos(f_gp, data_f_grid_active, f_grid_active);
-
-      Matrix itw(f_gp.size(), 2);
-      interpweights(itw, f_gp);
-      interp(xsec_interp, itw, fit_result_active, f_gp);
+      my_interp::reinterp(xsec_interp, fit_result_active, f_itw, f_gp);
     }
 
     result_active += xsec_interp;
@@ -209,7 +201,7 @@ XsecRecord* hitran_xsec_get_data(
 }
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {
-  os << "Species: " << xd.Species() << std::endl;
+  os << "Species: " << xd.Species() << '\n';
   return os;
 }
 

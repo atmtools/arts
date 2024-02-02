@@ -94,6 +94,7 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
   switch (tospectral_radiance_space_agendaOptionOrThrow(option)) {
     case UniformCosmicBackground:
       agenda.add("spectral_radianceUniformCosmicBackground");
+      agenda.add("spectral_radiance_jacobianEmpty");
       break;
     case FINAL:
       break;

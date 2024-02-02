@@ -37,7 +37,7 @@ void propagation_matrixAddCIA(  // WS Output:
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfCIARecord& propagation_matrix_cia_data,
+    const ArrayOfCIARecord& absorption_cia_data,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Index& ignore_errors) {
@@ -101,7 +101,7 @@ void propagation_matrixAddCIA(  // WS Output:
   // Loop over CIA data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (const auto& this_cia : propagation_matrix_cia_data) {
+  for (const auto& this_cia : absorption_cia_data) {
     if (select_species != SpeciesEnum::Bath and
         select_species != this_cia.Species(0))
       continue;
@@ -210,25 +210,24 @@ void CIARecordReadFromFile(  // WS GOutput:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrix_cia_dataAddCIARecord(  // WS Output:
-    ArrayOfCIARecord& propagation_matrix_cia_data,
+void absorption_cia_dataAddCIARecord(  // WS Output:
+    ArrayOfCIARecord& absorption_cia_data,
     // WS GInput:
     const CIARecord& cia_record,
     const Index& clobber) {
-  Index cia_index = cia_get_index(propagation_matrix_cia_data,
-                                  cia_record.Species(0),
-                                  cia_record.Species(1));
+  Index cia_index = cia_get_index(
+      absorption_cia_data, cia_record.Species(0), cia_record.Species(1));
   if (cia_index == -1)
-    propagation_matrix_cia_data.push_back(cia_record);
+    absorption_cia_data.push_back(cia_record);
   else if (clobber)
-    propagation_matrix_cia_data[cia_index] = cia_record;
+    absorption_cia_data[cia_index] = cia_record;
   else
-    propagation_matrix_cia_data[cia_index].AppendDataset(cia_record);
+    absorption_cia_data[cia_index].AppendDataset(cia_record);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
-    ArrayOfCIARecord& propagation_matrix_cia_data,
+void absorption_cia_dataReadFromCIA(  // WS Output:
+    ArrayOfCIARecord& absorption_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& catalogpath) {
@@ -236,7 +235,7 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
   subfolders.push_back("Main-Folder/");
   subfolders.push_back("Alternate-Folder/");
 
-  propagation_matrix_cia_data.resize(0);
+  absorption_cia_data.resize(0);
 
   // Loop species tag groups to find CIA tags.
   // Index sp loops through the tag groups, index iso through the tags within
@@ -247,7 +246,7 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
 
       ArrayOfString cia_names;
 
-      Index cia_index = cia_get_index(propagation_matrix_cia_data,
+      Index cia_index = cia_get_index(absorption_cia_data,
                                       abs_species[sp][iso].Spec(),
                                       abs_species[sp][iso].cia_2nd_species);
 
@@ -294,7 +293,7 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
                             abs_species[sp][iso].cia_2nd_species);
             ciar.ReadFromCIA(catfile);
 
-            propagation_matrix_cia_data.push_back(ciar);
+            absorption_cia_data.push_back(ciar);
           }
         }
       }
@@ -310,12 +309,12 @@ void propagation_matrix_cia_dataReadFromCIA(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrix_cia_dataReadFromXML(  // WS Output:
-    ArrayOfCIARecord& propagation_matrix_cia_data,
+void absorption_cia_dataReadFromXML(  // WS Output:
+    ArrayOfCIARecord& absorption_cia_data,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& filename) {
-  xml_read_from_file(filename, propagation_matrix_cia_data);
+  xml_read_from_file(filename, absorption_cia_data);
 
   // Check that all CIA tags from abs_species are present in the
   // XML file
@@ -329,7 +328,7 @@ void propagation_matrix_cia_dataReadFromXML(  // WS Output:
     for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
       if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
 
-      Index cia_index = cia_get_index(propagation_matrix_cia_data,
+      Index cia_index = cia_get_index(absorption_cia_data,
                                       abs_species[sp][iso].Spec(),
                                       abs_species[sp][iso].cia_2nd_species);
 
@@ -358,8 +357,8 @@ void propagation_matrix_cia_dataReadFromXML(  // WS Output:
   }
 }
 
-void propagation_matrix_cia_dataReadSpeciesSplitCatalog(
-    ArrayOfCIARecord& propagation_matrix_cia_data,
+void absorption_cia_dataReadSpeciesSplitCatalog(
+    ArrayOfCIARecord& absorption_cia_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
     const Index& robust) {
@@ -389,10 +388,10 @@ void propagation_matrix_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    xml_read_from_file(fil.c_str(), propagation_matrix_cia_data.emplace_back());
+    xml_read_from_file(fil.c_str(), absorption_cia_data.emplace_back());
 
     ARTS_USER_ERROR_IF(
-        robust == 0 and propagation_matrix_cia_data.back().DatasetCount() == 0,
+        robust == 0 and absorption_cia_data.back().DatasetCount() == 0,
         "Cannot find any data for ",
         std::quoted(name),
         " in file at ",

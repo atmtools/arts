@@ -48,7 +48,7 @@ Loads all CIA data from a given folder.  This command expects the file
 user-defined search paths.
 
 """
-ws.propagation_matrix_cia_dataReadSpeciesSplitCatalog(basename="cia/")
+ws.absorption_cia_dataReadSpeciesSplitCatalog(basename="cia/")
 
 
 """

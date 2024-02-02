@@ -18,13 +18,13 @@
 #include "predefined_absorption_models.h"
 #include "species.h"
 
-void propagation_matrix_predefined_model_dataInit(
-    PredefinedModelData& propagation_matrix_predefined_model_data) {
-  propagation_matrix_predefined_model_data = PredefinedModelData{};
+void absorption_predefined_model_dataInit(
+    PredefinedModelData& absorption_predefined_model_data) {
+  absorption_predefined_model_data = PredefinedModelData{};
 }
 
-void propagation_matrix_predefined_model_dataAddWaterMTCKD400(
-    PredefinedModelData& propagation_matrix_predefined_model_data,
+void absorption_predefined_model_dataAddWaterMTCKD400(
+    PredefinedModelData& absorption_predefined_model_data,
     const Numeric& ref_temp,
     const Numeric& ref_press,
     const Numeric& ref_h2o_vmr,
@@ -59,11 +59,11 @@ void propagation_matrix_predefined_model_dataAddWaterMTCKD400(
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
-  propagation_matrix_predefined_model_data
+  absorption_predefined_model_data
       .set<Model,
            find_species_index(Species::Species::Water, "ForeignContCKDMT400")>(
           x);
-  propagation_matrix_predefined_model_data
+  absorption_predefined_model_data
       .set<Model,
            find_species_index(Species::Species::Water, "SelfContCKDMT400")>(x);
 }
@@ -72,7 +72,7 @@ void propagation_matrix_predefined_model_dataAddWaterMTCKD400(
 void propagation_matrixAddPredefined(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
-    const PredefinedModelData& propagation_matrix_predefined_model_data,
+    const PredefinedModelData& absorption_predefined_model_data,
     const SpeciesEnum& select_species,
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
@@ -93,7 +93,7 @@ void propagation_matrixAddPredefined(
   }
 
   const Absorption::PredefinedModel::VMRS vmr(atm_point);
-  for (auto& [isot, data] : propagation_matrix_predefined_model_data) {
+  for (auto& [isot, data] : absorption_predefined_model_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
     Absorption::PredefinedModel::compute(propagation_matrix,

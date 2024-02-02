@@ -29,7 +29,30 @@ Returns
   n : Numeric or numpy.ndarray
     Number density [1/m³]
 )--"));
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize physics\n", e.what()));
+
+  physics.def("planck",
+              py::vectorize([](Numeric frequency, Numeric temperature) {
+                return planck(frequency, temperature);
+              }),
+              py::arg("frequency"),
+              py::arg("temperature"),
+              py::doc(R"--(Calculates the Planck function.
+
+Parameters
+----------
+  frequency : Numeric or numpy.ndarray
+    Frequency [Hz]
+
+  temperature : Numeric or numpy.ndarray
+    Temperature [K]
+
+Returns
+-------
+  B : Numeric or numpy.ndarray
+    Planck function [W/(m² Hz sr)]
+)--"));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize physics\n", e.what()));
 }
 }  // namespace Python

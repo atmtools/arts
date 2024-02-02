@@ -374,9 +374,12 @@ std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
       os << "N/A";
     }
 
+#if DO_FAST_WIGNER
     if (wi.fastest) {
       os << "\n  Fast symbols are active (up to " << wi.fastest << " symbols)";
-    } else {
+    } else
+#endif
+    {
       os << "\n  Fast symbols are inactive";
     }
   } else {
@@ -418,7 +421,14 @@ WignerInformation::WignerInformation(int largest_symbol,
                                      int fastest_symbol,
                                      bool three,
                                      bool six) {
-  ARTS_USER_ERROR_IF(init, "Must not be initialized.", *this)
+  if (init) {
+    if (largest_symbol != largest or fastest_symbol != fastest or
+        three != threej or six != sixj) {
+      unload();
+    } else {
+      return;
+    }
+  }
 
   ARTS_USER_ERROR_IF(largest_symbol < 0,
                      "You must specify a non-negative integer for largest.\n",

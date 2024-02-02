@@ -30,6 +30,13 @@ Complex full::single::at(const Numeric frequency) const {
 
 void full::adapt() {
   models.resize(0);
+
+  if (not ciarecords) {
+    return;
+  }
+
+  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+
   models.reserve(ciarecords->size());
   for (CIARecord& data : *ciarecords) {
     const Numeric VMR1 = atm->operator[](data.Species(0));

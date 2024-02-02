@@ -21,6 +21,7 @@
 #include <workspace.h>
 
 // Extras
+#include "fwd_spectral_radiance.h"
 #include "jacobian.h"
 #include "linemixing.h"
 #include "matpack_data.h"
@@ -155,6 +156,7 @@ TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericTernaryOperator)
 TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
+TMPL_XML_READ_WRITE_STREAM(SpectralRadianceOperator)
 
 //=== rtepack types ========================================================
 

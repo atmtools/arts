@@ -16,6 +16,10 @@ class full {
     CIARecord* ciarecords;
 
     single() = default;
+    single(const single&) = default;
+    single(single&&) = default;
+    single& operator=(const single&) = default;
+    single& operator=(single&&) = default;
 
     single(Numeric p,
            Numeric t,
@@ -39,6 +43,10 @@ class full {
 
  public:
   full() = default;
+  full(const full&) = default;
+  full(full&&) = default;
+  full& operator=(const full&) = default;
+  full& operator=(full&&) = default;
 
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<ArrayOfCIARecord> cia,

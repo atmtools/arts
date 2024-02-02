@@ -17,7 +17,6 @@
 #include <memory>
 
 #include "arts_constants.h"
-#include "check_input.h"
 #include "double_imanip.h"
 #include "file.h"
 #include "interp.h"
@@ -47,7 +46,7 @@ void cia_interpolation(VectorView result,
                        const Numeric& temperature,
                        const GriddedField2& cia_data,
                        const Numeric& T_extrapolfac,
-                       const Index& robust) {
+                       const Index& robust) try {
   const Index nf = f_grid.nelem();
 
   // Assert that result vector has right size:
@@ -123,33 +122,6 @@ void cia_interpolation(VectorView result,
       break;
   }
 
-  // Check if frequency is inside the range covered by the data:
-  chk_interpolation_grids("Frequency interpolation for CIA continuum",
-                          data_f_grid,
-                          f_grid_active,
-                          f_order);
-
-  // Check if temperature is inside the range covered by the data:
-  if (T_order > 0) {
-    try {
-      chk_interpolation_grids("Temperature interpolation for CIA continuum",
-                              data_T_grid,
-                              temperature,
-                              T_order,
-                              T_extrapolfac);
-    } catch (const std::runtime_error& e) {
-      //            cout << "Gotcha!\n";
-      if (robust) {
-        // Just return NANs, but continue.
-        result_active = NAN;
-        return;
-      } else {
-        // Re-throw the exception.
-        throw std::runtime_error(e.what());
-      }
-    }
-  }
-
   // Find frequency grid positions:
   const auto f_lag = my_interp::lagrange_interpolation_list<
       FixedLagrangeInterpolation<f_order>>(f_grid_active, data_f_grid);
@@ -197,6 +169,12 @@ void cia_interpolation(VectorView result,
     if (result_active[i] < 0) result_active[i] = 0;
 
   //    cout << "result_active after: " << result_active << endl;
+} catch (const std::exception&) {
+  if (robust) {
+    result = NAN;
+  } else {
+    throw;
+  }
 }
 
 /** Get the index in cia_data for the two given species.
@@ -226,10 +204,9 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
 
  \returns Correct CIA record or nullptr if not found.
  */
-CIARecord* cia_get_data(
-    const std::shared_ptr<std::vector<CIARecord>>& cia_data,
-    const Species::Species sp1,
-    const Species::Species sp2) {
+CIARecord* cia_get_data(const std::shared_ptr<std::vector<CIARecord>>& cia_data,
+                        const Species::Species sp1,
+                        const Species::Species sp2) {
   for (auto& data : *cia_data)
     if ((data.Species(0) == sp1 && data.Species(1) == sp2) ||
         (data.Species(0) == sp2 && data.Species(1) == sp1))
@@ -330,9 +307,8 @@ void CIARecord::ReadFromCIA(const String& filename) {
     if (line.size() < 100) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << std::endl
-         << "Header line unexpectedly short: " << std::endl
-         << line;
+         << filename << '\n'
+         << "Header line unexpectedly short: " << '\n' << line;
 
       throw std::runtime_error(os.str());
     }
@@ -340,7 +316,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
     if (is.bad()) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << std::endl;
+         << filename << '\n';
 
       throw std::runtime_error(os.str());
     }
@@ -363,7 +339,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
         std::isnan(set_wave_max)) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << std::endl;
+         << filename << '\n';
 
       throw std::runtime_error(os.str());
     }
@@ -385,7 +361,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
     if (npoints != set_npoints) {
       std::ostringstream os;
       os << "Error in line " << nline << " reading CIA catalog file "
-         << filename << std::endl
+         << filename << '\n'
          << "Inconsistent number of data points. Expected " << npoints
          << ", got " << set_npoints;
 
@@ -411,8 +387,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
       if (std::isnan(w) || std::isnan(c) || is.bad() || istr.bad()) {
         std::ostringstream os;
         os << "Error in line " << nline << " reading CIA catalog file "
-           << filename << ":" << std::endl
-           << line;
+           << filename << ":" << '\n' << line;
 
         throw std::runtime_error(os.str());
       }
@@ -431,7 +406,7 @@ void CIARecord::ReadFromCIA(const String& filename) {
   if (is.bad()) {
     std::ostringstream os;
     os << "Error in line " << nline << " reading CIA catalog file " << filename
-       << std::endl;
+       << '\n';
 
     throw std::runtime_error(os.str());
   }
@@ -481,6 +456,6 @@ void CIARecord::AppendDataset(const CIARecord& c2) {
  \return os
  */
 std::ostream& operator<<(std::ostream& os, const CIARecord& /* cr */) {
-  os << "CIARecord output operator not yet implemented." << std::endl;
+  os << "CIARecord output operator not yet implemented." << '\n';
   return os;
 }

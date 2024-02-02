@@ -15,8 +15,6 @@
 
 namespace lbl::fwd {
 void line_storage::adapt() {
-  ARTS_USER_ERROR_IF(not bands, "No bands set")
-  ARTS_USER_ERROR_IF(not atm, "No atm set")
   ARTS_USER_ERROR_IF(not good_enum(pol), "Bad polarization set")
 
   lte_shapes.resize(0);
@@ -25,6 +23,12 @@ void line_storage::adapt() {
   cutoff_lte_mirror_shapes.resize(0);
   nlte_shapes.resize(0);
   cutoff_nlte_shapes.resize(0);
+
+  if (not bands) {
+    return;
+  }
+
+  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   std::vector<line_pos> tmp_pos;
   std::vector<voigt::lte::single_shape> tmp_lte_shapes;
@@ -134,10 +138,11 @@ void line_storage::set_pol(zeeman::pol pol_) {
 struct NlteSumup {
   Complex abs{};
   Complex src{};
-  NlteSumup operator+(const NlteSumup& other) const {
+  constexpr NlteSumup operator+(const NlteSumup& other) const {
     return {abs + other.abs, src + other.src};
   }
-  friend NlteSumup operator*(const Numeric& other, const NlteSumup& x) {
+  friend constexpr NlteSumup operator*(const Numeric& other,
+                                       const NlteSumup& x) {
     return {other * x.abs, other * x.src};
   }
 };

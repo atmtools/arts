@@ -127,7 +127,6 @@ add_library (artsworkspace STATIC
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
   workspace_class.cpp
-  arts_omp.cc
   auto_version.cc
   compile_time_tests.cc
   disort.cc
@@ -242,10 +241,6 @@ endif (NETCDF_FOUND)
 if (ENABLE_MPI)
   target_link_libraries (artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
-
-if (OpenMP_CXX_FOUND)
-  target_link_libraries (artsworkspace PUBLIC OpenMP::OpenMP_CXX)
-endif ()
 
 if (ENABLE_RT4)
   target_link_libraries (artsworkspace PUBLIC rt4)

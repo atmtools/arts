@@ -14,5 +14,5 @@ add_library(lbl STATIC
   lbl_zeeman.cpp
 )
 
-target_link_libraries(lbl PUBLIC matpack atm Faddeeva predef quantum surface wigner)
+target_link_libraries(lbl PUBLIC matpack atm Faddeeva predef quantum surface wigner util)
 target_include_directories(lbl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)

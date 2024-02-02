@@ -412,8 +412,8 @@ void two_level_exp(muelmat_vector_view &tv,
   }
 }
 
-muelmat exp (propmat k) {
-  return tran(k, k, 1.0)();
+muelmat exp (propmat k, Numeric r) {
+  return tran(k, k, r)();
 }
 
 void two_level_exp(muelmat_vector_view &tv,

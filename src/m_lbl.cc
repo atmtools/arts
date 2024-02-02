@@ -22,6 +22,7 @@
 #include "lbl_lineshape_linemixing.h"
 #include "lineshapemodel.h"
 #include "matpack_view.h"
+#include "path_point.h"
 #include "quantum_numbers.h"
 #include "rtepack.h"
 #include "species.h"
@@ -480,6 +481,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                                 const AbsorptionBands& absorption_bands,
                                 const LinemixingEcsData& ecs_data,
                                 const AtmPoint& atm_point,
+                                const PropagationPathPoint& path_point,
                                 const Index& no_negative_absorption) {
   const auto n = arts_omp_get_max_threads();
   if (n == 1 or arts_omp_in_parallel() or n > f_grid.size()) {
@@ -493,7 +495,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                    absorption_bands,
                    ecs_data,
                    atm_point,
-                   {},
+                   path_point.los,
                    no_negative_absorption);
   } else {
     const auto ompv = omp_offset_count(f_grid.size(), n);
@@ -512,7 +514,7 @@ void propagation_matrixAddLines(PropmatVector& pm,
                        absorption_bands,
                        ecs_data,
                        atm_point,
-                       {},
+                       path_point.los,
                        no_negative_absorption);
       } catch (std::exception& e) {
 #pragma omp critical
