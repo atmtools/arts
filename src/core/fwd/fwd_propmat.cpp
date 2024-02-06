@@ -1,6 +1,10 @@
 #include "fwd_propmat.h"
 
+#include <functional>
+#include <numeric>
+
 #include "lbl_zeeman.h"
+#include "rtepack.h"
 
 namespace fwd {
 propmat::propmat(std::shared_ptr<AtmPoint> atm_,
@@ -11,10 +15,7 @@ propmat::propmat(std::shared_ptr<AtmPoint> atm_,
                  Numeric ciaextrap,
                  Index ciarobust)
     : atm(std::move(atm_)),
-      lines(atm, lines_, lbl::zeeman::pol::no),
-      sm_lines(atm, lines_, lbl::zeeman::pol::sm),
-      pi_lines(atm, lines_, lbl::zeeman::pol::pi),
-      sp_lines(atm, std::move(lines_), lbl::zeeman::pol::sp),
+      lines(atm, std::move(lines_)),
       cia(atm, std::move(cia), ciaextrap, ciarobust),
       predef(atm, std::move(predef)),
       xsec(atm, std::move(xsec)) {}
@@ -23,36 +24,41 @@ std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f,
                                                 const Vector2 los) const {
   using namespace lbl::zeeman;
 
-  Propmat propmat{};
-  Stokvec stokvec{};
+  const auto [ano, sno] = lines(f, pol::no);
 
-  const auto [noa, nos] = lines(f);
-  const auto [spa, sps] = sp_lines(f);
-  const auto [pia, pis] = pi_lines(f);
-  const auto [sma, sms] = sm_lines(f);
+  const std::array zres{
+      lines(f, pol::sm), lines(f, pol::pi), lines(f, pol::sp)};
 
-  propmat.A() += noa.real() + cia(f).real() + predef(f).real() + xsec(f).real();
+  const std::array zpol{
+      norm_view(pol::sm, atm->mag, los),
+      norm_view(pol::pi, atm->mag, los),
+      norm_view(pol::sp, atm->mag, los),
+  };
 
-  const auto sp_propmat = norm_view(pol::sp, atm->mag, los);
-  const auto pi_propmat = norm_view(pol::pi, atm->mag, los);
-  const auto sm_propmat = norm_view(pol::sm, atm->mag, los);
-  propmat +=
-      scale(sp_propmat, spa) + scale(pi_propmat, pia) + scale(sm_propmat, sma);
-
-  const auto sp_srcvec = absvec(scale(sp_propmat, sps));
-  const auto pi_srcvec = absvec(scale(pi_propmat, pis));
-  const auto sm_srcvec = absvec(scale(sm_propmat, sms));
-  stokvec += sp_srcvec + pi_srcvec + sm_srcvec + nos.imag();
-
-  return {propmat, stokvec};
+  return {std::transform_reduce(
+              zpol.begin(),
+              zpol.end(),
+              zres.begin(),
+              Propmat{cia(f).real() + predef(f).real() + xsec(f).real() +
+                      ano.real()},
+              std::plus<>(),
+              [](const Propmat& a, const std::pair<Complex, Complex>& b) {
+                return scale(a, b.first);
+              }),
+          std::transform_reduce(
+              zpol.begin(),
+              zpol.end(),
+              zres.begin(),
+              Stokvec{sno.real()},
+              std::plus<>(),
+              [](const Propmat& a, const std::pair<Complex, Complex>& b) {
+                return absvec(scale(a, b.second));
+              })};
 }
 
 void propmat::set_atm(std::shared_ptr<AtmPoint> atm_) {
   atm = std::move(atm_);
   lines.set_atm(atm);
-  sp_lines.set_atm(atm);
-  sm_lines.set_atm(atm);
-  pi_lines.set_atm(atm);
   cia.set_atm(atm);
   predef.set_atm(atm);
   xsec.set_atm(atm);
@@ -63,10 +69,7 @@ void propmat::set_ciaextrap(Numeric extrap) { cia.set_extrap(extrap); }
 void propmat::set_ciarobust(Index robust) { cia.set_robust(robust); }
 
 void propmat::set_bands(std::shared_ptr<AbsorptionBands> lines_) {
-  lines.set_model(lines_);
-  sp_lines.set_model(lines_);
-  pi_lines.set_model(lines_);
-  sm_lines.set_model(std::move(lines_));
+  lines.set_model(std::move(lines_));
 }
 
 void propmat::set_cia(std::shared_ptr<ArrayOfCIARecord> cia_) {

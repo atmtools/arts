@@ -480,6 +480,12 @@ of this term multiplied by a negative distance.
   wsg_data["StokvecMatrix"] = {.file = "rtepack.h",
                                .desc = "A matrix of *Stokvec*.\n"};
 
+  wsg_data["StokvecTensor3"] = {.file = "rtepack.h",
+                               .desc = "A *Tensor3* but of *Stokvec*.\n"};
+
+  wsg_data["StokvecTensor4"] = {.file = "rtepack.h",
+                               .desc = "A *Tensor4* but of *Stokvec*.\n"};
+
   wsg_data["ArrayOfPropmatVector"] = {.file = "rtepack.h",
                                       .desc = "A list of *PropmatVector*.\n"};
 

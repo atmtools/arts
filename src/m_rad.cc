@@ -172,7 +172,7 @@ void spectral_radianceStandardEmission(
   ArrayOfStokvecVector propagation_path_source_vector_nonlte;
   ArrayOfPropmatMatrix propagation_path_propagation_matrix_jacobian;
   ArrayOfStokvecMatrix propagation_path_source_vector_nonlte_jacobian;
-  propagation_path_propagation_matrixCalc(
+  propagation_path_propagation_matrixFromPath(
       ws,
       propagation_path_propagation_matrix,
       propagation_path_source_vector_nonlte,
@@ -183,6 +183,24 @@ void spectral_radianceStandardEmission(
       propagation_path_frequency_grid,
       propagation_path,
       propagation_path_atmospheric_point);
+
+  ArrayOfMuelmatVector propagation_path_transmission_matrix;
+  ArrayOfArrayOfMuelmatMatrix propagation_path_transmission_matrix_jacobian;
+  propagation_path_transmission_matrixFromPath(
+      propagation_path_transmission_matrix,
+      propagation_path_transmission_matrix_jacobian,
+      propagation_path_propagation_matrix,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path,
+      propagation_path_atmospheric_point,
+      surface_field,
+      jacobian_targets,
+      hse_derivative);
+
+  ArrayOfMuelmatVector propagation_path_transmission_matrix_cumulative;
+  propagation_path_transmission_matrix_cumulativeForward(
+      propagation_path_transmission_matrix_cumulative,
+      propagation_path_transmission_matrix);
 
   ArrayOfStokvecVector propagation_path_spectral_radiance_source;
   ArrayOfStokvecMatrix propagation_path_spectral_radiance_source_jacobian;
@@ -196,28 +214,6 @@ void spectral_radianceStandardEmission(
       propagation_path_frequency_grid,
       propagation_path_atmospheric_point,
       jacobian_targets);
-
-  ArrayOfMuelmatVector propagation_path_transmission_matrix;
-  ArrayOfArrayOfMuelmatMatrix propagation_path_transmission_matrix_jacobian;
-  Vector propagation_path_distance;
-  ArrayOfArrayOfVector propagation_path_distance_jacobian;
-  propagation_path_transmission_matrixCalc(
-      propagation_path_transmission_matrix,
-      propagation_path_transmission_matrix_jacobian,
-      propagation_path_distance,
-      propagation_path_distance_jacobian,
-      propagation_path_propagation_matrix,
-      propagation_path_propagation_matrix_jacobian,
-      propagation_path,
-      propagation_path_atmospheric_point,
-      surface_field,
-      jacobian_targets,
-      hse_derivative);
-
-  ArrayOfMuelmatVector propagation_path_transmission_matrix_cumulative;
-  propagation_path_transmission_matrix_cumulativeForward(
-      propagation_path_transmission_matrix_cumulative,
-      propagation_path_transmission_matrix);
 
   ArrayOfStokvecVector propagation_path_spectral_radiance;
   ArrayOfStokvecMatrix propagation_path_spectral_radiance_jacobian;

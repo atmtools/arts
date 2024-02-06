@@ -388,5 +388,16 @@ Most likely only makes sense in combination with *spectral_radiance_observer_pos
 )--",
       .type = "Vector2"};
 
+  wsv_data["spectral_radiance_operator"] = {
+      .desc = R"--(The spectral radiance operator.
+
+This is a class that can compute the spectral radiance
+along a path for a single viewing direction and frequency.
+
+It provides several methods to get the path of the spectral
+radiance.
+)--",
+      .type = "SpectralRadianceOperator"};
+
   return wsv_data;
 }

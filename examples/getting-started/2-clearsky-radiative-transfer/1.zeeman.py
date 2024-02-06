@@ -2,14 +2,16 @@ import pyarts
 import numpy as np
 
 ws = pyarts.workspace.Workspace()
+pyarts.arts.globals.omp_set_num_threads(1)
 
 # %% Sensor
 
 ws.frequency_grid = np.linspace(-50e6, 50e6, 101) + 118750348044.712
+# ws.frequency_grid = [ 118750348044.712]
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66-118e9-119e9"])
+ws.absorption_speciesSet(species=["O2-Z-66-118e9-119e9"])
 ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
     ws.abs_lines_per_species, basename="lines/"
@@ -49,15 +51,24 @@ ws.spectral_radiance_space_agendaSet()
 ws.spectral_radiance_surface_agendaSet()
 
 # %% Core calculations
-ws.propagation_pathGeometric(pos=[50e3, 0, 0], los=[0, 0], max_step=1e2)
-ws.spectral_radianceStandardEmission()
+pos = [1e5, 0, 0]
+los = [180, 0]
+alts = np.linspace(0, 1e5, 101)
 
+ws.propagation_pathGeometric(pos=pos, los=los, max_step=alts[1] - alts[0])
+ws.spectral_radiance_backgroundAgendasAtEndOfPath()
+ws.propagation_path_atmospheric_pointFromPath()
+ws.propagation_path_frequency_gridFromPath()
+ws.propagation_path_propagation_matrixFromPath()
+ws.propagation_path_transmission_matrixFromPath()
+ws.propagation_path_transmission_matrix_cumulativeForward()
+ws.propagation_path_spectral_radiance_sourceFromPropmat()
+ws.propagation_path_spectral_radianceCalcEmission()
+ws.background_transmittanceFromPathPropagationBack()
+ws.spectral_radianceFromPathPropagation()
 
-import matplotlib.pyplot as plt
-alts = np.linspace(0, 1e5, 1001)
+# %% Test calculations using single frequency approach
 s = pyarts.arts.SpectralRadianceOperator()
-ws.spectral_radiance_operatorGeometricPlanar(s, altitude_grid=alts)
-srad = s.geometric_planar(ws.frequency_grid, [50e3,0,0], [180,180])
-plt.semilogy(ws.frequency_grid, ws.spectral_radiance)
-plt.show()
-plt.semilogy(ws.frequency_grid, srad)
+ws.spectral_radiance_operator1D(s, altitude_grid=alts)
+srad = s.geometric_planar(ws.frequency_grid, pos, [180 - los[0], 180-los[1]])
+assert np.allclose(srad, ws.spectral_radiance)

@@ -115,6 +115,7 @@ ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point[pyarts.arts.SpeciesEnum("Oxygen")] = 0.21  # At 21% atmospheric Oxygen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
+ws.propagation_path_point
 
 for setting in settings:
     print(setting.title("Running test"))

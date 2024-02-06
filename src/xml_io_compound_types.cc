@@ -1897,12 +1897,13 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmPoint");
 
-  Index nspec, nnlte, nother;
+  Index nspec, nnlte, nother, nisot;
   open_tag.get_attribute_value("nspec", nspec);
   open_tag.get_attribute_value("nnlte", nnlte);
   open_tag.get_attribute_value("nother", nother);
+  open_tag.get_attribute_value("nisot", nisot);
 
-  const Index n = nspec + nnlte + nother;
+  const Index n = nspec + nnlte + nother + nisot;
   for (Index i = 0; i < n; i++) {
     Numeric v;
     String k;
@@ -1918,6 +1919,9 @@ void xml_read_from_stream(std::istream& is_xml,
     } else if (nnlte > 0) {
       atm[QuantumIdentifier(k)] = v;
       nnlte--;
+    } else if (nisot > 0) {
+      atm[SpeciesIsotopeRecord(k)] = v;
+      nisot--;
     } else {
       ARTS_ASSERT(false)
     }
@@ -1950,10 +1954,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   const Index nspec = atm.nspec();
   const Index nnlte = atm.nnlte();
   const Index nother = atm.nother();
+  const Index nisot = atm.nisot();
 
   open_tag.add_attribute("nspec", nspec);
   open_tag.add_attribute("nnlte", nnlte);
   open_tag.add_attribute("nother", nother);
+  open_tag.add_attribute("nisot", nisot);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 

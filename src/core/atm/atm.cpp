@@ -193,6 +193,7 @@ std::vector<KeyVal> Point::keys() const {
   for (auto &a : specs) out.emplace_back(a.first);
   for (auto &a : nlte) out.emplace_back(a.first);
   for (auto &a : partp) out.emplace_back(a.first);
+  for (auto &a : isots) out.emplace_back(a.first);
   return out;
 }
 

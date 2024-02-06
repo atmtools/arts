@@ -36,27 +36,25 @@ struct propmat final : vec7 {
 };
 
 //! Addition of two propmat matrixes
-constexpr auto operator+(propmat a, const propmat &b) {
+constexpr propmat operator+(propmat a, const propmat &b) {
   a += b;
   return a;
 }
 
 //! Subtraction between two propmat matrixes
-constexpr auto operator-(propmat a, const propmat &b) {
+constexpr propmat operator-(propmat a, const propmat &b) {
   a -= b;
   return a;
 }
 
 //! Scaling a propmat matrix
-constexpr auto operator*(propmat a, const Numeric &b) {
+constexpr propmat operator*(propmat a, const Numeric &b) {
   a *= b;
   return a;
 }
 
 //! Scaling a propmat matrix
-constexpr auto operator*(const Numeric &a, propmat b) {
-  return b * a;
-}
+constexpr propmat operator*(const Numeric &a, propmat b) { return b * a; }
 
 //! Scaling a propmat matrix
 constexpr propmat operator/(propmat a, const propmat &b) {
@@ -65,7 +63,7 @@ constexpr propmat operator/(propmat a, const propmat &b) {
 }
 
 //! Take the average of two propmat matrixes
-constexpr auto avg(propmat a, const propmat &b) {
+constexpr propmat avg(propmat a, const propmat &b) {
   a += b;
   a *= 0.5;
   return a;

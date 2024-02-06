@@ -6,6 +6,7 @@
 #include <species_tags.h>
 
 #include <memory>
+#include <type_traits>
 
 #include "isotopologues.h"
 #include "py_macros.h"
@@ -127,6 +128,23 @@ void py_atm(py::module_ &m) try {
              atm[x.Species()] = data;
            })
       .def("keys", &AtmPoint::keys)
+      .def(
+          "no_isotopologues",
+          [](AtmPoint in) {
+            in.isots.clear();
+            return in;
+          },
+          "Returns an atmospheric point without isotopologue ratios.")
+      .def(
+          "flat_values",
+          [](const AtmPoint &in) {
+            Vector out;
+            for (auto &&key : in.keys()) {
+              out.push_back(in[key]);
+            }
+            return out;
+          },
+          "Returns a flat list of values.")
       .PythonInterfaceCopyValue(AtmPoint)
       .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
       .PythonInterfaceFileIO(AtmPoint)

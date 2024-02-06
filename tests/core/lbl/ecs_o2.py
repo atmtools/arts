@@ -34,6 +34,7 @@ ws.atmospheric_point.pressure = 1e5
 ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
 ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
+ws.propagation_path_point
 
 ws.jacobian_targetsInit()
 

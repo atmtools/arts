@@ -86,7 +86,7 @@ void propagation_path_spectral_radianceCalcTransmission(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_path_propagation_matrixCalc(
+void propagation_path_propagation_matrixFromPath(
     const Workspace &ws,
     ArrayOfPropmatVector &propagation_path_propagation_matrix,
     ArrayOfStokvecVector &propagation_path_source_vector_nonlte,
@@ -223,11 +223,9 @@ void propagation_path_spectral_radiance_sourceFromPropmat(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_path_transmission_matrixCalc(
+void propagation_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix,
     ArrayOfArrayOfMuelmatMatrix &propagation_path_transmission_matrix_jacobian,
-    Vector &propagation_path_distance,
-    ArrayOfArrayOfVector &propagation_path_distance_jacobian,
     const ArrayOfPropmatVector &propagation_path_propagation_matrix,
     const ArrayOfPropmatMatrix &propagation_path_propagation_matrix_jacobian,
     const ArrayOfPropagationPathPoint &rad_path,
@@ -235,9 +233,6 @@ void propagation_path_transmission_matrixCalc(
     const SurfaceField &surface_field,
     const JacobianTargets &jacobian_targets,
     const Index &hse_derivative) try {
-  ArrayOfString fail_msg;
-  bool do_abort = false;
-
   // HSE variables
   const Index temperature_derivative_position =
       jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
@@ -248,36 +243,30 @@ void propagation_path_transmission_matrixCalc(
     propagation_path_transmission_matrix.resize(0);
     propagation_path_transmission_matrix_jacobian.resize(
         2, ArrayOfMuelmatMatrix{});
-    propagation_path_distance.resize(0);
-    propagation_path_distance_jacobian.resize(2, ArrayOfVector{});
     return;
   }
 
   const Index nf = propagation_path_propagation_matrix.front().size();
   const Index nq = jacobian_targets.target_count();
 
+  Vector propagation_path_distance_jacobian1(nq, 0.0);
+  Vector propagation_path_distance_jacobian2(nq, 0.0);
+
   propagation_path_transmission_matrix.resize(np, MuelmatVector(nf));
   propagation_path_transmission_matrix_jacobian.resize(
       2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
-  propagation_path_distance.resize(np);
-  propagation_path_distance_jacobian.resize(2,
-                                            ArrayOfVector(np, Vector(nq, 0)));
 
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size ip = 1; ip < np; ip++) {
-    if (do_abort) continue;
-    try {
-      propagation_path_distance[ip - 1] =
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 1; ip < np; ip++) {
+      const Numeric propagation_path_distance =
           path::distance(rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
       if (hse_derivative and temperature_derivative_position >= 0) {
-        propagation_path_distance_jacobian
-            [0][ip][temperature_derivative_position] =
-                propagation_path_distance[ip - 1] /
-                (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
-        propagation_path_distance_jacobian
-            [1][ip][temperature_derivative_position] =
-                propagation_path_distance[ip - 1] /
-                (2.0 * propagation_path_atmospheric_point[ip].temperature);
+        propagation_path_distance_jacobian1[temperature_derivative_position] =
+            propagation_path_distance /
+            (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
+        propagation_path_distance_jacobian2[temperature_derivative_position] =
+            propagation_path_distance /
+            (2.0 * propagation_path_atmospheric_point[ip].temperature);
       }
 
       two_level_exp(propagation_path_transmission_matrix[ip],
@@ -287,23 +276,57 @@ void propagation_path_transmission_matrixCalc(
                     propagation_path_propagation_matrix[ip],
                     propagation_path_propagation_matrix_jacobian[ip - 1],
                     propagation_path_propagation_matrix_jacobian[ip],
-                    propagation_path_distance[ip - 1],
-                    propagation_path_distance_jacobian[0][ip],
-                    propagation_path_distance_jacobian[1][ip]);
-    } catch (const std::runtime_error &e) {
+                    propagation_path_distance,
+                    propagation_path_distance_jacobian1,
+                    propagation_path_distance_jacobian2);
+    }
+  } else {
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
+#pragma omp parallel for if (!arts_omp_in_parallel()) \
+    firstprivate(propagation_path_distance_jacobian1, \
+                     propagation_path_distance_jacobian2)
+    for (Size ip = 1; ip < np; ip++) {
+      if (do_abort) continue;
+      try {
+        const Numeric propagation_path_distance = path::distance(
+            rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
+        if (hse_derivative and temperature_derivative_position >= 0) {
+          propagation_path_distance_jacobian1[temperature_derivative_position] =
+              propagation_path_distance /
+              (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
+          propagation_path_distance_jacobian2[temperature_derivative_position] =
+              propagation_path_distance /
+              (2.0 * propagation_path_atmospheric_point[ip].temperature);
+        }
+
+        two_level_exp(propagation_path_transmission_matrix[ip],
+                      propagation_path_transmission_matrix_jacobian[0][ip],
+                      propagation_path_transmission_matrix_jacobian[1][ip],
+                      propagation_path_propagation_matrix[ip - 1],
+                      propagation_path_propagation_matrix[ip],
+                      propagation_path_propagation_matrix_jacobian[ip - 1],
+                      propagation_path_propagation_matrix_jacobian[ip],
+                      propagation_path_distance,
+                      propagation_path_distance_jacobian1,
+                      propagation_path_distance_jacobian2);
+      } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_transmission)
-      {
-        do_abort = true;
-        fail_msg.push_back(
-            var_string("Runtime-error in transmission calculation at index ",
-                       ip,
-                       ": \n",
-                       e.what()));
+        {
+          do_abort = true;
+          fail_msg.push_back(
+              var_string("Runtime-error in transmission calculation at index ",
+                         ip,
+                         ": \n",
+                         e.what()));
+        }
       }
     }
-  }
 
-  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+    ARTS_USER_ERROR_IF(
+        do_abort, "Error messages from failed cases:\n", fail_msg)
+  }
 }
 ARTS_METHOD_ERROR_CATCH
 

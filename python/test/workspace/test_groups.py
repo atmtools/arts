@@ -821,6 +821,7 @@ class TestGroups:
             "NumericTernaryOperator",
             "SingleScatteringData",
             "JacobianTargets",
+            "SpectralRadianceOperator",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())

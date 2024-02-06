@@ -1013,7 +1013,7 @@ call of *propagation_matrix_absorption_lookupAdapt*.
           {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--"},
   };
 
-  wsm_data["propagation_path_propagation_matrixCalc"] = {
+  wsm_data["propagation_path_propagation_matrixFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix and non-LTE source term along the path.
 
@@ -1082,7 +1082,7 @@ The calculations are in parallel if the program is not in parallel already.
 
   };
 
-  wsm_data["propagation_path_transmission_matrixCalc"] = {
+  wsm_data["propagation_path_transmission_matrixFromPath"] = {
       .desc = R"--(Gets the transmission matrix in layers along the path.
 
 A layer is defined as made up by the average of 2 levels, thus the outer-most size
@@ -1091,11 +1091,6 @@ of the derivatives out of this function is 2.
       .author = {"Richard Larsson"},
       .out = {"propagation_path_transmission_matrix",
               "propagation_path_transmission_matrix_jacobian"},
-      .gout = {"propagation_path_distance",
-               "propagation_path_distance_jacobian"},
-      .gout_type = {"Vector", "ArrayOfArrayOfVector"},
-      .gout_desc = {R"--(Distance between layers.)--",
-                    R"--(Derivative of distance between layers.)--"},
       .in = {"propagation_path_propagation_matrix",
              "propagation_path_propagation_matrix_jacobian",
              "propagation_path",
@@ -2636,12 +2631,14 @@ bad angles if this is turned off.
            "Whether or not to attempt fix a potential issue with the path azimuthal angle"},
   };
 
-  wsm_data["spectral_radiance_operatorGeometricPlanar"] = {
-      .desc = "Sets up a geometric planar spectral radiance operator\n",
+  wsm_data["spectral_radiance_operator1D"] = {
+      .desc = R"--(Set up a 1D spectral radiance operator
+
+The operator is set up to compute the spectral radiance at any point as seen from
+a 1D atmospheric profile.
+)--",
       .author = {"Richard Larsson"},
-      .gout = {"spectral_radiance_operator"},
-      .gout_type = {"SpectralRadianceOperator"},
-      .gout_desc = {"The spectral radiance operator"},
+      .out = {"spectral_radiance_operator"},
       .in = {"atmospheric_field", "surface_field"},
       .gin = {"altitude_grid",
               "latitude",
@@ -2657,6 +2654,23 @@ bad angles if this is turned off.
                    "The extrapolation distance for cia",
                    "The robustness of the cia extrapolation"},
       .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radiance_field1DOperator"] = {
+      .desc =
+          R"--(Uses a 1D spectral radiance operator to compute the spectral radiance of a 1D profile.
+
+Currently, only geometric geometry is accepted.
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"spectral_radiance_field"},
+      .gout_type = {"StokvecTensor4"},
+      .gout_desc = {"The spectral radiance field"},
+      .in = {"spectral_radiance_operator", "frequency_grid"},
+      .gin = {"zenith_grid", "azimuth_grid"},
+      .gin_type = {"AscendingGrid", "AscendingGrid"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc = {"The zenith grid", "The azimuth grid"},
   };
 
   return wsm_data;

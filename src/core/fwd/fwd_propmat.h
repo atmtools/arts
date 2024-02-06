@@ -16,9 +16,6 @@ class propmat {
   std::shared_ptr<AtmPoint> atm{};
 
   lbl::fwd::line_storage lines{};
-  lbl::fwd::line_storage sm_lines{};
-  lbl::fwd::line_storage pi_lines{};
-  lbl::fwd::line_storage sp_lines{};
 
   cia::full cia{};
   predef::full predef{};
