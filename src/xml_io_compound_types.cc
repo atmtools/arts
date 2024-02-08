@@ -11,6 +11,7 @@
 
 #include <workspace.h>
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -26,11 +27,13 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
+#include "mystring.h"
 #include "path_point.h"
 #include "sorted_grid.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
+#include "xml_io_base.h"
 #include "xml_io_general_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
@@ -426,6 +429,18 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== GriddedField ===========================================================
 
+template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
+void xml_read_from_stream_recursive(std::istream& is_xml,
+                                    matpack::gridded_data<T, Grids...>& gfield,
+                                    bifstream* pbifs,
+                                    XMLTag& tag) {
+  if constexpr (M > N) {
+    tag.read_from_stream(is_xml);
+    xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
+    xml_read_from_stream_recursive<N + 1>(is_xml, gfield, pbifs, tag);
+  }
+}
+
 //! Reads the grids for gridded fields from XML input stream
 /*!
   \param is_xml  XML Input stream
@@ -435,88 +450,104 @@ void xml_write_to_stream(std::ostream& os_xml,
 template <typename T, typename... Grids>
 void xml_read_from_stream_gf(std::istream& is_xml,
                              matpack::gridded_data<T, Grids...>& gfield,
-                             bifstream* pbifs) {
+                             bifstream* pbifs,
+                             Index version) {
   using GF = matpack::gridded_data<T, Grids...>;
 
   XMLTag tag;
 
-  const auto reader = [&](auto& grid, String& name) {
-    using U = std::decay_t<decltype(grid)>;
+  if (version == 0) {
+    const auto reader = [&](auto& grid, String& name) {
+      using U = std::decay_t<decltype(grid)>;
 
-    tag.get_attribute_value("name", name);
+      tag.get_attribute_value("name", name);
 
-    if constexpr (std::same_as<U, Vector>) {
-      ARTS_USER_ERROR_IF(
-          tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
-      xml_parse_from_stream(is_xml, grid, pbifs, tag);
+      if constexpr (std::same_as<U, Vector>) {
+        ARTS_USER_ERROR_IF(
+            tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
+        xml_parse_from_stream(is_xml, grid, pbifs, tag);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Vector");
+      } else if constexpr (std::same_as<U, ArrayOfString>) {
+        ARTS_USER_ERROR_IF(
+            tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
+        String s;
+        tag.get_attribute_value("type", s);
+        ARTS_USER_ERROR_IF(
+            s != "String", "Must be Array<String>, is Array<", s, '>');
+        xml_parse_from_stream(is_xml, grid, pbifs, tag);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Array");
+      } else {
+        ARTS_USER_ERROR("Unknown grid type: ", tag.get_name());
+      }
+    };
+
+    if constexpr (constexpr Size N = 0; GF::dim > N) {
       tag.read_from_stream(is_xml);
-      tag.check_name("/Vector");
-    } else {
-      ARTS_USER_ERROR_IF(
-          tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
-      String s;
-      tag.get_attribute_value("type", s);
-      ARTS_USER_ERROR_IF(
-          s != "String", "Must be Array<String>, is Array<", s, '>');
-      xml_parse_from_stream(is_xml, grid, pbifs, tag);
-      tag.read_from_stream(is_xml);
-      tag.check_name("/Array");
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
     }
-  };
 
-  if constexpr (constexpr Size N = 0; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    if constexpr (constexpr Size N = 1; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 2; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 3; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 4; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 5; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 6; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 7; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 8; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 9; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    xml_read_from_stream(is_xml, gfield.data, pbifs);
+  } else if (version == 1) {
+    ArrayOfString gridnames;
+    xml_read_from_stream(is_xml, gridnames, pbifs);
+    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
+                       "Bad number of grid names:\n",
+                       gridnames);
+    std::ranges::move(gridnames, gfield.grid_names.begin());
+
+    xml_read_from_stream_recursive<0>(is_xml, gfield, pbifs, tag);
+
+    xml_read_from_stream(is_xml, gfield.data, pbifs);
+  } else {
+    ARTS_USER_ERROR("Unknown version: ", version)
   }
-
-  if constexpr (constexpr Size N = 1; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 2; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 3; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 4; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 5; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 6; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 7; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 8; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 9; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  xml_read_from_stream(is_xml, gfield.data, pbifs);
-
-  static_assert(GF::dim <= 10, "Too many dimensions");
 }
 
 #define GF_READ(GF)                                                         \
@@ -527,15 +558,31 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     tag.read_from_stream(is_xml);                                           \
     tag.check_name(#GF);                                                    \
                                                                             \
+    Index version = 0;                                                      \
+    if (tag.has_attribute("version"))                                       \
+      tag.get_attribute_value("version", version);                          \
     tag.get_attribute_value("name", gfield.data_name);                      \
                                                                             \
-    xml_read_from_stream_gf(is_xml, gfield, pbifs);                         \
+    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);                \
                                                                             \
     tag.read_from_stream(is_xml);                                           \
     tag.check_name("/" #GF);                                                \
                                                                             \
     ARTS_USER_ERROR_IF(not gfield.check(), "Bad gridded field:\n", gfield); \
   }
+
+template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
+void xml_write_to_stream_recursive(
+    std::ostream& os_xml,
+    const matpack::gridded_data<T, Grids...>& gfield,
+    bofstream* pbofs) {
+  if constexpr (M > N) {
+    xml_write_to_stream(os_xml,
+                        gfield.template grid<N>(),
+                        pbofs,
+                        gfield.template gridname<N>());
+  }
+}
 
 //! Writes the grids for gridded fields to an XML input stream
 /*!
@@ -548,81 +595,15 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
                             const matpack::gridded_data<T, Grids...>& gfield,
                             bofstream* pbofs,
                             const String& /* name */) {
-  using GF = matpack::gridded_data<T, Grids...>;
+  xml_write_to_stream(
+      os_xml,
+      ArrayOfString{gfield.grid_names.begin(), gfield.grid_names.end()},
+      pbofs,
+      "GridNames");
 
-  if constexpr (constexpr Size N = 0; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 1; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 2; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 3; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 4; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 5; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 6; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 7; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 8; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 9; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
+  xml_write_to_stream_recursive<0>(os_xml, gfield, pbofs);
 
   xml_write_to_stream(os_xml, gfield.data, pbofs, "Data");
-
-  static_assert(GF::dim <= 10, "Too many dimensions");
 }
 
 #define GF_WRITE(GF)                                       \
@@ -635,6 +616,7 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
                                                            \
     open_tag.set_name(#GF);                                \
     open_tag.add_attribute("name", gfield.data_name);      \
+    open_tag.add_attribute("version", Index{1});           \
                                                            \
     open_tag.write_to_stream(os_xml);                      \
     os_xml << '\n';                                        \
@@ -646,43 +628,23 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
     os_xml << '\n';                                        \
   }
 
-//=== gridded_data ===========================================================
+#define GF_IO(GF) \
+  GF_READ(GF)     \
+  GF_WRITE(GF)
 
-//! Reads gridded_data from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param gfield  gridded_data return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-GF_READ(GriddedField1)
-GF_READ(GriddedField2)
-GF_READ(GriddedField3)
-GF_READ(GriddedField4)
-GF_READ(GriddedField5)
-GF_READ(GriddedField6)
-GF_READ(NamedGriddedField2)
-GF_READ(NamedGriddedField3)
-GF_READ(GriddedField1Named)
-GF_READ(ComplexGriddedField2)
+GF_IO(GriddedField1)
+GF_IO(GriddedField2)
+GF_IO(GriddedField3)
+GF_IO(GriddedField4)
+GF_IO(GriddedField5)
+GF_IO(GriddedField6)
+GF_IO(NamedGriddedField2)
+GF_IO(NamedGriddedField3)
+GF_IO(GriddedField1Named)
+GF_IO(ComplexGriddedField2)
+GF_IO(StokvecGriddedField6)
 
-//! Writes gridded_data to XML output stream
-/*!
-  \param os_xml  XML Output stream
-  \param gfield  gridded_data
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
-*/
-GF_WRITE(GriddedField1)
-GF_WRITE(GriddedField2)
-GF_WRITE(GriddedField3)
-GF_WRITE(GriddedField4)
-GF_WRITE(GriddedField5)
-GF_WRITE(GriddedField6)
-GF_WRITE(NamedGriddedField2)
-GF_WRITE(NamedGriddedField3)
-GF_WRITE(GriddedField1Named)
-GF_WRITE(ComplexGriddedField2)
-
+#undef GF_IO
 #undef GF_READ
 #undef GF_WRITE
 
@@ -1655,9 +1617,11 @@ void xml_write_to_stream(std::ostream& os_xml,
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("Data");
     internal_open_tag.add_attribute("key", key.FullName());
-    internal_open_tag.add_attribute("type", String{Absorption::PredefinedModel::model_name(data)});
+    internal_open_tag.add_attribute(
+        "type", String{Absorption::PredefinedModel::model_name(data)});
 
-    const std::vector<Size> sizes = std::visit([&](auto& v) { return v.sizes(); }, data);
+    const std::vector<Size> sizes =
+        std::visit([&](auto& v) { return v.sizes(); }, data);
     internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
 
     String sizes_str = "";

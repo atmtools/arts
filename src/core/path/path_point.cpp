@@ -554,7 +554,7 @@ PropagationPathPoint init(const Vector3& pos,
                                 .los = as_sensor ? mirror(los) : los};
   }
 
-  return PropagationPathPoint{.pos_type = pos[0] > surface_alt ? atm : surface,
+  return PropagationPathPoint{.pos_type = atm,
                               .los_type = unknown,
                               .pos = pos,
                               .los = as_sensor ? mirror(los) : los};
@@ -798,7 +798,8 @@ Intersections pair_line_ellipsoid_intersect(
       }
       [[fallthrough]];
     case atm:
-      if (const Numeric r_surface = get_r_surface(); r_surface > 0) {
+      if (const Numeric r_surface = get_r_surface();
+          r_surface > 0 or (looking_down and r_surface == 0.0)) {
         return {get_point(r_surface, atm, surface), path, false};
       }
       return {get_point(get_r_atm().first, atm, space), path, false};
@@ -832,6 +833,7 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
   path.back().los_type = first.pos_type;
   path.push_back(first);
   if (second_is_valid) path.push_back(second);
+
   return path;
 }
 

@@ -4,6 +4,7 @@
 #include <enums.h>
 #include <matpack.h>
 #include <surf.h>
+
 #include "matpack_constexpr.h"
 
 namespace path {
@@ -38,6 +39,17 @@ struct PropagationPathPoint {
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const PropagationPathPoint& p);
+
+  [[nodiscard]] constexpr Numeric altitude() const noexcept { return pos[0]; }
+  [[nodiscard]] constexpr Numeric& altitude() noexcept { return pos[0]; }
+  [[nodiscard]] constexpr Numeric latitude() const noexcept { return pos[1]; }
+  [[nodiscard]] constexpr Numeric& latitude() noexcept { return pos[1]; }
+  [[nodiscard]] constexpr Numeric longitude() const noexcept { return pos[2]; }
+  [[nodiscard]] constexpr Numeric& longitude() noexcept { return pos[2]; }
+  [[nodiscard]] constexpr Numeric zenith() const noexcept { return los[0]; }
+  [[nodiscard]] constexpr Numeric& zenith() noexcept { return los[0]; }
+  [[nodiscard]] constexpr Numeric azimuth() const noexcept { return los[1]; }
+  [[nodiscard]] constexpr Numeric& azimuth() noexcept { return los[1]; }
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
@@ -199,7 +211,8 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
  * @param surface_field The surface field (as the WSV)
  * @return Numeric Distance in meters
  */
-Numeric distance(const Vector3 pos1, const Vector3 pos2,
+Numeric distance(const Vector3 pos1,
+                 const Vector3 pos2,
                  const SurfaceField& surface_field);
 
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by

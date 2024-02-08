@@ -204,6 +204,101 @@ void py_rtepack(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(StokvecTensor4);
 
+  artsclass<StokvecTensor5>(m, "StokvecTensor5", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor5 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            6,
+            {static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
+                                  x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
+                                  sizeof(Numeric)),
+             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor5 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor5 &x, StokvecTensor5 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor5)
+      .PythonInterfaceCopyValue(StokvecTensor5)
+      .PythonInterfaceBasicRepresentation(StokvecTensor5)
+      .PythonInterfaceFileIO(StokvecTensor5)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor5>()(t[0]).cast<StokvecTensor5>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor5);
+
+  artsclass<StokvecTensor6>(m, "StokvecTensor6", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor6 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            7,
+            {static_cast<ssize_t>(x.nvitrines()),
+             static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.nshelves() * x.nbooks() * x.npages() *
+                                  x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
+                                  x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
+                                  sizeof(Numeric)),
+             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor6 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor6 &x, StokvecTensor6 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor6)
+      .PythonInterfaceCopyValue(StokvecTensor6)
+      .PythonInterfaceBasicRepresentation(StokvecTensor6)
+      .PythonInterfaceFileIO(StokvecTensor6)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor6>()(t[0]).cast<StokvecTensor6>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor6);
+
   artsarray<ArrayOfStokvecVector>(m, "ArrayOfStokvecVector")
       .PythonInterfaceFileIO(ArrayOfStokvecVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfStokvecVector);

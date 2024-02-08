@@ -690,6 +690,188 @@ void xml_write_to_stream(std::ostream &os_xml,
   os_xml << '\n';
 }
 
+//=== StokvecTensor5 ================================================================
+
+//! Reads StokvecTensor5 from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      StokvecTensor5 return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream &is_xml,
+                          StokvecTensor5 &pmt5,
+                          bifstream *pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("StokvecTensor5");
+
+  Index nb, np, nr, nc, ns;
+  tag.get_attribute_value("nshelves", ns);
+  tag.get_attribute_value("nbooks", nb);
+  tag.get_attribute_value("npages", np);
+  tag.get_attribute_value("nrows", nr);
+  tag.get_attribute_value("ncols", nc);
+
+  pmt5.resize(ns, nb, np, nr, nc);
+  for (auto &&pmt4 : pmt5) {
+    for (auto &&pmt3 : pmt4) {
+      for (auto &&pmm : pmt3) {
+        for (auto &&pmv : pmm) {
+          for (auto &pm : pmv) {
+            if (pbifs)
+              pbifs->readDoubleArray(pm.data.data(), 4);
+            else
+              is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+          }
+        }
+      }
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/StokvecTensor5");
+}
+
+//! Writes StokvecTensor5 to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      StokvecTensor5
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream &os_xml,
+                         const StokvecTensor5 &pmt5,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("StokvecTensor5");
+  open_tag.add_attribute("nshelves", pmt5.nshelves());
+  open_tag.add_attribute("nbooks", pmt5.nbooks());
+  open_tag.add_attribute("npages", pmt5.npages());
+  open_tag.add_attribute("nrows", pmt5.nrows());
+  open_tag.add_attribute("ncols", pmt5.ncols());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  for (const auto &pmt4 : pmt5) {
+    for (const auto &pmt3 : pmt4) {
+      for (const auto &pmm : pmt3) {
+        for (const auto &pmv : pmm) {
+          for (const auto &pm : pmv) {
+            if (pbofs)
+              *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
+            else
+              os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
+                     << pm.V() << '\n';
+          }
+        }
+      }
+    }
+  }
+
+  close_tag.set_name("/StokvecTensor5");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
+//=== StokvecTensor6 ================================================================
+
+//! Reads StokvecTensor6 from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param pm      StokvecTensor6 return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(std::istream &is_xml,
+                          StokvecTensor6 &pmt6,
+                          bifstream *pbifs [[maybe_unused]]) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("StokvecTensor6");
+
+  Index nb, np, nr, nc, ns, nv;
+  tag.get_attribute_value("nvitrines", nv);
+  tag.get_attribute_value("nshelves", ns);
+  tag.get_attribute_value("nbooks", nb);
+  tag.get_attribute_value("npages", np);
+  tag.get_attribute_value("nrows", nr);
+  tag.get_attribute_value("ncols", nc);
+
+  pmt6.resize(nv, ns, nb, np, nr, nc);
+  for (auto &&pmt5 : pmt6) {
+    for (auto &&pmt4 : pmt5) {
+      for (auto &&pmt3 : pmt4) {
+        for (auto &&pmm : pmt3) {
+          for (auto &&pmv : pmm) {
+            for (auto &pm : pmv) {
+              if (pbifs)
+                pbifs->readDoubleArray(pm.data.data(), 4);
+              else
+                is_xml >> pm.I() >> pm.Q() >> pm.U() >> pm.V();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/StokvecTensor6");
+}
+
+//! Writes StokvecTensor6 to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param pm      StokvecTensor6
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(std::ostream &os_xml,
+                         const StokvecTensor6 &pmt6,
+                         bofstream *pbofs [[maybe_unused]],
+                         const String &) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name("StokvecTensor6");
+  open_tag.add_attribute("nvitrines", pmt6.nvitrines());
+  open_tag.add_attribute("nshelves", pmt6.nshelves());
+  open_tag.add_attribute("nbooks", pmt6.nbooks());
+  open_tag.add_attribute("npages", pmt6.npages());
+  open_tag.add_attribute("nrows", pmt6.nrows());
+  open_tag.add_attribute("ncols", pmt6.ncols());
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  for (const auto &pmt5 : pmt6) {
+    for (const auto &pmt4 : pmt5) {
+      for (const auto &pmt3 : pmt4) {
+        for (const auto &pmm : pmt3) {
+          for (const auto &pmv : pmm) {
+            for (const auto &pm : pmv) {
+              if (pbofs)
+                *pbofs << pm.I() << pm.Q() << pm.U() << pm.V();
+              else
+                os_xml << ' ' << pm.I() << ' ' << pm.Q() << ' ' << pm.U() << ' '
+                       << pm.V() << '\n';
+            }
+          }
+        }
+      }
+    }
+  }
+
+  close_tag.set_name("/StokvecTensor6");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== MuelmatMatrix ================================================================
 
 //! Reads MuelmatMatrix from XML input stream

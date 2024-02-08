@@ -1,6 +1,7 @@
 add_library(fwd STATIC
   fwd_cia.cpp
   fwd_hxsec.cpp
+  fwd_path.cpp
   fwd_predef.cpp
   fwd_propmat.cpp
   fwd_spectral_radiance.cpp

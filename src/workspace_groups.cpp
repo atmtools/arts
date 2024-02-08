@@ -481,10 +481,20 @@ of this term multiplied by a negative distance.
                                .desc = "A matrix of *Stokvec*.\n"};
 
   wsg_data["StokvecTensor3"] = {.file = "rtepack.h",
-                               .desc = "A *Tensor3* but of *Stokvec*.\n"};
+                                .desc = "A *Tensor3* but of *Stokvec*.\n"};
 
   wsg_data["StokvecTensor4"] = {.file = "rtepack.h",
-                               .desc = "A *Tensor4* but of *Stokvec*.\n"};
+                                .desc = "A *Tensor4* but of *Stokvec*.\n"};
+
+  wsg_data["StokvecTensor5"] = {.file = "rtepack.h",
+                                .desc = "A *Tensor5* but of *Stokvec*.\n"};
+
+  wsg_data["StokvecTensor6"] = {.file = "rtepack.h",
+                                .desc = "A *Tensor6* but of *Stokvec*.\n"};
+
+  wsg_data["StokvecGriddedField6"] = {
+      .file = "rtepack.h", .desc = R"--(A 6-dimensional gridof *Stokvec*.
+)--"};
 
   wsg_data["ArrayOfPropmatVector"] = {.file = "rtepack.h",
                                       .desc = "A list of *PropmatVector*.\n"};

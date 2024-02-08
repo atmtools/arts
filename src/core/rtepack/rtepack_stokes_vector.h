@@ -20,7 +20,7 @@ struct stokvec final : vec4 {
   [[nodiscard]] constexpr Numeric &U() { return data[2]; }
   [[nodiscard]] constexpr Numeric &V() { return data[3]; }
 
-  constexpr stokvec& operator += (const stokvec &b) {
+  constexpr stokvec &operator+=(const stokvec &b) {
     I() += b.I();
     Q() += b.Q();
     U() += b.U();
@@ -28,7 +28,7 @@ struct stokvec final : vec4 {
     return *this;
   }
 
-  constexpr stokvec& operator -= (const stokvec &b) {
+  constexpr stokvec &operator-=(const stokvec &b) {
     I() -= b.I();
     Q() -= b.Q();
     U() -= b.U();
@@ -85,4 +85,14 @@ using stokvec_tensor4 = matpack::matpack_data<stokvec, 4>;
 using stokvec_tensor4_view = matpack::matpack_view<stokvec, 4, false, false>;
 using stokvec_tensor4_const_view =
     matpack::matpack_view<stokvec, 4, true, false>;
+
+using stokvec_tensor5 = matpack::matpack_data<stokvec, 5>;
+using stokvec_tensor5_view = matpack::matpack_view<stokvec, 5, false, false>;
+using stokvec_tensor5_const_view =
+    matpack::matpack_view<stokvec, 5, true, false>;
+
+using stokvec_tensor6 = matpack::matpack_data<stokvec, 6>;
+using stokvec_tensor6_view = matpack::matpack_view<stokvec, 6, false, false>;
+using stokvec_tensor6_const_view =
+    matpack::matpack_view<stokvec, 6, true, false>;
 }  // namespace rtepack

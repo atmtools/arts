@@ -20,14 +20,16 @@ void propagation_pathGeometric(ArrayOfPropagationPathPoint& propagation_path,
                                const Vector3& pos,
                                const Vector2& los,
                                const Numeric& max_step,
+                               const Numeric& surface_search_accuracy,
                                const Index& as_sensor,
                                const Index& add_limb,
                                const Index& remove_non_atm,
-                               const Index& fix_updown_azimuth) {
+                               const Index& fix_updown_azimuth,
+                               const Index& surface_safe_search) {
   propagation_path.resize(1, path::init(
       pos, los, atm_field, surface_field, static_cast<bool>(as_sensor)));
 
-  path::set_geometric_extremes(propagation_path, atm_field, surface_field);
+  path::set_geometric_extremes(propagation_path, atm_field, surface_field, surface_search_accuracy, static_cast<bool>(surface_safe_search));
 
   path::fill_geometric_stepwise(propagation_path, surface_field, max_step);
 

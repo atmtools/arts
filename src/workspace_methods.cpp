@@ -2536,27 +2536,33 @@ bad angles if this is turned off.
       .gin = {"pos",
               "los",
               "max_step",
+              "surface_search_accuracy",
               "as_sensor",
               "add_limb",
               "remove_non_atm",
-              "fix_updown_azimuth"},
+              "fix_updown_azimuth",
+              "surface_safe_search"},
       .gin_type =
-          {"Vector3", "Vector2", "Numeric", "Index", "Index", "Index", "Index"},
+          {"Vector3", "Vector2", "Numeric", "Numeric", "Index", "Index", "Index", "Index", "Index"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     Numeric{1e3},
+                    Numeric{0.1},
                     Index{1},
                     Index{0},
+                    Index{1},
                     Index{1},
                     Index{1}},
       .gin_desc =
           {"The origo of the radiation path",
            "The line of sight of the radiation path",
            "The maximum step length",
+           "The accuracy within which the surface intersection is counted as a hit",
            "Whether or not the path is as seen by the sensor or by the radiation (see text)",
            "Wheter or not to add the limb point",
            "Wheter or not to keep only atmospheric points",
-           "Whether or not to attempt fix a potential issue with the path azimuthal angle"},
+           "Whether or not to attempt fix a potential issue with the path azimuthal angle",
+           "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
   wsm_data["propagation_pathGeometricTangentAltitude"] = {
@@ -2656,15 +2662,20 @@ a 1D atmospheric profile.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radiance_field1DOperator"] = {
+  wsm_data["spectral_radiance_fieldPlanarGeometricFromOperator"] = {
       .desc =
-          R"--(Uses a 1D spectral radiance operator to compute the spectral radiance of a 1D profile.
+          R"--(Computes the spectral radiance field assuming planar geometric paths
 
-Currently, only geometric geometry is accepted.
+A planar geometric path is just defined by a 1D atmospheric profile.  If the
+*spectral_radiance_operator* contains more than one latitude and/or longitude
+point, their altitude profiles are treated independently.
+
+Limitations:
+    The zenith grid is not allowed to contain the value 90 degrees.
 )--",
       .author = {"Richard Larsson"},
       .gout = {"spectral_radiance_field"},
-      .gout_type = {"StokvecTensor4"},
+      .gout_type = {"StokvecGriddedField6"},
       .gout_desc = {"The spectral radiance field"},
       .in = {"spectral_radiance_operator", "frequency_grid"},
       .gin = {"zenith_grid", "azimuth_grid"},

@@ -16,6 +16,8 @@ class grid {
   Vector x;
 
  public:
+  using value_type = Numeric;
+
   void assert_sorted() const {
     ARTS_USER_ERROR_IF(
         not std::ranges::is_sorted(x, Compare{}), "Wrong sorting:\n", x);
@@ -62,6 +64,8 @@ class grid {
   [[nodiscard]] constexpr auto begin() const { return x.begin(); }
   [[nodiscard]] constexpr auto end() const { return x.end(); }
   [[nodiscard]] constexpr auto empty() const { return x.empty(); }
+  [[nodiscard]] constexpr Numeric front() const { return x.front(); }
+  [[nodiscard]] constexpr Numeric back() const { return x.back(); }
 
   void unsafe_resize(const Index n) { x.resize(n); }
   [[nodiscard]] constexpr auto unsafe_begin() { return x.begin(); }
@@ -69,6 +73,8 @@ class grid {
 
   //! Return a pointer to this object's allocated data
   [[nodiscard]] constexpr auto data_handle() const { return x.data_handle(); }
+
+  auto operator<=>(const grid&) const = default;
 
   friend std::ostream& operator<<(std::ostream& os, const grid& g) {
     return os << g.x;

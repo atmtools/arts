@@ -1,130 +1,108 @@
 #include "fwd_spectral_radiance.h"
 
 #include <path_point.h>
-#include <physics_funcs.h>
 
 #include <algorithm>
 #include <memory>
 #include <ostream>
+#include <ranges>
 
 #include "arts_constants.h"
 #include "arts_omp.h"
+#include "configtypes.h"
 #include "debug.h"
-#include "fwd_propmat.h"
+#include "fwd_path.h"
 #include "rtepack.h"
 
 namespace fwd {
-spectral_radiance_1d::spectral_radiance_1d(
+spectral_radiance::spectral_radiance(
     AscendingGrid alt_,
-    Numeric lat,
-    Numeric lon,
+    AscendingGrid lat_,
+    AscendingGrid lon_,
     const AtmField& atm_,
     const SurfaceField& surf,
-    std::shared_ptr<AbsorptionBands> lines,
-    std::shared_ptr<ArrayOfCIARecord> cia,
-    std::shared_ptr<ArrayOfXsecRecord> xsec,
-    std::shared_ptr<PredefinedModelData> predef,
+    const std::shared_ptr<AbsorptionBands>& lines,
+    const std::shared_ptr<ArrayOfCIARecord>& cia,
+    const std::shared_ptr<ArrayOfXsecRecord>& xsec,
+    const std::shared_ptr<PredefinedModelData>& predef,
     Numeric ciaextrap,
     Index ciarobust)
     : alt(std::move(alt_)),
-      latitude(lat),
-      longitude(lon),
-      atm(alt.size()),
-      spectral_radiance_surface(
-          [surf = surf.at(lat, lon)](Numeric f, Vector2) -> Stokvec {
-            return planck(f, surf.temperature);
-          }),
-      spectral_radiance_space([](Numeric f) -> Stokvec {
-        return planck(f, Constant::cosmic_microwave_background_temperature);
-      }) {
+      lat(std::move(lat_)),
+      lon(std::move(lon_)),
+      atm(alt.size(), lat.size(), lon.size()),
+      pm(atm.shape()),
+      spectral_radiance_surface(lat.size(), lon.size()),
+      spectral_radiance_space(
+          spectral_radiance_surface.shape(), [](Numeric f, Vector2) -> Stokvec {
+            return planck(f, Constant::cosmic_microwave_background_temperature);
+          }) {
   ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
 
-  if (arts_omp_in_parallel()) {
-    for (Index i = 0; i < alt.size(); i++) {
-      atm[i] = std::make_shared<AtmPoint>(atm_.at(alt[i], lat, lon));
+  for (Index j = 0; j < lat.size(); j++) {
+    for (Index k = 0; k < lon.size(); k++) {
+      spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
+                                            Numeric f, Vector2) -> Stokvec {
+        return planck(f, surf.temperature);
+      };
     }
-  } else {
-    String error{};
-#pragma omp parallel for
-    for (Index i = 0; i < alt.size(); i++) {
-      try {
-        atm[i] = std::make_shared<AtmPoint>(atm_.at(alt[i], lat, lon));
-      } catch (std::exception& e) {
-#pragma omp critical
-        error += e.what() + String("\n");
-      }
-    }
-    ARTS_USER_ERROR_IF(not error.empty(), error)
   }
 
-  pm.resize(alt.size(),
-            propmat(atm[0],
-                    std::move(lines),
-                    std::move(cia),
-                    std::move(xsec),
-                    std::move(predef),
-                    ciaextrap,
-                    ciarobust));
-
-  if (arts_omp_in_parallel()) {
-    for (Index i = 1; i < alt.size(); i++) {
-      pm[i].set_atm(atm[i]);
-    }
-  } else {
-    String error{};
-#pragma omp parallel for
-    for (Index i = 1; i < alt.size(); i++) {
-      try {
-        pm[i].set_atm(atm[i]);
-      } catch (std::exception& e) {
-#pragma omp critical
-        error += e.what() + String("\n");
+  for (Index i = 0; i < alt.size(); i++) {
+    for (Index j = 0; j < lat.size(); j++) {
+      for (Index k = 0; k < lon.size(); k++) {
+        atm(i, j, k) =
+            std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
       }
     }
-    ARTS_USER_ERROR_IF(not error.empty(), error)
+  }
+
+  for (Index i = 0; i < alt.size(); i++) {
+    for (Index j = 0; j < lat.size(); j++) {
+      for (Index k = 0; k < lon.size(); k++) {
+        pm(i, j, k) = propmat(
+            atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+      }
+    }
   }
 }
 
-Stokvec spectral_radiance_1d::operator()(const Numeric frequency,
-                                         const Vector2 los,
-                                         const PathVectorView path) const {
-  ARTS_ASSERT(path.size() > 0)
+Stokvec spectral_radiance::operator()(
+    const Numeric f, const std::vector<path>& path_points) const {
+  using std::views::drop;
 
-  const auto B = [f = frequency, this](const Size i) -> Stokvec {
-    return {planck(f, atm[i]->temperature), 0, 0, 0};
-  };
+  ARTS_ASSERT(path_points.size() > 0, "No path points")
+  ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
 
-  const auto Iback = [f = frequency, l = los, this](bool surface) -> Stokvec {
-    return surface ? spectral_radiance_surface(f, l)
-                   : spectral_radiance_space(f);
-  };
+  auto pos = pos_weights(path_points.front());
 
-  if (path.front().i >= atm.size()) {
-    return Iback(path.front().r < 0.0);
+  if (path_points.size() == 1) {
+    return Iback(f, pos, path_points.front());
   }
 
-  auto [K, N] = pm[path.front().i](frequency, los);
-  const Stokvec J = inv(K) * N + B(path.front().i);
-  Muelmat T = path.front().r == 0.0 ? 1.0 : exp(K, path.front().r);
-  Stokvec I = (1.0 - T) * J;
+  auto [K, N] = PM(f, pos, path_points.front());
+  Stokvec J = inv(K) * N + B(f, pos);
+  Muelmat T{1.0};
+  Stokvec I{0.0, 0.0, 0.0, 0.0};
 
-  for (auto& [i, r] : path | std::views::drop(1)) {
-    if (i >= atm.size()) {
-      I += T * Iback(path.front().r < 0.0);
-      return I;
+  for (auto& pp : path_points | drop(1)) {
+    pos = pos_weights(pp);
+
+    if (pp.point.los_type != ::path::PositionType::atm) {
+      return I += T * Iback(f, pos, pp);
     }
 
-    const auto [Ki, Ni] = pm[i](frequency, los);
-    const Stokvec Ji = inv(Ki) * Ni + B(i);
-    const Muelmat Ti = T * exp(avg(Ki, K), r);
+    auto [Ki, Ni] = PM(f, pos, pp);
+    const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
+    const Muelmat Ti = T * exp(avg(Ki, K), pp.distance);
 
     if (Ti(0, 0) < 1e-6) {
-      I += Ti * Ji;
-      return I;
+      return I += Ti * avg(Ji, J);
     }
 
-    I += (T - Ti) * Ji;
+    I += (T - Ti) * avg(Ji, J);
 
+    J = Ji;
     K = Ki;
     T = Ti;
   }
@@ -132,130 +110,52 @@ Stokvec spectral_radiance_1d::operator()(const Numeric frequency,
   return I;
 }
 
-void spectral_radiance_1d::operator()(StokvecVectorView out,
-                                      const Numeric frequency,
-                                      const Vector2 los,
-                                      const PathVectorView path) const {
-  ARTS_ASSERT(path.size() > 0)
-  ARTS_ASSERT(out.size() == alt.size())
+StokvecVector spectral_radiance::operator()(
+    const Numeric f,
+    const std::vector<path>& path_points,
+    spectral_radiance::as_vector) const {
+  using std::views::drop;
+  using std::ranges::reverse_view;
 
-  const auto B = [f = frequency, this](const Size i) -> Stokvec {
-    return {planck(f, atm[i]->temperature), 0, 0, 0};
-  };
+    ARTS_ASSERT(path_points.size() > 0, "No path points")
+    ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
 
-  const auto Iback = [f = frequency, l = los, this](bool surface) -> Stokvec {
-    return surface ? spectral_radiance_surface(f, l)
-                   : spectral_radiance_space(f);
-  };
+      std::vector<Stokvec> out;
+      out.reserve(path_points.size());
 
-  if (path.front().i >= atm.size()) {
-    out.back() = Iback(path.front().r < 0.0);
-  }
+  auto pos = pos_weights(path_points.back());
+  out.emplace_back(Iback(f, pos, path_points.back()));
 
-  auto* ptr = std::ranges::find_if(
-      path,
-      [n = atm.size()](const Size& is) { return is >= n; },
-      &PosDistance::i);
+  auto [K, N] = PM(f, pos, path_points.back());
+  Stokvec J = inv(K) * N + B(f, pos);
+  Numeric r = path_points.back().distance;
 
-  const bool up_looking = ptr->r > 0.0;
-  Stokvec I = Iback(up_looking);
+  for (auto& pp : reverse_view(path_points) | drop(1)) {
+    pos = pos_weights(pp);
 
-  --ptr;
+    auto [Ki, Ni] = PM(f, pos, pp);
+    const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
+    const Muelmat T = exp(avg(Ki, K), r);
 
-  auto [K, N] = pm[ptr->i](frequency, los);
-  Stokvec J = inv(K) * N + B(ptr->i);
-  Muelmat T = ptr->r == 0.0 ? 1.0 : exp(K, ptr->r);
+    out.emplace_back(T * (out.back() - avg(J, Ji)) + avg(J, Ji));
 
-  I = T * (I - J) + J;
-  out[ptr->i] = I;
-
-  while (--ptr >= path.begin()) {
-    const auto [i, r] = *ptr;
-
-    const auto [Ki, Ni] = pm[i](frequency, los);
-    const auto Ji = inv(Ki) * Ni + B(i);
-    const auto Ti = exp(avg(Ki, K), r);
-
-    I = Ti * (I - avg(J, Ji)) + avg(J, Ji);
-    out[i] = I;
-
-    K = Ki;
     J = Ji;
+    K = Ki;
+    r = pp.distance;
   }
+
+  std::ranges::reverse(out);
+  return out;
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         const spectral_radiance_1d::PosDistance& sr) {
-  return os << "i: " << sr.i << ", r: " << sr.r << "\n";
-}
-
-std::ostream& operator<<(std::ostream& os, const spectral_radiance_1d& sr) {
+std::ostream&
+operator<<(std::ostream& os, const spectral_radiance& sr) {
   return os << "Spectral radiance operator:\n"
             << "  Altitude grid: " << sr.alt << "\n";
 }
 
-spectral_radiance_1d::PathVector spectral_radiance_1d::geometric_planar(
-    const Numeric altitude, const Numeric zenith) const {
-  ARTS_USER_ERROR_IF(zenith == 90.0,
-                     "Not a valid zenith angle for geometric planar radiation")
-  ARTS_USER_ERROR_IF(alt.size() == 0, "No altitude grid")
-  ARTS_USER_ERROR_IF(alt[0] > altitude, "Subsurface altitude")
-
-  std::vector<PosDistance> path;
-  path.reserve(alt.size());
-
-  const bool up_looking = zenith > 90.0;
-  const Numeric csc = std::abs(1.0 / Conversion::cosd(zenith));
-
-  Size i0 = std::distance(
-      alt.begin(), std::find_if(alt.begin(), alt.end(), [altitude](Numeric a) {
-        return a >= altitude;
-      }));
-
-  if (i0 >= static_cast<Size>(alt.size())) {
-    path.emplace_back(alt.size(), up_looking ? 1.0 : -1.0);
-    return path;
-  }
-
-  i0 -= not up_looking and altitude < alt[i0];
-
-  path.emplace_back(i0, std::abs(alt[i0] - altitude) * csc);
-
-  if (up_looking) {
-    while (path.back().i < static_cast<Size>(alt.size() - 1)) {
-      auto x = path.back();
-      path.emplace_back(x.i + 1, std::abs(alt[x.i + 1] - alt[x.i]) * csc);
-    }
-    path.emplace_back(alt.size(), 1.0);
-  } else {
-    while (path.back().i > 0) {
-      auto x = path.back();
-      path.emplace_back(x.i - 1, std::abs(alt[x.i - 1] - alt[x.i]) * csc);
-    }
-    path.emplace_back(alt.size(), -1.0);
-  }
-
-  return std::move(path);
-}
-
-ArrayOfAtmPoint spectral_radiance_1d::get_atm(const PathVectorView path) const {
-  ArrayOfAtmPoint out;
-  for (const auto& pd : path) {
-    if (pd.i >= atm.size()) break;
-    out.push_back(*atm[pd.i]);
-  }
-  return out;
-}
-
-ExhaustiveConstVectorView spectral_radiance_1d::altitude_grid() const {
-  return alt;
-}
-
-ExhaustiveConstVectorView spectral_radiance_1d::latitude_grid() const {
-  return ExhaustiveConstVectorView{latitude};
-}
-
-ExhaustiveConstVectorView spectral_radiance_1d::longitude_grid() const {
-  return ExhaustiveConstVectorView{longitude};
+std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
+                                                      const Vector2 los) const {
+  return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 }  // namespace fwd

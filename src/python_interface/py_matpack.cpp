@@ -14,9 +14,6 @@
 #include <vector>
 
 #include "configtypes.h"
-#include "matpack_concepts.h"
-#include "matpack_constexpr.h"
-#include "matpack_iter.h"
 #include "py_macros.h"
 
 namespace Python {

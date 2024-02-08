@@ -1,21 +1,13 @@
-#include <pybind11/cast.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
 #include <python_interface.h>
 
-#include <functional>
-#include <optional>
 #include <stdexcept>
 #include <variant>
-#include <vector>
 
-#include "array.h"
 #include "debug.h"
-#include "details.h"
 #include "gridded_data.h"
-#include "matpack.h"
 #include "mystring.h"
 #include "py_macros.h"
+#include "sorted_grid.h"
 
 namespace Python {
 
@@ -138,9 +130,7 @@ auto artsgf(py::module_& m, const char* name) {
     return py::type::of<GF>().attr("from_dict")(xarray.attr("to_dict")());
   });
 
-  gf.def("__eq__", [](const GF& a, const GF& b) {
-    return a == b;
-  });
+  gf.def("__eq__", [](const GF& a, const GF& b) { return a == b; });
 
   return gf;
 }
@@ -188,6 +178,16 @@ void py_griddedfield(py::module_& m) try {
   artsgf<Complex, Vector, Vector>(m, "ComplexGriddedField2")
       .PythonInterfaceFileIO(ComplexGriddedField2)
       .PythonInterfaceWorkspaceDocumentation(ComplexGriddedField2);
+
+  artsgf<Stokvec,
+         AscendingGrid,
+         AscendingGrid,
+         AscendingGrid,
+         AscendingGrid,
+         AscendingGrid,
+         AscendingGrid>(m, "StokvecGriddedField6")
+      .PythonInterfaceFileIO(StokvecGriddedField6)
+      .PythonInterfaceWorkspaceDocumentation(StokvecGriddedField6);
 
   artsarray<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1")
       .PythonInterfaceFileIO(ArrayOfGriddedField1)

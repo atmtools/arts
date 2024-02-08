@@ -29,6 +29,7 @@
 #include "operators.h"
 #include "path_point.h"
 #include "template_partfun.h"
+#include "xml_io_general_types.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
   void xml_read_from_stream(std::istream &, what &, bifstream *);              \
@@ -173,6 +174,9 @@ TMPL_XML_READ_WRITE_STREAM(StokvecVector)
 TMPL_XML_READ_WRITE_STREAM(StokvecMatrix)
 TMPL_XML_READ_WRITE_STREAM(StokvecTensor3)
 TMPL_XML_READ_WRITE_STREAM(StokvecTensor4)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor5)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor6)
+TMPL_XML_READ_WRITE_STREAM(StokvecGriddedField6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokvecVector)
