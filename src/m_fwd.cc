@@ -111,7 +111,7 @@ void spectral_radiance_fieldPlanarGeometricFromOperator(
 
   matpack::matpack_data<std::vector<fwd::path>, 2> paths(nza, naa);
 
-  if (arts_omp_in_parallel() and arts_omp_get_max_threads() > 1) {
+  if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Index i = 0; i < nza; ++i) {
       for (Index j = 0; j < naa; ++j) {
         if (zenith_grid[i] > 90.0) {
