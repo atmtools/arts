@@ -19,10 +19,10 @@ auto artsgf(py::module_& m, const char* name) {
       artsclass<GF>(m, name)
           .def(py::init([]() { return std::make_shared<GF>(); }), "Empty field")
           .def(py::init<GF>(), "Copy field")
-          .def(py::init<typename GF::data_t,
-                        typename GF::grids_t,
-                        std::string,
-                        std::array<std::string, GF::dim>>(),
+          .def(py::init<std::string,
+                        typename GF::data_t,
+                        std::array<std::string, GF::dim>,
+                        typename GF::grids_t>(),
                "Full field",
                py::arg("data"),
                py::arg("grids"),

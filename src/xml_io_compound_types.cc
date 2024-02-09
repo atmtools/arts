@@ -435,7 +435,6 @@ void xml_read_from_stream_recursive(std::istream& is_xml,
                                     bifstream* pbifs,
                                     XMLTag& tag) {
   if constexpr (M > N) {
-    tag.read_from_stream(is_xml);
     xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
     xml_read_from_stream_recursive<N + 1>(is_xml, gfield, pbifs, tag);
   }
@@ -581,6 +580,7 @@ void xml_write_to_stream_recursive(
                         gfield.template grid<N>(),
                         pbofs,
                         gfield.template gridname<N>());
+    xml_write_to_stream_recursive<N + 1>(os_xml, gfield, pbofs);
   }
 }
 

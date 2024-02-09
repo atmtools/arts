@@ -23,10 +23,10 @@ struct gridded_data {
   template <Size Grid>
   using grid_value_t = typename grid_t<Grid>::value_type;
 
-  data_t data;
-  grids_t grids;
   String data_name{};
+  data_t data;
   std::array<String, dim> grid_names{};
+  grids_t grids;
 
   template <Size Grid>
   [[nodiscard]] grid_t<Grid>& grid()

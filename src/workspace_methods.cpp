@@ -2189,7 +2189,7 @@ Size : (*jacobian_targets*, *frequency_grid*)
 
   wsm_data["spectral_radianceStandardEmission"] = {
       .desc =
-          R"--(Sets *spectral_radiance* and *spectral_radiance_jacobian* from standard emission calculations
+          R"--(Computes standard emission of spectral radiances
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},

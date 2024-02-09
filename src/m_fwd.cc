@@ -7,8 +7,7 @@
 #include "arts_omp.h"
 #include "debug.h"
 #include "fwd_spectral_radiance.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
+#include "path_point.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
 
@@ -65,33 +64,33 @@ void spectral_radiance_fieldPlanarGeometricFromOperator(
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
-  spectral_radiance_field.grid<0>() = zenith_grid;
-  spectral_radiance_field.grid<1>() = azimuth_grid;
-  const auto& altitude_grid = spectral_radiance_field.grid<2>() =
-      spectral_radiance_operator.altitude();
-  const auto& latitude_grid = spectral_radiance_field.grid<3>() =
-      spectral_radiance_operator.latitude();
-  const auto& longitude_grid = spectral_radiance_field.grid<4>() =
-      spectral_radiance_operator.longitude();
-  spectral_radiance_field.grid<5>() = frequency_grid;
+  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
+  const AscendingGrid& latitude_grid = spectral_radiance_operator.latitude();
+  const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
 
-  spectral_radiance_field.grid_names = {"Zenith angle",
-                                        "Azimuth angle",
-                                        "Altitude",
-                                        "Latitude",
-                                        "Longitude",
-                                        "Frequency"};
+  const Index nza = zenith_grid.size();
+  const Index naa = azimuth_grid.size();
+  const Index nalt = altitude_grid.size();
+  const Index nlat = latitude_grid.size();
+  const Index nlon = longitude_grid.size();
+  const Index nfreq = frequency_grid.size();
 
-  spectral_radiance_field.data_name = "Spectral Radiance Field";
-
-  const Index nza = spectral_radiance_field.grid<0>().size();
-  const Index naa = spectral_radiance_field.grid<1>().size();
-  const Index nalt = spectral_radiance_field.grid<2>().size();
-  const Index nlat = spectral_radiance_field.grid<3>().size();
-  const Index nlon = spectral_radiance_field.grid<4>().size();
-  const Index nfreq = spectral_radiance_field.grid<5>().size();
-
-  spectral_radiance_field.data.resize(nza, naa, nalt, nlat, nlon, nfreq);
+  spectral_radiance_field = StokvecGriddedField6{
+      .data_name = "Spectral Radiance Field",
+      .data = StokvecTensor6(
+          nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
+      .grid_names = {"Zenith angle",
+                     "Azimuth angle",
+                     "Altitude",
+                     "Latitude",
+                     "Longitude",
+                     "Frequency"},
+      .grids = {zenith_grid,
+                azimuth_grid,
+                altitude_grid,
+                latitude_grid,
+                longitude_grid,
+                frequency_grid}};
 
   ARTS_USER_ERROR_IF(altitude_grid.size() < 2, "Must have some type of path")
   ARTS_USER_ERROR_IF(latitude_grid.size() != 1, "Latitude must be scalar")
@@ -109,38 +108,39 @@ void spectral_radiance_fieldPlanarGeometricFromOperator(
   const std::vector<fwd::path> downwards =
       spectral_radiance_operator.geometric_planar({alt_high, lat, lon}, {0, 0});
 
-  matpack::matpack_data<std::vector<fwd::path>, 2> paths(nza, naa);
+  const auto pathstep = [&upwards, &downwards](const Numeric za,
+                                               const Numeric az) {
+    auto path = (za > 90.0) ? upwards : downwards;
+    const Numeric scl = std::abs(1.0 / Conversion::cosd(za));
+    for (auto& pp : path) {
+      pp.point.azimuth() = az;
+      pp.point.zenith() = za;
+      pp.distance *= scl;
+    }
+    return path;
+  };
+
+  const auto freqstep = [&spectral_radiance_operator](
+                            const Numeric freq,
+                            const Numeric za,
+                            const std::vector<fwd::path>& path) {
+    if (za < 90.0) {
+      return spectral_radiance_operator(
+          freq, path, SpectralRadianceOperator::as_vector{});
+    }
+    auto srad = spectral_radiance_operator(
+        freq, path, SpectralRadianceOperator::as_vector{});
+    std::ranges::reverse(srad);
+    return srad;
+  };
 
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Index i = 0; i < nza; ++i) {
       for (Index j = 0; j < naa; ++j) {
-        if (zenith_grid[i] > 90.0) {
-          paths(i, j) = upwards;
-        } else {
-          paths(i, j) = downwards;
-        }
-        const Numeric scl = std::abs(1.0 / Conversion::cosd(zenith_grid[i]));
-        for (auto& path : paths(i, j)) {
-          path.point.azimuth() = azimuth_grid[j];
-          path.point.zenith() = zenith_grid[i];
-          path.distance *= scl;
-        }
-      }
-    }
-
-    for (Index i = 0; i < nza; ++i) {
-      for (Index j = 0; j < naa; ++j) {
+        const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
         for (Index n = 0; n < nfreq; ++n) {
-          auto srad =
-              spectral_radiance_operator(frequency_grid[n],
-                                         paths(i, j),
-                                         SpectralRadianceOperator::as_vector{});
-          if (zenith_grid[i] < 90.0) {
-            spectral_radiance_field.data(i, j, joker, 0, 0, n) = srad;
-          } else {
-            std::ranges::reverse(srad);
-            spectral_radiance_field.data(i, j, joker, 0, 0, n) = srad;
-          }
+          spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+              freqstep(frequency_grid[n], zenith_grid[i], path);
         }
       }
     }
@@ -151,45 +151,14 @@ void spectral_radiance_fieldPlanarGeometricFromOperator(
     for (Index i = 0; i < nza; ++i) {
       for (Index j = 0; j < naa; ++j) {
         try {
-          if (zenith_grid[i] > 90.0) {
-            paths(i, j) = upwards;
-          } else {
-            paths(i, j) = downwards;
-          }
-          const Numeric scl = std::abs(1.0 / Conversion::cosd(zenith_grid[i]));
-          for (auto& path : paths(i, j)) {
-            path.point.azimuth() = azimuth_grid[j];
-            path.point.zenith() = zenith_grid[i];
-            path.distance *= scl;
+          const auto path = pathstep(zenith_grid[i], azimuth_grid[j]);
+          for (Index n = 0; n < nfreq; ++n) {
+            spectral_radiance_field.data(i, j, joker, 0, 0, n) =
+                freqstep(frequency_grid[n], zenith_grid[i], path);
           }
         } catch (std::exception& e) {
 #pragma omp critical
           error += e.what() + String{"\n"};
-        }
-      }
-    }
-
-    ARTS_USER_ERROR_IF(not error.empty(), error)
-
-#pragma omp parallel for collapse(3)
-    for (Index i = 0; i < nza; ++i) {
-      for (Index j = 0; j < naa; ++j) {
-        for (Index n = 0; n < nfreq; ++n) {
-          try {
-            auto srad = spectral_radiance_operator(
-                frequency_grid[n],
-                paths(i, j),
-                SpectralRadianceOperator::as_vector{});
-            if (zenith_grid[i] < 90.0) {
-              spectral_radiance_field.data(i, j, joker, 0, 0, n) = srad;
-            } else {
-              std::ranges::reverse(srad);
-              spectral_radiance_field.data(i, j, joker, 0, 0, n) = srad;
-            }
-          } catch (std::exception& e) {
-#pragma omp critical
-            error += e.what() + String{"\n"};
-          }
         }
       }
     }

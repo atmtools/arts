@@ -95,9 +95,9 @@ void propagation_path_propagation_matrixFromPath(
     const Agenda &propagation_matrix_agenda,
     const JacobianTargets &jacobian_targets,
     const ArrayOfAscendingGrid &propagation_path_frequency_grid,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point) try {
-  const Size np = rad_path.size();
+  const Size np = propagation_path.size();
   if (np == 0) {
     propagation_path_propagation_matrix.resize(0);
     propagation_path_source_vector_nonlte.resize(0);
@@ -122,7 +122,7 @@ void propagation_path_propagation_matrixFromPath(
           propagation_matrix_agenda,
           jacobian_targets,
           propagation_path_frequency_grid[ip],
-          rad_path[ip],
+          propagation_path[ip],
           propagation_path_atmospheric_point[ip]);
     }
   } else {
@@ -141,7 +141,7 @@ void propagation_path_propagation_matrixFromPath(
             propagation_matrix_agenda,
             jacobian_targets,
             propagation_path_frequency_grid[ip],
-            rad_path[ip],
+            propagation_path[ip],
             propagation_path_atmospheric_point[ip]);
       } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
@@ -228,7 +228,7 @@ void propagation_path_transmission_matrixFromPath(
     ArrayOfArrayOfMuelmatMatrix &propagation_path_transmission_matrix_jacobian,
     const ArrayOfPropmatVector &propagation_path_propagation_matrix,
     const ArrayOfPropmatMatrix &propagation_path_propagation_matrix_jacobian,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const SurfaceField &surface_field,
     const JacobianTargets &jacobian_targets,
@@ -237,7 +237,7 @@ void propagation_path_transmission_matrixFromPath(
   const Index temperature_derivative_position =
       jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
 
-  const Size np = rad_path.size();
+  const Size np = propagation_path.size();
 
   if (np == 0) {
     propagation_path_transmission_matrix.resize(0);
@@ -259,7 +259,7 @@ void propagation_path_transmission_matrixFromPath(
   if (arts_omp_in_parallel()) {
     for (Size ip = 1; ip < np; ip++) {
       const Numeric propagation_path_distance =
-          path::distance(rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
+          path::distance(propagation_path[ip - 1].pos, propagation_path[ip].pos, surface_field);
       if (hse_derivative and temperature_derivative_position >= 0) {
         propagation_path_distance_jacobian1[temperature_derivative_position] =
             propagation_path_distance /
@@ -291,7 +291,7 @@ void propagation_path_transmission_matrixFromPath(
       if (do_abort) continue;
       try {
         const Numeric propagation_path_distance = path::distance(
-            rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
+            propagation_path[ip - 1].pos, propagation_path[ip].pos, surface_field);
         if (hse_derivative and temperature_derivative_position >= 0) {
           propagation_path_distance_jacobian1[temperature_derivative_position] =
               propagation_path_distance /
@@ -332,11 +332,11 @@ ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_atmospheric_pointFromPath(
     ArrayOfAtmPoint &propagation_path_atmospheric_point,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const AtmField &atm_field) try {
   forward_atm_path(
-      atm_path_resize(propagation_path_atmospheric_point, rad_path),
-      rad_path,
+      atm_path_resize(propagation_path_atmospheric_point, propagation_path),
+      propagation_path,
       atm_field);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -344,14 +344,14 @@ ARTS_METHOD_ERROR_CATCH
 void propagation_path_frequency_gridFromPath(
     ArrayOfAscendingGrid &propagation_path_frequency_grid,
     const AscendingGrid &frequency_grid,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const Numeric &rte_alonglos_v) try {
   forward_path_freq(path_freq_resize(propagation_path_frequency_grid,
                                      frequency_grid,
                                      propagation_path_atmospheric_point),
                     frequency_grid,
-                    rad_path,
+                    propagation_path,
                     propagation_path_atmospheric_point,
                     rte_alonglos_v);
 }
