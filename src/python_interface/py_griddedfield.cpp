@@ -24,10 +24,10 @@ auto artsgf(py::module_& m, const char* name) {
                         std::array<std::string, GF::dim>,
                         typename GF::grids_t>(),
                "Full field",
-               py::arg("data"),
-               py::arg("grids"),
                py::arg("dataname") = "",
-               py::arg("gridnames") = std::array<std::string, GF::dim>{});
+               py::arg("data"),
+               py::arg("gridnames") = std::array<std::string, GF::dim>{},
+               py::arg("grids"));
 
   gf.def_readwrite("data", &GF::data, "Data field");
   gf.def_readwrite("dataname", &GF::data_name, "Data name");
