@@ -17,6 +17,41 @@
 #include "logic.h"
 #include "predefined_absorption_models.h"
 #include "species.h"
+#include "species_tags.h"
+#include "xml_io.h"
+
+void absorption_predefined_model_dataReadSpeciesSplitCatalog(
+    PredefinedModelData& absorption_predefined_model_data,
+    const ArrayOfArrayOfSpeciesTag& absorption_species,
+    const String& basename,
+    const Index& name_missing_index) {
+  const bool name_missing = static_cast<bool>(name_missing_index);
+
+  absorption_predefined_model_data.clear();
+
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+
+  for (auto& specs : absorption_species) {
+    for (auto& spec : specs) {
+      if (not is_predefined_model(spec.Isotopologue())) continue;
+
+      String filename = tmpbasename + spec.Isotopologue().FullName() + ".xml";
+
+      if (find_xml_file_existence(filename)) {
+        PredefinedModelData other;
+        xml_read_from_file(filename, other);
+        absorption_predefined_model_data.insert(other);
+      } else {
+        ARTS_USER_ERROR_IF(not name_missing, "File " + filename + " not found")
+        absorption_predefined_model_data.at(spec.Isotopologue()) =
+            Absorption::PredefinedModel::ModelName{};
+      }
+    }
+  }
+}
 
 void absorption_predefined_model_dataInit(
     PredefinedModelData& absorption_predefined_model_data) {

@@ -67,6 +67,8 @@ class Model {
   Model& operator=(const Model& d) = default;
   Model& operator=(Model&& d) = default;
 
+  void insert(const Model& other);
+
   template <ModelVariantConvertible T>
   void set(const SpeciesIsotopeRecord& tag, const T& t) {
     ARTS_USER_ERROR_IF(not is_predefined_model(tag),
@@ -105,11 +107,11 @@ class Model {
 
   [[nodiscard]] ModelVariant& at(const SpeciesIsotopeRecord& tag);
 
+  void clear();
   [[nodiscard]] auto size() const { return data.size(); }
   [[nodiscard]] auto empty() const { return data.empty(); }
   [[nodiscard]] auto begin() const { return data.begin(); }
   [[nodiscard]] auto end() const { return data.end(); }
-
   friend std::ostream& operator<<(std::ostream&, const Model&);
 };
 

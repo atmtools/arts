@@ -101,6 +101,13 @@ ModelVariant model_data(const std::string_view name) {
     return MT_CKD400::WaterData{};
   }
 
-  throw std::runtime_error(var_string("Unknown model name: ", std::quoted(name), ". Are all models defined?"));
+  throw std::runtime_error(var_string(
+      "Unknown model name: ", std::quoted(name), ". Are all models defined?"));
+}
+
+void Model::clear() { data.clear(); }
+
+void Model::insert(const Model &other) {
+  data.insert(other.data.begin(), other.data.end());
 }
 }  // namespace Absorption::PredefinedModel

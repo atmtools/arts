@@ -377,6 +377,24 @@ The units of the data are described in *absorption_cia_dataReadFromCIA*.
            R"--(Flag to continue in case nothing is found [0 throws, 1 continues])--"},
   };
 
+  wsm_data["absorption_predefined_model_dataReadSpeciesSplitCatalog"] = {
+      .desc =
+          R"--(Reads *absorption_predefined_model_data* catalog but only for *absorption_species*
+
+If ``name_missing`` is true, missing models are set to named model, which is the most
+common form of a predefined model.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_predefined_model_data"},
+      .in = {"absorption_species"},
+      .gin = {"basename", "name_missing"},
+      .gin_type = {"String", "Index"},
+      .gin_value = {std::nullopt, Index{1}},
+      .gin_desc =
+          {R"--(The path to the split catalog files)--",
+           R"--(Flag to name models that are missing)--"},
+  };
+
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
       .desc = R"--(Gets modern line catalog from old style
 )--",
