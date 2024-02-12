@@ -8,7 +8,6 @@
 #include <string>
 
 #include "auto_wsv.h"
-#include "workspace_agendas.h"
 #include "workspace_methods.h"
 
 const static auto wsm = internal_workspace_methods();
@@ -628,47 +627,6 @@ void wsm_record(std::ostream& os,
   os << "\n";
 }
 
-void wsm_record(std::ostream& os,
-                const std::string& name,
-                const WorkspaceAgendaInternalRecord& wsmr) try {
-  os << "    .out={";
-  bool first = true;
-  for (auto& str : wsmr.output) {
-    os << comma(first, "          ") << "\"" << str << "\"";
-  }
-  os << "},\n";
-  os << "    .in={";
-  first = true;
-  for (auto& str : wsmr.input) {
-    os << comma(first, "         ") << "\"" << str << "\"";
-  }
-  os << comma(first, "         ") << '\"' << name << '\"';
-  os << "},\n";
-  os << "    .defs={},\n";
-
-  os << "    .func=";
-  
-  os << "[](Workspace& ws, const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
-
-  os << "      " << name << "Execute(";
-  os << "ws";
-  for (std::size_t i=0; i<wsmr.output.size(); i++) {
-    os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get_or<"<< wsv.at(wsmr.output[i]).type <<">(out[" << i << "])";
-  }
-  for (std::size_t i=0; i<wsmr.input.size(); i++) {
-    if (std::ranges::any_of(wsmr.output, Cmp::eq(wsmr.input[i]))) continue;
-    os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get<"<< wsv.at(wsmr.input[i]).type <<">(out[" << i << "])";
-  }
-  os << ",\n" << std::string(14 + name.size(), ' ') << "ws.get<";
-  if (wsmr.array) os << "ArrayOf";
-  os << "Agenda>(in.back())";
-  os << "\n      );";
-  os << "\n    }";
-  os << "\n";
-} catch(...) {
-  throw std::runtime_error(var_string("Failure in: ", std::quoted(name)));
-}
-
 std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
   return ofs[i % ofs.size()];
 }
@@ -712,15 +670,6 @@ void implementation(std::ostream& os, const int n) {
     i++;
   }
 
-  i = 0;
-  for (auto& [name, wsar]: internal_workspace_agendas()) {
-    select_ofstream(ofs, i)
-        << "WorkspaceMethodRecord _wsm_" << name << "Execute() {\n  return {\n";
-    wsm_record(select_ofstream(ofs, i), name, wsar);
-    select_ofstream(ofs, i) << "  };\n}\n\n";
-    i++;
-  }
-
   for (i = 0; i < n; i++) {
     select_ofstream(ofs, i)
         << "std::unordered_map<std::string, WorkspaceMethodRecord> get_workspace_methods"
@@ -733,13 +682,6 @@ void implementation(std::ostream& os, const int n) {
   for (auto& [name, wsmr] : wsm) {
     select_ofstream(ofs, i++)
         << "    { \"" << name << "\", _wsm_" << name << "()},\n";
-  }
-
-  i = 0;
-  for (auto& [name, wsar]: internal_workspace_agendas()) {
-    select_ofstream(ofs, i)
-        << "    { \"" << name << "Execute\", _wsm_" << name << "Execute()},\n";
-    i++;
   }
 
   for (auto& of : ofs)

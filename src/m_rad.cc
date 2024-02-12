@@ -372,7 +372,7 @@ void sensor_radianceFromObservers(
   StokvecVector spectral_radiance(nf);
   StokvecMatrix spectral_radiance_jacobian(nx, nf);
 
-  if (arts_omp_in_parallel()) {
+  if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Size ipos = 0; ipos < np; ipos++) {
       spectral_radiance_observer_agendaExecute(
           ws,

@@ -67,7 +67,8 @@ class spectral_radiance {
 
   friend std::ostream& operator<<(std::ostream&, const spectral_radiance&);
 
-  std::vector<path> geometric_planar(const Vector3 pos, const Vector2 los) const;
+  [[nodiscard]] std::vector<path> geometric_planar(const Vector3 pos, const Vector2 los) const;
+  [[nodiscard]] std::vector<path> from_path(const ArrayOfPropagationPathPoint& propagation_path) const;
 
   [[nodiscard]] constexpr std::array<weighted_position, 8> pos_weights(
       const path& pp) const {

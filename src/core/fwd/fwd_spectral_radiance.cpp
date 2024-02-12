@@ -158,4 +158,8 @@ std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
                                                       const Vector2 los) const {
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
+
+std::vector<path> spectral_radiance::from_path(const ArrayOfPropagationPathPoint& propagation_path) const {
+  return fwd::path_from_propagation_path(propagation_path, alt, lat, lon);
+}
 }  // namespace fwd

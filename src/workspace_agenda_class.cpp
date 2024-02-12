@@ -41,126 +41,114 @@ void Agenda::finalize(bool fix) try {
     return;
   }
 
-  auto must_out = ag_ptr->second.output;
-  auto must_in = ag_ptr->second.input;
+  std::vector<std::string> ins_first;
+  std::vector<std::string> outs_first;
+  std::vector<std::string> in_then_out;
 
-  for (auto& method : methods) {
+  for (const Method& method : methods) {
     const auto& ins = method.get_ins();
     const auto& outs = method.get_outs();
 
-    for (auto& i : ins) {
-      if (auto ptr = std::find(must_in.begin(), must_in.end(), i);
-          ptr != must_in.end()) {
-        must_in.erase(ptr);
-      } else if (std::ranges::any_of(must_out, Cmp::eq(i)) and
-                 std::ranges::none_of(copy, Cmp::eq(i))) {
-        throw std::runtime_error(var_string(
-            "The method:\n",
-            method,
-            "\nThe variable: ",
-            std::quoted(i),
-            '\n',
-            "Despite being a pure output of the agenda, "
-            "the variable is first encountered as an input to the method"));
-      }
-    }
+    std::ranges::copy_if(
+        ins,
+        std::back_inserter(ins_first),
+        [&outs_first, &ins_first, &in_then_out, &outs](const std::string& i) {
+          const auto cmp = Cmp::eq(i);
+          return not std::ranges::any_of(ins_first, cmp) and
+                 not std::ranges::any_of(outs_first, cmp) and
+                 not std::ranges::any_of(in_then_out, cmp) and
+                 not std::ranges::any_of(outs, cmp);
+        });
 
-    for (auto& i : outs) {
-      if (std::ranges::any_of(must_in, Cmp::eq(i))) {
-        throw std::runtime_error(var_string(
-            "The method:\n",
-            method,
-            "\nThe variable: ",
-            std::quoted(i),
-            '\n',
-            "Despite being a pure input of the agenda, "
-            "the variable is first encountered as a pure output to the method"));
-      }
+    std::ranges::copy_if(
+        ins,
+        std::back_inserter(in_then_out),
+        [&outs_first, &in_then_out, &outs](const std::string& i) {
+          const auto cmp = Cmp::eq(i);
+          return not std::ranges::any_of(outs_first, cmp) and
+                 not std::ranges::any_of(in_then_out, cmp) and
+                 std::ranges::any_of(outs, cmp);
+        });
 
-      if (auto ptr = std::find(must_out.begin(), must_out.end(), i);
-          ptr != must_out.end()) {
-        must_out.erase(ptr);
-      }
-    }
-
-    // INOUT
-    std::copy_if(ins.begin(), ins.end(), std::back_inserter(copy), is_in(outs));
-    std::copy_if(
-        outs.begin(), outs.end(), std::back_inserter(share), is_in(ins));
-
-    // IN
-    std::copy_if(
-        ins.begin(), ins.end(), std::back_inserter(share), is_not_in(outs));
-
-    // OUT
-    std::copy_if(
-        outs.begin(), outs.end(), std::back_inserter(copy), is_not_in(ins));
+    std::ranges::copy_if(
+        outs,
+        std::back_inserter(outs_first),
+        [&outs_first, &ins_first, &in_then_out, &ins](const std::string& i) {
+          const auto cmp = Cmp::eq(i);
+          return not std::ranges::any_of(ins_first, cmp) and
+                 not std::ranges::any_of(outs_first, cmp) and
+                 not std::ranges::any_of(in_then_out, cmp) and
+                 not std::ranges::any_of(ins, cmp);
+        });
   }
 
-  if (must_in.size() or must_out.size()) {
-    if (fix) {
-      for (auto& v : must_in)
-        methods.emplace_back("Ignore",
-                             std::vector<std::string>{v},
-                             std::unordered_map<std::string, std::string>{});
-      for (auto& v : must_out)
-        methods.emplace_back("Touch",
-                             std::vector<std::string>{v},
-                             std::unordered_map<std::string, std::string>{});
-    } else {
-      std::ostringstream os;
-      os << "Agenda has unused variables:\nRequired output : ";
-      for (auto& o : ag_ptr->second.output) {
-        os << o << ", ";
-      }
-
-      os << "\nRequired input  : ";
-      for (auto& o : ag_ptr->second.input) {
-        os << o << ", ";
-      }
-
-      os << "\nUnused output   : ";
-      for (auto& o : must_out) {
-        os << o << ", ";
-      }
-
-      os << "\nUnused input    : ";
-      for (auto& o : must_in) {
-        os << o << ", ";
-      }
-      os << "\nPlease Touch unused output and Ignore unused input if this is intentional.";
-      throw std::runtime_error(os.str());
-    }
-  }
-
-  const auto remove_copies = [](std::vector<std::string>& seq) {
-    auto first = seq.begin();
-    auto last = seq.end();
-    std::sort(first, last);
-    seq.erase(std::unique(first, last), last);
+  auto sort_and_erase_copies = [](std::vector<std::string>& vec) {
+    std::ranges::sort(vec);
+    auto [s, e] = std::ranges::unique(vec);
+    vec.erase(s, e);
   };
-  remove_copies(share);
-  remove_copies(copy);
+  sort_and_erase_copies(ins_first);
+  sort_and_erase_copies(outs_first);
+  sort_and_erase_copies(in_then_out);
 
-  if (auto ptr = wsa.find(name); ptr != wsa.end()) {
-    std::erase_if(share, is_in(ptr->second.output));
-    std::erase_if(copy, is_in(ptr->second.output));
-    std::erase_if(share, is_in(ptr->second.input));
-  }
+  const std::vector<std::string>& must_out = ag_ptr->second.output;
+  const std::vector<std::string>& must_in = ag_ptr->second.input;
 
-  // Don't overlap
-  for (auto& str : copy) {
-    if (auto ptr = std::find(share.begin(), share.end(), str);
-        ptr != share.end()) {
-      share.erase(ptr);
+  for (const std::string& i : must_in) {
+    if (std::ranges::binary_search(outs_first, i)) {
+      throw std::runtime_error(
+          var_string("Agenda ",
+                     std::quoted(name),
+                     " first uses ",
+                     std::quoted(i),
+                     " as an output but it is agenda input"));
+    }
+
+    if (not std::ranges::binary_search(ins_first, i)) {
+      if (fix) {
+        methods.emplace_back("Ignore",
+                             std::vector<std::string>{i},
+                             std::unordered_map<std::string, std::string>{});
+      } else {
+        throw std::runtime_error(var_string(
+            "Agenda ", std::quoted(name), " does not use ", std::quoted(i)));
+      }
     }
   }
 
-  // Erase _ and @, as these are reserved for internal use (defaults and setters, respectively)
-  std::erase_if(share, [](auto& str) { return str.front() == '_'; });
-  std::erase_if(copy, [](auto& str) { return str.front() == '_'; });
-  std::erase_if(share, [](auto& str) { return str.front() == '@'; });
-  std::erase_if(copy, [](auto& str) { return str.front() == '@'; });
+  for (const std::string& o : must_out) {
+    if (std::ranges::binary_search(ins_first, o) or
+        std::ranges::binary_search(in_then_out, o)) {
+      throw std::runtime_error(
+          var_string("Agenda ",
+                     std::quoted(name),
+                     " first uses ",
+                     std::quoted(o),
+                     " as an input but it is agenda output"));
+    }
+
+    if (not std::ranges::binary_search(outs_first, o)) {
+      if (fix) {
+        methods.emplace_back("Touch",
+                             std::vector<std::string>{o},
+                             std::unordered_map<std::string, std::string>{});
+      } else {
+        throw std::runtime_error(var_string(
+            "Agenda ", std::quoted(name), " does not set ", std::quoted(o)));
+      }
+    }
+  }
+
+  std::erase_if(ins_first, [&must_in](const auto& str) {
+    return std::ranges::any_of(must_in, Cmp::eq(str));
+  });
+
+  std::erase_if(ins_first, [&in_then_out](const auto& str) {
+    return std::ranges::binary_search(in_then_out, str);
+  });
+
+  copy = in_then_out;
+  share = ins_first;
 
   checked = true;
 } catch (std::exception& e) {

@@ -7,7 +7,8 @@ internal_workspace_variables() {
   wsv_data["absorption_bands"] = {
       .desc = R"--(Bands of absorption lines for LBL calculations.
 )--",
-      .type = "AbsorptionBands"};
+      .type = "AbsorptionBands",
+  };
 
   wsv_data["absorption_cia_data"] = {
       .desc = R"--(HITRAN Collision Induced Absorption (CIA) Data.
@@ -42,7 +43,8 @@ Units:
  - Frequencies: Hz
  - Binary absorption cross-sections: m^5*molecule^-2
 )--",
-      .type = "ArrayOfCIARecord"};
+      .type = "ArrayOfCIARecord",
+  };
 
   wsv_data["propagation_matrix_absorption_lookup"] = {
       .desc = R"--(An absorption lookup table.
@@ -55,19 +57,23 @@ It has quite a complicated structure. For details see the Arts User
 Guide section \"The gas absorption lookup table\" or the source code
 documentation in gas_abs_lookup.h.
 )--",
-      .type = "GasAbsLookup"};
+      .type = "GasAbsLookup",
+  };
 
-  wsv_data["absorption_species"] = {.desc = R"--(Tag groups for gas absorption.
+  wsv_data["absorption_species"] = {
+      .desc = R"--(Tag groups for gas absorption.
 
 This is an array of arrays of SpeciesTag tag definitions. It defines the
 available tag groups for the calculation of scalar gas absorption
 coefficients.  See online documentation of method *absorption_speciesSet* for
 more detailed information how tag groups work and some examples.
 )--",
-                                    .type = "ArrayOfArrayOfSpeciesTag"};
+      .type = "ArrayOfArrayOfSpeciesTag",
+  };
 
-  wsv_data["atmospheric_field"] = {.desc =
-                                       R"--(An atmospheric field in ARTS.
+  wsv_data["atmospheric_field"] = {
+      .desc =
+          R"--(An atmospheric field in ARTS.
 
 The atmospheric field defines the altitude of the top-of-the-atmosphere,
 as well as the variables that are required for the radiative transfer
@@ -89,10 +95,12 @@ The atmospheric field may, but does not have to, consist of the following:
     Non-local thermodynamics ratios         - Unitless [pure-style] OR Kelvin [vibrational-style]
     Scattering species content              - See user guide for relevant species
 )--",
-                                   .type = "AtmField"};
+      .type = "AtmField",
+  };
 
-  wsv_data["atmospheric_point"] = {.desc =
-                                       R"--(An atmospheric point in ARTS.
+  wsv_data["atmospheric_point"] = {
+      .desc =
+          R"--(An atmospheric point in ARTS.
 
 The atmospheric point consists of all the relevant atmospheric field data
 at a discrete point in the atmosphere.  It is often extracted from an *AtmField*
@@ -100,14 +108,17 @@ at a single altitude-latitude-longitude but may of course be generated manually.
 
 See *atmospheric_field* for the data that may be available in the atmospheric point.
 )--",
-                                   .type = "AtmPoint"};
+      .type = "AtmPoint",
+  };
 
-  wsv_data["propagation_matrix_jacobian"] = {.desc = R"--(
+  wsv_data["propagation_matrix_jacobian"] = {
+      .desc = R"--(
 Partial derivative of the *propagation_matrix* with regards to *jacobian_targets*.
 
 The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's unit].
 )--",
-                                             .type = "PropmatMatrix"};
+      .type = "PropmatMatrix",
+  };
 
   wsv_data["propagation_matrix_source_vector_nonlte_jacobian"] = {
       .desc =
@@ -115,26 +126,28 @@ The units depend on what is set in *jacobian_targets* [1 / m / jacobian target's
 
 The units are *spectral_radiance_jacobian* per meter.
 )--",
-      .type = "StokvecMatrix"};
+      .type = "StokvecMatrix",
+  };
 
-  wsv_data["ecs_data"] = {.desc = R"--(Error corrected sudden data
+  wsv_data["ecs_data"] = {
+      .desc = R"--(Error corrected sudden data
 
 Dimensions: [num Isotopologues] [num Species]
 
 Used in line-by-line calculations requiring ECS data.
 )--",
-                          .type = "LinemixingEcsData",
-                          .default_value = LinemixingEcsData{}};
+      .type = "LinemixingEcsData",
+      .default_value = LinemixingEcsData{},
+  };
 
   wsv_data["frequency_grid"] = {
       .desc =
-          R"--(The frequency grid for monochromatic pencil beam calculations.
-
-Usage: Set by the user. 
+          R"--(The discrete frequency grid.
 
 Unit:  Hz
 )--",
-      .type = "AscendingGrid"};
+      .type = "AscendingGrid",
+  };
 
   wsv_data["absorption_xsec_fit_data"] = {
       .desc = R"--(Fitting model coefficients for cross section species.
@@ -188,7 +201,8 @@ XsecRecord:
 fitminpressures, fitmaxpressures, fitmintemperatures and fitmaxtemperatures
 are not used to apply the model and solely serve for informational purposes.
 )--",
-      .type = "ArrayOfXsecRecord"};
+      .type = "ArrayOfXsecRecord",
+  };
 
   wsv_data["propagation_matrix_source_vector_nonlte"] = {
       .desc =
@@ -207,7 +221,8 @@ come from more sources, such as scattering and/or transmitting equipment.
 
 The unit is in *spectral_radiance* per meter.
 )--",
-      .type = "StokvecVector"};
+      .type = "StokvecVector",
+  };
 
   wsv_data["propagation_path_atmospheric_point"] = {
       .desc = R"--(Atmospheric points along the propagation path.
@@ -218,7 +233,8 @@ Dimension: [ ppath.np ]
 
 Usage: Output of radiative transfer methods.
 )--",
-      .type = "ArrayOfAtmPoint"};
+      .type = "ArrayOfAtmPoint",
+  };
 
   wsv_data["propagation_path_frequency_grid"] = {
       .desc = R"--(Atmospheric frequency grids along the propagation path.
@@ -229,7 +245,8 @@ Dimension: [ ppath.np ]
 
 Usage: Output of radiative transfer methods.
 )--",
-      .type = "ArrayOfAscendingGrid"};
+      .type = "ArrayOfAscendingGrid",
+  };
 
   wsv_data["absorption_predefined_model_data"] = {
       .desc =
@@ -238,7 +255,8 @@ Usage: Output of radiative transfer methods.
 Can currently only contain data for new MT CKD models of water.
 )--",
       .type = "PredefinedModelData",
-      .default_value = PredefinedModelData{}};
+      .default_value = PredefinedModelData{},
+  };
 
   wsv_data["propagation_matrix"] = {
       .desc =
@@ -254,7 +272,8 @@ over which it is considered constant.
 
 The unit is [1 / m]
 )--",
-      .type = "PropmatVector"};
+      .type = "PropmatVector",
+  };
 
   wsv_data["propagation_matrix_select_species"] = {
       .desc = R"--(A select species tag group from *absorption_species*
@@ -263,78 +282,93 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 *absorption_species* for that to be the selection.
 )--",
       .type = "SpeciesEnum",
-      .default_value = SpeciesEnum::Bath};
+      .default_value = SpeciesEnum::Bath,
+  };
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
 )--",
-      .type = "StokvecMatrix"};
+      .type = "StokvecMatrix",
+  };
 
   wsv_data["spectral_radiance_background"] = {
       .desc = R"--(Spectral radiance from the background
 )--",
-      .type = "StokvecVector"};
+      .type = "StokvecVector",
+  };
 
   wsv_data["background_transmittance"] = {
       .desc = R"--(Transmittance from the background
 )--",
-      .type = "MuelmatVector"};
+      .type = "MuelmatVector",
+  };
 
   wsv_data["propagation_path_spectral_radiance"] = {
       .desc = R"--(Spectral radiance along the propagation path
 )--",
-      .type = "ArrayOfStokvecVector"};
+      .type = "ArrayOfStokvecVector",
+  };
 
   wsv_data["propagation_path_spectral_radiance_jacobian"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
-      .type = "ArrayOfStokvecMatrix"};
+      .type = "ArrayOfStokvecMatrix",
+  };
 
   wsv_data["propagation_path_propagation_matrix"] = {
       .desc = R"--(Propagation matrices along the propagation path
 )--",
-      .type = "ArrayOfPropmatVector"};
+      .type = "ArrayOfPropmatVector",
+  };
 
   wsv_data["propagation_path_propagation_matrix_jacobian"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
-      .type = "ArrayOfPropmatMatrix"};
+      .type = "ArrayOfPropmatMatrix",
+  };
 
   wsv_data["propagation_path_propagation_matrix_source_vector_nonlte"] = {
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
-      .type = "ArrayOfStokvecVector"};
+      .type = "ArrayOfStokvecVector",
+  };
 
   wsv_data
       ["propagation_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
           .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
-          .type = "ArrayOfStokvecMatrix"};
+          .type = "ArrayOfStokvecMatrix",
+      };
 
   wsv_data["propagation_path_spectral_radiance_source"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
-      .type = "ArrayOfStokvecVector"};
+      .type = "ArrayOfStokvecVector",
+  };
 
   wsv_data["propagation_path_spectral_radiance_source_jacobian"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
-      .type = "ArrayOfStokvecMatrix"};
+      .type = "ArrayOfStokvecMatrix",
+  };
 
   wsv_data["propagation_path_transmission_matrix"] = {
       .desc = R"--(Transmission matrices along the propagation path
 )--",
-      .type = "ArrayOfMuelmatVector"};
+      .type = "ArrayOfMuelmatVector",
+  };
 
   wsv_data["propagation_path_transmission_matrix_cumulative"] = {
       .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
-      .type = "ArrayOfMuelmatVector"};
+      .type = "ArrayOfMuelmatVector",
+  };
 
   wsv_data["propagation_path_transmission_matrix_jacobian"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path
 )--",
-      .type = "ArrayOfArrayOfMuelmatMatrix"};
+      .type = "ArrayOfArrayOfMuelmatMatrix",
+  };
 
   wsv_data["surface_field"] = {
       .desc = R"--(The surface field describes the surface properties.
@@ -342,51 +376,67 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 This describes the global surface values, such as elevation and 
 temperature but also entirerly abstract properties and types.
 )--",
-      .type = "SurfaceField"};
+      .type = "SurfaceField",
+  };
 
-  wsv_data["gravity_operator"] = {.desc = R"--(The gravity operator.
+  wsv_data["gravity_operator"] = {
+      .desc = R"--(The gravity operator.
 
 Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude [deg].
 )--",
-                                  .type = "NumericTernaryOperator"};
+      .type = "NumericTernaryOperator",
+  };
 
-  wsv_data["spectral_radiance"] = {.desc = R"--(A spectral radiance vector.
+  wsv_data["spectral_radiance"] = {
+      .desc = R"--(A spectral radiance vector.
+
+This is the representation of the spectral radiances at discrete frequencies for
+a discrete viewing direction.  The units are W / m^2 / sr / Hz unless otherwise
+specified by a conversion function.
 )--",
-                                   .type = "StokvecVector"};
+      .type = "StokvecVector",
+  };
 
   wsv_data["spectral_radiance_jacobian"] = {
-      .desc = R"--(A spectral radiance derivative matrix.
+      .desc = R"--(Jacobian of *spectral_radiance* with respect to *jacobian_targets*.
 )--",
-      .type = "StokvecMatrix"};
+      .type = "StokvecMatrix",
+  };
 
   wsv_data["jacobian_targets"] = {
       .desc = R"--(A list of targets for the Jacobian Matrix calculations.
 )--",
       .type = "JacobianTargets",
-      .default_value = JacobianTargets{}};
+      .default_value = JacobianTargets{},
+  };
 
-  wsv_data["propagation_path_point"] = {.desc = R"--(A single path point.
+  wsv_data["propagation_path_point"] = {
+      .desc = R"--(A single path point.
 )--",
-                                        .type = "PropagationPathPoint"};
+      .type = "PropagationPathPoint",
+  };
 
   wsv_data["propagation_path"] = {
       .desc = R"--(A list path points making up a propagation path.
 )--",
-      .type = "ArrayOfPropagationPathPoint"};
+      .type = "ArrayOfPropagationPathPoint",
+  };
 
   wsv_data["spectral_radiance_observer_position"] = {
       .desc = R"--(The position of an observer of spectral radiance.
 
 Most likely only makes sense in combination with *spectral_radiance_observer_line_of_sight*.
 )--",
-      .type = "Vector3"};
+      .type = "Vector3",
+  };
 
   wsv_data["spectral_radiance_observer_line_of_sight"] = {
       .desc = R"--(The position of the observer of spectral radiance.
 
 Most likely only makes sense in combination with *spectral_radiance_observer_position*.
 )--",
-      .type = "Vector2"};
+      .type = "Vector2",
+  };
 
   wsv_data["spectral_radiance_operator"] = {
       .desc = R"--(The spectral radiance operator.
@@ -397,7 +447,8 @@ along a path for a single viewing direction and frequency.
 It provides several methods to get the path of the spectral
 radiance.
 )--",
-      .type = "SpectralRadianceOperator"};
+      .type = "SpectralRadianceOperator",
+  };
 
   return wsv_data;
 }

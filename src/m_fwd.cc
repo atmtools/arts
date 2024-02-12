@@ -2,10 +2,12 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <exception>
 #include <memory>
 
 #include "arts_omp.h"
 #include "debug.h"
+#include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
 #include "path_point.h"
 #include "rtepack.h"
@@ -58,7 +60,7 @@ void spectral_radiance_operator1D(
                                                         cia_robust);
 }
 
-void spectral_radiance_fieldPlanarGeometricFromOperator(
+void spectral_radiance_fieldFromOperatorPlanarGeometric(
     StokvecGriddedField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
     const AscendingGrid& frequency_grid,
@@ -164,5 +166,118 @@ void spectral_radiance_fieldPlanarGeometricFromOperator(
     }
 
     ARTS_USER_ERROR_IF(not error.empty(), error)
+  }
+}
+
+void spectral_radiance_fieldFromOperatorPath(
+    const Workspace& ws,
+    StokvecGriddedField6& spectral_radiance_field,
+    const SpectralRadianceOperator& spectral_radiance_operator,
+    const Agenda& propagation_path_observer_agenda,
+    const AscendingGrid& frequency_grid,
+    const AscendingGrid& zenith_grid,
+    const AscendingGrid& azimuth_grid) {
+  const AscendingGrid& altitude_grid = spectral_radiance_operator.altitude();
+  const AscendingGrid& latitude_grid = spectral_radiance_operator.latitude();
+  const AscendingGrid& longitude_grid = spectral_radiance_operator.longitude();
+
+  const Index nza = zenith_grid.size();
+  const Index naa = azimuth_grid.size();
+  const Index nalt = altitude_grid.size();
+  const Index nlat = latitude_grid.size();
+  const Index nlon = longitude_grid.size();
+  const Index nfreq = frequency_grid.size();
+
+  spectral_radiance_field = StokvecGriddedField6{
+      .data_name = "Spectral Radiance Field",
+      .data = StokvecTensor6(
+          nza, naa, nalt, nlat, nlon, nfreq, Stokvec{0.0, 0.0, 0.0, 0.0}),
+      .grid_names = {"Zenith angle",
+                     "Azimuth angle",
+                     "Altitude",
+                     "Latitude",
+                     "Longitude",
+                     "Frequency"},
+      .grids = {zenith_grid,
+                azimuth_grid,
+                altitude_grid,
+                latitude_grid,
+                longitude_grid,
+                frequency_grid}};
+
+  if (arts_omp_in_parallel()) {
+    for (Index iza = 0; iza < nza; ++iza) {
+      for (Index iaa = 0; iaa < naa; ++iaa) {
+        for (Index ialt = 0; ialt < nalt; ++ialt) {
+          for (Index ilat = 0; ilat < nlat; ++ilat) {
+            for (Index ilon = 0; ilon < nlon; ++ilon) {
+              ArrayOfPropagationPathPoint propagation_path;
+              propagation_path_observer_agendaExecute(
+                  ws,
+                  propagation_path,
+                  {altitude_grid[ialt],
+                   latitude_grid[ilat],
+                   longitude_grid[ilon]},
+                  {zenith_grid[iza], azimuth_grid[iaa]},
+                  propagation_path_observer_agenda);
+              std::transform(
+                  frequency_grid.begin(),
+                  frequency_grid.end(),
+                  spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                      .begin(),
+                  [path = fwd::path_from_propagation_path(propagation_path,
+                                                          altitude_grid,
+                                                          latitude_grid,
+                                                          longitude_grid),
+                   &spectral_radiance_operator](Numeric f) {
+                    return spectral_radiance_operator(f, path);
+                  });
+            }
+          }
+        }
+      }
+    }
+  } else {
+    String errors{};
+
+#pragma omp parallel for collapse(5)
+    for (Index iza = 0; iza < nza; ++iza) {
+      for (Index iaa = 0; iaa < naa; ++iaa) {
+        for (Index ialt = 0; ialt < nalt; ++ialt) {
+          for (Index ilat = 0; ilat < nlat; ++ilat) {
+            for (Index ilon = 0; ilon < nlon; ++ilon) {
+              try {
+                ArrayOfPropagationPathPoint propagation_path;
+                propagation_path_observer_agendaExecute(
+                    ws,
+                    propagation_path,
+                    {altitude_grid[ialt],
+                     latitude_grid[ilat],
+                     longitude_grid[ilon]},
+                    {zenith_grid[iza], azimuth_grid[iaa]},
+                    propagation_path_observer_agenda);
+                std::transform(
+                    frequency_grid.begin(),
+                    frequency_grid.end(),
+                    spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
+                        .begin(),
+                    [path = fwd::path_from_propagation_path(propagation_path,
+                                                            altitude_grid,
+                                                            latitude_grid,
+                                                            longitude_grid),
+                     &spectral_radiance_operator](Numeric f) {
+                      return spectral_radiance_operator(f, path);
+                    });
+              } catch (std::exception& e) {
+#pragma omp critical
+                errors += e.what() + String("\n");
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ARTS_USER_ERROR_IF(not errors.empty(), errors)
   }
 }

@@ -45,8 +45,8 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
-ws.spectral_radiance_space_agendaSet()
-ws.spectral_radiance_surface_agendaSet()
+ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
+ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 # %% Core calculations
 pos = [100e3, 0, 0]
