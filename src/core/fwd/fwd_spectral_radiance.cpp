@@ -39,31 +39,62 @@ spectral_radiance::spectral_radiance(
           }) {
   ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
 
-  for (Index j = 0; j < lat.size(); j++) {
-    for (Index k = 0; k < lon.size(); k++) {
-      spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
-                                            Numeric f, Vector2) -> Stokvec {
-        return planck(f, surf.temperature);
-      };
-    }
-  }
-
-  for (Index i = 0; i < alt.size(); i++) {
+  if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
-        atm(i, j, k) =
-            std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
+        spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
+                                              Numeric f, Vector2) -> Stokvec {
+          return planck(f, surf.temperature);
+        };
       }
     }
-  }
 
-  for (Index i = 0; i < alt.size(); i++) {
+    for (Index i = 0; i < alt.size(); i++) {
+      for (Index j = 0; j < lat.size(); j++) {
+        for (Index k = 0; k < lon.size(); k++) {
+          atm(i, j, k) =
+              std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
+          pm(i, j, k) = propmat(
+              atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+        }
+      }
+    }
+  } else {
+    String errors{};
+
+#pragma omp parallel for collapse(2)
     for (Index j = 0; j < lat.size(); j++) {
       for (Index k = 0; k < lon.size(); k++) {
-        pm(i, j, k) = propmat(
-            atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+        try {
+          spectral_radiance_surface(j, j) = [surf = surf.at(lat[j], lon[k])](
+                                                Numeric f, Vector2) -> Stokvec {
+            return planck(f, surf.temperature);
+          };
+        } catch (const std::exception& e) {
+#pragma omp critical
+          errors += e.what();
+        }
       }
     }
+
+#pragma omp parallel for collapse(3)
+    for (Index i = 0; i < alt.size(); i++) {
+      for (Index j = 0; j < lat.size(); j++) {
+        for (Index k = 0; k < lon.size(); k++) {
+          try {
+            atm(i, j, k) =
+                std::make_shared<AtmPoint>(atm_.at(alt[i], lat[j], lon[k]));
+            pm(i, j, k) = propmat(
+                atm(i, j, k), lines, cia, xsec, predef, ciaextrap, ciarobust);
+          } catch (const std::exception& e) {
+#pragma omp critical
+            errors += e.what();
+          }
+        }
+      }
+    }
+
+    ARTS_USER_ERROR_IF(not errors.empty(), errors)
   }
 }
 
@@ -114,14 +145,14 @@ StokvecVector spectral_radiance::operator()(
     const Numeric f,
     const std::vector<path>& path_points,
     spectral_radiance::as_vector) const {
-  using std::views::drop;
   using std::ranges::reverse_view;
+  using std::views::drop;
 
-    ARTS_ASSERT(path_points.size() > 0, "No path points")
-    ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
+  ARTS_ASSERT(path_points.size() > 0, "No path points")
+  ARTS_ASSERT(path_points.front().distance == 0.0, "Bad path point")
 
-      std::vector<Stokvec> out;
-      out.reserve(path_points.size());
+  std::vector<Stokvec> out;
+  out.reserve(path_points.size());
 
   auto pos = pos_weights(path_points.back());
   out.emplace_back(Iback(f, pos, path_points.back()));
@@ -148,8 +179,7 @@ StokvecVector spectral_radiance::operator()(
   return out;
 }
 
-std::ostream&
-operator<<(std::ostream& os, const spectral_radiance& sr) {
+std::ostream& operator<<(std::ostream& os, const spectral_radiance& sr) {
   return os << "Spectral radiance operator:\n"
             << "  Altitude grid: " << sr.alt << "\n";
 }
@@ -159,7 +189,8 @@ std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 
-std::vector<path> spectral_radiance::from_path(const ArrayOfPropagationPathPoint& propagation_path) const {
+std::vector<path> spectral_radiance::from_path(
+    const ArrayOfPropagationPathPoint& propagation_path) const {
   return fwd::path_from_propagation_path(propagation_path, alt, lat, lon);
 }
 }  // namespace fwd

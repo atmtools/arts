@@ -1,10 +1,6 @@
 #include "fwd_path.h"
 
-#include <__algorithm/ranges_binary_search.h>
-#include <__algorithm/ranges_lower_bound.h>
-
 #include <algorithm>
-#include <string_view>
 
 #include "path_point.h"
 #include "sorted_grid.h"

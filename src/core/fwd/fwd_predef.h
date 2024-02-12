@@ -13,7 +13,7 @@ class full {
 
   void adapt();
 
-public:
+ public:
   full() = default;
   full(const full&) = default;
   full(full&&) = default;
@@ -21,7 +21,7 @@ public:
   full& operator=(full&&) = default;
 
   full(std::shared_ptr<AtmPoint> atm,
-      std::shared_ptr<PredefinedModelData> data);
+       std::shared_ptr<PredefinedModelData> data);
 
   [[nodiscard]] Complex operator()(const Numeric frequency) const;
 

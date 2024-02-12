@@ -4,9 +4,11 @@
 #include <quantum_numbers.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <exception>
 #include <functional>
+#include <iomanip>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -91,12 +93,12 @@ struct Point {
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
-  Numeric pressure{0};
-  Numeric temperature{0};
-  Vector3 wind{0, 0, 0};
-  Vector3 mag{0, 0, 0};
+  Numeric pressure{NAN};
+  Numeric temperature{NAN};
+  Vector3 wind{NAN, NAN, NAN};
+  Vector3 mag{NAN, NAN, NAN};
 
-  Point(const std::string_view isots_key="Builtin");
+  Point(const std::string_view isots_key = "Builtin");
   Point(const Point &) = default;
   Point(Point &&) = default;
   Point &operator=(const Point &) = default;
@@ -105,8 +107,7 @@ struct Point {
   template <KeyType T>
   constexpr Numeric operator[](T &&x) const try {
     if constexpr (isSpecies<T>) {
-      auto y = specs.find(std::forward<T>(x));
-      return y == specs.end() ? 0 : y->second;
+      return specs.at(std::forward<T>(x));
     } else if constexpr (isIsotopeRecord<T>) {
       return isots.at(std::forward<T>(x));
     } else if constexpr (isParticulatePropertyTag<T>) {
@@ -137,7 +138,18 @@ struct Point {
       ARTS_USER_ERROR("Cannot reach")
     }
   } catch (std::out_of_range &) {
-    ARTS_USER_ERROR("Key not found: \"", x, '"')
+    if constexpr (isSpecies<T>) {
+      ARTS_USER_ERROR("Species VMR not found: ",
+                      std::quoted(Species::toShortName(x)))
+    } else if constexpr (isIsotopeRecord<T>) {
+      ARTS_USER_ERROR("Isotopologue ration not found: ", std::quoted(x.FullName()))
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
+    } else if constexpr (isQuantumIdentifier<T>) {
+      ARTS_USER_ERROR("Non-LTE level ratio not found: ", x)
+    } else {
+      ARTS_USER_ERROR("Key not found: \"", x, '"')
+    }
   } catch (std::exception &) {
     throw;
   }
@@ -229,7 +241,7 @@ struct Point {
     return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
   }
 
-  void setZero();
+  void check_and_fix();
 
   friend std::ostream &operator<<(std::ostream &os, const Point &atm);
 };
@@ -341,7 +353,7 @@ struct Field final : FieldMap::Map<Data,
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
-  Field(const std::string_view isots_key="Builtin");
+  Field(const std::string_view isots_key = "Builtin");
   Field(const Field &) = default;
   Field(Field &&) = default;
   Field &operator=(const Field &) = default;

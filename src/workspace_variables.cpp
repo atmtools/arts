@@ -255,7 +255,6 @@ Usage: Output of radiative transfer methods.
 Can currently only contain data for new MT CKD models of water.
 )--",
       .type = "PredefinedModelData",
-      .default_value = PredefinedModelData{},
   };
 
   wsv_data["propagation_matrix"] = {

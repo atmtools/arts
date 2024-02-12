@@ -1,7 +1,5 @@
 #include "fwd_predef.h"
 
-#include <algorithm>
-
 #include "atm.h"
 #include "jacobian.h"
 #include "rtepack.h"
@@ -9,6 +7,11 @@
 namespace fwd::predef {
 void full::adapt() {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+
+  if (not data) {
+    return;
+  }
+
   vmrs = Absorption::PredefinedModel::VMRS(*atm);
 }
 

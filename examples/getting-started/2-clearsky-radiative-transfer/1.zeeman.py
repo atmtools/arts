@@ -41,6 +41,7 @@ ws.atmospheric_fieldAddGriddedData(
     ),
 )
 ws.atmospheric_field[pyarts.arts.SpeciesEnum("O2")] = 0.21
+
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings

@@ -22,7 +22,7 @@
 namespace Atm {
 ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
 
-Point::Point (const std::string_view isots_key) {
+Point::Point(const std::string_view isots_key) {
   switch (toIsoRatioOptionOrThrow(isots_key)) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
@@ -43,7 +43,7 @@ Point::Point (const std::string_view isots_key) {
   }
 }
 
-Field::Field (const std::string_view isots_key) {
+Field::Field(const std::string_view isots_key) {
   switch (toIsoRatioOptionOrThrow(isots_key)) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
@@ -590,6 +590,10 @@ void Field::at(std::vector<Point> &out,
   };
 
   for (auto &&key : keys()) compute(key, operator[](key));
+
+  for (auto &atm : out) {
+    atm.check_and_fix();
+  }
 }
 
 std::vector<Point> Field::at(const Vector &alt,
@@ -636,13 +640,58 @@ Vector Data::at(const Vector &alt, const Vector &lat, const Vector &lon) const {
   return detail::vec_interp(*this, alt, lat, lon);
 }
 
-void Point::setZero() {
-  pressure = 0;
-  temperature = 0;
-  wind = {0., 0., 0.};
-  mag = {0., 0., 0.};
-  for (auto &v : specs) v.second = 0;
-  for (auto &v : nlte) v.second = 0;
+void Point::check_and_fix() {
+  ARTS_USER_ERROR_IF(nonstd::isnan(pressure), "Pressure is NaN")
+  ARTS_USER_ERROR_IF(nonstd::isnan(temperature), "Temperature is NaN")
+
+  if (std::ranges::all_of(wind, [](auto v) { return nonstd::isnan(v); })) {
+    wind = {0., 0., 0.};
+  } else {
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
+        "Cannot have partially missing wind field.  Consider setting the missing field to zero or add it completely.\n"
+        "Wind field [wind_u wind_v wind_w] is: ",
+        wind)
+  }
+
+  if (std::ranges::all_of(mag, [](auto v) { return nonstd::isnan(v); })) {
+    mag = {0., 0., 0.};
+  } else {
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
+        "Cannot have partially missing magnetic field.  Consider setting the missing field to zero or add it completely.\n"
+        "Magnetic field [mag_u mag_v mag_w] is: ",
+        mag)
+  }
+
+  for (auto &spec : specs) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(spec.second) or spec.second < 0.0,
+                       "VMR for ",
+                       std::quoted(toShortName(spec.first)),
+                       " is ", spec.second)
+  }
+
+  for (auto &isot : isots) {
+    //! Cannot check isnan because it is a valid state for isotopologue ratios
+    ARTS_USER_ERROR_IF(isot.second < 0.0,
+                       "Isotopologue ratio for ",
+                       std::quoted(isot.first.FullName()),
+                       " is ", isot.second)
+  }
+
+  for (auto &nl : nlte) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(nl.second) or nl.second < 0.0,
+                       "Non-LTE ratio for \"",
+                       nl.first,
+                       "\" is ", nl.second)
+  }
+
+  for (auto &pp : partp) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(pp.second),
+                       "Particulate Property Tag value for \"",
+                       pp.first,
+                       "\" is ", pp.second)
+  }
 }
 
 Numeric Point::operator[](const KeyVal &k) const {
@@ -917,6 +966,7 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
 
   Point out;
   for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);
+  out.check_and_fix();
   return out;
 }
 
