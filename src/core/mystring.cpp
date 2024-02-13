@@ -66,3 +66,11 @@ String trim(const String& x) {
   trim(out);
   return out;
 }
+
+String comma(bool& first, const String& spaces) {
+  if (first) {
+    first = false;
+    return "";
+  }
+  return var_string(',', (spaces.size() ? '\n' : ' '), spaces);
+}

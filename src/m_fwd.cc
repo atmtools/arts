@@ -13,7 +13,7 @@
 #include "rtepack.h"
 #include "sorted_grid.h"
 
-void spectral_radiance_operator1D(
+void spectral_radiance_operatorClearsky1D(
     const Workspace& ws,
     SpectralRadianceOperator& spectral_radiance_operator,
     const AtmField& atmospheric_field,

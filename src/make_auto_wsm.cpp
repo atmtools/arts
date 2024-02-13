@@ -1,26 +1,29 @@
 #include <auto_wsg.h>
+#include <mystring.h>
 
 #include <algorithm>
+#include <exception>
 #include <iostream>
-#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
 #include "auto_wsv.h"
+#include "workspace_meta_methods.h"
 #include "workspace_methods.h"
+#include "workspace_variables.h"
 
-const static auto wsm = internal_workspace_methods();
-const static auto wsv = workspace_variables();
-
-bool scan_wsmr_for_errors(const std::string& name,
+bool scan_wsmr_for_errors(std::ostream& os,
+                          const std::string& name,
                           const WorkspaceMethodInternalRecord& wsmr) {
+  const auto wsm = internal_workspace_methods();
+  const auto& wsv = workspace_variables();
+
   bool any_errors = false;
   if (wsmr.desc.size() == 0) {
     any_errors = true;
-    std::cerr
-        << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No description for \")"
-        << name << R"(\"\n");
+    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No description for \")"
+       << name << R"(\"\n");
 
 )";
     return true;
@@ -28,18 +31,16 @@ bool scan_wsmr_for_errors(const std::string& name,
 
   if (wsmr.desc.back() not_eq '\n') {
     any_errors = true;
-    std::cerr
-        << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No final newline for description of \")"
-        << name << R"(\"\n");
+    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No final newline for description of \")"
+       << name << R"(\"\n");
 
 )";
   }
 
   if (wsmr.author.size() == 0) {
     any_errors = true;
-    std::cerr
-        << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No authors for \")"
-        << name << R"(\"\n");
+    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No authors for \")"
+       << name << R"(\"\n");
 
 )";
   }
@@ -47,9 +48,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   if (wsmr.gout.size() not_eq wsmr.gout_type.size() or
       wsmr.gout.size() not_eq wsmr.gout_desc.size()) {
     any_errors = true;
-    std::cerr
-        << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gout, gout_type, and gout_desc size mismatch for \")"
-        << name << R"(\"");
+    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gout, gout_type, and gout_desc size mismatch for \")"
+       << name << R"(\"");
 
 )";
   }
@@ -57,9 +57,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& type : wsmr.gout_type) {
     if (not valid_wsg(type)) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout_type for \")"
-          << name << R"(\": \")" << type << R"(\"\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout_type for \")"
+         << name << R"(\": \")" << type << R"(\"\n");
   
 )";
     }
@@ -68,10 +67,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& gvar : wsmr.gout) {
     if (wsv.find(gvar) not_eq wsv.end()) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout for \")"
-          << name << R"(\": \")" << gvar
-          << R"(\", the gout is already a WSV\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout for \")"
+         << name << R"(\": \")" << gvar << R"(\", the gout is already a WSV\n");
   
 )";
     }
@@ -81,9 +78,8 @@ bool scan_wsmr_for_errors(const std::string& name,
       wsmr.gin.size() not_eq wsmr.gin_value.size() or
       wsmr.gin.size() not_eq wsmr.gin_desc.size()) {
     any_errors = true;
-    std::cerr
-        << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gin, gin_type, gin_value, and gin_desc size mismatch for \")"
-        << name << R"(\"\n");
+    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gin, gin_type, gin_value, and gin_desc size mismatch for \")"
+       << name << R"(\"\n");
 
 )";
   }
@@ -91,9 +87,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& type : wsmr.gin_type) {
     if (not valid_wsg(type)) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin_type for \")"
-          << name << R"(\": \")" << type << R"(\"\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin_type for \")"
+         << name << R"(\": \")" << type << R"(\"\n");
   
 )";
     }
@@ -102,9 +97,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& gvar : wsmr.gin) {
     if (wsv.find(gvar) not_eq wsv.end()) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin for \")"
-          << name << R"(\": \")" << gvar << R"(\", the gin is already a WSV\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin for \")"
+         << name << R"(\": \")" << gvar << R"(\", the gin is already a WSV\n");
   
 )";
     }
@@ -113,9 +107,8 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& var : wsmr.out) {
     if (wsv.find(var) == wsv.end()) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid out for \")"
-          << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid out for \")"
+         << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
 
 )";
     }
@@ -124,42 +117,13 @@ bool scan_wsmr_for_errors(const std::string& name,
   for (auto& var : wsmr.in) {
     if (wsv.find(var) == wsv.end()) {
       any_errors = true;
-      std::cerr
-          << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid in for \")"
-          << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
+      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid in for \")"
+         << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
 
 )";
     }
   }
   return any_errors;
-}
-
-bool has_overloads(const WorkspaceMethodInternalRecord& wsmr) {
-  for (auto& str : wsmr.gout_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
-  }
-
-  for (auto& str : wsmr.gin_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
-  }
-
-  return false;
-}
-
-std::vector<std::string> split(const std::string& str, char delim) {
-  std::vector<std::string> out;
-  std::stringstream ss(str);
-  std::string item;
-  while (std::getline(ss, item, delim)) {
-    out.push_back(item);
-  }
-
-  for (auto& arg : out) {
-    while (arg.front() == ' ') arg.erase(arg.begin());
-    while (arg.back() == ' ') arg.pop_back();
-  }
-
-  return out;
 }
 
 std::vector<std::vector<std::string>> overloads(
@@ -168,12 +132,18 @@ std::vector<std::vector<std::string>> overloads(
 
   for (auto& str : wsmr.gout_type) {
     if (std::any_of(str.begin(), str.end(), Cmp::eq(',')))
-      out.push_back(split(str, ','));
+      out.push_back(split(str, ","));
   }
 
   for (auto& str : wsmr.gin_type) {
     if (std::any_of(str.begin(), str.end(), Cmp::eq(',')))
-      out.push_back(split(str, ','));
+      out.push_back(split(str, ","));
+  }
+
+  for (auto& v : out) {
+    for (auto& s : v) {
+      trim(s);
+    }
   }
 
   return out;
@@ -207,156 +177,42 @@ std::optional<WorkspaceMethodInternalRecord> make_overload(
   return owsmr;
 }
 
-bool scan_for_errors() {
+bool scan_for_errors(std::ostream& os) {
+  const auto wsm = internal_workspace_methods();
+
   bool any_errors = false;
 
   for (auto& [name, wsmr] : wsm) {
-    if (has_overloads(wsmr)) {
+    if (wsmr.has_overloads()) {
       std::size_t i = 0;
       auto owsmr = make_overload(wsmr, i);
       while (owsmr) {
-        any_errors |= scan_wsmr_for_errors(name, *owsmr);
+        any_errors |= scan_wsmr_for_errors(os, name, *owsmr);
         owsmr = make_overload(wsmr, ++i);
       }
     } else {
-      any_errors |= scan_wsmr_for_errors(name, wsmr);
+      any_errors |= scan_wsmr_for_errors(os, name, wsmr);
     }
   }
 
   return any_errors;
 }
 
-std::string comma(bool& first, const std::string& spaces = "") {
-  if (first) {
-    first = false;
-    return "";
-  }
-  return var_string(',', (spaces.size() ? '\n' : ' '), spaces);
-}
-
-bool has_any(const WorkspaceMethodInternalRecord& wsmr) {
-  return std::count(wsmr.gout_type.begin(), wsmr.gout_type.end(), "Any") +
-         std::count(wsmr.gin_type.begin(), wsmr.gin_type.end(), "Any");
-}
-
-bool needs_workspace(const WorkspaceMethodInternalRecord& wsmr) {
-  return wsmr.pass_workspace;
-}
-
-std::string_view any(const std::string& type) {
-  if (type == "Any") {
-    return "T";
-  }
-  return type;
-}
-
-void docstring(std::ostream& os, const WorkspaceMethodInternalRecord& wsmr) {
-  os << "/** " << wsmr.desc << "\n";
-  if (needs_workspace(wsmr)) os << "  @param[in] ws Workspace reference\n";
-
-  for (auto& str : wsmr.out) {
-    if (std::any_of(wsmr.in.begin(), wsmr.in.end(), [&str](auto& var) {
-          return str == var;
-        }))
-      os << "  @param[inout] " << str << " As WSV" << '\n';
-    else
-      os << "  @param[out] " << str << " As WSV" << '\n';
-  }
-
-  for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-    os << "  @param[out] " << wsmr.gout[i] << " " << wsmr.gout_desc[i] << '\n';
-  }
-
-  for (auto& str : wsmr.in) {
-    if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
-          return str == var;
-        }))
-      continue;
-    os << "  @param[in] " << str << " As WSV" << '\n';
-  }
-
-  for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
-    os << "  @param[in] " << wsmr.gin[i] << " " << wsmr.gin_desc[i] << '\n';
-  }
-
-  os << " */\n";
-}
-
 void signature(std::ostream& os,
                const std::string& name,
-               const WorkspaceMethodInternalRecord& wsmr,
-               int overload = -1) {
-  const std::string spaces(name.size() + 6, ' ');
+               const WorkspaceMethodInternalRecord& wsmr) try {
+  const int n = wsmr.count_overloads();
 
-  if (overload == -1) docstring(os, wsmr);
+  os << wsmr.docstring() << '\n';
 
-  if (overload < 0 and has_overloads(wsmr)) {
-    const auto ol = overloads(wsmr);
-
-    for (std::size_t i = 0; i < ol.front().size(); i++) {
-      WorkspaceMethodInternalRecord owsmr(wsmr);
-
-      std::size_t ol_i = 0;
-      for (std::size_t garg = 0; garg < owsmr.gout_type.size(); garg++) {
-        if (std::any_of(wsmr.gout_type[garg].begin(),
-                        wsmr.gout_type[garg].end(),
-                        Cmp::eq(','))) {
-          owsmr.gout_type[garg] = ol[ol_i][i];
-          ol_i++;
-        }
-      }
-      for (std::size_t garg = 0; garg < owsmr.gin_type.size(); garg++) {
-        if (std::any_of(wsmr.gin_type[garg].begin(),
-                        wsmr.gin_type[garg].end(),
-                        Cmp::eq(','))) {
-          owsmr.gin_type[garg] = ol[ol_i][i];
-          ol_i++;
-        }
-      }
-
-      signature(os, name, owsmr, static_cast<int>(i));
-    }
-    return;
-  }
-
-  if (has_any(wsmr)) {
-    os << "template <WorkspaceGroup T>\n";
-  }
-
-  os << "void " << name << '(';
-
-  bool first = true;
-  if (needs_workspace(wsmr)) {
-    os << "const Workspace& ws";
-    first = false;
-  }
-
-  for (auto& str : wsmr.out) {
-    os << comma(first, spaces) << wsv.at(str).type << "& " << str;
-  }
-
-  for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-    os << comma(first, spaces) << any(wsmr.gout_type[i]) << "& "
-       << wsmr.gout[i];
-  }
-
-  for (auto& str : wsmr.in) {
-    if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) {
-          return str == var;
-        }))
-      continue;
-    os << comma(first, spaces) << "const " << wsv.at(str).type << "& " << str;
-  }
-
-  for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
-    os << comma(first, spaces) << "const " << any(wsmr.gin_type[i]) << "& "
-       << wsmr.gin[i];
-  }
-
-  os << ");\n";
+  for (int i = 0; i < n; i++) os << wsmr.header(name, i) << ";\n";
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in signature():\n\n" + std::string(e.what()));
 }
 
-void header(std::ostream& os) {
+void header(std::ostream& os) try {
+  const auto wsm = internal_workspace_methods();
+
   os << R"--(#pragma once
 
 //! auto-generated by make_auto_wsm.cpp
@@ -383,12 +239,17 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
     signature(os, name, wsmr);
     os << '\n';
   }
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in header():\n\n" + std::string(e.what()));
 }
 
 void call_function(std::ostream& os,
                    const std::string& name,
-                   const WorkspaceMethodInternalRecord& wsmr) {
-  if (has_any(wsmr)) {
+                   const WorkspaceMethodInternalRecord& wsmr) try {
+  const auto wsm = internal_workspace_methods();
+  const auto& wsv = workspace_variables();
+
+  if (wsmr.has_any()) {
     const bool any_out = std::any_of(
         wsmr.gout_type.begin(), wsmr.gout_type.end(), Cmp::eq("Any"));
 
@@ -410,7 +271,7 @@ void call_function(std::ostream& os,
     bool first = true;
 
     os << "      std::visit([&](auto& first_any){\n        " << name << "(";
-    if (needs_workspace(wsmr)) {
+    if (wsmr.pass_workspace) {
       os << "ws";
       first = false;
     }
@@ -479,7 +340,7 @@ void call_function(std::ostream& os,
       os << "ws.share(in[" << first_any << "]) -> value);\n    }";
     }
 
-  } else if (has_overloads(wsmr)) {
+  } else if (wsmr.has_overloads()) {
     os << "[map = std::unordered_map<std::string, std::function<void(Workspace&, const std::vector<std::string>&, const std::vector<std::string>&)>>{\n";
 
     const auto ol = overloads(wsmr);
@@ -548,7 +409,7 @@ void call_function(std::ostream& os,
 
     bool first = true;
     os << "      " << name << "(";
-    if (needs_workspace(wsmr)) {
+    if (wsmr.pass_workspace) {
       os << "ws";
       first = false;
     }
@@ -587,11 +448,14 @@ void call_function(std::ostream& os,
 
     os << "\n      );\n    }";
   }
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in call_function():\n\n" +
+                           std::string(e.what()));
 }
 
 void wsm_record(std::ostream& os,
                 const std::string& name,
-                const WorkspaceMethodInternalRecord& wsmr) {
+                const WorkspaceMethodInternalRecord& wsmr) try {
   os << "    .out={";
   bool first = true;
   for (auto& str : wsmr.out) {
@@ -625,13 +489,37 @@ void wsm_record(std::ostream& os,
   call_function(os, name, wsmr);
 
   os << "\n";
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in wsm_record():\n\n" +
+                           std::string(e.what()));
+}
+
+void meta_implementation(std::ostream& os) try {
+  const auto wsm = internal_workspace_methods();
+
+  os << R"--(//! auto-generated by make_auto_wsm.cpp
+
+#include <workspace.h>
+
+)--";
+
+  const auto meta = internal_meta_methods();
+
+  for (auto& m : meta) {
+    os << m.call(wsm) << '\n' << '\n';
+  }
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in meta_implementation:\n\n" +
+                           std::string(e.what()));
 }
 
 std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
   return ofs[i % ofs.size()];
 }
 
-void implementation(std::ostream& os, const int n) {
+void implementation(std::ostream& os, const int n) try {
+  const auto wsm = internal_workspace_methods();
+
   std::vector<std::ofstream> ofs;
   ofs.reserve(n);
   for (int i = 0; i < n; i++) {
@@ -723,15 +611,26 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
   return wsm;
 }
 )--";
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in implementation():\n\n" +
+                           std::string(e.what()));
 }
 
-int main(int argc, char** argv) {
-  if (scan_for_errors()) return 0;
-
+int main(int argc, char** argv) try {
   if (argc != 2) throw std::runtime_error("usage: make_auto_wsm <num_methods>");
 
   const int num_methods = std::stoi(argv[1]);
+  std::ofstream head("auto_wsm.h");
+  std::ofstream impl("auto_wsm.cpp");
+  std::ofstream of("auto_wsmmeta.cpp");
 
-  header(std::cout);
-  implementation(std::cerr, num_methods);
+  if (scan_for_errors(head)) return 1;
+
+  header(head);
+  implementation(impl, num_methods);
+  meta_implementation(of);
+} catch (std::exception& e) {
+  std::cerr << "Cannot create the automatic methods with error:\n\n"
+            << e.what() << '\n';
+  return 1;
 }

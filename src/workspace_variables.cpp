@@ -451,3 +451,10 @@ radiance.
 
   return wsv_data;
 }
+
+std::string_view any(const std::string& type) {
+  if (type == "Any") {
+    return "T";
+  }
+  return type;
+}

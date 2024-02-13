@@ -1,17 +1,38 @@
 #include "workspace_methods.h"
 
+#include <mystring.h>
+
+#include <exception>
+#include <iomanip>
 #include <limits>
 #include <optional>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #include "workspace_agendas.h"
+#include "workspace_meta_methods.h"
+#include "workspace_variables.h"
 
 #pragma clang optimize off
 
 using std::nullopt;
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
-internal_workspace_methods() {
+internal_workspace_methods() try {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
+
+  for (auto& [agname, ag] : internal_workspace_agendas()) {
+    std::vector<std::string> input = ag.input;
+    input.push_back(agname);
+    wsm_data[agname + "Execute"] = {
+        .desc = "Executes *" + agname + "*, see it for more details\n",
+        .author = {"``Automatically Generated``"},
+        .out = ag.output,
+        .in = input,
+        .pass_workspace = true,
+    };
+  }
 
   wsm_data["Ignore"] = {
       .desc = R"--(Ignore a workspace variable.
@@ -177,7 +198,8 @@ too large for the needs of any one application.
   };
 
   wsm_data["WignerUnload"] = {
-      .desc = R"--(Unloads the Wigner tables from static data (see *WignerInit*)
+      .desc =
+          R"--(Unloads the Wigner tables from static data (see *WignerInit*)
 )--",
       .author = {"Richard Larsson"},
   };
@@ -390,9 +412,8 @@ common form of a predefined model.
       .gin = {"basename", "name_missing"},
       .gin_type = {"String", "Index"},
       .gin_value = {std::nullopt, Index{1}},
-      .gin_desc =
-          {R"--(The path to the split catalog files)--",
-           R"--(Flag to name models that are missing)--"},
+      .gin_desc = {R"--(The path to the split catalog files)--",
+                   R"--(Flag to name models that are missing)--"},
   };
 
   wsm_data["absorption_bandsFromAbsorbtionLines"] = {
@@ -683,7 +704,8 @@ computations.
   };
 
   wsm_data["atmospheric_pointInit"] = {
-      .desc = R"--(Initialize an atmospheric point with some isotopologue ratios
+      .desc =
+          R"--(Initialize an atmospheric point with some isotopologue ratios
 )--",
       .author = {"Richard Larsson"},
       .out = {"atmospheric_point"},
@@ -2067,7 +2089,8 @@ Size : (*jacobian_targets*, *frequency_grid*)
   };
 
   wsm_data["spectral_radiance_jacobianFromBackground"] = {
-      .desc = R"--(Sets *spectral_radiance_jacobian* from the background values
+      .desc =
+          R"--(Sets *spectral_radiance_jacobian* from the background values
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_jacobian"},
@@ -2108,29 +2131,6 @@ Size : (*jacobian_targets*, *frequency_grid*)
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
       .in = {"propagation_path_spectral_radiance"},
-  };
-
-  wsm_data["spectral_radianceStandardEmission"] = {
-      .desc =
-          R"--(Computes standard emission of spectral radiances
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .in = {"frequency_grid",
-             "jacobian_targets",
-             "atmospheric_field",
-             "surface_field",
-             "propagation_path",
-             "spectral_radiance_space_agenda",
-             "spectral_radiance_surface_agenda",
-             "propagation_matrix_agenda"},
-      .gin = {"rte_alonglos_v", "hse_derivative"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {Numeric{0.0}, Index{1}},
-      .gin_desc =
-          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
-           "Whether or not hypsometric balance is assumed in temperature derivatives"},
-      .pass_workspace = true,
   };
 
   wsm_data["sensor_radianceFromObservers"] = {
@@ -2567,11 +2567,15 @@ bad angles if this is turned off.
            "Whether or not to attempt fix a potential issue with the path azimuthal angle"},
   };
 
-  wsm_data["spectral_radiance_operator1D"] = {
+  wsm_data["spectral_radiance_operatorClearsky1D"] = {
       .desc = R"--(Set up a 1D spectral radiance operator
 
 The operator is set up to compute the spectral radiance at any point as seen from
 a 1D atmospheric profile.
+
+This method will share line-by-line,cross-section, collision-induced absorption, and
+predefined model data with the workspace (if they exist already when this method is
+called).
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_operator"},
@@ -2639,16 +2643,253 @@ the first 5 dimensions are computed in parallel.
       .pass_workspace = true,
   };
 
-  for (auto& [agname, ag] : internal_workspace_agendas()) {
-    std::vector<std::string> input = ag.input;
-    input.push_back(agname);
-    wsm_data[agname+"Execute"] = {
-        .desc = "Executes *" + agname + "*, see it for more details\n",
-        .author = {"``Automatically Generated``"},
-        .out = ag.output,
-        .in = input,
-        .pass_workspace = true,
-    };
+  const static auto meta_methods = internal_meta_methods();
+  for (auto& m : meta_methods) {
+    wsm_data[m.name] = m.create(wsm_data);
   }
+
   return wsm_data;
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Cannot create workspace methods:\n\n", e.what()));
+}
+
+bool WorkspaceMethodInternalRecord::has_any() const {
+  const auto cmp = Cmp::eq("Any");
+  return std::ranges::any_of(gout_type, cmp) +
+         std::ranges::any_of(gin_type, cmp);
+}
+
+bool WorkspaceMethodInternalRecord::has_overloads() const {
+  for (auto& str : gout_type) {
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+  }
+
+  for (auto& str : gin_type) {
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+  }
+
+  return false;
+}
+
+std::string WorkspaceMethodInternalRecord::docstring() const try {
+  std::stringstream os;
+
+  os << "/** " << desc << "\n";
+  if (pass_workspace) os << "  @param[in] ws Workspace reference\n";
+
+  for (auto& str : out) {
+    if (std::any_of(
+            in.begin(), in.end(), [&str](auto& var) { return str == var; }))
+      os << "  @param[inout] " << str << " As WSV" << '\n';
+    else
+      os << "  @param[out] " << str << " As WSV" << '\n';
+  }
+
+  for (std::size_t i = 0; i < gout.size(); i++) {
+    os << "  @param[out] " << gout[i] << " " << gout_desc[i] << '\n';
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+    os << "  @param[in] " << str << " As WSV" << '\n';
+  }
+
+  for (std::size_t i = 0; i < gin.size(); i++) {
+    os << "  @param[in] " << gin[i] << " " << gin_desc[i] << '\n';
+  }
+
+  os << " */";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in meta-function docstring():\n\n" +
+                           std::string(e.what()));
+}
+
+std::vector<std::vector<std::string>>
+WorkspaceMethodInternalRecord::generic_overloads() const {
+  const auto cmp = Cmp::eq(',');
+
+  std::vector<std::vector<std::string>> genvar;
+
+  for (auto& str : gout_type) {
+    if (std::any_of(str.begin(), str.end(), cmp))
+      genvar.push_back(split(str, ","));
+    else
+      genvar.push_back(std::vector<std::string>{str});
+  }
+
+  for (auto& str : gin_type) {
+    if (std::any_of(str.begin(), str.end(), cmp))
+      genvar.push_back(split(str, ","));
+    else
+      genvar.push_back(std::vector<std::string>{str});
+  }
+
+  for (auto& v : genvar) {
+    for (auto& s : v) {
+      trim(s);
+    }
+  }
+
+  return genvar;
+}
+
+std::string WorkspaceMethodInternalRecord::header(const std::string& name,
+                                                  int overload) const try {
+  const static auto wsv = internal_workspace_variables();
+  const static auto wsa = internal_workspace_agendas();
+
+  const std::string spaces(name.size() + 6, ' ');
+
+  const auto overloads = generic_overloads();
+  int GVAR = 0;
+
+  std::stringstream os;
+
+  if (has_any()) {
+    os << "template <WorkspaceGroup T>\n";
+  }
+
+  os << "void " << name << '(';
+
+  bool first = true;
+  if (pass_workspace) {
+    os << "const Workspace& ws";
+    first = false;
+  }
+
+  for (auto& str : out) {
+    auto wsv_ptr = wsv.find(str);
+    if (wsv_ptr != wsv.end()) {
+      os << comma(first, spaces) << wsv_ptr->second.type << "& " << str;
+      continue;
+    }
+
+    auto wsa_ptr = wsa.find(str);
+    if (wsa_ptr != wsa.end()) {
+      if (wsa_ptr->second.array)
+        os << comma(first, spaces) << "ArrayOfAgenda"
+           << "& " << str;
+      else
+        os << comma(first, spaces) << "Agenda"
+           << "& " << str;
+      continue;
+    }
+
+    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
+  }
+
+  for (const auto& i : gout) {
+    os << comma(first, spaces)
+       << any(overloads[GVAR][std::min<int>(
+              overload, static_cast<int>(overloads[GVAR].size() - 1))])
+       << "& " << i;
+    GVAR++;
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+
+    auto wsv_ptr = wsv.find(str);
+    if (wsv_ptr != wsv.end()) {
+      os << comma(first, spaces) << "const " << wsv_ptr->second.type << "& "
+         << str;
+      continue;
+    }
+
+    auto wsa_ptr = wsa.find(str);
+    if (wsa_ptr != wsa.end()) {
+      if (wsa_ptr->second.array)
+        os << comma(first, spaces) << "const ArrayOfAgenda"
+           << "& " << str;
+      else
+        os << comma(first, spaces) << "const Agenda"
+           << "& " << str;
+      continue;
+    }
+
+    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
+  }
+
+  for (const auto& i : gin) {
+    os << comma(first, spaces) << "const "
+       << any(overloads[GVAR][std::min<int>(
+              overload, static_cast<int>(overloads[GVAR].size() - 1))])
+       << "& " << i;
+    GVAR++;
+  }
+
+  os << ")";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error(var_string("Error in meta-function header(",
+                                      std::quoted(name),
+                                      ", ",
+                                      overload,
+                                      "):\n\n",
+                                      e.what()));
+}
+
+int WorkspaceMethodInternalRecord::count_overloads() const try {
+  const auto overloads = generic_overloads();
+  int g = 1;
+  for (auto& x : overloads) {
+    int ng = static_cast<int>(x.size());
+    if (ng == 1) continue;
+    if (g != ng and g != 1)
+      throw std::runtime_error("Inconsistent number of overloads");
+    g = ng;
+  }
+  return g;
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in meta-function count_overloads():\n\n" +
+                           std::string(e.what()));
+}
+
+std::string WorkspaceMethodInternalRecord::call(const std::string& name) const try {
+  const std::string spaces(6, ' ');
+
+  std::stringstream os;
+
+  os << name << "(\n      ";
+
+  bool first = true;
+  if (pass_workspace) {
+    os << "ws";
+    first = false;
+  }
+
+  for (auto& str : out) {
+    os << comma(first, spaces) << str;
+  }
+
+  for (const auto& i : gout) {
+    os << comma(first, spaces) << i;
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+
+    os << comma(first, spaces) << str;
+  }
+
+  for (const auto& i : gin) {
+    os << comma(first, spaces) << i;
+  }
+
+  os << ");";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("Cannot create call of method ", std::quoted(name), ":\n\n", e.what()));
 }

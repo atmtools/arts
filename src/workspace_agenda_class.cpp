@@ -37,9 +37,9 @@ void Agenda::finalize(bool fix) try {
   static const auto& wsa = workspace_agendas();
 
   auto ag_ptr = wsa.find(name);
-  if (ag_ptr == wsa.end()) {
-    return;
-  }
+  const std::vector<std::string> empty = {};
+  const std::vector<std::string>& must_out = ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
+  const std::vector<std::string>& must_in = ag_ptr == wsa.end() ? empty :ag_ptr->second.input;
 
   std::vector<std::string> ins_first;
   std::vector<std::string> outs_first;
@@ -90,9 +90,6 @@ void Agenda::finalize(bool fix) try {
   sort_and_erase_copies(ins_first);
   sort_and_erase_copies(outs_first);
   sort_and_erase_copies(in_then_out);
-
-  const std::vector<std::string>& must_out = ag_ptr->second.output;
-  const std::vector<std::string>& must_in = ag_ptr->second.input;
 
   for (const std::string& i : must_in) {
     if (std::ranges::binary_search(outs_first, i)) {
