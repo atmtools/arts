@@ -186,7 +186,7 @@ void agenda_checker(std::ostream& os, const std::string& name, bool array) {
   if (array) {
     os << "[agenda_array_index]";
   }
-  os << ".get_name(); n == \"" << name
+  os << ".get_name(); n != \"" << name
      << "\") {\n"
         "    throw std::runtime_error(var_string(\"Mismatch with name: \", std::quoted(n)));\n  }\n";
 }

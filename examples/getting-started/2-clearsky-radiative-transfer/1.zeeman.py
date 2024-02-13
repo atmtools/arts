@@ -68,7 +68,7 @@ ws.spectral_radianceFromPathPropagation()
 
 
 # %% Test calculations using single frequency approach
-ws.spectral_radiance_operator1D(altitude_grid=alts)
+ws.spectral_radiance_operatorClearsky1D(altitude_grid=alts)
 srad = ws.spectral_radiance_operator.geometric_planar(
     ws.frequency_grid, pos, [180 - los[0], 180 - los[1]]
 )
