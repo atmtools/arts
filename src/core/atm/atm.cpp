@@ -87,13 +87,11 @@ const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
 const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
   return map<SpeciesIsotope>();
 }
+const std::unordered_map<Key, Data> &Field::other() const { return map<Key>(); }
 
-const std::unordered_map<AtmKey, Data> &Field::other() const {
-  return map<AtmKey>();
-}
-
-const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
-  return map<ParticulatePropertyTag>();
+const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::partp()
+    const {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
@@ -110,8 +108,8 @@ std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
 
 std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
 
-std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
-  return map<ParticulatePropertyTag>();
+std::unordered_map<ScatteringSpeciesProperty, Data> &Field::partp() {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::ostream &operator<<(std::ostream &os, const Point &atm) {
@@ -148,7 +146,7 @@ std::ostream &operator<<(std::ostream &os, const Field &atm) {
   };
 
   std::string_view space = "";
-  for (auto && key : atm.keys()) {
+  for (auto &&key : atm.keys()) {
     os << std::exchange(space, ",\n") << key << ":";
     std::visit(printer, atm[key].data);
   }
@@ -840,6 +838,7 @@ bool operator==(const SpeciesIsotope &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
+<<<<<<< HEAD:src/core/atm/atm.cpp
 bool operator==(const AtmKeyVal &keyval, const QuantumIdentifier &key) {
   return cmp(keyval, key);
 }
@@ -882,7 +881,7 @@ Numeric get(const GriddedField3 &gf3,
             const Numeric lat,
             const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
-  
+
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
         return my_interp::interp(data, al, la, lo);
@@ -977,4 +976,13 @@ Point Field::at(const Vector3 pos) const try {
   return at(pos[0], pos[1], pos[2]);
 }
 ARTS_METHOD_ERROR_CATCH
+=======
+bool operator==(const KeyVal &keyval, const ScatteringSpeciesProperty &key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const ScatteringSpeciesProperty &key, const KeyVal &keyval) {
+  return cmp(keyval, key);
+}
+>>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.cc
 }  // namespace Atm

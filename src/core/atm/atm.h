@@ -21,31 +21,13 @@
 #include "enums.h"
 #include "fieldmap.h"
 #include "isotopologues.h"
+#include "scattering/properties.h"
 #include "species.h"
-
-//! A type to name particulates (and let them be type-independent)
-struct ParticulatePropertyTag {
-  String name;
-
-  auto operator<=>(const ParticulatePropertyTag &) const = default;
-
-  friend std::ostream &operator<<(std::ostream &,
-                                  const ParticulatePropertyTag &);
-};
-
-namespace std {
-template <>
-struct hash<ParticulatePropertyTag> {
-  std::size_t operator()(const ParticulatePropertyTag &pp) const {
-    return std::hash<String>{}(pp.name);
-  }
-};
-}  // namespace std
 
 namespace Atm {
 template <typename T>
-concept isParticulatePropertyTag =
-    std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
+concept isScatteringSpeciesProperty =
+    std::is_same_v<std::remove_cvref_t<T>, ScatteringSpeciesProperty>;
 
 template <typename T>
 concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
@@ -62,32 +44,36 @@ template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
-                  isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
+concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+                  isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
                             SpeciesEnum,
                             SpeciesIsotope,
                             QuantumIdentifier,
-                            ParticulatePropertyTag>;
+                            ScatteringSpeciesProperty>;
 
 template <typename T>
 concept ListKeyType = requires(T a) {
-  { a.size() } -> matpack::integral;
-  { a[0] } -> KeyType;
-};
+                        { a.size() } -> matpack::integral;
+                        { a[0] } -> KeyType;
+                      };
 
 template <typename T>
 concept ListOfNumeric = requires(T a) {
-  { matpack::mdshape(a) } -> std::same_as<std::array<Index, 1>>;
-  { matpack::mdvalue(a, {Index{0}}) } -> std::same_as<Numeric>;
-};
+                          {
+                            matpack::mdshape(a)
+                            } -> std::same_as<std::array<Index, 1>>;
+                          {
+                            matpack::mdvalue(a, {Index{0}})
+                            } -> std::same_as<Numeric>;
+                        };
 
 struct Point {
   std::unordered_map<SpeciesEnum, Numeric> specs{};
   std::unordered_map<SpeciesIsotope, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
-  std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
+  std::unordered_map<ScatteringSpeciesProperty, Numeric> partp{};
 
   Numeric pressure{NAN};
   Numeric temperature{NAN};
@@ -106,7 +92,7 @@ struct Point {
       return specs.at(std::forward<T>(x));
     } else if constexpr (isSpeciesIsotope<T>) {
       return isots.at(std::forward<T>(x));
-    } else if constexpr (isParticulatePropertyTag<T>) {
+    } else if constexpr (isScatteringSpeciesProperty<T>) {
       return partp.at(std::forward<T>(x));
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte.at(std::forward<T>(x));
@@ -133,10 +119,10 @@ struct Point {
     }
   } catch (std::out_of_range &) {
     if constexpr (isSpecies<T>) {
-      ARTS_USER_ERROR("Species VMR not found: ",
-                      std::quoted(toString<1>(x)))
+      ARTS_USER_ERROR("Species VMR not found: ", std::quoted(toString<1>(x)))
     } else if constexpr (isSpeciesIsotope<T>) {
-      ARTS_USER_ERROR("Isotopologue ration not found: ", std::quoted(x.FullName()))
+      ARTS_USER_ERROR("Isotopologue ration not found: ",
+                      std::quoted(x.FullName()))
     } else if constexpr (isParticulatePropertyTag<T>) {
       ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
     } else if constexpr (isQuantumIdentifier<T>) {
@@ -156,7 +142,7 @@ struct Point {
       return isots[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
-    } else if constexpr (isParticulatePropertyTag<T>) {
+    } else if constexpr (isScatteringSpeciesProperty<T>) {
       return partp[std::forward<T>(x)];
     } else {
       switch (std::forward<T>(x)) {
@@ -338,7 +324,7 @@ struct Field final : FieldMap::Map<Data,
                                    SpeciesEnum,
                                    SpeciesIsotope,
                                    QuantumIdentifier,
-                                   ParticulatePropertyTag> {
+                                   ScatteringSpeciesProperty> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
@@ -351,8 +337,8 @@ struct Field final : FieldMap::Map<Data,
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
-  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots()
-      const;
+  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
+<<<<<<< HEAD:src/core/atm/atm.h
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
       const;
@@ -362,6 +348,17 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
+=======
+  [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
+      &partp() const;
+
+  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
+  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
+  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
+  [[nodiscard]] std::unordered_map<Key, Data> &other();
+  [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &partp();
+>>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 
   //! Compute the values at a single point in place
   void at(std::vector<Point> &out,
@@ -399,6 +396,18 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
+<<<<<<< HEAD:src/core/atm/atm.h
+=======
+
+bool operator==(const KeyVal &, Key);
+bool operator==(Key, const KeyVal &);
+bool operator==(const KeyVal &, const Species::Species &);
+bool operator==(const Species::Species &, const KeyVal &);
+bool operator==(const KeyVal &, const QuantumIdentifier &);
+bool operator==(const QuantumIdentifier &, const KeyVal &);
+bool operator==(const KeyVal &, const ScatteringSpeciesProperty &);
+bool operator==(const ScatteringSpeciesProperty &, const KeyVal &);
+>>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 }  // namespace Atm
 
 using AtmKeyVal = Atm::KeyVal;
