@@ -120,6 +120,8 @@ struct Point {
         return true;
       else if constexpr (isQuantumIdentifier<T>)
         return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
+      else if constexpr (isScatteringSpeciesProperty<T>)
+        return x.partp.end() not_eq x.partp.find(std::forward<T>(k));
     };
 
     if constexpr (N > 0)
