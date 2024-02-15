@@ -1520,5 +1520,9 @@ using ArrayOfLagrangeLogInterpolation = Array<LagrangeLogInterpolation>;
 using LagrangeCyclic0to360Interpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_0_p360>;
 using ArrayOfLagrangeCyclic0to360Interpolation = Array<LagrangeCyclic0to360Interpolation>;
 
+// For cyclic interpolation between -180 and 18
+using LagrangeCyclicPM180Interpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+using ArrayOfLagrangeCyclicPM180Interpolation = Array<LagrangeCyclicPM180Interpolation>;
+
 template <std::size_t sz, bool deriv=false>
 using FixedLagrangeInterpolation = my_interp::Lagrange<sz, deriv>;

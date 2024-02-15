@@ -45,6 +45,7 @@ void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
 void py_operators(py::module_& m);
 void py_lbl(py::module_& m);
+void py_interp(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -102,6 +103,7 @@ PYBIND11_MODULE(arts, m) try {
   py_basic(m);
   py_matpack(m);
 
+  py_interp(m);
   py_griddedfield(m);
   py_time(m);
   py_species(m);

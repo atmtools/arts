@@ -8,27 +8,6 @@
 
 namespace Python {
 void py_rte(py::module_& m) try {
-  artsclass<LagrangeInterpolation>(m, "LagrangeInterpolation")
-      .def(py::init([]() { return std::make_shared<LagrangeInterpolation>(); }), "Default interpolation")
-      .PythonInterfaceCopyValue(LagrangeInterpolation)
-      .def(py::pickle(
-          [](const LagrangeInterpolation& self) {
-            return py::make_tuple(self.pos, self.lx, self.dlx);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
-
-            auto out = std::make_shared<LagrangeInterpolation>();
-
-            out->pos = t[0].cast<Index>();
-            out->lx = t[1].cast<Array<Numeric>>();
-            out->dlx = t[2].cast<Array<Numeric>>();
-            return out;
-          })).doc() = "Interpolation object";
-
-  artsarray<ArrayOfLagrangeInterpolation>(m, "ArrayOfLagrangeInterpolation")
-      .doc() = "List of :class:`~pyarts.arts.LagrangeInterpolation`";
-
   artsclass<GasAbsLookup>(m, "GasAbsLookup")
       .def(py::init([]() { return std::make_shared<GasAbsLookup>(); }), "Default lookup")
       .PythonInterfaceCopyValue(GasAbsLookup)
