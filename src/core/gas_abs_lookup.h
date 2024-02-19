@@ -119,6 +119,7 @@ class GasAbsLookup {
 
   /** The species tags for which the table is valid */
   ArrayOfArrayOfSpeciesTag& Species() {return species;}
+  const ArrayOfArrayOfSpeciesTag& Species() const {return species;}
   
   /** The species tags with non-linear treatment */
   ArrayOfIndex& NonLinearSpecies() {return nonlinear_species;}

@@ -46,7 +46,7 @@ Units:
       .type = "ArrayOfCIARecord",
   };
 
-  wsv_data["propagation_matrix_absorption_lookup"] = {
+  wsv_data["absorption_lookup_table_data"] = {
       .desc = R"--(An absorption lookup table.
 
 It holds an absorption lookup table, as well as all information that

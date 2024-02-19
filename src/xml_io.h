@@ -160,4 +160,6 @@ void xml_write_to_file(const String& filename,
   xml_write_to_file_base(efilename, type, ftype);
 }
 
+String complete_basename(const String& basename);
+
 #endif

@@ -190,7 +190,9 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatMatrix)
 
-//==========================================================================
+//=== Extras ===============================================================
+
+TMPL_XML_READ_WRITE_STREAM(AtmFunctionalData)
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_XML_READ_WRITE_STREAM

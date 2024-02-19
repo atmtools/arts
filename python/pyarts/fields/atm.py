@@ -1,6 +1,5 @@
 from pyarts.arts import interp as cxx
 
-import xarray
 import numpy as np
 from enum import Enum
 

@@ -16,7 +16,247 @@
 
 #pragma clang optimize off
 
-using std::nullopt;
+bool WorkspaceMethodInternalRecord::has_any() const {
+  const auto cmp = Cmp::eq("Any");
+  return std::ranges::any_of(gout_type, cmp) +
+         std::ranges::any_of(gin_type, cmp);
+}
+
+bool WorkspaceMethodInternalRecord::has_overloads() const {
+  for (auto& str : gout_type) {
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+  }
+
+  for (auto& str : gin_type) {
+    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
+  }
+
+  return false;
+}
+
+std::string WorkspaceMethodInternalRecord::docstring() const try {
+  std::stringstream os;
+
+  os << "/** " << desc << "\n";
+  if (pass_workspace) os << "  @param[in] ws Workspace reference\n";
+
+  for (auto& str : out) {
+    if (std::any_of(
+            in.begin(), in.end(), [&str](auto& var) { return str == var; }))
+      os << "  @param[inout] " << str << " As WSV" << '\n';
+    else
+      os << "  @param[out] " << str << " As WSV" << '\n';
+  }
+
+  for (std::size_t i = 0; i < gout.size(); i++) {
+    os << "  @param[out] " << gout[i] << " " << gout_desc[i] << '\n';
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+    os << "  @param[in] " << str << " As WSV" << '\n';
+  }
+
+  for (std::size_t i = 0; i < gin.size(); i++) {
+    os << "  @param[in] " << gin[i] << " " << gin_desc[i] << '\n';
+  }
+
+  os << " */";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in meta-function docstring():\n\n" +
+                           std::string(e.what()));
+}
+
+std::vector<std::vector<std::string>>
+WorkspaceMethodInternalRecord::generic_overloads() const {
+  const auto cmp = Cmp::eq(',');
+
+  std::vector<std::vector<std::string>> genvar;
+
+  for (auto& str : gout_type) {
+    if (std::any_of(str.begin(), str.end(), cmp))
+      genvar.push_back(split(str, ","));
+    else
+      genvar.push_back(std::vector<std::string>{str});
+  }
+
+  for (auto& str : gin_type) {
+    if (std::any_of(str.begin(), str.end(), cmp))
+      genvar.push_back(split(str, ","));
+    else
+      genvar.push_back(std::vector<std::string>{str});
+  }
+
+  for (auto& v : genvar) {
+    for (auto& s : v) {
+      trim(s);
+    }
+  }
+
+  return genvar;
+}
+
+std::string WorkspaceMethodInternalRecord::header(const std::string& name,
+                                                  int overload) const try {
+  const static auto wsv = internal_workspace_variables();
+  const static auto wsa = internal_workspace_agendas();
+
+  const std::string spaces(name.size() + 6, ' ');
+
+  const auto overloads = generic_overloads();
+  int GVAR = 0;
+
+  std::stringstream os;
+
+  if (has_any()) {
+    os << "template <WorkspaceGroup T>\n";
+  }
+
+  os << "void " << name << '(';
+
+  bool first = true;
+  if (pass_workspace) {
+    os << "const Workspace& ws";
+    first = false;
+  }
+
+  for (auto& str : out) {
+    auto wsv_ptr = wsv.find(str);
+    if (wsv_ptr != wsv.end()) {
+      os << comma(first, spaces) << wsv_ptr->second.type << "& " << str;
+      continue;
+    }
+
+    auto wsa_ptr = wsa.find(str);
+    if (wsa_ptr != wsa.end()) {
+      if (wsa_ptr->second.array)
+        os << comma(first, spaces) << "ArrayOfAgenda"
+           << "& " << str;
+      else
+        os << comma(first, spaces) << "Agenda"
+           << "& " << str;
+      continue;
+    }
+
+    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
+  }
+
+  for (const auto& i : gout) {
+    os << comma(first, spaces)
+       << any(overloads[GVAR][std::min<int>(
+              overload, static_cast<int>(overloads[GVAR].size() - 1))])
+       << "& " << i;
+    GVAR++;
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+
+    auto wsv_ptr = wsv.find(str);
+    if (wsv_ptr != wsv.end()) {
+      os << comma(first, spaces) << "const " << wsv_ptr->second.type << "& "
+         << str;
+      continue;
+    }
+
+    auto wsa_ptr = wsa.find(str);
+    if (wsa_ptr != wsa.end()) {
+      if (wsa_ptr->second.array)
+        os << comma(first, spaces) << "const ArrayOfAgenda"
+           << "& " << str;
+      else
+        os << comma(first, spaces) << "const Agenda"
+           << "& " << str;
+      continue;
+    }
+
+    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
+  }
+
+  for (const auto& i : gin) {
+    os << comma(first, spaces) << "const "
+       << any(overloads[GVAR][std::min<int>(
+              overload, static_cast<int>(overloads[GVAR].size() - 1))])
+       << "& " << i;
+    GVAR++;
+  }
+
+  os << ")";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error(var_string("Error in meta-function header(",
+                                      std::quoted(name),
+                                      ", ",
+                                      overload,
+                                      "):\n\n",
+                                      e.what()));
+}
+
+int WorkspaceMethodInternalRecord::count_overloads() const try {
+  const auto overloads = generic_overloads();
+  int g = 1;
+  for (auto& x : overloads) {
+    int ng = static_cast<int>(x.size());
+    if (ng == 1) continue;
+    if (g != ng and g != 1)
+      throw std::runtime_error("Inconsistent number of overloads");
+    g = ng;
+  }
+  return g;
+} catch (std::exception& e) {
+  throw std::runtime_error("Error in meta-function count_overloads():\n\n" +
+                           std::string(e.what()));
+}
+
+std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
+    try {
+  const std::string spaces(6, ' ');
+
+  std::stringstream os;
+
+  os << name << "(\n      ";
+
+  bool first = true;
+  if (pass_workspace) {
+    os << "ws";
+    first = false;
+  }
+
+  for (auto& str : out) {
+    os << comma(first, spaces) << str;
+  }
+
+  for (const auto& i : gout) {
+    os << comma(first, spaces) << i;
+  }
+
+  for (auto& str : in) {
+    if (std::any_of(
+            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
+      continue;
+
+    os << comma(first, spaces) << str;
+  }
+
+  for (const auto& i : gin) {
+    os << comma(first, spaces) << i;
+  }
+
+  os << ");";
+
+  return os.str();
+} catch (std::exception& e) {
+  throw std::runtime_error(var_string(
+      "Cannot create call of method ", std::quoted(name), ":\n\n", e.what()));
+}
+
 
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
 internal_workspace_methods() try {
@@ -428,7 +668,7 @@ common form of a predefined model.
       .gin_desc = {R"--(Absorption lines per species)--"},
   };
 
-  wsm_data["propagation_matrix_absorption_lookupAdapt"] = {
+  wsm_data["absorption_lookup_table_dataAdapt"] = {
       .desc =
           R"--(Adapts a gas absorption lookup table to the current calculation.
 
@@ -442,20 +682,20 @@ Of course, the method also performs quite a lot of checks on the
 table. If something is not ok, a runtime error is thrown.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"propagation_matrix_absorption_lookup"},
-      .in = {"propagation_matrix_absorption_lookup",
+      .out = {"absorption_lookup_table_data"},
+      .in = {"absorption_lookup_table_data",
              "absorption_species",
              "frequency_grid"},
   };
 
-  wsm_data["propagation_matrix_absorption_lookupInit"] = {
+  wsm_data["absorption_lookup_table_dataInit"] = {
       .desc = R"--(Creates an empty gas absorption lookup table.
 
 This is mainly there to help developers. For example, you can write
 the empty table to an XML file, to see the file format.
 )--",
       .author = {"Stefan Buehler"},
-      .out = {"propagation_matrix_absorption_lookup"},
+      .out = {"absorption_lookup_table_data"},
   };
 
   wsm_data["absorption_speciesAdd"] = {
@@ -580,100 +820,6 @@ available in the *absorption_xsec_fit_data* variable.
           {R"--(Specify one String for each tag group that you want to create. Inside the String, separate the tags by commas (plus optional blanks).)--"},
   };
 
-  wsm_data["atmospheric_fieldAddCustomDataFile"] = {
-      .desc = R"--(Add some custom data from file to the atmospheric_field
-
-The key field is used to determine the type of data that is added by input type.
-
-If the input is a String, the data is added to corresponding atmospheric data,
-these strings can be
-
-- "t"      - temperature
-- "p"      - pressure
-- "wind_u" - wind u component
-- "wind_v" - wind v component
-- "wind_w" - wind w component
-- "mag_u"  - mag u component
-- "mag_v"  - mag v component
-- "mag_w"  - mag w component
-
-If the input is a QuantumIdentifier, it is assumed this is an energy level
-identifier for NLTE calculations.
-
-If the input is an ArrayOfSpeciesTag, it is assumed this is for the species
-content (VMR, LWC, etc).
-
-The file can contain any of GriddedField3, Tensor3, or Numeric data.  Note
-that the method iterates over these using a slow exception-handling routine,
-so it would be much more efficient to use either of
-*atmospheric_fieldAddGriddedData*, or *atmospheric_fieldAddNumericData* to set the data.
-Nevertheless this method is provided to make it easier to compose atmospheric
-reading.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atmospheric_field"},
-      .in = {"atmospheric_field"},
-      .gin = {"key", "filename", "extrapolation_type"},
-      .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier",
-                   "String",
-                   "String"},
-      .gin_value = {std::nullopt, std::nullopt, String("Nearest")},
-      .gin_desc = {R"--(Atmospheric data key.)--",
-                   R"--(Filename)--",
-                   R"--(Style of extrapolation)--"},
-  };
-
-  wsm_data["atmospheric_fieldAddField"] = {
-      .desc =
-          R"--(Add another atmospheric_field from file to the current atmospheric_field
-
-The optional flag set_toa determines if the old (default) or
-new (if it evaluates as true) atmospheric_field's top of the atmosphere altitude
-is used in the output
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atmospheric_field"},
-      .in = {"atmospheric_field"},
-      .gin = {"filename", "set_toa"},
-      .gin_type = {"String", "Index"},
-      .gin_value = {std::nullopt, Index{0}},
-      .gin_desc = {R"--(Filename)--",
-                   R"--(Flag for overwriting the top of the atmosphere)--"},
-  };
-
-  wsm_data["atmospheric_fieldAddGriddedData"] = {
-      .desc = R"--(Adds data to the atmospheric_field
-
-The field must not be regular
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atmospheric_field"},
-      .in = {"atmospheric_field"},
-      .gin = {"key", "data", "extrapolation_type"},
-      .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier",
-                   "GriddedField3",
-                   "String"},
-      .gin_value = {std::nullopt, std::nullopt, String("Nearest")},
-      .gin_desc = {R"--(See *atmospheric_fieldAddCustomDataFile*)--",
-                   R"--(Some data)--",
-                   R"--(Style of extrapolation)--"},
-  };
-
-  wsm_data["atmospheric_fieldAddNumericData"] = {
-      .desc = R"--(Adds data to the atmospheric_field
-
-The field must not be regular
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atmospheric_field"},
-      .in = {"atmospheric_field"},
-      .gin = {"key", "data"},
-      .gin_type = {"String, ArrayOfSpeciesTag, QuantumIdentifier", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(See *atmospheric_fieldAddCustomDataFile*)--",
-                   R"--(Some data)--"},
-  };
-
   wsm_data["atmospheric_fieldIGRF"] = {
       .desc = R"--(Use IGRF to compute the magnetic field at each point
 
@@ -715,69 +861,6 @@ computations.
       .gin_desc = {"Default option for the isotopologue ratios"},
   };
 
-  wsm_data["atmospheric_fieldRead"] = {
-      .desc = R"--(Reads a new atmospheric_field from a folder or base
-
-There are several indices to indicate what data should be read by the routine
-At the end of the routine, a check is performed, throwing a warning if the
-data is not useable.
-
-The basename is used to determine a scenario or a folder depending of the last characther.
-If the last character is "/", a folder structure is assumed, otherwise a scenario
-structure is assumed.  Note that it is only the last characther and that you can
-have longer paths still.  Also note that this method respects the internal ARTS
-environmental variables to find files not just relative to the execution path.
-
-For instance, if you have a folder structure, you can give basename="atm/".  Now
-all the files are expected to be in that folder, e.g., "atm/t.xml" if read_tp is true.
-If instead you have a scenario structure you give this as basename="scen".  Now
-all the files are expected to belong to that scenario by appedning the names.  For
-example, "scen.t.xml" if read_tp is true.
-
-If the flags evaluates true, they expect some files to exist in the basename
-
-- read_tp - ["t.xml", "p.xml", ]
-- read_mag - ["mag_u.xml", "mag_v.xml", "mag_w.xml", ]
-- read_wind - ["wind_u.xml", "wind_v.xml", "wind_w.xml", ]
-- read_specs - [See below]
-- read_nlte - "nlte.xml"
-
-If "read_specs" is true, then all the species of *absorption_species* are read and the
-basename path is expected to contain a file with short-name version for each
-unique species.  Some examples:
-
-- absorption_species=["H2O-161", "O2-66"], - ["H2O.xml", "O2.xml"]
-- absorption_species=["H2O-161", "O2-66", "CO2-626"], - ["H2O.xml", "O2.xml", "CO2.xml"]
-- absorption_species=["H2O-161", "O2-66", "O2-PWR98"], - ["H2O.xml", "O2.xml"]
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"atmospheric_field"},
-      .in = {"absorption_species"},
-      .gin = {"basename",
-              "toa",
-              "read_tp",
-              "read_mag",
-              "read_wind",
-              "read_specs",
-              "read_nlte"},
-      .gin_type =
-          {"String", "Numeric", "Index", "Index", "Index", "Index", "Index"},
-      .gin_value = {String("./"),
-                    std::nullopt,
-                    Index{1},
-                    Index{0},
-                    Index{0},
-                    Index{1},
-                    Index{0}},
-      .gin_desc = {R"--(Base for the name of the data files.)--",
-                   R"--(Top of atmosphere altitude [m].)--",
-                   R"--(Flag to read pressure and temperature)--",
-                   R"--(Flag to read magnetic field)--",
-                   R"--(Flag to read wind field)--",
-                   R"--(Flag to read species)--",
-                   R"--(Flag to read NLTE)--"},
-  };
-
   wsm_data["atmospheric_fieldRescalePopulationLevels"] = {
       .desc =
           R"--(Rescale NLTE field to expected total distribution amongst levels
@@ -789,31 +872,6 @@ unique species.  Some examples:
       .gin_type = {"Numeric"},
       .gin_value = {std::nullopt},
       .gin_desc = {R"--(Scaling (e.g., 0.75 for only orth-water on Earth))--"},
-  };
-
-  wsm_data["atmospheric_fieldSave"] = {
-      .desc = R"--(Saves an atmospheric_field to a folder or base
-
-The output files are split to fit with what *atmospheric_fieldRead* can read, so see it
-for most of the filenames that may be generated, depending on the content of the
-atmospheric_field of course
-
-Note that there are some exceptions.  If no_clobber is true, the new files will
-not overwrite old files.  Also, if there are more than one species with the same
-short-name, e.g., "H2O-161" and "H2O-181" both have short-name "H2O", only one of
-these will print the "H2O.xml" file whereas the other will print "H2O.2.xml".
-The latter is not read by *atmospheric_fieldRead*.  Even worse, we can give no guarantee
-at all for whether it is the values from the "H2O-161" or "H2O-181" tags that
-give the "H2O.xml" file because the internal data structure is unordered.
-)--",
-      .author = {"Richard Larsson"},
-      .in = {"atmospheric_field"},
-      .gin = {"basename", "filetype", "no_clobber"},
-      .gin_type = {"String", "String", "Index"},
-      .gin_value = {std::nullopt, String("ascii"), Index{0}},
-      .gin_desc = {R"--(Base for the name of the data files.)--",
-                   R"--(See *WriteXML*)--",
-                   R"--(See *WriteXML*)--"},
   };
 
   wsm_data["background_transmittanceFromPathPropagationBack"] = {
@@ -956,14 +1014,14 @@ Sets N2 and O2 speces
 
   wsm_data["frequency_gridFromGasAbsLookup"] = {
       .desc =
-          R"--(Sets *frequency_grid* to the frequency grid of *propagation_matrix_absorption_lookup*.
+          R"--(Sets *frequency_grid* to the frequency grid of *absorption_lookup_table_data*.
 
 Must be called between importing/creating raw absorption table and
-call of *propagation_matrix_absorption_lookupAdapt*.
+call of *absorption_lookup_table_dataAdapt*.
 )--",
       .author = {"Stefan Buehler"},
       .out = {"frequency_grid"},
-      .in = {"propagation_matrix_absorption_lookup"},
+      .in = {"absorption_lookup_table_data"},
   };
 
   wsm_data["propagation_path_atmospheric_pointFromPath"] = {
@@ -1233,7 +1291,7 @@ limit can here be adjusted by the ``extpolfac`` argument.
       .out = {"propagation_matrix", "propagation_matrix_jacobian"},
       .in = {"propagation_matrix",
              "propagation_matrix_jacobian",
-             "propagation_matrix_absorption_lookup",
+             "absorption_lookup_table_data",
              "frequency_grid",
              "atmospheric_point",
              "jacobian_targets",
@@ -1617,7 +1675,7 @@ This method must be used inside *propagation_matrix_agenda* and then be called f
       .desc = R"--(Sets the *propagation_matrix_agenda* automatically
 
 This method introspects the input and uses it for generating the
-*propagation_matrix_agenda* automatically.  If ``use_propagation_matrix_absorption_lookup``, all
+*propagation_matrix_agenda* automatically.  If ``use_absorption_lookup_table_data``, all
 methods that can be used to generate the absorption lookup table
 are ignored and instead the calculations from the absorption
 lookup are used.
@@ -1633,8 +1691,8 @@ The following methods are considered for addition:
 
 To perform absorption lookupo table calculation, call:
     1) *propagation_matrix_agendaAuto*
-    2) ``propagation_matrix_absorption_lookupCalc``  FIXME: HOW TO COMPUTE IT
-    3) *propagation_matrix_agendaAuto* (use_propagation_matrix_absorption_lookup=1)
+    2) ``absorption_lookup_table_dataCalc``  FIXME: HOW TO COMPUTE IT
+    3) *propagation_matrix_agendaAuto* (use_absorption_lookup_table_data=1)
     4) Perform other calculations
 )--",
       .author = {"Richard Larsson"},
@@ -1646,7 +1704,7 @@ To perform absorption lookupo table calculation, call:
               "force_t",
               "ignore_errors",
               "no_negatives",
-              "use_propagation_matrix_absorption_lookup"},
+              "use_absorption_lookup_table_data"},
       .gin_type = {"Numeric",
                    "Numeric",
                    "Numeric",
@@ -2643,8 +2701,358 @@ the first 5 dimensions are computed in parallel.
       .pass_workspace = true,
   };
 
-  const static auto meta_methods = internal_meta_methods();
-  for (auto& m : meta_methods) {
+  wsm_data["atmospheric_fieldAppendBaseData"] = {
+      .desc = R"--(Append base data to the atmospheric field
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the form
+
+- "...t.xml"
+- "...p.xml"
+- "...wind_u.xml"
+- "...wind_v.xml"
+- "...wind_w.xml"
+- "...mag_u.xml"
+- "...mag_v.xml"
+- "...mag_w.xml"
+
+If any of these files are found, they are appended to the atmospheric field.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``deal_with_field_component`` is used to determine what to do if one but not all of
+the components are found.  See :class:`~pyarts.arts.options.MissingFieldComponent` for
+valid options.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+
+The ``allow_missing_pressure`` and ``allow_missing_temperature`` are used to determine
+if the method should throw if the pressure or temperature is missing.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field"},
+      .gin = {"basename",
+              "extrapolation",
+              "deal_with_field_component",
+              "replace_existing",
+              "allow_missing_pressure",
+              "allow_missing_temperature"},
+      .gin_type = {"String", "String", "String", "Index", "Index", "Index"},
+      .gin_value = {std::nullopt,
+                    String{"Linear"},
+                    String{"Throw"},
+                    Index{1},
+                    Index{0},
+                    Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "How to deal with the field component.",
+           "Whether or not to replace existing data",
+           "Whether or not to allow missing pressure data",
+           "Whether or not to allow missing temperature data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendLineSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on line data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_bands"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendLineIsotopologueData"] = {
+      .desc =
+          R"--(Append isotopologue data to the atmospheric field based on line data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
+See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_bands"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendLineLevelData"] = {
+      .desc =
+          R"--(Append NLTE data to the atmospheric field based on line data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.xml" (e.g., "O2-66 J 1 1 N 0 0.xml").
+See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names and
+:class:`~pyarts.arts.QuantumNumberValue` for valid quantum numbers.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_bands"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendTagsSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on species data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_species"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on species data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_lookup_table_data"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendCIASpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on collision-induced data data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_cia_data"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendXsecSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on cross-section data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_xsec_fit_data"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendPredefSpeciesData"] = {
+      .desc =
+          R"--(Append species data to the atmospheric field based on predefined model data
+
+This will look at the valid ``basename`` for files matching base
+data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
+See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
+
+The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
+See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+
+The ``missing_is_zero`` sets missing data to zero.
+
+The ``replace_existing`` is used to determine if the data should be replaced if it already
+exists in the atmospheric field.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field", "absorption_predefined_model_data"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing"},
+      .gin_type = {"String", "String", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data"},
+  };
+
+  wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
+      .desc =
+          R"--(Append data to the atmospheric field based all absorption data
+
+Wraps:
+
+- *atmospheric_fieldAppendLineSpeciesData* if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendLineIsotopologueData* if ``load_isot`` is true and if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendLineLevelData* if ``load_nlte`` is true and if the workspace contains *absorption_bands*
+- *atmospheric_fieldAppendTagsSpeciesData* if the workspace contains *absorption_species*
+- *atmospheric_fieldAppendLookupTableSpeciesData* if the workspace contains *absorption_species*
+- *atmospheric_fieldAppendCIASpeciesData* if the workspace contains *absorption_cia_data*
+- *atmospheric_fieldAppendXsecSpeciesData* if the workspace contains *absorption_xsec_fit_data*
+- *atmospheric_fieldAppendPredefSpeciesData* if the workspace contains *absorption_predefined_model_data*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"atmospheric_field"},
+      .in = {"atmospheric_field"},
+      .gin = {"basename",
+              "extrapolation",
+              "missing_is_zero",
+              "replace_existing",
+              "load_isot",
+              "load_nlte"},
+      .gin_type = {"String", "String", "Index", "Index", "Index", "Index"},
+      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}, Index{0}, Index{0}},
+      .gin_desc =
+          {"The base name of the files",
+           "The extrapolation to use.",
+           "Whether or not to zero-out missing data",
+           "Whether or not to replace existing data",
+           "Whether or not to load isotopologue data",
+           "Whether or not to load NLTE data"},
+      .pass_workspace = true,
+  };
+
+  /*
+  LEAVE THIS LAST AS IT REQUIRES THE DATA ABOVE TO FUNCTION
+  */
+  for (auto& m : internal_meta_methods()) {
     wsm_data[m.name] = m.create(wsm_data);
   }
 
@@ -2652,244 +3060,4 @@ the first 5 dimensions are computed in parallel.
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Cannot create workspace methods:\n\n", e.what()));
-}
-
-bool WorkspaceMethodInternalRecord::has_any() const {
-  const auto cmp = Cmp::eq("Any");
-  return std::ranges::any_of(gout_type, cmp) +
-         std::ranges::any_of(gin_type, cmp);
-}
-
-bool WorkspaceMethodInternalRecord::has_overloads() const {
-  for (auto& str : gout_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
-  }
-
-  for (auto& str : gin_type) {
-    if (std::any_of(str.begin(), str.end(), Cmp::eq(','))) return true;
-  }
-
-  return false;
-}
-
-std::string WorkspaceMethodInternalRecord::docstring() const try {
-  std::stringstream os;
-
-  os << "/** " << desc << "\n";
-  if (pass_workspace) os << "  @param[in] ws Workspace reference\n";
-
-  for (auto& str : out) {
-    if (std::any_of(
-            in.begin(), in.end(), [&str](auto& var) { return str == var; }))
-      os << "  @param[inout] " << str << " As WSV" << '\n';
-    else
-      os << "  @param[out] " << str << " As WSV" << '\n';
-  }
-
-  for (std::size_t i = 0; i < gout.size(); i++) {
-    os << "  @param[out] " << gout[i] << " " << gout_desc[i] << '\n';
-  }
-
-  for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
-    os << "  @param[in] " << str << " As WSV" << '\n';
-  }
-
-  for (std::size_t i = 0; i < gin.size(); i++) {
-    os << "  @param[in] " << gin[i] << " " << gin_desc[i] << '\n';
-  }
-
-  os << " */";
-
-  return os.str();
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function docstring():\n\n" +
-                           std::string(e.what()));
-}
-
-std::vector<std::vector<std::string>>
-WorkspaceMethodInternalRecord::generic_overloads() const {
-  const auto cmp = Cmp::eq(',');
-
-  std::vector<std::vector<std::string>> genvar;
-
-  for (auto& str : gout_type) {
-    if (std::any_of(str.begin(), str.end(), cmp))
-      genvar.push_back(split(str, ","));
-    else
-      genvar.push_back(std::vector<std::string>{str});
-  }
-
-  for (auto& str : gin_type) {
-    if (std::any_of(str.begin(), str.end(), cmp))
-      genvar.push_back(split(str, ","));
-    else
-      genvar.push_back(std::vector<std::string>{str});
-  }
-
-  for (auto& v : genvar) {
-    for (auto& s : v) {
-      trim(s);
-    }
-  }
-
-  return genvar;
-}
-
-std::string WorkspaceMethodInternalRecord::header(const std::string& name,
-                                                  int overload) const try {
-  const static auto wsv = internal_workspace_variables();
-  const static auto wsa = internal_workspace_agendas();
-
-  const std::string spaces(name.size() + 6, ' ');
-
-  const auto overloads = generic_overloads();
-  int GVAR = 0;
-
-  std::stringstream os;
-
-  if (has_any()) {
-    os << "template <WorkspaceGroup T>\n";
-  }
-
-  os << "void " << name << '(';
-
-  bool first = true;
-  if (pass_workspace) {
-    os << "const Workspace& ws";
-    first = false;
-  }
-
-  for (auto& str : out) {
-    auto wsv_ptr = wsv.find(str);
-    if (wsv_ptr != wsv.end()) {
-      os << comma(first, spaces) << wsv_ptr->second.type << "& " << str;
-      continue;
-    }
-
-    auto wsa_ptr = wsa.find(str);
-    if (wsa_ptr != wsa.end()) {
-      if (wsa_ptr->second.array)
-        os << comma(first, spaces) << "ArrayOfAgenda"
-           << "& " << str;
-      else
-        os << comma(first, spaces) << "Agenda"
-           << "& " << str;
-      continue;
-    }
-
-    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
-  }
-
-  for (const auto& i : gout) {
-    os << comma(first, spaces)
-       << any(overloads[GVAR][std::min<int>(
-              overload, static_cast<int>(overloads[GVAR].size() - 1))])
-       << "& " << i;
-    GVAR++;
-  }
-
-  for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
-
-    auto wsv_ptr = wsv.find(str);
-    if (wsv_ptr != wsv.end()) {
-      os << comma(first, spaces) << "const " << wsv_ptr->second.type << "& "
-         << str;
-      continue;
-    }
-
-    auto wsa_ptr = wsa.find(str);
-    if (wsa_ptr != wsa.end()) {
-      if (wsa_ptr->second.array)
-        os << comma(first, spaces) << "const ArrayOfAgenda"
-           << "& " << str;
-      else
-        os << comma(first, spaces) << "const Agenda"
-           << "& " << str;
-      continue;
-    }
-
-    throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
-  }
-
-  for (const auto& i : gin) {
-    os << comma(first, spaces) << "const "
-       << any(overloads[GVAR][std::min<int>(
-              overload, static_cast<int>(overloads[GVAR].size() - 1))])
-       << "& " << i;
-    GVAR++;
-  }
-
-  os << ")";
-
-  return os.str();
-} catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in meta-function header(",
-                                      std::quoted(name),
-                                      ", ",
-                                      overload,
-                                      "):\n\n",
-                                      e.what()));
-}
-
-int WorkspaceMethodInternalRecord::count_overloads() const try {
-  const auto overloads = generic_overloads();
-  int g = 1;
-  for (auto& x : overloads) {
-    int ng = static_cast<int>(x.size());
-    if (ng == 1) continue;
-    if (g != ng and g != 1)
-      throw std::runtime_error("Inconsistent number of overloads");
-    g = ng;
-  }
-  return g;
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function count_overloads():\n\n" +
-                           std::string(e.what()));
-}
-
-std::string WorkspaceMethodInternalRecord::call(const std::string& name) const try {
-  const std::string spaces(6, ' ');
-
-  std::stringstream os;
-
-  os << name << "(\n      ";
-
-  bool first = true;
-  if (pass_workspace) {
-    os << "ws";
-    first = false;
-  }
-
-  for (auto& str : out) {
-    os << comma(first, spaces) << str;
-  }
-
-  for (const auto& i : gout) {
-    os << comma(first, spaces) << i;
-  }
-
-  for (auto& str : in) {
-    if (std::any_of(
-            out.begin(), out.end(), [&str](auto& var) { return str == var; }))
-      continue;
-
-    os << comma(first, spaces) << str;
-  }
-
-  for (const auto& i : gin) {
-    os << comma(first, spaces) << i;
-  }
-
-  os << ");";
-
-  return os.str();
-} catch (std::exception& e) {
-  throw std::runtime_error(
-      var_string("Cannot create call of method ", std::quoted(name), ":\n\n", e.what()));
 }

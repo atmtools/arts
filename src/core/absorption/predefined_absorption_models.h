@@ -6,15 +6,15 @@
  * @brief  Full absorption models of various kinds
  */
 
-
 #ifndef fullmodel_h
 #define fullmodel_h
+
+#include <rtepack.h>
 
 #include "atm.h"
 #include "jacobian.h"
 #include "predefined/predef_data.h"
 #include "species.h"
-#include <rtepack.h>
 
 namespace Absorption::PredefinedModel {
 /** Contains known required VMR values
@@ -23,6 +23,12 @@ namespace Absorption::PredefinedModel {
  *  wrapper in the compute function.
  */
 struct VMRS {
+  static constexpr std::array species = {Species::Species::CarbonDioxide,
+                                         Species::Species::Oxygen,
+                                         Species::Species::Nitrogen,
+                                         Species::Species::Water,
+                                         Species::Species::liquidcloud};
+
   Numeric CO2{0};
   Numeric O2{0};
   Numeric N2{0};
@@ -33,19 +39,16 @@ struct VMRS {
    *
    * @param atm An Atmosphere
    */
-  VMRS(const AtmPoint &atm)
-      : CO2(atm[Species::Species::CarbonDioxide]),
-        O2(atm[Species::Species::Oxygen]), N2(atm[Species::Species::Nitrogen]),
-        H2O(atm[Species::Species::Water]),
-        LWC(atm[Species::Species::liquidcloud]) {}
+  VMRS(const AtmPoint& atm)
+      : CO2(atm[species[0]]),
+        O2(atm[species[1]]),
+        N2(atm[species[2]]),
+        H2O(atm[species[3]]),
+        LWC(atm[species[4]]) {}
 
   constexpr VMRS() = default;
 
-  friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
-    return os << "O2: " << vmrs.O2 << '\n' <<
-                 "N2: " << vmrs.N2 << '\n' <<
-                 "H2O: " << vmrs.H2O << '\n';
-  }
+  friend std::ostream& operator<<(std::ostream& os, const VMRS& vmrs);
 };
 
 //! Returns true if the model can be computed
@@ -75,6 +78,6 @@ void compute(
     const VMRS& vmr,
     const JacobianTargets& jacobian_targets,
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data);
-} // namespace Absorption::PredefinedModel
+}  // namespace Absorption::PredefinedModel
 
 #endif  // fullmodel_h

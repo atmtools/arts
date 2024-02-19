@@ -424,3 +424,4 @@ using AtmKeyVal = Atm::KeyVal;
 using AtmField = Atm::Field;
 using AtmPoint = Atm::Point;
 using ArrayOfAtmPoint = Array<AtmPoint>;
+using AtmFunctionalData = Atm::FunctionalData;

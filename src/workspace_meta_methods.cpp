@@ -10,7 +10,7 @@
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 
-std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods() {
+std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
@@ -33,16 +33,21 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "propagation_matrixTesting",
-      .desc = "META TESTING",
+      .name = "atmospheric_fieldReadCatalog",
+      .desc = "Reads absorption file from a directory",
       .author = {"Richard Larsson"},
-      .methods = {"propagation_matrixAddLines", "propagation_matrixAddCIA"},
-      .out = {"propagation_matrix",
-              "propagation_matrix_jacobian",
-              "propagation_matrix_source_vector_nonlte",
-              "propagation_matrix_source_vector_nonlte_jacobian"},
+      .methods = {"atmospheric_fieldInit",
+                  "atmospheric_fieldAppendBaseData",
+                  "atmospheric_fieldAppendAbsorptionData"},
+      .out = {"atmospheric_field"},
+      .preset_gin = {"replace_existing"},
+      .preset_gin_value = {Index{0}},
   });
 
+  return out;
+}
+const std::vector<WorkspaceMethodInternalMetaRecord>& internal_meta_methods() {
+  static const auto out = internal_meta_methods_creator();
   return out;
 }
 
@@ -172,6 +177,20 @@ Equivalent (mostly) Python code:
     wsm.gin_desc.erase(wsm.gin_desc.begin() + idx0);
   }
 
+  ARTS_USER_ERROR_IF(preset_gin.size() != preset_gin_value.size(),
+                     "preset_gin and preset_gin_value must have the same size")
+  for (auto& preset : preset_gin) {
+    for (auto ptr = std::ranges::find(wsm.gin, preset); ptr != wsm.gin.end();
+         ptr = std::ranges::adjacent_find(wsm.gin)) {
+      const auto idx0 = std::distance(wsm.gin.begin(), ptr);
+
+      wsm.gin.erase(ptr);
+      wsm.gin_value.erase(wsm.gin_value.begin() + idx0);
+      wsm.gin_type.erase(wsm.gin_type.begin() + idx0);
+      wsm.gin_desc.erase(wsm.gin_desc.begin() + idx0);
+    }
+  }
+
   std::ranges::sort(first_out);
   std::ranges::sort(first_inout);
   std::ranges::sort(wsm.in);
@@ -213,6 +232,19 @@ std::string WorkspaceMethodInternalMetaRecord::call(
   std::stringstream code;
 
   code << wsm.header(name, 0) << " {\n";
+
+  for (Size i = 0; i < preset_gin.size(); i++) {
+    const auto t = preset_gin_value[i].type_name();
+    code << "  static const " << t << "& " << preset_gin[i]
+         << " =\n    "
+            "std::ranges::find_if(_wsmmeta, [](auto& _wsmmeta_var) {"
+            "\n      return _wsmmeta_var.name==\""
+         << name
+         << "\";\n    "
+            "}) -> preset_gin_value["
+         << i << "].get_unsafe<" << t << ">();\n";
+  }
+
   for (const auto& m : methods) {
     const auto& wm = wsms.at(m);
     for (const auto& outvar : wm.out) {
@@ -248,6 +280,8 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   return code.str();
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string(
-      "Error creating call for meta-function ", std::quoted(name), ":\n\n", e.what()));
+  throw std::runtime_error(var_string("Error creating call for meta-function ",
+                                      std::quoted(name),
+                                      ":\n\n",
+                                      e.what()));
 }

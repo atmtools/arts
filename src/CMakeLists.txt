@@ -209,6 +209,7 @@ add_library (artsworkspace STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_rtepack.cc
+  xml_operators.cc
   ${ARTS_GUI_FILES}
   ${NETCDF_CC_FILES}
         m_fluxes.cc)

@@ -207,17 +207,18 @@ bool can_compute(const SpeciesIsotopeRecord& model) {
  * @param[in] vmr A VMRS object defined from the WSVs abs_species and rtp_vmr
  * @param[in] spec The species whose derivative is computed
  */
-void compute_vmr_deriv(PropmatVector& dpm,
-                       const PropmatVector& pm,
-                       const SpeciesIsotopeRecord& model,
-                       const Vector& f,
-                       const Numeric& p,
-                       const Numeric& t,
-                       VMRS vmr,
-                       const Numeric dvmr,
-                       const Species::Species spec,
-                       const Absorption::PredefinedModel::ModelVariant& predefined_model_data
-                       [[maybe_unused]]) {
+void compute_vmr_deriv(
+    PropmatVector& dpm,
+    const PropmatVector& pm,
+    const SpeciesIsotopeRecord& model,
+    const Vector& f,
+    const Numeric& p,
+    const Numeric& t,
+    VMRS vmr,
+    const Numeric dvmr,
+    const Species::Species spec,
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data
+    [[maybe_unused]]) {
   switch (spec) {
     case Species::Species::Oxygen:
       vmr.O2 += dvmr;
@@ -247,15 +248,16 @@ void compute_vmr_deriv(PropmatVector& dpm,
   dpm /= dvmr;
 }
 
-void compute(PropmatVector& propmat_clearsky,
-             PropmatMatrix& dpropmat_clearsky_dx,
-             const SpeciesIsotopeRecord& model,
-             const Vector& f_grid,
-             const Numeric& rtp_pressure,
-             const Numeric& rtp_temperature,
-             const VMRS& vmr,
-             const JacobianTargets& jacobian_targets,
-             const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
+void compute(
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    const SpeciesIsotopeRecord& model,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const VMRS& vmr,
+    const JacobianTargets& jacobian_targets,
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
   if (not compute_selection<true>(propmat_clearsky,
                                   model,
                                   f_grid,
@@ -358,5 +360,13 @@ void compute(PropmatVector& propmat_clearsky,
                              vmr,
                              predefined_model_data);
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
+  return os << "O2: " << vmrs.O2 << '\n'
+            << "N2: " << vmrs.N2 << '\n'
+            << "H2O: " << vmrs.H2O << '\n'
+            << "LWC: " << vmrs.LWC << '\n'
+            << "CO2: " << vmrs.CO2 << '\n';
 }
 }  // namespace Absorption::PredefinedModel

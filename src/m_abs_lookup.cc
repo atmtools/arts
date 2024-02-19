@@ -1,5 +1,5 @@
 /*!
-  \file   m_propagation_matrix_absorption_lookup.cc
+  \file   m_absorption_lookup_table_data.cc
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Wed Nov 20 18:04:20 2002
   
@@ -24,7 +24,7 @@
 #include "species_tags.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrix_absorption_lookupInit(GasAbsLookup& x) {
+void absorption_lookup_table_dataInit(GasAbsLookup& x) {
   x = GasAbsLookup();
 }
 
@@ -358,11 +358,11 @@ void absorption_speciesSet(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propagation_matrix_absorption_lookupAdapt(
-    GasAbsLookup& propagation_matrix_absorption_lookup,
+void absorption_lookup_table_dataAdapt(
+    GasAbsLookup& absorption_lookup_table_data,
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const AscendingGrid& frequency_grid) {
-  propagation_matrix_absorption_lookup.Adapt(absorption_species,
+  absorption_lookup_table_data.Adapt(absorption_species,
                                              frequency_grid);
 }
 
@@ -370,7 +370,7 @@ void propagation_matrix_absorption_lookupAdapt(
 void propagation_matrixAddFromLookup(
     PropmatVector& propagation_matrix,
     PropmatMatrix& propagation_matrix_jacobian,
-    const GasAbsLookup& propagation_matrix_absorption_lookup,
+    const GasAbsLookup& absorption_lookup_table_data,
     const AscendingGrid& frequency_grid,
     const AtmPoint& atm_point,
     const JacobianTargets& jacobian_targets,
@@ -382,7 +382,7 @@ void propagation_matrixAddFromLookup(
     const Index& abs_t_interp_order,
     const Index& abs_nls_interp_order,
     const Index& abs_f_interp_order) {
-  // Variables needed by propagation_matrix_absorption_lookup.Extract:
+  // Variables needed by absorption_lookup_table_data.Extract:
   Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
 
   const auto do_freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
@@ -417,7 +417,7 @@ void propagation_matrixAddFromLookup(
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically.
-  propagation_matrix_absorption_lookup.Extract(abs_scalar_gas,
+  absorption_lookup_table_data.Extract(abs_scalar_gas,
                                                select_species,
                                                abs_p_interp_order,
                                                abs_t_interp_order,
@@ -431,7 +431,7 @@ void propagation_matrixAddFromLookup(
   if (df != 0.0) {
     Vector dfreq = frequency_grid;
     dfreq += df;
-    propagation_matrix_absorption_lookup.Extract(dabs_scalar_gas_df,
+    absorption_lookup_table_data.Extract(dabs_scalar_gas_df,
                                                  select_species,
                                                  abs_p_interp_order,
                                                  abs_t_interp_order,
@@ -445,7 +445,7 @@ void propagation_matrixAddFromLookup(
   }
   if (do_temp_jac.first) {
     const Numeric dtemp = atm_point.temperature + dt;
-    propagation_matrix_absorption_lookup.Extract(dabs_scalar_gas_dt,
+    absorption_lookup_table_data.Extract(dabs_scalar_gas_dt,
                                                  select_species,
                                                  abs_p_interp_order,
                                                  abs_t_interp_order,
@@ -502,16 +502,16 @@ void propagation_matrixAddFromLookup(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void frequency_gridFromGasAbsLookup(
     AscendingGrid& frequency_grid,
-    const GasAbsLookup& propagation_matrix_absorption_lookup) {
+    const GasAbsLookup& absorption_lookup_table_data) {
   const Vector& lookup_frequency_grid =
-      propagation_matrix_absorption_lookup.GetFgrid();
+      absorption_lookup_table_data.GetFgrid();
   frequency_grid = lookup_frequency_grid;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void p_gridFromGasAbsLookup(
-    Vector& p_grid, const GasAbsLookup& propagation_matrix_absorption_lookup) {
-  const Vector& lookup_p_grid = propagation_matrix_absorption_lookup.GetPgrid();
+    Vector& p_grid, const GasAbsLookup& absorption_lookup_table_data) {
+  const Vector& lookup_p_grid = absorption_lookup_table_data.GetPgrid();
   p_grid.resize(lookup_p_grid.nelem());
   p_grid = lookup_p_grid;
 }

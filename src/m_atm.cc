@@ -1,7 +1,11 @@
+#include <workspace.h>
+
 #include <algorithm>
 #include <iomanip>
 #include <iterator>
 #include <memory>
+#include <tuple>
+#include <unordered_map>
 #include <variant>
 
 #include "atm.h"
@@ -13,23 +17,22 @@
 #include "interp.h"
 #include "interpolation.h"
 #include "isotopologues.h"
+#include "lbl_data.h"
 #include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
+#include "predef_data.h"
+#include "predefined_absorption_models.h"
 #include "quantum_numbers.h"
+#include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
-
-void atmospheric_fieldTopOfAtmosphere(AtmField &atmospheric_field,
-                                      const Numeric &top_of_atmosphere) {
-  atmospheric_field.top_of_atmosphere = top_of_atmosphere;
-}
 
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
                            const String &default_isotopologue) {
   atmospheric_field = AtmField{default_isotopologue};
-  atmospheric_fieldTopOfAtmosphere(atmospheric_field, top_of_atmosphere);
+  atmospheric_field.top_of_atmosphere = top_of_atmosphere;
 }
 
 void atmospheric_pointInit(AtmPoint &atmospheric_point,
@@ -37,310 +40,451 @@ void atmospheric_pointInit(AtmPoint &atmospheric_point,
   atmospheric_point = AtmPoint{default_isotopologue};
 }
 
-namespace detail {
-/** Tries to read a file as if it were some type T
- *
- * Assigns the value of the read to the atmospheric_field at key_val
- *
- * @tparam T The type
- * @param atmospheric_field As WSV
- * @param key_val A key value
- * @param filename A filename
- * @return true If everything went well
- * @return false If everything went wrong
- */
-template <typename T>
-bool try_read(AtmField &atmospheric_field,
-              const Atm::KeyVal &key_val,
-              const String &filename) {
+template <Size I = 0, typename... T, Size N = sizeof...(T)>
+std::variant<T...> read_variant(const std::variant<T...> &_,
+                                const String &filename)
+  requires(N != 0)
+{
   try {
-    T v;
-    xml_read_from_file(filename, v);
-    std::visit([&](auto &key) { atmospheric_field[key] = v; }, key_val);
-
-    // Return success state
-    return true;
+    typename std::tuple_element<I, std::tuple<T...>>::type x{};
+    xml_read_from_file(filename, x);
+    return x;
   } catch (...) {
-    //! CONTROL FLOW --- ARTS CANNOT READ VARIADICALLY
-
-    // We must clean the atmospheric_field so it can work again in the future
-    std::visit([&](auto &key) { atmospheric_field.erase(key); }, key_val);
-
-    // Return failure state
-    return false;
   }
+
+  if constexpr (I + 1 < N) {
+    return read_variant<I + 1, T...>(_, filename);
+  }
+
+  ARTS_USER_ERROR("Could not read valid data from file: ", filename)
 }
 
-/** Wraps try_read for multiple types
- *
- * The atmospheric_field is updated, the order of short-circuiting is as
- * given by the types, i.e., the execution is (T1 or T2 or T3 or ...)
- *
- * @tparam T... The types
- * @param atmospheric_field As WSV
- * @param key_val A key value
- * @param filename A filename
- * @return true If everything went well
- * @return false If everything went wrong
- */
-template <typename... T>
-bool try_reading(AtmField &atmospheric_field,
-                 const Atm::KeyVal &key_val,
-                 const String &filename) {
-  return (try_read<T>(atmospheric_field, key_val, filename) or ...);
-}
-
-void atmospheric_fieldAddCustomDataFileImpl(
+template <typename T>
+void append_data(
     AtmField &atmospheric_field,
-    const Atm::KeyVal &key_val,
-    const String &filename,
-    const Atm::Extrapolation &extrapolation) {
-  const bool ok =
-      try_reading<GriddedField3, Numeric>(atmospheric_field, key_val, filename);
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing,
+    const Index &ignore_missing,
+    const std::unordered_map<T, Index> &keys,
+    const auto &to_string = [](const auto &x) { return var_string(x); })
+  requires(
+      std::same_as<typename std::decay_t<decltype(to_string(T{}))>, String>)
+{
+  const String my_base = complete_basename(basename);
 
-  ARTS_USER_ERROR_IF(not ok,
-                     "The file ",
-                     std::quoted(filename),
-                     " cannot be understood as atmospheric field data.\n"
-                     "Please make sure that the file exists, that it is "
-                     "possible to read the file, and\n"
-                     "that its type is one that can be handled by "
-                     "ARTS atmospheric fields")
+  Atm::Data x;
+  x.alt_low = x.alt_upp = x.lat_low = x.lat_upp = x.lon_low = x.lon_upp =
+      Atm::toExtrapolationOrThrow(extrapolation);
 
-  atmospheric_field[key_val].alt_low = extrapolation;
-  atmospheric_field[key_val].lat_low = extrapolation;
-  atmospheric_field[key_val].lon_low = extrapolation;
-  atmospheric_field[key_val].alt_upp = extrapolation;
-  atmospheric_field[key_val].lat_upp = extrapolation;
-  atmospheric_field[key_val].lon_upp = extrapolation;
-}
-}  // namespace detail
+  for (const auto &[key, _] : keys) {
+    String filename = var_string(my_base, to_string(key), ".xml");
 
-void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
-                                        const String &atmospheric_key,
-                                        const String &filename,
-                                        const String &extrapolation_type) {
-  detail::atmospheric_fieldAddCustomDataFileImpl(
-      atmospheric_field,
-      Atm::toKeyOrThrow(atmospheric_key),
-      filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type));
-}
-
-void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
-                                        const QuantumIdentifier &nlte_key,
-                                        const String &filename,
-                                        const String &extrapolation_type) {
-  detail::atmospheric_fieldAddCustomDataFileImpl(
-      atmospheric_field,
-      Atm::KeyVal{nlte_key},
-      filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type));
+    if (static_cast<bool>(replace_existing) or
+        not atmospheric_field.contains(key)) {
+      if (find_xml_file_existence(filename)) {
+        x.data = read_variant(Atm::FieldData{1.0}, filename);
+        atmospheric_field[key] = x;
+      } else if (static_cast<bool>(missing_is_zero)) {
+        x.data = 0.0;
+        atmospheric_field[key] = x;
+      } else if (static_cast<bool>(ignore_missing)) {
+      } else {
+        ARTS_USER_ERROR_IF(
+            not atmospheric_field.contains(key),
+            "Filename: ",
+            std::quoted(filename),
+            " does not exist",
+            " and no options for workarounds are given.  Cannot populate atmospheric_field with key: ",
+            to_string(key))
+      }
+    }
+  }
 }
 
-void atmospheric_fieldAddCustomDataFile(AtmField &atmospheric_field,
-                                        const ArrayOfSpeciesTag &spec_key,
-                                        const String &filename,
-                                        const String &extrapolation_type) {
-  detail::atmospheric_fieldAddCustomDataFileImpl(
-      atmospheric_field,
-      Atm::KeyVal{spec_key.Species()},
-      filename,
-      Atm::toExtrapolationOrThrow(extrapolation_type));
-}
+ENUMCLASS(MissingFieldComponent, char, Throw, Zero, Ignore)
 
-void atmospheric_fieldAddField(AtmField &atmospheric_field,
-                               const String &filename,
-                               const Index &set_top_of_atmosphere) {
-  AtmField atmospheric_field_other;
-  xml_read_from_file(filename, atmospheric_field_other);
-  for (auto &key : atmospheric_field_other.keys()) {
-    atmospheric_field[key] = atmospheric_field_other[key];
+void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
+                                     const String &basename,
+                                     const String &extrapolation,
+                                     const String &deal_with_field_component,
+                                     const Index& replace_existing,
+                                     const Index& allow_missing_pressure,
+                                     const Index& allow_missing_temperature) {
+  std::unordered_map<Atm::Key, Index> keys;
+
+  for (auto &key : Atm::enumtyps::KeyTypes) {
+    ++keys[key];
   }
 
-  if (set_top_of_atmosphere)
-    atmospheric_field.top_of_atmosphere =
-        atmospheric_field_other.top_of_atmosphere;
-}
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              0,
+              replace_existing,
+              1,
+              keys,
+              [](const Atm::Key &x) { return var_string(x); });
 
-void atmospheric_fieldRead(AtmField &atmospheric_field,
-                           const ArrayOfArrayOfSpeciesTag &abs_species,
-                           const String &basename,
-                           const Numeric &top_of_atmosphere,
-                           const Index &read_tp,
-                           const Index &read_mag,
-                           const Index &read_wind,
-                           const Index &read_specs,
-                           const Index &read_nlte) {
   using enum Atm::Key;
 
-  // Fix filename
-  String tmp_basename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/')
-    tmp_basename += ".";
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.has(p) and not static_cast<bool>(allow_missing_pressure),
+      "Pressure is missing from the read atmospheric field at ", std::quoted(basename))
 
-  // Reset and initialize
-  atmospheric_fieldInit(atmospheric_field, top_of_atmosphere, "None");
+  ARTS_USER_ERROR_IF(
+      not atmospheric_field.has(t) and not static_cast<bool>(allow_missing_temperature),
+      "Temperature is missing from the read atmospheric field at ", std::quoted(basename))
 
-  if (read_tp) {
-    for (auto &key : {t, p}) {
-      const String file_name{var_string(tmp_basename, key, ".xml")};
-      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
-    }
-  }
-
-  if (read_mag) {
-    for (auto &key : {mag_u, mag_v, mag_w}) {
-      const String file_name{var_string(tmp_basename, key, ".xml")};
-      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
-    }
-  }
-
-  if (read_wind) {
-    for (auto &key : {wind_u, wind_v, wind_w}) {
-      const String file_name{var_string(tmp_basename, key, ".xml")};
-      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
-    }
-  }
-
-  if (read_specs) {
-    for (auto &spec : abs_species) {
-      const String file_name{
-          var_string(tmp_basename, toShortName(spec.Species()), ".xml")};
-      atmospheric_fieldAddField(atmospheric_field, file_name, 0);
-    }
-  }
-
-  if (read_nlte) {
-    const String file_name{var_string(tmp_basename, "nlte.xml")};
-    atmospheric_fieldAddField(atmospheric_field, file_name, 0);
-  }
-}
-
-void atmospheric_fieldSave(const AtmField &atmospheric_field,
-                           const String &basename,
-                           const String &filetype,
-                           const Index &no_clobber) {
-  const auto ftype = string2filetype(filetype);
-
-  // Fix filename
-  String tmp_basename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/')
-    tmp_basename += ".";
-
-  const auto keys = atmospheric_field.keys();
-
-  //
-  ArrayOfSpecies specs{};
-  ArrayOfIndex nspecs{};
-
-  //
-  AtmField nlte;
-  nlte.top_of_atmosphere = atmospheric_field.top_of_atmosphere;
-
-  for (auto &key : keys) {
-    if (std::holds_alternative<QuantumIdentifier>(key)) {
-      nlte[key] = atmospheric_field[key];
-    } else {
-      String keyname;
-      if (std::holds_alternative<Species::Species>(key)) {
-        auto *spec_key = std::get_if<Species::Species>(&key);
-        auto spec = *spec_key;
-
-        keyname = toString(spec);
-        if (auto ptr = std::find(specs.begin(), specs.end(), spec);
-            ptr == specs.end()) {
-          specs.emplace_back(spec);
-          nspecs.emplace_back(1);
-        } else {
-          const auto pos = std::distance(specs.begin(), ptr);
-          nspecs[pos]++;
-          keyname += var_string(".", nspecs[pos]);
-        }
-      } else if (std::holds_alternative<Atm::Key>(key)) {
-        keyname = toString(*std::get_if<Atm::Key>(&key));
-      } else {
-        ARTS_ASSERT(false, "Failed to account for key type")
+  switch (toMissingFieldComponentOrThrow(deal_with_field_component)) {
+    case MissingFieldComponent::Throw:
+      if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
+          atmospheric_field.has(wind_w)) {
+        ARTS_USER_ERROR_IF(not atmospheric_field.has(wind_u, wind_v, wind_w),
+                           "Need all wind components, has [u: ",
+                           atmospheric_field.has(wind_u),
+                           ", v: ",
+                           atmospheric_field.has(wind_v),
+                           ", w: ",
+                           atmospheric_field.has(wind_w),
+                           "]");
       }
 
-      AtmField out;
-      out.top_of_atmosphere = atmospheric_field.top_of_atmosphere;
-      out[key] = atmospheric_field[key];
-      const String filename{var_string(tmp_basename, keyname, ".xml")};
-      xml_write_to_file(filename, out, ftype, no_clobber);
+      if (atmospheric_field.has(mag_u) or atmospheric_field.has(mag_v) or
+          atmospheric_field.has(mag_w)) {
+        ARTS_USER_ERROR_IF(not atmospheric_field.has(mag_u, mag_v, mag_w),
+                           "Need all mag components, has [u: ",
+                           atmospheric_field.has(mag_u),
+                           ", v: ",
+                           atmospheric_field.has(mag_v),
+                           ", w: ",
+                           atmospheric_field.has(mag_w),
+                           "]");
+      }
+      break;
+    case MissingFieldComponent::Zero:
+      if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
+          atmospheric_field.has(wind_w)) {
+        if (not atmospheric_field.has(wind_u)) atmospheric_field[wind_u] = 0.0;
+        if (not atmospheric_field.has(wind_v)) atmospheric_field[wind_v] = 0.0;
+        if (not atmospheric_field.has(wind_w)) atmospheric_field[wind_w] = 0.0;
+      }
+
+      if (atmospheric_field.has(mag_u) or atmospheric_field.has(mag_v) or
+          atmospheric_field.has(mag_w)) {
+        if (not atmospheric_field.has(mag_u)) atmospheric_field[mag_u] = 0.0;
+        if (not atmospheric_field.has(mag_v)) atmospheric_field[mag_v] = 0.0;
+        if (not atmospheric_field.has(mag_w)) atmospheric_field[mag_w] = 0.0;
+      }
+      break;
+
+    case MissingFieldComponent::Ignore:
+      break;
+    case MissingFieldComponent::FINAL: {
+    }
+  }
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
+                 const AbsorptionBands &absorption_bands) {
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.Species()];
+
+    for (auto &line : value.lines) {
+      for (auto &ls : line.ls.single_models) {
+        keys[ls.species];
+      }
+    }
+  }
+}
+
+void atmospheric_fieldAppendLineSpeciesData(
+    AtmField &atmospheric_field,
+    const AbsorptionBands &absorption_bands,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_bands);
+
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+}
+
+void keysIsotopologue(std::unordered_map<SpeciesIsotopeRecord, Index> keys,
+                      const AbsorptionBands &absorption_bands) {
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.Isotopologue()];
+  }
+}
+
+void atmospheric_fieldAppendLineIsotopologueData(
+    AtmField &atmospheric_field,
+    const AbsorptionBands &absorption_bands,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesIsotopeRecord, Index> keys;
+  keysIsotopologue(keys, absorption_bands);
+
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.Isotopologue()];
+  }
+
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const SpeciesIsotopeRecord &x) { return x.FullName(); });
+}
+
+void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
+              const AbsorptionBands &absorption_bands) {
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.UpperLevel()];
+    ++keys[key.LowerLevel()];
+  }
+}
+
+void atmospheric_fieldAppendLineLevelData(
+    AtmField &atmospheric_field,
+    const AbsorptionBands &absorption_bands,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<QuantumIdentifier, Index> keys;
+  keysNLTE(keys, absorption_bands);
+
+  for (auto &[key, value] : absorption_bands) {
+    ++keys[key.UpperLevel()];
+    ++keys[key.LowerLevel()];
+  }
+
+  append_data(atmospheric_field,
+              basename,
+              extrapolation,
+              missing_is_zero,
+              replace_existing,
+              0,
+              keys,
+              [](const QuantumIdentifier &x) { return var_string(x); });
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfArrayOfSpeciesTag &absorption_species) {
+  for (auto &species_tags : absorption_species) {
+    ++keys[species_tags.Species()];
+  }
+}
+
+void atmospheric_fieldAppendTagsSpeciesData(
+    AtmField &atmospheric_field,
+    const ArrayOfArrayOfSpeciesTag &absorption_species,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_species);
+
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+}
+
+void atmospheric_fieldAppendLookupTableSpeciesData(
+    AtmField &atmospheric_field,
+    const GasAbsLookup &absorption_lookup_table_data,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  atmospheric_fieldAppendTagsSpeciesData(atmospheric_field,
+                                         absorption_lookup_table_data.Species(),
+                                         basename,
+                                         extrapolation,
+                                         missing_is_zero,
+                                         replace_existing);
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfCIARecord &absorption_cia_data) {
+  for (auto &cia_record : absorption_cia_data) {
+    const auto [spec1, spec2] = cia_record.TwoSpecies();
+    ++keys[spec1];
+    ++keys[spec2];
+  }
+}
+
+void atmospheric_fieldAppendCIASpeciesData(
+    AtmField &atmospheric_field,
+    const ArrayOfCIARecord &absorption_cia_data,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_cia_data);
+
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const ArrayOfXsecRecord &absorption_xsec_fit_data) {
+  for (auto &xsec_record : absorption_xsec_fit_data) {
+    ++keys[xsec_record.Species()];
+  }
+}
+
+void atmospheric_fieldAppendXsecSpeciesData(
+    AtmField &atmospheric_field,
+    const ArrayOfXsecRecord &absorption_xsec_fit_data,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_xsec_fit_data);
+
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+}
+
+void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
+                 const PredefinedModelData &absorption_predefined_model_data) {
+  for (auto &predef_record : absorption_predefined_model_data) {
+    ++keys[predef_record.first.spec];
+  }
+
+  for (auto &spec : Absorption::PredefinedModel::VMRS::species) {
+    ++keys[spec];
+  }
+}
+
+void atmospheric_fieldAppendPredefSpeciesData(
+    AtmField &atmospheric_field,
+    const PredefinedModelData &absorption_predefined_model_data,
+    const String &basename,
+    const String &extrapolation,
+    const Index &missing_is_zero,
+    const Index &replace_existing) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+  keysSpecies(keys, absorption_predefined_model_data);
+
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+}
+
+void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
+                                           AtmField &atmospheric_field,
+                                           const String &basename,
+                                           const String &extrapolation,
+                                           const Index &missing_is_zero,
+                                           const Index &replace_existing,
+                                           const Index &load_isot,
+                                           const Index &load_nlte) {
+  std::unordered_map<SpeciesEnum, Index> keys;
+
+  if (const String lines_str = "absorption_bands";
+      ws.wsv_and_contains(lines_str)) {
+    using lines_t = AbsorptionBands;
+    const auto &data = ws.get<lines_t>(lines_str);
+
+    keysSpecies(keys, data);
+    if (static_cast<bool>(load_isot)) {
+      atmospheric_fieldAppendLineIsotopologueData(atmospheric_field,
+                                                  data,
+                                                  basename,
+                                                  extrapolation,
+                                                  missing_is_zero,
+                                                  replace_existing);
+    }
+
+    if (static_cast<bool>(load_nlte)) {
+      atmospheric_fieldAppendLineLevelData(atmospheric_field,
+                                           data,
+                                           basename,
+                                           extrapolation,
+                                           missing_is_zero,
+                                           replace_existing);
     }
   }
 
-  if (nlte.nnlte()) {
-    const String filename{var_string(tmp_basename, "nlte.xml")};
-    xml_write_to_file(filename, nlte, ftype, no_clobber);
+  if (const String cia_str = "absorption_cia_data";
+      ws.wsv_and_contains(cia_str)) {
+    using cia_t = ArrayOfCIARecord;
+    keysSpecies(keys, ws.get<cia_t>(cia_str));
   }
-}
 
-void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
-                                     const String &key,
-                                     const GriddedField3 &data,
-                                     const String &extrapolation_type) {
-  auto &fld = atmospheric_field[Atm::toKeyOrThrow(key)] = data;
+  if (const String xsec_str = "absorption_xsec_fit_data";
+      ws.wsv_and_contains(xsec_str)) {
+    using xsec_t = ArrayOfXsecRecord;
+    keysSpecies(keys, ws.get<xsec_t>(xsec_str));
+  }
 
-  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
+  if (const String predef_str = "absorption_predefined_model_data";
+      ws.wsv_and_contains(predef_str)) {
+    using predef_t = PredefinedModelData;
+    keysSpecies(keys, ws.get<predef_t>(predef_str));
+  }
 
-  fld.alt_low = extrapolation;
-  fld.lat_low = extrapolation;
-  fld.lon_low = extrapolation;
-  fld.alt_upp = extrapolation;
-  fld.lat_upp = extrapolation;
-  fld.lon_upp = extrapolation;
-}
+  if (const String species_str = "absorption_species";
+      ws.wsv_and_contains(species_str)) {
+    using aospec_t = ArrayOfArrayOfSpeciesTag;
+    keysSpecies(keys, ws.get<aospec_t>(species_str));
+  }
 
-void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
-                                     const ArrayOfSpeciesTag &key,
-                                     const GriddedField3 &data,
-                                     const String &extrapolation_type) {
-  auto &fld = atmospheric_field[key.Species()] = data;
-
-  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
-
-  fld.alt_low = extrapolation;
-  fld.lat_low = extrapolation;
-  fld.lon_low = extrapolation;
-  fld.alt_upp = extrapolation;
-  fld.lat_upp = extrapolation;
-  fld.lon_upp = extrapolation;
-}
-
-void atmospheric_fieldAddGriddedData(AtmField &atmospheric_field,
-                                     const QuantumIdentifier &key,
-                                     const GriddedField3 &data,
-                                     const String &extrapolation_type) {
-  auto &fld = atmospheric_field[key] = data;
-
-  const auto extrapolation = Atm::toExtrapolationOrThrow(extrapolation_type);
-
-  fld.alt_low = extrapolation;
-  fld.lat_low = extrapolation;
-  fld.lon_low = extrapolation;
-  fld.alt_upp = extrapolation;
-  fld.lat_upp = extrapolation;
-  fld.lon_upp = extrapolation;
-}
-
-void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
-                                     const String &key,
-                                     const Numeric &data) {
-  atmospheric_field[Atm::toKeyOrThrow(key)] = data;
-}
-
-void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
-                                     const ArrayOfSpeciesTag &key,
-                                     const Numeric &data) {
-  atmospheric_field[key.Species()] = data;
-}
-
-void atmospheric_fieldAddNumericData(AtmField &atmospheric_field,
-                                     const QuantumIdentifier &key,
-                                     const Numeric &data) {
-  atmospheric_field[key] = data;
+  append_data(
+      atmospheric_field,
+      basename,
+      extrapolation,
+      missing_is_zero,
+      replace_existing,
+      0,
+      keys,
+      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
 }
 
 void atmospheric_fieldIGRF(AtmField &atmospheric_field,

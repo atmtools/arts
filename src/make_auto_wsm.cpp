@@ -9,121 +9,112 @@
 #include <string>
 
 #include "auto_wsv.h"
+#include "debug.h"
 #include "workspace_meta_methods.h"
 #include "workspace_methods.h"
 #include "workspace_variables.h"
 
-bool scan_wsmr_for_errors(std::ostream& os,
+void scan_wsmr_for_errors(ArrayOfString& errors,
                           const std::string& name,
                           const WorkspaceMethodInternalRecord& wsmr) {
   const auto wsm = internal_workspace_methods();
   const auto& wsv = workspace_variables();
 
-  bool any_errors = false;
   if (wsmr.desc.size() == 0) {
-    any_errors = true;
-    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No description for \")"
-       << name << R"(\"\n");
-
-)";
-    return true;
+    errors.push_back(var_string("No description for ", std::quoted(name)));
   }
 
   if (wsmr.desc.back() not_eq '\n') {
-    any_errors = true;
-    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No final newline for description of \")"
-       << name << R"(\"\n");
-
-)";
+    errors.push_back(var_string(
+        "Description for ", std::quoted(name), " does not end with a newline"));
   }
 
   if (wsmr.author.size() == 0) {
-    any_errors = true;
-    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    No authors for \")"
-       << name << R"(\"\n");
-
-)";
+    errors.push_back(var_string("No authors for ", std::quoted(name)));
   }
 
   if (wsmr.gout.size() not_eq wsmr.gout_type.size() or
       wsmr.gout.size() not_eq wsmr.gout_desc.size()) {
-    any_errors = true;
-    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gout, gout_type, and gout_desc size mismatch for \")"
-       << name << R"(\"");
-
-)";
+    errors.push_back(var_string("Mismatch sizes of gout (",
+                                wsmr.gout.size(),
+                                "), gout_type (",
+                                wsmr.gout_type.size(),
+                                "), gout_desc (",
+                                wsmr.gout_desc.size(),
+                                ") for ",
+                                std::quoted(name)));
   }
 
   for (auto& type : wsmr.gout_type) {
     if (not valid_wsg(type)) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout_type for \")"
-         << name << R"(\": \")" << type << R"(\"\n");
-  
-)";
+      errors.push_back(var_string("Invalid gout_type for ",
+                                  std::quoted(name),
+                                  ": ",
+                                  std::quoted(type)));
     }
   }
 
   for (auto& gvar : wsmr.gout) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gout for \")"
-         << name << R"(\": \")" << gvar << R"(\", the gout is already a WSV\n");
-  
-)";
+      errors.push_back(var_string("Invalid gout for ",
+                                  std::quoted(name),
+                                  ": ",
+                                  std::quoted(gvar),
+                                  " - it is already a WSV"));
     }
   }
 
   if (wsmr.gin.size() not_eq wsmr.gin_type.size() or
       wsmr.gin.size() not_eq wsmr.gin_value.size() or
       wsmr.gin.size() not_eq wsmr.gin_desc.size()) {
-    any_errors = true;
-    os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    gin, gin_type, gin_value, and gin_desc size mismatch for \")"
-       << name << R"(\"\n");
-
-)";
+    errors.push_back(var_string("Mismatch sizes of gin (",
+                                wsmr.gin.size(),
+                                ") gin_type (",
+                                wsmr.gin_type.size(),
+                                "), gin_value (",
+                                wsmr.gin_value.size(),
+                                "), gin_desc (",
+                                wsmr.gin_desc.size(),
+                                ") for ",
+                                std::quoted(name)));
   }
 
   for (auto& type : wsmr.gin_type) {
     if (not valid_wsg(type)) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin_type for \")"
-         << name << R"(\": \")" << type << R"(\"\n");
-  
-)";
+      errors.push_back(var_string(
+          "Invalid gin_type for ", std::quoted(name), ": ", std::quoted(type)));
     }
   }
 
   for (auto& gvar : wsmr.gin) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid gin for \")"
-         << name << R"(\": \")" << gvar << R"(\", the gin is already a WSV\n");
-  
-)";
+      errors.push_back(var_string("Invalid gin for ",
+                                  std::quoted(name),
+                                  ": ",
+                                  std::quoted(gvar),
+                                  " - it is already a WSV"));
     }
   }
 
   for (auto& var : wsmr.out) {
     if (wsv.find(var) == wsv.end()) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid out for \")"
-         << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
-
-)";
+      errors.push_back(var_string("Invalid out for ",
+                                  std::quoted(name),
+                                  ": ",
+                                  std::quoted(var),
+                                  " - it is not a WSV"));
     }
   }
 
   for (auto& var : wsmr.in) {
     if (wsv.find(var) == wsv.end()) {
-      any_errors = true;
-      os << R"(static_assert(false, "\n\n    Methods cannot be compiled\n    Invalid in for \")"
-         << name << R"(\": \")" << var << R"(\", the variable is not a WSV\n");
-
-)";
+      errors.push_back(var_string("Invalid in for ",
+                                  std::quoted(name),
+                                  ": ",
+                                  std::quoted(var),
+                                  " - it is not a WSV"));
     }
   }
-  return any_errors;
 }
 
 std::vector<std::vector<std::string>> overloads(
@@ -177,25 +168,25 @@ std::optional<WorkspaceMethodInternalRecord> make_overload(
   return owsmr;
 }
 
-bool scan_for_errors(std::ostream& os) {
+ArrayOfString scan_for_errors() {
   const auto wsm = internal_workspace_methods();
 
-  bool any_errors = false;
+  ArrayOfString errors{};
 
   for (auto& [name, wsmr] : wsm) {
     if (wsmr.has_overloads()) {
       std::size_t i = 0;
       auto owsmr = make_overload(wsmr, i);
       while (owsmr) {
-        any_errors |= scan_wsmr_for_errors(os, name, *owsmr);
+        scan_wsmr_for_errors(errors, name, *owsmr);
         owsmr = make_overload(wsmr, ++i);
       }
     } else {
-      any_errors |= scan_wsmr_for_errors(os, name, wsmr);
+      scan_wsmr_for_errors(errors, name, wsmr);
     }
   }
 
-  return any_errors;
+  return errors;
 }
 
 void signature(std::ostream& os,
@@ -500,12 +491,13 @@ void meta_implementation(std::ostream& os) try {
   os << R"--(//! auto-generated by make_auto_wsm.cpp
 
 #include <workspace.h>
+#include <workspace_meta_methods.h>
+
+static const auto& _wsmmeta = internal_meta_methods();
 
 )--";
 
-  const auto meta = internal_meta_methods();
-
-  for (auto& m : meta) {
+  for (auto& m : internal_meta_methods()) {
     os << m.call(wsm) << '\n' << '\n';
   }
 } catch (std::exception& e) {
@@ -624,7 +616,7 @@ int main(int argc, char** argv) try {
   std::ofstream impl("auto_wsm.cpp");
   std::ofstream of("auto_wsmmeta.cpp");
 
-  if (scan_for_errors(head)) return 1;
+  ARTS_USER_ERROR_IF(const auto err = scan_for_errors(); not err.empty(), err)
 
   header(head);
   implementation(impl, num_methods);
