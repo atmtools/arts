@@ -30,5 +30,5 @@ struct WorkspaceMethodInternalRecord {
   [[nodiscard]] std::string call(const std::string& name) const;
 };
 
-std::unordered_map<std::string, WorkspaceMethodInternalRecord>
+const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&
 internal_workspace_methods();

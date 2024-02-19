@@ -24,10 +24,7 @@ ws.absorption_speciesSet(
              f"O3-*-{fmin}-{fmax}"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-# FIXME
-ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
-ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
+ws.AbsorptionReadSpeciesSplitCatalogs()
 
 # Use an automatic agenda
 ws.propagation_matrix_agendaAuto()

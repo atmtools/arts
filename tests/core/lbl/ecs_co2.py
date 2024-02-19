@@ -105,13 +105,7 @@ i = 4
 
 ws = pyarts.Workspace()
 ws.absorption_speciesSet(species=["CO2-626"])
-ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
-    ws.abs_lines_per_species, basename="lines/"
-)
-ws.absorption_bandsFromAbsorbtionLines(
-    abs_lines_per_species=ws.abs_lines_per_species
-)
+ws.AbsorptionReadSpeciesSplitCatalogs(dir="./")
 
 p = 1e5
 ws.jacobian_targets = pyarts.arts.JacobianTargets()

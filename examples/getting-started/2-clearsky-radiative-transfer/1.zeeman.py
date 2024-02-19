@@ -9,14 +9,9 @@ ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + 118750348044.712
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-Z-66-118e9-119e9"])
-ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
-    ws.abs_lines_per_species, basename="lines/"
-)
-ws.absorption_bandsFromAbsorbtionLines(
-    abs_lines_per_species=ws.abs_lines_per_species
-)
+ws.absorption_speciesSet(species=["O2-66-118e9-119e9"])
+ws.AbsorptionReadSpeciesSplitCatalogs(dir="./")
+ws.absorption_bandsSetZeeman(isot="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations
@@ -27,7 +22,7 @@ ws.propagation_matrix_agendaAuto()
 ws.surface_fieldSetPlanetEllipsoid(option="Earth")
 ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldReadCatalog(
-    toa=100e3, basename="planets/Earth/afgl/tropical/"
+    toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
 ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 

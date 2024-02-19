@@ -79,18 +79,9 @@ settings = [
 ws = pyarts.Workspace()
 
 ws.absorption_speciesSet(species=["O2-66"])
-
-ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
-    ws.abs_lines_per_species, basename="lines/"
-)
-
+ws.AbsorptionReadSpeciesSplitCatalogs(dir="./")
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
 il = 95
-
-ws.absorption_bandsFromAbsorbtionLines(
-    abs_lines_per_species=ws.abs_lines_per_species
-)
 ws.absorption_bandsSelectFrequency(fmax=120e9)
 ws.absorption_bandsKeepID(id=bandkey)
 

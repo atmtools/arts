@@ -145,6 +145,7 @@ add_library (artsworkspace STATIC
   m_background.cc
   m_basic_types.cc
   m_batch.cc
+  m_cat.cc
   m_checked.cc
   m_cia.cc
   m_cloudbox.cc

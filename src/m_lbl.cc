@@ -7,6 +7,7 @@
 #include <exception>
 #include <filesystem>
 #include <iterator>
+#include <limits>
 #include <ranges>
 #include <span>
 #include <unordered_map>
@@ -409,6 +410,78 @@ void absorption_bandsKeepID(AbsorptionBands& absorption_bands,
   absorption_bands = {};
 }
 
+struct freqselect {
+  bool do_lower{true};
+  bool do_upper{true};
+  Numeric lower_freq{std::numeric_limits<Numeric>::lowest()};
+  Numeric upper_freq{std::numeric_limits<Numeric>::max()};
+};
+
+freqselect select_frequency(const SpeciesTag& s, freqselect f) {
+  if (f.do_lower and s.lower_freq >= 0) {
+    f.lower_freq = std::max(f.lower_freq, s.lower_freq);
+  } else {
+    f.do_lower = false;
+    f.lower_freq = std::numeric_limits<Numeric>::lowest();
+  }
+
+  if (f.do_upper and s.upper_freq >= 0) {
+    f.upper_freq = std::min(f.upper_freq, s.upper_freq);
+  } else {
+    f.do_upper = false;
+    f.upper_freq = std::numeric_limits<Numeric>::max();
+  }
+
+  return f;
+}
+
+void absorption_bandsReadSpeciesSplitCatalog(
+    AbsorptionBands& absorption_bands,
+    const ArrayOfArrayOfSpeciesTag& absorbtion_species,
+    const String& basename,
+    const Index& cut_out_of_bounds) {
+  absorption_bands.resize(0);
+
+  const String my_base = complete_basename(basename);
+
+  std::unordered_map<SpeciesIsotopeRecord, freqselect> isotopologues;
+  for (auto& specs : absorbtion_species) {
+    for (auto& spec : specs) {
+      if (is_predefined_model(spec.Isotopologue())) continue;
+
+      if (spec.is_joker()) {
+        for (auto&& isot : Species::isotopologues(spec.Spec())) {
+          if (is_predefined_model(isot)) continue;
+          if (isot.joker()) continue;
+          isotopologues[isot] = select_frequency(spec, isotopologues[isot]);
+        }
+      } else {
+        isotopologues[spec.Isotopologue()] =
+            select_frequency(spec, isotopologues[spec.Isotopologue()]);
+      }
+    }
+  }
+
+  for (auto& [isot, freqrule] : isotopologues) {
+    String filename = my_base + isot.FullName() + ".xml";
+    if (find_xml_file_existence(filename)) {
+      AbsorptionBands other;
+      xml_read_from_file(filename, other);
+
+      if (cut_out_of_bounds) {
+        absorption_bandsSelectFrequency(
+            other, freqrule.lower_freq, freqrule.upper_freq);
+      }
+
+      absorption_bands.insert(absorption_bands.end(),
+                              std::make_move_iterator(other.begin()),
+                              std::make_move_iterator(other.end()));
+    } else {
+      ARTS_USER_ERROR("File " + filename + " not found")
+    }
+  }
+}
+
 void absorption_bandsReadSplit(AbsorptionBands& absorption_bands,
                                const String& dir) {
   absorption_bands.resize(0);
@@ -468,6 +541,21 @@ void absorption_bandsSaveSplit(const AbsorptionBands& absorption_bands,
 
   for (const auto& [isot, bands] : isotopologues_data) {
     xml_write_to_file(p / var_string(isot, ".xml"), bands, FILE_TYPE_ASCII, 0);
+  }
+}
+
+void absorption_bandsSetZeeman(AbsorptionBands& absorption_bands,
+                               const SpeciesTag& isot,
+                               const Numeric& fmin,
+                               const Numeric& fmax) {
+  for (auto& [key, band] : absorption_bands) {
+    if (key.Isotopologue() != isot.Isotopologue()) continue;
+
+    for (auto& line : band.lines) {
+      if (line.f0 >= fmin and line.f0 <= fmax) {
+        line.z.on = true;
+      }
+    }
   }
 }
 

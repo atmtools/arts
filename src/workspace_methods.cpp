@@ -257,9 +257,8 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const
       "Cannot create call of method ", std::quoted(name), ":\n\n", e.what()));
 }
 
-
 std::unordered_map<std::string, WorkspaceMethodInternalRecord>
-internal_workspace_methods() try {
+internal_workspace_methods_create() try {
   std::unordered_map<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
   for (auto& [agname, ag] : internal_workspace_agendas()) {
@@ -369,7 +368,7 @@ extension. Omitting filename works as for *ReadXML*.
            R"--(Equalize the widths of all numbers by padding with zeros as necessary. 0 means no padding (default).)--"},
   };
 
-  wsm_data["absorption_xsec_fit_dataRead"] = {
+  wsm_data["absorption_xsec_fit_dataReadSpeciesSplitCatalog"] = {
       .desc = R"--(Reads HITRAN Crosssection coefficients
 
 Reads coefficient files for HITRAN Xsec species defined
@@ -1638,7 +1637,7 @@ Available models:
 This broadens the cross section data from *absorption_xsec_fit_data* and
 interpolates it onto the current frequency_grid.
 
-Model data needs to be read in with *absorption_xsec_fit_dataRead* before calling
+Model data needs to be read in with *absorption_xsec_fit_dataReadSpeciesSplitCatalog* before calling
 this method.
 )--",
       .author = {"Oliver Lemke"},
@@ -2443,6 +2442,26 @@ Valid ``criteria`` are:
                    "Temperature to use for integrated intensity"},
   };
 
+  wsm_data["absorption_bandsReadSpeciesSplitCatalog"] = {
+      .desc = R"--(Saves all bands fin *absorption_bands* to a directory
+
+This will create the directory if it does not exist.  It will also create
+subdirectories that are the short-form of the isotopologue names.  The bands
+will be stored as 0.xml, 1.xml, 2.xml, and so on
+
+The ``dir`` path has to be absolute or relative to the working path, the environment
+variables are not considered
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_species"},
+      .gin = {"basename", "cut_out_of_bounds"},
+      .gin_type = {"String", "Index"},
+      .gin_value = {std::nullopt, Index{1}},
+      .gin_desc = {"Absolute or relative path to the directory",
+                   "Whether or not to cut out of bounds bands"},
+  };
+
   wsm_data["absorption_bandsReadSplit"] = {
       .desc = R"--(Saves all bands fin *absorption_bands* to a directory
 
@@ -2747,13 +2766,12 @@ if the method should throw if the pressure or temperature is missing.
                     Index{1},
                     Index{0},
                     Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "How to deal with the field component.",
-           "Whether or not to replace existing data",
-           "Whether or not to allow missing pressure data",
-           "Whether or not to allow missing temperature data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "How to deal with the field component.",
+                   "Whether or not to replace existing data",
+                   "Whether or not to allow missing pressure data",
+                   "Whether or not to allow missing temperature data"},
   };
 
   wsm_data["atmospheric_fieldAppendLineSpeciesData"] = {
@@ -2781,11 +2799,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendLineIsotopologueData"] = {
@@ -2813,11 +2830,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendLineLevelData"] = {
@@ -2846,11 +2862,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendTagsSpeciesData"] = {
@@ -2878,11 +2893,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendLookupTableSpeciesData"] = {
@@ -2910,11 +2924,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendCIASpeciesData"] = {
@@ -2942,11 +2955,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendXsecSpeciesData"] = {
@@ -2974,11 +2986,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendPredefSpeciesData"] = {
@@ -3006,11 +3017,10 @@ exists in the atmospheric field.
               "replace_existing"},
       .gin_type = {"String", "String", "Index", "Index"},
       .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data"},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data"},
   };
 
   wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
@@ -3038,15 +3048,56 @@ Wraps:
               "load_isot",
               "load_nlte"},
       .gin_type = {"String", "String", "Index", "Index", "Index", "Index"},
-      .gin_value = {std::nullopt, String{"Linear"}, Index{0}, Index{0}, Index{0}, Index{0}},
-      .gin_desc =
-          {"The base name of the files",
-           "The extrapolation to use.",
-           "Whether or not to zero-out missing data",
-           "Whether or not to replace existing data",
-           "Whether or not to load isotopologue data",
-           "Whether or not to load NLTE data"},
+      .gin_value = {std::nullopt,
+                    String{"Linear"},
+                    Index{0},
+                    Index{0},
+                    Index{0},
+                    Index{0}},
+      .gin_desc = {"The base name of the files",
+                   "The extrapolation to use.",
+                   "Whether or not to zero-out missing data",
+                   "Whether or not to replace existing data",
+                   "Whether or not to load isotopologue data",
+                   "Whether or not to load NLTE data"},
       .pass_workspace = true,
+  };
+
+  wsm_data["AbsorptionReadSpeciesSplitCatalogs"] = {
+      .desc =
+          R"--(Reads split catalog data from a folder structure similar to ``arts-cat-data``
+
+Wraps:
+
+- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" appended to ``dir`` and ``cut_out_of_bounds`` = 1
+- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" appended to ``dir`` and ``robust`` = 0
+- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" appended to ``dir``
+- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" appended to ``dir`` and ``name_missing`` = 1
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_predefined_model_data",
+              "absorption_xsec_fit_data",
+              "absorption_cia_data",
+              "absorption_bands"},
+      .in = {"absorption_species"},
+      .gin = {"dir"},
+      .gin_type = {"String"},
+      .gin_value = {String{}},
+      .gin_desc = {"Absolute or relative path to the directory"},
+  };
+
+  wsm_data["absorption_bandsSetZeeman"] = {
+      .desc = R"--(Set the Zeeman splitting for lines within the frequency range
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"absorption_bands"},
+      .in = {"absorption_bands"},
+      .gin = {"isot", "fmin", "fmax"},
+      .gin_type = {"SpeciesTag", "Numeric", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc = {"Isotopologue of the species",
+                   "Minimum line frequency to set Zeeman splitting for",
+                   "Maximum line frequency to set Zeeman splitting for"},
   };
 
   /*
@@ -3060,4 +3111,10 @@ Wraps:
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("Cannot create workspace methods:\n\n", e.what()));
+}
+
+const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&
+internal_workspace_methods() {
+  static const auto wsm_data = internal_workspace_methods_create();
+  return wsm_data;
 }
