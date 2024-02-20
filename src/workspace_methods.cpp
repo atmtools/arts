@@ -3063,16 +3063,16 @@ Wraps:
       .pass_workspace = true,
   };
 
-  wsm_data["AbsorptionReadSpeciesSplitCatalogs"] = {
+  wsm_data["ReadCatalogData"] = {
       .desc =
           R"--(Reads split catalog data from a folder structure similar to ``arts-cat-data``
 
 Wraps:
 
-- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" appended to ``dir`` and ``cut_out_of_bounds`` = 1
-- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" appended to ``dir`` and ``robust`` = 0
-- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" appended to ``dir``
-- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" appended to ``dir`` and ``name_missing`` = 1
+- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" adds to ``basename`` and ``cut_out_of_bounds`` = 1
+- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" adds to ``basename`` and ``robust`` = 0
+- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" adds to ``basename``
+- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" adds to ``basename`` and ``name_missing`` = 1
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_predefined_model_data",
@@ -3080,10 +3080,10 @@ Wraps:
               "absorption_cia_data",
               "absorption_bands"},
       .in = {"absorption_species"},
-      .gin = {"dir"},
+      .gin = {"basename"},
       .gin_type = {"String"},
       .gin_value = {String{}},
-      .gin_desc = {"Absolute or relative path to the directory"},
+      .gin_desc = {"Absolute or relative path to the data"},
   };
 
   wsm_data["absorption_bandsSetZeeman"] = {

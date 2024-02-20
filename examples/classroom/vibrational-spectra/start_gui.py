@@ -20,7 +20,7 @@ ws.absorption_speciesSet(
              "CH4"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-ws.AbsorptionReadSpeciesSplitCatalogs()
+ws.ReadCatalogData()
 
 # Speed-up technique of using a cutoff frequency
 # This will apply a cutoff of each absorption line at a frequency of 750 GHz

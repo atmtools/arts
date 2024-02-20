@@ -59,9 +59,7 @@ void absorption_bandsFromAbsorbtionLines(
       std::plus<>{},
       [](const ArrayOfAbsorptionLines& lines) { return lines.size(); }));
 
-  for (Size kspec = 0; kspec < abs_lines_per_species.size(); kspec++) {
-    auto& abs_lines = abs_lines_per_species[kspec];
-    auto& spec_tags = absorption_species[kspec];
+  for (auto& abs_lines: abs_lines_per_species) {
     for (auto& old_band : abs_lines) {
       auto& [new_key, new_band] = absorption_bands.emplace_back();
       new_key = old_band.quantumidentity;
@@ -81,7 +79,6 @@ void absorption_bandsFromAbsorbtionLines(
         new_line.gl = old_line.glow;
         new_line.z.gu() = old_line.zeeman.gu();
         new_line.z.gl() = old_line.zeeman.gl();
-        if (spec_tags.Zeeman()) new_line.z.on = true;
         new_line.qn = old_line.localquanta;
 
         new_line.ls.one_by_one = false;

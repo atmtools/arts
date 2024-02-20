@@ -250,8 +250,7 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
     } catch (const runtime_error_not_found&) {
       // Is this one of the trivial species?
       const auto spec_type = current_species[i].Type();
-      if (spec_type == Species::TagType::Zeeman ||
-          spec_type == Species::TagType::FreeElectrons ||
+      if (spec_type == Species::TagType::FreeElectrons ||
           spec_type == Species::TagType::Particles) {
         // Set to -1 to flag that this needs special handling later on.
         i_current_species[i] = -1;
@@ -980,8 +979,7 @@ void GasAbsLookup::Extract(Matrix& sga,
 
       // Ignore species such as Zeeman and free_electrons which are not
       // stored in the lookup table. For those the result is set to 0.
-      if (species[si].Zeeman() or species[si].FreeElectrons() or
-          species[si].Particles()) {
+      if (species[si].FreeElectrons() or species[si].Particles()) {
         if (do_VMR) {
           std::ostringstream os;
           os << "Problem with gas absorption lookup table.\n"

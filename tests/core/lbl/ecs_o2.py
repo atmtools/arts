@@ -4,7 +4,7 @@ import numpy as np
 ws = pyarts.Workspace()
 
 ws.absorption_speciesSet(species=["O2-66"])
-ws.AbsorptionReadSpeciesSplitCatalogs(dir="./")
+ws.ReadCatalogData()
 
 bandkey = "O2-66 ElecStateLabel X X Lambda 0 0 S 1 1 v 0 0"
 ws.absorption_bandsSelectFrequency(fmax=120e9)

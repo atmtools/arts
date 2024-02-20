@@ -24,7 +24,7 @@ ws.absorption_speciesSet(
              f"O3-*-{fmin}-{fmax}"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-ws.AbsorptionReadSpeciesSplitCatalogs()
+ws.ReadCatalogData()
 
 # Use an automatic agenda
 ws.propagation_matrix_agendaAuto()

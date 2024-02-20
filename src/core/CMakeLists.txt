@@ -70,7 +70,6 @@ add_library(artscore STATIC
   telsem.cc
   tessem.cc
   tmatrix.cc
-  zeeman.cc
 )
 
 target_link_libraries(artscore PUBLIC

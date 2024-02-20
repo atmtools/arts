@@ -1,6 +1,6 @@
 #include <workspace.h>
 
-void AbsorptionReadSpeciesSplitCatalogs(
+void ReadCatalogData(
     PredefinedModelData& absorption_predefined_model_data,
     ArrayOfXsecRecord& absorption_xsec_fit_data,
     ArrayOfCIARecord& absorption_cia_data,

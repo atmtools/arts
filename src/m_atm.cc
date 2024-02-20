@@ -109,9 +109,9 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                                      const String &basename,
                                      const String &extrapolation,
                                      const String &deal_with_field_component,
-                                     const Index& replace_existing,
-                                     const Index& allow_missing_pressure,
-                                     const Index& allow_missing_temperature) {
+                                     const Index &replace_existing,
+                                     const Index &allow_missing_pressure,
+                                     const Index &allow_missing_temperature) {
   std::unordered_map<Atm::Key, Index> keys;
 
   for (auto &key : Atm::enumtyps::KeyTypes) {
@@ -129,13 +129,16 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
 
   using enum Atm::Key;
 
-  ARTS_USER_ERROR_IF(
-      not atmospheric_field.has(p) and not static_cast<bool>(allow_missing_pressure),
-      "Pressure is missing from the read atmospheric field at ", std::quoted(basename))
+  ARTS_USER_ERROR_IF(not atmospheric_field.has(p) and
+                         not static_cast<bool>(allow_missing_pressure),
+                     "Pressure is missing from the read atmospheric field at ",
+                     std::quoted(basename))
 
   ARTS_USER_ERROR_IF(
-      not atmospheric_field.has(t) and not static_cast<bool>(allow_missing_temperature),
-      "Temperature is missing from the read atmospheric field at ", std::quoted(basename))
+      not atmospheric_field.has(t) and
+          not static_cast<bool>(allow_missing_temperature),
+      "Temperature is missing from the read atmospheric field at ",
+      std::quoted(basename))
 
   switch (toMissingFieldComponentOrThrow(deal_with_field_component)) {
     case MissingFieldComponent::Throw:
@@ -206,6 +209,8 @@ void atmospheric_fieldAppendLineSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_bands.empty()) return;
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_bands);
 
@@ -234,6 +239,8 @@ void atmospheric_fieldAppendLineIsotopologueData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_bands.empty()) return;
+
   std::unordered_map<SpeciesIsotopeRecord, Index> keys;
   keysIsotopologue(keys, absorption_bands);
 
@@ -266,6 +273,8 @@ void atmospheric_fieldAppendLineLevelData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_bands.empty()) return;
+
   std::unordered_map<QuantumIdentifier, Index> keys;
   keysNLTE(keys, absorption_bands);
 
@@ -298,6 +307,8 @@ void atmospheric_fieldAppendTagsSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_species.empty()) return;
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_species);
 
@@ -343,6 +354,8 @@ void atmospheric_fieldAppendCIASpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_cia_data.empty()) return;
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_cia_data);
 
@@ -371,6 +384,8 @@ void atmospheric_fieldAppendXsecSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_xsec_fit_data.empty()) return;
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_xsec_fit_data);
 
@@ -403,6 +418,8 @@ void atmospheric_fieldAppendPredefSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
+  if (absorption_predefined_model_data.empty()) return;
+
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_predefined_model_data);
 

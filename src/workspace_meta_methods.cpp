@@ -33,7 +33,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "atmospheric_fieldReadCatalog",
+      .name = "atmospheric_fieldRead",
       .desc = "Reads absorption file from a directory",
       .author = {"Richard Larsson"},
       .methods = {"atmospheric_fieldInit",

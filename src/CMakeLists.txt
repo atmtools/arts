@@ -196,7 +196,6 @@ add_library (artsworkspace STATIC
   m_transmitter.cc
   m_wigner.cc
   m_xml.cc
-  m_zeeman.cc
   montecarlo.cc
   psd.cc
   rt4.cc

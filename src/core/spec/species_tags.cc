@@ -1,44 +1,39 @@
 #include "species_tags.h"
 
+#include <debug.h>
+#include <fast_float/fast_float.h>
+#include <isotopologues.h>
+#include <nonstd.h>
+#include <partfun.h>
+
 #include <algorithm>
 #include <cfloat>
-#include <fast_float/fast_float.h>
 #include <iomanip>
 #include <iterator>
 #include <string_view>
 #include <system_error>
 
-#include <debug.h>
-
-#include <isotopologues.h>
-
-#include <nonstd.h>
-
-#include <partfun.h>
-
 #include "species.h"
 
 namespace Species {
 namespace detail {
-constexpr void trim(std::string_view &text) {
-  while (text.size() and nonstd::isspace(text.front()))
-    text.remove_prefix(1);
-  while (text.size() and nonstd::isspace(text.back()))
-    text.remove_suffix(1);
+constexpr void trim(std::string_view& text) {
+  while (text.size() and nonstd::isspace(text.front())) text.remove_prefix(1);
+  while (text.size() and nonstd::isspace(text.back())) text.remove_suffix(1);
 }
 
-constexpr std::string_view next(std::string_view &text) {
+constexpr std::string_view next(std::string_view& text) {
   std::string_view next = text.substr(
       0, text.find_first_of('-', text.size() > 0 and text.front() == '-'));
-  text.remove_prefix(std::min(text.size(), next.size()+1));
+  text.remove_prefix(std::min(text.size(), next.size() + 1));
   trim(next);
   trim(text);
   return next;
 }
 
-constexpr std::string_view next_tag(std::string_view &text) {
+constexpr std::string_view next_tag(std::string_view& text) {
   std::string_view next = text.substr(0, text.find_first_of(','));
-  text.remove_prefix(std::min(text.size(), next.size()+1));
+  text.remove_prefix(std::min(text.size(), next.size() + 1));
   trim(next);
   trim(text);
   return next;
@@ -47,7 +42,8 @@ constexpr std::string_view next_tag(std::string_view &text) {
 constexpr Species spec(std::string_view part,
                        std::string_view orig [[maybe_unused]]) {
   Species s = fromShortName(part);
-  ARTS_USER_ERROR_IF(not good_enum(s), "The species extraction from ",
+  ARTS_USER_ERROR_IF(not good_enum(s),
+                     "The species extraction from ",
                      std::quoted(part),
                      " is not good.  "
                      "The original tag reads ",
@@ -55,13 +51,17 @@ constexpr Species spec(std::string_view part,
   return s;
 }
 
-constexpr Index isot(Species species, std::string_view isot,
+constexpr Index isot(Species species,
+                     std::string_view isot,
                      std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
-  ARTS_USER_ERROR_IF(spec_ind < 0, "Bad isotopologue: ", std::quoted(isot),
+  ARTS_USER_ERROR_IF(spec_ind < 0,
+                     "Bad isotopologue: ",
+                     std::quoted(isot),
                      "\nValid options are:\n",
                      isotopologues_names(species),
-                     "\nThe original tag reads ", std::quoted(orig))
+                     "\nThe original tag reads ",
+                     std::quoted(orig))
   return spec_ind;
 }
 
@@ -74,22 +74,28 @@ constexpr Numeric freq(std::string_view part,
     auto err =
         fast_float::from_chars(part.data(), part.data() + part.size(), f);
     ARTS_USER_ERROR_IF(err.ec == std::errc::invalid_argument,
-                       "Invalid argument: ", std::quoted(part),
-                       "\nThe original tag reads ", std::quoted(orig));
+                       "Invalid argument: ",
+                       std::quoted(part),
+                       "\nThe original tag reads ",
+                       std::quoted(orig));
     ARTS_USER_ERROR_IF(err.ec == std::errc::result_out_of_range,
-                       "Out-of-range: ", std::quoted(part),
-                       "\nThe original tag reads ", std::quoted(orig));
+                       "Out-of-range: ",
+                       std::quoted(part),
+                       "\nThe original tag reads ",
+                       std::quoted(orig));
   }
   return f;
 }
 
 constexpr void check(std::string_view text, std::string_view orig) {
-  ARTS_USER_ERROR_IF(text.size(), "Parsing error.  The text ",
+  ARTS_USER_ERROR_IF(text.size(),
+                     "Parsing error.  The text ",
                      std::quoted(text),
                      " remains to be parsed at end of a complete species tag\n"
-                     "The original tag reads ", std::quoted(orig))
+                     "The original tag reads ",
+                     std::quoted(orig))
 }
-} // namespace detail
+}  // namespace detail
 
 SpeciesTag parse_tag(std::string_view text) {
   using namespace detail;
@@ -117,7 +123,7 @@ SpeciesTag parse_tag(std::string_view text) {
     tag.spec_ind = ind;
     tag.type = TagType::Particles;
   }
-  
+
   // If there is no text remaining after the previous next(), then we are a
   // wild-tag species. Otherwise we have to process the tag a bit more
   if (text.size() == 0) {
@@ -127,13 +133,7 @@ SpeciesTag parse_tag(std::string_view text) {
     }
     check(text, orig);
   } else {
-    if (const std::string_view tag_key = next(text); tag_key.front() == 'Z') {
-      tag.spec_ind = isot(species, next(text), orig);
-      tag.type = TagType::Zeeman;
-      ARTS_USER_ERROR_IF(
-          is_predefined_model(Isotopologues[tag.spec_ind]),
-          "Bad Zeeman tag using predefined model in tag: ", std::quoted(orig))
-    } else if (tag_key == "CIA") {
+    if (const std::string_view tag_key = next(text); tag_key == "CIA") {
       tag.spec_ind = isot(species, Joker, orig);
       tag.cia_2nd_species = spec(next(text), orig);
       tag.type = TagType::Cia;
@@ -155,8 +155,12 @@ SpeciesTag parse_tag(std::string_view text) {
     tag.upper_freq = freq(next(text), orig);
     ARTS_USER_ERROR_IF(tag.upper_freq >= 0 and tag.lower_freq >= 0 and
                            tag.upper_freq <= tag.lower_freq,
-                       "Invalid frequency range [", tag.lower_freq, ", ",
-                       tag.upper_freq, "]\nOriginal tag: ", std::quoted(orig))
+                       "Invalid frequency range [",
+                       tag.lower_freq,
+                       ", ",
+                       tag.upper_freq,
+                       "]\nOriginal tag: ",
+                       std::quoted(orig))
     check(text, orig);
   }
 
@@ -215,9 +219,6 @@ String Tag::Name() const {
   else if (type == TagType::XsecFit) {
     os << "XFIT";
   } else {
-    // Zeeman flag.
-    if (type == TagType::Zeeman) os << "Z-";
-
     // Now the isotopologue. Can be a single isotopologue or ALL.
     os << Isotopologue().isotname << '-';
 
@@ -246,37 +247,25 @@ String Tag::Name() const {
   }
   return os.str();
 }
-} // namespace Species
+}  // namespace Species
 
 ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
-    : ArrayOfSpeciesTag(Species::parse_tags(text)) {
-  ARTS_USER_ERROR_IF(
-      size() and
-          std::any_of(begin(), end(),
-                      [front_species = front().Spec()](const SpeciesTag &tag) {
-                        return tag.Spec() not_eq front_species;
-                      }),
-      "All species in a group of tags must be the same\n"
-      "Your list of tags have been parsed as: ",
-      *this, "\nThe original tags-list read ", std::quoted(text))
+    : ArrayOfSpeciesTag(Species::parse_tags(text)){ARTS_USER_ERROR_IF(
+          size() and std::any_of(begin(),
+                                 end(),
+                                 [front_species =
+                                      front().Spec()](const SpeciesTag& tag) {
+                                   return tag.Spec() not_eq front_species;
+                                 }),
+          "All species in a group of tags must be the same\n"
+          "Your list of tags have been parsed as: ",
+          *this,
+          "\nThe original tags-list read ",
+          std::quoted(text))}
 
-  ARTS_USER_ERROR_IF(
-      size() and
-          std::any_of(
-              begin(), end(),
-              [front_is_zeeman = front().type == Species::TagType::Zeeman](
-                  const SpeciesTag &tag) {
-                return front_is_zeeman ? tag.type != Species::TagType::Zeeman
-                                       : tag.type == Species::TagType::Zeeman;
-              }),
-      "All species in a group of tags must be Zeeman-tagged if any one is\n"
-      "Your list of tags have been parsed as: ",
-      *this, "\nThe original tags-list read ", std::quoted(text)) {}
-}
-
-Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
-                        Species::Species spec,
-                        Index i) noexcept {
+      Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
+                              Species::Species spec,
+                              Index i) noexcept {
   const Index n = static_cast<Index>(specs.size());
   for (; i < n; i++)
     if (specs[i].Species() == spec) return i;
@@ -386,15 +375,13 @@ Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
              : rtp_vmr[std::distance(abs_species.begin(), pos)];
 }
 
-SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species) {
+SpeciesTagTypeStatus::SpeciesTagTypeStatus(
+    const ArrayOfArrayOfSpeciesTag& abs_species) {
   for (auto& species_list : abs_species) {
     for (auto& tag : species_list) {
       switch (tag.type) {
         case Species::TagType::Plain:
           Plain = true;
-          break;
-        case Species::TagType::Zeeman:
-          Zeeman = true;
           break;
         case Species::TagType::Predefined:
           Predefined = true;
@@ -426,9 +413,6 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
       [[fallthrough]];
     case Species::TagType::Plain:
       os << "    Plain:            " << val.Plain << '\n';
-      [[fallthrough]];
-    case Species::TagType::Zeeman:
-      os << "    Zeeman:           " << val.Zeeman << '\n';
       [[fallthrough]];
     case Species::TagType::Predefined:
       os << "    Predefined: " << val.Predefined << '\n';
