@@ -21,11 +21,57 @@ struct MGDSingleMoment {
   Numeric n_alpha;
   Numeric n_b;
   Numeric mu;
-  Numeric lambda;
   Numeric gamma;
   Numeric t_min;
   Numeric t_max;
   bool picky;
+
+  MGDSingleMoment() = default;
+
+  MGDSingleMoment(ScatteringSpeciesProperty moment_,
+                  Numeric n_alpha_,
+                  Numeric n_b_,
+                  Numeric mu_,
+                  Numeric gamma_,
+                  Numeric t_min_,
+                  Numeric t_max_,
+                  bool picky_)
+      : n_alpha(n_alpha_),
+        n_b(n_b_),
+        mu(mu_),
+        gamma(gamma_),
+        t_min(t_min_),
+        t_max(t_max_) {}
+
+  MGDSingleMoment(ScatteringSpeciesProperty moment_,
+                  std::string name,
+                  Numeric t_min_,
+                  Numeric t_max_,
+                  bool picky_)
+      : t_min(t_min_), t_max(t_max_), picky(picky_) {
+    if (name == "Abel12") {
+      n_alpha = 0.22;
+      n_b = 2.2;
+      mu = 0.0;
+      gamma = 1.0;
+    } else if (name == "Wang16") {
+      // Wang 16 parameters converted to SI units
+      n_alpha = 14.764;
+      n_b = 1.49;
+      mu = 0.0;
+      gamma = 1.0;
+    } else if (name == "Field19") {
+      n_alpha = 7.9e9;
+      n_b = -2.58;
+      mu = 0.0;
+      gamma = 1.0;
+    } else {
+      std::ostringstream os;
+      os << "The PSD configuration '" << name << "' is currently not supported."
+         << " Supported config names are 'Abel12', 'Wang16', 'Field19'.";
+      throw std::runtime_error(os.str());
+    }
+  }
 
   /** Evaluate PSD a atmospheric point.
    *
@@ -41,7 +87,7 @@ struct MGDSingleMoment {
   Vector evaluate(const AtmPoint& point,
                   const Vector& particle_sizes,
                   const Numeric& scat_species_a,
-                  const Numeric& scat_species_b) {
+                  const Numeric& scat_species_b) const {
     if (!point.has(moment)) {
       std::ostringstream os;
       os << "The PSD requires water content from '" << moment

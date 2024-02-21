@@ -5,44 +5,67 @@
 namespace Python {
 void py_scattering_species(py::module_& m) try {
   //
-  // Bulk property
+  // ScatSpeciesProperty
   //
 
-  artsclass<BulkProperty>(m, "BulkProperty")
-      .def(py::init([]() { return std::make_shared<BulkProperty>(); }),
+  artsclass<ParticulateProperty>(m, "ParticulateProperty")
+      .def(py::init([]() { return std::make_shared<ParticulateProperty>(); }),
            "Default value")
+      .def(py::init([](const std::string& c) {
+             return toParticulatePropertyOrThrow(c);
+           }),
+           "From :class:`str`");
+
+  artsclass<ScatteringSpeciesProperty>(m, "ScatteringSpeciesProperty")
       .def(py::init(
-               [](const std::string& c) { return toBulkPropertyOrThrow(c); }),
+               []() { return std::make_shared<ScatteringSpeciesProperty>(); }),
+           "Default value")
+      .def(py::init([](const std::string& species,
+                       const ParticulateProperty& pprop) {
+             return ScatteringSpeciesProperty(species, pprop);
+           }),
            "From :class:`str`");
 
   //
   // Modified gamma PSD
   //
 
-  py::implicitly_convertible<std::string, SpeciesEnum>();
-  artsclass<ModifiedGamma>(m, "ModifiedGamma")
-      .def(py::init([](std::string second_moment,
-                       std::optional<Numeric> n0,
-                       std::optional<Numeric> mu,
-                       std::optional<Numeric> la,
-                       std::optional<Numeric> ga,
-                       std::optional<Numeric> t_min,
-                       std::optional<Numeric> t_max) {
-             return std::make_shared<ModifiedGamma>(
-                 second_moment, n0, mu, la, ga, t_min, t_max);
+  artsclass<MGDSingleMoment>(m, "MGDSingleMoment")
+      .def(py::init([](ScatteringSpeciesProperty moment,
+                       Numeric n_alpha,
+                       Numeric n_b,
+                       Numeric mu,
+                       Numeric gamma,
+                       Numeric t_min,
+                       Numeric t_max,
+                       bool picky) {
+             return std::make_shared<MGDSingleMoment>(
+                 moment, n_alpha, n_b, mu, gamma, t_min, t_max, picky);
            }),
-           "A modified gamma PSD.",
-           py::arg("second_moment"),
-           py::arg("n0") = std::nullopt,
-           py::arg("mu") = std::nullopt,
-           py::arg("la") = std::nullopt,
-           py::arg("ga") = std::nullopt,
-           py::arg("t_min") = std::nullopt,
-           py::arg("t_max") = std::nullopt);
-
-  //
-  // ScatSpeciesProperty
-  //
+           "A modified gamma PSD.")
+      .def(py::init([](ScatteringSpeciesProperty moment,
+                       std::string name,
+                       Numeric t_min,
+                       Numeric t_max,
+                       bool picky) {
+             return std::make_shared<MGDSingleMoment>(
+                 moment, name, t_min, t_max, picky);
+           }),
+           "A modified gamma PSD.")
+      .def("evaluate",
+           [](const MGDSingleMoment& psd,
+              const AtmPoint& point,
+              const Vector& sizes,
+              Numeric scat_species_a,
+              Numeric scat_species_b) {
+             return psd.evaluate(point, sizes, scat_species_a, scat_species_b);
+           });
+  //py::arg("n0") = std::nullopt,
+  //py::arg("mu") = std::nullopt,
+  //py::arg("la") = std::nullopt,
+  //py::arg("ga") = std::nullopt,
+  //py::arg("t_min") = std::nullopt,
+  //py::arg("t_max") = std::nullopt);
 
   artsclass<ParticleHabit>(m, "ParticleHabit")
       .def(
