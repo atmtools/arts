@@ -24,8 +24,6 @@ ENUMCLASS(ParticulateProperty,
           ShapeParameter,
           InterceptParameter)
 
-ParticulateProperty toParticulatePropertyEnumOrThrow(const std::string_view x);
-
 /*** ScatteringSpeciesProperty
  *
  * Used to uniquely identify an atmospheric field that holds properties
@@ -33,13 +31,11 @@ ParticulateProperty toParticulatePropertyEnumOrThrow(const std::string_view x);
  *
  * */
 struct ScatteringSpeciesProperty {
-  ParticulateProperty pproperty;
   std::string species_name;
+  ParticulateProperty pproperty;
 
-  bool operator==(const ScatteringSpeciesProperty& other) const {
-    return (species_name == other.species_name) &&
-           (pproperty == other.pproperty);
-  }
+  constexpr auto operator<=>(const ScatteringSpeciesProperty& other) const =
+      default;
 };
 
 inline std::ostream& operator<<(std::ostream& os,
