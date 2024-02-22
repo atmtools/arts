@@ -13,7 +13,7 @@
 
 namespace lbl::fwd {
 namespace models {
-void lte::adapt() {
+void lte::adapt() try {
   lines.lines.resize(0);
   cutoff_lines.lines.resize(0);
   cutoff.resize(0);
@@ -22,15 +22,18 @@ void lte::adapt() {
     return;
   }
 
+  if (bands->empty()) {
+    return;
+  }
+
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
-  ARTS_USER_ERROR_IF(not good_enum(pol), "Bad polarization state")
 
   std::vector<voigt::lte::single_shape> shapes;
   std::vector<line_pos> shapes_pos;
   decltype(cutoff) cutoff_this;
 
   for (auto& [qid, band] : *bands) {
-    if (band.lineshape != Lineshape::VP_LTE) continue;
+    if (band.lineshape != LineByLineLineshape::VP_LTE) continue;
 
     band_shape_helper(shapes,
                       shapes_pos,
@@ -45,7 +48,7 @@ void lte::adapt() {
 
     voigt::lte::band_shape b{std::move(shapes), band.cutoff_value};
     switch (band.cutoff) {
-      case CutoffType::ByLine:
+      case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
@@ -57,18 +60,17 @@ void lte::adapt() {
           cutoff.push_back(c);
         }
         break;
-      case CutoffType::None:
+      case LineByLineCutoffType::None:
         for (auto& line : b.lines) {
           lines.lines.push_back(line);
         }
         break;
-      case CutoffType::FINAL:
-        ARTS_USER_ERROR("Bad cutoff type")
     }
 
     shapes = std::move(b.lines);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 void lte_mirror::adapt() {
   lines.lines.resize(0);
@@ -80,14 +82,13 @@ void lte_mirror::adapt() {
   }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
-  ARTS_USER_ERROR_IF(not good_enum(pol), "Bad polarization state")
 
   std::vector<voigt::lte_mirror::single_shape> shapes;
   std::vector<line_pos> shapes_pos;
   decltype(cutoff) cutoff_this;
 
   for (auto& [qid, band] : *bands) {
-    if (band.lineshape != Lineshape::VP_LTE_MIRROR) continue;
+    if (band.lineshape != LineByLineLineshape::VP_LTE_MIRROR) continue;
 
     band_shape_helper(shapes,
                       shapes_pos,
@@ -102,7 +103,7 @@ void lte_mirror::adapt() {
 
     voigt::lte_mirror::band_shape b{std::move(shapes), band.cutoff_value};
     switch (band.cutoff) {
-      case CutoffType::ByLine:
+      case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
@@ -114,13 +115,11 @@ void lte_mirror::adapt() {
           cutoff.push_back(c);
         }
         break;
-      case CutoffType::None:
+      case LineByLineCutoffType::None:
         for (auto& line : b.lines) {
           lines.lines.push_back(line);
         }
         break;
-      case CutoffType::FINAL:
-        ARTS_USER_ERROR("Bad cutoff type")
     }
 
     shapes = std::move(b.lines);
@@ -137,14 +136,13 @@ void nlte::adapt() {
   }
 
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
-  ARTS_USER_ERROR_IF(not good_enum(pol), "Bad polarization state")
 
   std::vector<voigt::nlte::single_shape> shapes;
   std::vector<line_pos> shapes_pos;
   decltype(cutoff) cutoff_this;
 
   for (auto& [qid, band] : *bands) {
-    if (band.lineshape != Lineshape::VP_LINE_NLTE) continue;
+    if (band.lineshape != LineByLineLineshape::VP_LINE_NLTE) continue;
 
     band_shape_helper(shapes,
                       shapes_pos,
@@ -159,7 +157,7 @@ void nlte::adapt() {
 
     voigt::nlte::band_shape b{std::move(shapes), band.cutoff_value};
     switch (band.cutoff) {
-      case CutoffType::ByLine:
+      case LineByLineCutoffType::ByLine:
         cutoff_this.resize(b.lines.size());
         b(cutoff_this);
 
@@ -171,13 +169,11 @@ void nlte::adapt() {
           cutoff.push_back(c);
         }
         break;
-      case CutoffType::None:
+      case LineByLineCutoffType::None:
         for (auto& line : b.lines) {
           lines.lines.push_back(line);
         }
         break;
-      case CutoffType::FINAL:
-        ARTS_USER_ERROR("Bad cutoff type")
     }
 
     shapes = std::move(b.lines);
@@ -226,17 +222,17 @@ std::pair<Complex, Complex> nlte::operator()(const Numeric frequency) const {
   return {scl * (a + ac), scl * (s + sc)};
 }
 
-void lte::set_model(std::shared_ptr<AbsorptionBands> bands_) {
+void lte::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
   bands = std::move(bands_);
   adapt();
 }
 
-void lte_mirror::set_model(std::shared_ptr<AbsorptionBands> bands_) {
+void lte_mirror::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
   bands = std::move(bands_);
   adapt();
 }
 
-void nlte::set_model(std::shared_ptr<AbsorptionBands> bands_) {
+void nlte::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
   bands = std::move(bands_);
   adapt();
 }
@@ -271,7 +267,7 @@ void nlte::set_pol(zeeman::pol pol_) {
   adapt();
 }
 
-void lte::set(std::shared_ptr<AbsorptionBands> bands_,
+void lte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
               std::shared_ptr<AtmPoint> atm_,
               zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -280,7 +276,7 @@ void lte::set(std::shared_ptr<AbsorptionBands> bands_,
   adapt();
 }
 
-void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
+void lte_mirror::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
                      std::shared_ptr<AtmPoint> atm_,
                      zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -289,7 +285,7 @@ void lte_mirror::set(std::shared_ptr<AbsorptionBands> bands_,
   adapt();
 }
 
-void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
+void nlte::set(std::shared_ptr<ArrayOfAbsorptionBand> bands_,
                std::shared_ptr<AtmPoint> atm_,
                zeeman::pol pol_) {
   bands = std::move(bands_);
@@ -300,16 +296,17 @@ void nlte::set(std::shared_ptr<AbsorptionBands> bands_,
 }  // namespace models
 
 line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
-                           std::shared_ptr<AbsorptionBands> bands_)
+                           std::shared_ptr<ArrayOfAbsorptionBand> bands_)
     : atm(std::move(atm_)), bands(std::move(bands_)) {
   for (auto& [qid, band] : *bands) {
-    ARTS_USER_ERROR_IF(band.lineshape != Lineshape::VP_LTE and
-                           band.lineshape != Lineshape::VP_LTE_MIRROR and
-                           band.lineshape != Lineshape::VP_LINE_NLTE,
-                       "Lineshape not supported ",
-                       std::quoted(toString(band.lineshape)),
-                       " for band: ",
-                       qid)
+    ARTS_USER_ERROR_IF(
+        band.lineshape != LineByLineLineshape::VP_LTE and
+            band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
+            band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
+        "Lineshape not supported ",
+        std::quoted(toString(band.lineshape)),
+        " for band: ",
+        qid)
   }
 
   lte[static_cast<Size>(zeeman::pol::sm)].set(bands, atm, zeeman::pol::sm);
@@ -332,7 +329,7 @@ line_storage::line_storage(std::shared_ptr<AtmPoint> atm_,
   nlte[static_cast<Size>(zeeman::pol::no)].set(bands, atm, zeeman::pol::no);
 }
 
-void line_storage::set_model(std::shared_ptr<AbsorptionBands> bands_) {
+void line_storage::set_model(std::shared_ptr<ArrayOfAbsorptionBand> bands_) {
   for (auto& m : lte) m.set_model(bands_);
   for (auto& m : lte_mirror) m.set_model(bands_);
   for (auto& m : nlte) m.set_model(bands_);

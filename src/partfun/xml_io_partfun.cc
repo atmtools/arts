@@ -20,7 +20,7 @@ void xml_read_from_stream(std::istream& is_xml,
 
   String type;
   tag.get_attribute_value("type", type);
-  data.type = PartitionFunctions::toTypeOrThrow(type);
+  data.type = to<PartitionFunctionsType>(type);
   
   xml_read_from_stream(is_xml, data.data, pbifs);
 

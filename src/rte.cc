@@ -56,7 +56,7 @@ void adapt_stepwise_partial_derivatives(
   ARTS_ASSERT(nv == dK_dx.ncols())
   ARTS_ASSERT(nv == dS_dx.ncols())
 
-  for (auto w : {Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w}) {
+  for (auto w : {AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w}) {
     if (auto wind_pair = jacobian_targets.find<Jacobian::AtmTarget>(w);
         wind_pair.first) {
       const auto i = wind_pair.second->target_pos;
@@ -311,20 +311,20 @@ void get_stepwise_clearsky_propmat(const Workspace& ws,
 
 Vector get_stepwise_f_partials(const ConstVectorView& line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Atm::Key wind_type) {
+                               const AtmKey wind_type) {
   // Doppler relevant velocity
   Numeric dv_doppler_dx = 0.0;
 
   Vector deriv(f_grid);
 
   switch (wind_type) {
-    case Atm::Key::wind_u:
+    case AtmKey::wind_u:
       dv_doppler_dx = (dotprod_with_los(line_of_sight, 1, 0, 0));
       break;
-    case Atm::Key::wind_v:
+    case AtmKey::wind_v:
       dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 1, 0));
       break;
-    case Atm::Key::wind_w:
+    case AtmKey::wind_w:
       dv_doppler_dx = (dotprod_with_los(line_of_sight, 0, 0, 1));
       break;
     default:

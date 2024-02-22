@@ -37,7 +37,7 @@ void py_star(py::module_& m);
 void py_physics(py::module_& m);
 void py_predefined(py::module_& m);
 void py_math(py::module_& m);
-void py_options(py::module_& m);
+void py_auto_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_atm(py::module_& m);
 void py_surf(py::module_ &m);
@@ -98,7 +98,7 @@ PYBIND11_MODULE(arts, m) try {
   //! The options names space depends only on static c++ data,
   // so it should be included early for documentation purposes when its
   // data is used by modules below it
-  py_options(m);
+  py_auto_options(m);
 
   py_basic(m);
   py_matpack(m);

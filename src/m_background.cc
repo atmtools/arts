@@ -19,12 +19,12 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     const ArrayOfPropagationPathPoint& rad_path,
     const SurfaceField& surface_field,
     const Agenda& spectral_radiance_space_agenda,
-    const Agenda& spectral_radiance_surface_agenda) {
+    const Agenda& spectral_radiance_surface_agenda) try {
   ARTS_USER_ERROR_IF(rad_path.size() == 0, "Empty propagation path.")
 
   const auto& propagatin_path_point = rad_path.back();
 
-  using enum path::PositionType;
+  using enum PathPositionType;
   switch (propagatin_path_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
@@ -56,8 +56,6 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           surface_field,
           spectral_radiance_surface_agenda);
       break;
-    case FINAL:
-      ARTS_USER_ERROR("Unkown background type");
   }
 
   ARTS_USER_ERROR_IF(
@@ -83,6 +81,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
       frequency_grid.nelem(),
       ")");
 }
+ARTS_METHOD_ERROR_CATCH
 
 namespace detail {
 StokvecVector from_temp(const ExhaustiveConstVectorView& frequency_grid,
@@ -111,7 +110,7 @@ void spectral_radianceSurfaceBlackbody(
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
     const PropagationPathPoint& propagatin_path_point) {
-  constexpr auto key = Surf::Key::t;
+  constexpr auto key = SurfaceKey::t;
 
   ARTS_USER_ERROR_IF(not surface_field.contains(key),
                      "Surface field does not contain temperature")
@@ -149,21 +148,23 @@ void spectral_radianceSurfaceBlackbody(
 void background_transmittanceFromPathPropagationBack(
     MuelmatVector& background_transmittance,
     const ArrayOfMuelmatVector&
-        propagation_path_transmission_matrix_cumulative) {
+        propagation_path_transmission_matrix_cumulative) try {
   ARTS_USER_ERROR_IF(
       propagation_path_transmission_matrix_cumulative.size() == 0,
       "Cannot extract from empty list.")
   background_transmittance =
       propagation_path_transmission_matrix_cumulative.back();
 }
+ARTS_METHOD_ERROR_CATCH
 
 void background_transmittanceFromPathPropagationFront(
     MuelmatVector& background_transmittance,
     const ArrayOfMuelmatVector&
-        propagation_path_transmission_matrix_cumulative) {
+        propagation_path_transmission_matrix_cumulative) try {
   ARTS_USER_ERROR_IF(
       propagation_path_transmission_matrix_cumulative.size() == 0,
       "Cannot extract from empty list.")
   background_transmittance =
       propagation_path_transmission_matrix_cumulative.front();
 }
+ARTS_METHOD_ERROR_CATCH

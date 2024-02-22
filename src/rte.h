@@ -155,7 +155,7 @@ void get_stepwise_clearsky_propmat(
  */
 Vector get_stepwise_f_partials(const ConstVectorView& ppath_line_of_sight,
                                const ConstVectorView& f_grid,
-                               const Atm::Key wind_type);
+                               const AtmKey wind_type);
 
 /** Computes layer transmission matrix and cumulative transmission
  * 

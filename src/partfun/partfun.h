@@ -14,14 +14,14 @@ namespace PartitionFunctions {
 namespace detail {
 template <Derivatives d>
 Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
-  using Species::Species;
+  using enum SpeciesEnum;
 
 #define deal_with_spec(SPEC) \
-  case Species::SPEC:        \
+  case SPEC:        \
     return compute##SPEC<d>(T, ir.isotname);
 
   switch (ir.spec) {
-    case Species::Bath: break;
+    case Bath: break;
     deal_with_spec(Water)
     deal_with_spec(CarbonDioxide)
     deal_with_spec(Ozone)
@@ -132,8 +132,6 @@ Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
     deal_with_spec(rain)
     deal_with_spec(free_electrons)
     deal_with_spec(particles)
-    case Species::FINAL: { /* leave last */
-    }
   }
   
 #undef deal_with_spec
@@ -153,16 +151,16 @@ Numeric Q(Numeric T, const Species::IsotopeRecord& ir);
 Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir);
 
 constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
-  using Species::Species;
+  using enum SpeciesEnum;
 
 #define deal_with_spec(SPEC)             \
-  case Species::SPEC:                    \
+  case SPEC:                    \
     for (auto& x : has##SPEC)            \
       if (x == ir.isotname) return true; \
     break;
 
   switch (ir.spec) {
-    case Species::Bath: break;
+    case Bath: break;
     deal_with_spec(Water)
     deal_with_spec(CarbonDioxide)
     deal_with_spec(Ozone)
@@ -273,8 +271,6 @@ constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
     deal_with_spec(rain)
     deal_with_spec(free_electrons)
     deal_with_spec(particles)
-    case Species::FINAL: { /* leave last */
-    }
   }
   
   #undef deal_with_spec

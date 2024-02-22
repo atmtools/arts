@@ -22,7 +22,7 @@ std::unique_ptr<voigt::lte::ComputeData> init_voigt_lte_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_LTE; },
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE; },
           &band::data))
     return std::make_unique<voigt::lte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -35,7 +35,7 @@ std::unique_ptr<voigt::lte_mirror::ComputeData> init_voigt_lte_mirrored_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_LTE_MIRROR; },
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LTE_MIRROR; },
           &band::data))
     return std::make_unique<voigt::lte_mirror::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -49,7 +49,7 @@ std::unique_ptr<voigt::nlte::ComputeData> init_voigt_line_nlte_data(
     const Vector2 los) {
   if (std::ranges::any_of(
           bnds,
-          [](auto& bnd) { return bnd.lineshape == Lineshape::VP_LINE_NLTE; },
+          [](auto& bnd) { return bnd.lineshape == LineByLineLineshape::VP_LINE_NLTE; },
           &band::data))
     return std::make_unique<voigt::nlte::ComputeData>(
         f_grid, atm, los, zeeman::pol::no);
@@ -64,8 +64,8 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_ecs_data(
   if (std::ranges::any_of(
           bnds,
           [](auto& bnd) {
-            return bnd.lineshape == Lineshape::VP_ECS_MAKAROV or
-                   bnd.lineshape == Lineshape::VP_ECS_HARTMANN;
+            return bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV or
+                   bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN;
           },
           &band::data))
     return std::make_unique<voigt::ecs::ComputeData>(
@@ -163,22 +163,20 @@ void calculate(PropmatVectorView pm,
                                const band_data& bnd,
                                const zeeman::pol pol) {
     switch (bnd.lineshape) {
-      case Lineshape::VP_LTE:
+      case LineByLineLineshape::VP_LTE:
         calc_voigt_lte(bnd_key, bnd, pol);
         break;
-      case Lineshape::VP_LTE_MIRROR:
+      case LineByLineLineshape::VP_LTE_MIRROR:
         calc_voigt_lte_mirrored(bnd_key, bnd, pol);
         break;
-      case Lineshape::VP_LINE_NLTE:
+      case LineByLineLineshape::VP_LINE_NLTE:
         calc_voigt_line_nlte(bnd_key, bnd, pol);
         break;
-      case Lineshape::VP_ECS_MAKAROV:
+      case LineByLineLineshape::VP_ECS_MAKAROV:
         [[fallthrough]];
-      case Lineshape::VP_ECS_HARTMANN:
+      case LineByLineLineshape::VP_ECS_HARTMANN:
         calc_voigt_ecs_linemixing(bnd_key, bnd, pol);
         break;
-      case Lineshape::FINAL:
-        ARTS_USER_ERROR("Bad line shape state");
     }
   };
 

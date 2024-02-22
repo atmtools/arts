@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <lineshape.h>
 #include <lineshapemodel.h>
 #include <python_interface.h>
 
@@ -22,14 +21,14 @@ namespace Python {
 void py_spectroscopy(py::module_& m) try {
   static_assert(LineShapeModelParameters::N == 4);
   artsclass<LineShapeModelParameters>(m, "LineShapeModelParameters")
-      .def(py::init([](LineShape::TemperatureModel a,
+      .def(py::init([](LineShapeTemperatureModelOld a,
                        Numeric b,
                        Numeric c,
                        Numeric d,
                        Numeric e) {
              return std::make_shared<LineShapeModelParameters>(a, b, c, d, e);
            }),
-           py::arg("type") = LineShape::TemperatureModel::None,
+           py::arg("type") = LineShapeTemperatureModelOld::None,
            py::arg("X0") = 0,
            py::arg("X1") = 0,
            py::arg("X2") = 0,
@@ -48,7 +47,7 @@ void py_spectroscopy(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
             return std::make_shared<LineShapeModelParameters>(
-                t[0].cast<LineShape::TemperatureModel>(),
+                t[0].cast<LineShapeTemperatureModelOld>(),
                 t[1].cast<Numeric>(),
                 t[2].cast<Numeric>(),
                 t[3].cast<Numeric>(),
@@ -362,14 +361,14 @@ void py_spectroscopy(py::module_& m) try {
   artsclass<AbsorptionLines>(m, "AbsorptionLines")
       .def(
           py::init([](bool selfbroadening, bool bathbroadening,
-                      AbsorptionCutoffType cutoff,
-                      AbsorptionMirroringType mirroring,
-                      AbsorptionPopulationType population,
-                      AbsorptionNormalizationType normalization,
-                      LineShape::Type lineshapetype, Numeric T0,
+                      AbsorptionCutoffTypeOld cutoff,
+                      AbsorptionMirroringTypeOld mirroring,
+                      AbsorptionPopulationTypeOld population,
+                      AbsorptionNormalizationTypeOld normalization,
+                      LineShapeTypeOld lineshapetype, Numeric T0,
                       Numeric cutofffreq, Numeric linemixinglimit,
                       QuantumIdentifier quantumidentity,
-                      ArrayOfSpecies broadeningspecies,
+                      ArrayOfSpeciesEnum broadeningspecies,
                       Array<AbsorptionSingleLine> lines) {
             ARTS_USER_ERROR_IF(not good_enum(quantumidentity.Species()),
                                "Bad quantumidentity, must specify species and "
@@ -404,14 +403,14 @@ void py_spectroscopy(py::module_& m) try {
                                        std::move(lines));
           }),
           py::arg("selfbroadening") = false, py::arg("bathbroadening") = false,
-          py::arg("cutoff") = AbsorptionCutoffType::None,
-          py::arg("mirroring") = AbsorptionMirroringType::None,
-          py::arg("population") = AbsorptionPopulationType::LTE,
-          py::arg("normalization") = AbsorptionNormalizationType::None,
-          py::arg("lineshapetype") = LineShape::Type::DP, py::arg("T0") = 296,
+          py::arg("cutoff") = AbsorptionCutoffTypeOld::None,
+          py::arg("mirroring") = AbsorptionMirroringTypeOld::None,
+          py::arg("population") = AbsorptionPopulationTypeOld::LTE,
+          py::arg("normalization") = AbsorptionNormalizationTypeOld::None,
+          py::arg("lineshapetype") = LineShapeTypeOld::DP, py::arg("T0") = 296,
           py::arg("cutofffreq") = -1, py::arg("linemixinglimit") = -1,
           py::arg("quantumidentity") = QuantumIdentifier("H2O-161"),
-          py::arg("broadeningspecies") = ArrayOfSpecies{},
+          py::arg("broadeningspecies") = ArrayOfSpeciesEnum{},
           py::arg("lines") = Array<AbsorptionSingleLine>{}, "From values")
       .PythonInterfaceCopyValue(AbsorptionLines)
       .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
@@ -429,11 +428,11 @@ void py_spectroscopy(py::module_& m) try {
       .PythonInterfaceFileIO(AbsorptionLines)
       .PythonInterfaceReadWriteData(AbsorptionLines, selfbroadening, ":class:`bool` Does the line broadening have self broadening?")
       .PythonInterfaceReadWriteData(AbsorptionLines, bathbroadening, ":class:`bool` Does the line broadening have bath broadening?")
-      .PythonInterfaceReadWriteData(AbsorptionLines, cutoff, ":class:`~pyarts.arts.options.AbsorptionCutoffType` Cutoff type")
+      .PythonInterfaceReadWriteData(AbsorptionLines, cutoff, ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
       .PythonInterfaceReadWriteData(AbsorptionLines, mirroring, ":class:`~pyarts.arts.options.AbsorptionMirroringype` Mirroring type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, population, ":class:`~pyarts.arts.options.AbsorptionPopulationType` Line population distribution")
-      .PythonInterfaceReadWriteData(AbsorptionLines, normalization, ":class:`~pyarts.arts.options.AbsorptionNormalizationType` Normalization type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, lineshapetype, ":class:`~pyarts.arts.options.LineShapeType` Line shape type")
+      .PythonInterfaceReadWriteData(AbsorptionLines, population, ":class:`~pyarts.arts.options.AbsorptionPopulationTypeOld` Line population distribution")
+      .PythonInterfaceReadWriteData(AbsorptionLines, normalization, ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
+      .PythonInterfaceReadWriteData(AbsorptionLines, lineshapetype, ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
       .PythonInterfaceReadWriteData(AbsorptionLines, T0, ":class:`float` Reference temperature for all parameters of the lines")
       .PythonInterfaceReadWriteData(AbsorptionLines, cutofffreq, ":class:`float` Cutoff frequency")
       .PythonInterfaceReadWriteData(AbsorptionLines, linemixinglimit, ":class:`float` Linemixing limit")
@@ -505,16 +504,16 @@ X : ~pyarts.arts.LineShapeOutput
             return std::make_shared<AbsorptionLines>(
                 t[0].cast<bool>(),
                 t[1].cast<bool>(),
-                t[2].cast<AbsorptionCutoffType>(),
-                t[3].cast<AbsorptionMirroringType>(),
-                t[4].cast<AbsorptionPopulationType>(),
-                t[5].cast<AbsorptionNormalizationType>(),
-                t[6].cast<LineShapeType>(),
+                t[2].cast<AbsorptionCutoffTypeOld>(),
+                t[3].cast<AbsorptionMirroringTypeOld>(),
+                t[4].cast<AbsorptionPopulationTypeOld>(),
+                t[5].cast<AbsorptionNormalizationTypeOld>(),
+                t[6].cast<LineShapeTypeOld>(),
                 t[7].cast<Numeric>(),
                 t[8].cast<Numeric>(),
                 t[9].cast<Numeric>(),
                 t[10].cast<QuantumIdentifier>(),
-                t[11].cast<ArrayOfSpecies>(),
+                t[11].cast<ArrayOfSpeciesEnum>(),
                 t[12].cast<Array<AbsorptionSingleLine>>());
           }))
       .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
@@ -530,332 +529,6 @@ X : ~pyarts.arts.LineShapeOutput
                                                 "ArrayOfArrayOfAbsorptionLines")
       .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
-
-  artsclass<LineShape::Calculator>(m, "LineShapeCalculator")
-      .def(py::init([](AbsorptionLines& band,
-                       Index line,
-                       Numeric T,
-                       Numeric P,
-                       const Vector& VMR,
-                       Zeeman::Polarization zeeman,
-                       Numeric H,
-                       Index iz) {
-             ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
-             ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0) or not(H >= 0),
-                                "Bad atmospheric state (T P H): ",
-                                Vector{T, P, H})
-             ARTS_USER_ERROR_IF(
-                 static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
-                 "Mismatch between VMRs and broadening species.\nVMR: ",
-                 VMR,
-                 "\nSpecies: ",
-                 band.broadeningspecies)
-             auto F0 = band.lines.at(line).F0;
-             auto DC = band.DopplerConstant(T);
-             auto mirror = band.mirroring;
-             auto type = band.lineshapetype;
-             auto X = band.ShapeParameters(line, T, P, VMR);
-             auto DZ = band.ZeemanSplitting(line, zeeman, iz) * H;
-
-             if (mirror == AbsorptionMirroringType::Manual)
-               return LineShape::Calculator(mirror, type, F0, X, DC, DZ);
-             return LineShape::Calculator(type, F0, X, DC, DZ, false);
-           }),
-           py::arg("band"),
-           py::arg("line"),
-           py::arg("T"),
-           py::arg("P"),
-           py::arg("VMR"),
-           py::arg("zeeman") = Zeeman::Polarization::None,
-           py::arg("H") = 0,
-           py::arg("iz") = 0,
-           "By values")
-      .PythonInterfaceCopyValue(LineShape::Calculator)
-      .def(
-          "dFdT",
-          [](LineShape::Calculator& LS,
-             const LineShape::Output& dXdT,
-             Numeric T) { return LS.dFdT(dXdT, T); },
-          R"(Derivative of line shape wrt temperature
-
-Parameters
-----------
-dXdT : ~pyarts.arts.LineShapeOutput
-    The computed line shape parameters derivative wrt temprature
-T : float
-    The temperature
-
-Returns
--------
-dFdT : float
-    The derivative
-)",
-          py::arg("dXdT"),
-          py::arg("T"))
-      .def(
-          "dFdf",
-          [](LineShape::Calculator& LS) { return LS.dFdf(); },
-          R"(Derivative of line shape wrt frequency
-
-Returns
--------
-dFdf : float
-    The derivative
-)")
-      .def(
-          "dFdF0",
-          [](LineShape::Calculator& LS) { return LS.dFdF0(); },
-          R"(Derivative of line shape wrt line frequency
-
-Returns
--------
-dFdF0 : float
-    The derivative
-)")
-      .def(
-          "dFdH",
-          [](LineShape::Calculator& LS, Numeric dfdH) { return LS.dFdH(dfdH); },
-          R"(Derivative of line shape wrt magnetic magnitude
-
-Parameters
-----------
-dfdH : float
-    Frequency derivative wrt magnetic magnitude
-
-Returns
--------
-dfdH : float
-    The derivative
-)",
-          py::arg("dfdH"))
-      .def(
-          "dFdVMR",
-          [](LineShape::Calculator& LS, const LineShape::Output& dXdVMR) {
-            return LS.dFdVMR(dXdVMR);
-          },
-          R"(Derivative of line shape wrt VMR
-
-Parameters
-----------
-dXdVMR : ~pyarts.arts.LineShapeOutput
-    The computed line shape parameters derivative wrt VMR
-
-Returns
--------
-dFdVMR : float
-    The derivative
-)",
-          py::arg("dXdVMR"))
-      .def(
-          "dFdFVC",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdFVC(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdFVC : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdETA",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdETA(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdETA : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdDV",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdDV(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdDV : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdD0",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdD0(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdD0 : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdG0",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdG0(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdG0 : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdD2",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdD2(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdD2 : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "dFdG2",
-          [](LineShape::Calculator& LS, Numeric d) { return LS.dFdG2(d); },
-          R"(Derivative of line shape wrt line shape model parameter
-
-Parameters
-----------
-d : float
-    The derivative wrt line parameter
-
-Returns
--------
-dFdG2 : float
-    The derivative
-)",
-          py::arg("d"))
-      .def(
-          "F",
-          [](LineShape::Calculator& LS) { return LS.F(); },
-          R"(Line shape at pre-select frequency
-
-Returns
--------
-F : float
-    The line shape value
-)")
-      .def(
-          "F",
-          [](LineShape::Calculator& LS, Numeric f) { return LS(f); },
-          R"(Line shape at frequency
-
-Parameters
-----------
-f : float
-    A frequency [Hz]
-
-Returns
--------
-F : float
-    The line shape value
-)",
-          py::arg("f"))
-      .doc() =
-      R"(Class to compute the line shape
-
-Note that the normalization assumes sum(VMR) is 1 for good results
-but does not enforce it.
-)";
-
-  artsclass<HitranRelaxationMatrixData>(m, "HitranRelaxationMatrixData")
-      .def(py::init([]() { return std::make_shared<HitranRelaxationMatrixData>(); }), "Empty data")
-      .PythonInterfaceCopyValue(HitranRelaxationMatrixData)
-      .PythonInterfaceWorkspaceVariableConversion(HitranRelaxationMatrixData)
-      .PythonInterfaceBasicRepresentation(HitranRelaxationMatrixData)
-      .PythonInterfaceFileIO(HitranRelaxationMatrixData)
-      .def_readwrite("W0pp", &HitranRelaxationMatrixData::W0pp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0pp", &HitranRelaxationMatrixData::B0pp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0rp", &HitranRelaxationMatrixData::W0rp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0rp", &HitranRelaxationMatrixData::B0rp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0qp", &HitranRelaxationMatrixData::W0qp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0qp", &HitranRelaxationMatrixData::B0qp, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0pr", &HitranRelaxationMatrixData::W0pr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0pr", &HitranRelaxationMatrixData::B0pr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0rr", &HitranRelaxationMatrixData::W0rr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0rr", &HitranRelaxationMatrixData::B0rr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0qr", &HitranRelaxationMatrixData::W0qr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0qr", &HitranRelaxationMatrixData::B0qr, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0pq", &HitranRelaxationMatrixData::W0pq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0pq", &HitranRelaxationMatrixData::B0pq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0rq", &HitranRelaxationMatrixData::W0rq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0rq", &HitranRelaxationMatrixData::B0rq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("W0qq", &HitranRelaxationMatrixData::W0qq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def_readwrite("B0qq", &HitranRelaxationMatrixData::B0qq, ":class:`~pyarts.arts.Tensor4` As for model")
-      .def(py::pickle(
-          [](const HitranRelaxationMatrixData& t) {
-            return py::make_tuple(t.W0pp,
-                                  t.B0pp,
-                                  t.W0rp,
-                                  t.B0rp,
-                                  t.W0pr,
-                                  t.B0pr,
-                                  t.W0rr,
-                                  t.B0rr,
-                                  t.W0qr,
-                                  t.B0qr,
-                                  t.W0pq,
-                                  t.B0pq,
-                                  t.W0rq,
-                                  t.B0rq,
-                                  t.W0qq,
-                                  t.B0qq);
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 16, "Invalid state!")
-            auto out = std::make_shared<HitranRelaxationMatrixData>();
-            out->W0pp = t[0].cast<Tensor4>();
-            out->B0pp = t[1].cast<Tensor4>();
-            out->W0rp = t[2].cast<Tensor4>();
-            out->B0rp = t[3].cast<Tensor4>();
-            out->W0pr = t[4].cast<Tensor4>();
-            out->B0pr = t[5].cast<Tensor4>();
-            out->W0rr = t[6].cast<Tensor4>();
-            out->B0rr = t[7].cast<Tensor4>();
-            out->W0qr = t[8].cast<Tensor4>();
-            out->B0qr = t[9].cast<Tensor4>();
-            out->W0pq = t[10].cast<Tensor4>();
-            out->B0pq = t[11].cast<Tensor4>();
-            out->W0rq = t[12].cast<Tensor4>();
-            out->B0rq = t[13].cast<Tensor4>();
-            out->W0qq = t[14].cast<Tensor4>();
-            out->B0qq = t[15].cast<Tensor4>();
-            return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(HitranRelaxationMatrixData);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
 }

@@ -12,10 +12,14 @@ Complex full::single::at(const Numeric frequency) const {
   return scl * out;
 }
 
-void full::adapt() {
+void full::adapt() try {
   models.resize(0);
 
   if (not xsecrec) {
+    return;
+  }
+
+  if (xsecrec->empty()) {
     return;
   }
 
@@ -29,6 +33,7 @@ void full::adapt() {
                         &model);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 full::full(std::shared_ptr<AtmPoint> atm_,
            std::shared_ptr<ArrayOfXsecRecord> xsecrec_)

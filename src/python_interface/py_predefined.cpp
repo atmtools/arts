@@ -80,7 +80,7 @@ void internalCKDMT400(py::module_& m) {
             t,
             x,
             data.get<Absorption::PredefinedModel::MT_CKD400::WaterData,
-                     find_species_index(Species::Species::Water,
+                     Species::find_species_index(SpeciesEnum::Water,
                                         "ForeignContCKDMT400")>());
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
@@ -129,8 +129,8 @@ abs_coef : ~pyarts.arts.Vector
             t,
             x,
             data.get<Absorption::PredefinedModel::MT_CKD400::WaterData,
-                     find_species_index(Species::Species::Water,
-                                        "SelfContCKDMT400")>());
+                     Species::find_species_index(SpeciesEnum::Water,
+                                                 "SelfContCKDMT400")>());
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();

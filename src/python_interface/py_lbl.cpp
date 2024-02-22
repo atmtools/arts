@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "enums.h"
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
@@ -19,7 +20,7 @@ void py_lbl(py::module_& m) try {
   auto lbl = m.def_submodule("lbl", "Line-by-line helper functions");
 
   artsclass<lbl::temperature::data>(m, "TemperatureModel")
-      .def(py::init<lbl::temperature::model_type, Vector>())
+      .def(py::init<LineShapeModelType, Vector>())
       .def_property_readonly(
           "type",
           &lbl::temperature::data::Type,
@@ -30,11 +31,11 @@ void py_lbl(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(lbl::temperature::data);
 
   using pair_vector_type =
-      std::vector<std::pair<lbl::line_shape::variable, lbl::temperature::data>>;
+      std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>;
   artsarray<pair_vector_type>(m, "LineShapeVariableTemperatureModelList")
       .def("get",
            [](const pair_vector_type& self,
-              lbl::line_shape::variable x) -> lbl::temperature::data {
+              LineShapeModelVariable x) -> lbl::temperature::data {
              for (auto& [var, data] : self) {
                if (var == x) {
                  return data;
@@ -44,7 +45,7 @@ void py_lbl(py::module_& m) try {
            })
       .def("set",
            [](pair_vector_type& self,
-              lbl::line_shape::variable x,
+              LineShapeModelVariable x,
               lbl::temperature::data y) {
              for (auto& [var, data] : self) {
                if (var == x) {
@@ -104,7 +105,7 @@ void py_lbl(py::module_& m) try {
            "The D0 coefficient",
            py::arg("atm"))
       .def("remove",
-           [](lbl::line_shape::model& self, lbl::line_shape::variable x) {
+           [](lbl::line_shape::model& self, LineShapeModelVariable x) {
              for (auto& specmod : self.single_models) {
                auto ptr = std::find_if(specmod.data.begin(),
                                        specmod.data.end(),
@@ -186,16 +187,16 @@ void py_lbl(py::module_& m) try {
                      ":class:`~pyarts.arts.QuantumIdentifier`")
       .PythonInterfaceWorkspaceDocumentation(AbsorptionBand);
 
-  artsarray<AbsorptionBands>(m, "AbsorptionBands")
-      .def(py::init([]() { return std::make_shared<AbsorptionBands>(); }),
+  artsarray<ArrayOfAbsorptionBand>(m, "ArrayOfAbsorptionBand")
+      .def(py::init([]() { return std::make_shared<ArrayOfAbsorptionBand>(); }),
            "Default target")
-      .PythonInterfaceCopyValue(AbsorptionBands)
-      .PythonInterfaceWorkspaceVariableConversion(AbsorptionBands)
-      .PythonInterfaceBasicRepresentation(AbsorptionBands)
-      .PythonInterfaceFileIO(AbsorptionBands)
+      .PythonInterfaceCopyValue(ArrayOfAbsorptionBand)
+      .PythonInterfaceWorkspaceVariableConversion(ArrayOfAbsorptionBand)
+      .PythonInterfaceBasicRepresentation(ArrayOfAbsorptionBand)
+      .PythonInterfaceFileIO(ArrayOfAbsorptionBand)
       .def(
           "__getitem__",
-          [](AbsorptionBands& x,
+          [](ArrayOfAbsorptionBand& x,
              const QuantumIdentifier& key) -> std::shared_ptr<lbl::band_data> {
             for (auto& v : x) {
               if (v.key == key) {
@@ -207,7 +208,23 @@ void py_lbl(py::module_& m) try {
           py::return_value_policy::reference_internal,
           py::keep_alive<0, 1>(),
           ":class:`~pyarts.arts.AbsorptionBandData`")
-      .PythonInterfaceWorkspaceDocumentation(AbsorptionBands);
+      .def(
+          "__setitem__",
+          [](ArrayOfAbsorptionBand& x,
+             const QuantumIdentifier& key,
+             const lbl::band_data& y) {
+            for (auto& v : x) {
+              if (v.key == key) {
+                v.data = y;
+                return;
+              }
+            }
+            x.emplace_back(key, y);
+          },
+          py::return_value_policy::reference_internal,
+          py::keep_alive<0, 1>(),
+          ":class:`~pyarts.arts.AbsorptionBandData`")
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionBand);
 
   artsclass<LinemixingEcsData>(m, "LinemixingEcsData")
       .def(py::init([]() { return std::make_shared<LinemixingEcsData>(); }),

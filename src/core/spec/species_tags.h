@@ -12,32 +12,17 @@
 #include "species.h"
 
 namespace Species {
-ENUMCLASS(TagType,
-          unsigned char,
-          Plain,
-          Predefined,
-          Cia,
-          FreeElectrons,
-          Particles,
-          XsecFit)
+enum class TagType : char {Plain, Predefined, Cia, XsecFit};
 struct Tag {
   //! Molecular species index in Species::Isotopologues
   Index spec_ind{-1};
 
-  //! The lower limit line center frequency in Hz.
-  /*! If this is < 0 it means no lower limit. */
-  Numeric lower_freq{-1};
-
-  //! The upper line center frequency in Hz.
-  /*! If this is < 0 it means no upper limit. */
-  Numeric upper_freq{-1};
-
   //! Flag for the type
-  TagType type{TagType::FINAL};
+  TagType type{TagType::Plain};
 
   //! 2nd CIA species index.
   /*! Contains the second CIA species that should be used for this tag. */
-  Species cia_2nd_species{Species::FINAL};
+  SpeciesEnum cia_2nd_species{SpeciesEnum::Bath};
 
   constexpr Tag() noexcept = default;
 
@@ -76,31 +61,19 @@ struct Tag {
     return Isotopologue().FullName();
   }
 
-  [[nodiscard]] constexpr Species Spec() const noexcept {
+  [[nodiscard]] constexpr SpeciesEnum Spec() const noexcept {
     return Isotopologue().spec;
   }
 
   [[nodiscard]] constexpr TagType Type() const noexcept { return type; }
 
-  friend std::ostream& operator<<(std::ostream& os, const Tag& ot) {
-    return os << ot.Name();
-  }
+  friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
 
-  constexpr bool operator==(const Tag& other) const noexcept {
-    return other.spec_ind == spec_ind and other.lower_freq == lower_freq and
-           other.upper_freq == upper_freq and other.type == type and
-           other.cia_2nd_species == cia_2nd_species;
-  }
-
-  constexpr bool operator!=(const Tag& other) const noexcept {
-    return not operator==(other);
-  }
+  [[nodiscard]] constexpr auto operator<=>(const Tag& other) const noexcept = default;
 
   [[nodiscard]] constexpr bool is_joker() const ARTS_NOEXCEPT {
     ARTS_ASSERT(spec_ind >= 0) return Joker == Isotopologue().isotname;
   }
-
-  [[nodiscard]] constexpr auto operator<=>(const Tag& x) const = default;
 };
 }  // namespace Species
 
@@ -157,7 +130,7 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
   }
 
   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] Species::Species Species() const ARTS_NOEXCEPT {
+  [[nodiscard]] SpeciesEnum Species() const ARTS_NOEXCEPT {
     ARTS_ASSERT(size() not_eq 0,
                 "Invalid ArrayOfSpeciesTag without any species")
     return operator[](0).Spec();
@@ -182,13 +155,13 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 
   [[nodiscard]] bool FreeElectrons() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Type() == Species::TagType::FreeElectrons;
+      return spec.Spec() == SpeciesEnum::free_electrons;
     });
   }
 
   [[nodiscard]] bool Particles() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Type() == Species::TagType::Particles;
+      return spec.Spec() == SpeciesEnum::particles;
     });
   }
 };
@@ -199,8 +172,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a);
 
 //! Struct to test of an ArrayOfArrayOfSpeciesTag contains a tagtype
 struct SpeciesTagTypeStatus {
-  bool Plain{false}, Predefined{false}, Cia{false}, FreeElectrons{false},
-      Particles{false}, XsecFit{false};
+  bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
   friend std::ostream& operator<<(std::ostream&, SpeciesTagTypeStatus);
 };
@@ -213,7 +185,7 @@ struct SpeciesTagTypeStatus {
  * @return An index larger or equal to i pointing to the next species, or -1 if there's no next species
  */
 Index find_next_species(const ArrayOfArrayOfSpeciesTag& abs_species,
-                        Species::Species spec,
+                        SpeciesEnum spec,
                         Index i) noexcept;
 
 /*! Find the first species of this type
@@ -223,7 +195,7 @@ Index find_next_species(const ArrayOfArrayOfSpeciesTag& abs_species,
  * @return An index larger or equal to 0 pointing to the first species, or -1 if there's no such species
  */
 Index find_first_species(const ArrayOfArrayOfSpeciesTag& abs_species,
-                         Species::Species spec) noexcept;
+                         SpeciesEnum spec) noexcept;
 
 /*! Find the first species tag of this type
  * 
@@ -245,22 +217,12 @@ std::pair<Index, Index> find_first_isotologue(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const SpeciesIsotopeRecord& isot) noexcept;
 
-/*!
- *  Checks on the correctness of the tags will be performed,
- *  e.g. free_electrons and particles species are only allowed once in
- *  abs_species.
- *  \param tags  Array of Array of SpeciesTag.
- *  \author Oliver Lemke
- *  \date   2013-04-23
- */
-void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
-
 /*! Find species that requires line-by-line calculations
  * 
  * @param abs_species  As WSV
  * @return The set of unique species that requires line-by-line calculations
  */
-std::set<Species::Species> lbl_species(
+std::set<SpeciesEnum> lbl_species(
     const ArrayOfArrayOfSpeciesTag&) noexcept;
 
 namespace Species {
@@ -272,7 +234,7 @@ namespace Species {
  */
 Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                   const Vector& rtp_vmr,
-                  const Species spec) ARTS_NOEXCEPT;
+                  const SpeciesEnum spec) ARTS_NOEXCEPT;
 
 /** Parse a list of species tags into an Array<Tag>
  *
@@ -285,8 +247,8 @@ Numeric first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
  */
 Array<Tag> parse_tags(std::string_view text);
 
-std::ostream& operator<<(std::ostream& os, const Array<Species>& a);
-std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a);
+std::ostream& operator<<(std::ostream& os, const Array<SpeciesEnum>& a);
+std::ostream& operator<<(std::ostream& os, const Array<Array<SpeciesEnum>>& a);
 }  // namespace Species
 
 namespace std {
@@ -295,10 +257,8 @@ template <>
 struct hash<SpeciesTag> {
   std::size_t operator()(const SpeciesTag& g) const {
     return std::hash<Index>{}(g.spec_ind) ^
-           (std::hash<Numeric>{}(g.lower_freq) << 1) ^
-           (std::hash<Numeric>{}(-1) << 2) ^
-           (std::hash<Species::TagType>{}(g.type) << 3) ^
-           (std::hash<Species::Species>{}(g.cia_2nd_species) << 4);
+           (std::hash<Species::TagType>{}(g.type) << 20) ^
+           (std::hash<SpeciesEnum>{}(g.cia_2nd_species) << 24);
   }
 };
 

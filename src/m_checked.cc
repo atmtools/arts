@@ -31,8 +31,8 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                            const ArrayOfArrayOfSpeciesTag& abs_species,
                            const AtmField& atm_field) {
   // Consistency between dim, grids and atmospheric fields/surfaces
-  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::p), "No pressure field")
-  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t), "No temperature field")
+  ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::p), "No pressure field")
+  ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::t), "No temperature field")
   for (auto& spec : abs_species)
     ARTS_USER_ERROR_IF(not atm_field.has(spec.Species()),
                        "No ",
@@ -40,9 +40,9 @@ void atmfields_checkedCalc(Index& atmfields_checked,
                        " field")
 
     {
-      const bool u = atm_field.has(Atm::Key::mag_u),
-                 v = atm_field.has(Atm::Key::mag_v),
-                 w = atm_field.has(Atm::Key::mag_w);
+      const bool u = atm_field.has(AtmKey::mag_u),
+                 v = atm_field.has(AtmKey::mag_v),
+                 w = atm_field.has(AtmKey::mag_w);
       ARTS_USER_ERROR_IF(
           (u or v or w) and (not u or not v or not w),
           "If any magnetic field component exist, all three must.\n The "
@@ -56,9 +56,9 @@ void atmfields_checkedCalc(Index& atmfields_checked,
     }
 
   {
-    const bool u = atm_field.has(Atm::Key::wind_u),
-               v = atm_field.has(Atm::Key::wind_v),
-               w = atm_field.has(Atm::Key::wind_w);
+    const bool u = atm_field.has(AtmKey::wind_u),
+               v = atm_field.has(AtmKey::wind_v),
+               w = atm_field.has(AtmKey::wind_w);
     ARTS_USER_ERROR_IF(
         (u or v or w) and (not u or not v or not w),
         "If any wind field component exist, all three must.\n The "

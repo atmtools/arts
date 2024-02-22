@@ -37,13 +37,13 @@ void cia_interpolation(VectorView result,
                        const Index& robust);
 
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const Species::Species sp1,
-                    const Species::Species sp2);
+                    const SpeciesEnum sp1,
+                    const SpeciesEnum sp2);
 
 CIARecord* cia_get_data(
     const std::shared_ptr<std::vector<CIARecord>>& cia_data,
-    const Species::Species sp1,
-    const Species::Species sp2);
+    const SpeciesEnum sp1,
+    const SpeciesEnum sp2);
 
 /** CIA data for a single pair of molecules.
  
@@ -82,7 +82,7 @@ class CIARecord {
      \param[in] i Must be either 0 or 1. Then the first or second species index
      is returned.
      */
-  [[nodiscard]] Species::Species Species(const Index i) const {
+  [[nodiscard]] SpeciesEnum Species(const Index i) const {
     // Assert that i is 0 or 1:
     ARTS_ASSERT(i >= 0);
     ARTS_ASSERT(i <= 1);
@@ -130,7 +130,7 @@ class CIARecord {
      \param[in] first CIA Species.
      \param[in] second CIA Species.
      */
-  void SetSpecies(const Species::Species first, const Species::Species second) {
+  void SetSpecies(const SpeciesEnum first, const SpeciesEnum second) {
     mspecies[0] = first;
     mspecies[1] = second;
   }
@@ -189,16 +189,16 @@ class CIARecord {
   /** Append other CIARecord to this. */
   void AppendDataset(const CIARecord& c2);
 
-  [[nodiscard]] std::array<Species::Species, 2> TwoSpecies() const {
+  [[nodiscard]] std::array<SpeciesEnum, 2> TwoSpecies() const {
     return mspecies;
   }
-  std::array<Species::Species, 2>& TwoSpecies() { return mspecies; }
+  std::array<SpeciesEnum, 2>& TwoSpecies() { return mspecies; }
 
   CIARecord() = default;
   
   CIARecord(ArrayOfGriddedField2 data,
-            Species::Species spec1,
-            Species::Species spec2)
+            SpeciesEnum spec1,
+            SpeciesEnum spec2)
       : mdata(std::move(data)), mspecies({spec1, spec2}) {}
 
   friend std::ostream& operator<<(std::ostream& os, const CIARecord& cr);
@@ -230,7 +230,7 @@ class CIARecord {
      
      We use a plain C array here, since the length of this is always 2.
      */
-  std::array<Species::Species, 2> mspecies;
+  std::array<SpeciesEnum, 2> mspecies;
 };
 
 #endif  // cia_h

@@ -180,8 +180,8 @@ Numeric dPOLY_dT(const ExhaustiveConstVectorView& x, Numeric T) noexcept {
 
 Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
 #define SWITCHCASE(mod) \
-  case model_type::mod: \
-    return operator()<model_type::mod>(T0, T)
+  case LineShapeModelType::mod: \
+    return operator()<LineShapeModelType::mod>(T0, T)
 
   switch (t) {
     SWITCHCASE(T0);
@@ -193,8 +193,6 @@ Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
     SWITCHCASE(AER);
     SWITCHCASE(DPL);
     SWITCHCASE(POLY);
-    case model_type::FINAL:
-      ARTS_ASSERT(false, "Invalid model type");
   }
 
   return NAN;
@@ -203,8 +201,8 @@ Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
 }
 
 #define SWITCHCASE(name, mod) \
-  case model_type::mod:       \
-    return d##name<model_type::mod>(T0, T)
+  case LineShapeModelType::mod:       \
+    return d##name<LineShapeModelType::mod>(T0, T)
 
 #define DERIVATIVES(name)                                            \
   Numeric data::d##name(Numeric T0, Numeric T) const ARTS_NOEXCEPT { \
@@ -218,8 +216,6 @@ Numeric data::operator()(Numeric T0, Numeric T) const ARTS_NOEXCEPT {
       SWITCHCASE(name, AER);                                         \
       SWITCHCASE(name, DPL);                                         \
       SWITCHCASE(name, POLY);                                        \
-      case model_type::FINAL:                                        \
-        ARTS_ASSERT(false, "Invalid model type");                    \
     }                                                                \
                                                                      \
     return std::numeric_limits<Numeric>::quiet_NaN();                \
@@ -248,7 +244,7 @@ std::ostream& operator<<(std::ostream& os, const temperature::data& x) {
 std::istream& operator>>(std::istream& is, temperature::data& x) {
   String name;
   is >> name;
-  x.t = tomodel_typeOrThrow(name);
+  x.t = to<LineShapeModelType>(name);
 
   Size n = model_size[static_cast<Size>(x.t)];
   if (n == std::numeric_limits<Size>::max()) {
@@ -260,13 +256,13 @@ std::istream& operator>>(std::istream& is, temperature::data& x) {
   return is;
 }
 
-model_type data::Type() const { return t; }
+LineShapeModelType data::Type() const { return t; }
 
 Vector data::X() const { return x; }
 
 bool data::is_zero() const noexcept {
   switch (t) {
-    using enum temperature::model_type;
+    using enum LineShapeModelType;
     case T0:
       [[fallthrough]];
     case T1:
@@ -287,7 +283,6 @@ bool data::is_zero() const noexcept {
       return true;
     case DPL:
       return x[0] == 0 and x[2] == 0;
-    case FINAL:;
   }
   return true;
 }

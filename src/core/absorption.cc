@@ -69,7 +69,7 @@ void set_vmr_from_first_species(Vector& vmr,
                                 const String& species_name,
                                 const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const Matrix& abs_vmrs) {
-  const Index index = find_first_species(abs_species, Species::fromShortName(species_name));
+  const Index index = find_first_species(abs_species, to<SpeciesEnum>(species_name));
 
   vmr.resize(abs_vmrs.ncols());
   if (index < 0)

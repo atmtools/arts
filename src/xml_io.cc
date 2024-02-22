@@ -18,6 +18,7 @@
 #include "bofstream.h"
 #include "config.h"
 #include "debug.h"
+#include "enums.h"
 #include "file.h"
 #include "parameters.h"
 
@@ -40,14 +41,14 @@ void ArtsXMLTag::add_attribute(const String& aname,
 }
 
 void ArtsXMLTag::add_attribute(const String& aname,
-                               const ArrayOfSpecies& value,
+                               const ArrayOfSpeciesEnum& value,
                                const bool self,
                                const bool bath) {
   std::ostringstream v;
 
   if (self) v << LineShape::self_broadening;
   for (Size i = self; i < value.size() - bath; i++)
-    v << ' ' << Species::toShortName(value[i]);
+    v << ' ' << toString<1>(value[i]);
   if (bath) {
     v << ' ' << LineShape::bath_broadening;
   }
@@ -63,7 +64,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
 }
 
 void ArtsXMLTag::get_attribute_value(const String& aname,
-                                     ArrayOfSpecies& value,
+                                     ArrayOfSpeciesEnum& value,
                                      bool& self,
                                      bool& bath) {
   value.resize(0);
@@ -87,16 +88,13 @@ void ArtsXMLTag::get_attribute_value(const String& aname,
     }
 
     if (val == LineShape::self_broadening) {
-      value.push_back(Species::Species::FINAL);
+      value.push_back(static_cast<SpeciesEnum>(-1));
       self = true;
     } else if (val == LineShape::bath_broadening) {
-      value.push_back(Species::Species::Bath);
+      value.push_back(SpeciesEnum::Bath);
       bath = true;
     } else {
-      Species::Species x = Species::fromShortName(val);
-      ARTS_USER_ERROR_IF(
-          not good_enum(x), "Species: ", val, " cannot be understood")
-      value.push_back(x);
+      value.push_back(to<SpeciesEnum>(val));
     }
   }
 }
@@ -120,7 +118,7 @@ void ArtsXMLTag::get_attribute_value(const String& aname,
       xml_parse_error("Error while parsing value of " + aname + " from <" +
                       name + ">");
     }
-    value.push_back(Quantum::Number::toType(val));
+    value.push_back(to<QuantumNumberType>(val));
   }
 }
 

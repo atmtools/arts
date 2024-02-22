@@ -24,7 +24,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     PredefinedModelData& absorption_predefined_model_data,
     const ArrayOfArrayOfSpeciesTag& absorption_species,
     const String& basename,
-    const Index& name_missing_index) {
+    const Index& name_missing_index) try {
   const bool name_missing = static_cast<bool>(name_missing_index);
 
   absorption_predefined_model_data.clear();
@@ -51,7 +51,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
       }
     }
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void absorption_predefined_model_dataInit(
     PredefinedModelData& absorption_predefined_model_data) {
@@ -96,11 +96,11 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
 
   absorption_predefined_model_data
       .set<Model,
-           find_species_index(Species::Species::Water, "ForeignContCKDMT400")>(
+           Species::find_species_index(SpeciesEnum::Water, "ForeignContCKDMT400")>(
           x);
   absorption_predefined_model_data
       .set<Model,
-           find_species_index(Species::Species::Water, "SelfContCKDMT400")>(x);
+           Species::find_species_index(SpeciesEnum::Water, "SelfContCKDMT400")>(x);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

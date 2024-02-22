@@ -10,7 +10,7 @@ add_library(matpack STATIC
 )
 
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
-target_link_libraries(matpack PUBLIC coretypes)
+target_link_libraries(matpack PUBLIC coretypes util arts_enum_options)
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/Eigen")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")

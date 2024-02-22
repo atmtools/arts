@@ -46,7 +46,7 @@ class ArtsXMLTag : public XMLTag {
    * @param[in] self True if LineShape::self_broadening in list
    * @param[in] bath True if LineShape::bath_broadening in list
    */
-  void add_attribute(const String& aname, const ArrayOfSpecies& value, const bool self, const bool bath);
+  void add_attribute(const String& aname, const ArrayOfSpeciesEnum& value, const bool self, const bool bath);
 
   using XMLTag::get_attribute_value;
 
@@ -70,7 +70,7 @@ class ArtsXMLTag : public XMLTag {
    * @param[out] self True if LineShape::self_broadening in list
    * @param[out] bath True if LineShape::bath_broadening in list
    */
-  void get_attribute_value(const String& aname, ArrayOfSpecies& value, bool& self, bool& bath);
+  void get_attribute_value(const String& aname, ArrayOfSpeciesEnum& value, bool& self, bool& bath);
   
   /** Returns value of attribute as type ArrayOfSpeciesTag
    * 

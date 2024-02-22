@@ -28,10 +28,14 @@ Complex full::single::at(const Numeric frequency) const {
   return scl * ciarecords->Extract(frequency, T, extrapol, ignore_errors);
 }
 
-void full::adapt() {
+void full::adapt() try {
   models.resize(0);
 
   if (not ciarecords) {
+    return;
+  }
+
+  if (ciarecords->empty()) {
     return;
   }
 
@@ -46,6 +50,7 @@ void full::adapt() {
         atm->pressure, atm->temperature, VMR1, VMR2, &data, extrap, robust);
   }
 }
+ARTS_METHOD_ERROR_CATCH
 
 full::full(std::shared_ptr<AtmPoint> atm_,
            std::shared_ptr<ArrayOfCIARecord> cia,

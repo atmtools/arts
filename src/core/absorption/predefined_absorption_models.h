@@ -23,11 +23,11 @@ namespace Absorption::PredefinedModel {
  *  wrapper in the compute function.
  */
 struct VMRS {
-  static constexpr std::array species = {Species::Species::CarbonDioxide,
-                                         Species::Species::Oxygen,
-                                         Species::Species::Nitrogen,
-                                         Species::Species::Water,
-                                         Species::Species::liquidcloud};
+  static constexpr std::array species = {SpeciesEnum::CarbonDioxide,
+                                         SpeciesEnum::Oxygen,
+                                         SpeciesEnum::Nitrogen,
+                                         SpeciesEnum::Water,
+                                         SpeciesEnum::liquidcloud};
 
   Numeric CO2{0};
   Numeric O2{0};

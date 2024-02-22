@@ -21,7 +21,7 @@ spectral_radiance::spectral_radiance(
     AscendingGrid lon_,
     const AtmField& atm_,
     const SurfaceField& surf,
-    const std::shared_ptr<AbsorptionBands>& lines,
+    const std::shared_ptr<ArrayOfAbsorptionBand>& lines,
     const std::shared_ptr<ArrayOfCIARecord>& cia,
     const std::shared_ptr<ArrayOfXsecRecord>& xsec,
     const std::shared_ptr<PredefinedModelData>& predef,
@@ -119,7 +119,7 @@ Stokvec spectral_radiance::operator()(
   for (auto& pp : path_points | drop(1)) {
     pos = pos_weights(pp);
 
-    if (pp.point.los_type != ::path::PositionType::atm) {
+    if (pp.point.los_type != PathPositionType::atm) {
       return I += T * Iback(f, pos, pp);
     }
 

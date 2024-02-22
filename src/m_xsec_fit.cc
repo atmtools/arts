@@ -19,9 +19,9 @@
 void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
     ArrayOfXsecRecord& absorption_xsec_fit_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const String& basename) {
+    const String& basename) try {
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Species::Species> unique_species;
+  std::set<SpeciesEnum> unique_species;
   for (auto& asp : abs_species) {
     for (auto& sp : asp) {
       if (sp.Type() == Species::TagType::XsecFit) {
@@ -40,7 +40,7 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
     const String filename{tmpbasename +
-                          String(Species::toShortName(species_name)) + ".xml"};
+                          String(toString<1>(species_name)) + ".xml"};
 
     try {
       xml_read_from_file(filename, xsec_coeffs);
@@ -51,7 +51,7 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
           "Error reading coefficients file:\n", filename, "\n", e.what());
     }
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddXsecFit(  // WS Output:
@@ -87,8 +87,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
   Vector dfreq;
   // Jacobian vectors END
   const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
-  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
+  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
   const bool do_freq_jac =
       std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
   const bool do_temp_jac = temp_jac.first;

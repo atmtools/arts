@@ -124,7 +124,7 @@ void InterpSurfaceFieldToPosition(SurfacePoint& surface_point,
                                   const PropagationPathPoint& path_point,
                                   const SurfaceField& surface_field,
                                   const Numeric& surface_search_accuracy) {
-  ARTS_USER_ERROR_IF(not surface_field.has(Surf::Key::h),
+  ARTS_USER_ERROR_IF(not surface_field.has(SurfaceKey::h),
                      "No elevation in the surface field, required by method")
 
   ARTS_USER_ERROR_IF(surface_search_accuracy < 0.0,
@@ -155,19 +155,19 @@ void surface_pointFromAtm(SurfacePoint& surface_point,
   surface_point.elevation = path_point.pos[0];
   surface_point.normal = {0, 0};
 
-  ARTS_USER_ERROR_IF(not atm_field.has(Atm::Key::t),
+  ARTS_USER_ERROR_IF(not atm_field.has(AtmKey::t),
                      "\"atm_field\" has no temperature field")
-  surface_point.temperature = atm_field[Atm::Key::t].at(
+  surface_point.temperature = atm_field[AtmKey::t].at(
       path_point.pos[0], path_point.pos[1], path_point.pos[2]);
 
-  if (atm_field.has(Atm::Key::wind_u) and atm_field.has(Atm::Key::wind_v) and
-      atm_field.has(Atm::Key::wind_w)) {
+  if (atm_field.has(AtmKey::wind_u) and atm_field.has(AtmKey::wind_v) and
+      atm_field.has(AtmKey::wind_w)) {
     surface_point.wind = {
-        atm_field[Atm::Key::wind_u].at(
+        atm_field[AtmKey::wind_u].at(
             path_point.pos[0], path_point.pos[1], path_point.pos[2]),
-        atm_field[Atm::Key::wind_v].at(
+        atm_field[AtmKey::wind_v].at(
             path_point.pos[0], path_point.pos[1], path_point.pos[2]),
-        atm_field[Atm::Key::wind_w].at(
+        atm_field[AtmKey::wind_w].at(
             path_point.pos[0], path_point.pos[1], path_point.pos[2])};
   }
 }
@@ -600,7 +600,7 @@ void surface_normalCalc(Vector& surface_normal,
   surface_normal.resize(2);
 
   // No surface tilt if told so or surface_elevation.data has size (1,1)
-  if (ignore_topography || surface_field.constant_value(Surf::Key::h)) {
+  if (ignore_topography || surface_field.constant_value(SurfaceKey::h)) {
     surface_normal = 0;
 
   } else {

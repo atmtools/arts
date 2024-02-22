@@ -41,7 +41,7 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
   constexpr int cutline = 10;
   const Index n = data.data.nrows();
 
-  using enum PartitionFunctions::Type;
+  using enum PartitionFunctionsType;
   switch (data.type) {
     case Interp:
       os << "static inline constexpr std::array<Numeric, " << n << "> data{";
@@ -85,13 +85,11 @@ void print_data(const PartitionFunctionsData& data, auto& os) {
         os << "static constexpr inline Numeric dT = " << data.data(0, 0) << ";\n";
         os << "static constexpr inline Numeric T0 = " << data.data(1, 0) - data.data(0, 0) << ";\n";
       break;
-    case FINAL:
-      throw std::logic_error("invalid");
   }
 }
 
-void print_method(const PartitionFunctions::Type& type, auto& os) {
-  using enum PartitionFunctions::Type;
+void print_method(const PartitionFunctionsType& type, auto& os) {
+  using enum PartitionFunctionsType;
   switch (type) {
     case Interp:
       os << "return linterp<derivative>(grid, data, T);\n";
@@ -102,8 +100,6 @@ void print_method(const PartitionFunctions::Type& type, auto& os) {
     case StaticInterp:
       os << "return STATIC_LINTERP(derivative, data, T, dT, T0);\n";
       break;
-    case FINAL:
-      throw std::logic_error("invalid");
   }
 }
 
@@ -152,14 +148,14 @@ void make_cc(const std::filesystem::path& xmlfile) {
   os << '}' << '\n';
 }
 
-std::string species_name(Species::Species spec, const std::string& isot) {
-  return std::string{Species::toShortName(spec)} + "-" + isot;
+std::string species_name(SpeciesEnum spec, const std::string& isot) {
+  return std::string{toString<1>(spec)} + "-" + isot;
 }
 
 void make_h(const std::vector<std::string>& xmlfiles) {
   // Make a complete species list and isotopologues:
   const auto data = [&] {
-    std::map<Species::Species, std::vector<std::string>> x;
+    std::map<SpeciesEnum, std::vector<std::string>> x;
     for (auto& xmlfile : xmlfiles) {
       const auto spec_name = spec_from_xml(xmlfile);
       const auto delim = spec_name.find('-');
@@ -167,7 +163,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
                          "Cannot find isotopologue split")
       const auto spec = spec_name.substr(0, delim);
       const auto isot = spec_name.substr(delim + 1);
-      x[Species::fromShortName(spec)].push_back(isot);
+      x[to<SpeciesEnum>(spec)].push_back(isot);
     }
 
     for (auto& isot: Species::Isotopologues) {
@@ -226,7 +222,7 @@ void make_h(const std::vector<std::string>& xmlfiles) {
     }
     os << "  if (isot == \"*\") return T * std::numeric_limits<Numeric>::signaling_NaN();\n";
     os << R"--(  ARTS_USER_ERROR("Cannot find ", isot, " for species )--"
-       << Species::toShortName(spec.first) << "\")\n";
+       << toString<1>(spec.first) << "\")\n";
     os << "}\n";
   }
 }

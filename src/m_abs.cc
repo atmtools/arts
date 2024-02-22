@@ -22,11 +22,11 @@
 #include "atm.h"
 #include "check_input.h"
 #include "debug.h"
+#include "enums.h"
 #include "file.h"
 #include "hitran_species.h"
 #include "jacobian.h"
 #include "lbl_data.h"
-#include "lineshape.h"
 #include "math_funcs.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
@@ -59,8 +59,8 @@ void absorption_speciesDefineAllInScenario(  // WS Output:
 
   tgs.resize(0);
 
-  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
-    const String specname{Species::toShortName(Species::Species(i))};
+  for (Size i = 0; i < enumsize::SpeciesEnumSize; ++i) {
+    const String specname{toString<1>(SpeciesEnum(i))};
 
     String filename = basename;
     if (basename.length() && basename[basename.length() - 1] != '/')
@@ -88,9 +88,9 @@ void absorption_speciesDefineAll(  // WS Output:
 
   // We want to make lists of all species
   ArrayOfString specs(0);
-  for (Index i = 0; i < Index(Species::Species::FINAL); ++i) {
-    if (Species::Species(i) not_eq Species::Species::Bath) {
-      specs.emplace_back(Species::toShortName(Species::Species(i)));
+  for (Size i = 0; i < enumsize::SpeciesEnumSize; ++i) {
+    if (SpeciesEnum(i) not_eq SpeciesEnum::Bath) {
+      specs.emplace_back(toString<1>(SpeciesEnum(i)));
     }
   }
 
@@ -187,12 +187,12 @@ void propagation_matrixAddFaraday(
            ELECTRON_MASS));
 
   const auto jacs = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::mag_u,
-      Atm::Key::mag_v,
-      Atm::Key::mag_w,
-      Atm::Key::wind_u,
-      Atm::Key::wind_v,
-      Atm::Key::wind_w,
+      AtmKey::mag_u,
+      AtmKey::mag_v,
+      AtmKey::mag_w,
+      AtmKey::wind_u,
+      AtmKey::wind_v,
+      AtmKey::wind_w,
       absorption_species[ife].Species());
   const Numeric dmag = field_perturbation(std::span{jacs.data(), 3});
 
@@ -310,7 +310,7 @@ void propagation_matrixAddParticles(
       " *scat_data* elements.\n")
 
   const auto jac_temperature =
-      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
   const Numeric dT = jac_temperature.first ? jac_temperature.second->d : 0.0;
 
   const Index na = absorption_species.size();
@@ -653,7 +653,7 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
     Agenda& propagation_matrix_agenda,
     // WS Input:
     const ArrayOfArrayOfSpeciesTag& absorption_species,
-    const AbsorptionBands& absorption_bands,
+    const ArrayOfAbsorptionBand& absorption_bands,
     // WS Generic Input:
     const Numeric& T_extrapolfac,
     const Numeric& extpolfac,
@@ -704,7 +704,9 @@ void propagation_matrix_agendaAuto(  // Workspace reference:
   }
 
   //propagation_matrixAddFaraday
-  if (any_species.FreeElectrons) {
+  if (std::ranges::any_of(absorption_species, [](auto& spec) {
+        return spec.FreeElectrons();
+      })) {
     agenda.add("propagation_matrixAddFaraday");
   }
 

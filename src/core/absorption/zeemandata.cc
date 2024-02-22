@@ -13,6 +13,7 @@
 
 #include "debug.h"
 #include "double_imanip.h"
+#include "enums.h"
 #include "wigner_functions.h"
 
 #pragma GCC diagnostic push
@@ -25,17 +26,17 @@
 #pragma GCC diagnostic pop
 
 constexpr Numeric get_lande_spin_constant(
-    const Species::Species species) noexcept {
+    const SpeciesEnum species) noexcept {
   switch (species) {
-    case Species::fromShortName("O2"):
+    case to<SpeciesEnum>("O2"):
       return 2.002064;
-    case Species::fromShortName("NO"):
+    case to<SpeciesEnum>("NO"):
       return 2.00071;
-    case Species::fromShortName("OH"):
+    case to<SpeciesEnum>("OH"):
       return 2.00089;
-    case Species::fromShortName("ClO"):
+    case to<SpeciesEnum>("ClO"):
       return 2.00072;
-    case Species::fromShortName("SO"):
+    case to<SpeciesEnum>("SO"):
       return 2.002106;
     default:
       break;
@@ -142,7 +143,7 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
     ARTS_NOEXCEPT {
-  if (qid.Isotopologue() == "O2-66") {
+  if (qid.Isotopologue() == "O2-66"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
                     QuantumNumberType::v1)) {
@@ -172,7 +173,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         return {gu, gl};
       }
     }
-  } else if (qid.Isotopologue() == "O2-68") {
+  } else if (qid.Isotopologue() == "O2-68"_isot) {
     if (qid.val.has(QuantumNumberType::J,
                     QuantumNumberType::N,
                     QuantumNumberType::v1)) {
@@ -202,13 +203,13 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         return {gu, gl};
       }
     }
-  } else if (qid.Isotopologue() == "CO-26") {
+  } else if (qid.Isotopologue() == "CO-26"_isot) {
     constexpr Numeric gperp =
         -0.2689 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
     return {gperp, gperp};
-  } else if (qid.Isotopologue() == "OCS-622") {
+  } else if (qid.Isotopologue() == "OCS-622"_isot) {
     constexpr Numeric gperp =
         -.02889 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -224,7 +225,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
                    closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
-  } else if (qid.Isotopologue() == "OCS-624") {
+  } else if (qid.Isotopologue() == "OCS-624"_isot) {
     constexpr Numeric gperp =
         -.0285 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
@@ -241,7 +242,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
       return {closed_shell_trilinear(KU, JU, gperp, gpara),
                    closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
-  } else if (qid.Isotopologue() == "CO2-626") {
+  } else if (qid.Isotopologue() == "CO2-626"_isot) {
     constexpr Numeric gperp =
         -.05508 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971

@@ -452,7 +452,7 @@ struct ComputeData {
                       const ExhaustiveConstVectorView& f_grid,
                       const AtmPoint& atm,
                       const zeeman::pol pol,
-                      const Species::Species target_spec);
+                      const SpeciesEnum target_spec);
 
   void set_filter(const line_key& key);
 

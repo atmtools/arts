@@ -4,7 +4,7 @@
 #include <string_view>
 
 static constexpr std::array keywords{"absorption",
-                                          "jacobian",
+                                     "jacobian",
                                      "spectral_radiance",
                                      "propagation_matrix",
                                      "source_vector",

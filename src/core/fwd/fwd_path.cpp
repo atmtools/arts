@@ -72,8 +72,8 @@ constexpr path find_path(const Vector3 pos,
   path out = {
       .point =
           {
-              .pos_type = ::path::PositionType::atm,
-              .los_type = ::path::PositionType::atm,
+              .pos_type = PathPositionType::atm,
+              .los_type = PathPositionType::atm,
               .pos = pos,
               .los = los,
           },
@@ -146,7 +146,7 @@ std::vector<path> geometric_planar(const Vector3 pos,
           std::abs(newpos.point.altitude() - oldpos.point.altitude()) * csc;
     }
 
-    path.back().point.los_type = ::path::PositionType::space;
+    path.back().point.los_type = PathPositionType::space;
   } else {
     while (path.back().point.altitude() != alt.front()) {
       const auto oldpos = path.back();
@@ -159,7 +159,7 @@ std::vector<path> geometric_planar(const Vector3 pos,
           std::abs(newpos.point.altitude() - oldpos.point.altitude()) * csc;
     }
 
-    path.back().point.los_type = ::path::PositionType::surface;
+    path.back().point.los_type = PathPositionType::surface;
   }
 
   while (path.size() > 1 and path[1].distance == 0.0) {

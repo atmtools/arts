@@ -16,10 +16,10 @@ internal_workspace_groups() {
           "Contains all information about bands of related absorption lines\n",
   };
 
-  wsg_data["AbsorptionBands"] = {
+  wsg_data["ArrayOfAbsorptionBand"] = {
       .file = "lbl.h",
       .desc =
-          "Contains all information about bands of related absorption lines\n",
+          "A list of *AbsorptionBand*\n",
   };
 
   wsg_data["Agenda"] = {
@@ -193,7 +193,7 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
   };
 
-  wsg_data["ArrayOfSpecies"] = {
+  wsg_data["ArrayOfSpeciesEnum"] = {
       .file = "species.h",
       .desc = R"--(A list of *SpeciesEnum*
 )--",
@@ -435,11 +435,6 @@ The grid is a combination of 6 *Vector*
 
 Both the data and the grid may be named
 )--",
-  };
-
-  wsg_data["HitranRelaxationMatrixData"] = {
-      .file = "linemixing_hitran.h",
-      .desc = "Wraps data required to use Hitran line mixing\n",
   };
 
   wsg_data["Index"] = {

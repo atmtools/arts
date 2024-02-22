@@ -35,7 +35,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
-                                   const Species::Species broadening_species,
+                                   const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
                                    const AtmPoint& atm);
@@ -52,7 +52,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
-                                   const Species::Species broadening_species,
+                                   const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
                                    const AtmPoint& atm);
@@ -188,12 +188,12 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     dip[i] = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
-    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+    if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
       dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
-    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& l2 = bnd_qid.val[QuantumNumberType::l2];
       dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
@@ -250,7 +250,7 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
     ARTS_USER_ERROR_IF(
         rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
 
-    vmrs[i] = spec == Species::Species::Bath ? 1 - sum(vmrs) : atm[spec];
+    vmrs[i] = spec == SpeciesEnum::Bath ? 1 - sum(vmrs) : atm[spec];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
@@ -260,10 +260,10 @@ void ComputeData::adapt_multi(const QuantumIdentifier& bnd_qid,
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
-    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+    if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       makarov::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
-    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       hartmann::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {
@@ -314,12 +314,12 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
     dip[i] = 0.5 * Constant::c *
              std::sqrt(line.a / (Math::pow3(line.f0) * Constant::two_pi));
 
-    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+    if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& N = bnd.lines[i].qn.val[QuantumNumberType::N];
       dipr[i] = makarov::reduced_dipole(J.upp(), J.low(), N.upp());
       dip[i] *= std::signbit(dipr[i]) ? -1 : 1;
-    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       auto& J = bnd.lines[i].qn.val[QuantumNumberType::J];
       auto& l2 = bnd_qid.val[QuantumNumberType::l2];
       dipr[i] = hartmann::reduced_dipole(J.upp(), J.low(), l2.upp(), l2.low());
@@ -378,7 +378,7 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
         rovib_data_it == rovib_data.end(), "No rovib data for species ", spec)
 
     const Numeric this_vmr =
-        spec == Species::Species::Bath ? 1 - vmr : atm[spec];
+        spec == SpeciesEnum::Bath ? 1 - vmr : atm[spec];
 
     Wimag = 0.0;
     for (Size k = 0; k < n; k++) {
@@ -386,10 +386,10 @@ void ComputeData::adapt_single(const QuantumIdentifier& bnd_qid,
           bnd.lines[sort[k]].ls.T0, atm.temperature, atm.pressure);
     }
 
-    if (bnd.lineshape == Lineshape::VP_ECS_MAKAROV) {
+    if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) {
       makarov::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
-    } else if (bnd.lineshape == Lineshape::VP_ECS_HARTMANN) {
+    } else if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN) {
       hartmann::relaxation_matrix_offdiagonal(
           Wimag, bnd_qid, bnd, sort, spec, rovib_data_it->second, dipr, atm);
     } else {

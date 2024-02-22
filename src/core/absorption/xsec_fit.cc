@@ -31,7 +31,7 @@ void RemoveNegativeXsec(Vector& xsec) {
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return String{Species::toShortName(mspecies)};
+  return String{toString<1>(mspecies)};
 }
 
 void XsecRecord::SetVersion(const Index version) {
@@ -177,7 +177,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
  \returns Index of this species in xsec_fit_data. -1 if not found.
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Species::Species species) {
+                            const SpeciesEnum species) {
   for (Size i = 0; i < xsec_data.size(); i++)
     if (xsec_data[i].Species() == species) return i;
 
@@ -193,7 +193,7 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
  */
 XsecRecord* hitran_xsec_get_data(
     const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
-    const Species::Species species) {
+    const SpeciesEnum species) {
   for (auto& xsec : *xsec_data) {
     if (xsec.Species() == species) return &xsec;
   }

@@ -55,16 +55,16 @@ void xml_read_from_stream(std::istream& is_xml,
   String name;
   String molecule1;
   String molecule2;
-  Species::Species species1;
-  Species::Species species2;
+  SpeciesEnum species1;
+  SpeciesEnum species2;
 
   tag.read_from_stream(is_xml);
   tag.check_name("CIARecord");
   tag.get_attribute_value("molecule1", molecule1);
   tag.get_attribute_value("molecule2", molecule2);
 
-  species1 = Species::fromShortName(molecule1);
-  species2 = Species::fromShortName(molecule2);
+  species1 = to<SpeciesEnum>(molecule1);
+  species2 = to<SpeciesEnum>(molecule2);
 
   if (not good_enum(species1)) {
     std::ostringstream os;
@@ -702,88 +702,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== HitranRelaxationMatrixData ================================================
-
-//! Reads HitranRelaxationMatrixData from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param hitran   HitranRelaxationMatrixData return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(std::istream& is_xml,
-                          HitranRelaxationMatrixData& hitran,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("HitranRelaxationMatrixData");
-
-  xml_read_from_stream(is_xml, hitran.W0pp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0pr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0pq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pq, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rq, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qq, pbifs);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/HitranRelaxationMatrixData");
-}
-
-//! Writes HitranRelaxationMatrixData to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param hitran   HitranRelaxationMatrixData
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(std::ostream& os_xml,
-                         const HitranRelaxationMatrixData& hitran,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("HitranRelaxationMatrixData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, hitran.W0pp, pbofs, "W0pp");
-  xml_write_to_stream(os_xml, hitran.B0pp, pbofs, "B0pp");
-  xml_write_to_stream(os_xml, hitran.W0rp, pbofs, "W0rp");
-  xml_write_to_stream(os_xml, hitran.B0rp, pbofs, "B0rp");
-  xml_write_to_stream(os_xml, hitran.W0qp, pbofs, "W0qp");
-  xml_write_to_stream(os_xml, hitran.B0qp, pbofs, "B0qp");
-  xml_write_to_stream(os_xml, hitran.W0pr, pbofs, "W0pr");
-  xml_write_to_stream(os_xml, hitran.B0pr, pbofs, "B0pr");
-  xml_write_to_stream(os_xml, hitran.W0rr, pbofs, "W0rr");
-  xml_write_to_stream(os_xml, hitran.B0rr, pbofs, "B0rr");
-  xml_write_to_stream(os_xml, hitran.W0qr, pbofs, "W0qr");
-  xml_write_to_stream(os_xml, hitran.B0qr, pbofs, "B0qr");
-  xml_write_to_stream(os_xml, hitran.W0pq, pbofs, "W0pq");
-  xml_write_to_stream(os_xml, hitran.B0pq, pbofs, "B0pq");
-  xml_write_to_stream(os_xml, hitran.W0rq, pbofs, "W0rq");
-  xml_write_to_stream(os_xml, hitran.B0rq, pbofs, "B0rq");
-  xml_write_to_stream(os_xml, hitran.W0qq, pbofs, "W0qq");
-  xml_write_to_stream(os_xml, hitran.B0qq, pbofs, "B0qq");
-
-  close_tag.set_name("/HitranRelaxationMatrixData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== QuantumIdentifier =========================================
 
 //! Reads QuantumIdentifier from XML input stream
@@ -794,7 +712,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 */
 void xml_read_from_stream(std::istream& is_xml,
                           QuantumIdentifier& qi,
-                          bifstream* pbifs [[maybe_unused]]) {
+                          bifstream* pbifs [[maybe_unused]]) try {
   static_assert(QuantumIdentifier::version == 1);
 
   ArtsXMLTag tag;
@@ -826,6 +744,8 @@ void xml_read_from_stream(std::istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/QuantumIdentifier");
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading QuantumIdentifier: ", e.what())
 }
 
 //! Writes QuantumIdentifier to XML output stream
@@ -1393,7 +1313,7 @@ void xml_read_from_stream(std::istream& is_xml,
   String species_name;
   xml_read_from_stream(is_xml, species_name, pbifs);
 
-  const Species::Species species = Species::fromShortName(species_name);
+  const SpeciesEnum species = to<SpeciesEnum>(species_name);
   if (not good_enum(species)) {
     std::ostringstream os;
     os << "  Unknown species in XsecRecord: " << species_name;
@@ -1450,79 +1370,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   xml_write_to_stream(os_xml, xd.FitCoeffs(), pbofs, "Fit coefficients");
 
   close_tag.set_name("/XsecRecord");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
-//=== MapOfErrorCorrectedSuddenData ======================================================
-
-//! Reads MapOfErrorCorrectedSuddenData from XML input stream
-/*!
- * \param is_xml     XML Input stream
- * \param rvb        MapOfErrorCorrectedSuddenData return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(std::istream& is_xml,
-                          MapOfErrorCorrectedSuddenData& rvb,
-                          bifstream* pbifs) {
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("MapOfErrorCorrectedSuddenData");
-
-  Index nelem;
-  open_tag.get_attribute_value("nelem", nelem);
-
-  rvb.resize(0);
-  rvb.reserve(nelem);
-  for (Index i = 0; i < nelem; i++) {
-    xml_read_from_stream(is_xml, rvb.emplace_back(), pbifs);
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/MapOfErrorCorrectedSuddenData");
-
-  // Sanity check, it is not OK to not have AIR as catch-all broadener
-  for (auto& x : rvb) {
-    bool found_air = false;
-    for (auto& y : x.data) {
-      found_air = found_air or (y.spec == Species::Species::Bath);
-    }
-    ARTS_USER_ERROR_IF(
-        not found_air,
-        "Incomplete ErrorCorrectedSuddenData, must contain air, contains:\n",
-        x)
-  }
-}
-
-//! Writes MapOfErrorCorrectedSuddenData to XML output stream
-/*!
- * \param os_xml     XML Output stream
- * \param rvb        MapOfErrorCorrectedSuddenData
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const MapOfErrorCorrectedSuddenData& rvb,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("MapOfErrorCorrectedSuddenData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", static_cast<Index>(rvb.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_set_stream_precision(os_xml);
-
-  for (auto& r : rvb) {
-    xml_write_to_stream(os_xml, r, pbofs, "");
-  }
-
-  close_tag.set_name("/MapOfErrorCorrectedSuddenData");
   close_tag.write_to_stream(os_xml);
 
   os_xml << '\n';
@@ -1652,7 +1499,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== AtmField =========================================
 void xml_read_from_stream_helper(std::istream& is_xml,
-                                 Atm::KeyVal& key_val,
+                                 AtmKeyVal& key_val,
                                  Atm::Data& data,
                                  bifstream* pbifs) {
   data = Atm::Data{};  // overwrite
@@ -1669,7 +1516,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   const auto get_extrapol = [&open_tag](auto& k) {
     String x;
     open_tag.get_attribute_value(k, x);
-    return Atm::toExtrapolationOrThrow(x);
+    return to<InterpolationExtrapolation>(x);
   };
   data.alt_low = get_extrapol("alt_low");
   data.alt_upp = get_extrapol("alt_upp");
@@ -1678,10 +1525,10 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   data.lon_low = get_extrapol("lon_low");
   data.lon_upp = get_extrapol("lon_upp");
 
-  if (keytype == "Atm::Key")
-    key_val = Atm::toKeyOrThrow(key);
+  if (keytype == "AtmKey")
+    key_val = to<AtmKey>(key);
   else if (keytype == "Species")
-    key_val = Species::fromShortName(key);
+    key_val = to<SpeciesEnum>(key);
   else if (keytype == "IsotopeRecord")
     key_val = Species::Isotopologues[Species::find_species_index(key)];
   else if (keytype == "QuantumIdentifier")
@@ -1737,7 +1584,7 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.get_attribute_value("toa", atm.top_of_atmosphere);
 
   for (Index i = 0; i < n; i++) {
-    Atm::KeyVal key;
+    AtmKeyVal key;
     Atm::Data data;
     xml_read_from_stream_helper(is_xml, key, data, pbifs);
     atm[key] = std::move(data);
@@ -1749,7 +1596,7 @@ void xml_read_from_stream(std::istream& is_xml,
 }
 
 void xml_write_to_stream_helper(std::ostream& os_xml,
-                                const Atm::KeyVal& key,
+                                const AtmKeyVal& key,
                                 const Atm::Data& data,
                                 bofstream* pbofs) {
   ArtsXMLTag open_data_tag;
@@ -1757,8 +1604,8 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
 
   std::visit(
       [&](auto& key_val) {
-        if constexpr (Atm::isKey<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "Atm::Key");
+        if constexpr (Atm::isAtmKey<decltype(key_val)>)
+          open_data_tag.add_attribute("keytype", "AtmKey");
         else if constexpr (Atm::isSpecies<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "Species");
         else if constexpr (Atm::isIsotopeRecord<decltype(key_val)>)
@@ -1770,8 +1617,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
                       "New key type is not yet handled by writing routine!")
 
         if constexpr (Atm::isSpecies<decltype(key_val)>)
-          open_data_tag.add_attribute("key",
-                                      String{Species::toShortName(key_val)});
+          open_data_tag.add_attribute("key", String{toString<1>(key_val)});
         else
           open_data_tag.add_attribute("key", var_string(key_val));
 
@@ -1875,10 +1721,10 @@ void xml_read_from_stream(std::istream& is_xml,
     xml_read_from_stream(is_xml, v, pbifs);
 
     if (nother > 0) {
-      atm[Atm::toKeyOrThrow(k)] = v;
+      atm[to<AtmKey>(k)] = v;
       nother--;
     } else if (nspec > 0) {
-      atm[Species::fromShortName(k)] = v;
+      atm[to<SpeciesEnum>(k)] = v;
       nspec--;
     } else if (nnlte > 0) {
       atm[QuantumIdentifier(k)] = v;
@@ -1947,7 +1793,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== SurfaceField =========================================
 void xml_read_from_stream_helper(std::istream& is_xml,
-                                 Surf::KeyVal& key_val,
+                                 SurfaceKeyVal& key_val,
                                  Surf::Data& data,
                                  bifstream* pbifs) {
   data = Surf::Data{};  // overwrite
@@ -1964,15 +1810,15 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   const auto get_extrapol = [&open_tag](auto& k) {
     String x;
     open_tag.get_attribute_value(k, x);
-    return Surf::toExtrapolationOrThrow(x);
+    return to<InterpolationExtrapolation>(x);
   };
   data.lat_low = get_extrapol("lat_low");
   data.lat_upp = get_extrapol("lat_upp");
   data.lon_low = get_extrapol("lon_low");
   data.lon_upp = get_extrapol("lon_upp");
 
-  if (keytype == "Surf::Key")
-    key_val = Surf::toKeyOrThrow(key);
+  if (keytype == "SurfaceKey")
+    key_val = to<SurfaceKey>(key);
   else if (keytype == "SurfaceTypeTag")
     key_val = SurfaceTypeTag{key};
   else
@@ -2024,7 +1870,7 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.get_attribute_value("nelem", n);
 
   for (Index i = 0; i < n; i++) {
-    Surf::KeyVal key;
+    SurfaceKeyVal key;
     Surf::Data data;
     xml_read_from_stream_helper(is_xml, key, data, pbifs);
     surf[key] = std::move(data);
@@ -2036,7 +1882,7 @@ void xml_read_from_stream(std::istream& is_xml,
 }
 
 void xml_write_to_stream_helper(std::ostream& os_xml,
-                                const Surf::KeyVal& key,
+                                const SurfaceKeyVal& key,
                                 const Surf::Data& data,
                                 bofstream* pbofs) {
   ArtsXMLTag open_data_tag;
@@ -2044,8 +1890,8 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
 
   std::visit(
       [&](auto& key_val) {
-        if constexpr (Surf::isKey<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "Atm::Key");
+        if constexpr (Surf::isSurfaceKey<decltype(key_val)>)
+          open_data_tag.add_attribute("keytype", "AtmKey");
         else if constexpr (Surf::isSurfaceTypeTag<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "SurfaceTypeTag");
         else
@@ -2150,7 +1996,7 @@ void xml_read_from_stream(std::istream& is_xml,
     xml_read_from_stream(is_xml, v, pbifs);
 
     if (nother > 0) {
-      surf[Surf::toKeyOrThrow(k)] = v;
+      surf[to<SurfaceKey>(k)] = v;
       nother--;
     } else if (ntype > 0) {
       surf[SurfaceTypeTag{k}] = v;
@@ -2593,7 +2439,7 @@ void xml_write_to_stream(std::ostream&,
 
 void xml_read_from_stream(std::istream& is_xml,
                           lbl::band_data& data,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
 
   String tag;
@@ -2604,16 +2450,17 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.check_name("AbsorptionBandData");
 
   open_tag.get_attribute_value("lineshape", tag);
-  data.lineshape = lbl::toLineshapeOrThrow(tag);
+  data.lineshape = to<LineByLineLineshape>(tag);
 
   open_tag.get_attribute_value("cutoff_type", tag);
-  data.cutoff = lbl::toCutoffTypeOrThrow(tag);
+  data.cutoff = to<LineByLineCutoffType>(tag);
 
   open_tag.get_attribute_value("cutoff_value", data.cutoff_value);
 
   open_tag.get_attribute_value("nelem", nelem);
   data.lines.resize(0);
   data.lines.reserve(nelem);
+
   for (Index j = 0; j < nelem; j++) {
     is_xml >> data.lines.emplace_back();
   }
@@ -2621,6 +2468,8 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBandData");
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading AbsorptionBandData: ", e.what())
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
@@ -2651,7 +2500,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 void xml_read_from_stream(std::istream& is_xml,
                           AbsorptionBand& data,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   ArtsXMLTag open_tag;
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AbsorptionBand");
@@ -2662,6 +2511,8 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBand");
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading AbsorptionBand: ", e.what())
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
@@ -2683,110 +2534,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== AbsorptionBands =========================================
-
-void xml_read_from_stream(std::istream& is_xml,
-                          AbsorptionBands& data,
-                          bifstream* pbifs) {
-  Index nelem;
-
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("AbsorptionBands");
-  open_tag.get_attribute_value("nelem", nelem);
-
-  data.resize(0);
-  data.reserve(nelem);
-
-  for (Index j = 0; j < nelem; j++) {
-    xml_read_from_stream(is_xml, data.emplace_back(), pbifs);
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/AbsorptionBands");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const AbsorptionBands& data,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  open_tag.set_name("AbsorptionBands");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", static_cast<Index>(data.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (auto& d : data) {
-    xml_write_to_stream(os_xml, d, pbofs, "");
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.set_name("/AbsorptionBands");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-//=== ErrorCorrectedSuddenData =========================================
-
-void xml_read_from_stream(std::istream& is_xml,
-                          ErrorCorrectedSuddenData& ecsd,
-                          bifstream* pbifs) {
-  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
-
-  // Local values
-  String val;
-  Index nelem;
-
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("ErrorCorrectedSuddenData");
-
-  open_tag.get_attribute_value("key", val);
-  ecsd.id = QuantumIdentifier(val);
-
-  open_tag.get_attribute_value("nelem", nelem);
-
-  // Get values
-  ecsd.data.resize(0);
-  ecsd.data.reserve(nelem);
-  for (Index j = 0; j < nelem; j++) {
-    SpeciesErrorCorrectedSuddenData secds;
-    is_xml >> secds;
-    ecsd[secds.spec] = secds;
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/ErrorCorrectedSuddenData");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ErrorCorrectedSuddenData& r,
-                         bofstream* pbofs,
-                         const String& name) {
-  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
-
-  ArtsXMLTag open_tag;
-  open_tag.set_name("ErrorCorrectedSuddenData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("key", var_string(r.id));
-  open_tag.add_attribute("nelem", static_cast<Index>(r.data.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  // Set values
-  os_xml << r << '\n';
-
-  ArtsXMLTag close_tag;
-  close_tag.set_name("/ErrorCorrectedSuddenData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== LinemixingEcsData =========================================
-
 struct meta_data {
   String name;
   String value{};
@@ -2864,9 +2612,8 @@ struct tag {
     auto& x = data.at(key);
     if constexpr (std::same_as<T, Index>) {
       return std::stoi(x);
-    } else if constexpr (std::same_as<T, Species::Species>) {
-      auto s = Species::fromShortName(x);
-      if (not good_enum(s)) s = Species::toSpecies(x);
+    } else if constexpr (requires {to<T>(x);}) {
+      auto s = to<T>(x);
       return s;
     } else {
       return T{x};
@@ -2899,7 +2646,7 @@ void xml_read_from_stream(std::istream& is_xml,
     auto& spec_data_map = ecsd[isotkey];
     for (Index i = 0; i < nspec; i++) {
       const tag spec_tag{is_xml, "specdata", "spec"};
-      const auto speckey = spec_tag.get<Species::Species>("spec");
+      const auto speckey = spec_tag.get<SpeciesEnum>("spec");
 
       auto& spec_data = spec_data_map[speckey];
       is_xml >> spec_data.beta >> spec_data.collisional_distance >>
@@ -2927,7 +2674,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
     for (auto& [ikey, ivalue] : value) {
       const tag spec_tag{
-          os_xml, "specdata", meta_data{"spec", Species::toShortName(ikey)}};
+          os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
 
       os_xml << ivalue.beta << ' ' << ivalue.collisional_distance << ' '
              << ivalue.lambda << ' ' << ivalue.scaling;
@@ -2946,9 +2693,8 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const SpeciesEnum& s,
                          bofstream*,
                          const String&) {
-  const tag stag{os_xml,
-                 "SpeciesEnum",
-                 meta_data{"enum", String{Species::toShortName(s)}}};
+  const tag stag{
+      os_xml, "SpeciesEnum", meta_data{"enum", String{toString<1>(s)}}};
 }
 
 //! ArrayOfPropagationPathPoint
@@ -2957,8 +2703,8 @@ void xml_read_from_stream(std::istream& is_xml,
                           PropagationPathPoint& ppp,
                           bifstream* pbifs) {
   const tag stag{is_xml, "PropagationPathPoint", "pos_t", "los_t"};
-  ppp.pos_type = path::toPositionType(stag.get("pos_t"));
-  ppp.los_type = path::toPositionType(stag.get("los_t"));
+  ppp.pos_type = stag.get<PathPositionType>("pos_t");
+  ppp.los_type = stag.get<PathPositionType>("los_t");
 
   if (pbifs == nullptr) {
     is_xml >> double_imanip{} >> ppp.pos[0] >> ppp.pos[1] >> ppp.pos[2] >>

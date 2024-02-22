@@ -293,34 +293,14 @@ This method can ignore any workspace variable you want.
       .desc =
           R"--(Sets the planet base surface field
 
-Options are:
-
-- ``"Earth"``:
-
-    1. Uses *surface_fieldEarth* with model="WGS84"
-
-- ``"Io"``:
-
-    1. Uses ``surface_fieldIo`` with model="Sphere"
-
-- ``"Jupiter"``:
-
-    1. Uses ``surface_fieldJupiter`` with model="Sphere"
-
-- ``"Mars"``:
-
-    1. Uses ``surface_fieldMars`` with model="Sphere"
-
-- ``"Venus"``:
-
-    1. Uses ``surface_fieldVenus`` with model="Sphere"
+See *PlanetOrMoonType* for valid ``option``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"surface_field"},
       .gin = {"option"},
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
-      .gin_desc = {R"--(Default agenda option (see description))--"},
+      .gin_desc = {R"--(Choice of planet or moon)--"},
   };
 
   wsm_data["ReadXML"] = {
@@ -450,6 +430,8 @@ All available partition functions are written to files in the select format
 in the select directory
 
 The temperature will be linearly spaced between [Tlow, Tupp] with N values
+
+See *FileType* for valid ``output_file_format``.
 )--",
       .author = {"Richard Larsson"},
       .gin = {"output_file_format", "dir", "Tlow", "Tupp", "N"},
@@ -513,6 +495,8 @@ If the filename is omitted, the variable is written
 to <basename>.<variable_name>.xml.
 If no_clobber is set to 1, an increasing number will be
 appended to the filename if the file already exists.
+
+See *FileType* for valid ``output_file_format``.
 )--",
       .author = {"Oliver Lemke"},
       .gin = {"output_file_format", "input", "filename", "no_clobber"},
@@ -536,6 +520,8 @@ where <file_index> is the value of ``file_index``.
 
 This means that ``filename`` shall here not include the .xml
 extension. Omitting filename works as for *WriteXML*.
+
+See *FileType* for valid ``output_file_format``.
 )--",
       .author = {"Patrick Eriksson, Oliver Lemke"},
       .gin =
@@ -838,6 +824,8 @@ computations.
   wsm_data["atmospheric_fieldInit"] = {
       .desc =
           R"--(Initialize the atmospheric field with some altitude and isotopologue ratios
+
+See *IsoRatioOption* for valid ``default_isotopologue``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"atmospheric_field"},
@@ -851,6 +839,8 @@ computations.
   wsm_data["atmospheric_pointInit"] = {
       .desc =
           R"--(Initialize an atmospheric point with some isotopologue ratios
+
+See *IsoRatioOption* for valid ``default_isotopologue``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"atmospheric_point"},
@@ -894,12 +884,7 @@ computations.
   wsm_data["spectral_radiance_observer_agendaSet"] = {
       .desc = R"--(Sets *spectral_radiance_space_agenda*
 
-Options are:
-
-- ``"Emission:``:
-
-  1. Calls *propagation_path_observer_agendaExecute*
-  2. Calls *spectral_radianceStandardEmission*
+See *spectral_radiance_space_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_observer_agenda"},
@@ -912,14 +897,7 @@ Options are:
   wsm_data["propagation_path_observer_agendaSet"] = {
       .desc = R"--(Sets *propagation_path_observer_agenda*
 
-Options are:
-
-- ``"Geometric:``:
-
-  1. Calls *propagation_pathGeometric*
-    - ``pos`` is set to *spectral_radiance_observer_position*
-    - ``los`` is set to *spectral_radiance_observer_line_of_sight*
-    - ``as_observer`` is set to ``1``
+See *propagation_path_observer_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_path_observer_agenda"},
@@ -932,12 +910,7 @@ Options are:
   wsm_data["spectral_radiance_space_agendaSet"] = {
       .desc = R"--(Sets *spectral_radiance_space_agenda*
 
-Options are:
-
-- ``"UniformCosmicBackground:``:
-
-  1. Calls *spectral_radianceUniformCosmicBackground*
-  2. Calls *spectral_radiance_jacobianEmpty*
+See *spectral_radiance_space_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_space_agenda"},
@@ -950,11 +923,7 @@ Options are:
   wsm_data["spectral_radiance_surface_agendaSet"] = {
       .desc = R"--(Sets *spectral_radiance_surface_agenda*
 
-Options are:
-
-- ``"Blackbody"``:
-
-  1. Calls *spectral_radianceSurfaceBlackbody*
+See *spectral_radiance_surface_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_surface_agenda"},
@@ -1006,7 +975,7 @@ Sets N2 and O2 speces
       .out = {"ecs_data"},
       .in = {"ecs_data"},
       .gin = {"vmrs", "species"},
-      .gin_type = {"Vector", "ArrayOfSpecies"},
+      .gin_type = {"Vector", "ArrayOfSpeciesEnum"},
       .gin_value = {std::nullopt, std::nullopt},
       .gin_desc = {R"--(VMRs of air species)--", R"--(Air species)--"},
   };
@@ -1680,19 +1649,21 @@ are ignored and instead the calculations from the absorption
 lookup are used.
 
 The following methods are considered for addition:
-    1) *propagation_matrixInit*
-    2) *propagation_matrixAddCIA*
-    3) *propagation_matrixAddLines*
-    5) *propagation_matrixAddFaraday*
-    6) *propagation_matrixAddXsecFit*
-    8) *propagation_matrixAddFromLookup*
-    9) *propagation_matrixAddPredefined*
+
+1) *propagation_matrixInit*
+2) *propagation_matrixAddCIA*
+3) *propagation_matrixAddLines*
+4) *propagation_matrixAddFaraday*
+5) *propagation_matrixAddXsecFit*
+6) *propagation_matrixAddFromLookup*
+7) *propagation_matrixAddPredefined*
 
 To perform absorption lookupo table calculation, call:
-    1) *propagation_matrix_agendaAuto*
-    2) ``absorption_lookup_table_dataCalc``  FIXME: HOW TO COMPUTE IT
-    3) *propagation_matrix_agendaAuto* (use_absorption_lookup_table_data=1)
-    4) Perform other calculations
+
+1) *propagation_matrix_agendaAuto*
+2) ``absorption_lookup_table_dataCalc``  FIXME: HOW TO COMPUTE IT
+3) *propagation_matrix_agendaAuto* (use_absorption_lookup_table_data=1)
+4) Perform other calculations
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_matrix_agenda"},
@@ -1753,11 +1724,7 @@ Please consider using *propagation_matrix_agendaAuto* instead of one of these op
 as it will ensure you have the best coverage of use cases.  The options below are
 available for feature testing
 
-Options are:
-
-- ``"Empty"``:
-
-    1. Uses *propagation_matrixInit* to set *propagation_matrix*, *propagation_matrix_source_vector_nonlte*, *propagation_matrix_jacobian*, and *propagation_matrix_source_vector_nonlte_jacobian*
+See *propagation_matrix_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_matrix_agenda"},
@@ -1770,15 +1737,9 @@ Options are:
   wsm_data["surface_fieldEarth"] = {
       .desc = R"--(Earth reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model the Earth,
-following different models. The options are:
+The reference ellipsoid is set to model the Earth.
 
-- "Sphere":
-    A spherical Earth. The radius is set following
-    the value set for the Earth radius in constants.cc.
-- "WGS84":
-    The reference ellipsoid used by the GPS system.
-    Should be the standard choice for a non-spherical Earth.
+See *EarthEllipsoid* for valid ``model``
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -1789,12 +1750,11 @@ following different models. The options are:
   };
 
   wsm_data["surface_fieldEuropa"] = {
-      .desc = R"--(Io reference ellipsoids.
+      .desc = R"--(Europa reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Io,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Europa.
 
-- "Sphere": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.
+See *EuropaEllipsoid* for valid ``model``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"surface_field"},
@@ -1807,7 +1767,7 @@ folowing different models. The options are:
   wsm_data["surface_fieldGanymede"] = {
       .desc = R"--(Ganymede reference ellipsoids.
 
-From Wikipedia
+See *GanymedeEllipsoid* for valid ``model``.
 )--",
       .author = {"Takayoshi Yamada"},
       .out = {"surface_field"},
@@ -1836,10 +1796,9 @@ reference ellipsoid.
   wsm_data["surface_fieldIo"] = {
       .desc = R"--(Io reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Io,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Io.
 
-- "Sphere": A spherical planetesimal. The radius is taken from report of the IAU/IAG Working Group.
+See *IoEllipsoid* for valid ``model``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"surface_field"},
@@ -1852,11 +1811,9 @@ folowing different models. The options are:
   wsm_data["surface_fieldJupiter"] = {
       .desc = R"--(Jupiter reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Jupiter,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Jupiter.
 
-- "Sphere": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.
-- "Ellipsoid": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.
+See *JupiterEllipsoid* for valid ``model``.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -1869,11 +1826,9 @@ folowing different models. The options are:
   wsm_data["surface_fieldMars"] = {
       .desc = R"--(Mars reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Mars,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Mars.
 
-- "Sphere": A spherical planet. The radius is taken from a report of the IAU/IAG Working Group.
-- "Ellipsoid": A reference ellipsoid with parameters taken from a report of the IAU/IAG Working Group.
+See *MarsEllipsoid* for valid ``model``.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -1886,17 +1841,9 @@ folowing different models. The options are:
   wsm_data["surface_fieldMoon"] = {
       .desc = R"--(Moon reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Moon,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Moon.
 
-- "Sphere":
-    A spherical planet. The radius is taken from a
-    report of the IAU/IAG Working Group.
-
-- "Ellipsoid":
-    A reference ellipsoid with parameters taken from
-    Wikepedia (see code for details). The IAU/IAG working group
-    defines the Moon ellipsoid to be a sphere.
+See *MoonEllipsoid* for valid ``model``.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -1906,54 +1853,12 @@ folowing different models. The options are:
       .gin_desc = {R"--(Model ellipsoid to use. Options listed above.)--"},
   };
 
-  wsm_data["surface_fieldSet"] = {
-      .desc = R"--(Make the surface field hold value at the key.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"surface_field"},
-      .in = {"surface_field"},
-      .gin = {"value", "key"},
-      .gin_type = {"Numeric, GriddedField2", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value to set)--", R"--(Key to set value at)--"},
-  };
-
-  wsm_data["surface_fieldSetProp"] = {
-      .desc = R"--(Make the surface field hold value at the key.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"surface_field"},
-      .in = {"surface_field"},
-      .gin = {"value", "key"},
-      .gin_type = {"Numeric, GriddedField2", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value to set)--", R"--(Key to set value at)--"},
-  };
-
-  wsm_data["surface_fieldSetType"] = {
-      .desc = R"--(Make the surface field hold value at the key.
-)--",
-      .author = {"Richard Larsson"},
-      .out = {"surface_field"},
-      .in = {"surface_field"},
-      .gin = {"value", "key"},
-      .gin_type = {"Numeric, GriddedField2", "String"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc = {R"--(Value to set)--", R"--(Key to set value at)--"},
-  };
-
   wsm_data["surface_fieldVenus"] = {
       .desc = R"--(Venus reference ellipsoids.
 
-The reference ellipsoid (``refellipsoid``) is set to model Venus,
-folowing different models. The options are:
+The reference ellipsoid is set to model the Venus.
 
-- "Sphere":
-      A spherical planet. The radius is taken from a
-      report of the IAU/IAG Working Group.
-
-According to the report used above, the Venus ellipsoid lacks
-eccentricity and no further models should be required.
+See *VenusEllipsoid* for valid ``model``.
 )--",
       .author = {"Patrick Eriksson"},
       .out = {"surface_field"},
@@ -2050,6 +1955,8 @@ list should corresond to the altitude of the ``p0`` grid.  The extrapolation
 outside of this range simply uses the hydrostatic equation
 $P_1 = P_0 - g * h * \rho$ by means of the specific gas constant omputed
 as desribed above and the pressure of the lower or first altitude level.
+
+See *HydrostaticPressureOption* for valid ``hydrostatic_option``.
 )-x-",
       .author = {"Richard Larsson"},
       .out = {"atmospheric_field"},
@@ -2169,7 +2076,10 @@ Size : (*jacobian_targets*, *frequency_grid*)
   };
 
   wsm_data["spectral_radianceApplyUnit"] = {
-      .desc = "Applies a unit to *spectral_radiance*, returning a new field\n",
+      .desc = R"(Applies a unit to *spectral_radiance*, returning a new field
+
+See *SpectralRadianceUnitType* for valid ``spectral_radiance_unit``
+)",
       .author = {"Richard Larsson"},
       .gout = {"spectral_radiance_with_unit"},
       .gout_type = {"StokvecVector"},
@@ -2289,6 +2199,8 @@ The calculations are in parallel if the program is not in parallel already.
 
   wsm_data["jacobian_targetsAddMagneticField"] = {
       .desc = R"--(Set magnetic field derivative
+
+See *FieldComponent* for valid ``component``
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -2306,6 +2218,8 @@ The calculations are in parallel if the program is not in parallel already.
 
 Note that the derivatives from methods that takes the freqeuncy will return
 their derivatives as if these were frequency derivatives.
+
+See *FieldComponent* for valid ``component``
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -2320,6 +2234,8 @@ their derivatives as if these were frequency derivatives.
 
   wsm_data["jacobian_targetsAddSpeciesVMR"] = {
       .desc = R"--(Set volume mixing ratio derivative
+
+See *SpeciesEnum* for valid ``species``
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -2334,6 +2250,8 @@ their derivatives as if these were frequency derivatives.
 
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc = R"--(Set isotopologue ratio derivative
+
+See ???? for valud ``species``
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -2342,16 +2260,18 @@ their derivatives as if these were frequency derivatives.
       .gin_type = {"String", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
-          {"The species isotopologue of interest (short name)",
+          {"The species isotopologue of interest",
            "The perturbation used in methods that cannot compute derivatives analytically"},
   };
 
   wsm_data["jacobian_targetsAddLineParameter"] = {
       .desc = R"--(Set line parameter derivative
 
-Note that empty ``coefficient`` means that the derivative is for a standard
-line parameter (e.g., line center), otherwise it is for a line shape parameter.
-By default, this variable is set to empty.
+See *LineByLineVariable* for valid ``parameter``.
+
+See *SpeciesEnum* for valid ``species``.
+
+See *LineShapeModelCoefficient* for valid ``coefficient``.
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
@@ -2380,16 +2300,22 @@ By default, this variable is set to empty.
 
   wsm_data["absorption_bandsSelectFrequency"] = {
       .desc =
-          R"--(Remove all bands that strictly falls outside a frequency range
+          R"--(Remove all lines/bands that strictly falls outside a frequency range
+
+The line's of each band must be sorted by frequency
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
       .in = {"absorption_bands"},
-      .gin = {"fmin", "fmax"},
-      .gin_type = {"Numeric", "Numeric"},
+      .gin = {"fmin", "fmax", "by_line"},
+      .gin_type = {"Numeric", "Numeric", "Index"},
       .gin_value = {-std::numeric_limits<Numeric>::infinity(),
-                    std::numeric_limits<Numeric>::infinity()},
-      .gin_desc = {"Minimum frequency to keep", "Maximum frequency to keep"},
+                    std::numeric_limits<Numeric>::infinity(),
+                    Index{0}},
+      .gin_desc =
+          {"Minimum frequency to keep",
+           "Maximum frequency to keep",
+           "Selection is done line-by-line (if true) or band-by-band (if false)"},
   };
 
   wsm_data["absorption_bandsRemoveID"] = {
@@ -2424,10 +2350,7 @@ If ``line`` is positive, also keep only the line of this index
 
 The reverse sorting can also be achieved by setting ``reverse``.
 
-Valid ``criteria`` are:
-- None: No sorting after the quantum identifier sorting
-- IntegratedIntensity: Sum of the intesities of the band at input temperature
-- FrontFrequency: By first frequency
+See *AbsorptionBandSortingOption* for valid ``criteria``.
 )--",
       .author = {"Richard Larsson"},
       .gout = {"sorted"},
@@ -2455,11 +2378,10 @@ variables are not considered
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
       .in = {"absorption_species"},
-      .gin = {"basename", "cut_out_of_bounds"},
-      .gin_type = {"String", "Index"},
-      .gin_value = {std::nullopt, Index{1}},
-      .gin_desc = {"Absolute or relative path to the directory",
-                   "Whether or not to cut out of bounds bands"},
+      .gin = {"basename"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {"Absolute or relative path to the directory"},
   };
 
   wsm_data["absorption_bandsReadSplit"] = {
@@ -2682,7 +2604,8 @@ A planar geometric path is just defined by a 1D atmospheric profile.  If the
 point, their altitude profiles are treated independently.
 
 Limitations:
-    The zenith grid is not allowed to contain the value 90 degrees.
+
+- The zenith grid is not allowed to contain the value 90 degrees.
 )--",
       .author = {"Richard Larsson"},
       .gout = {"spectral_radiance_field"},
@@ -2737,12 +2660,9 @@ data.  The base data file names are of the form
 
 If any of these files are found, they are appended to the atmospheric field.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
-The ``deal_with_field_component`` is used to determine what to do if one but not all of
-the components are found.  See :class:`~pyarts.arts.options.MissingFieldComponent` for
-valid options.
+See *MissingFieldComponentError* for valid ``deal_with_field_component``.
 
 The ``replace_existing`` is used to determine if the data should be replaced if it already
 exists in the atmospheric field.
@@ -2782,8 +2702,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2813,8 +2732,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the form: "species-n.xml" (e.g., "H2O-161.xml").
 See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2845,8 +2763,7 @@ data.  The base data file names are of the form: "species-n QN1 N1 N1 QN2 N2 N2.
 See :class:`~pyarts.arts.SpeciesIsotopeRecord` for valid isotopologue names and
 :class:`~pyarts.arts.QuantumNumberValue` for valid quantum numbers.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2876,8 +2793,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2907,8 +2823,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2938,8 +2853,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -2969,8 +2883,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -3000,8 +2913,7 @@ This will look at the valid ``basename`` for files matching base
 data.  The base data file names are of the short-name form: "species.xml" (e.g., "H2O.xml").
 See :class:`~pyarts.arts.SpeciesEnum` for valid short names.
 
-The ``extrapolation`` is used to determine how to handle extrapolation in alt, lat, and lon.
-See :class:`~pyarts.arts.options.AtmExtrapolation` for valid extrapolations.
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 The ``missing_is_zero`` sets missing data to zero.
 
@@ -3026,6 +2938,8 @@ exists in the atmospheric field.
   wsm_data["atmospheric_fieldAppendAbsorptionData"] = {
       .desc =
           R"--(Append data to the atmospheric field based all absorption data
+
+See *InterpolationExtrapolation* for valid ``extrapolation``.
 
 Wraps:
 
@@ -3069,10 +2983,10 @@ Wraps:
 
 Wraps:
 
-- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" adds to ``basename`` and ``cut_out_of_bounds`` = 1
-- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" adds to ``basename`` and ``robust`` = 0
-- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" adds to ``basename``
-- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" adds to ``basename`` and ``name_missing`` = 1
+- *absorption_bandsReadSpeciesSplitCatalog* with "lines/" added to ``basename``
+- *absorption_cia_dataReadSpeciesSplitCatalog* with "cia/" added to ``basename`` and ``robust`` = 0
+- *absorption_xsec_fit_dataReadSpeciesSplitCatalog* with "xsec/" added to ``basename``
+- *absorption_predefined_model_dataReadSpeciesSplitCatalog* with "predef/" added to ``basename`` and ``name_missing`` = 1
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_predefined_model_data",
@@ -3088,11 +3002,13 @@ Wraps:
 
   wsm_data["absorption_bandsSetZeeman"] = {
       .desc = R"--(Set the Zeeman splitting for lines within the frequency range
+
+See ???? for valud ``species``
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
       .in = {"absorption_bands"},
-      .gin = {"isot", "fmin", "fmax"},
+      .gin = {"species", "fmin", "fmax"},
       .gin_type = {"SpeciesTag", "Numeric", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt},
       .gin_desc = {"Isotopologue of the species",

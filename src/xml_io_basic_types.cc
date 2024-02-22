@@ -10,15 +10,17 @@
 
 */
 
-#include "absorptionlines.h"
-#include "debug.h"
-#include "double_imanip.h"
-#include "isotopologues.h"
-#include "quantum_numbers.h"
-#include "xml_io.h"
 #include <algorithm>
 #include <utility>
 #include <vector>
+
+#include "absorptionlines.h"
+#include "debug.h"
+#include "double_imanip.h"
+#include "enums.h"
+#include "isotopologues.h"
+#include "quantum_numbers.h"
+#include "xml_io.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
@@ -97,15 +99,15 @@ void xml_read_from_stream(std::istream& is_xml,
                           Time& t,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
-  
+
   tag.read_from_stream(is_xml);
   tag.check_name("Time");
-  
+
   Index version;
   tag.get_attribute_value("version", version);
-  ARTS_USER_ERROR_IF (version not_eq 1,
-                      "Your version of ARTS can only handle version 1 of Time");
-  
+  ARTS_USER_ERROR_IF(version not_eq 1,
+                     "Your version of ARTS can only handle version 1 of Time");
+
   is_xml >> t;
   if (is_xml.fail()) {
     xml_data_parse_error(tag, "Time is poorly formatted");
@@ -134,7 +136,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
 
   xml_set_stream_precision(os_xml);
-  
+
   os_xml << ' ' << t << ' ';
 
   close_tag.set_name("/Time");
@@ -153,13 +155,15 @@ void xml_write_to_stream(std::ostream& os_xml,
 void xml_read_from_stream(std::istream& is_xml,
                           AbsorptionLines& al,
                           bifstream* pbifs) {
-  static_assert(AbsorptionLines::version == 2, "The reading routine expects version 1 of the absorption lines data type to work");
-  
+  static_assert(
+      AbsorptionLines::version == 2,
+      "The reading routine expects version 1 of the absorption lines data type to work");
+
   ArtsXMLTag tag;
-  
+
   tag.read_from_stream(is_xml);
   tag.check_name("AbsorptionLines");
-  
+
   Index version;
   if (tag.has_attribute("version")) {
     tag.get_attribute_value("version", version);
@@ -191,7 +195,7 @@ void xml_read_from_stream(std::istream& is_xml,
   // Number of lines
   Index nlines;
   tag.get_attribute_value("nlines", nlines);
-  
+
   // Identity of the lines (Changes between versions)
   QuantumIdentifier id;
   if (version == 2) {
@@ -206,44 +210,47 @@ void xml_read_from_stream(std::istream& is_xml,
     ARTS_USER_ERROR_IF(spec_ind < 0, "Bad species index for: ", spec)
     id.isotopologue_index = spec_ind;
   }
-  
+
   // Cutoff type
   String s_cutoff;
   tag.get_attribute_value("cutofftype", s_cutoff);
-  const Absorption::CutoffType cutoff = Absorption::toCutoffTypeOrThrow(s_cutoff);
-  
+  const AbsorptionCutoffTypeOld cutoff = to<AbsorptionCutoffTypeOld>(s_cutoff);
+
   // Mirroring type
   String s_mirroring;
   tag.get_attribute_value("mirroringtype", s_mirroring);
-  const Absorption::MirroringType mirroring = Absorption::toMirroringTypeOrThrow(s_mirroring);
-  
+  const AbsorptionMirroringTypeOld mirroring =
+      to<AbsorptionMirroringTypeOld>(s_mirroring);
+
   // Line population type
   String s_population;
   tag.get_attribute_value("populationtype", s_population);
-  const Absorption::PopulationType population = Absorption::toPopulationTypeOrThrow(s_population);
-  
+  const AbsorptionPopulationTypeOld population =
+      to<AbsorptionPopulationTypeOld>(s_population);
+
   // Normalization type
   String s_normalization;
   tag.get_attribute_value("normalizationtype", s_normalization);
-  const Absorption::NormalizationType normalization = Absorption::toNormalizationTypeOrThrow(s_normalization);
-  
+  const AbsorptionNormalizationTypeOld normalization =
+      to<AbsorptionNormalizationTypeOld>(s_normalization);
+
   // Shape type
   String s_lineshapetype;
   tag.get_attribute_value("lineshapetype", s_lineshapetype);
-  const LineShape::Type lineshapetype = LineShape::toTypeOrThrow(s_lineshapetype);
-  
+  const LineShapeTypeOld lineshapetype = to<LineShapeTypeOld>(s_lineshapetype);
+
   /** Reference temperature for all parameters of the lines */
   Numeric T0;
   tag.get_attribute_value("T0", T0);
-  
+
   /** cutoff frequency */
   Numeric cutofffreq;
   tag.get_attribute_value("cutofffreq", cutofffreq);
-  
+
   /** linemixing limit */
   Numeric linemixinglimit;
   tag.get_attribute_value("linemixinglimit", linemixinglimit);
-  
+
   /** List of local quantum numbers, these must be defined and not strings */
   Quantum::Number::LocalState meta_localstate;
   String localquanta_str;
@@ -252,16 +259,17 @@ void xml_read_from_stream(std::istream& is_xml,
   Array<QuantumNumberType> qn_key;
   for (Index i = 0; i < nlocal; i++)
     qn_key.push_back(
-        Quantum::Number::toType(Quantum::Number::items(localquanta_str, i)));
+        to<QuantumNumberType>(Quantum::Number::items(localquanta_str, i)));
   ARTS_USER_ERROR_IF(
-      std::any_of(qn_key.begin(),
-                  qn_key.end(),
-                  [](auto& qn) {
-                    return Quantum::Number::common_value_type(
-                               Quantum::Number::common_value_type(qn),
-                               Quantum::Number::ValueType::H) not_eq
-                           Quantum::Number::ValueType::H;
-                  }),
+      std::any_of(
+          qn_key.begin(),
+          qn_key.end(),
+          [](auto& qn) {
+            return Quantum::Number::common_value_type(
+                       Quantum::Number::common_value_type(qn),
+                       Quantum::Number::QuantumNumberValueType::H) not_eq
+                   Quantum::Number::QuantumNumberValueType::H;
+          }),
       "Quantum number list contains a string type, this is not allowed: [",
       qn_key,
       ']')
@@ -274,32 +282,42 @@ void xml_read_from_stream(std::istream& is_xml,
     tag.get_attribute_value("lowerglobalquanta", lid);
     id.val = Quantum::Number::ValueList(uid, lid);
   }
-  
+
   /** A list of broadening species */
-  ArrayOfSpecies broadeningspecies;
+  ArrayOfSpeciesEnum broadeningspecies;
   bool selfbroadening;
   bool bathbroadening;
-  tag.get_attribute_value("broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
+  tag.get_attribute_value(
+      "broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
   if (selfbroadening) broadeningspecies.front() = id.Species();
-  
+
   String temperaturemodes;
   tag.get_attribute_value("temperaturemodes", temperaturemodes);
   auto metamodel = LineShape::MetaData2ModelShape(temperaturemodes);
 
-  al = AbsorptionLines(selfbroadening, bathbroadening,
-                       nlines, cutoff, mirroring,
-                       population, normalization,
-                       lineshapetype, T0, cutofffreq,
-                       linemixinglimit, id,
-                       broadeningspecies, meta_localstate, metamodel);
-  
+  al = AbsorptionLines(selfbroadening,
+                       bathbroadening,
+                       nlines,
+                       cutoff,
+                       mirroring,
+                       population,
+                       normalization,
+                       lineshapetype,
+                       T0,
+                       cutofffreq,
+                       linemixinglimit,
+                       id,
+                       broadeningspecies,
+                       meta_localstate,
+                       metamodel);
+
   if (pbifs) {
     al.read(*pbifs);
-     if (pbifs->fail()) {
-       std::ostringstream os;
-       os << "AbsorptionLines has wrong dimensions";
-       xml_data_parse_error(tag, os.str());
-     }
+    if (pbifs->fail()) {
+      std::ostringstream os;
+      os << "AbsorptionLines has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
   } else {
     is_xml >> al;
     if (is_xml.fail()) {
@@ -310,7 +328,7 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   // Finalize the sorting because we have to
-  for (auto& line: al.lines) line.localquanta.val.finalize();
+  for (auto& line : al.lines) line.localquanta.val.finalize();
 
   tag.read_from_stream(is_xml);
   tag.check_name("/AbsorptionLines");
@@ -343,11 +361,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("version", al.version);
   open_tag.add_attribute("id", var_string(al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
-  open_tag.add_attribute("cutofftype", String{Absorption::toString(al.cutoff)});
-  open_tag.add_attribute("mirroringtype", String{Absorption::toString(al.mirroring)});
-  open_tag.add_attribute("populationtype", String{Absorption::toString(al.population)});
-  open_tag.add_attribute("normalizationtype", String{Absorption::toString(al.normalization)});
-  open_tag.add_attribute("lineshapetype", String{LineShape::toString(al.lineshapetype)});
+  open_tag.add_attribute("cutofftype", String{toString(al.cutoff)});
+  open_tag.add_attribute("mirroringtype", String{toString(al.mirroring)});
+  open_tag.add_attribute("populationtype", String{toString(al.population)});
+  open_tag.add_attribute("normalizationtype",
+                         String{toString(al.normalization)});
+  open_tag.add_attribute("lineshapetype", String{toString(al.lineshapetype)});
   open_tag.add_attribute("T0", al.T0);
   open_tag.add_attribute("cutofffreq", al.cutofffreq);
   open_tag.add_attribute("linemixinglimit", al.linemixinglimit);
@@ -356,7 +375,10 @@ void xml_write_to_stream(std::ostream& os_xml,
       al.NumLines() ? al.lines.front().localquanta.keys() : "";
   open_tag.add_attribute("localquanta", localquanta_str);
 
-  open_tag.add_attribute("broadeningspecies", al.broadeningspecies, al.selfbroadening, al.bathbroadening);
+  open_tag.add_attribute("broadeningspecies",
+                         al.broadeningspecies,
+                         al.selfbroadening,
+                         al.bathbroadening);
   open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
 
   open_tag.write_to_stream(os_xml);
@@ -374,7 +396,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-
 //=== VibrationalEnergyLevels ================================================================
 
 //! Reads VibrationalEnergyLevels from XML input stream
@@ -387,20 +408,30 @@ void xml_read_from_stream(std::istream& is_xml,
                           VibrationalEnergyLevels& vib,
                           bifstream* pbifs [[maybe_unused]]) {
   ArtsXMLTag tag;
-  
+
   tag.read_from_stream(is_xml);
   tag.check_name("VibrationalEnergyLevels");
-  const Index n = [&](){Index x; tag.get_attribute_value("nelem", x); return x;}();
+  const Index n = [&]() {
+    Index x;
+    tag.get_attribute_value("nelem", x);
+    return x;
+  }();
   vib.data.clear();
   vib.data.reserve(n);
 
-  for (Index i=0; i<n; i++) {
+  for (Index i = 0; i < n; i++) {
     tag.read_from_stream(is_xml);
     tag.check_name("Data");
-    QuantumIdentifier qkey = [&](){String k; tag.get_attribute_value("key", k); return QuantumIdentifier{k};}();
+    QuantumIdentifier qkey = [&]() {
+      String k;
+      tag.get_attribute_value("key", k);
+      return QuantumIdentifier{k};
+    }();
     Numeric data;
-    if (pbifs) *pbifs >> data;
-    else is_xml >> data;
+    if (pbifs)
+      *pbifs >> data;
+    else
+      is_xml >> data;
     vib[std::move(qkey)] = data;
     tag.read_from_stream(is_xml);
     tag.check_name("/Data");
@@ -429,13 +460,15 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (auto& a: vib) {
+  for (auto& a : vib) {
     ArtsXMLTag open_data_tag;
     open_data_tag.set_name("Data");
     open_data_tag.add_attribute("key", var_string(a.first));
     open_data_tag.write_to_stream(os_xml);
-    if (pbofs) *pbofs << a.second;
-    else os_xml << ' ' << a.second << ' ';
+    if (pbofs)
+      *pbofs << a.second;
+    else
+      os_xml << ' ' << a.second << ' ';
     ArtsXMLTag close_data_tag;
     close_data_tag.set_name("/Data");
     close_data_tag.write_to_stream(os_xml);

@@ -24,9 +24,9 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "arts_options.h"
 #include "check_input.h"
 #include "debug.h"
+#include "enums.h"
 #include "operators.h"
 #include "surf.h"
 
@@ -91,138 +91,126 @@ void g0Io(Numeric &g0) {
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldEarth(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] = EARTH_RADIUS;
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<EarthEllipsoid>(model)) {
+    case EarthEllipsoid::WGS84:
+      // https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version
+      surface_field.ellipsoid[0] = 6378137.0;
+      surface_field.ellipsoid[1] = 6356752.314245;
+      break;
+    case EarthEllipsoid::Sphere:
+      surface_field.ellipsoid[0] = EARTH_RADIUS;
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
   }
-
-  else if (model == "WGS84") {
-    // https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version
-    surface_field.ellipsoid[0] = 6378137.0;
-    surface_field.ellipsoid[1] = 6356752.314245;
-  }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldJupiter(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 69911e3;  // From Ref. 1 (see above)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<JupiterEllipsoid>(model)) {
+    case JupiterEllipsoid::Sphere:
+      surface_field.ellipsoid[0] = 69911e3;  // From Ref. 1 (see above)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
+    case JupiterEllipsoid::Ellipsoid:
+      surface_field.ellipsoid[0] = 71492e3;  // From Ref. 1
+      surface_field.ellipsoid[1] = 66854e3;
+      break;
   }
-
-  else if (model == "Ellipsoid") {
-    surface_field.ellipsoid[0] = 71492e3;  // From Ref. 1
-    surface_field.ellipsoid[1] = 66854e3;
-  }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldMars(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 3389.5e3;  // From Ref. 1 (see above)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<MarsEllipsoid>(model)) {
+    case MarsEllipsoid::Sphere:
+      surface_field.ellipsoid[0] = 3389.5e3;  // From Ref. 1 (see above)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
+    case MarsEllipsoid::Ellipsoid:
+      surface_field.ellipsoid[0] = 3396.19e3;  // From Ref. 1
+      surface_field.ellipsoid[1] = 3376.20e3;
+      break;
   }
-
-  else if (model == "Ellipsoid") {
-    surface_field.ellipsoid[0] = 3396.19e3;  // From Ref. 1
-    surface_field.ellipsoid[1] = 3376.20e3;
-  }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldMoon(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] = 1737.4e3;  // From Ref. 1 (see above)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<MoonEllipsoid>(model)) {
+    case MoonEllipsoid::Sphere:
+      surface_field.ellipsoid[0] = 1737.4e3;  // From Ref. 1 (see above)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
+    case MoonEllipsoid::Ellipsoid:
+      // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+      surface_field.ellipsoid[0] = 1738.1e3;
+      surface_field.ellipsoid[1] = 1736.0e3;
+      break;
   }
-
-  else if (model == "Ellipsoid") {
-    // https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-    surface_field.ellipsoid[0] = 1738.1e3;
-    surface_field.ellipsoid[1] = 1736.0e3;
-  }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldIo(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] =
-        1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<IoEllipsoid>(model)) {
+    case IoEllipsoid::Sphere:
+      surface_field.ellipsoid[0] =
+          1821.6e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
   }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldEuropa(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
-    surface_field.ellipsoid[0] =
-        1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
-    surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+  switch (to<EuropaEllipsoid>(model)) {
+    case EuropaEllipsoid::Sphere:
+      surface_field.ellipsoid[0] =
+          1560.8e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
+      surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
   }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldGanymede(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
+  switch (to<GanymedeEllipsoid>(model)) {
+    case GanymedeEllipsoid::Sphere:
     surface_field.ellipsoid[0] =
         2631e3;  // From Wikipedia (and http://ssd.jpl.nasa.gov/?sat_phys_par)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
   }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void surface_fieldVenus(SurfaceField &surface_field, const String &model) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  if (model == "Sphere") {
+  switch (to<VenusEllipsoid>(model)) {
+    case VenusEllipsoid::Sphere:
     surface_field.ellipsoid[0] = 6051.8e3;  // From Ref. 1 (see above)
     surface_field.ellipsoid[1] = surface_field.ellipsoid[0];
+      break;
   }
-
-  else
-    throw std::runtime_error("Unknown selection for input argument *model*.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -230,7 +218,7 @@ void surface_fieldInit(SurfaceField &surface_field,
                        const Numeric &r_equatorial,
                        const Numeric &r_polar) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
   surface_field.ellipsoid[0] = r_equatorial;
   surface_field.ellipsoid[1] = r_polar;
@@ -241,10 +229,10 @@ void surface_fieldInit(SurfaceField &surface_field,
 void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
                                      const String &option) {
   surface_field = {};
-  surface_field[Surf::Key::h] = 0.0;
+  surface_field[SurfaceKey::h] = 0.0;
 
-  using enum Options::planetOption;
-  switch (Options::toplanetOptionOrThrow(option)) {
+  using enum PlanetOrMoonType;
+  switch (to<PlanetOrMoonType>(option)) {
     case Earth:
       surface_fieldEarth(surface_field, "WGS84");
       // molarmass_dry_air = 28.966;
@@ -269,8 +257,6 @@ void surface_fieldSetPlanetEllipsoid(SurfaceField &surface_field,
       surface_fieldVenus(surface_field, "Sphere");
       // molarmass_dry_air = 43.45;
       // planet_rotation_period = -2.0997e7;
-      break;
-    case FINAL:
       break;
   }
 }

@@ -58,7 +58,7 @@ concept ModelVariantConvertible = ModelVariantType<T> or requires(T t) {
 class Model {
   using ModelData = std::unordered_map<SpeciesIsotopeRecord, ModelVariant>;
 
-  ModelData data;
+  ModelData data{};
 
  public:
   Model() = default;

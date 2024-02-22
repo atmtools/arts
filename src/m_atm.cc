@@ -31,13 +31,13 @@
 void atmospheric_fieldInit(AtmField &atmospheric_field,
                            const Numeric &top_of_atmosphere,
                            const String &default_isotopologue) {
-  atmospheric_field = AtmField{default_isotopologue};
+  atmospheric_field = AtmField{to<IsoRatioOption>(default_isotopologue)};
   atmospheric_field.top_of_atmosphere = top_of_atmosphere;
 }
 
 void atmospheric_pointInit(AtmPoint &atmospheric_point,
                            const String &default_isotopologue) {
-  atmospheric_point = AtmPoint{default_isotopologue};
+  atmospheric_point = AtmPoint{to<IsoRatioOption>(default_isotopologue)};
 }
 
 template <Size I = 0, typename... T, Size N = sizeof...(T)>
@@ -76,7 +76,7 @@ void append_data(
 
   Atm::Data x;
   x.alt_low = x.alt_upp = x.lat_low = x.lat_upp = x.lon_low = x.lon_upp =
-      Atm::toExtrapolationOrThrow(extrapolation);
+      to<InterpolationExtrapolation>(extrapolation);
 
   for (const auto &[key, _] : keys) {
     String filename = var_string(my_base, to_string(key), ".xml");
@@ -103,8 +103,6 @@ void append_data(
   }
 }
 
-ENUMCLASS(MissingFieldComponent, char, Throw, Zero, Ignore)
-
 void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                                      const String &basename,
                                      const String &extrapolation,
@@ -112,9 +110,9 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                                      const Index &replace_existing,
                                      const Index &allow_missing_pressure,
                                      const Index &allow_missing_temperature) {
-  std::unordered_map<Atm::Key, Index> keys;
+  std::unordered_map<AtmKey, Index> keys;
 
-  for (auto &key : Atm::enumtyps::KeyTypes) {
+  for (auto &key : enumtyps::AtmKeyTypes) {
     ++keys[key];
   }
 
@@ -125,9 +123,9 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
               replace_existing,
               1,
               keys,
-              [](const Atm::Key &x) { return var_string(x); });
+              [](const AtmKey &x) { return var_string(x); });
 
-  using enum Atm::Key;
+  using enum AtmKey;
 
   ARTS_USER_ERROR_IF(not atmospheric_field.has(p) and
                          not static_cast<bool>(allow_missing_pressure),
@@ -140,8 +138,8 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
       "Temperature is missing from the read atmospheric field at ",
       std::quoted(basename))
 
-  switch (toMissingFieldComponentOrThrow(deal_with_field_component)) {
-    case MissingFieldComponent::Throw:
+  switch (to<MissingFieldComponentError>(deal_with_field_component)) {
+    case MissingFieldComponentError::Throw:
       if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
           atmospheric_field.has(wind_w)) {
         ARTS_USER_ERROR_IF(not atmospheric_field.has(wind_u, wind_v, wind_w),
@@ -166,7 +164,7 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
                            "]");
       }
       break;
-    case MissingFieldComponent::Zero:
+    case MissingFieldComponentError::Zero:
       if (atmospheric_field.has(wind_u) or atmospheric_field.has(wind_v) or
           atmospheric_field.has(wind_w)) {
         if (not atmospheric_field.has(wind_u)) atmospheric_field[wind_u] = 0.0;
@@ -182,15 +180,15 @@ void atmospheric_fieldAppendBaseData(AtmField &atmospheric_field,
       }
       break;
 
-    case MissingFieldComponent::Ignore:
+    case MissingFieldComponentError::Ignore:
       break;
-    case MissingFieldComponent::FINAL: {
-    }
   }
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
-                 const AbsorptionBands &absorption_bands) {
+                 const ArrayOfAbsorptionBand &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
   for (auto &[key, value] : absorption_bands) {
     ++keys[key.Species()];
 
@@ -204,13 +202,11 @@ void keysSpecies(std::unordered_map<SpeciesEnum, Index> keys,
 
 void atmospheric_fieldAppendLineSpeciesData(
     AtmField &atmospheric_field,
-    const AbsorptionBands &absorption_bands,
+    const ArrayOfAbsorptionBand &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_bands.empty()) return;
-
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_bands);
 
@@ -222,11 +218,13 @@ void atmospheric_fieldAppendLineSpeciesData(
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysIsotopologue(std::unordered_map<SpeciesIsotopeRecord, Index> keys,
-                      const AbsorptionBands &absorption_bands) {
+                      const ArrayOfAbsorptionBand &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
   for (auto &[key, value] : absorption_bands) {
     ++keys[key.Isotopologue()];
   }
@@ -234,13 +232,11 @@ void keysIsotopologue(std::unordered_map<SpeciesIsotopeRecord, Index> keys,
 
 void atmospheric_fieldAppendLineIsotopologueData(
     AtmField &atmospheric_field,
-    const AbsorptionBands &absorption_bands,
+    const ArrayOfAbsorptionBand &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_bands.empty()) return;
-
   std::unordered_map<SpeciesIsotopeRecord, Index> keys;
   keysIsotopologue(keys, absorption_bands);
 
@@ -259,7 +255,9 @@ void atmospheric_fieldAppendLineIsotopologueData(
 }
 
 void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
-              const AbsorptionBands &absorption_bands) {
+              const ArrayOfAbsorptionBand &absorption_bands) {
+  if (absorption_bands.empty()) return;
+
   for (auto &[key, value] : absorption_bands) {
     ++keys[key.UpperLevel()];
     ++keys[key.LowerLevel()];
@@ -268,13 +266,11 @@ void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,
 
 void atmospheric_fieldAppendLineLevelData(
     AtmField &atmospheric_field,
-    const AbsorptionBands &absorption_bands,
+    const ArrayOfAbsorptionBand &absorption_bands,
     const String &basename,
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_bands.empty()) return;
-
   std::unordered_map<QuantumIdentifier, Index> keys;
   keysNLTE(keys, absorption_bands);
 
@@ -295,6 +291,8 @@ void atmospheric_fieldAppendLineLevelData(
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const ArrayOfArrayOfSpeciesTag &absorption_species) {
+  if (absorption_species.empty()) return;
+
   for (auto &species_tags : absorption_species) {
     ++keys[species_tags.Species()];
   }
@@ -307,8 +305,6 @@ void atmospheric_fieldAppendTagsSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_species.empty()) return;
-
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_species);
 
@@ -320,7 +316,7 @@ void atmospheric_fieldAppendTagsSpeciesData(
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldAppendLookupTableSpeciesData(
@@ -340,6 +336,8 @@ void atmospheric_fieldAppendLookupTableSpeciesData(
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const ArrayOfCIARecord &absorption_cia_data) {
+  if (absorption_cia_data.empty()) return;
+
   for (auto &cia_record : absorption_cia_data) {
     const auto [spec1, spec2] = cia_record.TwoSpecies();
     ++keys[spec1];
@@ -354,8 +352,6 @@ void atmospheric_fieldAppendCIASpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_cia_data.empty()) return;
-
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_cia_data);
 
@@ -367,11 +363,13 @@ void atmospheric_fieldAppendCIASpeciesData(
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const ArrayOfXsecRecord &absorption_xsec_fit_data) {
+  if (absorption_xsec_fit_data.empty()) return;
+
   for (auto &xsec_record : absorption_xsec_fit_data) {
     ++keys[xsec_record.Species()];
   }
@@ -384,8 +382,6 @@ void atmospheric_fieldAppendXsecSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_xsec_fit_data.empty()) return;
-
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_xsec_fit_data);
 
@@ -397,11 +393,13 @@ void atmospheric_fieldAppendXsecSpeciesData(
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys,
                  const PredefinedModelData &absorption_predefined_model_data) {
+  if (absorption_predefined_model_data.empty()) return;
+
   for (auto &predef_record : absorption_predefined_model_data) {
     ++keys[predef_record.first.spec];
   }
@@ -418,8 +416,6 @@ void atmospheric_fieldAppendPredefSpeciesData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  if (absorption_predefined_model_data.empty()) return;
-
   std::unordered_map<SpeciesEnum, Index> keys;
   keysSpecies(keys, absorption_predefined_model_data);
 
@@ -431,7 +427,7 @@ void atmospheric_fieldAppendPredefSpeciesData(
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
@@ -446,7 +442,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
 
   if (const String lines_str = "absorption_bands";
       ws.wsv_and_contains(lines_str)) {
-    using lines_t = AbsorptionBands;
+    using lines_t = ArrayOfAbsorptionBand;
     const auto &data = ws.get<lines_t>(lines_str);
 
     keysSpecies(keys, data);
@@ -501,7 +497,7 @@ void atmospheric_fieldAppendAbsorptionData(const Workspace &ws,
       replace_existing,
       0,
       keys,
-      [](const SpeciesEnum &x) { return String{Species::toShortName(x)}; });
+      [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
 void atmospheric_fieldIGRF(AtmField &atmospheric_field,
@@ -562,28 +558,28 @@ void atmospheric_fieldIGRF(AtmField &atmospheric_field,
    * reused by v and w (with no regards for order) */
   if (parsafe == 0) {
     const std::shared_ptr igrf_ptr = std::make_shared<res>(time);
-    atmospheric_field[Atm::Key::mag_u] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_u(h, lat, lon);
         }};
-    atmospheric_field[Atm::Key::mag_v] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_v(h, lat, lon);
         }};
-    atmospheric_field[Atm::Key::mag_w] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
         [ptr = igrf_ptr](Numeric h, Numeric lat, Numeric lon) {
           return ptr->get_w(h, lat, lon);
         }};
   } else {
-    atmospheric_field[Atm::Key::mag_u] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_u] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_u(h, lat, lon);
         }};
-    atmospheric_field[Atm::Key::mag_v] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_v] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_v(h, lat, lon);
         }};
-    atmospheric_field[Atm::Key::mag_w] = Atm::FunctionalData{
+    atmospheric_field[AtmKey::mag_w] = Atm::FunctionalData{
         [cpy = res(time)](Numeric h, Numeric lat, Numeric lon) {
           return res{cpy}.get_w(h, lat, lon);
         }};
@@ -609,7 +605,7 @@ struct atmospheric_fieldHydrostaticPressureData {
   using LatLag = my_interp::Lagrange<Index{do_lat}>;
   using LonLag = my_interp::Lagrange<Index{do_lon},
                                      false,
-                                     my_interp::GridType::Cyclic,
+                                     GridType::Cyclic,
                                      my_interp::cycle_m180_p180>;
 
   template <atmospheric_fieldHydrostaticPressureDataOptions X>
@@ -679,11 +675,6 @@ struct atmospheric_fieldHydrostaticPressureData {
   }
 };
 
-ENUMCLASS(HydrostaticPressureOption,
-          char,
-          HydrostaticEquation,
-          HypsometricEquation)
-
 void atmospheric_fieldHydrostaticPressure(
     AtmField &atmospheric_field,
     const NumericTernaryOperator &gravity_operator,
@@ -718,7 +709,7 @@ void atmospheric_fieldHydrostaticPressure(
   const bool has_def_r = fixed_specific_gas_constant > 0;
 
   ARTS_USER_ERROR_IF(
-      not has_def_t and not atmospheric_field.contains(Atm::Key::t),
+      not has_def_t and not atmospheric_field.contains(AtmKey::t),
       "atmospheric_field lacks temperature and no default temperature given")
 
   ARTS_USER_ERROR_IF(
@@ -753,22 +744,22 @@ void atmospheric_fieldHydrostaticPressure(
     return scl;
   }();
 
-  switch (toHydrostaticPressureOptionOrThrow(hydrostatic_option)) {
+  switch (to<HydrostaticPressureOption>(hydrostatic_option)) {
     case HypsometricEquation:
       if (nlon > 1 and nlat > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat, Lon>(
                 scale_factor, p0, alts)};
       } else if (nlat > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hypsometric, Lat>(
                 scale_factor, p0, alts)};
       } else if (nlon > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hypsometric, Lon>(
                 scale_factor, p0, alts)};
       } else {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hypsometric>(
                 scale_factor, p0, alts)};
       }
@@ -776,25 +767,22 @@ void atmospheric_fieldHydrostaticPressure(
 
     case HydrostaticEquation:
       if (nlon > 1 and nlat > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat, Lon>(
                 scale_factor, p0, alts)};
       } else if (nlat > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lat>(
                 scale_factor, p0, alts)};
       } else if (nlon > 1) {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hydrostatic, Lon>(
                 scale_factor, p0, alts)};
       } else {
-        atmospheric_field[Atm::Key::p] = Atm::FunctionalData{
+        atmospheric_field[AtmKey::p] = Atm::FunctionalData{
             atmospheric_fieldHydrostaticPressureData<Hydrostatic>(
                 scale_factor, p0, alts)};
       }
       break;
-
-    case FINAL:
-      ARTS_ASSERT(false, "Cannot understand option: ", hydrostatic_option)
   }
 }

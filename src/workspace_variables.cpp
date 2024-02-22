@@ -7,7 +7,7 @@ internal_workspace_variables() {
   wsv_data["absorption_bands"] = {
       .desc = R"--(Bands of absorption lines for LBL calculations.
 )--",
-      .type = "AbsorptionBands",
+      .type = "ArrayOfAbsorptionBand",
   };
 
   wsv_data["absorption_cia_data"] = {

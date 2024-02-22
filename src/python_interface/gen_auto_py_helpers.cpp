@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "array.h"
+#include "arts_options.h"
 #include "compare.h"
 #include "debug.h"
 #include "nonstd.h"
@@ -17,14 +18,18 @@
 #include "workspace_agendas.h"
 #include "workspace_variables.h"
 
-String as_pyarts(const String& x) {
+String as_pyarts(const String& x) try {
   const static auto& wsgs = internal_workspace_groups();
   const static auto& wsvs = workspace_variables();
   const static auto& wsms = workspace_methods();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
+  const auto found_in_options = [&](auto& key) {
+    return std::ranges::any_of(internal_options(), Cmp::eq(key), &EnumeratedOption::name);
+  };
 
-  if (found_in(wsgs)) return var_string(":class:`~pyarts.arts.", x, '`');
+  if (found_in_options(x) or found_in(wsgs))
+    return var_string(":class:`~pyarts.arts.", x, '`');
   if (found_in(wsms))
     return var_string(":func:`~pyarts.workspace.Workspace.", x, '`');
   if (found_in(wsvs))
@@ -37,6 +42,9 @@ String as_pyarts(const String& x) {
       x,
       "``\" instead?\nIf it is an old or deleted method or "
       "variable or group, please remove it from the documentation!\n"));
+} catch (std::exception& e) {
+  throw std::runtime_error(var_string(
+      "Could not convert ", std::quoted(x), " to pyarts: ", e.what()));
 }
 
 uint32_t hlist_num_cols(const std::vector<String>& v1,
@@ -63,7 +71,7 @@ std::string fix_newlines(std::string x) {
   return x;
 }
 
-String unwrap_stars(String x) {
+String unwrap_stars(String x) try {
   const auto find = [&](auto p) {
     p = std::min(p, x.end());
     return std::find(p, x.end(), '*');
@@ -97,6 +105,8 @@ String unwrap_stars(String x) {
   }
 
   return x;
+} catch (std::exception& e) {
+  throw std::runtime_error(var_string("Could not unwrap stars: ", e.what()));
 }
 
 String get_agenda_io(const String& x) try {

@@ -5,15 +5,20 @@
 #include "rtepack.h"
 
 namespace fwd::predef {
-void full::adapt() {
+void full::adapt() try {
   ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
 
   if (not data) {
     return;
   }
 
+  if (data->empty()) {
+    return;
+  }
+
   vmrs = Absorption::PredefinedModel::VMRS(*atm);
 }
+ARTS_METHOD_ERROR_CATCH
 
 full::full(std::shared_ptr<AtmPoint> atm_,
            std::shared_ptr<PredefinedModelData> data_)

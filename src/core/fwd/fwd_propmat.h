@@ -29,7 +29,7 @@ class propmat {
   propmat& operator=(propmat&&) = default;
 
   propmat(std::shared_ptr<AtmPoint> atm,
-          std::shared_ptr<AbsorptionBands> lines,
+          std::shared_ptr<ArrayOfAbsorptionBand> lines,
           std::shared_ptr<ArrayOfCIARecord> cia,
           std::shared_ptr<ArrayOfXsecRecord> xsec,
           std::shared_ptr<PredefinedModelData> predef,
@@ -42,7 +42,7 @@ class propmat {
   void set_atm(std::shared_ptr<AtmPoint> atm);
   void set_ciaextrap(Numeric extrap);
   void set_ciarobust(Index robust);
-  void set_bands(std::shared_ptr<AbsorptionBands> lines);
+  void set_bands(std::shared_ptr<ArrayOfAbsorptionBand> lines);
   void set_cia(std::shared_ptr<ArrayOfCIARecord> cia);
   void set_predef(std::shared_ptr<PredefinedModelData> predef);
   void set_model(std::shared_ptr<ArrayOfXsecRecord> xsec);

@@ -9,8 +9,6 @@
 #include "lbl_lineshape_model.h"
 #include "quantum_numbers.h"
 
-ENUMCLASS(FieldComponent, char, u, v, w)
-
 void jacobian_targetsInit(JacobianTargets& jacobian_targets) {
   jacobian_targets.clear();
 }
@@ -23,33 +21,32 @@ void jacobian_targetsFinalize(JacobianTargets& jacobian_targets,
 void jacobian_targetsAddTemperature(JacobianTargets& jacobian_targets,
                                     const Numeric& d) {
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      Atm::Key::t, d, jacobian_targets.target_count());
+      AtmKey::t, d, jacobian_targets.target_count());
 }
 
 void jacobian_targetsAddPressure(JacobianTargets& jacobian_targets,
                                  const Numeric& d) {
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      Atm::Key::p, d, jacobian_targets.target_count());
+      AtmKey::p, d, jacobian_targets.target_count());
 }
 
 void jacobian_targetsAddMagneticField(JacobianTargets& jacobian_targets,
                                       const String& component,
                                       const Numeric& d) {
   using enum FieldComponent;
-  switch (toFieldComponentOrThrow(component)) {
+  switch (to<FieldComponent>(component)) {
     case u:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::mag_u, d, jacobian_targets.target_count());
+          AtmKey::mag_u, d, jacobian_targets.target_count());
       break;
     case v:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::mag_v, d, jacobian_targets.target_count());
+          AtmKey::mag_v, d, jacobian_targets.target_count());
       break;
     case w:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::mag_w, d, jacobian_targets.target_count());
+          AtmKey::mag_w, d, jacobian_targets.target_count());
       break;
-    case FINAL:;
   }
 }
 
@@ -57,28 +54,26 @@ void jacobian_targetsAddWindField(JacobianTargets& jacobian_targets,
                                   const String& component,
                                   const Numeric& d) {
   using enum FieldComponent;
-  switch (toFieldComponentOrThrow(component)) {
+  switch (to<FieldComponent>(component)) {
     case u:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::wind_u, d, jacobian_targets.target_count());
+          AtmKey::wind_u, d, jacobian_targets.target_count());
       break;
     case v:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::wind_v, d, jacobian_targets.target_count());
+          AtmKey::wind_v, d, jacobian_targets.target_count());
       break;
     case w:
       jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-          Atm::Key::wind_w, d, jacobian_targets.target_count());
+          AtmKey::wind_w, d, jacobian_targets.target_count());
       break;
-    case FINAL:;
   }
 }
 
 void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
                                    const String& species,
                                    const Numeric& d) {
-  Species::Species s = Species::fromShortName(species);
-  if (not good_enum(s)) s = Species::toSpeciesOrThrow(species);
+  const SpeciesEnum s = to<SpeciesEnum>(species);
 
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
       s, d, jacobian_targets.target_count());
@@ -96,7 +91,7 @@ void jacobian_targetsAddSpeciesIsotopologueRatio(
 }
 
 void jacobian_targetsAddLineParameter(JacobianTargets& jacobian_targets,
-                                      const AbsorptionBands& absorption_bands,
+                                      const ArrayOfAbsorptionBand& absorption_bands,
                                       const QuantumIdentifier& qid,
                                       const Index& line_index,
                                       const String& parameter,
@@ -123,16 +118,15 @@ void jacobian_targetsAddLineParameter(JacobianTargets& jacobian_targets,
       " absorption lines.");
 
   if (coefficient.empty()) {
-    key.var = lbl::tovariableOrThrow(parameter);
+    key.var = to<LineByLineVariable>(parameter);
   } else {
-    key.ls_var = lbl::line_shape::tovariableOrThrow(parameter);
-    key.ls_coeff = lbl::temperature::tocoefficientOrThrow(coefficient);
+    key.ls_var = to<LineShapeModelVariable>(parameter);
+    key.ls_coeff = to<LineShapeModelCoefficient>(coefficient);
     key.spec = [&]() {
       auto ptr = std::ranges::find(
           band.data.lines[line_index].ls.single_models,
           [](const String& spec) {
-            const auto s = Species::fromShortName(spec);
-            return good_enum(s) ? s : Species::toSpeciesOrThrow(spec);
+            return to<SpeciesEnum>(spec);
           }(species),
           &lbl::line_shape::species_model::species);
       ARTS_USER_ERROR_IF(

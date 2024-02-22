@@ -59,7 +59,7 @@ class GasAbsLookup {
 
   const Vector& GetPgrid() const;
 
-  Species::Species GetSpeciesIndex(const Index& isp) const {
+  SpeciesEnum GetSpeciesIndex(const Index& isp) const {
     return species[isp].Species();
   }
 

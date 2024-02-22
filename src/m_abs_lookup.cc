@@ -13,6 +13,7 @@
 #include <cmath>
 
 #include "atm.h"
+#include "enums.h"
 #include "gas_abs_lookup.h"
 #include "interp.h"
 #include "jacobian.h"
@@ -77,7 +78,7 @@ void find_nonlinear_continua(
         // 1. Continua known to not use h2o_abs
         // We take also H2O itself here, since this is
         // handled separately
-        if (Species::fromShortName("H2O") == absorption_species[i][s].Spec() ||
+        if (to<SpeciesEnum>("H2O") == absorption_species[i][s].Spec() ||
             "N2-" == thisname.substr(0, 3) || "CO2-" == thisname.substr(0, 4) ||
             "O2-CIA" == thisname.substr(0, 6) ||
             "O2-v0v" == thisname.substr(0, 6) ||
@@ -136,7 +137,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   Index next_h2o = 0;
   while (-1 !=
          (next_h2o = find_next_species(
-              absorption_species, Species::fromShortName("H2O"), next_h2o))) {
+              absorption_species, to<SpeciesEnum>("H2O"), next_h2o))) {
     abs_nls.push_back(absorption_species[next_h2o]);
     ++next_h2o;
   }
@@ -328,8 +329,6 @@ void absorption_speciesAdd(  // WS Output:
   for (Size i = 0; i < names.size(); ++i) {
     absorption_species.emplace_back(names[i]);
   }
-
-  check_abs_species(absorption_species);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -353,8 +352,6 @@ void absorption_speciesSet(  // WS Output:
     // Call this function.
     absorption_species[i] = ArrayOfSpeciesTag(names[i]);
   }
-
-  check_abs_species(absorption_species);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -386,9 +383,9 @@ void propagation_matrixAddFromLookup(
   Matrix abs_scalar_gas, dabs_scalar_gas_df, dabs_scalar_gas_dt;
 
   const auto do_freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
   const auto do_temp_jac =
-      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
   const Numeric df = field_perturbation(do_freq_jac);
   const Numeric dt = field_perturbation(std::span{&do_temp_jac, 1});
 

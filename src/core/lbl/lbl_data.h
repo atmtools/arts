@@ -6,13 +6,12 @@
 #include <vector>
 
 #include "configtypes.h"
+#include "enums.h"
 #include "lbl_lineshape_model.h"
 #include "lbl_zeeman.h"
 #include "quantum_numbers.h"
 
 namespace lbl {
-ENUMCLASS(variable, char, f0, e0, a)
-
 struct line {
   //! Einstein A coefficient
   Numeric a{};
@@ -121,17 +120,12 @@ struct line {
   friend std::istream& operator>>(std::istream& is, line& x);
 };
 
-ENUMCLASS(CutoffType, char, None, ByLine)
-
-ENUMCLASS(
-    Lineshape, char, VP_LTE, VP_LTE_MIRROR, VP_LINE_NLTE, VP_ECS_MAKAROV, VP_ECS_HARTMANN)
-
 struct band_data {
   std::vector<line> lines{};
 
-  Lineshape lineshape{Lineshape::VP_LTE};
+  LineByLineLineshape lineshape{LineByLineLineshape::VP_LTE};
 
-  CutoffType cutoff{CutoffType::None};
+  LineByLineCutoffType cutoff{LineByLineCutoffType::None};
 
   Numeric cutoff_value{std::numeric_limits<Numeric>::infinity()};
 
@@ -156,18 +150,17 @@ struct band_data {
   }
 
   [[nodiscard]] constexpr Numeric get_cutoff_frequency() const noexcept {
-    using enum CutoffType;
+    using enum LineByLineCutoffType;
     switch (cutoff) {
       case None:
         return std::numeric_limits<Numeric>::infinity();
       case ByLine:
         return cutoff_value;
-      case FINAL:;  // Leave last
     }
     return -1;
   }
 
-  void sort(variable v = variable::f0);
+  void sort(LineByLineVariable v = LineByLineVariable::f0);
 
   //! Gets all the lines between (f0-get_cutoff_frequency(), f1+get_cutoff_frequency())
   [[nodiscard]] std::pair<Size, std::span<const line>> active_lines(
@@ -207,17 +200,17 @@ struct line_key {
   If ls_var is FINAL, then the var variable is used for the line
   parameter.  ls_var and var are not both allowed to be FINAL.
   */
-  line_shape::variable ls_var{line_shape::variable::FINAL};
+  LineShapeModelVariable ls_var{static_cast<LineShapeModelVariable>(-1)};
 
   //! The line shape coefficient if ls_var is not FINAL
-  temperature::coefficient ls_coeff{temperature::coefficient::FINAL};
+  LineShapeModelCoefficient ls_coeff{static_cast<LineShapeModelCoefficient>(-1)};
 
   /* The line parameter to be used for the line shape derivative
   
   If var is FINAL, then the ls_var variable is used for the line shape
   parameter.  ls_var and var are not both allowed to be FINAL.
   */
-  variable var{variable::FINAL};
+  LineByLineVariable var{static_cast<LineByLineVariable>(-1)};
 
   [[nodiscard]] auto operator<=>(const line_key&) const = default;
 
@@ -243,4 +236,4 @@ using LblLineKey = lbl::line_key;
 using AbsorptionBand = lbl::band;
 
 //! A list of multiple bands
-using AbsorptionBands = std::vector<lbl::band>;
+using ArrayOfAbsorptionBand = std::vector<lbl::band>;

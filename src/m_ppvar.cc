@@ -187,7 +187,7 @@ void propagation_path_spectral_radiance_sourceFromPropmat(
   const Index nq = jacobian_targets.target_count();
 
   const Index it =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
 
   propagation_path_spectral_radiance_source.resize(np, StokvecVector(nf));
   propagation_path_spectral_radiance_source_jacobian.resize(
@@ -235,7 +235,7 @@ void propagation_path_transmission_matrixFromPath(
     const Index &hse_derivative) try {
   // HSE variables
   const Index temperature_derivative_position =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
 
   const Size np = propagation_path.size();
 
@@ -259,7 +259,9 @@ void propagation_path_transmission_matrixFromPath(
   if (arts_omp_in_parallel()) {
     for (Size ip = 1; ip < np; ip++) {
       const Numeric propagation_path_distance =
-          path::distance(propagation_path[ip - 1].pos, propagation_path[ip].pos, surface_field);
+          path::distance(propagation_path[ip - 1].pos,
+                         propagation_path[ip].pos,
+                         surface_field);
       if (hse_derivative and temperature_derivative_position >= 0) {
         propagation_path_distance_jacobian1[temperature_derivative_position] =
             propagation_path_distance /
@@ -290,8 +292,10 @@ void propagation_path_transmission_matrixFromPath(
     for (Size ip = 1; ip < np; ip++) {
       if (do_abort) continue;
       try {
-        const Numeric propagation_path_distance = path::distance(
-            propagation_path[ip - 1].pos, propagation_path[ip].pos, surface_field);
+        const Numeric propagation_path_distance =
+            path::distance(propagation_path[ip - 1].pos,
+                           propagation_path[ip].pos,
+                           surface_field);
         if (hse_derivative and temperature_derivative_position >= 0) {
           propagation_path_distance_jacobian1[temperature_derivative_position] =
               propagation_path_distance /
@@ -459,14 +463,16 @@ ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_transmission_matrix_cumulativeForward(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) {
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) try {
   propagation_path_transmission_matrix_cumulative =
       forward_cumulative_transmission(propagation_path_transmission_matrix);
 }
+ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_transmission_matrix_cumulativeReverse(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) {
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) try {
   propagation_path_transmission_matrix_cumulative =
       reverse_cumulative_transmission(propagation_path_transmission_matrix);
 }
+ARTS_METHOD_ERROR_CATCH

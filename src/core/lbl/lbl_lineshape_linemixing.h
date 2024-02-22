@@ -9,10 +9,10 @@
 
 namespace lbl::linemixing {
 struct species_data {
-  temperature::data scaling{temperature::model_type::T0, {0}};
-  temperature::data beta{temperature::model_type::T0, {0}};
-  temperature::data lambda{temperature::model_type::T0, {0}};
-  temperature::data collisional_distance{temperature::model_type::T0, {0}};
+  temperature::data scaling{LineShapeModelType::T0, {0}};
+  temperature::data beta{LineShapeModelType::T0, {0}};
+  temperature::data lambda{LineShapeModelType::T0, {0}};
+  temperature::data collisional_distance{LineShapeModelType::T0, {0}};
 
   [[nodiscard]] Numeric Q(const Rational J,
                           const Numeric T,
@@ -27,7 +27,7 @@ struct species_data {
                               const Numeric energy_xm2) const;
 };  // species_data
 
-using species_data_map = std::unordered_map<Species::Species, species_data>;
+using species_data_map = std::unordered_map<SpeciesEnum, species_data>;
 
 //! FIXME: Should behave as an unordered map of unordered maps, but isn't one because we don't understand pybind11
 struct isot_map {

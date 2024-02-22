@@ -8,7 +8,6 @@ endif(NOT HAVE_GETOPT_H)
 
 add_library(coretypes STATIC
   ${CORETYPE_EXTRA}
-  array.cpp
   file.cc
   mystring.cpp
   parameters.cc
@@ -16,6 +15,7 @@ add_library(coretypes STATIC
 target_include_directories(coretypes PUBLIC "${ARTS_SOURCE_DIR}/3rdparty")
 target_include_directories(coretypes PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(coretypes PUBLIC "${ARTS_BINARY_DIR}/src")
+target_link_libraries(coretypes PUBLIC util)
 
 # #####
 add_subdirectory(absorption)
@@ -34,6 +34,7 @@ add_subdirectory(artstime)
 add_subdirectory(surface)
 add_subdirectory(path)
 add_subdirectory(util)
+add_subdirectory(options)
 
 # #####
 add_library(artscore STATIC
@@ -50,10 +51,6 @@ add_library(artscore STATIC
   interpolation.cc
   jpl_species.cc
   legendre.cc
-  linemixing.cc
-  linemixing_hitran.cc
-  linescaling.cc
-  lineshape.cc
   lineshapemodel.cc
   mc_antenna.cc
   mc_interp.cc
@@ -73,6 +70,7 @@ add_library(artscore STATIC
 )
 
 target_link_libraries(artscore PUBLIC
+  arts_enum_options
   absorption
   artstime
   atm

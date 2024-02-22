@@ -18,6 +18,7 @@
 
 #include "arts_constants.h"
 #include "double_imanip.h"
+#include "enums.h"
 #include "file.h"
 #include "interp.h"
 #include "matpack_concepts.h"
@@ -186,8 +187,8 @@ void cia_interpolation(VectorView result,
  \returns Index of this species combination in cia_data. -1 if not found.
  */
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const Species::Species sp1,
-                    const Species::Species sp2) {
+                    const SpeciesEnum sp1,
+                    const SpeciesEnum sp2) {
   for (Size i = 0; i < cia_data.size(); i++)
     if ((cia_data[i].Species(0) == sp1 && cia_data[i].Species(1) == sp2) ||
         (cia_data[i].Species(0) == sp2 && cia_data[i].Species(1) == sp1))
@@ -205,8 +206,8 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
  \returns Correct CIA record or nullptr if not found.
  */
 CIARecord* cia_get_data(const std::shared_ptr<std::vector<CIARecord>>& cia_data,
-                        const Species::Species sp1,
-                        const Species::Species sp2) {
+                        const SpeciesEnum sp1,
+                        const SpeciesEnum sp2) {
   for (auto& data : *cia_data)
     if ((data.Species(0) == sp1 && data.Species(1) == sp2) ||
         (data.Species(0) == sp2 && data.Species(1) == sp1))
@@ -238,7 +239,7 @@ String CIARecord::MoleculeName(const Index i) const {
 
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return String{Species::toShortName(mspecies[i])};
+  return String{toString<1>(mspecies[i])};
 }
 
 // Documentation in header file.
@@ -248,7 +249,7 @@ void CIARecord::SetMoleculeName(const Index i, const String& name) {
   ARTS_ASSERT(i <= 1);
 
   // Find out the species index for name:
-  Species::Species spec_ind = Species::fromShortName(name);
+  SpeciesEnum spec_ind = to<SpeciesEnum>(name);
 
   // Function species_index_from_species_name returns -1 if the species does
   // not exist. Check this:

@@ -249,9 +249,9 @@ void GasAbsLookup::Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
 
     } catch (const runtime_error_not_found&) {
       // Is this one of the trivial species?
-      const auto spec_type = current_species[i].Type();
-      if (spec_type == Species::TagType::FreeElectrons ||
-          spec_type == Species::TagType::Particles) {
+      const auto spec_type = current_species[i].Species();
+      if (spec_type == SpeciesEnum::free_electrons ||
+          spec_type == SpeciesEnum::particles) {
         // Set to -1 to flag that this needs special handling later on.
         i_current_species[i] = -1;
       } else {
@@ -510,7 +510,7 @@ void GasAbsLookup::Extract(Matrix& sga,
   // species.
   Index h2o_index = -1;
   if (n_nls > 0) {
-    h2o_index = find_first_species(species, Species::Species::Water);
+    h2o_index = find_first_species(species, SpeciesEnum::Water);
 
     // This is a runtime error, even though it would be more logical
     // for it to be an assertion, since it is an internal check on

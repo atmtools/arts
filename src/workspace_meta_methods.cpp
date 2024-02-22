@@ -231,7 +231,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   std::stringstream code;
 
-  code << wsm.header(name, 0) << " {\n";
+  code << wsm.header(name, 0) << " try {\n";
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();
@@ -276,7 +276,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
     code << "  " << wm.call(m) << '\n';
   }
-  code << '}';
+  code << "} ARTS_METHOD_ERROR_CATCH";
 
   return code.str();
 } catch (std::exception& e) {

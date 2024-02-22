@@ -22,65 +22,77 @@
 #include "enums.h"
 #include "hitran_species.h"
 #include "jpl_species.h"
-#include "linescaling.h"
 #include "lineshapemodel.h"
 #include "matpack_math.h"
 #include "quantum_numbers.h"
 #include "rational.h"
 #include "wigner_functions.h"
 
-LineShape::Output
-Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P,
-                                   const Vector &vmrs) const ARTS_NOEXCEPT {
-  auto &lineshape = lines[k].lineshape;
+LineShape::Output Absorption::Lines::ShapeParameters(
+    size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
+  auto& lineshape = lines[k].lineshape;
 
   using namespace LineShape;
-  return Output{lineshape.G0(T, T0, P, vmrs),  lineshape.D0(T, T0, P, vmrs),
-                lineshape.G2(T, T0, P, vmrs),  lineshape.D2(T, T0, P, vmrs),
-                lineshape.FVC(T, T0, P, vmrs), lineshape.ETA(T, T0, P, vmrs),
-                lineshape.Y(T, T0, P, vmrs),   lineshape.G(T, T0, P, vmrs),
+  return Output{lineshape.G0(T, T0, P, vmrs),
+                lineshape.D0(T, T0, P, vmrs),
+                lineshape.G2(T, T0, P, vmrs),
+                lineshape.D2(T, T0, P, vmrs),
+                lineshape.FVC(T, T0, P, vmrs),
+                lineshape.ETA(T, T0, P, vmrs),
+                lineshape.Y(T, T0, P, vmrs),
+                lineshape.G(T, T0, P, vmrs),
                 lineshape.DV(T, T0, P, vmrs)}
       .no_linemixing(not DoLineMixing(P));
 }
 
-LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
-                                                     Numeric T,
-                                                     Numeric P,
-                                                     size_t pos) const ARTS_NOEXCEPT {
-  auto &lineshape = lines[k].lineshape[pos];
+LineShape::Output Absorption::Lines::ShapeParameters(
+    size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
+  auto& lineshape = lines[k].lineshape[pos];
 
   return lineshape.at(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
-LineShape::Output Absorption::Lines::ShapeParameters(size_t k, const AtmPoint& atm_point, Index broadener) const {
+LineShape::Output Absorption::Lines::ShapeParameters(size_t k,
+                                                     const AtmPoint& atm_point,
+                                                     Index broadener) const {
   if (broadener < 0) {
-    return ShapeParameters(k, atm_point.temperature, atm_point.pressure, BroadeningSpeciesVMR(atm_point));
+    return ShapeParameters(k,
+                           atm_point.temperature,
+                           atm_point.pressure,
+                           BroadeningSpeciesVMR(atm_point));
   }
-  return ShapeParameters(k, atm_point.temperature, atm_point.pressure, static_cast<std::size_t>(broadener));
+  return ShapeParameters(k,
+                         atm_point.temperature,
+                         atm_point.pressure,
+                         static_cast<std::size_t>(broadener));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
     size_t k, Numeric T, Numeric P, const Vector& vmrs) const ARTS_NOEXCEPT {
-  auto &lineshape = lines[k].lineshape;
+  auto& lineshape = lines[k].lineshape;
 
   using namespace LineShape;
-  return Output{lineshape.dG0dT(T, T0, P, vmrs),  lineshape.dD0dT(T, T0, P, vmrs),
-                lineshape.dG2dT(T, T0, P, vmrs),  lineshape.dD2dT(T, T0, P, vmrs),
-                lineshape.dFVCdT(T, T0, P, vmrs), lineshape.dETAdT(T, T0, P, vmrs),
-                lineshape.dYdT(T, T0, P, vmrs),   lineshape.dGdT(T, T0, P, vmrs),
+  return Output{lineshape.dG0dT(T, T0, P, vmrs),
+                lineshape.dD0dT(T, T0, P, vmrs),
+                lineshape.dG2dT(T, T0, P, vmrs),
+                lineshape.dD2dT(T, T0, P, vmrs),
+                lineshape.dFVCdT(T, T0, P, vmrs),
+                lineshape.dETAdT(T, T0, P, vmrs),
+                lineshape.dYdT(T, T0, P, vmrs),
+                lineshape.dGdT(T, T0, P, vmrs),
                 lineshape.dDVdT(T, T0, P, vmrs)}
       .no_linemixing(not DoLineMixing(P));
 }
 
 LineShape::Output Absorption::Lines::ShapeParameters_dT(
     size_t k, Numeric T, Numeric P, size_t pos) const ARTS_NOEXCEPT {
-  auto &lineshape = lines[k].lineshape[pos];
+  auto& lineshape = lines[k].lineshape[pos];
 
   return lineshape.dT(T, T0, P).no_linemixing(not DoLineMixing(P));
 }
 
-Index Absorption::Lines::LineShapePos(
-    const Species::Species spec) const ARTS_NOEXCEPT {
+Index Absorption::Lines::LineShapePos(const SpeciesEnum spec) const
+    ARTS_NOEXCEPT {
   // Is always first if this is self and self broadening exists
   if (selfbroadening and spec == quantumidentity.Species()) {
     return 0;
@@ -105,7 +117,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
     Numeric T,
     Numeric P,
     const QuantumIdentifier& vmr_qid) const ARTS_NOEXCEPT {
-  auto &lineshape = lines[k].lineshape;
+  auto& lineshape = lines[k].lineshape;
 
   const Index pos = LineShapePos(vmr_qid.Species());
 
@@ -120,12 +132,13 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(
   return out;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(std::istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This always contains the rest of the line to parse. At the
@@ -253,12 +266,13 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(std::istream& 
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(std::istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = false;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
 
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
@@ -348,7 +362,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(std::istream& 
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
 
@@ -455,7 +470,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
           icecream >> token;
           String r;
           while (icecream and token not_eq "LO") {
-            auto qn = Quantum::Number::toType(token);
+            auto qn = to<QuantumNumberType>(token);
             icecream >> r;
             icecream >> token;
 
@@ -475,7 +490,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
               "Error in catalog. Lower quantum number tag 'LO' not found.")
 
           icecream >> token;
-          auto qn = Quantum::Number::toType(token);
+          auto qn = to<QuantumNumberType>(token);
           while (icecream and
                  not(token == "LM" or token == "LF" or token == "ZM" or
                      token == "LSM" or token == "PB")) {
@@ -492,7 +507,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
               }
             }
 
-            qn = Quantum::Number::toType(token);
+            qn = to<QuantumNumberType>(token);
           }
         } else if (token == "LM") {
           LineShape::from_linemixingdata(icecream, line_mixing_model);
@@ -522,7 +537,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(std::istream& 
             // cutoff frequency
             if (token == "CUT") {
               icecream >> double_imanip() >> data.cutofffreq;
-              data.cutoff = CutoffType::ByLine;
+              data.cutoff = AbsorptionCutoffTypeOld::ByLine;
             }
 
             // linemixing pressure limit
@@ -569,9 +584,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
-  data.species[1] = Species::Species::Bath;
+  data.species[1] = SpeciesEnum::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -833,9 +848,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
-  data.species[1] = Species::Species::Bath;
+  data.species[1] = SpeciesEnum::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1104,9 +1119,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
-  data.species[1] = Species::Species::Bath;
+  data.species[1] = SpeciesEnum::Bath;
 
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
@@ -1337,12 +1352,13 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(
   return data;
 }
 
-Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(std::istream& is) {
+Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(
+    std::istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This contains the rest of the line to parse. At the beginning the
@@ -1729,7 +1745,7 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(
 
     // Adapt broadening to fit with line catalog
     if (sle.selfbroadening) sle.species.front() = sle.quantumidentity.Species();
-    if (sle.bathbroadening) sle.species.back() = Species::Species::Bath;
+    if (sle.bathbroadening) sle.species.back() = SpeciesEnum::Bath;
 
     Quantum::Number::GlobalState global_id{
         sle.quantumidentity.isotopologue_index};
@@ -1813,7 +1829,7 @@ String Absorption::Lines::MetaData() const {
   os << '\t' << cutofftype2metadatastring(cutoff, cutofffreq);
   os << '\t' << populationtype2metadatastring(population);
   os << '\t' << normalizationtype2metadatastring(normalization);
-  os << '\t' << LineShape::shapetype2metadatastring(lineshapetype);
+  os << '\t' << shapetype2metadatastring(lineshapetype);
   os << '\t' << mirroringtype2metadatastring(mirroring);
   os << '\t' << "The reference temperature for all line parameters is " << T0
      << " K.\n";
@@ -1931,7 +1947,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(std::istream& is) {
   SingleLineExternal data;
   data.selfbroadening = true;
   data.bathbroadening = true;
-  data.lineshapetype = LineShape::Type::VP;
+  data.lineshapetype = LineShapeTypeOld::VP;
   data.species.resize(2);
 
   // This contains the rest of the line to parse. At the beginning the
@@ -2132,23 +2148,21 @@ Numeric Absorption::Lines::DopplerConstant(Numeric T) const noexcept {
   return std::sqrt(Constant::doppler_broadening_const_squared * T /
                    SpeciesMass());
 }
-
-namespace Absorption {
-String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
+String cutofftype2metadatastring(AbsorptionCutoffTypeOld in, Numeric cutoff) {
   std::ostringstream os;
   switch (in) {
-    case CutoffType::None:
+    case AbsorptionCutoffTypeOld::None:
       os << "No cut-off will be applied.\n";
       break;
-    case CutoffType::ByLine:
+    case AbsorptionCutoffTypeOld::ByLine:
       os << "The lines will be cut-off " << cutoff
          << " Hz from the line center + D0.\n";
-      break;
-    case CutoffType::FINAL:
       break;
   }
   return os.str();
 }
+
+namespace Absorption {
 
 void SingleLine::SetAutomaticZeeman(QuantumIdentifier qid) {
   for (auto& val : localquanta.val) qid.val.set(val);  // Copy to same struct
@@ -2165,9 +2179,9 @@ void SingleLine::SetLineMixing2SecondOrderData(const Vector& d) {
 
 void SingleLine::SetLineMixing2AER(const Vector& d) {
   const LineShape::ModelParameters Y = {
-      LineShape::TemperatureModel::LM_AER, d[4], d[5], d[6], d[7]};
+      LineShapeTemperatureModelOld::LM_AER, d[4], d[5], d[6], d[7]};
   const LineShape::ModelParameters G = {
-      LineShape::TemperatureModel::LM_AER, d[8], d[9], d[10], d[11]};
+      LineShapeTemperatureModelOld::LM_AER, d[8], d[9], d[10], d[11]};
   for (auto& sm : lineshape.Data()) {
     sm.Y() = Y;
     sm.G() = G;
@@ -2298,41 +2312,48 @@ String Lines::LineShapeMetaData() const noexcept {
   return NumLines() ? LineShape::ModelShape2MetaData(lines[0].lineshape) : "";
 }
 
-Species::Species Lines::Species() const noexcept {return quantumidentity.Species();}
+SpeciesEnum Lines::Species() const noexcept {
+  return quantumidentity.Species();
+}
 
-Species::IsotopeRecord Lines::Isotopologue() const noexcept {return quantumidentity.Isotopologue();}
+Species::IsotopeRecord Lines::Isotopologue() const noexcept {
+  return quantumidentity.Isotopologue();
+}
 
-Index Lines::NumLines() const noexcept {return Index(lines.size());}
+Index Lines::NumLines() const noexcept { return Index(lines.size()); }
 
-Index Lines::NumBroadeners() const ARTS_NOEXCEPT {return Index(broadeningspecies.size());}
+Index Lines::NumBroadeners() const ARTS_NOEXCEPT {
+  return Index(broadeningspecies.size());
+}
 
 Index Lines::NumLocalQuanta() const noexcept {
   return lines.size() ? lines.front().localquanta.val.size() : 0;
 }
 
 bool Lines::OnTheFlyLineMixing() const noexcept {
-  return population == PopulationType::ByMakarovFullRelmat or
-         population == PopulationType::ByRovibLinearDipoleLineMixing;
+  return population == AbsorptionPopulationTypeOld::ByMakarovFullRelmat or
+         population == AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
 }
 
 bool Lines::DoLineMixing(Numeric P) const noexcept {
   return linemixinglimit < 0 ? true : linemixinglimit > P;
 }
 
-bool Lines::DoVmrDerivative(const QuantumIdentifier &qid) const noexcept {
+bool Lines::DoVmrDerivative(const QuantumIdentifier& qid) const noexcept {
   return qid.Isotopologue() == quantumidentity.Isotopologue() or
          (qid.Isotopologue().joker() and
           qid.Species() == quantumidentity.Species()) or
-         std::any_of(broadeningspecies.begin(), broadeningspecies.end(),
-                     [s = qid.Species()](auto &a) { return a == s; });
+         std::any_of(broadeningspecies.begin(),
+                     broadeningspecies.end(),
+                     [s = qid.Species()](auto& a) { return a == s; });
 }
 
 bool Lines::AnyLinemixing() const noexcept {
-  for (auto &line : lines) {
-    for (auto &shape : line.lineshape.Data()) {
-      if (shape.Y().type not_eq LineShape::TemperatureModel::None or
-          shape.G().type not_eq LineShape::TemperatureModel::None or
-          shape.DV().type not_eq LineShape::TemperatureModel::None) {
+  for (auto& line : lines) {
+    for (auto& shape : line.lineshape.Data()) {
+      if (shape.Y().type not_eq LineShapeTemperatureModelOld::None or
+          shape.G().type not_eq LineShapeTemperatureModelOld::None or
+          shape.DV().type not_eq LineShapeTemperatureModelOld::None) {
         return true;
       }
     }
@@ -2340,7 +2361,7 @@ bool Lines::AnyLinemixing() const noexcept {
   return false;
 }
 
-Index Lines::BroadeningSpeciesPosition(Species::Species spec) const noexcept {
+Index Lines::BroadeningSpeciesPosition(SpeciesEnum spec) const noexcept {
   if (auto ptr =
           std::find(broadeningspecies.cbegin(), broadeningspecies.cend(), spec);
       ptr not_eq broadeningspecies.cend())
@@ -2356,7 +2377,8 @@ const Quantum::Number::Value& get(const Quantum::Number::LocalState& qns)
                                            : qns.val[QuantumNumberType::J];
 }
 
-Index Lines::ZeemanCount(size_t k, Zeeman::Polarization type) const ARTS_NOEXCEPT {
+Index Lines::ZeemanCount(size_t k,
+                         Zeeman::Polarization type) const ARTS_NOEXCEPT {
   if (type == Zeeman::Polarization::None) return 1;
 
   // Select F before J but assume one of them exist
@@ -2400,53 +2422,30 @@ Numeric Lines::F_mean(const ConstVectorView& wgts) const noexcept {
   return val / div;
 }
 
-Numeric Lines::F_mean(Numeric T) const noexcept {
-  if (T <= 0) T = T0;
-
-  const Index n = NumLines();
-  const Numeric QT = single_partition_function(T, Isotopologue());
-  const Numeric QT0 = single_partition_function(T0, Isotopologue());
-  const Numeric ratiopart = QT0 / QT;
-
-  Vector wgts(n);
-  for (Index i = 0; i < n; i++) {
-    const Numeric pop0 =
-        (lines[i].gupp / QT0) * boltzman_factor(T0, lines[i].E0);
-    const Numeric pop = pop0 * ratiopart * boltzman_ratio(T, T0, lines[i].E0);
-    const Numeric dip_squared =
-        -lines[i].I0 /
-        (pop0 * lines[i].F0 *
-         std::expm1(-(Constant::h * lines[i].F0) / (Constant::k * T0)));
-    wgts[i] = pop * dip_squared;
-  }
-
-  return F_mean(wgts);
+Numeric Lines::F_mean(Numeric) const noexcept {
+  return 0.0;
 }
 
 Numeric Lines::CutoffFreq(size_t k, Numeric shift) const noexcept {
   switch (cutoff) {
-    case CutoffType::ByLine:
+    case AbsorptionCutoffTypeOld::ByLine:
       return lines[k].F0 + cutofffreq +
-             (mirroring == MirroringType::Manual ? -shift : shift);
-    case CutoffType::None:
+             (mirroring == AbsorptionMirroringTypeOld::Manual ? -shift : shift);
+    case AbsorptionCutoffTypeOld::None:
       return std::numeric_limits<Numeric>::max();
-    case CutoffType::FINAL:
-      break;
   }
   return std::numeric_limits<Numeric>::max();
 }
 
 Numeric Lines::CutoffFreqMinus(size_t k, Numeric shift) const noexcept {
   switch (cutoff) {
-    case CutoffType::ByLine:
+    case AbsorptionCutoffTypeOld::ByLine:
       return lines[k].F0 - cutofffreq +
-             (mirroring == MirroringType::Manual ? -shift : shift);
-    case CutoffType::None:
+             (mirroring == AbsorptionMirroringTypeOld::Manual ? -shift : shift);
+    case AbsorptionCutoffTypeOld::None:
       return std::numeric_limits<Numeric>::lowest();
-    case CutoffType::FINAL:
-      break;
   }
-  
+
   return std::numeric_limits<Numeric>::lowest();
 }
 
@@ -2474,17 +2473,14 @@ void Lines::MakeLineShapeModelCommon() {
   for (Index j = 0; j < m; j++) {
     for (Index i = 0; i < LineShape::nVars; i++) {
       // Find a common type (same or none) or throw if there is none
-      LineShape::TemperatureModel t = LineShape::TemperatureModel::None;
+      LineShapeTemperatureModelOld t = LineShapeTemperatureModelOld::None;
       for (auto& line : lines) {
         if (auto& data = line.lineshape[j].Data()[i];
             not LineShape::modelparameterEmpty(data)) {
-          if (t == LineShape::TemperatureModel::None) t = data.type;
+          if (t == LineShapeTemperatureModelOld::None) t = data.type;
           ARTS_USER_ERROR_IF(
               t not_eq data.type,
-              "Cannot make a common line shape model for the band as there are multiple non-empty types: ",
-              data.type,
-              " and ",
-              t)
+              "Cannot make a common line shape model for the band as there are multiple non-empty")
         }
       }
 
@@ -2504,29 +2500,27 @@ AbsorptionPopulationTagTypeStatus::AbsorptionPopulationTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.population) {
-        case Absorption::PopulationType::LTE:
+        case AbsorptionPopulationTypeOld::LTE:
           LTE = true;
           break;
-        case Absorption::PopulationType::NLTE:
+        case AbsorptionPopulationTypeOld::NLTE:
           NLTE = true;
           break;
-        case Absorption::PopulationType::VibTemps:
+        case AbsorptionPopulationTypeOld::VibTemps:
           VibTemps = true;
           break;
-        case Absorption::PopulationType::ByHITRANFullRelmat:
+        case AbsorptionPopulationTypeOld::ByHITRANFullRelmat:
           ByHITRANFullRelmat = true;
           break;
-        case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+        case AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat:
           ByHITRANRosenkranzRelmat = true;
           break;
-        case Absorption::PopulationType::ByMakarovFullRelmat:
+        case AbsorptionPopulationTypeOld::ByMakarovFullRelmat:
           ByMakarovFullRelmat = true;
           break;
-        case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+        case AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing:
           ByRovibLinearDipoleLineMixing = true;
           break;
-        case Absorption::PopulationType::FINAL: { /* leave list */
-        }
       }
     }
   }
@@ -2537,14 +2531,12 @@ AbsorptionCutoffTagTypeStatus::AbsorptionCutoffTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.cutoff) {
-        case Absorption::CutoffType::None:
+        case AbsorptionCutoffTypeOld::None:
           None = true;
           break;
-        case Absorption::CutoffType::ByLine:
+        case AbsorptionCutoffTypeOld::ByLine:
           ByLine = true;
           break;
-        case Absorption::CutoffType::FINAL: { /* leave list */
-        }
       }
     }
   }
@@ -2555,35 +2547,33 @@ AbsorptionLineShapeTagTypeStatus::AbsorptionLineShapeTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.lineshapetype) {
-        case LineShape::Type::DP:
+        case LineShapeTypeOld::DP:
           DP = true;
           break;
-        case LineShape::Type::LP:
+        case LineShapeTypeOld::LP:
           LP = true;
           break;
-        case LineShape::Type::VP:
+        case LineShapeTypeOld::VP:
           VP = true;
           break;
-        case LineShape::Type::SDVP:
+        case LineShapeTypeOld::SDVP:
           SDVP = true;
           break;
-        case LineShape::Type::HTP:
+        case LineShapeTypeOld::HTP:
           HTP = true;
           break;
-        case LineShape::Type::SplitLP:
+        case LineShapeTypeOld::SplitLP:
           SplitLP = true;
           break;
-        case LineShape::Type::SplitVP:
+        case LineShapeTypeOld::SplitVP:
           SplitVP = true;
           break;
-        case LineShape::Type::SplitSDVP:
+        case LineShapeTypeOld::SplitSDVP:
           SplitSDVP = true;
           break;
-        case LineShape::Type::SplitHTP:
+        case LineShapeTypeOld::SplitHTP:
           SplitHTP = true;
           break;
-        case LineShape::Type::FINAL: { /* leave list */
-        }
       }
     }
   }
@@ -2594,20 +2584,18 @@ AbsorptionMirroringTagTypeStatus::AbsorptionMirroringTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.mirroring) {
-        case Absorption::MirroringType::None:
+        case AbsorptionMirroringTypeOld::None:
           None = true;
           break;
-        case Absorption::MirroringType::Lorentz:
+        case AbsorptionMirroringTypeOld::Lorentz:
           Lorentz = true;
           break;
-        case Absorption::MirroringType::SameAsLineShape:
+        case AbsorptionMirroringTypeOld::SameAsLineShape:
           SameAsLineShape = true;
           break;
-        case Absorption::MirroringType::Manual:
+        case AbsorptionMirroringTypeOld::Manual:
           Manual = true;
           break;
-        case Absorption::MirroringType::FINAL: { /* leave list */
-        }
       }
     }
   }
@@ -2618,23 +2606,21 @@ AbsorptionNormalizationTagTypeStatus::AbsorptionNormalizationTagTypeStatus(
   for (auto& abs_lines : abs_lines_per_species) {
     for (auto& band : abs_lines) {
       switch (band.normalization) {
-        case Absorption::NormalizationType::None:
+        case AbsorptionNormalizationTypeOld::None:
           None = true;
           break;
-        case Absorption::NormalizationType::VVH:
+        case AbsorptionNormalizationTypeOld::VVH:
           VVH = true;
           break;
-        case Absorption::NormalizationType::VVW:
+        case AbsorptionNormalizationTypeOld::VVW:
           VVW = true;
           break;
-        case Absorption::NormalizationType::RQ:
+        case AbsorptionNormalizationTypeOld::RQ:
           RQ = true;
           break;
-        case Absorption::NormalizationType::SFS:
+        case AbsorptionNormalizationTypeOld::SFS:
           SFS = true;
           break;
-        case Absorption::NormalizationType::FINAL: { /* leave list */
-        }
       }
     }
   }
@@ -2642,27 +2628,8 @@ AbsorptionNormalizationTagTypeStatus::AbsorptionNormalizationTagTypeStatus(
 
 namespace {
 template <typename T>
-constexpr std::size_t req_spaces(T my_enum) {
-  constexpr std::size_t n = []() {
-    std::size_t longest = 0;
-    for (auto& x : Absorption::enumstrs::CutoffTypeNames) {
-      longest = std::max(x.length(), longest);
-    }
-    for (auto& x : Absorption::enumstrs::MirroringTypeNames) {
-      longest = std::max(x.length(), longest);
-    }
-    for (auto& x : Absorption::enumstrs::NormalizationTypeNames) {
-      longest = std::max(x.length(), longest);
-    }
-    for (auto& x : Absorption::enumstrs::PopulationTypeNames) {
-      longest = std::max(x.length(), longest);
-    }
-    for (auto& x : LineShape::enumstrs::TypeNames) {
-      longest = std::max(x.length(), longest);
-    }
-    return longest + 1;
-  }();
-  return n - toString(my_enum).length();
+constexpr std::size_t req_spaces(T) {
+  return 0;
 }
 
 auto spaces(std::size_t n) { return std::basic_string(n, ' '); }
@@ -2670,17 +2637,15 @@ auto spaces(std::size_t n) { return std::basic_string(n, ' '); }
 
 std::ostream& operator<<(std::ostream& os, AbsorptionCutoffTagTypeStatus val) {
   // Trick to never forget to update
-  Absorption::CutoffType x{Absorption::CutoffType::FINAL};
+  AbsorptionCutoffTypeOld x{AbsorptionCutoffTypeOld::ByLine};
+  os << "AbsorptionCutoffTypeOld tag types:\n";
   switch (x) {
-    case Absorption::CutoffType::FINAL:
-      os << "Cutoff tag types:\n";
-      [[fallthrough]];
-    case AbsorptionCutoffType::ByLine:
-      os << "    ByLine:" << spaces(req_spaces(AbsorptionCutoffType::ByLine))
+    case AbsorptionCutoffTypeOld::ByLine:
+      os << "    ByLine:" << spaces(req_spaces(AbsorptionCutoffTypeOld::ByLine))
          << val.ByLine << '\n';
       [[fallthrough]];
-    case AbsorptionCutoffType::None:
-      os << "    None:" << spaces(req_spaces(AbsorptionCutoffType::None))
+    case AbsorptionCutoffTypeOld::None:
+      os << "    None:" << spaces(req_spaces(AbsorptionCutoffTypeOld::None))
          << val.None;
   }
   return os;
@@ -2689,28 +2654,26 @@ std::ostream& operator<<(std::ostream& os, AbsorptionCutoffTagTypeStatus val) {
 std::ostream& operator<<(std::ostream& os,
                          AbsorptionMirroringTagTypeStatus val) {
   // Trick to never forget to update
-  Absorption::MirroringType x{Absorption::MirroringType::FINAL};
+  AbsorptionMirroringTypeOld x{AbsorptionMirroringTypeOld::None};
+  os << "AbsorptionMirroringTypeOld tag types:\n";
   switch (x) {
-    case Absorption::MirroringType::FINAL:
-      os << "Mirroring tag types:\n";
-      [[fallthrough]];
-    case Absorption::MirroringType::None:
-      os << "    None:" << spaces(req_spaces(Absorption::MirroringType::None))
+    case AbsorptionMirroringTypeOld::None:
+      os << "    None:" << spaces(req_spaces(AbsorptionMirroringTypeOld::None))
          << val.None << '\n';
       [[fallthrough]];
-    case Absorption::MirroringType::Lorentz:
+    case AbsorptionMirroringTypeOld::Lorentz:
       os << "    Lorentz:"
-         << spaces(req_spaces(Absorption::MirroringType::Lorentz))
+         << spaces(req_spaces(AbsorptionMirroringTypeOld::Lorentz))
          << val.Lorentz << '\n';
       [[fallthrough]];
-    case Absorption::MirroringType::SameAsLineShape:
+    case AbsorptionMirroringTypeOld::SameAsLineShape:
       os << "    SameAsLineShape:"
-         << spaces(req_spaces(Absorption::MirroringType::SameAsLineShape))
+         << spaces(req_spaces(AbsorptionMirroringTypeOld::SameAsLineShape))
          << val.SameAsLineShape << '\n';
       [[fallthrough]];
-    case Absorption::MirroringType::Manual:
+    case AbsorptionMirroringTypeOld::Manual:
       os << "    Manual:"
-         << spaces(req_spaces(Absorption::MirroringType::Manual)) << val.Manual;
+         << spaces(req_spaces(AbsorptionMirroringTypeOld::Manual)) << val.Manual;
   }
   return os;
 }
@@ -2718,30 +2681,28 @@ std::ostream& operator<<(std::ostream& os,
 std::ostream& operator<<(std::ostream& os,
                          AbsorptionNormalizationTagTypeStatus val) {
   // Trick to never forget to update
-  Absorption::NormalizationType x{Absorption::NormalizationType::FINAL};
+  AbsorptionNormalizationTypeOld x{AbsorptionNormalizationTypeOld::None};
+  os << "Normalization tag types:\n";
   switch (x) {
-    case Absorption::NormalizationType::FINAL:
-      os << "Normalization tag types:\n";
-      [[fallthrough]];
-    case Absorption::NormalizationType::None:
+    case AbsorptionNormalizationTypeOld::None:
       os << "    None:"
-         << spaces(req_spaces(Absorption::NormalizationType::None)) << val.None
+         << spaces(req_spaces(AbsorptionNormalizationTypeOld::None)) << val.None
          << '\n';
       [[fallthrough]];
-    case Absorption::NormalizationType::VVH:
-      os << "    VVH:" << spaces(req_spaces(Absorption::NormalizationType::VVH))
+    case AbsorptionNormalizationTypeOld::VVH:
+      os << "    VVH:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVH))
          << val.VVH << '\n';
       [[fallthrough]];
-    case Absorption::NormalizationType::VVW:
-      os << "    VVW:" << spaces(req_spaces(Absorption::NormalizationType::VVW))
+    case AbsorptionNormalizationTypeOld::VVW:
+      os << "    VVW:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::VVW))
          << val.VVW << '\n';
       [[fallthrough]];
-    case Absorption::NormalizationType::RQ:
-      os << "    RQ:" << spaces(req_spaces(Absorption::NormalizationType::RQ))
+    case AbsorptionNormalizationTypeOld::RQ:
+      os << "    RQ:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::RQ))
          << val.RQ << '\n';
       [[fallthrough]];
-    case Absorption::NormalizationType::SFS:
-      os << "    SFS:" << spaces(req_spaces(Absorption::NormalizationType::SFS))
+    case AbsorptionNormalizationTypeOld::SFS:
+      os << "    SFS:" << spaces(req_spaces(AbsorptionNormalizationTypeOld::SFS))
          << val.SFS;
   }
   return os;
@@ -2750,44 +2711,42 @@ std::ostream& operator<<(std::ostream& os,
 std::ostream& operator<<(std::ostream& os,
                          AbsorptionPopulationTagTypeStatus val) {
   // Trick to never forget to update
-  Absorption::PopulationType x{Absorption::PopulationType::FINAL};
+  AbsorptionPopulationTypeOld x{AbsorptionPopulationTypeOld::LTE};
+  os << "Population tag type:\n";
   switch (x) {
-    case Absorption::PopulationType::FINAL:
-      os << "Population tag type:\n";
-      [[fallthrough]];
-    case Absorption::PopulationType::LTE:
-      os << "    LTE:" << spaces(req_spaces(Absorption::PopulationType::LTE))
+    case AbsorptionPopulationTypeOld::LTE:
+      os << "    LTE:" << spaces(req_spaces(AbsorptionPopulationTypeOld::LTE))
          << val.LTE << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::NLTE:
-      os << "    NLTE:" << spaces(req_spaces(Absorption::PopulationType::NLTE))
+    case AbsorptionPopulationTypeOld::NLTE:
+      os << "    NLTE:" << spaces(req_spaces(AbsorptionPopulationTypeOld::NLTE))
          << val.NLTE << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::VibTemps:
+    case AbsorptionPopulationTypeOld::VibTemps:
       os << "    VibTemps:"
-         << spaces(req_spaces(Absorption::PopulationType::VibTemps))
+         << spaces(req_spaces(AbsorptionPopulationTypeOld::VibTemps))
          << val.VibTemps << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
+    case AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat:
       os << "    ByHITRANRosenkranzRelmat:"
          << spaces(req_spaces(
-                Absorption::PopulationType::ByHITRANRosenkranzRelmat))
+                AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat))
          << val.ByHITRANRosenkranzRelmat << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::ByHITRANFullRelmat:
+    case AbsorptionPopulationTypeOld::ByHITRANFullRelmat:
       os << "    ByHITRANFullRelmat:"
-         << spaces(req_spaces(Absorption::PopulationType::ByHITRANFullRelmat))
+         << spaces(req_spaces(AbsorptionPopulationTypeOld::ByHITRANFullRelmat))
          << val.ByHITRANFullRelmat << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::ByMakarovFullRelmat:
+    case AbsorptionPopulationTypeOld::ByMakarovFullRelmat:
       os << "    ByMakarovFullRelmat:"
-         << spaces(req_spaces(Absorption::PopulationType::ByMakarovFullRelmat))
+         << spaces(req_spaces(AbsorptionPopulationTypeOld::ByMakarovFullRelmat))
          << val.ByMakarovFullRelmat << '\n';
       [[fallthrough]];
-    case Absorption::PopulationType::ByRovibLinearDipoleLineMixing:
+    case AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing:
       os << "    ByRovibLinearDipoleLineMixing:"
          << spaces(req_spaces(
-                Absorption::PopulationType::ByRovibLinearDipoleLineMixing))
+                AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing))
          << val.ByRovibLinearDipoleLineMixing;
   }
   return os;
@@ -2796,45 +2755,44 @@ std::ostream& operator<<(std::ostream& os,
 std::ostream& operator<<(std::ostream& os,
                          AbsorptionLineShapeTagTypeStatus val) {
   // Trick to never forget to update
-  LineShapeType x{LineShapeType::FINAL};
+  LineShapeTypeOld x{LineShapeTypeOld::DP};
+  os << "Line shape tag type:\n";
   switch (x) {
-    case LineShapeType::FINAL:
-      os << "Line shape tag type:\n";
-      [[fallthrough]];
-    case LineShapeType::DP:
-      os << "    DP:" << spaces(req_spaces(LineShapeType::DP)) << val.DP
+    case LineShapeTypeOld::DP:
+      os << "    DP:" << spaces(req_spaces(LineShapeTypeOld::DP)) << val.DP
          << '\n';
       [[fallthrough]];
-    case LineShapeType::LP:
-      os << "    LP:" << spaces(req_spaces(LineShapeType::LP)) << val.LP
+    case LineShapeTypeOld::LP:
+      os << "    LP:" << spaces(req_spaces(LineShapeTypeOld::LP)) << val.LP
          << '\n';
       [[fallthrough]];
-    case LineShapeType::VP:
-      os << "    VP:" << spaces(req_spaces(LineShapeType::VP)) << val.VP
+    case LineShapeTypeOld::VP:
+      os << "    VP:" << spaces(req_spaces(LineShapeTypeOld::VP)) << val.VP
          << '\n';
       [[fallthrough]];
-    case LineShapeType::SDVP:
-      os << "    SDVP:" << spaces(req_spaces(LineShapeType::SDVP)) << val.SDVP
+    case LineShapeTypeOld::SDVP:
+      os << "    SDVP:" << spaces(req_spaces(LineShapeTypeOld::SDVP)) << val.SDVP
          << '\n';
       [[fallthrough]];
-    case LineShapeType::HTP:
-      os << "    HTP:" << spaces(req_spaces(LineShapeType::HTP)) << val.HTP
+    case LineShapeTypeOld::HTP:
+      os << "    HTP:" << spaces(req_spaces(LineShapeTypeOld::HTP)) << val.HTP
          << '\n';
       [[fallthrough]];
-    case LineShapeType::SplitLP:
-      os << "    SplitLP:" << spaces(req_spaces(LineShapeType::SplitLP)) << val.SplitLP
-         << '\n';
+    case LineShapeTypeOld::SplitLP:
+      os << "    SplitLP:" << spaces(req_spaces(LineShapeTypeOld::SplitLP))
+         << val.SplitLP << '\n';
       [[fallthrough]];
-    case LineShapeType::SplitVP:
-      os << "    SplitVP:" << spaces(req_spaces(LineShapeType::SplitVP)) << val.SplitVP
-         << '\n';
+    case LineShapeTypeOld::SplitVP:
+      os << "    SplitVP:" << spaces(req_spaces(LineShapeTypeOld::SplitVP))
+         << val.SplitVP << '\n';
       [[fallthrough]];
-    case LineShapeType::SplitSDVP:
-      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeType::SplitSDVP)) << val.SplitSDVP
-         << '\n';
+    case LineShapeTypeOld::SplitSDVP:
+      os << "    SplitSDVP:" << spaces(req_spaces(LineShapeTypeOld::SplitSDVP))
+         << val.SplitSDVP << '\n';
       [[fallthrough]];
-    case LineShapeType::SplitHTP:
-      os << "    SplitHTP:" << spaces(req_spaces(LineShapeType::SplitHTP)) << val.SplitHTP;
+    case LineShapeTypeOld::SplitHTP:
+      os << "    SplitHTP:" << spaces(req_spaces(LineShapeTypeOld::SplitHTP))
+         << val.SplitHTP;
   }
   return os;
 }
@@ -2852,7 +2810,8 @@ AbsorptionSpeciesBandIndex flat_index(
   const Index n = abs_species.size();
 
   Index ispec{0};
-  while (ispec < n and i >= static_cast<Index>(abs_lines_per_species[ispec].size())) {
+  while (ispec < n and
+         i >= static_cast<Index>(abs_lines_per_species[ispec].size())) {
     i -= abs_lines_per_species[ispec].size();
     ++ispec;
   }
@@ -2868,13 +2827,16 @@ bool any_cutoff(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species) {
       [](auto& abs_lines) {
         return std::any_of(
             abs_lines.cbegin(), abs_lines.cend(), [](auto& band) {
-              return band.cutoff not_eq CutoffType::None;
+              return band.cutoff not_eq AbsorptionCutoffTypeOld::None;
             });
       });
 }
 
 Rational Lines::max(QuantumNumberType x) const {
-  ARTS_USER_ERROR_IF(Quantum::Number::common_value_type(x) == Quantum::Number::ValueType::S, "Cannot get a rational out from quantum number type ", x)
+  ARTS_USER_ERROR_IF(Quantum::Number::common_value_type(x) ==
+                         Quantum::Number::QuantumNumberValueType::S,
+                     "Cannot get a rational out from quantum number type ",
+                     x)
   if (quantumidentity.val.has(x)) {
     auto& val = quantumidentity.val[x];
     return std::max(val.low(), val.upp());
@@ -2882,7 +2844,8 @@ Rational Lines::max(QuantumNumberType x) const {
 
   Rational out{std::numeric_limits<Index>::lowest()};
   for (auto& line : lines) {
-    ARTS_USER_ERROR_IF(not line.localquanta.val.has(x), "No ", x, " in some line(s)")
+    ARTS_USER_ERROR_IF(
+        not line.localquanta.val.has(x), "No ", x, " in some line(s)")
     auto& val = line.localquanta.val[x];
     out = std::max(std::max(val.low(), val.upp()), out);
   }
@@ -2890,31 +2853,28 @@ Rational Lines::max(QuantumNumberType x) const {
 }
 
 /** Number of lines */
-Index size(const Lines &l) { return l.NumLines(); }
+Index size(const Lines& l) { return l.NumLines(); }
 
 /** Number of lines in list */
-Index size(const Array<Lines> &l) {
+Index size(const Array<Lines>& l) {
   Index n = 0;
-  for (auto &x : l)
-    n += size(x);
+  for (auto& x : l) n += size(x);
   return n;
 }
 
 /** Number of lines in lists */
-Index size(const Array<Array<Lines>> &l) {
+Index size(const Array<Array<Lines>>& l) {
   Index n = 0;
-  for (auto &x : l)
-    n += size(x);
+  for (auto& x : l) n += size(x);
   return n;
 }
 
-
-std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines, const QuantumIdentifier& qid) {
+std::vector<std::size_t> fuzzy_find_all(const Array<Lines>& lines,
+                                        const QuantumIdentifier& qid) {
   std::vector<std::size_t> out;
 
-  for (std::size_t i=0; i<lines.size(); i++) {
-    if (qid.may_be(lines[i].quantumidentity))
-      out.push_back(i);
+  for (std::size_t i = 0; i < lines.size(); i++) {
+    if (qid.may_be(lines[i].quantumidentity)) out.push_back(i);
   }
 
   return out;
@@ -2934,4 +2894,4 @@ std::ostream& operator<<(std::ostream& os, const Array<Array<Lines>>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
-} // namespace Absorption
+}  // namespace Absorption

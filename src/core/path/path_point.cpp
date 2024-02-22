@@ -330,15 +330,15 @@ Vector3 approx_geometrical_tangent_point(const Vector3 ecef,
 Numeric surface_altitude(const SurfaceField& surface_field,
                          const Numeric lat,
                          const Numeric lon) {
-  return surface_field.has(Surf::Key::h)
-             ? surface_field.single_value(Surf::Key::h, lat, lon)
+  return surface_field.has(SurfaceKey::h)
+             ? surface_field.single_value(SurfaceKey::h, lat, lon)
              : 0.0;
 }
 
 std::pair<Numeric, Numeric> minmax_surface_altitude(
     const SurfaceField& surface_field) {
-  return surface_field.has(Surf::Key::h)
-             ? surface_field.minmax_single_value(Surf::Key::h)
+  return surface_field.has(SurfaceKey::h)
+             ? surface_field.minmax_single_value(SurfaceKey::h)
              : std::pair<Numeric, Numeric>{0.0, 0.0};
 }
 
@@ -535,7 +535,7 @@ PropagationPathPoint init(const Vector3& pos,
                           const AtmField& atm_field,
                           const SurfaceField& surface_field,
                           bool as_sensor) {
-  using enum PositionType;
+  using enum PathPositionType;
   ARTS_USER_ERROR_IF(pos[1] > 90 or pos[1] < -90, "Non-polar coordinate")
 
   if (pos[0] > atm_field.top_of_atmosphere) {
@@ -692,8 +692,8 @@ PropagationPathPoint path_at_distance(const Vector3 ecef,
                                       const Vector3 decef,
                                       const Vector2 ell,
                                       const Numeric l,
-                                      const PositionType start,
-                                      const PositionType end) {
+                                      const PathPositionType start,
+                                      const PathPositionType end) {
   const auto [pos, los] = poslos_at_distance(ecef, decef, ell, l);
 
   if constexpr (mirror_los)
@@ -716,7 +716,7 @@ Intersections pair_line_ellipsoid_intersect(
     const SurfaceField& surface_field,
     const Numeric surface_search_accuracy,
     const bool surface_search_safe) {
-  using enum PositionType;
+  using enum PathPositionType;
 
   const auto [surf_h_min, surf_h_max] = minmax_surface_altitude(surface_field);
   ARTS_USER_ERROR_IF(
@@ -751,7 +751,7 @@ Intersections pair_line_ellipsoid_intersect(
   };
 
   const auto get_point = [&, ecef = x.first, decef = x.second](
-                             Numeric r, PositionType start, PositionType end) {
+                             Numeric r, PathPositionType start, PathPositionType end) {
     PropagationPathPoint p =
         path_at_distance(ecef, decef, surface_field.ellipsoid, r, start, end);
     if (end == surface)
@@ -761,7 +761,7 @@ Intersections pair_line_ellipsoid_intersect(
     return p;
   };
 
-  const auto error = [&path](PositionType end) {
+  const auto error = [&path](PathPositionType end) {
     PropagationPathPoint p = path;
     p.los_type = end;
     return Intersections{p, p, false};
@@ -805,8 +805,6 @@ Intersections pair_line_ellipsoid_intersect(
       return {get_point(get_r_atm().first, atm, space), path, false};
     case subsurface:
       ARTS_USER_ERROR("Unsupported subsurface start position")
-    case FINAL: { /*leave last*/
-    }
   }
   ARTS_USER_ERROR("Invalid start position type");
 }
@@ -821,7 +819,7 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
       path.size() == 0,
       "Must have at least one path point, please call some init() first")
   ARTS_USER_ERROR_IF(
-      path.back().los_type != PositionType::unknown,
+      path.back().los_type != PathPositionType::unknown,
       "Cannot set extremes for path that knows where it is looking")
 
   const auto [first, second, second_is_valid] =
@@ -848,7 +846,7 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
   for (Size i = 0; i < path.size() - 1; ++i) {
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
-    if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
+    if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [rad_start, rad_dir] =
           geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance = ecef_distance(
@@ -861,8 +859,8 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(
                                             rad_dir,
                                             surface_field.ellipsoid,
                                             d,
-                                            PositionType::atm,
-                                            PositionType::atm));
+                                            PathPositionType::atm,
+                                            PathPositionType::atm));
         ++i;
       }
     }
@@ -889,7 +887,7 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
   for (Size i = 0; i < path.size() - 1; ++i) {
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
-    if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
+    if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
           geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
@@ -912,8 +910,8 @@ ArrayOfPropagationPathPoint& fill_geometric_altitude_crossings(
                                             decef,
                                             surface_field.ellipsoid,
                                             r.first,
-                                            PositionType::atm,
-                                            PositionType::atm))
+                                            PathPositionType::atm,
+                                            PathPositionType::atm))
             ->pos[0] = r.second;
         ++i;
       }
@@ -941,7 +939,7 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
   for (Size i = 0; i < path.size() - 1; ++i) {
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
-    if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
+    if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
           geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
@@ -964,8 +962,8 @@ ArrayOfPropagationPathPoint& fill_geometric_latitude_crossings(
                                             decef,
                                             surface_field.ellipsoid,
                                             r.first,
-                                            PositionType::atm,
-                                            PositionType::atm))
+                                            PathPositionType::atm,
+                                            PathPositionType::atm))
             ->pos[1] = r.second;
         ++i;
       }
@@ -992,7 +990,7 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
   for (Size i = 0; i < path.size() - 1; ++i) {
     const auto& p1 = path[i];
     const auto& p2 = path[i + 1];
-    if (p1.has(PositionType::atm) and p2.has(PositionType::atm)) {
+    if (p1.has(PathPositionType::atm) and p2.has(PathPositionType::atm)) {
       const auto [ecef, decef] =
           geodetic_poslos2ecef(p2.pos, p2.los, surface_field.ellipsoid);
       const Numeric distance =
@@ -1014,8 +1012,8 @@ ArrayOfPropagationPathPoint& fill_geometric_longitude_crossings(
                                             decef,
                                             surface_field.ellipsoid,
                                             r.first,
-                                            PositionType::atm,
-                                            PositionType::atm))
+                                            PathPositionType::atm,
+                                            PathPositionType::atm))
             ->pos[2] = r.second;
         ++i;
       }
@@ -1061,7 +1059,7 @@ PropagationPathPoint find_geometric_limb(
                                ecef = pre_ecef,
                                decef = decef](Numeric dist) {
     return path_at_distance<false>(
-        ecef, decef, ell, dist, PositionType::atm, PositionType::atm);
+        ecef, decef, ell, dist, PathPositionType::atm, PathPositionType::atm);
   };
 
   Numeric x0 = 0, x1 = distance, x = std::midpoint(x0, x1);
@@ -1120,7 +1118,7 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
 Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
                                     const SurfaceField& surface_field) {
   const auto in_atm = [](const PropagationPathPoint& p) {
-    return p.has(PositionType::atm);
+    return p.has(PathPositionType::atm);
   };
 
   const auto first = std::ranges::find_if(path, in_atm);
@@ -1149,7 +1147,7 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
-  using enum PositionType;
+  using enum PathPositionType;
   path.erase(std::remove_if(
                  path.begin(),
                  path.end(),

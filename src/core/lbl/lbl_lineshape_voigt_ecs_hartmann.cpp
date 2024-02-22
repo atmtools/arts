@@ -35,7 +35,7 @@ Numeric wig6(const Rational& a,
 
 std::function<Numeric(Rational)> erot_selection(
     const SpeciesIsotopeRecord& isot) {
-  if (isot.spec == Species::Species::CarbonDioxide and isot.isotname == "626") {
+  if (isot.spec == SpeciesEnum::CarbonDioxide and isot.isotname == "626") {
     return [](const Rational J) -> Numeric {
       return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));
     };
@@ -61,7 +61,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
-                                   const Species::Species broadening_species,
+                                   const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
                                    const AtmPoint& atm) {

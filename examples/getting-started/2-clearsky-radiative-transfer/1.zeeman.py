@@ -9,8 +9,9 @@ ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + 118750348044.712
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66-118e9-119e9"])
+ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
+ws.absorption_bandsSelectFrequency(fmin=40e9, fmax=120e9, by_line=1)
 ws.absorption_bandsSetZeeman(isot="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
@@ -20,7 +21,7 @@ ws.propagation_matrix_agendaAuto()
 # %% Grids and planet
 
 ws.surface_fieldSetPlanetEllipsoid(option="Earth")
-ws.surface_field[pyarts.arts.options.SurfaceKey("t")] = 295.0
+ws.surface_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atmospheric_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
@@ -37,16 +38,7 @@ los = [180.0, 0.0]
 alts = np.linspace(0.0, 1e5, 101)
 
 ws.propagation_pathGeometric(pos=pos, los=los, max_step=alts[1] - alts[0])
-ws.spectral_radiance_backgroundAgendasAtEndOfPath()
-ws.propagation_path_atmospheric_pointFromPath()
-ws.propagation_path_frequency_gridFromPath()
-ws.propagation_path_propagation_matrixFromPath()
-ws.propagation_path_transmission_matrixFromPath()
-ws.propagation_path_transmission_matrix_cumulativeForward()
-ws.propagation_path_spectral_radiance_sourceFromPropmat()
-ws.propagation_path_spectral_radianceCalcEmission()
-ws.background_transmittanceFromPathPropagationBack()
-ws.spectral_radianceFromPathPropagation()
+ws.spectral_radianceStandardEmission()
 
 
 # %% Test calculations using single frequency approach

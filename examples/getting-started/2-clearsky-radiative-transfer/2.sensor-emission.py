@@ -9,7 +9,7 @@ ws.frequency_grid = np.linspace(-50e6, 50e6, 11) + 118750348044.712
 
 # %% Species and line absorption
 
-ws.absorption_speciesSet(species=["O2-66-118e9-119e9"])
+ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.absorption_bandsSetZeeman(isot="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()

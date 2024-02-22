@@ -11,10 +11,8 @@
 #include "path_point.h"
 
 namespace gui::MainMenu {
-ENUMCLASS(VMR, char, exact, percent, ppmv)
-
 struct Options {
-  VMR vmr{VMR::exact};
+  GuiVMR vmr{GuiVMR::exact};
 };
 
 void fullscreen(Config &cfg, GLFWwindow *window);

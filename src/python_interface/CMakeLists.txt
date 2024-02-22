@@ -25,12 +25,12 @@ endwhile()
 ########################################################################################
 # Build the generator
 add_executable(gen_auto_py gen_auto_py.cpp gen_auto_py_helpers.cpp)
-target_link_libraries(gen_auto_py PUBLIC artsworkspace)
+target_link_libraries(gen_auto_py PUBLIC artsworkspace arts_options)
 target_include_directories(gen_auto_py PUBLIC ${ARTS_SOURCE_DIR}/src)
 
 # Generate the actual files with this command
 add_custom_command(
-    OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp
+    OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp py_auto_options.cpp
     COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py
     COMMENT "Generating automatic python interface"
@@ -44,6 +44,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     ${PYARTS_WORKSPACE_VARS}
     py_auto_wsg.cpp
     py_auto_interface.cpp
+    py_auto_options.cpp
 
     py_module.cpp
     py_matpack.cpp
@@ -73,7 +74,6 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_predefined.cpp
     py_star.cpp
     py_math.cpp
-    py_options.cpp
     py_hitran.cpp
     py_atm.cpp
     py_surf.cpp
@@ -91,7 +91,7 @@ if (ENABLE_PCH)
   target_precompile_headers(pyarts_cpp PRIVATE python_interface.h)
 endif()
 set_target_properties(pyarts_cpp PROPERTIES OUTPUT_NAME arts)
-target_link_libraries(pyarts_cpp PUBLIC artsworkspace)
+target_link_libraries(pyarts_cpp PUBLIC artsworkspace arts_options)
 target_include_directories(pyarts_cpp PUBLIC ${ARTS_SOURCE_DIR}/src)
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(pyarts_cpp PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

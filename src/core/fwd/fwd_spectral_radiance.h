@@ -47,7 +47,7 @@ class spectral_radiance {
                     AscendingGrid lon,
                     const AtmField& atm,
                     const SurfaceField& surf,
-                    const std::shared_ptr<AbsorptionBands>& lines,
+                    const std::shared_ptr<ArrayOfAbsorptionBand>& lines,
                     const std::shared_ptr<ArrayOfCIARecord>& cia,
                     const std::shared_ptr<ArrayOfXsecRecord>& xsec,
                     const std::shared_ptr<PredefinedModelData>& predef,
@@ -110,12 +110,12 @@ class spectral_radiance {
       const path& pp) const {
     Stokvec out{0.0, 0.0, 0.0, 0.0};
 
-    if (pp.point.los_type == ::path::PositionType::space) {
+    if (pp.point.los_type == PathPositionType::space) {
       for (const auto& p : pos) {
         if (p.w == 0.0) continue;
         out += p.w * spectral_radiance_space(p.j, p.k)(f, pp.point.los);
       }
-    } else if (pp.point.los_type == ::path::PositionType::surface) {
+    } else if (pp.point.los_type == PathPositionType::surface) {
       for (const auto& p : pos) {
         if (p.w == 0.0) continue;
         out += p.w * spectral_radiance_surface(p.j, p.k)(f, pp.point.los);

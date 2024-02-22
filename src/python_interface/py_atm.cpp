@@ -8,6 +8,7 @@
 #include <memory>
 #include <type_traits>
 
+#include "enums.h"
 #include "isotopologues.h"
 #include "py_macros.h"
 
@@ -49,12 +50,12 @@ void py_atm(py::module_ &m) try {
 
             auto out = std::make_shared<Atm::Data>();
             out->data = t[0].cast<Atm::FieldData>();
-            out->alt_low = t[1].cast<Atm::Extrapolation>();
-            out->alt_upp = t[2].cast<Atm::Extrapolation>();
-            out->lat_low = t[3].cast<Atm::Extrapolation>();
-            out->lat_upp = t[4].cast<Atm::Extrapolation>();
-            out->lon_low = t[5].cast<Atm::Extrapolation>();
-            out->lon_upp = t[6].cast<Atm::Extrapolation>();
+            out->alt_low = t[1].cast<InterpolationExtrapolation>();
+            out->alt_upp = t[2].cast<InterpolationExtrapolation>();
+            out->lat_low = t[3].cast<InterpolationExtrapolation>();
+            out->lat_upp = t[4].cast<InterpolationExtrapolation>();
+            out->lon_low = t[5].cast<InterpolationExtrapolation>();
+            out->lon_upp = t[6].cast<InterpolationExtrapolation>();
             return out;
           }));
   py::implicitly_convertible<GriddedField3, Atm::Data>();
@@ -76,7 +77,7 @@ void py_atm(py::module_ &m) try {
       .def_readwrite("wind", &AtmPoint::wind)
       .def(
           "__getitem__",
-          [](AtmPoint &atm, Atm::Key x) {
+          [](AtmPoint &atm, AtmKey x) {
             if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
@@ -90,7 +91,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmPoint &atm, const Species::Species &x) {
+          [](AtmPoint &atm, const SpeciesEnum &x) {
             if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
@@ -110,13 +111,13 @@ void py_atm(py::module_ &m) try {
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
-           [](AtmPoint &atm, Atm::Key x, Numeric data) { atm[x] = data; })
+           [](AtmPoint &atm, AtmKey x, Numeric data) { atm[x] = data; })
       .def("__setitem__",
            [](AtmPoint &atm, const QuantumIdentifier &x, Numeric data) {
              atm[x] = data;
            })
       .def("__setitem__",
-           [](AtmPoint &atm, const Species::Species &x, Numeric data) {
+           [](AtmPoint &atm, const SpeciesEnum &x, Numeric data) {
              atm[x] = data;
            })
       .def("__setitem__",
@@ -162,7 +163,7 @@ void py_atm(py::module_ &m) try {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
-            auto k = t[0].cast<std::vector<Atm::KeyVal>>();
+            auto k = t[0].cast<std::vector<AtmKeyVal>>();
             auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
@@ -178,7 +179,7 @@ void py_atm(py::module_ &m) try {
 
   fld.def(
          "__getitem__",
-         [](AtmField &atm, Atm::Key x) -> Atm::Data & {
+         [](AtmField &atm, AtmKey x) -> Atm::Data & {
            if (not atm.has(x)) throw py::key_error(var_string(x));
            return atm[x];
          },
@@ -192,7 +193,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmField &atm, const Species::Species &x) -> Atm::Data & {
+          [](AtmField &atm, const SpeciesEnum &x) -> Atm::Data & {
             if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
@@ -213,7 +214,7 @@ void py_atm(py::module_ &m) try {
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
-           [](AtmField &atm, Atm::Key x, const Atm::Data &data) {
+           [](AtmField &atm, AtmKey x, const Atm::Data &data) {
              atm[x] = data;
            })
       .def(
@@ -222,7 +223,7 @@ void py_atm(py::module_ &m) try {
             atm[x] = data;
           })
       .def("__setitem__",
-           [](AtmField &atm, const Species::Species &x, const Atm::Data &data) {
+           [](AtmField &atm, const SpeciesEnum &x, const Atm::Data &data) {
              atm[x] = data;
            })
       .def(
@@ -262,7 +263,7 @@ void py_atm(py::module_ &m) try {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
 
-            auto k = t[0].cast<std::vector<Atm::KeyVal>>();
+            auto k = t[0].cast<std::vector<AtmKeyVal>>();
             auto v = t[1].cast<std::vector<Atm::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 

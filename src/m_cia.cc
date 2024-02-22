@@ -61,9 +61,9 @@ void propagation_matrixAddCIA(  // WS Output:
 
   // Jacobian overhead START
   const auto jac_freqs = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
+      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
   const auto jac_temps =
-      jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
 
   const bool do_wind_jac =
       std::ranges::any_of(jac_freqs, [](const auto& x) { return x.first; });
@@ -254,12 +254,12 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
       if (cia_index != -1) continue;
 
       cia_names.push_back(
-          String(Species::toShortName(abs_species[sp][iso].Spec())) + "-" +
-          String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
+          String(toString<1>(abs_species[sp][iso].Spec())) + "-" +
+          String(toString<1>(abs_species[sp][iso].cia_2nd_species)));
 
       cia_names.push_back(
-          String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)) +
-          "-" + String(Species::toShortName(abs_species[sp][iso].Spec())));
+          String(toString<1>(abs_species[sp][iso].cia_2nd_species)) +
+          "-" + String(toString<1>(abs_species[sp][iso].Spec())));
 
       ArrayOfString checked_dirs;
 
@@ -335,8 +335,8 @@ void absorption_cia_dataReadFromXML(  // WS Output:
       // If cia_index is -1, this CIA tag was not present in the input file
       if (cia_index == -1) {
         missing_tags.push_back(
-            String(Species::toShortName(abs_species[sp][iso].Spec())) + "-" +
-            String(Species::toShortName(abs_species[sp][iso].cia_2nd_species)));
+            String(toString<1>(abs_species[sp][iso].Spec())) + "-" +
+            String(toString<1>(abs_species[sp][iso].cia_2nd_species)));
       }
     }
   }
@@ -361,15 +361,15 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
     ArrayOfCIARecord& absorption_cia_data,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const String& basename,
-    const Index& robust) {
+    const Index& robust) try {
   ArrayOfString names{};
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
       if (tag.type == Species::TagType::Cia) {
         names.emplace_back(
-            var_string(Species::toShortName(tag.Spec()),
+            var_string(toString<1>(tag.Spec()),
                        "-CIA-",
-                       Species::toShortName(tag.cia_2nd_species)));
+                       toString<1>(tag.cia_2nd_species)));
       }
     }
   }
@@ -397,4 +397,4 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
         " in file at ",
         fil)
   }
-}
+} ARTS_METHOD_ERROR_CATCH

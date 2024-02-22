@@ -13,6 +13,7 @@
 #include <string_view>
 #include <system_error>
 
+#include "enums.h"
 #include "species.h"
 
 namespace Species {
@@ -39,19 +40,12 @@ constexpr std::string_view next_tag(std::string_view& text) {
   return next;
 }
 
-constexpr Species spec(std::string_view part,
-                       std::string_view orig [[maybe_unused]]) {
-  Species s = fromShortName(part);
-  ARTS_USER_ERROR_IF(not good_enum(s),
-                     "The species extraction from ",
-                     std::quoted(part),
-                     " is not good.  "
-                     "The original tag reads ",
-                     std::quoted(orig))
-  return s;
+constexpr SpeciesEnum spec(std::string_view part,
+                           std::string_view orig [[maybe_unused]]) {
+  return to<SpeciesEnum>(part);
 }
 
-constexpr Index isot(Species species,
+constexpr Index isot(SpeciesEnum species,
                      std::string_view isot,
                      std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
@@ -105,32 +99,13 @@ SpeciesTag parse_tag(std::string_view text) {
   SpeciesTag tag;
 
   // The first part is a species --- we do not know what to do with it yet
-  const Species species = spec(next(text), orig);
-
-  // Check if species name contains the special tag for
-  // Faraday Rotation
-  if (species == Species::free_electrons) {
-    constexpr Index ind =
-        find_species_index(IsotopeRecord(Species::free_electrons));
-    tag.spec_ind = ind;
-    tag.type = TagType::FreeElectrons;
-  }
-
-  // Check if species name contains the special tag for
-  // Particles
-  if (species == Species::particles) {
-    constexpr Index ind = find_species_index(IsotopeRecord(Species::particles));
-    tag.spec_ind = ind;
-    tag.type = TagType::Particles;
-  }
+  const SpeciesEnum species = spec(next(text), orig);
 
   // If there is no text remaining after the previous next(), then we are a
   // wild-tag species. Otherwise we have to process the tag a bit more
   if (text.size() == 0) {
-    if (tag.type == TagType::FINAL) {
-      tag.spec_ind = isot(species, Joker, orig);
-      tag.type = TagType::Plain;
-    }
+    tag.spec_ind = isot(species, Joker, orig);
+    tag.type = TagType::Plain;
     check(text, orig);
   } else {
     if (const std::string_view tag_key = next(text); tag_key == "CIA") {
@@ -151,16 +126,6 @@ SpeciesTag parse_tag(std::string_view text) {
   }
 
   if (text.size()) {
-    tag.lower_freq = freq(next(text), orig);
-    tag.upper_freq = freq(next(text), orig);
-    ARTS_USER_ERROR_IF(tag.upper_freq >= 0 and tag.lower_freq >= 0 and
-                           tag.upper_freq <= tag.lower_freq,
-                       "Invalid frequency range [",
-                       tag.lower_freq,
-                       ", ",
-                       tag.upper_freq,
-                       "]\nOriginal tag: ",
-                       std::quoted(orig))
     check(text, orig);
   }
 
@@ -189,64 +154,26 @@ Numeric Tag::dQdT(Numeric T) const {
 
 Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
 
-//! Return the full name of the tag.
-/*! 
- * Examples:
- * 
- * \verbatim
- * O3-*-*-*         : All O3 lines
- * O3-nl            : O3, but without any lines
- * O3-666-*-*       : All O3-666 lines
- * O3-*-500e9-501e9 : All O3 lines between 500 and 501 GHz.
- * \endverbatim
+std::ostream& operator<<(std::ostream& os, const Tag& ot) {
+  os << ot.Isotopologue().FullName();
+
+  // Is this a CIA tag?
+  if (ot.type == TagType::Cia) {
+    os << "-CIA-" << toString<1>(ot.cia_2nd_species);
+  }
+
+  else if (ot.type == TagType::XsecFit) {
+    os << "-XFIT";
+  }
+
+  return os;
+}
+
+/** Return the full name of the tag.
  * 
  * \return The tag name as a string.
  */
-String Tag::Name() const {
-  std::ostringstream os;
-
-  // First the species name:
-  os << toShortName(Isotopologue().spec) << "-";
-
-  // Is this a CIA tag?
-  if (type == TagType::Cia) {
-    os << "CIA-" << toShortName(cia_2nd_species);
-
-  } else if (type == TagType::FreeElectrons || type == TagType::Particles) {
-    os << toShortName(Isotopologue().spec);
-  }
-  // Hitran Xsec flag.
-  else if (type == TagType::XsecFit) {
-    os << "XFIT";
-  } else {
-    // Now the isotopologue. Can be a single isotopologue or ALL.
-    os << Isotopologue().isotname << '-';
-
-    // Now the frequency limits, if there are any. For this we first
-    // need to determine the floating point precision.
-
-    // Determine the precision, depending on whether Numeric is double
-    // or float:
-    constexpr int precision = std::same_as<Numeric, double> ? DBL_DIG : FLT_DIG;
-
-    if (0 > lower_freq) {
-      // lower_freq < 0 means no lower limit.
-      os << Joker << '-';
-    } else {
-      os << std::setprecision(precision);
-      os << lower_freq << "-";
-    }
-
-    if (0 > upper_freq) {
-      // upper_freq < 0 means no upper limit.
-      os << Joker;
-    } else {
-      os << std::setprecision(precision);
-      os << upper_freq;
-    }
-  }
-  return os.str();
-}
+String Tag::Name() const { return var_string(*this); }
 }  // namespace Species
 
 ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
@@ -264,7 +191,7 @@ ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
           std::quoted(text))}
 
       Index find_next_species(const ArrayOfArrayOfSpeciesTag& specs,
-                              Species::Species spec,
+                              SpeciesEnum spec,
                               Index i) noexcept {
   const Index n = static_cast<Index>(specs.size());
   for (; i < n; i++)
@@ -273,7 +200,7 @@ ArrayOfSpeciesTag::ArrayOfSpeciesTag(std::string_view text)
 }
 
 Index find_first_species(const ArrayOfArrayOfSpeciesTag& specs,
-                         Species::Species spec) noexcept {
+                         SpeciesEnum spec) noexcept {
   return find_next_species(specs, spec, 0);
 }
 
@@ -301,44 +228,6 @@ std::pair<Index, Index> find_first_isotologue(
   return {-1, -1};
 }
 
-void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
-  Index num_free_electrons = 0;
-  for (Size i = 0; i < abs_species.size(); ++i) {
-    bool has_free_electrons = false;
-    bool has_particles = false;
-    bool has_hitran_xsec = false;
-    for (Size s = 0; s < abs_species[i].size(); ++s) {
-      if (abs_species[i][s].Type() == Species::TagType::FreeElectrons) {
-        num_free_electrons++;
-        has_free_electrons = true;
-      }
-
-      if (abs_species[i][s].Type() == Species::TagType::Particles) {
-        has_particles = true;
-      }
-
-      if (abs_species[i][s].Type() == Species::TagType::XsecFit) {
-        has_hitran_xsec = true;
-      }
-    }
-
-    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_free_electrons,
-                       "'free_electrons' must not be combined "
-                       "with other tags in the same group.");
-    ARTS_USER_ERROR_IF(num_free_electrons > 1,
-                       "'free_electrons' must not be defined "
-                       "more than once.");
-
-    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_particles,
-                       "'particles' must not be combined "
-                       "with other tags in the same group.");
-
-    ARTS_USER_ERROR_IF(abs_species[i].size() > 1 && has_hitran_xsec,
-                       "'hitran_xsec' must not be combined "
-                       "with other tags in the same group.");
-  }
-}
-
 String ArrayOfSpeciesTag::Name() const {
   String out = "";
   bool first = true;
@@ -350,9 +239,9 @@ String ArrayOfSpeciesTag::Name() const {
   return out;
 }
 
-std::set<Species::Species> lbl_species(
+std::set<SpeciesEnum> lbl_species(
     const ArrayOfArrayOfSpeciesTag& abs_species) noexcept {
-  std::set<Species::Species> unique_species;
+  std::set<SpeciesEnum> unique_species;
   for (auto& specs : abs_species) {
     if (specs.RequireLines()) unique_species.insert(specs.front().Spec());
   }
@@ -361,7 +250,7 @@ std::set<Species::Species> lbl_species(
 
 Numeric Species::first_vmr(const ArrayOfArrayOfSpeciesTag& abs_species,
                            const Vector& rtp_vmr,
-                           const Species spec) ARTS_NOEXCEPT {
+                           const SpeciesEnum spec) ARTS_NOEXCEPT {
   ARTS_ASSERT(abs_species.size() == static_cast<Size>(rtp_vmr.size()))
 
   auto pos =
@@ -389,28 +278,18 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
         case Species::TagType::Cia:
           Cia = true;
           break;
-        case Species::TagType::FreeElectrons:
-          FreeElectrons = true;
-          break;
-        case Species::TagType::Particles:
-          Particles = true;
-          break;
         case Species::TagType::XsecFit:
           XsecFit = true;
           break;
-        case Species::TagType::FINAL: { /* leave last */
-        }
       }
     }
   }
 }
 
 std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
-  Species::TagType x{Species::TagType::FINAL};
+  Species::TagType x{Species::TagType::Plain};
+  os << "Species tag types:\n";
   switch (x) {
-    case Species::TagType::FINAL:
-      os << "Species tag types:\n";
-      [[fallthrough]];
     case Species::TagType::Plain:
       os << "    Plain:            " << val.Plain << '\n';
       [[fallthrough]];
@@ -419,12 +298,6 @@ std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
       [[fallthrough]];
     case Species::TagType::Cia:
       os << "    Cia:              " << val.Cia << '\n';
-      [[fallthrough]];
-    case Species::TagType::FreeElectrons:
-      os << "    FreeElectrons:    " << val.FreeElectrons << '\n';
-      [[fallthrough]];
-    case Species::TagType::Particles:
-      os << "    Particles:        " << val.Particles << '\n';
       [[fallthrough]];
     case Species::TagType::XsecFit:
       os << "    XsecFit:       " << val.XsecFit << '\n';
@@ -437,14 +310,3 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a) {
   return os;
 }
 
-namespace Species {
-std::ostream& operator<<(std::ostream& os, const Array<Species>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Array<Array<Species>>& a) {
-  for (auto& x : a) os << x << '\n';
-  return os;
-}
-}  // namespace Species

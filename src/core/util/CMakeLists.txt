@@ -1,5 +1,6 @@
 add_library(util STATIC
   arts_omp.cc
+  array.cpp
 )
 target_include_directories(util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
