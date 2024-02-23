@@ -8,8 +8,8 @@ struct WorkspaceMethodInternalMetaRecord {
   std::vector<std::string> author;
   std::vector<std::string> methods;
   std::vector<std::string> out;
-  std::vector<std::string> preset_gin;
-  std::vector<Wsv> preset_gin_value;
+  std::vector<std::string> preset_gin{};
+  std::vector<Wsv> preset_gin_value{};
 
   [[nodiscard]] WorkspaceMethodInternalRecord create(
       const std::unordered_map<std::string, WorkspaceMethodInternalRecord>&
