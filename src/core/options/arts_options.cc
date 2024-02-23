@@ -992,7 +992,7 @@ std::string EnumeratedOption::tail() const {
   for (std::size_t i = 0; i < n - 1; i++) {
     os << "  if (const auto i = std::distance(" << name << "Names<" << i
        << ">.begin(), std::find(" << name << "Names<" << i
-       << ">.begin()" << name << "Names<" << i
+       << ">.begin(), " << name << "Names<" << i
        << ">.end(), x)); i < " << m
        << ")\n"
           "    return enumtyps::"
