@@ -105,23 +105,23 @@ SpeciesTag parse_tag(std::string_view text) {
   // wild-tag species. Otherwise we have to process the tag a bit more
   if (text.size() == 0) {
     tag.spec_ind = isot(species, Joker, orig);
-    tag.type = TagType::Plain;
+    tag.type = SpeciesTagType::Plain;
     check(text, orig);
   } else {
     if (const std::string_view tag_key = next(text); tag_key == "CIA") {
       tag.spec_ind = isot(species, Joker, orig);
       tag.cia_2nd_species = spec(next(text), orig);
-      tag.type = TagType::Cia;
+      tag.type = SpeciesTagType::Cia;
       check(text, orig);
     } else if (tag_key == "XFIT") {
       tag.spec_ind = isot(species, Joker, orig);
-      tag.type = TagType::XsecFit;
+      tag.type = SpeciesTagType::XsecFit;
       check(text, orig);
     } else {
       tag.spec_ind = isot(species, tag_key, orig);
       tag.type = is_predefined_model(Isotopologues[tag.spec_ind])
-                     ? TagType::Predefined
-                     : TagType::Plain;
+                     ? SpeciesTagType::Predefined
+                     : SpeciesTagType::Plain;
     }
   }
 
@@ -158,11 +158,11 @@ std::ostream& operator<<(std::ostream& os, const Tag& ot) {
   os << ot.Isotopologue().FullName();
 
   // Is this a CIA tag?
-  if (ot.type == TagType::Cia) {
+  if (ot.type == SpeciesTagType::Cia) {
     os << "-CIA-" << toString<1>(ot.cia_2nd_species);
   }
 
-  else if (ot.type == TagType::XsecFit) {
+  else if (ot.type == SpeciesTagType::XsecFit) {
     os << "-XFIT";
   }
 
@@ -216,7 +216,7 @@ std::pair<Index, Index> find_first_species_tag(
 
 std::pair<Index, Index> find_first_isotologue(
     const ArrayOfArrayOfSpeciesTag& specs,
-    const SpeciesIsotopeRecord& isot) noexcept {
+    const SpeciesIsotope& isot) noexcept {
   for (Size i = 0; i < specs.size(); i++) {
     if (auto ptr =
             std::find_if(specs[i].cbegin(),
@@ -269,16 +269,16 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
   for (auto& species_list : abs_species) {
     for (auto& tag : species_list) {
       switch (tag.type) {
-        case Species::TagType::Plain:
+        case SpeciesTagType::Plain:
           Plain = true;
           break;
-        case Species::TagType::Predefined:
+        case SpeciesTagType::Predefined:
           Predefined = true;
           break;
-        case Species::TagType::Cia:
+        case SpeciesTagType::Cia:
           Cia = true;
           break;
-        case Species::TagType::XsecFit:
+        case SpeciesTagType::XsecFit:
           XsecFit = true;
           break;
       }
@@ -287,19 +287,19 @@ SpeciesTagTypeStatus::SpeciesTagTypeStatus(
 }
 
 std::ostream& operator<<(std::ostream& os, SpeciesTagTypeStatus val) {
-  Species::TagType x{Species::TagType::Plain};
+  SpeciesTagType x{SpeciesTagType::Plain};
   os << "Species tag types:\n";
   switch (x) {
-    case Species::TagType::Plain:
+    case SpeciesTagType::Plain:
       os << "    Plain:            " << val.Plain << '\n';
       [[fallthrough]];
-    case Species::TagType::Predefined:
+    case SpeciesTagType::Predefined:
       os << "    Predefined: " << val.Predefined << '\n';
       [[fallthrough]];
-    case Species::TagType::Cia:
+    case SpeciesTagType::Cia:
       os << "    Cia:              " << val.Cia << '\n';
       [[fallthrough]];
-    case Species::TagType::XsecFit:
+    case SpeciesTagType::XsecFit:
       os << "    XsecFit:       " << val.XsecFit << '\n';
   }
   return os;

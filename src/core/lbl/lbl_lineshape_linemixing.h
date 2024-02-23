@@ -31,12 +31,12 @@ using species_data_map = std::unordered_map<SpeciesEnum, species_data>;
 
 //! FIXME: Should behave as an unordered map of unordered maps, but isn't one because we don't understand pybind11
 struct isot_map {
-  std::unordered_map<Species::IsotopeRecord, species_data_map> data{};
+  std::unordered_map<SpeciesIsotope, species_data_map> data{};
 
-  species_data_map& operator[](const Species::IsotopeRecord& key) {
+  species_data_map& operator[](const SpeciesIsotope& key) {
     return data[key];
   }
-  [[nodiscard]] auto find(const Species::IsotopeRecord& key) const {
+  [[nodiscard]] auto find(const SpeciesIsotope& key) const {
     return data.find(key);
   }
   [[nodiscard]] auto begin() noexcept { return data.begin(); }

@@ -5,6 +5,7 @@
 
 #include "configtypes.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_model.h"
 #include "quantum_numbers.h"
@@ -81,23 +82,26 @@ void jacobian_targetsAddSpeciesVMR(JacobianTargets& jacobian_targets,
 
 void jacobian_targetsAddSpeciesIsotopologueRatio(
     JacobianTargets& jacobian_targets,
-    const String& species,
+    const SpeciesIsotope& species,
     const Numeric& d) {
-  const Index i = Species::find_species_index(species);
-  ARTS_USER_ERROR_IF(i < 0, "Unknown isotopologue: ", std::quoted(species));
+  ARTS_USER_ERROR_IF(
+      std::ranges::none_of(Species::Isotopologues, Cmp::eq(species)),
+      "Unknown isotopologue: ",
+      std::quoted(species.FullName()));
 
   jacobian_targets.target<Jacobian::AtmTarget>().emplace_back(
-      Species::Isotopologues[i], d, jacobian_targets.target_count());
+      species, d, jacobian_targets.target_count());
 }
 
-void jacobian_targetsAddLineParameter(JacobianTargets& jacobian_targets,
-                                      const ArrayOfAbsorptionBand& absorption_bands,
-                                      const QuantumIdentifier& qid,
-                                      const Index& line_index,
-                                      const String& parameter,
-                                      const String& species,
-                                      const String& coefficient,
-                                      const Numeric& d) {
+void jacobian_targetsAddLineParameter(
+    JacobianTargets& jacobian_targets,
+    const ArrayOfAbsorptionBand& absorption_bands,
+    const QuantumIdentifier& qid,
+    const Index& line_index,
+    const String& parameter,
+    const String& species,
+    const String& coefficient,
+    const Numeric& d) {
   lbl::line_key key{qid};
   key.line = static_cast<Size>(line_index);
 
@@ -109,13 +113,12 @@ void jacobian_targetsAddLineParameter(JacobianTargets& jacobian_targets,
     return *ptr;
   }();
 
-  ARTS_USER_ERROR_IF(
-      key.line >= band.data.lines.size() or line_index < 0,
-      "Line index out of range: ",
-      line_index,
-      " band has ",
-      band.data.lines.size(),
-      " absorption lines.");
+  ARTS_USER_ERROR_IF(key.line >= band.data.lines.size() or line_index < 0,
+                     "Line index out of range: ",
+                     line_index,
+                     " band has ",
+                     band.data.lines.size(),
+                     " absorption lines.");
 
   if (coefficient.empty()) {
     key.var = to<LineByLineVariable>(parameter);
@@ -125,9 +128,7 @@ void jacobian_targetsAddLineParameter(JacobianTargets& jacobian_targets,
     key.spec = [&]() {
       auto ptr = std::ranges::find(
           band.data.lines[line_index].ls.single_models,
-          [](const String& spec) {
-            return to<SpeciesEnum>(spec);
-          }(species),
+          [](const String& spec) { return to<SpeciesEnum>(spec); }(species),
           &lbl::line_shape::species_model::species);
       ARTS_USER_ERROR_IF(
           ptr == band.data.lines[line_index].ls.single_models.end(),

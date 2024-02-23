@@ -84,8 +84,8 @@ const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
   return map<SpeciesEnum>();
 }
 
-const std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() const {
-  return map<Species::IsotopeRecord>();
+const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
+  return map<SpeciesIsotope>();
 }
 
 const std::unordered_map<AtmKey, Data> &Field::other() const {
@@ -104,8 +104,8 @@ std::unordered_map<SpeciesEnum, Data> &Field::specs() {
   return map<SpeciesEnum>();
 }
 
-std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() {
-  return map<Species::IsotopeRecord>();
+std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
+  return map<SpeciesIsotope>();
 }
 
 std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
@@ -830,11 +830,11 @@ bool operator==(const SpeciesEnum &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const Species::IsotopeRecord &key) {
+bool operator==(const AtmKeyVal &keyval, const SpeciesIsotope &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const Species::IsotopeRecord &key, const AtmKeyVal &keyval) {
+bool operator==(const SpeciesIsotope &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 

@@ -18,8 +18,7 @@ internal_workspace_groups() {
 
   wsg_data["ArrayOfAbsorptionBand"] = {
       .file = "lbl.h",
-      .desc =
-          "A list of *AbsorptionBand*\n",
+      .desc = "A list of *AbsorptionBand*\n",
   };
 
   wsg_data["Agenda"] = {
@@ -823,6 +822,16 @@ radiation.
 An object of this type can be called with a frequency, position and
 line-of-sight to get the corresponding spectral radiance.
 )--",
+  };
+
+  wsg_data["SpeciesIsotope"] = {
+      .file = "isotopologues.h",
+      .desc = "Contains descriptions about an isotope.\n",
+  };
+
+  wsg_data["ArrayOfSpeciesIsotope"] = {
+      .file = "isotopologues.h",
+      .desc = "List of *SpeciesIsotope*.\n",
   };
 
   return wsg_data;

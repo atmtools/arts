@@ -16,6 +16,9 @@ void create_header(std::ostream& os) try {
 
 using namespace std::literals;
 
+class bifstream;
+class bofstream;
+
 )--";
 
   for (const auto& opt : opts) {

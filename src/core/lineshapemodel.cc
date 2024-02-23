@@ -528,21 +528,20 @@ std::istream& operator>>(std::istream& is, Model& m) {
   return is;
 }
 
-String ModelShape2MetaData(const Model&) {
-  String out = "";
-  // const auto& vars = enumtyps::VariableTypes;
+String ModelShape2MetaData(const Model& m) {
+  String out;
 
-  // for (auto& var : vars) {
-  //   if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
-  //         return x.Get(var).type not_eq LineShapeTemperatureModelOld::None;
-  //       })) {
-  //     out += String(toString(var)) + ' ';
-  //     for (auto& ssm : m.Data())
-  //       out += String(toString(ssm.Get(var).type)) + ' ';
-  //   }
-  // }
+  for (auto& var : enumtyps::LineShapeVariableOldTypes) {
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(), [var](auto& x) {
+          return x.Get(var).type not_eq LineShapeTemperatureModelOld::None;
+        })) {
+      out += String(toString(var)) + ' ';
+      for (auto& ssm : m.Data())
+        out += String(toString(ssm.Get(var).type)) + ' ';
+    }
+  }
 
-  // if (out.size()) out.pop_back();
+  if (out.size()) out.pop_back();
 
   return out;
 }

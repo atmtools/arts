@@ -199,7 +199,7 @@ void CIARecordReadFromFile(  // WS GOutput:
     const String& filename) {
   SpeciesTag species(species_tag);
 
-  ARTS_USER_ERROR_IF(species.Type() != Species::TagType::Cia,
+  ARTS_USER_ERROR_IF(species.Type() != SpeciesTagType::Cia,
                      "Invalid species tag ",
                      species_tag,
                      ".\n"
@@ -242,7 +242,7 @@ void absorption_cia_dataReadFromCIA(  // WS Output:
   // each group. Despite the name, iso does not denote the isotope!
   for (Size sp = 0; sp < abs_species.size(); sp++) {
     for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
-      if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
+      if (abs_species[sp][iso].Type() != SpeciesTagType::Cia) continue;
 
       ArrayOfString cia_names;
 
@@ -326,7 +326,7 @@ void absorption_cia_dataReadFromXML(  // WS Output:
   // each group. Despite the name, iso does not denote the isotope!
   for (Size sp = 0; sp < abs_species.size(); sp++) {
     for (Size iso = 0; iso < abs_species[sp].size(); iso++) {
-      if (abs_species[sp][iso].Type() != Species::TagType::Cia) continue;
+      if (abs_species[sp][iso].Type() != SpeciesTagType::Cia) continue;
 
       Index cia_index = cia_get_index(absorption_cia_data,
                                       abs_species[sp][iso].Spec(),
@@ -365,7 +365,7 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
   ArrayOfString names{};
   for (auto& spec : abs_species) {
     for (auto& tag : spec) {
-      if (tag.type == Species::TagType::Cia) {
+      if (tag.type == SpeciesTagType::Cia) {
         names.emplace_back(
             var_string(toString<1>(tag.Spec()),
                        "-CIA-",

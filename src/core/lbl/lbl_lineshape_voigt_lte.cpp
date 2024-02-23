@@ -19,7 +19,7 @@
 
 namespace lbl::voigt::lte {
 Complex line_strength_calc(const Numeric inv_gd,
-                           const SpeciesIsotopeRecord& spec,
+                           const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm) {
   const auto s =
@@ -36,7 +36,7 @@ Complex line_strength_calc(const Numeric inv_gd,
 
 Complex dline_strength_calc_dY(const Numeric dY,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const auto s =
@@ -50,7 +50,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
 
 Complex dline_strength_calc_dG(const Numeric dG,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const auto s =
@@ -64,7 +64,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
 
 Complex dline_strength_calc_df0(const Numeric f0,
                                 const Numeric inv_gd,
-                                const SpeciesIsotopeRecord& spec,
+                                const SpeciesIsotope& spec,
                                 const line& line,
                                 const AtmPoint& atm) {
   const auto s =
@@ -84,7 +84,7 @@ Complex dline_strength_calc_df0(const Numeric f0,
 
 Complex dline_strength_calc_dVMR(const Numeric inv_gd,
                                  const Numeric f0,
-                                 const SpeciesIsotopeRecord& spec,
+                                 const SpeciesIsotope& spec,
                                  const SpeciesEnum target_spec,
                                  const line& line,
                                  const AtmPoint& atm) {
@@ -114,7 +114,7 @@ Complex dline_strength_calc_dVMR(const Numeric inv_gd,
 
 Complex dline_strength_calc_dT(const Numeric inv_gd,
                                const Numeric f0,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const Numeric T = atm.temperature;
@@ -142,7 +142,7 @@ Complex dline_strength_calc_dT(const Numeric inv_gd,
 }
 
 Complex line_strength_calc(const Numeric inv_gd,
-                           const SpeciesIsotopeRecord& spec,
+                           const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const Size ispec) {
@@ -172,7 +172,7 @@ Complex line_strength_calc(const Numeric inv_gd,
 
 Complex dline_strength_calc_dG(const Numeric dG,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -198,7 +198,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
 
 Complex dline_strength_calc_dY(const Numeric dY,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -224,7 +224,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
 
 Complex dline_strength_calc_df0(const Numeric f0,
                                 const Numeric inv_gd,
-                                const SpeciesIsotopeRecord& spec,
+                                const SpeciesIsotope& spec,
                                 const line& line,
                                 const AtmPoint& atm,
                                 const Size ispec) {
@@ -255,7 +255,7 @@ Complex dline_strength_calc_df0(const Numeric f0,
 
 Complex dline_strength_calc_dT(const Numeric f0,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -341,7 +341,7 @@ Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
 
 //! Should only live in CC-file since it holds references
 struct single_shape_builder {
-  const SpeciesIsotopeRecord& spec;
+  const SpeciesIsotope& spec;
   const line& ln;
   const AtmPoint& atm;
   Numeric f0;
@@ -349,7 +349,7 @@ struct single_shape_builder {
   Numeric G0;
   Size ispec{std::numeric_limits<Size>::max()};
 
-  single_shape_builder(const SpeciesIsotopeRecord& s,
+  single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
                        const AtmPoint& a)
       : spec(s),
@@ -360,7 +360,7 @@ struct single_shape_builder {
                                  atm.temperature / s.mass)),
         G0(ln.ls.G0(atm)) {}
 
-  single_shape_builder(const SpeciesIsotopeRecord& s,
+  single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
                        const AtmPoint& a,
                        const Size is)
@@ -399,7 +399,7 @@ struct single_shape_builder {
   }
 };
 
-single_shape::single_shape(const SpeciesIsotopeRecord& spec,
+single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
@@ -412,7 +412,7 @@ single_shape::single_shape(const SpeciesIsotopeRecord& spec,
       s(line.z.Strength(line.qn.val, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm)) {}
 
-single_shape::single_shape(const SpeciesIsotopeRecord& spec,
+single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
@@ -570,7 +570,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
 
 void lines_push_back(std::vector<single_shape>& lines,
                      std::vector<line_pos>& pos,
-                     const SpeciesIsotopeRecord& spec,
+                     const SpeciesIsotope& spec,
                      const line& line,
                      const AtmPoint& atm,
                      const zeeman::pol pol,
@@ -606,7 +606,7 @@ void lines_push_back(std::vector<single_shape>& lines,
 
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
-                       const SpeciesIsotopeRecord& spec,
+                       const SpeciesIsotope& spec,
                        const band_data& bnd,
                        const AtmPoint& atm,
                        const Numeric fmin,
@@ -1196,7 +1196,7 @@ void ComputeData::core_calc(const band_shape& shp,
 }
 
 //! Sets dshape and dscl and ds and dz
-void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1380,7 +1380,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 }
 
 //! Sets ds and dz and dcut and dshape
-void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
                                  const band_shape& shp,
                                  const band_data& bnd,
                                  const ExhaustiveConstVectorView& f_grid,
@@ -1465,7 +1465,7 @@ void ComputeData::set_filter(const line_key& key) {
 }
 
 //! Sets dshape and ds and dz and dcut and dshape
-void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
                                 const band_shape& shp,
                                 const band_data& bnd,
                                 const ExhaustiveConstVectorView& f_grid,
@@ -1647,7 +1647,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1693,7 +1693,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dG_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1790,7 +1790,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
@@ -1852,12 +1852,12 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint& atm,
                         const zeeman::pol,
-                        const SpeciesIsotopeRecord& deriv_spec) {
+                        const SpeciesIsotope& deriv_spec) {
   if (deriv_spec != spec) return;
 
   const Numeric isorat = atm[spec];
@@ -1875,7 +1875,7 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
@@ -1890,7 +1890,7 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
@@ -1970,7 +1970,7 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView,
                         ComputeData&,
                         const ExhaustiveConstVectorView&,
-                        const SpeciesIsotopeRecord&,
+                        const SpeciesIsotope&,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
@@ -2000,7 +2000,7 @@ void calculate(PropmatVectorView pm,
   const Index nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotopeRecord spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.Isotopologue();
   const Numeric fmin = f_grid.front();
   const Numeric fmax = f_grid.back();
 

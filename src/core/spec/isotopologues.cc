@@ -3,7 +3,7 @@
 #include "enums.h"
 
 namespace Species {
-ArrayOfIsotopeRecord isotopologues(SpeciesEnum spec) {
+ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {
 #define deal_with_spec(SPEC)                                      \
   case SpeciesEnum::SPEC: {                                       \
     static constexpr auto v = isotopologues<SpeciesEnum::SPEC>(); \
@@ -138,7 +138,7 @@ String isotopologues_names(SpeciesEnum spec) {
   return os.str();
 }
 
-String predefined_model_names() noexcept {
+String predefined_model_names() {
   std::ostringstream os;
   for (auto& x : Isotopologues) {
     if (is_predefined_model(x)) {
@@ -168,7 +168,7 @@ String update_isot_name(const String& old_name) {
 }
 
 std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(
-    const SpeciesEnum spec, const IsotopologueRatios& ir) noexcept {
+    const SpeciesEnum spec, const IsotopologueRatios& ir) {
   ArrayOfString h, hnot;
   for (std::size_t i = IsotopologuesStart[std::size_t(spec)];
        i < IsotopologuesStart[std::size_t(spec) + 1];
@@ -185,7 +185,10 @@ std::pair<ArrayOfString, ArrayOfString> names_of_have_and_havenot_ratio(
   return {h, hnot};
 }
 
-IsotopeRecord::IsotopeRecord(const std::string_view name) noexcept {
-  *this = select(name);
+Isotope::Isotope(const std::string_view name) { *this = select(name); }
+
+std::ostream& operator<<(std::ostream& os, const std::vector<Isotope>& isots) {
+  for (const auto& i : isots) os << i << ' ';
+  return os;
 }
 }  // namespace Species

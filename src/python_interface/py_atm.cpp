@@ -98,7 +98,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmPoint &atm, const SpeciesIsotopeRecord &x) {
+          [](AtmPoint &atm, const SpeciesIsotope &x) {
             if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
@@ -121,7 +121,7 @@ void py_atm(py::module_ &m) try {
              atm[x] = data;
            })
       .def("__setitem__",
-           [](AtmPoint &atm, const SpeciesIsotopeRecord &x, Numeric data) {
+           [](AtmPoint &atm, const SpeciesIsotope &x, Numeric data) {
              atm[x] = data;
            })
       .def("__setitem__",
@@ -200,7 +200,7 @@ void py_atm(py::module_ &m) try {
           py::return_value_policy::reference_internal)
       .def(
           "__getitem__",
-          [](AtmField &atm, const SpeciesIsotopeRecord &x) -> Atm::Data & {
+          [](AtmField &atm, const SpeciesIsotope &x) -> Atm::Data & {
             if (not atm.has(x)) throw py::key_error(var_string(x));
             return atm[x];
           },
@@ -233,7 +233,7 @@ void py_atm(py::module_ &m) try {
           })
       .def("__setitem__",
            [](AtmField &atm,
-              const SpeciesIsotopeRecord &x,
+              const SpeciesIsotope &x,
               const Atm::Data &data) { atm[x] = data; })
       .def("at",
            [](const AtmField &atm,

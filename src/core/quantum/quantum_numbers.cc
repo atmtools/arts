@@ -1,10 +1,12 @@
 #include "quantum_numbers.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <string_view>
 #include <utility>
 
 #include "debug.h"
+#include "isotopologues.h"
 #include "species.h"
 
 namespace Quantum::Number {
@@ -414,8 +416,8 @@ String LocalState::values() const {
   return os.str();
 }
 
-Species::IsotopeRecord GlobalState::Isotopologue() const noexcept {
-  return isotopologue_index < 0 ? Species::IsotopeRecord()
+SpeciesIsotope GlobalState::Isotopologue() const noexcept {
+  return isotopologue_index < 0 ? SpeciesIsotope()
                                 : Species::Isotopologues[isotopologue_index];
 }
 
@@ -1070,7 +1072,16 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   auto n = count_items(s);
   auto specname = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
-  if (isotopologue_index < 0) return;
+
+  if (isotopologue_index < 0)
+    throw std::runtime_error("Invalid isotopologue: " + std::string(specname) +
+                             " from " + std::string(s));
+  if (Species::Isotopologues[isotopologue_index].joker() or
+      Species::is_predefined_model(
+          Species::Isotopologues[isotopologue_index])) {
+    throw std::runtime_error("Expects valid standard isotopologue, got: " +
+                             std::string(specname) + " from " + std::string(s));
+  }
 
   if (version == v) {
     if (n > 1) val = ValueList(s.substr(specname.length() + 1));

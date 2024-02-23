@@ -1198,7 +1198,7 @@ void py_predefined(py::module_& m) try {
                     auto out = std::make_shared<PredefinedModelData>();
                     for (auto& spec : specs) {
                       for (auto& mod : spec) {
-                        if (mod.type == Species::TagType::Predefined) {
+                        if (mod.type == SpeciesTagType::Predefined) {
                           String filename =
                               std::filesystem::path(basename) /
                               (mod.Isotopologue().FullName() + ".xml");
@@ -1221,7 +1221,7 @@ void py_predefined(py::module_& m) try {
                   })
       .def(py::pickle(
           [](const PredefinedModelData& t) {
-            const std::unordered_map<SpeciesIsotopeRecord,
+            const std::unordered_map<SpeciesIsotope,
                                      Absorption::PredefinedModel::ModelVariant>
                 x{t.begin(), t.end()};
             return py::make_tuple(x);
@@ -1229,10 +1229,10 @@ void py_predefined(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             auto out = std::make_shared<PredefinedModelData>();
-            const std::unordered_map<SpeciesIsotopeRecord,
+            const std::unordered_map<SpeciesIsotope,
                                      Absorption::PredefinedModel::ModelVariant>
                 x = t[0].cast<std::unordered_map<
-                    SpeciesIsotopeRecord,
+                    SpeciesIsotope,
                     Absorption::PredefinedModel::ModelVariant>>();
             for (auto& [k, v] : x) {
               out->set(k, v);

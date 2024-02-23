@@ -74,7 +74,6 @@ std::string var_string(Args&&... args) {
 
 #ifndef NDEBUG
 #include <exception>
-#include <iostream>
 
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions

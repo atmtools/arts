@@ -3,6 +3,7 @@
 
 #include "array.h"
 #include "arts_conversions.h"
+#include "enums.h"
 #include "interpolation.h"
 #include "interp.h"
 #include "math_funcs.h"
@@ -665,8 +666,8 @@ void test17() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(
+    auto lag = my_interp::Lagrange<-1, true, GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, my_interp::cycle_0_p2pi>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -686,8 +687,8 @@ void test18() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(f);
   for (Numeric n = -3 * 180; n <= 3 * 180; n += 0.1) {
-    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>(
+    auto lag = my_interp::Lagrange<-1, true, GridType::Cyclic, my_interp::cycle_m180_p180>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, my_interp::cycle_m180_p180>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -713,8 +714,8 @@ void test19() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        my_interp::Lagrange<-1, true, GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, zero_to_half>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -740,8 +741,8 @@ void test20() {
   Vector y = x;
   for (auto& f : y) f = Conversion::sind(360 / (0.456 + 0.123) * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
-    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_dot_123_to_zero_dot_456>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_dot_123_to_zero_dot_456>(
+    auto lag = my_interp::Lagrange<-1, true, GridType::Cyclic, zero_dot_123_to_zero_dot_456>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, zero_dot_123_to_zero_dot_456>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -763,8 +764,8 @@ void test21() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        my_interp::Lagrange<-1, true, GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, zero_to_half>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -785,8 +786,8 @@ void test22() {
   Vector y = x;
   for (auto& f : y) f = std::sin(f);
   for (Numeric n = -Constant::two_pi; n <= 2 * Constant::two_pi; n += 0.1) {
-    auto lag = my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, my_interp::cycle_0_p2pi>(
+    auto lag = my_interp::Lagrange<-1, true, GridType::Cyclic, my_interp::cycle_0_p2pi>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, my_interp::cycle_0_p2pi>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -807,8 +808,8 @@ void test23() {
   for (auto& f : y) f = Conversion::sind(720 * f);
   for (Numeric n = -0.5; n <= 1.5; n += 0.01) {
     auto lag =
-        my_interp::Lagrange<-1, true, my_interp::GridType::Cyclic, zero_to_half>(0, n, x, 1);
-    auto flag = my_interp::Lagrange<1, true, my_interp::GridType::Cyclic, zero_to_half>(
+        my_interp::Lagrange<-1, true, GridType::Cyclic, zero_to_half>(0, n, x, 1);
+    auto flag = my_interp::Lagrange<1, true, GridType::Cyclic, zero_to_half>(
         0, n, x);
     auto lag_iw = interpweights(lag);
     auto flag_iw = interpweights(flag);
@@ -830,7 +831,7 @@ void test25() {
   for (auto& f : y) f = 15*f*f + f*f*f;
   for (Numeric n = 0; n <= 180; n += 0.01) {
     const auto lag =
-    my_interp::Lagrange<-1, true, my_interp::GridType::CosDeg>(0, n, x, 5);
+    my_interp::Lagrange<-1, true, GridType::CosDeg>(0, n, x, 5);
     std::cout << n << ' ' << interp(y, interpweights(lag), lag) << ' ' << interp(y, dinterpweights<0>(lag), lag) << '\n';
   }
 }
@@ -852,7 +853,7 @@ void test26() {
   // Test for a few values of interpolation
   {
     constexpr Numeric x = -1.75;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -861,7 +862,7 @@ void test26() {
   }
   {
     constexpr Numeric x = -1.25;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -870,7 +871,7 @@ void test26() {
   }
   {
     constexpr Numeric x = -0.25;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -879,7 +880,7 @@ void test26() {
   }
   {
     constexpr Numeric x = 1;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -888,7 +889,7 @@ void test26() {
   }
   {
     constexpr Numeric x = -2;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -897,7 +898,7 @@ void test26() {
   }
   {
     constexpr Numeric x = 0;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
     constexpr FixedLagrangeInterpolation<O1, true> lin(0, x, xi);
@@ -906,13 +907,13 @@ void test26() {
   }
   {
     constexpr Numeric x = -4;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
   }
   {
     constexpr Numeric x = 4;
-    constexpr my_interp::Lagrange<O1, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
+    constexpr my_interp::Lagrange<O1, true, GridType::Cyclic, m2_to_p2> cyc(0, x, xi);
     static_assert(f(x) == interp(yi, interpweights(cyc), cyc));
     static_assert(df(x) == interp(yi, dinterpweights<0>(cyc), cyc));
   }
@@ -920,7 +921,7 @@ void test26() {
   constexpr Index O2 = 3;
   std::cout << "x f(x) interp(x) df(x) dinterp(x)\n";
   for (Numeric X=-3; X<3; X+=0.025) {
-    const my_interp::Lagrange<O2, true, my_interp::GridType::Cyclic, m2_to_p2> cyc(0, X, xi);
+    const my_interp::Lagrange<O2, true, GridType::Cyclic, m2_to_p2> cyc(0, X, xi);
     const FixedLagrangeInterpolation<O2, true> lin(0, X, xi);
     std::cout << X << ' ' << f(X) << ' ' << interp(yi, interpweights(cyc), cyc) << ' ' << df(X) << ' ' << interp(yi, dinterpweights<0>(cyc), cyc) 
     << ' ' << interp(yi, interpweights(lin), lin) << ' ' << interp(yi, dinterpweights<0>(lin), lin) << '\n';
@@ -928,11 +929,11 @@ void test26() {
 }
 
 void test27() {
-  for (auto a : my_interp::enumstrs::GridTypeNames)
+  for (auto a : enumstrs::GridTypeNames<>)
     std::cout << a.size() << '\n';
-  for (auto a : my_interp::enumstrs::GridTypeNames)
+  for (auto a : enumstrs::GridTypeNames<>)
     std::cout << a << '\n';
-  for (auto a : my_interp::enumstrs::GridTypeNames)
+  for (auto a : enumstrs::GridTypeNames<>)
     std::cout << a << '\n';
 }
 
@@ -967,9 +968,9 @@ void test28() {
   const ArrayOfLagrangeLogInterpolation lag_pre =
     my_interp::lagrange_interpolation_list<LagrangeLogInterpolation>(newpre, pre, 2, 1e9);
   const auto lag_lat =
-    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, my_interp::GridType::SinDeg>>(newlat, lat, 3, 1e9);
+    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, GridType::SinDeg>>(newlat, lat, 3, 1e9);
   const auto lag_lon =
-    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>>(newlon, lon, 1, 1e9);
+    my_interp::lagrange_interpolation_list<my_interp::Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_m180_p180>>(newlon, lon, 1, 1e9);
   
   // Create the interpolation weights
   const auto lag_iw = interpweights(lag_pre, lag_lat, lag_lon);

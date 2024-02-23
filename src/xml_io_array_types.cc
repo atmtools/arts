@@ -12,6 +12,7 @@
 
 #include "absorptionlines.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "sorted_grid.h"
 #include "species_tags.h"
 #include <workspace.h>
@@ -384,3 +385,4 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAscendingGrid)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector3)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAbsorptionBand)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpeciesIsotope)

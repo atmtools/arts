@@ -6,7 +6,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   Vector v1{1, 2, 3, 4, 5};
   String filename{"test.xml"};
-  xml_write_to_file_base(filename, v1, FILE_TYPE_ASCII);
+  xml_write_to_file_base(filename, v1, FileType::ascii);
   std::cout << v1 << '\n';
 
   Vector v2;

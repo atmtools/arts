@@ -389,7 +389,7 @@ const HitranMap molparam_map{
      }},
 };
 
-using OurHitranMap = std::map<Index, std::map<char, Species::IsotopeRecord>>;
+using OurHitranMap = std::map<Index, std::map<char, SpeciesIsotope>>;
 
 /** Turns the string-map required at compile time into a species-map
  * to be used as a static runtime map

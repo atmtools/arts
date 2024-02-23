@@ -34,7 +34,7 @@ Numeric wig6(const Rational& a,
 }
 
 std::function<Numeric(Rational)> erot_selection(
-    const SpeciesIsotopeRecord& isot) {
+    const SpeciesIsotope& isot) {
   if (isot.spec == SpeciesEnum::CarbonDioxide and isot.isotname == "626") {
     return [](const Rational J) -> Numeric {
       return Conversion::kaycm2joule(0.39021) * Numeric(J * (J + 1));

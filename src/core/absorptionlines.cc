@@ -186,7 +186,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(
     const auto isotopologue = Species::Tag(Species::update_isot_name(artsid));
     ARTS_USER_ERROR_IF(
         isotopologue.is_joker() or
-            isotopologue.type not_eq Species::TagType::Plain,
+            isotopologue.type not_eq SpeciesTagType::Plain,
         "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
         "Your input contains: ",
         artsid,
@@ -319,7 +319,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(
     const auto isotopologue = Species::Tag(Species::update_isot_name(artsid));
     ARTS_USER_ERROR_IF(
         isotopologue.is_joker() or
-            isotopologue.type not_eq Species::TagType::Plain,
+            isotopologue.type not_eq SpeciesTagType::Plain,
         "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
         "Your input contains: ",
         artsid,
@@ -416,7 +416,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(
       const auto isotopologue = Species::Tag(Species::update_isot_name(artsid));
       ARTS_USER_ERROR_IF(
           isotopologue.is_joker() or
-              isotopologue.type not_eq Species::TagType::Plain,
+              isotopologue.type not_eq SpeciesTagType::Plain,
           "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
           "Your input contains: ",
           artsid,
@@ -2316,7 +2316,7 @@ SpeciesEnum Lines::Species() const noexcept {
   return quantumidentity.Species();
 }
 
-Species::IsotopeRecord Lines::Isotopologue() const noexcept {
+SpeciesIsotope Lines::Isotopologue() const noexcept {
   return quantumidentity.Isotopologue();
 }
 

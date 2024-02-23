@@ -66,8 +66,7 @@ void absorption_bandsFromAbsorbtionLines(
       new_key = old_band.quantumidentity;
       new_band.lineshape =
           toLineshape(old_band.lineshapetype, old_band.population);
-      new_band.cutoff =
-          to<LineByLineCutoffType>(toString(old_band.cutoff));
+      new_band.cutoff = to<LineByLineCutoffType>(toString(old_band.cutoff));
       new_band.cutoff_value = old_band.cutofffreq;
       new_band.lines.reserve(old_band.lines.size());
 
@@ -93,8 +92,8 @@ void absorption_bandsFromAbsorbtionLines(
           new_line_lsspec.species = old_band.broadeningspecies[i];
           for (std::string_view strvar :
                {"G0", "D0", "G2", "D2", "ETA", "FVC", "Y", "G", "DV"}) {
-            auto old_value = old_line.lineshape[i].Get(
-                to<LineShapeVariableOld>(strvar));
+            auto old_value =
+                old_line.lineshape[i].Get(to<LineShapeVariableOld>(strvar));
             const auto new_var = to<LineShapeModelVariable>(strvar);
 
             switch (old_value.type) {
@@ -198,8 +197,9 @@ toLineshapeAndPolpulation(LineByLineLineshape x) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_linesFromArrayOfAbsorptionBand(ArrayOfAbsorptionLines& abs_lines,
-                                  const ArrayOfAbsorptionBand& absorption_bands) try {
+void abs_linesFromArrayOfAbsorptionBand(
+    ArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfAbsorptionBand& absorption_bands) try {
   abs_lines.resize(0);
   abs_lines.reserve(absorption_bands.size());
 
@@ -253,8 +253,7 @@ void abs_linesFromArrayOfAbsorptionBand(ArrayOfAbsorptionLines& abs_lines,
           LineShape::ModelParameters old_model(
               to<LineShapeTemperatureModelOld>(toString(data.Type())),
               data.X());
-          old_line_ls.Set(to<LineShapeVariableOld>(toString(var)),
-                          old_model);
+          old_line_ls.Set(to<LineShapeVariableOld>(toString(var)), old_model);
         }
       }
 
@@ -434,13 +433,15 @@ void absorption_bandsReadSpeciesSplitCatalog(
 
   const String my_base = complete_basename(basename);
 
-  std::set<SpeciesIsotopeRecord> isotopologues;
+  std::set<SpeciesIsotope> isotopologues;
   for (auto& specs : absorbtion_species) {
     for (auto& spec : specs) {
       if (is_predefined_model(spec.Isotopologue())) continue;
 
       if (spec.is_joker()) {
         for (auto&& isot : Species::isotopologues(spec.Spec())) {
+          if (is_predefined_model(isot)) continue;
+          if (isot.joker()) continue;
           isotopologues.insert(isot);
         }
       } else {
@@ -518,7 +519,8 @@ void absorption_bandsSaveSplit(const ArrayOfAbsorptionBand& absorption_bands,
 
   const auto p = create_if_not(dir);
 
-  std::unordered_map<SpeciesIsotopeRecord, ArrayOfAbsorptionBand> isotopologues_data;
+  std::unordered_map<SpeciesIsotope, ArrayOfAbsorptionBand>
+      isotopologues_data;
   for (auto& band : absorption_bands) {
     isotopologues_data[band.key.Isotopologue()].push_back(band);
   }
@@ -530,11 +532,11 @@ void absorption_bandsSaveSplit(const ArrayOfAbsorptionBand& absorption_bands,
 ARTS_METHOD_ERROR_CATCH
 
 void absorption_bandsSetZeeman(ArrayOfAbsorptionBand& absorption_bands,
-                               const SpeciesTag& isot,
+                               const SpeciesIsotope& species,
                                const Numeric& fmin,
                                const Numeric& fmax) try {
   for (auto& [key, band] : absorption_bands) {
-    if (key.Isotopologue() != isot.Isotopologue()) continue;
+    if (key.Isotopologue() != species) continue;
 
     for (auto& line : band.lines) {
       if (line.f0 >= fmin and line.f0 <= fmax) {

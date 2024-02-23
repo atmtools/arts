@@ -995,12 +995,12 @@ struct GlobalState {
   explicit GlobalState(Index i, ValueList v = {})
       : isotopologue_index(i), val(std::move(v)) {}
 
-  explicit GlobalState(const Species::IsotopeRecord& ir)
+  explicit GlobalState(const SpeciesIsotope& ir)
       : isotopologue_index(Species::find_species_index(ir)) {}
 
   explicit GlobalState(std::string_view s, Index v = version);
 
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
+  [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
   [[nodiscard]] SpeciesEnum Species() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);

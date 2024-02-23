@@ -172,7 +172,7 @@ struct band_data {
 };
 
 struct band {
-  QuantumIdentifier key{};
+  QuantumIdentifier key{"Ar-8"};
   band_data data{};
 
   friend std::ostream& operator<<(std::ostream& os, const band&);

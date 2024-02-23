@@ -42,7 +42,7 @@ namespace Absorption::PredefinedModel {
 template <bool check_exist>
 bool compute_selection(
     PropmatVector& pm [[maybe_unused]],
-    const SpeciesIsotopeRecord& model,
+    const SpeciesIsotope& model,
     const Vector& f [[maybe_unused]],
     const Numeric& p [[maybe_unused]],
     const Numeric& t [[maybe_unused]],
@@ -187,7 +187,7 @@ bool compute_selection(
   throw;
 }
 
-bool can_compute(const SpeciesIsotopeRecord& model) {
+bool can_compute(const SpeciesIsotope& model) {
   PropmatVector pm;
   return compute_selection<true>(pm, model, {}, {}, {}, {}, {});
 }
@@ -212,7 +212,7 @@ bool can_compute(const SpeciesIsotopeRecord& model) {
 void compute_vmr_deriv(
     PropmatVector& dpm,
     const PropmatVector& pm,
-    const SpeciesIsotopeRecord& model,
+    const SpeciesIsotope& model,
     const Vector& f,
     const Numeric& p,
     const Numeric& t,
@@ -253,7 +253,7 @@ void compute_vmr_deriv(
 void compute(
     PropmatVector& propmat_clearsky,
     PropmatMatrix& dpropmat_clearsky_dx,
-    const SpeciesIsotopeRecord& model,
+    const SpeciesIsotope& model,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,

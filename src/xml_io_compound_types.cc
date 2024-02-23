@@ -1403,7 +1403,7 @@ void xml_read_from_stream(std::istream& is_xml,
     // Get key
     String key_str;
     internal_open_tag.get_attribute_value("key", key_str);
-    SpeciesIsotopeRecord isot{key_str};
+    SpeciesIsotope isot{key_str};
     ARTS_USER_ERROR_IF(
         not isot.OK(), "Cannot understand key: ", std::quoted(key_str))
 
@@ -1608,7 +1608,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
           open_data_tag.add_attribute("keytype", "AtmKey");
         else if constexpr (Atm::isSpecies<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "Species");
-        else if constexpr (Atm::isIsotopeRecord<decltype(key_val)>)
+        else if constexpr (Atm::isSpeciesIsotope<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "IsotopeRecord");
         else if constexpr (Atm::isQuantumIdentifier<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "QuantumIdentifier");
@@ -1730,7 +1730,7 @@ void xml_read_from_stream(std::istream& is_xml,
       atm[QuantumIdentifier(k)] = v;
       nnlte--;
     } else if (nisot > 0) {
-      atm[SpeciesIsotopeRecord(k)] = v;
+      atm[SpeciesIsotope(k)] = v;
       nisot--;
     } else {
       ARTS_ASSERT(false)
@@ -2468,9 +2468,7 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBandData");
-} catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error reading AbsorptionBandData: ", e.what())
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const lbl::band_data& data,
@@ -2511,9 +2509,7 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBand");
-} catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error reading AbsorptionBand: ", e.what())
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AbsorptionBand& data,
@@ -2612,7 +2608,7 @@ struct tag {
     auto& x = data.at(key);
     if constexpr (std::same_as<T, Index>) {
       return std::stoi(x);
-    } else if constexpr (requires {to<T>(x);}) {
+    } else if constexpr (requires { to<T>(x); }) {
       auto s = to<T>(x);
       return s;
     } else {
@@ -2641,7 +2637,7 @@ void xml_read_from_stream(std::istream& is_xml,
   for (Index j = 0; j < nisot; j++) {
     const tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
     const auto nspec = isot_tag.get<Index>("nelem");
-    const auto isotkey = isot_tag.get<SpeciesIsotopeRecord>("isot");
+    const auto isotkey = isot_tag.get<SpeciesIsotope>("isot");
 
     auto& spec_data_map = ecsd[isotkey];
     for (Index i = 0; i < nspec; i++) {
@@ -2682,19 +2678,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 }
 
-//! SpeciesEnum
-
-void xml_read_from_stream(std::istream& is_xml, SpeciesEnum& s, bifstream*) {
-  const tag stag{is_xml, "SpeciesEnum", "enum"};
-  s = stag.get<SpeciesEnum>("enum");
+//! SpeciesIsotope
+#include <iostream> 
+void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
+  const tag stag{is_xml, "SpeciesIsotope", "isot"};
+  std::cout << stag.get("isot") << '\n';
+  s = stag.get<SpeciesIsotope>("isot");
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
-                         const SpeciesEnum& s,
+                         const SpeciesIsotope& s,
                          bofstream*,
                          const String&) {
-  const tag stag{
-      os_xml, "SpeciesEnum", meta_data{"enum", String{toString<1>(s)}}};
+  const tag stag{os_xml, "SpeciesIsotope", meta_data{"isot", s.FullName()}};
 }
 
 //! ArrayOfPropagationPathPoint

@@ -429,7 +429,7 @@ struct Lines {
   [[nodiscard]] SpeciesEnum Species() const noexcept;
 
   /** Isotopologue Index */
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
+  [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
 
   /** Number of lines */
   [[nodiscard]] Index NumLines() const noexcept;

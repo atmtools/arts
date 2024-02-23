@@ -966,7 +966,7 @@ void compute_derivative(PropmatVectorView,
                         const band_data&,
                         const AtmPoint&,
                         const zeeman::pol,
-                        const SpeciesIsotopeRecord& deriv_spec) {
+                        const SpeciesIsotope& deriv_spec) {
   ARTS_USER_ERROR_IF(deriv_spec == qid.Isotopologue(), "Not supported")
 }
 
@@ -1000,7 +1000,7 @@ void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
                         const ExhaustiveConstVectorView&,
-                        const SpeciesIsotopeRecord&,
+                        const SpeciesIsotope&,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
@@ -1034,7 +1034,7 @@ void calculate(PropmatVectorView pm,
   const Index nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotopeRecord spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.Isotopologue();
   const Numeric fmin = f_grid.front();
   const Numeric fmax = f_grid.back();
 

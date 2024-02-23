@@ -24,7 +24,7 @@ void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
   std::set<SpeciesEnum> unique_species;
   for (auto& asp : abs_species) {
     for (auto& sp : asp) {
-      if (sp.Type() == Species::TagType::XsecFit) {
+      if (sp.Type() == SpeciesTagType::XsecFit) {
         unique_species.insert(sp.Spec());
       }
     }

@@ -52,7 +52,7 @@ struct VMRS {
 };
 
 //! Returns true if the model can be computed
-bool can_compute(const SpeciesIsotopeRecord& model);
+bool can_compute(const SpeciesIsotope& model);
 
 /** Compute the predefined model
  *
@@ -71,7 +71,7 @@ bool can_compute(const SpeciesIsotopeRecord& model);
 void compute(
     PropmatVector& propmat_clearsky,
     PropmatMatrix& dpropmat_clearsky_dx,
-    const SpeciesIsotopeRecord& tag,
+    const SpeciesIsotope& tag,
     const Vector& f_grid,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,

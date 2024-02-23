@@ -262,7 +262,7 @@ for setting in settings:
 
     # ISOTOPOLOGUE RATIO
     d = 0.0001
-    key = pyarts.arts.SpeciesIsotopeRecord("O2-66")
+    key = pyarts.arts.SpeciesIsotope("O2-66")
     ws.atmospheric_point[key] += d
 
     ws.propagation_matrixInit()
@@ -296,7 +296,7 @@ for setting in settings:
 
     # Temperature
     d = 1e-6
-    key = pyarts.arts.options.AtmKey.t
+    key = pyarts.arts.AtmKey.t
     ws.atmospheric_point[key] += d
 
     ws.propagation_matrixInit()

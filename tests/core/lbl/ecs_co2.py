@@ -128,7 +128,7 @@ ws.ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 
-y = pyarts.arts.AbsorptionBands(ws.absorption_bands)
+y = pyarts.arts.ArrayOfAbsorptionBand(ws.absorption_bands)
 
 band = y[i]
 ws.absorption_bands = [band]

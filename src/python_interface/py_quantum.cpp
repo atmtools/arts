@@ -108,7 +108,7 @@ qn : ~pyarts.arts.QuantumNumberValue
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
   artsclass<QuantumIdentifier>(m, "QuantumIdentifier")
-      .def(py::init([]() { return std::make_shared<QuantumIdentifier>(); }), "Default ID")
+      .def(py::init([]() { return std::make_shared<QuantumIdentifier>("Ar-8"); }), "Default ID")
       .def(py::init(
           [](const std::string& s) { return std::make_shared<QuantumIdentifier>(s); }), "From :class:`str`")
       .PythonInterfaceCopyValue(QuantumIdentifier)
@@ -123,11 +123,11 @@ qn : ~pyarts.arts.QuantumNumberValue
           [](QuantumIdentifier& qid) {
             return Species::Isotopologues.at(qid.isotopologue_index);
           },
-          [](QuantumIdentifier& qid, SpeciesIsotopeRecord& iso) {
+          [](QuantumIdentifier& qid, SpeciesIsotope& iso) {
             Index res = Species::find_species_index(iso);
             ARTS_USER_ERROR_IF(res < 0, "Bad species: ", iso)
             qid.isotopologue_index = res;
-          }, ":class:`SpeciesIsotopeRecord` The isotopologue")
+          }, ":class:`SpeciesIsotope` The isotopologue")
       .def(py::self == py::self)
       .def(py::self != py::self)
       .def(py::self <= py::self)

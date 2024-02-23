@@ -221,7 +221,7 @@ void atmospheric_fieldAppendLineSpeciesData(
       [](const SpeciesEnum &x) { return String{toString<1>(x)}; });
 }
 
-void keysIsotopologue(std::unordered_map<SpeciesIsotopeRecord, Index> keys,
+void keysIsotopologue(std::unordered_map<SpeciesIsotope, Index> keys,
                       const ArrayOfAbsorptionBand &absorption_bands) {
   if (absorption_bands.empty()) return;
 
@@ -237,7 +237,7 @@ void atmospheric_fieldAppendLineIsotopologueData(
     const String &extrapolation,
     const Index &missing_is_zero,
     const Index &replace_existing) {
-  std::unordered_map<SpeciesIsotopeRecord, Index> keys;
+  std::unordered_map<SpeciesIsotope, Index> keys;
   keysIsotopologue(keys, absorption_bands);
 
   for (auto &[key, value] : absorption_bands) {
@@ -251,7 +251,7 @@ void atmospheric_fieldAppendLineIsotopologueData(
               replace_existing,
               0,
               keys,
-              [](const SpeciesIsotopeRecord &x) { return x.FullName(); });
+              [](const SpeciesIsotope &x) { return x.FullName(); });
 }
 
 void keysNLTE(std::unordered_map<QuantumIdentifier, Index> keys,

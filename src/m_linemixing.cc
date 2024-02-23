@@ -84,7 +84,7 @@ void ecs_dataAddMakarov2020(LinemixingEcsData& ecs_data) {
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
-  auto& ecs = ecs_data[SpeciesIsotopeRecord("O2-66")];
+  auto& ecs = ecs_data["O2-66"_isot];
 
   // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
   auto& oxy = ecs[SpeciesEnum::Oxygen];
@@ -104,8 +104,8 @@ void ecs_dataAddRodrigues1997(LinemixingEcsData& ecs_data) {
   using enum LineShapeModelType;
   using data = lbl::temperature::data;
 
-  for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
-    auto& ecs = ecs_data[SpeciesIsotopeRecord(key)];
+  for (const auto isot : {"CO2-626"_isot, "CO2-628"_isot, "CO2-636"_isot}) {
+    auto& ecs = ecs_data[isot];
 
     ecs[SpeciesEnum::Nitrogen].scaling =
         data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.0180), 0.85});
@@ -128,7 +128,7 @@ void ecs_dataAddTran2011(LinemixingEcsData& ecs_data) {
   using data = lbl::temperature::data;
 
   for (const std::string_view key : {"CO2-626", "CO2-628", "CO2-636"}) {
-    auto& ecs = ecs_data[SpeciesIsotopeRecord(key)];
+    auto& ecs = ecs_data[SpeciesIsotope(key)];
 
     ecs[SpeciesEnum::CarbonDioxide].scaling =
         data(T0, {Conversion::kaycm_per_atm2hz_per_pa(0.019)});

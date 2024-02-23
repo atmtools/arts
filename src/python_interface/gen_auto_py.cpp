@@ -1202,7 +1202,10 @@ void enum_option(std::ofstream& os, const EnumeratedOption& wso) {
   os << "  artsclass<" << wso.name << ">(m, \"" << wso.name << "\")\n";
 
   os << "      .def(py::init([]() -> " << wso.name
-     << " {return{};}), \"Default constructor\")\n";
+     << " {return {};}), \"Default constructor\")\n";
+
+  os << "      .def(py::init([](const " << wso.name << " x) -> " << wso.name
+     << " {return x;}), \"Copy constructor\")\n";
 
   os << "      .def(py::init([](const std::string& x) {return to<" << wso.name
      << ">(x);}), \"String constructor\")\n";
@@ -1215,6 +1218,8 @@ void enum_option(std::ofstream& os, const EnumeratedOption& wso) {
 
   os << "      .def(\"__deepcopy__\", [](" << wso.name << " t, py::dict&) -> "
      << wso.name << " { return t; })\n";
+
+  os << "      .PythonInterfaceFileIO(" << wso.name << ")\n";
 
   os << "      .def(\"__str__\", [](" << wso.name << " t) -> std::string";
   if (wso.name == "SpeciesEnum")
@@ -1283,6 +1288,7 @@ void enum_options(const std::string& fname) {
   auto cc = std::ofstream(fname + ".cpp");
 
   cc << R"-x-(#include "python_interface.h"
+#include "py_macros.h"
 
 #include <enums.h>
 

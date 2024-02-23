@@ -51,8 +51,8 @@ template <typename T>
 concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
 
 template <typename T>
-concept isIsotopeRecord =
-    std::is_same_v<std::remove_cvref_t<T>, Species::IsotopeRecord>;
+concept isSpeciesIsotope =
+    std::is_same_v<std::remove_cvref_t<T>, SpeciesIsotope>;
 
 template <typename T>
 concept isQuantumIdentifier =
@@ -62,12 +62,12 @@ template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isAtmKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
                   isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
 
 using KeyVal = std::variant<AtmKey,
                             SpeciesEnum,
-                            Species::IsotopeRecord,
+                            SpeciesIsotope,
                             QuantumIdentifier,
                             ParticulatePropertyTag>;
 
@@ -85,7 +85,7 @@ concept ListOfNumeric = requires(T a) {
 
 struct Point {
   std::unordered_map<SpeciesEnum, Numeric> specs{};
-  std::unordered_map<Species::IsotopeRecord, Numeric> isots{};
+  std::unordered_map<SpeciesIsotope, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
@@ -104,7 +104,7 @@ struct Point {
   constexpr Numeric operator[](T &&x) const try {
     if constexpr (isSpecies<T>) {
       return specs.at(std::forward<T>(x));
-    } else if constexpr (isIsotopeRecord<T>) {
+    } else if constexpr (isSpeciesIsotope<T>) {
       return isots.at(std::forward<T>(x));
     } else if constexpr (isParticulatePropertyTag<T>) {
       return partp.at(std::forward<T>(x));
@@ -135,7 +135,7 @@ struct Point {
     if constexpr (isSpecies<T>) {
       ARTS_USER_ERROR("Species VMR not found: ",
                       std::quoted(toString<1>(x)))
-    } else if constexpr (isIsotopeRecord<T>) {
+    } else if constexpr (isSpeciesIsotope<T>) {
       ARTS_USER_ERROR("Isotopologue ration not found: ", std::quoted(x.FullName()))
     } else if constexpr (isParticulatePropertyTag<T>) {
       ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
@@ -152,7 +152,7 @@ struct Point {
   constexpr Numeric &operator[](T &&x) {
     if constexpr (isSpecies<T>) {
       return specs[std::forward<T>(x)];
-    } else if constexpr (isIsotopeRecord<T>) {
+    } else if constexpr (isSpeciesIsotope<T>) {
       return isots[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
@@ -189,7 +189,7 @@ struct Point {
     const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
       if constexpr (isSpecies<T>)
         return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
-      else if constexpr (isIsotopeRecord<T>)
+      else if constexpr (isSpeciesIsotope<T>)
         return x.isots.end() not_eq x.isots.find(std::forward<T>(k));
       else if constexpr (isAtmKey<T>)
         return true;
@@ -336,7 +336,7 @@ concept DataType = RawDataType<T> or isData<T>;
 struct Field final : FieldMap::Map<Data,
                                    AtmKey,
                                    SpeciesEnum,
-                                   Species::IsotopeRecord,
+                                   SpeciesIsotope,
                                    QuantumIdentifier,
                                    ParticulatePropertyTag> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
@@ -351,7 +351,7 @@ struct Field final : FieldMap::Map<Data,
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
-  [[nodiscard]] const std::unordered_map<Species::IsotopeRecord, Data> &isots()
+  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots()
       const;
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
@@ -359,7 +359,7 @@ struct Field final : FieldMap::Map<Data,
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
-  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
+  [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
 

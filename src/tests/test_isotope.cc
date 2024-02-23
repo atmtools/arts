@@ -1,5 +1,7 @@
+#include "enums.h"
 #include "isotopologues.h"
 
+#include <cstddef>
 #include <iostream>
 
 int main() {
@@ -12,10 +14,10 @@ int main() {
   }
   
   std::cout << "\n\nTest correctness of Species short-name conversion fails here:\n";
-  for (Index i=0; i<Index(Species::Species::FINAL); i++) {
-    auto a = Species::Species(i);
-    auto b = Species::toShortName(a);
-    auto c = Species::fromShortName(b);
+  for (size_t i=0; i<enumsize::SpeciesEnumSize; i++) {
+    auto a = SpeciesEnum(i);
+    auto b = toString<1>(a);
+    auto c = to<SpeciesEnum>(b);
     if (not good_enum(c) or c not_eq a) {
       std::cout << i << ' ' << a << ' ' << b << ' ' << c << '\n';
     }

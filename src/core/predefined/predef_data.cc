@@ -62,7 +62,7 @@ std::ostream &operator<<(std::ostream &os, const Model &m) {
   return os;
 }
 
-const ModelVariant &Model::at(const SpeciesIsotopeRecord &tag) const try {
+const ModelVariant &Model::at(const SpeciesIsotope &tag) const try {
   ARTS_USER_ERROR_IF(not is_predefined_model(tag),
                      "The tag must be of type PredefinedModel")
   return data.at(tag);
@@ -71,7 +71,7 @@ const ModelVariant &Model::at(const SpeciesIsotopeRecord &tag) const try {
       var_string("The tag ", tag, " does not exist in the model"));
 }
 
-ModelVariant &Model::at(const SpeciesIsotopeRecord &tag) try {
+ModelVariant &Model::at(const SpeciesIsotope &tag) try {
   ARTS_USER_ERROR_IF(not is_predefined_model(tag),
                      "The tag must be of type PredefinedModel")
   return data.at(tag);

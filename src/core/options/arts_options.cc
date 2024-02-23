@@ -1,5 +1,6 @@
 #include "arts_options.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <limits>
 #include <ranges>
@@ -192,11 +193,11 @@ std::vector<EnumeratedOption> internal_options_create() {
                 "Perfluorocyclobutane moluecule"},
           Value{
               "CarbonTetrachloride", "CCl4", "Carbon Tetrachloride moluecule"},
-          Value{"CFC11", "CFC11 ", "CFC11 moluecule"},
-          Value{"CFC113", "CFC113 ", "CFC113 moluecule"},
-          Value{"CFC114", "CFC114 ", "CFC114 moluecule"},
-          Value{"CFC115", "CFC115 ", "CFC115 moluecule"},
-          Value{"CFC12", "CFC12 ", "CFC12 moluecule"},
+          Value{"CFC11", "CFC11", "CFC11 moluecule"},
+          Value{"CFC113", "CFC113", "CFC113 moluecule"},
+          Value{"CFC114", "CFC114", "CFC114 moluecule"},
+          Value{"CFC115", "CFC115", "CFC115 moluecule"},
+          Value{"CFC12", "CFC12", "CFC12 moluecule"},
           Value{"Dichloromethane", "CH2Cl2", "Dichloromethane moluecule"},
           Value{"Trichloroethane", "CH3CCl3", "Trichloroethane moluecule"},
           Value{"Trichloromethane", "CHCl3", "Trichloromethane moluecule"},
@@ -209,30 +210,30 @@ std::vector<EnumeratedOption> internal_options_create() {
           Value{"Dibromotetrafluoroethane",
                 "Halon2402",
                 "Dibromotetrafluoroethane moluecule"},
-          Value{"HCFC141b", "HCFC141b ", "HCFC141b moluecule"},
-          Value{"HCFC142b", "HCFC142b ", "HCFC142b moluecule"},
-          Value{"HCFC22", "HCFC22 ", "HCFC22 moluecule"},
-          Value{"HFC125", "HFC125 ", "HFC125 moluecule"},
-          Value{"HFC134a", "HFC134a ", "HFC134a moluecule"},
-          Value{"HFC143a", "HFC143a ", "HFC143a moluecule"},
-          Value{"HFC152a", "HFC152a ", "HFC152a moluecule"},
-          Value{"HFC227ea", "HFC227ea ", "HFC227ea moluecule"},
-          Value{"HFC23", "HFC23 ", "HFC23 moluecule"},
-          Value{"HFC236fa", "HFC236fa ", "HFC236fa moluecule"},
-          Value{"HFC245fa", "HFC245fa ", "HFC245fa moluecule"},
-          Value{"HFC32", "HFC32 ", "HFC32 moluecule"},
-          Value{"HFC365mfc", "HFC365mfc ", "HFC365mfc moluecule"},
+          Value{"HCFC141b", "HCFC141b", "HCFC141b moluecule"},
+          Value{"HCFC142b", "HCFC142b", "HCFC142b moluecule"},
+          Value{"HCFC22", "HCFC22", "HCFC22 moluecule"},
+          Value{"HFC125", "HFC125", "HFC125 moluecule"},
+          Value{"HFC134a", "HFC134a", "HFC134a moluecule"},
+          Value{"HFC143a", "HFC143a", "HFC143a moluecule"},
+          Value{"HFC152a", "HFC152a", "HFC152a moluecule"},
+          Value{"HFC227ea", "HFC227ea", "HFC227ea moluecule"},
+          Value{"HFC23", "HFC23", "HFC23 moluecule"},
+          Value{"HFC236fa", "HFC236fa", "HFC236fa moluecule"},
+          Value{"HFC245fa", "HFC245fa", "HFC245fa moluecule"},
+          Value{"HFC32", "HFC32", "HFC32 moluecule"},
+          Value{"HFC365mfc", "HFC365mfc", "HFC365mfc moluecule"},
           Value{"NitrogenTrifluoride", "NF3", "Nitrogen Trifluoride moluecule"},
           Value{"SulfurylFluoride", "SO2F2", "Sulfuryl Fluoride moluecule"},
-          Value{"HFC4310mee", "HFC4310mee ", "HFC4310mee moluecule"},
+          Value{"HFC4310mee", "HFC4310mee", "HFC4310mee moluecule"},
           Value{"Germane", "GeH4", "Germane moluecule"},
           Value{"Iodomethane", "CH3I", "Iodomethane moluecule"},
           Value{"Fluoromethane", "CH3F", "Fluoromethane moluecule"},
-          Value{"liquidcloud", "LiquidCloud", "liquidcloud tag"},
-          Value{"icecloud", "IceCloud", "icecloud tag"},
-          Value{"rain", "Rain", "rain tag"},
-          Value{"free_electrons", "FreeElectrons", "free electrons tag"},
-          Value{"particles", "Particles", "particles tag"},
+          Value{"liquidcloud", "liquidcloud", "liquidcloud tag"},
+          Value{"icecloud", "icecloud", "icecloud tag"},
+          Value{"rain", "rain", "rain tag"},
+          Value{"free_electrons", "free_electrons", "free electrons tag"},
+          Value{"particles", "particles", "particles tag"},
       }});
 
   opts.emplace_back(EnumeratedOption{
@@ -439,9 +440,8 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"Empty", R"(Calls:
-
-- *propmat_clearskyInit*
+              Value{"Empty", R"(
+    - *propagation_matrixInit*
 )"},
           },
   });
@@ -452,10 +452,9 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"Emission", R"(Calls:
-
-- *propagation_path_observer_agendaExecute*
-- *spectral_radianceStandardEmission*)"},
+              Value{"Emission", R"(
+    - *propagation_path_observer_agendaExecute*
+    - *spectral_radianceStandardEmission*)"},
           },
   });
 
@@ -465,10 +464,9 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"UniformCosmicBackground", R"(Calls:
-
-- *spectral_radianceUniformCosmicBackground*
-- *spectral_radiance_jacobianEmpty*)"},
+              Value{"UniformCosmicBackground", R"(
+    - *spectral_radianceUniformCosmicBackground*
+    - *spectral_radiance_jacobianEmpty*)"},
           },
   });
 
@@ -478,9 +476,8 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"Blackbody", R"(Calls:
-
-- *spectral_radianceSurfaceBlackbody*
+              Value{"Blackbody", R"(
+    - *spectral_radianceSurfaceBlackbody*
 )"},
           },
   });
@@ -491,14 +488,12 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"Geometric", R"(Calls:
+              Value{"Geometric", R"(
+    - *propagation_pathGeometric*
 
-- *propagation_pathGeometric*
-
-  - With ``pos`` as *spectral_radiance_observer_position*
-  - With ``los`` as *spectral_radiance_observer_line_of_sight*
-  - With ``as_observer`` as ``1``
-)"},
+        - With ``pos`` as *spectral_radiance_observer_position*
+        - With ``los`` as *spectral_radiance_observer_line_of_sight*
+        - With ``as_observer`` as ``1``)"},
           },
   });
 
@@ -829,9 +824,7 @@ Should be the standard choice for a non-spherical Earth.)"}},
       .desc = "Choice of ellipsoid.\n",
       .values_and_desc =
           {
-              Value{
-                  "Sphere",
-                  "A spherical planetesimal."},
+              Value{"Sphere", "A spherical planetesimal."},
           },
   });
 
@@ -840,9 +833,7 @@ Should be the standard choice for a non-spherical Earth.)"}},
       .desc = "Choice of ellipsoid.\n",
       .values_and_desc =
           {
-              Value{
-                  "Sphere",
-                  "A spherical planetesimal."},
+              Value{"Sphere", "A spherical planetesimal."},
           },
   });
 
@@ -899,6 +890,17 @@ Should be the standard choice for a non-spherical Earth.)"}},
           },
   });
 
+  opts.emplace_back(EnumeratedOption{
+      .name = "SpeciesTagType",
+      .desc = "Type of species tag.\n",
+      .values_and_desc =
+          {
+              Value{"Plain", "A plain species, one isotopologue or all."},
+              Value{"Predefined", "A predefined model species."},
+              Value{"Cia", "A pair of collision-induced species."},
+              Value{"XsecFit", "A cross-section fitting of a model species."},
+          },
+  });
 
   return opts;
 }
@@ -1006,6 +1008,10 @@ std::string EnumeratedOption::tail() const {
      << " x);\n\n";
   os << "std::istream &operator>>(std::istream &is, " << name << "& x);\n\n";
 
+  // Create xml-io operator
+  os << "void xml_read_from_stream(std::istream& is_xml, "<<name<<"& s, bifstream*);\n\n";
+  os << "void xml_write_to_stream(std::ostream& os_xml, const "<<name<<"& s, bofstream*, const std::string&);\n\n";
+
   return os.str();
 }
 
@@ -1023,14 +1029,17 @@ std::string EnumeratedOption::head() const {
 
   [*this]() {
     std::vector<std::string> all;
-    for (const auto& v : values_and_desc) {
-      all.insert(all.end(), v.begin(), v.end());
+    all.reserve(values_and_desc.size() * (values_and_desc.front().size()));
+    for (auto v : values_and_desc) {
+      std::ranges::sort(v);
+      auto last = std::unique(v.begin(), v.end());
+      all.insert(all.end(), v.begin(), last);
     }
     std::ranges::sort(all);
-    if (auto ptr = std::adjacent_find(all.begin(), all.end());
-        ptr != all.end()) {
-      throw std::runtime_error("Duplicate value in enum class " + name +
-                               std::string{": "} + *ptr);
+    auto last = std::unique(all.begin(), all.end());
+    if (last != all.end()) {
+      throw std::runtime_error("Duplicate value for enum class \"" + name +
+                               "\" \"" + *last + "\"");
     }
   }();
 
@@ -1074,6 +1083,19 @@ std::string EnumeratedOption::impl() const {
   os << "std::istream &operator>>(std::istream &is, " << name
      << "& x) {\n  std::string s;\n  is >> s;\n  x = to<" << name
      << ">(s);\n  return is;\n}\n\n";
+
+
+  os << "void xml_read_from_stream(std::istream& is, "<<name<<"& s, bifstream*) {\n"
+  "  std::string x;\n"
+  "  is >> x;\n"
+  "  if (x != \"<"<<name<<R"(>") throw std::runtime_error("Expected \"<)"<<name<<">\\\" got: \\\"\" + x + \"\\\"\");\n"
+  "  is >> x;\n"
+  "  s = to<"<<name<<">(x);\n"
+  "  is >> x;\n"
+  "  if (x != \"</"<<name<<R"(>") throw std::runtime_error("Expected \"</)"<<name<<">\\\" got: \\\"\" + x + \"\\\"\");\n"
+  "}\n\n";
+  os << "void xml_write_to_stream(std::ostream& os, const "<<name<<"& s, bofstream*, const std::string&) {\n"
+  "  os << \"<"<<name<<"> \" << toString(s) << \" </"<<name<<">\\n\";\n}\n\n";
 
   return os.str();
 }

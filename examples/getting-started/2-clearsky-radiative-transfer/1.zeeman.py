@@ -12,7 +12,7 @@ ws.frequency_grid = np.linspace(-50e6, 50e6, 1001) + 118750348044.712
 ws.absorption_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.absorption_bandsSelectFrequency(fmin=40e9, fmax=120e9, by_line=1)
-ws.absorption_bandsSetZeeman(isot="O2-66", fmin=118e9, fmax=119e9)
+ws.absorption_bandsSetZeeman(species="O2-66", fmin=118e9, fmax=119e9)
 ws.WignerInit()
 
 # %% Use the automatic agenda setter for propagation matrix calculations

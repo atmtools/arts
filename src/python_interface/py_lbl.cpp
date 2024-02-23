@@ -276,7 +276,7 @@ void py_lbl(py::module_& m) try {
           py::arg("isotopologue"));
   lbl.def(
       "Q",
-      [](const Vector& T, const SpeciesIsotopeRecord& isot) {
+      [](const Vector& T, const SpeciesIsotope& isot) {
         Vector Q(T.size());
         std::transform(
             T.begin(), T.end(), Q.begin(), [&isot](Numeric t) -> Numeric {

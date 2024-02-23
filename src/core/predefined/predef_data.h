@@ -56,7 +56,7 @@ concept ModelVariantConvertible = ModelVariantType<T> or requires(T t) {
 };
 
 class Model {
-  using ModelData = std::unordered_map<SpeciesIsotopeRecord, ModelVariant>;
+  using ModelData = std::unordered_map<SpeciesIsotope, ModelVariant>;
 
   ModelData data{};
 
@@ -70,7 +70,7 @@ class Model {
   void insert(const Model& other);
 
   template <ModelVariantConvertible T>
-  void set(const SpeciesIsotopeRecord& tag, const T& t) {
+  void set(const SpeciesIsotope& tag, const T& t) {
     ARTS_USER_ERROR_IF(not is_predefined_model(tag),
                        "The tag must be of type PredefinedModel")
     data[tag] = static_cast<ModelVariant>(t);
@@ -84,7 +84,7 @@ class Model {
   }
 
   template <ModelVariantType T>
-  [[nodiscard]] const T& get(const SpeciesIsotopeRecord& tag) const try {
+  [[nodiscard]] const T& get(const SpeciesIsotope& tag) const try {
     ARTS_USER_ERROR_IF(not is_predefined_model(tag),
                        "The tag must be of type PredefinedModel")
     return std::get<T>(data.at(tag));
@@ -103,9 +103,9 @@ class Model {
     return get<T>(Species::Isotopologues[tag]);
   }
 
-  [[nodiscard]] const ModelVariant& at(const SpeciesIsotopeRecord& tag) const;
+  [[nodiscard]] const ModelVariant& at(const SpeciesIsotope& tag) const;
 
-  [[nodiscard]] ModelVariant& at(const SpeciesIsotopeRecord& tag);
+  [[nodiscard]] ModelVariant& at(const SpeciesIsotope& tag);
 
   void clear();
   [[nodiscard]] auto size() const { return data.size(); }

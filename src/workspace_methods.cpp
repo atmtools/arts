@@ -2251,13 +2251,13 @@ See *SpeciesEnum* for valid ``species``
   wsm_data["jacobian_targetsAddSpeciesIsotopologueRatio"] = {
       .desc = R"--(Set isotopologue ratio derivative
 
-See ???? for valud ``species``
+See *SpeciesIsotope* for valid ``species``
 )--",
       .author = {"Richard Larsson"},
       .out = {"jacobian_targets"},
       .in = {"jacobian_targets"},
       .gin = {"species", "d"},
-      .gin_type = {"String", "Numeric"},
+      .gin_type = {"SpeciesIsotope", "Numeric"},
       .gin_value = {std::nullopt, Numeric{0.1}},
       .gin_desc =
           {"The species isotopologue of interest",
@@ -3003,13 +3003,13 @@ Wraps:
   wsm_data["absorption_bandsSetZeeman"] = {
       .desc = R"--(Set the Zeeman splitting for lines within the frequency range
 
-See ???? for valud ``species``
+See *SpeciesIsotope* for valid ``species``
 )--",
       .author = {"Richard Larsson"},
       .out = {"absorption_bands"},
       .in = {"absorption_bands"},
       .gin = {"species", "fmin", "fmax"},
-      .gin_type = {"SpeciesTag", "Numeric", "Numeric"},
+      .gin_type = {"SpeciesIsotope", "Numeric", "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt},
       .gin_desc = {"Isotopologue of the species",
                    "Minimum line frequency to set Zeeman splitting for",

@@ -13,7 +13,7 @@ namespace PartitionFunctions {
 
 namespace detail {
 template <Derivatives d>
-Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
+Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {
   using enum SpeciesEnum;
 
 #define deal_with_spec(SPEC) \
@@ -140,17 +140,17 @@ Numeric partfun_impl(Numeric T, const Species::IsotopeRecord& ir) {
 }
 
 extern template Numeric partfun_impl<Derivatives::Yes>(
-    Numeric T, const Species::IsotopeRecord& ir);
+    Numeric T, const SpeciesIsotope& ir);
 extern template Numeric partfun_impl<Derivatives::No>(
-    Numeric T, const Species::IsotopeRecord& ir);
+    Numeric T, const SpeciesIsotope& ir);
 
 } // namespace detail
 
-Numeric Q(Numeric T, const Species::IsotopeRecord& ir);
+Numeric Q(Numeric T, const SpeciesIsotope& ir);
 
-Numeric dQdT(Numeric T, const Species::IsotopeRecord& ir);
+Numeric dQdT(Numeric T, const SpeciesIsotope& ir);
 
-constexpr bool has_partfun(const Species::IsotopeRecord& ir) noexcept {
+constexpr bool has_partfun(const SpeciesIsotope& ir) noexcept {
   using enum SpeciesEnum;
 
 #define deal_with_spec(SPEC)             \

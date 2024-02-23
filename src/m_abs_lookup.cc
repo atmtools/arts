@@ -60,8 +60,8 @@ void find_nonlinear_continua(
     // Loop tags in tag group
     for (Size s = 0; s < absorption_species[i].size(); ++s) {
       // Check for continuum tags
-      if (absorption_species[i][s].type == Species::TagType::Predefined ||
-          absorption_species[i][s].type == Species::TagType::Cia) {
+      if (absorption_species[i][s].type == SpeciesTagType::Predefined ||
+          absorption_species[i][s].type == SpeciesTagType::Cia) {
         const String thisname = absorption_species[i][s].Name();
         // Ok, now we know this is a continuum tag.
 

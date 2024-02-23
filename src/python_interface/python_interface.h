@@ -41,7 +41,6 @@ PYBIND11_MAKE_OPAQUE(
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line_shape::species_model>);
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line>)
 PYBIND11_MAKE_OPAQUE(Array<LagrangeInterpolation>);
-PYBIND11_MAKE_OPAQUE(Array<Species::IsotopeRecord>);
 PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++

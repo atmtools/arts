@@ -12,13 +12,12 @@
 #include "species.h"
 
 namespace Species {
-enum class TagType : char {Plain, Predefined, Cia, XsecFit};
 struct Tag {
   //! Molecular species index in Species::Isotopologues
   Index spec_ind{-1};
 
   //! Flag for the type
-  TagType type{TagType::Plain};
+  SpeciesTagType type{SpeciesTagType::Plain};
 
   //! 2nd CIA species index.
   /*! Contains the second CIA species that should be used for this tag. */
@@ -29,21 +28,21 @@ struct Tag {
   // Documentation is with implementation.
   explicit Tag(std::string_view text);
 
-  constexpr Tag(const IsotopeRecord& isot) noexcept
+  constexpr Tag(const SpeciesIsotope& isot) noexcept
       : spec_ind(find_species_index(isot)),
         type(is_predefined_model(isot)
-                 ? TagType::Predefined
-                 : TagType::Plain) { /* Nothing to be done here. */
+                 ? SpeciesTagType::Predefined
+                 : SpeciesTagType::Plain) { /* Nothing to be done here. */
   }
 
   // Documentation is with implementation.
   [[nodiscard]] String Name() const;
 
-  [[nodiscard]] constexpr IsotopeRecord Isotopologue() const noexcept {
-    return spec_ind < 0 ? IsotopeRecord{} : Isotopologues[spec_ind];
+  [[nodiscard]] constexpr SpeciesIsotope Isotopologue() const noexcept {
+    return spec_ind < 0 ? SpeciesIsotope{} : Isotopologues[spec_ind];
   }
 
-  constexpr void Isotopologue(const IsotopeRecord& ir) ARTS_NOEXCEPT {
+  constexpr void Isotopologue(const SpeciesIsotope& ir) ARTS_NOEXCEPT {
     Index ind = find_species_index(ir);
     ARTS_ASSERT(ind < 0, "Bad species extracted from: ", ir)
     spec_ind = ind;
@@ -65,7 +64,7 @@ struct Tag {
     return Isotopologue().spec;
   }
 
-  [[nodiscard]] constexpr TagType Type() const noexcept { return type; }
+  [[nodiscard]] constexpr SpeciesTagType Type() const noexcept { return type; }
 
   friend std::ostream& operator<<(std::ostream& os, const Tag& ot);
 
@@ -77,7 +76,7 @@ struct Tag {
 };
 }  // namespace Species
 
-using SpeciesTagType = Species::TagType;
+using SpeciesTagType = SpeciesTagType;
 
 using SpeciesTag = Species::Tag;
 
@@ -137,7 +136,7 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
   }
 
   //   /*! Returns the species of the first elements, it is not allowed to have an empty list calling this */
-  [[nodiscard]] Species::TagType Type() const ARTS_NOEXCEPT {
+  [[nodiscard]] SpeciesTagType Type() const ARTS_NOEXCEPT {
     ARTS_ASSERT(size() not_eq 0,
                 "Invalid ArrayOfSpeciesTag without any species")
     return operator[](0).Type();
@@ -147,7 +146,7 @@ class ArrayOfSpeciesTag final : public Array<SpeciesTag> {
 
   [[nodiscard]] bool Plain() const noexcept {
     return std::any_of(cbegin(), cend(), [](auto& spec) {
-      return spec.Type() == Species::TagType::Plain;
+      return spec.Type() == SpeciesTagType::Plain;
     });
   }
 
@@ -170,7 +169,7 @@ using ArrayOfArrayOfSpeciesTag = Array<ArrayOfSpeciesTag>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfSpeciesTag& a);
 
-//! Struct to test of an ArrayOfArrayOfSpeciesTag contains a tagtype
+//! Struct to test of an ArrayOfArrayOfSpeciesTag contains a Speciestagtype
 struct SpeciesTagTypeStatus {
   bool Plain{false}, Predefined{false}, Cia{false}, XsecFit{false};
   SpeciesTagTypeStatus(const ArrayOfArrayOfSpeciesTag& abs_species);
@@ -215,7 +214,7 @@ std::pair<Index, Index> find_first_species_tag(
  */
 std::pair<Index, Index> find_first_isotologue(
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const SpeciesIsotopeRecord& isot) noexcept;
+    const SpeciesIsotope& isot) noexcept;
 
 /*! Find species that requires line-by-line calculations
  * 
@@ -257,7 +256,7 @@ template <>
 struct hash<SpeciesTag> {
   std::size_t operator()(const SpeciesTag& g) const {
     return std::hash<Index>{}(g.spec_ind) ^
-           (std::hash<Species::TagType>{}(g.type) << 20) ^
+           (std::hash<SpeciesTagType>{}(g.type) << 20) ^
            (std::hash<SpeciesEnum>{}(g.cia_2nd_species) << 24);
   }
 };

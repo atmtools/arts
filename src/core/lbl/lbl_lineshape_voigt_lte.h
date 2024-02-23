@@ -33,13 +33,13 @@ struct single_shape {
 
   constexpr single_shape() = default;
 
-  single_shape(const SpeciesIsotopeRecord&,
+  single_shape(const SpeciesIsotope&,
                const line&,
                const AtmPoint&,
                const zeeman::pol,
                const Index);
 
-  single_shape(const SpeciesIsotopeRecord&,
+  single_shape(const SpeciesIsotope&,
                const line&,
                const AtmPoint&,
                const zeeman::pol,
@@ -124,7 +124,7 @@ void zeeman_set_back(std::vector<single_shape>& lines,
 
 void lines_set(std::vector<single_shape>& lines,
                std::vector<line_pos>& pos,
-               const SpeciesIsotopeRecord& spec,
+               const SpeciesIsotope& spec,
                const line& line,
                const AtmPoint& atm,
                const zeeman::pol pol,
@@ -133,7 +133,7 @@ void lines_set(std::vector<single_shape>& lines,
 //! Helper for initializing the band_shape
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
-                       const SpeciesIsotopeRecord& spec,
+                       const SpeciesIsotope& spec,
                        const band_data& bnd,
                        const AtmPoint& atm,
                        const Numeric fmin,
@@ -411,7 +411,7 @@ struct ComputeData {
                  const ExhaustiveConstVectorView& f_grid);
 
   //! Sets dshape and dscl and ds and dz
-  void dt_core_calc(const SpeciesIsotopeRecord& spec,
+  void dt_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
@@ -446,7 +446,7 @@ struct ComputeData {
                         const zeeman::pol pol);
 
   //! Sets ds and dz and dcut and dshape
-  void dVMR_core_calc(const SpeciesIsotopeRecord& spec,
+  void dVMR_core_calc(const SpeciesIsotope& spec,
                       const band_shape& shp,
                       const band_data& bnd,
                       const ExhaustiveConstVectorView& f_grid,
@@ -457,7 +457,7 @@ struct ComputeData {
   void set_filter(const line_key& key);
 
   //! Sets dshape and ds and dz and dcut and dshape
-  void df0_core_calc(const SpeciesIsotopeRecord& spec,
+  void df0_core_calc(const SpeciesIsotope& spec,
                      const band_shape& shp,
                      const band_data& bnd,
                      const ExhaustiveConstVectorView& f_grid,
@@ -493,7 +493,7 @@ struct ComputeData {
                      const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
-  void dY_core_calc(const SpeciesIsotopeRecord& spec,
+  void dY_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
@@ -502,7 +502,7 @@ struct ComputeData {
                     const line_key& key);
 
   //! Sets dshape and ds and dcut and dshape
-  void dG_core_calc(const SpeciesIsotopeRecord& spec,
+  void dG_core_calc(const SpeciesIsotope& spec,
                     const band_shape& shp,
                     const band_data& bnd,
                     const ExhaustiveConstVectorView& f_grid,
