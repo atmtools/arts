@@ -8,6 +8,7 @@ void create_header(std::ostream& os) try {
 
   os << R"--(#pragma once
 
+#include <algorithm>
 #include <array>
 #include <istream>
 #include <ostream>

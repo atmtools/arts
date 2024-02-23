@@ -9,16 +9,16 @@
 namespace fwd {
 propmat::propmat(std::shared_ptr<AtmPoint> atm_,
                  std::shared_ptr<ArrayOfAbsorptionBand> lines_,
-                 std::shared_ptr<ArrayOfCIARecord> cia,
-                 std::shared_ptr<ArrayOfXsecRecord> xsec,
-                 std::shared_ptr<PredefinedModelData> predef,
+                 std::shared_ptr<ArrayOfCIARecord> cia_,
+                 std::shared_ptr<ArrayOfXsecRecord> xsec_,
+                 std::shared_ptr<PredefinedModelData> predef_,
                  Numeric ciaextrap,
                  Index ciarobust)
     : atm(std::move(atm_)),
       lines(atm, std::move(lines_)),
-      cia(atm, std::move(cia), ciaextrap, ciarobust),
-      predef(atm, std::move(predef)),
-      xsec(atm, std::move(xsec)) {}
+      cia(atm, std::move(cia_), ciaextrap, ciarobust),
+      predef(atm, std::move(predef_)),
+      xsec(atm, std::move(xsec_)) {}
 
 std::pair<Propmat, Stokvec> propmat::operator()(const Numeric f,
                                                 const Vector2 los) const {

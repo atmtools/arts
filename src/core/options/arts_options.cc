@@ -991,9 +991,8 @@ std::string EnumeratedOption::tail() const {
      << ">(const std::string_view x) {\n  using namespace enumstrs;\n";
   for (std::size_t i = 0; i < n - 1; i++) {
     os << "  if (const auto i = std::distance(" << name << "Names<" << i
-       << ">.begin(), std::find(" << name << "Names<" << i
-       << ">.begin(), " << name << "Names<" << i
-       << ">.end(), x)); i < " << m
+       << ">.begin(), std::ranges::find(" << name << "Names<" << i
+       << ">, x)); i < " << m
        << ")\n"
           "    return enumtyps::"
        << name << "Types[i];\n";
