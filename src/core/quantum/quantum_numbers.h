@@ -1,6 +1,8 @@
 #ifndef quantun_numbers_h
 #define quantun_numbers_h
 
+#include <enums.h>
+
 #include <algorithm>
 #include <compare>
 #include <cstddef>
@@ -12,7 +14,6 @@
 #include <vector>
 
 #include "debug.h"
-#include "enums.h"
 #include "isotopologues.h"
 #include "nonstd.h"
 #include "rational.h"
@@ -20,6 +21,9 @@
 constexpr Index quantum_number_error_value = -999'999'999;
 
 namespace Quantum::Number {
+//! Three tags, S: str, I: index, H: half-index
+enum class QuantumNumberValueType : char { S, I, H };
+std::ostream& operator<<(std::ostream&, QuantumNumberValueType);
 
 //! Holds string values but can only hold sizeof(Index) long values
 struct StringValue {
@@ -93,239 +97,160 @@ struct HalfIntegerValue {
   }
 };
 
-//! Three tags, S: str, I: index, H: half-index
-ENUMCLASS(ValueType, char, S, I, H)
-
-//! Different types of quantum numbers according to VAMDC with some unbounded counted up to 12 times
-ENUMCLASS(Type,
-          char,
-          alpha,   // FIXME: Not in VAMDC
-          config,  // FIXME: Not in VAMDC
-          ElecStateLabel,
-          F,
-          F1,
-          F10,
-          F11,
-          F12,
-          F2,
-          F3,
-          F4,
-          F5,
-          F6,
-          F7,
-          F8,
-          F9,
-          I,
-          J,
-          K,
-          Ka,
-          Kc,
-          L,  // FIXME: Not in VAMDC
-          Lambda,
-          N,
-          Omega,
-          S,
-          Sigma,
-          SpinComponentLabel,
-          asSym,
-          elecInv,
-          elecRefl,
-          elecSym,
-          kronigParity,
-          l,
-          l1,
-          l10,
-          l11,
-          l12,
-          l2,
-          l3,
-          l4,
-          l5,
-          l6,
-          l7,
-          l8,
-          l9,
-          n,  // FIXME: Not in VAMDC
-          parity,
-          r,
-          rotSym,
-          rovibSym,
-          sym,
-          tau,   // FIXME: Not in VAMDC
-          term,  // FIXME: Not in VAMDC
-          v,
-          v1,
-          v10,
-          v11,
-          v12,
-          v2,
-          v3,
-          v4,
-          v5,
-          v6,
-          v7,
-          v8,
-          v9,
-          vibInv,
-          vibRefl,
-          vibSym)
-
 /** Common value type of a given quantum number type 
  * 
  * Guards against integer/half-integer comparisons failing for bad reasons
  * and allows IO to not need some information 
  *
- * Keep new entries to a 1-to-1 key-to-key match, and sort them the same as Type for ease of reading
+ * Keep new entries to a 1-to-1 key-to-key match, and sort them the same as QuantumNumberType for ease of reading
  *
  * @param type A quantum number type
- * @return constexpr ValueType The common type
+ * @return constexpr QuantumNumberValueType The common type
  */
-constexpr ValueType common_value_type(Type type) noexcept {
+constexpr QuantumNumberValueType common_value_type(
+    QuantumNumberType type) noexcept {
   switch (type) {
-    case Type::alpha:
-      return ValueType::S;
-    case Type::config:
-      return ValueType::S;
-    case Type::ElecStateLabel:
-      return ValueType::S;
-    case Type::F:
-      return ValueType::H;
-    case Type::F1:
-      return ValueType::H;
-    case Type::F10:
-      return ValueType::H;
-    case Type::F11:
-      return ValueType::H;
-    case Type::F12:
-      return ValueType::H;
-    case Type::F2:
-      return ValueType::H;
-    case Type::F3:
-      return ValueType::H;
-    case Type::F4:
-      return ValueType::H;
-    case Type::F5:
-      return ValueType::H;
-    case Type::F6:
-      return ValueType::H;
-    case Type::F7:
-      return ValueType::H;
-    case Type::F8:
-      return ValueType::H;
-    case Type::F9:
-      return ValueType::H;
-    case Type::I:
-      return ValueType::I;
-    case Type::J:
-      return ValueType::H;
-    case Type::K:
-      return ValueType::I;
-    case Type::Ka:
-      return ValueType::I;
-    case Type::Kc:
-      return ValueType::I;
-    case Type::L:
-      return ValueType::I;
-    case Type::Lambda:
-      return ValueType::I;
-    case Type::N:
-      return ValueType::I;
-    case Type::Omega:
-      return ValueType::H;
-    case Type::S:
-      return ValueType::H;
-    case Type::Sigma:
-      return ValueType::H;
-    case Type::SpinComponentLabel:
-      return ValueType::I;
-    case Type::asSym:
-      return ValueType::S;
-    case Type::elecInv:
-      return ValueType::S;
-    case Type::elecRefl:
-      return ValueType::S;
-    case Type::elecSym:
-      return ValueType::S;
-    case Type::kronigParity:
-      return ValueType::S;
-    case Type::l:
-      return ValueType::I;
-    case Type::l1:
-      return ValueType::I;
-    case Type::l10:
-      return ValueType::I;
-    case Type::l11:
-      return ValueType::I;
-    case Type::l12:
-      return ValueType::I;
-    case Type::l2:
-      return ValueType::I;
-    case Type::l3:
-      return ValueType::I;
-    case Type::l4:
-      return ValueType::I;
-    case Type::l5:
-      return ValueType::I;
-    case Type::l6:
-      return ValueType::I;
-    case Type::l7:
-      return ValueType::I;
-    case Type::l8:
-      return ValueType::I;
-    case Type::l9:
-      return ValueType::I;
-    case Type::n:
-      return ValueType::S;
-    case Type::parity:
-      return ValueType::S;
-    case Type::r:
-      return ValueType::I;
-    case Type::rotSym:
-      return ValueType::S;
-    case Type::rovibSym:
-      return ValueType::S;
-    case Type::sym:
-      return ValueType::S;
-    case Type::tau:
-      return ValueType::S;
-    case Type::term:
-      return ValueType::S;
-    case Type::v:
-      return ValueType::I;
-    case Type::v1:
-      return ValueType::I;
-    case Type::v10:
-      return ValueType::I;
-    case Type::v11:
-      return ValueType::I;
-    case Type::v12:
-      return ValueType::I;
-    case Type::v2:
-      return ValueType::I;
-    case Type::v3:
-      return ValueType::I;
-    case Type::v4:
-      return ValueType::I;
-    case Type::v5:
-      return ValueType::I;
-    case Type::v6:
-      return ValueType::I;
-    case Type::v7:
-      return ValueType::I;
-    case Type::v8:
-      return ValueType::I;
-    case Type::v9:
-      return ValueType::I;
-    case Type::vibInv:
-      return ValueType::S;
-    case Type::vibRefl:
-      return ValueType::S;
-    case Type::vibSym:
-      return ValueType::S;
-    case Type::FINAL: {
-    }
+    case QuantumNumberType::alpha:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::config:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::ElecStateLabel:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::F:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F1:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F10:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F11:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F12:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F2:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F3:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F4:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F5:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F6:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F7:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F8:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::F9:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::I:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::J:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::K:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Ka:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Kc:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::L:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Lambda:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::N:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::Omega:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::S:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::Sigma:
+      return QuantumNumberValueType::H;
+    case QuantumNumberType::SpinComponentLabel:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::asSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecInv:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecRefl:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::elecSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::kronigParity:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::l:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l1:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l10:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l11:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l12:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l2:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l3:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l4:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l5:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l6:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l7:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l8:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::l9:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::n:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::parity:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::r:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::rotSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::rovibSym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::sym:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::tau:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::term:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::v:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v1:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v10:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v11:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v12:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v2:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v3:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v4:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v5:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v6:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v7:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v8:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::v9:
+      return QuantumNumberValueType::I;
+    case QuantumNumberType::vibInv:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::vibRefl:
+      return QuantumNumberValueType::S;
+    case QuantumNumberType::vibSym:
+      return QuantumNumberValueType::S;
   }
-  return ValueType::FINAL;
 }
 
 /** Return a common type between a and b
@@ -336,17 +261,20 @@ constexpr ValueType common_value_type(Type type) noexcept {
  *
  * @param a A value type
  * @param b Another value type
- * @return constexpr ValueType with FINAL as error flag
+ * @return constexpr QuantumNumberValueType with FINAL as error flag
  */
-constexpr ValueType common_value_type(ValueType a, ValueType b) noexcept {
+constexpr QuantumNumberValueType common_value_type(
+    QuantumNumberValueType a, QuantumNumberValueType b) noexcept {
   // Same is same, H is I, a has both:
-  if (a == b or (a == ValueType::H and b == ValueType::I)) return a;
+  if (a == b or
+      (a == QuantumNumberValueType::H and b == QuantumNumberValueType::I))
+    return a;
 
   // H is I:
-  if (b == ValueType::H and a == ValueType::I) return ValueType::H;
+  if (b == QuantumNumberValueType::H and a == QuantumNumberValueType::I)
+    return QuantumNumberValueType::H;
 
-  // Something has gone very wrong:
-  return ValueType::FINAL;
+  return static_cast<QuantumNumberValueType>(-1);
 }
 
 //! A union of the three type of values we need to consider
@@ -355,12 +283,13 @@ union ValueHolder {
   IntegerValue i;
   HalfIntegerValue h;
 
-  constexpr ValueHolder(ValueType t) noexcept : s(StringValue{"NODEF"}) {
+  constexpr ValueHolder(QuantumNumberValueType t) noexcept
+      : s(StringValue{"NODEF"}) {
     switch (t) {
-      case ValueType::H:
+      case QuantumNumberValueType::H:
         h = HalfIntegerValue{0};
         break;
-      case ValueType::I:
+      case QuantumNumberValueType::I:
         i = IntegerValue{0};
         break;
       default: {
@@ -368,7 +297,8 @@ union ValueHolder {
     }
   }
 
-  constexpr ValueHolder(Type t) noexcept : ValueHolder(common_value_type(t)) {}
+  constexpr ValueHolder(QuantumNumberType t) noexcept
+      : ValueHolder(common_value_type(t)) {}
   constexpr ValueHolder(const ValueHolder&) = default;
   constexpr ValueHolder(ValueHolder&&) noexcept = default;
   constexpr ValueHolder& operator=(const ValueHolder&) = default;
@@ -380,10 +310,11 @@ union ValueHolder {
  * Intended to be returned from IO operations
  */
 struct ValueDescription {
-  ValueType type;
+  QuantumNumberValueType type;
   ValueHolder val;
 
-  constexpr ValueDescription(ValueType t) noexcept : type(t), val(t) {}
+  constexpr ValueDescription(QuantumNumberValueType t) noexcept
+      : type(t), val(t) {}
   constexpr ValueDescription(const ValueDescription&) = default;
   constexpr ValueDescription(ValueDescription&&) noexcept = default;
   constexpr ValueDescription& operator=(const ValueDescription&) = default;
@@ -409,11 +340,13 @@ struct TwoLevelValueHolder {
   ValueHolder low;
 
   //! Constructor to ensure two ValueDescription have the same type, for IO purposes
-  constexpr TwoLevelValueHolder(ValueDescription u, ValueDescription l, Type t)
+  constexpr TwoLevelValueHolder(ValueDescription u,
+                                ValueDescription l,
+                                QuantumNumberType t)
       : upp(u.val), low(l.val) {
     auto ct = common_value_type(t);
     if (u.type not_eq ct) {
-      ARTS_USER_ERROR_IF(u.type not_eq ValueType::I,
+      ARTS_USER_ERROR_IF(u.type not_eq QuantumNumberValueType::I,
                          "Cannot convert from ",
                          u.type,
                          " to ",
@@ -422,7 +355,7 @@ struct TwoLevelValueHolder {
     }
 
     if (l.type not_eq ct) {
-      ARTS_USER_ERROR_IF(l.type not_eq ValueType::I,
+      ARTS_USER_ERROR_IF(l.type not_eq QuantumNumberValueType::I,
                          "Cannot convert from ",
                          l.type,
                          " to ",
@@ -431,7 +364,8 @@ struct TwoLevelValueHolder {
     }
   }
 
-  constexpr TwoLevelValueHolder(Type t) noexcept : upp(t), low(t) {}
+  constexpr TwoLevelValueHolder(QuantumNumberType t) noexcept
+      : upp(t), low(t) {}
   constexpr TwoLevelValueHolder(const TwoLevelValueHolder&) = default;
   constexpr TwoLevelValueHolder(TwoLevelValueHolder&&) noexcept = default;
   constexpr TwoLevelValueHolder& operator=(const TwoLevelValueHolder&) =
@@ -440,16 +374,14 @@ struct TwoLevelValueHolder {
       default;
 
   [[nodiscard]] constexpr std::strong_ordering order(
-      const TwoLevelValueHolder& tv, ValueType t) const {
+      const TwoLevelValueHolder& tv, QuantumNumberValueType t) const {
     switch (t) {
-      case ValueType::S:
+      case QuantumNumberValueType::S:
         return cmp(upp.s <=> tv.upp.s, low.s <=> tv.low.s);
-      case ValueType::I:
+      case QuantumNumberValueType::I:
         return cmp(upp.i <=> tv.upp.i, low.i <=> tv.low.i);
-      case ValueType::H:
+      case QuantumNumberValueType::H:
         return cmp(upp.h <=> tv.upp.h, low.h <=> tv.low.h);
-      case ValueType::FINAL:
-        break;
     }
     return std::strong_ordering::equal;
   }
@@ -467,18 +399,18 @@ struct TwoLevelValueHolder {
 
   // We must now have a half-integer or not
   if (r.denom == 2) {
-    ValueDescription x{ValueType::H};
+    ValueDescription x{QuantumNumberValueType::H};
     x.val.h.x = r.numer;
     return x;
   }
 
   if (r.denom == 1) {
-    ValueDescription x{ValueType::I};
+    ValueDescription x{QuantumNumberValueType::I};
     x.val.i.x = r.numer;
     return x;
   }
 
-  ValueDescription x{ValueType::I};
+  ValueDescription x{QuantumNumberValueType::I};
   x.val.i.x = quantum_number_error_value;
   return x;
 }
@@ -590,23 +522,19 @@ struct TwoLevelValueHolder {
  * @return constexpr ValueDescription 
  */
 [[nodiscard]] constexpr ValueDescription value_holder(std::string_view s,
-                                                      Type t) {
+                                                      QuantumNumberType t) {
   switch (common_value_type(t)) {
-    case ValueType::I:
-    case ValueType::H: {
+    case QuantumNumberValueType::I:
+    case QuantumNumberValueType::H: {
       const Rational r = cast_qnrat(s);
       return value_holder(r);
     }
-    case ValueType::S: {
-      ValueDescription x{ValueType::S};
+    case QuantumNumberValueType::S: {
+      ValueDescription x{QuantumNumberValueType::S};
       x.val.s = StringValue(s);
       return x;
     }
-    case ValueType::FINAL: {
-    }
   }
-
-  return ValueType::FINAL;
 }
 
 //! Struct that converts to bool automatically but allows checking both energy levels matching status
@@ -719,7 +647,7 @@ constexpr std::string_view items(std::string_view s, std::size_t i) noexcept {
 
 //! A complete quantum number value with type information
 struct Value {
-  Type type;
+  QuantumNumberType type;
   TwoLevelValueHolder qn;
 
   constexpr std::strong_ordering operator<=>(const Value& v) const {
@@ -728,22 +656,24 @@ struct Value {
     return qn.order(v.qn, common_value_type(type));
   }
 
-  constexpr Value(Type t = Type::FINAL) : type(t), qn(type) {}
+  constexpr Value(QuantumNumberType t = QuantumNumberType::term)
+      : type(t), qn(type) {}
   Value(const Value&) = default;
   Value(Value&&) noexcept = default;
   Value& operator=(const Value&) = default;
   Value& operator=(Value&&) noexcept = default;
 
-  constexpr Value(Type t, Rational upp_, Rational low_) : Value(t) {
+  constexpr Value(QuantumNumberType t, Rational upp_, Rational low_)
+      : Value(t) {
     Rational upp = reduce_by_gcd(upp_), low = reduce_by_gcd(low_);
 
-    if (common_value_type(type) == ValueType::H) {
+    if (common_value_type(type) == QuantumNumberValueType::H) {
       ARTS_ASSERT(upp.denom <= 2 and low.denom <= 2)
       if (upp.denom not_eq 2) upp *= 2;
       if (low.denom not_eq 2) low *= 2;
       qn.upp.h.x = upp.numer;
       qn.low.h.x = low.numer;
-    } else if (common_value_type(type) == ValueType::I) {
+    } else if (common_value_type(type) == QuantumNumberValueType::I) {
       ARTS_ASSERT(upp.denom == 1 and low.denom == 1)
       qn.upp.i.x = upp.numer;
       qn.low.i.x = low.numer;
@@ -754,7 +684,8 @@ struct Value {
   }
 
   //! Default constructor from some string of values
-  constexpr Value(std::string_view s) : Value(toTypeOrThrow(items(s, 0))) {
+  constexpr Value(std::string_view s)
+      : Value(to<QuantumNumberType>(items(s, 0))) {
     ARTS_USER_ERROR_IF(count_items(s) not_eq 3,
                        "Must have ' TYPE UPPNUM LOWNUM ' but got: '",
                        s,
@@ -771,9 +702,9 @@ struct Value {
   //! Returns the upper quantum number rational if it exists or an undefined
   [[nodiscard]] constexpr Rational upp() const noexcept {
     switch (common_value_type(type)) {
-      case ValueType::I:
+      case QuantumNumberValueType::I:
         return qn.upp.i.val();
-      case ValueType::H:
+      case QuantumNumberValueType::H:
         return qn.upp.h.val();
       default: {
       }
@@ -784,9 +715,9 @@ struct Value {
   //! Returns the lower quantum number rational if it exists or an undefined
   [[nodiscard]] constexpr Rational low() const noexcept {
     switch (common_value_type(type)) {
-      case ValueType::I:
+      case QuantumNumberValueType::I:
         return qn.low.i.val();
-      case ValueType::H:
+      case QuantumNumberValueType::H:
         return qn.low.h.val();
       default: {
       }
@@ -825,14 +756,12 @@ struct Value {
   [[nodiscard]] constexpr LevelMatch level_match(Value other) const noexcept {
     if (type == other.type) {
       switch (common_value_type(type)) {
-        case ValueType::I:
-        case ValueType::H:
+        case QuantumNumberValueType::I:
+        case QuantumNumberValueType::H:
           return {upp() == other.upp(), low() == other.low()};
-        case ValueType::S:
+        case QuantumNumberValueType::S:
           return {qn.upp.s.x == other.qn.upp.s.x,
                   qn.low.s.x == other.qn.low.s.x};
-        case ValueType::FINAL: {
-        }
       }
     }
     return {false, false};
@@ -852,7 +781,7 @@ struct Value {
 };
 
 //! Status of comparing two lists that are supposedly of some type
-ENUMCLASS(CheckValue, char, Full, AinB, BinA, Miss)
+enum class CheckValue : char { Full, AinB, BinA, Miss };
 
 //! Level-by-level version of CheckValue
 struct CheckMatch {
@@ -893,7 +822,8 @@ constexpr CheckMatch update(CheckMatch val, CheckMatch res) noexcept {
  * @return false if it is not sorted
  */
 template <size_t N>
-constexpr bool is_sorted(const std::array<Type, N>& types) noexcept {
+constexpr bool is_sorted(
+    const std::array<QuantumNumberType, N>& types) noexcept {
   for (size_t i = 1; i < N; i++)
     if (not(types[i - 1] < types[i])) return false;
   return true;
@@ -958,11 +888,11 @@ class ValueList {
   [[nodiscard]] bool has(Types... ts) const ARTS_NOEXCEPT {
     static_assert(sizeof...(Types) > 0);
 
-    ARTS_ASSERT(is_sorted(std::array{Type(ts)...}))
+    ARTS_ASSERT(is_sorted(std::array{QuantumNumberType(ts)...}))
 
     auto ptr = cbegin();
     auto end = cend();
-    for (Type t : {Type(ts)...}) {
+    for (QuantumNumberType t : {QuantumNumberType(ts)...}) {
       ptr = std::find_if(ptr, end, [t](auto& x) { return x.type == t; });
       if (ptr == end) return false;
     }
@@ -970,13 +900,13 @@ class ValueList {
   }
 
   //! Returns the value of the Type (assumes it exist)
-  const Value& operator[](Type t) const ARTS_NOEXCEPT;
+  const Value& operator[](QuantumNumberType t) const ARTS_NOEXCEPT;
 
   //! Legacy manipulation operator access
   Value& operator[](Index i) { return values.at(i); }
 
   //! Add for manipulation
-  Value& add(Type t);
+  Value& add(QuantumNumberType t);
 
   //! Add for manipulation
   Value& add(Value v);
@@ -998,13 +928,13 @@ class ValueList {
   friend std::istream& operator>>(std::istream& is, ValueList& vl);
 
   //! Add a type without sorting (WARNING, many things might break if you don't sort in the end)
-  void add_type_wo_sort(Type);
+  void add_type_wo_sort(QuantumNumberType);
 
   [[nodiscard]] bool good() const;
 
   void reserve(Size);
 
-  template <typename ... Ts>
+  template <typename... Ts>
   auto& emplace_back(Ts&&... xs) {
     return values.emplace_back(std::forward<Ts>(xs)...);
   }
@@ -1031,7 +961,7 @@ struct LocalState {
   template <typename... Values>
   LocalState(Values... vals) : val(Array<Value>{Value(vals)...}) {}
 
-  void set_unsorted_qns(const Array<Type>& vals);
+  void set_unsorted_qns(const Array<QuantumNumberType>& vals);
 
   [[nodiscard]] String keys() const;
 
@@ -1065,13 +995,13 @@ struct GlobalState {
   explicit GlobalState(Index i, ValueList v = {})
       : isotopologue_index(i), val(std::move(v)) {}
 
-  explicit GlobalState(const Species::IsotopeRecord& ir)
+  explicit GlobalState(const SpeciesIsotope& ir)
       : isotopologue_index(Species::find_species_index(ir)) {}
 
   explicit GlobalState(std::string_view s, Index v = version);
 
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
-  [[nodiscard]] Species::Species Species() const noexcept;
+  [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
+  [[nodiscard]] SpeciesEnum Species() const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const GlobalState& gs);
 
@@ -1109,7 +1039,7 @@ struct GlobalState {
 };
 
 //! StateMatchType operates so that a check less than a level should be 'better', bar None
-ENUMCLASS(StateMatchType, char, Full, Level, Isotopologue, Species, None)
+enum class StateMatchType : char { Full, Level, Isotopologue, Species, None };
 
 //! StateMatch, where you need to check the upp and low values when manipulating energy levels
 struct StateMatch {
@@ -1135,24 +1065,22 @@ struct StateMatch {
 };
 
 //! VAMDC classes of quantum number cases
-ENUMCLASS(
-    VAMDC,
-    char,
-    asymcs,  // Schema for specifying the quantum numbers of closed-shell asymmetric top molecules
-    asymos,  // Schema for specifying the quantum numbers of open-shell asymmetric top molecules
-    dcs,  // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
-    hunda,  // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
-    hundb,  // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
-    lpcs,  // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
-    lpos,  // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
-    ltcs,  // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
-    ltos,  // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
-    nltcs,  // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
-    nltos,  // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
-    sphcs,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-    sphos,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
-    stcs  // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
-)
+enum class VAMDC : char {
+  asymcs,  // Schema for specifying the quantum numbers of closed-shell asymmetric top molecules
+  asymos,  // Schema for specifying the quantum numbers of open-shell asymmetric top molecules
+  dcs,  // Schema for specifying the quantum numbers of closed-shell, diatomic molecules
+  hunda,  // Schema for specifying the quantum numbers for Hund's case (a) diatomic molecules
+  hundb,  // Schema for specifying the quantum numbers for Hund's case (b) diatomic molecules
+  lpcs,  // Schema for specifying the quantum numbers of closed-shell linear polyatomic molecules
+  lpos,  // Schema for specifying the quantum numbers of open-shell linear polyatomic molecules
+  ltcs,  // Schema for specifying the quantum numbers of closed-shell linear triatomic molecules
+  ltos,  // Schema for specifying the quantum numbers of open-shell linear triatomic molecules
+  nltcs,  // Schema for specifying the quantum numbers of closed-shell non-linear triatomic molecules
+  nltos,  // Schema for specifying the quantum numbers of open-shell non-linear triatomic molecules
+  sphcs,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+  sphos,  // Schema for specifying the quantum numbers of closed-shell spherical top molecules
+  stcs  // Schema for specifying the quantum numbers of closed-shell, symmetric top molecules
+};
 
 /** Checks if a ValueList can belong to a given VAMDC type by
  * ensuring it cannot have some quantum numbers
@@ -1165,56 +1093,90 @@ ENUMCLASS(
 bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT;
 
 //! A default state of global quantum numbers
-[[maybe_unused]] static constexpr std::array global_types{
-    Type::alpha,   Type::config,       Type::ElecStateLabel,
-    Type::L,       Type::Lambda,       Type::Omega,
-    Type::S,       Type::Sigma,        Type::SpinComponentLabel,
-    Type::asSym,   Type::elecInv,      Type::elecRefl,
-    Type::elecSym, Type::kronigParity, Type::l,
-    Type::l1,      Type::l10,          Type::l11,
-    Type::l12,     Type::l2,           Type::l3,
-    Type::l4,      Type::l5,           Type::l6,
-    Type::l7,      Type::l8,           Type::l9,
-    Type::n,       Type::parity,       Type::r,
-    Type::rotSym,  Type::rovibSym,     Type::sym,
-    Type::tau,     Type::term,         Type::v,
-    Type::v1,      Type::v10,          Type::v11,
-    Type::v12,     Type::v2,           Type::v3,
-    Type::v4,      Type::v5,           Type::v6,
-    Type::v7,      Type::v8,           Type::v9,
-    Type::vibInv,  Type::vibRefl,      Type::vibSym};
+[[maybe_unused]] inline constexpr std::array global_types{
+    QuantumNumberType::alpha,
+    QuantumNumberType::config,
+    QuantumNumberType::ElecStateLabel,
+    QuantumNumberType::L,
+    QuantumNumberType::Lambda,
+    QuantumNumberType::Omega,
+    QuantumNumberType::S,
+    QuantumNumberType::Sigma,
+    QuantumNumberType::SpinComponentLabel,
+    QuantumNumberType::asSym,
+    QuantumNumberType::elecInv,
+    QuantumNumberType::elecRefl,
+    QuantumNumberType::elecSym,
+    QuantumNumberType::kronigParity,
+    QuantumNumberType::l,
+    QuantumNumberType::l1,
+    QuantumNumberType::l10,
+    QuantumNumberType::l11,
+    QuantumNumberType::l12,
+    QuantumNumberType::l2,
+    QuantumNumberType::l3,
+    QuantumNumberType::l4,
+    QuantumNumberType::l5,
+    QuantumNumberType::l6,
+    QuantumNumberType::l7,
+    QuantumNumberType::l8,
+    QuantumNumberType::l9,
+    QuantumNumberType::n,
+    QuantumNumberType::parity,
+    QuantumNumberType::r,
+    QuantumNumberType::rotSym,
+    QuantumNumberType::rovibSym,
+    QuantumNumberType::sym,
+    QuantumNumberType::tau,
+    QuantumNumberType::term,
+    QuantumNumberType::v,
+    QuantumNumberType::v1,
+    QuantumNumberType::v10,
+    QuantumNumberType::v11,
+    QuantumNumberType::v12,
+    QuantumNumberType::v2,
+    QuantumNumberType::v3,
+    QuantumNumberType::v4,
+    QuantumNumberType::v5,
+    QuantumNumberType::v6,
+    QuantumNumberType::v7,
+    QuantumNumberType::v8,
+    QuantumNumberType::v9,
+    QuantumNumberType::vibInv,
+    QuantumNumberType::vibRefl,
+    QuantumNumberType::vibSym};
 
 //! A default state of local quantum numbers
-[[maybe_unused]] static constexpr std::array local_types{Type::F,
-                                                         Type::F1,
-                                                         Type::F10,
-                                                         Type::F11,
-                                                         Type::F12,
-                                                         Type::F2,
-                                                         Type::F3,
-                                                         Type::F4,
-                                                         Type::F5,
-                                                         Type::F6,
-                                                         Type::F7,
-                                                         Type::F8,
-                                                         Type::F9,
-                                                         Type::I,
-                                                         Type::J,
-                                                         Type::K,
-                                                         Type::Ka,
-                                                         Type::Kc,
-                                                         Type::N};
+[[maybe_unused]] inline constexpr std::array local_types{QuantumNumberType::F,
+                                                         QuantumNumberType::F1,
+                                                         QuantumNumberType::F10,
+                                                         QuantumNumberType::F11,
+                                                         QuantumNumberType::F12,
+                                                         QuantumNumberType::F2,
+                                                         QuantumNumberType::F3,
+                                                         QuantumNumberType::F4,
+                                                         QuantumNumberType::F5,
+                                                         QuantumNumberType::F6,
+                                                         QuantumNumberType::F7,
+                                                         QuantumNumberType::F8,
+                                                         QuantumNumberType::F9,
+                                                         QuantumNumberType::I,
+                                                         QuantumNumberType::J,
+                                                         QuantumNumberType::K,
+                                                         QuantumNumberType::Ka,
+                                                         QuantumNumberType::Kc,
+                                                         QuantumNumberType::N};
 
 std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a);
-std::ostream& operator<<(std::ostream& os, const Array<Type>& a);
 }  // namespace Quantum::Number
 
-using QuantumNumberType = Quantum::Number::Type;
 using QuantumNumberValue = Quantum::Number::Value;
 using QuantumNumberValueList = Quantum::Number::ValueList;
 using QuantumNumberLocalState = Quantum::Number::LocalState;
 using QuantumIdentifier = Quantum::Number::GlobalState;
 using ArrayOfQuantumIdentifier = Array<QuantumIdentifier>;
+
+std::ostream& operator<<(std::ostream& os, const Array<QuantumNumberType>& a);
 
 namespace std {
 //! Allow Quantum::Number::TwoLevelValueHolder to be used in hashes
@@ -1233,7 +1195,7 @@ struct hash<QuantumNumberValueList> {
     std::size_t out = 0;
     std::size_t i = 1;
     for (auto& x : g) {
-      out ^= (std::hash<Quantum::Number::Type>{}(x.type) ^
+      out ^= (std::hash<QuantumNumberType>{}(x.type) ^
               (std::hash<Quantum::Number::TwoLevelValueHolder>{}(x.qn) << 1))
              << i;
       i++;

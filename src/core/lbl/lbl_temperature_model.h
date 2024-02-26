@@ -9,44 +9,22 @@
 #include "matpack_view.h"
 
 namespace lbl::temperature {
-//! The different temperature models
-ENUMCLASS(
-    model_type,
-    char,
-    T0,   // Constant, X0
-    T1,   // Standard, X0 * (T0/T) ^ X1
-    T2,   // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
-    T3,   // X0 + X1 * (T - T0)
-    T4,   // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
-    T5,   // X0 * (T0/T)^(0.25 + 1.5*X1)
-    AER,  // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
-    DPL,  // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
-    POLY  // X0 + X1 * T + X2 * T ^ 2 + X3 * T ^ 3 + ...
-)
+inline constexpr std::size_t LineShapeModelTypeSize = 9;
+static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize,
+              "Invalid number of models");
 
 //! The number of parameters per model type (max() means and arbitrary number)
-static constexpr std::array<Size, static_cast<Size>(model_type::FINAL)>
-    model_size{
-        1,                                // T0
-        2,                                // T1
-        3,                                // T2
-        2,                                // T3
-        3,                                // T4
-        2,                                // T5
-        4,                                // AER
-        4,                                // DPL
-        std::numeric_limits<Size>::max()  // POLY
-    };
-
-ENUMCLASS(coefficient, char, X0, X1, X2, X3)
-
-static_assert(
-    std::ranges::none_of(model_size,
-                         [](auto n) {
-                           return n > static_cast<Size>(coefficient::FINAL) and
-                                  n != std::numeric_limits<Size>::max();
-                         }),
-    "Invalid model_size");
+inline constexpr std::array<Size, LineShapeModelTypeSize> model_size{
+    1,                                // T0
+    2,                                // T1
+    3,                                // T2
+    2,                                // T3
+    3,                                // T4
+    2,                                // T5
+    4,                                // AER
+    4,                                // DPL
+    std::numeric_limits<Size>::max()  // POLY
+};
 
 namespace model {
 #define EMPTY(name, deriv)                                                   \
@@ -227,17 +205,18 @@ EMPTY(POLY, T0)
 }  // namespace model
 
 class data {
-  model_type t{model_type::T0};
+  LineShapeModelType t{LineShapeModelType::T0};
   Vector x{};
 
  public:
-  [[nodiscard]] model_type Type() const;
+  [[nodiscard]] LineShapeModelType Type() const;
   [[nodiscard]] Vector X() const;
 
   friend std::ostream& operator<<(std::ostream& os, const temperature::data& x);
   friend std::istream& operator>>(std::istream& is, temperature::data& x);
 
-  constexpr data(model_type type = model_type::T0, Vector X = {0.0})
+  constexpr data(LineShapeModelType type = LineShapeModelType::T0,
+                 Vector X = {0.0})
       : t(type), x(std::move(X)) {
     ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
     ARTS_USER_ERROR_IF(auto n = model_size[static_cast<Size>(t)];
@@ -252,54 +231,52 @@ class data {
                        " parameters.")
   }
 
-  template <model_type mod>
+  template <LineShapeModelType mod>
   [[nodiscard]] constexpr Numeric operator()(Numeric T0 [[maybe_unused]],
                                              Numeric T [[maybe_unused]]) const
       ARTS_NOEXCEPT {
-    static_assert(mod != model_type::FINAL, "Invalid model type");
-    if constexpr (mod == model_type::T0)
+    if constexpr (mod == LineShapeModelType::T0)
       return model::T0(x[0]);
-    else if constexpr (mod == model_type::T1)
+    else if constexpr (mod == LineShapeModelType::T1)
       return model::T1(x[0], x[1], T0, T);
-    else if constexpr (mod == model_type::T2)
+    else if constexpr (mod == LineShapeModelType::T2)
       return model::T2(x[0], x[1], x[2], T0, T);
-    else if constexpr (mod == model_type::T3)
+    else if constexpr (mod == LineShapeModelType::T3)
       return model::T3(x[0], x[1], T0, T);
-    else if constexpr (mod == model_type::T4)
+    else if constexpr (mod == LineShapeModelType::T4)
       return model::T4(x[0], x[1], x[2], T0, T);
-    else if constexpr (mod == model_type::T5)
+    else if constexpr (mod == LineShapeModelType::T5)
       return model::T5(x[0], x[1], T0, T);
-    else if constexpr (mod == model_type::AER)
+    else if constexpr (mod == LineShapeModelType::AER)
       return model::AER(x[0], x[1], x[2], x[3], T);
-    else if constexpr (mod == model_type::DPL)
+    else if constexpr (mod == LineShapeModelType::DPL)
       return model::DPL(x[0], x[1], x[2], x[3], T0, T);
-    else if constexpr (mod == model_type::POLY)
+    else if constexpr (mod == LineShapeModelType::POLY)
       return model::POLY(x, T);
   }
 
 #define DERIVATIVE(name)                                               \
-  template <model_type mod>                                            \
+  template <LineShapeModelType mod>                                    \
   [[nodiscard]] constexpr Numeric d##name(Numeric T0 [[maybe_unused]], \
                                           Numeric T [[maybe_unused]])  \
       const ARTS_NOEXCEPT {                                            \
-    static_assert(mod != model_type::FINAL, "Invalid model type");     \
-    if constexpr (mod == model_type::T0)                               \
+    if constexpr (mod == LineShapeModelType::T0)                       \
       return model::dT0_d##name(x[0]);                                 \
-    else if constexpr (mod == model_type::T1)                          \
+    else if constexpr (mod == LineShapeModelType::T1)                  \
       return model::dT1_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == model_type::T2)                          \
+    else if constexpr (mod == LineShapeModelType::T2)                  \
       return model::dT2_d##name(x[0], x[1], x[2], T0, T);              \
-    else if constexpr (mod == model_type::T3)                          \
+    else if constexpr (mod == LineShapeModelType::T3)                  \
       return model::dT3_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == model_type::T4)                          \
+    else if constexpr (mod == LineShapeModelType::T4)                  \
       return model::dT4_d##name(x[0], x[1], x[2], T0, T);              \
-    else if constexpr (mod == model_type::T5)                          \
+    else if constexpr (mod == LineShapeModelType::T5)                  \
       return model::dT5_d##name(x[0], x[1], T0, T);                    \
-    else if constexpr (mod == model_type::AER)                         \
+    else if constexpr (mod == LineShapeModelType::AER)                 \
       return model::dAER_d##name(x[0], x[1], x[2], x[3], T);           \
-    else if constexpr (mod == model_type::DPL)                         \
+    else if constexpr (mod == LineShapeModelType::DPL)                 \
       return model::dDPL_d##name(x[0], x[1], x[2], x[3], T0, T);       \
-    else if constexpr (mod == model_type::POLY)                        \
+    else if constexpr (mod == LineShapeModelType::POLY)                \
       return model::dPOLY_d##name(x, T);                               \
   }
 

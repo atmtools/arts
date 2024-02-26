@@ -19,38 +19,50 @@ struct stokvec final : vec4 {
   [[nodiscard]] constexpr Numeric &Q() { return data[1]; }
   [[nodiscard]] constexpr Numeric &U() { return data[2]; }
   [[nodiscard]] constexpr Numeric &V() { return data[3]; }
+
+  constexpr stokvec &operator+=(const stokvec &b) {
+    I() += b.I();
+    Q() += b.Q();
+    U() += b.U();
+    V() += b.V();
+    return *this;
+  }
+
+  constexpr stokvec &operator-=(const stokvec &b) {
+    I() -= b.I();
+    Q() -= b.Q();
+    U() -= b.U();
+    V() -= b.V();
+    return *this;
+  }
 };
 
 //! Addition of two stokvec vectors
-constexpr auto operator+(const stokvec &a, const stokvec &b) {
-  stokvec c{a};
-  c += b;
-  return c;
+constexpr stokvec operator+(stokvec a, const stokvec &b) {
+  a += b;
+  return a;
 }
 
 //! Subtraction between two stokvec vectors
-constexpr auto operator-(const stokvec &a, const stokvec &b) {
-  stokvec c{a};
-  c -= b;
-  return c;
+constexpr stokvec operator-(stokvec a, const stokvec &b) {
+  a -= b;
+  return a;
 }
 
 //! Scaling a stokvec vector
-constexpr auto operator*(const Numeric &a, const stokvec &b) {
-  stokvec c{b};
-  c *= a;
-  return c;
+constexpr stokvec operator*(const Numeric &a, stokvec b) {
+  b *= a;
+  return b;
 }
 
 //! Scaling a stokvec vector
-constexpr auto operator*(const stokvec &a, const Numeric &b) {
-  stokvec c{a};
-  c *= b;
-  return c;
+constexpr stokvec operator*(stokvec a, const Numeric &b) {
+  a *= b;
+  return a;
 }
 
 //! Take the average of two stokvec vectors
-constexpr auto avg(const stokvec &a, const stokvec &b) {
+constexpr stokvec avg(const stokvec &a, const stokvec &b) {
   return 0.5 * a + 0.5 * b;
 }
 
@@ -68,4 +80,19 @@ using stokvec_tensor3 = matpack::matpack_data<stokvec, 3>;
 using stokvec_tensor3_view = matpack::matpack_view<stokvec, 3, false, false>;
 using stokvec_tensor3_const_view =
     matpack::matpack_view<stokvec, 3, true, false>;
+
+using stokvec_tensor4 = matpack::matpack_data<stokvec, 4>;
+using stokvec_tensor4_view = matpack::matpack_view<stokvec, 4, false, false>;
+using stokvec_tensor4_const_view =
+    matpack::matpack_view<stokvec, 4, true, false>;
+
+using stokvec_tensor5 = matpack::matpack_data<stokvec, 5>;
+using stokvec_tensor5_view = matpack::matpack_view<stokvec, 5, false, false>;
+using stokvec_tensor5_const_view =
+    matpack::matpack_view<stokvec, 5, true, false>;
+
+using stokvec_tensor6 = matpack::matpack_data<stokvec, 6>;
+using stokvec_tensor6_view = matpack::matpack_view<stokvec, 6, false, false>;
+using stokvec_tensor6_const_view =
+    matpack::matpack_view<stokvec, 6, true, false>;
 }  // namespace rtepack

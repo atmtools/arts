@@ -453,9 +453,3 @@ constexpr Propmat scale(const Propmat &a,
           da.W() * F.imag() + a.W() * dF.imag()};
 }
 };  // namespace lbl::zeeman
-
-template <>
-constexpr bool good_enum<lbl::zeeman::pol>(lbl::zeeman::pol x) noexcept {
-  return x == lbl::zeeman::pol::sm or x == lbl::zeeman::pol::pi or
-         x == lbl::zeeman::pol::sp or x == lbl::zeeman::pol::no;
-}

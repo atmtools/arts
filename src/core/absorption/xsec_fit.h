@@ -25,13 +25,13 @@
 class XsecRecord {
  public:
   /** Return species index */
-  [[nodiscard]] const Species::Species& Species() const { return mspecies; };
+  [[nodiscard]] const SpeciesEnum& Species() const { return mspecies; };
 
   /** Return species name */
   [[nodiscard]] String SpeciesName() const;
 
   /** Set species name */
-  void SetSpecies(const Species::Species species) { mspecies = species; };
+  void SetSpecies(const SpeciesEnum species) { mspecies = species; };
 
   /** Return species index */
   [[nodiscard]] Index Version() const { return mversion; };
@@ -120,7 +120,7 @@ class XsecRecord {
   static constexpr Index P20 = 3;
 
   static constexpr Index mversion{2};
-  Species::Species mspecies;
+  SpeciesEnum mspecies;
   /* VERSION 2 */
   Vector mfitminpressures;
   Vector mfitmaxpressures;
@@ -134,10 +134,10 @@ using ArrayOfXsecRecord = Array<XsecRecord>;
 std::ostream& operator<<(std::ostream& os, const ArrayOfXsecRecord& x);
 
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            Species::Species species);
+                            SpeciesEnum species);
 
 XsecRecord* hitran_xsec_get_data(
     const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
-    const Species::Species species);
+    const SpeciesEnum species);
 
 #endif  // HITRAN_XSEC_H

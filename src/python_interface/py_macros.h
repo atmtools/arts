@@ -24,7 +24,7 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
          const char* const file,                                            \
          const char* const type,                                            \
          bool clobber) {                                                    \
-        xml_write_to_file(file, x, string2filetype(type), clobber ? 0 : 1); \
+        xml_write_to_file(file, x, to<FileType>(type), clobber ? 0 : 1); \
       },                                                                    \
       py::arg("file").none(false),                                          \
       py::arg("type").none(false) = "ascii",                                \

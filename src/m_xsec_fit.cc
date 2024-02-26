@@ -16,14 +16,15 @@
 #include "xsec_fit.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
-                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                       const String& basename) {
+void absorption_xsec_fit_dataReadSpeciesSplitCatalog(
+    ArrayOfXsecRecord& absorption_xsec_fit_data,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const String& basename) try {
   // Build a set of species indices. Duplicates are ignored.
-  std::set<Species::Species> unique_species;
+  std::set<SpeciesEnum> unique_species;
   for (auto& asp : abs_species) {
     for (auto& sp : asp) {
-      if (sp.Type() == Species::TagType::XsecFit) {
+      if (sp.Type() == SpeciesTagType::XsecFit) {
         unique_species.insert(sp.Spec());
       }
     }
@@ -34,23 +35,23 @@ void xsec_fit_dataRead(ArrayOfXsecRecord& xsec_fit_data,
     tmpbasename += '.';
   }
 
-  // Read xsec data for all active species and collect them in xsec_fit_data
-  xsec_fit_data.clear();
+  // Read xsec data for all active species and collect them in absorption_xsec_fit_data
+  absorption_xsec_fit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
     const String filename{tmpbasename +
-                          String(Species::toShortName(species_name)) + ".xml"};
+                          String(toString<1>(species_name)) + ".xml"};
 
     try {
       xml_read_from_file(filename, xsec_coeffs);
 
-      xsec_fit_data.push_back(xsec_coeffs);
+      absorption_xsec_fit_data.push_back(xsec_coeffs);
     } catch (const std::exception& e) {
       ARTS_USER_ERROR(
           "Error reading coefficients file:\n", filename, "\n", e.what());
     }
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propagation_matrixAddXsecFit(  // WS Output:
@@ -61,7 +62,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
     const JacobianTargets& jacobian_targets,
     const AscendingGrid& f_grid,
     const AtmPoint& atm_point,
-    const ArrayOfXsecRecord& xsec_fit_data,
+    const ArrayOfXsecRecord& absorption_xsec_fit_data,
     const Numeric& force_p,
     const Numeric& force_t) {
   // Forward simulations and their error handling
@@ -86,8 +87,8 @@ void propagation_matrixAddXsecFit(  // WS Output:
   Vector dfreq;
   // Jacobian vectors END
   const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
-  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
+  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
   const bool do_freq_jac =
       std::ranges::any_of(freq_jac, [](auto& x) { return x.first; });
   const bool do_temp_jac = temp_jac.first;
@@ -117,7 +118,7 @@ void propagation_matrixAddXsecFit(  // WS Output:
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
-  for (auto& this_xdata : xsec_fit_data) {
+  for (auto& this_xdata : absorption_xsec_fit_data) {
     if (select_species != SpeciesEnum::Bath and
         this_xdata.Species() != select_species)
       continue;

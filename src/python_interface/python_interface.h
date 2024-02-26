@@ -22,24 +22,25 @@
 #include <filesystem>
 #include <iomanip>
 #include <ios>
-#include <streambuf>
 #include <istream>
-#include <ostream>
 #include <iterator>
 #include <memory>
 #include <optional>
+#include <ostream>
 #include <stdexcept>
+#include <streambuf>
 #include <type_traits>
 #include <variant>
 
 #include "auto_wsg.h"
+#include "enums.h"
 
 // Exposed types whose base type are not workspace variables
-PYBIND11_MAKE_OPAQUE(std::vector<std::pair<lbl::line_shape::variable, lbl::temperature::data>>);
+PYBIND11_MAKE_OPAQUE(
+    std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>);
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line_shape::species_model>);
 PYBIND11_MAKE_OPAQUE(std::vector<lbl::line>)
 PYBIND11_MAKE_OPAQUE(Array<LagrangeInterpolation>);
-PYBIND11_MAKE_OPAQUE(Array<Species::IsotopeRecord>);
 PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 
 //! Contains a bunch of helper functions to manipulate python objects inside C++
@@ -49,7 +50,7 @@ namespace py = pybind11;
 template <typename T, typename... Ts>
 using artsclass = py::class_<T, Ts..., std::shared_ptr<T>>;
 
-ENUMCLASS(ArrayOptions, char, index, nolist, noobjlist, nopickle, nocopy)
+enum class ArrayOptions { index, nolist, noobjlist, nopickle, nocopy };
 
 template <typename PythonListable, ArrayOptions... opts>
 py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(

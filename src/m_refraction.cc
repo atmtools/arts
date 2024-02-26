@@ -130,7 +130,7 @@ void refr_index_airMicrowavesEarth(Numeric& refr_index_air,
         "*rtp_vmr* and *abs_species*.");
 
   Index firstH2O = find_first_species(
-      abs_species, Species::fromShortName("H2O"));
+      abs_species, to<SpeciesEnum>("H2O"));
 
   Numeric e;
   if (firstH2O < 0)
@@ -226,7 +226,7 @@ void refr_index_airMicrowavesGeneral(
   // Loop over all broadening species and see if we can find them in abs_species.
   for (Index i = 0; i < nrs; ++i) {
     // Find associated internal species index (we do the lookup by index, not by name).
-    const Species::Species isi = Species::fromShortName(ref_spec_names[i]);
+    const SpeciesEnum isi = to<SpeciesEnum>(ref_spec_names[i]);
 
     // Find position of broadening species isi in abs_species. The called
     // function returns -1 if not found, which is already the correct

@@ -11,10 +11,8 @@
 #include <algorithm>
 #include <memory>
 
-#include "check_input.h"
 #include "debug.h"
-#include "interpolation.h"
-
+#include "interp.h"
 
 void RemoveNegativeXsec(Vector& xsec) {
   Numeric sum_xsec{};
@@ -33,7 +31,7 @@ void RemoveNegativeXsec(Vector& xsec) {
 String XsecRecord::SpeciesName() const {
   // The function species_name_from_species_index internally does an assertion
   // that the species with this index really exists.
-  return String{Species::toShortName(mspecies)};
+  return String{toString<1>(mspecies)};
 }
 
 void XsecRecord::SetVersion(const Index version) {
@@ -129,19 +127,13 @@ void XsecRecord::Extract(VectorView result,
 
     RemoveNegativeXsec(fit_result);
 
-    // Check if frequency is inside the range covered by the data:
-    chk_interpolation_grids("Frequency interpolation for cross sections",
-                            data_f_grid,
-                            f_grid_active);
-
     {
+      const auto f_gp =
+          my_interp::lagrange_interpolation_list<FixedLagrangeInterpolation<1>>(
+              data_f_grid_active, f_grid_active);
+      const auto f_itw = interpweights(f_gp);
       // Find frequency grid positions:
-      ArrayOfGridPos f_gp(f_grid_active.nelem());
-      gridpos(f_gp, data_f_grid_active, f_grid_active);
-
-      Matrix itw(f_gp.size(), 2);
-      interpweights(itw, f_gp);
-      interp(xsec_interp, itw, fit_result_active, f_gp);
+      my_interp::reinterp(xsec_interp, fit_result_active, f_itw, f_gp);
     }
 
     result_active += xsec_interp;
@@ -185,7 +177,7 @@ void XsecRecord::CalcXsec(VectorView xsec,
  \returns Index of this species in xsec_fit_data. -1 if not found.
  */
 Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
-                            const Species::Species species) {
+                            const SpeciesEnum species) {
   for (Size i = 0; i < xsec_data.size(); i++)
     if (xsec_data[i].Species() == species) return i;
 
@@ -201,7 +193,7 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
  */
 XsecRecord* hitran_xsec_get_data(
     const std::shared_ptr<std::vector<XsecRecord>>& xsec_data,
-    const Species::Species species) {
+    const SpeciesEnum species) {
   for (auto& xsec : *xsec_data) {
     if (xsec.Species() == species) return &xsec;
   }
@@ -209,7 +201,7 @@ XsecRecord* hitran_xsec_get_data(
 }
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd) {
-  os << "Species: " << xd.Species() << std::endl;
+  os << "Species: " << xd.Species() << '\n';
   return os;
 }
 

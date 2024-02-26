@@ -16,7 +16,7 @@ struct ComputeValues {
   PropmatVector pm;
   StokvecVector sv;
 
-  Species::Species select_species;
+  SpeciesEnum select_species;
   Vector f_grid;
   PropagationPathPoint path_point;
   AtmPoint atm_point;
@@ -48,28 +48,14 @@ struct Results {
 
 using ResultsArray = std::array<Results, n>;
 
-ENUMCLASS(XScaling, char,
-  Hz,
-  GHz,
-  THz,
-  Angcm,
-  Kaycm,
-  m,
-  nm,
-  Angfreq)
-
-ENUMCLASS(PropmatScaling, char, None, Normalize, CrossSection)
-
-ENUMCLASS(TramatScaling, char, None, dB)
-
 struct DisplayOptions {
-  XScaling xscale{XScaling::Hz};
+  GuiXScaling xscale{GuiXScaling::Hz};
   
-  PropmatScaling propmat_scale{PropmatScaling::None};
+  GuiPropmatScaling propmat_scale{GuiPropmatScaling::None};
   Numeric propmat_scale_const{1.0};
   bool inverse_propmat_scale{false};
 
-  TramatScaling tramat_scale{TramatScaling::None};
+  GuiTramatScaling tramat_scale{GuiTramatScaling::None};
   bool inverse_tramat_scale{false};
 
   int smooth_counter{1};

@@ -12,13 +12,14 @@
 #include <numeric>
 
 #include "atm.h"
+#include "enums.h"
 #include "lbl_data.h"
 #include "lbl_zeeman.h"
 #include "species.h"
 
 namespace lbl::voigt::lte_mirror {
 Complex line_strength_calc(const Numeric inv_gd,
-                           const SpeciesIsotopeRecord& spec,
+                           const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm) {
   const auto s =
@@ -35,7 +36,7 @@ Complex line_strength_calc(const Numeric inv_gd,
 
 Complex dline_strength_calc_dY(const Numeric dY,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const auto s =
@@ -49,7 +50,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
 
 Complex dline_strength_calc_dG(const Numeric dG,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const auto s =
@@ -63,7 +64,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
 
 Complex dline_strength_calc_df0(const Numeric f0,
                                 const Numeric inv_gd,
-                                const SpeciesIsotopeRecord& spec,
+                                const SpeciesIsotope& spec,
                                 const line& line,
                                 const AtmPoint& atm) {
   const auto s =
@@ -83,8 +84,8 @@ Complex dline_strength_calc_df0(const Numeric f0,
 
 Complex dline_strength_calc_dVMR(const Numeric inv_gd,
                                  const Numeric f0,
-                                 const SpeciesIsotopeRecord& spec,
-                                 const Species::Species target_spec,
+                                 const SpeciesIsotope& spec,
+                                 const SpeciesEnum target_spec,
                                  const line& line,
                                  const AtmPoint& atm) {
   const auto s =
@@ -113,7 +114,7 @@ Complex dline_strength_calc_dVMR(const Numeric inv_gd,
 
 Complex dline_strength_calc_dT(const Numeric inv_gd,
                                const Numeric f0,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm) {
   const Numeric T = atm.temperature;
@@ -141,7 +142,7 @@ Complex dline_strength_calc_dT(const Numeric inv_gd,
 }
 
 Complex line_strength_calc(const Numeric inv_gd,
-                           const SpeciesIsotopeRecord& spec,
+                           const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const Size ispec) {
@@ -151,7 +152,7 @@ Complex line_strength_calc(const Numeric inv_gd,
   const Numeric P = atm.pressure;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == Species::Species::Bath
+  const Numeric v = ls.species == SpeciesEnum::Bath
                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
@@ -171,7 +172,7 @@ Complex line_strength_calc(const Numeric inv_gd,
 
 Complex dline_strength_calc_dG(const Numeric dG,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -179,7 +180,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == Species::Species::Bath
+  const Numeric v = ls.species == SpeciesEnum::Bath
                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
@@ -197,7 +198,7 @@ Complex dline_strength_calc_dG(const Numeric dG,
 
 Complex dline_strength_calc_dY(const Numeric dY,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -205,7 +206,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
   const Numeric T = atm.temperature;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == Species::Species::Bath
+  const Numeric v = ls.species == SpeciesEnum::Bath
                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
@@ -223,7 +224,7 @@ Complex dline_strength_calc_dY(const Numeric dY,
 
 Complex dline_strength_calc_df0(const Numeric f0,
                                 const Numeric inv_gd,
-                                const SpeciesIsotopeRecord& spec,
+                                const SpeciesIsotope& spec,
                                 const line& line,
                                 const AtmPoint& atm,
                                 const Size ispec) {
@@ -233,7 +234,7 @@ Complex dline_strength_calc_df0(const Numeric f0,
   const Numeric P = atm.pressure;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == Species::Species::Bath
+  const Numeric v = ls.species == SpeciesEnum::Bath
                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
@@ -254,7 +255,7 @@ Complex dline_strength_calc_df0(const Numeric f0,
 
 Complex dline_strength_calc_dT(const Numeric f0,
                                const Numeric inv_gd,
-                               const SpeciesIsotopeRecord& spec,
+                               const SpeciesIsotope& spec,
                                const line& line,
                                const AtmPoint& atm,
                                const Size ispec) {
@@ -264,7 +265,7 @@ Complex dline_strength_calc_dT(const Numeric f0,
   const Numeric P = atm.pressure;
   const Numeric x = atm[spec.spec];
   const Numeric r = atm[spec];
-  const Numeric v = ls.species == Species::Species::Bath
+  const Numeric v = ls.species == SpeciesEnum::Bath
                         ? 1 - std::transform_reduce(
                                   line.ls.single_models.begin(),
                                   line.ls.single_models.end() - 1,
@@ -303,7 +304,7 @@ Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
 }
 
 Numeric dline_center_calc_dVMR(const line& line,
-                               const Species::Species spec,
+                               const SpeciesEnum spec,
                                const AtmPoint& atm) {
   return line.ls.dD0_dVMR(atm, spec) + line.ls.dDV_dVMR(atm, spec);
 }
@@ -323,7 +324,7 @@ Numeric dline_center_calc_dT(const line& line,
 }
 
 Numeric dline_center_calc_dVMR(const line& line,
-                               const Species::Species spec,
+                               const SpeciesEnum spec,
                                const AtmPoint& atm,
                                Size ispec) {
   const auto& ls = line.ls.single_models[ispec];
@@ -340,7 +341,7 @@ Numeric scaled_gd(const Numeric T, const Numeric mass, const Numeric f0) {
 
 //! Should only live in CC-file since it holds references
 struct single_shape_builder {
-  const SpeciesIsotopeRecord& spec;
+  const SpeciesIsotope& spec;
   const line& ln;
   const AtmPoint& atm;
   Numeric f0;
@@ -348,7 +349,7 @@ struct single_shape_builder {
   Numeric G0;
   Size ispec{std::numeric_limits<Size>::max()};
 
-  single_shape_builder(const SpeciesIsotopeRecord& s,
+  single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
                        const AtmPoint& a)
       : spec(s),
@@ -359,7 +360,7 @@ struct single_shape_builder {
                                  atm.temperature / s.mass)),
         G0(ln.ls.G0(atm)) {}
 
-  single_shape_builder(const SpeciesIsotopeRecord& s,
+  single_shape_builder(const SpeciesIsotope& s,
                        const line& l,
                        const AtmPoint& a,
                        const Size is)
@@ -398,7 +399,7 @@ struct single_shape_builder {
   }
 };
 
-single_shape::single_shape(const SpeciesIsotopeRecord& spec,
+single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
@@ -411,7 +412,7 @@ single_shape::single_shape(const SpeciesIsotopeRecord& spec,
       s(line.z.Strength(line.qn.val, pol, iz) *
         line_strength_calc(inv_gd, spec, line, atm)) {}
 
-single_shape::single_shape(const SpeciesIsotopeRecord& spec,
+single_shape::single_shape(const SpeciesIsotope& spec,
                            const line& line,
                            const AtmPoint& atm,
                            const zeeman::pol pol,
@@ -585,7 +586,7 @@ void zeeman_push_back(std::vector<single_shape>& lines,
 
 void lines_push_back(std::vector<single_shape>& lines,
                      std::vector<line_pos>& pos,
-                     const SpeciesIsotopeRecord& spec,
+                     const SpeciesIsotope& spec,
                      const line& line,
                      const AtmPoint& atm,
                      const zeeman::pol pol,
@@ -621,7 +622,7 @@ void lines_push_back(std::vector<single_shape>& lines,
 
 void band_shape_helper(std::vector<single_shape>& lines,
                        std::vector<line_pos>& pos,
-                       const SpeciesIsotopeRecord& spec,
+                       const SpeciesIsotope& spec,
                        const band_data& bnd,
                        const AtmPoint& atm,
                        const Numeric fmin,
@@ -633,7 +634,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
   lines.reserve(count_lines(bnd, pol));
   pos.reserve(lines.capacity());
 
-  using enum CutoffType;
+  using enum LineByLineCutoffType;
   switch (bnd.cutoff) {
     case None:
       for (Size iline = 0; iline < bnd.size(); iline++) {
@@ -646,8 +647,6 @@ void band_shape_helper(std::vector<single_shape>& lines,
         lines_push_back(lines, pos, spec, line, atm, pol, iline++);
       }
     } break;
-    case FINAL:
-      ARTS_USER_ERROR("Bad state")
   }
 
   bubble_sort_by(
@@ -1198,7 +1197,7 @@ void ComputeData::core_calc(const band_shape& shp,
   dcut.resize(shp.size());
   filter.reserve(shp.size());
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp(cut);
     std::transform(
         f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) {
@@ -1213,7 +1212,7 @@ void ComputeData::core_calc(const band_shape& shp,
 }
 
 //! Sets dshape and dscl and ds and dz
-void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dt_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1265,7 +1264,7 @@ void ComputeData::dt_core_calc(const SpeciesIsotopeRecord& spec,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dT(dcut, ds, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1295,7 +1294,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
                    return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.df(dcut);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1324,7 +1323,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1353,7 +1352,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1382,7 +1381,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1397,13 +1396,13 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
 }
 
 //! Sets ds and dz and dcut and dshape
-void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dVMR_core_calc(const SpeciesIsotope& spec,
                                  const band_shape& shp,
                                  const band_data& bnd,
                                  const ExhaustiveConstVectorView& f_grid,
                                  const AtmPoint& atm,
                                  const zeeman::pol pol,
-                                 const Species::Species target_spec) {
+                                 const SpeciesEnum target_spec) {
   const Numeric x = atm[target_spec];
 
   for (Size i = 0; i < pos.size(); i++) {
@@ -1430,7 +1429,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
 
       if (target_spec == ls_spec) {
         ds[i] = lshp.s * (1 + (target_spec == spec.spec)) / x;
-      } else if (ls_spec == Species::Species::Bath) {
+      } else if (ls_spec == SpeciesEnum::Bath) {
         const Numeric v = 1.0 - std::transform_reduce(
                                     line.ls.single_models.begin(),
                                     line.ls.single_models.end() - 1,
@@ -1446,7 +1445,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotopeRecord& spec,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dVMR(dcut, ds, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -1467,7 +1466,7 @@ void ComputeData::set_filter(const line_key& key) {
   filtered_line = key.line;
   filter.resize(0);
 
-  if (key.var == variable::FINAL) {
+  if (not good_enum(key.var)) {
     for (Size i = 0; i < pos.size(); i++) {
       if (pos[i].line == key.line and
           (pos[i].spec == key.spec or
@@ -1482,7 +1481,7 @@ void ComputeData::set_filter(const line_key& key) {
 }
 
 //! Sets dshape and ds and dz and dcut and dshape
-void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::df0_core_calc(const SpeciesIsotope& spec,
                                 const band_shape& shp,
                                 const band_data& bnd,
                                 const ExhaustiveConstVectorView& f_grid,
@@ -1515,7 +1514,7 @@ void ComputeData::df0_core_calc(const SpeciesIsotopeRecord& spec,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.df0(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.df0(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -1543,7 +1542,7 @@ void ComputeData::de0_core_calc(const band_shape& shp,
     ds[i] = ds_de0_ratio * shp.lines[i].s;
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.de0(dcut, ds, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.de0(dcut, ds, f_grid[i], filter);
@@ -1569,7 +1568,7 @@ void ComputeData::da_core_calc(const band_shape& shp,
     ds[i] = ds_da_ratio * shp.lines[i].s;
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.da(dcut, ds, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.da(dcut, ds, f_grid[i], filter);
@@ -1604,7 +1603,7 @@ void ComputeData::dG0_core_calc(const band_shape& shp,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dG0(dcut, dz, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dG0(dcut, dz, f_grid[i], filter);
@@ -1651,7 +1650,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dD0(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dD0(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -1664,7 +1663,7 @@ void ComputeData::dD0_core_calc(const band_shape& shp,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dY_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1697,7 +1696,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dY(dcut, dz, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dY(dcut, ds, f_grid[i], filter);
@@ -1710,7 +1709,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotopeRecord& spec,
 }
 
 //! Sets dshape and ds and dcut and dshape
-void ComputeData::dG_core_calc(const SpeciesIsotopeRecord& spec,
+void ComputeData::dG_core_calc(const SpeciesIsotope& spec,
                                const band_shape& shp,
                                const band_data& bnd,
                                const ExhaustiveConstVectorView& f_grid,
@@ -1743,7 +1742,7 @@ void ComputeData::dG_core_calc(const SpeciesIsotopeRecord& spec,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dG(dcut, dz, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dG(dcut, ds, f_grid[i], filter);
@@ -1792,7 +1791,7 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dDV(dcut, ds, dz, dz_fac, filter);
     for (Index i = 0; i < f_grid.size(); i++) {
       dshape[i] = shp.dDV(dcut, ds, dz, dz_fac, f_grid[i], filter);
@@ -1807,13 +1806,13 @@ void ComputeData::dDV_core_calc(const band_shape& shp,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
-                        const Atm::Key& key) {
-  using enum Atm::Key;
+                        const AtmKey& key) {
+  using enum AtmKey;
   switch (key) {
     case t:
       com_data.dt_core_calc(spec, shape, bnd, f_grid, atm, pol);
@@ -1863,20 +1862,18 @@ void compute_derivative(PropmatVectorView dpm,
                                     com_data.scl[i] * com_data.dshape[i]);
       }
       break;
-    case FINAL:
-      break;
   }
 }
 
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint& atm,
                         const zeeman::pol,
-                        const SpeciesIsotopeRecord& deriv_spec) {
+                        const SpeciesIsotope& deriv_spec) {
   if (deriv_spec != spec) return;
 
   const Numeric isorat = atm[spec];
@@ -1894,12 +1891,12 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
-                        const Species::Species& deriv_spec) {
+                        const SpeciesEnum& deriv_spec) {
   com_data.dVMR_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv_spec);
   for (Index i = 0; i < f_grid.size(); i++) {
     dpm[i] += zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
@@ -1909,91 +1906,87 @@ void compute_derivative(PropmatVectorView dpm,
 void compute_derivative(PropmatVectorView dpm,
                         ComputeData& com_data,
                         const ExhaustiveConstVectorView& f_grid,
-                        const SpeciesIsotopeRecord& spec,
+                        const SpeciesIsotope& spec,
                         const band_shape& shape,
                         const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
                         const line_key& deriv) {
   switch (deriv.var) {
-    case variable::f0:
+    case LineByLineVariable::f0:
       com_data.df0_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case variable::e0:
+    case LineByLineVariable::e0:
       com_data.de0_core_calc(shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case variable::a:
+    case LineByLineVariable::a:
       com_data.da_core_calc(shape, bnd, f_grid, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case variable::FINAL:
-      break;
   }
 
   switch (deriv.ls_var) {
-    case line_shape::variable::G0:
+    case LineShapeModelVariable::G0:
       com_data.dG0_core_calc(shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case line_shape::variable::D0:
+    case LineShapeModelVariable::D0:
       com_data.dD0_core_calc(shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case line_shape::variable::G2:
+    case LineShapeModelVariable::G2:
       return;
-    case line_shape::variable::D2:
+    case LineShapeModelVariable::D2:
       return;
-    case line_shape::variable::FVC:
+    case LineShapeModelVariable::FVC:
       return;
-    case line_shape::variable::ETA:
+    case LineShapeModelVariable::ETA:
       return;
-    case line_shape::variable::Y:
+    case LineShapeModelVariable::Y:
       com_data.dY_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case line_shape::variable::G:
+    case LineShapeModelVariable::G:
       com_data.dG_core_calc(spec, shape, bnd, f_grid, atm, pol, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case line_shape::variable::DV:
+    case LineShapeModelVariable::DV:
       com_data.dDV_core_calc(shape, bnd, f_grid, atm, deriv);
       for (Index i = 0; i < f_grid.size(); i++) {
         dpm[i] +=
             zeeman::scale(com_data.npm, com_data.scl[i] * com_data.dshape[i]);
       }
       return;
-    case line_shape::variable::FINAL:
-      break;
   }
 }
 
 void compute_derivative(PropmatVectorView,
                         ComputeData&,
                         const ExhaustiveConstVectorView&,
-                        const SpeciesIsotopeRecord&,
+                        const SpeciesIsotope&,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
@@ -2023,7 +2016,7 @@ void calculate(PropmatVectorView pm,
   const Index nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotopeRecord spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.Isotopologue();
   const Numeric fmin = f_grid.front();
   const Numeric fmax = f_grid.back();
 

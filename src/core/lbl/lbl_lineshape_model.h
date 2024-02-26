@@ -11,23 +11,10 @@
 #include "species.h"
 
 namespace lbl::line_shape {
-ENUMCLASS(variable,
-          char,
-          G0,   // Pressure broadening speed-independent
-          D0,   // Pressure f-shifting speed-dependent
-          G2,   // Pressure broadening speed-dependent
-          D2,   // Pressure f-shifting speed-independent
-          FVC,  // Frequency of velocity-changing collisions
-          ETA,  // Correlation
-          Y,    // First order line mixing coefficient
-          G,    // Second order line mixing coefficient
-          DV    // Second order line mixing f-shifting
-)
-
 struct species_model {
-  Species::Species species{};
+  SpeciesEnum species{};
 
-  std::vector<std::pair<variable, temperature::data>> data{};
+  std::vector<std::pair<LineShapeModelVariable, temperature::data>> data{};
 
 #define VARIABLE(name) \
   [[nodiscard]] Numeric name(Numeric T0, Numeric T, Numeric P) const noexcept
@@ -77,47 +64,47 @@ struct species_model {
   [[nodiscard]] Numeric dG0_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dD0_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dG2_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dD2_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dETA_dX(Numeric T0,
                                 Numeric T,
                                 Numeric P,
-                                temperature::coefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dFVC_dX(Numeric T0,
                                 Numeric T,
                                 Numeric P,
-                                temperature::coefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dY_dX(Numeric T0,
                               Numeric T,
                               Numeric P,
-                              temperature::coefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dG_dX(Numeric T0,
                               Numeric T,
                               Numeric P,
-                              temperature::coefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dDV_dX(Numeric T0,
                                Numeric T,
                                Numeric P,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   friend std::ostream& operator<<(std::ostream& os, const species_model& x);
   friend std::istream& operator>>(std::istream& os, species_model& x);
@@ -136,8 +123,8 @@ struct model {
 #define VARIABLE(name)                                            \
   [[nodiscard]] Numeric name(const AtmPoint& atm) const noexcept; \
                                                                   \
-  [[nodiscard]] Numeric d##name##_dVMR(                           \
-      const AtmPoint& atm, Species::Species species) const noexcept
+  [[nodiscard]] Numeric d##name##_dVMR(const AtmPoint& atm,       \
+                                       SpeciesEnum species) const noexcept
 
   VARIABLE(G0);
   VARIABLE(D0);
@@ -199,51 +186,52 @@ struct model {
 
   [[nodiscard]] Numeric dG0_dX(const AtmPoint& atm,
                                const Size spec,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dD0_dX(const AtmPoint& atm,
                                const Size spec,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dG2_dX(const AtmPoint& atm,
                                const Size spec,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dD2_dX(const AtmPoint& atm,
                                const Size spec,
-                               temperature::coefficient coeff) const noexcept;
+                               LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dETA_dX(const AtmPoint& atm,
                                 const Size spec,
-                                temperature::coefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dFVC_dX(const AtmPoint& atm,
                                 const Size spec,
-                                temperature::coefficient coeff) const noexcept;
+                                LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dY_dX(const AtmPoint& atm,
                               const Size spec,
-                              temperature::coefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dG_dX(const AtmPoint& atm,
                               const Size spec,
-                              temperature::coefficient coeff) const noexcept;
+                              LineShapeModelCoefficient coeff) const noexcept;
 
   [[nodiscard]] Numeric dDV_dX(const AtmPoint& atm,
                                const Size spec,
-                               temperature::coefficient coeff) const noexcept;
-  
+                               LineShapeModelCoefficient coeff) const noexcept;
+
   //! Remove all line shape variables that evaluate unconditionally to 0
   void clear_zeroes();
 };
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const std::vector<std::pair<variable, temperature::data>>& x);
-
-std::istream& operator>>(
-    std::istream& is, std::vector<std::pair<variable, temperature::data>>& x);
-
 std::ostream& operator<<(std::ostream& os, const std::vector<species_model>& x);
 std::istream& operator>>(std::istream& is, std::vector<species_model>& x);
 }  // namespace lbl::line_shape
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);
+
+std::istream& operator>>(
+    std::istream& is,
+    std::vector<std::pair<LineShapeModelVariable, lbl::temperature::data>>& x);

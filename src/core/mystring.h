@@ -76,3 +76,6 @@ ArrayOfString split(const String& x, const String& delim);
 
 void trim(String& x);
 String trim(const String& x);
+
+//! Helper function when commas and spaces are needed after some first element
+String comma(bool& first, const String& spaces = "");

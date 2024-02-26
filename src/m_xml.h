@@ -77,7 +77,7 @@ void WriteXML(  //WS Input:
   // Create default filename if empty
   filename_xml(filename);
 
-  const FileType ftype = string2filetype(file_format);
+  const FileType ftype = to<FileType>(file_format);
 
   String errmsg;
 

@@ -14,9 +14,6 @@
 #include <vector>
 
 #include "configtypes.h"
-#include "matpack_concepts.h"
-#include "matpack_constexpr.h"
-#include "matpack_iter.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -185,49 +182,51 @@ void py_matpack(py::module_& m) try {
           }))
       .doc() = "A range, used to select parts of a matpack type";
 
-  artsclass<Vector>(m, "Vector", py::buffer_protocol())
-      .def(py::init([]() { return std::make_shared<Vector>(); }),
-           "Default vector")
-      .def(py::init([](const numpy_array& x) { return copy<1, Numeric>(x); }),
-           py::arg("vec").none(false),
-           py::doc("From :class:`numpy.ndarray` equivalent"))
-      .def(py::init([](const py::list& x) {
-             return py::cast<Vector>(x.cast<numpy_array>());
-           }),
-           py::arg("lst"),
-           py::doc("From :class:`list` equivalent via numpy"))
-      .PythonInterfaceCopyValue(Vector)
-      .PythonInterfaceWorkspaceVariableConversion(Vector)
-      .PythonInterfaceBasicRepresentation(Vector)
-      .PythonInterfaceFileIO(Vector)
-      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
-      .def_buffer([](Vector& x) -> py::buffer_info {
-        return py::buffer_info(x.data_handle(),
-                               sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(),
-                               1,
-                               {x.size()},
-                               {sizeof(Numeric)});
-      })
-      .def_property(
-          "value",
-          py::cpp_function(
-              [](Vector& x) {
-                py::object np = py::module_::import("numpy");
-                return np.attr("array")(x, py::arg("copy") = false);
+  auto vector_m =
+      artsclass<Vector>(m, "Vector", py::buffer_protocol())
+          .def(py::init([]() { return std::make_shared<Vector>(); }),
+               "Default vector")
+          .def(py::init(
+                   [](const numpy_array& x) { return copy<1, Numeric>(x); }),
+               py::arg("vec").none(false),
+               py::doc("From :class:`numpy.ndarray` equivalent"))
+          .def(py::init([](const py::list& x) {
+                 return py::cast<Vector>(x.cast<numpy_array>());
+               }),
+               py::arg("lst"),
+               py::doc("From :class:`list` equivalent via numpy"))
+          .PythonInterfaceCopyValue(Vector)
+          .PythonInterfaceWorkspaceVariableConversion(Vector)
+          .PythonInterfaceBasicRepresentation(Vector)
+          .PythonInterfaceFileIO(Vector)
+          .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+          .def_buffer([](Vector& x) -> py::buffer_info {
+            return py::buffer_info(x.data_handle(),
+                                   sizeof(Numeric),
+                                   py::format_descriptor<Numeric>::format(),
+                                   1,
+                                   {x.size()},
+                                   {sizeof(Numeric)});
+          })
+          .def_property(
+              "value",
+              py::cpp_function(
+                  [](Vector& x) {
+                    py::object np = py::module_::import("numpy");
+                    return np.attr("array")(x, py::arg("copy") = false);
+                  },
+                  py::keep_alive<0, 1>()),
+              [](Vector& x, Vector& y) { x = y; },
+              py::doc(":class:`~numpy.ndarray` Data array"))
+          .def(py::pickle(
+              [](const py::object& self) {
+                return py::make_tuple(self.attr("value"));
               },
-              py::keep_alive<0, 1>()),
-          [](Vector& x, Vector& y) { x = y; },
-          py::doc(":class:`~numpy.ndarray` Data array"))
-      .def(py::pickle(
-          [](const py::object& self) {
-            return py::make_tuple(self.attr("value"));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return py::type::of<Vector>()(t[0]).cast<Vector>();
-          }))
-      .PythonInterfaceWorkspaceDocumentationExtra(Vector, R"--(
+              [](const py::tuple& t) {
+                ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+                return py::type::of<Vector>()(t[0]).cast<Vector>();
+              }));
+  vector_m.PythonInterfaceWorkspaceDocumentationExtra(Vector, R"--(
 
 This class is mostly compatible with numpy arrays including numpy math.
 The data can be accessed without copy using ``np.array(x, copy=False)`` or
@@ -824,6 +823,13 @@ via x.value
   py::implicitly_convertible<numpy_array, AscendingGrid>();
   py::implicitly_convertible<py::list, AscendingGrid>();
   py::implicitly_convertible<Vector, AscendingGrid>();
+
+  vector_m.def(py::init([](const AscendingGrid& x) {
+                 return std::make_shared<Vector>(x);
+               }),
+               py::arg("grid"),
+               py::doc("From :class:`~pyarts.arts.AscendingGrid`"));
+  py::implicitly_convertible<AscendingGrid, Vector>();
 
   artsarray<ArrayOfAscendingGrid>(m, "ArrayOfAscendingGrid")
       .PythonInterfaceFileIO(ArrayOfAscendingGrid)

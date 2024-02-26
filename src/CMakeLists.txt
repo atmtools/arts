@@ -36,7 +36,7 @@ add_library(workspace_group STATIC
 
 add_executable(make_auto_wsg make_auto_wsg.cpp)
 add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
-  COMMAND make_auto_wsg > auto_wsg.h 2> auto_wsg.cpp
+  COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
   COMMENT "Generating automatic workspace groups"
 )
@@ -47,6 +47,7 @@ target_link_libraries(make_auto_wsg PRIVATE workspace_group)
 add_library(workspace_internals STATIC
   workspace_agenda_class_default_constructor.cpp
   workspace_agendas.cpp
+  workspace_meta_methods.cpp
   workspace_methods.cpp
   workspace_variables.cpp
   workspace_variables_keywords.cpp
@@ -60,7 +61,7 @@ target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 
 add_executable(make_auto_wsv make_auto_wsv.cpp)
 add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
-  COMMAND make_auto_wsv > auto_wsv.h 2> auto_wsv.cpp
+  COMMAND make_auto_wsv
   DEPENDS make_auto_wsv
   COMMENT "Generating automatic workspace variables"
 )
@@ -83,8 +84,8 @@ while(N LESS NUM_ARTS_WSM)
 endwhile()
 
 add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
-add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp ${ARTS_WORKSPACE_METHODS}
-  COMMAND make_auto_wsm ${NUM_ARTS_WSM} > auto_wsm.h 2> auto_wsm.cpp
+add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp auto_wsmmeta.cpp ${ARTS_WORKSPACE_METHODS}
+  COMMAND make_auto_wsm ${NUM_ARTS_WSM}
   DEPENDS make_auto_wsm
   COMMENT "Generating automatic workspace methods"
 )
@@ -94,7 +95,7 @@ target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
 
 add_executable(make_auto_wsa make_auto_wsa.cpp)
 add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
-  COMMAND make_auto_wsa > auto_wsa.h 2> auto_wsa.cpp
+  COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
   COMMENT "Generating automatic workspace agendas"
 )
@@ -119,6 +120,7 @@ endif()
 add_library (artsworkspace STATIC
   auto_wsv.cpp
   auto_wsm.cpp
+  auto_wsmmeta.cpp
   auto_wsa.cpp
   auto_workspace.cpp
   ${ARTS_WORKSPACE_METHODS}
@@ -127,7 +129,6 @@ add_library (artsworkspace STATIC
   workspace_agenda_creator.cpp
   workspace_method_class.cpp
   workspace_class.cpp
-  arts_omp.cc
   auto_version.cc
   compile_time_tests.cc
   disort.cc
@@ -144,6 +145,7 @@ add_library (artsworkspace STATIC
   m_background.cc
   m_basic_types.cc
   m_batch.cc
+  m_cat.cc
   m_checked.cc
   m_cia.cc
   m_cloudbox.cc
@@ -194,7 +196,6 @@ add_library (artsworkspace STATIC
   m_transmitter.cc
   m_wigner.cc
   m_xml.cc
-  m_zeeman.cc
   montecarlo.cc
   psd.cc
   rt4.cc
@@ -208,6 +209,7 @@ add_library (artsworkspace STATIC
   xml_io_basic_types.cc
   xml_io_compound_types.cc
   xml_io_rtepack.cc
+  xml_operators.cc
   ${ARTS_GUI_FILES}
   ${NETCDF_CC_FILES}
         m_fluxes.cc)
@@ -242,10 +244,6 @@ endif (NETCDF_FOUND)
 if (ENABLE_MPI)
   target_link_libraries (artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})
 endif (ENABLE_MPI)
-
-if (OpenMP_CXX_FOUND)
-  target_link_libraries (artsworkspace PUBLIC OpenMP::OpenMP_CXX)
-endif ()
 
 if (ENABLE_RT4)
   target_link_libraries (artsworkspace PUBLIC rt4)

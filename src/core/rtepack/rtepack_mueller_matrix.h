@@ -29,84 +29,129 @@ struct muelmat final : mat44 {
 
   //! The identity matrix
   static constexpr muelmat id() { return muelmat{1.0}; }
+
+  constexpr muelmat &operator+=(const muelmat &b) {
+    data[0] += b.data[0];
+    data[1] += b.data[1];
+    data[2] += b.data[2];
+    data[3] += b.data[3];
+    data[4] += b.data[4];
+    data[5] += b.data[5];
+    data[6] += b.data[6];
+    data[7] += b.data[7];
+    data[8] += b.data[8];
+    data[9] += b.data[9];
+    data[10] += b.data[10];
+    data[11] += b.data[11];
+    data[12] += b.data[12];
+    data[13] += b.data[13];
+    data[14] += b.data[14];
+    data[15] += b.data[15];
+    return *this;
+  }
+
+  constexpr muelmat &operator-=(const muelmat &b) {
+    data[0] -= b.data[0];
+    data[1] -= b.data[1];
+    data[2] -= b.data[2];
+    data[3] -= b.data[3];
+    data[4] -= b.data[4];
+    data[5] -= b.data[5];
+    data[6] -= b.data[6];
+    data[7] -= b.data[7];
+    data[8] -= b.data[8];
+    data[9] -= b.data[9];
+    data[10] -= b.data[10];
+    data[11] -= b.data[11];
+    data[12] -= b.data[12];
+    data[13] -= b.data[13];
+    data[14] -= b.data[14];
+    data[15] -= b.data[15];
+    return *this;
+  }
+
+  constexpr muelmat &operator*=(const muelmat &b) {
+    const auto [a00,
+                a01,
+                a02,
+                a03,
+                a10,
+                a11,
+                a12,
+                a13,
+                a20,
+                a21,
+                a22,
+                a23,
+                a30,
+                a31,
+                a32,
+                a33] = data;
+    const auto [b00,
+                b01,
+                b02,
+                b03,
+                b10,
+                b11,
+                b12,
+                b13,
+                b20,
+                b21,
+                b22,
+                b23,
+                b30,
+                b31,
+                b32,
+                b33] = b;
+
+    return *this = {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
+                    a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
+                    a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32,
+                    a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33,
+                    a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
+                    a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31,
+                    a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32,
+                    a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33,
+                    a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30,
+                    a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
+                    a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
+                    a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33,
+                    a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30,
+                    a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31,
+                    a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
+                    a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
+  }
 };
 
 //! Addition between muelmat matrices
-constexpr auto operator+(muelmat a, const muelmat &b) {
-  a += b;
-  return a;
+constexpr muelmat operator+(muelmat a, const muelmat &b) {
+  return a += b;
 }
+
+constexpr muelmat operator+(Numeric a, muelmat b) { return muelmat{a} + b; }
 
 //! Subtraction between muelmat matrices
-constexpr auto operator-(muelmat a, const muelmat &b) {
-  a -= b;
-  return a;
+constexpr muelmat operator-(muelmat a, const muelmat &b) {
+  return a -= b;
+}
+
+constexpr muelmat operator-(Numeric a, muelmat b) { return muelmat{a} - b; }
+
+//! Scaling a muelmat matrix
+constexpr muelmat operator*(muelmat a, const Numeric &b) {
+ return  a *= b;
 }
 
 //! Scaling a muelmat matrix
-constexpr auto operator*(muelmat a, const Numeric &b) {
-  a *= b;
-  return a;
-}
+constexpr muelmat operator*(const Numeric &a, muelmat b) { return b * a; }
 
 //! Scaling a muelmat matrix
-constexpr auto operator*(const Numeric &a, muelmat b) { return b * a; }
-
-//! Scaling a muelmat matrix
-constexpr muelmat operator*(const muelmat &a, const muelmat &b) {
-  const auto [a00,
-              a01,
-              a02,
-              a03,
-              a10,
-              a11,
-              a12,
-              a13,
-              a20,
-              a21,
-              a22,
-              a23,
-              a30,
-              a31,
-              a32,
-              a33] = a;
-  const auto [b00,
-              b01,
-              b02,
-              b03,
-              b10,
-              b11,
-              b12,
-              b13,
-              b20,
-              b21,
-              b22,
-              b23,
-              b30,
-              b31,
-              b32,
-              b33] = b;
-
-  return {a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30,
-          a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
-          a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32,
-          a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33,
-          a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
-          a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31,
-          a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32,
-          a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33,
-          a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30,
-          a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
-          a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
-          a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33,
-          a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30,
-          a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31,
-          a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
-          a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33};
+constexpr muelmat operator*(muelmat a, const muelmat &b) {
+  return a *= b;
 }
 
 //! Take the average of two muelmat matrices
-constexpr auto avg(muelmat a, const muelmat &b) {
+constexpr muelmat avg(muelmat a, const muelmat &b) {
   a += b;
   a *= 0.5;
   return a;

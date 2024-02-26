@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <sstream>
 #include <vector>
 
 #include "debug.h"
@@ -13,32 +14,19 @@
 #include "species.h"
 #include "species_tags.h"
 
+std::string docs_isotopes() {
+  std::ostringstream os;
+
+  os << "The valid isotopologues are:\n\n";
+  for (auto& x : Species::Isotopologues) {
+    os << "- ``\"" << x.FullName() << "\"``\n";
+  }
+  os << '\n';
+  return os.str();
+}
+
 namespace Python {
 void py_species(py::module_& m) try {
-  //! This class should behave as an `options` but we need also the "fromShortName" policy
-  artsclass<SpeciesEnum>(m, "SpeciesEnum")
-      .def(py::init([]() { return std::make_shared<SpeciesEnum>(); }),
-           "Default value")
-      .def(py::init([](const std::string& c) {
-             return Species::toSpeciesEnumOrThrow(c);
-           }),
-           "From :class:`str`")
-      .PythonInterfaceCopyValue(SpeciesEnum)
-      .PythonInterfaceFileIO(SpeciesEnum)
-      .PythonInterfaceWorkspaceVariableConversion(SpeciesEnum)
-      .PythonInterfaceBasicRepresentation(SpeciesEnum)
-      .def(py::pickle(
-          [](const SpeciesEnum& t) {
-            return py::make_tuple(std::string(Species::toString(t)));
-          },
-          [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
-            return std::make_shared<SpeciesEnum>(
-                Species::toSpecies(t[0].cast<std::string>()));
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SpeciesEnum);
-  py::implicitly_convertible<std::string, SpeciesEnum>();
-
   artsclass<SpeciesIsotopologueRatios>(m, "SpeciesIsotopologueRatios")
       .def(py::init(&Species::isotopologue_ratiosInitFromBuiltin),
            py::doc("Builtin values"))
@@ -67,21 +55,22 @@ void py_species(py::module_& m) try {
             return out;
           }));
 
-  artsarray<ArrayOfSpecies>(m, "ArrayOfSpecies")
+  artsarray<ArrayOfSpeciesEnum>(m, "ArrayOfSpeciesEnum")
       .def(py::init([](const std::vector<std::string>& x) {
-        ArrayOfSpecies out;
-        std::transform(
-            x.begin(),
-            x.end(),
-            std::back_inserter(out),
-            [](const std::string& s) { return Species::toSpeciesOrThrow(s); });
+        ArrayOfSpeciesEnum out;
+        out.reserve(x.size());
+        py::print(x);
+        std::transform(x.begin(),
+                       x.end(),
+                       std::back_inserter(out),
+                       [](const std::string& s) { return to<SpeciesEnum>(s); });
         return out;
       }))
-      .PythonInterfaceFileIO(ArrayOfSpecies)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpecies);
-  py::implicitly_convertible<std::vector<std::string>, ArrayOfSpecies>();
+      .PythonInterfaceFileIO(ArrayOfSpeciesEnum)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesEnum);
+  py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesEnum>();
 
-  artsclass<SpeciesIsotopeRecord>(m, "SpeciesIsotopeRecord")
+  artsclass<SpeciesIsotope>(m, "SpeciesIsotope")
       .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
            py::arg("isot") = 0,
            "From position")
@@ -91,56 +80,57 @@ void py_species(py::module_& m) try {
            "From :class:`str`")
       .def(
           "Q",
-          [](const SpeciesIsotopeRecord& self, Numeric T) {
+          [](const SpeciesIsotope& self, Numeric T) {
             return PartitionFunctions::Q(T, self);
           },
           py::arg("T"),
           "Partition function")
-      .PythonInterfaceCopyValue(SpeciesIsotopeRecord)
-      .PythonInterfaceBasicRepresentation(SpeciesIsotopeRecord)
-      .def_readwrite("spec",
-                     &SpeciesIsotopeRecord::spec,
-                     ":class:`~pyarts.arts.Species` The species")
-      .def_readwrite(
+      .PythonInterfaceCopyValue(SpeciesIsotope)
+      .PythonInterfaceBasicRepresentation(SpeciesIsotope)
+      .def_readonly("spec",
+                    &SpeciesIsotope::spec,
+                    ":class:`~pyarts.arts.Species` The species")
+      .def_readonly(
           "isotname",
-          &SpeciesIsotopeRecord::isotname,
+          &SpeciesIsotope::isotname,
           ":class:`str` A custom name that is unique for this Species type")
-      .def_readwrite(
+      .def_readonly(
           "mass",
-          &SpeciesIsotopeRecord::mass,
+          &SpeciesIsotope::mass,
           ":class:`float` The mass of the isotope in units of grams per mol. It is Nan if not defined")
-      .def_readwrite(
+      .def_readonly(
           "gi",
-          &SpeciesIsotopeRecord::gi,
+          &SpeciesIsotope::gi,
           ":class:`float` The degeneracy of states of the molecule. It is -1 if not defined.")
       .def_property_readonly("name",
-                             &SpeciesIsotopeRecord::FullName,
+                             &SpeciesIsotope::FullName,
                              ":class:`~pyarts.arts.String` The full name")
       .def_property_readonly(
           "predef",
           &Species::is_predefined_model,
           ":class:`bool` Check if this represents a predefined model")
       .def(py::pickle(
-          [](const SpeciesIsotopeRecord& t) {
+          [](const SpeciesIsotope& t) {
             return py::make_tuple(t.spec, t.isotname, t.mass, t.gi);
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 4, "Invalid state!")
-            return std::make_shared<SpeciesIsotopeRecord>(
-                t[0].cast<SpeciesEnum>(),
-                t[1].cast<std::string>(),
-                t[2].cast<Numeric>(),
-                t[3].cast<Index>());
+            return std::make_shared<SpeciesIsotope>(t[0].cast<SpeciesEnum>(),
+                                                    t[1].cast<std::string>(),
+                                                    t[2].cast<Numeric>(),
+                                                    t[3].cast<Index>());
           }))
-      .doc() = "An isotopologue record entry";
-  py::implicitly_convertible<std::string, SpeciesIsotopeRecord>();
+      .PythonInterfaceCopyValue(SpeciesIsotope)
+      .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotope)
+      .PythonInterfaceBasicRepresentation(SpeciesIsotope)
+      .PythonInterfaceFileIO(SpeciesIsotope)
+      .PythonInterfaceWorkspaceDocumentationExtra(SpeciesIsotope,
+                                                  docs_isotopes());
+  py::implicitly_convertible<std::string, SpeciesIsotope>();
 
-  artsarray<ArrayOfIsotopeRecord>(m, "ArrayOfIsotopeRecord").doc() =
-      R"(A list of :class:`~pyarts.arts.IsotopeRecord`
-
-Initialize with ``ArrayOfIsotopeRecord(True)`` to get all
-available Arts isotopologues
-)";
+  artsarray<ArrayOfSpeciesIsotope>(m, "ArrayOfSpeciesIsotope")
+      .PythonInterfaceFileIO(ArrayOfSpeciesIsotope)
+      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesIsotope);
 
   artsclass<SpeciesTag>(m, "SpeciesTag")
       .def(py::init([]() { return std::make_shared<SpeciesTag>("Ar"); }),
@@ -155,12 +145,6 @@ available Arts isotopologues
       .PythonInterfaceFileIO(SpeciesTag)
       .def_readwrite(
           "spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
-      .def_readwrite("lower_freq",
-                     &SpeciesTag::lower_freq,
-                     ":class:`float` Lower cutoff frequency")
-      .def_readwrite("upper_freq",
-                     &SpeciesTag::upper_freq,
-                     ":class:`float` Upper cutoff frequency")
       .def_readwrite("type",
                      &SpeciesTag::type,
                      ":class:`~pyarts.arts.options.SpeciesTagType` Type of tag")
@@ -189,20 +173,14 @@ Returns
       .def(py::self == py::self)
       .def(py::pickle(
           [](const SpeciesTag& t) {
-            return py::make_tuple(t.spec_ind,
-                                  t.lower_freq,
-                                  t.upper_freq,
-                                  t.type,
-                                  t.cia_2nd_species);
+            return py::make_tuple(t.spec_ind, t.type, t.cia_2nd_species);
           },
           [](const py::tuple& t) {
-            ARTS_USER_ERROR_IF(t.size() != 5, "Invalid state!")
+            ARTS_USER_ERROR_IF(t.size() != 3, "Invalid state!")
             auto out = std::make_shared<SpeciesTag>();
             ;
             out->spec_ind = t[0].cast<Index>();
-            out->lower_freq = t[1].cast<Numeric>();
-            out->upper_freq = t[2].cast<Numeric>();
-            out->type = t[3].cast<Species::TagType>();
+            out->type = t[3].cast<SpeciesTagType>();
             out->cia_2nd_species = t[4].cast<SpeciesEnum>();
             return out;
           }))

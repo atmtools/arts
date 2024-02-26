@@ -22,12 +22,6 @@
 #include <binio/gzstream.h>
 #endif
 
-enum FileType : Index {
-  FILE_TYPE_ASCII = 0,
-  FILE_TYPE_ZIPPED_ASCII = 1,
-  FILE_TYPE_BINARY = 2
-};
-
 enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
 enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 
@@ -119,8 +113,6 @@ void xml_parse_from_stream(
 
 void xml_parse_from_stream(
     std::istream &, ArrayOfString &, bifstream *, XMLTag &);
-
-FileType string2filetype(const String& file_format);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
@@ -255,7 +247,7 @@ void xml_read_from_file_base(const String& filename,
     EndianType etype;
 
     xml_read_header_from_stream(*ifs, ftype, ntype, etype);
-    if (ftype == FILE_TYPE_ASCII) {
+    if (ftype == FileType::ascii) {
       xml_read_from_stream(*ifs, type, static_cast<bifstream *>(nullptr));
     } else {
       String bfilename = filename + ".bin";
@@ -286,7 +278,7 @@ void xml_write_to_file_base(const String& filename,
                             const FileType ftype) {
   std::unique_ptr<std::ostream> ofs;
 
-  if (ftype == FILE_TYPE_ZIPPED_ASCII)
+  if (ftype == FileType::zascii)
 #ifdef ENABLE_ZLIB
   {
     ofs = std::make_unique<ogzstream>();
@@ -306,7 +298,7 @@ void xml_write_to_file_base(const String& filename,
 
   try {
     xml_write_header_to_stream(*ofs, ftype);
-    if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII) {
+    if (ftype == FileType::ascii or ftype == FileType::zascii) {
       xml_write_to_stream(*ofs, type, static_cast<bofstream *>(nullptr), "");
     } else {
       String bfilename = filename + ".bin";

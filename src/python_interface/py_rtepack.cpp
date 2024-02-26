@@ -1,21 +1,22 @@
 #include <python_interface.h>
-
-#include <type_traits>
-#include <variant>
+#include <rtepack.h>
 
 #include "py_macros.h"
-
-#include <rtepack.h>
 
 namespace Python {
 void py_rtepack(py::module_ &m) try {
   artsclass<Stokvec>(m, "Stokvec", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Numeric>())
-      .def(py::init([](std::array<Numeric, 4> a){return Stokvec{a[0], a[1], a[2], a[3]};}))
+      .def(py::init([](std::array<Numeric, 4> a) {
+        return Stokvec{a[0], a[1], a[2], a[3]};
+      }))
       .def_buffer([](Stokvec &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(), sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(), 1, {4},
+        return py::buffer_info(x.data.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {4},
                                {sizeof(Numeric)});
       })
       .def_property("value",
@@ -49,8 +50,10 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<std::vector<Stokvec>>())
       .def_buffer([](StokvecVector &x) -> py::buffer_info {
         return py::buffer_info(
-            x.data_handle(), sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(), 2,
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            2,
             {static_cast<ssize_t>(x.nelem()), static_cast<ssize_t>(4)},
             {static_cast<ssize_t>(4 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
@@ -84,9 +87,12 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<>())
       .def_buffer([](StokvecMatrix &x) -> py::buffer_info {
         return py::buffer_info(
-            x.data_handle(), sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(), 3,
-            {static_cast<ssize_t>(x.nrows()), static_cast<ssize_t>(x.ncols()),
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            3,
+            {static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
              static_cast<ssize_t>(4)},
             {static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
              static_cast<ssize_t>(4 * sizeof(Numeric)),
@@ -115,6 +121,184 @@ void py_rtepack(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(StokvecMatrix);
 
+  artsclass<StokvecTensor3>(m, "StokvecTensor3", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor3 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            4,
+            {static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor3 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor3 &x, StokvecTensor3 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor3)
+      .PythonInterfaceCopyValue(StokvecTensor3)
+      .PythonInterfaceBasicRepresentation(StokvecTensor3)
+      .PythonInterfaceFileIO(StokvecTensor3)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor3>()(t[0]).cast<StokvecTensor3>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor3);
+
+  artsclass<StokvecTensor4>(m, "StokvecTensor4", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor4 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            5,
+            {static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
+                                  sizeof(Numeric)),
+             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor4 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor4 &x, StokvecTensor4 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor4)
+      .PythonInterfaceCopyValue(StokvecTensor4)
+      .PythonInterfaceBasicRepresentation(StokvecTensor4)
+      .PythonInterfaceFileIO(StokvecTensor4)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor4>()(t[0]).cast<StokvecTensor4>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor4);
+
+  artsclass<StokvecTensor5>(m, "StokvecTensor5", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor5 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            6,
+            {static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
+                                  x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
+                                  sizeof(Numeric)),
+             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor5 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor5 &x, StokvecTensor5 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor5)
+      .PythonInterfaceCopyValue(StokvecTensor5)
+      .PythonInterfaceBasicRepresentation(StokvecTensor5)
+      .PythonInterfaceFileIO(StokvecTensor5)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor5>()(t[0]).cast<StokvecTensor5>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor5);
+
+  artsclass<StokvecTensor6>(m, "StokvecTensor6", py::buffer_protocol())
+      .def(py::init<>())
+      .def_buffer([](StokvecTensor6 &x) -> py::buffer_info {
+        return py::buffer_info(
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            7,
+            {static_cast<ssize_t>(x.nvitrines()),
+             static_cast<ssize_t>(x.nshelves()),
+             static_cast<ssize_t>(x.nbooks()),
+             static_cast<ssize_t>(x.npages()),
+             static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4)},
+            {static_cast<ssize_t>(x.nshelves() * x.nbooks() * x.npages() *
+                                  x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.nbooks() * x.npages() * x.nrows() *
+                                  x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.npages() * x.nrows() * x.ncols() * 4 *
+                                  sizeof(Numeric)),
+             static_cast<ssize_t>(x.nrows() * x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(x.ncols() * 4 * sizeof(Numeric)),
+             static_cast<ssize_t>(4 * sizeof(Numeric)),
+             static_cast<ssize_t>(sizeof(Numeric))});
+      })
+      .def_property("value",
+                    py::cpp_function(
+                        [](StokvecTensor6 &x) {
+                          py::object np = py::module_::import("numpy");
+                          return np.attr("array")(x, py::arg("copy") = false);
+                        },
+                        py::keep_alive<0, 1>()),
+                    [](StokvecTensor6 &x, StokvecTensor6 &y) { x = y; })
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .PythonInterfaceWorkspaceVariableConversion(StokvecTensor6)
+      .PythonInterfaceCopyValue(StokvecTensor6)
+      .PythonInterfaceBasicRepresentation(StokvecTensor6)
+      .PythonInterfaceFileIO(StokvecTensor6)
+      .def(py::pickle(
+          [](const py::object &self) {
+            return py::make_tuple(self.attr("value"));
+          },
+          [](const py::tuple &t) {
+            ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
+            return py::type::of<StokvecTensor6>()(t[0]).cast<StokvecTensor6>();
+          }))
+      .PythonInterfaceWorkspaceDocumentation(StokvecTensor6);
+
   artsarray<ArrayOfStokvecVector>(m, "ArrayOfStokvecVector")
       .PythonInterfaceFileIO(ArrayOfStokvecVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfStokvecVector);
@@ -131,10 +315,19 @@ void py_rtepack(py::module_ &m) try {
   artsclass<Propmat>(m, "Propmat", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Numeric>())
-      .def(py::init<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>())
+      .def(py::init<Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric>())
       .def_buffer([](Propmat &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(), sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(), 1, {7},
+        return py::buffer_info(x.data.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {7},
                                {sizeof(Numeric)});
       })
       .def_property("value",
@@ -167,8 +360,10 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<std::vector<Propmat>>())
       .def_buffer([](PropmatVector &x) -> py::buffer_info {
         return py::buffer_info(
-            x.data_handle(), sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(), 2,
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            2,
             {static_cast<ssize_t>(x.nelem()), static_cast<ssize_t>(7)},
             {static_cast<ssize_t>(7 * sizeof(Numeric)),
              static_cast<ssize_t>(sizeof(Numeric))});
@@ -202,9 +397,12 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<>())
       .def_buffer([](PropmatMatrix &x) -> py::buffer_info {
         return py::buffer_info(
-            x.data_handle(), sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(), 3,
-            {static_cast<ssize_t>(x.nrows()), static_cast<ssize_t>(x.ncols()),
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            3,
+            {static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
              static_cast<ssize_t>(7)},
             {static_cast<ssize_t>(7 * x.ncols() * sizeof(Numeric)),
              static_cast<ssize_t>(7 * sizeof(Numeric)),
@@ -249,11 +447,29 @@ void py_rtepack(py::module_ &m) try {
   artsclass<Muelmat>(m, "Muelmat", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Numeric>())
-      .def(py::init<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>())
+      .def(py::init<Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric,
+                    Numeric>())
       .def_buffer([](Muelmat &x) -> py::buffer_info {
-        return py::buffer_info(x.data.data(), sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(), 2,
-                               {4, 4}, {4 * sizeof(Numeric), sizeof(Numeric)});
+        return py::buffer_info(x.data.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               2,
+                               {4, 4},
+                               {4 * sizeof(Numeric), sizeof(Numeric)});
       })
       .def_property("value",
                     py::cpp_function(
@@ -284,8 +500,10 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<std::vector<Numeric>>())
       .def(py::init<std::vector<Muelmat>>())
       .def_buffer([](MuelmatVector &x) -> py::buffer_info {
-        return py::buffer_info(x.data_handle(), sizeof(Numeric),
-                               py::format_descriptor<Numeric>::format(), 3,
+        return py::buffer_info(x.data_handle(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               3,
                                {static_cast<ssize_t>(x.nelem()),
                                 static_cast<ssize_t>(4),
                                 static_cast<ssize_t>(4)},
@@ -322,10 +540,14 @@ void py_rtepack(py::module_ &m) try {
       .def(py::init<>())
       .def_buffer([](MuelmatMatrix &x) -> py::buffer_info {
         return py::buffer_info(
-            x.data_handle(), sizeof(Numeric),
-            py::format_descriptor<Numeric>::format(), 4,
-            {static_cast<ssize_t>(x.nrows()), static_cast<ssize_t>(x.ncols()),
-             static_cast<ssize_t>(4), static_cast<ssize_t>(4)},
+            x.data_handle(),
+            sizeof(Numeric),
+            py::format_descriptor<Numeric>::format(),
+            4,
+            {static_cast<ssize_t>(x.nrows()),
+             static_cast<ssize_t>(x.ncols()),
+             static_cast<ssize_t>(4),
+             static_cast<ssize_t>(4)},
             {static_cast<ssize_t>(x.ncols() * 16 * sizeof(Numeric)),
              static_cast<ssize_t>(16 * sizeof(Numeric)),
              static_cast<ssize_t>(4 * sizeof(Numeric)),
@@ -354,7 +576,6 @@ void py_rtepack(py::module_ &m) try {
           }))
       .PythonInterfaceWorkspaceDocumentation(MuelmatMatrix);
 
-
   artsarray<ArrayOfMuelmatVector>(m, "ArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfMuelmatVector);
@@ -366,11 +587,12 @@ void py_rtepack(py::module_ &m) try {
   artsarray<ArrayOfArrayOfMuelmatVector>(m, "ArrayOfArrayOfMuelmatVector")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatVector)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatVector);
-      
+
   artsarray<ArrayOfArrayOfMuelmatMatrix>(m, "ArrayOfArrayOfMuelmatMatrix")
       .PythonInterfaceFileIO(ArrayOfArrayOfMuelmatMatrix)
       .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfMuelmatMatrix);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));
+} catch (std::exception &e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));
 }
-} // namespace Python
+}  // namespace Python

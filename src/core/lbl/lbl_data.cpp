@@ -40,8 +40,8 @@ Numeric line::ds_da(Numeric T, Numeric Q) const noexcept {
   return gu * exp(-e0 / (k * T)) / (pow3(f0) * Q);
 }
 
-void band_data::sort(variable v) {
-  using enum variable;
+void band_data::sort(LineByLineVariable v) {
+  using enum LineByLineVariable;
   switch (v) {
     case f0:
       std::ranges::sort(lines, {}, &line::f0);
@@ -52,7 +52,6 @@ void band_data::sort(variable v) {
     case a:
       std::ranges::sort(lines, {}, &line::a);
       break;
-    case FINAL:;
   }
 }
 

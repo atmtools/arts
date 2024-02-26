@@ -8,10 +8,8 @@
 #include "matpack_data.h"
 
 namespace PartitionFunctions {
-ENUMCLASS(Type, Index, Interp, Coeff, StaticInterp)
-
 struct Data {
-  Type type;
+  PartitionFunctionsType type;
   Matrix data;
   
   friend std::ostream& operator<<(std::ostream& os, const Data& d) {
@@ -89,7 +87,6 @@ Numeric polynom(const std::array<Numeric, N>& coeffs, const Numeric T) {
 }
 } // namespace PartitionFunctions
 
-using PartitionFunctionsType = PartitionFunctions::Type;
 using PartitionFunctionsData = PartitionFunctions::Data;
 
 #endif  // template_partfun_h

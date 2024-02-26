@@ -18,7 +18,7 @@ constexpr stokvec level_lte(stokvec_vector_view dj,
 }
 
 constexpr stokvec level_nlte(Numeric B, const propmat &k, const stokvec &n) {
-  return inv(k) * (absvec(k) * B + n);
+  return inv(k) * n + stokvec{B, 0, 0, 0};
 }
 
 constexpr stokvec level_nlte(stokvec_vector_view dj,

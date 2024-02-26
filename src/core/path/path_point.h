@@ -4,10 +4,10 @@
 #include <enums.h>
 #include <matpack.h>
 #include <surf.h>
+
 #include "matpack_constexpr.h"
 
 namespace path {
-ENUMCLASS(PositionType, char, atm, space, subsurface, surface, unknown)
 
 //! A simple path-point of a propagation path
 struct PropagationPathPoint {
@@ -18,7 +18,7 @@ struct PropagationPathPoint {
    * the current point's pos_type, and that the current point's los_type is the
    * same as the next point's pos_type.
    */
-  PositionType pos_type{PositionType::unknown}, los_type{PositionType::unknown};
+  PathPositionType pos_type{PathPositionType::unknown}, los_type{PathPositionType::unknown};
 
   //! Position of the point: alt [m], lat [deg], lon [deg]
   Vector3 pos;
@@ -32,12 +32,23 @@ struct PropagationPathPoint {
   //! The group index of refraction
   Numeric ngroup{1};
 
-  [[nodiscard]] constexpr bool has(PositionType x) const noexcept {
+  [[nodiscard]] constexpr bool has(PathPositionType x) const noexcept {
     return pos_type == x or los_type == x;
   }
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const PropagationPathPoint& p);
+
+  [[nodiscard]] constexpr Numeric altitude() const noexcept { return pos[0]; }
+  [[nodiscard]] constexpr Numeric& altitude() noexcept { return pos[0]; }
+  [[nodiscard]] constexpr Numeric latitude() const noexcept { return pos[1]; }
+  [[nodiscard]] constexpr Numeric& latitude() noexcept { return pos[1]; }
+  [[nodiscard]] constexpr Numeric longitude() const noexcept { return pos[2]; }
+  [[nodiscard]] constexpr Numeric& longitude() noexcept { return pos[2]; }
+  [[nodiscard]] constexpr Numeric zenith() const noexcept { return los[0]; }
+  [[nodiscard]] constexpr Numeric& zenith() noexcept { return los[0]; }
+  [[nodiscard]] constexpr Numeric azimuth() const noexcept { return los[1]; }
+  [[nodiscard]] constexpr Numeric& azimuth() noexcept { return los[1]; }
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
@@ -92,7 +103,7 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
 /** Fills a propagation path with geometrically spaced points
  *
  * Only looks at propagation path point pairs that are both in the atmosphere
- * according to PropagationPathPoint::has(PositionType::atm)
+ * according to PropagationPathPoint::has(PathPositionType::atm)
  *
  * From the first point, a new point is added to the path by moving a distance
  * of max_step along the line-of-sight untill the last point is less than
@@ -181,7 +192,7 @@ ArrayOfPropagationPathPoint& erase_closeby(ArrayOfPropagationPathPoint& path,
 /** Sums up the geometric path length of a propagation path
  *
  * Only uses the first and last atmospheric path points as defined by
- * PropagationPathPoint::has(PositionType::atm)
+ * PropagationPathPoint::has(PathPositionType::atm)
  * 
  * @param path The propagation path
  * @param surface_field The surface field (as the WSV)
@@ -199,7 +210,8 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
  * @param surface_field The surface field (as the WSV)
  * @return Numeric Distance in meters
  */
-Numeric distance(const Vector3 pos1, const Vector3 pos2,
+Numeric distance(const Vector3 pos1,
+                 const Vector3 pos2,
                  const SurfaceField& surface_field);
 
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by

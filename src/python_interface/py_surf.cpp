@@ -41,10 +41,10 @@ void py_surf(py::module_ &m) try {
 
             auto out = std::make_shared<Surf::Data>();
             out->data = t[0].cast<Surf::FieldData>();
-            out->lat_low = t[3].cast<Surf::Extrapolation>();
-            out->lat_upp = t[4].cast<Surf::Extrapolation>();
-            out->lon_low = t[5].cast<Surf::Extrapolation>();
-            out->lon_upp = t[6].cast<Surf::Extrapolation>();
+            out->lat_low = t[3].cast<InterpolationExtrapolation>();
+            out->lat_upp = t[4].cast<InterpolationExtrapolation>();
+            out->lon_low = t[5].cast<InterpolationExtrapolation>();
+            out->lon_upp = t[6].cast<InterpolationExtrapolation>();
             return out;
           }));
   py::implicitly_convertible<GriddedField3, Surf::Data>();
@@ -67,14 +67,14 @@ void py_surf(py::module_ &m) try {
       .def_readwrite("wind", &SurfacePoint::wind)
       .def(
           "__getitem__",
-          [](SurfacePoint &surf, Surf::Key x) {
+          [](SurfacePoint &surf, SurfaceKey x) {
             if (not surf.has(x))
               throw py::key_error(var_string(x));
             return surf[x];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
-           [](SurfacePoint &surf, Surf::Key x, Numeric data) { surf[x] = data; })
+           [](SurfacePoint &surf, SurfaceKey x, Numeric data) { surf[x] = data; })
       .PythonInterfaceCopyValue(SurfacePoint)
       .PythonInterfaceWorkspaceVariableConversion(SurfacePoint)
       .PythonInterfaceFileIO(SurfacePoint)
@@ -92,7 +92,7 @@ void py_surf(py::module_ &m) try {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
-            auto k = t[0].cast<std::vector<Surf::KeyVal>>();
+            auto k = t[0].cast<std::vector<SurfaceKeyVal>>();
             auto v = t[1].cast<std::vector<Numeric>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 
@@ -108,13 +108,13 @@ void py_surf(py::module_ &m) try {
 
   fld.def(
          "__getitem__",
-         [](SurfaceField &surf, Surf::Key x) -> Surf::Data & {
+         [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
            if (not surf.has(x))
              throw py::key_error(var_string(x));
            return surf[x];
          },
          py::return_value_policy::reference_internal)
-      .def("__setitem__", [](SurfaceField &surf, Surf::Key x,
+      .def("__setitem__", [](SurfaceField &surf, SurfaceKey x,
                              const Surf::Data &data) { surf[x] = data; })
       .def("at", [](const SurfaceField &surf, Numeric lat, Numeric lon) { return surf.at(lat, lon); })
       .PythonInterfaceCopyValue(SurfaceField)
@@ -134,7 +134,7 @@ void py_surf(py::module_ &m) try {
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
 
-            auto k = t[0].cast<std::vector<Surf::KeyVal>>();
+            auto k = t[0].cast<std::vector<SurfaceKeyVal>>();
             auto v = t[1].cast<std::vector<Surf::Data>>();
             ARTS_USER_ERROR_IF(k.size() != v.size(), "Invalid state!")
 

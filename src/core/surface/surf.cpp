@@ -1,15 +1,17 @@
 #include "surf.h"
-#include "arts_constexpr_math.h"
-#include "arts_conversions.h"
-#include "debug.h"
-#include "interp.h"
-#include "matpack_math.h"
 
 #include <cmath>
 #include <exception>
 #include <limits>
 #include <stdexcept>
 #include <variant>
+
+#include "arts_constexpr_math.h"
+#include "arts_conversions.h"
+#include "debug.h"
+#include "enums.h"
+#include "interp.h"
+#include "matpack_math.h"
 
 namespace geodetic {
 Vector3 to_xyz(Vector2 ell, Vector3 pos) {
@@ -70,7 +72,12 @@ Vector2 from_xyz_dxyz(Vector3 xyz, Vector3 dxyz) {
 
   return los;
 }
-} // namespace geodetic
+}  // namespace geodetic
+
+std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key) {
+  std::visit([&](auto &k) { os << k; }, key);
+  return os;
+}
 
 namespace Surf {
 std::ostream &operator<<(std::ostream &os, const Point &surf) {
@@ -103,8 +110,7 @@ std::ostream &operator<<(std::ostream &os, const Field &surf) {
 
   const auto keys = surf.keys();
   for (auto &key : surf.keys()) {
-    if (not first)
-      os << '\n';
+    if (not first) os << '\n';
     first = false;
 
     std::visit(printer, key);
@@ -138,24 +144,20 @@ Data &Data::operator=(FunctionalData &&x) {
 }
 
 String Data::data_type() const {
-  if (std::holds_alternative<GriddedField2>(data))
-    return "GriddedField2";
-  if (std::holds_alternative<Numeric>(data))
-    return "Numeric";
-  if (std::holds_alternative<FunctionalData>(data))
-    return "FunctionalData";
-  ARTS_ASSERT(false, "Cannot be reached, you have added a new type but not "
-                     "doen the plumbing...")
+  if (std::holds_alternative<GriddedField2>(data)) return "GriddedField2";
+  if (std::holds_alternative<Numeric>(data)) return "Numeric";
+  if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
+  ARTS_ASSERT(false,
+              "Cannot be reached, you have added a new type but not "
+              "doen the plumbing...")
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
-[[nodiscard]] std::vector<KeyVal> Point::keys() const {
-  std::vector<KeyVal> out;
-  out.reserve(enumtyps::KeyTypes.size() + type.size());
-  for (auto key : enumtyps::KeyTypes)
-    out.emplace_back(key);
-  for (auto &key : type)
-    out.emplace_back(key.first);
+[[nodiscard]] std::vector<SurfaceKeyVal> Point::keys() const {
+  std::vector<SurfaceKeyVal> out;
+  out.reserve(enumtyps::SurfaceKeyTypes.size() + type.size());
+  for (auto key : enumtyps::SurfaceKeyTypes) out.emplace_back(key);
+  for (auto &key : type) out.emplace_back(key.first);
   return out;
 }
 
@@ -165,7 +167,7 @@ String Data::data_type() const {
 
 [[nodiscard]] Index Point::size() const { return nother() + ntype(); }
 
-Numeric &Point::operator[](const KeyVal &x) {
+Numeric &Point::operator[](const SurfaceKeyVal &x) {
   return std::visit(
       [this](auto &key) -> Numeric & {
         return const_cast<Point *>(this)->operator[](key);
@@ -173,52 +175,52 @@ Numeric &Point::operator[](const KeyVal &x) {
       x);
 }
 
-Numeric Point::operator[](const KeyVal &x) const {
+Numeric Point::operator[](const SurfaceKeyVal &x) const {
   return std::visit(
       [this](auto &key) -> Numeric { return this->operator[](key); }, x);
 }
 
 namespace detail {
-Numeric
-numeric_interpolation(const GriddedField2 &data, Numeric lat, Numeric lon,
-                      std::pair<Extrapolation, Extrapolation> lat_extrap,
-                      std::pair<Extrapolation, Extrapolation> lon_extrap) {
+Numeric numeric_interpolation(
+    const GriddedField2 &data,
+    Numeric lat,
+    Numeric lon,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>
+        lat_extrap,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>
+        lon_extrap) {
   const Vector &lats = data.grid<0>();
   const Vector &lons = data.grid<1>();
 
   if (lat < lats.front()) {
-    ARTS_USER_ERROR_IF(lat_extrap.first == Extrapolation::None,
+    ARTS_USER_ERROR_IF(lat_extrap.first == InterpolationExtrapolation::None,
                        "No extrapolation allowed")
-    if (lat_extrap.first == Extrapolation::Zero)
-      return 0.0;
-    if (lat_extrap.first == Extrapolation::Nearest)
+    if (lat_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
+    if (lat_extrap.first == InterpolationExtrapolation::Nearest)
       lat = lats.front();
   }
 
   if (lat > lats.back()) {
-    ARTS_USER_ERROR_IF(lat_extrap.second == Extrapolation::None,
+    ARTS_USER_ERROR_IF(lat_extrap.second == InterpolationExtrapolation::None,
                        "No extrapolation allowed")
-    if (lat_extrap.second == Extrapolation::Zero)
-      return 0.0;
-    if (lat_extrap.second == Extrapolation::Nearest)
+    if (lat_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
+    if (lat_extrap.second == InterpolationExtrapolation::Nearest)
       lat = lats.back();
   }
 
   if (lat < lons.front()) {
-    ARTS_USER_ERROR_IF(lon_extrap.first == Extrapolation::None,
+    ARTS_USER_ERROR_IF(lon_extrap.first == InterpolationExtrapolation::None,
                        "No extrapolation allowed")
-    if (lon_extrap.first == Extrapolation::Zero)
-      return 0.0;
-    if (lon_extrap.first == Extrapolation::Nearest)
+    if (lon_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
+    if (lon_extrap.first == InterpolationExtrapolation::Nearest)
       lat = lons.front();
   }
 
   if (lat > lons.back()) {
-    ARTS_USER_ERROR_IF(lon_extrap.second == Extrapolation::None,
+    ARTS_USER_ERROR_IF(lon_extrap.second == InterpolationExtrapolation::None,
                        "No extrapolation allowed")
-    if (lon_extrap.second == Extrapolation::Zero)
-      return 0.0;
-    if (lon_extrap.second == Extrapolation::Nearest)
+    if (lon_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
+    if (lon_extrap.second == InterpolationExtrapolation::Nearest)
       lat = lons.back();
   }
 
@@ -228,45 +230,51 @@ numeric_interpolation(const GriddedField2 &data, Numeric lat, Numeric lon,
 
   if (lats.size() == 1) {
     using LatLag = my_interp::Lagrange<0>;
-    using LonLag = my_interp::Lagrange<1, false, my_interp::GridType::Cyclic,
-                                       my_interp::cycle_m180_p180>;
+    using LonLag = my_interp::
+        Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
 
     return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
   }
 
   if (lons.size() == 1) {
     using LatLag = my_interp::Lagrange<1>;
-    using LonLag = my_interp::Lagrange<0, false, my_interp::GridType::Cyclic,
-                                       my_interp::cycle_m180_p180>;
+    using LonLag = my_interp::
+        Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
 
     return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
   }
 
   {
     using LatLag = my_interp::Lagrange<1>;
-    using LonLag = my_interp::Lagrange<1, false, my_interp::GridType::Cyclic,
-                                       my_interp::cycle_m180_p180>;
+    using LonLag = my_interp::
+        Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
 
     return interp(data.data, LatLag(0, lat, lats), LonLag(0, lon, lons));
   }
 }
 
-Numeric numeric_interpolation(const FunctionalData &f, Numeric lat, Numeric lon,
-                              std::pair<Extrapolation, Extrapolation>,
-                              std::pair<Extrapolation, Extrapolation>) {
+Numeric numeric_interpolation(
+    const FunctionalData &f,
+    Numeric lat,
+    Numeric lon,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>) {
   return f(lat, lon);
 }
 
-constexpr Numeric
-numeric_interpolation(Numeric x, Numeric, Numeric,
-                      std::pair<Extrapolation, Extrapolation>,
-                      std::pair<Extrapolation, Extrapolation>) {
+constexpr Numeric numeric_interpolation(
+    Numeric x,
+    Numeric,
+    Numeric,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>,
+    std::pair<InterpolationExtrapolation, InterpolationExtrapolation>) {
   return x;
 }
 
 auto interpolation_function(Numeric lat, Numeric lon) {
   return [lat, lon](auto &data) {
-    const auto call = [lat, lon,
+    const auto call = [lat,
+                       lon,
                        lat_extrap = std::pair{data.lat_low, data.lat_upp},
                        lon_extrap =
                            std::pair{data.lon_low, data.lon_upp}](auto &&x) {
@@ -276,16 +284,16 @@ auto interpolation_function(Numeric lat, Numeric lon) {
     return std::visit(call, data.data);
   };
 }
-} // namespace detail
+}  // namespace detail
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   constexpr Vector2 up{180, 0};
 
-  if (not contains(Key::h)) {
+  if (not contains(SurfaceKey::h)) {
     return up;
   }
 
-  const auto &z = this->operator[](Key::h);
+  const auto &z = this->operator[](SurfaceKey::h);
 
   if (std::holds_alternative<Numeric>(z.data)) {
     return up;
@@ -313,8 +321,12 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   return geodetic::from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
   throw std::runtime_error(
-      var_string("Cannot find a normal to the surface at position ", lat, ' ',
-                 lon, "\nThe internal error reads: ", e.what()));
+      var_string("Cannot find a normal to the surface at position ",
+                 lat,
+                 ' ',
+                 lon,
+                 "\nThe internal error reads: ",
+                 e.what()));
 }
 
 Point Field::at(Numeric lat, Numeric lon) const {
@@ -329,29 +341,23 @@ Point Field::at(Numeric lat, Numeric lon) const {
   // Normalize the surface types
   const auto div = 1.0 / [&]() {
     Numeric d = 0.0;
-    for (auto &x : out.type)
-      d += x.second;
+    for (auto &x : out.type) d += x.second;
     return d;
   }();
   for (auto &a : out.type) {
     a.second *= div;
   }
 
-  if (has(Key::h))
-    out.normal = normal(lat, lon, out.elevation);
+  if (has(SurfaceKey::h)) out.normal = normal(lat, lon, out.elevation);
 
   return out;
-}
-
-std::ostream &operator<<(std::ostream &os, const KeyVal &key) {
-  std::visit([&](auto &k) { os << k; }, key);
-  return os;
 }
 
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ", key)
+      "Surface field does not possess the key: ",
+      key)
 
   const auto interp = detail::interpolation_function(lat, lon);
 
@@ -370,13 +376,14 @@ std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
 std::pair<Numeric, Numeric> minmax(const GriddedField2 &x) {
   return ::minmax(x.data);
 }
-} // namespace detail
+}  // namespace detail
 
-std::pair<Numeric, Numeric>
-Field::minmax_single_value(const KeyVal &key) const {
+std::pair<Numeric, Numeric> Field::minmax_single_value(
+    const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ", key)
+      "Surface field does not possess the key: ",
+      key)
   return std::visit([](auto &a) { return detail::minmax(a); },
                     this->operator[](key).data);
 }
@@ -384,14 +391,15 @@ Field::minmax_single_value(const KeyVal &key) const {
 bool Field::constant_value(const KeyVal &key) const {
   ARTS_USER_ERROR_IF(
       not std::visit([this](auto &k) { return this->contains(k); }, key),
-      "Surface field does not possess the key: ", key)
+      "Surface field does not possess the key: ",
+      key)
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
 
 [[nodiscard]] ExhaustiveConstVectorView Data::flat_view() const {
   return std::visit(
-      [](auto& X) -> ExhaustiveConstVectorView {
+      [](auto &X) -> ExhaustiveConstVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField2>)
           return X.data.flat_view();
@@ -399,15 +407,16 @@ bool Field::constant_value(const KeyVal &key) const {
           return ExhaustiveConstVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ExhaustiveConstVectorView{};
-        ARTS_ASSERT(false,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        ARTS_ASSERT(
+            false,
+            "Cannot be reached, you have added a new type but not done the plumbing...");
       },
       data);
 }
 
 [[nodiscard]] ExhaustiveVectorView Data::flat_view() {
   return std::visit(
-      [](auto& X) -> ExhaustiveVectorView {
+      [](auto &X) -> ExhaustiveVectorView {
         using T = std::remove_cvref_t<decltype(X)>;
         if constexpr (std::same_as<T, GriddedField2>)
           return X.data.flat_view();
@@ -415,8 +424,9 @@ bool Field::constant_value(const KeyVal &key) const {
           return ExhaustiveVectorView{X};
         else if constexpr (std::same_as<T, FunctionalData>)
           return ExhaustiveVectorView{};
-        ARTS_ASSERT(false,
-              "Cannot be reached, you have added a new type but not done the plumbing...");
+        ARTS_ASSERT(
+            false,
+            "Cannot be reached, you have added a new type but not done the plumbing...");
       },
       data);
 }
@@ -439,10 +449,8 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &,
 std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GriddedField2 &v,
                                                        const Numeric &lat,
                                                        const Numeric &lon) {
-  using LonLag = my_interp::Lagrange<1,
-                                     false,
-                                     my_interp::GridType::Cyclic,
-                                     my_interp::cycle_m180_p180>;
+  using LonLag = my_interp::
+      Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
   using LatLag = my_interp::Lagrange<1>;
 
   const auto slon = v.shape()[1];
@@ -493,7 +501,7 @@ std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(
     const Numeric &lat, const Numeric &lon) const {
   return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
 }
-} // namespace Surf
+}  // namespace Surf
 
 std::ostream &operator<<(std::ostream &os, const SurfaceTypeTag &ppt) {
   return os << ppt.name;

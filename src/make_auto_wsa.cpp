@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <ostream>
 #include <utility>
 
 #include "workspace_agendas.h"
@@ -19,12 +19,16 @@ struct auto_ag {
   bool array;
 };
 
-void helper_auto_ag(std::vector<std::pair<std::string, std::string>>& vars, const std::string& name, const std::string& var) {
+void helper_auto_ag(std::ostream& os,
+                    std::vector<std::pair<std::string, std::string>>& vars,
+                    const std::string& name,
+                    const std::string& var) {
   auto ptr = wsv.find(var);
   if (ptr == wsv.end()) {
     auto ag_ptr = wsa.find(var);
     if (ag_ptr == wsa.end()) {
-      std::cerr << R"(static_assert(false, "\n\nCould not find workspace variable \")" << var << R"(\" of agenda \")" << name << "\\\"\\n\\n\");\n";
+      os << R"(static_assert(false, "\n\nCould not find workspace variable \")"
+         << var << R"(\" of agenda \")" << name << "\\\"\\n\\n\");\n";
     } else {
       if (ag_ptr->second.array) {
         vars.emplace_back("ArrayOfAgenda", var);
@@ -37,7 +41,7 @@ void helper_auto_ag(std::vector<std::pair<std::string, std::string>>& vars, cons
   }
 }
 
-std::map<std::string, auto_ag> auto_ags() {
+std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
   std::map<std::string, auto_ag> map;
 
   for (const auto& [name, record] : wsa) {
@@ -45,12 +49,12 @@ std::map<std::string, auto_ag> auto_ags() {
     ag.desc = record.desc;
     ag.array = record.array;
 
-    for (const auto& out: record.output) {
-      helper_auto_ag(ag.o, name, out);
+    for (const auto& out : record.output) {
+      helper_auto_ag(os, ag.o, name, out);
     }
 
-    for (const auto& in: record.input) {
-      helper_auto_ag(ag.i, name, in);
+    for (const auto& in : record.input) {
+      helper_auto_ag(os, ag.i, name, in);
     }
   }
 
@@ -62,8 +66,16 @@ void header_docstring(std::ostream& os,
                       const std::string& agname) {
   os << "/** " << ag.desc << "\n  @param[in] ws The workspace";
 
-  const auto is_input = [&ag](auto& v){return std::find_if(ag.i.begin(), ag.i.end(), [v](auto& i){return i.second == v;}) != ag.i.end();};
-  const auto is_output = [&ag](auto& v){return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o){return o.second == v;}) != ag.o.end();};
+  const auto is_input = [&ag](auto& v) {
+    return std::find_if(ag.i.begin(), ag.i.end(), [v](auto& i) {
+             return i.second == v;
+           }) != ag.i.end();
+  };
+  const auto is_output = [&ag](auto& v) {
+    return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o) {
+             return o.second == v;
+           }) != ag.o.end();
+  };
 
   for (auto& [type, name] : ag.o) {
     if (not is_input(name))
@@ -72,19 +84,22 @@ void header_docstring(std::ostream& os,
       os << "\n  @param[inout] " << name << " As WSV";
   }
 
-
   for (auto& [type, name] : ag.i) {
-    if (not is_output(name))
-      os << "\n  @param[in] " << name << " As WSV";
+    if (not is_output(name)) os << "\n  @param[in] " << name << " As WSV";
   }
 
-  os << "\n  @param[in] " << agname << " As WSV"  << "\n*/\n";
+  os << "\n  @param[in] " << agname << " As WSV"
+     << "\n*/\n";
 }
 
 void call_operator(std::ostream& os,
                    const auto_ag& ag,
                    const std::string& agname) {
-  const auto is_output = [&ag](auto& v){return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o){return o.second == v;}) != ag.o.end();};
+  const auto is_output = [&ag](auto& v) {
+    return std::find_if(ag.o.begin(), ag.o.end(), [v](auto& o) {
+             return o.second == v;
+           }) != ag.o.end();
+  };
 
   const std::string spaces(5 + agname.size() + 8, ' ');
 
@@ -110,7 +125,7 @@ void call_operator(std::ostream& os,
 }
 
 void header(std::ostream& os) {
-  const auto agmap = auto_ags();
+  const auto agmap = auto_ags(os);
 
   os << R"--(#pragma once
 
@@ -133,11 +148,11 @@ const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas(
 struct WorkspaceAgendaBoolHandler {
 )--";
 
-  for (auto& ag: agmap) {
+  for (auto& ag : agmap) {
     os << "  bool has_" << ag.first << " : 1 {false};\n";
   }
 
- os << R"--(
+  os << R"--(
   [[nodiscard]] bool has(const std::string&) const;
   void set(const std::string&);
   friend std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab);
@@ -145,7 +160,7 @@ struct WorkspaceAgendaBoolHandler {
 
 )--";
 
-  for (auto& ag: agmap) {
+  for (auto& ag : agmap) {
     header_docstring(os, ag.second, ag.first);
     call_operator(os, ag.second, ag.first);
     os << ";\n\n";
@@ -154,7 +169,9 @@ struct WorkspaceAgendaBoolHandler {
 
 void agenda_checker(std::ostream& os, const std::string& name, bool array) {
   if (array) {
-    os << "  if (agenda_array_index < 0 or static_cast<std::size_t>(agenda_array_index) >= " << name << ".size()) {\n"
+    os << "  if (agenda_array_index < 0 or static_cast<std::size_t>(agenda_array_index) >= "
+       << name
+       << ".size()) {\n"
           "    throw std::runtime_error(R\"--(Array index out-of-bounds)--\");\n  }\n\n";
   }
 
@@ -163,17 +180,28 @@ void agenda_checker(std::ostream& os, const std::string& name, bool array) {
     os << "[agenda_array_index]";
   }
   os << ".is_checked()) {\n"
-        "    throw std::runtime_error(R\"--(Must finalize() agenda)--\");\n  }\n";
+        "    throw std::runtime_error(R\"--(\nYou have somehow created the agenda without checking it.\n\nPlease manually call finalize() on the agenda)--\");\n  }\n\n";
+
+  os << "  if (const auto& n = " << name;
+  if (array) {
+    os << "[agenda_array_index]";
+  }
+  os << ".get_name(); n != \"" << name
+     << "\") {\n"
+        "    throw std::runtime_error(var_string(\"Mismatch with name: \", std::quoted(n)));\n  }\n";
 }
 
-void workspace_setup_and_exec(std::ostream& os, const std::string& name, const auto_ag& ag) {
+void workspace_setup_and_exec(std::ostream& os,
+                              const std::string& name,
+                              const auto_ag& ag) {
   os << "\n  Workspace _lws{WorkspaceInitialization::Empty};\n\n";
 
   os << "  // Always share original data here\n";
 
   // FIXME: This should be overwrite, no?  And then if it exists we should copy over it?
-  for (auto& i: ag.i) {
-    os << "  _lws.set(" << std::quoted(i.second) << ", const_cast<"<<i.first<<"*>(&" << i.second << "));\n";
+  for (auto& i : ag.i) {
+    os << "  _lws.set(" << std::quoted(i.second) << ", const_cast<" << i.first
+       << "*>(&" << i.second << "));\n";
   }
 
   os << "\n"
@@ -185,8 +213,9 @@ void workspace_setup_and_exec(std::ostream& os, const std::string& name, const a
   os << ".copy_workspace(_lws, ws);\n";
 
   os << "\n  // Modified data must be copied here\n";
-  for (auto& o: ag.o) {
-    os << "  _lws.overwrite(" << std::quoted(o.second) << ", &" << o.second << ");\n";
+  for (auto& o : ag.o) {
+    os << "  _lws.overwrite(" << std::quoted(o.second) << ", &" << o.second
+       << ");\n";
   }
 
   os << "\n  // Run all the methods\n  " << name;
@@ -197,7 +226,7 @@ void workspace_setup_and_exec(std::ostream& os, const std::string& name, const a
 }
 
 void implementation(std::ostream& os) {
-  const auto agmap = auto_ags();
+  const auto agmap = auto_ags(os);
 
   os << R"--(#include <auto_wsa.h>
 
@@ -235,8 +264,9 @@ const std::unordered_map<std::string, WorkspaceAgendaRecord>& workspace_agendas(
 
 bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
 )--";
-  for (auto& ag: agmap) {
-    os << "  if (ag == \""<<ag.first<<"\") return has_" << ag.first << ";\n";
+  for (auto& ag : agmap) {
+    os << "  if (ag == \"" << ag.first << "\") return has_" << ag.first
+       << ";\n";
   }
   os << R"--(
   throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
@@ -244,16 +274,18 @@ bool WorkspaceAgendaBoolHandler::has(const std::string& ag) const {
 
 void WorkspaceAgendaBoolHandler::set(const std::string& ag) {
 )--";
-  for (auto& ag: agmap) {
-    os << "  if (ag == \""<<ag.first<<"\") {has_" << ag.first << " = true; return;}\n";
+  for (auto& ag : agmap) {
+    os << "  if (ag == \"" << ag.first << "\") {has_" << ag.first
+       << " = true; return;}\n";
   }
   os << R"--(
   throw std::runtime_error(var_string("Not a predefined agenda: ", std::quoted(ag)));
 }
 std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab) {
 )--";
-  for (auto& ag: agmap) {
-    os << "  os << \""<<ag.first<<": \" << wab.has_" << ag.first << " << '\\n';\n";
+  for (auto& ag : agmap) {
+    os << "  os << \"" << ag.first << ": \" << wab.has_" << ag.first
+       << " << '\\n';\n";
   }
   os << R"--(
   return os;
@@ -270,7 +302,14 @@ std::ostream& operator<<(std::ostream& os, const WorkspaceAgendaBoolHandler& wab
   }
 }
 
-int main() {
-header(std::cout);
-implementation(std::cerr);
+int main() try {
+  std::ofstream head("auto_wsa.h");
+  std::ofstream impl("auto_wsa.cpp");
+
+  header(head);
+  implementation(impl);
+} catch (std::exception& e) {
+  std::cerr << "Cannot create the automatic agendas with error:\n\n"
+            << e.what() << '\n';
+  return 1;
 }

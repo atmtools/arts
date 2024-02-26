@@ -212,7 +212,7 @@ auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
          const char* const file_format,
          bool clobber) {
         xml_write_to_file(
-            filename, *a.val, string2filetype(file_format), clobber ? 0 : 1);
+            filename, *a.val, to<FileType>(file_format), clobber ? 0 : 1);
       },
       py::arg("file").none(false),
       py::arg("type").none(false) = "ascii",

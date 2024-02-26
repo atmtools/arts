@@ -105,13 +105,7 @@ i = 4
 
 ws = pyarts.Workspace()
 ws.absorption_speciesSet(species=["CO2-626"])
-ws.abs_lines_per_species = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(
-    ws.abs_lines_per_species, basename="lines/"
-)
-ws.absorption_bandsFromAbsorbtionLines(
-    abs_lines_per_species=ws.abs_lines_per_species
-)
+ws.ReadCatalogData()
 
 p = 1e5
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
@@ -122,6 +116,7 @@ ws.atmospheric_point[pyarts.arts.SpeciesEnum("CO2")] = 400e-6
 ws.atmospheric_point[pyarts.arts.SpeciesEnum("O2")] = 0.21  # At 21% Oxygen
 ws.atmospheric_point[pyarts.arts.SpeciesEnum("N2")] = 0.79  # At 79% Nitrogen
 ws.atmospheric_point.mag = [40e-6, 20e-6, 10e-6]
+ws.propagation_path_point
 
 ws.jacobian_targetsInit()
 ws.WignerInit()
@@ -133,7 +128,7 @@ ws.ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
 
-y = pyarts.arts.AbsorptionBands(ws.absorption_bands)
+y = pyarts.arts.ArrayOfAbsorptionBand(ws.absorption_bands)
 
 band = y[i]
 ws.absorption_bands = [band]

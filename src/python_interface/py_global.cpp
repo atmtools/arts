@@ -90,11 +90,9 @@ void py_global(py::module_& m) try {
               "\n    Map of agendas"));
 
   global.def(
-      "get_isotopologues",
-      [] { return Species::Isotopologues; },
-      py::doc("Get a list of the global isotopologues\n\n"
-              "Return\n------\n:class:`list`"
-              "\n    List of :class:`pyarts.arts.IsotopeRecord`"));
+      "all_isotopologues",
+      []() { return Species::Isotopologues; },
+      py::doc("List of all valid `~pyarts.arts.SpeciesIsotopeRecord`"));
 
 #ifdef _OPENMP
   global.def("omp_get_max_threads",

@@ -164,26 +164,26 @@ struct LineTarget {
   Size x_size{std::numeric_limits<Size>::max()};
 
   std::function<void(ExhaustiveVectorView,
-                     const AbsorptionBands&,
+                     const ArrayOfAbsorptionBand&,
                      const ExhaustiveConstVectorView&)>
       set{[](ExhaustiveVectorView xnew,
-             const AbsorptionBands&,
+             const ArrayOfAbsorptionBand&,
              const ConstVectorView& xold) { xnew = xold; }};
 
   std::function<void(ExhaustiveVectorView,
-                     const AbsorptionBands&,
+                     const ArrayOfAbsorptionBand&,
                      const ExhaustiveConstVectorView&)>
       unset{[](VectorView xnew,
-               const AbsorptionBands&,
+               const ArrayOfAbsorptionBand&,
                const ExhaustiveConstVectorView& xold) { xnew = xold; }};
 
   friend std::ostream& operator<<(std::ostream& os, const LineTarget&) {
     return os << "Line key value: ";
   }
 
-  void update(AbsorptionBands&, const Vector&) const { ARTS_ASSERT(false) }
+  void update(ArrayOfAbsorptionBand&, const Vector&) const { ARTS_ASSERT(false) }
 
-  void update(Vector&, const AbsorptionBands&) const { ARTS_ASSERT(false) }
+  void update(Vector&, const ArrayOfAbsorptionBand&) const { ARTS_ASSERT(false) }
 };
 
 template <typename U, typename T>

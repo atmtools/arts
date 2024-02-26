@@ -12,6 +12,7 @@
 
 #include "absorptionlines.h"
 #include "debug.h"
+#include "isotopologues.h"
 #include "sorted_grid.h"
 #include "species_tags.h"
 #include <workspace.h>
@@ -87,8 +88,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Size n = 0; n < agpos.size(); n++)
-    xml_write_to_stream(os_xml, agpos[n], pbofs, "");
+  for (const auto & agpo : agpos)
+    xml_write_to_stream(os_xml, agpo, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -156,8 +157,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Size n = 0; n < astag.size(); n++)
-    xml_write_to_stream(os_xml, astag[n], pbofs, "");
+  for (auto n : astag)
+    xml_write_to_stream(os_xml, n, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -227,8 +228,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Size n = 0; n < astar.size(); n++) {
-    xml_write_to_stream(os_xml, astar[n], pbofs, "");
+  for (const auto & n : astar) {
+    xml_write_to_stream(os_xml, n, pbofs, "");
   }
 
   close_tag.set_name("/Array");
@@ -330,8 +331,8 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (Size n = 0; n < axd.size(); n++)
-    xml_write_to_stream(os_xml, axd[n], pbofs, "");
+  for (const auto & n : axd)
+    xml_write_to_stream(os_xml, n, pbofs, "");
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);
@@ -376,10 +377,12 @@ TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTensor7)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector)
-TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpecies)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpeciesEnum)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfPropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfNamedGriddedField2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfGriddedField1Named)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAscendingGrid)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector2)
 TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfVector3)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfAbsorptionBand)
+TMPL_XML_READ_WRITE_STREAM_ARRAY(ArrayOfSpeciesIsotope)

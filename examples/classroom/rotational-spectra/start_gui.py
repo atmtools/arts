@@ -17,17 +17,15 @@ ws = pyarts.workspace.Workspace()
 # outside of the given freqeuncy range.  This migth affect the accuracy of the
 # total absorption that is computed
 ws.absorption_speciesSet(
-    species=[f"HCl-*-{fmin}-{fmax}",
-             f"ClO-*-{fmin}-{fmax}",
-             f"CO-*-{fmin}-{fmax}",
-             f"N2O-*-{fmin}-{fmax}",
-             f"O3-*-{fmin}-{fmax}"])
+    species=[f"HCl",
+             f"ClO",
+             f"CO",
+             f"N2O",
+             f"O3"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-# FIXME
-ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
-ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
+ws.ReadCatalogData()
+ws.absorption_bandsSelectFrequency(fmin=fmin, fmax=fmax)
 
 # Use an automatic agenda
 ws.propagation_matrix_agendaAuto()

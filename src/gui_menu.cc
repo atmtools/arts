@@ -235,7 +235,7 @@ bool change_item(const char* name,
     if (ImGui::BeginMenu("Value")) {
       if (ImGui::BeginMenu(name)) {
         if (ImGui::BeginMenu("\tSelect VMR type\t")) {
-          for (auto& x : enumtyps::VMRTypes) {
+          for (auto& x : enumtyps::GuiVMRTypes) {
             if (ImGui::Selectable(
                     (' ' + std::string{toString(x)} + ' ').c_str(),
                     x == menu.vmr,
@@ -249,16 +249,14 @@ bool change_item(const char* name,
 
         const std::string vmr_type{toString(menu.vmr)};
         constexpr Numeric max = 1.5;
-        const Numeric scale = [](VMR& vmr) {
+        const Numeric scale = [](GuiVMR& vmr) {
           switch (vmr) {
-            case VMR::exact:
+            case GuiVMR::exact:
               return 1.0;
-            case VMR::percent:
+            case GuiVMR::percent:
               return 100.0;
-            case VMR::ppmv:
+            case GuiVMR::ppmv:
               return 1'000'000.0;
-            case VMR::FINAL: { /* leave last */
-            }
           }
           return 0.0;
         }(menu.vmr);
@@ -465,7 +463,7 @@ bool change_item(const char* name,
           did_something = true;
         }
         for (auto& spec :
-             Species::enumtyps::SpeciesTypes | std::views::drop(1)) {
+             enumtyps::SpeciesEnumTypes | std::views::drop(1)) {
           ImGui::Separator();
           const std::string str{var_string(' ', toString(spec), ' ')};
           if (ImGui::Selectable(str.c_str(),

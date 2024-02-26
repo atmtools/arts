@@ -34,95 +34,89 @@ Numeric no_inf(Numeric x) noexcept {
 }
 
 namespace PropmatClearsky {
-constexpr Numeric xscale(Numeric x, XScaling scale) noexcept {
+constexpr Numeric xscale(Numeric x, GuiXScaling scale) noexcept {
   switch (scale) {
-    case XScaling::Hz:
+    case GuiXScaling::Hz:
       return x;
-    case XScaling::GHz:
+    case GuiXScaling::GHz:
       return 1e-9 * x;
-    case XScaling::THz:
+    case GuiXScaling::THz:
       return 1e-12 * x;
-    case XScaling::Angcm:
+    case GuiXScaling::Angcm:
       return Conversion::freq2angcm(x);
-    case XScaling::Kaycm:
+    case GuiXScaling::Kaycm:
       return Conversion::freq2kaycm(x);
-    case XScaling::m:
+    case GuiXScaling::m:
       return Conversion::freq2wavelen(x);
-    case XScaling::nm:
+    case GuiXScaling::nm:
       return 1e9 * Conversion::freq2wavelen(x);
-    case XScaling::Angfreq:
+    case GuiXScaling::Angfreq:
       return Conversion::freq2angfreq(x);
-    case XScaling::FINAL: { /* leave last */
-    }
   }
   return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 constexpr std::pair<Numeric, Numeric> xunscale(Numeric min,
                                                Numeric max,
-                                               XScaling scale) noexcept {
+                                               GuiXScaling scale) noexcept {
   switch (scale) {
-    case XScaling::Hz:
+    case GuiXScaling::Hz:
       return {min, max};
-    case XScaling::GHz:
+    case GuiXScaling::GHz:
       return {1e9 * min, 1e9 * max};
-    case XScaling::THz:
+    case GuiXScaling::THz:
       return {1e12 * min, 1e12 * max};
-    case XScaling::Angcm:
+    case GuiXScaling::Angcm:
       return {Conversion::angcm2freq(min), Conversion::angcm2freq(max)};
-    case XScaling::Kaycm:
+    case GuiXScaling::Kaycm:
       return {Conversion::kaycm2freq(min), Conversion::kaycm2freq(max)};
-    case XScaling::m:
+    case GuiXScaling::m:
       return {Conversion::wavelen2freq(max), Conversion::wavelen2freq(min)};
-    case XScaling::nm:
+    case GuiXScaling::nm:
       return {Conversion::wavelen2freq(1e-9 * max),
               Conversion::wavelen2freq(1e-9 * min)};
-    case XScaling::Angfreq:
+    case GuiXScaling::Angfreq:
       return {Conversion::angfreq2freq(min), Conversion::angfreq2freq(max)};
-    case XScaling::FINAL: { /* leave last */
-    }
   }
   return {std::numeric_limits<Numeric>::quiet_NaN(),
           std::numeric_limits<Numeric>::quiet_NaN()};
 }
 
-constexpr std::string_view xunit(XScaling scale) noexcept {
+constexpr std::string_view xunit(GuiXScaling scale) noexcept {
   switch (scale) {
-    case XScaling::Hz:
+    case GuiXScaling::Hz:
       return "Frequency [Hz]";
-    case XScaling::GHz:
+    case GuiXScaling::GHz:
       return "Frequency [GHz]";
-    case XScaling::THz:
+    case GuiXScaling::THz:
       return "Frequency [THz]";
-    case XScaling::Angcm:
+    case GuiXScaling::Angcm:
       return "Angular Wavenumber [cm-1]";
-    case XScaling::Kaycm:
+    case GuiXScaling::Kaycm:
       return "Kayser Wavenumber [cm-1]";
-    case XScaling::m:
+    case GuiXScaling::m:
       return "Wavelength [m]";
-    case XScaling::nm:
+    case GuiXScaling::nm:
       return "Wavelength [nm]";
-    case XScaling::Angfreq:
+    case GuiXScaling::Angfreq:
       return "Angular Frequency [Hz]";
-    case XScaling::FINAL: { /* leave last */
-    }
   }
   return "BadUnit";
 }
 
-std::array<std::string, PropmatClearsky::enumtyps::XScalingTypes.size()>
+std::array<std::string, enumtyps::GuiXScalingTypes.size()>
 xscale_option() {
-  std::array<std::string, PropmatClearsky::enumtyps::XScalingTypes.size()> out;
+  std::array<std::string, enumtyps::GuiXScalingTypes.size()> out;
   std::array<char, 100> buf;
   for (size_t i = 0; i < out.size(); i++) {
     buf.fill('\0');
     std::snprintf(buf.data(),
                   buf.size(),
                   "%g",
-                  xscale(1e12, PropmatClearsky::enumtyps::XScalingTypes[i]));
+                  xscale(1e12, enumtyps::GuiXScalingTypes[i]));
 
     out[i] = var_string("\tScale: ",
-                        xunit(PropmatClearsky::enumtyps::XScalingTypes[i]),
+                        xunit(enumtyps::GuiXScalingTypes[i]),
                         "; 1e12 Hz -> ",
                         buf.data(),
                         '\t');
@@ -130,70 +124,64 @@ xscale_option() {
   return out;
 }
 
-Numeric yscale(PropmatScaling scale,
+Numeric yscale(GuiPropmatScaling scale,
                Numeric T,
                Numeric P,
                const PropmatConstVectorView& pm) {
   switch (scale) {
-    case PropmatScaling::None:
+    case GuiPropmatScaling::None:
       return 1.0;
-    case PropmatScaling::CrossSection:
+    case GuiPropmatScaling::CrossSection:
       return number_density(P, T);
-    case PropmatScaling::Normalize:
+    case GuiPropmatScaling::Normalize:
       return max(pm).A();
-    case PropmatScaling::FINAL: { /* leave last */
-    }
   }
   return 1.0;
 }
 
-std::array<std::string, PropmatClearsky::enumtyps::PropmatScalingTypes.size()>
+std::array<std::string, enumtyps::GuiPropmatScalingTypes.size()>
 propmat_scale_option() {
-  std::array<std::string, PropmatClearsky::enumtyps::PropmatScalingTypes.size()>
+  std::array<std::string, enumtyps::GuiPropmatScalingTypes.size()>
       out;
   for (size_t i = 0; i < out.size(); i++) {
     out[i] = var_string(
-        '\t', PropmatClearsky::enumstrs::PropmatScalingNames[i], '\t');
+        '\t', enumstrs::GuiPropmatScalingNames<0>[i], '\t');
   }
   return out;
 }
 
-Numeric yscale(TramatScaling scale, bool inverse, Numeric x) {
+Numeric yscale(GuiTramatScaling scale, bool inverse, Numeric x) {
   switch (scale) {
-    case TramatScaling::None:
+    case GuiTramatScaling::None:
       if (inverse) return 1 - x;
       return x;
-    case TramatScaling::dB:
+    case GuiTramatScaling::dB:
       return (inverse ? -1 : 1) *
              (x > 0 ? 10 * std::log10(x)
                     : std::numeric_limits<Numeric>::quiet_NaN());
-    case TramatScaling::FINAL: { /* leave last */
-    }
   }
   return x;
 }
 
-std::string_view yscale_str(TramatScaling scale, bool inverse) {
+std::string_view yscale_str(GuiTramatScaling scale, bool inverse) {
   switch (scale) {
-    case TramatScaling::None:
+    case GuiTramatScaling::None:
       if (inverse) return "One minus Transmission [-]";
       return "Transmission [-]";
-    case TramatScaling::dB:
+    case GuiTramatScaling::dB:
       if (inverse) return "Negative Transmission [dB]";
       return "Transmission [dB]";
-    case TramatScaling::FINAL: { /* leave last */
-    }
   }
   return "Bad Axis Data";
 }
 
-std::array<std::string, PropmatClearsky::enumtyps::TramatScalingTypes.size()>
+std::array<std::string, enumtyps::GuiTramatScalingTypes.size()>
 tramat_scale_option() {
-  std::array<std::string, PropmatClearsky::enumtyps::TramatScalingTypes.size()>
+  std::array<std::string, enumtyps::GuiTramatScalingTypes.size()>
       out;
   for (size_t i = 0; i < out.size(); i++) {
     out[i] = var_string(
-        '\t', PropmatClearsky::enumstrs::TramatScalingNames[i], '\t');
+        '\t', enumstrs::GuiTramatScalingNames<0>[i], '\t');
   }
   return out;
 }
@@ -223,8 +211,8 @@ auto range_mean(const MuelmatConstVectorView& t, Index start, Index last) {
 struct TraMatDataHolder {
   const MuelmatConstVectorView& tm;
   const Vector& f_grid;
-  XScaling xscale_fun;
-  TramatScaling yscale_fun;
+  GuiXScaling xscale_fun;
+  GuiTramatScaling yscale_fun;
   bool inverse_y;
   int running_average;
 
@@ -260,7 +248,7 @@ struct TraMatDataHolder {
 struct PropMatDataHolder {
   const PropmatConstVectorView& pm;
   const Vector& f_grid;
-  XScaling xscale_fun;
+  GuiXScaling xscale_fun;
   Numeric yscale_const;
   int running_average;
 
@@ -596,10 +584,10 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Scale tPropagation
       if (ImGui::BeginMenu("\tPropagation Matrix Scale\t")) {
         MainMenu::select_option(disp_options.propmat_scale,
-                                PropmatClearsky::enumtyps::PropmatScalingTypes,
+                                enumtyps::GuiPropmatScalingTypes,
                                 propmat_scale_display);
         if (disp_options.propmat_scale not_eq
-            PropmatClearsky::PropmatScaling::Normalize) {
+            GuiPropmatScaling::Normalize) {
           ImGui::Text(" ");
           ImGui::SameLine();
           ImGui::InputDouble("\tScale Constant\t",
@@ -624,7 +612,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Scale Transmission
       if (ImGui::BeginMenu("\tTransmission Matrix Scale\t")) {
         MainMenu::select_option(disp_options.tramat_scale,
-                                PropmatClearsky::enumtyps::TramatScalingTypes,
+                                enumtyps::GuiTramatScalingTypes,
                                 tramat_scale_display);
         ImGui::Text(" ");
         ImGui::SameLine();
@@ -639,7 +627,7 @@ void propmat(PropmatClearsky::ResultsArray& res,
       // Scale X
       if (ImGui::BeginMenu("\tFrequency Scale\t")) {
         MainMenu::select_option(disp_options.xscale,
-                                PropmatClearsky::enumtyps::XScalingTypes,
+                                enumtyps::GuiXScalingTypes,
                                 xscale_display);
         ImGui::EndMenu();
       }

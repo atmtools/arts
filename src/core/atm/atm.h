@@ -4,9 +4,11 @@
 #include <quantum_numbers.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <exception>
 #include <functional>
+#include <iomanip>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -41,37 +43,33 @@ struct hash<ParticulatePropertyTag> {
 }  // namespace std
 
 namespace Atm {
-ENUMCLASS(Key, char, t, p, wind_u, wind_v, wind_w, mag_u, mag_v, mag_w)
-
 template <typename T>
 concept isParticulatePropertyTag =
     std::is_same_v<std::remove_cvref_t<T>, ParticulatePropertyTag>;
 
 template <typename T>
-concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, Species::Species>;
+concept isSpecies = std::is_same_v<std::remove_cvref_t<T>, SpeciesEnum>;
 
 template <typename T>
-concept isIsotopeRecord =
-    std::is_same_v<std::remove_cvref_t<T>, Species::IsotopeRecord>;
+concept isSpeciesIsotope =
+    std::is_same_v<std::remove_cvref_t<T>, SpeciesIsotope>;
 
 template <typename T>
 concept isQuantumIdentifier =
     std::is_same_v<std::remove_cvref_t<T>, QuantumIdentifier>;
 
 template <typename T>
-concept isKey = std::is_same_v<std::remove_cvref_t<T>, Key>;
+concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
                   isQuantumIdentifier<T> or isParticulatePropertyTag<T>;
 
-using KeyVal = std::variant<Key,
-                            Species::Species,
-                            Species::IsotopeRecord,
+using KeyVal = std::variant<AtmKey,
+                            SpeciesEnum,
+                            SpeciesIsotope,
                             QuantumIdentifier,
                             ParticulatePropertyTag>;
-
-std::ostream &operator<<(std::ostream &, const KeyVal &);
 
 template <typename T>
 concept ListKeyType = requires(T a) {
@@ -86,17 +84,17 @@ concept ListOfNumeric = requires(T a) {
 };
 
 struct Point {
-  std::unordered_map<Species::Species, Numeric> specs{};
-  std::unordered_map<Species::IsotopeRecord, Numeric> isots{};
+  std::unordered_map<SpeciesEnum, Numeric> specs{};
+  std::unordered_map<SpeciesIsotope, Numeric> isots{};
   std::unordered_map<QuantumIdentifier, Numeric> nlte{};
   std::unordered_map<ParticulatePropertyTag, Numeric> partp{};
 
-  Numeric pressure{0};
-  Numeric temperature{0};
-  Vector3 wind{0, 0, 0};
-  Vector3 mag{0, 0, 0};
+  Numeric pressure{NAN};
+  Numeric temperature{NAN};
+  Vector3 wind{NAN, NAN, NAN};
+  Vector3 mag{NAN, NAN, NAN};
 
-  Point(const std::string_view isots_key="Builtin");
+  Point(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
   Point(const Point &) = default;
   Point(Point &&) = default;
   Point &operator=(const Point &) = default;
@@ -105,9 +103,8 @@ struct Point {
   template <KeyType T>
   constexpr Numeric operator[](T &&x) const try {
     if constexpr (isSpecies<T>) {
-      auto y = specs.find(std::forward<T>(x));
-      return y == specs.end() ? 0 : y->second;
-    } else if constexpr (isIsotopeRecord<T>) {
+      return specs.at(std::forward<T>(x));
+    } else if constexpr (isSpeciesIsotope<T>) {
       return isots.at(std::forward<T>(x));
     } else if constexpr (isParticulatePropertyTag<T>) {
       return partp.at(std::forward<T>(x));
@@ -115,29 +112,38 @@ struct Point {
       return nlte.at(std::forward<T>(x));
     } else {
       switch (std::forward<T>(x)) {
-        case Key::t:
+        case AtmKey::t:
           return temperature;
-        case Key::p:
+        case AtmKey::p:
           return pressure;
-        case Key::wind_u:
+        case AtmKey::wind_u:
           return wind[0];
-        case Key::wind_v:
+        case AtmKey::wind_v:
           return wind[1];
-        case Key::wind_w:
+        case AtmKey::wind_w:
           return wind[2];
-        case Key::mag_u:
+        case AtmKey::mag_u:
           return mag[0];
-        case Key::mag_v:
+        case AtmKey::mag_v:
           return mag[1];
-        case Key::mag_w:
+        case AtmKey::mag_w:
           return mag[2];
-        case Key::FINAL: {
-        }
       }
       ARTS_USER_ERROR("Cannot reach")
     }
   } catch (std::out_of_range &) {
-    ARTS_USER_ERROR("Key not found: \"", x, '"')
+    if constexpr (isSpecies<T>) {
+      ARTS_USER_ERROR("Species VMR not found: ",
+                      std::quoted(toString<1>(x)))
+    } else if constexpr (isSpeciesIsotope<T>) {
+      ARTS_USER_ERROR("Isotopologue ration not found: ", std::quoted(x.FullName()))
+    } else if constexpr (isParticulatePropertyTag<T>) {
+      ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
+    } else if constexpr (isQuantumIdentifier<T>) {
+      ARTS_USER_ERROR("Non-LTE level ratio not found: ", x)
+    } else {
+      ARTS_USER_ERROR("Key not found: \"", x, '"')
+    }
   } catch (std::exception &) {
     throw;
   }
@@ -146,7 +152,7 @@ struct Point {
   constexpr Numeric &operator[](T &&x) {
     if constexpr (isSpecies<T>) {
       return specs[std::forward<T>(x)];
-    } else if constexpr (isIsotopeRecord<T>) {
+    } else if constexpr (isSpeciesIsotope<T>) {
       return isots[std::forward<T>(x)];
     } else if constexpr (isQuantumIdentifier<T>) {
       return nlte[std::forward<T>(x)];
@@ -154,24 +160,22 @@ struct Point {
       return partp[std::forward<T>(x)];
     } else {
       switch (std::forward<T>(x)) {
-        case Key::t:
+        case AtmKey::t:
           return temperature;
-        case Key::p:
+        case AtmKey::p:
           return pressure;
-        case Key::wind_u:
+        case AtmKey::wind_u:
           return wind[0];
-        case Key::wind_v:
+        case AtmKey::wind_v:
           return wind[1];
-        case Key::wind_w:
+        case AtmKey::wind_w:
           return wind[2];
-        case Key::mag_u:
+        case AtmKey::mag_u:
           return mag[0];
-        case Key::mag_v:
+        case AtmKey::mag_v:
           return mag[1];
-        case Key::mag_w:
+        case AtmKey::mag_w:
           return mag[2];
-        case Key::FINAL: {
-        }
       }
       return temperature;  // CANNOT REACH
     }
@@ -185,9 +189,9 @@ struct Point {
     const auto has_ = [](auto &x [[maybe_unused]], auto &&k [[maybe_unused]]) {
       if constexpr (isSpecies<T>)
         return x.specs.end() not_eq x.specs.find(std::forward<T>(k));
-      else if constexpr (isIsotopeRecord<T>)
+      else if constexpr (isSpeciesIsotope<T>)
         return x.isots.end() not_eq x.isots.find(std::forward<T>(k));
-      else if constexpr (isKey<T>)
+      else if constexpr (isAtmKey<T>)
         return true;
       else if constexpr (isQuantumIdentifier<T>)
         return x.nlte.end() not_eq x.nlte.find(std::forward<T>(k));
@@ -201,7 +205,7 @@ struct Point {
   }
 
   [[nodiscard]] Numeric mean_mass() const;
-  [[nodiscard]] Numeric mean_mass(Species::Species) const;
+  [[nodiscard]] Numeric mean_mass(SpeciesEnum) const;
 
   [[nodiscard]] std::vector<KeyVal> keys() const;
 
@@ -211,7 +215,7 @@ struct Point {
   [[nodiscard]] Index npart() const;
   [[nodiscard]] Index nnlte() const;
   [[nodiscard]] static constexpr Index nother() {
-    return static_cast<Index>(enumtyps::KeyTypes.size());
+    return static_cast<Index>(enumsize::AtmKeySize);
   }
 
   [[nodiscard]] constexpr bool zero_wind() const noexcept {
@@ -229,7 +233,7 @@ struct Point {
     return {operator[](band.LowerLevel()), operator[](band.UpperLevel())};
   }
 
-  void setZero();
+  void check_and_fix();
 
   friend std::ostream &operator<<(std::ostream &os, const Point &atm);
 };
@@ -238,8 +242,6 @@ struct Point {
 //! reconsider...
 using FunctionalData = std::function<Numeric(Numeric, Numeric, Numeric)>;
 using FieldData = std::variant<GriddedField3, Numeric, FunctionalData>;
-
-ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear)
 
 struct FunctionalDataAlwaysThrow {
   std::string error{"Undefined data"};
@@ -264,12 +266,12 @@ concept RawDataType =
 struct Data {
   FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
       "You touched the field but did not set any data"}}};
-  Extrapolation alt_upp{Extrapolation::None};
-  Extrapolation alt_low{Extrapolation::None};
-  Extrapolation lat_upp{Extrapolation::None};
-  Extrapolation lat_low{Extrapolation::None};
-  Extrapolation lon_upp{Extrapolation::None};
-  Extrapolation lon_low{Extrapolation::None};
+  InterpolationExtrapolation alt_upp{InterpolationExtrapolation::None};
+  InterpolationExtrapolation alt_low{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
   Data() = default;
@@ -332,33 +334,33 @@ template <typename T>
 concept DataType = RawDataType<T> or isData<T>;
 
 struct Field final : FieldMap::Map<Data,
-                                   Key,
-                                   Species::Species,
-                                   Species::IsotopeRecord,
+                                   AtmKey,
+                                   SpeciesEnum,
+                                   SpeciesIsotope,
                                    QuantumIdentifier,
                                    ParticulatePropertyTag> {
   //! The upper altitude limit of the atmosphere (the atmosphere INCLUDES this
   //! altitude)
   Numeric top_of_atmosphere{std::numeric_limits<Numeric>::lowest()};
 
-  Field(const std::string_view isots_key="Builtin");
+  Field(const IsoRatioOption isots_key = IsoRatioOption::Builtin);
   Field(const Field &) = default;
   Field(Field &&) = default;
   Field &operator=(const Field &) = default;
   Field &operator=(Field &&) = default;
 
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
-  [[nodiscard]] const std::unordered_map<Species::Species, Data> &specs() const;
-  [[nodiscard]] const std::unordered_map<Species::IsotopeRecord, Data> &isots()
+  [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
+  [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots()
       const;
-  [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
+  [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
   [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
       const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
-  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
-  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
-  [[nodiscard]] std::unordered_map<Key, Data> &other();
+  [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
+  [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
+  [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
   [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
 
   //! Compute the values at a single point in place
@@ -397,18 +399,21 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
-
-bool operator==(const KeyVal &, Key);
-bool operator==(Key, const KeyVal &);
-bool operator==(const KeyVal &, const Species::Species &);
-bool operator==(const Species::Species &, const KeyVal &);
-bool operator==(const KeyVal &, const QuantumIdentifier &);
-bool operator==(const QuantumIdentifier &, const KeyVal &);
-bool operator==(const KeyVal &, const ParticulatePropertyTag &);
-bool operator==(const ParticulatePropertyTag &, const KeyVal &);
 }  // namespace Atm
 
 using AtmKeyVal = Atm::KeyVal;
 using AtmField = Atm::Field;
 using AtmPoint = Atm::Point;
 using ArrayOfAtmPoint = Array<AtmPoint>;
+using AtmFunctionalData = Atm::FunctionalData;
+
+bool operator==(const AtmKeyVal &, AtmKey);
+bool operator==(AtmKey, const AtmKeyVal &);
+bool operator==(const AtmKeyVal &, const SpeciesEnum &);
+bool operator==(const SpeciesEnum &, const AtmKeyVal &);
+bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
+bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
+bool operator==(const AtmKeyVal &, const ParticulatePropertyTag &);
+bool operator==(const ParticulatePropertyTag &, const AtmKeyVal &);
+
+std::ostream &operator<<(std::ostream &, const AtmKeyVal &);

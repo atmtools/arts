@@ -16,6 +16,10 @@ class full {
     CIARecord* ciarecords;
 
     single() = default;
+    single(const single&) = default;
+    single(single&&) = default;
+    single& operator=(const single&) = default;
+    single& operator=(single&&) = default;
 
     single(Numeric p,
            Numeric t,
@@ -25,9 +29,7 @@ class full {
            Numeric extrap,
            Index robust);
 
-    [[nodiscard]] Complex at(Numeric f) const;
-    void at(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-    [[nodiscard]] ComplexVector at(const Vector& fs) const;
+    [[nodiscard]] Complex at(const Numeric frequency) const;
   };
 
   std::shared_ptr<AtmPoint> atm{};
@@ -41,15 +43,17 @@ class full {
 
  public:
   full() = default;
+  full(const full&) = default;
+  full(full&&) = default;
+  full& operator=(const full&) = default;
+  full& operator=(full&&) = default;
 
   full(std::shared_ptr<AtmPoint> atm,
        std::shared_ptr<ArrayOfCIARecord> cia,
        Numeric extrap = {},
        Index robust = {});
 
-  [[nodiscard]] Complex operator()(Numeric f) const;
-  void operator()(ExhaustiveComplexVectorView abs, const Vector& fs) const;
-  [[nodiscard]] ComplexVector operator()(const Vector& fs) const;
+  [[nodiscard]] Complex operator()(const Numeric frequency) const;
 
   void set_extrap(Numeric extrap);
   void set_robust(Index robust);

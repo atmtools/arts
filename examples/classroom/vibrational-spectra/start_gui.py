@@ -20,10 +20,7 @@ ws.absorption_speciesSet(
              "CH4"])
 
 # Read the absorption lines.  These should be part of the arts-cata-data package
-# FIXME
-ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
-ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
+ws.ReadCatalogData()
 
 # Speed-up technique of using a cutoff frequency
 # This will apply a cutoff of each absorption line at a frequency of 750 GHz

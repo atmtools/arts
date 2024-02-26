@@ -18,7 +18,6 @@
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
-#include "physics_funcs.h"
 
 inline constexpr Numeric BOLTZMAN_CONST=Constant::boltzmann_constant;
 inline constexpr Numeric DEG2RAD=Conversion::deg2rad(1);

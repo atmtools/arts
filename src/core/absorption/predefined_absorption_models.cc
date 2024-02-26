@@ -42,7 +42,7 @@ namespace Absorption::PredefinedModel {
 template <bool check_exist>
 bool compute_selection(
     PropmatVector& pm [[maybe_unused]],
-    const SpeciesIsotopeRecord& model,
+    const SpeciesIsotope& model,
     const Vector& f [[maybe_unused]],
     const Numeric& p [[maybe_unused]],
     const Numeric& t [[maybe_unused]],
@@ -50,7 +50,7 @@ bool compute_selection(
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data
     [[maybe_unused]]) try {
   switch (Species::find_species_index(model)) {
-    case find_species_index(Species::Species::Water, "ForeignContCKDMT400"):
+    case "H2O-ForeignContCKDMT400"_isot_index:
       if constexpr (not check_exist)
         MT_CKD400::compute_foreign_h2o(
             pm,
@@ -60,7 +60,7 @@ bool compute_selection(
             vmr.H2O,
             std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
-    case find_species_index(Species::Species::Water, "SelfContCKDMT400"):
+    case "H2O-SelfContCKDMT400"_isot_index:
       if constexpr (not check_exist)
         MT_CKD400::compute_self_h2o(
             pm,
@@ -70,112 +70,110 @@ bool compute_selection(
             vmr.H2O,
             std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
-    case find_species_index(Species::Species::Oxygen, "MPM2020"):
+    case "O2-MPM2020"_isot_index:
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;
-    case find_species_index(Species::Species::Oxygen, "PWR2021"):
+    case "O2-PWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_o2_2021(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "PWR2021"):
+    case "H2O-PWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_h2o_2021(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Nitrogen, "SelfContPWR2021"):
+    case "N2-SelfContPWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Oxygen, "PWR2022"):
+    case "O2-PWR2022"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_o2_2022(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "PWR2022"):
+    case "H2O-PWR2022"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_h2o_2022(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Oxygen, "PWR98"):
+    case "O2-PWR98"_isot_index:
       if constexpr (not check_exist)
         PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Oxygen, "TRE05"):
+    case "O2-TRE05"_isot_index:
       if constexpr (not check_exist)
         TRE05::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "PWR98"):
+    case "H2O-PWR98"_isot_index:
       if constexpr (not check_exist) PWR98::water(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Oxygen, "MPM89"):
+    case "O2-MPM89"_isot_index:
       if constexpr (not check_exist)
         MPM89::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "MPM89"):
+    case "H2O-MPM89"_isot_index:
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Nitrogen, "SelfContMPM93"):
+    case "N2-SelfContMPM93"_isot_index:
       if constexpr (not check_exist)
         MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "ForeignContCKDMT350"):
+    case "H2O-ForeignContCKDMT350"_isot_index:
       if constexpr (not check_exist)
         CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "SelfContCKDMT350"):
+    case "H2O-SelfContCKDMT350"_isot_index:
       if constexpr (not check_exist)
         CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "ForeignContCKDMT320"):
+    case "H2O-ForeignContCKDMT320"_isot_index:
       if constexpr (not check_exist)
         CKDMT320::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "SelfContCKDMT320"):
+    case "H2O-SelfContCKDMT320"_isot_index:
       if constexpr (not check_exist)
         CKDMT320::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "ForeignContStandardType"):
+    case "H2O-ForeignContStandardType"_isot_index:
       if constexpr (not check_exist)
         Standard::water_foreign(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Water, "SelfContStandardType"):
+    case "H2O-SelfContStandardType"_isot_index:
       if constexpr (not check_exist) Standard::water_self(pm, f, p, t, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Oxygen, "SelfContStandardType"):
+    case "O2-SelfContStandardType"_isot_index:
       if constexpr (not check_exist)
         Standard::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case find_species_index(Species::Species::Nitrogen, "SelfContStandardType"):
+    case "N2-SelfContStandardType"_isot_index:
       if constexpr (not check_exist) Standard::nitrogen(pm, f, p, t, vmr.N2);
       return true;
-    case find_species_index(Species::Species::CarbonDioxide, "CKDMT252"):
+    case "CO2-CKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::carbon_dioxide(pm, f, p, t, vmr.CO2);
       return true;
-    case find_species_index(Species::Species::Oxygen, "visCKDMT252"):
+    case "O2-visCKDMT252"_isot_index:
       if constexpr (not check_exist) MT_CKD252::oxygen_vis(pm, f, p, t, vmr.O2);
       return true;
-    case find_species_index(Species::Species::Nitrogen, "CIAfunCKDMT252"):
+    case "N2-CIAfunCKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::nitrogen_fun(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
-    case find_species_index(Species::Species::Nitrogen, "CIArotCKDMT252"):
+    case "N2-CIArotCKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::nitrogen_rot(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
-    case find_species_index(Species::Species::Oxygen, "CIAfunCKDMT100"):
+    case "O2-CIAfunCKDMT100"_isot_index:
       if constexpr (not check_exist) MT_CKD100::oxygen_cia(pm, f, p, t, vmr.O2);
       return true;
-    case find_species_index(Species::Species::Oxygen, "v0v0CKDMT100"):
+    case "O2-v0v0CKDMT100"_isot_index:
       if constexpr (not check_exist)
         MT_CKD100::oxygen_v0v0(pm, f, p, t, vmr.O2, vmr.N2);
       return true;
-    case find_species_index(Species::Species::Oxygen, "v1v0CKDMT100"):
+    case "O2-v1v0CKDMT100"_isot_index:
       if constexpr (not check_exist)
         MT_CKD100::oxygen_v0v1(pm, f, p, t, vmr.O2);
       return true;
-    case find_species_index(Species::Species::liquidcloud, "ELL07"):
+    case "liquidcloud-ELL07"_isot_index:
       if constexpr (not check_exist) ELL07::compute(pm, f, t, vmr.LWC);
       return true;
-    case find_species_index(Species::Species::FINAL, "Not A Model"):
-      break;
   }
   return false;
 } catch (std::bad_variant_access& e) {
@@ -185,7 +183,7 @@ bool compute_selection(
   throw;
 }
 
-bool can_compute(const SpeciesIsotopeRecord& model) {
+bool can_compute(const SpeciesIsotope& model) {
   PropmatVector pm;
   return compute_selection<true>(pm, model, {}, {}, {}, {}, {});
 }
@@ -207,31 +205,32 @@ bool can_compute(const SpeciesIsotopeRecord& model) {
  * @param[in] vmr A VMRS object defined from the WSVs abs_species and rtp_vmr
  * @param[in] spec The species whose derivative is computed
  */
-void compute_vmr_deriv(PropmatVector& dpm,
-                       const PropmatVector& pm,
-                       const SpeciesIsotopeRecord& model,
-                       const Vector& f,
-                       const Numeric& p,
-                       const Numeric& t,
-                       VMRS vmr,
-                       const Numeric dvmr,
-                       const Species::Species spec,
-                       const Absorption::PredefinedModel::ModelVariant& predefined_model_data
-                       [[maybe_unused]]) {
+void compute_vmr_deriv(
+    PropmatVector& dpm,
+    const PropmatVector& pm,
+    const SpeciesIsotope& model,
+    const Vector& f,
+    const Numeric& p,
+    const Numeric& t,
+    VMRS vmr,
+    const Numeric dvmr,
+    const SpeciesEnum spec,
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data
+    [[maybe_unused]]) {
   switch (spec) {
-    case Species::Species::Oxygen:
+    case SpeciesEnum::Oxygen:
       vmr.O2 += dvmr;
       break;
-    case Species::Species::Water:
+    case SpeciesEnum::Water:
       vmr.H2O += dvmr;
       break;
-    case Species::Species::Nitrogen:
+    case SpeciesEnum::Nitrogen:
       vmr.N2 += dvmr;
       break;
-    case Species::Species::CarbonDioxide:
+    case SpeciesEnum::CarbonDioxide:
       vmr.CO2 += dvmr;
       break;
-    case Species::Species::liquidcloud:
+    case SpeciesEnum::liquidcloud:
       vmr.LWC += dvmr;
       break;
     default:
@@ -247,15 +246,16 @@ void compute_vmr_deriv(PropmatVector& dpm,
   dpm /= dvmr;
 }
 
-void compute(PropmatVector& propmat_clearsky,
-             PropmatMatrix& dpropmat_clearsky_dx,
-             const SpeciesIsotopeRecord& model,
-             const Vector& f_grid,
-             const Numeric& rtp_pressure,
-             const Numeric& rtp_temperature,
-             const VMRS& vmr,
-             const JacobianTargets& jacobian_targets,
-             const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
+void compute(
+    PropmatVector& propmat_clearsky,
+    PropmatMatrix& dpropmat_clearsky_dx,
+    const SpeciesIsotope& model,
+    const Vector& f_grid,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const VMRS& vmr,
+    const JacobianTargets& jacobian_targets,
+    const Absorption::PredefinedModel::ModelVariant& predefined_model_data) {
   if (not compute_selection<true>(propmat_clearsky,
                                   model,
                                   f_grid,
@@ -265,10 +265,10 @@ void compute(PropmatVector& propmat_clearsky,
                                   predefined_model_data))
     return;
 
-  using enum Species::Species;
+  using enum SpeciesEnum;
   const auto freq_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
-      Atm::Key::wind_u, Atm::Key::wind_v, Atm::Key::wind_w);
-  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(Atm::Key::t);
+      AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w);
+  const auto temp_jac = jacobian_targets.find<Jacobian::AtmTarget>(AtmKey::t);
   const auto vmrs_jac = jacobian_targets.find_all<Jacobian::AtmTarget>(
       CarbonDioxide, Oxygen, Nitrogen, Water, liquidcloud);
   const bool do_freq_jac =
@@ -344,7 +344,7 @@ void compute(PropmatVector& propmat_clearsky,
                           rtp_temperature,
                           vmr,
                           d,
-                          *std::get_if<Species::Species>(&j.second->type),
+                          *std::get_if<SpeciesEnum>(&j.second->type),
                           predefined_model_data);
         dpropmat_clearsky_dx[iq] += dpm;
       }
@@ -358,5 +358,13 @@ void compute(PropmatVector& propmat_clearsky,
                              vmr,
                              predefined_model_data);
   }
+}
+
+std::ostream& operator<<(std::ostream& os, const VMRS& vmrs) {
+  return os << "O2: " << vmrs.O2 << '\n'
+            << "N2: " << vmrs.N2 << '\n'
+            << "H2O: " << vmrs.H2O << '\n'
+            << "LWC: " << vmrs.LWC << '\n'
+            << "CO2: " << vmrs.CO2 << '\n';
 }
 }  // namespace Absorption::PredefinedModel

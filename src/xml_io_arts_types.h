@@ -21,13 +21,14 @@
 #include <workspace.h>
 
 // Extras
+#include "fwd_spectral_radiance.h"
 #include "jacobian.h"
-#include "linemixing.h"
 #include "matpack_data.h"
 #include "mc_interp.h"
 #include "operators.h"
 #include "path_point.h"
 #include "template_partfun.h"
+#include "xml_io_general_types.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                                       \
   void xml_read_from_stream(std::istream &, what &, bifstream *);              \
@@ -49,9 +50,8 @@ TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
 //=== Compound Types =======================================================
 
 TMPL_XML_READ_WRITE_STREAM(SpeciesTag)
-TMPL_XML_READ_WRITE_STREAM(ErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(AbsorptionBand)
-TMPL_XML_READ_WRITE_STREAM(AbsorptionBands)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionBand)
 TMPL_XML_READ_WRITE_STREAM(AbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(AtmField)
@@ -71,10 +71,8 @@ TMPL_XML_READ_WRITE_STREAM(GriddedField4)
 TMPL_XML_READ_WRITE_STREAM(GriddedField5)
 TMPL_XML_READ_WRITE_STREAM(GriddedField6)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
-TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
 TMPL_XML_READ_WRITE_STREAM(PropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(SpeciesIsotopologueRatios)
-TMPL_XML_READ_WRITE_STREAM(MapOfErrorCorrectedSuddenData)
 TMPL_XML_READ_WRITE_STREAM(LinemixingEcsData)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(PredefinedModelData)
@@ -122,7 +120,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationPathPoint)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSingleScatteringData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesTag)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfSpecies)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfSpeciesEnum)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSun)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfString)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTelsemAtlas)
@@ -155,6 +153,7 @@ TMPL_XML_READ_WRITE_STREAM(CallbackOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericUnaryOperator)
 TMPL_XML_READ_WRITE_STREAM(NumericTernaryOperator)
 TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
+TMPL_XML_READ_WRITE_STREAM(SpectralRadianceOperator)
 
 //=== rtepack types ========================================================
 
@@ -169,6 +168,11 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfPropmatMatrix)
 TMPL_XML_READ_WRITE_STREAM(Stokvec)
 TMPL_XML_READ_WRITE_STREAM(StokvecVector)
 TMPL_XML_READ_WRITE_STREAM(StokvecMatrix)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor3)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor4)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor5)
+TMPL_XML_READ_WRITE_STREAM(StokvecTensor6)
+TMPL_XML_READ_WRITE_STREAM(StokvecGriddedField6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfStokvecMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfStokvecVector)
@@ -182,7 +186,9 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfMuelmatMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatVector)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMuelmatMatrix)
 
-//==========================================================================
+//=== Extras ===============================================================
+
+TMPL_XML_READ_WRITE_STREAM(AtmFunctionalData)
 
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_XML_READ_WRITE_STREAM

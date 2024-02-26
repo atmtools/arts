@@ -11,109 +11,114 @@
 */
 
 #include "xml_io.h"
+
+#include <filesystem>
+
 #include "bifstream.h"
 #include "bofstream.h"
 #include "config.h"
 #include "debug.h"
+#include "enums.h"
 #include "file.h"
 #include "parameters.h"
-
 
 ////////////////////////////////////////////////////////////////////////////
 //   ArtsXMLTag implementation
 ////////////////////////////////////////////////////////////////////////////
 
-void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNumberType>& value) {
+void ArtsXMLTag::add_attribute(const String& aname,
+                               const std::vector<QuantumNumberType>& value) {
   std::ostringstream v;
-  
-  if(value.size() == 0)
+
+  if (value.size() == 0)
     v << "";
   else {
-    for(size_t i=0; i<value.size()-1; i++)
-      v << value[i] << ' ';
+    for (size_t i = 0; i < value.size() - 1; i++) v << value[i] << ' ';
     v << value.back();
   }
-  
+
   add_attribute(aname, v.str());
 }
 
-void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpecies& value, const bool self, const bool bath) {
+void ArtsXMLTag::add_attribute(const String& aname,
+                               const ArrayOfSpeciesEnum& value,
+                               const bool self,
+                               const bool bath) {
   std::ostringstream v;
-  
-  if(self)
-    v << LineShape::self_broadening;
-  for(Size i=self; i<value.size()-bath; i++)
-    v << ' ' << Species::toShortName(value[i]);
-  if(bath) {
+
+  if (self) v << LineShape::self_broadening;
+  for (Size i = self; i < value.size() - bath; i++)
+    v << ' ' << toString<1>(value[i]);
+  if (bath) {
     v << ' ' << LineShape::bath_broadening;
   }
-  
+
   add_attribute(aname, v.str());
 }
 
 void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
   String attribute_value;
-  
+
   get_attribute_value(aname, attribute_value);
   value = SpeciesTag(attribute_value);
 }
 
-void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpecies& value, bool& self, bool& bath) {
+void ArtsXMLTag::get_attribute_value(const String& aname,
+                                     ArrayOfSpeciesEnum& value,
+                                     bool& self,
+                                     bool& bath) {
   value.resize(0);
-  self=false;
-  bath=false;
-  
+  self = false;
+  bath = false;
+
   String attribute_value;
   std::istringstream strstr("");
-  
+
   get_attribute_value(aname, attribute_value);
   if (attribute_value.size() == 0) return;
-  
+
   strstr.str(attribute_value);
   String val;
-  
-  while(not strstr.eof()) {
+
+  while (not strstr.eof()) {
     strstr >> val;
     if (strstr.fail()) {
-      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
-      ">");
+      xml_parse_error("Error while parsing value of " + aname + " from <" +
+                      name + ">");
     }
-    
-    if(val == LineShape::self_broadening) {
-      value.push_back(Species::Species::FINAL);
+
+    if (val == LineShape::self_broadening) {
+      value.push_back(static_cast<SpeciesEnum>(-1));
       self = true;
-    }
-    else if(val == LineShape::bath_broadening) {
-      value.push_back(Species::Species::Bath);
+    } else if (val == LineShape::bath_broadening) {
+      value.push_back(SpeciesEnum::Bath);
       bath = true;
-    }
-    else {
-      Species::Species x = Species::fromShortName(val);
-      ARTS_USER_ERROR_IF(not good_enum(x), "Species: ", val, " cannot be understood")
-      value.push_back(x);
+    } else {
+      value.push_back(to<SpeciesEnum>(val));
     }
   }
 }
 
-void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value) {
+void ArtsXMLTag::get_attribute_value(const String& aname,
+                                     std::vector<QuantumNumberType>& value) {
   value.resize(0);
-  
+
   String attribute_value;
   std::istringstream strstr("");
-  
+
   get_attribute_value(aname, attribute_value);
   if (attribute_value.size() == 0) return;
-  
+
   strstr.str(attribute_value);
   String val;
-  
-  while(not strstr.eof()) {
+
+  while (not strstr.eof()) {
     strstr >> val;
     if (strstr.fail()) {
-      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
-      ">");
+      xml_parse_error("Error while parsing value of " + aname + " from <" +
+                      name + ">");
     }
-    value.push_back(Quantum::Number::toType(val));
+    value.push_back(to<QuantumNumberType>(val));
   }
 }
 
@@ -127,8 +132,7 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
 #ifdef ENABLE_ZLIB
   {
     ifs = std::shared_ptr<std::istream>(new igzstream());
-    xml_open_input_file(
-        *(static_cast<igzstream*>(ifs.get())), xml_file);
+    xml_open_input_file(*(static_cast<igzstream*>(ifs.get())), xml_file);
   }
 #else
   {
@@ -139,8 +143,7 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs,
 #endif /* ENABLE_ZLIB */
   else {
     ifs = std::shared_ptr<std::istream>(new std::ifstream());
-    xml_open_input_file(
-        *(static_cast<std::ifstream*>(ifs.get())), xml_file);
+    xml_open_input_file(*(static_cast<std::ifstream*>(ifs.get())), xml_file);
   }
 }
 
@@ -192,6 +195,18 @@ void filename_xml(const String& filename) {
 void filename_xml_with_index(String& filename,
                              const Index& file_index,
                              const Index& digits) {
-  ARTS_USER_ERROR_IF ("" == filename, "Must have filename")
-  var_string(filename, ".", std::setw((int)digits), std::setfill('0'), file_index, ".xml");
+  ARTS_USER_ERROR_IF("" == filename, "Must have filename")
+  var_string(filename,
+             ".",
+             std::setw((int)digits),
+             std::setfill('0'),
+             file_index,
+             ".xml");
+}
+
+String complete_basename(const String& basename) {
+  if (basename.back() == '/') return basename;
+  if (basename.back() == '.') return basename;
+  if (std::filesystem::is_directory(basename)) return basename + "/";
+  return basename + ".";
 }

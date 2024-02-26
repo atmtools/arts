@@ -204,7 +204,7 @@ void surface_normal_calc(VectorView pos,
   //
   pos[1] = lat;
   pos[2] = pos2D[1];
-  pos[0] = surface_field.single_value(Surf::Key::h, pos[0], pos[2]);
+  pos[0] = surface_field.single_value(SurfaceKey::h, pos[0], pos[2]);
 
   // Radius at pos0
   const Numeric r = pos[0] + prime_vertical_radius(surface_field.ellipsoid, lat);
@@ -233,8 +233,8 @@ void surface_normal_calc(VectorView pos,
       posWE[2] -= 360;
   }
   //
-  posSN[0] = surface_field.single_value(Surf::Key::h, posSN[1], posSN[2]);
-  posWE[0] = surface_field.single_value(Surf::Key::h, posWE[1], posWE[2]);
+  posSN[0] = surface_field.single_value(SurfaceKey::h, posSN[1], posSN[2]);
+  posWE[0] = surface_field.single_value(SurfaceKey::h, posWE[1], posWE[2]);
   
   // Convert all three positions to ECEF
   Vector ecefSN(3), ecefWE(3);

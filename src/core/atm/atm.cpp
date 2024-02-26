@@ -19,21 +19,29 @@
 #include "isotopologues.h"
 #include "species.h"
 
-namespace Atm {
-ENUMCLASS(IsoRatioOption, char, Hitran, Builtin, None);
+std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
+  std::visit([&os](const auto &k) { os << k; }, key);
+  return os;
+}
 
-Point::Point (const std::string_view isots_key) {
-  switch (toIsoRatioOptionOrThrow(isots_key)) {
+namespace Atm {
+
+Point::Point(const IsoRatioOption isots_key) {
+  switch (isots_key) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
+        if (Species::Isotopologues[i].joker()) continue;
+        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
         isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
+        if (Species::Isotopologues[i].joker()) continue;
+        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
         isots[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
@@ -43,18 +51,22 @@ Point::Point (const std::string_view isots_key) {
   }
 }
 
-Field::Field (const std::string_view isots_key) {
-  switch (toIsoRatioOptionOrThrow(isots_key)) {
+Field::Field(const IsoRatioOption isots_key) {
+  switch (isots_key) {
     case IsoRatioOption::Builtin: {
       const SpeciesIsotopologueRatios x =
           Species::isotopologue_ratiosInitFromBuiltin();
       for (Index i = 0; i < x.maxsize; i++) {
+        if (Species::Isotopologues[i].joker()) continue;
+        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
         isots()[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
     case IsoRatioOption::Hitran: {
       const SpeciesIsotopologueRatios x = Hitran::isotopologue_ratios();
       for (Index i = 0; i < x.maxsize; i++) {
+        if (Species::Isotopologues[i].joker()) continue;
+        if (Species::is_predefined_model(Species::Isotopologues[i])) continue;
         isots()[Species::Isotopologues[i]] = x.data[i];
       }
     } break;
@@ -68,15 +80,17 @@ const std::unordered_map<QuantumIdentifier, Data> &Field::nlte() const {
   return map<QuantumIdentifier>();
 }
 
-const std::unordered_map<Species::Species, Data> &Field::specs() const {
-  return map<Species::Species>();
+const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
+  return map<SpeciesEnum>();
 }
 
-const std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() const {
-  return map<Species::IsotopeRecord>();
+const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
+  return map<SpeciesIsotope>();
 }
 
-const std::unordered_map<Key, Data> &Field::other() const { return map<Key>(); }
+const std::unordered_map<AtmKey, Data> &Field::other() const {
+  return map<AtmKey>();
+}
 
 const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
   return map<ParticulatePropertyTag>();
@@ -86,15 +100,15 @@ std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
   return map<QuantumIdentifier>();
 }
 
-std::unordered_map<Species::Species, Data> &Field::specs() {
-  return map<Species::Species>();
+std::unordered_map<SpeciesEnum, Data> &Field::specs() {
+  return map<SpeciesEnum>();
 }
 
-std::unordered_map<Species::IsotopeRecord, Data> &Field::isots() {
-  return map<Species::IsotopeRecord>();
+std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
+  return map<SpeciesIsotope>();
 }
 
-std::unordered_map<Key, Data> &Field::other() { return map<Key>(); }
+std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
 
 std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
   return map<ParticulatePropertyTag>();
@@ -109,7 +123,7 @@ std::ostream &operator<<(std::ostream &os, const Point &atm) {
      << ", w: " << atm.mag[2] << "] T";
 
   for (auto &spec : atm.specs) {
-    os << ",\n" << toShortName(spec.first) << ": " << spec.second;
+    os << ",\n" << toString<1>(spec.first) << ": " << spec.second;
   }
   for (auto &spec : atm.isots) {
     os << ",\n" << spec.first << ": " << spec.second;
@@ -124,36 +138,25 @@ std::ostream &operator<<(std::ostream &os, const Point &atm) {
 
 std::ostream &operator<<(std::ostream &os, const Field &atm) {
   const auto printer = [&](auto &data) {
-    if constexpr (isFunctionalDataType<decltype(data)>)
-      os << "Functional\n";
+    using T = decltype(data);
+    if constexpr (isFunctionalDataType<T>)
+      os << " Functional";
+    else if constexpr (isNumeric<T>)
+      os << ' ' << data;
     else
-      os << data;
+      os << '\n' << data;
   };
 
-  for (auto &vals : atm.other()) {
-    os << ",\n" << vals.first << ":\n";
-    std::visit(printer, vals.second.data);
-  }
-
-  for (auto &vals : atm.specs()) {
-    os << ",\n" << vals.first << ":\n";
-    std::visit(printer, vals.second.data);
-  }
-
-  for (auto &vals : atm.isots()) {
-    os << ",\n" << vals.first << ":\n";
-    std::visit(printer, vals.second.data);
-  }
-
-  for (auto &vals : atm.nlte()) {
-    os << ",\n" << vals.first << ":";
-    std::visit(printer, vals.second.data);
+  std::string_view space = "";
+  for (auto && key : atm.keys()) {
+    os << std::exchange(space, ",\n") << key << ":";
+    std::visit(printer, atm[key].data);
   }
 
   return os;
 }
 
-Numeric Point::mean_mass(Species::Species s) const {
+Numeric Point::mean_mass(SpeciesEnum s) const {
   Numeric ratio = 0.0;
   Numeric mass = 0.0;
   for (auto &[isot, this_ratio] : isots) {
@@ -165,7 +168,7 @@ Numeric Point::mean_mass(Species::Species s) const {
 
   ARTS_USER_ERROR_IF(ratio == 0,
                      "Cannot find a ratio for the mean mass of species ",
-                     std::quoted(toShortName(s)))
+                     std::quoted(toString<1>(s)))
 
   return mass / ratio;
 }
@@ -189,10 +192,11 @@ Numeric Point::mean_mass() const {
 std::vector<KeyVal> Point::keys() const {
   std::vector<KeyVal> out;
   out.reserve(size());
-  for (auto &a : enumtyps::KeyTypes) out.emplace_back(a);
+  for (auto &a : enumtyps::AtmKeyTypes) out.emplace_back(a);
   for (auto &a : specs) out.emplace_back(a.first);
   for (auto &a : nlte) out.emplace_back(a.first);
   for (auto &a : partp) out.emplace_back(a.first);
+  for (auto &a : isots) out.emplace_back(a.first);
   return out;
 }
 
@@ -239,7 +243,7 @@ struct Limits {
 };
 
 struct ComputeLimit {
-  Extrapolation type{Extrapolation::Linear};
+  InterpolationExtrapolation type{InterpolationExtrapolation::Linear};
   Numeric alt, lat, lon;
 };
 
@@ -286,7 +290,7 @@ struct interp_helper {
                          my_interp::Lagrange<0>,
                          my_interp::Lagrange<poly_lon,
                                              false,
-                                             my_interp::GridType::Cyclic,
+                                             GridType::Cyclic,
                                              my_interp::cycle_m180_p180>>;
 
   Array<AltLag> lags_alt;
@@ -437,9 +441,7 @@ Vector vec_interp(const GriddedField3 &v,
 }
 
 Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
-  ARTS_ASSERT(lim.type not_eq Extrapolation::FINAL)
-
-  ARTS_USER_ERROR_IF(lim.type == Extrapolation::None,
+  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
                      "Altitude limit breaced.  Position (",
                      lim.alt,
                      ", ",
@@ -448,9 +450,9 @@ Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
                      lim.lon,
                      ") is out-of-bounds when no extrapolation is wanted")
 
-  if (lim.type == Extrapolation::Zero) return 0;
+  if (lim.type == InterpolationExtrapolation::Zero) return 0;
 
-  if (lim.type == Extrapolation::Nearest)
+  if (lim.type == InterpolationExtrapolation::Nearest)
     return std::visit(
         [&](auto &d) {
           return vec_interp(d, {lim.alt}, {lim.lat}, {lim.lon})[0];
@@ -460,8 +462,9 @@ Numeric limit(const Data &data, ComputeLimit lim, Numeric orig) {
   return orig;
 }
 
-constexpr Extrapolation combine(Extrapolation a, Extrapolation b) {
-  using enum Extrapolation;
+constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
+                                             InterpolationExtrapolation b) {
+  using enum InterpolationExtrapolation;
   switch (a) {
     case None:
       return None;
@@ -475,12 +478,8 @@ constexpr Extrapolation combine(Extrapolation a, Extrapolation b) {
           return Zero;
         case Linear:
           return Zero;
-        case FINAL:
-          ARTS_ASSERT(false);
       }
     }
-      ARTS_ASSERT(false);
-      return FINAL;
     case Nearest: {
       switch (b) {
         case None:
@@ -491,40 +490,34 @@ constexpr Extrapolation combine(Extrapolation a, Extrapolation b) {
           return Nearest;
         case Linear:
           return Nearest;
-        case FINAL:
-          ARTS_ASSERT(false);
       }
     }
-      ARTS_ASSERT(false);
-      return FINAL;
     case Linear:
       return b;
-    case FINAL:
-      ARTS_ASSERT(false);
   }
 
-  return FINAL;
+  return a;
 }
 
-constexpr Extrapolation combine(Extrapolation a,
-                                Extrapolation b,
-                                Extrapolation c) {
+constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
+                                             InterpolationExtrapolation b,
+                                             InterpolationExtrapolation c) {
   return combine(combine(a, b), c);
 }
 
-void select(Extrapolation lowt,
-            Extrapolation uppt,
+void select(InterpolationExtrapolation lowt,
+            InterpolationExtrapolation uppt,
             Numeric lowv,
             Numeric uppv,
             Numeric v,
             Numeric &outv,
-            Extrapolation &outt) {
+            InterpolationExtrapolation &outt) {
   if (v < lowv) {
     outt = lowt;
-    if (outt == Extrapolation::Nearest) v = lowv;
+    if (outt == InterpolationExtrapolation::Nearest) v = lowv;
   } else if (uppv < v) {
     outt = uppt;
-    if (outt == Extrapolation::Nearest) v = uppv;
+    if (outt == InterpolationExtrapolation::Nearest) v = uppv;
   }
 
   outv = v;
@@ -536,8 +529,9 @@ ComputeLimit find_limit(const Data &data,
                         Numeric lat,
                         Numeric lon) {
   ComputeLimit out;
-  Extrapolation a{Extrapolation::Linear}, b{Extrapolation::Linear},
-      c{Extrapolation::Linear};
+  InterpolationExtrapolation a{InterpolationExtrapolation::Linear},
+      b{InterpolationExtrapolation::Linear},
+      c{InterpolationExtrapolation::Linear};
 
   select(data.alt_low, data.alt_upp, lim.alt_low, lim.alt_upp, alt, out.alt, a);
   select(data.lat_low, data.lat_upp, lim.lat_low, lim.lat_upp, lat, out.lat, b);
@@ -589,6 +583,10 @@ void Field::at(std::vector<Point> &out,
   };
 
   for (auto &&key : keys()) compute(key, operator[](key));
+
+  for (auto &atm : out) {
+    atm.check_and_fix();
+  }
 }
 
 std::vector<Point> Field::at(const Vector &alt,
@@ -602,7 +600,7 @@ std::vector<Point> Field::at(const Vector &alt,
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
 template <class Key, class T, class Hash, class KeyEqual, class Allocator>
-std::vector<Key> get_keys(
+std::vector<AtmKey> get_keys(
     const std::unordered_map<Key, T, Hash, KeyEqual, Allocator> &map) {
   std::vector<Key> out(map.size());
   std::transform(
@@ -635,14 +633,64 @@ Vector Data::at(const Vector &alt, const Vector &lat, const Vector &lon) const {
   return detail::vec_interp(*this, alt, lat, lon);
 }
 
-void Point::setZero() {
-  pressure = 0;
-  temperature = 0;
-  wind = {0., 0., 0.};
-  mag = {0., 0., 0.};
-  for (auto &v : specs) v.second = 0;
-  for (auto &v : nlte) v.second = 0;
+void Point::check_and_fix() try {
+  ARTS_USER_ERROR_IF(nonstd::isnan(pressure), "Pressure is NaN")
+  ARTS_USER_ERROR_IF(nonstd::isnan(temperature), "Temperature is NaN")
+
+  if (std::ranges::all_of(wind, [](auto v) { return nonstd::isnan(v); })) {
+    wind = {0., 0., 0.};
+  } else {
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(wind, [](auto v) { return nonstd::isnan(v); }),
+        "Cannot have partially missing wind field.  Consider setting the missing field to zero or add it completely.\n"
+        "Wind field [wind_u wind_v wind_w] is: ",
+        wind)
+  }
+
+  if (std::ranges::all_of(mag, [](auto v) { return nonstd::isnan(v); })) {
+    mag = {0., 0., 0.};
+  } else {
+    ARTS_USER_ERROR_IF(
+        std::ranges::any_of(mag, [](auto v) { return nonstd::isnan(v); }),
+        "Cannot have partially missing magnetic field.  Consider setting the missing field to zero or add it completely.\n"
+        "Magnetic field [mag_u mag_v mag_w] is: ",
+        mag)
+  }
+
+  for (auto &spec : specs) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(spec.second) or spec.second < 0.0,
+                       "VMR for ",
+                       std::quoted(toString<1>(spec.first)),
+                       " is ",
+                       spec.second)
+  }
+
+  for (auto &isot : isots) {
+    //! Cannot check isnan because it is a valid state for isotopologue ratios
+    ARTS_USER_ERROR_IF(isot.second < 0.0,
+                       "Isotopologue ratio for ",
+                       std::quoted(isot.first.FullName()),
+                       " is ",
+                       isot.second)
+  }
+
+  for (auto &nl : nlte) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(nl.second) or nl.second < 0.0,
+                       "Non-LTE ratio for \"",
+                       nl.first,
+                       "\" is ",
+                       nl.second)
+  }
+
+  for (auto &pp : partp) {
+    ARTS_USER_ERROR_IF(nonstd::isnan(pp.second),
+                       "Particulate Property Tag value for \"",
+                       pp.first,
+                       "\" is ",
+                       pp.second)
+  }
 }
+ARTS_METHOD_ERROR_CATCH
 
 Numeric Point::operator[](const KeyVal &k) const {
   return std::visit(
@@ -651,7 +699,9 @@ Numeric Point::operator[](const KeyVal &k) const {
 
 Numeric &Point::operator[](const KeyVal &k) {
   return std::visit(
-      [this](auto &key) -> Numeric & { return this->template operator[](key); },
+      [this](auto &key) -> Numeric & {
+        return const_cast<Point *>(this)->template operator[](key);
+      },
       k);
 }
 
@@ -756,54 +806,53 @@ Array<std::array<std::pair<Index, Numeric>, 8>> Data::flat_weights(
   return std::visit([&](auto &v) { return flat_weights_(v, alt, lat, lon); },
                     data);
 }
+}  // namespace Atm
 
-std::ostream &operator<<(std::ostream &os, const KeyVal &key) {
-  std::visit([&os](const auto &k) { os << k; }, key);
-  return os;
-}
-
-template <KeyType T>
-constexpr bool cmp(const KeyVal &keyval, const T &key) {
+template <Atm::KeyType T>
+constexpr bool cmp(const AtmKeyVal &keyval, const T &key) {
   const auto *ptr = std::get_if<T>(&keyval);
   return ptr and *ptr == key;
 }
 
-bool operator==(const KeyVal &keyval, Key key) { return cmp(keyval, key); }
-
-bool operator==(Key key, const KeyVal &keyval) { return cmp(keyval, key); }
-
-bool operator==(const KeyVal &keyval, const Species::Species &key) {
+bool operator==(const AtmKeyVal &keyval, AtmKey key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const Species::Species &key, const KeyVal &keyval) {
+bool operator==(AtmKey key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal &keyval, const Species::IsotopeRecord &key) {
+bool operator==(const AtmKeyVal &keyval, const SpeciesEnum &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const Species::IsotopeRecord &key, const KeyVal &keyval) {
+bool operator==(const SpeciesEnum &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal &keyval, const QuantumIdentifier &key) {
+bool operator==(const AtmKeyVal &keyval, const SpeciesIsotope &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const QuantumIdentifier &key, const KeyVal &keyval) {
+bool operator==(const SpeciesIsotope &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const KeyVal &keyval, const ParticulatePropertyTag &key) {
+bool operator==(const AtmKeyVal &keyval, const QuantumIdentifier &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const ParticulatePropertyTag &key, const KeyVal &keyval) {
+bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
-}  // namespace Atm
+
+bool operator==(const AtmKeyVal &keyval, const ParticulatePropertyTag &key) {
+  return cmp(keyval, key);
+}
+
+bool operator==(const ParticulatePropertyTag &key, const AtmKeyVal &keyval) {
+  return cmp(keyval, key);
+}
 
 std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
   return os << ppt.name;
@@ -817,10 +866,10 @@ using altlag0 = my_interp::Lagrange<0>;
 using latlag1 = my_interp::Lagrange<1>;
 using latlag0 = my_interp::Lagrange<0>;
 
-using lonlag1 = my_interp::
-    Lagrange<1, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
-using lonlag0 = my_interp::
-    Lagrange<0, false, my_interp::GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag1 =
+    my_interp::Lagrange<1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+using lonlag0 =
+    my_interp::Lagrange<0, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
 
 using altlags = std::variant<altlag0, altlag1>;
 using latlags = std::variant<latlag0, latlag1>;
@@ -878,9 +927,7 @@ std::optional<Numeric> get_optional_limit(const Data &data,
       lat,
       lon);
 
-  ARTS_ASSERT(lim.type not_eq Extrapolation::FINAL)
-
-  ARTS_USER_ERROR_IF(lim.type == Extrapolation::None,
+  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
                      "Altitude limit breaced.  Position (",
                      lim.alt,
                      ", ",
@@ -889,9 +936,9 @@ std::optional<Numeric> get_optional_limit(const Data &data,
                      lim.lon,
                      ") is out-of-bounds when no extrapolation is wanted")
 
-  if (lim.type == Extrapolation::Zero) return 0.0;
+  if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
 
-  if (lim.type == Extrapolation::Nearest)
+  if (lim.type == InterpolationExtrapolation::Nearest)
     return PositionalNumeric{data.data, lim.alt, lim.lat, lim.lon};
 
   return std::nullopt;
@@ -905,7 +952,8 @@ Numeric Data::at(const Numeric alt,
       .value_or(interp::PositionalNumeric{data, alt, lat, lon});
 }
 
-Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
+Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const
+    try {
   ARTS_USER_ERROR_IF(
       alt > top_of_atmosphere,
       "Cannot get values above the top of the atmosphere, which is at: ",
@@ -916,8 +964,13 @@ Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
 
   Point out;
   for (auto &&key : keys()) out[key] = operator[](key).at(alt, lat, lon);
+  out.check_and_fix();
   return out;
 }
+ARTS_METHOD_ERROR_CATCH
 
-Point Field::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
+Point Field::at(const Vector3 pos) const try {
+  return at(pos[0], pos[1], pos[2]);
+}
+ARTS_METHOD_ERROR_CATCH
 }  // namespace Atm

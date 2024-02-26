@@ -5,10 +5,12 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <string>
 
 #include "auto_wsv.h"
+#include "options/arts_options.h"
 #include "pydocs.h"
 
 std::vector<std::string> errors;
@@ -1196,6 +1198,107 @@ std::string type(const py::object& x) {
 )--";
 }
 
+void enum_option(std::ofstream& os, const EnumeratedOption& wso) {
+  os << "  artsclass<" << wso.name << ">(m, \"" << wso.name << "\")\n";
+
+  os << "      .def(py::init([]() -> " << wso.name
+     << " {return {};}), \"Default constructor\")\n";
+
+  os << "      .def(py::init([](const " << wso.name << " x) -> " << wso.name
+     << " {return x;}), \"Copy constructor\")\n";
+
+  os << "      .def(py::init([](const std::string& x) {return to<" << wso.name
+     << ">(x);}), \"String constructor\")\n";
+
+  os << "      .def(\"__hash__\", [](const " << wso.name
+     << "& x) {return std::hash<" << wso.name << ">{}(x);})\n";
+
+  os << "      .def(\"__copy__\", [](" << wso.name << " t) -> " << wso.name
+     << " {return t;})\n";
+
+  os << "      .def(\"__deepcopy__\", [](" << wso.name << " t, py::dict&) -> "
+     << wso.name << " { return t; })\n";
+
+  os << "      .PythonInterfaceFileIO(" << wso.name << ")\n";
+
+  os << "      .def(\"__str__\", [](" << wso.name << " t) -> std::string";
+  if (wso.name == "SpeciesEnum")
+    os << " { return String{toString<1>(t)}; })\n";
+  else
+    os << " { return String{toString(t)}; })\n";
+
+  os << "      .def(\"__repr__\", [](" << wso.name << " t) -> std::string";
+  if (wso.name == "SpeciesEnum")
+    os << " { return String{toString<1>(t)}; })\n";
+  else
+    os << " { return String{toString(t)}; })\n";
+
+  os << "      .def(py::self == py::self)\n";
+  os << "      .def(py::self != py::self)\n";
+  os << "      .def(py::self <= py::self)\n";
+  os << "      .def(py::self >= py::self)\n";
+  os << "      .def(py::self < py::self)\n";
+  os << "      .def(py::self > py::self)\n";
+
+  os << "      .def(py::pickle(\n        [](" << wso.name
+     << "& t) {\n"
+        "          return py::make_tuple(String{toString(t)});\n"
+        "        }, [](const py::tuple& t) {\n"
+        "           ARTS_USER_ERROR_IF(t.size() != 1, \"Invalid state!\")\n"
+        "           return to<"
+     << wso.name
+     << ">(t[0].cast<std::string>());\n"
+        "        }))\n";
+
+  os << "      .def_static(\"get_options\", [](){return enumtyps::" << wso.name
+     << "Types;}, \"Get a list of all options\")\n";
+  os << "      .def_static(\"get_options_as_strings\", [](){return enumstrs::"
+     << wso.name << "Names<>;}, \"Get a list of all options as strings\")\n";
+
+  static std::array except{"None", "any", "all", "print"};
+  for (auto& value : wso.values_and_desc) {
+    for (auto& x : value | std::views::take(value.size() - 1)) {
+      os << "      .def_property_readonly_static(\"" << x;
+
+      if (std::ranges::any_of(except, Cmp::eq(x))) {
+        os << '_';
+      }
+
+      os << "\", [](py::object&){return " << wso.name << "::" << value.front()
+         << ";}, R\"-x-(" << value.back() << ")-x-\")\n";
+    }
+  }
+
+  os << "      .doc() = R\"-x-(" << unwrap_stars(wso.docs()) << ")-x-\";\n";
+
+  os << "  py::implicitly_convertible<std::string, " << wso.name << ">();\n\n";
+}
+
+void enum_options(const std::string& fname) {
+  const auto& wsos = internal_options();
+
+  auto cc = std::ofstream(fname + ".cpp");
+
+  cc << R"-x-(#include "python_interface.h"
+#include "py_macros.h"
+
+#include <enums.h>
+
+namespace Python {
+void py_auto_options(py::module_& m) try {
+)-x-";
+
+  for (auto& opt : wsos) {
+    enum_option(cc, opt);
+  }
+  cc << R"-x-(} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize automatic options\n", e.what()));
+}
+}  // namespace Python
+)-x-";
+}
+
 int main(int argc, char** argv) {
   if (argc != 3) {
     std::cerr << "Usage: " << argv[0]
@@ -1206,6 +1309,7 @@ int main(int argc, char** argv) {
   const int num_variables = std::stoi(argv[1]);
   const int num_methods = std::stoi(argv[2]);
 
+  enum_options("py_auto_options");
   groups("py_auto_wsg");
   variables(num_variables);
   methods(num_methods);

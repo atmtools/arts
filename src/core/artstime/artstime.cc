@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "arts_options.h"
+#include "enums.h"
 #include "debug.h"
 
 Time::Time(const String& t) {
@@ -30,25 +30,15 @@ TimeStep time_stepper_selection(const String& time_step) {
   x >> length >> type;
   tolower(type);
 
-  const Options::TimeStep t = Options::toTimeStep(type);
-  check_enum_error(t, "bad time step: ", time_step);
+  const TimeStepType t = to<TimeStepType>(type);
 
   switch (t) {
-    case Options::TimeStep::hour:
-    case Options::TimeStep::hours:
-    case Options::TimeStep::h:
+    case TimeStepType::hour:
       return TimeStep(std::chrono::hours(length));
-    case Options::TimeStep::minute:
-    case Options::TimeStep::minutes:
-    case Options::TimeStep::min:
+    case TimeStepType::minute:
       return TimeStep(std::chrono::minutes(length));
-    case Options::TimeStep::second:
-    case Options::TimeStep::seconds:
-    case Options::TimeStep::s:
+    case TimeStepType::second:
       return TimeStep(std::chrono::seconds(length));
-    case Options::TimeStep::FINAL: {
-      /* Leave empty and last */
-    }
   }
   return {};
 }

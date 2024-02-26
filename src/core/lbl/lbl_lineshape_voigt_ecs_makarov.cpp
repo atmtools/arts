@@ -93,13 +93,13 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const QuantumIdentifier& bnd_qid,
                                    const band_data& bnd,
                                    const ArrayOfIndex& sorting,
-                                   const Species::Species broadening_species,
+                                   const SpeciesEnum broadening_species,
                                    const linemixing::species_data& rovib_data,
                                    const Vector& dipr,
                                    const AtmPoint& atm) {
   using Conversion::kelvin2joule;
 
-  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66", "Bad isotopologue.")
+  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot, "Bad isotopologue.")
 
   if (bnd.size() == 0) return;
 

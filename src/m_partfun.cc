@@ -18,12 +18,12 @@ void WriteBuiltinPartitionFunctionsXML(
   ARTS_USER_ERROR_IF(not std::filesystem::is_directory(d), "dir: ", dir, " is not a directory")
   
   const Vector T = [&]{Vector x; nlinspace(x, Tlow, Tupp, N); return x;}();
-  const FileType ftype = string2filetype(fileformat);
+  const FileType ftype = to<FileType>(fileformat);
   
   for (auto& ir: Species::Isotopologues) {
     if (PartitionFunctions::has_partfun(ir)) {
       
-      PartitionFunctionsData data{PartitionFunctions::Type::Interp, Matrix(N, 2)};
+      PartitionFunctionsData data{PartitionFunctionsType::Interp, Matrix(N, 2)};
       for (Index i=0; i<N; i++) {
         data.data(i, 0) = T[i];
         data.data(i, 1) = PartitionFunctions::Q(T[i], ir);

@@ -81,7 +81,7 @@ class TestMethods:
 
     def test_predefined_doc(self):
         m = "propagation_matrixAddPredefined"
-        isots = pyarts.arts.globals.get_isotopologues()
+        isots = pyarts.arts.globals.all_isotopologues()
         desc = pyarts.arts.globals.workspace_methods()[m].desc
 
         for x in isots:
@@ -95,4 +95,4 @@ class TestMethods:
 if __name__ == "__main__":
     x = TestMethods()
     x.setup_method()
-    x.test_generic_output()
+    x.test_predefined_doc()

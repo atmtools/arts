@@ -116,7 +116,7 @@ Returns
 
             auto out = std::make_shared<XsecRecord>();
             out->SetVersion(t[0].cast<Index>());
-            out->SetSpecies(t[1].cast<Species::Species>());
+            out->SetSpecies(t[1].cast<SpeciesEnum>());
             out->FitMinPressures() = t[2].cast<Vector>();
             out->FitMaxPressures() = t[3].cast<Vector>();
             out->FitMinTemperatures() = t[4].cast<Vector>();
@@ -221,7 +221,7 @@ Returns
 
             auto out = std::make_shared<XsecRecord>();
             out->SetVersion(attrs["version"].cast<Index>());
-            out->SetSpecies(attrs["species"].cast<Species::Species>());
+            out->SetSpecies(attrs["species"].cast<SpeciesEnum>());
             out->FitMinPressures() =
                 data_vars["fitminpressures"]["data"].cast<Vector>();
             out->FitMaxPressures() =

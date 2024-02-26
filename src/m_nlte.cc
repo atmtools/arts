@@ -82,7 +82,7 @@ void collision_coefficientsFromSplitFiles(
 
     // Read the file for a species and check that the size is correct of the array
     filename = tmp_basename +
-               String(Species::toShortName(abs_species[i].Species())) + ".xml";
+               String(toString<1>(abs_species[i].Species())) + ".xml";
     xml_read_from_file(filename, aogf1);
     ARTS_USER_ERROR_IF(
         aogf1.size() not_eq n,

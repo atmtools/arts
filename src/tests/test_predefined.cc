@@ -13,7 +13,7 @@ int main() try {
   }
 
   return EXIT_SUCCESS;
-} catch (const SpeciesIsotopeRecord& c) {
+} catch (const SpeciesIsotope& c) {
   std::cerr << "Missing implementation of computations of predefined model: "
             << c.FullName() << '\n';
   return EXIT_FAILURE;

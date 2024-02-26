@@ -14,6 +14,7 @@
 #include <jacobian.h>
 #include <matpack.h>
 
+#include <istream>
 #include <utility>
 #include <vector>
 
@@ -25,130 +26,75 @@
 #include "species_tags.h"
 #include "zeemandata.h"
 
-/** Namespace to contain things required for absorption calculations */
-namespace Absorption {
-/** Describes the type of mirroring line effects
- * 
- * Each type but None has to have an implemented effect
- */
-ENUMCLASS(
-    MirroringType,
-    char,
-    None,             // No mirroring
-    Lorentz,          // Mirror, but use Lorentz line shape
-    SameAsLineShape,  // Mirror using the same line shape
-    Manual  // Mirror by having a line in the array of line record with negative F0
-    )       // MirroringType
-
 constexpr std::string_view mirroringtype2metadatastring(
-    MirroringType in) noexcept {
+    AbsorptionMirroringTypeOld in) noexcept {
   switch (in) {
-    case MirroringType::None:
+    case AbsorptionMirroringTypeOld::None:
       return "These lines are not mirrored at 0 Hz.\n";
-    case MirroringType::Lorentz:
+    case AbsorptionMirroringTypeOld::Lorentz:
       return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
-    case MirroringType::SameAsLineShape:
+    case AbsorptionMirroringTypeOld::SameAsLineShape:
       return "These line are mirrored around 0 Hz using the original line shape.\n";
-    case MirroringType::Manual:
+    case AbsorptionMirroringTypeOld::Manual:
       return "There are manual line entries in the catalog to mirror this line.\n";
-    case MirroringType::FINAL:
-      break;
   }
   return "There's an error";
 }
-
-/** Describes the type of normalization line effects
- *
- * Each type but None has to have an implemented effect
- */
-ENUMCLASS(
-    NormalizationType,
-    char,
-    None,  // Do not renormalize the line shape
-    VVH,   // Renormalize with Van Vleck and Huber specifications
-    VVW,   // Renormalize with Van Vleck and Weiskopf specifications
-    RQ,    // Renormalize using Rosenkranz's quadratic specifications
-    SFS    // Renormalize using simple frequency scaling of the line strength
-    )      // NormalizationType
 
 constexpr std::string_view normalizationtype2metadatastring(
-    NormalizationType in) {
+    AbsorptionNormalizationTypeOld in) {
   switch (in) {
-    case NormalizationType::None:
+    case AbsorptionNormalizationTypeOld::None:
       return "No re-normalization in the far wing will be applied.\n";
-    case NormalizationType::VVH:
+    case AbsorptionNormalizationTypeOld::VVH:
       return "van Vleck and Huber far-wing renormalization will be applied, "
              "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
-    case NormalizationType::VVW:
+    case AbsorptionNormalizationTypeOld::VVW:
       return "van Vleck and Weisskopf far-wing renormalization will be applied, "
              "i.e. F ~ (f/f0)^2\n";
-    case NormalizationType::RQ:
+    case AbsorptionNormalizationTypeOld::RQ:
       return "Rosenkranz quadratic far-wing renormalization will be applied, "
              "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
-    case NormalizationType::SFS:
+    case AbsorptionNormalizationTypeOld::SFS:
       return "Simple frequency scaling of the far-wings will be applied, "
              "i.e. F ~ (f / f0) * ((1 - exp(- hf / kT)) / (1 - exp(- hf0 / kT)))\n";
-    case NormalizationType::FINAL:
-      break;
   }
   return "There's an error";
 }
 
-/** Describes the type of population level counter
- *
- * The types here might require that different data is available at runtime absorption calculations
- */
-ENUMCLASS(
-    PopulationType,
-    char,
-    LTE,       // Assume band is in LTE
-    NLTE,      // Assume band is in NLTE and the upper-to-lower ratio is known
-    VibTemps,  // Assume band is in NLTE described by vibrational temperatures and LTE at other levels
-    ByHITRANRosenkranzRelmat,  // Assume band needs to compute relaxation matrix to derive HITRAN Y-coefficients
-    ByHITRANFullRelmat,  // Assume band needs to compute and directly use the relaxation matrix according to HITRAN
-    ByMakarovFullRelmat,  // Assume band needs to compute and directly use the relaxation matrix according to Makarov et al 2020
-    ByRovibLinearDipoleLineMixing  // Assume band needs to compute and directly use the relaxation matrix according to Hartmann, Boulet, Robert, 2008, 1st edition
-    )                              // PopulationType
 
-constexpr std::string_view populationtype2metadatastring(PopulationType in) {
+
+constexpr std::string_view populationtype2metadatastring(AbsorptionPopulationTypeOld in) {
   switch (in) {
-    case PopulationType::LTE:
+    case AbsorptionPopulationTypeOld::LTE:
       return "The lines are considered as in pure LTE.\n";
-    case PopulationType::ByMakarovFullRelmat:
+    case AbsorptionPopulationTypeOld::ByMakarovFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - Makarov et al 2020 full method.\n";
-    case PopulationType::ByRovibLinearDipoleLineMixing:
+    case AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing:
       return "The lines requires relaxation matrix calculations in LTE - Hartmann, Boulet, Robert, 2008, 1st edition method.\n";
-    case PopulationType::ByHITRANFullRelmat:
+    case AbsorptionPopulationTypeOld::ByHITRANFullRelmat:
       return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
-    case PopulationType::ByHITRANRosenkranzRelmat:
+    case AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat:
       return "The lines requires Relaxation matrix calculations in LTE - HITRAN Rosenkranz method.\n";
-    case PopulationType::VibTemps:
+    case AbsorptionPopulationTypeOld::VibTemps:
       return "The lines are considered as in NLTE by vibrational temperatures.\n";
-    case PopulationType::NLTE:
+    case AbsorptionPopulationTypeOld::NLTE:
       return "The lines are considered as in pure NLTE.\n";
-    case PopulationType::FINAL:
-      return "There's an error";
   }
   return "There's an error";
 }
 
-constexpr bool relaxationtype_relmat(PopulationType in) noexcept {
-  return in == PopulationType::ByHITRANFullRelmat or
-         in == PopulationType::ByMakarovFullRelmat or
-         in == PopulationType::ByHITRANRosenkranzRelmat or
-         in == PopulationType::ByRovibLinearDipoleLineMixing;
+constexpr bool relaxationtype_relmat(AbsorptionPopulationTypeOld in) noexcept {
+  return in == AbsorptionPopulationTypeOld::ByHITRANFullRelmat or
+         in == AbsorptionPopulationTypeOld::ByMakarovFullRelmat or
+         in == AbsorptionPopulationTypeOld::ByHITRANRosenkranzRelmat or
+         in == AbsorptionPopulationTypeOld::ByRovibLinearDipoleLineMixing;
 }
 
-/** Describes the type of cutoff calculations */
-ENUMCLASS(
-    CutoffType,
-    char,
-    None,   // No cutoff frequency at all
-    ByLine  // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency plus the speed independent pressure shift
-    )       // CutoffType
+String cutofftype2metadatastring(AbsorptionCutoffTypeOld in, Numeric cutoff);
 
-String cutofftype2metadatastring(CutoffType in, Numeric cutoff);
-
+/** Namespace to contain things required for absorption calculations */
+namespace Absorption {                       
 /** Computations and data for a single absorption line */
 struct SingleLine {
   /** Central frequency */
@@ -271,16 +217,16 @@ struct SingleLineExternal {
   bool bad = true;
   bool selfbroadening = false;
   bool bathbroadening = false;
-  CutoffType cutoff = CutoffType::None;
-  MirroringType mirroring = MirroringType::None;
-  PopulationType population = PopulationType::LTE;
-  NormalizationType normalization = NormalizationType::None;
-  LineShape::Type lineshapetype = LineShape::Type::DP;
+  AbsorptionCutoffTypeOld cutoff = AbsorptionCutoffTypeOld::None;
+  AbsorptionMirroringTypeOld mirroring = AbsorptionMirroringTypeOld::None;
+  AbsorptionPopulationTypeOld population = AbsorptionPopulationTypeOld::LTE;
+  AbsorptionNormalizationTypeOld normalization = AbsorptionNormalizationTypeOld::None;
+  LineShapeTypeOld lineshapetype = LineShapeTypeOld::DP;
   Numeric T0 = 0;
   Numeric cutofffreq = 0;
   Numeric linemixinglimit = -1;
   QuantumIdentifier quantumidentity;
-  ArrayOfSpecies species;
+  ArrayOfSpeciesEnum species;
   SingleLine line;
 };
 
@@ -294,19 +240,19 @@ struct Lines {
   bool bathbroadening;
 
   /** cutoff type, by band or by line */
-  CutoffType cutoff;
+  AbsorptionCutoffTypeOld cutoff;
 
   /** Mirroring type */
-  MirroringType mirroring;
+  AbsorptionMirroringTypeOld mirroring;
 
   /** Line population distribution */
-  PopulationType population;
+  AbsorptionPopulationTypeOld population;
 
   /** Line normalization type */
-  NormalizationType normalization;
+  AbsorptionNormalizationTypeOld normalization;
 
   /** Type of line shape */
-  LineShape::Type lineshapetype;
+  LineShapeTypeOld lineshapetype;
 
   /** Reference temperature for all parameters of the lines */
   Numeric T0;
@@ -321,7 +267,7 @@ struct Lines {
   QuantumIdentifier quantumidentity;
 
   /** A list of broadening species */
-  ArrayOfSpecies broadeningspecies;
+  ArrayOfSpeciesEnum broadeningspecies;
 
   /** A list of individual lines */
   Array<SingleLine> lines;
@@ -344,16 +290,16 @@ struct Lines {
    */
   Lines(bool selfbroadening_ = false,
         bool bathbroadening_ = false,
-        CutoffType cutoff_ = CutoffType::None,
-        MirroringType mirroring_ = MirroringType::None,
-        PopulationType population_ = PopulationType::LTE,
-        NormalizationType normalization_ = NormalizationType::None,
-        LineShape::Type lineshapetype_ = LineShape::Type::DP,
+        AbsorptionCutoffTypeOld cutoff_ = AbsorptionCutoffTypeOld::None,
+        AbsorptionMirroringTypeOld mirroring_ = AbsorptionMirroringTypeOld::None,
+        AbsorptionPopulationTypeOld population_ = AbsorptionPopulationTypeOld::LTE,
+        AbsorptionNormalizationTypeOld normalization_ = AbsorptionNormalizationTypeOld::None,
+        LineShapeTypeOld lineshapetype_ = LineShapeTypeOld::DP,
         Numeric T0_ = 296,
         Numeric cutofffreq_ = -1,
         Numeric linemixinglimit_ = -1,
         QuantumIdentifier quantumidentity_ = QuantumIdentifier(),
-        ArrayOfSpecies broadeningspecies_ = {},
+        ArrayOfSpeciesEnum broadeningspecies_ = {},
         Array<SingleLine> lines_ = {})
       : selfbroadening(selfbroadening_),
         bathbroadening(bathbroadening_),
@@ -369,7 +315,7 @@ struct Lines {
         broadeningspecies(std::move(broadeningspecies_)),
         lines(std::move(lines_)) {
     if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
-    if (bathbroadening) broadeningspecies.back() = Species::Species::Bath;
+    if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
   }
 
   /** XML-tag initialization
@@ -393,16 +339,16 @@ struct Lines {
   Lines(bool selfbroadening_,
         bool bathbroadening_,
         size_t nlines,
-        CutoffType cutoff_,
-        MirroringType mirroring_,
-        PopulationType population_,
-        NormalizationType normalization_,
-        LineShape::Type lineshapetype_,
+        AbsorptionCutoffTypeOld cutoff_,
+        AbsorptionMirroringTypeOld mirroring_,
+        AbsorptionPopulationTypeOld population_,
+        AbsorptionNormalizationTypeOld normalization_,
+        LineShapeTypeOld lineshapetype_,
         Numeric T0_,
         Numeric cutofffreq_,
         Numeric linemixinglimit_,
         QuantumIdentifier quantumidentity_,
-        ArrayOfSpecies broadeningspecies_,
+        ArrayOfSpeciesEnum broadeningspecies_,
         const Quantum::Number::LocalState& metalocalquanta,
         const LineShape::Model& metamodel)
       : selfbroadening(selfbroadening_),
@@ -419,7 +365,7 @@ struct Lines {
         broadeningspecies(std::move(broadeningspecies_)),
         lines(nlines, SingleLine(metalocalquanta, metamodel)) {
     if (selfbroadening) broadeningspecies.front() = quantumidentity.Species();
-    if (bathbroadening) broadeningspecies.back() = Species::Species::Bath;
+    if (bathbroadening) broadeningspecies.back() = SpeciesEnum::Bath;
   }
 
   /** Appends a single line to the absorption lines
@@ -480,10 +426,10 @@ struct Lines {
   [[nodiscard]] String LineShapeMetaData() const noexcept;
 
   /** Species Enum */
-  [[nodiscard]] Species::Species Species() const noexcept;
+  [[nodiscard]] SpeciesEnum Species() const noexcept;
 
   /** Isotopologue Index */
-  [[nodiscard]] Species::IsotopeRecord Isotopologue() const noexcept;
+  [[nodiscard]] SpeciesIsotope Isotopologue() const noexcept;
 
   /** Number of lines */
   [[nodiscard]] Index NumLines() const noexcept;
@@ -618,7 +564,7 @@ struct Lines {
    * @param[in] A species index that might be among the broadener species
    * @return Position among broadening species or -1
    */
-  [[nodiscard]] Index LineShapePos(const Species::Species spec) const
+  [[nodiscard]] Index LineShapePos(const SpeciesEnum spec) const
       ARTS_NOEXCEPT;
 
   /** Line shape parameters vmr derivative
@@ -652,7 +598,7 @@ struct Lines {
 
   /** Position of species if available or -1 else */
   [[nodiscard]] Index BroadeningSpeciesPosition(
-      Species::Species spec) const noexcept;
+      SpeciesEnum spec) const noexcept;
 
   /** Returns a printable statement about the lines */
   [[nodiscard]] String MetaData() const;
@@ -1005,11 +951,6 @@ using ArrayOfAbsorptionSingleLine = Array<AbsorptionSingleLine>;
 using AbsorptionLines = Absorption::Lines;
 using ArrayOfAbsorptionLines = Array<AbsorptionLines>;
 using ArrayOfArrayOfAbsorptionLines = Array<ArrayOfAbsorptionLines>;
-
-using AbsorptionNormalizationType = Absorption::NormalizationType;
-using AbsorptionPopulationType = Absorption::PopulationType;
-using AbsorptionMirroringType = Absorption::MirroringType;
-using AbsorptionCutoffType = Absorption::CutoffType;
 
 struct AbsorptionMirroringTagTypeStatus {
   bool None{false}, Lorentz{false}, SameAsLineShape{false}, Manual{false};

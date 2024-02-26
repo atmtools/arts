@@ -8,8 +8,8 @@
 #include "debug.h"
 
 namespace Python {
-String group_generics_inout(const String& group) {
-  const auto wsms = internal_workspace_methods();
+String group_generics_inout(const String& group) try {
+  const auto& wsms = internal_workspace_methods();
 
   std::pair<std::vector<String>, std::vector<String>> outdocs;
   for (auto& [name, wsm] : wsms) {
@@ -51,9 +51,11 @@ String group_generics_inout(const String& group) {
   out += '\n';
 
   return out;
+} catch (const std::exception& e) {
+  return var_string("Error in group_generics_inout: ", e.what());
 }
 
-String group_workspace_types(const String& group) {
+String group_workspace_types(const String& group) try {
   const auto& wsvs = workspace_variables();
 
   std::vector<String> vars;
@@ -77,5 +79,7 @@ String group_workspace_types(const String& group) {
   }
 
   return out + "\n";
+} catch (const std::exception& e) {
+  return var_string("Error in group_workspace_types: ", e.what());
 }
 }  // namespace Python

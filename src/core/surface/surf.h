@@ -46,11 +46,13 @@ struct hash<SurfacePropertyTag> {
 };
 }  // namespace std
 
-namespace Surf {
-ENUMCLASS(Key, char, h, t, wind_u, wind_v, wind_w)
+using SurfaceKeyVal = std::variant<SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>;
 
+std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key);
+
+namespace Surf {
 template <typename T>
-concept isKey = std::same_as<std::remove_cvref_t<T>, Key>;
+concept isSurfaceKey = std::same_as<std::remove_cvref_t<T>, SurfaceKey>;
 
 template <typename T>
 concept isSurfaceTypeTag = std::same_as<std::remove_cvref_t<T>, SurfaceTypeTag>;
@@ -60,11 +62,7 @@ concept isSurfacePropertyTag =
     std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
 
 template <typename T>
-concept KeyType = isKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
-
-using KeyVal = std::variant<Key, SurfaceTypeTag, SurfacePropertyTag>;
-
-std::ostream &operator<<(std::ostream &os, const KeyVal &key);
+concept KeyType = isSurfaceKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
 
 struct Point {
   Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};
@@ -79,20 +77,18 @@ struct Point {
 
   template <KeyType Key>
   Numeric &operator[](Key &&x) {
-    if constexpr (isKey<Key>) {
+    if constexpr (isSurfaceKey<Key>) {
       switch (std::forward<Key>(x)) {
-        case Surf::Key::h:
+        case SurfaceKey::h:
           return elevation;
-        case Surf::Key::t:
+        case SurfaceKey::t:
           return temperature;
-        case Surf::Key::wind_u:
+        case SurfaceKey::wind_u:
           return wind[0];
-        case Surf::Key::wind_v:
+        case SurfaceKey::wind_v:
           return wind[1];
-        case Surf::Key::wind_w:
+        case SurfaceKey::wind_w:
           return wind[2];
-        case Surf::Key::FINAL:
-          return temperature;
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type[std::forward<Key>(x)];
@@ -105,20 +101,18 @@ struct Point {
 
   template <KeyType Key>
   Numeric operator[](Key &&x) const {
-    if constexpr (isKey<Key>) {
+    if constexpr (isSurfaceKey<Key>) {
       switch (std::forward<Key>(x)) {
-        case Surf::Key::h:
+        case SurfaceKey::h:
           return elevation;
-        case Surf::Key::t:
+        case SurfaceKey::t:
           return temperature;
-        case Surf::Key::wind_u:
+        case SurfaceKey::wind_u:
           return wind[0];
-        case Surf::Key::wind_v:
+        case SurfaceKey::wind_v:
           return wind[1];
-        case Surf::Key::wind_w:
+        case SurfaceKey::wind_w:
           return wind[2];
-        case Surf::Key::FINAL:
-          return std::numeric_limits<Numeric>::signaling_NaN();
       }
     } else if constexpr (isSurfaceTypeTag<Key>) {
       return type.at(std::forward<Key>(x));
@@ -129,16 +123,16 @@ struct Point {
     return 0.0;
   }
 
-  Numeric &operator[](const KeyVal &x);
+  Numeric &operator[](const SurfaceKeyVal &x);
 
-  Numeric operator[](const KeyVal &x) const;
+  Numeric operator[](const SurfaceKeyVal &x) const;
 
-  [[nodiscard]] std::vector<KeyVal> keys() const;
+  [[nodiscard]] std::vector<SurfaceKeyVal> keys() const;
 
   [[nodiscard]] Index size() const;
   [[nodiscard]] Index ntype() const;
   [[nodiscard]] static constexpr Index nother() {
-    return static_cast<Index>(enumtyps::KeyTypes.size());
+    return static_cast<Index>(enumtyps::SurfaceKeyTypes.size());
   }
 
   template <KeyType T>
@@ -146,7 +140,7 @@ struct Point {
     if constexpr (isSurfaceTypeTag<T>) return type.contains(std::forward<T>(k));
     if constexpr (isSurfacePropertyTag<T>)
       return prop.contains(std::forward<T>(k));
-    else if constexpr (isKey<T>)
+    else if constexpr (isSurfaceKey<T>)
       return true;
     else
       return false;
@@ -168,16 +162,14 @@ struct FunctionalDataAlwaysThrow {
   Numeric operator()(Numeric, Numeric) const { ARTS_USER_ERROR(error) }
 };
 
-ENUMCLASS(Extrapolation, char, None, Zero, Nearest, Linear)
-
 //! Hold all atmospheric data
 struct Data {
   FieldData data{FunctionalData{FunctionalDataAlwaysThrow{
       "You touched the field but did not set any data"}}};
-  Extrapolation lat_upp{Extrapolation::None};
-  Extrapolation lat_low{Extrapolation::None};
-  Extrapolation lon_upp{Extrapolation::None};
-  Extrapolation lon_low{Extrapolation::None};
+  InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
+  InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
 
   // Standard
   Data() = default;
@@ -228,7 +220,7 @@ struct Data {
 };
 
 struct Field final
-    : FieldMap::Map<Data, Key, SurfaceTypeTag, SurfacePropertyTag> {
+    : FieldMap::Map<Data, SurfaceKey, SurfaceTypeTag, SurfacePropertyTag> {
   //! The ellipsoid used for the surface, in [a, b] in meters
   Vector2 ellipsoid;
 
@@ -270,11 +262,10 @@ struct Field final
 };
 
 static_assert(
-    std::same_as<typename Field::KeyVal, KeyVal>,
+    std::same_as<typename Field::KeyVal, SurfaceKeyVal>,
     "The order of arguments in the template of which Field inherits from is "
     "wrong.  KeyVal must be defined in the same way for this to work.");
 }  // namespace Surf
 
-using SurfaceKeyVal = Surf::KeyVal;
 using SurfacePoint = Surf::Point;
 using SurfaceField = Surf::Field;

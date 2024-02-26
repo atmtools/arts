@@ -1,34 +1,48 @@
 #include "quantum_numbers.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <string_view>
 #include <utility>
 
 #include "debug.h"
+#include "isotopologues.h"
 #include "species.h"
 
 namespace Quantum::Number {
+std::ostream& operator<<(std::ostream& os, QuantumNumberValueType x) {
+  switch (x) {
+    case QuantumNumberValueType::S:
+      return os << "S";
+    case QuantumNumberValueType::I:
+      return os << "I";
+    case QuantumNumberValueType::H:
+      return os << "H";
+  }
+  return os;
+}
+
 std::ostream& operator<<(std::ostream& os, ValueDescription x) {
   os << x.type << ' ';
   switch (x.type) {
-    case ValueType::S:
+    case QuantumNumberValueType::S:
       return os << x.val.s.val();
-    case ValueType::I:
+    case QuantumNumberValueType::I:
       return os << x.val.i.x;
-    case ValueType::H:
+    case QuantumNumberValueType::H:
       return os << Rational(x.val.h.x, 2);
-    case ValueType::FINAL: {
-    }
   }
   return os;
 }
 
 String Value::str_upp() const noexcept {
-  if (ValueType::S == common_value_type(type)) return String{qn.upp.s.val()};
+  if (QuantumNumberValueType::S == common_value_type(type))
+    return String{qn.upp.s.val()};
   return var_string(upp());
 }
 String Value::str_low() const noexcept {
-  if (ValueType::S == common_value_type(type)) return String{qn.low.s.val()};
+  if (QuantumNumberValueType::S == common_value_type(type))
+    return String{qn.low.s.val()};
   return var_string(low());
 }
 
@@ -135,7 +149,7 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 
         auto [k, val] = fix_legacy(key, items(s, i + 1));
 
-        auto t = toTypeOrThrow(k);
+        auto t = to<QuantumNumberType>(k);
         if (has(t)) {
           std::find_if(begin(), end(), [t](auto& x) {
             return x.type == t;
@@ -155,7 +169,7 @@ ValueList::ValueList(std::string_view s, bool legacy) : values(0) {
 
       for (; i < n; i += 2) {
         auto [key, val] = fix_legacy(items(s, i), items(s, i + 1));
-        auto t = toTypeOrThrow(key);
+        auto t = to<QuantumNumberType>(key);
 
         if (has(t)) {
           auto valptr = std::find_if(
@@ -189,7 +203,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
 
   for (Index i = 0; i < nu; i += 2) {
     auto [k, val] = fix_legacy(items(upp, i), items(upp, i + 1));
-    auto key = toTypeOrThrow(k);
+    auto key = to<QuantumNumberType>(k);
 
     auto ptr =
         std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
@@ -204,7 +218,7 @@ ValueList::ValueList(std::string_view upp, std::string_view low) {
 
   for (Index i = 0; i < nl; i += 2) {
     auto [k, val] = fix_legacy(items(low, i), items(low, i + 1));
-    auto key = toTypeOrThrow(k);
+    auto key = to<QuantumNumberType>(k);
 
     auto ptr =
         std::find_if(begin(), end(), [key](auto& a) { return a.type == key; });
@@ -244,7 +258,7 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
   while (not upp.empty()) {
     auto sep = upp.find(';');
     auto [t, v] = split_hitran_qn(upp.substr(0, sep));
-    auto type = toTypeOrThrow(t);
+    auto type = to<QuantumNumberType>(t);
     ARTS_USER_ERROR_IF(
         out.has(type),
         "Type ",
@@ -260,7 +274,7 @@ ValueList from_hitran(std::string_view upp, std::string_view low) {
   while (not low.empty()) {
     auto sep = low.find(';');
     auto [t, v] = split_hitran_qn(low.substr(0, sep));
-    auto type = toTypeOrThrow(t);
+    auto type = to<QuantumNumberType>(t);
     if (out.has(type)) {
       Value val = out[type];
       val.set(v, false);
@@ -304,7 +318,7 @@ bool ValueList::perpendicular(const ValueList& that) const ARTS_NOEXCEPT {
 CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   CheckMatch status = {CheckValue::Full, CheckValue::Full};
 
-  for (const Type t : enumtyps::TypeTypes) {
+  for (const QuantumNumberType t : enumtyps::QuantumNumberTypeTypes) {
     const bool ahas = has(t), bhas = other.has(t);
 
     if (ahas and bhas) {
@@ -320,14 +334,14 @@ CheckMatch ValueList::check_match(const ValueList& other) const ARTS_NOEXCEPT {
   return status;
 }
 
-const Value& ValueList::operator[](Type t) const ARTS_NOEXCEPT {
+const Value& ValueList::operator[](QuantumNumberType t) const ARTS_NOEXCEPT {
   auto val =
       std::find_if(cbegin(), cend(), [t](auto& x) { return x.type == t; });
   ARTS_ASSERT(val not_eq cend())
   return *val;
 }
 
-Value& ValueList::add(Type t) {
+Value& ValueList::add(QuantumNumberType t) {
   Value v{t};
   values.push_back(v);
   finalize();
@@ -402,12 +416,12 @@ String LocalState::values() const {
   return os.str();
 }
 
-Species::IsotopeRecord GlobalState::Isotopologue() const noexcept {
-  return isotopologue_index < 0 ? Species::IsotopeRecord()
+SpeciesIsotope GlobalState::Isotopologue() const noexcept {
+  return isotopologue_index < 0 ? SpeciesIsotope()
                                 : Species::Isotopologues[isotopologue_index];
 }
 
-Species::Species GlobalState::Species() const noexcept {
+SpeciesEnum GlobalState::Species() const noexcept {
   return Isotopologue().spec;
 }
 
@@ -447,503 +461,501 @@ std::istream& operator>>(std::istream& is, GlobalState& gs) {
 bool vamdcCheck(const ValueList& l, VAMDC type) ARTS_NOEXCEPT {
   switch (type) {
     case VAMDC::asymcs:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::asSym)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::kronigParity)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibRefl)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::asSym)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::kronigParity)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
       return true;
     case VAMDC::asymos:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::asSym)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::kronigParity)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibRefl)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::asSym)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::kronigParity)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
       return true;
     case VAMDC::dcs:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F2)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v1)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v2)) return false;
-      if (l.has(Type::v3)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F2)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v1)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v2)) return false;
+      if (l.has(QuantumNumberType::v3)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::hunda:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F2)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v1)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v2)) return false;
-      if (l.has(Type::v3)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F2)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v1)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v2)) return false;
+      if (l.has(QuantumNumberType::v3)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::hundb:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F2)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v1)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v2)) return false;
-      if (l.has(Type::v3)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F2)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v1)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v2)) return false;
+      if (l.has(QuantumNumberType::v3)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::lpcs:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
       return true;
     case VAMDC::lpos:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::ltcs:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::ltos:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::nltcs:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::nltos:
-      if (l.has(Type::F10)) return false;
-      if (l.has(Type::F11)) return false;
-      if (l.has(Type::F12)) return false;
-      if (l.has(Type::F3)) return false;
-      if (l.has(Type::F4)) return false;
-      if (l.has(Type::F5)) return false;
-      if (l.has(Type::F6)) return false;
-      if (l.has(Type::F7)) return false;
-      if (l.has(Type::F8)) return false;
-      if (l.has(Type::F9)) return false;
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::l1)) return false;
-      if (l.has(Type::l10)) return false;
-      if (l.has(Type::l11)) return false;
-      if (l.has(Type::l12)) return false;
-      if (l.has(Type::l2)) return false;
-      if (l.has(Type::l3)) return false;
-      if (l.has(Type::l4)) return false;
-      if (l.has(Type::l5)) return false;
-      if (l.has(Type::l6)) return false;
-      if (l.has(Type::l7)) return false;
-      if (l.has(Type::l8)) return false;
-      if (l.has(Type::l9)) return false;
-      if (l.has(Type::rotSym)) return false;
-      if (l.has(Type::rovibSym)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::v10)) return false;
-      if (l.has(Type::v11)) return false;
-      if (l.has(Type::v12)) return false;
-      if (l.has(Type::v4)) return false;
-      if (l.has(Type::v5)) return false;
-      if (l.has(Type::v6)) return false;
-      if (l.has(Type::v7)) return false;
-      if (l.has(Type::v8)) return false;
-      if (l.has(Type::v9)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
-      if (l.has(Type::vibSym)) return false;
+      if (l.has(QuantumNumberType::F10)) return false;
+      if (l.has(QuantumNumberType::F11)) return false;
+      if (l.has(QuantumNumberType::F12)) return false;
+      if (l.has(QuantumNumberType::F3)) return false;
+      if (l.has(QuantumNumberType::F4)) return false;
+      if (l.has(QuantumNumberType::F5)) return false;
+      if (l.has(QuantumNumberType::F6)) return false;
+      if (l.has(QuantumNumberType::F7)) return false;
+      if (l.has(QuantumNumberType::F8)) return false;
+      if (l.has(QuantumNumberType::F9)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::l1)) return false;
+      if (l.has(QuantumNumberType::l10)) return false;
+      if (l.has(QuantumNumberType::l11)) return false;
+      if (l.has(QuantumNumberType::l12)) return false;
+      if (l.has(QuantumNumberType::l2)) return false;
+      if (l.has(QuantumNumberType::l3)) return false;
+      if (l.has(QuantumNumberType::l4)) return false;
+      if (l.has(QuantumNumberType::l5)) return false;
+      if (l.has(QuantumNumberType::l6)) return false;
+      if (l.has(QuantumNumberType::l7)) return false;
+      if (l.has(QuantumNumberType::l8)) return false;
+      if (l.has(QuantumNumberType::l9)) return false;
+      if (l.has(QuantumNumberType::rotSym)) return false;
+      if (l.has(QuantumNumberType::rovibSym)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::v10)) return false;
+      if (l.has(QuantumNumberType::v11)) return false;
+      if (l.has(QuantumNumberType::v12)) return false;
+      if (l.has(QuantumNumberType::v4)) return false;
+      if (l.has(QuantumNumberType::v5)) return false;
+      if (l.has(QuantumNumberType::v6)) return false;
+      if (l.has(QuantumNumberType::v7)) return false;
+      if (l.has(QuantumNumberType::v8)) return false;
+      if (l.has(QuantumNumberType::v9)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
+      if (l.has(QuantumNumberType::vibSym)) return false;
       return true;
     case VAMDC::sphcs:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::asSym)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::kronigParity)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::asSym)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::kronigParity)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
       return true;
     case VAMDC::sphos:
-      if (l.has(Type::K)) return false;
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::asSym)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::kronigParity)) return false;
-      if (l.has(Type::l)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibInv)) return false;
-      if (l.has(Type::vibRefl)) return false;
+      if (l.has(QuantumNumberType::K)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::asSym)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::kronigParity)) return false;
+      if (l.has(QuantumNumberType::l)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibInv)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
       return true;
     case VAMDC::stcs:
-      if (l.has(Type::Ka)) return false;
-      if (l.has(Type::Kc)) return false;
-      if (l.has(Type::Lambda)) return false;
-      if (l.has(Type::N)) return false;
-      if (l.has(Type::Omega)) return false;
-      if (l.has(Type::S)) return false;
-      if (l.has(Type::Sigma)) return false;
-      if (l.has(Type::SpinComponentLabel)) return false;
-      if (l.has(Type::asSym)) return false;
-      if (l.has(Type::elecInv)) return false;
-      if (l.has(Type::elecRefl)) return false;
-      if (l.has(Type::elecSym)) return false;
-      if (l.has(Type::kronigParity)) return false;
-      if (l.has(Type::sym)) return false;
-      if (l.has(Type::v)) return false;
-      if (l.has(Type::vibRefl)) return false;
+      if (l.has(QuantumNumberType::Ka)) return false;
+      if (l.has(QuantumNumberType::Kc)) return false;
+      if (l.has(QuantumNumberType::Lambda)) return false;
+      if (l.has(QuantumNumberType::N)) return false;
+      if (l.has(QuantumNumberType::Omega)) return false;
+      if (l.has(QuantumNumberType::S)) return false;
+      if (l.has(QuantumNumberType::Sigma)) return false;
+      if (l.has(QuantumNumberType::SpinComponentLabel)) return false;
+      if (l.has(QuantumNumberType::asSym)) return false;
+      if (l.has(QuantumNumberType::elecInv)) return false;
+      if (l.has(QuantumNumberType::elecRefl)) return false;
+      if (l.has(QuantumNumberType::elecSym)) return false;
+      if (l.has(QuantumNumberType::kronigParity)) return false;
+      if (l.has(QuantumNumberType::sym)) return false;
+      if (l.has(QuantumNumberType::v)) return false;
+      if (l.has(QuantumNumberType::vibRefl)) return false;
       return true;
-    case VAMDC::FINAL: {
-    }
   }
   return false;
 }
@@ -1060,7 +1072,16 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   auto n = count_items(s);
   auto specname = items(s, 0);
   isotopologue_index = Species::find_species_index(specname);
-  if (isotopologue_index < 0) return;
+
+  if (isotopologue_index < 0)
+    throw std::runtime_error("Invalid isotopologue: " + std::string(specname) +
+                             " from " + std::string(s));
+  if (Species::Isotopologues[isotopologue_index].joker() or
+      Species::is_predefined_model(
+          Species::Isotopologues[isotopologue_index])) {
+    throw std::runtime_error("Expects valid standard isotopologue, got: " +
+                             std::string(specname) + " from " + std::string(s));
+  }
 
   if (version == v) {
     if (n > 1) val = ValueList(s.substr(specname.length() + 1));
@@ -1071,9 +1092,11 @@ GlobalState::GlobalState(std::string_view s, Index v) {
   }
 }
 
-void ValueList::add_type_wo_sort(Type t) { values.emplace_back().type = t; }
+void ValueList::add_type_wo_sort(QuantumNumberType t) {
+  values.emplace_back().type = t;
+}
 
-void LocalState::set_unsorted_qns(const Array<Type>& vals) {
+void LocalState::set_unsorted_qns(const Array<QuantumNumberType>& vals) {
   val = ValueList("");
   for (auto qn : vals) val.add_type_wo_sort(qn);
 }
@@ -1121,36 +1144,32 @@ void LocalState::set_unsorted_qns(const Array<Type>& vals) {
 
 bofstream& Quantum::Number::Value::write(bofstream& bof) const {
   switch (common_value_type(type)) {
-    case ValueType::I:
+    case QuantumNumberValueType::I:
       bof << qn.upp.i.x << qn.low.i.x;
       break;
-    case ValueType::H:
+    case QuantumNumberValueType::H:
       bof << qn.upp.h.x << qn.low.h.x;
       break;
-    case ValueType::S:
+    case QuantumNumberValueType::S:
       bof.writeString(qn.upp.s.x.data(), StringValue::N);
       bof.writeString(qn.low.s.x.data(), StringValue::N);
       break;
-    case ValueType::FINAL: {
-    }
   }
   return bof;
 }
 
 bifstream& Quantum::Number::Value::read(bifstream& bif) {
   switch (common_value_type(type)) {
-    case ValueType::I:
+    case QuantumNumberValueType::I:
       bif >> qn.upp.i.x >> qn.low.i.x;
       break;
-    case ValueType::H:
+    case QuantumNumberValueType::H:
       bif >> qn.upp.h.x >> qn.low.h.x;
       break;
-    case ValueType::S:
+    case QuantumNumberValueType::S:
       bif.readString(qn.upp.s.x.data(), StringValue::N);
       bif.readString(qn.low.s.x.data(), StringValue::N);
       break;
-    case ValueType::FINAL: {
-    }
   }
   return bif;
 }
@@ -1176,10 +1195,10 @@ std::ostream& operator<<(std::ostream& os, const Array<GlobalState>& a) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Array<Type>& a) {
+void ValueList::reserve(Size n) { values.reserve(n); }
+}  // namespace Quantum::Number
+
+std::ostream& operator<<(std::ostream& os, const Array<QuantumNumberType>& a) {
   for (auto& x : a) os << x << '\n';
   return os;
 }
-
-void ValueList::reserve(Size n) { values.reserve(n); }
-}  // namespace Quantum::Number

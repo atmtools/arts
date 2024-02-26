@@ -96,18 +96,6 @@ class TestGroups:
 
         assert x.ok
 
-        # Test that line shapes can be computed (Check that the
-        # Lorentz half-width we compute is actually the half-width)
-        VMR = [1]
-        T = 250
-        P = 1e4
-        ls = cxx.LineShapeCalculator(x, 0, T, P, VMR)
-        assert np.isclose(
-            ls.F(line.F0 + x.LineShapeOutput(0, T, P, VMR).G0).real
-            / ls.F(line.F0).real,
-            0.5,
-        )
-
     def testAny(self):
         cxx.Any()
 
@@ -539,10 +527,6 @@ class TestGroups:
         x = cxx.GriddedField6()
         test.io(x, delete=True)
 
-    def testHitranRelaxationMatrixData(self):
-        x = cxx.HitranRelaxationMatrixData()
-        test.io(x, delete=True)
-
     def testIndex(self):
         x = cxx.Index(0)
         test.io(x, delete=True)
@@ -821,6 +805,7 @@ class TestGroups:
             "NumericTernaryOperator",
             "SingleScatteringData",
             "JacobianTargets",
+            "SpectralRadianceOperator",
         ]
 
         groups = list(cxx.globals.workspace_groups().keys())
@@ -1020,4 +1005,3 @@ class TestGroups:
 if __name__ == "__main__":
     x = TestGroups()
     x.test_xml()
-    x.testArrayOfSun()

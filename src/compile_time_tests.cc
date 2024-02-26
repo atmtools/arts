@@ -1,3 +1,4 @@
+#include "enums.h"
 #include "isotopologues.h"
 #include "quantum_numbers.h"
 
@@ -15,10 +16,10 @@ static_assert(testIsotopologuesAllValid(), "Error!\n\n"
 
 //! Don't call this manually, it only exists to catch a developer error
 constexpr bool testShortNames() noexcept {
-  for (Index i=0; i<Index(Species::Species::FINAL); i++) {
-    auto a = Species::Species(i);
-    auto b = Species::toShortName(a);
-    auto c = Species::fromShortName(b);
+  for (Size i=0; i<enumsize::SpeciesEnumSize; i++) {
+    auto a = SpeciesEnum(i);
+    auto b = toString<1>(a);
+    auto c = to<SpeciesEnum>(b);
     if (not good_enum(c) or c not_eq a) {
       return false;
     }
@@ -88,10 +89,11 @@ constexpr bool check_global_local_types() {
   for (auto qn: local_types) for (auto qn2: global_types) if (qn == qn2) return false;
 
   // Check completeness
-  if (global_types.size() + local_types.size() not_eq size_t(Type::FINAL)) return false;
+  if (global_types.size() + local_types.size() not_eq enumsize::QuantumNumberTypeSize) return false;
 
   // Check that local state has no string types
-  for (auto qn: local_types) if (common_value_type(common_value_type(qn), ValueType::H) not_eq ValueType::H) return false;
+  for (auto qn: local_types) if (common_value_type(common_value_type(qn), 
+  Quantum::Number::QuantumNumberValueType::H) not_eq Quantum::Number::QuantumNumberValueType::H) return false;
 
   return true;
 }

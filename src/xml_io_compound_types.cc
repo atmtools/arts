@@ -11,6 +11,7 @@
 
 #include <workspace.h>
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -26,11 +27,13 @@
 #include "isotopologues.h"
 #include "lbl_data.h"
 #include "lbl_lineshape_linemixing.h"
+#include "mystring.h"
 #include "path_point.h"
 #include "sorted_grid.h"
 #include "species.h"
 #include "species_tags.h"
 #include "xml_io.h"
+#include "xml_io_base.h"
 #include "xml_io_general_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
@@ -52,16 +55,16 @@ void xml_read_from_stream(std::istream& is_xml,
   String name;
   String molecule1;
   String molecule2;
-  Species::Species species1;
-  Species::Species species2;
+  SpeciesEnum species1;
+  SpeciesEnum species2;
 
   tag.read_from_stream(is_xml);
   tag.check_name("CIARecord");
   tag.get_attribute_value("molecule1", molecule1);
   tag.get_attribute_value("molecule2", molecule2);
 
-  species1 = Species::fromShortName(molecule1);
-  species2 = Species::fromShortName(molecule2);
+  species1 = to<SpeciesEnum>(molecule1);
+  species2 = to<SpeciesEnum>(molecule2);
 
   if (not good_enum(species1)) {
     std::ostringstream os;
@@ -426,6 +429,17 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== GriddedField ===========================================================
 
+template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
+void xml_read_from_stream_recursive(std::istream& is_xml,
+                                    matpack::gridded_data<T, Grids...>& gfield,
+                                    bifstream* pbifs,
+                                    XMLTag& tag) {
+  if constexpr (M > N) {
+    xml_read_from_stream(is_xml, gfield.template grid<N>(), pbifs);
+    xml_read_from_stream_recursive<N + 1>(is_xml, gfield, pbifs, tag);
+  }
+}
+
 //! Reads the grids for gridded fields from XML input stream
 /*!
   \param is_xml  XML Input stream
@@ -435,88 +449,104 @@ void xml_write_to_stream(std::ostream& os_xml,
 template <typename T, typename... Grids>
 void xml_read_from_stream_gf(std::istream& is_xml,
                              matpack::gridded_data<T, Grids...>& gfield,
-                             bifstream* pbifs) {
+                             bifstream* pbifs,
+                             Index version) {
   using GF = matpack::gridded_data<T, Grids...>;
 
   XMLTag tag;
 
-  const auto reader = [&](auto& grid, String& name) {
-    using U = std::decay_t<decltype(grid)>;
+  if (version == 0) {
+    const auto reader = [&](auto& grid, String& name) {
+      using U = std::decay_t<decltype(grid)>;
 
-    tag.get_attribute_value("name", name);
+      tag.get_attribute_value("name", name);
 
-    if constexpr (std::same_as<U, Vector>) {
-      ARTS_USER_ERROR_IF(
-          tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
-      xml_parse_from_stream(is_xml, grid, pbifs, tag);
+      if constexpr (std::same_as<U, Vector>) {
+        ARTS_USER_ERROR_IF(
+            tag.get_name() != "Vector", "Must be Vector, is ", tag.get_name());
+        xml_parse_from_stream(is_xml, grid, pbifs, tag);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Vector");
+      } else if constexpr (std::same_as<U, ArrayOfString>) {
+        ARTS_USER_ERROR_IF(
+            tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
+        String s;
+        tag.get_attribute_value("type", s);
+        ARTS_USER_ERROR_IF(
+            s != "String", "Must be Array<String>, is Array<", s, '>');
+        xml_parse_from_stream(is_xml, grid, pbifs, tag);
+        tag.read_from_stream(is_xml);
+        tag.check_name("/Array");
+      } else {
+        ARTS_USER_ERROR("Unknown grid type: ", tag.get_name());
+      }
+    };
+
+    if constexpr (constexpr Size N = 0; GF::dim > N) {
       tag.read_from_stream(is_xml);
-      tag.check_name("/Vector");
-    } else {
-      ARTS_USER_ERROR_IF(
-          tag.get_name() != "Array", "Must be Array, is ", tag.get_name());
-      String s;
-      tag.get_attribute_value("type", s);
-      ARTS_USER_ERROR_IF(
-          s != "String", "Must be Array<String>, is Array<", s, '>');
-      xml_parse_from_stream(is_xml, grid, pbifs, tag);
-      tag.read_from_stream(is_xml);
-      tag.check_name("/Array");
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
     }
-  };
 
-  if constexpr (constexpr Size N = 0; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    if constexpr (constexpr Size N = 1; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 2; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 3; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 4; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 5; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 6; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 7; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 8; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    if constexpr (constexpr Size N = 9; GF::dim > N) {
+      tag.read_from_stream(is_xml);
+      reader(gfield.template grid<N>(), gfield.template gridname<N>());
+    }
+
+    xml_read_from_stream(is_xml, gfield.data, pbifs);
+  } else if (version == 1) {
+    ArrayOfString gridnames;
+    xml_read_from_stream(is_xml, gridnames, pbifs);
+    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(),
+                       "Bad number of grid names:\n",
+                       gridnames);
+    std::ranges::move(gridnames, gfield.grid_names.begin());
+
+    xml_read_from_stream_recursive<0>(is_xml, gfield, pbifs, tag);
+
+    xml_read_from_stream(is_xml, gfield.data, pbifs);
+  } else {
+    ARTS_USER_ERROR("Unknown version: ", version)
   }
-
-  if constexpr (constexpr Size N = 1; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 2; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 3; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 4; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 5; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 6; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 7; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 8; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 9; GF::dim > N) {
-    tag.read_from_stream(is_xml);
-    reader(gfield.template grid<N>(), gfield.template gridname<N>());
-  }
-
-  xml_read_from_stream(is_xml, gfield.data, pbifs);
-
-  static_assert(GF::dim <= 10, "Too many dimensions");
 }
 
 #define GF_READ(GF)                                                         \
@@ -527,15 +557,32 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     tag.read_from_stream(is_xml);                                           \
     tag.check_name(#GF);                                                    \
                                                                             \
+    Index version = 0;                                                      \
+    if (tag.has_attribute("version"))                                       \
+      tag.get_attribute_value("version", version);                          \
     tag.get_attribute_value("name", gfield.data_name);                      \
                                                                             \
-    xml_read_from_stream_gf(is_xml, gfield, pbifs);                         \
+    xml_read_from_stream_gf(is_xml, gfield, pbifs, version);                \
                                                                             \
     tag.read_from_stream(is_xml);                                           \
     tag.check_name("/" #GF);                                                \
                                                                             \
     ARTS_USER_ERROR_IF(not gfield.check(), "Bad gridded field:\n", gfield); \
   }
+
+template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>
+void xml_write_to_stream_recursive(
+    std::ostream& os_xml,
+    const matpack::gridded_data<T, Grids...>& gfield,
+    bofstream* pbofs) {
+  if constexpr (M > N) {
+    xml_write_to_stream(os_xml,
+                        gfield.template grid<N>(),
+                        pbofs,
+                        gfield.template gridname<N>());
+    xml_write_to_stream_recursive<N + 1>(os_xml, gfield, pbofs);
+  }
+}
 
 //! Writes the grids for gridded fields to an XML input stream
 /*!
@@ -548,81 +595,15 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
                             const matpack::gridded_data<T, Grids...>& gfield,
                             bofstream* pbofs,
                             const String& /* name */) {
-  using GF = matpack::gridded_data<T, Grids...>;
+  xml_write_to_stream(
+      os_xml,
+      ArrayOfString{gfield.grid_names.begin(), gfield.grid_names.end()},
+      pbofs,
+      "GridNames");
 
-  if constexpr (constexpr Size N = 0; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 1; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 2; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 3; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 4; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 5; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 6; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 7; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 8; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
-
-  if constexpr (constexpr Size N = 9; GF::dim > N) {
-    xml_write_to_stream(os_xml,
-                        gfield.template grid<N>(),
-                        pbofs,
-                        gfield.template gridname<N>());
-  }
+  xml_write_to_stream_recursive<0>(os_xml, gfield, pbofs);
 
   xml_write_to_stream(os_xml, gfield.data, pbofs, "Data");
-
-  static_assert(GF::dim <= 10, "Too many dimensions");
 }
 
 #define GF_WRITE(GF)                                       \
@@ -635,6 +616,7 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
                                                            \
     open_tag.set_name(#GF);                                \
     open_tag.add_attribute("name", gfield.data_name);      \
+    open_tag.add_attribute("version", Index{1});           \
                                                            \
     open_tag.write_to_stream(os_xml);                      \
     os_xml << '\n';                                        \
@@ -646,43 +628,23 @@ void xml_write_to_stream_gf(std::ostream& os_xml,
     os_xml << '\n';                                        \
   }
 
-//=== gridded_data ===========================================================
+#define GF_IO(GF) \
+  GF_READ(GF)     \
+  GF_WRITE(GF)
 
-//! Reads gridded_data from XML input stream
-/*!
-  \param is_xml  XML Input stream
-  \param gfield  gridded_data return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-*/
-GF_READ(GriddedField1)
-GF_READ(GriddedField2)
-GF_READ(GriddedField3)
-GF_READ(GriddedField4)
-GF_READ(GriddedField5)
-GF_READ(GriddedField6)
-GF_READ(NamedGriddedField2)
-GF_READ(NamedGriddedField3)
-GF_READ(GriddedField1Named)
-GF_READ(ComplexGriddedField2)
+GF_IO(GriddedField1)
+GF_IO(GriddedField2)
+GF_IO(GriddedField3)
+GF_IO(GriddedField4)
+GF_IO(GriddedField5)
+GF_IO(GriddedField6)
+GF_IO(NamedGriddedField2)
+GF_IO(NamedGriddedField3)
+GF_IO(GriddedField1Named)
+GF_IO(ComplexGriddedField2)
+GF_IO(StokvecGriddedField6)
 
-//! Writes gridded_data to XML output stream
-/*!
-  \param os_xml  XML Output stream
-  \param gfield  gridded_data
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
-*/
-GF_WRITE(GriddedField1)
-GF_WRITE(GriddedField2)
-GF_WRITE(GriddedField3)
-GF_WRITE(GriddedField4)
-GF_WRITE(GriddedField5)
-GF_WRITE(GriddedField6)
-GF_WRITE(NamedGriddedField2)
-GF_WRITE(NamedGriddedField3)
-GF_WRITE(GriddedField1Named)
-GF_WRITE(ComplexGriddedField2)
-
+#undef GF_IO
 #undef GF_READ
 #undef GF_WRITE
 
@@ -740,88 +702,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== HitranRelaxationMatrixData ================================================
-
-//! Reads HitranRelaxationMatrixData from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param hitran   HitranRelaxationMatrixData return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(std::istream& is_xml,
-                          HitranRelaxationMatrixData& hitran,
-                          bifstream* pbifs) {
-  ArtsXMLTag tag;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("HitranRelaxationMatrixData");
-
-  xml_read_from_stream(is_xml, hitran.W0pp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qp, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qp, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0pr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qr, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qr, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0pq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0pq, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0rq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0rq, pbifs);
-  xml_read_from_stream(is_xml, hitran.W0qq, pbifs);
-  xml_read_from_stream(is_xml, hitran.B0qq, pbifs);
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/HitranRelaxationMatrixData");
-}
-
-//! Writes HitranRelaxationMatrixData to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param hitran   HitranRelaxationMatrixData
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(std::ostream& os_xml,
-                         const HitranRelaxationMatrixData& hitran,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("HitranRelaxationMatrixData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_write_to_stream(os_xml, hitran.W0pp, pbofs, "W0pp");
-  xml_write_to_stream(os_xml, hitran.B0pp, pbofs, "B0pp");
-  xml_write_to_stream(os_xml, hitran.W0rp, pbofs, "W0rp");
-  xml_write_to_stream(os_xml, hitran.B0rp, pbofs, "B0rp");
-  xml_write_to_stream(os_xml, hitran.W0qp, pbofs, "W0qp");
-  xml_write_to_stream(os_xml, hitran.B0qp, pbofs, "B0qp");
-  xml_write_to_stream(os_xml, hitran.W0pr, pbofs, "W0pr");
-  xml_write_to_stream(os_xml, hitran.B0pr, pbofs, "B0pr");
-  xml_write_to_stream(os_xml, hitran.W0rr, pbofs, "W0rr");
-  xml_write_to_stream(os_xml, hitran.B0rr, pbofs, "B0rr");
-  xml_write_to_stream(os_xml, hitran.W0qr, pbofs, "W0qr");
-  xml_write_to_stream(os_xml, hitran.B0qr, pbofs, "B0qr");
-  xml_write_to_stream(os_xml, hitran.W0pq, pbofs, "W0pq");
-  xml_write_to_stream(os_xml, hitran.B0pq, pbofs, "B0pq");
-  xml_write_to_stream(os_xml, hitran.W0rq, pbofs, "W0rq");
-  xml_write_to_stream(os_xml, hitran.B0rq, pbofs, "B0rq");
-  xml_write_to_stream(os_xml, hitran.W0qq, pbofs, "W0qq");
-  xml_write_to_stream(os_xml, hitran.B0qq, pbofs, "B0qq");
-
-  close_tag.set_name("/HitranRelaxationMatrixData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== QuantumIdentifier =========================================
 
 //! Reads QuantumIdentifier from XML input stream
@@ -832,7 +712,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 */
 void xml_read_from_stream(std::istream& is_xml,
                           QuantumIdentifier& qi,
-                          bifstream* pbifs [[maybe_unused]]) {
+                          bifstream* pbifs [[maybe_unused]]) try {
   static_assert(QuantumIdentifier::version == 1);
 
   ArtsXMLTag tag;
@@ -864,6 +744,8 @@ void xml_read_from_stream(std::istream& is_xml,
 
   tag.read_from_stream(is_xml);
   tag.check_name("/QuantumIdentifier");
+} catch (const std::exception& e) {
+  ARTS_USER_ERROR("Error reading QuantumIdentifier: ", e.what())
 }
 
 //! Writes QuantumIdentifier to XML output stream
@@ -891,7 +773,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   close_tag.set_name("/QuantumIdentifier");
   close_tag.write_to_stream(os_xml);
-  os_xml << std::endl;
+  os_xml << '\n';
 }
 
 //=== SingleScatteringData ======================================
@@ -1431,7 +1313,7 @@ void xml_read_from_stream(std::istream& is_xml,
   String species_name;
   xml_read_from_stream(is_xml, species_name, pbifs);
 
-  const Species::Species species = Species::fromShortName(species_name);
+  const SpeciesEnum species = to<SpeciesEnum>(species_name);
   if (not good_enum(species)) {
     std::ostringstream os;
     os << "  Unknown species in XsecRecord: " << species_name;
@@ -1493,79 +1375,6 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== MapOfErrorCorrectedSuddenData ======================================================
-
-//! Reads MapOfErrorCorrectedSuddenData from XML input stream
-/*!
- * \param is_xml     XML Input stream
- * \param rvb        MapOfErrorCorrectedSuddenData return value
- * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
- */
-void xml_read_from_stream(std::istream& is_xml,
-                          MapOfErrorCorrectedSuddenData& rvb,
-                          bifstream* pbifs) {
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("MapOfErrorCorrectedSuddenData");
-
-  Index nelem;
-  open_tag.get_attribute_value("nelem", nelem);
-
-  rvb.resize(0);
-  rvb.reserve(nelem);
-  for (Index i = 0; i < nelem; i++) {
-    xml_read_from_stream(is_xml, rvb.emplace_back(), pbifs);
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/MapOfErrorCorrectedSuddenData");
-
-  // Sanity check, it is not OK to not have AIR as catch-all broadener
-  for (auto& x : rvb) {
-    bool found_air = false;
-    for (auto& y : x.data) {
-      found_air = found_air or (y.spec == Species::Species::Bath);
-    }
-    ARTS_USER_ERROR_IF(
-        not found_air,
-        "Incomplete ErrorCorrectedSuddenData, must contain air, contains:\n",
-        x)
-  }
-}
-
-//! Writes MapOfErrorCorrectedSuddenData to XML output stream
-/*!
- * \param os_xml     XML Output stream
- * \param rvb        MapOfErrorCorrectedSuddenData
- * \param pbofs      Pointer to binary file stream. NULL for ASCII output.
- * \param name       Optional name attribute
- */
-void xml_write_to_stream(std::ostream& os_xml,
-                         const MapOfErrorCorrectedSuddenData& rvb,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name("MapOfErrorCorrectedSuddenData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", static_cast<Index>(rvb.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  xml_set_stream_precision(os_xml);
-
-  for (auto& r : rvb) {
-    xml_write_to_stream(os_xml, r, pbofs, "");
-  }
-
-  close_tag.set_name("/MapOfErrorCorrectedSuddenData");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
 //=== PredefinedModelData =========================================
 /*!
  * \param is_xml     XML Input stream
@@ -1594,7 +1403,7 @@ void xml_read_from_stream(std::istream& is_xml,
     // Get key
     String key_str;
     internal_open_tag.get_attribute_value("key", key_str);
-    SpeciesIsotopeRecord isot{key_str};
+    SpeciesIsotope isot{key_str};
     ARTS_USER_ERROR_IF(
         not isot.OK(), "Cannot understand key: ", std::quoted(key_str))
 
@@ -1655,9 +1464,11 @@ void xml_write_to_stream(std::ostream& os_xml,
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("Data");
     internal_open_tag.add_attribute("key", key.FullName());
-    internal_open_tag.add_attribute("type", String{Absorption::PredefinedModel::model_name(data)});
+    internal_open_tag.add_attribute(
+        "type", String{Absorption::PredefinedModel::model_name(data)});
 
-    const std::vector<Size> sizes = std::visit([&](auto& v) { return v.sizes(); }, data);
+    const std::vector<Size> sizes =
+        std::visit([&](auto& v) { return v.sizes(); }, data);
     internal_open_tag.add_attribute("sizes_nelem", Index(sizes.size()));
 
     String sizes_str = "";
@@ -1688,7 +1499,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== AtmField =========================================
 void xml_read_from_stream_helper(std::istream& is_xml,
-                                 Atm::KeyVal& key_val,
+                                 AtmKeyVal& key_val,
                                  Atm::Data& data,
                                  bifstream* pbifs) {
   data = Atm::Data{};  // overwrite
@@ -1705,7 +1516,7 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   const auto get_extrapol = [&open_tag](auto& k) {
     String x;
     open_tag.get_attribute_value(k, x);
-    return Atm::toExtrapolationOrThrow(x);
+    return to<InterpolationExtrapolation>(x);
   };
   data.alt_low = get_extrapol("alt_low");
   data.alt_upp = get_extrapol("alt_upp");
@@ -1714,10 +1525,10 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   data.lon_low = get_extrapol("lon_low");
   data.lon_upp = get_extrapol("lon_upp");
 
-  if (keytype == "Atm::Key")
-    key_val = Atm::toKeyOrThrow(key);
+  if (keytype == "AtmKey")
+    key_val = to<AtmKey>(key);
   else if (keytype == "Species")
-    key_val = Species::fromShortName(key);
+    key_val = to<SpeciesEnum>(key);
   else if (keytype == "IsotopeRecord")
     key_val = Species::Isotopologues[Species::find_species_index(key)];
   else if (keytype == "QuantumIdentifier")
@@ -1773,7 +1584,7 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.get_attribute_value("toa", atm.top_of_atmosphere);
 
   for (Index i = 0; i < n; i++) {
-    Atm::KeyVal key;
+    AtmKeyVal key;
     Atm::Data data;
     xml_read_from_stream_helper(is_xml, key, data, pbifs);
     atm[key] = std::move(data);
@@ -1785,7 +1596,7 @@ void xml_read_from_stream(std::istream& is_xml,
 }
 
 void xml_write_to_stream_helper(std::ostream& os_xml,
-                                const Atm::KeyVal& key,
+                                const AtmKeyVal& key,
                                 const Atm::Data& data,
                                 bofstream* pbofs) {
   ArtsXMLTag open_data_tag;
@@ -1793,11 +1604,11 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
 
   std::visit(
       [&](auto& key_val) {
-        if constexpr (Atm::isKey<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "Atm::Key");
+        if constexpr (Atm::isAtmKey<decltype(key_val)>)
+          open_data_tag.add_attribute("keytype", "AtmKey");
         else if constexpr (Atm::isSpecies<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "Species");
-        else if constexpr (Atm::isIsotopeRecord<decltype(key_val)>)
+        else if constexpr (Atm::isSpeciesIsotope<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "IsotopeRecord");
         else if constexpr (Atm::isQuantumIdentifier<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "QuantumIdentifier");
@@ -1806,8 +1617,7 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
                       "New key type is not yet handled by writing routine!")
 
         if constexpr (Atm::isSpecies<decltype(key_val)>)
-          open_data_tag.add_attribute("key",
-                                      String{Species::toShortName(key_val)});
+          open_data_tag.add_attribute("key", String{toString<1>(key_val)});
         else
           open_data_tag.add_attribute("key", var_string(key_val));
 
@@ -1897,12 +1707,13 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AtmPoint");
 
-  Index nspec, nnlte, nother;
+  Index nspec, nnlte, nother, nisot;
   open_tag.get_attribute_value("nspec", nspec);
   open_tag.get_attribute_value("nnlte", nnlte);
   open_tag.get_attribute_value("nother", nother);
+  open_tag.get_attribute_value("nisot", nisot);
 
-  const Index n = nspec + nnlte + nother;
+  const Index n = nspec + nnlte + nother + nisot;
   for (Index i = 0; i < n; i++) {
     Numeric v;
     String k;
@@ -1910,14 +1721,17 @@ void xml_read_from_stream(std::istream& is_xml,
     xml_read_from_stream(is_xml, v, pbifs);
 
     if (nother > 0) {
-      atm[Atm::toKeyOrThrow(k)] = v;
+      atm[to<AtmKey>(k)] = v;
       nother--;
     } else if (nspec > 0) {
-      atm[Species::fromShortName(k)] = v;
+      atm[to<SpeciesEnum>(k)] = v;
       nspec--;
     } else if (nnlte > 0) {
       atm[QuantumIdentifier(k)] = v;
       nnlte--;
+    } else if (nisot > 0) {
+      atm[SpeciesIsotope(k)] = v;
+      nisot--;
     } else {
       ARTS_ASSERT(false)
     }
@@ -1950,10 +1764,12 @@ void xml_write_to_stream(std::ostream& os_xml,
   const Index nspec = atm.nspec();
   const Index nnlte = atm.nnlte();
   const Index nother = atm.nother();
+  const Index nisot = atm.nisot();
 
   open_tag.add_attribute("nspec", nspec);
   open_tag.add_attribute("nnlte", nnlte);
   open_tag.add_attribute("nother", nother);
+  open_tag.add_attribute("nisot", nisot);
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
@@ -1977,7 +1793,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 //=== SurfaceField =========================================
 void xml_read_from_stream_helper(std::istream& is_xml,
-                                 Surf::KeyVal& key_val,
+                                 SurfaceKeyVal& key_val,
                                  Surf::Data& data,
                                  bifstream* pbifs) {
   data = Surf::Data{};  // overwrite
@@ -1994,15 +1810,15 @@ void xml_read_from_stream_helper(std::istream& is_xml,
   const auto get_extrapol = [&open_tag](auto& k) {
     String x;
     open_tag.get_attribute_value(k, x);
-    return Surf::toExtrapolationOrThrow(x);
+    return to<InterpolationExtrapolation>(x);
   };
   data.lat_low = get_extrapol("lat_low");
   data.lat_upp = get_extrapol("lat_upp");
   data.lon_low = get_extrapol("lon_low");
   data.lon_upp = get_extrapol("lon_upp");
 
-  if (keytype == "Surf::Key")
-    key_val = Surf::toKeyOrThrow(key);
+  if (keytype == "SurfaceKey")
+    key_val = to<SurfaceKey>(key);
   else if (keytype == "SurfaceTypeTag")
     key_val = SurfaceTypeTag{key};
   else
@@ -2054,7 +1870,7 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.get_attribute_value("nelem", n);
 
   for (Index i = 0; i < n; i++) {
-    Surf::KeyVal key;
+    SurfaceKeyVal key;
     Surf::Data data;
     xml_read_from_stream_helper(is_xml, key, data, pbifs);
     surf[key] = std::move(data);
@@ -2066,7 +1882,7 @@ void xml_read_from_stream(std::istream& is_xml,
 }
 
 void xml_write_to_stream_helper(std::ostream& os_xml,
-                                const Surf::KeyVal& key,
+                                const SurfaceKeyVal& key,
                                 const Surf::Data& data,
                                 bofstream* pbofs) {
   ArtsXMLTag open_data_tag;
@@ -2074,8 +1890,8 @@ void xml_write_to_stream_helper(std::ostream& os_xml,
 
   std::visit(
       [&](auto& key_val) {
-        if constexpr (Surf::isKey<decltype(key_val)>)
-          open_data_tag.add_attribute("keytype", "Atm::Key");
+        if constexpr (Surf::isSurfaceKey<decltype(key_val)>)
+          open_data_tag.add_attribute("keytype", "AtmKey");
         else if constexpr (Surf::isSurfaceTypeTag<decltype(key_val)>)
           open_data_tag.add_attribute("keytype", "SurfaceTypeTag");
         else
@@ -2180,7 +1996,7 @@ void xml_read_from_stream(std::istream& is_xml,
     xml_read_from_stream(is_xml, v, pbifs);
 
     if (nother > 0) {
-      surf[Surf::toKeyOrThrow(k)] = v;
+      surf[to<SurfaceKey>(k)] = v;
       nother--;
     } else if (ntype > 0) {
       surf[SurfaceTypeTag{k}] = v;
@@ -2604,11 +2420,26 @@ void xml_write_to_stream(std::ostream&,
   ARTS_USER_ERROR("Method not implemented!");
 }
 
+//=== SpectralRadianceOperator =========================================
+
+void xml_read_from_stream(std::istream&,
+                          SpectralRadianceOperator&,
+                          bifstream* /* pbifs */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
+void xml_write_to_stream(std::ostream&,
+                         const SpectralRadianceOperator&,
+                         bofstream* /* pbofs */,
+                         const String& /* name */) {
+  ARTS_USER_ERROR("Method not implemented!");
+}
+
 //=== AbsorptionBand =========================================
 
 void xml_read_from_stream(std::istream& is_xml,
                           lbl::band_data& data,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
 
   String tag;
@@ -2619,16 +2450,17 @@ void xml_read_from_stream(std::istream& is_xml,
   open_tag.check_name("AbsorptionBandData");
 
   open_tag.get_attribute_value("lineshape", tag);
-  data.lineshape = lbl::toLineshapeOrThrow(tag);
+  data.lineshape = to<LineByLineLineshape>(tag);
 
   open_tag.get_attribute_value("cutoff_type", tag);
-  data.cutoff = lbl::toCutoffTypeOrThrow(tag);
+  data.cutoff = to<LineByLineCutoffType>(tag);
 
   open_tag.get_attribute_value("cutoff_value", data.cutoff_value);
 
   open_tag.get_attribute_value("nelem", nelem);
   data.lines.resize(0);
   data.lines.reserve(nelem);
+
   for (Index j = 0; j < nelem; j++) {
     is_xml >> data.lines.emplace_back();
   }
@@ -2636,7 +2468,7 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBandData");
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const lbl::band_data& data,
@@ -2666,7 +2498,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
 void xml_read_from_stream(std::istream& is_xml,
                           AbsorptionBand& data,
-                          bifstream* pbifs) {
+                          bifstream* pbifs) try {
   ArtsXMLTag open_tag;
   open_tag.read_from_stream(is_xml);
   open_tag.check_name("AbsorptionBand");
@@ -2677,7 +2509,7 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBand");
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AbsorptionBand& data,
@@ -2698,110 +2530,7 @@ void xml_write_to_stream(std::ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== AbsorptionBands =========================================
-
-void xml_read_from_stream(std::istream& is_xml,
-                          AbsorptionBands& data,
-                          bifstream* pbifs) {
-  Index nelem;
-
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("AbsorptionBands");
-  open_tag.get_attribute_value("nelem", nelem);
-
-  data.resize(0);
-  data.reserve(nelem);
-
-  for (Index j = 0; j < nelem; j++) {
-    xml_read_from_stream(is_xml, data.emplace_back(), pbifs);
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/AbsorptionBands");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const AbsorptionBands& data,
-                         bofstream* pbofs,
-                         const String& name) {
-  ArtsXMLTag open_tag;
-  open_tag.set_name("AbsorptionBands");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", static_cast<Index>(data.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (auto& d : data) {
-    xml_write_to_stream(os_xml, d, pbofs, "");
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.set_name("/AbsorptionBands");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
-//=== ErrorCorrectedSuddenData =========================================
-
-void xml_read_from_stream(std::istream& is_xml,
-                          ErrorCorrectedSuddenData& ecsd,
-                          bifstream* pbifs) {
-  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
-
-  // Local values
-  String val;
-  Index nelem;
-
-  ArtsXMLTag open_tag;
-  open_tag.read_from_stream(is_xml);
-  open_tag.check_name("ErrorCorrectedSuddenData");
-
-  open_tag.get_attribute_value("key", val);
-  ecsd.id = QuantumIdentifier(val);
-
-  open_tag.get_attribute_value("nelem", nelem);
-
-  // Get values
-  ecsd.data.resize(0);
-  ecsd.data.reserve(nelem);
-  for (Index j = 0; j < nelem; j++) {
-    SpeciesErrorCorrectedSuddenData secds;
-    is_xml >> secds;
-    ecsd[secds.spec] = secds;
-  }
-
-  ArtsXMLTag close_tag;
-  close_tag.read_from_stream(is_xml);
-  close_tag.check_name("/ErrorCorrectedSuddenData");
-}
-
-void xml_write_to_stream(std::ostream& os_xml,
-                         const ErrorCorrectedSuddenData& r,
-                         bofstream* pbofs,
-                         const String& name) {
-  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
-
-  ArtsXMLTag open_tag;
-  open_tag.set_name("ErrorCorrectedSuddenData");
-  if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("key", var_string(r.id));
-  open_tag.add_attribute("nelem", static_cast<Index>(r.data.size()));
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  // Set values
-  os_xml << r << '\n';
-
-  ArtsXMLTag close_tag;
-  close_tag.set_name("/ErrorCorrectedSuddenData");
-  close_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-}
-
 //=== LinemixingEcsData =========================================
-
 struct meta_data {
   String name;
   String value{};
@@ -2879,9 +2608,8 @@ struct tag {
     auto& x = data.at(key);
     if constexpr (std::same_as<T, Index>) {
       return std::stoi(x);
-    } else if constexpr (std::same_as<T, Species::Species>) {
-      auto s = Species::fromShortName(x);
-      if (not good_enum(s)) s = Species::toSpecies(x);
+    } else if constexpr (requires { to<T>(x); }) {
+      auto s = to<T>(x);
       return s;
     } else {
       return T{x};
@@ -2909,12 +2637,12 @@ void xml_read_from_stream(std::istream& is_xml,
   for (Index j = 0; j < nisot; j++) {
     const tag isot_tag{is_xml, "isotdata", "nelem", "isot"};
     const auto nspec = isot_tag.get<Index>("nelem");
-    const auto isotkey = isot_tag.get<SpeciesIsotopeRecord>("isot");
+    const auto isotkey = isot_tag.get<SpeciesIsotope>("isot");
 
     auto& spec_data_map = ecsd[isotkey];
     for (Index i = 0; i < nspec; i++) {
       const tag spec_tag{is_xml, "specdata", "spec"};
-      const auto speckey = spec_tag.get<Species::Species>("spec");
+      const auto speckey = spec_tag.get<SpeciesEnum>("spec");
 
       auto& spec_data = spec_data_map[speckey];
       is_xml >> spec_data.beta >> spec_data.collisional_distance >>
@@ -2942,7 +2670,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 
     for (auto& [ikey, ivalue] : value) {
       const tag spec_tag{
-          os_xml, "specdata", meta_data{"spec", Species::toShortName(ikey)}};
+          os_xml, "specdata", meta_data{"spec", toString<1>(ikey)}};
 
       os_xml << ivalue.beta << ' ' << ivalue.collisional_distance << ' '
              << ivalue.lambda << ' ' << ivalue.scaling;
@@ -2950,20 +2678,19 @@ void xml_write_to_stream(std::ostream& os_xml,
   }
 }
 
-//! SpeciesEnum
-
-void xml_read_from_stream(std::istream& is_xml, SpeciesEnum& s, bifstream*) {
-  const tag stag{is_xml, "SpeciesEnum", "enum"};
-  s = stag.get<SpeciesEnum>("enum");
+//! SpeciesIsotope
+#include <iostream> 
+void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
+  const tag stag{is_xml, "SpeciesIsotope", "isot"};
+  std::cout << stag.get("isot") << '\n';
+  s = stag.get<SpeciesIsotope>("isot");
 }
 
 void xml_write_to_stream(std::ostream& os_xml,
-                         const SpeciesEnum& s,
+                         const SpeciesIsotope& s,
                          bofstream*,
                          const String&) {
-  const tag stag{os_xml,
-                 "SpeciesEnum",
-                 meta_data{"enum", String{Species::toShortName(s)}}};
+  const tag stag{os_xml, "SpeciesIsotope", meta_data{"isot", s.FullName()}};
 }
 
 //! ArrayOfPropagationPathPoint
@@ -2972,8 +2699,8 @@ void xml_read_from_stream(std::istream& is_xml,
                           PropagationPathPoint& ppp,
                           bifstream* pbifs) {
   const tag stag{is_xml, "PropagationPathPoint", "pos_t", "los_t"};
-  ppp.pos_type = path::toPositionType(stag.get("pos_t"));
-  ppp.los_type = path::toPositionType(stag.get("los_t"));
+  ppp.pos_type = stag.get<PathPositionType>("pos_t");
+  ppp.los_type = stag.get<PathPositionType>("los_t");
 
   if (pbifs == nullptr) {
     is_xml >> double_imanip{} >> ppp.pos[0] >> ppp.pos[1] >> ppp.pos[2] >>

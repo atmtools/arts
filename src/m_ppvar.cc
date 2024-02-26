@@ -86,7 +86,7 @@ void propagation_path_spectral_radianceCalcTransmission(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_path_propagation_matrixCalc(
+void propagation_path_propagation_matrixFromPath(
     const Workspace &ws,
     ArrayOfPropmatVector &propagation_path_propagation_matrix,
     ArrayOfStokvecVector &propagation_path_source_vector_nonlte,
@@ -95,9 +95,9 @@ void propagation_path_propagation_matrixCalc(
     const Agenda &propagation_matrix_agenda,
     const JacobianTargets &jacobian_targets,
     const ArrayOfAscendingGrid &propagation_path_frequency_grid,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point) try {
-  const Size np = rad_path.size();
+  const Size np = propagation_path.size();
   if (np == 0) {
     propagation_path_propagation_matrix.resize(0);
     propagation_path_source_vector_nonlte.resize(0);
@@ -122,7 +122,7 @@ void propagation_path_propagation_matrixCalc(
           propagation_matrix_agenda,
           jacobian_targets,
           propagation_path_frequency_grid[ip],
-          rad_path[ip],
+          propagation_path[ip],
           propagation_path_atmospheric_point[ip]);
     }
   } else {
@@ -141,7 +141,7 @@ void propagation_path_propagation_matrixCalc(
             propagation_matrix_agenda,
             jacobian_targets,
             propagation_path_frequency_grid[ip],
-            rad_path[ip],
+            propagation_path[ip],
             propagation_path_atmospheric_point[ip]);
       } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_source)
@@ -187,7 +187,7 @@ void propagation_path_spectral_radiance_sourceFromPropmat(
   const Index nq = jacobian_targets.target_count();
 
   const Index it =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
 
   propagation_path_spectral_radiance_source.resize(np, StokvecVector(nf));
   propagation_path_spectral_radiance_source_jacobian.resize(
@@ -223,61 +223,52 @@ void propagation_path_spectral_radiance_sourceFromPropmat(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void propagation_path_transmission_matrixCalc(
+void propagation_path_transmission_matrixFromPath(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix,
     ArrayOfArrayOfMuelmatMatrix &propagation_path_transmission_matrix_jacobian,
-    Vector &propagation_path_distance,
-    ArrayOfArrayOfVector &propagation_path_distance_jacobian,
     const ArrayOfPropmatVector &propagation_path_propagation_matrix,
     const ArrayOfPropmatMatrix &propagation_path_propagation_matrix_jacobian,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const SurfaceField &surface_field,
     const JacobianTargets &jacobian_targets,
     const Index &hse_derivative) try {
-  ArrayOfString fail_msg;
-  bool do_abort = false;
-
   // HSE variables
   const Index temperature_derivative_position =
-      jacobian_targets.target_position<Jacobian::AtmTarget>(Atm::Key::t);
+      jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
 
-  const Size np = rad_path.size();
+  const Size np = propagation_path.size();
 
   if (np == 0) {
     propagation_path_transmission_matrix.resize(0);
     propagation_path_transmission_matrix_jacobian.resize(
         2, ArrayOfMuelmatMatrix{});
-    propagation_path_distance.resize(0);
-    propagation_path_distance_jacobian.resize(2, ArrayOfVector{});
     return;
   }
 
   const Index nf = propagation_path_propagation_matrix.front().size();
   const Index nq = jacobian_targets.target_count();
 
+  Vector propagation_path_distance_jacobian1(nq, 0.0);
+  Vector propagation_path_distance_jacobian2(nq, 0.0);
+
   propagation_path_transmission_matrix.resize(np, MuelmatVector(nf));
   propagation_path_transmission_matrix_jacobian.resize(
       2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
-  propagation_path_distance.resize(np);
-  propagation_path_distance_jacobian.resize(2,
-                                            ArrayOfVector(np, Vector(nq, 0)));
 
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Size ip = 1; ip < np; ip++) {
-    if (do_abort) continue;
-    try {
-      propagation_path_distance[ip - 1] =
-          path::distance(rad_path[ip - 1].pos, rad_path[ip].pos, surface_field);
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 1; ip < np; ip++) {
+      const Numeric propagation_path_distance =
+          path::distance(propagation_path[ip - 1].pos,
+                         propagation_path[ip].pos,
+                         surface_field);
       if (hse_derivative and temperature_derivative_position >= 0) {
-        propagation_path_distance_jacobian
-            [0][ip][temperature_derivative_position] =
-                propagation_path_distance[ip - 1] /
-                (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
-        propagation_path_distance_jacobian
-            [1][ip][temperature_derivative_position] =
-                propagation_path_distance[ip - 1] /
-                (2.0 * propagation_path_atmospheric_point[ip].temperature);
+        propagation_path_distance_jacobian1[temperature_derivative_position] =
+            propagation_path_distance /
+            (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
+        propagation_path_distance_jacobian2[temperature_derivative_position] =
+            propagation_path_distance /
+            (2.0 * propagation_path_atmospheric_point[ip].temperature);
       }
 
       two_level_exp(propagation_path_transmission_matrix[ip],
@@ -287,33 +278,69 @@ void propagation_path_transmission_matrixCalc(
                     propagation_path_propagation_matrix[ip],
                     propagation_path_propagation_matrix_jacobian[ip - 1],
                     propagation_path_propagation_matrix_jacobian[ip],
-                    propagation_path_distance[ip - 1],
-                    propagation_path_distance_jacobian[0][ip],
-                    propagation_path_distance_jacobian[1][ip]);
-    } catch (const std::runtime_error &e) {
+                    propagation_path_distance,
+                    propagation_path_distance_jacobian1,
+                    propagation_path_distance_jacobian2);
+    }
+  } else {
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
+#pragma omp parallel for if (!arts_omp_in_parallel()) \
+    firstprivate(propagation_path_distance_jacobian1, \
+                     propagation_path_distance_jacobian2)
+    for (Size ip = 1; ip < np; ip++) {
+      if (do_abort) continue;
+      try {
+        const Numeric propagation_path_distance =
+            path::distance(propagation_path[ip - 1].pos,
+                           propagation_path[ip].pos,
+                           surface_field);
+        if (hse_derivative and temperature_derivative_position >= 0) {
+          propagation_path_distance_jacobian1[temperature_derivative_position] =
+              propagation_path_distance /
+              (2.0 * propagation_path_atmospheric_point[ip - 1].temperature);
+          propagation_path_distance_jacobian2[temperature_derivative_position] =
+              propagation_path_distance /
+              (2.0 * propagation_path_atmospheric_point[ip].temperature);
+        }
+
+        two_level_exp(propagation_path_transmission_matrix[ip],
+                      propagation_path_transmission_matrix_jacobian[0][ip],
+                      propagation_path_transmission_matrix_jacobian[1][ip],
+                      propagation_path_propagation_matrix[ip - 1],
+                      propagation_path_propagation_matrix[ip],
+                      propagation_path_propagation_matrix_jacobian[ip - 1],
+                      propagation_path_propagation_matrix_jacobian[ip],
+                      propagation_path_distance,
+                      propagation_path_distance_jacobian1,
+                      propagation_path_distance_jacobian2);
+      } catch (const std::runtime_error &e) {
 #pragma omp critical(iyEmissionStandard_transmission)
-      {
-        do_abort = true;
-        fail_msg.push_back(
-            var_string("Runtime-error in transmission calculation at index ",
-                       ip,
-                       ": \n",
-                       e.what()));
+        {
+          do_abort = true;
+          fail_msg.push_back(
+              var_string("Runtime-error in transmission calculation at index ",
+                         ip,
+                         ": \n",
+                         e.what()));
+        }
       }
     }
-  }
 
-  ARTS_USER_ERROR_IF(do_abort, "Error messages from failed cases:\n", fail_msg)
+    ARTS_USER_ERROR_IF(
+        do_abort, "Error messages from failed cases:\n", fail_msg)
+  }
 }
 ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_atmospheric_pointFromPath(
     ArrayOfAtmPoint &propagation_path_atmospheric_point,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const AtmField &atm_field) try {
   forward_atm_path(
-      atm_path_resize(propagation_path_atmospheric_point, rad_path),
-      rad_path,
+      atm_path_resize(propagation_path_atmospheric_point, propagation_path),
+      propagation_path,
       atm_field);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -321,14 +348,14 @@ ARTS_METHOD_ERROR_CATCH
 void propagation_path_frequency_gridFromPath(
     ArrayOfAscendingGrid &propagation_path_frequency_grid,
     const AscendingGrid &frequency_grid,
-    const ArrayOfPropagationPathPoint &rad_path,
+    const ArrayOfPropagationPathPoint &propagation_path,
     const ArrayOfAtmPoint &propagation_path_atmospheric_point,
     const Numeric &rte_alonglos_v) try {
   forward_path_freq(path_freq_resize(propagation_path_frequency_grid,
                                      frequency_grid,
                                      propagation_path_atmospheric_point),
                     frequency_grid,
-                    rad_path,
+                    propagation_path,
                     propagation_path_atmospheric_point,
                     rte_alonglos_v);
 }
@@ -436,14 +463,16 @@ ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_transmission_matrix_cumulativeForward(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) {
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) try {
   propagation_path_transmission_matrix_cumulative =
       forward_cumulative_transmission(propagation_path_transmission_matrix);
 }
+ARTS_METHOD_ERROR_CATCH
 
 void propagation_path_transmission_matrix_cumulativeReverse(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
-    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) {
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix) try {
   propagation_path_transmission_matrix_cumulative =
       reverse_cumulative_transmission(propagation_path_transmission_matrix);
 }
+ARTS_METHOD_ERROR_CATCH

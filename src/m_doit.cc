@@ -915,7 +915,7 @@ void DoitWriteIterationFields(  //WS input
   // All iterations for all frequencies are written to files
   if (frequencies[0] == -1 && iterations[0] == -1) {
     xml_write_to_file(
-        os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
+        os.str() + ".xml", cloudbox_field_mono, FileType::ascii, 0);
   }
 
   for (Size j = 0; j < frequencies.size(); j++) {
@@ -923,7 +923,7 @@ void DoitWriteIterationFields(  //WS input
       // All iterations are written to files
       if (iterations[0] == -1) {
         xml_write_to_file(
-            os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
+            os.str() + ".xml", cloudbox_field_mono, FileType::ascii, 0);
       }
 
       // Only the iterations given by the keyword are written to a file
@@ -931,7 +931,7 @@ void DoitWriteIterationFields(  //WS input
         for (Size i = 0; i < iterations.size(); i++) {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file(
-                os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0);
+                os.str() + ".xml", cloudbox_field_mono, FileType::ascii, 0);
         }
       }
     }

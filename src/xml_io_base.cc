@@ -307,19 +307,6 @@ void XMLTag::write_to_stream(std::ostream& os) {
   os << ">";
 }
 
-FileType string2filetype(const String& file_format) {
-  if (file_format == "ascii") return FILE_TYPE_ASCII;
-  if (file_format == "zascii") return FILE_TYPE_ZIPPED_ASCII;
-  if (file_format == "binary") return FILE_TYPE_BINARY;
-
-  throw std::runtime_error(
-      "file_format contains illegal string. "
-      "Valid values are:\n"
-      "  ascii:  XML output\n"
-      "  zascii: Zipped XML output\n"
-      "  binary: XML + binary output");
-}
-
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
 ////////////////////////////////////////////////////////////////////////////
@@ -569,9 +556,9 @@ void xml_read_header_from_stream(std::istream& is,
   // Check file format
   tag.get_attribute_value("format", strtype);
   if (strtype == "binary") {
-    ftype = FILE_TYPE_BINARY;
+    ftype = FileType::binary;
   } else {
-    ftype = FILE_TYPE_ASCII;
+    ftype = FileType::ascii;
   }
 
   // Check endian type
@@ -633,11 +620,11 @@ void xml_write_header_to_stream(std::ostream& os,
 
   tag.set_name("arts");
   switch (ftype) {
-    case FILE_TYPE_ASCII:
-    case FILE_TYPE_ZIPPED_ASCII:
+    case FileType::ascii:
+    case FileType::zascii:
       tag.add_attribute("format", "ascii");
       break;
-    case FILE_TYPE_BINARY:
+    case FileType::binary:
       tag.add_attribute("format", "binary");
       break;
   }

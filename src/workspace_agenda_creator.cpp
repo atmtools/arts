@@ -1,7 +1,10 @@
 #include "workspace_agenda_creator.h"
 
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include "atm.h"
+#include "path_point.h"
 
 SetWsv::SetWsv(std::string n) : name(std::move(n)) {
   if (auto ind = name.find('='); ind not_eq name.npos) {
@@ -48,71 +51,69 @@ Agenda AgendaCreator::finalize() && {
   return ag;
 };
 
-ENUMCLASS(propagation_matrix_agendaOption, char, Empty)
-
 Agenda get_propagation_matrix_agenda(const std::string& option) {
   AgendaCreator agenda("propmat_clearsky_agenda");
 
-  using enum propagation_matrix_agendaOption;
-  switch (topropagation_matrix_agendaOptionOrThrow(option)) {
+  using enum propagation_matrix_agendaPredefined;
+  switch (to<propagation_matrix_agendaPredefined>(option)) {
     case Empty:
       agenda.add("propmat_clearskyInit");
-    case FINAL:
-      break;
   }
 
   return std::move(agenda).finalize();
 }
-
-ENUMCLASS(spectral_radiance_observer_agendaOption, char, GeometricEmission)
 
 Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
   AgendaCreator agenda("spectral_radiance_observer_agenda");
 
-  using enum spectral_radiance_observer_agendaOption;
-  switch (tospectral_radiance_observer_agendaOptionOrThrow(option)) {
-    case GeometricEmission:
-      agenda.add("propagation_pathGeometric",
-                 SetWsv{"pos", "spectral_radiance_observer_position"},
-                 SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
-                 SetWsv{"as_observer", Index{1}});
+  using enum spectral_radiance_observer_agendaPredefined;
+  switch (to<spectral_radiance_observer_agendaPredefined>(option)) {
+    case Emission:
+      agenda.add("propagation_path_observer_agendaExecute");
       agenda.add("spectral_radianceStandardEmission");
-      break;
-    case FINAL:
       break;
   }
 
   return std::move(agenda).finalize();
 }
-
-ENUMCLASS(spectral_radiance_space_agendaOption, char, UniformCosmicBackground)
 
 Agenda get_spectral_radiance_space_agenda(const std::string& option) {
   AgendaCreator agenda("spectral_radiance_space_agenda");
 
-  using enum spectral_radiance_space_agendaOption;
-  switch (tospectral_radiance_space_agendaOptionOrThrow(option)) {
+  using enum spectral_radiance_space_agendaPredefined;
+  switch (to<spectral_radiance_space_agendaPredefined>(option)) {
     case UniformCosmicBackground:
       agenda.add("spectral_radianceUniformCosmicBackground");
-      break;
-    case FINAL:
+      agenda.add("spectral_radiance_jacobianEmpty");
       break;
   }
 
   return std::move(agenda).finalize();
 }
 
-ENUMCLASS(spectral_radiance_surface_agendaOption, char, Blackbody)
-
 Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
   AgendaCreator agenda("spectral_radiance_surface_agenda");
 
-  using enum spectral_radiance_surface_agendaOption;
-  switch (tospectral_radiance_surface_agendaOptionOrThrow(option)) {
+  using enum spectral_radiance_surface_agendaPredefined;
+  switch (to<spectral_radiance_surface_agendaPredefined>(option)) {
     case Blackbody:
       agenda.add("spectral_radianceSurfaceBlackbody");
       break;
-    case FINAL:
+  }
+
+  return std::move(agenda).finalize();
+}
+
+Agenda get_propagation_path_observer_agenda(const std::string& option) {
+  AgendaCreator agenda("propagation_path_observer_agenda");
+
+  using enum propagation_path_observer_agendaPredefined;
+  switch (to<propagation_path_observer_agendaPredefined>(option)) {
+    case Geometric:
+      agenda.add("propagation_pathGeometric",
+                 SetWsv{"pos", "spectral_radiance_observer_position"},
+                 SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
+                 SetWsv{"as_observer", Index{1}});
       break;
   }
 

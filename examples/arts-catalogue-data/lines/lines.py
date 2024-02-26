@@ -107,10 +107,7 @@ are the consequences:
     also has the len 2, but that all lines are now in the first entry.
 
 """
-# FIXME
-ws.old_lines = pyarts.arts.ArrayOfArrayOfAbsorptionLines()
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(ws.old_lines, basename="lines/")
-ws.absorption_bandsFromAbsorbtionLines(abs_lines_per_species=ws.old_lines)
+ws.absorption_bandsReadSpeciesSplitCatalog(basename="lines/")
 
 """
 

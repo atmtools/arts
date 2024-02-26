@@ -18,7 +18,6 @@
 #include "absorptionlines.h"
 #include "array.h"
 #include "arts_omp.h"
-#include "arts_options.h"
 #include "debug.h"
 #include "enums.h"
 #include "file.h"
@@ -57,36 +56,9 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
         if (not same_or_joker(this_tag.Isotopologue(), lines.Isotopologue()))
           continue;
 
-        // If there is a frequency range, we have to check so that only selected lines are included
-        if (this_tag.lower_freq >= 0 or this_tag.upper_freq >= 0) {
-          const Numeric low = (this_tag.lower_freq >= 0)
-                                  ? this_tag.lower_freq
-                                  : std::numeric_limits<Numeric>::lowest();
-          const Numeric upp = (this_tag.upper_freq >= 0)
-                                  ? this_tag.upper_freq
-                                  : std::numeric_limits<Numeric>::max();
-
-          // Fill up a copy of the line record to match with the wished frequency criteria
-          AbsorptionLines these_lines = lines;
-          these_lines.lines.resize(0);
-          for (Index k = lines.NumLines() - 1; k >= 0; k--)
-            if (low <= lines.lines[k].F0 and upp >= lines.lines[k].F0)
-              these_lines.AppendSingleLine(lines.PopLine(k));
-
-          // Append these lines after sorting them if there are any of them
-          if (these_lines.NumLines()) {
-            these_lines.ReverseLines();
 #pragma omp critical
-            abs_lines_per_species[i].push_back(these_lines);
-          }
-
-          // If this means we have deleted all lines, then we leave
-          if (lines.NumLines() == 0) goto leave_inner_loop;
-        } else {
-#pragma omp critical
-          abs_lines_per_species[i].push_back(lines);
-          goto leave_inner_loop;
-        }
+        abs_lines_per_species[i].push_back(lines);
+        goto leave_inner_loop;
       }
     }
   leave_inner_loop: {}
@@ -220,16 +192,16 @@ Array<QuantumNumberType> string2vecqn(std::string_view qnstr) {
   using namespace Quantum::Number;
 
   if (qnstr == "DEFAULT_GLOBAL") {
-    return Array<Type>(global_types.begin(), global_types.end());
+    return Array<QuantumNumberType>(global_types.begin(), global_types.end());
   }
   if (qnstr == "DEFAULT_LOCAL") {
-    return Array<Type>(local_types.begin(), local_types.end());
+    return Array<QuantumNumberType>(local_types.begin(), local_types.end());
   }
 
   const Index N = count_items(qnstr);
-  Array<Type> nums(N);
+  Array<QuantumNumberType> nums(N);
   for (Index i = 0; i < N; i++) {
-    nums[i] = toTypeOrThrow(items(qnstr, i));
+    nums[i] = to<QuantumNumberType>(items(qnstr, i));
   }
 
   return nums;
@@ -238,8 +210,8 @@ Array<QuantumNumberType> string2vecqn(std::string_view qnstr) {
 bool check_local(const Array<QuantumNumberType>& local_state) {
   using namespace Quantum::Number;
   for (auto qn : local_state)
-    if (common_value_type(common_value_type(qn), ValueType::H) not_eq
-        ValueType::H)
+    if (common_value_type(common_value_type(qn), QuantumNumberValueType::H) not_eq
+        QuantumNumberValueType::H)
       return false;
   return true;
 }
@@ -276,7 +248,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
   std::istream& is_xml = *ifs;
-  auto a = FILE_TYPE_ASCII;
+  auto a = FileType::ascii;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
   xml_read_header_from_stream(is_xml, a, b, c);
@@ -415,7 +387,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   std::shared_ptr<std::istream> ifs = nullptr;
   xml_find_and_open_input_file(ifs, artscat_file);
   std::istream& is_xml = *ifs;
-  auto a = FILE_TYPE_ASCII;
+  auto a = FileType::ascii;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
   xml_read_header_from_stream(is_xml, a, b, c);
@@ -530,7 +502,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_lines.resize(0);
 
   // Build a set of species indices. Duplicates are ignored.
-  const std::set<Species::Species> unique_species = lbl_species(abs_species);
+  const std::set<SpeciesEnum> unique_species = lbl_species(abs_species);
 
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -545,7 +517,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
 
     try {
       ReadARTSCAT(more_abs_lines,
-                  tmpbasename + String(Species::toShortName(spec)) + ".xml",
+                  tmpbasename + String(toString<1>(spec)) + ".xml",
                   fmin,
                   fmax,
                   globalquantumnumbers,
@@ -611,8 +583,8 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                      "Can only have non-string values in the local state")
 
   // HITRAN type
-  const Options::HitranType hitran_version =
-      Options::toHitranTypeOrThrow(hitran_type);
+  const HitranType hitran_version =
+      to<HitranType>(hitran_type);
 
   // Hitran data
   std::ifstream is;
@@ -623,13 +595,13 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   while (go_on) {
     Absorption::SingleLineExternal sline;
     switch (hitran_version) {
-      case Options::HitranType::Post2004:
+      case HitranType::Post2004:
         sline = Absorption::ReadFromHitran2004Stream(is);
         break;
-      case Options::HitranType::Pre2004:
+      case HitranType::Pre2004:
         sline = Absorption::ReadFromHitran2001Stream(is);
         break;
-      case Options::HitranType::Online:
+      case HitranType::Online:
         sline = Absorption::ReadFromHitranOnlineStream(is);
         break;
       default:
@@ -908,7 +880,7 @@ void abs_lines_per_speciesReadSpeciesSplitCatalog(
   abs_lines_per_species.resize(0);
 
   // Build a set of species indices. Duplicates are ignored.
-  const std::set<Species::Species> unique_species = lbl_species(abs_species);
+  const std::set<SpeciesEnum> unique_species = lbl_species(abs_species);
 
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -1139,7 +1111,7 @@ void abs_linesEmptyBroadeningParameters(ArrayOfAbsorptionLines& abs_lines) {
         for (Index ivar = 0; ivar < LineShape::nVars; ivar++) {
           if (var_is_empty[ivar]) {
             band.lines[iline].lineshape.Data()[ispec].Data()[ivar].type =
-                LineShape::TemperatureModel::None;
+                LineShapeTemperatureModelOld::None;
           }
         }
       }
@@ -1307,7 +1279,7 @@ void abs_linesReplaceLines(ArrayOfAbsorptionLines& abs_lines,
 void abs_linesCutoff(ArrayOfAbsorptionLines& abs_lines,
                      const String& type,
                      const Numeric& x) {
-  auto t = Absorption::toCutoffTypeOrThrow(type);
+  auto t = to<AbsorptionCutoffTypeOld>(type);
   for (auto& lines : abs_lines) {
     lines.cutoff = t;
     lines.cutofffreq = x;
@@ -1328,7 +1300,7 @@ void abs_linesCutoffMatch(ArrayOfAbsorptionLines& abs_lines,
                           const String& type,
                           const Numeric& x,
                           const QuantumIdentifier& QI) {
-  auto t = Absorption::toCutoffTypeOrThrow(type);
+  auto t = to<AbsorptionCutoffTypeOld>(type);
   for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1373,7 +1345,7 @@ void abs_lines_per_speciesCutoffSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesMirroring(ArrayOfAbsorptionLines& abs_lines, const String& type) {
-  auto t = Absorption::toMirroringTypeOrThrow(type);
+  auto t = to<AbsorptionMirroringTypeOld>(type);
   for (auto& lines : abs_lines) lines.mirroring = t;
 }
 
@@ -1388,7 +1360,7 @@ void abs_lines_per_speciesMirroring(
 void abs_linesMirroringMatch(ArrayOfAbsorptionLines& abs_lines,
                              const String& type,
                              const QuantumIdentifier& QI) {
-  auto t = Absorption::toMirroringTypeOrThrow(type);
+  auto t = to<AbsorptionMirroringTypeOld>(type);
   for (auto& band : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, band.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1427,7 +1399,7 @@ void abs_lines_per_speciesMirroringSpecies(
 void abs_linesManualMirroring(ArrayOfAbsorptionLines& abs_lines) {
   const ArrayOfAbsorptionLines abs_lines_copy = abs_lines;
   for (AbsorptionLines band : abs_lines_copy) {
-    band.mirroring = Absorption::MirroringType::Manual;
+    band.mirroring = AbsorptionMirroringTypeOld::Manual;
 
     //! Don't allow running this function twice
     ARTS_USER_ERROR_IF(
@@ -1488,7 +1460,7 @@ void abs_lines_per_speciesManualMirroringSpecies(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesPopulation(ArrayOfAbsorptionLines& abs_lines,
                          const String& type) {
-  auto t = Absorption::toPopulationTypeOrThrow(type);
+  auto t = to<AbsorptionPopulationTypeOld>(type);
   for (auto& lines : abs_lines) lines.population = t;
 }
 
@@ -1503,7 +1475,7 @@ void abs_lines_per_speciesPopulation(
 void abs_linesPopulationMatch(ArrayOfAbsorptionLines& abs_lines,
                               const String& type,
                               const QuantumIdentifier& QI) {
-  auto t = Absorption::toPopulationTypeOrThrow(type);
+  auto t = to<AbsorptionPopulationTypeOld>(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1545,7 +1517,7 @@ void abs_lines_per_speciesPopulationSpecies(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesNormalization(ArrayOfAbsorptionLines& abs_lines,
                             const String& type) {
-  auto t = Absorption::toNormalizationTypeOrThrow(type);
+  auto t = to<AbsorptionNormalizationTypeOld>(type);
   for (auto& lines : abs_lines) lines.normalization = t;
 }
 
@@ -1560,7 +1532,7 @@ void abs_lines_per_speciesNormalization(
 void abs_linesNormalizationMatch(ArrayOfAbsorptionLines& abs_lines,
                                  const String& type,
                                  const QuantumIdentifier& QI) {
-  auto t = Absorption::toNormalizationTypeOrThrow(type);
+  auto t = to<AbsorptionNormalizationTypeOld>(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -1602,8 +1574,7 @@ void abs_lines_per_speciesNormalizationSpecies(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesLineShapeType(ArrayOfAbsorptionLines& abs_lines,
                             const String& type) {
-  auto t = LineShape::toType(type);
-  check_enum_error(t, "Cannot understand type: ", type);
+  auto t = to<LineShapeTypeOld>(type);
   for (auto& lines : abs_lines) lines.lineshapetype = t;
 }
 
@@ -1618,7 +1589,7 @@ void abs_lines_per_speciesLineShapeType(
 void abs_linesLineShapeTypeMatch(ArrayOfAbsorptionLines& abs_lines,
                                  const String& type,
                                  const QuantumIdentifier& QI) {
-  auto t = LineShape::toTypeOrThrow(type);
+  auto t = to<LineShapeTypeOld>(type);
   for (auto& lines : abs_lines) {
     const Quantum::Number::StateMatch lt(QI, lines.quantumidentity);
     if (lt == Quantum::Number::StateMatchType::Full) {
@@ -2002,11 +1973,11 @@ void abs_linesLineShapeModelParametersMatchingLines(
   const bool do_bath = species == LineShape::bath_broadening;
 
   // Set the spec index if possible
-  const Species::Species spec = do_self   ? Species::Species::FINAL
-                                : do_bath ? Species::Species::Bath
+  const SpeciesEnum spec = do_self   ? static_cast<SpeciesEnum>(-1)
+                                : do_bath ? SpeciesEnum::Bath
                                           : SpeciesTag(species).Spec();
 
-  const LineShape::Variable var = LineShape::toVariableOrThrow(parameter);
+  const LineShapeVariableOld var = to<LineShapeVariableOld>(parameter);
 
   ARTS_USER_ERROR_IF(new_values.size() not_eq LineShape::ModelParameters::N,
                      "Mismatch between input and expected number of variables\n"
@@ -2017,7 +1988,7 @@ void abs_linesLineShapeModelParametersMatchingLines(
                      " values\n")
 
   LineShape::ModelParameters newdata;
-  newdata.type = LineShape::toTemperatureModelOrThrow(temperaturemodel);
+  newdata.type = to<LineShapeTemperatureModelOld>(temperaturemodel);
   newdata.X0 = new_values[0];
   newdata.X1 = new_values[1];
   newdata.X2 = new_values[2];
@@ -2287,9 +2258,9 @@ void abs_lines_per_speciesPopulationNlteField(
   }
   nlte_do = 1;
 
-  const Absorption::PopulationType poptyp =
-      nlte_vib_energies.empty() ? Absorption::PopulationType::NLTE
-                                : Absorption::PopulationType::VibTemps;
+  const AbsorptionPopulationTypeOld poptyp =
+      nlte_vib_energies.empty() ? AbsorptionPopulationTypeOld::NLTE
+                                : AbsorptionPopulationTypeOld::VibTemps;
 
   for (auto& spec_lines : abs_lines_per_species) {
     for (auto& band : spec_lines) {
@@ -2297,7 +2268,7 @@ void abs_lines_per_speciesPopulationNlteField(
       for (auto& id : atm_field.nlte()) {
         for (auto& line : band.lines) {
           const auto lt =
-              poptyp == Absorption::PopulationType::NLTE
+              poptyp == AbsorptionPopulationTypeOld::NLTE
                   ? Quantum::Number::StateMatch(
                         id.first, line.localquanta, band.quantumidentity)
                   : Quantum::Number::StateMatch(id.first, band.quantumidentity);
@@ -2571,29 +2542,6 @@ void abs_lines_per_speciesRemoveLinesFromSpecies(
                                     lower_intensity,
                                     safe,
                                     flip_flims);
-}
-
-void abs_linesSort(ArrayOfAbsorptionLines& abs_lines, const String& option) {
-  const auto opt = Options::toSortingOptionOrThrow(option);
-
-  abs_linesRemoveEmptyBands(abs_lines);
-
-  switch (opt) {
-    case Options::SortingOption::ByFrequency:
-      for (auto& band : abs_lines) band.sort_by_frequency();
-      std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
-        return a.lines[0].F0 <= b.lines[0].F0;
-      });
-      break;
-    case Options::SortingOption::ByEinstein:
-      for (auto& band : abs_lines) band.sort_by_einstein();
-      std::sort(abs_lines.begin(), abs_lines.end(), [](auto& a, auto& b) {
-        return a.lines[0].A <= b.lines[0].A;
-      });
-      break;
-    case Options::SortingOption::FINAL: { /*leave last*/
-    }
-  }
 }
 
 void abs_linesTurnOffLineMixing(ArrayOfAbsorptionLines& abs_lines) {

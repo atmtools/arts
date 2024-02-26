@@ -360,28 +360,6 @@ constexpr Index pos_finder(Index p0, const Numeric x, const Vec& xi) requires(te
   } else return p0;
 }
 
-/*! Type of Lagrange interpolation weights
- * 
- * Note that Cyclic interpolation has reduced
- * poly-order crossing the cycle if both the
- * start and the end of the cycle are in the
- * original x-data and the polyorder is above 1.  
- * 
- * Note that all derivatives are linear regardless
- * of the type
- */
-ENUMCLASS(GridType, char,
-          Standard,   /* 1-to-1 interpolation grid */
-          Cyclic,     /* Cyclic interpolation grid */
-          Log,        /* Natural logarithm interpolation grid */
-          Log10,      /* 10-base logarithm interpolation grid */
-          Log2,       /* 2-base logarithm interpolation grid */
-          SinDeg,     /* Cosine in degrees interpolation grid, grid only defined [-90, 90] */
-          SinRad,     /* Cosine in radians interpolation grid, grid only defined [-PI/2, PI/2] */
-          CosDeg,     /* Cosine in degrees interpolation grid, grid only defined [0, 180] */
-          CosRad      /* Cosine in radians interpolation grid, grid only defined [0,  PI] */
-         );
-
 template <GridType type, template <cycle_limit lim> class Limit, matpack::ranked_matpack_type<Numeric, 1> Vec>
 constexpr Numeric l_factor(const Numeric x, const Vec& xi, const Index j, const Index m) {
   if constexpr (type == GridType::Log) {
@@ -1513,12 +1491,16 @@ using LagrangeInterpolation = my_interp::Lagrange<>;
 using ArrayOfLagrangeInterpolation = Array<LagrangeInterpolation>;
 
 // For logarithmic interpolation
-using LagrangeLogInterpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Log>;
+using LagrangeLogInterpolation = my_interp::Lagrange<-1, false, GridType::Log>;
 using ArrayOfLagrangeLogInterpolation = Array<LagrangeLogInterpolation>;
 
 // For cyclic interpolation between 0 and 360
-using LagrangeCyclic0to360Interpolation = my_interp::Lagrange<-1, false, my_interp::GridType::Cyclic, my_interp::cycle_0_p360>;
+using LagrangeCyclic0to360Interpolation = my_interp::Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_0_p360>;
 using ArrayOfLagrangeCyclic0to360Interpolation = Array<LagrangeCyclic0to360Interpolation>;
+
+// For cyclic interpolation between -180 and 18
+using LagrangeCyclicPM180Interpolation = my_interp::Lagrange<-1, false, GridType::Cyclic, my_interp::cycle_m180_p180>;
+using ArrayOfLagrangeCyclicPM180Interpolation = Array<LagrangeCyclicPM180Interpolation>;
 
 template <std::size_t sz, bool deriv=false>
 using FixedLagrangeInterpolation = my_interp::Lagrange<sz, deriv>;

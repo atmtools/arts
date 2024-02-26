@@ -125,7 +125,7 @@ Numeric dline_center_calc_dT(const line& line, const AtmPoint& atm) {
 }
 
 Numeric dline_center_calc_dVMR(const line& line,
-                               const Species::Species spec,
+                               const SpeciesEnum spec,
                                const AtmPoint& atm) {
   return line.ls.dD0_dVMR(atm, spec);
 }
@@ -143,7 +143,7 @@ Numeric dline_center_calc_dT(const line& line,
 }
 
 Numeric dline_center_calc_dVMR(const line& line,
-                               const Species::Species spec,
+                               const SpeciesEnum spec,
                                const AtmPoint& atm,
                                Size ispec) {
   const auto& ls = line.ls.single_models[ispec];
@@ -440,7 +440,7 @@ void band_shape_helper(std::vector<single_shape>& lines,
   lines.reserve(count_lines(bnd, pol));
   pos.reserve(lines.capacity());
 
-  using enum CutoffType;
+  using enum LineByLineCutoffType;
   switch (bnd.cutoff) {
     case None:
       for (Size iline = 0; iline < bnd.size(); iline++) {
@@ -453,8 +453,6 @@ void band_shape_helper(std::vector<single_shape>& lines,
         lines_push_back(lines, pos, qid, line, atm, pol, iline++);
       }
     } break;
-    case FINAL:
-      ARTS_USER_ERROR("Bad state")
   }
 
   bubble_sort_by(
@@ -673,7 +671,7 @@ void ComputeData::core_calc(const band_shape& shp,
   de_ratio.resize(shp.size());
   dcut.resize(shp.size());
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp(cut);
     std::transform(
         f_grid.begin(), f_grid.end(), shape.begin(), [this, &shp](Numeric f) {
@@ -737,7 +735,7 @@ void ComputeData::dt_core_calc(const QuantumIdentifier& qid,
     }
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dT(dcut, dk, de_ratio, dz, dz_fac);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -767,7 +765,7 @@ void ComputeData::df_core_calc(const band_shape& shp,
                    return N * (r * std::exp(-r) - std::expm1(-r)) * c;
                  });
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.df(dcut);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -796,7 +794,7 @@ void ComputeData::dmag_u_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -825,7 +823,7 @@ void ComputeData::dmag_v_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -854,7 +852,7 @@ void ComputeData::dmag_w_core_calc(const band_shape& shp,
             line.z.Splitting(line.qn.val, pol, pos[i].iz);
   }
 
-  if (bnd.cutoff != CutoffType::None) {
+  if (bnd.cutoff != LineByLineCutoffType::None) {
     shp.dH(dcut, dz);
     std::transform(
         f_grid.begin(), f_grid.end(), dshape.begin(), [this, &shp](Numeric f) {
@@ -877,8 +875,8 @@ void compute_derivative(PropmatVectorView dpm,
                         const band_data& bnd,
                         const AtmPoint& atm,
                         const zeeman::pol pol,
-                        const Atm::Key& key) {
-  using enum Atm::Key;
+                        const AtmKey& key) {
+  using enum AtmKey;
   switch (key) {
     case t:
       com_data.dt_core_calc(qid, shape, bnd, f_grid, atm, pol);
@@ -956,8 +954,6 @@ void compute_derivative(PropmatVectorView dpm,
         dsv[i] += {dsv_pm.A(), dsv_pm.B(), dsv_pm.C(), dsv_pm.D()};
       }
       break;
-    case FINAL:
-      break;
   }
 }
 
@@ -970,7 +966,7 @@ void compute_derivative(PropmatVectorView,
                         const band_data&,
                         const AtmPoint&,
                         const zeeman::pol,
-                        const SpeciesIsotopeRecord& deriv_spec) {
+                        const SpeciesIsotope& deriv_spec) {
   ARTS_USER_ERROR_IF(deriv_spec == qid.Isotopologue(), "Not supported")
 }
 
@@ -983,7 +979,7 @@ void compute_derivative(PropmatVectorView,
                         const band_data&,
                         const AtmPoint&,
                         const zeeman::pol,
-                        const Species::Species&) {
+                        const SpeciesEnum&) {
   ARTS_USER_ERROR("Not supported")
 }
 
@@ -1004,7 +1000,7 @@ void compute_derivative(PropmatVectorView,
                         StokvecVectorView,
                         ComputeData&,
                         const ExhaustiveConstVectorView&,
-                        const SpeciesIsotopeRecord&,
+                        const SpeciesIsotope&,
                         const band_shape&,
                         const band_data&,
                         const AtmPoint&,
@@ -1038,7 +1034,7 @@ void calculate(PropmatVectorView pm,
   const Index nf = f_grid.size();
   if (nf == 0) return;
 
-  const SpeciesIsotopeRecord spec = bnd_qid.Isotopologue();
+  const SpeciesIsotope spec = bnd_qid.Isotopologue();
   const Numeric fmin = f_grid.front();
   const Numeric fmax = f_grid.back();
 
