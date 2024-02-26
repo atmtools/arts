@@ -8,6 +8,7 @@
 
 #include <limits>
 #include <string_view>
+#include <tuple>
 
 namespace Species {
 inline constexpr std::string_view Joker = "*";
@@ -1338,6 +1339,10 @@ using SpeciesIsotopologueRatios = Species::IsotopologueRatios;
 
 constexpr SpeciesIsotope operator""_isot(const char* x, std::size_t) {
   return Species::select(x);
+}
+
+constexpr Index operator""_isot_index(const char* x, std::size_t) {
+  return Species::find_species_index(x);
 }
 
 template <>

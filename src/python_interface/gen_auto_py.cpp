@@ -1251,21 +1251,13 @@ void enum_option(std::ofstream& os, const EnumeratedOption& wso) {
         "        }))\n";
 
   os << "      .def_static(\"get_options\", [](){return enumtyps::" << wso.name
-     << "Types;})\n";
+     << "Types;}, \"Get a list of all options\")\n";
   os << "      .def_static(\"get_options_as_strings\", [](){return enumstrs::"
-     << wso.name << "Names<>;})\n";
-
-  const auto is_valid = [](const std::string& x) {
-    return not(std::ranges::any_of(x, Cmp::eq('+')) or
-               std::ranges::any_of(x, Cmp::eq('-')) or
-               std::ranges::any_of(x, Cmp::eq('/')) or
-               std::ranges::any_of(x, Cmp::eq('*')));
-  };
+     << wso.name << "Names<>;}, \"Get a list of all options as strings\")\n";
 
   static std::array except{"None", "any", "all", "print"};
   for (auto& value : wso.values_and_desc) {
     for (auto& x : value | std::views::take(value.size() - 1)) {
-      if (not is_valid(x)) continue;
       os << "      .def_property_readonly_static(\"" << x;
 
       if (std::ranges::any_of(except, Cmp::eq(x))) {

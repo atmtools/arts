@@ -50,7 +50,7 @@ bool compute_selection(
     const Absorption::PredefinedModel::ModelVariant& predefined_model_data
     [[maybe_unused]]) try {
   switch (Species::find_species_index(model)) {
-    case Species::find_species_index(SpeciesEnum::Water, "ForeignContCKDMT400"):
+    case "H2O-ForeignContCKDMT400"_isot_index:
       if constexpr (not check_exist)
         MT_CKD400::compute_foreign_h2o(
             pm,
@@ -60,7 +60,7 @@ bool compute_selection(
             vmr.H2O,
             std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "SelfContCKDMT400"):
+    case "H2O-SelfContCKDMT400"_isot_index:
       if constexpr (not check_exist)
         MT_CKD400::compute_self_h2o(
             pm,
@@ -70,112 +70,108 @@ bool compute_selection(
             vmr.H2O,
             std::get<MT_CKD400::WaterData>(predefined_model_data));
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "MPM2020"):
+    case "O2-MPM2020"_isot_index:
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "PWR2021"):
+    case "O2-PWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_o2_2021(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "PWR2021"):
+    case "H2O-PWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_h2o_2021(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Nitrogen, "SelfContPWR2021"):
+    case "N2-SelfContPWR2021"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_n2(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "PWR2022"):
+    case "O2-PWR2022"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_o2_2022(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "PWR2022"):
+    case "H2O-PWR2022"_isot_index:
       if constexpr (not check_exist)
         PWR20xx::compute_h2o_2022(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "PWR98"):
+    case "O2-PWR98"_isot_index:
       if constexpr (not check_exist)
         PWR98::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "TRE05"):
+    case "O2-TRE05"_isot_index:
       if constexpr (not check_exist)
         TRE05::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "PWR98"):
+    case "H2O-PWR98"_isot_index:
       if constexpr (not check_exist) PWR98::water(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "MPM89"):
+    case "O2-MPM89"_isot_index:
       if constexpr (not check_exist)
         MPM89::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "MPM89"):
+    case "H2O-MPM89"_isot_index:
       if constexpr (not check_exist) MPM89::water(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Nitrogen, "SelfContMPM93"):
+    case "N2-SelfContMPM93"_isot_index:
       if constexpr (not check_exist)
         MPM93::nitrogen(pm, f, p, t, vmr.N2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "ForeignContCKDMT350"):
+    case "H2O-ForeignContCKDMT350"_isot_index:
       if constexpr (not check_exist)
         CKDMT350::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "SelfContCKDMT350"):
+    case "H2O-SelfContCKDMT350"_isot_index:
       if constexpr (not check_exist)
         CKDMT350::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "ForeignContCKDMT320"):
+    case "H2O-ForeignContCKDMT320"_isot_index:
       if constexpr (not check_exist)
         CKDMT320::compute_foreign_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water, "SelfContCKDMT320"):
+    case "H2O-SelfContCKDMT320"_isot_index:
       if constexpr (not check_exist)
         CKDMT320::compute_self_h2o(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water,
-                                     "ForeignContStandardType"):
+    case "H2O-ForeignContStandardType"_isot_index:
       if constexpr (not check_exist)
         Standard::water_foreign(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Water,
-                                     "SelfContStandardType"):
+    case "H2O-SelfContStandardType"_isot_index:
       if constexpr (not check_exist) Standard::water_self(pm, f, p, t, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen,
-                                     "SelfContStandardType"):
+    case "O2-SelfContStandardType"_isot_index:
       if constexpr (not check_exist)
         Standard::oxygen(pm, f, p, t, vmr.O2, vmr.H2O);
       return true;
-    case Species::find_species_index(SpeciesEnum::Nitrogen,
-                                     "SelfContStandardType"):
+    case "N2-SelfContStandardType"_isot_index:
       if constexpr (not check_exist) Standard::nitrogen(pm, f, p, t, vmr.N2);
       return true;
-    case Species::find_species_index(SpeciesEnum::CarbonDioxide, "CKDMT252"):
+    case "CO2-CKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::carbon_dioxide(pm, f, p, t, vmr.CO2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "visCKDMT252"):
+    case "O2-visCKDMT252"_isot_index:
       if constexpr (not check_exist) MT_CKD252::oxygen_vis(pm, f, p, t, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Nitrogen, "CIAfunCKDMT252"):
+    case "N2-CIAfunCKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::nitrogen_fun(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Nitrogen, "CIArotCKDMT252"):
+    case "N2-CIArotCKDMT252"_isot_index:
       if constexpr (not check_exist)
         MT_CKD252::nitrogen_rot(pm, f, p, t, vmr.N2, vmr.H2O, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "CIAfunCKDMT100"):
+    case "O2-CIAfunCKDMT100"_isot_index:
       if constexpr (not check_exist) MT_CKD100::oxygen_cia(pm, f, p, t, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "v0v0CKDMT100"):
+    case "O2-v0v0CKDMT100"_isot_index:
       if constexpr (not check_exist)
         MT_CKD100::oxygen_v0v0(pm, f, p, t, vmr.O2, vmr.N2);
       return true;
-    case Species::find_species_index(SpeciesEnum::Oxygen, "v1v0CKDMT100"):
+    case "O2-v1v0CKDMT100"_isot_index:
       if constexpr (not check_exist)
         MT_CKD100::oxygen_v0v1(pm, f, p, t, vmr.O2);
       return true;
-    case Species::find_species_index(SpeciesEnum::liquidcloud, "ELL07"):
+    case "liquidcloud-ELL07"_isot_index:
       if constexpr (not check_exist) ELL07::compute(pm, f, t, vmr.LWC);
       return true;
   }

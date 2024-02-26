@@ -329,17 +329,17 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"T0", "Constant, X0"},
-              Value{"T1", "Standard, X0 * (T0/T) ^ X1"},
-              Value{"T2", "X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0))"},
-              Value{"T3", "X0 + X1 * (T - T0)"},
-              Value{"T4", "(X0 + X1 * (T0/T - 1)) * (T0/T)^X2"},
-              Value{"T5", "X0 * (T0/T)^(0.25 + 1.5*X1)"},
+              Value{"T0", ":math:`X_0`"},
+              Value{"T1", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1}`)"},
+              Value{"T2", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} \left[1 + X_2 \log\left(\frac{T_0}{T}\right)\right]`)"},
+              Value{"T3", R"(:math:`X_0 + X_1 \left(T - T_0\right)`)"},
+              Value{"T4", R"(:math:`\left[X_0 + X_1 \left(\frac{T_0}{T} - 1\right)\right] \left(\frac{T_0}{T}\right)^{X_2}`)"},
+              Value{"T5", R"(:math:`X_0 \left(\frac{T_0}{T}\right)^{\frac{1}{4} + \frac{3}{2}X_1}`)"},
               Value{
                   "AER",
-                  "X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between"},
-              Value{"DPL", "X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3"},
-              Value{"POLY", "X0 + X1 * T + X2 * T ^ 2 + X3 * T ^ 3 + ..."},
+                  R"(:math:`X(200) = X_0`; :math:`X(250) = X_1`; :math:`X(298) = X_2`; :math:`X(340) = X_3`;  Linear interpolation in between)"},
+              Value{"DPL", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} + X_2 \left(\frac{T_0}{T}\right) ^ {X_3}`)"},
+              Value{"POLY", R"(:math:`X_0 + X_1 T + X_2 T ^ 2 + X_3 T ^ 3 + \cdots`)"},
           },
   });
 
@@ -350,10 +350,10 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"X0", "Constant, X0"},
-              Value{"X1", "Constant, X1"},
-              Value{"X2", "Constant, X2"},
-              Value{"X3", "Constant, X3"},
+              Value{"X0", "x0", "X_0", "x_0", ":math:`X_0`"},
+              Value{"X1", "x1", "X_1", "x_1", ":math:`X_1`"},
+              Value{"X2", "x2", "X_2", "x_2", ":math:`X_2`"},
+              Value{"X3", "x3", "X_3", "x_3", ":math:`X_3`"},
           },
   });
 
@@ -408,7 +408,7 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"None", "No cutoff"},
-              Value{"ByLine", "Line's are cut 1-by-1"},
+              Value{"ByLine", "Line's are cut 1-by-1 around :attr:`~pyarts.arts.AbsorptionLine.f0`"},
           },
   });
 
@@ -441,7 +441,8 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"Empty", R"(
-    - *propagation_matrixInit*
+
+  - *propagation_matrixInit*
 )"},
           },
   });
@@ -453,8 +454,9 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"Emission", R"(
-    - *propagation_path_observer_agendaExecute*
-    - *spectral_radianceStandardEmission*)"},
+
+  - *propagation_path_observer_agendaExecute*
+  - *spectral_radianceStandardEmission*)"},
           },
   });
 
@@ -465,8 +467,10 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"UniformCosmicBackground", R"(
-    - *spectral_radianceUniformCosmicBackground*
-    - *spectral_radiance_jacobianEmpty*)"},
+
+  - *spectral_radianceUniformCosmicBackground*
+  - *spectral_radiance_jacobianEmpty*
+)"},
           },
   });
 
@@ -477,7 +481,8 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"Blackbody", R"(
-    - *spectral_radianceSurfaceBlackbody*
+
+  - *spectral_radianceSurfaceBlackbody*
 )"},
           },
   });
@@ -489,11 +494,13 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"Geometric", R"(
-    - *propagation_pathGeometric*
 
-        - With ``pos`` as *spectral_radiance_observer_position*
-        - With ``los`` as *spectral_radiance_observer_line_of_sight*
-        - With ``as_observer`` as ``1``)"},
+  - *propagation_pathGeometric*
+
+    - With ``pos`` as *spectral_radiance_observer_position*
+    - With ``los`` as *spectral_radiance_observer_line_of_sight*
+    - With ``as_observer`` as ``1``
+)"},
           },
   });
 
@@ -616,9 +623,9 @@ std::vector<EnumeratedOption> internal_options_create() {
 )",
       .values_and_desc =
           {
-              Value{"u", "East component"},
-              Value{"v", "North component"},
-              Value{"w", "Up component"},
+              Value{"u", "U", "East component"},
+              Value{"v", "V", "North component"},
+              Value{"w", "W", "Up component"},
           },
   });
 
@@ -634,8 +641,8 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"PlanckBT",
                     R"(Planck brightness temperature [K]
 )"},
-              Value{"W_m2_m_sr", "Spectral radiance [W m^-2 m sr^-1]"},
-              Value{"W_m2_m1_sr", "Spectral radiance [W m^-2 m^-1 sr^-1]"},
+              Value{"W_m2_m_sr", "Spectral radiance [W m :math:`^{-2}` m sr :math:`^{-1}`]"},
+              Value{"W_m2_m1_sr", "Spectral radiance [W m :math:`^{-2}` m :math:`^{-1}` sr :math:`^{-1}`]"},
               Value{"unit", "Unit spectral radiance [1]"},
           },
   });
@@ -723,7 +730,7 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"None", "No cutoff frequency at all"},
               Value{
                   "ByLine",
-                  "The cutoff frequency is at SingleLine::F0 plus the cutoff frequency plus the speed independent pressure shift"},
+                  "The cutoff frequency is at f0 plus the cutoff frequency plus the speed independent pressure shift"},
           },
   });
 
@@ -802,10 +809,12 @@ std::vector<EnumeratedOption> internal_options_create() {
       .name = "EarthEllipsoid",
       .desc = "Choice of ellipsoid.\n",
       .values_and_desc =
-          {Value{"Sphere", R"(A spherical Earth. The radius is set following
-the value set for the Earth radius.)"},
+          {Value{"Sphere", R"(A spherical Earth.
+
+  The radius is set following the value set for the Earth radius.)"},
            Value{"WGS84", R"(The reference ellipsoid used by the GPS system.
-Should be the standard choice for a non-spherical Earth.)"}},
+
+  Should be the standard choice for a non-spherical Earth.)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -937,9 +946,9 @@ std::string EnumeratedOption::docs() const {
   for (auto& v : values_and_desc) {
     std::string_view x = "- ";
     for (auto& s : v | std::views::take(n - 1)) {
-      os << std::exchange(x, " or ") << std::quoted(s);
+      os << std::exchange(x, " or ") << "``" << std::quoted(s) << "``";
     }
-    os << " - " << v.back() << '\n';
+    os << ": " << v.back() << '\n';
   }
 
   return os.str();
@@ -1009,8 +1018,10 @@ std::string EnumeratedOption::tail() const {
   os << "std::istream &operator>>(std::istream &is, " << name << "& x);\n\n";
 
   // Create xml-io operator
-  os << "void xml_read_from_stream(std::istream& is_xml, "<<name<<"& s, bifstream*);\n\n";
-  os << "void xml_write_to_stream(std::ostream& os_xml, const "<<name<<"& s, bofstream*, const std::string&);\n\n";
+  os << "void xml_read_from_stream(std::istream& is_xml, " << name
+     << "& s, bifstream*);\n\n";
+  os << "void xml_write_to_stream(std::ostream& os_xml, const " << name
+     << "& s, bofstream*, const std::string&);\n\n";
 
   return os.str();
 }
@@ -1084,18 +1095,26 @@ std::string EnumeratedOption::impl() const {
      << "& x) {\n  std::string s;\n  is >> s;\n  x = to<" << name
      << ">(s);\n  return is;\n}\n\n";
 
-
-  os << "void xml_read_from_stream(std::istream& is, "<<name<<"& s, bifstream*) {\n"
-  "  std::string x;\n"
-  "  is >> x;\n"
-  "  if (x != \"<"<<name<<R"(>") throw std::runtime_error("Expected \"<)"<<name<<">\\\" got: \\\"\" + x + \"\\\"\");\n"
-  "  is >> x;\n"
-  "  s = to<"<<name<<">(x);\n"
-  "  is >> x;\n"
-  "  if (x != \"</"<<name<<R"(>") throw std::runtime_error("Expected \"</)"<<name<<">\\\" got: \\\"\" + x + \"\\\"\");\n"
-  "}\n\n";
-  os << "void xml_write_to_stream(std::ostream& os, const "<<name<<"& s, bofstream*, const std::string&) {\n"
-  "  os << \"<"<<name<<"> \" << toString(s) << \" </"<<name<<">\\n\";\n}\n\n";
+  os << "void xml_read_from_stream(std::istream& is, " << name
+     << "& s, bifstream*) {\n"
+        "  std::string x;\n"
+        "  is >> x;\n"
+        "  if (x != \"<"
+     << name << R"(>") throw std::runtime_error("Expected \"<)" << name
+     << ">\\\" got: \\\"\" + x + \"\\\"\");\n"
+        "  is >> x;\n"
+        "  s = to<"
+     << name
+     << ">(x);\n"
+        "  is >> x;\n"
+        "  if (x != \"</"
+     << name << R"(>") throw std::runtime_error("Expected \"</)" << name
+     << ">\\\" got: \\\"\" + x + \"\\\"\");\n"
+        "}\n\n";
+  os << "void xml_write_to_stream(std::ostream& os, const " << name
+     << "& s, bofstream*, const std::string&) {\n"
+        "  os << \"<"
+     << name << "> \" << toString(s) << \" </" << name << ">\\n\";\n}\n\n";
 
   return os.str();
 }
