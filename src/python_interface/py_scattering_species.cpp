@@ -24,7 +24,8 @@ void py_scattering_species(py::module_& m) try {
                        const ParticulateProperty& pprop) {
              return ScatteringSpeciesProperty(species, pprop);
            }),
-           "From :class:`str`");
+           "From :class:`str`")
+      .PythonInterfaceBasicRepresentation(ScatteringSpeciesProperty);
 
   //
   // Modified gamma PSD

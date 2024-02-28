@@ -1,4 +1,4 @@
-#include "species.h"
+#include "scattering_species.h"
 
 namespace Scattering {
 
@@ -23,7 +23,7 @@ Vector HenyeyGreenstein::evaluate_phase_function(const Vector& theta) {
 
 std::ostream& operator<<(std::ostream& os,
                          const Scattering::HenyeyGreenstein& scatterer) {
-  return os << std::format("HenyeyGreenstein(g = {})", scatterer.g);
+  return os << "HenyeyGreenstein(g = " << scatterer.g << ")";
 }
 
 std::ostream& operator<<(std::ostream& os,

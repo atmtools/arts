@@ -17,12 +17,23 @@ namespace Scattering {
 
 using PSD = std::variant<MGDSingleMoment>;
 
+/*** A particle habit
+ *
+ * A particle habit represents a collection of scattering particles each with
+ * a given size, mass, and specific scattering properties.
+ */
 class ParticleHabit {
  public:
   ParticleHabit(){};
   ParticleHabit(std::string scattering_data){};
 };
 
+/*** A scattering habit
+ *
+ * A scattering habit combines a particle habit with an additional PSD
+ * and thus defines a mapping between atmospheric scattering species properties
+ * and corresponding bulk skattering properties.
+ */
 class ScatteringHabit {
  public:
   ScatteringHabit(){};
