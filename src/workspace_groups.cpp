@@ -168,7 +168,7 @@ internal_workspace_groups() {
   };
 
   wsg_data["ArrayOfScatteringSpecies"] = {
-      .file = "scattering/species.h",
+      .file = "scattering/scattering_species.h",
       .desc = "Represents species of scattering paritlces in the atmosphere."};
 
   wsg_data["ArrayOfScatteringMetaData"] = {
@@ -202,17 +202,11 @@ about the isotopologue, the absorption scheme, and the frequency limits
 )--",
   };
 
-<<<<<<< HEAD
   wsg_data["SpeciesEnum"] = {
       .file = "species.h",
       .desc = R"--(An atmospheric species
 )--",
   };
-=======
-  wsg_data["SpeciesEnum"] = {.file = "species.h",
-                             .desc = R"--(An atmospheric species
-)--"};
->>>>>>> 18307d0d1 (Mocking scattering data interface.)
 
   wsg_data["ArrayOfSparse"] = {
       .file = "matpack_sparse.h",
