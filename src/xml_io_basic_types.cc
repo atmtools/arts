@@ -9,6 +9,7 @@
   \brief This file contains basic functions to handle XML data files.
 
 */
+
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -18,12 +19,123 @@
 #include "double_imanip.h"
 #include "isotopologues.h"
 #include "quantum_numbers.h"
+#include "scattering/scattering_species.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
 ////////////////////////////////////////////////////////////////////////////
+
+//=== JacobianTarget ==================================================================
+
+//! Reads JacobianTarget from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param jt      JacobianTarget return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(std::istream& is_xml,
+                          JacobianTarget& jt,
+                          bifstream* pbifs) {
+  ArtsXMLTag tag;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("JacobianTarget");
+
+  // Type information
+  String typestr, subtypestr;
+  tag.get_attribute_value("Type", typestr);
+  tag.get_attribute_value("SubType", subtypestr);
+  jt.TargetType(typestr);
+  jt.TargetSubType(subtypestr);
+
+  /** Catalog ID */
+  if (jt.needQuantumIdentity()) {
+    String qid;
+    tag.get_attribute_value("id", qid);
+    jt.qid = QuantumIdentifier(qid);
+  }
+
+  if (jt.needArrayOfSpeciesTag()) {
+    String key;
+    tag.get_attribute_value("species", key);
+    jt.species_array_id = ArrayOfSpeciesTag(key);
+  }
+
+  if (jt.needString()) {
+    tag.get_attribute_value("string_key", jt.string_id);
+  }
+
+  if (pbifs) {
+    *pbifs >> jt.perturbation;
+    if (pbifs->fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  } else {
+    is_xml >> double_imanip() >> jt.perturbation;
+    if (is_xml.fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/JacobianTarget");
+
+  ARTS_USER_ERROR_IF(not jt.TargetSubTypeOK(),
+                     "Bad input: ",
+                     typestr,
+                     " or ",
+                     subtypestr,
+                     '\n',
+                     "\tCannot be interpreted as a type or substype...\n")
+}
+
+//! Writes JacobianTarget to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param jt      JacobianTarget value
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(std::ostream& os_xml,
+                         const JacobianTarget& jt,
+                         bofstream* pbofs,
+                         const String& name) {
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  os_xml << '\n';
+  open_tag.set_name("JacobianTarget");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  // Type information
+  open_tag.add_attribute("Type", String{jt.TargetType()});
+  open_tag.add_attribute("SubType", String{jt.TargetSubType()});
+
+  /** Catalog ID */
+  if (jt.needQuantumIdentity()) {
+    open_tag.add_attribute("id", var_string(jt.qid));
+  }
+
+  if (jt.needArrayOfSpeciesTag()) {
+    open_tag.add_attribute("species", jt.species_array_id.Name());
+  }
+
+  if (jt.needString()) {
+    open_tag.add_attribute("string_key", jt.string_id);
+  }
+  open_tag.write_to_stream(os_xml);
+
+  if (pbofs)
+    *pbofs << jt.perturbation;
+  else
+    os_xml << ' ' << jt.perturbation << ' ';
+
+  close_tag.set_name("/JacobianTarget");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
 
 //=== Rational =========================================================
 
@@ -213,30 +325,32 @@ void xml_read_from_stream(std::istream& is_xml,
   // Cutoff type
   String s_cutoff;
   tag.get_attribute_value("cutofftype", s_cutoff);
-  const AbsorptionCutoffTypeOld cutoff = to<AbsorptionCutoffTypeOld>(s_cutoff);
+  const Absorption::CutoffType cutoff =
+      Absorption::toCutoffTypeOrThrow(s_cutoff);
 
   // Mirroring type
   String s_mirroring;
   tag.get_attribute_value("mirroringtype", s_mirroring);
-  const AbsorptionMirroringTypeOld mirroring =
-      to<AbsorptionMirroringTypeOld>(s_mirroring);
+  const Absorption::MirroringType mirroring =
+      Absorption::toMirroringTypeOrThrow(s_mirroring);
 
   // Line population type
   String s_population;
   tag.get_attribute_value("populationtype", s_population);
-  const AbsorptionPopulationTypeOld population =
-      to<AbsorptionPopulationTypeOld>(s_population);
+  const Absorption::PopulationType population =
+      Absorption::toPopulationTypeOrThrow(s_population);
 
   // Normalization type
   String s_normalization;
   tag.get_attribute_value("normalizationtype", s_normalization);
-  const AbsorptionNormalizationTypeOld normalization =
-      to<AbsorptionNormalizationTypeOld>(s_normalization);
+  const Absorption::NormalizationType normalization =
+      Absorption::toNormalizationTypeOrThrow(s_normalization);
 
   // Shape type
   String s_lineshapetype;
   tag.get_attribute_value("lineshapetype", s_lineshapetype);
-  const LineShapeTypeOld lineshapetype = to<LineShapeTypeOld>(s_lineshapetype);
+  const LineShape::Type lineshapetype =
+      LineShape::toTypeOrThrow(s_lineshapetype);
 
   /** Reference temperature for all parameters of the lines */
   Numeric T0;
@@ -258,7 +372,7 @@ void xml_read_from_stream(std::istream& is_xml,
   Array<QuantumNumberType> qn_key;
   for (Index i = 0; i < nlocal; i++)
     qn_key.push_back(
-        to<QuantumNumberType>(Quantum::Number::items(localquanta_str, i)));
+        Quantum::Number::toType(Quantum::Number::items(localquanta_str, i)));
   ARTS_USER_ERROR_IF(
       std::any_of(
           qn_key.begin(),
@@ -282,7 +396,7 @@ void xml_read_from_stream(std::istream& is_xml,
   }
 
   /** A list of broadening species */
-  ArrayOfSpeciesEnum broadeningspecies;
+  ArrayOfSpecies broadeningspecies;
   bool selfbroadening;
   bool bathbroadening;
   tag.get_attribute_value(
@@ -359,12 +473,15 @@ void xml_write_to_stream(std::ostream& os_xml,
   open_tag.add_attribute("version", al.version);
   open_tag.add_attribute("id", var_string(al.quantumidentity));
   open_tag.add_attribute("nlines", al.NumLines());
-  open_tag.add_attribute("cutofftype", String{toString(al.cutoff)});
-  open_tag.add_attribute("mirroringtype", String{toString(al.mirroring)});
-  open_tag.add_attribute("populationtype", String{toString(al.population)});
+  open_tag.add_attribute("cutofftype", String{Absorption::toString(al.cutoff)});
+  open_tag.add_attribute("mirroringtype",
+                         String{Absorption::toString(al.mirroring)});
+  open_tag.add_attribute("populationtype",
+                         String{Absorption::toString(al.population)});
   open_tag.add_attribute("normalizationtype",
-                         String{toString(al.normalization)});
-  open_tag.add_attribute("lineshapetype", String{toString(al.lineshapetype)});
+                         String{Absorption::toString(al.normalization)});
+  open_tag.add_attribute("lineshapetype",
+                         String{LineShape::toString(al.lineshapetype)});
   open_tag.add_attribute("T0", al.T0);
   open_tag.add_attribute("cutofffreq", al.cutofffreq);
   open_tag.add_attribute("linemixinglimit", al.linemixinglimit);
