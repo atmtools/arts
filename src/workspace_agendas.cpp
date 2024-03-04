@@ -47,7 +47,8 @@ The output must be sized as:
                 "spectral_radiance_observer_position",
                 "spectral_radiance_observer_line_of_sight",
                 "atmospheric_field",
-                "surface_field"},
+                "surface_field",
+                "spectral_radiance_unit"},
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {

@@ -35,6 +35,7 @@ add_subdirectory(surface)
 add_subdirectory(path)
 add_subdirectory(util)
 add_subdirectory(options)
+add_subdirectory(sensor)
 
 # #####
 add_library(artscore STATIC
@@ -85,6 +86,7 @@ target_link_libraries(artscore PUBLIC
   predef
   quantum
   rtepack
+  sensor
   species
   species_tags
   surface

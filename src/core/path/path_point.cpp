@@ -1183,9 +1183,9 @@ Numeric geometric_tangent_zenith(const Vector3 pos,
 
 Numeric distance(const Vector3 pos1,
                  const Vector3 pos2,
-                 const SurfaceField& surface_field) {
-  return ecef_distance(geodetic2ecef(pos1, surface_field.ellipsoid),
-                       geodetic2ecef(pos2, surface_field.ellipsoid));
+                 const Vector2 ellipsoid) {
+  return ecef_distance(geodetic2ecef(pos1, ellipsoid),
+                       geodetic2ecef(pos2, ellipsoid));
 }
 
 ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <enums.h>
+
+#include <utility>
+
 #include "rtepack_concepts.h"
 
 namespace rtepack {
@@ -37,6 +41,33 @@ struct stokvec final : vec4 {
   }
 };
 
+constexpr stokvec to_stokvec(PolarizationChoice p) {
+  using enum PolarizationChoice;
+  switch (p) {
+    case I:
+      return {1.0, 0.0, 0.0, 0.0};
+    case Q:
+      return {0.0, 1.0, 0.0, 0.0};
+    case U:
+      return {0.0, 0.0, 1.0, 0.0};
+    case V:
+      return {0.0, 0.0, 0.0, 1.0};
+    case Iv:
+      return {1.0, 1.0, 0.0, 0.0};
+    case Ih:
+      return {1.0, -1.0, 0.0, 0.0};
+    case Ip45:
+      return {1.0, 0.0, 1.0, 0.0};
+    case Im45:
+      return {1.0, 0.0, -1.0, 0.0};
+    case Ilhc:
+      return {1.0, 0.0, 0.0, -1.0};
+    case Irhc:
+      return {1.0, 0.0, 0.0, 1.0};
+  }
+  std::unreachable();
+}
+
 //! Addition of two stokvec vectors
 constexpr stokvec operator+(stokvec a, const stokvec &b) {
   a += b;
@@ -65,6 +96,16 @@ constexpr stokvec operator*(stokvec a, const Numeric &b) {
 constexpr stokvec avg(const stokvec &a, const stokvec &b) {
   return 0.5 * a + 0.5 * b;
 }
+
+/** Convertion methods for stokes vectors
+ * 
+  * @param type Spectral Radiance Unit Type
+ * @return A function that takes a stokes vector and a frequency and returns a converted stokes vector
+ */
+std::function<stokvec(const stokvec, const Numeric)> unit_converter(
+    const SpectralRadianceUnitType type, const Numeric n=1.0);
+std::function<stokvec(const stokvec, const stokvec, const Numeric)> dunit_converter(
+    const SpectralRadianceUnitType type, const Numeric n=1.0);
 
 using stokvec_vector = matpack::matpack_data<stokvec, 1>;
 using stokvec_vector_view = matpack::matpack_view<stokvec, 1, false, false>;

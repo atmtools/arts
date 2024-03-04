@@ -261,7 +261,7 @@ void propagation_path_transmission_matrixFromPath(
       const Numeric propagation_path_distance =
           path::distance(propagation_path[ip - 1].pos,
                          propagation_path[ip].pos,
-                         surface_field);
+                         surface_field.ellipsoid);
       if (hse_derivative and temperature_derivative_position >= 0) {
         propagation_path_distance_jacobian1[temperature_derivative_position] =
             propagation_path_distance /
@@ -295,7 +295,7 @@ void propagation_path_transmission_matrixFromPath(
         const Numeric propagation_path_distance =
             path::distance(propagation_path[ip - 1].pos,
                            propagation_path[ip].pos,
-                           surface_field);
+                           surface_field.ellipsoid);
         if (hse_derivative and temperature_derivative_position >= 0) {
           propagation_path_distance_jacobian1[temperature_derivative_position] =
               propagation_path_distance /

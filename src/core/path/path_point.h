@@ -207,12 +207,12 @@ Numeric total_geometric_path_length(const ArrayOfPropagationPathPoint& path,
  * 
  * @param pos1 The first position
  * @param pos2 The second position
- * @param surface_field The surface field (as the WSV)
+ * @param ellipsoid The ellipsoid of the body
  * @return Numeric Distance in meters
  */
 Numeric distance(const Vector3 pos1,
                  const Vector3 pos2,
-                 const SurfaceField& surface_field);
+                 const Vector2 ellipsoid);
 
 /** Finds the zenith angle of the tangent limb at a given altitude as viewed by
  * a sensor at a given position

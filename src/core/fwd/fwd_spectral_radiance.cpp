@@ -36,7 +36,8 @@ spectral_radiance::spectral_radiance(
       spectral_radiance_space(
           spectral_radiance_surface.shape(), [](Numeric f, Vector2) -> Stokvec {
             return planck(f, Constant::cosmic_microwave_background_temperature);
-          }) {
+          }),
+      ellipsoid(surf.ellipsoid) {
   ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
 
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
@@ -99,7 +100,7 @@ spectral_radiance::spectral_radiance(
 }
 
 Stokvec spectral_radiance::operator()(
-    const Numeric f, const std::vector<path>& path_points) const {
+    const Numeric f, const std::vector<path>& path_points, const Numeric cutoff_transmission) const {
   using std::views::drop;
 
   ARTS_ASSERT(path_points.size() > 0, "No path points")
@@ -127,7 +128,7 @@ Stokvec spectral_radiance::operator()(
     const Stokvec Ji = inv(Ki) * Ni + B(f, pos);
     const Muelmat Ti = T * exp(avg(Ki, K), pp.distance);
 
-    if (Ti(0, 0) < 1e-6) {
+    if (Ti(0, 0) < cutoff_transmission) {
       return I += Ti * avg(Ji, J);
     }
 
@@ -189,8 +190,13 @@ std::vector<path> spectral_radiance::geometric_planar(const Vector3 pos,
   return fwd::geometric_planar(pos, los, alt, lat, lon);
 }
 
+void spectral_radiance::from_path(std::vector<path>& out,
+    const ArrayOfPropagationPathPoint& propagation_path) const {
+  return fwd::path_from_propagation_path(out, propagation_path, alt, lat, lon, ellipsoid);
+}
+
 std::vector<path> spectral_radiance::from_path(
     const ArrayOfPropagationPathPoint& propagation_path) const {
-  return fwd::path_from_propagation_path(propagation_path, alt, lat, lon);
+  return fwd::path_from_propagation_path(propagation_path, alt, lat, lon, ellipsoid);
 }
 }  // namespace fwd

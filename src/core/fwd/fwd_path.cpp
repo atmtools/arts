@@ -2,11 +2,12 @@
 
 #include <algorithm>
 
+#include "debug.h"
 #include "path_point.h"
 #include "sorted_grid.h"
 
 namespace fwd {
-constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) {
+constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) try {
   if (x_grid.size() == 1) return 0;
 
   return std::min<Size>(
@@ -16,10 +17,13 @@ constexpr Size xpos(const Numeric x, const AscendingGrid& x_grid) {
               1),
       static_cast<Size>(x_grid.size()) - 2);
 }
+ARTS_METHOD_ERROR_CATCH
 
 constexpr Numeric xweight(const Numeric x,
                           const AscendingGrid& x_grid,
-                          const Size i0) {
+                          const Size i0) try {
+  if (x_grid.size() == 1 and i0 == 0) return 1.0;
+
   const Numeric x0 = x_grid[i0];
   if (x0 == x) return 1.0;
 
@@ -28,6 +32,7 @@ constexpr Numeric xweight(const Numeric x,
 
   return (x1 - x) / (x1 - x0);
 }
+ARTS_METHOD_ERROR_CATCH
 
 constexpr void check_grid(const Numeric x [[maybe_unused]],
                           const AscendingGrid& x_grid [[maybe_unused]],
@@ -56,7 +61,7 @@ constexpr path find_path(const Vector3 pos,
                          const Vector2 los,
                          const AscendingGrid& alt,
                          const AscendingGrid& lat,
-                         const AscendingGrid& lon) {
+                         const AscendingGrid& lon) try {
   check_grid(pos[0], alt, "altitude");
   check_grid(pos[1], lat, "latitude");
   check_grid(pos[2], lon, "longitude");
@@ -89,36 +94,61 @@ constexpr path find_path(const Vector3 pos,
       .distance = 0.0,
   };
 
-  if (out.alt_weight == 0.0 and not std::ranges::binary_search(alt, pos[0])) {
+  if (alt.size() > 1 and out.alt_weight == 0.0 and
+      not std::ranges::binary_search(alt, pos[0])) {
     out.alt_index -= 1;
     out.alt_weight = 1.0;
   }
 
-  if (out.lat_weight == 0.0 and not std::ranges::binary_search(lat, pos[1])) {
+  if (alt.size() > 1 and out.lat_weight == 0.0 and
+      not std::ranges::binary_search(lat, pos[1])) {
     out.lat_index -= 1;
     out.lat_weight = 1.0;
   }
 
-  if (out.lon_weight == 0.0 and not std::ranges::binary_search(lon, pos[2])) {
+  if (alt.size() > 1 and out.lon_weight == 0.0 and
+      not std::ranges::binary_search(lon, pos[2])) {
     out.lon_index -= 1;
     out.lon_weight = 1.0;
   }
 
   return out;
 }
+ARTS_METHOD_ERROR_CATCH
 
-std::vector<path> path_from_propagation_path(
+void path_from_propagation_path(
+    std::vector<path>& out,
     const ArrayOfPropagationPathPoint& propagation_path,
     const AscendingGrid& alt,
     const AscendingGrid& lat,
-    const AscendingGrid& lon) {
-  std::vector<path> out(propagation_path.size());
+    const AscendingGrid& lon,
+    const Vector2 ellipsoid) try {
+  out.resize(propagation_path.size());
   std::transform(propagation_path.begin(),
                  propagation_path.end(),
                  out.begin(),
                  [&](const PropagationPathPoint& pp) {
                    return find_path(pp.pos, pp.los, alt, lat, lon);
                  });
+  if (propagation_path.size()) {
+    out.back().point.los_type = propagation_path.back().los_type;
+
+    for (Size i = 1; i < out.size(); i++) {
+      out[i].distance =
+          ::path::distance(out[i - 1].point.pos, out[i].point.pos, ellipsoid);
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+std::vector<path> path_from_propagation_path(
+    const ArrayOfPropagationPathPoint& propagation_path,
+    const AscendingGrid& alt,
+    const AscendingGrid& lat,
+    const AscendingGrid& lon,
+    const Vector2 ellipsoid) {
+  std::vector<path> out(propagation_path.size());
+  path_from_propagation_path(out, propagation_path, alt, lat, lon, ellipsoid);
   return out;
 }
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <numeric>
 #include <ostream>
 #include <string>
@@ -1188,15 +1189,59 @@ class matpack_view {
 
   template <bool c, bool s>
   constexpr bool operator==(const matpack_view<T, N, c, s>& x) const {
-    return shape() == x.shape() and
-           std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end());
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::equal_to<>());
   }
   template <bool c, bool s>
   constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const {
-    return not(*this == x);
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::not_equal_to<>());
   }
-  constexpr bool operator==(const data_t& x) const { return *this == x.view; }
-  constexpr bool operator!=(const data_t& x) const { return *this != x.view; }
+  template <bool c, bool s>
+  constexpr bool operator<(const matpack_view<T, N, c, s>& x) const {
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
+  }
+  template <bool c, bool s>
+  constexpr bool operator<=(const matpack_view<T, N, c, s>& x) const {
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less_equal<>());
+  }
+  template <bool c, bool s>
+  constexpr bool operator>(const matpack_view<T, N, c, s>& x) const {
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater<>());
+  }
+  template <bool c, bool s>
+  constexpr bool operator>=(const matpack_view<T, N, c, s>& x) const {
+    if (shape() != x.shape()) return false;
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater_equal<>());
+  }
+
+  constexpr bool operator==(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this == x.view;
+  }
+  constexpr bool operator!=(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this != x.view;
+  }
+  constexpr bool operator<(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this < x.view;
+  }
+  constexpr bool operator<=(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this <= x.view;
+  }
+  constexpr bool operator>(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this > x.view;
+  }
+  constexpr bool operator>=(const data_t& x) const {
+    if (shape() != x.shape()) return false;
+    return *this >= x.view;
+  }
 
   //! Helper to view a standard array of data as a 1D object
   template <std::size_t M>

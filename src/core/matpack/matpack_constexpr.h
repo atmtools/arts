@@ -27,6 +27,9 @@ struct matpack_constant_view {
 
   view_type view;
 
+  template<bool c> using any_view = matpack_constant_view<T, c, alldim...>;
+  using data_t = matpack_constant_data<T, alldim...>;
+
   template <bool c, Index outer, Index... rest> struct inner_type {
     using type = matpack_constant_view<T, c, rest...>;
   };
@@ -160,27 +163,48 @@ struct matpack_constant_view {
     return view.data_handle() + sz;
   }
 
-  [[nodiscard]] constexpr bool operator==(const data_type &other) const {
-    return view == other.view();
+  template <bool c>
+  constexpr bool operator==(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::equal_to<>());
   }
-  [[nodiscard]] constexpr bool operator!=(const data_type &other) const {
-    return view != other.view();
+  template <bool c>
+  constexpr bool operator!=(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::not_equal_to<>());
   }
-  [[nodiscard]] constexpr bool
-  operator==(const mut_matpack_constant_view &other) const {
-    return std::equal(elem_begin(), elem_end(), other.elem_begin());
+  template <bool c>
+  constexpr bool operator<(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less<>());
   }
-  [[nodiscard]] constexpr bool
-  operator!=(const mut_matpack_constant_view &other) const {
-    return not std::equal(elem_begin(), elem_end(), other.elem_begin());
+  template <bool c>
+  constexpr bool operator<=(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::less_equal<>());
   }
-  [[nodiscard]] constexpr bool
-  operator==(const const_matpack_constant_view &other) const {
-    return std::equal(elem_begin(), elem_end(), other.elem_begin());
+  template <bool c>
+  constexpr bool operator>(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater<>());
   }
-  [[nodiscard]] constexpr bool
-  operator!=(const const_matpack_constant_view &other) const {
-    return not std::equal(elem_begin(), elem_end(), other.elem_begin());
+  template <bool c>
+  constexpr bool operator>=(const any_view<c>& x) const {
+    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::greater_equal<>());
+  }
+
+  constexpr bool operator==(const data_t& x) const {
+    return *this == x.view();
+  }
+  constexpr bool operator!=(const data_t& x) const {
+    return *this != x.view();
+  }
+  constexpr bool operator<(const data_t& x) const {
+    return *this < x.view();
+  }
+  constexpr bool operator>(const data_t& x) const {
+    return *this > x.view();
+  }
+  constexpr bool operator<=(const data_t& x) const {
+    return *this <= x.view();
+  }
+  constexpr bool operator>=(const data_t& x) const {
+    return *this >= x.view();
   }
 
   friend std::ostream &operator<<(std::ostream &os,
@@ -209,8 +233,9 @@ template <typename T, Index... alldim> struct matpack_constant_data {
     return N == R and std::same_as<U, T>;
   }
 
-  using mut_view_type = matpack_constant_view<T, false, alldim...>;
-  using const_view_type = matpack_constant_view<T, true, alldim...>;
+  template<bool c> using any_view = matpack_constant_view<T, c, alldim...>;
+  using mut_view_type = any_view<false>;
+  using const_view_type = any_view<true>;
   template <bool c>
   using inner_view = typename mut_view_type::template inner_view<c>;
 
@@ -309,25 +334,48 @@ template <typename T, Index... alldim> struct matpack_constant_data {
   [[nodiscard]] constexpr auto elem_begin() const { return data.begin(); }
   [[nodiscard]] constexpr auto elem_end() const { return data.end(); }
 
-  [[nodiscard]] constexpr bool
-  operator==(const matpack_constant_data &other) const {
-    return data == other.data;
+  template <bool c>
+  constexpr bool operator==(const any_view<c>& x) const {
+    return view() == x;
   }
-  [[nodiscard]] constexpr bool
-  operator!=(const matpack_constant_data &other) const {
-    return data != other.data;
+  template <bool c>
+  constexpr bool operator!=(const any_view<c>& x) const {
+    return view() != x;
   }
-  [[nodiscard]] constexpr bool operator==(const mut_view_type &other) const {
-    return view() == other;
+  template <bool c>
+  constexpr bool operator<(const any_view<c>& x) const {
+    return view() < x;
   }
-  [[nodiscard]] constexpr bool operator!=(const mut_view_type &other) const {
-    return view() != other;
+  template <bool c>
+  constexpr bool operator<=(const any_view<c>& x) const {
+    return view() <= x;
   }
-  [[nodiscard]] constexpr bool operator==(const const_view_type &other) const {
-    return view() == other;
+  template <bool c>
+  constexpr bool operator>(const any_view<c>& x) const {
+    return view() > x;
   }
-  [[nodiscard]] constexpr bool operator!=(const const_view_type &other) const {
-    return view() != other;
+  template <bool c>
+  constexpr bool operator>=(const any_view<c>& x) const {
+    return view() >= x;
+  }
+
+  constexpr bool operator==(const matpack_constant_data& x) const {
+    return data == x.data;
+  }
+  constexpr bool operator!=(const matpack_constant_data& x) const {
+    return data != x.data;
+  }
+  constexpr bool operator<(const matpack_constant_data& x) const {
+    return data < x.data;
+  }
+  constexpr bool operator<=(const matpack_constant_data& x) const {
+    return data <= x.data;
+  }
+  constexpr bool operator>(const matpack_constant_data& x) const {
+    return data > x.data;
+  }
+  constexpr bool operator>=(const matpack_constant_data& x) const {
+    return data >= x.data;
   }
 
   constexpr matpack_constant_data &operator+=(const matpack_constant_data &o) {
@@ -377,6 +425,18 @@ template <typename T, Index... alldim> struct matpack_constant_data {
         elem_begin(), elem_end(), elem_begin(),
         [b = static_cast<T>(std::forward<U>(x))](auto a) { return a * b; });
     return *this;
+  }
+
+  friend matpack_constant_data operator+(matpack_constant_data x,
+                                        const matpack_constant_data &y) {
+    x += y;
+    return x;
+  }
+  
+  friend matpack_constant_data operator-(matpack_constant_data x,
+                                        const matpack_constant_data &y) {
+    x -= y;
+    return x;
   }
 
   template <Index i> constexpr T &get() & { return std::get<i>(data); }

@@ -168,6 +168,7 @@ add_library (artsworkspace STATIC
   m_montecarlo.cc
   m_nc.cc
   m_nlte.cc
+  m_obsel.cc
   m_oem.cc
   m_operators.cc
   m_optproperties.cc

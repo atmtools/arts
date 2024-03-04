@@ -282,6 +282,29 @@ class matpack_data {
     view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
   }
 
+  void erase(auto... it)
+    requires(N == 1)
+  {
+    data.erase(it...);
+    view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
+  }
+
+  void reserve(Size n) { data.reserve(n); }
+
+  template <typename... U>
+  T& emplace_back(U&&... x)
+    requires(N == 1)
+  {
+    auto& out = data.emplace_back(std::forward<U>(x)...);
+    view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
+    return out;
+  }
+
+  void clear() {
+    data.clear();
+    view.secret_set(view_type{data.data(), constant_array<N, 0>()});
+  }
+
   //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
   template <Index M>
   constexpr matpack_data<T, M> reshape(const std::array<Index, M>& sz) && {
@@ -642,11 +665,46 @@ class matpack_data {
   constexpr bool operator!=(const any_view<c, s>& x) const {
     return view != x;
   }
+  template <bool c, bool s>
+  constexpr bool operator<(const any_view<c, s>& x) const {
+    return view < x;
+  }
+  template <bool c, bool s>
+  constexpr bool operator<=(const any_view<c, s>& x) const {
+    return view <= x;
+  }
+  template <bool c, bool s>
+  constexpr bool operator>(const any_view<c, s>& x) const {
+    return view > x;
+  }
+  template <bool c, bool s>
+  constexpr bool operator>=(const any_view<c, s>& x) const {
+    return view >= x;
+  }
+
   constexpr bool operator==(const matpack_data& x) const {
-    return view == x.view;
+    if (shape() != x.shape()) return false;
+    return data == x.data;
   }
   constexpr bool operator!=(const matpack_data& x) const {
-    return view != x.view;
+    if (shape() != x.shape()) return false;
+    return data != x.data;
+  }
+  constexpr bool operator<(const matpack_data& x) const {
+    if (shape() != x.shape()) return false;
+    return data < x.data;
+  }
+  constexpr bool operator<=(const matpack_data& x) const {
+    if (shape() != x.shape()) return false;
+    return data <= x.data;
+  }
+  constexpr bool operator>(const matpack_data& x) const {
+    if (shape() != x.shape()) return false;
+    return data > x.data;
+  }
+  constexpr bool operator>=(const matpack_data& x) const {
+    if (shape() != x.shape()) return false;
+    return data >= x.data;
   }
 
   //! Swaps the data around
