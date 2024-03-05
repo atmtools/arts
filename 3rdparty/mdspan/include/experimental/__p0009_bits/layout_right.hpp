@@ -133,7 +133,7 @@ class layout_right::mapping {
        for(rank_type r=__extents.rank(); r>0; r--) {
          if(stride != static_cast<index_type>(other.stride(r-1))) {
            // Note this throw will lead to a terminate if triggered since this function is marked noexcept
-           throw std::runtime_error("Assigning layout_stride to layout_right with invalid strides.");
+           std::terminate();  //! FIXME: RICHARD LARSSON, remove warning
          }
          stride *= __extents.extent(r-1);
        }
