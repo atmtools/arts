@@ -1195,7 +1195,7 @@ class matpack_view {
   template <bool c, bool s>
   constexpr bool operator!=(const matpack_view<T, N, c, s>& x) const {
     if (shape() != x.shape()) return false;
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::not_equal_to<>());
+    return not (*this == x);
   }
   template <bool c, bool s>
   constexpr bool operator<(const matpack_view<T, N, c, s>& x) const {

@@ -169,7 +169,7 @@ struct matpack_constant_view {
   }
   template <bool c>
   constexpr bool operator!=(const any_view<c>& x) const {
-    return std::equal(elem_begin(), elem_end(), x.elem_begin(), x.elem_end(), std::not_equal_to<>());
+    return not (*this == x);
   }
   template <bool c>
   constexpr bool operator<(const any_view<c>& x) const {
