@@ -18,19 +18,19 @@ void py_fwd(py::module_& m) try {
       .PythonInterfaceBasicRepresentation(SpectralRadianceOperator)
       .PythonInterfaceFileIO(SpectralRadianceOperator)
       .def("geometric_planar",
-           [](const SpectralRadianceOperator& fwd,
+           [](const SpectralRadianceOperator& srad_op,
               const Numeric frequency,
               const Vector3 pos,
               const Vector2 los) {
-             const auto path = fwd.geometric_planar(pos, los);
-             return fwd(frequency, path);
+             const auto path = srad_op.geometric_planar(pos, los);
+             return srad_op(frequency, path);
            })
       .def("geometric_planar",
-           [](const SpectralRadianceOperator& fwd,
+           [](const SpectralRadianceOperator& srad_op,
               const Vector& frequency,
               const Vector3 pos,
               const Vector2 los) {
-             const auto path = fwd.geometric_planar(pos, los);
+             const auto path = srad_op.geometric_planar(pos, los);
 
              StokvecVector out(frequency.size());
 
@@ -39,13 +39,13 @@ void py_fwd(py::module_& m) try {
                std::transform(frequency.begin(),
                               frequency.end(),
                               out.begin(),
-                              [&](const Numeric& f) { return fwd(f, path); });
+                              [&](const Numeric& f) { return srad_op(f, path); });
              } else {
                String error{};
 #pragma omp parallel for
                for (Index i = 0; i < out.size(); ++i) {
                  try {
-                   out[i] = fwd(frequency[i], path);
+                   out[i] = srad_op(frequency[i], path);
                  } catch (std::exception& e) {
 #pragma omp critical
                    error += e.what() + String{"\n"};

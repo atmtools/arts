@@ -15,8 +15,8 @@
 #include <iomanip>
 #include <iostream>
 
-#include "enums.h"
 #include "debug.h"
+#include "enums.h"
 
 Time::Time(const String& t) {
   auto s = std::istringstream(t);
@@ -111,7 +111,7 @@ std::istream& operator>>(std::istream& is, Time& t) {
       std::quoted(hms));
 
   // FIXME: C++20 has much better calendar (BUT NOT YET...)
-  int year, month, day;
+  int year{}, month{}, day{};
   auto res_year =
       std::from_chars(YMD[0].c_str(), YMD[0].c_str() + YMD[0].size(), year);
   auto res_mon =
@@ -127,8 +127,8 @@ std::istream& operator>>(std::istream& is, Time& t) {
   ARTS_USER_ERROR_IF(year < 1900,
                      "We cannot yet support times before the year 1900")
 
-  int hour, minute;
-  Numeric sec;
+  int hour{}, minute{};
+  Numeric sec{};
   auto res_hour =
       std::from_chars(HMS[0].c_str(), HMS[0].c_str() + HMS[0].size(), hour);
   auto res_min =

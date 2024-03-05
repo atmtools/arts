@@ -17,7 +17,6 @@
 #include "hitran_species.h"
 #include "interp.h"
 #include "isotopologues.h"
-#include "species.h"
 
 std::ostream &operator<<(std::ostream &os, const AtmKeyVal &key) {
   std::visit([&os](const auto &k) { os << k; }, key);
@@ -479,6 +478,7 @@ constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
         case Linear:
           return Zero;
       }
+      std::unreachable();
     }
     case Nearest: {
       switch (b) {
@@ -491,6 +491,7 @@ constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
         case Linear:
           return Nearest;
       }
+      std::unreachable();
     }
     case Linear:
       return b;
