@@ -834,5 +834,40 @@ line-of-sight to get the corresponding spectral radiance.
       .desc = "List of *SpeciesIsotope*.\n",
   };
 
+  wsg_data["ArrayOfSpeciesIsotope"] = {
+      .file = "isotopologues.h",
+      .desc = "List of *SpeciesIsotope*.\n",
+  };
+
+  wsg_data["SensorPosLos"] = {
+      .file = "obsel.h",
+      .desc = "A position and line-of-sight of a sensor.\n",
+  };
+
+  wsg_data["SensorPosLosVector"] = {
+      .file = "obsel.h",
+      .desc = "Vector of *SensorPosLos*.\n",
+  };
+
+  wsg_data["SensorObsel"] = {
+      .file = "obsel.h",
+      .desc = R"(A single observation element.
+
+Expected use of this type is to generate the measurement vector
+of a sensor, where this observation element represent the readout
+from that sensor in a convenient unit (commonly Kelvin or 
+W sr :math:`^{-1}m :math:`^{-2}Hz :math:`^{-1}`, but not exclusively)
+
+It deals with averaging the frequency grid sampled by a sensor element
+and the transmission of the sensor system onto the sampling device, as
+well as the sampling device's polarization response.
+)",
+  };
+
+  wsg_data["ArrayOfSensorObsel"] = {
+      .file = "obsel.h",
+      .desc = "List of *SensorObsel*.\n",
+  };
+
   return wsg_data;
 }

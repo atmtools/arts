@@ -14,7 +14,6 @@
 #include "lineshapemodel.h"
 
 #include <limits>
-#include <stdexcept>
 
 #include "atm.h"
 #include "debug.h"

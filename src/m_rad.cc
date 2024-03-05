@@ -14,6 +14,7 @@
 #include "auto_wsm.h"
 #include "debug.h"
 #include "fwd.h"
+#include "rtepack_stokes_vector.h"
 #include "sorted_grid.h"
 #include "workspace_agenda_class.h"
 
@@ -137,205 +138,123 @@ void spectral_radianceFromPathPropagation(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radianceApplyUnit(StokvecVector &spectral_radiance_with_unit,
-                                const StokvecVector &spectral_radiance,
-                                const AscendingGrid &frequency_grid,
-                                const String &spectral_radiance_unit) try {
-  const auto unit = to<SpectralRadianceUnitType>(spectral_radiance_unit);
-
+void spectral_radiance_jacobianApplyUnit(
+    StokvecMatrix &spectral_radiance_jacobian,
+    const StokvecVector &spectral_radiance,
+    const AscendingGrid &frequency_grid,
+    const PropagationPathPoint &propagation_path_point,
+    const String &spectral_radiance_unit) try {
   ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
                      "spectral_radiance must have same size as frequency_grid")
-
-  spectral_radiance_with_unit.resize(spectral_radiance.size());
-
   ARTS_USER_ERROR_IF(
-      unit == SpectralRadianceUnitType::unit,
-      "No need to use this method with *spectral_radiance_unit* = \"unit\".");
+      spectral_radiance_jacobian.size() != 0 and
+          spectral_radiance_jacobian.ncols() != frequency_grid.size(),
+      "spectral_radiance must have same size as frequency_grid")
 
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(spectral_radiance,
-                          [](const Stokvec &v) { return v.I() > 1e-3; }),
-      "The spectrum matrix *spectral_radiance* is required to have original radiance\n"
-      "unit, but this seems not to be the case. This as a value above\n"
-      "1e-3 is found in *spectral_radiance*.")
+  const auto dF = rtepack::dunit_converter(
+      to<SpectralRadianceUnitType>(spectral_radiance_unit),
+      propagation_path_point.nreal);
 
-  switch (unit) {
-    case SpectralRadianceUnitType::unit:
-      break;
-    case SpectralRadianceUnitType::RJBT: {
-      std::transform(spectral_radiance.begin(),
-                     spectral_radiance.end(),
-                     frequency_grid.begin(),
-                     spectral_radiance_with_unit.begin(),
-                     [&](const Stokvec &v, const Numeric f) {
-                       const Numeric scfac = invrayjean(1.0, f);
-                       return Stokvec{v.I() * scfac,
-                                      2 * v.Q() * scfac,
-                                      2 * v.U() * scfac,
-                                      2 * v.V() * scfac};
-                     });
-    } break;
-    case SpectralRadianceUnitType::PlanckBT: {
-      std::transform(spectral_radiance.begin(),
-                     spectral_radiance.end(),
-                     frequency_grid.begin(),
-                     spectral_radiance_with_unit.begin(),
-                     [&](const Stokvec &v, const Numeric f) {
-                       return Stokvec{invplanck(v.I(), f),
-                                      invplanck(0.5 * (v.I() + v.Q()), f) -
-                                          invplanck(0.5 * (v.I() - v.Q()), f),
-                                      invplanck(0.5 * (v.I() + v.U()), f) -
-                                          invplanck(0.5 * (v.I() - v.U()), f),
-                                      invplanck(0.5 * (v.I() + v.V()), f) -
-                                          invplanck(0.5 * (v.I() - v.V()), f)};
-                     });
-    } break;
-    case SpectralRadianceUnitType::W_m2_m_sr: {
-      std::transform(
-          spectral_radiance.begin(),
-          spectral_radiance.end(),
-          frequency_grid.begin(),
-          spectral_radiance_with_unit.begin(),
-          [&](const Stokvec &v, const Numeric f) {
-            const Numeric scfac = f * (f / Constant::c);
-            return Stokvec{
-                v.I() * scfac, v.Q() * scfac, v.U() * scfac, v.V() * scfac};
-          });
-    } break;
-    case SpectralRadianceUnitType::W_m2_m1_sr: {
-      std::transform(spectral_radiance.begin(),
-                     spectral_radiance.end(),
-                     spectral_radiance_with_unit.begin(),
-                     [&](const Stokvec &v) { return v * Constant::c; });
-    } break;
+  //! Must apply the unit to the spectral radiance jacobian first
+  for (Index i = 0; i < spectral_radiance_jacobian.nrows(); i++) {
+    for (Index j = 0; j < spectral_radiance_jacobian.ncols(); j++) {
+      spectral_radiance_jacobian(i, j) = dF(spectral_radiance_jacobian(i, j),
+                                            spectral_radiance[j],
+                                            frequency_grid[j]);
+    }
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void sensor_radianceFromObservers(
-    const Workspace &ws,
-    StokvecVector &sensor_radiance,
-    StokvecMatrix &sensor_radiance_jacobian,
+void spectral_radianceApplyUnit(
+    StokvecVector &spectral_radiance,
     const AscendingGrid &frequency_grid,
+    const PropagationPathPoint &propagation_path_point,
+    const String &spectral_radiance_unit) try {
+  ARTS_USER_ERROR_IF(spectral_radiance.size() != frequency_grid.size(),
+                     "spectral_radiance must have same size as frequency_grid")
+  const auto F = rtepack::unit_converter(
+      to<SpectralRadianceUnitType>(spectral_radiance_unit),
+      propagation_path_point.nreal);
+
+  std::transform(spectral_radiance.begin(),
+                 spectral_radiance.end(),
+                 frequency_grid.begin(),
+                 spectral_radiance.begin(),
+                 [&F](const Stokvec &v, const Numeric f) { return F(v, f); });
+}
+ARTS_METHOD_ERROR_CATCH
+
+void measurement_vectorFromSensor(
+    const Workspace &ws,
+    Vector &measurement_vector,
+    Matrix &measurement_vector_jacobian,
+    const ArrayOfSensorObsel &measurement_vector_sensor,
     const JacobianTargets &jacobian_targets,
     const AtmField &atmospheric_field,
     const SurfaceField &surface_field,
+    const String& spectral_radiance_unit,
     const Agenda &spectral_radiance_observer_agenda,
-    const ArrayOfVector3 &pos,
-    const ArrayOfVector2 &los) try {
-  const Index nx = jacobian_targets.x_size();
-  const Index nf = frequency_grid.size();
-  const Size np = pos.size();
+    const Index &exhaustive_) try {
+  //! Flag whether or not all frequency and pos-los grids are to be assumed the same
+  const bool exhaustive = static_cast<bool>(exhaustive_);
 
-  ARTS_USER_ERROR_IF(np != los.size(),
-                     "pos, "
-                     "los, and "
-                     "sensor_radiance_observer_weight must all have the same "
-                     "size.\nThey do not, but have instead the sizes: ",
-                     np,
-                     ", ",
-                     pos.size(),
-                     ", and ",
-                     los.size(),
-                     ", respectively.")
+  ARTS_USER_ERROR_IF(not all_ok(measurement_vector_sensor),
+                     "Measurement vector sensor infromation is not OK")
+  ARTS_USER_ERROR_IF(
+      exhaustive and not sensor::is_exhaustive_like(measurement_vector_sensor),
+      "Measurement vector sensor infromation is not exhaustive-like despite exhaustive flag")
 
-  sensor_radiance.resize(nf);
-  sensor_radiance_jacobian.resize(nx, nf);
-  sensor_radiance = 0.;
-  sensor_radiance_jacobian = 0.;
+  measurement_vector.resize(measurement_vector_sensor.size());
+  measurement_vector = 0.0;
 
-  if (np == 0) return;
+  measurement_vector_jacobian.resize(jacobian_targets.x_size(),
+                                     measurement_vector_sensor.size());
+  measurement_vector_jacobian = 0.0;
 
-  const auto summing_up = [w = 1.0 / static_cast<Numeric>(np)](
-                              const Stokvec &v1, const Stokvec &v2) {
-    return v1 * w + v2;
-  };
+  if (measurement_vector_sensor.empty()) return;
 
-  StokvecVector spectral_radiance(nf);
-  StokvecMatrix spectral_radiance_jacobian(nx, nf);
+  auto frequency_grid =
+      exhaustive ? measurement_vector_sensor.front().f_grid : AscendingGrid{};
+  StokvecVector spectral_radiance;
+  StokvecMatrix spectral_radiance_jacobian;
 
-  if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
-    for (Size ipos = 0; ipos < np; ipos++) {
-      spectral_radiance_observer_agendaExecute(
-          ws,
-          spectral_radiance,
-          spectral_radiance_jacobian,
-          frequency_grid,
-          jacobian_targets,
-          pos[ipos],
-          los[ipos],
-          atmospheric_field,
-          surface_field,
-          spectral_radiance_observer_agenda);
-
-      ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
-                         "spectral_radiance has wrong shape")
-      ARTS_USER_ERROR_IF(spectral_radiance_jacobian.shape() !=
-                             sensor_radiance_jacobian.shape(),
-                         "spectral_radiance has wrong shape")
-
-      std::transform(spectral_radiance.begin(),
-                     spectral_radiance.end(),
-                     sensor_radiance.begin(),
-                     sensor_radiance.begin(),
-                     summing_up);
-      std::transform(spectral_radiance_jacobian.elem_begin(),
-                     spectral_radiance_jacobian.elem_end(),
-                     sensor_radiance_jacobian.elem_begin(),
-                     sensor_radiance_jacobian.elem_begin(),
-                     summing_up);
-    }
-  } else {
-    ArrayOfString fail_msg;
-    bool do_abort = false;
-
-#pragma omp parallel for firstprivate(spectral_radiance, \
-                                          spectral_radiance_jacobian)
-    for (Size ipos = 0; ipos < np; ipos++) {
-      if (do_abort) continue;
-      try {
-        spectral_radiance_observer_agendaExecute(
-            ws,
-            spectral_radiance,
-            spectral_radiance_jacobian,
-            frequency_grid,
-            jacobian_targets,
-            pos[ipos],
-            los[ipos],
-            atmospheric_field,
-            surface_field,
-            spectral_radiance_observer_agenda);
-
-        ARTS_USER_ERROR_IF(spectral_radiance.shape() != sensor_radiance.shape(),
-                           "spectral_radiance has wrong shape")
-        ARTS_USER_ERROR_IF(spectral_radiance_jacobian.shape() !=
-                               sensor_radiance_jacobian.shape(),
-                           "spectral_radiance has wrong shape")
-#pragma omp critical
-        {
-          std::transform(spectral_radiance.begin(),
-                         spectral_radiance.end(),
-                         sensor_radiance.begin(),
-                         sensor_radiance.begin(),
-                         summing_up);
-          std::transform(spectral_radiance_jacobian.elem_begin(),
-                         spectral_radiance_jacobian.elem_end(),
-                         sensor_radiance_jacobian.elem_begin(),
-                         sensor_radiance_jacobian.elem_begin(),
-                         summing_up);
-        }
-      } catch (const std::exception &e) {
-#pragma omp critical
-        {
-          fail_msg.emplace_back(var_string(
-              "Error executing agenda at position ", ipos, ":\n", e.what()));
-          do_abort = true;
-        }
-      }
+  for (const auto poslos :
+       (exhaustive ? measurement_vector_sensor.front().poslos_grid
+                   : sensor::collect_poslos(measurement_vector_sensor))) {
+    if (not exhaustive) {
+      sensor::collect_f_grid(frequency_grid, measurement_vector_sensor, poslos);
+      spectral_radiance.resize(frequency_grid.size());
     }
 
-    ARTS_USER_ERROR_IF(
-        do_abort, "Error messages from failed cases:\n", fail_msg)
+    spectral_radiance_observer_agendaExecute(ws,
+                                             spectral_radiance,
+                                             spectral_radiance_jacobian,
+                                             frequency_grid,
+                                             jacobian_targets,
+                                             poslos.pos,
+                                             poslos.los,
+                                             atmospheric_field,
+                                             surface_field,
+                                             spectral_radiance_unit,
+                                             spectral_radiance_observer_agenda);
+
+    if (exhaustive) {
+      sensor::exhaustive_sumup(measurement_vector,
+                               measurement_vector_jacobian,
+                               spectral_radiance,
+                               spectral_radiance_jacobian,
+                               measurement_vector_sensor,
+                               poslos);
+    } else {
+      sensor::sumup(measurement_vector,
+                    measurement_vector_jacobian,
+                    spectral_radiance,
+                    spectral_radiance_jacobian,
+                    frequency_grid,
+                    measurement_vector_sensor,
+                    poslos);
+    }
   }
 }
 ARTS_METHOD_ERROR_CATCH

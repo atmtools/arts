@@ -23,11 +23,20 @@ std::vector<path> geometric_planar(const Vector3 pos,
                                    const AscendingGrid& lat,
                                    const AscendingGrid& lon);
 
+void path_from_propagation_path(
+    std::vector<path>& out,
+    const ArrayOfPropagationPathPoint& propagation_path,
+    const AscendingGrid& alt,
+    const AscendingGrid& lat,
+    const AscendingGrid& lon,
+    const Vector2 ellipsoid);
+
 std::vector<path> path_from_propagation_path(
     const ArrayOfPropagationPathPoint& propagation_path,
     const AscendingGrid& alt,
     const AscendingGrid& lat,
-    const AscendingGrid& lon);
+    const AscendingGrid& lon,
+    const Vector2 ellipsoid);
 
 std::ostream& operator<<(std::ostream&, const std::vector<path>&);
 }  // namespace fwd

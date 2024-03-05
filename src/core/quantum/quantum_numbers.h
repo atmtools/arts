@@ -251,6 +251,7 @@ constexpr QuantumNumberValueType common_value_type(
     case QuantumNumberType::vibSym:
       return QuantumNumberValueType::S;
   }
+  std::unreachable();
 }
 
 /** Return a common type between a and b
@@ -535,6 +536,7 @@ struct TwoLevelValueHolder {
       return x;
     }
   }
+  std::unreachable();
 }
 
 //! Struct that converts to bool automatically but allows checking both energy levels matching status

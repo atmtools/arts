@@ -28,6 +28,8 @@ class spectral_radiance {
   matpack::matpack_data<std::function<Stokvec(Numeric, Vector2)>, 2>
       spectral_radiance_space;
 
+  Vector2 ellipsoid;
+
  public:
   struct as_vector {};
 
@@ -55,7 +57,8 @@ class spectral_radiance {
                     Index ciarobust = {});
 
   Stokvec operator()(const Numeric f,
-                     const std::vector<path>& path_points) const;
+                     const std::vector<path>& path_points,
+                     const Numeric cutoff_transmission = 1e-6) const;
 
   StokvecVector operator()(const Numeric f,
                            const std::vector<path>& path_points,
@@ -67,8 +70,12 @@ class spectral_radiance {
 
   friend std::ostream& operator<<(std::ostream&, const spectral_radiance&);
 
-  [[nodiscard]] std::vector<path> geometric_planar(const Vector3 pos, const Vector2 los) const;
-  [[nodiscard]] std::vector<path> from_path(const ArrayOfPropagationPathPoint& propagation_path) const;
+  [[nodiscard]] std::vector<path> geometric_planar(const Vector3 pos,
+                                                   const Vector2 los) const;
+  [[nodiscard]] std::vector<path> from_path(
+      const ArrayOfPropagationPathPoint& propagation_path) const;
+  void from_path(std::vector<path>& out,
+                 const ArrayOfPropagationPathPoint& propagation_path) const;
 
   [[nodiscard]] constexpr std::array<weighted_position, 8> pos_weights(
       const path& pp) const {

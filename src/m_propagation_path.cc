@@ -31,10 +31,9 @@ void propagation_pathGeometric(ArrayOfPropagationPathPoint& propagation_path,
                                const Index& remove_non_atm,
                                const Index& fix_updown_azimuth,
                                const Index& surface_safe_search) {
-  propagation_path.resize(
-      1,
-      path::init(
-          pos, los, atm_field, surface_field, static_cast<bool>(as_sensor)));
+  propagation_path.resize(1);
+  propagation_path[0] = path::init(
+      pos, los, atm_field, surface_field, static_cast<bool>(as_sensor));
 
   path::set_geometric_extremes(propagation_path,
                                atm_field,
@@ -70,8 +69,8 @@ void propagation_pathGeometricTangentAltitude(
       path::geometric_tangent_zenith(pos, surface_field, tangent_altitude, aa);
   const Vector2 los{za, aa};
 
-  propagation_path.resize(
-      1, path::init(pos, los, atm_field, surface_field, false));
+  propagation_path.resize(1);
+  propagation_path[0] = path::init(pos, los, atm_field, surface_field, false);
 
   path::set_geometric_extremes(propagation_path, atm_field, surface_field);
 
@@ -89,4 +88,18 @@ void propagation_pathGeometricTangentAltitude(
                 add_limb,
                 remove_non_atm,
                 fix_updown_azimuth);
+}
+
+void propagation_path_pointBackground(
+    PropagationPathPoint& propagation_path_point,
+    const ArrayOfPropagationPathPoint& propagation_path) {
+  ARTS_USER_ERROR_IF(propagation_path.size() == 0, "Empty propagation path.")
+  propagation_path_point = propagation_path.back();
+}
+
+void propagation_path_pointForeground(
+    PropagationPathPoint& propagation_path_point,
+    const ArrayOfPropagationPathPoint& propagation_path) {
+  ARTS_USER_ERROR_IF(propagation_path.size() == 0, "Empty propagation path.")
+  propagation_path_point = propagation_path.front();
 }

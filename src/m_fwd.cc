@@ -9,9 +9,11 @@
 #include "debug.h"
 #include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
+#include "obsel.h"
 #include "path_point.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
+#include "workspace_class.h"
 
 void spectral_radiance_operatorClearsky1D(
     const Workspace& ws,
@@ -225,10 +227,8 @@ void spectral_radiance_fieldFromOperatorPath(
                   frequency_grid.end(),
                   spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
                       .begin(),
-                  [path = fwd::path_from_propagation_path(propagation_path,
-                                                          altitude_grid,
-                                                          latitude_grid,
-                                                          longitude_grid),
+                  [path =
+                       spectral_radiance_operator.from_path(propagation_path),
                    &spectral_radiance_operator](Numeric f) {
                     return spectral_radiance_operator(f, path);
                   });
@@ -261,10 +261,8 @@ void spectral_radiance_fieldFromOperatorPath(
                     frequency_grid.end(),
                     spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
                         .begin(),
-                    [path = fwd::path_from_propagation_path(propagation_path,
-                                                            altitude_grid,
-                                                            latitude_grid,
-                                                            longitude_grid),
+                    [path =
+                         spectral_radiance_operator.from_path(propagation_path),
                      &spectral_radiance_operator](Numeric f) {
                       return spectral_radiance_operator(f, path);
                     });
@@ -281,3 +279,88 @@ void spectral_radiance_fieldFromOperatorPath(
     ARTS_USER_ERROR_IF(not errors.empty(), errors)
   }
 }
+
+void measurement_vectorFromOperatorPath(
+    const Workspace& ws,
+    Vector& measurement_vector,
+    const ArrayOfSensorObsel& measurement_vector_sensor,
+    const SpectralRadianceOperator& spectral_radiance_operator,
+    const Agenda& propagation_path_observer_agenda,
+    const Index& exhaustive_) try {
+  //! Flag whether or not all frequency and pos-los grids are to be assumed the same
+  const bool exhaustive = static_cast<bool>(exhaustive_);
+
+  ARTS_USER_ERROR_IF(not all_ok(measurement_vector_sensor),
+                     "Measurement vector sensor infromation is not OK")
+  ARTS_USER_ERROR_IF(
+      exhaustive and not sensor::is_exhaustive_like(measurement_vector_sensor),
+      "Measurement vector sensor infromation is not exhaustive-like despite exhaustive flag")
+
+  measurement_vector.resize(measurement_vector_sensor.size());
+  measurement_vector = 0.0;
+  if (measurement_vector_sensor.empty()) return;
+
+  ArrayOfPropagationPathPoint propagation_path;
+  AscendingGrid frequency_grid;
+  std::vector<fwd::path> path;
+  StokvecVector spectral_radiance;
+
+  if (exhaustive) {
+    frequency_grid = measurement_vector_sensor.front().f_grid;
+    spectral_radiance.resize(frequency_grid.size());
+  }
+
+  for (const auto poslos :
+       (exhaustive ? measurement_vector_sensor.front().poslos_grid
+                   : sensor::collect_poslos(measurement_vector_sensor))) {
+    propagation_path_observer_agendaExecute(ws,
+                                            propagation_path,
+                                            poslos.pos,
+                                            poslos.los,
+                                            propagation_path_observer_agenda);
+    spectral_radiance_operator.from_path(path, propagation_path);
+
+    if (not exhaustive) {
+      sensor::collect_f_grid(frequency_grid, measurement_vector_sensor, poslos);
+      spectral_radiance.resize(frequency_grid.size());
+    }
+
+    if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
+      std::transform(frequency_grid.begin(),
+                     frequency_grid.end(),
+                     spectral_radiance.begin(),
+                     [&path, &spectral_radiance_operator](Numeric f) {
+                       return spectral_radiance_operator(f, path);
+                     });
+    } else {
+      String error{};
+
+#pragma omp parallel for
+      for (Index i = 0; i < frequency_grid.size(); ++i) {
+        try {
+          spectral_radiance[i] =
+              spectral_radiance_operator(frequency_grid[i], path);
+        } catch (std::exception& e) {
+#pragma omp critical
+          error += e.what() + String{"\n"};
+        }
+      }
+
+      ARTS_USER_ERROR_IF(not error.empty(), error)
+    }
+
+    if (exhaustive) {
+      sensor::exhaustive_sumup(measurement_vector,
+                               spectral_radiance,
+                               measurement_vector_sensor,
+                               poslos);
+    } else {
+      sensor::sumup(measurement_vector,
+                    spectral_radiance,
+                    frequency_grid,
+                    measurement_vector_sensor,
+                    poslos);
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH

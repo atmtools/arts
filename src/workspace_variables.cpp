@@ -386,18 +386,48 @@ Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude 
       .type = "NumericTernaryOperator",
   };
 
+  wsv_data["spectral_radiance_unit"] = {
+      .desc = R"--(The spectral radiance unit after conversion.
+
+If a unit conversion is desired, the user has to set this variable to one
+of the valid options in *SpectralRadianceUnitType*.
+
+Internally, it is always assumed that this is set to "1" and that no
+unit conversion are taking place. 
+
+Please be aware of limitations of follow-up method calls when using this variable manually.
+Unless a method or variable explicitly mention that a unit conversion is supported before
+it is called, the use of *spectral_radiance_unit* with a different unit than "1" may lead to
+undesired results.
+)--",
+      .type = "String",
+      .default_value = String{"1"},
+  };
+
   wsv_data["spectral_radiance"] = {
       .desc = R"--(A spectral radiance vector.
 
 This is the representation of the spectral radiances at discrete frequencies for
-a discrete viewing direction.  The units are W / m^2 / sr / Hz unless otherwise
-specified by a conversion function.
+a discrete viewing direction.
+
+The unit of spectral radiance is [W / m :math:`^2` sr Hz].
+
+Note that there are conversion routines that changes this unit,
+e.g., *spectral_radianceApplyUnit*.  After conversion,
+the use of *spectral_radiance* in any method no marked as safe for different units,
+will lead to undefined behavior with possibly bad values being computed.
+
+The size of this variable should be the size of the local *frequency_grid*.
 )--",
       .type = "StokvecVector",
   };
 
   wsv_data["spectral_radiance_jacobian"] = {
-      .desc = R"--(Jacobian of *spectral_radiance* with respect to *jacobian_targets*.
+      .desc =
+          R"--(Jacobian of *spectral_radiance* with respect to *jacobian_targets*.
+
+The size of this variable should be the local *jacobian_targets* as rows times the
+size of the local *spectral_radiance* as columns.
 )--",
       .type = "StokvecMatrix",
   };
@@ -447,6 +477,12 @@ It provides several methods to get the path of the spectral
 radiance.
 )--",
       .type = "SpectralRadianceOperator",
+  };
+
+  wsv_data["measurement_vector_sensor"] = {
+      .desc = R"(A list of of sensor elements
+)",
+      .type = "ArrayOfSensorObsel",
   };
 
   return wsv_data;

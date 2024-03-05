@@ -17,7 +17,8 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name = "spectral_radianceStandardEmission",
       .desc = "Computes standard emission of spectral radiances",
       .author = {"Richard Larsson"},
-      .methods = {"spectral_radiance_backgroundAgendasAtEndOfPath",
+      .methods = {"propagation_path_pointBackground",
+                  "spectral_radiance_backgroundAgendasAtEndOfPath",
                   "propagation_path_atmospheric_pointFromPath",
                   "propagation_path_frequency_gridFromPath",
                   "propagation_path_propagation_matrixFromPath",
@@ -28,7 +29,10 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation"},
+                  "spectral_radiance_jacobianAddPathPropagation",
+                  "propagation_path_pointForeground",
+                  "spectral_radiance_jacobianApplyUnit",
+                  "spectral_radianceApplyUnit"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 

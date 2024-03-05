@@ -1,6 +1,8 @@
+#include <pybind11/pybind11.h>
 #include <python_interface.h>
 #include <rtepack.h>
 
+#include "enums.h"
 #include "py_macros.h"
 
 namespace Python {
@@ -8,6 +10,28 @@ void py_rtepack(py::module_ &m) try {
   artsclass<Stokvec>(m, "Stokvec", py::buffer_protocol())
       .def(py::init<>())
       .def(py::init<Numeric>())
+      .def(py::init(
+          [](const PolarizationChoice p) { return rtepack::to_stokvec(p); }))
+      .def(py::init([](const String &p) {
+        return rtepack::to_stokvec(to<PolarizationChoice>(p));
+      }))
+      .def_static(
+          "linpol",
+          [](const Numeric angle) {
+            return Stokvec{1.0,
+                           Conversion::cosd(2.0 * angle),
+                           Conversion::sind(2.0 * angle),
+                           0.0};
+          },
+          "Returns [1.0, cos(2*angle), sin(2*angle), 0.0], the linear polarization vector for a given angle",
+          py::arg("angle"))
+      .def_static(
+          "cirpol",
+          [](const Numeric angle) {
+            return Stokvec{1.0, 0.0, 0.0, Conversion::sind(angle)};
+          },
+          "Returns [1.0, 0.0, 0.0, sin(angle)], the circular polarization vector for a given phase delay angle",
+          py::arg("angle"))
       .def(py::init([](std::array<Numeric, 4> a) {
         return Stokvec{a[0], a[1], a[2], a[3]};
       }))
@@ -43,6 +67,8 @@ void py_rtepack(py::module_ &m) try {
       .PythonInterfaceWorkspaceDocumentation(Stokvec);
   py::implicitly_convertible<Numeric, Stokvec>();
   py::implicitly_convertible<std::array<Numeric, 4>, Stokvec>();
+  py::implicitly_convertible<PolarizationChoice, Stokvec>();
+  py::implicitly_convertible<String, Stokvec>();
 
   artsclass<StokvecVector>(m, "StokvecVector", py::buffer_protocol())
       .def(py::init<>())

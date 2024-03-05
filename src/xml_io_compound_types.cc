@@ -2468,7 +2468,8 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBandData");
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const lbl::band_data& data,
@@ -2509,7 +2510,8 @@ void xml_read_from_stream(std::istream& is_xml,
   ArtsXMLTag close_tag;
   close_tag.read_from_stream(is_xml);
   close_tag.check_name("/AbsorptionBand");
-} ARTS_METHOD_ERROR_CATCH
+}
+ARTS_METHOD_ERROR_CATCH
 
 void xml_write_to_stream(std::ostream& os_xml,
                          const AbsorptionBand& data,
@@ -2679,7 +2681,7 @@ void xml_write_to_stream(std::ostream& os_xml,
 }
 
 //! SpeciesIsotope
-#include <iostream> 
+#include <iostream>
 void xml_read_from_stream(std::istream& is_xml, SpeciesIsotope& s, bifstream*) {
   const tag stag{is_xml, "SpeciesIsotope", "isot"};
   std::cout << stag.get("isot") << '\n';
@@ -2746,4 +2748,82 @@ void xml_write_to_stream(std::ostream& os_xml,
                          const String&) {
   const tag stag{os_xml, "AscendingGrid"};
   xml_write_to_stream(os_xml, static_cast<const Vector&>(g), pbofs, "");
+}
+
+//! SensorObsel
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SensorObsel& g,
+                          bifstream* pbifs) {
+  const tag stag{is_xml, "SensorObsel"};
+  xml_read_from_stream(is_xml, g.f_grid, pbifs);
+  xml_read_from_stream(is_xml, g.f_grid_w, pbifs);
+  xml_read_from_stream(is_xml, g.poslos_grid_w, pbifs);
+  xml_read_from_stream(is_xml, g.poslos_grid, pbifs);
+  xml_read_from_stream(is_xml, g.polarization, pbifs);
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SensorObsel& g,
+                         bofstream* pbofs,
+                         const String&) {
+  const tag stag{os_xml, "SensorObsel"};
+  xml_write_to_stream(os_xml, g.f_grid, pbofs, "f_grid");
+  xml_write_to_stream(os_xml, g.f_grid_w, pbofs, "f_grid_w");
+  xml_write_to_stream(os_xml, g.poslos_grid_w, pbofs, "poslos_w");
+  xml_write_to_stream(os_xml, g.poslos_grid, pbofs, "poslos");
+  xml_write_to_stream(os_xml, g.polarization, pbofs, "polarization");
+}
+
+//! SensorPosLos
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SensorPosLos& g,
+                          bifstream* pbifs) {
+  const tag stag{is_xml, "SensorPosLos"};
+  if (pbifs) {
+    pbifs->readDoubleArray(g.pos.data.data(), 3);
+    pbifs->readDoubleArray(g.los.data.data(), 2);
+  } else {
+    is_xml >> double_imanip() >> g.pos[0] >> g.pos[1] >> g.pos[2] >> g.los[0] >>
+        g.los[1];
+  }
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SensorPosLos& g,
+                         bofstream* pbofs,
+                         const String&) {
+  const tag stag{os_xml, "SensorPosLos"};
+  if (pbofs) {
+    *pbofs << g.pos[0] << g.pos[1] << g.pos[2] << g.los[0] << g.los[1];
+  } else {
+    os_xml << g.pos[0] << ' ' << g.pos[1] << ' ' << g.pos[2] << ' ' << g.los[0]
+           << ' ' << g.los[1];
+  }
+}
+
+//! SensorPosLosVector
+
+void xml_read_from_stream(std::istream& is_xml,
+                          SensorPosLosVector& g,
+                          bifstream* pbifs) {
+  const tag stag{is_xml, "SensorPosLosVector", "nelem"};
+  const auto n = stag.get<Index>("nelem");
+  g.resize(n);
+  for (auto& i : g) {
+    xml_read_from_stream(is_xml, i, pbifs);
+  }
+}
+
+void xml_write_to_stream(std::ostream& os_xml,
+                         const SensorPosLosVector& g,
+                         bofstream* pbofs,
+                         const String&) {
+  const tag stag{os_xml,
+                 "SensorPosLosVector",
+                 meta_data{"nelem", static_cast<Index>(g.size())}};
+  for (const auto& i : g) {
+    xml_write_to_stream(os_xml, i, pbofs, "poslos");
+  }
 }

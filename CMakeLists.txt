@@ -113,12 +113,14 @@ if (NOT CMAKE_CXX_STANDARD)
   if (ENABLE_CXX23)
     set(CMAKE_CXX_STANDARD 23)
   else ()
-    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD 23)
   endif ()
 endif ()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_compile_definitions(MDSPAN_USE_PAREN_OPERATOR=1)
 
 enable_testing ()
 

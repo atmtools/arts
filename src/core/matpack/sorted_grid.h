@@ -32,6 +32,16 @@ class grid {
     assert_sorted();
   }
 
+  grid(Vector&& in) : x(std::move(in)) {
+    assert_sorted();
+  }
+
+  grid& operator=(Vector&& in) {
+    x = std::move(in);
+    assert_sorted();
+    return *this;
+  }
+
   template <typename T>
   grid& operator=(T&& in) {
     x = std::forward<T>(in);
@@ -66,10 +76,17 @@ class grid {
   [[nodiscard]] constexpr auto empty() const { return x.empty(); }
   [[nodiscard]] constexpr Numeric front() const { return x.front(); }
   [[nodiscard]] constexpr Numeric back() const { return x.back(); }
+  void clear() { x.clear(); }
+  void reserve(Size n) { x.reserve(n); }
+  void erase(auto ... it) { x.erase(it...); }
 
   void unsafe_resize(const Index n) { x.resize(n); }
   [[nodiscard]] constexpr auto unsafe_begin() { return x.begin(); }
   [[nodiscard]] constexpr auto unsafe_end() { return x.end(); }
+  void unsafe_push_back(Numeric v) { x.push_back(v); }
+  Numeric& unsafe_emplace_back(Numeric v) {
+    return x.emplace_back(v);
+  }
 
   //! Return a pointer to this object's allocated data
   [[nodiscard]] constexpr auto data_handle() const { return x.data_handle(); }

@@ -331,15 +331,24 @@ std::vector<EnumeratedOption> internal_options_create() {
           {
               Value{"T0", ":math:`X_0`"},
               Value{"T1", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1}`)"},
-              Value{"T2", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} \left[1 + X_2 \log\left(\frac{T_0}{T}\right)\right]`)"},
+              Value{
+                  "T2",
+                  R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} \left[1 + X_2 \log\left(\frac{T_0}{T}\right)\right]`)"},
               Value{"T3", R"(:math:`X_0 + X_1 \left(T - T_0\right)`)"},
-              Value{"T4", R"(:math:`\left[X_0 + X_1 \left(\frac{T_0}{T} - 1\right)\right] \left(\frac{T_0}{T}\right)^{X_2}`)"},
-              Value{"T5", R"(:math:`X_0 \left(\frac{T_0}{T}\right)^{\frac{1}{4} + \frac{3}{2}X_1}`)"},
+              Value{
+                  "T4",
+                  R"(:math:`\left[X_0 + X_1 \left(\frac{T_0}{T} - 1\right)\right] \left(\frac{T_0}{T}\right)^{X_2}`)"},
+              Value{
+                  "T5",
+                  R"(:math:`X_0 \left(\frac{T_0}{T}\right)^{\frac{1}{4} + \frac{3}{2}X_1}`)"},
               Value{
                   "AER",
                   R"(:math:`X(200) = X_0`; :math:`X(250) = X_1`; :math:`X(298) = X_2`; :math:`X(340) = X_3`;  Linear interpolation in between)"},
-              Value{"DPL", R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} + X_2 \left(\frac{T_0}{T}\right) ^ {X_3}`)"},
-              Value{"POLY", R"(:math:`X_0 + X_1 T + X_2 T ^ 2 + X_3 T ^ 3 + \cdots`)"},
+              Value{
+                  "DPL",
+                  R"(:math:`X_0 \left(\frac{T_0}{T}\right) ^ {X_1} + X_2 \left(\frac{T_0}{T}\right) ^ {X_3}`)"},
+              Value{"POLY",
+                    R"(:math:`X_0 + X_1 T + X_2 T ^ 2 + X_3 T ^ 3 + \cdots`)"},
           },
   });
 
@@ -408,7 +417,9 @@ std::vector<EnumeratedOption> internal_options_create() {
       .values_and_desc =
           {
               Value{"None", "No cutoff"},
-              Value{"ByLine", "Line's are cut 1-by-1 around :attr:`~pyarts.arts.AbsorptionLine.f0`"},
+              Value{
+                  "ByLine",
+                  "Line's are cut 1-by-1 around :attr:`~pyarts.arts.AbsorptionLine.f0`"},
           },
   });
 
@@ -632,18 +643,89 @@ std::vector<EnumeratedOption> internal_options_create() {
   opts.emplace_back(EnumeratedOption{
       .name = "SpectralRadianceUnitType",
       .desc = R"(Choice of spectral radiance unit in conversions.
+
+The conversion to one of these units is expected to happen from the internal representation of *spectral_radiance*,
+which is [W / m :math:`^{2}` Hz sr].
+
+For the description below, :math:`c` is the speed of light, :math:`k` is the Boltzmann constant,
+:math:`f` is the frequency, :math:`h` is the Planck constant, :math:`F(x)` is the conversion
+function, and :math:`[I, Q, U, V]` is the internal representation of *spectral_radiance*.
+
+For Rayleigh-Jeans brightness temperature the conversion is:
+
+.. math::
+
+    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
+
+with
+
+.. math::
+
+    F(x)=\frac{c^2 x}{2 k f^2}.
+
+For Planck brightness temperature the conversion is:
+
+.. math::
+
+    [I, Q, U, V] \rightarrow [
+        F(I),
+        F( \frac{1}{2}\left( I + Q \right) ) - F( \frac{1}{2}\left( I - Q \right) ),
+        F( \frac{1}{2}\left( I + U \right) ) - F( \frac{1}{2}\left( I - U \right) ),
+        F( \frac{1}{2}\left( I + V \right) ) - F( \frac{1}{2}\left( I - V \right) )]
+
+with 
+
+.. math::
+
+    F(x) = \frac{h f}{k}\left[\log\left(1 + \frac{2hf^3}{c^2x}\right)\right]^{-1}.
+
+The spectral radiance per wavelength [W / m :math:`^{2}` m sr`] is:
+
+.. math::
+
+    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
+
+with
+
+.. math::
+
+    F(x) = \frac{f^2 x}{c}.
+
+The spectral radiance per wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`] is:
+
+.. math::
+
+    [I, Q, U, V] \rightarrow [F(I), F(Q), F(U), F(V)]
+
+.. math::
+
+    F(x) = \frac{x}{c}.
+
+Lastly, the unit option of course just retains the current state [W / m :math:`^{2}` Hz sr].
+
+.. math::
+
+    [I, Q, U, V] \rightarrow [I, Q, U, V]
 )",
       .values_and_desc =
           {
               Value{"RJBT",
+                    "Tr",
                     R"(Rayleigh-Jeans brightness temperature [K]
 )"},
               Value{"PlanckBT",
+                    "Tb",
                     R"(Planck brightness temperature [K]
 )"},
-              Value{"W_m2_m_sr", "Spectral radiance [W m :math:`^{-2}` m sr :math:`^{-1}`]"},
-              Value{"W_m2_m1_sr", "Spectral radiance [W m :math:`^{-2}` m :math:`^{-1}` sr :math:`^{-1}`]"},
-              Value{"unit", "Unit spectral radiance [1]"},
+              Value{
+                  "W_m2_m_sr",
+                  "W/(m^2 m sr)",
+                  "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
+              Value{
+                  "W_m2_m1_sr",
+                  "W/(m^2 m-1 sr)",
+                  "Spectral radiance wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`]"},
+              Value{"unit", "1", "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
           },
   });
 
@@ -808,11 +890,12 @@ std::vector<EnumeratedOption> internal_options_create() {
   opts.emplace_back(EnumeratedOption{
       .name = "EarthEllipsoid",
       .desc = "Choice of ellipsoid.\n",
-      .values_and_desc =
-          {Value{"Sphere", R"(A spherical Earth.
+      .values_and_desc = {Value{"Sphere", R"(A spherical Earth.
 
   The radius is set following the value set for the Earth radius.)"},
-           Value{"WGS84", R"(The reference ellipsoid used by the GPS system.
+                          Value{
+                              "WGS84",
+                              R"(The reference ellipsoid used by the GPS system.
 
   Should be the standard choice for a non-spherical Earth.)"}},
   });
@@ -909,6 +992,47 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"Cia", "A pair of collision-induced species."},
               Value{"XsecFit", "A cross-section fitting of a model species."},
           },
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "PolarizationChoice",
+      .desc = R"(Named polarization states to help create relevant *Stokvec*.
+
+Note that these are just user friendly suggestions and it is recommended to
+create the correct *Stokvec* manually if the desired polarization state is not
+represented below.
+
+Also, be aware that the unit of, e.g., *spectral_radiance* (often the last choice
+of *SpectralRadianceUnitType*) is in Kelvin, then the code below will give the
+measured brightness temperature in Kelvin for these polarization states, but that
+if the unit is still in Watts of any kind, then the code below will give 2 times
+the select polarized brightness temperatures (but still the correct unpolarized
+radiation).
+)",
+      .values_and_desc =
+          {Value{"I", "I", "No polarization state [1, 0, 0, 0]."},
+           Value{
+               "Q",
+               "Q",
+               "Difference between vertical and horizontal linear polarization [0, 1, 0, 0]."},
+           Value{
+               "U",
+               "U",
+               "Difference between plus and minus 45 degrees linear polarization [0, 0, 1, 0]."},
+           Value{
+               "V",
+               "V",
+               "Difference between right and left circular polarization [0, 0, 0, 1]."},
+           Value{"Iv", "Iv", "Vertical linear polarization [1, 1, 0, 0]."},
+           Value{"Ih", "Ih", "Horizontal linear polarization [1, -1, 0, 0]."},
+           Value{"Ip45",
+                 "I+45",
+                 "Plus 45 degrees linear polarization [1, 0, 1, 0]."},
+           Value{"Im45",
+                 "I-45",
+                 "Minus 45 degrees linear polarization [1, 0, -1, 0]."},
+           Value{"Ilhc", "LC", "Left circular polarization [1, 0, 0, -1]."},
+           Value{"Irhc", "RC", "Right circular polarization [1, 0, 0, 1]."}},
   });
 
   return opts;

@@ -16,16 +16,12 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     StokvecMatrix& spectral_radiance_background_jacobian,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets,
-    const ArrayOfPropagationPathPoint& rad_path,
+    const PropagationPathPoint& propagation_path_point,
     const SurfaceField& surface_field,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda) try {
-  ARTS_USER_ERROR_IF(rad_path.size() == 0, "Empty propagation path.")
-
-  const auto& propagatin_path_point = rad_path.back();
-
   using enum PathPositionType;
-  switch (propagatin_path_point.los_type) {
+  switch (propagation_path_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
       break;
@@ -42,7 +38,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background_jacobian,
           frequency_grid,
           jacobian_targets,
-          propagatin_path_point,
+          propagation_path_point,
           spectral_radiance_space_agenda);
       break;
     case surface:
@@ -52,7 +48,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background_jacobian,
           frequency_grid,
           jacobian_targets,
-          propagatin_path_point,
+          propagation_path_point,
           surface_field,
           spectral_radiance_surface_agenda);
       break;

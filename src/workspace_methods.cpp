@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "enums.h"
 #include "workspace_agendas.h"
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"
@@ -2004,7 +2005,7 @@ Gets the ellispoid from *surface_field*
               "spectral_radiance_background_jacobian"},
       .in = {"frequency_grid",
              "jacobian_targets",
-             "propagation_path",
+             "propagation_path_point",
              "surface_field",
              "spectral_radiance_space_agenda",
              "spectral_radiance_surface_agenda"},
@@ -2075,20 +2076,37 @@ Size : (*jacobian_targets*, *frequency_grid*)
              "propagation_path"},
   };
 
+  wsm_data["spectral_radiance_jacobianApplyUnit"] = {
+      .desc = R"(Applies a unit to *spectral_radiance*, returning a new field
+
+See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
+and limitations.
+
+Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
+)",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance_jacobian"},
+      .in = {"spectral_radiance_jacobian",
+             "spectral_radiance",
+             "frequency_grid",
+             "propagation_path_point",
+             "spectral_radiance_unit"},
+  };
+
   wsm_data["spectral_radianceApplyUnit"] = {
       .desc = R"(Applies a unit to *spectral_radiance*, returning a new field
 
-See *SpectralRadianceUnitType* for valid ``spectral_radiance_unit``
+See *SpectralRadianceUnitType* and *spectral_radiance_unit* for valid use cases
+and limitations.
+
+Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *spectral_radianceApplyUnit*.
 )",
       .author = {"Richard Larsson"},
-      .gout = {"spectral_radiance_with_unit"},
-      .gout_type = {"StokvecVector"},
-      .gout_desc = {"The spectral radiance with unit"},
-      .in = {"spectral_radiance", "frequency_grid"},
-      .gin = {"spectral_radiance_unit"},
-      .gin_type = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {"The unit to apply"},
+      .out = {"spectral_radiance"},
+      .in = {"spectral_radiance",
+             "frequency_grid",
+             "propagation_path_point",
+             "spectral_radiance_unit"},
   };
 
   wsm_data["spectral_radianceFromPathPropagation"] = {
@@ -2098,36 +2116,6 @@ See *SpectralRadianceUnitType* for valid ``spectral_radiance_unit``
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
       .in = {"propagation_path_spectral_radiance"},
-  };
-
-  wsm_data["sensor_radianceFromObservers"] = {
-      .desc =
-          R"--(Sets sensor radiance by looping over a list of observers
-
-The core calculations happens inside the *spectral_radiance_observer_agenda*.
-
-Each position and line-of-sight is used to compute the spectral radiance
-and its jacobian.  They are then averaged together to get the sensor
-radiance and its jacobian.
-
-The calculations are in parallel if the program is not in parallel already.
-)--",
-      .author = {"Richard Larsson"},
-      .gout = {"sensor_radiance", "sensor_radiance_jacobian"},
-      .gout_type = {"StokvecVector", "StokvecMatrix"},
-      .gout_desc = {"The sensor radiance", "The sensor radiance jacobian"},
-      .in = {"frequency_grid",
-             "jacobian_targets",
-             "atmospheric_field",
-             "surface_field",
-             "spectral_radiance_observer_agenda"},
-      .gin = {"pos", "los"},
-      .gin_type = {"ArrayOfVector3", "ArrayOfVector2"},
-      .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc =
-          {R"--(Position of observers to use while computing spectral radiance)--",
-           "Line of sight of observers to use while computing spectral radiance"},
-      .pass_workspace = true,
   };
 
   wsm_data["propagation_matrixAddLines"] = {
@@ -3014,6 +3002,166 @@ See *SpeciesIsotope* for valid ``species``
       .gin_desc = {"Isotopologue of the species",
                    "Minimum line frequency to set Zeeman splitting for",
                    "Maximum line frequency to set Zeeman splitting for"},
+  };
+
+  wsm_data["propagation_path_pointBackground"] = {
+      .desc =
+          R"--(Sets *propagation_path_point* to the expected background point of *propagation_path*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"propagation_path_point"},
+      .in = {"propagation_path"},
+  };
+
+  wsm_data["propagation_path_pointForeground"] = {
+      .desc =
+          R"--(Sets *propagation_path_point* to the expected foreground point of *propagation_path*
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"propagation_path_point"},
+      .in = {"propagation_path"},
+  };
+
+  wsm_data["measurement_vectorFromOperatorPath"] = {
+      .desc =
+          R"--(Sets measurement vector by looping over all sensor elements
+
+The core calculations happens inside the *spectral_radiance_operator*.
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"measurement_vector"},
+      .gout_type = {"Vector"},
+      .gout_desc = {"The measurement vector"},
+      .in = {"measurement_vector_sensor",
+             "spectral_radiance_operator",
+             "propagation_path_observer_agenda"},
+      .gin = {"exhaustive"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc =
+          {R"--(Boolean flag for whether or not the sensor elements are treated as exhaustive, i.e., all elements are understood to have the same frequency and pos-los grids)--"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["measurement_vectorFromSensor"] = {
+      .desc =
+          R"--(Sets measurement vector by looping over all sensor elements
+
+The core calculations happens inside the *spectral_radiance_observer_agenda*.
+
+User choices of *spectral_radiance_unit* does not adversely affect this method.
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"measurement_vector", "measurement_vector_jacobian"},
+      .gout_type = {"Vector", "Matrix"},
+      .gout_desc = {"The measurement vector",
+                    "The measurement vector's associated Jacobian"},
+      .in = {"measurement_vector_sensor",
+             "jacobian_targets",
+             "atmospheric_field",
+             "surface_field",
+             "spectral_radiance_unit",
+             "spectral_radiance_observer_agenda"},
+      .gin = {"exhaustive"},
+      .gin_type = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc =
+          {R"--(Boolean flag for whether or not the sensor elements are treated as exhaustive, i.e., all elements are understood to have the same frequency and pos-los grids)--"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["measurement_vector_sensorSimple"] = {
+      .desc =
+          R"--(Sets a simple sensor
+
+Sets one measurement vector sensor element entry per frequency in *frequency_grid*, a single polarization and a single pair of positions plus line-of-sight.
+
+The resulting vector of sensor elements is not to be considered exhaustive by future calculations.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"measurement_vector_sensor"},
+      .in = {"frequency_grid"},
+      .gin = {"pos", "los", "pol"},
+      .gin_type = {"Vector3", "Vector2", "Stokvec"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whos dot-product with the spectral radiance becomes the measurement"},
+  };
+
+  wsm_data["measurement_vector_sensorGaussianFrequencyGrid"] = {
+      .desc =
+          R"--(Sets a sensor with a Gaussian channel opening on a fixed frequency grid
+
+Each element has a frequency grid, a single polarization and a single pair of positions and line-of-sight.
+The frequency grid may only consist of elements that are in the input frequency grid.
+
+The Gaussian distribution by each element is defined by the ``f0_fwhm`` list of *Vector2* values.
+In each *Vector2*, the first value is the frequency center (:math:`f_0`) and the second value is the full width at half maximum (:math:`\sigma`).
+The frequency center must be positive.  The half maximum width must be non-negative, where a zero value means that the channel
+is just the dirac delta function at the frequency center, which then must be in *frequency_grid*.
+
+The freqeuncy grid of each channel is cut when :math:`\exp\left(-0.5 \left[\frac{f - f_0}{\sigma}\right]^2\right)`
+is less than the value of ``weight_cutoff``.  Note that this means channels might end of with zero
+frequency points.
+
+The resulting vector of sensor elements can be considered exhaustive by future calculations if an only if
+the weight cutoff is non-positive and all half width half maximums are positive.
+Otherwise the vector is not exhaustive.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"measurement_vector_sensor"},
+      .in = {"frequency_grid"},
+      .gin = {"f0_fwhm", "weight_cutoff", "pos", "los", "pol"},
+      .gin_type =
+          {"ArrayOfVector2", "Numeric", "Vector3", "Vector2", "Stokvec"},
+      .gin_value = {std::nullopt,
+                    Numeric{1e-3},
+                    std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc =
+          {"List of [f0, fwhm]",
+           "The weight cutoff",
+           "A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whos dot-product with the spectral radiance becomes the measurement"},
+  };
+
+  wsm_data["measurement_vector_sensorGaussian"] = {
+      .desc =
+          R"--(Sets a sensor with a Gaussian channel opening on a computed frequency grid
+
+Each element has a frequency grid, a single polarization and a single pair of positions and line-of-sight.
+
+The Gaussian distribution by each element is defined by the ``f0_fwmh_df`` list of *Vector3* values.
+In each *Vector3*, the first value is the frequency center (:math:`f_0`), the second value is the full width at half maximum (:math:`\sigma`),
+and the last value is the frequency stepping between points (:math:`'Delta f`). All values must be positive.
+
+The number of points per channel is :math:`1 + 2n` for the first :math:`n` that ensures that :math:`\exp\left(-0.5 \left[\frac{n\Delta f}{\sigma}\right]^2\right)` is less
+than ``weight_cutoff``.  This keeps (:math:`f_0`) in the resulting frequency grid.
+
+The resulting vector of sensor elements cannot be considered exhaustive in future calculations.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"measurement_vector_sensor"},
+      .gin = {"f0_fwhm_df", "weight_cutoff", "pos", "los", "pol"},
+      .gin_type =
+          {"ArrayOfVector3", "Numeric", "Vector3", "Vector2", "Stokvec"},
+      .gin_value = {std::nullopt,
+                    Numeric{1e-3},
+                    std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I)},
+      .gin_desc =
+          {"List of [f0, fwhm, df]",
+           "The weight cutoff",
+           "A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
 
   /*
