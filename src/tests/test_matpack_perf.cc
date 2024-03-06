@@ -5,141 +5,98 @@
 #include <iostream>
 #include <stdexcept>
 
-struct Timing {
-  std::string_view name;
-  Timing(const char * c) : name(c) {}
-  TimeStep dt{};
-  template <typename Function> void operator()(Function&& f) {
-    Time start{};
-    f();
-    Time end{};
-    dt = end - start;
-  }
-};
+#include "test_perf.h"
 
-std::ostream& operator<<(std::ostream& os, const std::vector<Timing>& vt) {
-  for (auto& t: vt) if (t.name not_eq "dummy") os << t.name  << " : " << t.dt << '\n';
-  return os;
-}
-
-std::vector<Timing> test_sum(Index N) {
+Array<Timing> test_sum(Index N) {
   Numeric X;
   Vector a(N, 1);
   auto b = static_cast<ExhaustiveVectorView>(a);
   VectorView c = a;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
-  {
-    X = sum(a) + sum(a) + sum(a) + sum(a) + sum(a);
-  };
-  xvec.push_back(X);
+  { X = sum(a) + sum(a) + sum(a) + sum(a) + sum(a); };
+  results_.push_back(X);
 
-  out.emplace_back("sum(vec)")([&]() {
-    X = sum(a);
-  });
-  xvec.push_back(X);
+  out.emplace_back("sum(Vector)")([&]() { X = sum(a); });
+  results_.push_back(X);
 
-  out.emplace_back("sum(exview)")([&]() {
-    X = sum(b);
-  });
-  xvec.push_back(X);
+  out.emplace_back("sum(ExhaustiveVectorView)")([&]() { X = sum(b); });
+  results_.push_back(X);
 
-  out.emplace_back("sum(view)")([&]() {
-    X = sum(c);
-  });
-  xvec.push_back(X);
+  out.emplace_back("sum(VectorView)")([&]() { X = sum(c); });
+  results_.push_back(X);
 
-  out.emplace_back("mean(vec)")([&]() {
-    X = mean(a);
-  });
-  xvec.push_back(X);
+  out.emplace_back("mean(Vector)")([&]() { X = mean(a); });
+  results_.push_back(X);
 
-  out.emplace_back("mean(exview)")([&]() {
-    X = mean(b);
-  });
-  xvec.push_back(X);
+  out.emplace_back("mean(ExhaustiveVectorView)")([&]() { X = mean(b); });
+  results_.push_back(X);
 
-  out.emplace_back("mean(view)")([&]() {
-    X = mean(c);
-  });
-  xvec.push_back(X);
+  out.emplace_back("mean(VectorView)")([&]() { X = mean(c); });
+  results_.push_back(X);
 
-  out.emplace_back("nanmean(vec)")([&]() {
-    X = nanmean(a);
-  });
-  xvec.push_back(X);
+  out.emplace_back("nanmean(Vector)")([&]() { X = nanmean(a); });
+  results_.push_back(X);
 
-  out.emplace_back("nanmean(exview)")([&]() {
-    X = nanmean(b);
-  });
-  xvec.push_back(X);
+  out.emplace_back("nanmean(ExhaustiveVectorView)")([&]() { X = nanmean(b); });
+  results_.push_back(X);
 
-  out.emplace_back("nanmean(view)")([&]() {
-    X = nanmean(c);
-  });
-  xvec.push_back(X);
+  out.emplace_back("nanmean(VectorView)")([&]() { X = nanmean(c); });
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing>  test_dot(Index N) {
+Array<Timing> test_dot(Index N) {
   Vector a(N, 1);
   Vector b(N, 1);
 
-  auto ae=static_cast<ExhaustiveVectorView>(a);
-  auto be=static_cast<ExhaustiveVectorView>(b);
+  auto ae = static_cast<ExhaustiveVectorView>(a);
+  auto be = static_cast<ExhaustiveVectorView>(b);
 
-  VectorView av=a;
-  VectorView bv=b;
+  VectorView av = a;
+  VectorView bv = b;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
-  {
-    X = a * b + a * b + a * b + a * b + a * b + a * b;
-  };
-  xvec.push_back(X);
+  { X = a * b + a * b + a * b + a * b + a * b + a * b; };
+  results_.push_back(X);
 
-  out.emplace_back("vec * vec")([&]() {
-    X = a * b;
-  });
-  xvec.push_back(X);
+  out.emplace_back("Vector*Vector")([&]() { X = a * b; });
+  results_.push_back(X);
 
-  out.emplace_back("exview * exview")([&]() {
-    X = ae * be;
-  });
-  xvec.push_back(X);
+  out.emplace_back("ExhaustiveVectorView*ExhaustiveVectorView")([&]() { X = ae * be; });
+  results_.push_back(X);
 
-  out.emplace_back("view * view")([&]() {
-    X = av * bv;
-  });
-  xvec.push_back(X);
+  out.emplace_back("VectorView*VectorView")([&]() { X = av * bv; });
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing>  test_vec_mult(Index N) {
+Array<Timing> test_Vector_mult(Index N) {
   Vector x(N, 1);
   Matrix A(N, N, 1);
   Vector y(N, 1);
 
-  auto xe=static_cast<ExhaustiveVectorView>(x);
-  MatrixView Ae=static_cast<ExhaustiveMatrixView>(A);
-  auto ye=static_cast<ExhaustiveVectorView>(y);
+  auto xe = static_cast<ExhaustiveVectorView>(x);
+  MatrixView Ae = static_cast<ExhaustiveMatrixView>(A);
+  auto ye = static_cast<ExhaustiveVectorView>(y);
 
-  VectorView xv=x;
-  MatrixView Av=A;
-  VectorView yv=y;
+  VectorView xv = x;
+  MatrixView Av = A;
+  VectorView yv = y;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -154,38 +111,40 @@ std::vector<Timing>  test_vec_mult(Index N) {
     mult(x, A, y);
     X += x[0];
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec = mat * vec")([&]() {
+  out.emplace_back("mult(Vector,Matrix,Vector)")([&]() {
     mult(x, A, y);
-    X = x[0] + x[N-1];
+    X = x[0] + x[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview = exmview * exview")([&]() {
+  out.emplace_back("mult(ExhaustiveVectorView,ExhaustiveMatrixView,ExhaustiveVectorView)")([&]() {
     mult(xe, Ae, ye);
-    X = xe[0] + xe[N-1];
+    X = xe[0] + xe[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view = mview * view")([&]() {
+  out.emplace_back("mult(VectorView,MatrixView,VectorView)")([&]() {
     mult(xv, Av, yv);
-    X = xv[0] + xv[N-1];
+    X = xv[0] + xv[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing> test_mat_multiply(Index N) {
+Array<Timing> test_Matrix_multiply(Index N) {
   Matrix A(N, N), C(N, N, 1), B(N, N, 1);
-  auto Ae=static_cast<ExhaustiveMatrixView>(A), Be=static_cast<ExhaustiveMatrixView>(B), Ce=static_cast<ExhaustiveMatrixView>(C);
-  MatrixView Av=A, Bv=B, Cv=C;
+  auto Ae = static_cast<ExhaustiveMatrixView>(A),
+       Be = static_cast<ExhaustiveMatrixView>(B),
+       Ce = static_cast<ExhaustiveMatrixView>(C);
+  MatrixView Av = A, Bv = B, Cv = C;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -195,38 +154,38 @@ std::vector<Timing> test_mat_multiply(Index N) {
     mult(A, B, C);
     X = A(0, 0);
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat = mat * mat")([&]() {
+  out.emplace_back("mult(Matrix,Matrix,Matrix)")([&]() {
     mult(A, B, C);
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview = exmview * exmview")([&]() {
+  out.emplace_back("mult(ExhaustiveMatrixView,ExhaustiveMatrixView,ExhaustiveMatrixView)")([&]() {
     mult(Ae, Be, Ce);
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview = mview * mview")([&]() {
+  out.emplace_back("mult(MatrixView,MatrixView,MatrixView)")([&]() {
     mult(Av, Bv, Cv);
-    X = Av(0, 0) + Ae(N-1, N-1);
+    X = Av(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing> test_elementary_ops_vec(Index N) {
+Array<Timing> test_elementary_ops_Vector(Index N) {
   Vector A(N, 1);
   auto Ae = static_cast<ExhaustiveVectorView>(A);
   VectorView Av = A;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -235,112 +194,112 @@ std::vector<Timing> test_elementary_ops_vec(Index N) {
     A *= 2;
     A /= 2;
     A -= 1;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec = 1")([&]() {
+  out.emplace_back("Vector::operator=(Numeric)")([&]() {
     A = 1;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview = 1")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator=(Numeric)")([&]() {
     Ae = 1;
-    X = Ae[0] + Ae[N-1];
+    X = Ae[0] + Ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view = 1")([&]() {
+  out.emplace_back("VectorView::operator=(Numeric)")([&]() {
     Av = 1;
-    X = Av[0] + Av[N-1];
+    X = Av[0] + Av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec += 1.33")([&]() {
+  out.emplace_back("Vector::operator+=(Numeric)")([&]() {
     A += 1.33;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview += 1.33")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator+=(Numeric)")([&]() {
     Ae += 1.33;
-    X = Ae[0] + Ae[N-1];
+    X = Ae[0] + Ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view += 1.33")([&]() {
+  out.emplace_back("VectorView::operator+=(Numeric)")([&]() {
     Av += 1.33;
-    X = Av[0] + Av[N-1];
+    X = Av[0] + Av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec -= 1.5")([&]() {
+  out.emplace_back("Vector::operator-=(Numeric)")([&]() {
     A -= 1.5;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview -= 1.5")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator-=(Numeric)")([&]() {
     Ae -= 1.5;
-    X = Ae[0] + Ae[N-1];
+    X = Ae[0] + Ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view -= 1.5")([&]() {
+  out.emplace_back("VectorView::operator-=(Numeric)")([&]() {
     Av -= 1.5;
-    X = Av[0] + Av[N-1];
+    X = Av[0] + Av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec *= 3.5")([&]() {
+  out.emplace_back("Vector::operator*=(Numeric)")([&]() {
     A *= 3.5;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview *= 3.5")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator*=(Numeric)")([&]() {
     Ae *= 3.5;
-    X = Ae[0] + Ae[N-1];
+    X = Ae[0] + Ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view *= 3.5")([&]() {
+  out.emplace_back("VectorView::operator*=(Numeric)")([&]() {
     Av *= 3.5;
-    X = Av[0] + Av[N-1];
+    X = Av[0] + Av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec /= 7.77")([&]() {
+  out.emplace_back("Vector::operator/=(Numeric)")([&]() {
     A /= 7.77;
-    X = A[0] + A[N-1];
+    X = A[0] + A[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview /= 7.77")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator/=(Numeric)")([&]() {
     Ae /= 7.77;
-    X = Ae[0] + Ae[N-1];
+    X = Ae[0] + Ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view /= 7.77")([&]() {
+  out.emplace_back("VectorView::operator/=(Numeric)")([&]() {
     Av /= 7.77;
-    X = Av[0] + Av[N-1];
+    X = Av[0] + Av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing> test_elementary_ops_mat(Index N) {
+Array<Timing> test_elementary_ops_Matrix(Index N) {
   Matrix A(N, N, 1);
   auto Ae = static_cast<ExhaustiveMatrixView>(A);
   MatrixView Av = A;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -349,115 +308,115 @@ std::vector<Timing> test_elementary_ops_mat(Index N) {
     A *= 2;
     A /= 2;
     A -= 1;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat = 1")([&]() {
+  out.emplace_back("Matrix::operator=(Numeric)")([&]() {
     A = 1;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview = 1")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator=(Numeric)")([&]() {
     Ae = 1;
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview = 1")([&]() {
+  out.emplace_back("MatrixView::operator=(Numeric)")([&]() {
     Av = 1;
-    X = Av(0, 0) + Av(N-1, N-1);
+    X = Av(0, 0) + Av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat += 1.33")([&]() {
+  out.emplace_back("Matrix::operator+=(Numeric)")([&]() {
     A += 1.33;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview += 1.33")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator+=(Numeric)")([&]() {
     Ae += 1.33;
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview += 1.33")([&]() {
+  out.emplace_back("MatrixView::operator+=(Numeric)")([&]() {
     Av += 1.33;
-    X = Av(0, 0) + Av(N-1, N-1);
+    X = Av(0, 0) + Av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat -= 1.5")([&]() {
+  out.emplace_back("Matrix::operator-=(Numeric)")([&]() {
     A -= 1.5;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview -= 1.5")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator-=(Numeric)")([&]() {
     Ae -= 1.5;
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview -= 1.5")([&]() {
+  out.emplace_back("MatrixView::operator-=(Numeric)")([&]() {
     Av -= 1.5;
-    X = Av(0, 0) + Av(N-1, N-1);
+    X = Av(0, 0) + Av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat *= 3.5")([&]() {
+  out.emplace_back("Matrix::operator*=(Numeric)")([&]() {
     A *= 3.5;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview *= 3.5")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator*=(Numeric)")([&]() {
     Ae *= 3.5;
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview *= 3.5")([&]() {
+  out.emplace_back("MatrixView::operator*=(Numeric)")([&]() {
     Av *= 3.5;
-    X = Av(0, 0) + Av(N-1, N-1);
+    X = Av(0, 0) + Av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat /= 7.77")([&]() {
+  out.emplace_back("Matrix::operator/=(Numeric)")([&]() {
     A /= 7.77;
-    X = A(0, 0) + A(N-1, N-1);
+    X = A(0, 0) + A(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview /= 7.77")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator/=(Numeric)")([&]() {
     Ae /= 7.77;
-    X = Ae(0, 0) + Ae(N-1, N-1);
+    X = Ae(0, 0) + Ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview /= 7.77")([&]() {
+  out.emplace_back("MatrixView::operator/=(Numeric)")([&]() {
     Av /= 7.77;
-    X = Av(0, 0) + Av(N-1, N-1);
+    X = Av(0, 0) + Av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing> test_ops_vec(Index N) {
+Array<Timing> test_ops_Vector(Index N) {
   Vector a(N, 1.1);
   Vector b(N, 2.2);
-  auto ae=static_cast<ExhaustiveVectorView>(a);
-  auto be=static_cast<ExhaustiveVectorView>(b);
-  VectorView av=a;
-  VectorView bv=b;
+  auto ae = static_cast<ExhaustiveVectorView>(a);
+  auto be = static_cast<ExhaustiveVectorView>(b);
+  VectorView av = a;
+  VectorView bv = b;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -465,97 +424,97 @@ std::vector<Timing> test_ops_vec(Index N) {
     a -= b;
     a *= b;
     a /= b;
-    X = a[0] + a[N-1];
+    X = a[0] + a[N - 1];
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec += vec")([&]() {
+  out.emplace_back("Vector::operator+=(Vector)")([&]() {
     a += b;
-    X = a[0] + a[N-1];
+    X = a[0] + a[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview += exview")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator+=(ExhaustiveVectorView)")([&]() {
     ae += be;
-    X = ae[0] + ae[N-1];
+    X = ae[0] + ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view += view")([&]() {
+  out.emplace_back("VectorView::operator+=(VectorView)")([&]() {
     av += bv;
-    X = av[0] + av[N-1];
+    X = av[0] + av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec -= vec")([&]() {
+  out.emplace_back("Vector::operator-=(Vector)")([&]() {
     a -= b;
-    X = a[0] + a[N-1];
+    X = a[0] + a[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview -= exview")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator-=(ExhaustiveVectorView)")([&]() {
     ae -= be;
-    X = ae[0] + ae[N-1];
+    X = ae[0] + ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view -= view")([&]() {
+  out.emplace_back("VectorView::operator-=(VectorView)")([&]() {
     av -= bv;
-    X = av[0] + av[N-1];
+    X = av[0] + av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec *= vec")([&]() {
+  out.emplace_back("Vector::operator*=(Vector)")([&]() {
     a *= b;
-    X = a[0] + a[N-1];
+    X = a[0] + a[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview *= exview")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator*=(ExhaustiveVectorView)")([&]() {
     ae *= be;
-    X = ae[0] + ae[N-1];
+    X = ae[0] + ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view *= exview")([&]() {
+  out.emplace_back("VectorView::operator*=(VectorView)")([&]() {
     av *= bv;
-    X = av[0] + av[N-1];
+    X = av[0] + av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("vec /= vec")([&]() {
+  out.emplace_back("Vector::operator/=(Vector)")([&]() {
     a /= b;
-    X = a[0] + a[N-1];
+    X = a[0] + a[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exview /= exview")([&]() {
+  out.emplace_back("ExhaustiveVectorView::operator/=(ExhaustiveVectorView)")([&]() {
     ae /= be;
-    X = ae[0] + ae[N-1];
+    X = ae[0] + ae[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("view /= view")([&]() {
+  out.emplace_back("VectorView::operator/=(VectorView)")([&]() {
     av /= bv;
-    X = av[0] + av[N-1];
+    X = av[0] + av[N - 1];
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
-std::vector<Timing> test_ops_mat(Index N) {
+Array<Timing> test_ops_Matrix(Index N) {
   Matrix a(N, N, 1.1);
   Matrix b(N, N, 2.2);
-  auto ae=static_cast<ExhaustiveMatrixView>(a);
-  auto be=static_cast<ExhaustiveMatrixView>(b);
-  MatrixView av=a;
-  MatrixView bv=b;
+  auto ae = static_cast<ExhaustiveMatrixView>(a);
+  auto be = static_cast<ExhaustiveMatrixView>(b);
+  MatrixView av = a;
+  MatrixView bv = b;
 
-  std::vector<Numeric> xvec;
-  std::vector<Timing> out;
+  Array<Numeric> results_;
+  Array<Timing> out;
 
   Numeric X;
   {
@@ -563,105 +522,112 @@ std::vector<Timing> test_ops_mat(Index N) {
     a -= b;
     a *= b;
     a /= b;
-    X = a(0, 0) + a(N-1, N-1);
+    X = a(0, 0) + a(N - 1, N - 1);
   }
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat += mat")([&]() {
+  out.emplace_back("Matrix::operator+=(Matrix)")([&]() {
     a += b;
-    X = a(0, 0) + a(N-1, N-1);
+    X = a(0, 0) + a(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview += exmview")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator+=(ExhaustiveMatrixView)")([&]() {
     ae += be;
-    X = ae(0, 0) + ae(N-1, N-1);
+    X = ae(0, 0) + ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview += mview")([&]() {
+  out.emplace_back("MatrixView::operator+=(MatrixView)")([&]() {
     av += bv;
-    X = av(0, 0) + av(N-1, N-1);
+    X = av(0, 0) + av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat -= mat")([&]() {
+  out.emplace_back("Matrix::operator-=(Matrix)")([&]() {
     a -= b;
-    X = a(0, 0) + a(N-1, N-1);
+    X = a(0, 0) + a(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview -= exmview")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator-=(ExhaustiveMatrixView)")([&]() {
     ae -= be;
-    X = ae(0, 0) + ae(N-1, N-1);
+    X = ae(0, 0) + ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview -= mview")([&]() {
+  out.emplace_back("MatrixView::operator-=(MatrixView)")([&]() {
     av -= bv;
-    X = av(0, 0) + av(N-1, N-1);
+    X = av(0, 0) + av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat *= mat")([&]() {
+  out.emplace_back("Matrix::operator*=(Matrix)")([&]() {
     a *= b;
-    X = a(0, 0) + a(N-1, N-1);
+    X = a(0, 0) + a(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview *= exmview")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator*=(ExhaustiveMatrixView)")([&]() {
     ae *= be;
-    X = ae(0, 0) + ae(N-1, N-1);
+    X = ae(0, 0) + ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview *= mview")([&]() {
+  out.emplace_back("MatrixView::operator*=(MatrixView)")([&]() {
     av *= bv;
-    X = av(0, 0) + av(N-1, N-1);
+    X = av(0, 0) + av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mat /= mat")([&]() {
+  out.emplace_back("Matrix::operator/=(Matrix)")([&]() {
     a /= b;
-    X = a(0, 0) + a(N-1, N-1);
+    X = a(0, 0) + a(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("exmview /= exmview")([&]() {
+  out.emplace_back("ExhaustiveMatrixView::operator/=(ExhaustiveMatrixView)")([&]() {
     ae /= be;
-    X = ae(0, 0) + ae(N-1, N-1);
+    X = ae(0, 0) + ae(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("mview /= mview")([&]() {
+  out.emplace_back("MatrixView::operator/=(MatrixView)")([&]() {
     av /= bv;
-    X = av(0, 0) + av(N-1, N-1);
+    X = av(0, 0) + av(N - 1, N - 1);
   });
-  xvec.push_back(X);
+  results_.push_back(X);
 
-  out.emplace_back("dummy")([xvec](){return xvec[xvec.size()-1];});
+  out.emplace_back("dummy")([results_]() { return results_[results_.size() - 1]; });
 
   return out;
 }
 
 int main(int argc, char** c) {
-  std::array <Index, 8> N;
+  std::array<Index, 8> N;
   if (static_cast<std::size_t>(argc) < 1 + 1 + N.size()) {
-    std::cerr << "Expects PROGNAME NREPEAT NSIZE..., wehere NSIZE is " << N.size() << " indices\n";
+    std::cerr << "Expects PROGNAME NREPEAT NSIZE..., wehere NSIZE is "
+              << N.size() << " indices\n";
     return EXIT_FAILURE;
   }
 
   const auto n = static_cast<Index>(std::atoll(c[1]));
-  for (std::size_t i=0; i<N.size(); i++)  N[i] = static_cast<Index>(std::atoll(c[2 + i]));
+  for (std::size_t i = 0; i < N.size(); i++)
+    N[i] = static_cast<Index>(std::atoll(c[2 + i]));
 
-  for (Index i=0; i<n; i++) {
-    std::cout << N[0] << " input test_sum\n" << test_sum(N[0]) << '\n';
-    std::cout << N[1] << " input test_dot\n"  << test_dot(N[1]) << '\n';
-    std::cout << N[2] << " input test_vec_mult\n"  << test_vec_mult(N[2]) << '\n';
-    std::cout << N[3] << " input test_mat_multiply\n"  << test_mat_multiply(N[3]) << '\n';
-    std::cout << N[4] << " input test_elementary_ops_vec\n"  << test_elementary_ops_vec(N[4]) << '\n';
-    std::cout << N[5] << " input test_elementary_ops_mat\n"  << test_elementary_ops_mat(N[5]) << '\n';
-    std::cout << N[6] << " input test_ops_vec\n"  << test_ops_vec(N[6]) << '\n';
-    std::cout << N[7] << " input test_ops_mat\n"  << test_ops_mat(N[7]) << '\n';
+  std::cout << n << " matpack-performance-tests\n\n";
+  for (Index i = 0; i < n; i++) {
+    std::cout << N[0] << " sums\n" << test_sum(N[0]) << '\n';
+    std::cout << N[1] << " dots\n" << test_dot(N[1]) << '\n';
+    std::cout << N[2] << " vector_mult\n"
+              << test_Vector_mult(N[2]) << '\n';
+    std::cout << N[3] << " matrix_mult\n"
+              << test_Matrix_multiply(N[3]) << '\n';
+    std::cout << N[4] << " numeric_ops_vector\n"
+              << test_elementary_ops_Vector(N[4]) << '\n';
+    std::cout << N[5] << " numeric_ops_matrix\n"
+              << test_elementary_ops_Matrix(N[5]) << '\n';
+    std::cout << N[6] << " vector_ops_vector\n" << test_ops_Vector(N[6]) << '\n';
+    std::cout << N[7] << " matrix_ops_matrix\n" << test_ops_Matrix(N[7]) << '\n';
   }
 }
