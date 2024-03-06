@@ -46,7 +46,7 @@ for f in out:
     title = out[f][0]
     data = out[f][1]
     print(f".. list-table:: {title}")
-    print( "    :widths: 50 10 10")
+    print( "    :widths: 80 14 14")
     print( "    :header-rows: 1")
     print()
     print( "    * - Test")
@@ -56,7 +56,7 @@ for f in out:
         for name in data[test]:
             min_us = round(1e6 * data[test][name][0])
             max_us = round(1e6 * data[test][name][1])
-            print(f"    * - ``{test}``")
+            print(f"    * - ``{name}``")
             print(f"      - {min_us}")
             print(f"      - {max_us}")
     print()
