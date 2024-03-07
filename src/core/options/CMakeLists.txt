@@ -6,6 +6,7 @@ target_link_libraries(make_enums PUBLIC arts_options util)
 
 add_custom_command(OUTPUT enums.h enums.cpp
   COMMAND make_enums
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS make_enums
   COMMENT "Generating automatic enumeration options"
 )

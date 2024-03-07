@@ -26,6 +26,8 @@ add_custom_command (
   OUTPUT auto_version.cc
   COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_cc.cmake
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Updating ARTS version number"
 )
 
 #####
@@ -38,6 +40,7 @@ add_executable(make_auto_wsg make_auto_wsg.cpp)
 add_custom_command(OUTPUT auto_wsg.h auto_wsg.cpp auto_workspace.cpp
   COMMAND make_auto_wsg
   DEPENDS make_auto_wsg
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace groups"
 )
 target_link_libraries(make_auto_wsg PRIVATE workspace_group)
@@ -63,6 +66,7 @@ add_executable(make_auto_wsv make_auto_wsv.cpp)
 add_custom_command(OUTPUT auto_wsv.h auto_wsv.cpp
   COMMAND make_auto_wsv
   DEPENDS make_auto_wsv
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace variables"
 )
 target_link_libraries(make_auto_wsv PRIVATE workspace_internals)
@@ -87,6 +91,7 @@ add_executable(make_auto_wsm make_auto_wsm.cpp auto_wsv.cpp)
 add_custom_command(OUTPUT auto_wsm.h auto_wsm.cpp auto_wsmmeta.cpp ${ARTS_WORKSPACE_METHODS}
   COMMAND make_auto_wsm ${NUM_ARTS_WSM}
   DEPENDS make_auto_wsm
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace methods"
 )
 target_link_libraries(make_auto_wsm PRIVATE workspace_internals)
@@ -97,6 +102,7 @@ add_executable(make_auto_wsa make_auto_wsa.cpp)
 add_custom_command(OUTPUT auto_wsa.h auto_wsa.cpp
   COMMAND make_auto_wsa
   DEPENDS make_auto_wsa
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating automatic workspace agendas"
 )
 target_link_libraries(make_auto_wsa PRIVATE workspace_internals)

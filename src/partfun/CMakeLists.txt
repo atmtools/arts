@@ -16,6 +16,7 @@ add_custom_command(
     OUTPUT auto_partfun.h ${partfun_cpp_files}
     COMMAND partfun_generator ${partfun_xml_files}
     DEPENDS partfun_generator
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating automatic partition function interface"
 )
 
