@@ -235,21 +235,21 @@ struct gridded_data {
 
  private:
   template <my_interp::lagrange_type... lag_ts, Size... sz>
-  [[nodiscard]] T interp(const Grids::value_type&... other,
+  [[nodiscard]] T interp(const typename Grids::value_type&... other,
                          Index order,
                          std::integer_sequence<Size, sz...>) const {
     return my_interp::interp(data, lag<sz, lag_ts>(other, order)...);
   }
 
   template <my_interp::lagrange_type... lag_ts, Size... sz>
-  [[nodiscard]] T interp(const Grids::value_type&... other,
+  [[nodiscard]] T interp(const typename Grids::value_type&... other,
                          std::integer_sequence<Size, sz...>) const {
     return my_interp::interp(data, lag<sz, lag_ts>(other)...);
   }
 
  public:
   template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] T interp(const Grids::value_type&... other, Index order) const
+  [[nodiscard]] T interp(const typename Grids::value_type&... other, Index order) const
     requires(0 < dim and
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
              sizeof...(lag_ts) == dim)
@@ -259,7 +259,7 @@ struct gridded_data {
   }
 
   template <my_interp::lagrange_type... lag_ts>
-  [[nodiscard]] T interp(const Grids::value_type&... other) const
+  [[nodiscard]] T interp(const typename Grids::value_type&... other) const
     requires(0 < dim and
              ((not std::remove_cvref_t<lag_ts>::runtime_polyorder()) and
               ...) and
