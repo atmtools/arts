@@ -567,7 +567,7 @@ void xml_read_from_stream_gf(std::istream& is_xml,
     tag.read_from_stream(is_xml);                                           \
     tag.check_name("/" #GF);                                                \
                                                                             \
-    ARTS_USER_ERROR_IF(not gfield.check(), "Bad gridded field:\n", gfield); \
+    ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n", gfield); \
   }
 
 template <Size N, typename T, typename... Grids, Size M = sizeof...(Grids)>

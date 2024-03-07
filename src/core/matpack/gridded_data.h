@@ -69,7 +69,7 @@ struct gridded_data {
     return shape(std::make_index_sequence<dim>());
   }
 
-  [[nodiscard]] bool check() const {
+  [[nodiscard]] bool ok() const {
     const auto a = shape();
     const auto b = data.shape();
     return std::equal(a.begin(), a.end(), b.begin(), b.end());
@@ -176,6 +176,7 @@ struct gridded_data {
                                 Index order,
                                 Numeric extrapol,
                                 std::integer_sequence<Size, sz...>) const {
+    if (not ok()) throw std::runtime_error("bad field");
     return my_interp::reinterp(data,
                                lag<sz, lag_ts>(other, order, extrapol)...);
   }
@@ -184,6 +185,7 @@ struct gridded_data {
   [[nodiscard]] data_t reinterp(const Grids&... other,
                                 Numeric extrapol,
                                 std::integer_sequence<Size, sz...>) const {
+    if (not ok()) throw std::runtime_error("bad field");
     return my_interp::reinterp(data, lag<sz, lag_ts>(other, extrapol)...);
   }
 
@@ -196,6 +198,7 @@ struct gridded_data {
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
              sizeof...(lag_ts) == dim)
   {
+    if (not ok()) throw std::runtime_error("bad field");
     return reinterp<lag_ts...>(
         other..., order, extrapol, std::make_integer_sequence<Size, dim>{});
   }
@@ -208,6 +211,7 @@ struct gridded_data {
               ...) and
              sizeof...(lag_ts) == dim)
   {
+    if (not ok()) throw std::runtime_error("bad field");
     return reinterp<lag_ts...>(
         other..., extrapol, std::make_integer_sequence<Size, dim>{});
   }
@@ -238,12 +242,14 @@ struct gridded_data {
   [[nodiscard]] T interp(const Grids::value_type&... other,
                          Index order,
                          std::integer_sequence<Size, sz...>) const {
+    if (not ok()) throw std::runtime_error("bad field");
     return my_interp::interp(data, lag<sz, lag_ts>(other, order)...);
   }
 
   template <my_interp::lagrange_type... lag_ts, Size... sz>
   [[nodiscard]] T interp(const Grids::value_type&... other,
                          std::integer_sequence<Size, sz...>) const {
+    if (not ok()) throw std::runtime_error("bad field");
     return my_interp::interp(data, lag<sz, lag_ts>(other)...);
   }
 
@@ -254,6 +260,7 @@ struct gridded_data {
              (std::remove_cvref_t<lag_ts>::runtime_polyorder() and ...) and
              sizeof...(lag_ts) == dim)
   {
+    if (not ok()) throw std::runtime_error("bad field");
     return interp<lag_ts...>(
         other..., order, std::make_integer_sequence<Size, dim>{});
   }
@@ -265,6 +272,7 @@ struct gridded_data {
               ...) and
              sizeof...(lag_ts) == dim)
   {
+    if (not ok()) throw std::runtime_error("bad field");
     return interp<lag_ts...>(other..., std::make_integer_sequence<Size, dim>{});
   }
 };

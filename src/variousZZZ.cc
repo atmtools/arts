@@ -142,7 +142,7 @@ void NumericInterpAltLatLonField(Numeric& value,
                      "Name of second grid must be \"Latitude\".");
   ARTS_USER_ERROR_IF(gfield3.gridname<2>() != "Longitude",
                      "Name of third grid must be \"Longitude\".");
-  ARTS_USER_ERROR_IF(not gfield3.check(), "Inconsistent grid sizes for:\n", gfield3);
+  ARTS_USER_ERROR_IF(not gfield3.ok(), "Inconsistent grid sizes for:\n", gfield3);
   chk_rte_pos("pos", pos);
   
   value = interp_gfield3(gfield3, pos);
@@ -158,7 +158,7 @@ void NumericInterpLatLonField(Numeric& value,
                      "Name of first grid must be \"Latitude\".");
   ARTS_USER_ERROR_IF(gfield2.gridname<1>() != "Longitude",
                      "Name of second grid must be \"Longitude\".");
-  ARTS_USER_ERROR_IF(not gfield2.check(), "Inconsistent grid sizes for:\n", gfield2);
+  ARTS_USER_ERROR_IF(not gfield2.ok(), "Inconsistent grid sizes for:\n", gfield2);
   chk_rte_pos("pos", pos);
   
   value = interp_gfield2(gfield2, Vector{pos[Range(1, 2)]});

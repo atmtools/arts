@@ -41,7 +41,7 @@ auto artsgf(py::module_& m, const char* name) {
       "shape",
       [](const GF& gd) { return py::tuple(py::cast(gd.shape())); },
       "Shape of the grids field");
-  gf.def("check", &GF::check, "Check the field");
+  gf.def("ok", &GF::ok, "Check the field");
   gf.def("__getitem__", [](py::object& x, py::object& y) {
     return x.attr("data").attr("__getitem__")(y);
   });

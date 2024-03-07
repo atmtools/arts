@@ -565,7 +565,7 @@ void complex_n_interp(MatrixView n_real,
   // Set expected order of grids
   // Check of complex_n
   //
-  ARTS_USER_ERROR_IF(not complex_n.check(), "Bad complex_n");
+  ARTS_USER_ERROR_IF(not complex_n.ok(), "Bad complex_n");
   //
   ARTS_USER_ERROR_IF(complex_n.gridname<0>() != "Frequency",
                      "Bad gridname for frequency");

@@ -920,7 +920,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
   if (error_found) throw std::runtime_error(os.str());
 
   // And finally check if grids and data size match
-  ARTS_USER_ERROR_IF(not antenna_response.check(),
+  ARTS_USER_ERROR_IF(not antenna_response.ok(),
                      "This *antenna_response* is not consistent:\n",
                      antenna_response);
 

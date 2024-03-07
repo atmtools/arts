@@ -699,7 +699,7 @@ void atmospheric_fieldHydrostaticPressure(
 
   ARTS_USER_ERROR_IF(
       p0.grid_names[0] not_eq "Latitude" or
-          p0.grid_names[1] not_eq "Longitude" or not p0.check(),
+          p0.grid_names[1] not_eq "Longitude" or not p0.ok(),
       "Bad gridded field, must have right size.\n"
       "Must also have \"Latitude\" as first grid and \"Longitude\" as second grid.\n"
       "Field:\n",
