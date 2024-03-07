@@ -116,7 +116,7 @@ jobs:
             buildtype: "Release"
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 10
 
@@ -262,7 +262,7 @@ jobs:
           cd cmake-build
           make -j2 -C src
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         with:
           name: docs-uguide
@@ -271,14 +271,14 @@ jobs:
             cmake-build/doc/uguide/arts_theory.pdf
             cmake-build/doc/uguide/arts_developer.pdf
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         with:
           name: docs-doxygen
           path: |
             cmake-build/doxygen.tar.gz
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         with:
           name: docs-sphinx
