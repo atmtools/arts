@@ -284,19 +284,41 @@ public:
   }
 };
 
+template <class... Formats, size_t N, size_t... Is>
+std::tuple<Formats...> as_tuple(const std::array<nullptr_t, N>& arr,
+                                std::index_sequence<Is...>) {
+  return std::make_tuple(Formats{arr[Is]}...);
+}
+
+template <class... Formats,
+          size_t N,
+          class = std::enable_if_t<(N == sizeof...(Formats))>>
+std::tuple<Formats...> as_tuple(const std::array<nullptr_t, N>& arr) {
+  return as_tuple<Formats...>(arr, std::make_index_sequence<N>{});
+}
+
 template <typename ... iters> requires(((rank<iters>() == 1) and ...))
 struct elemwise {
   struct elemwise_iteration {
-    static constexpr Index N = sizeof...(iters); 
+    static constexpr Index N = sizeof...(iters);
 
     matpack::flat_shape_pos<N> pos{matpack::constant_array<N, 0>()};
-    const std::tuple<const iters* const...> orig{std::array<nullptr_t, N>{}};
+    const std::tuple<const iters* const...> orig{
+        as_tuple<const iters* const...>(std::array<nullptr_t, N>{})};
 
     constexpr elemwise_iteration() = default;
     constexpr elemwise_iteration(elemwise_iteration&&) noexcept = default;
     constexpr elemwise_iteration(const elemwise_iteration&) = default;
-    constexpr elemwise_iteration& operator=(elemwise_iteration&&) noexcept = default;
-    constexpr elemwise_iteration& operator=(const elemwise_iteration&) = default;
+    constexpr elemwise_iteration& operator=(elemwise_iteration&& other) noexcept {
+      this->pos = std::move(other.pos);
+      this->orig = std::move(other.orig);
+      return *this;
+    }
+    constexpr elemwise_iteration& operator=(const elemwise_iteration& other) {
+      this->pos = other.pos;
+      this->orig = other.orig;
+      return *this;
+    }
 
     constexpr elemwise_iteration(const iters &...x) : pos(std::array{static_cast<Index>(x.size())...}), orig((&x)...) {}
 
