@@ -451,44 +451,6 @@ See *FileType* for valid ``output_file_format``.
                    R"--(The number of temperature points)--"},
   };
 
-  wsm_data["WriteNetCDF"] = {
-      .desc = R"--(Writes a workspace variable to a NetCDF file.
-
-This method can write variables of limited groups.
-
-If the filename is omitted, the variable is written
-to <basename>.<variable_name>.nc.
-)--",
-      .author = {"Oliver Lemke"},
-      .gin = {"input", "filename"},
-      .gin_type =
-          {"Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector, ArrayOfIndex, ArrayOfMatrix, GasAbsLookup",
-           "String"},
-      .gin_value = {std::nullopt, String("")},
-      .gin_desc = {R"--(Variable to be saved.)--",
-                   R"--(Name of the NetCDF file.)--"},
-  };
-
-  wsm_data["WriteNetCDFIndexed"] = {
-      .desc = R"--(As *WriteNetCDF*, but creates indexed file names.
-
-This method can write variables of any group.
-
-If the filename is omitted, the variable is written
-to <basename>.<variable_name>.nc.
-)--",
-      .author = {"Oliver Lemke"},
-      .gin = {"file_index", "input", "filename"},
-      .gin_type =
-          {"Index",
-           "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector, ArrayOfMatrix, GasAbsLookup",
-           "String"},
-      .gin_value = {std::nullopt, std::nullopt, String("")},
-      .gin_desc = {R"--(Index number for files.)--",
-                   R"--(Variable to be saved.)--",
-                   R"--(Name of the NetCDF file.)--"},
-  };
-
   wsm_data["WriteXML"] = {
       .desc = R"--(Writes a workspace variable to an XML file.
 
