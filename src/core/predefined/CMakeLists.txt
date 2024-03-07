@@ -22,7 +22,7 @@ if (NOT ENABLE_ARTS_LGPL)
   target_include_directories(predef_aer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 else()
   add_library(predef_aer STATIC no_aer.cc)
-  target_link_libraries(predef_aer PUBLIC matpack)
+  target_link_libraries(predef_aer PUBLIC matpack rtepack species_tags)
 endif()
 
 target_link_libraries(predef PUBLIC matpack rtepack species_tags Faddeeva predef_aer)

@@ -8,4 +8,4 @@ add_library (binio STATIC
 set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
 target_link_libraries (binio PUBLIC matpack ${ZLIB_LIBRARIES})
-target_include_directories(binio PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(binio PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${ZLIB_INCLUDE_DIRS}")
