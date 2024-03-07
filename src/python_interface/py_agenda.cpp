@@ -36,7 +36,7 @@ std::filesystem::path correct_include_path(
   // Must add the direcory to include paths as controlfiles know where they are
   std::filesystem::path dir_path = path;
   dir_path.remove_filename();
-  String new_inc = dir_path.c_str();
+  String new_inc = dir_path.string();
   if (std::find(parameters.includepath.begin(),
                 parameters.includepath.end(),
                 new_inc) == parameters.includepath.end())

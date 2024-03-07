@@ -29,7 +29,7 @@ void WriteBuiltinPartitionFunctionsXML(
         data.data(i, 1) = PartitionFunctions::Q(T[i], ir);
       }
       
-      xml_write_to_file(String((d / (ir.FullName() + ".xml").c_str()).native()),
+      xml_write_to_file((d / (ir.FullName() + ".xml")).string(),
                         data, ftype, 0);
     }
   }

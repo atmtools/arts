@@ -104,7 +104,7 @@ void print_method(const PartitionFunctionsType& type, auto& os) {
 }
 
 std::string spec_from_xml(const std::filesystem::path& xmlfile) {
-  return std::filesystem::path(xmlfile).filename().stem().c_str();
+  return std::filesystem::path(xmlfile).filename().stem().string();
 }
 
 std::string func_name(std::string spec, bool deriv) {

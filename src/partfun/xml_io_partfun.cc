@@ -62,7 +62,7 @@ namespace PartitionFunctions {
 Data data_read_file(const std::filesystem::path& path) {
   Data out;
   
-  xml_read_from_file_base(String(path.native()), out);
+  xml_read_from_file_base(path.string(), out);
   
   return out;
 }
