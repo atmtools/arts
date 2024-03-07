@@ -48,7 +48,7 @@ class layout_right::mapping {
     _MDSPAN_HOST_DEVICE
     constexpr index_type __compute_offset(
       index_type offset, __rank_count<r,Rank>, const I& i, Indices... idx) const {
-      return __compute_offset(offset * __extents.template __extent<r>() + i,__rank_count<r+1,Rank>(),  idx...);
+      return __compute_offset(offset * __extents.extent(r) + i,__rank_count<r+1,Rank>(),  idx...);
     }
 
     template<class I, class ... Indices>
@@ -168,7 +168,7 @@ class layout_right::mapping {
     )
     _MDSPAN_HOST_DEVICE
     constexpr index_type operator()(Indices... idxs) const noexcept {
-      return __compute_offset(__rank_count<0, extents_type::rank()>(), idxs...);
+      return __compute_offset(__rank_count<0, extents_type::rank()>(), static_cast<index_type>(idxs)...);
     }
 
     MDSPAN_INLINE_FUNCTION static constexpr bool is_always_unique() noexcept { return true; }
@@ -179,7 +179,11 @@ class layout_right::mapping {
     MDSPAN_INLINE_FUNCTION constexpr bool is_strided() const noexcept { return true; }
 
     MDSPAN_INLINE_FUNCTION
-    constexpr index_type stride(rank_type i) const noexcept {
+    constexpr index_type stride(rank_type i) const noexcept
+#if MDSPAN_HAS_CXX_20
+      requires ( Extents::rank() > 0 )
+#endif
+    {
       index_type value = 1;
       for(rank_type r=extents_type::rank()-1; r>i; r--) value*=__extents.extent(r);
       return value;

@@ -40,6 +40,16 @@
 #  define MDSPAN_INLINE_FUNCTION inline _MDSPAN_HOST_DEVICE
 #endif
 
+#ifndef MDSPAN_FUNCTION
+#  define MDSPAN_FUNCTION _MDSPAN_HOST_DEVICE
+#endif
+
+#ifdef _MDSPAN_HAS_HIP
+#  define MDSPAN_DEDUCTION_GUIDE _MDSPAN_HOST_DEVICE
+#else
+#  define MDSPAN_DEDUCTION_GUIDE
+#endif
+
 // In CUDA defaulted functions do not need host device markup
 #ifndef MDSPAN_INLINE_FUNCTION_DEFAULTED
 #  define MDSPAN_INLINE_FUNCTION_DEFAULTED
@@ -111,8 +121,7 @@
      /**/
 #endif
 
-
-#if defined(_MDSPAN_COMPILER_MSVC)
+#if defined(_MDSPAN_COMPILER_MSVC) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)
 #  define MDSPAN_TEMPLATE_REQUIRES(...) \
       MDSPAN_PP_CAT( \
         MDSPAN_PP_CAT(MDSPAN_TEMPLATE_REQUIRES_, MDSPAN_PP_COUNT(__VA_ARGS__))\
