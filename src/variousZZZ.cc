@@ -213,7 +213,7 @@ Numeric interp_gfield2(const GriddedField2& G,
                        const Vector& pos2D)
 {
   ARTS_ASSERT(pos2D.size() == 2);
-  ARTS_ASSERT(G.check());
+  ARTS_ASSERT(G.ok());
 
   // Sizes
   const Index ncols = G.data.ncols();
@@ -240,7 +240,7 @@ Numeric interp_gfield3(const GriddedField3& G,
                        const Vector& pos)
 {
   ARTS_ASSERT(pos.size() == 3);
-  ARTS_ASSERT(G.check());
+  ARTS_ASSERT(G.ok());
 
   // Sizes
   const Index npages = G.data.npages();
