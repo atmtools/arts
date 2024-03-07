@@ -48,6 +48,24 @@
       }
     },
     {
+      "name": "default-win-conda",
+      "inherits": "base-default",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "ENABLE_FORTRAN": "0",
+        "ENABLE_GUI": "0",
+        "ENABLE_ARTS_LGPL": "1",
+        "NO_OPENMP": "1"
+      },
+      "environment": {
+        "CPPFLAGS": "$env{CFLAGS}",
+        "CXXFLAGS": "$env{CFLAGS}",
+        "FFLAGS": "$env{CFLAGS}",
+        "LDFLAGS": "-L$env{CONDA_PREFIX}/lib -Wl,-rpath,$env{CONDA_PREFIX}/lib"
+      }
+    },
+    {
       "name": "perf-gcc-conda",
       "inherits": "default-gcc-conda",
       "environment": {

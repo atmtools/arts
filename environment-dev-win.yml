@@ -1,0 +1,24 @@
+dependencies:
+        - build
+        - make
+        - cmake
+        - docutils
+        - glew
+        - glfw
+        - lark-parser
+        - libcxx
+        - matplotlib
+        - netcdf4
+        - numpy
+        - openblas
+        - pkg-config
+        - pybind11
+        - pytest
+        - scipy
+        - sphinx
+        - sphinx-favicon
+        - sphinx_rtd_theme
+        - xarray
+        - zlib
+channels:
+        - conda-forge
