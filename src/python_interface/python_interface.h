@@ -43,6 +43,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<lbl::line>)
 PYBIND11_MAKE_OPAQUE(Array<LagrangeInterpolation>);
 PYBIND11_MAKE_OPAQUE(Array<AbsorptionSingleLine>);
 
+using ssize_t = Py_ssize_t;
+
 //! Contains a bunch of helper functions to manipulate python objects inside C++
 namespace Python {
 namespace py = pybind11;
