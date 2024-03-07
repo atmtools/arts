@@ -135,7 +135,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
     return out;
   }();
 
-  wig_thread_temp_init(maxL);
+  arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
     auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
     auto& N = bnd.lines[sorting[i]].qn.val[QuantumNumberType::N];
@@ -184,7 +184,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                kelvin2joule(atm.temperature));
     }
   }
-  wig_temp_free();
+  arts_wigner_thread_free();
 
   ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 

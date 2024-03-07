@@ -24,6 +24,9 @@
 #define DO_FAST_WIGNER 0
 #endif
 
+void arts_wigner_thread_init(int max_two_j);
+void arts_wigner_thread_free();
+
 class WignerInformation {
   static int largest;
   static int fastest;

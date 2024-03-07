@@ -66,17 +66,19 @@ add_library(wigxjpf STATIC
 target_include_directories(wigxjpf
     PUBLIC
         inc/
-    PRIVATE
         cfg/
-        src/
         ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE
+        src/
 )
 
 target_compile_definitions(wigxjpf PUBLIC -DERRNO_ERROR_HANDLING)
 
 set_target_properties(wigxjpf PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS}")
 
-target_compile_options(wigxjpf PRIVATE -Wno-shadow)
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    target_compile_options(wigxjpf PRIVATE -Wno-shadow)
+endif()
 
 if (IPO_SUPPORTED)
   set_property(TARGET wigxjpf PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
