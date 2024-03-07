@@ -80,7 +80,7 @@ class spectral_radiance {
   [[nodiscard]] constexpr std::array<weighted_position, 8> pos_weights(
       const path& pp) const {
     std::array<weighted_position, 8> out;
-    auto* ptr = out.begin();
+    auto ptr = out.begin();
     for (Size i : {0, 1}) {
       for (Size j : {0, 1}) {
         for (Size k : {0, 1}) {

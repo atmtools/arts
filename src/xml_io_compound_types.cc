@@ -1425,7 +1425,7 @@ void xml_read_from_stream(std::istream& is_xml,
         [&](auto& v) {
           v.resize(sizes);
           is_xml >> v;
-          pmd.set(isot, v);
+          pmd.data[isot] = v;
         },
         data);
 
@@ -1456,11 +1456,11 @@ void xml_write_to_stream(std::ostream& os_xml,
 
   open_tag.set_name("PredefinedModelData");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", Index(pmd.size()));
+  open_tag.add_attribute("nelem", Index(pmd.data.size()));
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  for (auto& [key, data] : pmd) {
+  for (auto& [key, data] : pmd.data) {
     ArtsXMLTag internal_open_tag;
     internal_open_tag.set_name("Data");
     internal_open_tag.add_attribute("key", key.FullName());

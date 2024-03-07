@@ -55,63 +55,11 @@ concept ModelVariantConvertible = ModelVariantType<T> or requires(T t) {
   { static_cast<ModelVariant>(t) };
 };
 
-class Model {
+struct Model {
   using ModelData = std::unordered_map<SpeciesIsotope, ModelVariant>;
 
   ModelData data{};
 
- public:
-  Model() = default;
-  Model(const Model& d) = default;
-  Model(Model&& d) = default;
-  Model& operator=(const Model& d) = default;
-  Model& operator=(Model&& d) = default;
-
-  void insert(const Model& other);
-
-  template <ModelVariantConvertible T>
-  void set(const SpeciesIsotope& tag, const T& t) {
-    ARTS_USER_ERROR_IF(not is_predefined_model(tag),
-                       "The tag must be of type PredefinedModel")
-    data[tag] = static_cast<ModelVariant>(t);
-  }
-
-  template <ModelVariantConvertible T, Index tag>
-  void set(const T& t)
-    requires(tag < Species::Isotopologues.size())
-  {
-    set(Species::Isotopologues[tag], t);
-  }
-
-  template <ModelVariantType T>
-  [[nodiscard]] const T& get(const SpeciesIsotope& tag) const try {
-    ARTS_USER_ERROR_IF(not is_predefined_model(tag),
-                       "The tag must be of type PredefinedModel")
-    return std::get<T>(data.at(tag));
-  } catch (const std::bad_variant_access&) {
-    throw std::runtime_error(
-        var_string("The tag ", tag, " does not have the requested type"));
-  } catch (std::out_of_range&) {
-    throw std::runtime_error(
-        var_string("The tag ", tag, " does not exist in the model"));
-  }
-
-  template <ModelVariantType T, Index tag>
-  [[nodiscard]] const T& get() const
-    requires(tag < Species::Isotopologues.size())
-  {
-    return get<T>(Species::Isotopologues[tag]);
-  }
-
-  [[nodiscard]] const ModelVariant& at(const SpeciesIsotope& tag) const;
-
-  [[nodiscard]] ModelVariant& at(const SpeciesIsotope& tag);
-
-  void clear();
-  [[nodiscard]] auto size() const { return data.size(); }
-  [[nodiscard]] auto empty() const { return data.empty(); }
-  [[nodiscard]] auto begin() const { return data.begin(); }
-  [[nodiscard]] auto end() const { return data.end(); }
   friend std::ostream& operator<<(std::ostream&, const Model&);
 };
 
