@@ -115,19 +115,4 @@ class Parameters {
   bool check_docs;
 };
 
-/**
-   Get the command line parameters. They are stored in the global
-   variable parameters which is a structure of type Parameters. If
-   needed, this variable should be declared like this:
-
-   extern const Parameters parameters
-
-   @return    false=ok, true=error
-   @param     argc Number of command line parameters 
-   @param     argv Values of command line parameters
-   @author    Stefan Buehler
-   @version   1
- */
-bool get_parameters(int argc, char **argv);
-
 #endif  // parameters_h
