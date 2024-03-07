@@ -23,6 +23,7 @@
 
 #include <ostream>
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -33,11 +34,14 @@
 #else
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
+#endif
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 
+#ifndef _MSC_VER
 #pragma GCC diagnostic pop
+#endif
 
 #include "array.h"
 #include "matpack_data.h"

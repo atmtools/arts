@@ -15,7 +15,9 @@
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"
 
+#if defined(__clang__)
 #pragma clang optimize off
+#endif
 
 bool WorkspaceMethodInternalRecord::has_any() const {
   const auto cmp = Cmp::eq("Any");
