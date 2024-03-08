@@ -7,6 +7,7 @@
 #include <limits>
 #include <optional>
 #include <ostream>
+#include <stdexcept>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -880,6 +881,8 @@ Numeric get(const GriddedField3 &gf3,
             const Numeric alt,
             const Numeric lat,
             const Numeric lon) {
+  if (not gf3.ok()) throw std::runtime_error("bad field");
+  
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
         return my_interp::interp(data, al, la, lo);

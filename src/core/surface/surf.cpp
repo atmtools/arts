@@ -189,6 +189,8 @@ Numeric numeric_interpolation(
         lat_extrap,
     std::pair<InterpolationExtrapolation, InterpolationExtrapolation>
         lon_extrap) {
+  if (not data.ok()) throw std::runtime_error("bad field");
+
   const Vector &lats = data.grid<0>();
   const Vector &lons = data.grid<1>();
 
