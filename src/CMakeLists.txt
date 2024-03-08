@@ -25,6 +25,7 @@ add_custom_target (auto_version_cc DEPENDS UpdateAutoVersion)
 add_custom_command (
   OUTPUT auto_version.cc
   COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_cc.cmake
+  BYPRODUCTS auto_version_cc.txt
   DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
