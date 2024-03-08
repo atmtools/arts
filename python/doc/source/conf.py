@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx_favicon',
+    'sphinxcontrib.mermaid',
     'matplotlib.sphinxext.plot_directive',
 ]
 
