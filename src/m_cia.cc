@@ -388,7 +388,7 @@ void absorption_cia_dataReadSpeciesSplitCatalog(
       fil += "." + name + ".xml";
     }
 
-    xml_read_from_file(fil.c_str(), absorption_cia_data.emplace_back());
+    xml_read_from_file(fil.string(), absorption_cia_data.emplace_back());
 
     ARTS_USER_ERROR_IF(
         robust == 0 and absorption_cia_data.back().DatasetCount() == 0,

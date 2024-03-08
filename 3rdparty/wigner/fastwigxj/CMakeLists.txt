@@ -85,17 +85,19 @@ add_library(fastwigxj STATIC
 target_include_directories(fastwigxj
     PUBLIC 
         inc/
-    PRIVATE
         cfg/
-        src/
         ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE
+        src/
 )
 
 target_link_libraries(fastwigxj wigxjpf)
     
 set_target_properties(fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
 
-target_compile_options(fastwigxj PRIVATE -Wno-shadow)
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    target_compile_options(fastwigxj PRIVATE -Wno-shadow)
+endif()
 
 
 add_library(hashing_fastwigxj STATIC

@@ -108,7 +108,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
     return out;
   }();
 
-  wig_thread_temp_init(maxL);
+  arts_wigner_thread_init(maxL);
   for (Size i = 0; i < n; i++) {
     auto& J = bnd.lines[sorting[i]].qn.val[QuantumNumberType::J];
     Rational Ji = J.upp();
@@ -147,7 +147,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       W(i, j) = sum * std::exp((erot(Jf_p) - erot(Jf)) / kelvin2joule(T));
     }
   }
-  wig_temp_free();
+  arts_wigner_thread_free();
 
   ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
 

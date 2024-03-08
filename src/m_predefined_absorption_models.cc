@@ -27,7 +27,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
     const Index& name_missing_index) try {
   const bool name_missing = static_cast<bool>(name_missing_index);
 
-  absorption_predefined_model_data.clear();
+  absorption_predefined_model_data.data.clear();
 
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -43,10 +43,11 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
       if (find_xml_file_existence(filename)) {
         PredefinedModelData other;
         xml_read_from_file(filename, other);
-        absorption_predefined_model_data.insert(other);
+        absorption_predefined_model_data.data.insert(other.data.begin(),
+                                                     other.data.end());
       } else {
         ARTS_USER_ERROR_IF(not name_missing, "File " + filename + " not found")
-        absorption_predefined_model_data.at(spec.Isotopologue()) =
+        absorption_predefined_model_data.data.at(spec.Isotopologue()) =
             Absorption::PredefinedModel::ModelName{};
       }
     }
@@ -94,13 +95,8 @@ void absorption_predefined_model_dataAddWaterMTCKD400(
   std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
   std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
 
-  absorption_predefined_model_data
-      .set<Model,
-           Species::find_species_index(SpeciesEnum::Water, "ForeignContCKDMT400")>(
-          x);
-  absorption_predefined_model_data
-      .set<Model,
-           Species::find_species_index(SpeciesEnum::Water, "SelfContCKDMT400")>(x);
+  absorption_predefined_model_data.data["H2O-ForeignContCKDMT400"_isot] = x;
+  absorption_predefined_model_data.data["H2O-SelfContCKDMT400"_isot] = x;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -128,7 +124,7 @@ void propagation_matrixAddPredefined(
   }
 
   const Absorption::PredefinedModel::VMRS vmr(atm_point);
-  for (auto& [isot, data] : absorption_predefined_model_data) {
+  for (auto& [isot, data] : absorption_predefined_model_data.data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species)
       continue;
     Absorption::PredefinedModel::compute(propagation_matrix,

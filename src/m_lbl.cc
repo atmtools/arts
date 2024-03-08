@@ -485,7 +485,7 @@ void absorption_bandsReadSplit(ArrayOfAbsorptionBand& absorption_bands,
 #pragma omp parallel for schedule(dynamic)
   for (Size i = 0; i < paths.size(); i++) {
     try {
-      xml_read_from_file(paths[i], splitbands[i]);
+      xml_read_from_file(paths[i].string(), splitbands[i]);
     } catch (std::exception& e) {
 #pragma omp critical
       error += var_string(e.what(), '\n');
@@ -526,7 +526,7 @@ void absorption_bandsSaveSplit(const ArrayOfAbsorptionBand& absorption_bands,
   }
 
   for (const auto& [isot, bands] : isotopologues_data) {
-    xml_write_to_file(p / var_string(isot, ".xml"), bands, FileType::ascii, 0);
+    xml_write_to_file((p / var_string(isot, ".xml")).string(), bands, FileType::ascii, 0);
   }
 }
 ARTS_METHOD_ERROR_CATCH

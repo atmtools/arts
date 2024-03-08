@@ -62,24 +62,6 @@ std::ostream &operator<<(std::ostream &os, const Model &m) {
   return os;
 }
 
-const ModelVariant &Model::at(const SpeciesIsotope &tag) const try {
-  ARTS_USER_ERROR_IF(not is_predefined_model(tag),
-                     "The tag must be of type PredefinedModel")
-  return data.at(tag);
-} catch (std::out_of_range &) {
-  throw std::runtime_error(
-      var_string("The tag ", tag, " does not exist in the model"));
-}
-
-ModelVariant &Model::at(const SpeciesIsotope &tag) try {
-  ARTS_USER_ERROR_IF(not is_predefined_model(tag),
-                     "The tag must be of type PredefinedModel")
-  return data.at(tag);
-} catch (std::out_of_range &) {
-  throw std::runtime_error(
-      var_string("The tag ", tag, " does not exist in the model"));
-}
-
 std::string_view model_name(const ModelVariant &data) {
   if (std::holds_alternative<ModelName>(data)) {
     return "ModelName";
@@ -105,9 +87,4 @@ ModelVariant model_data(const std::string_view name) {
       "Unknown model name: ", std::quoted(name), ". Are all models defined?"));
 }
 
-void Model::clear() { data.clear(); }
-
-void Model::insert(const Model &other) {
-  data.insert(other.data.begin(), other.data.end());
-}
 }  // namespace Absorption::PredefinedModel

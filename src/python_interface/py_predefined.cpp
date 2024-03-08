@@ -79,9 +79,7 @@ void internalCKDMT400(py::module_& m) {
             p,
             t,
             x,
-            data.get<Absorption::PredefinedModel::MT_CKD400::WaterData,
-                     Species::find_species_index(SpeciesEnum::Water,
-                                        "ForeignContCKDMT400")>());
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.data.at("H2O-ForeignContCKDMT400"_isot)));
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -128,9 +126,7 @@ abs_coef : ~pyarts.arts.Vector
             p,
             t,
             x,
-            data.get<Absorption::PredefinedModel::MT_CKD400::WaterData,
-                     Species::find_species_index(SpeciesEnum::Water,
-                                                 "SelfContCKDMT400")>());
+            std::get<Absorption::PredefinedModel::MT_CKD400::WaterData>(data.data.at("H2O-SelfContCKDMT400"_isot)));
         Vector out(pm.nelem());
         std::transform(pm.begin(), pm.end(), out.begin(), [](auto& prop) {
           return prop.A();
@@ -1200,19 +1196,18 @@ void py_predefined(py::module_& m) try {
                       for (auto& mod : spec) {
                         if (mod.type == SpeciesTagType::Predefined) {
                           String filename =
-                              std::filesystem::path(basename) /
-                              (mod.Isotopologue().FullName() + ".xml");
+                              (std::filesystem::path(basename) /
+                              (mod.Isotopologue().FullName() + ".xml")).string();
                           if (find_xml_file_existence(filename)) {
                             PredefinedModelData data;
                             xml_read_from_file(filename, data);
                             std::visit(
                                 [&](auto& model) {
-                                  out->set(mod.Isotopologue(), model);
+                                  out->data[mod.Isotopologue()] = model;
                                 },
-                                data.at(mod.Isotopologue()));
+                                data.data.at(mod.Isotopologue()));
                           } else {
-                            out->set(mod.Isotopologue(),
-                                     Absorption::PredefinedModel::ModelName{});
+                            out->data[mod.Isotopologue()] = Absorption::PredefinedModel::ModelName{};
                           }
                         }
                       }
@@ -1223,7 +1218,7 @@ void py_predefined(py::module_& m) try {
           [](const PredefinedModelData& t) {
             const std::unordered_map<SpeciesIsotope,
                                      Absorption::PredefinedModel::ModelVariant>
-                x{t.begin(), t.end()};
+                x{t.data.begin(), t.data.end()};
             return py::make_tuple(x);
           },
           [](const py::tuple& t) {
@@ -1235,7 +1230,7 @@ void py_predefined(py::module_& m) try {
                     SpeciesIsotope,
                     Absorption::PredefinedModel::ModelVariant>>();
             for (auto& [k, v] : x) {
-              out->set(k, v);
+              out->data[k] = v;
             }
             return out;
           }))

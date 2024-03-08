@@ -1,11 +1,6 @@
 # #### Give Index, Numeric, String, and Array<> types
 set(CORETYPE_EXTRA)
 
-if(NOT HAVE_GETOPT_H)
-  list(APPEND CORETYPE_EXTRA
-    arts_getopt.c arts_getopt1.c)
-endif(NOT HAVE_GETOPT_H)
-
 add_library(coretypes STATIC
   ${CORETYPE_EXTRA}
   file.cc

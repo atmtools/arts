@@ -11,7 +11,12 @@ add_executable(disotest
 
   target_link_libraries(disotest m)
   
-  set(CDISORT_COMPILE_FLAGS "-Wno-all -Wno-unused-parameter -Wno-conversion -Wno-shadow -Wno-float-conversion")
+  if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+      set(CDISORT_COMPILE_FLAGS " ")
+  else()
+      set(CDISORT_COMPILE_FLAGS "-Wno-all -Wno-unused-parameter -Wno-conversion -Wno-shadow -Wno-float-conversion")
+  endif()
+
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       set(CDISORT_COMPILE_FLAGS "${CDISORT_COMPILE_FLAGS} -Wno-format-overflow")
   endif()

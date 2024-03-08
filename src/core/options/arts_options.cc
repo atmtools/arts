@@ -6,6 +6,7 @@
 #include <ranges>
 #include <sstream>
 #include <utility>
+#include <array>
 #include <vector>
 
 using Value = std::vector<std::string>;
@@ -1156,7 +1157,7 @@ std::string EnumeratedOption::head() const {
 
   for (auto& v : values_and_desc) {
     for (auto& s : v) {
-      if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
+    if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
         throw std::runtime_error("Reserved word used for enum class " + name);
       }
     }

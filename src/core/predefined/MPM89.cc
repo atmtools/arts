@@ -1,5 +1,6 @@
 #include <arts_constexpr_math.h>
 #include <matpack.h>
+#include <nonstd.h>
 #include <rtepack.h>
 
 #include <array>
@@ -55,7 +56,7 @@ constexpr Numeric MPMLineShapeFunction(const Numeric gamma,
   f_plus = 1.000 / ((f + fl) * (f + fl) + gamma * gamma);
 
   // VVW line shape function value
-  value = fabs(f / fl) * gamma * (f_minus + f_plus);
+  value = nonstd::abs(f / fl) * gamma * (f_minus + f_plus);
 
   return value;
 }

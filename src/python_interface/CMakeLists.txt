@@ -33,6 +33,7 @@ add_custom_command(
     OUTPUT ${PYARTS_WORKSPACE_METHODS} ${PYARTS_WORKSPACE_VARS} py_auto_wsg.cpp py_auto_wsg.h py_auto_interface.cpp py_auto_options.cpp
     COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
     DEPENDS gen_auto_py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating automatic python interface"
 )
 

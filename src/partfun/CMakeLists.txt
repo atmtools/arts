@@ -16,11 +16,12 @@ add_custom_command(
     OUTPUT auto_partfun.h ${partfun_cpp_files}
     COMMAND partfun_generator ${partfun_xml_files}
     DEPENDS partfun_generator
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating automatic partition function interface"
 )
 
 add_library(auto_partfun STATIC ${partfun_cpp_files} auto_partfun.h xml_io_partfun.cc)
-target_link_libraries(auto_partfun PUBLIC matpack)
+target_link_libraries(auto_partfun PUBLIC matpack binio)
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(auto_partfun PUBLIC ${ARTS_SOURCE_DIR}/src)
 

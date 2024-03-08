@@ -11,6 +11,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <ctime>
 #include <string_view>
 
 #include <matpack.h>
@@ -40,15 +41,25 @@ struct Time {
   [[nodiscard]] std::tm toStruct() const {
     std::time_t x = toTimeT();
     std::tm y;
+#ifdef _MSC_VER
+    errno_t err = localtime_s(&y, &x);
+    ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
+#else
     tm* z = localtime_r(&x, &y);
     ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+#endif
     return y;
   }
   [[nodiscard]] std::tm toGMTStruct() const {
     std::time_t x = toTimeT();
     std::tm y;
+#ifdef _MSC_VER
+    errno_t err = gmtime_s(&y, &x);
+    ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
+#else
     tm* z = gmtime_r(&x, &y);
     ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
+#endif
     return y;
   }
   [[nodiscard]] TimeStep seconds_into_day() const {

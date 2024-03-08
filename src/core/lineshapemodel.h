@@ -778,8 +778,6 @@ std::istream& from_pressurebroadeningdata(std::istream& data,
 /** Legacy dealing with reading old LineFunctionData */
 namespace LegacyLineFunctionData {
 /** Length per variable for temperature model */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr Index temperaturemodel2legacysize(LineShapeTemperatureModelOld type) noexcept {
   switch (type) {
     case LineShapeTemperatureModelOld::None:
@@ -805,7 +803,6 @@ constexpr Index temperaturemodel2legacysize(LineShapeTemperatureModelOld type) n
   }
   return -1;
 }
-#pragma GCC diagnostic pop
 
 /** Line shape models from string */
 std::vector<LineShapeVariableOld> lineshapetag2variablesvector(String type);
@@ -830,8 +827,6 @@ enum class TypeLM {
 LegacyLineMixingData::TypeLM string2typelm(String type);
 
 /** Line mixing types to number */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr Index typelm2size(LegacyLineMixingData::TypeLM type) {
   switch (type) {
     case TypeLM::LM_NONE:  // The standard case
@@ -849,7 +844,6 @@ constexpr Index typelm2size(LegacyLineMixingData::TypeLM type) {
   }
   return -1;
 }
-#pragma GCC diagnostic pop
 
 /** LineShape::Model from legacy input vector */
 Model vector2modellm(Vector x, LegacyLineMixingData::TypeLM type);
@@ -878,8 +872,6 @@ Index self_listed(const QuantumIdentifier& qid,
                   LegacyPressureBroadeningData::TypePB t);
 
 /** Pressure broadening types to number of elements */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wreturn-type"
 constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type)  {
   switch (type) {
     case TypePB::PB_NONE:
@@ -893,7 +885,6 @@ constexpr Index typepb2size(LegacyPressureBroadeningData::TypePB type)  {
   }
   return -1;
 }
-#pragma GCC diagnostic pop
 
 /** LineShape::Model from legacy input vector */
 void vector2modelpb(LineShapeTypeOld& mtype,

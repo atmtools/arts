@@ -12,7 +12,7 @@ void full::adapt() try {
     return;
   }
 
-  if (data->empty()) {
+  if (data->data.empty()) {
     return;
   }
 
@@ -36,7 +36,7 @@ Complex full::operator()(const Numeric frequency) const {
   JacobianTargets jacobian_targets;
   Vector f_grid{frequency};
 
-  for (auto& [tag, mod] : *data) {
+  for (auto& [tag, mod] : data->data) {
     Absorption::PredefinedModel::compute(propmat_clearsky,
                                          dpropmat_clearsky_dx,
                                          tag,

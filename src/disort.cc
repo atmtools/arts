@@ -41,9 +41,11 @@
 #include "rte.h"
 #include "xml_io.h"
 
+#ifndef _MSC_VER
 #if ARTS_LGPL
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #endif
 
 inline constexpr Numeric PI = Constant::pi;

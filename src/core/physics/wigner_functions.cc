@@ -12,6 +12,8 @@
 
 #include <algorithm>
 
+#include <wigxjpf_config.h>
+
 #include "debug.h"
 
 #if DO_FAST_WIGNER
@@ -21,6 +23,18 @@
 #define WIGNER3 wig3jj
 #define WIGNER6 wig6jj
 #endif
+
+void arts_wigner_thread_init(int max_two_j [[maybe_unused]]) {
+#ifdef WIGXJPF_HAVE_THREAD
+  wig_thread_temp_init(max_two_j);
+#endif
+}
+
+void arts_wigner_thread_free() {
+#ifdef WIGXJPF_HAVE_THREAD
+  wig_temp_free();
+#endif
+}
 
 Numeric wigner3j(const Rational j1,
                  const Rational j2,
@@ -42,9 +56,9 @@ Numeric wigner3j(const Rational j1,
                     3 / 2 +
                 1;
 
-  wig_thread_temp_init(j);
+  arts_wigner_thread_init(j);
   g = WIGNER3(a, b, c, d, e, f);
-  wig_temp_free();
+  arts_wigner_thread_free();
 
   if (errno == EDOM) {
     errno = 0;
@@ -72,9 +86,9 @@ Numeric wigner6j(const Rational j1,
                           std::abs(e),
                           std::abs(f)});
 
-  wig_thread_temp_init(j);
+  arts_wigner_thread_init(j);
   g = WIGNER6(a, b, c, d, e, f);
-  wig_temp_free();
+  arts_wigner_thread_free();
 
   if (errno == EDOM) {
     errno = 0;
@@ -144,8 +158,9 @@ constexpr Rational wigner6_revere_size(const int j) {
   return Rational{j - 1, 4};
 }
 
+extern "C" int wigxjpf_max_prime_decomp;
+
 bool is_wigner_ready(int j) {
-  extern int wigxjpf_max_prime_decomp;
   return not(j > wigxjpf_max_prime_decomp);
 }
 

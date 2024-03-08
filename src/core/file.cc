@@ -108,7 +108,7 @@ void open_input_file(std::ifstream& file, const std::string_view name) {
   String ename{expand_path(String{name})};
 
   // Command line parameters which give us the include search path.
-  extern const Parameters parameters;
+  extern Parameters parameters;
   ArrayOfString allpaths = parameters.includepath;
   allpaths.insert(
       allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
@@ -332,7 +332,7 @@ bool find_file(ArrayOfString& matches,
 */
 void find_xml_file(String& filename) {
   // Command line parameters which give us the include search path.
-  extern const Parameters parameters;
+  extern Parameters parameters;
   ArrayOfString allpaths = parameters.includepath;
   allpaths.insert(
       allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
@@ -362,7 +362,7 @@ void find_xml_file(String& filename) {
  */
 bool find_xml_file_existence(String& filename) {
   // Command line parameters which give us the include search path.
-  extern const Parameters parameters;
+  extern Parameters parameters;
   ArrayOfString allpaths = parameters.includepath;
   allpaths.insert(
     allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
@@ -408,7 +408,7 @@ String expand_path(String path) {
  \date   2012-05-01
  */
 String add_basedir(const std::string_view path) {
-  extern const Parameters parameters;
+  extern Parameters parameters;
   String expanded_path{expand_path(String{path})};
 
   if (parameters.outdir.size() && path.length() && path[0] != '/') {

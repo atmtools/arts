@@ -9,6 +9,7 @@
 #include <limits>
 #include <string_view>
 #include <tuple>
+#include <array>
 
 namespace Species {
 inline constexpr std::string_view Joker = "*";
@@ -26,8 +27,9 @@ struct Isotope {
   //! The degeneracy of states of the molecule.  It is -1 if not defined.
   Index gi{-1};
 
+  constexpr Isotope() = default;
   constexpr explicit Isotope(
-      SpeciesEnum spec_ = SpeciesEnum::Bath,
+      SpeciesEnum spec_,
       const std::string_view isotname_ = Joker,
       Numeric mass_ = std::numeric_limits<Numeric>::quiet_NaN(),
       Index gi_ = -1)
