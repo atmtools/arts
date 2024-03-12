@@ -17,6 +17,7 @@ dependencies:
         - scipy
         - sphinx
         - sphinx-favicon
+        - sphinxcontrib-mermaid
         - sphinx_rtd_theme
         - xarray
         - zlib

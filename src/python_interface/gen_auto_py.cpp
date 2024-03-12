@@ -1255,15 +1255,27 @@ void enum_option(std::ofstream& os, const EnumeratedOption& wso) {
   os << "      .def_static(\"get_options_as_strings\", [](){return enumstrs::"
      << wso.name << "Names<>;}, \"Get a list of all options as strings\")\n";
 
-  static std::array except{"None", "any", "all", "print"};
+  static std::array pykeywords{"None", "any", "all", "print"};
+  constexpr std::string_view ignore_str =
+      "-+={§±!@#$%^&*()-+=]}[{\\|'\";:?/.>,<`~}] ";
+  static std::set<char> ignore(ignore_str.begin(), ignore_str.end());
+  auto contains_invalid_chars = [](const std::string& str) {
+    for (auto ch : str)
+      if (std::ranges::binary_search(ignore, ch)) return true;
+    return false;
+  };
   for (auto& value : wso.values_and_desc) {
+    // Skip last element in value which contains the description
     for (auto& x : value | std::views::take(value.size() - 1)) {
+      if (nonstd::isdigit(x.front()) || contains_invalid_chars(x)) continue;
+
       os << "      .def_property_readonly_static(\"" << x;
 
-      if (std::ranges::any_of(except, Cmp::eq(x))) {
+      if (std::ranges::any_of(pykeywords, Cmp::eq(x))) {
         os << '_';
       }
 
+      // .front is the actual value, .back the description
       os << "\", [](py::object&){return " << wso.name << "::" << value.front()
          << ";}, R\"-x-(" << value.back() << ")-x-\")\n";
     }
