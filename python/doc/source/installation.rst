@@ -14,6 +14,9 @@ conda-forge environment at the rttools channel:
 
 Other versions are available on the `ARTS homepage <https://radiativetransfer.org/getarts/>`_.
 
+ARTS depends heavily on catalog data. It is recommended to call :py:func:`pyarts.cat.download.retrieve` at the beginning of your Python scripts to download and cache the latest version of the ``arts-cat-data`` and ``arts-xml-data`` packages. Alternatively, you can download the matching catalog data manually from the `Github release <https://github.com/atmtools/arts/releases/>`_ page.
+
+
 Building from source
 ^^^^^^^^^^^^^^^^^^^^
 
