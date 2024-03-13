@@ -92,12 +92,12 @@ void py_scattering_species(py::module_& m) try {
       .def("evaluate_phase_function",
            static_cast<Numeric (HenyeyGreenstein::*)(const Numeric&)>(
                &HenyeyGreenstein::evaluate_phase_function),
-           "Evaluate the Henyey-Greenstein phase function.")
-      .PythonInterfaceCopyValue(HenyeyGreenstein)
-      .PythonInterfaceWorkspaceVariableConversion(HenyeyGreenstein)
-      .PythonInterfaceFileIO(HenyeyGreenstein)
-      .PythonInterfaceBasicRepresentation(HenyeyGreenstein)
-      .PythonInterfaceWorkspaceDocumentation(HenyeyGreenstein);
+           "Evaluate the Henyey-Greenstein phase function.");
+  //.PythonInterfaceCopyValue(HenyeyGreenstein)
+  //.PythonInterfaceWorkspaceVariableConversion(HenyeyGreenstein)
+  //.PythonInterfaceFileIO(HenyeyGreenstein)
+  //.PythonInterfaceBasicRepresentation(HenyeyGreenstein)
+  //.PythonInterfaceWorkspaceDocumentation(HenyeyGreenstein);
   artsclass<ArrayOfScatteringSpecies>(m, "ArrayOfScatteringSpecies")
       .def(py::init(
           []() { return std::make_shared<ArrayOfScatteringSpecies>(); }));
