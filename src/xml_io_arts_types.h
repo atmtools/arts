@@ -46,7 +46,6 @@ TMPL_XML_READ_WRITE_STREAM(JacobianTargets)
 TMPL_XML_READ_WRITE_STREAM(Rational)
 TMPL_XML_READ_WRITE_STREAM(Time)
 TMPL_XML_READ_WRITE_STREAM(VibrationalEnergyLevels)
-TMPL_XML_READ_WRITE_STREAM(HenyeyGreenstein)
 TMPL_XML_READ_WRITE_STREAM(ScatteringSpecies)
 
 //=== Compound Types =======================================================
