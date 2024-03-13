@@ -6,6 +6,7 @@ dependencies:
         - clangxx
         - cmake
         - docutils
+        - fftw
         - gcc
         - gfortran
         - glew

@@ -3,6 +3,7 @@ dependencies:
         - make
         - cmake
         - docutils
+        - fftw
         - glew
         - glfw
         - lark-parser
