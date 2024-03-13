@@ -1,12 +1,12 @@
 #include "arts_options.h"
 
 #include <algorithm>
+#include <array>
 #include <iomanip>
 #include <limits>
 #include <ranges>
 #include <sstream>
 #include <utility>
-#include <array>
 #include <vector>
 
 using Value = std::vector<std::string>;
@@ -718,15 +718,16 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
                     "Tb",
                     R"(Planck brightness temperature [K]
 )"},
-              Value{
-                  "W_m2_m_sr",
-                  "W/(m^2 m sr)",
-                  "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
+              Value{"W_m2_m_sr",
+                    "W/(m^2 m sr)",
+                    "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
               Value{
                   "W_m2_m1_sr",
                   "W/(m^2 m-1 sr)",
                   "Spectral radiance wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`]"},
-              Value{"unit", "1", "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
+              Value{"unit",
+                    "1",
+                    "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
           },
   });
 
@@ -1036,6 +1037,23 @@ radiation).
            Value{"Irhc", "RC", "Right circular polarization [1, 0, 0, 1]."}},
   });
 
+  opts.emplace_back(EnumeratedOption{
+      .name = "ParticulateProperty",
+      .desc = R"(Numerical properties used to descript particle populations.
+)",
+      .values_and_desc =
+          {Value{"MassDensity", "m", "Mass density in kg/m^{-3}"},
+           Value{"NumberDensity", "n", "Number density in m^{-3}"},
+           Value{"DMax", "dmax", "Maximum particle diameter in m."},
+           Value{"DVeq", "dveq", "Volume-equivalent diameter in m."},
+           Value{"ShapeParameter",
+                 "ShapeParameter",
+                 "PSD shape parmeter in arbitary units."},
+           Value{"IntercepParameter",
+                 "InterceptParameter",
+                 "PSD intercept parameter in arbitary units."}},
+  });
+
   return opts;
 }
 
@@ -1157,7 +1175,7 @@ std::string EnumeratedOption::head() const {
 
   for (auto& v : values_and_desc) {
     for (auto& s : v) {
-    if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
+      if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
         throw std::runtime_error("Reserved word used for enum class " + name);
       }
     }

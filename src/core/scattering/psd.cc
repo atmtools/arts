@@ -12,7 +12,7 @@ Vector MGDSingleMoment::evaluate(const AtmPoint& point,
   }
 
   Numeric water_content = point[moment];
-  Numeric t = point[Atm::Key::t];
+  Numeric t = point[AtmKey::t];
 
   // Outside of [t_min,tmax]?
   if (t < t_min || t > t_max) {

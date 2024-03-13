@@ -44,7 +44,7 @@ template <typename T>
 concept isAtmKey = std::is_same_v<std::remove_cvref_t<T>, AtmKey>;
 
 template <typename T>
-concept KeyType = isKey<T> or isSpecies<T> or isIsotopeRecord<T> or
+concept KeyType = isAtmKey<T> or isSpecies<T> or isSpeciesIsotope<T> or
                   isQuantumIdentifier<T> or isScatteringSpeciesProperty<T>;
 
 using KeyVal = std::variant<AtmKey,
@@ -123,8 +123,8 @@ struct Point {
     } else if constexpr (isSpeciesIsotope<T>) {
       ARTS_USER_ERROR("Isotopologue ration not found: ",
                       std::quoted(x.FullName()))
-    } else if constexpr (isParticulatePropertyTag<T>) {
-      ARTS_USER_ERROR("ParticulatePropertyTag value not found: ", x)
+    } else if constexpr (isScatteringSpeciesProperty<T>) {
+      ARTS_USER_ERROR("ScatteringSpeciesProperty value not found: ", x)
     } else if constexpr (isQuantumIdentifier<T>) {
       ARTS_USER_ERROR("Non-LTE level ratio not found: ", x)
     } else {
@@ -340,27 +340,15 @@ struct Field final : FieldMap::Map<Data,
   [[nodiscard]] const std::unordered_map<QuantumIdentifier, Data> &nlte() const;
   [[nodiscard]] const std::unordered_map<SpeciesEnum, Data> &specs() const;
   [[nodiscard]] const std::unordered_map<SpeciesIsotope, Data> &isots() const;
-<<<<<<< HEAD:src/core/atm/atm.h
   [[nodiscard]] const std::unordered_map<AtmKey, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ParticulatePropertyTag, Data> &partp()
-      const;
+  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
+      &partp() const;
 
   [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
   [[nodiscard]] std::unordered_map<SpeciesEnum, Data> &specs();
   [[nodiscard]] std::unordered_map<SpeciesIsotope, Data> &isots();
   [[nodiscard]] std::unordered_map<AtmKey, Data> &other();
-  [[nodiscard]] std::unordered_map<ParticulatePropertyTag, Data> &partp();
-=======
-  [[nodiscard]] const std::unordered_map<Key, Data> &other() const;
-  [[nodiscard]] const std::unordered_map<ScatteringSpeciesProperty, Data>
-      &partp() const;
-
-  [[nodiscard]] std::unordered_map<QuantumIdentifier, Data> &nlte();
-  [[nodiscard]] std::unordered_map<Species::Species, Data> &specs();
-  [[nodiscard]] std::unordered_map<Species::IsotopeRecord, Data> &isots();
-  [[nodiscard]] std::unordered_map<Key, Data> &other();
   [[nodiscard]] std::unordered_map<ScatteringSpeciesProperty, Data> &partp();
->>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 
   //! Compute the values at a single point in place
   void at(std::vector<Point> &out,
@@ -398,18 +386,6 @@ static_assert(
     "wrong.  KeyVal must be defined in the same way for this to work.");
 
 std::ostream &operator<<(std::ostream &os, const Array<Point> &a);
-<<<<<<< HEAD:src/core/atm/atm.h
-=======
-
-bool operator==(const KeyVal &, Key);
-bool operator==(Key, const KeyVal &);
-bool operator==(const KeyVal &, const Species::Species &);
-bool operator==(const Species::Species &, const KeyVal &);
-bool operator==(const KeyVal &, const QuantumIdentifier &);
-bool operator==(const QuantumIdentifier &, const KeyVal &);
-bool operator==(const KeyVal &, const ScatteringSpeciesProperty &);
-bool operator==(const ScatteringSpeciesProperty &, const KeyVal &);
->>>>>>> e14470e6e (Prototype of PSD class.):src/core/atm.h
 }  // namespace Atm
 
 using AtmKeyVal = Atm::KeyVal;
@@ -424,7 +400,6 @@ bool operator==(const AtmKeyVal &, const SpeciesEnum &);
 bool operator==(const SpeciesEnum &, const AtmKeyVal &);
 bool operator==(const AtmKeyVal &, const QuantumIdentifier &);
 bool operator==(const QuantumIdentifier &, const AtmKeyVal &);
-bool operator==(const AtmKeyVal &, const ParticulatePropertyTag &);
-bool operator==(const ParticulatePropertyTag &, const AtmKeyVal &);
+bool operator==(const ScatteringSpeciesProperty &, const AtmKeyVal &);
 
 std::ostream &operator<<(std::ostream &, const AtmKeyVal &);
