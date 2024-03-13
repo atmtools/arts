@@ -8,13 +8,6 @@ void py_scattering_species(py::module_& m) try {
   // ScatSpeciesProperty
   //
 
-  artsclass<ParticulateProperty>(m, "ParticulateProperty")
-      .def(py::init([]() { return std::make_shared<ParticulateProperty>(); }),
-           "Default value")
-      .def(py::init(
-               [](const std::string& c) { return to<ParticulateProperty>(c); }),
-           "From :class:`str`");
-
   artsclass<ScatteringSpeciesProperty>(m, "ScatteringSpeciesProperty")
       .def(py::init(
                []() { return std::make_shared<ScatteringSpeciesProperty>(); }),
