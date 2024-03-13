@@ -1,0 +1,17 @@
+# use glob syntax.
+syntax: glob
+*.o
+*.a
+*~
+*.orig
+o_*
+poltor*
+SHT/*spat.c
+SHT/*fly.c
+SHT/*omp.c
+doc/*
+
+# switch to regexp syntax.
+syntax: regexp
+SHT/.*SH[eoqst]*.c
+

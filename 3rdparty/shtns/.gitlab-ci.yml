@@ -1,0 +1,57 @@
+image: gcc
+
+before_script:
+  - apt-get update -qq && apt-get install -y -qq libfftw3-dev python3-numpy python3-dev swig
+  - gcc --version
+  - python3 -V
+  - lscpu
+
+build:
+  stage: build
+  script:
+    - ./configure --disable-simd
+    - make time_SHT && mv time_SHT time_SHT_nosimd
+    - ./configure --disable-ishioka
+    - make time_SHT && mv time_SHT time_SHT_noish
+    - ./configure
+    - sed -i "s/native/nehalem/" Makefile && make time_SHT && mv time_SHT time_SHT_sse3
+    - sed -i "s/nehalem/haswell/" Makefile && make time_SHT && mv time_SHT time_SHT_avx2
+    - sed -i "s/haswell/skylake-avx512/" Makefile && make time_SHT && mv time_SHT time_SHT_avx512
+    - sed -i "s/skylake-avx512/native/" Makefile && make  # build regular library for artifacts
+    - ./configure --enable-python
+    - make
+    - python3 setup.py install --user
+    - python3 -c "import shtns; shtns.print_version(); sh=shtns.sht(13); sh.set_grid()"
+    - ./configure --enable-openmp
+    - make time_SHT test_suite test_rot
+  artifacts:
+    paths:
+      - Makefile
+      - libshtns*.a
+      - sht_config.h
+      - setup.py
+      - time_SHT
+      - time_SHT_*
+      - test_suite
+      - test_rot
+      - shtns.h
+
+test:
+  stage: test
+  script:
+    - ./test_suite
+    - ./test_rot
+    - ./time_SHT        120 -nlat=127 -vector
+    - ./time_SHT        120 -nlat=127 -vector -mmax=0
+    - ./time_SHT_nosimd 127 -quickinit -vector -nlorder=2
+    - ./time_SHT_sse3   127 -quickinit -vector -nlorder=2
+    - ./time_SHT_avx2   127 -quickinit -vector -nlorder=2
+    - ./time_SHT        127 -quickinit -vector -nlorder=2
+    - ./time_SHT_noish  127 -quickinit -vector -nlorder=2
+    - ./time_SHT_noish 1022 -quickinit -vector -nlorder=2 -iter=1
+    - ./time_SHT_noish 1034 -regpoles -vector -iter=1 -mres=9
+    - ./time_SHT       1034 -regpoles -vector -iter=1 -mres=9
+    - ./time_SHT       1022 -quickinit -vector -nlorder=2 -iter=1
+    - ./time_SHT       4095 -quickinit -vector -iter=1 -mres=21
+    - ./time_SHT       8191 -quickinit -vector -iter=1 -mmax=0
+

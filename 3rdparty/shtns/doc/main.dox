@@ -1,0 +1,1379 @@
+
+/** \mainpage High performance Spherical Harmonic Transform for numerical simulations.
+ *
+ * SHTns is a high performance library for Spherical Harmonic Transform written in C, aimed at numerical simulation (fluid flows, mhd, ...) in spherical geometries.\n
+ *
+ * Main features :
+ * - <b>\link bench blazingly fast\endlink</b>.
+ * - distributed under the open source \link license CeCILL License\endlink (GPL compatible).
+ * - both <b>scalar and \link vsh vector transforms\endlink</b>.
+ * - backward and forward (synthesis and analysis) functions.
+ * - flexible truncation (degree, order, azimuthal periodicity).
+ * - spatial data can be stored in latitude-major or longitude-major arrays.
+ * - various conventions (normalization and Condon-Shortley phase).
+ * - can be used from <b>Fortran, c/c++, Python, and Java</b> programs.
+ * - a highly efficient Gauss algorithm working with <b>Gauss nodes</b> (based on Gauss-Legendre quadrature).
+ * - support for <b>regular grids</b> (but they require twice the number of nodes than Gauss grid).
+ * - support for SSE2, SSE3 and <b>AVX, AVX2, AVX-512</b> vectorization, as well as Xeon Phi (KNL) and AltiVec VSX.
+ * - <b>parallel transforms with OpenMP</b>.
+ * - *Beta*: automatic <b>\link gpu GPU off-loading\endlink</b> with nvidia cuda (Kepler, Pascal & Volta).
+ * - synthesis (inverse transform) at any coordinate (not constrained to a grid) useful for rendering purposes.
+ * - <b>on-the-fly transforms</b> : saving memory and bandwidth, they are even faster on modern architecture.
+ * - accurate up to spherical harmonic degree l=16383 (at least).
+ * - \link rotation rotation functions\endlink to rotate spherical harmonics.
+ * - \link operators special spectral operator\endlink functions that do not require a transform (multiply by cos(theta)...) .
+ * - scalar transforms and rotations for complex spatial fields.
+ * - SHT at fixed m (without fft, aka Legendre transform).
+ *
+ * Using several \link opt optimizations\endlink, it is intended to be \link bench very fast\endlink.
+ *
+ * It requires the <a href="http://www.fftw.org/">FFTW</a> library for Fast Fourier Transforms.
+ *
+ * If you use SHTns for research work, please <b>cite the paper</b>: <a href="http://dx.doi.org/10.1002/ggge.20071">Efficient Spherical Harmonic Transforms aimed at pseudo-spectral numerical simulations</a>,
+ * also <a href="http://arxiv.org/abs/1202.6522">available from arXiv</a>.
+ *
+ * If you accept the open source \link license CeCILL License\endlink (GPL compatible french License), you can <a href="https://bitbucket.org/nschaeff/shtns/downloads">download SHTns</a>.
+ *
+ * Please report bugs and feature request on the <a href="https://bitbucket.org/nschaeff/shtns/issues">issue tracker</a>.
+ *
+ * \see shtns.h for the definitions of variables, macros and functions.
+ * \see The example programs (in \link SHT_example.f Fortran \endlink, \link SHT_example.c C \endlink and \link SHT_example.py Python \endlink) to get started.
+ * \see The organisation of data used by SHTns is described in \ref spat.
+ * \see The description of \ref opt.
+ *
+ * \author SHTns is written by Nathanael Schaeffer (CNRS). Email: nathanael.schaeffer@ujf-grenoble.fr
+ *
+ * \image html logo_cnrs_small.png
+ *
+*/
+
+
+/** \page compil Compiling and installing SHTns
+
+To compile SHTns, you need a C compiler and the FFTW library version 3.0 (or better 3.3) or later, carefully optimized and installed.
+On modern x86 processors, we recommend using GCC 4.0 or later as it produces the fastest vectorized code.
+
+First run \code ./configure --help \endcode to see the available configure options.
+Then, for example run \code ./configure --prefix=$HOME --enable-openmp \endcode
+if you want to install the multi-threaded transform library to $HOME/lib and the headers to $HOME/include.
+
+To install the Python extension, see \ref python.
+
+The configure script will detect your FFTW library capabilities and other system dependant features.
+You may optionally adapt the resulting \c Makefile and \c sht_config.h to your architecture and compiler.
+Then compile with \c make and install with \c make \c install.
+
+SHTns requires FFTW, which can be installed as a compiled package on many operating systems.
+However, we recommend to compile it and install it yourself, as it can lead to much better performance.
+If FFTW has not been compiled and tuned carefully for your machine, you may get bad performance with SHTns (down to 50% slower !).
+Furthermore, if FFTW is more recent than 3.3, or has not been configured with \c --enable-openmp (see below), SHTns cannot do the
+Fourier transform part in parallel.
+
+\section fftw Compiling and installing FFTW
+
+You can download the latest FFTW package from <a href="http://www.fftw.org">http://www.fftw.org</a>,
+compile it and install it.
+In order to use the parallel transforms, make sure to pass \c --enable-openmp to the configure script.
+We also recommend passing \c --enable-sse2 or \c --enable-avx to the configure script on x86 architectures.
+You may also take a look at the FFTW documentation for compilation advice.
+
+For example:
+
+\code ./configure --enable-openmp --enable-shared --enable-avx --prefix=$HOME/usr
+make
+make install \endcode
+
+That's it, FFTW is now installed and ready for use.
+
+\subsection mkl Using MKL instead of FFTW
+
+SHTns can use MKL instead of FFTW. To do this, pass \c --enable-mkl to the configure script.
+Performance can be slightly better.
+
+\note Currently the call of MKL through the fftw wrappers is not thread safe.
+The user is responsible for working around this MKL problem as <a href=http://software.intel.com/sites/products/documentation/hpc/mkl/mklman/GUID-D17B3AB4-BD4E-4652-94A7-BAD4130CCB4A.htm>indicated by intel</a>.
+If you want to call SHT function from multiple threads, you must tell MKL how many threads you will use BEFORE initializing shtns :
+\code
+#include "fftw3_mkl.h"
+fftw3_mkl.number_of_user_threads = 4;
+sht = shtns_create(...);
+...
+\endcode
+
+\section makefile Preparing the Makefile
+
+Run \c ./configure in the SHTns directory.
+You can use \c --enable-openmp to enable multi-threaded transforms,
+and \c --enable-long-double to (maybe) increase accuracy during initialization (not recommended).
+You can then edit the resulting Makefile:
+
+\li set \c PREFIX= to the desired install path.
+
+\li further editing is needed if you don't use gcc
+
+\section config Changing default options
+
+Simple tunings can be done by passing options to \c ./configure (see \c ./configure \c --help)
+
+\section comp Compiling
+
+\li type \code make \endcode to compile SHTns. it will produce the library \c libshtns.a
+
+\li type \code make PREFIX=/usr/local install \endcode to install the library in your system (set PREFIX to the desired location, default is $HOME).
+
+\li type \code make docs \endcode to generate this documentation, placed in the doc/html/ subdirectory.
+
+\li type \code make time_SHT \endcode to build the test and timing program.
+
+*/
+
+
+
+/** \page spat Spatial data layouts and grids used by SHTns
+
+The angular coordinates on a spherical shell are the co-latitude \f$ \theta \f$ and the longitude \f$ \phi \f$.
+
+The spatial discretization is defined by a call to \ref shtns_init; or to \ref shtns_set_grid or \ref shtns_set_grid_auto after \ref shtns_create.
+
+A field \e A (or one of its component in case of a vector field) is discretized on an ordered grid, which consists of
+ - NPHI equally spaced nodes in longitude, spanning the range of angle between 0 (included) and \f$2\pi\f$/MRES (excluded),
+ - NLAT gauss nodes or equally spaced nodes (depending on \ref shtns_type) in latitude, spanning angles from 0 to \f$ \pi \f$.
+
+There are constraints on the sizes NLAT and NPHI. The sampling theorem requires NPHI > 2*MMAX, with MMAX the highest Fourier mode to be resolved.
+Similarly NLAT > LMAX is required for a Gauss-Legendre quadrature, while on a regular grid NLAT > 2*LMAX is needed for the Féjer and Clenshaw-Curtis quadratures.
+
+When dealing with non-linear equations, or more generally when analysing data that is not band-limited to LMAX and/or MMAX, anti-aliasing constraints
+exist. For a given non-linear order of the equation N (typically 2 for a quadratic non-linear term), the anti-aliasing conditions are :
+ - NPHI > (N+1)*MMAX
+ - NLAT > (N+1)*LMAX/2 for Gauss-Legendre quadrature (Gauss nodes, non-equispaced).
+ - NLAT > (N+1)*LMAX for Féjer or Clenshaw-Curtis quadratures (equispaced nodes).
+
+Furthermore, the FFT is more efficient for certain values of NPHI and/or NLAT. If you do not require specific NLAT or NPHI, you can let SHTns choose them
+for you, by using \ref shtns_set_grid_auto with nphi and/or nlat set to zero.
+
+Identifying a grid point with its indices \c it and \c ip in latitudinal and longitudinal direction respectively (indices start at 0), one has :
+ - \f$ \theta \f$ = \c acos(ct[it]) where \c ct = \ref shtns_info.ct is initialized by the call to \ref shtns_init
+ - \f$ \phi \f$ = \c ip * 2\f$\pi\f$/(NPHI*MRES)  and \ref PHI_RAD and \ref PHI_DEG can be used to get the phi angle corresponding to \c ip.
+ - How to access \f$ A(\theta,\phi) \f$ depends on the data layout, but it is always <b>a contiguous array of double precision floating point values</b> (64 bit)
+
+Currently, three data layouts are supported. \ref phi_fast, \ref theta_fast, and \ref native.
+
+\section phi_fast Contiguous longitudes
+
+In this layout, increasing longitudes are stored next to each other for each latitude.
+That is \f$ A(\theta,\phi) \f$ = \c A[it*NPHI + ip] in C or \c A(ip,it) in Fortran.
+Use \ref SHT_PHI_CONTIGUOUS to instruct \ref shtns_init to use this spatial data layout :
+
+\code shtns_init ( sht_gauss | SHT_PHI_CONTIGUOUS, ... ) \endcode will tell shtns to
+precompute everything for a gauss grid, and spatial data stored with longitude varying
+fastest.
+
+\section theta_fast Contiguous latitudes
+
+In this layout, increasing latitude are stored next to each other for each longitude.
+That is \f$ A(\theta,\phi) \f$ = \c A[ip*NLAT + it] in C or \c A(it,ip) in Fortran.
+Use \ref SHT_THETA_CONTIGUOUS to instruct \ref shtns_init to use this spatial data layout.
+
+Additionally, \ref SHT_ALLOW_PADDING instructs shtns to optimize the layout to avoid cache bank conflicts.
+This can lead to significant performance boost (from 1% to 50% depending on the architecture).
+In that case, shtns_info#nlat_padded > shtns_info#nlat and shtns_info#nspat > shtns_info#nlat * shtns_info#nphi to reflect the data layout.
+
+\section native Native layout
+
+The native way of storing spatial field data (which will help you achieve the best performance with SHTns)
+is the same as the \ref theta_fast layout, except that it requires you to allocate slightly more
+memory for a field than the NLAT*NPHI double values.
+Namely NLAT*(NPHI/2+1)*2 doubles are required (instead of NLAT*NPHI) to be able tu use the in-place FFT of FFTW.
+
+In Fortran this means you will allocate data as if the phi direction had (NPHI/2+1)*2 points instead of NPHI.
+The additional space, is located at the end of the useful data, and you don't need to worry about it.
+
+To instruct \ref shtns_init that your spatial data has been set up using this layout, use \ref SHT_NATIVE_LAYOUT.
+
+\note One must be careful when allocating spatial data, as the Fourier transform requires some additional space.\n Precisely, the number
+of required \c double is \ref NSPAT_ALLOC = NLAT*(NPHI/2+1)*2. The first NLAT*NPHI values are the spatial data.
+
+\note In addition, spatial data must be allocated using the \c fftw_malloc function, for example using :
+\code A = fftw_malloc( NSPAT_ALLOC * sizeof(double) );\endcode
+
+\note <b>It is not recommended to use the native layout with Fortran or Python.</b>
+
+
+*/
+
+
+/** \page spec Spherical Harmonics storage and normalization
+
+\section spec_data Spherical Harmonic coefficients layout
+
+The field \em A is decomposed on the basis of spherical harmonics Ylm (degree \e l, order \e m) :
+\f[ A(\theta,\phi) = \sum_{l,m} A_l^m Y_l^m(\theta,\phi)\f]
+The series is truncated at degree LMAX and order MMAX*MRES,
+and only order that are multiple of MRES are described.
+
+\subsection spat_real For real-valued spatial data A
+
+<b>The collection of Alm (spherical harmonics coefficient of degree \e l and order \e m) is stored in an array of \c complex \c double floating point values.</b>
+The spherical harmonic truncation is defined by a call to \ref shtns_init or to \ref shtns_create which returns an \c shtns_cfg object (pointer to \ref shtns_info)
+from which the the size of the array, \ref shtns_info.nlm, can be read (see examples).
+
+The NLM coefficients Alm are stored in a one-dimensional array, grouped by \e m.\n
+The details of the storage may depend on the algorithm, and to access a particular coefficient, you should always use the following macros :
+
+\subsubsection c_real From C
+ - \ref LM(shtns, l,m) gives the index in the array for coefficient of degree \e l and order \e m.
+ - \ref LiM(shtns l,im) gives the index in the array for coefficient of degree \e l and order \e im*MRES.
+
+Hence \c Alm[LM(shtns,l,m)] is the (complex) SH coefficient of degree \e l and order \e m.
+ 
+
+\subsubsection f_real From Fortran
+ - call shtns_lmidx(lm, l, m), will return the index \e lm for degree \e l and order \e m
+
+\note For real spatial data, the Spherical Harmonic coefficients with negative \e m are related to the complex conjugate of the
+positive \e m coefficients : \f$ A_l^{-m} = (-1)^{m} (A_l^m)^*\f$. For efficiency purposes, only the coefficients with positive \e m are stored.
+
+\note There is no test on bounds, so that LM(shtns, l,m) with \e l or \e m that is not described, will give undefined result
+(in particular for an \e m that is not a multiple of \c MRES)
+
+To perform loops on all coefficients, use the macros \ref LM_LOOP and \ref LM_L_LOOP
+in combination of the arrays \ref shtns_info.li which give the degree \e l and functions of it for any array index.
+
+\subsection spat_cplx For complex-valued spatial data
+
+Complex spatial data can be transformed using \ref spat_cplx_to_SH and \ref SH_to_spat_cplx 
+The indexing of the spectral coefficients in \e Alm is then different from the real-valued data.
+In addition, all \e l and \e m are present.
+Indeed to access coefficient of degree \e l and \e m, we use
+\code Alm[l*(l+1)+m]  \endcode
+or
+\code Alm(l*(l+1)+m+1) \endcode
+from C or Fortran respectively.
+
+\section Allocation
+Allocation for a SH description is simply done with :
+\code Alm = fftw_malloc( NLM * sizeof(complex double) );\endcode
+The use of fftw_malloc ensures proper alignment of data for SSE vectorization (if fftw has been properly compiled with --enable-sse2 or --enable-avx).
+
+\section norm Normalization
+
+Several normalizations for the spherical harmonics exist (<a href="http://en.wikipedia.org/wiki/Spherical_harmonics#Conventions">details on wikipedia</a>).
+SHTns lets you choose one of the following :
+<ul>
+<li><b>Orthonormalized</b> is the default (also used in the <a href="http://www.gnu.org/software/gsl/">GSL</a>)
+
+\f[ Y_l^m(\theta, \phi) = \sqrt{\frac{2l+1}{4\pi}} \sqrt{\frac{(l-m)!}{(l+m)!}} \, P_l^m(\cos \theta) \, \exp(im\phi) \f]
+
+</li><li><b>Four-pi normalized</b>
+
+\f[ Y_l^m(\theta, \phi) = \sqrt{2l+1} \sqrt{\frac{(l-m)!}{(l+m)!}} \, P_l^m(\cos \theta) \, \exp(im\phi) \f]
+
+</li><li><b>Schmidt semi-normalized</b>
+
+\f[ Y_l^m(\theta, \phi) = \sqrt{\frac{(l-m)!}{(l+m)!}} \, P_l^m(\cos \theta) \, \exp(im\phi) \f]
+
+</li></ul>
+
+\ref shtns_init uses the default (defined by \ref SHT_DEFAULT_NORM) but you can choose another normalization
+by calling \ref shtns_create instead.
+
+The Legendre associated functions are defined by :
+
+\f[ P_l^m (x) = (-1)^m\ (1-x^2)^{m/2}\ \frac{d^m}{dx^m}P_l(x) \f]
+
+which includes the Condon-Shortley phase \f$ (-1)^m \f$ by default.
+
+For reference, function \ref SH_to_point gives a simple explicit implementation of the inverse SH transform (synthesis).
+
+\subsection norm_opt Normalization variations
+
+Use \ref shtns_create with \ref SHT_NO_CS_PHASE to disable the <b>Condon-Shortley phase</b>.
+For example, to initialize a Schmidt semi-normalized transform of maximum degree 16 without Condon-Shortrley phase, use
+\code shtns_create(16, 16, 1, sht_schmidt | SHT_NO_CS_PHASE); \endcode
+
+By default, SHTns uses "complex" spherical harmonic normalization. However, as it deals only with real functions,
+the m<0 coefficients are not stored, since they are complex conjugate of the m>0 ones.
+Thus, one must pay attention, that the m>0 coefficient have to be counted twice in a total energy calculation.
+
+An alternative to this "complex" normalization is the "real" normalization, for which the energy is simply
+the sum of the coefficients (m>=0) squared. Use \ref shtns_create with \ref SHT_REAL_NORM to use a "real" spherical harmonic normalization.
+This is the usual "real" spherical harmonics, if one takes the complex conjugate of the coefficients.
+
+A few useful examples, for orthonormal spherical harmonics :
+ - a constant unit value on the sphere is represented by the coefficient \f$ c_0^0 = \sqrt{4\pi} \f$.
+ - \f$ \cos \theta \f$ is represented by the coefficient \f$ c_1^0 = \sqrt{4\pi/3} \f$.
+ - \f$ \sin \theta \, \cos \phi \f$ is represented by \f$ c_1^1 =  -\sqrt{2\pi/3} \f$ (with Condon-Shortley phase)
+ - with a "real" normalization instead, one would have \f$ c_1^1 = -\sqrt{4\pi/3} = -c_1^0 \f$.
+
+The functions \ref sh00_1(), \ref sh10_ct(), \ref sh11_st() \ref shlm_e1() will help to build simple
+spectral fields, no matter what normalization you choose.
+
+\subsection nrj Energy
+
+\note <b>The energy of a scalar field</b> can be retrieved from it's spherical harmonic representation as:
+\f[ \int ||q||^2 = \sum_{l,m \geq 0} C_m N_l \: |Q_l^m|^2 \f]
+where \f$ C_m \f$ and \f$ N_l \f$ are the following normalization factor:
+- if \ref SHT_REAL_NORM has been used, \f$ C_m = 1 \f$. Otherwise \f$ C_m = 2 - \delta_{m0} \f$ (ie \f$ C_m=1 \f$ for \f$ m=0 \f$ and \f$ C_m = 2 \f$ for \f$ m>0 \f$).
+- for \ref sht_orthonormal : \f$ N_l = 1 \f$
+- for \ref sht_fourpi : \f$ N_l = 4\pi \f$
+- for \ref sht_schmidt : \f$ N_l = 4\pi/(2l+1) \f$
+
+\subsection Troubleshooting
+If you have problems in getting your spherical harmonic coefficient right, you may check the following :
+ - Schmidt semi-normalization ? try multiplying or dividing by \f$ \sqrt{2l+1} \f$
+ - Condon-Shortley phase ? try multiplying by \f$ (-1)^m \f$
+ - Real or Complex ? try multiplying or dividing the m>0 coefficients by \f$ \sqrt{2} \f$
+ - Relative sign ? try to take the complex conjugate of the coefficients.
+ - Does the array include l=0 ?
+
+*/
+
+
+/** \page vsh Vector Spherical Harmonics as implemented in SHTns
+
+SHTns also provides vector transforms.
+
+\section vsh_def Radial - Spheroidal - Toroidal decomposition
+
+The components of a vector field on a sphere \f$\mathbf{v}(\theta,\phi) = (v_r, v_\theta, v_\phi)\f$
+in canonical spherical coordinates cannot be transformed as scalars, because they do not behave like scalar fields
+under rotation for example (actually only the radial component does).
+
+To overcome this, we use the following decomposition:
+\f[ \mathbf{v} = Q(\theta,\phi) \mathbf{e_r}+ r \nabla S(\theta,\phi) - \mathbf{r} \times \nabla T(\theta,\phi) \f]
+where Q, S and T are respectively the radial, spheroidal and toroidal scalar fields. We have explicitely:
+\f[ \mathbf{v} = \left( \begin{array}{rcl}
+Q  & & \\ 
+\partial_\theta S & + & \frac{1}{\sin\theta} \partial_\phi T \\
+\frac{1}{\sin\theta} \partial_\phi S & - &\partial_\theta T
+\end{array} \right) \f]
+
+Expanding Q, S and T (which are scalar fields) in spherical harmonics gives:
+\f[ \mathbf{v} = \sum_{l,m} \left( Q_l^m \, Y_l^m(\theta,\phi) \mathbf{e_r}+ S_l^m \, r \nabla Y_l^m(\theta,\phi) -  T_l^m \, \mathbf{r} \times \nabla Y_l^m(\theta,\phi) \right) \f]
+
+If this only involves a simple scalar transform for the radial component, it does involve derivatives of spherical harmonics for the tangential components.
+
+The functions \ref SHqst_to_spat and \ref spat_to_SHqst transform vector fields from their
+spherical coordinate spatial representation \c Vr, \c Vt, \c Vp to their spectral representation using \c Qlm, \c Slm and \c Tlm.
+
+The functions \ref SHsphtor_to_spat and \ref spat_to_SHsphtor do the same for a tangential vector on the sphere (without radial component).
+
+\see A closely related definition of <a href="http://en.wikipedia.org/wiki/Vector_spherical_harmonics#Definition">vector spherical harmonics on wikipedia</a>.
+
+\note <b>The energy of the vector field</b> can be retrieved from it's orthonormal spherical harmonic representation as:
+\f[ \int ||\mathbf{v}||^2 = \sum_{l,m \geq 0} C_m N_l \: \left( |Q_l^m|^2 \, + \, l(l+1)\,\left( |S_l^m|^2 + |T_l^m|^2 \right) \right) \f]
+where \f$ C_m \f$ and \f$ N_l \f$ are defined in the \ref nrj section.
+
+
+\section vsh_3d Special case of 3D divergence-free fields
+
+For a divergenceless 3D vector, the radial scalar Q and the spheroidal scalar S can be derived from the same poloidal scalar P :
+\f[ Q = \frac{l(l+1)}{r} P \f]
+\f[ S = \frac{1}{r} \frac{\partial \, rP}{\partial r} \f]
+which corresponds to the poloidal/toroidal decomposition that ensures the vector field to be divergence-free.
+\f[ \mathbf{v} = \nabla \times (T \mathbf{r}) + \nabla \times \nabla \times (P \mathbf{r}) \f]
+
+*/
+
+
+/** \page opt Optimizations implemented in SHTns
+
+SHTns is an implementation of the Spherical Harmonic Transform which aims at being accurate and fast,
+with direct numerical simulations in mind. As such, the following optimizations are implemented :
+
+\section opt_fft Use the Fast-Fourier Transform
+
+Any serious SHT should use the FFT, as it improves accuracy and speed.
+SHTns uses the <a href="http://www.fftw.org/">FFTW library</a> for the fast Fourier transform, a portable,
+flexible and blazingly fast FFT implementation.
+
+\section opt_mirror Take advantage of mirror symmetry
+
+This is also a classical optimization. Due to the defined symmetry of spherical harmonics with respect
+to a reflection about the equator, one can reduce by a factor 2 the operation count of both direct and reverse
+transforms.
+
+\section opt_polar Polar optimization
+
+A less common, but still classic optimization : high m's spherical harmonics have their magnitude decrease exponentially
+when approaching the poles. SHTns use a threshold below which the SH is taken to be zero.
+The default value for this threshold is defined by \ref SHT_DEFAULT_POLAR_OPT,
+but you can also choose it with the \c eps parameter of the \ref shtns_set_grid function,
+trading some accuracy for more speed.
+Around 5% to 15% speed increase are typical values for a SHT with a large MMAX.
+
+\section opt_cache Cache optimizations
+
+Cache optimizations have been carried out throughout the code.
+This means ordering coefficients and stripping out systematic zeros.
+
+\section opt_size Spatial Size optimization
+
+When using \ref shtns_set_grid_auto, you can let SHTns choose the optimal spatial sizes for
+the spherical harmonic truncation you specified with \ref shtns_create.
+The spatial sizes are chosen so that no aliasing occurs, and ensuring FFTW will perform as fast
+as possible.
+
+\section opt_vect Explicit Vectorization
+
+Most x86 CPUs have support for Single-Instruction-Multiple-Data (SIMD) operations in double precision,
+allowing to perform the same double precision arithmetic operations on a vector of 2 (SSE2) or 4 (AVX) double precision numbers,
+effectively multiplying by 2 or 4 the computing power. Modern compilers attempt to vectorize the code, but they cannot do miracles.
+SHTns uses explicit vectorization extensively (thanks to the GCC vector extensions) to use the full computing power of your CPU.
+
+\section opt_runtime Runtime tuning of algorithm
+
+The default mode used by SHTns is to measure performance of the different algorithms, and choose
+the one that performs best (it will also check that the accuracy is good enough).
+However, there are situation where either the Gauss-Legendre algorithm or a regular grid is required, and you
+can choose to do so using the adequate \ref shtns_type when calling \ref shtns_init or \ref shtns_set_grid.
+
+*/
+
+/** \page bench Speed and Accuracy
+
+\section Speed
+
+SHTns does not implement any "fast" algorithm. However, timings with other Spherical Harmonic Transform tools (including a fast algorithm)
+show that <b>SHTns performs much faster than any other</b>. Furthermore, even at large sizes, the fast algorithm we tested does not seem to be willing to take the lead. <br />
+Since v3.2, SHTns implements the new recurrence relation of <a href="https://doi.org/10.2151/jmsj.2018-019">Ishioka (2018)</a>, leading to faster transforms, especially for large transforms.
+
+<div>
+<table><tr>
+<td>\f$\ell_{max}\f$</td> <td><a href="http://www.ipgp.fr/~wieczor/SHTOOLS/SHTOOLS.html">shtools</a> 2.8 (Gauss)</td>
+  <td><a href="http://sourceforge.net/projects/libpsht/">libpsht</a> (1 thread)</td>
+  <td><a href="http://www.cs.dartmouth.edu/~geelong/sphere/">SpharmonicKit2</a> 2.7 (fast)</td>
+  <td><b>SHTns 2.1</b> (1 thread, Gauss)</td> <td>SpharmonicKit2/SHTns</td> </tr><tr>
+<td>63 </td> <td> 1.14 ms</td> <td> 1.05 ms</td> <td>1.1 ms</td>  <td><b>0.09 ms</b></td>  <td>12.2</td> </tr><tr>
+<td>127 </td> <td>3.5 ms</td> <td> 4.7 ms</td> <td>5.5 ms</td>  <td><b>0.60 ms</b></td>  <td>9.2</td> </tr><tr>
+<td>255 </td> <td>28 ms</td> <td> 27 ms</td>  <td>21 ms</td>  <td><b>4.2 ms</b></td>  <td>5.0</td> </tr><tr>
+<td>511 </td> <td>200 ms</td> <td>162 ms </td>  <td>110 ms</td>  <td><b>28 ms</b></td>  <td>3.9</td> </tr><tr>
+<td>1023 </td> <td>1.8 s</td> <td>850 ms </td>  <td>600 ms</td>  <td><b>216 ms</b></td>  <td>2.8</td> </tr><tr>
+<td>2047 </td> <td>13.0 s </td> <td>4.4 s</td> <td>NA (out of memory)</td>  <td><b>1.6 s</b></td>  <td>NA</td> </tr><tr>
+<td>4095 </td> <td>NA (seg fault)</td> <td>30.5 s</td> <td> </td>  <td><b>11.8 s</b></td>  <td>NA</td> </tr></table>
+
+<i>Average times for forward or backward scalar transform on an Intel Xeon X5650 (2.67GHz), with gcc 4.4.5 and "-O3 -march=native -ffast-math" compilation options.
+</i>
+</div>
+
+\section par_speed Parallel speed
+
+SHTns has parallel algorithms since version 2.2.
+When compared to libpsht (parallelized with OpenMP too), SHTns is faster especially for relatively small sizes.
+
+<div>
+<table><tr>
+<td>\f$\ell_{max}\f$</td>
+  <td><a href="http://sourceforge.net/projects/libpsht/">libpsht</a> 20110131</td>
+  <td><b>SHTns 2.2.1</b></td> <td>libpsht/SHTns <tr>
+<td>63  </td>  <td>5.0 ms</td> <td><b>0.05 ms</b></td> <td>100</td> </tr><tr>
+<td>127 </td>  <td>5.4 ms</td> <td><b>0.22 ms</b></td> <td>24.5</td> </tr><tr>
+<td>255 </td>  <td>8.5 ms</td> <td><b>1.4 ms</b></td>  <td>6.1</td> </tr><tr>
+<td>511 </td> <td>23.5 ms</td> <td><b>6.5 ms </b></td> <td>3.6</td> </tr><tr>
+<td>1023 </td> <td>125 ms</td> <td><b>43 ms </b></td>  <td>2.9</td> </tr><tr>
+<td>2047 </td> <td>700 ms</td> <td><b>331 ms</b></td>  <td>2.1</td> </tr><tr>
+<td>4095 </td> <td>3.0 s</td> <td><b>2.0 s</b></td>  <td>1.5</td> </tr></table>
+
+<i>Average wall time for forward or backward scalar transform <b>using 12 parallel threads</b> on an Intel Xeon X5650 (2.67GHz), with gcc 4.4.5 and "-O3 -march=native -ffast-math -fopenmp" compilation options.</i>
+</div>
+
+
+\section Accuracy
+
+We claim that the accuracy of SHTns is as good as it can be with double precision floating point math.
+Rescaling is performed for large transform where the recurrence relation would otherwise underflow the double precision numbers.
+SHTns has been tested on x86 architecture with SSE2 double precision floating point math (64 bit) to be <b>accurate up to l=16383</b> at least.
+The measured error for a back and forth scalar transform using a Gauss-Legendre algorithm for various truncation levels \c lmax is plotted below.
+
+\image html accuracy.png
+\image latex accuracy.png "Accuracy of our scalar Gauss-Legendre transform" width=10cm
+
+Don't trust our word, these results are obtained by running the time_SHT program, shipped with SHTns. For example :
+\code
+make time_SHT
+./time_SHT 511 -iter=1 -quickinit
+\endcode
+
+*/
+
+/** \page usage Using SHTns in a C program
+
+To make SHTns known by your C program, add
+\code
+#include <fftw3.h>
+#include <shtns.h>
+\endcode
+in the preamble of your source file.
+
+First of all you need to initialize SHTns. There are two ways to do this :
+\li calling \ref shtns_init function,
+\li or calling \ref shtns_create followed by \ref shtns_set_grid or \ref shtns_set_grid_auto. This way lets you choose normalization and optimization.
+
+Multi-threaded transforms can be enabled (if available, see \ref compil) by a call to \ref shtns_use_threads before shtns_init or shtns_create.
+
+Then you must allocate some memory (with fftw_malloc so that the memory is properly aligned for vectorized code),
+and finally you can perform some spherical harmonic transforms.
+
+\see Look at shtns.h for the function definitions and documentation.
+\see See the \link SHT_example.c C example \endlink for a simple usage of SHTns in a C program.
+
+When your program is ready, compile it adding these options to the compiler (gcc) :
+\code
+-L/path/to/lib/ -I/path/to/include/ -lshtns -lfftw3 -lm
+\endcode
+
+\example SHT_example.c
+  \brief A Fortran example program that performs backward and forward Spherical Harmonic Transforms using SHTns.
+
+  Compile using: \code make SHT_example \endcode
+
+*/
+
+
+/** \page fortran Using SHTns with Fortran
+
+SHTns provides two interfaces to Fortran language (compatible with gfortran).
+
+\section f77 Basic Fortran 77 interface
+
+First of all you need to initialize SHTns. There are two ways to do this :
+\li calling one of the \c shtns_init_* subroutines,
+\li or calling \c shtns_set_size followed by \c shtns_precompute or \c shtns_precompute_auto.
+This way lets you choose normalization and optimization.
+
+Multi-threaded transforms can be enabled (if available, see \ref compil) by a call to \ref shtns_use_threads before shtns_init or shtns_create.
+
+Note that you can call initialization function(s) only once, which means that only one size and grid can be
+used with the Fortran interface (C and Python do not have this limitation).
+Then you must allocate some memory, and finaly you can perform some spherical harmonic transforms.
+
+\see See The full reference of the \ref fortapi
+\see See the \link SHT_example.f Fortran example \endlink for a simple usage of SHTns from Fortran language.
+
+When your program is ready, compile it adding these options to the compiler (gfortran) :
+\code
+-L/path/to/lib/ -I/path/to/include/ -lshtns -lfftw3 -lm -lc
+\endcode
+
+\section f03 Fortran 2003 iso_c_binding
+
+An iso_c_binding is provided in file \c shtns.f03 for a direct call to the C interface.
+
+\see See the \link SHT_example.f90 Fortran 2003 example \endlink that uses these bindings.
+
+
+\example SHT_example.f
+  \brief A Fortran example program that performs backward and forward Spherical Harmonic Transforms using SHTns.
+
+  Compile using : \code make SHT_fort_ex \endcode
+  \see fortapi
+  \see \ref f77
+
+\example SHT_example.f90
+  \brief A Fortran 2003 example using iso_c_binding program that performs backward and forward Spherical Harmonic Transforms using SHTns.
+
+  Compile using : \code make SHT_f90_ex \endcode
+  \see fortran
+  \see \ref f03
+  
+
+*/
+
+/** \page loadsave Loading and saving config (or plans)
+
+SHTns provides a simple way to load/save a configuration from/to a file.
+It allows:
+ - to save initialization time if you often use the same transform sizes.
+ - better reproducibility at bit-level between several runs.
+ - ensure that all MPI processes use the same config/plan.
+
+All the calling program has to do is add \ref SHT_LOAD_SAVE_CFG to the flags or layout parameter when calling
+\ref shtns_set_grid / \ref shtns_set_grid_auto (C) or shtns_precompute / shtns_precompute_auto (Fortran).
+SHTns will first look for the files \c shtns_cfg and \c shtns_cfg_fftw and use the data stored therein.
+If no configuration stored in the files correspond to the required one, SHTns will proceed as usual
+and then store the configuration (unless \ref sht_quick_init mode is used).
+
+\section mpi_safe Ensuring same config is used across MPI processes:
+
+\code
+flags |= SHT_LOAD_SAVE_CFG;
+if (rank > 0) MPI_Barrier();	// all processes except 0 wait here until process 0 has initialized shtns.
+shtns_set_grid_auto(... flags ...);	// this will save the config to a file on process 0 and load from file on other processes.
+if (rank == 0) MPI_Barrier();	// other processes now resume and load the config from file.
+\endcode
+
+*/
+
+
+/** \page python Using SHTns with Python
+
+SHTns provides a Python interface that uses <a href="http://numpy.scipy.org/">NumPy</a> arrays to perform Spherical Harmonic Transforms.
+The Python interface has been generated using <a href="http://www.swig.org/">SWIG</a> (but you don't need it to compile the the Python package).
+
+\li Compile using (see also \ref compil)
+\code ./configure --enable-python
+make
+make install \endcode
+Optionally you can indicate an alternate pyhton interpreter to \c ./configure using PYTHON=<my-python> (see ./configure --help).<br/>
+If you cannot install as root, you can alternatively intall the python package as user, replacing \code make install \endcode with
+\code  python setup.py install --user \endcode
+
+\li Use within a python script or shell \code import shtns \endcode
+
+To start using SHTns you must then create an sht object, from which you can call the transform functions and more.
+The arrays should be created using <a href="http://numpy.scipy.org/">NumPy</a>.
+\see See the \link SHT_example.py Python example \endlink to get started,
+and the full working example \link shallow_water.py \endlink that solves the non-linear shallow water equations.
+
+<i>In case of segfaults, you may have alignment problems (should not occur on 64 bit systems).
+Please file a <a href="https://bitbucket.org/nschaeff/shtns/issues">bugreport</a> or contact the author.</i>
+
+\example SHT_example.py
+  \brief A Python example using NumPy and SHTns that performs backward and forward Spherical Harmonic Transforms.
+
+\example shallow_water.py
+  \brief Solves the non-linear barotropically unstable shallow water test case in Python.
+  Running the script should pop up a window with this image:
+  \image html shallow_water.png width=800px
+
+\example sht_rot.py
+  \brief Shows how to perform arbitrary rotations of spherical harmonic fields; optionally displays the fields as 3D plots.
+
+*/
+
+/** \page java Using SHTns with Java
+
+SHTns provides a JNI wrapper (courtesy of Julien Pierret) that allows basic usage from Java programs.
+See the \c shtns_jni folder.
+
+*/
+
+
+/** \page gpu Using SHTns with GPU (CUDA)
+
+SHTns supports nvidia Kepler and Pascal GPUs, using optimized cuda transforms.
+There are two ways to use GPUs with SHTns: automatic off-loading where the GPU is used transparently (not much to change in your code)
+and SHTns handles all the data transfers between GPU and CPU memory.
+In addition, routines for performing transforms of data residing already on the GPU are provided.
+
+In all cases, you must first configure SHTns to use cuda:
+
+\code ./configure --enable-cuda
+make
+make install \endcode
+
+\section offload Automatic off-loading
+
+To enable automatic off-loading (if possible and if faster), simply add \c SHT_ALLOW_GPU to the shtns_type argument of \ref shtns_set_grid_auto.
+
+\code
+sht_mode |= SHT_ALLOW_GPU
+shtns_set_grid_auto(shtns, shtmode, polaropt, nlorder, &NLAT, &NPHI);
+\endcode
+
+\warning the transforms are no more guaranteed to be thread-safe, because the GPU ones are not.
+Please make sure to use different shtns configs (or plans) if you want to call transform functions from multiple threads.
+See also \ref cloning below.
+
+For best performance, you must also allocate memory for your spatial and spectral arrays using \ref shtns_malloc and subsequently free it with \ref shtns_free.
+This way, so-called "pinned" memory is used when cuda is enabled, allowing faster data transfer between host and device.
+
+If you are not calling transform functions from multiple threads, you have nothing more to do.
+
+Here is a table giving an idea of the performance, comparing intel broadwell, intel KNL, and nvidia Pascal:
+
+<div>
+<table><tr>
+<td><b>machine</b></td>  <td>\ref SH_to_spat</td>  <td>\ref spat_to_SH</td> </tr><tr>
+<td>Broadwell, 20 cores</td>  <td>7.80 ms</td> <td>8.41 ms</td> </tr><tr>
+<td>KNL 7250, 68 cores</td>   <td>3.65 ms</td> <td><b>3.61 ms</b></td> </tr><tr>
+<td>Pascal P100 GPU (including transfer)</td>     <td><b>3.46 ms</b></td> <td>4.24 ms</td> </tr></table>
+
+<i>Average wall time for forward or backward scalar transform on various machines.
+The transform were performed using \c time_SHT with \c lmax=1023 and \c -nlorder=2 (dealiasing for non-linear terms).
+Note that the GPU timings include the time to transfer data (auto-offload mode) from and to the IBM Power8 host through nvlink.
+All timings include the FFT.</i>
+</div>
+
+
+\section cushtns On-device transforms
+
+On device transforms are declared in \ref shtns_cuda.h. Basically the regular transform functions have been prefixed by \c cu_ to indicate that they
+work on device memory. See \ref cuda.
+In principle, it is also possible to use cuda *unified memory* allocated by \c cudaMallocManaged(), but this has not been tested.
+
+As for the automatic off-loading, the \link cuda GPU transforms\endlink are <b>NOT thread-safe</b> 
+and the same shtns config should never been used from simultaneous threads.
+To help the user to create clones of the same shtns config, \link cloning cloning functions\endlink for GPU transforms have been added.
+
+\section cloning Cloning shtns configs
+
+The function \ref cushtns_clone creates a new identical configuration, but with new GPU ressources (temporary buffers, streams, ...).
+The user can give custom cuda streams or let shtns set his own (by passing 0 for each cuda stream).
+
+The resulting shtns config can be used concurently with the original one. Repeat the cloning for each concurrent thread.
+
+*/
+
+/** \page license License
+  \brief CeCILL Free Software License Agreement
+
+\htmlonly
+
+<style type="text/css">
+     h1.title {color: #008080; font-size: 200%; text-align: center}
+     h2 {color: #008080; font-size: 140%}
+     h3 {color: #008080; font-size: 100%} 
+     h4 {color: #008080; font-size: 100%} 
+     h5 {color: #008080; font-size: 100%} 
+     span.numbering {color: #008080}
+     span.definition {font-weight: bold}
+     div.version-subtitle {color: #008080; font-size: 100%; text-align: center}
+     div.version {font-style: italic}
+     div.footnote {font-size: 80%; 
+                   border-top-style : solid; 
+                   border-top-width : 1px;
+                   margin-top : 2em} 
+     ins {text-decoration: underline; background: #AAFFA4}
+     div.added {text-decoration: underline; background: #AAFFA4}
+     del {text-decoration:line-through; background: #8F8F8F}
+     div.deleted {text-decoration:line-through; background: #8F8F8F}
+  </style>
+
+  <h1 class="title">CeCILL FREE SOFTWARE LICENSE AGREEMENT</h1>
+
+  <div class="version-subtitle">
+    Version 2.1 dated 2013-06-21
+  </div>
+
+  <div class="notice">
+    <h2>Notice</h2>
+
+    <p>This Agreement is a Free Software license agreement that is the result of
+    discussions between its authors in order to ensure compliance with the two main
+    principles guiding its drafting:</p>
+
+    <ul>
+      <li>firstly, compliance with the principles governing the distribution of Free
+      Software: access to source code, broad rights granted to users,</li>
+
+      <li>secondly, the election of a governing law, French law, with which it is
+      conformant, both as regards the law of torts and intellectual property law, and the
+      protection that it offers to both authors and holders of the economic rights over
+      software.</li>
+    </ul>
+
+    <p>The authors of the CeCILL<sup><a href="#footnote1">1</a></sup> license are:</p>
+
+    <p>Commissariat &agrave; l'&eacute;nergie atomique et aux &eacute;nergies
+    alternatives - CEA, a public scientific, technical and industrial research
+    establishment, having its principal place of business at 25 rue Leblanc, immeuble Le
+    Ponant D, 75015 Paris, France.</p>
+
+    <p>Centre National de la Recherche Scientifique - CNRS, a public scientific and
+    technological establishment, having its principal place of business at 3 rue
+    Michel-Ange, 75794 Paris cedex 16, France.</p>
+
+    <p>Institut National de Recherche en Informatique et en Automatique - Inria, a public
+    scientific and technological establishment, having its principal place of business at
+    Domaine de Voluceau, Rocquencourt, BP 105, 78153 Le Chesnay cedex, France.</p>
+  </div>
+
+  <div class="preamble">
+    <h2>Preamble</h2>
+
+    <p>The purpose of this Free Software license agreement is to grant users the right to
+    modify and redistribute the software governed by this license within the framework of
+    an open source distribution model.</p>
+
+    <p>The exercising of this right is conditional upon certain obligations for users so
+    as to preserve this status for all subsequent redistributions.</p>
+
+    <p>In consideration of access to the source code and the rights to copy, modify and
+    redistribute granted by the license, users are provided only with a limited warranty
+    and the software's author, the holder of the economic rights, and the successive
+    licensors only have limited liability.</p>
+
+    <p>In this respect, the risks associated with loading, using, modifying and/or
+    developing or reproducing the software by the user are brought to the user's
+    attention, given its Free Software status, which may make it complicated to use, with
+    the result that its use is reserved for developers and experienced professionals
+    having in-depth computer knowledge. Users are therefore encouraged to load and test
+    the suitability of the software as regards their requirements in conditions enabling
+    the security of their systems and/or data to be ensured and, more generally, to use
+    and operate it in the same conditions of security. This Agreement may be freely
+    reproduced and published, provided it is not altered, and that no provisions are
+    either added or removed herefrom.</p>
+
+    <p>This Agreement may apply to any or all software for which the holder of the
+    economic rights decides to submit the use thereof to its provisions.</p>
+
+    <p>Frequently asked questions can be found on the official website of the CeCILL
+    licenses family (<a href=
+    "http://www.cecill.info/index.en.html"><tt>http://www.cecill.info/index.en.html</tt></a>)
+    for any necessary clarification.</p>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">1</span> - DEFINITIONS</h2>
+
+    <p>For the purpose of this Agreement, when the following expressions commence with a
+    capital letter, they shall have the following meaning:</p>
+
+    <p class="definition"><span class="definition">Agreement</span>: means this license
+    agreement, and its possible subsequent versions and annexes.</p>
+
+    <p class="definition"><span class="definition">Software</span>: means the software in
+    its Object Code and/or Source Code form and, where applicable, its documentation, "as
+    is" when the Licensee accepts the Agreement.</p>
+
+    <p class="definition"><span class="definition">Initial Software</span>: means the
+    Software in its Source Code and possibly its Object Code form and, where applicable,
+    its documentation, "as is" when it is first distributed under the terms and
+    conditions of the Agreement.</p>
+
+    <p class="definition"><span class="definition">Modified Software</span>: means the
+    Software modified by at least one Contribution.</p>
+
+    <p class="definition"><span class="definition">Source Code</span>: means all the
+    Software's instructions and program lines to which access is required so as to modify
+    the Software.</p>
+
+    <p class="definition"><span class="definition">Object Code</span>: means the binary
+    files originating from the compilation of the Source Code.</p>
+
+    <p class="definition"><span class="definition">Holder</span>: means the holder(s) of
+    the economic rights over the Initial Software.</p>
+
+    <p class="definition"><span class="definition">Licensee</span>: means the Software
+    user(s) having accepted the Agreement.</p>
+
+    <p class="definition"><span class="definition">Contributor</span>: means a Licensee
+    having made at least one Contribution.</p>
+
+    <p class="definition"><span class="definition">Licensor</span>: means the Holder, or
+    any other individual or legal entity, who distributes the Software under the
+    Agreement.</p>
+
+    <p class="definition"><span class="definition">Contribution</span>: means any or all
+    modifications, corrections, translations, adaptations and/or new functions integrated
+    into the Software by any or all Contributors, as well as any or all Internal
+    Modules.</p>
+
+    <p class="definition"><span class="definition">Module</span>: means a set of sources
+    files including their documentation that enables supplementary functions or services
+    in addition to those offered by the Software.</p>
+
+    <p class="definition"><span class="definition">External Module</span>: means any or
+    all Modules, not derived from the Software, so that this Module and the Software run
+    in separate address spaces, with one calling the other when they are run.</p>
+
+    <p class="definition"><span class="definition">Internal Module</span>: means any or
+    all Module, connected to the Software so that they both execute in the same address
+    space.</p>
+
+    <p class="definition"><span class="definition">GNU GPL</span>: means the GNU General
+    Public License version 2 or any subsequent version, as published by the Free Software
+    Foundation Inc.</p>
+
+    <p class="definition"><span class="definition">GNU Affero GPL</span>: means the GNU
+    Affero General Public License version 3 or any subsequent version, as published by
+    the Free Software Foundation Inc.</p>
+
+    <p class="definition"><span class="definition">EUPL</span>: means the European Union
+    Public License version 1.1 or any subsequent version, as published by the European
+    Commission.</p>
+
+    <p class="definition"><span class="definition">Parties</span>: mean both the Licensee
+    and the Licensor.</p>
+
+    <p>These expressions may be used both in singular and plural form.</p>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">2</span> - PURPOSE</h2>
+
+    <p>The purpose of the Agreement is the grant by the Licensor to the Licensee of a
+    non-exclusive, transferable and worldwide license for the Software as set forth in
+    Article <a href="#scope"><span class="numbering">5</span></a> hereinafter for the
+    whole term of the protection granted by the rights over said Software.</p>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">3</span> - ACCEPTANCE</h2>
+
+    <div class="clause">
+      <p><a name="accepting" id="accepting"></a><span class="numbering">3.1</span> The
+      Licensee shall be deemed as having accepted the terms and conditions of this
+      Agreement upon the occurrence of the first of the following events:</p>
+
+      <ul>
+        <li>(i) loading the Software by any or all means, notably, by downloading from a
+        remote server, or by loading from a physical medium;</li>
+
+        <li>(ii) the first time the Licensee exercises any of the rights granted
+        hereunder.</li>
+      </ul>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">3.2</span> One copy of the Agreement, containing a
+      notice relating to the characteristics of the Software, to the limited warranty,
+      and to the fact that its use is restricted to experienced users has been provided
+      to the Licensee prior to its acceptance as set forth in Article <a href=
+      "#accepting"><span class="numbering">3.1</span></a> hereinabove, and the Licensee
+      hereby acknowledges that it has read and understood it.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">4</span> - EFFECTIVE DATE AND TERM</h2>
+
+    <div class="clause">
+      <h3><span class="numbering">4.1</span> EFFECTIVE DATE</h3>
+
+      <p>The Agreement shall become effective on the date when it is accepted by the
+      Licensee as set forth in Article <a href="#accepting"><span class=
+      "numbering">3.1</span></a>.</p>
+    </div>
+
+    <div class="clause">
+      <h3><a name="term" id="term"></a><span class="numbering">4.2</span> TERM</h3>
+
+      <p>The Agreement shall remain in force for the entire legal term of protection of
+      the economic rights over the Software.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2><a name="scope" id="scope"></a> Article <span class="numbering">5</span> - SCOPE
+    OF RIGHTS GRANTED</h2>
+
+    <p>The Licensor hereby grants to the Licensee, who accepts, the following rights over
+    the Software for any or all use, and for the term of the Agreement, on the basis of
+    the terms and conditions set forth hereinafter.</p>
+
+    <p>Besides, if the Licensor owns or comes to own one or more patents protecting all
+    or part of the functions of the Software or of its components, the Licensor
+    undertakes not to enforce the rights granted by these patents against successive
+    Licensees using, exploiting or modifying the Software. If these patents are
+    transferred, the Licensor undertakes to have the transferees subscribe to the
+    obligations set forth in this paragraph.</p>
+
+    <div class="clause">
+      <h3><span class="numbering">5.1</span> RIGHT OF USE</h3>
+
+      <p>The Licensee is authorized to use the Software, without any limitation as to its
+      fields of application, with it being hereinafter specified that this comprises:</p>
+
+      <ol>
+        <li>
+          <p>permanent or temporary reproduction of all or part of the Software by any or
+          all means and in any or all form.</p>
+        </li>
+
+        <li>
+          <p>loading, displaying, running, or storing the Software on any or all
+          medium.</p>
+        </li>
+
+        <li>
+          <p>entitlement to observe, study or test its operation so as to determine the
+          ideas and principles behind any or all constituent elements of said Software.
+          This shall apply when the Licensee carries out any or all loading, displaying,
+          running, transmission or storage operation as regards the Software, that it is
+          entitled to carry out hereunder.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="clause">
+      <h3><span class="numbering">5.2</span> ENTITLEMENT TO MAKE CONTRIBUTIONS</h3>
+
+      <p>The right to make Contributions includes the right to translate, adapt, arrange,
+      or make any or all modifications to the Software, and the right to reproduce the
+      resulting software.</p>
+
+      <p>The Licensee is authorized to make any or all Contributions to the Software
+      provided that it includes an explicit notice that it is the author of said
+      Contribution and indicates the date of the creation thereof.</p>
+    </div>
+
+    <div class="clause">
+      <h3><span class="numbering">5.3</span> RIGHT OF DISTRIBUTION</h3>
+
+      <p>In particular, the right of distribution includes the right to publish, transmit
+      and communicate the Software to the general public on any or all medium, and by any
+      or all means, and the right to market, either in consideration of a fee, or free of
+      charge, one or more copies of the Software by any means.</p>
+
+      <p>The Licensee is further authorized to distribute copies of the modified or
+      unmodified Software to third parties according to the terms and conditions set
+      forth hereinafter.</p>
+
+      <div class="subclause">
+        <h4><span class="numbering">5.3.1</span> DISTRIBUTION OF SOFTWARE WITHOUT
+        MODIFICATION</h4>
+
+        <p>The Licensee is authorized to distribute true copies of the Software in Source
+        Code or Object Code form, provided that said distribution complies with all the
+        provisions of the Agreement and is accompanied by:</p>
+
+        <ol>
+          <li>
+            <p>a copy of the Agreement,</p>
+          </li>
+
+          <li>
+            <p>a notice relating to the limitation of both the Licensor's warranty and
+            liability as set forth in Articles 8 and 9,</p>
+          </li>
+        </ol>
+
+        <p>and that, in the event that only the Object Code of the Software is
+        redistributed, the Licensee allows effective access to the full Source Code of
+        the Software for a period of at least three years from the distribution of the
+        Software, it being understood that the additional acquisition cost of the Source
+        Code shall not exceed the cost of the data transfer.</p>
+      </div>
+
+      <div class="subclause">
+        <h4><span class="numbering">5.3.2</span> DISTRIBUTION OF MODIFIED SOFTWARE</h4>
+
+        <p>When the Licensee makes a Contribution to the Software, the terms and
+        conditions for the distribution of the resulting Modified Software become subject
+        to all the provisions of this Agreement.</p>
+
+        <p>The Licensee is authorized to distribute the Modified Software, in source code
+        or object code form, provided that said distribution complies with all the
+        provisions of the Agreement and is accompanied by:</p>
+
+        <ol>
+          <li>
+            <p>a copy of the Agreement,</p>
+          </li>
+
+          <li>
+            <p>a notice relating to the limitation of both the Licensor's warranty and
+            liability as set forth in Articles 8 and 9,</p>
+          </li>
+        </ol>
+
+        <p>and, in the event that only the object code of the Modified Software is
+        redistributed,</p>
+
+        <ol start="3">
+          <li>
+            <p>a note stating the conditions of effective access to the full source code
+            of the Modified Software for a period of at least three years from the
+            distribution of the Modified Software, it being understood that the
+            additional acquisition cost of the source code shall not exceed the cost of
+            the data transfer.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="subclause">
+        <h4><span class="numbering">5.3.3</span> DISTRIBUTION OF EXTERNAL MODULES</h4>
+
+        <p>When the Licensee has developed an External Module, the terms and conditions
+        of this Agreement do not apply to said External Module, that may be distributed
+        under a separate license agreement.</p>
+      </div>
+
+      <div class="subclause">
+        <h4><a name="compatibility" id="compatibility"></a><span class=
+        "numbering">5.3.4</span> COMPATIBILITY WITH OTHER LICENSES</h4>
+
+        <p>The Licensee can include a code that is subject to the provisions of one of
+        the versions of the GNU GPL, GNU Affero GPL and/or EUPL in the Modified or
+        unmodified Software, and distribute that entire code under the terms of the same
+        version of the GNU GPL, GNU Affero GPL and/or EUPL.</p>
+
+        <p>The Licensee can include the Modified or unmodified Software in a code that is
+        subject to the provisions of one of the versions of the GNU GPL, GNU Affero GPL
+        and/or EUPL and distribute that entire code under the terms of the same version
+        of the GNU GPL, GNU Affero GPL and/or EUPL.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">6</span> - INTELLECTUAL PROPERTY</h2>
+
+    <div class="clause">
+      <h3><span class="numbering">6.1</span> OVER THE INITIAL SOFTWARE</h3>
+
+      <p>The Holder owns the economic rights over the Initial Software. Any or all use of
+      the Initial Software is subject to compliance with the terms and conditions under
+      which the Holder has elected to distribute its work and no one shall be entitled to
+      modify the terms and conditions for the distribution of said Initial Software.</p>
+
+      <p>The Holder undertakes that the Initial Software will remain ruled at least by
+      this Agreement, for the duration set forth in Article <a href="#term"><span class=
+      "numbering">4.2</span></a>.</p>
+    </div>
+
+    <div class="clause">
+      <h3><span class="numbering">6.2</span> OVER THE CONTRIBUTIONS</h3>
+
+      <p>The Licensee who develops a Contribution is the owner of the intellectual
+      property rights over this Contribution as defined by applicable law.</p>
+    </div>
+
+    <div class="clause">
+      <h3><span class="numbering">6.3</span> OVER THE EXTERNAL MODULES</h3>
+
+      <p>The Licensee who develops an External Module is the owner of the intellectual
+      property rights over this External Module as defined by applicable law and is free
+      to choose the type of agreement that shall govern its distribution.</p>
+    </div>
+
+    <div class="clause">
+      <h3><a name="mention" id="mention"></a><span class="numbering">6.4</span> JOINT
+      PROVISIONS</h3>
+
+      <div class="subclause">
+        <p>The Licensee expressly undertakes:</p>
+
+        <ol>
+          <li>
+            <p>not to remove, or modify, in any manner, the intellectual property notices
+            attached to the Software;</p>
+          </li>
+
+          <li>
+            <p>to reproduce said notices, in an identical manner, in the copies of the
+            Software modified or not.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="subclause">
+        <p>The Licensee undertakes not to directly or indirectly infringe the
+        intellectual property rights on the Software of the Holder and/or Contributors,
+        and to take, where applicable, vis-&agrave;-vis its staff, any and all measures
+        required to ensure respect of said intellectual property rights of the Holder
+        and/or Contributors.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">7</span> - RELATED SERVICES</h2>
+
+    <div class="clause">
+      <p><span class="numbering">7.1</span> Under no circumstances shall the Agreement
+      oblige the Licensor to provide technical assistance or maintenance services for the
+      Software.</p>
+
+      <p>However, the Licensor is entitled to offer this type of services. The terms and
+      conditions of such technical assistance, and/or such maintenance, shall be set
+      forth in a separate instrument. Only the Licensor offering said maintenance and/or
+      technical assistance services shall incur liability therefor.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">7.2</span> Similarly, any Licensor is entitled to offer
+      to its licensees, under its sole responsibility, a warranty, that shall only be
+      binding upon itself, for the redistribution of the Software and/or the Modified
+      Software, under terms and conditions that it is free to decide. Said warranty, and
+      the financial terms and conditions of its application, shall be subject of a
+      separate instrument executed between the Licensor and the Licensee.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">8</span> - LIABILITY</h2>
+
+    <div class="clause">
+      <p><span class="numbering">8.1</span> Subject to the provisions of Article 8.2, the
+      Licensee shall be entitled to claim compensation for any direct loss it may have
+      suffered from the Software as a result of a fault on the part of the relevant
+      Licensor, subject to providing evidence thereof.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">8.2</span> The Licensor's liability is limited to the
+      commitments made under this Agreement and shall not be incurred as a result of in
+      particular: (i) loss due the Licensee's total or partial failure to fulfill its
+      obligations, (ii) direct or consequential loss that is suffered by the Licensee due
+      to the use or performance of the Software, and (iii) more generally, any
+      consequential loss. In particular the Parties expressly agree that any or all
+      pecuniary or business loss (i.e. loss of data, loss of profits, operating loss,
+      loss of customers or orders, opportunity cost, any disturbance to business
+      activities) or any or all legal proceedings instituted against the Licensee by a
+      third party, shall constitute consequential loss and shall not provide entitlement
+      to any or all compensation from the Licensor.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">9</span> - WARRANTY</h2>
+
+    <div class="clause">
+      <p><span class="numbering">9.1</span> The Licensee acknowledges that the scientific
+      and technical state-of-the-art when the Software was distributed did not enable all
+      possible uses to be tested and verified, nor for the presence of possible defects
+      to be detected. In this respect, the Licensee's attention has been drawn to the
+      risks associated with loading, using, modifying and/or developing and reproducing
+      the Software which are reserved for experienced users.</p>
+
+      <p>The Licensee shall be responsible for verifying, by any or all means, the
+      suitability of the product for its requirements, its good working order, and for
+      ensuring that it shall not cause damage to either persons or properties.</p>
+    </div>
+
+    <div class="clause">
+      <p><a name="good-faith" id="good-faith"></a><span class="numbering">9.2</span> The
+      Licensor hereby represents, in good faith, that it is entitled to grant all the
+      rights over the Software (including in particular the rights set forth in Article
+      <a href="#scope"><span class="numbering">5</span></a>).</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">9.3</span> The Licensee acknowledges that the Software
+      is supplied "as is" by the Licensor without any other express or tacit warranty,
+      other than that provided for in Article <a href="#good-faith"><span class=
+      "numbering">9.2</span></a> and, in particular, without any warranty as to its
+      commercial value, its secured, safe, innovative or relevant nature.</p>
+
+      <p>Specifically, the Licensor does not warrant that the Software is free from any
+      error, that it will operate without interruption, that it will be compatible with
+      the Licensee's own equipment and software configuration, nor that it will meet the
+      Licensee's requirements.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">9.4</span> The Licensor does not either expressly or
+      tacitly warrant that the Software does not infringe any third party intellectual
+      property right relating to a patent, software or any other property right.
+      Therefore, the Licensor disclaims any and all liability towards the Licensee
+      arising out of any or all proceedings for infringement that may be instituted in
+      respect of the use, modification and redistribution of the Software. Nevertheless,
+      should such proceedings be instituted against the Licensee, the Licensor shall
+      provide it with technical and legal expertise for its defense. Such technical and
+      legal expertise shall be decided on a case-by-case basis between the relevant
+      Licensor and the Licensee pursuant to a memorandum of understanding. The Licensor
+      disclaims any and all liability as regards the Licensee's use of the name of the
+      Software. No warranty is given as regards the existence of prior rights over the
+      name of the Software or as regards the existence of a trademark.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">10</span> - TERMINATION</h2>
+
+    <div class="clause">
+      <p><span class="numbering">10.1</span> In the event of a breach by the Licensee of
+      its obligations hereunder, the Licensor may automatically terminate this Agreement
+      thirty (30) days after notice has been sent to the Licensee and has remained
+      ineffective.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">10.2</span> A Licensee whose Agreement is terminated
+      shall no longer be authorized to use, modify or distribute the Software. However,
+      any licenses that it may have granted prior to termination of the Agreement shall
+      remain valid subject to their having been granted in compliance with the terms and
+      conditions hereof.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">11</span> - MISCELLANEOUS</h2>
+
+    <div class="clause">
+      <h3><span class="numbering">11.1</span> EXCUSABLE EVENTS</h3>
+
+      <p>Neither Party shall be liable for any or all delay, or failure to perform the
+      Agreement, that may be attributable to an event of force majeure, an act of God or
+      an outside cause, such as defective functioning or interruptions of the electricity
+      or telecommunications networks, network paralysis following a virus attack,
+      intervention by government authorities, natural disasters, water damage,
+      earthquakes, fire, explosions, strikes and labor unrest, war, etc.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">11.2</span> Any failure by either Party, on one or more
+      occasions, to invoke one or more of the provisions hereof, shall under no
+      circumstances be interpreted as being a waiver by the interested Party of its right
+      to invoke said provision(s) subsequently.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">11.3</span> The Agreement cancels and replaces any or
+      all previous agreements, whether written or oral, between the Parties and having
+      the same purpose, and constitutes the entirety of the agreement between said
+      Parties concerning said purpose. No supplement or modification to the terms and
+      conditions hereof shall be effective as between the Parties unless it is made in
+      writing and signed by their duly authorized representatives.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">11.4</span> In the event that one or more of the
+      provisions hereof were to conflict with a current or future applicable act or
+      legislative text, said act or legislative text shall prevail, and the Parties shall
+      make the necessary amendments so as to comply with said act or legislative text.
+      All other provisions shall remain effective. Similarly, invalidity of a provision
+      of the Agreement, for any reason whatsoever, shall not cause the Agreement as a
+      whole to be invalid.</p>
+    </div>
+
+    <div class="clause">
+      <h3><span class="numbering">11.5</span> LANGUAGE</h3>
+
+      <p>The Agreement is drafted in both French and English and both versions are deemed
+      authentic.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">12</span> - NEW VERSIONS OF THE AGREEMENT</h2>
+
+    <div class="clause">
+      <p><span class="numbering">12.1</span> Any person is authorized to duplicate and
+      distribute copies of this Agreement.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">12.2</span> So as to ensure coherence, the wording of
+      this Agreement is protected and may only be modified by the authors of the License,
+      who reserve the right to periodically publish updates or new versions of the
+      Agreement, each with a separate number. These subsequent versions may address new
+      issues encountered by Free Software.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">12.3</span> Any Software distributed under a given
+      version of the Agreement may only be subsequently distributed under the same
+      version of the Agreement or a subsequent version, subject to the provisions of
+      Article <a href="#compatibility"><span class="numbering">5.3.4</span></a>.</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <h2>Article <span class="numbering">13</span> - GOVERNING LAW AND JURISDICTION</h2>
+
+    <div class="clause">
+      <p><span class="numbering">13.1</span> The Agreement is governed by French law. The
+      Parties agree to endeavor to seek an amicable solution to any disagreements or
+      disputes that may arise during the performance of the Agreement.</p>
+    </div>
+
+    <div class="clause">
+      <p><span class="numbering">13.2</span> Failing an amicable solution within two (2)
+      months as from their occurrence, and unless emergency proceedings are necessary,
+      the disagreements or disputes shall be referred to the Paris Courts having
+      jurisdiction, by the more diligent Party.</p>
+    </div>
+  </div>
+
+  <div class="footnote">
+    <p><a name="footnote1" id="footnote1">1 CeCILL stands for Ce(a) C(nrs) I(nria)
+    L(ogiciel) L(ibre)</a></p>
+  </div>
+
+\endhtmlonly
+
+*/
