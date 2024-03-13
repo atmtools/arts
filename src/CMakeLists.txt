@@ -57,7 +57,7 @@ add_library(workspace_internals STATIC
   workspace_variables_keywords.cpp
   auto_wsg.cpp
 )
-target_link_libraries(workspace_internals PUBLIC workspace_group artscore)
+target_link_libraries(workspace_internals PUBLIC workspace_group artscore scattering)
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(workspace_internals PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -226,6 +226,7 @@ target_include_directories (artsworkspace PUBLIC
   ${ARTS_SOURCE_DIR}/3rdparty/cdisort
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
   ${NETCDF_INCLUDE_DIR}
+  ${ARTS_SOURCE_DIR}/core/species
   )
 
 add_dependencies (artsworkspace auto_version_cc)

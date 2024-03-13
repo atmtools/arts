@@ -1,0 +1,139 @@
+/* sht_config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the `clock_gettime' function. */
+#undef HAVE_CLOCK_GETTIME
+
+/* Define to 1 if you have the <complex.h> header file. */
+#undef HAVE_COMPLEX_H
+
+/* Define to 1 if you have the <c_asm.h> header file. */
+#undef HAVE_C_ASM_H
+
+/* Define to 1 if you have the `fftw_cost' function. */
+#undef HAVE_FFTW_COST
+
+/* Define to 1 if you have the `gethrtime' function. */
+#undef HAVE_GETHRTIME
+
+/* Define to 1 if hrtime_t is defined in <sys/time.h> */
+#undef HAVE_HRTIME_T
+
+/* Define to 1 if you have the <intrinsics.h> header file. */
+#undef HAVE_INTRINSICS_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `cudart' library (-lcudart). */
+#undef HAVE_LIBCUDART
+
+/* Define to 1 if you have the `cufft' library (-lcufft). */
+#undef HAVE_LIBCUFFT
+
+/* Define to 1 if you have the `fftw3' library (-lfftw3). */
+#undef HAVE_LIBFFTW3
+
+/* Define to 1 if you have the `fftw3_omp' library (-lfftw3_omp). */
+#undef HAVE_LIBFFTW3_OMP
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if the type `long double' works and has more range or precision
+   than `double'. */
+#undef HAVE_LONG_DOUBLE_WIDER
+
+/* Define to 1 if you have the `mach_absolute_time' function. */
+#undef HAVE_MACH_ABSOLUTE_TIME
+
+/* Define to 1 if you have the <mach/mach_time.h> header file. */
+#undef HAVE_MACH_MACH_TIME_H
+
+/* Define to 1 if you have the <math.h> header file. */
+#undef HAVE_MATH_H
+
+/* Define to 1 if you have the `read_real_time' function. */
+#undef HAVE_READ_REAL_TIME
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the `time_base_to_time' function. */
+#undef HAVE_TIME_BASE_TO_TIME
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the UNICOS _rtc() intrinsic. */
+#undef HAVE__RTC
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* I need the transforms compatible with the MagIC code, to speed it up! */
+#undef SHTNS4MAGIC
+
+/* Enable the new recurrence proposed by Ishioka (2018) see
+   https://doi.org/10.2151/jmsj.2018-019 (faster) */
+#undef SHTNS_ISHIOKA
+
+/* Compile the Fortran API */
+#undef SHT_F77_API
+
+/* 0:no output, 1:output info to stdout, 2:more output (debug info), 3:also
+   print fftw plans. */
+#undef SHT_VERBOSE
+
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+#undef STDC_HEADERS
+
+/* I compile with GCC 4 or ICC 14 or later, and I would like fast vectorized
+   code (if SSE2, AVX or MIC is supported) ! */
+#undef _GCC_VEC_
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

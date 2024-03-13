@@ -167,6 +167,10 @@ internal_workspace_groups() {
       .desc = "A list of *QuantumIdentifier*\n",
   };
 
+  wsg_data["ArrayOfScatteringSpecies"] = {
+      .file = "scattering/scattering_species.h",
+      .desc = "Represents species of scattering paritlces in the atmosphere."};
+
   wsg_data["ArrayOfScatteringMetaData"] = {
       .file = "optproperties.h",
       .desc = "A list of *ScatteringMetaData*\n",

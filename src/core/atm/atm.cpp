@@ -87,13 +87,13 @@ const std::unordered_map<SpeciesEnum, Data> &Field::specs() const {
 const std::unordered_map<SpeciesIsotope, Data> &Field::isots() const {
   return map<SpeciesIsotope>();
 }
-
 const std::unordered_map<AtmKey, Data> &Field::other() const {
   return map<AtmKey>();
 }
 
-const std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() const {
-  return map<ParticulatePropertyTag>();
+const std::unordered_map<ScatteringSpeciesProperty, Data> &Field::partp()
+    const {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::unordered_map<QuantumIdentifier, Data> &Field::nlte() {
@@ -110,8 +110,8 @@ std::unordered_map<SpeciesIsotope, Data> &Field::isots() {
 
 std::unordered_map<AtmKey, Data> &Field::other() { return map<AtmKey>(); }
 
-std::unordered_map<ParticulatePropertyTag, Data> &Field::partp() {
-  return map<ParticulatePropertyTag>();
+std::unordered_map<ScatteringSpeciesProperty, Data> &Field::partp() {
+  return map<ScatteringSpeciesProperty>();
 }
 
 std::ostream &operator<<(std::ostream &os, const Point &atm) {
@@ -148,7 +148,7 @@ std::ostream &operator<<(std::ostream &os, const Field &atm) {
   };
 
   std::string_view space = "";
-  for (auto && key : atm.keys()) {
+  for (auto &&key : atm.keys()) {
     os << std::exchange(space, ",\n") << key << ":";
     std::visit(printer, atm[key].data);
   }
@@ -848,16 +848,12 @@ bool operator==(const QuantumIdentifier &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
 }
 
-bool operator==(const AtmKeyVal &keyval, const ParticulatePropertyTag &key) {
+bool operator==(const AtmKeyVal &keyval, const ScatteringSpeciesProperty &key) {
   return cmp(keyval, key);
 }
 
-bool operator==(const ParticulatePropertyTag &key, const AtmKeyVal &keyval) {
+bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) {
   return cmp(keyval, key);
-}
-
-std::ostream &operator<<(std::ostream &os, const ParticulatePropertyTag &ppt) {
-  return os << ppt.name;
 }
 
 namespace Atm {
@@ -882,7 +878,7 @@ Numeric get(const GriddedField3 &gf3,
             const Numeric lat,
             const Numeric lon) {
   if (not gf3.ok()) throw std::runtime_error("bad field");
-  
+
   return std::visit(
       [&data = gf3.data](auto &&al, auto &&la, auto &&lo) {
         return my_interp::interp(data, al, la, lo);
