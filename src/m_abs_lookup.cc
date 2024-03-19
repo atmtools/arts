@@ -75,12 +75,14 @@ Not propmat_clearsky_agenda:
 )--",
       propmat_clearsky_agenda)
 
-  ARTS_USER_ERROR_IF(lowest_vmr <= 0, R"--(
+  ARTS_USER_ERROR_IF(lowest_vmr <= 0,
+                     R"--(
 You must give a lowest_vmr value above 0.  This is because
 the computations of the absorption lookup table uses true
 absorption calculations but the output is in cross-sections
 
-Your current lowest_vmr value is: )--", lowest_vmr)
+Your current lowest_vmr value is: )--",
+                     lowest_vmr)
 
   // We need this temporary variable to make a local copy of all VMRs,
   // where we then perturb the H2O profile as needed
@@ -121,7 +123,8 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   Vector these_t_pert;    // Is resized later on
 
   // 4. Checks of input parameter correctness:
-  const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
+  const Index h2o_index =
+      find_first_species(abs_species, Species::fromShortName("H2O"));
 
   if (h2o_index < 0) {
     // If there are nonlinear species, then at least one species must be
@@ -159,8 +162,8 @@ Your current lowest_vmr value is: )--", lowest_vmr)
     }
     if (s == n_species) {
       ostringstream os;
-      os << "Did not find *abs_nls* tag group \""
-         << abs_nls[i] << "\" in *abs_species*.";
+      os << "Did not find *abs_nls* tag group \"" << abs_nls[i]
+         << "\" in *abs_species*.";
       throw runtime_error(os.str());
     }
   }
@@ -251,7 +254,8 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   for (Index i = 0, spec = 0; i < n_species; ++i) {
     // Skipping Zeeman and free_electrons species.
     // (Mixed tag groups between those and other species are not allowed.)
-    if (abs_species[i].Zeeman() || abs_species[i].FreeElectrons() || abs_species[i].Particles()) {
+    if (abs_species[i].Zeeman() || abs_species[i].FreeElectrons() ||
+        abs_species[i].Particles()) {
       spec++;
       continue;
     }
@@ -337,12 +341,12 @@ Your current lowest_vmr value is: )--", lowest_vmr)
       // function. Anyway, shared is the correct setting for
       // abs_lookup, so there is no problem.
 
-  WorkspaceOmpParallelCopyGuard wss{ws};
+      WorkspaceOmpParallelCopyGuard wss{ws};
 
-#pragma omp parallel for if (                                         \
-    !arts_omp_in_parallel() &&                                        \
-    these_t_pert_nelem >=                                             \
-        arts_omp_get_max_threads()) private(this_t)                   \
+#pragma omp                                                                  \
+    parallel for if (!arts_omp_in_parallel() &&                              \
+                         these_t_pert_nelem >=                               \
+                                 arts_omp_get_max_threads()) private(this_t) \
     firstprivate(wss)
       for (Index j = 0; j < these_t_pert_nelem; ++j) {
         // Skip remaining iterations if an error occurred
@@ -431,7 +435,9 @@ Your current lowest_vmr value is: )--", lowest_vmr)
   }
 
   // 6. Initialize fgp_default.
-  abs_lookup.flag_default = my_interp::lagrange_interpolation_list<LagrangeInterpolation>(abs_lookup.f_grid, abs_lookup.f_grid, 0);
+  abs_lookup.flag_default =
+      my_interp::lagrange_interpolation_list<LagrangeInterpolation>(
+          abs_lookup.f_grid, abs_lookup.f_grid, 0);
 
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
@@ -554,9 +560,8 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
 
   // Add all H2O species as non-linear:
   Index next_h2o = 0;
-  while (-1 !=
-         (next_h2o = find_next_species(
-              abs_species, Species::fromShortName("H2O"), next_h2o))) {
+  while (-1 != (next_h2o = find_next_species(
+                    abs_species, Species::fromShortName("H2O"), next_h2o))) {
     abs_nls.push_back(abs_species[next_h2o]);
     ++next_h2o;
   }
@@ -617,11 +622,12 @@ void choose_abs_t_pert(Vector& abs_t_pert,
   Numeric mindev = 1e9;
   Numeric maxdev = -1e9;
 
-  Vector the_grid=uniform_grid(0, abs_t.nelem(), 1);
+  Vector the_grid = uniform_grid(0, abs_t.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
-    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
+    const Index idx0 =
+        my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
-    for (Index j = 0; j < p_interp_order+1; ++j) {
+    for (Index j = 0; j < p_interp_order + 1; ++j) {
       // Our pressure grid for the lookup table may be coarser than
       // the original one for the batch cases. This may lead to max/min
       // values in the original data that exceed those we assumed
@@ -648,7 +654,7 @@ void choose_abs_t_pert(Vector& abs_t_pert,
     ++div;
   } while (effective_step > step);
 
-  abs_t_pert =uniform_grid(mindev, div, effective_step);
+  abs_t_pert = uniform_grid(mindev, div, effective_step);
 
   out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to "
        << abs_t_pert[abs_t_pert.nelem() - 1] << " K in steps of "
@@ -693,16 +699,17 @@ void choose_abs_nls_pert(Vector& abs_nls_pert,
   // mindev is set to zero from the start, since we always want to
   // include 0.
 
-  Vector the_grid=uniform_grid(0, refprof.nelem(), 1);
+  Vector the_grid = uniform_grid(0, refprof.nelem(), 1);
   for (Index i = 0; i < the_grid.nelem(); ++i) {
     //       cout << "!!!!!! i = " << i << "\n";
     //       cout << " min/ref/max = " << minprof[i] << " / "
     //            << refprof[i] << " / "
     //            << maxprof[i] << "\n";
-    
-    const Index idx0 = my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
 
-    for (Index j = 0; j < p_interp_order+1; ++j) {
+    const Index idx0 =
+        my_interp::pos_finder<true>(i, Numeric(i), the_grid, p_interp_order);
+
+    for (Index j = 0; j < p_interp_order + 1; ++j) {
       //           cout << "!!!!!! j = " << j << "\n";
       //           cout << "  ref[j] = " << refprof[gp.idx[j]] << "   ";
       //           cout << "  minfrac[j] = " << minprof[i] / refprof[gp.idx[j]] << "   ";
@@ -858,7 +865,7 @@ void abs_lookupSetup(  // WS Output:
 
   ArrayOfNumeric log_abs_p_a;  // We take log_abs_p_a as an array of
                                // Numeric, so that we can easily
-      // build it up by appending new elements to the end.
+  // build it up by appending new elements to the end.
 
   // Check whether there are pressure levels that are further apart
   // (in log(p)) than p_step, and insert additional levels if
@@ -977,7 +984,8 @@ void abs_lookupSetup(  // WS Output:
     // we need the values later.
     Vector h2omin(p_grid.nelem());
     Vector h2omax(p_grid.nelem());
-    const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
+    const Index h2o_index =
+        find_first_species(abs_species, Species::fromShortName("H2O"));
     // We need this inside the if clauses for nonlinear species
     // treatment. The function returns "-1" if there is no H2O
     // species. There is a check for that in the next if block, with
@@ -1078,7 +1086,8 @@ void abs_lookupSetupBatch(  // WS Output:
 
   // Derive which abs_species is H2O (required for nonlinear species handling)
   // returns -1 if no H2O present
-  const Index h2o_index = find_first_species(abs_species, Species::fromShortName("H2O"));
+  const Index h2o_index =
+      find_first_species(abs_species, Species::fromShortName("H2O"));
   //  cout << "The " << h2o_index+1 << ". species in abs_species is H2O\n";
   //  cout << "That is, H2O is expected to be the " << indoff+h2o_index
   //       << ". column of the atmospheric fields\n";
@@ -1333,7 +1342,7 @@ void abs_lookupSetupBatch(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p=uniform_grid(log(maxp), np, -p_step);
+  Vector log_abs_p = uniform_grid(log(maxp), np, -p_step);
   log_abs_p[np - 1] = log(minp);
 
   abs_p.resize(np);
@@ -1557,12 +1566,13 @@ void abs_lookupSetupBatch(  // WS Output:
   ARTS_ASSERT(log_abs_p.nelem() == np);
   Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
   for (Index i = 0; i < np; ++i) {
-    const Index idx0 = my_interp::pos_finder<false>(i, log_abs_p[i], log_abs_p, abs_p_interp_order);
+    const Index idx0 = my_interp::pos_finder<false>(
+        i, log_abs_p[i], log_abs_p, abs_p_interp_order);
 
     for (Index fi = 0; fi < datamean.nrows(); ++fi)
       if (1 != fi)  // We skip the z field, which we do not need
       {
-        for (Index j = 0; j < abs_p_interp_order+1; ++j) {
+        for (Index j = 0; j < abs_p_interp_order + 1; ++j) {
           smooth_datamean(fi, i) += datamean(fi, idx0 + j);
         }
         smooth_datamean(fi, i) /= Numeric(abs_p_interp_order + 1);
@@ -1734,7 +1744,7 @@ void abs_lookupSetupWide(  // WS Output:
   // If np is too small for the interpolation order, we increase it:
   if (np < abs_p_interp_order + 1) np = abs_p_interp_order + 1;
 
-  Vector log_abs_p=uniform_grid(log(p_max), np, -p_step);
+  Vector log_abs_p = uniform_grid(log(p_max), np, -p_step);
 
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);
@@ -1772,10 +1782,10 @@ void abs_lookupSetupWide(  // WS Output:
   // ---------------------------------------------
 
   // We take a constant reference profile of 1000ppm (=1e-3) for H2O
-  Numeric const h2o_ref = 1e-3;
+  const Numeric h2o_ref = 1e-3;
 
   // And 1 ppt (1e-9) as default for all VMRs
-  Numeric const other_ref = 1e-9;
+  const Numeric other_ref = 1e-9;
 
   // We have to assign this value to all pressures of the H2O profile,
   // and 0 to all other profiles.
@@ -1800,8 +1810,8 @@ void abs_lookupSetupWide(  // WS Output:
   }
 
   // Which species is H2O?
-  const Index h2o_index = find_first_species(
-      abs_species, Species::fromShortName("H2O"));
+  const Index h2o_index =
+      find_first_species(abs_species, Species::fromShortName("H2O"));
 
   // The function returns "-1" if there is no H2O
   // species.
@@ -2027,10 +2037,11 @@ void propmat_clearskyAddFromLookup(
   // zero, and the cause for this may be difficult for a user to
   // find. So we do not allow this combination.
   if (do_freq_jac and (1 > abs_f_interp_order))
-    throw std::runtime_error("Wind/frequency Jacobian is not possible without at least first\n"
-			     "order frequency interpolation in the lookup table.  Please use\n"
-			     "abs_f_interp_order>0 or remove wind/frequency Jacobian.");
-  
+    throw std::runtime_error(
+        "Wind/frequency Jacobian is not possible without at least first\n"
+        "order frequency interpolation in the lookup table.  Please use\n"
+        "abs_f_interp_order>0 or remove wind/frequency Jacobian.");
+
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically.
@@ -2075,11 +2086,11 @@ void propmat_clearskyAddFromLookup(
                        extpolfac);
   }
 
-  if (no_negatives){
+  if (no_negatives) {
     //Check for negative values due to interpolation and set them to zero
-    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++){
-      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++){
-        if (abs_scalar_gas(ir, ic)<0) abs_scalar_gas(ir, ic)=0;
+    for (Index ir = 0; ir < abs_scalar_gas.nrows(); ir++) {
+      for (Index ic = 0; ic < abs_scalar_gas.ncols(); ic++) {
+        if (abs_scalar_gas(ir, ic) < 0) abs_scalar_gas(ir, ic) = 0;
       }
     }
   }
@@ -2094,13 +2105,12 @@ void propmat_clearskyAddFromLookup(
     for (Index isp = 0; isp < abs_scalar_gas.nrows(); isp++) {
       propmat_clearsky.Kjj() += abs_scalar_gas(isp, joker);
 
-      for (Index iv = 0; iv < propmat_clearsky.NumberOfFrequencies();
-           iv++) {
+      for (Index iv = 0; iv < propmat_clearsky.NumberOfFrequencies(); iv++) {
         for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {
           const auto& deriv = jacobian_quantities[iq];
-          
+
           if (not deriv.propmattype()) continue;
-          
+
           if (deriv == Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
@@ -2109,7 +2119,10 @@ void propmat_clearskyAddFromLookup(
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (deriv == abs_species[isp]) {
             // WARNING:  If CIA in list, this scales wrong by factor 2
-              dpropmat_clearsky_dx[iq].Kjj()[iv] += (std::isnormal(a_vmr_list[isp])) ? abs_scalar_gas(isp, iv) / a_vmr_list[isp] : 0;
+            dpropmat_clearsky_dx[iq].Kjj()[iv] +=
+                (std::isnormal(a_vmr_list[isp]))
+                    ? abs_scalar_gas(isp, iv) / a_vmr_list[isp]
+                    : 0;
           }
         }
       }
@@ -2198,16 +2211,6 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
                                 n_pressures,
                                 n_latitudes,
                                 n_longitudes);
-  
-  // Fake jacobian_quantities to deal with partial absorption
-  ArrayOfRetrievalQuantity jacobian_quantities;
-  for (auto& species_list: abs_species) {
-    jacobian_quantities.emplace_back();
-    auto& rq = jacobian_quantities.back();
-    rq.Subtag(species_list.Name());
-    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, species_list));
-    rq.Target().perturbation = 0.001;
-  }
 
   String fail_msg;
   bool failed = false;
@@ -2219,114 +2222,104 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
 
   // Now we have to loop all points in the atmosphere:
   if (n_pressures)
-#pragma omp parallel for if (!arts_omp_in_parallel() &&                 \
-                             n_pressures >= arts_omp_get_max_threads()) \
-    firstprivate(wss, this_f_grid) private(                              \
-        abs, nlte, partial_abs, partial_nlte, a_vmr_list)
-    for (Index ipr = 0; ipr < n_pressures; ++ipr)  // Pressure:  ipr
-    {
-      // Skip remaining iterations if an error occurred
-      if (failed) continue;
+#pragma omp parallel for collapse(4) if (!arts_omp_in_parallel()) \
+    firstprivate(wss, this_f_grid) private(                       \
+            abs, nlte, partial_abs, partial_nlte, a_vmr_list)
+    for (Index ipr = 0; ipr < n_pressures; ++ipr) {  // Pressure:  ipr
+      for (Index i = 0; i < abs_species.nelem(); i++) {
+        for (Index ila = 0; ila < n_latitudes; ++ila) {     // Latitude:  ila
+          for (Index ilo = 0; ilo < n_longitudes; ++ilo) {  // Longitude: ilo
+            // Skip remaining iterations if an error occurred
+            if (failed) continue;
 
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region.
-      try {
-        Numeric a_pressure = p_grid[ipr];
+            // The try block here is necessary to correctly handle
+            // exceptions inside the parallel region.
+            try {
+              Numeric a_pressure = p_grid[ipr];
 
-        if (0 != doppler.nelem()) {
-          this_f_grid = f_grid;
-          this_f_grid += doppler[ipr];
-        }
+              if (0 != doppler.nelem()) {
+                this_f_grid = f_grid;
+                this_f_grid += doppler[ipr];
+              }
 
-        {
-          ostringstream os;
-          os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
-          out3 << os.str();
-        }
+              {
+                ostringstream os;
+                os << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
+                out3 << os.str();
+              }
+              Numeric a_temperature = t_field(ipr, ila, ilo);
+              a_vmr_list = vmr_field(Range(joker), ipr, ila, ilo);
+              if (!nlte_field.value.empty())
+                a_nlte_list = nlte_field(ipr, ila, ilo);
 
-        for (Index ila = 0; ila < n_latitudes; ++ila)     // Latitude:  ila
-          for (Index ilo = 0; ilo < n_longitudes; ++ilo)  // Longitude: ilo
-          {
-            Numeric a_temperature = t_field(ipr, ila, ilo);
-            a_vmr_list = vmr_field(Range(joker), ipr, ila, ilo);
-            if (!nlte_field.value.empty())
-              a_nlte_list = nlte_field(ipr, ila, ilo);
+              Vector this_rtp_mag(3, 0.);
 
-            Vector this_rtp_mag(3, 0.);
+              if (mag_u_field.npages() != 0) {
+                this_rtp_mag[0] = mag_u_field(ipr, ila, ilo);
+              }
+              if (mag_v_field.npages() != 0) {
+                this_rtp_mag[1] = mag_v_field(ipr, ila, ilo);
+              }
+              if (mag_w_field.npages() != 0) {
+                this_rtp_mag[2] = mag_w_field(ipr, ila, ilo);
+              }
 
-            if (mag_u_field.npages() != 0) {
-              this_rtp_mag[0] = mag_u_field(ipr, ila, ilo);
-            }
-            if (mag_v_field.npages() != 0) {
-              this_rtp_mag[1] = mag_v_field(ipr, ila, ilo);
-            }
-            if (mag_w_field.npages() != 0) {
-              this_rtp_mag[2] = mag_w_field(ipr, ila, ilo);
-            }
+              // Execute agenda to calculate local absorption.
+              // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
+              // Agenda output: abs, nlte
+              propmat_clearsky_agendaExecute(wss,
+                                             abs,
+                                             nlte,
+                                             partial_abs,
+                                             partial_nlte,
+                                             {},
+                                             abs_species[i],
+                                             this_f_grid,
+                                             this_rtp_mag,
+                                             los,
+                                             a_pressure,
+                                             a_temperature,
+                                             a_nlte_list,
+                                             a_vmr_list,
+                                             abs_agenda);
 
-            // Execute agenda to calculate local absorption.
-            // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-            // Agenda output: abs, nlte
-            propmat_clearsky_agendaExecute(wss,
-                                           abs,
-                                           nlte,
-                                           partial_abs,
-                                           partial_nlte,
-                                           jacobian_quantities,
-                                           {},
-                                           this_f_grid,
-                                           this_rtp_mag,
-                                           los,
-                                           a_pressure,
-                                           a_temperature,
-                                           a_nlte_list,
-                                           a_vmr_list,
-                                           abs_agenda);
-            
-            // Convert from derivative to absorption
-            for (Index ispec=0; ispec<partial_abs.nelem(); ispec++) {
-              partial_abs[ispec] *= a_vmr_list[ispec];
-            }
+              // Verify, that the number of elements in abs matrix is
+              // constistent with stokes_dim:
+              ARTS_USER_ERROR_IF(
+                  stokes_dim != abs.StokesDimensions(),
+                  "propmat_clearsky_fieldCalc was called with stokes_dim = ",
+                  stokes_dim,
+                  ",\n"
+                  "but the stokes_dim returned by the agenda is ",
+                  abs.StokesDimensions(),
+                  ".")
 
-            // Verify, that the number of elements in abs matrix is
-            // constistent with stokes_dim:
-            ARTS_USER_ERROR_IF (stokes_dim != abs.StokesDimensions(),
-                "propmat_clearsky_fieldCalc was called with stokes_dim = ",
-                stokes_dim, ",\n"
-                "but the stokes_dim returned by the agenda is ",
-                abs.StokesDimensions(), ".")
+              // Verify, that the number of frequencies in abs is
+              // constistent with f_extent:
+              ARTS_USER_ERROR_IF(
+                  n_frequencies != abs.NumberOfFrequencies(),
+                  "The number of frequencies desired is ",
+                  n_frequencies,
+                  ",\n"
+                  "but the number of frequencies returned by the agenda is ",
+                  abs.NumberOfFrequencies(),
+                  ".")
 
-            // Verify, that the number of species in abs is
-            // constistent with vmr_field:
-            ARTS_USER_ERROR_IF (n_species != partial_abs.nelem(),
-                "The number of gas species in vmr_field is ", n_species,
-                ",\n"
-                "but the number of species returned by the agenda is ",
-                partial_abs.nelem(), ".")
-
-            // Verify, that the number of frequencies in abs is
-            // constistent with f_extent:
-            ARTS_USER_ERROR_IF (n_frequencies != abs.NumberOfFrequencies(),
-                "The number of frequencies desired is ", n_frequencies,
-                ",\n"
-                "but the number of frequencies returned by the agenda is ",
-                abs.NumberOfFrequencies(), ".")
-
-            // Store the result in output field.
-            // We have to transpose abs, because the dimensions of the
-            // two variables are:
-            // abs_field: [abs_species, f_grid, stokes, stokes, p_grid, lat_grid, lon_grid]
-            // abs:       [abs_species][f_grid, stokes, stokes]
-            for (Index i = 0; i < partial_abs.nelem(); i++) {
-              partial_abs[i].GetTensor3(propmat_clearsky_field(
+              // Store the result in output field.
+              // We have to transpose abs, because the dimensions of the
+              // two variables are:
+              // abs_field: [abs_species, f_grid, stokes, stokes, p_grid, lat_grid, lon_grid]
+              // abs:       [abs_species][f_grid, stokes, stokes]
+              abs.GetTensor3(propmat_clearsky_field(
                   i, joker, joker, joker, ipr, ila, ilo));
+            } catch (const std::runtime_error& e) {
+#pragma omp critical(propmat_clearsky_fieldCalc_fail)
+              {
+                fail_msg = e.what();
+                failed = true;
+              }
             }
           }
-      } catch (const std::runtime_error& e) {
-#pragma omp critical(propmat_clearsky_fieldCalc_fail)
-        {
-          fail_msg = e.what();
-          failed = true;
         }
       }
     }
