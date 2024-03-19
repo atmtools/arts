@@ -26,13 +26,13 @@ template <Index M, Index N, typename T> [[nodiscard]] constexpr auto tup(T&& i) 
 
 //! Helper to return the original span type when accessed by a joker
 template <Index M, Index N, class mdspan_type>
-[[nodiscard]] constexpr auto sub(mdspan_type &v, Joker) {
+[[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, Joker) {
   return v;
 }
 
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
-[[nodiscard]] constexpr auto sub(mdspan_type &v, Index i) {
+[[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, Index i) {
   using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
@@ -47,7 +47,7 @@ template <Index M, Index N, class mdspan_type>
 
 //! Helper to return  smaller span type when accessed by a index
 template <Index M, Index N, class mdspan_type>
-[[nodiscard]] constexpr auto sub(mdspan_type &v, const stdx::strided_slice<Index, Index, Index>& i) {
+[[nodiscard]] constexpr decltype(auto) sub(mdspan_type &v, const stdx::strided_slice<Index, Index, Index>& i) {
   using namespace stdx;
   return std::apply(
       [&v](auto &&...slices) {
