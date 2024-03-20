@@ -20,3 +20,6 @@
 #include "gridded_data.h"
 
 #include "sorted_grid.h"
+
+
+#include "matpack_einsum.h"
