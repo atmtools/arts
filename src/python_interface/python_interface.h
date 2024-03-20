@@ -119,32 +119,33 @@ py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-T& select_out(std::optional<std::shared_ptr<U>>& x,
+T& select_out(std::optional<U* const>& x,
               Workspace& ws,
               const char* const name) {
   return x ? *x.value() : ws.get_or<T>(name);
 }
 
 template <WorkspaceGroup T>
-T& select_out(std::optional<ValueHolder<T>>& x,
+T& select_out(std::optional<ValueHolder<T>* const>& x,
               Workspace& ws,
               const char* const name) {
-  return x ? static_cast<T&>(x.value()) : ws.get_or<T>(name);
+  return x ? static_cast<T&>(*x.value()) : ws.get_or<T>(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-T& select_gout(std::optional<std::shared_ptr<U>>& x, const char* const name) {
+T& select_gout(std::optional<U* const>& x, const char* const name) {
   return x ? *x.value()
            : throw std::runtime_error(
                  var_string("Unknown ouput: ", std::quoted(name)));
 }
 
 template <WorkspaceGroup T>
-T& select_gout(std::optional<ValueHolder<T>>& x, const char* const name) {
-  return x ? x.value()
+T& select_gout(std::optional<ValueHolder<T>* const>& x,
+               const char* const name) {
+  return x ? *x.value()
            : throw std::runtime_error(
                  var_string("Unknown ouput: ", std::quoted(name)));
 }
@@ -153,41 +154,41 @@ T& select_gout(std::optional<ValueHolder<T>>& x, const char* const name) {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-T& select_inout(std::optional<std::shared_ptr<U>>& x,
+T& select_inout(std::optional<U* const> x,
                 const Workspace& ws,
                 const char* const name) {
   return x ? *x.value() : ws.get<T>(name);
 }
 
 template <WorkspaceGroup T>
-T& select_inout(std::optional<ValueHolder<T>>& x,
+T& select_inout(std::optional<ValueHolder<T>* const>& x,
                 const Workspace& ws,
                 const char* const name) {
-  return x ? static_cast<T&>(x.value()) : ws.get<T>(name);
+  return x ? static_cast<T&>(*x.value()) : ws.get<T>(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_in(const std::optional<const std::shared_ptr<U>>& x,
+const T& select_in(const std::optional<const U* const>& x,
                    const Workspace& ws,
                    const char* const name) {
   return x ? *x.value() : ws.get<T>(name);
 }
 
 template <WorkspaceGroup T>
-const T& select_in(const std::optional<const ValueHolder<T>>& x,
+const T& select_in(const std::optional<const ValueHolder<T>* const>& x,
                    const Workspace& ws,
                    const char* const name) {
-  return x ? static_cast<const T&>(x.value()) : ws.get<T>(name);
+  return x ? static_cast<const T&>(*x.value()) : ws.get<T>(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_gin(const std::optional<const std::shared_ptr<U>>& x,
+const T& select_gin(const std::optional<const U* const>& x,
                     const char* const name) {
   return x ? *x.value()
            : throw std::runtime_error(
@@ -195,23 +196,22 @@ const T& select_gin(const std::optional<const std::shared_ptr<U>>& x,
 }
 
 template <WorkspaceGroup T>
-const T& select_gin(const std::optional<const ValueHolder<T>>& x,
+const T& select_gin(const std::optional<const ValueHolder<T>* const>& x,
                     const char* const name) {
-  return x ? x.value()
+  return x ? *x.value()
            : throw std::runtime_error(
                  var_string("Unknown input: ", std::quoted(name)));
 }
 
 template <WorkspaceGroup T, PythonWorkspaceGroup U>
-const T& select_gin(const std::optional<const std::shared_ptr<U>>& x,
-                    const T& defval) {
+const T& select_gin(const std::optional<const U* const>& x, const T& defval) {
   return x ? *x.value() : defval;
 }
 
 template <WorkspaceGroup T>
-const T& select_gin(const std::optional<const ValueHolder<T>>& x,
+const T& select_gin(const std::optional<const ValueHolder<T>* const>& x,
                     const T& defval) {
-  return x ? static_cast<const T&>(x.value()) : defval;
+  return x ? static_cast<const T&>(*x.value()) : defval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
