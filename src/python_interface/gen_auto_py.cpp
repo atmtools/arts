@@ -35,13 +35,13 @@ std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
 }
 
 std::string fix_type(const std::string& name) {
-  const static auto& wsgs = internal_workspace_groups();
+  const auto& wsgs = internal_workspace_groups();
   if (wsgs.at(name).value_type) return "ValueHolder<" + name + "> * const";
   return name + "* const";
 }
 
 std::string share_type(const std::string& name) {
-  const static auto& wsgs = internal_workspace_groups();
+  const auto& wsgs = internal_workspace_groups();
   if (wsgs.at(name).value_type) return "ValueHolder<" + name + ">";
   return "std::shared_ptr<" + name + ">";
 }
@@ -218,7 +218,7 @@ std::string internal_type(const std::string& type) {
 }
 
 std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
-  static const auto& wsvs = workspace_variables();
+  const auto& wsvs = workspace_variables();
 
   std::ostringstream os;
 
@@ -316,7 +316,7 @@ std::string method_gin_selection(const std::string& name,
 
 std::string method_argument_selection(
     const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
-  static const auto& wsvs = workspace_variables();
+  const auto& wsvs = workspace_variables();
 
   std::ostringstream os;
 
@@ -1011,7 +1011,7 @@ void py_auto_wsm_)--" << i << "(artsclass<Workspace>& ws [[maybe_unused]]) {\n";
 }
 
 void groups(const std::string& fname) {
-  const auto wsgs = internal_workspace_groups();
+  const auto& wsgs = internal_workspace_groups();
 
   std::ofstream hos(fname + ".h");
 
@@ -1316,6 +1316,7 @@ void py_auto_options(py::module_& m) try {
 }  // namespace Python
 )-x-";
 }
+
 
 int main(int argc, char** argv) {
   if (argc != 3) {
