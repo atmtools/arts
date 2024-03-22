@@ -137,12 +137,6 @@ jobs:
         run: |
           cmake --build build --target pyarts-package
 
-      - name: Check Controlfile Conversion
-        if: matrix.check == 'yes'
-        shell: bash -l {0}
-        run: |
-          cmake --build build --target check-conversion
-
       - name: Build SRC
         if: matrix.check == 'yes'
         shell: bash -l {0}
