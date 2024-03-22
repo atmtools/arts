@@ -19,9 +19,9 @@
 #include "workspace_variables.h"
 
 String as_pyarts(const String& x) try {
-  const static auto& wsgs = internal_workspace_groups();
-  const static auto& wsvs = workspace_variables();
-  const static auto& wsms = workspace_methods();
+  const auto& wsgs = internal_workspace_groups();
+  const auto& wsvs = workspace_variables();
+  const auto& wsms = workspace_methods();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
   const auto found_in_options = [&](auto& key) {
@@ -110,8 +110,8 @@ String unwrap_stars(String x) try {
 }
 
 String get_agenda_io(const String& x) try {
-  const static auto& wsas = internal_workspace_agendas();
-  const static auto& wsvs = workspace_variables();
+  const auto& wsas = internal_workspace_agendas();
+  const auto& wsvs = workspace_variables();
 
   String out{R"(
 Parameters
@@ -177,9 +177,9 @@ String until_first_newline(const String& x) {
 }
 
 String short_doc(const String& x) try {
-  const static auto& wsgs = internal_workspace_groups();
-  const static auto& wsvs = workspace_variables();
-  const static auto& wsms = internal_workspace_methods();
+  const auto& wsgs = internal_workspace_groups();
+  const auto& wsvs = workspace_variables();
+  const auto& wsms = internal_workspace_methods();
 
   const auto found_in = [&](auto& map) { return map.find(x) not_eq map.end(); };
 
@@ -235,8 +235,8 @@ String to_defval_str(const Wsv& wsv) {
 }
 
 String method_docs(const String& name) try {
-  const static auto& wsms = internal_workspace_methods();
-  const static auto& wsvs = workspace_variables();
+  const auto& wsms = internal_workspace_methods();
+  const auto& wsvs = workspace_variables();
 
   //! WARNING: Raw method
   const auto& method = wsms.at(name);
@@ -356,9 +356,9 @@ String method_docs(const String& name) try {
 }
 
 String variable_used_by(const String& name) {
-  const static auto& wsvs = internal_workspace_variables();
-  const static auto& wsms = internal_workspace_methods();
-  const static auto& wsas = internal_workspace_agendas();
+  const auto& wsvs = internal_workspace_variables();
+  const auto& wsms = internal_workspace_methods();
+  const auto& wsas = internal_workspace_agendas();
 
   struct wsv_io {
     std::vector<String> wsm_out;

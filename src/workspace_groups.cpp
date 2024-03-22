@@ -1,7 +1,7 @@
 #include "workspace_groups.h"
 
 std::unordered_map<std::string, WorkspaceGroupRecord>
-internal_workspace_groups() {
+internal_workspace_groups_creator() {
   std::unordered_map<std::string, WorkspaceGroupRecord> wsg_data;
 
   wsg_data["AbsorptionLines"] = {
@@ -869,5 +869,11 @@ well as the sampling device's polarization response.
       .desc = "List of *SensorObsel*.\n",
   };
 
+  return wsg_data;
+}
+
+const std::unordered_map<std::string, WorkspaceGroupRecord>&
+internal_workspace_groups() {
+  static const auto wsg_data = internal_workspace_groups_creator();
   return wsg_data;
 }
