@@ -73,6 +73,14 @@ jobs:
             devenv: "environment-dev-mac.yml"
             jbuild: 3
             jcheck: 2
+          - name: macm1-default-clang
+            os: macos-14
+            preset: default-clang-conda
+            check: "yes"
+            doc: "no"
+            devenv: "environment-dev-mac.yml"
+            jbuild: 2
+            jcheck: 2
 
     steps:
       - uses: actions/checkout@v4
