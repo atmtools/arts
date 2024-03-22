@@ -36,6 +36,12 @@ std::ofstream& select_ofstream(std::vector<std::ofstream>& ofs, int i) {
 
 std::string fix_type(const std::string& name) {
   const static auto& wsgs = internal_workspace_groups();
+  if (wsgs.at(name).value_type) return "ValueHolder<" + name + "> * const";
+  return name + "* const";
+}
+
+std::string share_type(const std::string& name) {
+  const static auto& wsgs = internal_workspace_groups();
   if (wsgs.at(name).value_type) return "ValueHolder<" + name + ">";
   return "std::shared_ptr<" + name + ">";
 }
@@ -48,12 +54,12 @@ std::string variable(const std::string& name,
   os << "  ws.def_property(\"" << name << "\",";
   os << R"--(
     py::cpp_function([](Workspace& w) -> )--"
-     << fix_type(wsv.type) << R"--( {
+     << share_type(wsv.type) << R"--( {
       return w.share_or<)--"
      << wsv.type << ">(\"" << name << R"--(");
     }, py::return_value_policy::reference_internal, py::keep_alive<0, 1>()),
     [](Workspace& w, )--"
-     << fix_type(wsv.type) << R"--( val) -> void {
+     << share_type(wsv.type) << R"--( val) -> void {
       w.set(")--"
      << name << R"--(", std::make_shared<Wsv>(std::move(val)--";
   if (wsgs.at(wsv.type).value_type) os << ".val";
@@ -219,23 +225,23 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   os << "\n    Workspace& _ws [[maybe_unused]]";
 
   for (auto& t : wsm.out) {
-    os << ",\n    std::optional<" << fix_type(wsvs.at(t).type) << ">& _" << t;
+    os << ",\n    std::optional<" << fix_type(wsvs.at(t).type) << "> _" << t;
   }
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
-    os << ",\n    std::optional<" << method_g_types(wsm.gout_type[i]) << ">& _"
+    os << ",\n    std::optional<" << method_g_types(wsm.gout_type[i]) << "> _"
        << wsm.gout[i];
   }
 
   for (auto& t : wsm.in) {
     if (std::ranges::any_of(wsm.out, Cmp::eq(t))) continue;
     os << ",\n    const std::optional<const " << fix_type(wsvs.at(t).type)
-       << ">& _" << t;
+       << "> _" << t;
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
     os << ",\n    const std::optional<const " << method_g_types(wsm.gin_type[i])
-       << ">& _" << wsm.gin[i];
+       << "> _" << wsm.gin[i];
   }
 
   return os.str();
@@ -866,17 +872,17 @@ std::string method(const std::string& name,
   os << "[](";
   os << "\n    Workspace& _ws,";
   for (auto& str : wsm.output) {
-    os << "\n    std::optional<" << fix_type(wsvs.at(str).type) << ">& _" << str
+    os << "\n    std::optional<" << fix_type(wsvs.at(str).type) << "> _" << str
        << ",";
   }
   for (auto& str : wsm.input) {
     if (std::ranges::any_of(wsm.output, Cmp::eq(str))) continue;
-    os << "\n    const std::optional<const " << fix_type(wsvs.at(str).type)
-       << ">& _" << str << ",";
+    os << "\n     const std::optional<const " << fix_type(wsvs.at(str).type)
+       << "> _" << str << ",";
   }
-  os << "\n    const std::optional<const std::shared_ptr<";
+  os << "\n     const std::optional<const ";
   if (wsm.array) os << "ArrayOf";
-  os << "Agenda>>& _" << name << ") -> void {\n      try {\n";
+  os << "Agenda * const> _" << name << ") -> void {\n      try {\n";
 
   for (auto& str : wsm.output) {
     os << "\n      auto& " << str << " = select_";
@@ -965,7 +971,7 @@ std::string method(const std::string& name,
 }
 
 void methods(const int nfiles) {
-  const auto wsms = internal_workspace_methods();
+  const auto& wsms = internal_workspace_methods();
   const auto wsas = internal_workspace_agendas();
 
   auto ofs = autofiles(nfiles, "py_auto_wsm", "cpp");
@@ -1089,10 +1095,10 @@ Wsv from(const py::object& x);
 std::string type(const py::object& x);
 
 template <WorkspaceGroup T>
-std::string type(const std::shared_ptr<T>&);
+std::string type(const T* const);
 
 template <WorkspaceGroup T>
-std::string type(const ValueHolder<T>&);
+std::string type(const ValueHolder<T>* const);
 }  // namespace Python
 
 )--";
@@ -1126,14 +1132,14 @@ Wsv from(const ValueHolder<)--"
 
 template <>
 std::string type<)--"
-        << group << R"--(>(const std::shared_ptr<)--" << group << R"--(>&) {
+        << group << R"--(>(const )--" << group << R"--(* const) {
   return ")--"
         << group << R"--(";
 }
 
 template <>
 std::string type<)--"
-        << group << R"--(>(const ValueHolder<)--" << group << R"--(>&) {
+        << group << R"--(>(const ValueHolder<)--" << group << R"--(>* const) {
   return ")--"
         << group << R"--(";
 }
