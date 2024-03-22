@@ -5,6 +5,7 @@ dependencies:
         - clang
         - clangxx
         - cmake
+        - doxygen
         - docutils
         - gcc
         - gfortran

@@ -56,7 +56,9 @@
         "ENABLE_FORTRAN": "0",
         "ENABLE_GUI": "0",
         "ENABLE_ARTS_LGPL": "1",
-        "NO_OPENMP": "1"
+        "NO_FASTEM": "1",
+        "NO_RT4": "1",
+        "NO_TMATRIX": "1"
       },
       "environment": {
         "CPPFLAGS": "$env{CFLAGS}",
@@ -66,20 +68,43 @@
       }
     },
     {
-      "name": "perf-gcc-conda",
-      "inherits": "default-gcc-conda",
-      "environment": {
-        "CFLAGS": "-isystem $env{CONDA_PREFIX}/include -fno-omit-frame-pointer",
-        "CXXFLAGS": "$env{CFLAGS}"
-      }
-    },
-    {
       "name": "default-clang-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/clang++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/clang",
         "CMAKE_Fortran_COMPILER": "$env{CONDA_PREFIX}/bin/gfortran"
+      }
+    },
+    {
+      "name": "debug-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "debug-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "nofortran-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_FORTRAN": "0"
+      }
+    },
+    {
+      "name": "lgpl-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_ARTS_LGPL": "1",
+        "NO_FASTEM": "1",
+        "NO_RT4": "1",
+        "NO_TMATRIX": "1"
       }
     },
     {
@@ -107,6 +132,14 @@
         "CMAKE_CXX_COMPILER": "/usr/local/opt/llvm/bin/clang++",
         "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang",
         "CMAKE_Fortran_COMPILER": "gfortran-13"
+      }
+    },
+    {
+      "name": "perf-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "environment": {
+        "CFLAGS": "-isystem $env{CONDA_PREFIX}/include -fno-omit-frame-pointer",
+        "CXXFLAGS": "$env{CFLAGS}"
       }
     },
     {
