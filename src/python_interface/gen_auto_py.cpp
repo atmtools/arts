@@ -186,7 +186,7 @@ std::vector<std::vector<std::string>> supergeneric_types(
 
 std::string method_g_types(const std::string& type) {
   if (type == "Any" or type.find(',') != type.npos) {
-    return "py::object * const";
+    return "py::object";
   }
 
   return fix_type(type);
@@ -1089,10 +1089,10 @@ PyWsvValue from(const WsvValue& x);
 PyWsvValue from(const Wsv& x);
 PyWsvValue from(const std::shared_ptr<Wsv>& x);
 
-Wsv from(py::object * const x);
-Wsv from(const py::object * const x);
+Wsv from(py::object& x);
+Wsv from(const py::object& x);
 
-std::string type(const py::object * const x);
+std::string type(const py::object& x);
 
 template <WorkspaceGroup T>
 std::string type(const T* const);
@@ -1161,11 +1161,11 @@ PyWsvValue from(const std::shared_ptr<Wsv>& x) {
   return from(*x);
 }
 
-Wsv from(const py::object * const x) {
-  if (x == nullptr or x->is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+Wsv from(const py::object& x) {
+  if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
 
   try {
-    return from(x->cast<PyWsvValue>());
+    return from(x.cast<PyWsvValue>());
   } catch (py::cast_error& ) {
     // Expected error for reference values that has to be copied,
     // but are not copyable by pybind standard.
@@ -1173,15 +1173,15 @@ Wsv from(const py::object * const x) {
     throw;
   }
 
-  py::object y = x->attr("__copy__")();
+  py::object y = x.attr("__copy__")();
   return from(y.cast<PyWsvValue>());
 }
 
-Wsv from(py::object * const x) {
-  if (x == nullptr or x->is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
+Wsv from(py::object& x) {
+  if (x.is_none()) throw std::runtime_error("Cannot convert None to workspace variable.");
 
   try {
-    return from(x->cast<PyWsvValue>());
+    return from(x.cast<PyWsvValue>());
   } catch (py::cast_error& e) {
     throw std::runtime_error(var_string(
         "Cannot use one of the passed python objects as a workspace variable.\n\n",
@@ -1195,10 +1195,10 @@ Wsv from(py::object * const x) {
   }
 }
 
-std::string type(const py::object * const x) {
-  if (x == nullptr or x->is_none()) return "NoneType";
+std::string type(const py::object& x) {
+  if (x.is_none()) return "NoneType";
 
-  return py::str(x->get_type()).cast<std::string>();
+  return py::str(x.get_type()).cast<std::string>();
 }
 }  // namespace Python
 )--";
