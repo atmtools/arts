@@ -3,6 +3,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pytypes.h>
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include <memory>
 
@@ -172,28 +173,15 @@ void py_lbl(py::module_& m) try {
                      "The cutoff value [Hz]")
       .PythonInterfaceBasicRepresentation(lbl::band_data);
 
-  artsclass<AbsorptionBand>(m, "AbsorptionBand")
-      .def(py::init([]() { return std::make_shared<AbsorptionBand>(); }),
-           "Default target")
-      .PythonInterfaceCopyValue(AbsorptionBand)
-      .PythonInterfaceWorkspaceVariableConversion(AbsorptionBand)
-      .PythonInterfaceBasicRepresentation(AbsorptionBand)
-      .PythonInterfaceFileIO(AbsorptionBand)
+  py_staticAbsorptionBand(m)
       .def_readwrite("data",
                      &AbsorptionBand::data,
                      ":class:`~pyarts.arts.AbsorptionBandData`")
       .def_readwrite("key",
                      &AbsorptionBand::key,
-                     ":class:`~pyarts.arts.QuantumIdentifier`")
-      .PythonInterfaceWorkspaceDocumentation(AbsorptionBand);
+                     ":class:`~pyarts.arts.QuantumIdentifier`");
 
-  artsarray<ArrayOfAbsorptionBand>(m, "ArrayOfAbsorptionBand")
-      .def(py::init([]() { return std::make_shared<ArrayOfAbsorptionBand>(); }),
-           "Default target")
-      .PythonInterfaceCopyValue(ArrayOfAbsorptionBand)
-      .PythonInterfaceWorkspaceVariableConversion(ArrayOfAbsorptionBand)
-      .PythonInterfaceBasicRepresentation(ArrayOfAbsorptionBand)
-      .PythonInterfaceFileIO(ArrayOfAbsorptionBand)
+  py_staticArrayOfAbsorptionBand(m)
       .def(
           "__getitem__",
           [](ArrayOfAbsorptionBand& x,
@@ -223,17 +211,9 @@ void py_lbl(py::module_& m) try {
           },
           py::return_value_policy::reference_internal,
           py::keep_alive<0, 1>(),
-          ":class:`~pyarts.arts.AbsorptionBandData`")
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionBand);
+          ":class:`~pyarts.arts.AbsorptionBandData`");
 
-  artsclass<LinemixingEcsData>(m, "LinemixingEcsData")
-      .def(py::init([]() { return std::make_shared<LinemixingEcsData>(); }),
-           "Default target")
-      .PythonInterfaceCopyValue(LinemixingEcsData)
-      .PythonInterfaceWorkspaceVariableConversion(LinemixingEcsData)
-      .PythonInterfaceBasicRepresentation(LinemixingEcsData)
-      .PythonInterfaceFileIO(LinemixingEcsData)
-      .PythonInterfaceWorkspaceDocumentation(LinemixingEcsData);
+  py_staticLinemixingEcsData(m);
 
   lbl.def(
       "equivalent_lines",

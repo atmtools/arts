@@ -1,4 +1,5 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include <type_traits>
 #include <variant>
@@ -8,12 +9,7 @@
 
 namespace Python {
 void py_rte(py::module_& m) try {
-  artsclass<GasAbsLookup>(m, "GasAbsLookup")
-      .def(py::init([]() { return std::make_shared<GasAbsLookup>(); }), "Default lookup")
-      .PythonInterfaceCopyValue(GasAbsLookup)
-      .PythonInterfaceWorkspaceVariableConversion(GasAbsLookup)
-      .PythonInterfaceFileIO(GasAbsLookup)
-      .PythonInterfaceBasicRepresentation(GasAbsLookup)
+  py_staticGasAbsLookup(m)
       .PythonInterfaceBasicReferenceProperty(
           GasAbsLookup, species, Species, Species, ":class:`~pyarts.arts.ArrayOfArrayOfSpeciesTag` Active species")
       .PythonInterfaceBasicReferenceProperty(
@@ -62,8 +58,7 @@ void py_rte(py::module_& m) try {
             out->Xsec() = t[10].cast<Tensor4>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(GasAbsLookup);
+          }));
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize rte\n", e.what()));
 }

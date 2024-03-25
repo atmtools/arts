@@ -13,6 +13,8 @@
 #include "options/arts_options.h"
 #include "pydocs.h"
 
+void default_groups(const std::string& fname);
+
 std::vector<std::string> errors;
 #define ERRORAPPEND                \
   catch (std::exception & e) {     \
@@ -1332,6 +1334,7 @@ int main(int argc, char** argv) {
   groups("py_auto_wsg");
   variables(num_variables);
   methods(num_methods);
+  default_groups("py_auto_wsg_init");
 
   std::ofstream os("py_auto_interface.cpp");
   os << "#include <python_interface.h>\n\n";

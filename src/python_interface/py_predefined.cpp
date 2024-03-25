@@ -1,5 +1,6 @@
 #include <predefined/predef.h>
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include <filesystem>
 #include <memory>
@@ -1181,13 +1182,7 @@ void py_predefined(py::module_& m) try {
   predef.doc() = "Contains predefined absorption models";
 
   //! ARTS Workspace class, must live on the main (m) namespace
-  artsclass<PredefinedModelData>(m, "PredefinedModelData")
-      .def(py::init([]() { return std::make_shared<PredefinedModelData>(); }),
-           "Default model data")
-      .PythonInterfaceWorkspaceVariableConversion(PredefinedModelData)
-      .PythonInterfaceFileIO(PredefinedModelData)
-      .PythonInterfaceCopyValue(PredefinedModelData)
-      .PythonInterfaceBasicRepresentation(PredefinedModelData)
+  py_staticPredefinedModelData(m)
       .def_static("fromcatalog",
                   [](const char* const basename,
                      const ArrayOfArrayOfSpeciesTag& specs) {
@@ -1233,8 +1228,7 @@ void py_predefined(py::module_& m) try {
               out->data[k] = v;
             }
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(PredefinedModelData);
+          }));
 
   //! All internal functionality, included methods of named classes go on the predef namespace
   internalNamedModel(predef);

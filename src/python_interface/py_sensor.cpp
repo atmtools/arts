@@ -1,27 +1,26 @@
 #include <obsel.h>
+#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
-  artsclass<SensorPosLos>(m, "SensorPosLos")
-      .def(py::init<>(), "Empty sensor pos-los")
+  py_staticSensorPosLos(m)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](SensorPosLos& x) -> py::buffer_info {
+        return py::buffer_info(&x,
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {static_cast<ssize_t>(5)},
+                               {static_cast<ssize_t>(sizeof(Numeric))});
+      })
       .def(py::init<Vector3, Vector2>(), "From pos and los")
       .def_readwrite("pos", &SensorPosLos::pos, "Position")
-      .def_readwrite("los", &SensorPosLos::los, "Line of sight")
-      .PythonInterfaceCopyValue(SensorPosLos)
-      .PythonInterfaceWorkspaceVariableConversion(SensorPosLos)
-      .PythonInterfaceBasicRepresentation(SensorPosLos)
-      .PythonInterfaceFileIO(SensorPosLos)
-      .PythonInterfaceWorkspaceDocumentation(SensorPosLos);
+      .def_readwrite("los", &SensorPosLos::los, "Line of sight");
 
-  artsclass<SensorPosLosVector>(m, "SensorPosLosVector", py::buffer_protocol())
-      .def(py::init<>(), "Empty sensor pos-los")
-      .PythonInterfaceCopyValue(SensorPosLosVector)
-      .PythonInterfaceWorkspaceVariableConversion(SensorPosLosVector)
-      .PythonInterfaceBasicRepresentation(SensorPosLosVector)
-      .PythonInterfaceFileIO(SensorPosLosVector)
+  py_staticSensorPosLosVector(m)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](SensorPosLosVector& x) -> py::buffer_info {
         return py::buffer_info(
@@ -60,11 +59,9 @@ void py_sensor(py::module_& m) try {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<SensorPosLosVector>()(t[0])
                 .cast<SensorPosLosVector>();
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SensorPosLosVector);
+          }));
 
-  artsclass<SensorObsel>(m, "SensorObsel")
-      .def(py::init<>(), "Empty sensor pos-los")
+  py_staticSensorObsel(m)
       .def(py::init<Vector,
                     AscendingGrid,
                     MuelmatVector,
@@ -76,20 +73,14 @@ void py_sensor(py::module_& m) try {
       .def_readwrite("poslos_w",
                      &SensorObsel::poslos_grid_w,
                      "Position and line of sight weights")
-      .def_readwrite(
-          "poslos", &SensorObsel::poslos_grid, "Position and line of sight grid")
+      .def_readwrite("poslos",
+                     &SensorObsel::poslos_grid,
+                     "Position and line of sight grid")
       .def_readwrite(
           "polarization", &SensorObsel::polarization, "Polarization sampling")
-      .def("ok", &SensorObsel::ok, "Check if the obsel is valid")
-      .PythonInterfaceCopyValue(SensorObsel)
-      .PythonInterfaceWorkspaceVariableConversion(SensorObsel)
-      .PythonInterfaceBasicRepresentation(SensorObsel)
-      .PythonInterfaceFileIO(SensorObsel)
-      .PythonInterfaceWorkspaceDocumentation(SensorObsel);
+      .def("ok", &SensorObsel::ok, "Check if the obsel is valid");
 
-  artsarray<ArrayOfSensorObsel>(m, "ArrayOfSensorObsel")
-      .PythonInterfaceFileIO(ArrayOfSensorObsel)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSensorObsel);
+  py_staticArrayOfSensorObsel(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

@@ -1,11 +1,11 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_time(py::module_& m) try {
-  artsclass<Time>(m, "Time")
-      .def(py::init([]() { return std::make_shared<Time>(); }), "Current time")
+  py_staticTime(m)
       .def(py::init([](std::chrono::system_clock::time_point nt) {
         Time t;
         t.time = nt;
@@ -16,11 +16,7 @@ void py_time(py::module_& m) try {
         t.Seconds(x);
         return t;
       }), "From :class:`float` seconds from Unix time start")
-      .PythonInterfaceCopyValue(Time)
-      .PythonInterfaceWorkspaceVariableConversion(Time)
       .def(py::init([](const std::string& s) { return std::make_shared<Time>(s); }), "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\"")
-      .PythonInterfaceFileIO(Time)
-      .PythonInterfaceBasicRepresentation(Time)
       .def_readwrite("time", &Time::time, ":class:`datetime.datetime` The time")
       .def_property(
           "sec",
@@ -65,14 +61,12 @@ void py_time(py::module_& m) try {
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return py::type::of<Time>()(t[0]).cast<Time>();
-          }))
-      .PythonInterfaceWorkspaceDocumentation(Time);
+          }));
   py::implicitly_convertible<std::chrono::system_clock::time_point, Time>();
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
-  artsarray<ArrayOfTime>(m, "ArrayOfTime")
-      .PythonInterfaceFileIO(ArrayOfTime)
+  py_staticArrayOfTime(m)
       .def_property_readonly(
           "as_datetime",
           [](const ArrayOfTime& in)
@@ -82,12 +76,9 @@ void py_time(py::module_& m) try {
             for (Index i = 0; i < n; i++) out[i] = in[i].time;
             return out;
           },
-          py::doc("A :class:`list` of :class:`datetime.datetime`"))
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfTime);
+          py::doc("A :class:`list` of :class:`datetime.datetime`"));
 
-  artsarray<ArrayOfArrayOfTime>(m, "ArrayOfArrayOfTime")
-      .PythonInterfaceFileIO(ArrayOfArrayOfTime)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfTime);
+  py_staticArrayOfArrayOfTime(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
 }

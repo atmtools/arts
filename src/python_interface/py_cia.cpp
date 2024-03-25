@@ -1,8 +1,9 @@
-#include <algorithm>
 #include <lineshapemodel.h>
+#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -18,19 +19,13 @@
 
 namespace Python {
 void py_cia(py::module_& m) try {
-  artsclass<CIARecord>(m, "CIARecord")
-      .def(py::init([]() { return std::make_shared<CIARecord>(); }),
-           "Empty record")
+  py_staticCIARecord(m)
       .def(py::init([](const ArrayOfGriddedField2& data,
                        SpeciesEnum spec1,
                        SpeciesEnum spec2) {
              return std::make_shared<CIARecord>(data, spec1, spec2);
            }),
            "From values")
-      .PythonInterfaceCopyValue(CIARecord)
-      .PythonInterfaceWorkspaceVariableConversion(CIARecord)
-      .PythonInterfaceBasicRepresentation(CIARecord)
-      .PythonInterfaceFileIO(CIARecord)
       .def_property_readonly(
           "specs",
           [](const CIARecord& c) { return c.TwoSpecies(); },
@@ -51,7 +46,7 @@ void py_cia(py::module_& m) try {
              Index robust) {
             Vector out(f.nelem(), 0);
 
-            for (auto& cia_data: cia.Data()) {
+            for (auto& cia_data : cia.Data()) {
               Vector result(f.nelem(), 0);
               cia_interpolation(result, f, T, cia_data, T_extrapolfac, robust);
               out += result;
@@ -103,13 +98,11 @@ Returns
             out->Data() = t[0].cast<ArrayOfGriddedField2>();
             out->TwoSpecies() = t[1].cast<std::array<SpeciesEnum, 2>>();
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(CIARecord);
+          }));
 
-  artsarray<ArrayOfCIARecord>(m, "ArrayOfCIARecord")
-      .PythonInterfaceFileIO(ArrayOfCIARecord)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfCIARecord);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));
+  py_staticArrayOfCIARecord(m);
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));
 }
 }  // namespace Python

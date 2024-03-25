@@ -1,14 +1,11 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_tessem(py::module_& m) try {
-  artsclass<TessemNN>(m, "TessemNN")
-      .def(py::init([]() { return std::make_shared<TessemNN>(); }), "Empty default")
-      .PythonInterfaceCopyValue(TessemNN)
-      .PythonInterfaceWorkspaceVariableConversion(TessemNN)
-      .PythonInterfaceFileIO(TessemNN)
+  py_staticTessemNN(m)
       .def("__repr__", [](TessemNN&) { return "TessemNN"; })
       .def_readwrite("nb_inputs", &TessemNN::nb_inputs, ":class:`int`")
       .def_readwrite("nb_outputs", &TessemNN::nb_outputs, ":class:`int`")
@@ -48,8 +45,7 @@ void py_tessem(py::module_& m) try {
                                 t[8].cast<Vector>(),
                                 t[9].cast<Vector>(),
                                 t[10].cast<Vector>()});
-          }))
-      .PythonInterfaceWorkspaceDocumentation(TessemNN);
+          }));
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize tessem\n", e.what()));
 }

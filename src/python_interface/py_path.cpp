@@ -1,14 +1,13 @@
 #include <path_point.h>
 #include <pybind11/pybind11.h>
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_path(py::module_& m) try {
-  artsclass<PropagationPathPoint>(m, "PropagationPathPoint")
-      .def(py::init([]() { return std::make_shared<PropagationPathPoint>(); }),
-           "Empty path point")
+  py_staticPropagationPathPoint(m)
       .def_readwrite(
           "pos_type",
           &PropagationPathPoint::pos_type,
@@ -28,16 +27,9 @@ void py_path(py::module_& m) try {
                      ":class:`float` Path real refractive index")
       .def_readwrite("ngroup",
                      &PropagationPathPoint::ngroup,
-                     ":class:`float` Path group refractive index")
-      .PythonInterfaceCopyValue(PropagationPathPoint)
-      .PythonInterfaceWorkspaceVariableConversion(PropagationPathPoint)
-      .PythonInterfaceFileIO(PropagationPathPoint)
-      .PythonInterfaceBasicRepresentation(PropagationPathPoint)
-      .PythonInterfaceWorkspaceDocumentation(PropagationPathPoint);
+                     ":class:`float` Path group refractive index");
 
-  artsarray<ArrayOfPropagationPathPoint>(m, "ArrayOfPropagationPathPoint")
-      .PythonInterfaceFileIO(ArrayOfPropagationPathPoint)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfPropagationPathPoint);
+  py_staticArrayOfPropagationPathPoint(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));

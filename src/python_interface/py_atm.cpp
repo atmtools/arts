@@ -1,6 +1,7 @@
 
 #include <atm.h>
 #include <debug.h>
+#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
@@ -63,13 +64,9 @@ void py_atm(py::module_ &m) try {
   py::implicitly_convertible<Index, Atm::Data>();
   py::implicitly_convertible<Atm::FunctionalData, Atm::Data>();
 
-  auto pnt = artsclass<AtmPoint>(m, "AtmPoint").def(py::init([] {
-    return std::make_shared<AtmPoint>();
-  }));
+  auto& pnt = py_staticAtmPoint(m);
 
-  auto fld = artsclass<AtmField>(m, "AtmField").def(py::init([] {
-    return std::make_shared<AtmField>();
-  }));
+  auto& fld = py_staticAtmField(m);
 
   pnt.def_readwrite("temperature", &AtmPoint::temperature)
       .def_readwrite("pressure", &AtmPoint::pressure)
@@ -146,10 +143,6 @@ void py_atm(py::module_ &m) try {
             return out;
           },
           "Returns a flat list of values.")
-      .PythonInterfaceCopyValue(AtmPoint)
-      .PythonInterfaceWorkspaceVariableConversion(AtmPoint)
-      .PythonInterfaceFileIO(AtmPoint)
-      .PythonInterfaceBasicRepresentation(AtmPoint)
       .def(py::pickle(
           [](const AtmPoint &t) {
             auto k = t.keys();
@@ -174,8 +167,7 @@ void py_atm(py::module_ &m) try {
                   k[i]) = v[i];
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(AtmPoint);
+          }));
 
   fld.def(
          "__getitem__",
@@ -213,10 +205,9 @@ void py_atm(py::module_ &m) try {
             return atm[x.Species()];
           },
           py::return_value_policy::reference_internal)
-      .def("__setitem__",
-           [](AtmField &atm, AtmKey x, const Atm::Data &data) {
-             atm[x] = data;
-           })
+      .def(
+          "__setitem__",
+          [](AtmField &atm, AtmKey x, const Atm::Data &data) { atm[x] = data; })
       .def(
           "__setitem__",
           [](AtmField &atm, const QuantumIdentifier &x, const Atm::Data &data) {
@@ -232,9 +223,9 @@ void py_atm(py::module_ &m) try {
             atm[x.Species()] = data;
           })
       .def("__setitem__",
-           [](AtmField &atm,
-              const SpeciesIsotope &x,
-              const Atm::Data &data) { atm[x] = data; })
+           [](AtmField &atm, const SpeciesIsotope &x, const Atm::Data &data) {
+             atm[x] = data;
+           })
       .def("at",
            [](const AtmField &atm,
               const Vector &h,
@@ -246,10 +237,6 @@ void py_atm(py::module_ &m) try {
               const Numeric &lat,
               const Numeric &lon) { return atm.at(h, lat, lon); })
       .def_readwrite("top_of_atmosphere", &AtmField::top_of_atmosphere)
-      .PythonInterfaceCopyValue(AtmField)
-      .PythonInterfaceWorkspaceVariableConversion(AtmField)
-      .PythonInterfaceFileIO(AtmField)
-      .PythonInterfaceBasicRepresentation(AtmField)
       .def(py::pickle(
           [](const AtmField &t) {
             auto k = t.keys();
@@ -278,12 +265,9 @@ void py_atm(py::module_ &m) try {
                   k[i]) = v[i];
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(AtmField);
+          }));
 
-  artsarray<ArrayOfAtmPoint>(m, "ArrayOfAtmPoint")
-      .PythonInterfaceFileIO(ArrayOfAtmPoint)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAtmPoint);
+  py_staticArrayOfAtmPoint(m);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));

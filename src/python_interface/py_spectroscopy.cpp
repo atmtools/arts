@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <lineshapemodel.h>
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include <zeemandata.h>
 
@@ -358,7 +359,7 @@ void py_spectroscopy(py::module_& m) try {
   artsarray<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
-  artsclass<AbsorptionLines>(m, "AbsorptionLines")
+  py_staticAbsorptionLines(m)
       .def(
           py::init([](bool selfbroadening, bool bathbroadening,
                       AbsorptionCutoffTypeOld cutoff,
@@ -412,20 +413,6 @@ void py_spectroscopy(py::module_& m) try {
           py::arg("quantumidentity") = QuantumIdentifier("H2O-161"),
           py::arg("broadeningspecies") = ArrayOfSpeciesEnum{},
           py::arg("lines") = Array<AbsorptionSingleLine>{}, "From values")
-      .PythonInterfaceCopyValue(AbsorptionLines)
-      .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
-      .def(
-          "__str__", [](const AbsorptionLines &x) { return var_string(x); })
-      .def(
-          "__repr__",
-          [](const AbsorptionLines &x) {
-            return var_string("'",
-                              x.quantumidentity,
-                              "'-band of ",
-                              x.lines.size(),
-                              " lines");
-          })
-      .PythonInterfaceFileIO(AbsorptionLines)
       .PythonInterfaceReadWriteData(AbsorptionLines, selfbroadening, ":class:`bool` Does the line broadening have self broadening?")
       .PythonInterfaceReadWriteData(AbsorptionLines, bathbroadening, ":class:`bool` Does the line broadening have bath broadening?")
       .PythonInterfaceReadWriteData(AbsorptionLines, cutoff, ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
@@ -515,20 +502,14 @@ X : ~pyarts.arts.LineShapeOutput
                 t[10].cast<QuantumIdentifier>(),
                 t[11].cast<ArrayOfSpeciesEnum>(),
                 t[12].cast<Array<AbsorptionSingleLine>>());
-          }))
-      .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
+          }));
 
-  artsarray<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
-      .PythonInterfaceFileIO(ArrayOfAbsorptionLines)
+  py_staticArrayOfAbsorptionLines(m)
 .def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
       return fuzzy_find_all(a, q);
-    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier")
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
+    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier");
 
-  artsarray<ArrayOfArrayOfAbsorptionLines>(m,
-                                                "ArrayOfArrayOfAbsorptionLines")
-      .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
+  py_staticArrayOfArrayOfAbsorptionLines(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
 }

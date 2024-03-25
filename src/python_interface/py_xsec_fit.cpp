@@ -1,3 +1,4 @@
+#include <py_auto_wsg_init.h>
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
@@ -19,12 +20,7 @@
 
 namespace Python {
 void py_xsec(py::module_& m) try {
-  artsclass<XsecRecord>(m, "XsecRecord")
-      .def(py::init([]() { return std::make_shared<XsecRecord>(); }))
-      .PythonInterfaceCopyValue(XsecRecord)
-      // .PythonInterfaceWorkspaceVariableConversion(XsecRecord)
-      .PythonInterfaceFileIO(XsecRecord)
-      .PythonInterfaceBasicRepresentation(XsecRecord)
+  py_staticXsecRecord(m)
       .def_property("version",
                     &XsecRecord::Version,
                     &XsecRecord::SetVersion,
@@ -277,37 +273,27 @@ Returns
             return py::type::of<XsecRecord>().attr("from_dict")(
                 xarray.attr("open_dataset")(v).attr("to_dict")());
           },
-          py::doc(
-              R"--(Create an XsecRecord from a NetCDF file.)--"))
-      .def("__eq__",
-           [](const XsecRecord& self, const XsecRecord& other) {
-             return self.Version() == other.Version() and
-                    self.Species() == other.Species() and
-                    self.FitMinPressures() == other.FitMinPressures() and
-                    self.FitMaxPressures() == other.FitMaxPressures() and
-                    self.FitMinTemperatures() == other.FitMinTemperatures() and
-                    self.FitMaxTemperatures() == other.FitMaxTemperatures() and
-                    std::equal(self.FitCoeffs().begin(),
-                               self.FitCoeffs().end(),
-                               other.FitCoeffs().begin(),
-                               other.FitCoeffs().end(),
-                               [](const auto& a, const auto& b) {
-                                 return a.template grid<0>() ==
-                                            b.template grid<0>() and
-                                        a.template grid<1>() ==
-                                            b.template grid<1>() and
-                                        a.data == b.data;
-                               });
-           })
-      .def(py::init<const XsecRecord&>())
-      .PythonInterfaceCopyValue(XsecRecord)
-      .PythonInterfaceBasicRepresentation(XsecRecord)
-      .PythonInterfaceFileIO(XsecRecord)
-      .PythonInterfaceWorkspaceDocumentation(XsecRecord);
+          py::doc(R"--(Create an XsecRecord from a NetCDF file.)--"))
+      .def("__eq__", [](const XsecRecord& self, const XsecRecord& other) {
+        return self.Version() == other.Version() and
+               self.Species() == other.Species() and
+               self.FitMinPressures() == other.FitMinPressures() and
+               self.FitMaxPressures() == other.FitMaxPressures() and
+               self.FitMinTemperatures() == other.FitMinTemperatures() and
+               self.FitMaxTemperatures() == other.FitMaxTemperatures() and
+               std::equal(
+                   self.FitCoeffs().begin(),
+                   self.FitCoeffs().end(),
+                   other.FitCoeffs().begin(),
+                   other.FitCoeffs().end(),
+                   [](const auto& a, const auto& b) {
+                     return a.template grid<0>() == b.template grid<0>() and
+                            a.template grid<1>() == b.template grid<1>() and
+                            a.data == b.data;
+                   });
+      });
 
-  artsarray<ArrayOfXsecRecord>(m, "ArrayOfXsecRecord")
-      .PythonInterfaceFileIO(ArrayOfXsecRecord)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfXsecRecord);
+  py_staticArrayOfXsecRecord(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));

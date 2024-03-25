@@ -6,9 +6,6 @@
 
 #include <functional>
 
-#include "pydocs.h"
-#include "python_interface_value_type.h"
-
 namespace Python {
 namespace py = pybind11;
 }  // namespace Python
@@ -17,59 +14,64 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
   return (i < 0) ? i + n : i;
 }
 
-#define PythonInterfaceFileIO(Type)                                         \
-  def(                                                                      \
-      "savexml",                                                            \
-      [](const Type& x,                                                     \
-         const char* const file,                                            \
-         const char* const type,                                            \
-         bool clobber) {                                                    \
-        xml_write_to_file(file, x, to<FileType>(type), clobber ? 0 : 1); \
-      },                                                                    \
-      py::arg("file").none(false),                                          \
-      py::arg("type").none(false) = "ascii",                                \
-      py::arg("clobber") = true,                                            \
-      py::doc("Saves :class:`" #Type "` to file\n"                          \
-              "\n"                                                          \
-              "Parameters:\n"                                               \
-              "    file (str): The path to which the file is written."      \
-              " Note that several of the options might modify the"          \
-              " name or write more files\n"                                 \
-              "    type (str): Type of file to save (ascii. zascii,"        \
-              " or binary)\n"                                               \
-              "    clobber (bool): Overwrite existing files or add new"     \
-              " file with modified name?\n"                                 \
-              "\n"                                                          \
-              "On Error:\n"                                                 \
-              "    Throws RuntimeError for any failure to save"))           \
-      .def(                                                                 \
-          "readxml",                                                        \
-          [](Type& x, const char* const file) {                             \
-            xml_read_from_file(file, x);                                    \
-          },                                                                \
-          py::arg("file").none(false),                                      \
-          py::doc("Read :class:`" #Type "` from file\n"                     \
-                  "\n"                                                      \
-                  "Parameters:\n"                                           \
-                  "    file (str): A file that can be read\n"               \
-                  "\n"                                                      \
-                  "On Error:\n"                                             \
-                  "    Throws RuntimeError for any failure to read"))       \
-      .def_static(                                                          \
-          "fromxml",                                                        \
-          [](const char* const file) {                                      \
-            Type x;                                                         \
-            xml_read_from_file(file, x);                                    \
-            return x;                                                       \
-          },                                                                \
-          py::arg("file").none(false),                                      \
-          py::doc("Create :class:`" #Type "` from file\n"                   \
-                  "\n"                                                      \
-                  "Parameters:\n"                                           \
-                  "    file (str): A file that can be read\n"               \
-                  "\n"                                                      \
-                  "On Error:\n"                                             \
+#define PythonInterfaceFileIO2(PythonType, RealType)                    \
+  def(                                                                  \
+      "savexml",                                                        \
+      [](const PythonType& x,                                           \
+         const char* const file,                                        \
+         const char* const type,                                        \
+         bool clobber) {                                                \
+        xml_write_to_file(file,                                         \
+                          static_cast<const RealType&>(x),              \
+                          to<FileType>(type),                           \
+                          clobber ? 0 : 1);                             \
+      },                                                                \
+      py::arg("file").none(false),                                      \
+      py::arg("type").none(false) = "ascii",                            \
+      py::arg("clobber") = true,                                        \
+      py::doc("Saves :class:`" #RealType "` to file\n"                  \
+              "\n"                                                      \
+              "Parameters:\n"                                           \
+              "    file (str): The path to which the file is written."  \
+              " Note that several of the options might modify the"      \
+              " name or write more files\n"                             \
+              "    type (str): Type of file to save (ascii. zascii,"    \
+              " or binary)\n"                                           \
+              "    clobber (bool): Overwrite existing files or add new" \
+              " file with modified name?\n"                             \
+              "\n"                                                      \
+              "On Error:\n"                                             \
+              "    Throws RuntimeError for any failure to save"))       \
+      .def(                                                             \
+          "readxml",                                                    \
+          [](PythonType& x, const char* const file) {                   \
+            xml_read_from_file(file, x);                                \
+          },                                                            \
+          py::arg("file").none(false),                                  \
+          py::doc("Read :class:`" #RealType "` from file\n"             \
+                  "\n"                                                  \
+                  "Parameters:\n"                                       \
+                  "    file (str): A file that can be read\n"           \
+                  "\n"                                                  \
+                  "On Error:\n"                                         \
+                  "    Throws RuntimeError for any failure to read"))   \
+      .def_static(                                                      \
+          "fromxml",                                                    \
+          [](const char* const file) -> PythonType {                    \
+            RealType x;                                                 \
+            xml_read_from_file(file, x);                                \
+            return x;                                                   \
+          },                                                            \
+          py::arg("file").none(false),                                  \
+          py::doc("Create :class:`" #RealType "` from file\n"           \
+                  "\n"                                                  \
+                  "Parameters:\n"                                       \
+                  "    file (str): A file that can be read\n"           \
+                  "\n"                                                  \
+                  "On Error:\n"                                         \
                   "    Throws RuntimeError for any failure to read"))
+
+#define PythonInterfaceFileIO(Type) PythonInterfaceFileIO2(Type, Type)
 
 #define PythonInterfaceIndexItemAccess(Type)                                 \
   def("__len__", [](const Type& x) { return x.size(); })                     \
@@ -153,28 +155,6 @@ constexpr Index negative_clamp(const Index i, const Index n) noexcept {
       .def(py::self < py::self)       \
       .def(py::self >= py::self)      \
       .def(py::self > py::self)
-
-#define PythonInterfaceWorkspaceVariableConversion(Type)                 \
-  def(py::init([](const Type& x) { return std::make_shared<Type>(x); }), \
-      py::arg("val"),                                                    \
-      py::doc("Copy instance"))
-
-//! Place at the end!
-#define PythonInterfaceWorkspaceDocumentation(Type)                           \
-  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
-                                  '\n',                                       \
-                                  group_generics_inout(#Type),                \
-                                  group_workspace_types(#Type)))              \
-              .c_str()
-
-//! Place at the end!  Add a few line-breaks to fit in extra documentation!
-#define PythonInterfaceWorkspaceDocumentationExtra(Type, extra)               \
-  doc() = unwrap_stars(var_string(internal_workspace_groups().at(#Type).desc, \
-                                  extra,                                      \
-                                  '\n',                                       \
-                                  group_generics_inout(#Type),                \
-                                  group_workspace_types(#Type)))              \
-              .c_str()
 
 #define PythonInterfaceReadWriteData(Type, data, docstr)     \
   def_readwrite(#data,                                       \

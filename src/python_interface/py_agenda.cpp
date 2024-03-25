@@ -1,6 +1,8 @@
-#include <algorithm>
 #include <parameters.h>
+#include <py_auto_wsg_init.h>
 #include <pybind11/cast.h>
+
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
@@ -46,20 +48,22 @@ std::filesystem::path correct_include_path(
 }
 
 void py_agenda(py::module_& m) try {
-  artsclass<CallbackOperator>(m, "CallbackOperator")
-      .def(py::init([](const std::function<void(const std::shared_ptr<Workspace>&)>& f,
-                       const std::vector<std::string>& i,
-                       const std::vector<std::string>& o) {
-             return std::make_shared<CallbackOperator>(f, i, o);
-           }),
-           py::arg("f") = std::function<void(const std::shared_ptr<Workspace>&)>([](const std::shared_ptr<Workspace>&) { throw std::runtime_error("No-op"); }),
-           py::arg("inputs")=std::vector<std::string>{},
-           py::arg("outputs")=std::vector<std::string>{},
-           py::doc("Initialize as structured call"))
-      .PythonInterfaceCopyValue(CallbackOperator)
-      .PythonInterfaceBasicRepresentation(CallbackOperator)
-      .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); })
-      .PythonInterfaceWorkspaceDocumentation(CallbackOperator);
+  py_staticCallbackOperator(m)
+      .def(
+          py::init([](const std::function<void(
+                          const std::shared_ptr<Workspace>&)>& f,
+                      const std::vector<std::string>& i,
+                      const std::vector<std::string>& o) {
+            return std::make_shared<CallbackOperator>(f, i, o);
+          }),
+          py::arg("f") = std::function<void(const std::shared_ptr<Workspace>&)>(
+              [](const std::shared_ptr<Workspace>&) {
+                throw std::runtime_error("No-op");
+              }),
+          py::arg("inputs") = std::vector<std::string>{},
+          py::arg("outputs") = std::vector<std::string>{},
+          py::doc("Initialize as structured call"))
+      .def("__call__", [](CallbackOperator& f, Workspace& ws) { f(ws); });
 
   artsclass<Method>(m, "Method")
       .def(py::init([](const std::string& n,
@@ -94,22 +98,15 @@ void py_agenda(py::module_& m) try {
           "name",
           [](const Method& method) { return method.get_name(); },
           py::doc("The name of the method"))
-      .def("__str__", [](const Method& method){return var_string(method);})
+      .def("__str__", [](const Method& method) { return var_string(method); })
       .doc() = "The method class of ARTS";
 
-  artsclass<Agenda>(m, "Agenda")
-      .def(py::init([]() {
-    return std::make_shared<Agenda>(); }), "Create empty")
+  py_staticAgenda(m)
       .def(py::init<std::string>(), py::arg("name"), "Create with name")
-      .PythonInterfaceWorkspaceVariableConversion(Agenda)
-      .PythonInterfaceFileIO(Agenda)
-      .def("__copy__", [](const Agenda& x) -> std::shared_ptr<Agenda>{return std::make_shared<Agenda>(x);})
-      .def("__deepcopy__", [](const Agenda& x, py::dict&) -> std::shared_ptr<Agenda>{return std::make_shared<Agenda>(x);})
-      .def(
-          "add",
-          &Agenda::add,
-          py::arg("method").none(false),
-          R"--(
+      .def("add",
+           &Agenda::add,
+           py::arg("method").none(false),
+           R"--(
 Adds a method to the Agenda
 
 All workspace variables are defaulted, and all GIN with defaults
@@ -121,15 +118,14 @@ so Copy(a, out=b) will not even see the b variable.
 )--")
       .def(
           "execute",
-          [](Agenda& a, Workspace& ws) {
-            a.execute(ws);
-          }, py::arg("ws"),
+          [](Agenda& a, Workspace& ws) { a.execute(ws); },
+          py::arg("ws"),
           "Executes the agenda on the provided workspace")
       .def(
           "finalize",
-          [](Agenda& a, bool fix) {
-            a.finalize(fix);
-          }, py::arg("fix") = false, "Finalize the agenda, making it possible to use it in the workspace")
+          [](Agenda& a, bool fix) { a.finalize(fix); },
+          py::arg("fix") = false,
+          "Finalize the agenda, making it possible to use it in the workspace")
       .def_property_readonly(
           "name",
           [](const Agenda& agenda) { return agenda.get_name(); },
@@ -137,16 +133,9 @@ so Copy(a, out=b) will not even see the b variable.
       .def_property_readonly(
           "methods",
           [](const Agenda& agenda) { return agenda.get_methods(); },
-          py::doc("The methods of the agenda"))
-      .def("__repr__",
-           [](Agenda& a) { return var_string("Agenda ", a.get_name()); })
-      .def("__str__",
-           [](Agenda& a) {
-             return var_string(a);
-           })
-      .PythonInterfaceWorkspaceDocumentation(Agenda);
+          py::doc("The methods of the agenda"));
 
-  artsarray<ArrayOfAgenda>(m, "ArrayOfAgenda")
+  py_staticArrayOfAgenda(m)
       .def(
           py::init([](std::vector<Agenda> va) {
             for (auto& a : va) {
@@ -166,12 +155,10 @@ so Copy(a, out=b) will not even see the b variable.
             return std::make_shared<ArrayOfAgenda>(va);
           }),
           "Create from :class:`list`")
-      .PythonInterfaceFileIO(ArrayOfAgenda)
       .def(
           "finalize",
           [](ArrayOfAgenda& aa) {
-            for (auto& a : aa)
-              a.finalize();
+            for (auto& a : aa) a.finalize();
           },
           py::doc("Checks if the agenda works"))
       .def_property(
@@ -183,11 +170,9 @@ so Copy(a, out=b) will not even see the b variable.
           [](ArrayOfAgenda& aa, const String& name) {
             for (auto& a : aa) a.set_name(name);
           },
-          py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"))
-      .PythonInterfaceWorkspaceDocumentationExtra(
-          ArrayOfAgenda,
-          "\n\nThese arrays are partial to contain inter-item logic, please be cautious using them");
+          py::doc(":class:`~pyarts.arts.String` Name of the array of agenda"));
 } catch (std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize agendas\n", e.what()));
 }
 }  // namespace Python

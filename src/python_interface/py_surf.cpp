@@ -1,14 +1,14 @@
 
-#include <memory>
-
-#include <python_interface.h>
-
-#include "py_macros.h"
-
-#include <surf.h>
 #include <debug.h>
+#include <py_auto_wsg_init.h>
+#include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>
+#include <surf.h>
+
+#include <memory>
+
+#include "py_macros.h"
 
 namespace Python {
 
@@ -33,8 +33,8 @@ void py_surf(py::module_ &m) try {
       .def_readwrite("lon_low", &Surf::Data::lon_low)
       .def(py::pickle(
           [](const Surf::Data &t) {
-            return py::make_tuple(t.data, t.lat_low,
-                                  t.lat_upp, t.lon_low, t.lon_upp);
+            return py::make_tuple(
+                t.data, t.lat_low, t.lat_upp, t.lon_low, t.lon_upp);
           },
           [](const py::tuple &t) {
             ARTS_USER_ERROR_IF(t.size() != 7, "Invalid state!")
@@ -53,13 +53,9 @@ void py_surf(py::module_ &m) try {
   py::implicitly_convertible<Index, Surf::Data>();
   py::implicitly_convertible<Surf::FunctionalData, Surf::Data>();
 
-  auto pnt = artsclass<SurfacePoint>(m, "SurfacePoint").def(py::init([] {
-    return std::make_shared<SurfacePoint>();
-  }));
+  auto pnt = py_staticSurfacePoint(m);
 
-  auto fld = artsclass<SurfaceField>(m, "SurfaceField").def(py::init([] {
-    return std::make_shared<SurfaceField>();
-  }));
+  auto fld = py_staticSurfaceField(m);
 
   pnt.def_readwrite("temperature", &SurfacePoint::temperature)
       .def_readwrite("elevation", &SurfacePoint::elevation)
@@ -68,17 +64,14 @@ void py_surf(py::module_ &m) try {
       .def(
           "__getitem__",
           [](SurfacePoint &surf, SurfaceKey x) {
-            if (not surf.has(x))
-              throw py::key_error(var_string(x));
+            if (not surf.has(x)) throw py::key_error(var_string(x));
             return surf[x];
           },
           py::return_value_policy::reference_internal)
       .def("__setitem__",
-           [](SurfacePoint &surf, SurfaceKey x, Numeric data) { surf[x] = data; })
-      .PythonInterfaceCopyValue(SurfacePoint)
-      .PythonInterfaceWorkspaceVariableConversion(SurfacePoint)
-      .PythonInterfaceFileIO(SurfacePoint)
-      .PythonInterfaceBasicRepresentation(SurfacePoint)
+           [](SurfacePoint &surf, SurfaceKey x, Numeric data) {
+             surf[x] = data;
+           })
       .def(py::pickle(
           [](const SurfacePoint &t) {
             auto k = t.keys();
@@ -103,24 +96,23 @@ void py_surf(py::module_ &m) try {
                   k[i]) = v[i];
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SurfacePoint);
+          }));
 
   fld.def(
          "__getitem__",
          [](SurfaceField &surf, SurfaceKey x) -> Surf::Data & {
-           if (not surf.has(x))
-             throw py::key_error(var_string(x));
+           if (not surf.has(x)) throw py::key_error(var_string(x));
            return surf[x];
          },
          py::return_value_policy::reference_internal)
-      .def("__setitem__", [](SurfaceField &surf, SurfaceKey x,
-                             const Surf::Data &data) { surf[x] = data; })
-      .def("at", [](const SurfaceField &surf, Numeric lat, Numeric lon) { return surf.at(lat, lon); })
-      .PythonInterfaceCopyValue(SurfaceField)
-      .PythonInterfaceWorkspaceVariableConversion(SurfaceField)
-      .PythonInterfaceFileIO(SurfaceField)
-      .PythonInterfaceBasicRepresentation(SurfaceField)
+      .def("__setitem__",
+           [](SurfaceField &surf, SurfaceKey x, const Surf::Data &data) {
+             surf[x] = data;
+           })
+      .def("at",
+           [](const SurfaceField &surf, Numeric lat, Numeric lon) {
+             return surf.at(lat, lon);
+           })
       .def(py::pickle(
           [](const SurfaceField &t) {
             auto k = t.keys();
@@ -148,9 +140,9 @@ void py_surf(py::module_ &m) try {
                   k[i]) = v[i];
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SurfaceField);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize surf\n", e.what()));
+          }));
+} catch (std::exception &e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize surf\n", e.what()));
 }
-} // namespace Python
+}  // namespace Python

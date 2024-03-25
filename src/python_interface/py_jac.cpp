@@ -1,4 +1,5 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 
@@ -6,16 +7,10 @@
 
 namespace Python {
 void py_jac(py::module_& m) try {
-  artsclass<JacobianTargets>(m, "JacobianTargets")
-      .def(py::init([]() { return std::make_shared<JacobianTargets>(); }), "Default target")
-      .PythonInterfaceCopyValue(JacobianTargets)
-      .PythonInterfaceWorkspaceVariableConversion(JacobianTargets)
-      .PythonInterfaceBasicRepresentation(JacobianTargets)
-      .PythonInterfaceFileIO(JacobianTargets)
+  py_staticJacobianTargets(m)
       .def_property_readonly("atm", &JacobianTargets::atm, "List of atmospheric targets")
       .def_property_readonly("surf", &JacobianTargets::surf, "List of surface targets")
-      .def_property_readonly("line", &JacobianTargets::line, "List of line targets")
-      .PythonInterfaceWorkspaceDocumentation(JacobianTargets);
+      .def_property_readonly("line", &JacobianTargets::line, "List of line targets");
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize jac\n", e.what()));
 }

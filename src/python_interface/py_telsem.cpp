@@ -1,15 +1,11 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 
 namespace Python {
 void py_telsem(py::module_& m) try {
-  artsclass<TelsemAtlas>(m, "TelsemAtlas")
-      .def(py::init([]() { return std::make_shared<TelsemAtlas>(); }), "Empty atlas")
-      .PythonInterfaceCopyValue(TelsemAtlas)
-      .PythonInterfaceWorkspaceVariableConversion(TelsemAtlas)
-      .PythonInterfaceFileIO(TelsemAtlas)
-      .PythonInterfaceBasicRepresentation(TelsemAtlas)
+  py_staticTelsemAtlas(m)
       .def(py::pickle(
           [](TelsemAtlas& self) {
             return py::make_tuple(self.DataCount(),
@@ -47,12 +43,9 @@ void py_telsem(py::module_& m) try {
             out->Correspondance() = t[13].cast<ArrayOfIndex>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(TelsemAtlas);
+          }));
 
-  artsarray<ArrayOfTelsemAtlas>(m, "ArrayOfTelsemAtlas")
-      .PythonInterfaceFileIO(ArrayOfTelsemAtlas)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfTelsemAtlas);
+  py_staticArrayOfTelsemAtlas(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize telsem\n", e.what()));
 }

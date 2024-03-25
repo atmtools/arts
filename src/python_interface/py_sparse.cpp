@@ -1,4 +1,5 @@
 #include <python_interface.h>
+#include <py_auto_wsg_init.h>
 
 #include <memory>
 #include <utility>
@@ -11,17 +12,12 @@
 
 namespace Python {
 void py_sparse(py::module_& m) try {
-  artsclass<Sparse>(m, "Sparse")
-      .def(py::init([]() { return std::make_shared<Sparse>(); }), "Empty sparse")
+  py_staticSparse(m)
       .def(py::init([](Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
         Sparse s;
         s.matrix.swap(es);
         return s;
       }), "From :class:`scipy.sparse.csr_matrix`")
-      .PythonInterfaceCopyValue(Sparse)
-      .PythonInterfaceWorkspaceVariableConversion(Sparse)
-      .PythonInterfaceFileIO(Sparse)
-      .PythonInterfaceBasicRepresentation(Sparse)
       .def(
           "__getitem__",
           [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
@@ -64,8 +60,7 @@ arr : numpy.ndarray
             out->matrix = t[0].cast<decltype(out->matrix)>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(Sparse);
+          }));
   py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>,
                              Sparse>();
 
@@ -161,10 +156,7 @@ arr : numpy.ndarray
           }))
       .doc() = "A single block matrix";
 
-  artsclass<CovarianceMatrix>(m, "CovarianceMatrix")
-      .def(py::init([]() { return std::make_shared<CovarianceMatrix>(); }), "Empty matrix")
-      .PythonInterfaceCopyValue(CovarianceMatrix)
-      .PythonInterfaceWorkspaceVariableConversion(CovarianceMatrix)
+  py_staticCovarianceMatrix(m)
       .def_property(
           "blocks",
           [](CovarianceMatrix& x) { return x.get_blocks(); },
@@ -187,12 +179,9 @@ arr : numpy.ndarray
             out->get_blocks() = std::move(b);
             out->get_inverse_blocks() = std::move(i);
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(CovarianceMatrix);
+          }));
 
-  artsarray<ArrayOfSparse>(m, "ArrayOfSparse")
-      .PythonInterfaceFileIO(ArrayOfSparse)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSparse);
+  py_staticArrayOfSparse(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
 }
