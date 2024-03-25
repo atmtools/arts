@@ -135,8 +135,50 @@ auto& fix_value_holder_artsclass(artsclass<ValueHolder<T>>& out) {
 
 void py_basic(py::module_& m) try {
   fix_value_holder_artsclass(py_staticString(m));
-  fix_value_holder_artsclass(py_staticNumeric(m));
-  fix_value_holder_artsclass(py_staticIndex(m));
+
+  fix_value_holder_artsclass(py_staticNumeric(m))
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](ValueHolder<Numeric>& x) -> py::buffer_info {
+        return {x.val.get(),
+                sizeof(Numeric),
+                py::format_descriptor<Numeric>::format(),
+                0,
+                {},
+                {}};
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](ValueHolder<Numeric>& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](ValueHolder<Numeric>& x, ValueHolder<Numeric>& y) {
+            *x.val = *y.val;
+          },
+          "Operate on type as if :class:`numpy.ndarray` type");
+
+  fix_value_holder_artsclass(py_staticIndex(m))
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](ValueHolder<Index>& x) -> py::buffer_info {
+        return {x.val.get(),
+                sizeof(Index),
+                py::format_descriptor<Index>::format(),
+                0,
+                {},
+                {}};
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](ValueHolder<Index>& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](ValueHolder<Index>& x, ValueHolder<Index>& y) { *x.val = *y.val; },
+          "Operate on type as if :class:`numpy.ndarray` type");
 
   py_staticArrayOfString(m)
       .def("index",

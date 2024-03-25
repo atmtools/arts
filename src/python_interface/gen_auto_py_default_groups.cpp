@@ -62,8 +62,8 @@ void default_groups(const std::string& fname) {
       }
 
       cc << '\n';
-      cc << "  g.PythonInterfaceBasicRepresentation(" << name << ");\n";
-      cc << "  g.PythonInterfaceCopyValue(" << name << ");\n";
+      cc << "  g.PythonInterfaceBasicRepresentation(" << T << ");\n";
+      cc << "  g.PythonInterfaceCopyValue(" << T << ");\n";
       cc << "  g.PythonInterfaceFileIO2(" << T << ", " << name << ");\n";
 
       if (wsg.is_simple_contiguous and not wsg.is_array) {

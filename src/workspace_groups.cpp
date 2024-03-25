@@ -484,6 +484,7 @@ Both the data and the grid may be named
       .file = "matpack.h",
       .desc = "A 64 bit signed integer type\n",
       .value_type = true,
+      .is_simple_contiguous = true,
   };
 
   wsg_data["LinemixingEcsData"] = {
@@ -508,6 +509,7 @@ Both the data and the grid may be named
       .file = "matpack.h",
       .desc = "IEEE 754 binary64 floating point number\n",
       .value_type = true,
+      .is_simple_contiguous = true,
   };
 
   wsg_data["PredefinedModelData"] = {
