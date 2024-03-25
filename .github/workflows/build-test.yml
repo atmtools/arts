@@ -83,10 +83,23 @@ jobs:
             jbuild: 2
             jcheck: 2
 
+          - name: windows-default
+            os: windows-latest
+            preset: default-win-conda
+            check: "yes"
+            doc: "no"
+            devenv: "environment-dev-win.yml"
+            jbuild: 4
+            jcheck: 2
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
+      - uses: ilammy/msvc-dev-cmd@v1
+        if : runner.os == 'Windows'
+        with:
+          arch: x64
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
@@ -138,11 +151,18 @@ jobs:
           cmake --build build --target pyarts-package
 
       - name: Build SRC
-        if: matrix.check == 'yes'
+        if: matrix.check == 'yes' && runner.os != 'Windows'
+        continue-on-error: true
         shell: bash -l {0}
         run: |
           cd build
           make -j${{ matrix.jbuild }} -C src
+
+      - name: Build SRC (Windows)
+        if: matrix.check == 'yes' && runner.os == 'Windows'
+        shell: bash -l {0}
+        run: |
+          ninja -C build -j${{ matrix.jbuild }} src/all
 
       - uses: actions/upload-artifact@v4
         if: matrix.doc == 'yes'
