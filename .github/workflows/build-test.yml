@@ -57,22 +57,23 @@ jobs:
             jcheck: 2
 
           - name: mac-default-clang
-            os: macos-latest
+            os: macos-13
             preset: default-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
-            jbuild: 3
+            jbuild: 4
             jcheck: 2
 
           - name: mac-debug-clang
-            os: macos-latest
+            os: macos-13
             preset: debug-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
-            jbuild: 3
+            jbuild: 4
             jcheck: 2
+
           - name: macm1-default-clang
             os: macos-14
             preset: default-clang-conda
