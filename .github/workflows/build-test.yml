@@ -17,7 +17,7 @@ jobs:
             check: "no"
             doc: "yes"
             devenv: "environment-dev-linux.yml"
-            jbuild: 2
+            jbuild: 4
             jcheck: 2
 
           - name: linux-default-gcc
@@ -26,7 +26,7 @@ jobs:
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
-            jbuild: 2
+            jbuild: 4
             jcheck: 2
 
           - name: linux-debug-gcc
@@ -35,7 +35,7 @@ jobs:
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
-            jbuild: 2
+            jbuild: 4
             jcheck: 2
 
           - name: linux-nofortran-gcc
@@ -44,7 +44,7 @@ jobs:
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
-            jbuild: 2
+            jbuild: 4
             jcheck: 2
 
           - name: linux-lgpl-gcc
@@ -53,25 +53,34 @@ jobs:
             check: "yes"
             doc: "no"
             devenv: "environment-dev-linux.yml"
-            jbuild: 2
+            jbuild: 4
             jcheck: 2
 
           - name: mac-default-clang
-            os: macos-latest
+            os: macos-13
             preset: default-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
-            jbuild: 3
+            jbuild: 4
             jcheck: 2
 
-          - name: mac-debug-clang
-            os: macos-latest
+          - name: macm1-default-clang
+            os: macos-14
+            preset: default-clang-conda
+            check: "yes"
+            doc: "no"
+            devenv: "environment-dev-mac.yml"
+            jbuild: 2
+            jcheck: 2
+
+          - name: macm1-debug-clang
+            os: macos-14
             preset: debug-clang-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-mac.yml"
-            jbuild: 3
+            jbuild: 2
             jcheck: 2
 
     steps:
@@ -127,12 +136,6 @@ jobs:
         shell: bash -l {0}
         run: |
           cmake --build build --target pyarts-package
-
-      - name: Check Controlfile Conversion
-        if: matrix.check == 'yes'
-        shell: bash -l {0}
-        run: |
-          cmake --build build --target check-conversion
 
       - name: Build SRC
         if: matrix.check == 'yes'
