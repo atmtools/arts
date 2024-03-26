@@ -256,3 +256,5 @@ add_custom_target(run_perf
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Creating performance test report"
 )
+
+add_subdirectory(scattering)
