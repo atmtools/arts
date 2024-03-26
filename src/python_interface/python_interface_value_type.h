@@ -43,6 +43,10 @@ struct ValueHolder {
   operator const type&() const noexcept { return *val; }
   operator std::shared_ptr<type>&() noexcept { return val; }
   operator const std::shared_ptr<type>&() const noexcept { return val; }
+
+  friend std::ostream& operator<<(std::ostream& os, const ValueHolder& a) {
+    return os << *a.val;
+  }
 };
 
 // Set the type and ensure they are correct

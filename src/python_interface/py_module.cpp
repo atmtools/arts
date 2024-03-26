@@ -10,13 +10,15 @@ void parse_path_from_environment(String envvar, ArrayOfString& paths);
 namespace Python {
 namespace py = pybind11;
 
-void py_basic(py::module_&);
-void py_matpack(py::module_&);
+void py_workspace(artsclass<Workspace>& ws);
+
+void py_basic(py::module_& m);
+void py_matpack(py::module_& m);
 void py_path(py::module_& m);
-void py_griddedfield(py::module_&);
-void py_time(py::module_&);
-void py_tessem(py::module_&);
-void py_quantum(py::module_&);
+void py_griddedfield(py::module_& m);
+void py_time(py::module_& m);
+void py_tessem(py::module_& m);
+void py_quantum(py::module_& m);
 void py_rte(py::module_& m);
 void py_rtepack(py::module_ &m);
 void py_telsem(py::module_& m);
@@ -26,7 +28,6 @@ void py_mcantenna(py::module_& m);
 void py_scattering(py::module_& m);
 void py_spectroscopy(py::module_& m);
 void py_jac(py::module_& m);
-void py_workspace(artsclass<Workspace>& ws);
 void py_agenda(py::module_& m);
 void py_global(py::module_& m);
 void py_xsec(py::module_& m);
@@ -100,6 +101,10 @@ PYBIND11_MODULE(arts, m) try {
   // so it should be included early for documentation purposes when its
   // data is used by modules below it
   py_auto_options(m);
+
+  // Initialize the workspace groups (this requires just pure python)
+  py_manual_groupsEarlyInit(m);
+  py_initAllValidWorkspaceGroups(m);
 
   py_basic(m);
   py_matpack(m);

@@ -7,12 +7,7 @@
 
 namespace Python {
 void py_star(py::module_& m) try {
-  artsclass<Sun>(m, "Sun")
-      .def(py::init([]() { return std::make_shared<Sun>(); }), "Empty sun")
-      .PythonInterfaceCopyValue(Sun)
-//      .PythonInterfaceWorkspaceVariableConversion(Sun)
-      .PythonInterfaceBasicRepresentation(Sun)
-      .PythonInterfaceFileIO(Sun)
+  py_staticSun(m)
       .def_readwrite("description", &Sun::description, ":class:`~pyarts.arts.String` Sun description")
       .def_readwrite("spectrum", &Sun::spectrum, ":class:`~pyarts.arts.Matrix` Sun spectrum, monochrmatic radiance spectrum at the surface of the sun")
       .def_readwrite("radius", &Sun::radius, ":class:`float` Sun radius")
@@ -36,16 +31,7 @@ void py_star(py::module_& m) try {
                              t[3].cast<Numeric>(),
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()});
-          }))
-      .def(py::init<const Sun&>())
-      .PythonInterfaceCopyValue(Sun)
-      .PythonInterfaceBasicRepresentation(Sun)
-      .PythonInterfaceFileIO(Sun)
-      .PythonInterfaceWorkspaceDocumentation(Sun);
-
-  artsarray<ArrayOfSun>(m, "ArrayOfSun")
-      .PythonInterfaceFileIO(ArrayOfSun)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSun);
+          }));
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }

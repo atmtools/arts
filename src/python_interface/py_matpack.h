@@ -21,7 +21,8 @@ using Scalar = std::variant<Numeric, Index>;
 using numpy_array = py::array;
 
 template <typename T, Index... sz>
-auto register_matpack_constant_data(py::module_& m, const char* const name)
+auto& fix_matpack_constant_data(
+    artsclass<matpack::matpack_constant_data<T, sz...>>& r)
   requires(sizeof...(sz) > 0)
 {
   using matpackT = matpack::matpack_constant_data<T, sz...>;
@@ -31,32 +32,29 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
   static constexpr std::size_t size = (sz * ...);
   static constexpr std::array<Index, dim> shape = matpackT::shape();
 
-  artsclass<matpackT> r(m, name, py::buffer_protocol());
-  r.def(py::init([]() { return std::make_shared<matpackT>(); }),
-        "Default constant data")
-      .def(py::init([](const arrT& x) -> std::shared_ptr<matpackT> {
-             if (static_cast<std::size_t>(x.ndim()) != dim) {
-               throw std::runtime_error(
-                   var_string("Bad rank: ", dim, " vs ", x.ndim()));
-             }
+  r.def(py::init([](const arrT& x) -> std::shared_ptr<matpackT> {
+          if (static_cast<std::size_t>(x.ndim()) != dim) {
+            throw std::runtime_error(
+                var_string("Bad rank: ", dim, " vs ", x.ndim()));
+          }
 
-             std::array<Index, dim> arr_shape;
-             for (std::size_t i = 0; i < dim; i++) {
-               arr_shape[i] = static_cast<Index>(x.shape(i));
-             }
+          std::array<Index, dim> arr_shape;
+          for (std::size_t i = 0; i < dim; i++) {
+            arr_shape[i] = static_cast<Index>(x.shape(i));
+          }
 
-             if (arr_shape != shape) {
-               throw std::runtime_error(
-                   var_string("Bad shape: ",
-                              matpack::shape_help<dim>(shape),
-                              " vs ",
-                              matpack::shape_help<dim>(arr_shape)));
-             }
+          if (arr_shape != shape) {
+            throw std::runtime_error(
+                var_string("Bad shape: ",
+                           matpack::shape_help<dim>(shape),
+                           " vs ",
+                           matpack::shape_help<dim>(arr_shape)));
+          }
 
-             return std::make_shared<matpackT>(
-                 x.template cast<std::array<T, size>>());
-           }),
-           "Cast from numeric :class:`~numpy.array`")
+          return std::make_shared<matpackT>(
+              x.template cast<std::array<T, size>>());
+        }),
+        "Cast from numeric :class:`~numpy.array`")
       .def(py::init([](const py::list& x) {
              return py::cast<matpackT>(x.cast<arrT>());
            }),
@@ -65,8 +63,6 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
              return py::cast<matpackT>(x.cast<arrT>());
            }),
            "Cast from any :class:`~numpy.array`")
-      .PythonInterfaceCopyValue(matpackT)
-      .PythonInterfaceBasicRepresentation(matpackT)
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](matpackT& x) -> py::buffer_info {
         std::vector<ssize_t> shpe{static_cast<ssize_t>(sz)...};
@@ -96,6 +92,25 @@ auto register_matpack_constant_data(py::module_& m, const char* const name)
   py::implicitly_convertible<arrT, matpackT>();
   py::implicitly_convertible<py::list, matpackT>();
   py::implicitly_convertible<py::array, matpackT>();
+
+  return r;
+}
+
+template <typename T, Index... sz>
+auto register_matpack_constant_data(py::module_& m, const char* const name)
+  requires(sizeof...(sz) > 0)
+{
+  using matpackT = matpack::matpack_constant_data<T, sz...>;
+
+  static constexpr std::size_t dim = sizeof...(sz);
+  static constexpr std::array<Index, dim> shape = matpackT::shape();
+
+  artsclass<matpackT> r(m, name, py::buffer_protocol());
+  r.def(py::init([]() { return std::make_shared<matpackT>(); }),
+        "Default constant data")
+      .PythonInterfaceCopyValue(matpackT)
+      .PythonInterfaceBasicRepresentation(matpackT);
+  fix_matpack_constant_data(r);
 
   return r;
 }

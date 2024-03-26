@@ -107,14 +107,9 @@ qn : ~pyarts.arts.QuantumNumberValue
           })).doc() = "A local state of quantum numbers";
   py::implicitly_convertible<std::string, QuantumNumberLocalState>();
 
-  artsclass<QuantumIdentifier>(m, "QuantumIdentifier")
-      .def(py::init([]() { return std::make_shared<QuantumIdentifier>("Ar-8"); }), "Default ID")
+  py_staticQuantumIdentifier(m)
       .def(py::init(
           [](const std::string& s) { return std::make_shared<QuantumIdentifier>(s); }), "From :class:`str`")
-      .PythonInterfaceCopyValue(QuantumIdentifier)
-      .PythonInterfaceWorkspaceVariableConversion(QuantumIdentifier)
-      .PythonInterfaceFileIO(QuantumIdentifier)
-      .PythonInterfaceBasicRepresentation(QuantumIdentifier)
       .def_readonly("isotopologue_index",
                     &QuantumIdentifier::isotopologue_index, ":class:`int` The isotopologue index")
       .def_readwrite("state", &QuantumIdentifier::val, ":class:`~pyarts.arts.QuantumNumberValueList` The values that make up the state")
@@ -153,13 +148,8 @@ symbol : str
             out->val = t[1].cast<Quantum::Number::ValueList>();
 
             return out;
-          }))
-      .PythonInterfaceWorkspaceDocumentation(QuantumIdentifier);
+          }));
   py::implicitly_convertible<std::string, QuantumIdentifier>();
-
-  artsarray<ArrayOfQuantumIdentifier>(m, "ArrayOfQuantumIdentifier")
-      .PythonInterfaceFileIO(ArrayOfQuantumIdentifier)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfQuantumIdentifier);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }

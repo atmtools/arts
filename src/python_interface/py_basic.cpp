@@ -62,68 +62,17 @@ void binary_ops(auto& class_) {
 }  // namespace Extra
 
 template <typename T>
-auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
-  auto out = [use_buffer, m, name]() {
-    if (use_buffer) {
-      return artsclass<ValueHolder<T>>(m, name, py::buffer_protocol())
-          .def(py::init([]() { return std::make_shared<ValueHolder<T>>(); }),
-               "Create default");
-    }
-    return artsclass<ValueHolder<T>>(m, name).def(
-        py::init([]() { return std::make_shared<ValueHolder<T>>(); }),
-        "Create default");
-  }();
-
-  out.def(py::init([](const ValueHolder<T>& a) {
-            return std::make_shared<ValueHolder<T>>(*a.val);
-          }),
-          py::arg("value").none(false),
-          "Copy constructor");
-
+auto& fix_value_holder_artsclass(artsclass<ValueHolder<T>>& out) {
   if constexpr (std::convertible_to<Numeric, T>) {
-    out.def(py::init([](const Numeric& a) -> ValueHolder<T> {
-              return std::make_shared<T>(a);
-            }),
-            py::arg("value").none(false),
-            "Create from value");
     py::implicitly_convertible<Numeric, ValueHolder<T>>();
   }
 
   if constexpr (std::convertible_to<String, T>) {
-    out.def(py::init([](const String& a) -> ValueHolder<T> {
-              return std::make_shared<T>(a);
-            }),
-            py::arg("value").none(false),
-            "Create from value");
     py::implicitly_convertible<String, ValueHolder<T>>();
   }
 
   if constexpr (std::convertible_to<Index, T>) {
-    out.def(py::init([](const Index& a) -> ValueHolder<T> {
-              return std::make_shared<T>(a);
-            }),
-            py::arg("value").none(false),
-            "Create from value");
     py::implicitly_convertible<Index, ValueHolder<T>>();
-  }
-
-  out.def("__copy__",
-          [](const ValueHolder<T>& a) -> ValueHolder<T> { return *a.val; });
-
-  out.def("__deepcopy__",
-          [](const ValueHolder<T>& a, const py::dict&) -> ValueHolder<T> {
-            return *a.val;
-          });
-
-  out.def("__str__",
-          [](const ValueHolder<T>& a) { return var_string(*a.val); });
-
-  if constexpr (std::same_as<String, T>) {
-    out.def("__repr__",
-            [](const ValueHolder<T>& a) { return py::repr(py::str(*a.val)); });
-  } else {
-    out.def("__repr__",
-            [](const ValueHolder<T>& a) { return var_string(*a.val); });
   }
 
   if constexpr (std::same_as<T, String>) {
@@ -169,72 +118,6 @@ auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
     });
   }
 
-  out.def(
-      "readxml",
-      [](ValueHolder<T>& a, const char* const filename) {
-        xml_read_from_file(filename, *a.val);
-      },
-      py::arg("file").none(false),
-      py::doc(var_string("Read :class:`",
-                         WorkspaceGroupInfo<T>::name,
-                         "` from file\n"
-                         "\n"
-                         "Parameters:\n"
-                         "    file (str): A file that can be read\n"
-                         "\n"
-                         "On Error:\n"
-                         "    Throws RuntimeError for any failure to read")
-                  .c_str()));
-
-  out.def_static(
-      "fromxml",
-      [](const char* const filename) {
-        ValueHolder<T> a{};
-        xml_read_from_file(filename, *a.val);
-        return a;
-      },
-      py::arg("file").none(false),
-      py::doc(var_string("Create :class:`",
-                         WorkspaceGroupInfo<T>::name,
-                         "` from file\n"
-                         "\n"
-                         "Parameters:\n"
-                         "    file (str): A file that can be read\n"
-                         "\n"
-                         "On Error:\n"
-                         "    Throws RuntimeError for any failure to read")
-                  .c_str()));
-
-  out.def(
-      "savexml",
-      [](const ValueHolder<T>& a,
-         const char* const filename,
-         const char* const file_format,
-         bool clobber) {
-        xml_write_to_file(
-            filename, *a.val, to<FileType>(file_format), clobber ? 0 : 1);
-      },
-      py::arg("file").none(false),
-      py::arg("type").none(false) = "ascii",
-      py::arg("clobber") = true,
-      py::doc(
-          var_string("Saves :class:`",
-                     WorkspaceGroupInfo<T>::name,
-                     "` to file\n"
-                     "\n"
-                     "Parameters:\n"
-                     "    file (str): The path to which the file is written."
-                     " Note that several of the options might modify the"
-                     " name or write more files\n"
-                     "    type (str): Type of file to save (ascii. zascii,"
-                     " or binary)\n"
-                     "    clobber (bool): Overwrite existing files or add new"
-                     " file with modified name?\n"
-                     "\n"
-                     "On Error:\n"
-                     "    Throws RuntimeError for any failure to save")
-              .c_str()));
-
   out.def(py::pickle(
       [](const ValueHolder<T>& self) { return py::make_tuple(*self.val); },
       [](const py::tuple& t) -> ValueHolder<T> {
@@ -250,9 +133,9 @@ auto value_holder_artsclass(py::module_& m, const char* name, bool use_buffer) {
 }
 
 void py_basic(py::module_& m) try {
-  value_holder_artsclass<String>(m, "String", false);
+  fix_value_holder_artsclass(py_staticString(m));
 
-  value_holder_artsclass<Numeric>(m, "Numeric", true)
+  fix_value_holder_artsclass(py_staticNumeric(m))
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](ValueHolder<Numeric>& x) -> py::buffer_info {
         return {x.val.get(),
@@ -275,7 +158,7 @@ void py_basic(py::module_& m) try {
           },
           "Operate on type as if :class:`numpy.ndarray` type");
 
-  value_holder_artsclass<Index>(m, "Index", true)
+  fix_value_holder_artsclass(py_staticIndex(m))
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_buffer([](ValueHolder<Index>& x) -> py::buffer_info {
         return {x.val.get(),
@@ -296,7 +179,14 @@ void py_basic(py::module_& m) try {
           [](ValueHolder<Index>& x, ValueHolder<Index>& y) { *x.val = *y.val; },
           "Operate on type as if :class:`numpy.ndarray` type");
 
-  artsarray<ArrayOfString, ArrayOptions::index>(m, "ArrayOfString")
+  py_staticArrayOfString(m)
+      .def("index",
+           [](const ArrayOfString& v, const String& f) {
+             auto ptr = std::ranges::find(v, f);
+             if (ptr == v.end())
+               throw py::value_error(var_string(f, " is not in list"));
+             return std::distance(v.begin(), ptr);
+           })
       .def(py::init(
           [](const std::vector<std::variant<ValueHolder<String>, String>>& x) {
             auto out = std::make_shared<ArrayOfString>(x.size());
@@ -304,15 +194,27 @@ void py_basic(py::module_& m) try {
               return std::visit([](auto& v) -> const String& { return v; }, s);
             });
             return out;
-          }))
-      .PythonInterfaceFileIO(ArrayOfString)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfString);
+          }));
   py::implicitly_convertible<
       std::vector<std::variant<ValueHolder<String>, String>>,
       ArrayOfString>();
 
-  artsarray<ArrayOfIndex, ArrayOptions::index>(
-      m, "ArrayOfIndex", py::buffer_protocol())
+  py_staticArrayOfIndex(m)
+      .def("index",
+           [](const ArrayOfIndex& v, const Index& f) {
+             auto ptr = std::ranges::find(v, f);
+             if (ptr == v.end())
+               throw py::value_error(var_string(f, " is not in list"));
+             return std::distance(v.begin(), ptr);
+           })
+      .def_buffer([](ArrayOfIndex& x) -> py::buffer_info {
+        return py::buffer_info(x.data(),
+                               sizeof(Index),
+                               py::format_descriptor<Index>::format(),
+                               1,
+                               {static_cast<ssize_t>(x.size())},
+                               {sizeof(Index)});
+      })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
@@ -323,11 +225,24 @@ void py_basic(py::module_& m) try {
               },
               py::keep_alive<0, 1>()),
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; },
-          "Operate on type as if :class:`numpy.ndarray` type")
-      .PythonInterfaceFileIO(ArrayOfIndex)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfIndex);
+          "Operate on type as if :class:`numpy.ndarray` type");
 
   artsarray<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
+      .def("index",
+           [](const ArrayOfNumeric& v, const Numeric& f) {
+             auto ptr = std::ranges::find(v, f);
+             if (ptr == v.end())
+               throw py::value_error(var_string(f, " is not in list"));
+             return std::distance(v.begin(), ptr);
+           })
+      .def_buffer([](ArrayOfNumeric& x) -> py::buffer_info {
+        return py::buffer_info(x.data(),
+                               sizeof(Numeric),
+                               py::format_descriptor<Numeric>::format(),
+                               1,
+                               {static_cast<ssize_t>(x.size())},
+                               {sizeof(Numeric)});
+      })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
       .def_property(
           "value",
@@ -341,28 +256,16 @@ void py_basic(py::module_& m) try {
           "Operate on type as if :class:`numpy.ndarray` type")
       .doc() = "List of :class:`~Numeric` values";
 
-  artsarray<ArrayOfArrayOfString>(m, "ArrayOfArrayOfString")
-      .PythonInterfaceFileIO(ArrayOfArrayOfString)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfString);
-
-  artsarray<ArrayOfArrayOfIndex>(m, "ArrayOfArrayOfIndex")
-      .PythonInterfaceFileIO(ArrayOfArrayOfIndex)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfIndex);
-
-  artsclass<Any>(m, "Any")
-      .def(py::init([]() { return std::make_shared<Any>(); }), "Create empty")
+  py_staticAny(m)
       .def(py::init([](const py::args&, const py::kwargs&) {
              return std::make_shared<Any>();
            }),
            "Create empty")
-      .PythonInterfaceBasicRepresentation(Any)
-      .PythonInterfaceFileIO(Any)
       .def(py::pickle([](const py::object&) { return py::make_tuple(); },
                       [](const py::tuple& t) {
                         ARTS_USER_ERROR_IF(t.size() != 0, "Invalid state!")
                         return std::make_shared<Any>();
-                      }))
-      .PythonInterfaceWorkspaceDocumentation(Any);
+                      }));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize basic\n", e.what()));

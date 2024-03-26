@@ -11,12 +11,7 @@ namespace Python {
 void py_fwd(py::module_& m) try {
   auto fwd = m.def_submodule("fwd");
 
-  artsclass<SpectralRadianceOperator>(m, "SpectralRadianceOperator")
-      .def(py::init<>())
-      .PythonInterfaceCopyValue(SpectralRadianceOperator)
-      .PythonInterfaceWorkspaceVariableConversion(SpectralRadianceOperator)
-      .PythonInterfaceBasicRepresentation(SpectralRadianceOperator)
-      .PythonInterfaceFileIO(SpectralRadianceOperator)
+  py_staticSpectralRadianceOperator(m)
       .def("geometric_planar",
            [](const SpectralRadianceOperator& srad_op,
               const Numeric frequency,
@@ -36,10 +31,11 @@ void py_fwd(py::module_& m) try {
 
              if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1 or
                  frequency.size() < arts_omp_get_max_threads()) {
-               std::transform(frequency.begin(),
-                              frequency.end(),
-                              out.begin(),
-                              [&](const Numeric& f) { return srad_op(f, path); });
+               std::transform(
+                   frequency.begin(),
+                   frequency.end(),
+                   out.begin(),
+                   [&](const Numeric& f) { return srad_op(f, path); });
              } else {
                String error{};
 #pragma omp parallel for
@@ -56,8 +52,7 @@ void py_fwd(py::module_& m) try {
              }
              return out;
            })
-      .def_property_readonly("altitude", &SpectralRadianceOperator::altitude)
-      .PythonInterfaceWorkspaceDocumentation(SpectralRadianceOperator);
+      .def_property_readonly("altitude", &SpectralRadianceOperator::altitude);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize fwd\n", e.what()));

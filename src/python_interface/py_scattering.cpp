@@ -19,13 +19,8 @@ void py_scattering(py::module_& m) try {
             return static_cast<PType>(t[0].cast<Index>());
           }));
 
-  artsclass<SingleScatteringData>(m, "SingleScatteringData")
-      .def(py::init([]() { return std::make_shared<SingleScatteringData>(); }), "Empty scattering data")
-      .PythonInterfaceCopyValue(SingleScatteringData)
-      .PythonInterfaceWorkspaceVariableConversion(SingleScatteringData)
-      .PythonInterfaceFileIO(SingleScatteringData)
-      .PythonInterfaceBasicRepresentation(SingleScatteringData)
-      .def_readwrite("ptype", &SingleScatteringData::ptype, ":class:`~pyarts.arts.PType` The type")
+  py_staticSingleScatteringData(m)
+   .def_readwrite("ptype", &SingleScatteringData::ptype, ":class:`~pyarts.arts.PType` The type")
       .def_readwrite("description", &SingleScatteringData::description, ":class:`~pyarts.arts.String` The description")
       .def_readwrite("f_grid", &SingleScatteringData::f_grid, ":class:`~pyarts.arts.Vector` The frequency grid")
       .def_readwrite("T_grid", &SingleScatteringData::T_grid, ":class:`~pyarts.arts.Vector` The temperature grid")
@@ -58,15 +53,9 @@ void py_scattering(py::module_& m) try {
                                             t[6].cast<Tensor7>(),
                                             t[7].cast<Tensor5>(),
                                             t[8].cast<Tensor5>()});
-          }))
-      .PythonInterfaceWorkspaceDocumentation(SingleScatteringData);
+          }));
 
-  artsclass<ScatteringMetaData>(m, "ScatteringMetaData")
-      .def(py::init([]() { return std::make_shared<ScatteringMetaData>(); }), "Empty meta data")
-      .PythonInterfaceCopyValue(ScatteringMetaData)
-      .PythonInterfaceWorkspaceVariableConversion(ScatteringMetaData)
-      .PythonInterfaceFileIO(ScatteringMetaData)
-      .PythonInterfaceBasicRepresentation(ScatteringMetaData)
+  py_staticScatteringMetaData(m)
       .def_readwrite("description", &ScatteringMetaData::description, ":class:`~pyarts.arts.String` The description")
       .def_readwrite("source", &ScatteringMetaData::source, ":class:`~pyarts.arts.String` The source")
       .def_readwrite("refr_index", &ScatteringMetaData::refr_index, ":class:`~pyarts.arts.String` The refractive index")
@@ -96,24 +85,7 @@ void py_scattering(py::module_& m) try {
                                           t[4].cast<Numeric>(),
                                           t[5].cast<Numeric>(),
                                           t[6].cast<Numeric>()});
-          }))
-      .PythonInterfaceWorkspaceDocumentation(ScatteringMetaData);
-
-  artsarray<ArrayOfScatteringMetaData>(m, "ArrayOfScatteringMetaData")
-      .PythonInterfaceFileIO(ArrayOfScatteringMetaData)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfScatteringMetaData);
-
-  artsarray<ArrayOfSingleScatteringData>(m, "ArrayOfSingleScatteringData")
-      .PythonInterfaceFileIO(ArrayOfSingleScatteringData)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSingleScatteringData);
-
-  artsarray<ArrayOfArrayOfScatteringMetaData>(m, "ArrayOfArrayOfScatteringMetaData")
-      .PythonInterfaceFileIO(ArrayOfArrayOfScatteringMetaData)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfScatteringMetaData);
-
-  artsarray<ArrayOfArrayOfSingleScatteringData>(m, "ArrayOfArrayOfSingleScatteringData")
-      .PythonInterfaceFileIO(ArrayOfArrayOfSingleScatteringData)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSingleScatteringData);
+          }));
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }

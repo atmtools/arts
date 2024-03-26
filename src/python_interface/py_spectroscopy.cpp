@@ -1,9 +1,8 @@
-#include <algorithm>
 #include <lineshapemodel.h>
 #include <python_interface.h>
-
 #include <zeemandata.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -32,13 +31,21 @@ void py_spectroscopy(py::module_& m) try {
            py::arg("X0") = 0,
            py::arg("X1") = 0,
            py::arg("X2") = 0,
-           py::arg("X3") = 0, "From values")
+           py::arg("X3") = 0,
+           "From values")
       .PythonInterfaceCopyValue(LineShapeModelParameters)
-      .def_readwrite("type", &LineShapeModelParameters::type, ":class:`~pyarts.arts.options.LineShapeTemperatureModel` The temperature model")
-      .def_readwrite("X0", &LineShapeModelParameters::X0, ":class:`float` 1st coefficient")
-      .def_readwrite("X1", &LineShapeModelParameters::X1, ":class:`float` 2nd coefficient")
-      .def_readwrite("X2", &LineShapeModelParameters::X2, ":class:`float` 3rd coefficient")
-      .def_readwrite("X3", &LineShapeModelParameters::X3, ":class:`float` 4th coefficient")
+      .def_readwrite(
+          "type",
+          &LineShapeModelParameters::type,
+          ":class:`~pyarts.arts.options.LineShapeTemperatureModel` The temperature model")
+      .def_readwrite(
+          "X0", &LineShapeModelParameters::X0, ":class:`float` 1st coefficient")
+      .def_readwrite(
+          "X1", &LineShapeModelParameters::X1, ":class:`float` 2nd coefficient")
+      .def_readwrite(
+          "X2", &LineShapeModelParameters::X2, ":class:`float` 3rd coefficient")
+      .def_readwrite(
+          "X3", &LineShapeModelParameters::X3, ":class:`float` 4th coefficient")
       .PythonInterfaceBasicRepresentation(LineShapeModelParameters)
       .def(py::pickle(
           [](const LineShapeModelParameters& t) {
@@ -52,7 +59,8 @@ void py_spectroscopy(py::module_& m) try {
                 t[2].cast<Numeric>(),
                 t[3].cast<Numeric>(),
                 t[4].cast<Numeric>());
-          })).doc() = "A temperature model calculator";
+          }))
+      .doc() = "A temperature model calculator";
 
   auto ZeemanPolarizationStringGetter =
       [](Zeeman::Polarization c) -> std::string {
@@ -71,11 +79,13 @@ void py_spectroscopy(py::module_& m) try {
     ARTS_USER_ERROR("Bad enum value ", c);
   };
   artsclass<Zeeman::Polarization>(m, "ZeemanPolarization")
-      .def(py::init([]() { return std::make_shared<Zeeman::Polarization>(); }), "Default polarization")
+      .def(py::init([]() { return std::make_shared<Zeeman::Polarization>(); }),
+           "Default polarization")
       .def(py::init([ZeemanPolarizationEnumGetter](const std::string& c) {
              return ZeemanPolarizationEnumGetter(c);
            }),
-           py::arg("str"), "From :class:`str`")
+           py::arg("str"),
+           "From :class:`str`")
       .PythonInterfaceCopyValue(Zeeman::Polarization)
       .def("__repr__",
            [ZeemanPolarizationStringGetter](Zeeman::Polarization c) {
@@ -92,31 +102,42 @@ void py_spectroscopy(py::module_& m) try {
           [ZeemanPolarizationEnumGetter](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return ZeemanPolarizationEnumGetter(t[0].cast<std::string>());
-          })).doc() = "Options for ZeemanPolarization";
+          }))
+      .doc() = "Options for ZeemanPolarization";
   py::implicitly_convertible<std::string, Zeeman::Polarization>();
 
   artsclass<Zeeman::Model>(m, "ZeemanModel")
-      .def(py::init([]() { return std::make_shared<Zeeman::Model>(); }), "Empty model")
+      .def(py::init([]() { return std::make_shared<Zeeman::Model>(); }),
+           "Empty model")
       .def(py::init([](Numeric a, Numeric b) {
              return std::make_shared<Zeeman::Model>(a, b);
            }),
            py::arg("gu"),
-           py::arg("gl"), "From two numeric values")
+           py::arg("gl"),
+           "From two numeric values")
       .def(py::init([](std::array<Numeric, 2> a) {
              return std::make_shared<Zeeman::Model>(a[0], a[1]);
            }),
-           py::arg("gs"), "From list of two values")
+           py::arg("gs"),
+           "From list of two values")
       .PythonInterfaceCopyValue(Zeeman::Model)
       .PythonInterfaceBasicRepresentation(Zeeman::Model)
-      .def_property("gu", &Zeeman::Model::gu, &Zeeman::Model::gu, ":class:`~float` The upper state g")
-      .def_property("gl", &Zeeman::Model::gl, &Zeeman::Model::gl, ":class:`~float` The lower state g")
+      .def_property("gu",
+                    &Zeeman::Model::gu,
+                    &Zeeman::Model::gu,
+                    ":class:`~float` The upper state g")
+      .def_property("gl",
+                    &Zeeman::Model::gl,
+                    &Zeeman::Model::gl,
+                    ":class:`~float` The lower state g")
       .def(py::pickle(
           [](const Zeeman::Model& t) { return py::make_tuple(t.gu(), t.gl()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 2, "Invalid state!")
             return std::make_shared<Zeeman::Model>(t[0].cast<Numeric>(),
-                                     t[1].cast<Numeric>());
-          })).doc() = "A Zeeman model";
+                                                   t[1].cast<Numeric>());
+          }))
+      .doc() = "A Zeeman model";
   py::implicitly_convertible<std::array<Numeric, 2>, Zeeman::Model>();
 
   artsclass<LineShape::Output>(m, "LineShapeOutput")
@@ -129,7 +150,8 @@ void py_spectroscopy(py::module_& m) try {
                        Numeric g,
                        Numeric h,
                        Numeric i) {
-             return std::make_shared< LineShape::Output>(a, b, c, d, e, f, g, h, i);
+             return std::make_shared<LineShape::Output>(
+                 a, b, c, d, e, f, g, h, i);
            }),
            py::arg("g0") = 0,
            py::arg("d0") = 0,
@@ -139,17 +161,43 @@ void py_spectroscopy(py::module_& m) try {
            py::arg("eta") = 0,
            py::arg("y") = 0,
            py::arg("g") = 0,
-           py::arg("dv") = 0, "From values")
+           py::arg("dv") = 0,
+           "From values")
       .PythonInterfaceCopyValue(LineShape::Output)
-      .PythonInterfaceReadWriteData(LineShape::Output, G0, ":class:`float`: Pressure broadening speed-independent")
-      .PythonInterfaceReadWriteData(LineShape::Output, D0, ":class:`float`: Pressure f-shifting speed-independent")
-      .PythonInterfaceReadWriteData(LineShape::Output, G2, ":class:`float`: Pressure broadening speed-dependent")
-      .PythonInterfaceReadWriteData(LineShape::Output, D2, ":class:`float`: Pressure f-shifting speed-dependent")
-      .PythonInterfaceReadWriteData(LineShape::Output, ETA, ":class:`float`: Correlation")
-      .PythonInterfaceReadWriteData(LineShape::Output, FVC, ":class:`float`: Frequency of velocity-changing collisions")
-      .PythonInterfaceReadWriteData(LineShape::Output, Y, ":class:`float`: First order line mixing coefficient")
-      .PythonInterfaceReadWriteData(LineShape::Output, G, ":class:`float`: Second order line mixing coefficient")
-      .PythonInterfaceReadWriteData(LineShape::Output, DV, ":class:`float`: Second order line mixing f-shifting")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          G0,
+          ":class:`float`: Pressure broadening speed-independent")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          D0,
+          ":class:`float`: Pressure f-shifting speed-independent")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          G2,
+          ":class:`float`: Pressure broadening speed-dependent")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          D2,
+          ":class:`float`: Pressure f-shifting speed-dependent")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output, ETA, ":class:`float`: Correlation")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          FVC,
+          ":class:`float`: Frequency of velocity-changing collisions")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          Y,
+          ":class:`float`: First order line mixing coefficient")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          G,
+          ":class:`float`: Second order line mixing coefficient")
+      .PythonInterfaceReadWriteData(
+          LineShape::Output,
+          DV,
+          ":class:`float`: Second order line mixing f-shifting")
       .PythonInterfaceBasicRepresentation(LineShape::Output)
       .def(py::pickle(
           [](const LineShape::Output& t) {
@@ -158,16 +206,17 @@ void py_spectroscopy(py::module_& m) try {
           },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 9, "Invalid state!")
-            return std::make_shared< LineShape::Output>(t[0].cast<Numeric>(),
-                                         t[1].cast<Numeric>(),
-                                         t[2].cast<Numeric>(),
-                                         t[3].cast<Numeric>(),
-                                         t[4].cast<Numeric>(),
-                                         t[5].cast<Numeric>(),
-                                         t[6].cast<Numeric>(),
-                                         t[7].cast<Numeric>(),
-                                         t[8].cast<Numeric>());
-          })).doc() = "Derived line shape parameters";
+            return std::make_shared<LineShape::Output>(t[0].cast<Numeric>(),
+                                                       t[1].cast<Numeric>(),
+                                                       t[2].cast<Numeric>(),
+                                                       t[3].cast<Numeric>(),
+                                                       t[4].cast<Numeric>(),
+                                                       t[5].cast<Numeric>(),
+                                                       t[6].cast<Numeric>(),
+                                                       t[7].cast<Numeric>(),
+                                                       t[8].cast<Numeric>());
+          }))
+      .doc() = "Derived line shape parameters";
 
   artsclass<LineShapeSingleSpeciesModel>(m, "LineShapeSingleSpeciesModel")
       .def(py::init([](LineShape::ModelParameters G0,
@@ -179,7 +228,8 @@ void py_spectroscopy(py::module_& m) try {
                        LineShape::ModelParameters Y,
                        LineShape::ModelParameters G,
                        LineShape::ModelParameters DV) {
-             return std::make_shared<LineShapeSingleSpeciesModel>(G0, D0, G2, D2, FVC, ETA, Y, G, DV);
+             return std::make_shared<LineShapeSingleSpeciesModel>(
+                 G0, D0, G2, D2, FVC, ETA, Y, G, DV);
            }),
            py::arg("G0") = LineShape::ModelParameters{},
            py::arg("D0") = LineShape::ModelParameters{},
@@ -189,7 +239,8 @@ void py_spectroscopy(py::module_& m) try {
            py::arg("ETA") = LineShape::ModelParameters{},
            py::arg("Y") = LineShape::ModelParameters{},
            py::arg("G") = LineShape::ModelParameters{},
-           py::arg("DV") = LineShape::ModelParameters{}, "From values")
+           py::arg("DV") = LineShape::ModelParameters{},
+           "From values")
       .PythonInterfaceCopyValue(LineShapeSingleSpeciesModel)
       .PythonInterfaceBasicRepresentation(LineShapeSingleSpeciesModel)
       .def_property(
@@ -197,55 +248,64 @@ void py_spectroscopy(py::module_& m) try {
           [](const LineShapeSingleSpeciesModel& x) { return x.G0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G0() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-independent")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-independent")
       .def_property(
           "D0",
           [](const LineShapeSingleSpeciesModel& x) { return x.D0(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.D0() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-independent")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-independent")
       .def_property(
           "G2",
           [](const LineShapeSingleSpeciesModel& x) { return x.G2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G2() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-dependent")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure broadening speed-dependent")
       .def_property(
           "D2",
           [](const LineShapeSingleSpeciesModel& x) { return x.D2(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.D2() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-dependent")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Pressure f-shifting speed-dependent")
       .def_property(
           "FVC",
           [](const LineShapeSingleSpeciesModel& x) { return x.FVC(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.FVC() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Frequency of velocity-changing collisions")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Frequency of velocity-changing collisions")
       .def_property(
           "ETA",
           [](const LineShapeSingleSpeciesModel& x) { return x.ETA(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.ETA() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Correlation")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Correlation")
       .def_property(
           "Y",
           [](const LineShapeSingleSpeciesModel& x) { return x.Y(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.Y() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: First order line mixing coefficient")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: First order line mixing coefficient")
       .def_property(
           "G",
           [](const LineShapeSingleSpeciesModel& x) { return x.G(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.G() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Second order line mixing coefficient")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Second order line mixing coefficient")
       .def_property(
           "DV",
           [](const LineShapeSingleSpeciesModel& x) { return x.DV(); },
           [](LineShapeSingleSpeciesModel& x, LineShapeModelParameters y) {
             return x.DV() = y;
-          }, ":class:`~pyarts.arts.LineShapeModelParameters`: Second order line mixing f-shifting")
+          },
+          ":class:`~pyarts.arts.LineShapeModelParameters`: Second order line mixing f-shifting")
       .def(py::pickle(
           [](const LineShapeSingleSpeciesModel& t) {
             return py::make_tuple(t.G0(),
@@ -270,13 +330,16 @@ void py_spectroscopy(py::module_& m) try {
                 t[6].cast<LineShape::ModelParameters>(),
                 t[7].cast<LineShape::ModelParameters>(),
                 t[8].cast<LineShape::ModelParameters>());
-          })).doc() = "Single species line shape model";
+          }))
+      .doc() = "Single species line shape model";
 
   artsclass<LineShapeModel>(m, "LineShapeModel")
-      .def(py::init([]() { return std::make_shared<LineShapeModel>(); }), "Empty model")
+      .def(py::init([]() { return std::make_shared<LineShapeModel>(); }),
+           "Empty model")
       .def(py::init([](const std::vector<LineShapeSingleSpeciesModel>& v) {
-        return std::make_shared<LineShapeModel>(v);
-      }), "From :class:`list`")
+             return std::make_shared<LineShapeModel>(v);
+           }),
+           "From :class:`list`")
       .PythonInterfaceCopyValue(LineShapeModel)
       .PythonInterfaceBasicRepresentation(LineShapeModel)
       .PythonInterfaceIndexItemAccess(LineShapeModel)
@@ -285,14 +348,16 @@ void py_spectroscopy(py::module_& m) try {
           [](const LineShapeModel& x) { return x.Data(); },
           [](LineShapeModel& x, std::vector<LineShapeSingleSpeciesModel> y) {
             x.Data() = std::move(y);
-          }, ":class:`list` of single species models")
+          },
+          ":class:`list` of single species models")
       .def(py::pickle(
           [](const LineShapeModel& t) { return py::make_tuple(t.Data()); },
           [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 1, "Invalid state!")
             return std::make_shared<LineShapeModel>(
                 t[0].cast<std::vector<LineShapeSingleSpeciesModel>>());
-          })).doc() = "Multi-species line shape model";
+          }))
+      .doc() = "Multi-species line shape model";
   py::implicitly_convertible<std::vector<LineShapeSingleSpeciesModel>,
                              LineShapeModel>();
 
@@ -317,18 +382,40 @@ void py_spectroscopy(py::module_& m) try {
            py::arg("A") = 0,
            py::arg("zeeman") = Zeeman::Model(),
            py::arg("lineshape") = LineShape::Model(),
-           py::arg("localquanta") = Quantum::Number::LocalState{}, "From values")
+           py::arg("localquanta") = Quantum::Number::LocalState{},
+           "From values")
       .PythonInterfaceCopyValue(AbsorptionSingleLine)
       .PythonInterfaceBasicRepresentation(AbsorptionSingleLine)
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, F0, ":class:`float` Central frequency")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, I0, ":class:`float` Reference intensity")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, E0, ":class:`float` Lower energy state")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, glow, ":class:`float` Lower level statistical weight")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, gupp, ":class:`float` Upper level statistical weight")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, A, ":class:`float` Einstein spontaneous emission coefficient")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, zeeman, ":class:`pyarts.arts.ZeemanModel` Zeeman model")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, lineshape, ":class:`pyarts.arts.LineShapeModel` Line shape model")
-      .PythonInterfaceReadWriteData(AbsorptionSingleLine, localquanta, ":class:`pyarts.arts.QuantumNumberLocalState` Local quantum numbers")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine, F0, ":class:`float` Central frequency")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine, I0, ":class:`float` Reference intensity")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine, E0, ":class:`float` Lower energy state")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          glow,
+          ":class:`float` Lower level statistical weight")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          gupp,
+          ":class:`float` Upper level statistical weight")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          A,
+          ":class:`float` Einstein spontaneous emission coefficient")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          zeeman,
+          ":class:`pyarts.arts.ZeemanModel` Zeeman model")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          lineshape,
+          ":class:`pyarts.arts.LineShapeModel` Line shape model")
+      .PythonInterfaceReadWriteData(
+          AbsorptionSingleLine,
+          localquanta,
+          ":class:`pyarts.arts.QuantumNumberLocalState` Local quantum numbers")
       .def(py::pickle(
           [](const AbsorptionSingleLine& t) {
             return py::make_tuple(t.F0,
@@ -353,20 +440,24 @@ void py_spectroscopy(py::module_& m) try {
                 t[6].cast<Zeeman::Model>(),
                 t[7].cast<LineShape::Model>(),
                 t[8].cast<Quantum::Number::LocalState>());
-          })).doc() = "Single absorption line";
+          }))
+      .doc() = "Single absorption line";
 
   artsarray<Array<AbsorptionSingleLine>>(m, "ArrayOfAbsorptionSingleLine")
       .doc() = "List of :class:`~pyarts.arts.AbsorptionSingleLine`";
 
-  artsclass<AbsorptionLines>(m, "AbsorptionLines")
+  py_staticAbsorptionLines(m)
       .def(
-          py::init([](bool selfbroadening, bool bathbroadening,
+          py::init([](bool selfbroadening,
+                      bool bathbroadening,
                       AbsorptionCutoffTypeOld cutoff,
                       AbsorptionMirroringTypeOld mirroring,
                       AbsorptionPopulationTypeOld population,
                       AbsorptionNormalizationTypeOld normalization,
-                      LineShapeTypeOld lineshapetype, Numeric T0,
-                      Numeric cutofffreq, Numeric linemixinglimit,
+                      LineShapeTypeOld lineshapetype,
+                      Numeric T0,
+                      Numeric cutofffreq,
+                      Numeric linemixinglimit,
                       QuantumIdentifier quantumidentity,
                       ArrayOfSpeciesEnum broadeningspecies,
                       Array<AbsorptionSingleLine> lines) {
@@ -379,81 +470,118 @@ void py_spectroscopy(py::module_& m) try {
                         quantumidentity.Isotopologue()),
                 "Bad quantumidentity, must specify isotopologue, e.g., H2O-161")
             ARTS_USER_ERROR_IF(
-                std::any_of(lines.begin(), lines.end(),
-                            [count = broadeningspecies.size()](auto &line) {
+                std::any_of(lines.begin(),
+                            lines.end(),
+                            [count = broadeningspecies.size()](auto& line) {
                               return line.lineshape.size() not_eq count;
                             }),
                 "Incorrect size of broadeningspecies vs the line shape model")
             ARTS_USER_ERROR_IF(
-                broadeningspecies.size() < static_cast<std::size_t>(selfbroadening + bathbroadening),
-                "Must have atleast ", (selfbroadening + bathbroadening),
+                broadeningspecies.size() <
+                    static_cast<std::size_t>(selfbroadening + bathbroadening),
+                "Must have atleast ",
+                (selfbroadening + bathbroadening),
                 " broadening species to support settings")
-            return std::make_shared<AbsorptionLines>(selfbroadening,
-                                       bathbroadening,
-                                       cutoff,
-                                       mirroring,
-                                       population,
-                                       normalization,
-                                       lineshapetype,
-                                       T0,
-                                       cutofffreq,
-                                       linemixinglimit,
-                                       std::move(quantumidentity),
-                                       std::move(broadeningspecies),
-                                       std::move(lines));
+            return std::make_shared<AbsorptionLines>(
+                selfbroadening,
+                bathbroadening,
+                cutoff,
+                mirroring,
+                population,
+                normalization,
+                lineshapetype,
+                T0,
+                cutofffreq,
+                linemixinglimit,
+                std::move(quantumidentity),
+                std::move(broadeningspecies),
+                std::move(lines));
           }),
-          py::arg("selfbroadening") = false, py::arg("bathbroadening") = false,
+          py::arg("selfbroadening") = false,
+          py::arg("bathbroadening") = false,
           py::arg("cutoff") = AbsorptionCutoffTypeOld::None,
           py::arg("mirroring") = AbsorptionMirroringTypeOld::None,
           py::arg("population") = AbsorptionPopulationTypeOld::LTE,
           py::arg("normalization") = AbsorptionNormalizationTypeOld::None,
-          py::arg("lineshapetype") = LineShapeTypeOld::DP, py::arg("T0") = 296,
-          py::arg("cutofffreq") = -1, py::arg("linemixinglimit") = -1,
+          py::arg("lineshapetype") = LineShapeTypeOld::DP,
+          py::arg("T0") = 296,
+          py::arg("cutofffreq") = -1,
+          py::arg("linemixinglimit") = -1,
           py::arg("quantumidentity") = QuantumIdentifier("H2O-161"),
           py::arg("broadeningspecies") = ArrayOfSpeciesEnum{},
-          py::arg("lines") = Array<AbsorptionSingleLine>{}, "From values")
-      .PythonInterfaceCopyValue(AbsorptionLines)
-      .PythonInterfaceWorkspaceVariableConversion(AbsorptionLines)
-      .def(
-          "__str__", [](const AbsorptionLines &x) { return var_string(x); })
-      .def(
-          "__repr__",
-          [](const AbsorptionLines &x) {
-            return var_string("'",
-                              x.quantumidentity,
-                              "'-band of ",
-                              x.lines.size(),
-                              " lines");
-          })
-      .PythonInterfaceFileIO(AbsorptionLines)
-      .PythonInterfaceReadWriteData(AbsorptionLines, selfbroadening, ":class:`bool` Does the line broadening have self broadening?")
-      .PythonInterfaceReadWriteData(AbsorptionLines, bathbroadening, ":class:`bool` Does the line broadening have bath broadening?")
-      .PythonInterfaceReadWriteData(AbsorptionLines, cutoff, ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, mirroring, ":class:`~pyarts.arts.options.AbsorptionMirroringype` Mirroring type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, population, ":class:`~pyarts.arts.options.AbsorptionPopulationTypeOld` Line population distribution")
-      .PythonInterfaceReadWriteData(AbsorptionLines, normalization, ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, lineshapetype, ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
-      .PythonInterfaceReadWriteData(AbsorptionLines, T0, ":class:`float` Reference temperature for all parameters of the lines")
-      .PythonInterfaceReadWriteData(AbsorptionLines, cutofffreq, ":class:`float` Cutoff frequency")
-      .PythonInterfaceReadWriteData(AbsorptionLines, linemixinglimit, ":class:`float` Linemixing limit")
-      .PythonInterfaceReadWriteData(AbsorptionLines, quantumidentity, ":class:`~pyarts.arts.QuantumIdentifier` Catalog ID")
-      .PythonInterfaceReadWriteData(AbsorptionLines, broadeningspecies, ":class:`~pyarts.arts.ArrayOfSpecies` A list of broadening specie")
-      .PythonInterfaceReadWriteData(AbsorptionLines, lines, ":class:`~pyarts.arts.AbsorptionSingleLine` A list of individual lines")
+          py::arg("lines") = Array<AbsorptionSingleLine>{},
+          "From values")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          selfbroadening,
+          ":class:`bool` Does the line broadening have self broadening?")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          bathbroadening,
+          ":class:`bool` Does the line broadening have bath broadening?")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          cutoff,
+          ":class:`~pyarts.arts.options.AbsorptionCutoffTypeOld` Cutoff type")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          mirroring,
+          ":class:`~pyarts.arts.options.AbsorptionMirroringype` Mirroring type")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          population,
+          ":class:`~pyarts.arts.options.AbsorptionPopulationTypeOld` Line population distribution")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          normalization,
+          ":class:`~pyarts.arts.options.AbsorptionNormalizationTypeOld` Normalization type")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          lineshapetype,
+          ":class:`~pyarts.arts.options.LineShapeTypeOld` Line shape type")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          T0,
+          ":class:`float` Reference temperature for all parameters of the lines")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines, cutofffreq, ":class:`float` Cutoff frequency")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines, linemixinglimit, ":class:`float` Linemixing limit")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          quantumidentity,
+          ":class:`~pyarts.arts.QuantumIdentifier` Catalog ID")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          broadeningspecies,
+          ":class:`~pyarts.arts.ArrayOfSpecies` A list of broadening specie")
+      .PythonInterfaceReadWriteData(
+          AbsorptionLines,
+          lines,
+          ":class:`~pyarts.arts.AbsorptionSingleLine` A list of individual lines")
       .def_property_readonly(
-          "ok", &AbsorptionLines::OK,
-          py::doc(R"(:class:`bool` If False, the catalog cannot be used for any calculations)"))
-      .def_property_readonly("meta_data", &AbsorptionLines::MetaData,
-                             py::doc(R"(:class:`~pyarts.arts.String` Catalog meta data string)"))
+          "ok",
+          &AbsorptionLines::OK,
+          py::doc(
+              R"(:class:`bool` If False, the catalog cannot be used for any calculations)"))
+      .def_property_readonly(
+          "meta_data",
+          &AbsorptionLines::MetaData,
+          py::doc(R"(:class:`~pyarts.arts.String` Catalog meta data string)"))
       .def(
           "LineShapeOutput",
-          [](AbsorptionLines &band, Index line, Numeric T, Numeric P,
-             const Vector &VMR) {
+          [](AbsorptionLines& band,
+             Index line,
+             Numeric T,
+             Numeric P,
+             const Vector& VMR) {
             ARTS_USER_ERROR_IF(not band.OK(), "Band in bad shape")
             ARTS_USER_ERROR_IF(not(T > 0) or not(P >= 0),
                                "Bad atmospheric state (T P): ",
                                Vector{T, P})
             ARTS_USER_ERROR_IF(
-                static_cast<Size>(VMR.size()) not_eq band.broadeningspecies.size(),
+                static_cast<Size>(VMR.size()) not_eq
+                    band.broadeningspecies.size(),
                 "Mismatch between VMRs and broadening species.\nVMR: ",
                 VMR,
                 "\nSpecies: ",
@@ -461,7 +589,11 @@ void py_spectroscopy(py::module_& m) try {
             band.lines.at(line);
 
             return band.ShapeParameters(line, T, P, VMR);
-          }, py::arg("line"), py::arg("T"), py::arg("P"), py::arg("VMR"),
+          },
+          py::arg("line"),
+          py::arg("T"),
+          py::arg("P"),
+          py::arg("VMR"),
           py::doc(
               R"--(Computes the line shape paramters for the given atmospheric state
 
@@ -484,7 +616,7 @@ X : ~pyarts.arts.LineShapeOutput
     The computed line shape parameters
 )--"))
       .def(py::pickle(
-          [](const AbsorptionLines &t) {
+          [](const AbsorptionLines& t) {
             return py::make_tuple(t.selfbroadening,
                                   t.bathbroadening,
                                   t.cutoff,
@@ -499,7 +631,7 @@ X : ~pyarts.arts.LineShapeOutput
                                   t.broadeningspecies,
                                   t.lines);
           },
-          [](const py::tuple &t) {
+          [](const py::tuple& t) {
             ARTS_USER_ERROR_IF(t.size() != 13, "Invalid state!")
             return std::make_shared<AbsorptionLines>(
                 t[0].cast<bool>(),
@@ -515,21 +647,17 @@ X : ~pyarts.arts.LineShapeOutput
                 t[10].cast<QuantumIdentifier>(),
                 t[11].cast<ArrayOfSpeciesEnum>(),
                 t[12].cast<Array<AbsorptionSingleLine>>());
-          }))
-      .PythonInterfaceWorkspaceDocumentation(AbsorptionLines);
+          }));
 
-  artsarray<ArrayOfAbsorptionLines>(m, "ArrayOfAbsorptionLines")
-      .PythonInterfaceFileIO(ArrayOfAbsorptionLines)
-.def("fuzzy_find_all", [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
-      return fuzzy_find_all(a, q);
-    }, py::arg("q"), "Find all the indexes that could match the given quantum identifier")
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
-
-  artsarray<ArrayOfArrayOfAbsorptionLines>(m,
-                                                "ArrayOfArrayOfAbsorptionLines")
-      .PythonInterfaceFileIO(ArrayOfArrayOfAbsorptionLines)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfAbsorptionLines);
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
+  py_staticArrayOfAbsorptionLines(m).def(
+      "fuzzy_find_all",
+      [](const ArrayOfAbsorptionLines& a, const QuantumIdentifier& q) {
+        return fuzzy_find_all(a, q);
+      },
+      py::arg("q"),
+      "Find all the indexes that could match the given quantum identifier");
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize spectroscopy\n", e.what()));
 }
 }  // namespace Python

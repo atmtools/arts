@@ -6,9 +6,7 @@
 
 namespace Python {
 void py_path(py::module_& m) try {
-  artsclass<PropagationPathPoint>(m, "PropagationPathPoint")
-      .def(py::init([]() { return std::make_shared<PropagationPathPoint>(); }),
-           "Empty path point")
+  py_staticPropagationPathPoint(m)
       .def_readwrite(
           "pos_type",
           &PropagationPathPoint::pos_type,
@@ -28,16 +26,7 @@ void py_path(py::module_& m) try {
                      ":class:`float` Path real refractive index")
       .def_readwrite("ngroup",
                      &PropagationPathPoint::ngroup,
-                     ":class:`float` Path group refractive index")
-      .PythonInterfaceCopyValue(PropagationPathPoint)
-      .PythonInterfaceWorkspaceVariableConversion(PropagationPathPoint)
-      .PythonInterfaceFileIO(PropagationPathPoint)
-      .PythonInterfaceBasicRepresentation(PropagationPathPoint)
-      .PythonInterfaceWorkspaceDocumentation(PropagationPathPoint);
-
-  artsarray<ArrayOfPropagationPathPoint>(m, "ArrayOfPropagationPathPoint")
-      .PythonInterfaceFileIO(ArrayOfPropagationPathPoint)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfPropagationPathPoint);
+                     ":class:`float` Path group refractive index");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));

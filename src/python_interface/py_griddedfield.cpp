@@ -12,22 +12,18 @@
 namespace Python {
 
 template <typename T, typename... Grids>
-auto artsgf(py::module_& m, const char* name) {
+auto& fix_griddedfield(artsclass<matpack::gridded_data<T, Grids...>>& gf) {
   using GF = matpack::gridded_data<T, Grids...>;
 
-  auto gf =
-      artsclass<GF>(m, name)
-          .def(py::init([]() { return std::make_shared<GF>(); }), "Empty field")
-          .def(py::init<GF>(), "Copy field")
-          .def(py::init<std::string,
-                        typename GF::data_t,
-                        std::array<std::string, GF::dim>,
-                        typename GF::grids_t>(),
-               "Full field",
-               py::arg("dataname") = "",
-               py::arg("data"),
-               py::arg("gridnames") = std::array<std::string, GF::dim>{},
-               py::arg("grids"));
+  gf.def(py::init<std::string,
+                  typename GF::data_t,
+                  std::array<std::string, GF::dim>,
+                  typename GF::grids_t>(),
+         "Full field",
+         py::arg("dataname") = "",
+         py::arg("data"),
+         py::arg("gridnames") = std::array<std::string, GF::dim>{},
+         py::arg("grids"));
 
   gf.def_readwrite("data", &GF::data, "Data field");
   gf.def_readwrite("dataname", &GF::data_name, "Data name");
@@ -48,8 +44,6 @@ auto artsgf(py::module_& m, const char* name) {
   gf.def("__setitem__", [](py::object& x, py::object& y, py::object& z) {
     return x.attr("data").attr("__setitem__")(y, z);
   });
-  gf.def("__repr__", [](const GF& gd) { return var_string(gd); });
-  gf.def("__str__", [](const GF& gd) { return var_string(gd); });
 
   gf.def(py::pickle(
       [](const py::object& self) {
@@ -135,95 +129,41 @@ auto artsgf(py::module_& m, const char* name) {
   return gf;
 }
 
+template <typename T, typename... Grids>
+auto artsgf(py::module_& m, const char* name) {
+  using GF = matpack::gridded_data<T, Grids...>;
+
+  auto gf =
+      artsclass<GF>(m, name)
+          .def(py::init([]() { return std::make_shared<GF>(); }), "Empty field")
+          .def(py::init<GF>(), "Copy field");
+
+  fix_griddedfield(gf);
+
+  gf.def("__repr__", [](const GF& gd) { return var_string(gd); });
+  gf.def("__str__", [](const GF& gd) { return var_string(gd); });
+
+  return gf;
+}
+
 using VectorOrArrayOfString = std::variant<Vector, ArrayOfString>;
 
 void py_griddedfield(py::module_& m) try {
-  artsgf<Numeric, Vector>(m, "GriddedField1")
-      .PythonInterfaceFileIO(GriddedField1)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField1);
+  fix_griddedfield(py_staticGriddedField1(m));
+  fix_griddedfield(py_staticGriddedField2(m));
+  fix_griddedfield(py_staticGriddedField3(m));
+  fix_griddedfield(py_staticGriddedField4(m));
+  fix_griddedfield(py_staticGriddedField5(m));
+  fix_griddedfield(py_staticGriddedField6(m));
 
-  artsgf<Numeric, Vector, Vector>(m, "GriddedField2")
-      .PythonInterfaceFileIO(GriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField2);
+  fix_griddedfield(py_staticNamedGriddedField2(m));
+  fix_griddedfield(py_staticNamedGriddedField3(m));
 
-  artsgf<Numeric, Vector, Vector, Vector>(m, "GriddedField3")
-      .PythonInterfaceFileIO(GriddedField3)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField3);
+  fix_griddedfield(py_staticGriddedField1Named(m));
 
-  artsgf<Numeric, Vector, Vector, Vector, Vector>(m, "GriddedField4")
-      .PythonInterfaceFileIO(GriddedField4)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField4);
+  fix_griddedfield(py_staticComplexGriddedField2(m));
 
-  artsgf<Numeric, Vector, Vector, Vector, Vector, Vector>(m, "GriddedField5")
-      .PythonInterfaceFileIO(GriddedField5)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField5);
-
-  artsgf<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>(
-      m, "GriddedField6")
-      .PythonInterfaceFileIO(GriddedField6)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField6);
-
-  artsgf<Numeric, ArrayOfString, Vector, Vector>(m, "NamedGriddedField2")
-      .PythonInterfaceFileIO(NamedGriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(NamedGriddedField2);
-  artsgf<Numeric, ArrayOfString, Vector, Vector, Vector>(m,
-                                                         "NamedGriddedField3")
-      .PythonInterfaceFileIO(NamedGriddedField3)
-      .PythonInterfaceWorkspaceDocumentation(NamedGriddedField3);
-
-  artsgf<Numeric, Vector, ArrayOfString>(m, "GriddedField1Named")
-      .PythonInterfaceFileIO(GriddedField1Named)
-      .PythonInterfaceWorkspaceDocumentation(GriddedField1Named);
-
-  artsgf<Complex, Vector, Vector>(m, "ComplexGriddedField2")
-      .PythonInterfaceFileIO(ComplexGriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(ComplexGriddedField2);
-
-  artsgf<Stokvec,
-         AscendingGrid,
-         AscendingGrid,
-         AscendingGrid,
-         AscendingGrid,
-         AscendingGrid,
-         AscendingGrid>(m, "StokvecGriddedField6")
-      .PythonInterfaceFileIO(StokvecGriddedField6)
-      .PythonInterfaceWorkspaceDocumentation(StokvecGriddedField6);
-
-  artsarray<ArrayOfGriddedField1>(m, "ArrayOfGriddedField1")
-      .PythonInterfaceFileIO(ArrayOfGriddedField1)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField1);
-
-  artsarray<ArrayOfGriddedField2>(m, "ArrayOfGriddedField2")
-      .PythonInterfaceFileIO(ArrayOfGriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField2);
-
-  artsarray<ArrayOfGriddedField3>(m, "ArrayOfGriddedField3")
-      .PythonInterfaceFileIO(ArrayOfGriddedField3)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField3);
-
-  artsarray<ArrayOfGriddedField4>(m, "ArrayOfGriddedField4")
-      .PythonInterfaceFileIO(ArrayOfGriddedField4)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField4);
-
-  artsarray<ArrayOfArrayOfGriddedField1>(m, "ArrayOfArrayOfGriddedField1")
-      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField1)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField1);
-
-  artsarray<ArrayOfArrayOfGriddedField2>(m, "ArrayOfArrayOfGriddedField2")
-      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField2);
-
-  artsarray<ArrayOfArrayOfGriddedField3>(m, "ArrayOfArrayOfGriddedField3")
-      .PythonInterfaceFileIO(ArrayOfArrayOfGriddedField3)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfGriddedField3);
-
-  artsarray<ArrayOfNamedGriddedField2>(m, "ArrayOfNamedGriddedField2")
-      .PythonInterfaceFileIO(ArrayOfNamedGriddedField2)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfNamedGriddedField2);
-
-  artsarray<ArrayOfGriddedField1Named>(m, "ArrayOfGriddedField1Named")
-      .PythonInterfaceFileIO(ArrayOfGriddedField1Named)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfGriddedField1Named);
+  fix_griddedfield(py_staticStokvecGriddedField6(m));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));

@@ -55,8 +55,8 @@ void py_species(py::module_& m) try {
             return out;
           }));
 
-  artsarray<ArrayOfSpeciesEnum>(m, "ArrayOfSpeciesEnum")
-      .def(py::init([](const std::vector<std::string>& x) {
+  py_staticArrayOfSpeciesEnum(m).def(
+      py::init([](const std::vector<std::string>& x) {
         ArrayOfSpeciesEnum out;
         out.reserve(x.size());
         py::print(x);
@@ -65,12 +65,10 @@ void py_species(py::module_& m) try {
                        std::back_inserter(out),
                        [](const std::string& s) { return to<SpeciesEnum>(s); });
         return out;
-      }))
-      .PythonInterfaceFileIO(ArrayOfSpeciesEnum)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesEnum);
+      }));
   py::implicitly_convertible<std::vector<std::string>, ArrayOfSpeciesEnum>();
 
-  artsclass<SpeciesIsotope>(m, "SpeciesIsotope")
+  py_staticSpeciesIsotope(m)
       .def(py::init([](Index i) { return Species::Isotopologues.at(i); }),
            py::arg("isot") = 0,
            "From position")
@@ -85,8 +83,6 @@ void py_species(py::module_& m) try {
           },
           py::arg("T"),
           "Partition function")
-      .PythonInterfaceCopyValue(SpeciesIsotope)
-      .PythonInterfaceBasicRepresentation(SpeciesIsotope)
       .def_readonly("spec",
                     &SpeciesIsotope::spec,
                     ":class:`~pyarts.arts.Species` The species")
@@ -119,30 +115,14 @@ void py_species(py::module_& m) try {
                                                     t[1].cast<std::string>(),
                                                     t[2].cast<Numeric>(),
                                                     t[3].cast<Index>());
-          }))
-      .PythonInterfaceCopyValue(SpeciesIsotope)
-      .PythonInterfaceWorkspaceVariableConversion(SpeciesIsotope)
-      .PythonInterfaceBasicRepresentation(SpeciesIsotope)
-      .PythonInterfaceFileIO(SpeciesIsotope)
-      .PythonInterfaceWorkspaceDocumentationExtra(SpeciesIsotope,
-                                                  docs_isotopes());
+          }));
   py::implicitly_convertible<std::string, SpeciesIsotope>();
 
-  artsarray<ArrayOfSpeciesIsotope>(m, "ArrayOfSpeciesIsotope")
-      .PythonInterfaceFileIO(ArrayOfSpeciesIsotope)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesIsotope);
-
-  artsclass<SpeciesTag>(m, "SpeciesTag")
-      .def(py::init([]() { return std::make_shared<SpeciesTag>("Ar"); }),
-           "Empty tag; Defaults to Argon as a neutral species")
+  py_staticSpeciesTag(m)
       .def(py::init([](const std::string& s) {
              return std::make_shared<SpeciesTag>(s);
            }),
            "From :class:`str`")
-      .PythonInterfaceCopyValue(SpeciesTag)
-      .PythonInterfaceWorkspaceVariableConversion(SpeciesTag)
-      .PythonInterfaceBasicRepresentation(SpeciesTag)
-      .PythonInterfaceFileIO(SpeciesTag)
       .def_readwrite(
           "spec_ind", &SpeciesTag::spec_ind, ":class:`int` Species index")
       .def_readwrite("type",
@@ -169,7 +149,6 @@ Returns
       .def_property_readonly("full_name",
                              &SpeciesTag::FullName,
                              ":class:`~pyarts.arts.String` The full name")
-      .PythonInterfaceBasicRepresentation(SpeciesTag)
       .def(py::self == py::self)
       .def(py::pickle(
           [](const SpeciesTag& t) {
@@ -183,14 +162,10 @@ Returns
             out->type = t[3].cast<SpeciesTagType>();
             out->cia_2nd_species = t[4].cast<SpeciesEnum>();
             return out;
-          }))
-      .doc() = "The tag of a single absorption species";
+          }));
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  artsarray<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag").doc() =
-      "Internal array type - do not use manually ";
-
-  artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
+  py_manual_staticArrayOfSpeciesTag(m)
       .def(py::init([](const std::string& x) {
         return std::make_shared<ArrayOfSpeciesTag>(x);
       }))
@@ -204,7 +179,6 @@ Returns
       }))
       .PythonInterfaceFileIO(ArrayOfSpeciesTag)
       .PythonInterfaceCopyValue(ArrayOfSpeciesTag)
-      .PythonInterfaceWorkspaceVariableConversion(ArrayOfSpeciesTag)
       .PythonInterfaceBasicRepresentation(ArrayOfSpeciesTag)
       .PythonInterfaceIndexItemAccess(ArrayOfSpeciesTag)
       .def(py::self == py::self)
@@ -267,15 +241,11 @@ Returns
         });
         return out;
       }))
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfSpeciesTag);
+      .doc() = "List of :class:`~pyarts.arts.SpeciesTag`";
   py::implicitly_convertible<std::string, ArrayOfSpeciesTag>();
   py::implicitly_convertible<Array<SpeciesTag>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<Array<py::object>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<py::list, ArrayOfSpeciesTag>();
-
-  artsarray<ArrayOfArrayOfSpeciesTag>(m, "ArrayOfArrayOfSpeciesTag")
-      .PythonInterfaceFileIO(ArrayOfArrayOfSpeciesTag)
-      .PythonInterfaceWorkspaceDocumentation(ArrayOfArrayOfSpeciesTag);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize species\n", e.what()));

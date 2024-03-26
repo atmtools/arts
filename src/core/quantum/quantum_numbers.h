@@ -989,7 +989,7 @@ struct LevelTest {
 struct GlobalState {
   static constexpr Index version = 1;  // Second version of quantum identifiers
 
-  Index isotopologue_index{-1};
+  Index isotopologue_index{"Ar-8"_isot_index};
   ValueList val{};
 
   GlobalState() = default;

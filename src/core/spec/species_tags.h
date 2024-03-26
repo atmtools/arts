@@ -14,7 +14,7 @@
 namespace Species {
 struct Tag {
   //! Molecular species index in Species::Isotopologues
-  Index spec_ind{-1};
+  Index spec_ind{"Ar"_isot_index};
 
   //! Flag for the type
   SpeciesTagType type{SpeciesTagType::Plain};
