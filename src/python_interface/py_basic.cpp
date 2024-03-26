@@ -12,6 +12,7 @@
 #include "auto_wsg.h"
 #include "mystring.h"
 #include "py_macros.h"
+#include "py_matpack.h"
 #include "python_interface_value_type.h"
 #include "xml_io.h"
 #include "xml_io_general_types.h"
@@ -200,6 +201,17 @@ void py_basic(py::module_& m) try {
       ArrayOfString>();
 
   py_staticArrayOfIndex(m)
+      .def(py::init([](const numpy_array& x) {
+             auto g = copy<1, Index>(x);
+             return ArrayOfIndex{g->elem_begin(), g->elem_end()};
+           }),
+           py::doc("From :class:`numpy.ndarray` equivalent"),
+           py::prepend())
+      .def(py::init([](const py::list& x) {
+             return py::cast<ArrayOfIndex>(x.cast<numpy_array>());
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
       .def("index",
            [](const ArrayOfIndex& v, const Index& f) {
              auto ptr = std::ranges::find(v, f);
@@ -226,6 +238,8 @@ void py_basic(py::module_& m) try {
               py::keep_alive<0, 1>()),
           [](ArrayOfIndex& x, ArrayOfIndex& y) { x = y; },
           "Operate on type as if :class:`numpy.ndarray` type");
+  py::implicitly_convertible<numpy_array, ArrayOfIndex>();
+  py::implicitly_convertible<py::list, ArrayOfIndex>();
 
   artsarray<ArrayOfNumeric>(m, "ArrayOfNumeric", py::buffer_protocol())
       .def("index",

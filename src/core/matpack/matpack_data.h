@@ -783,3 +783,6 @@ using ComplexMatrix = matpack::matpack_data<Complex, 2>;
 
 //! A tensor3 of Complex
 using ComplexTensor3 = matpack::matpack_data<Complex, 3>;
+
+//! A vector of Index
+using IndexVector = matpack::matpack_data<Index, 1>;

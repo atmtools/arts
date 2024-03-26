@@ -37,6 +37,41 @@ void py_matpack(py::module_& m) try {
           }))
       .doc() = "A range, used to select parts of a matpack type";
 
+  artsclass<IndexVector>(m, "IndexVector", py::buffer_protocol())
+      .def(py::init<>())
+      .def(py::init<const IndexVector&>())
+      .def(py::init([](const numpy_array& x) { return copy<1, Index>(x); }),
+           py::arg("vec").none(false),
+           py::doc("From :class:`numpy.ndarray` equivalent"))
+      .def(py::init([](const py::list& x) {
+             return py::cast<IndexVector>(x.cast<numpy_array>());
+           }),
+           py::arg("lst"),
+           py::doc("From :class:`list` equivalent via numpy"))
+      .PythonInterfaceCopyValue(IndexVector)
+      .PythonInterfaceBasicRepresentation(IndexVector)
+      .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties
+      .def_buffer([](IndexVector& x) -> py::buffer_info {
+        return py::buffer_info(x.data_handle(),
+                               sizeof(Index),
+                               py::format_descriptor<Index>::format(),
+                               1,
+                               {x.size()},
+                               {sizeof(Index)});
+      })
+      .def_property(
+          "value",
+          py::cpp_function(
+              [](IndexVector& x) {
+                py::object np = py::module_::import("numpy");
+                return np.attr("array")(x, py::arg("copy") = false);
+              },
+              py::keep_alive<0, 1>()),
+          [](IndexVector& x, IndexVector& y) { x = y; },
+          py::doc(":class:`~numpy.ndarray` Data array"));
+  py::implicitly_convertible<numpy_array, IndexVector>();
+  py::implicitly_convertible<py::list, IndexVector>();
+
   py_staticVector(m)
       .def(py::init([](const numpy_array& x) { return copy<1, Numeric>(x); }),
            py::arg("vec").none(false),
