@@ -27,8 +27,6 @@ void py_path(py::module_& m) try {
       .def_readwrite("ngroup",
                      &PropagationPathPoint::ngroup,
                      ":class:`float` Path group refractive index");
-
-  py_staticArrayOfPropagationPathPoint(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize ppath\n", e.what()));

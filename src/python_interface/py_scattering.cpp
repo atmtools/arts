@@ -86,11 +86,6 @@ void py_scattering(py::module_& m) try {
                                           t[5].cast<Numeric>(),
                                           t[6].cast<Numeric>()});
           }));
-
-  py_staticArrayOfScatteringMetaData(m);
-  py_staticArrayOfSingleScatteringData(m);
-  py_staticArrayOfArrayOfScatteringMetaData(m);
-  py_staticArrayOfArrayOfSingleScatteringData(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize scattering\n", e.what()));
 }

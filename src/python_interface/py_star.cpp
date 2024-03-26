@@ -32,8 +32,6 @@ void py_star(py::module_& m) try {
                              t[4].cast<Numeric>(),
                              t[5].cast<Numeric>()});
           }));
-
-  py_staticArrayOfSun(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize star\n", e.what()));
 }

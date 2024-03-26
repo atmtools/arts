@@ -256,10 +256,6 @@ void py_basic(py::module_& m) try {
           "Operate on type as if :class:`numpy.ndarray` type")
       .doc() = "List of :class:`~Numeric` values";
 
-  py_staticArrayOfArrayOfString(m);
-
-  py_staticArrayOfArrayOfIndex(m);
-
   py_staticAny(m)
       .def(py::init([](const py::args&, const py::kwargs&) {
              return std::make_shared<Any>();

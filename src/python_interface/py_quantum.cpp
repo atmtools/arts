@@ -150,8 +150,6 @@ symbol : str
             return out;
           }));
   py::implicitly_convertible<std::string, QuantumIdentifier>();
-
-  py_staticArrayOfQuantumIdentifier(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize quantum\n", e.what()));
 }

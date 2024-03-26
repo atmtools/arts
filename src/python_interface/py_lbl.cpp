@@ -212,8 +212,6 @@ void py_lbl(py::module_& m) try {
           py::keep_alive<0, 1>(),
           ":class:`~pyarts.arts.AbsorptionBandData`");
 
-  py_staticLinemixingEcsData(m);
-
   lbl.def(
       "equivalent_lines",
       [](const AbsorptionBand& band,

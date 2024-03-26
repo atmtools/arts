@@ -76,8 +76,6 @@ void py_time(py::module_& m) try {
             return out;
           },
           py::doc("A :class:`list` of :class:`datetime.datetime`"));
-
-  py_staticArrayOfArrayOfTime(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize time\n", e.what()));
 }

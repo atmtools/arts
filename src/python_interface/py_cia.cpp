@@ -98,8 +98,6 @@ Returns
             out->TwoSpecies() = t[1].cast<std::array<SpeciesEnum, 2>>();
             return out;
           }));
-
-  py_staticArrayOfCIARecord(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize cia\n", e.what()));

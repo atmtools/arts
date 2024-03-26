@@ -227,11 +227,6 @@ void py_rtepack(py::module_ &m) try {
                     [](StokvecTensor6 &x, StokvecTensor6 &y) { x = y; })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
 
-  py_staticArrayOfStokvecVector(m);
-  py_staticArrayOfStokvecMatrix(m);
-  py_staticArrayOfArrayOfStokvecVector(m);
-  py_staticArrayOfArrayOfStokvecMatrix(m);
-
   py_staticPropmat(m)
       .def(py::init<Numeric>())
       .def(py::init<Numeric,
@@ -308,11 +303,6 @@ void py_rtepack(py::module_ &m) try {
                         py::keep_alive<0, 1>()),
                     [](PropmatMatrix &x, PropmatMatrix &y) { x = y; })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-
-  py_staticArrayOfPropmatVector(m);
-  py_staticArrayOfPropmatMatrix(m);
-  py_staticArrayOfArrayOfPropmatVector(m);
-  py_staticArrayOfArrayOfPropmatMatrix(m);
 
   py_staticMuelmat(m)
       .def(py::init<Numeric>())
@@ -403,11 +393,6 @@ void py_rtepack(py::module_ &m) try {
                         py::keep_alive<0, 1>()),
                     [](MuelmatMatrix &x, MuelmatMatrix &y) { x = y; })
       .PythonInterfaceValueOperators.PythonInterfaceNumpyValueProperties;
-
-  py_staticArrayOfMuelmatVector(m);
-  py_staticArrayOfMuelmatMatrix(m);
-  py_staticArrayOfArrayOfMuelmatVector(m);
-  py_staticArrayOfArrayOfMuelmatMatrix(m);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

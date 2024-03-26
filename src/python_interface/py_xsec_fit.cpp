@@ -291,8 +291,6 @@ Returns
                             a.data == b.data;
                    });
       });
-
-  py_staticArrayOfXsecRecord(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize xsec fit\n", e.what()));

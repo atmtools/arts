@@ -265,8 +265,6 @@ void py_atm(py::module_ &m) try {
 
             return out;
           }));
-
-  py_staticArrayOfAtmPoint(m);
 } catch (std::exception &e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize atm\n", e.what()));

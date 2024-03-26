@@ -52,9 +52,9 @@ void py_surf(py::module_ &m) try {
   py::implicitly_convertible<Index, Surf::Data>();
   py::implicitly_convertible<Surf::FunctionalData, Surf::Data>();
 
-  auto pnt = py_staticSurfacePoint(m);
+  auto& pnt = py_staticSurfacePoint(m);
 
-  auto fld = py_staticSurfaceField(m);
+  auto& fld = py_staticSurfaceField(m);
 
   pnt.def_readwrite("temperature", &SurfacePoint::temperature)
       .def_readwrite("elevation", &SurfacePoint::elevation)

@@ -15,9 +15,6 @@ void py_matpack(py::module_& m) try {
   fix_matpack_constant_data(py_staticVector2(m));
   fix_matpack_constant_data(py_staticVector3(m));
 
-  py_staticArrayOfVector2(m);
-  py_staticArrayOfVector3(m);
-
   artsclass<Range>(m, "Range")
       .def(py::init([](Index a, Index b, Index c) {
              ARTS_USER_ERROR_IF(0 > a, "Bad offset")
@@ -330,18 +327,6 @@ void py_matpack(py::module_& m) try {
   py::implicitly_convertible<py::list, Tensor6>();
   py::implicitly_convertible<py::list, Tensor7>();
 
-  py_staticArrayOfVector(m);
-  py_staticArrayOfMatrix(m);
-  py_staticArrayOfTensor3(m);
-  py_staticArrayOfTensor4(m);
-  py_staticArrayOfTensor5(m);
-  py_staticArrayOfTensor6(m);
-  py_staticArrayOfTensor7(m);
-  py_staticArrayOfArrayOfVector(m);
-  py_staticArrayOfArrayOfMatrix(m);
-  py_staticArrayOfArrayOfTensor3(m);
-  py_staticArrayOfArrayOfTensor6(m);
-
   py_staticRational(m)
       .def(py::init([](Index n, Index d) {
              ARTS_USER_ERROR_IF(d < 1, "Must be positive")
@@ -503,8 +488,6 @@ void py_matpack(py::module_& m) try {
                          py::arg("grid"),
                          py::doc("From :class:`~pyarts.arts.AscendingGrid`"));
   py::implicitly_convertible<AscendingGrid, Vector>();
-
-  py_staticArrayOfAscendingGrid(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize matpack\n", e.what()));

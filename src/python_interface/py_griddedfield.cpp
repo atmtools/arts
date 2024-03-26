@@ -12,7 +12,7 @@
 namespace Python {
 
 template <typename T, typename... Grids>
-auto& fix_artsgf(artsclass<matpack::gridded_data<T, Grids...>>& gf) {
+auto& fix_griddedfield(artsclass<matpack::gridded_data<T, Grids...>>& gf) {
   using GF = matpack::gridded_data<T, Grids...>;
 
   gf.def(py::init<std::string,
@@ -138,7 +138,7 @@ auto artsgf(py::module_& m, const char* name) {
           .def(py::init([]() { return std::make_shared<GF>(); }), "Empty field")
           .def(py::init<GF>(), "Copy field");
 
-  fix_artsgf(gf);
+  fix_griddedfield(gf);
 
   gf.def("__repr__", [](const GF& gd) { return var_string(gd); });
   gf.def("__str__", [](const GF& gd) { return var_string(gd); });
@@ -149,34 +149,21 @@ auto artsgf(py::module_& m, const char* name) {
 using VectorOrArrayOfString = std::variant<Vector, ArrayOfString>;
 
 void py_griddedfield(py::module_& m) try {
-  fix_artsgf(py_staticGriddedField1(m));
-  fix_artsgf(py_staticGriddedField2(m));
-  fix_artsgf(py_staticGriddedField3(m));
-  fix_artsgf(py_staticGriddedField4(m));
-  fix_artsgf(py_staticGriddedField5(m));
-  fix_artsgf(py_staticGriddedField6(m));
+  fix_griddedfield(py_staticGriddedField1(m));
+  fix_griddedfield(py_staticGriddedField2(m));
+  fix_griddedfield(py_staticGriddedField3(m));
+  fix_griddedfield(py_staticGriddedField4(m));
+  fix_griddedfield(py_staticGriddedField5(m));
+  fix_griddedfield(py_staticGriddedField6(m));
 
-  fix_artsgf(py_staticNamedGriddedField2(m));
-  fix_artsgf(py_staticNamedGriddedField3(m));
+  fix_griddedfield(py_staticNamedGriddedField2(m));
+  fix_griddedfield(py_staticNamedGriddedField3(m));
 
-  fix_artsgf(py_staticGriddedField1Named(m));
+  fix_griddedfield(py_staticGriddedField1Named(m));
 
-  fix_artsgf(py_staticComplexGriddedField2(m));
+  fix_griddedfield(py_staticComplexGriddedField2(m));
 
-  fix_artsgf(py_staticStokvecGriddedField6(m));
-
-  py_staticArrayOfGriddedField1(m);
-  py_staticArrayOfGriddedField2(m);
-  py_staticArrayOfGriddedField3(m);
-  py_staticArrayOfGriddedField4(m);
-
-  py_staticArrayOfArrayOfGriddedField1(m);
-  py_staticArrayOfArrayOfGriddedField2(m);
-  py_staticArrayOfArrayOfGriddedField3(m);
-
-  py_staticArrayOfNamedGriddedField2(m);
-
-  py_staticArrayOfGriddedField1Named(m);
+  fix_griddedfield(py_staticStokvecGriddedField6(m));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize gridded field\n", e.what()));

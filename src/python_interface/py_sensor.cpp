@@ -78,8 +78,6 @@ void py_sensor(py::module_& m) try {
       .def_readwrite(
           "polarization", &SensorObsel::polarization, "Polarization sampling")
       .def("ok", &SensorObsel::ok, "Check if the obsel is valid");
-
-  py_staticArrayOfSensorObsel(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

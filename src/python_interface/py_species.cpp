@@ -118,8 +118,6 @@ void py_species(py::module_& m) try {
           }));
   py::implicitly_convertible<std::string, SpeciesIsotope>();
 
-  py_staticArrayOfSpeciesIsotope(m);
-
   py_staticSpeciesTag(m)
       .def(py::init([](const std::string& s) {
              return std::make_shared<SpeciesTag>(s);
@@ -251,8 +249,6 @@ Returns
   py::implicitly_convertible<Array<SpeciesTag>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<Array<py::object>, ArrayOfSpeciesTag>();
   py::implicitly_convertible<py::list, ArrayOfSpeciesTag>();
-
-  py_staticArrayOfArrayOfSpeciesTag(m);
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize species\n", e.what()));

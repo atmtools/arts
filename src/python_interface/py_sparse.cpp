@@ -179,8 +179,6 @@ arr : numpy.ndarray
             out->get_inverse_blocks() = std::move(i);
             return out;
           }));
-
-  py_staticArrayOfSparse(m);
 } catch(std::exception& e) {
   throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize sparse\n", e.what()));
 }
