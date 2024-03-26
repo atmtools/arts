@@ -55,8 +55,8 @@ void py_species(py::module_& m) try {
             return out;
           }));
 
-  py_staticArrayOfSpeciesEnum(m)
-      .def(py::init([](const std::vector<std::string>& x) {
+  py_staticArrayOfSpeciesEnum(m).def(
+      py::init([](const std::vector<std::string>& x) {
         ArrayOfSpeciesEnum out;
         out.reserve(x.size());
         py::print(x);
@@ -165,10 +165,7 @@ Returns
           }));
   py::implicitly_convertible<std::string, SpeciesTag>();
 
-  artsarray<Array<SpeciesTag>>(m, "_ArrayOfSpeciesTag").doc() =
-      "Internal array type - do not use manually ";
-
-  artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>(m, "ArrayOfSpeciesTag")
+  py_manual_staticArrayOfSpeciesTag(m)
       .def(py::init([](const std::string& x) {
         return std::make_shared<ArrayOfSpeciesTag>(x);
       }))

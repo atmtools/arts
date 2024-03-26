@@ -95,4 +95,7 @@ py::class_<PythonListable, std::shared_ptr<PythonListable>> artsarray(
 
   return out;
 }
+auto py_manual_staticArrayOfSpeciesTag(py::module& m)
+    -> artsclass<ArrayOfSpeciesTag, Array<SpeciesTag>>&;
+void py_manual_groupsEarlyInit(py::module& m);
 }  // namespace Python

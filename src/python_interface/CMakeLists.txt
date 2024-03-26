@@ -91,6 +91,7 @@ pybind11_add_module(pyarts_cpp THIN_LTO
     py_operators.cpp
     py_interp.cpp
     py_sensor.cpp
+    python_interface_groups.cpp
 
     gen_auto_py_helpers.cpp
 )
