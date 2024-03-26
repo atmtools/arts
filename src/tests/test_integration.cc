@@ -7,7 +7,6 @@
   
 */
 
-#include <sys/time.h>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +14,7 @@
 #include "array.h"
 #include "arts_constants.h"
 #include "arts_conversions.h"
+#include "test_perf.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
@@ -462,21 +462,14 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_original(Integrand, za_grid, aa_grid);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_original(Integrand, za_grid, aa_grid);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
@@ -485,7 +478,7 @@ Numeric test_xy(int z_size, int a_size, float stepsize, int frequency) {
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_xy----------<<<<<\n";
 
   return result;
@@ -513,21 +506,14 @@ Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_opt(Integrand, za_grid, aa_grid);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_opt(Integrand, za_grid, aa_grid);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
@@ -536,7 +522,7 @@ Numeric test_xy_opt(int z_size, int a_size, float stepsize, int frequency) {
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_xy_opt----------<<<<<\n";
 
   return result;
@@ -567,24 +553,16 @@ Numeric test_xy_fixedstep(int z_size,
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result =
-        AngIntegrate_trapezoid_fixedstep(Integrand, za_grid, aa_grid, stepsize);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_fixedstep(
+          Integrand, za_grid, aa_grid, stepsize);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
        << "a_size         : " << a_size << std::endl
@@ -592,7 +570,7 @@ Numeric test_xy_fixedstep(int z_size,
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_xy_fixedstep----------<<<<<\n";
 
   return result;
@@ -623,24 +601,16 @@ Numeric test_xy_fixedstep_opt(int z_size,
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_fixedstep_opt(
-        Integrand, za_grid, aa_grid, stepsize);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_fixedstep_opt(
+          Integrand, za_grid, aa_grid, stepsize);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
        << "a_size         : " << a_size << std::endl
@@ -648,7 +618,7 @@ Numeric test_xy_fixedstep_opt(int z_size,
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_xy_fixedstep_opt----------<<<<<\n";
 
   return result;
@@ -679,24 +649,16 @@ Numeric test_xy_fixedstep_opt2(int z_size,
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_fixedstep_opt2(
-        Integrand, za_grid, aa_grid, stepsize);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_fixedstep_opt2(
+          Integrand, za_grid, aa_grid, stepsize);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
        << "a_size         : " << a_size << std::endl
@@ -704,7 +666,7 @@ Numeric test_xy_fixedstep_opt2(int z_size,
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_xy_fixedstep_opt2----------<<<<<\n";
 
   return result;
@@ -748,24 +710,16 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  //  std::cout << "Sekunden : " << start.tv_sec << std::endl
-  //   << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result =
-        AngIntegrate_trapezoid_opti(Integrand, za_grid, aa_grid, grid_stepsize);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_opti(
+          Integrand, za_grid, aa_grid, grid_stepsize);
+  });
 
   double error = result / (4 * PI) - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "z_size         : " << z_size << std::endl
        << "a_size         : " << a_size << std::endl
@@ -773,7 +727,7 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size,
        << "The result is  : " << result << std::endl
        << "The error is   : " << error * 100 << " %\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "----------------test_AngIntegrate_trapezoid_opti----------<<<<<\n";
 
   return result;
@@ -799,33 +753,25 @@ Numeric test_x(int vsize, float stepsize, int frequency) {
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  std::cout << "Sekunden : " << start.tv_sec << std::endl
-       << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_original(Integrand, Theta);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_original(Integrand, Theta);
+  });
 
   // norming the result to Pi
   result = result / (2 * 180);
 
   double error = result / PI - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "number of steps: " << vsize << std::endl
        << "1 is           : " << PI / PI << std::endl
        << "The result is  : " << result / PI << std::endl
        << "The error is   : " << error * 100 << "%\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "---------------test_x-----------<<<<<\n";
 
   return result;
@@ -864,33 +810,25 @@ Numeric test_x_fixedstep(int vsize, int frequency) {
 
   Numeric result = 0;
 
-  struct timeval start;
-  struct timeval ende;
-  gettimeofday(&start, NULL);
-  std::cout << "Sekunden : " << start.tv_sec << std::endl
-       << "Milisekunden: " << start.tv_usec << std::endl;
-
-  for (int i = 0; i < frequency; i++)
-    result = AngIntegrate_trapezoid_fixedstep(Integrand, Theta, stepsize);
-
-  gettimeofday(&ende, NULL);
+  Timing t("");
+  t([&]() {
+    for (int i = 0; i < frequency; i++)
+      result = AngIntegrate_trapezoid_fixedstep(Integrand, Theta, stepsize);
+  });
 
   // norming the result to Pi
   result = result / (2 * 180);
 
   double error = result / PI - 1;
 
-  double diffs = (double)(ende.tv_sec - start.tv_sec) +
-                 (double)(ende.tv_usec - start.tv_usec) / 1000000.0;
   std::cout.precision(15);
-  std::cout << diffs << std::endl;
   std::cout << "stepsize is    : " << stepsize << std::endl
        << "number of steps: " << vsize << std::endl
        << "1 is          : " << PI / PI << std::endl
        << "The result is  : " << result / PI << std::endl
        << "The error is   : " << error * 100 << "%\n"
        << "Number of loops: " << frequency << std::endl
-       << "elapsed time   : " << diffs << "s" << std::endl
+       << "elapsed time   : " << t.dt << std::endl
        << "---------------test_x_fixedstep----------<<<<<\n";
 
   return result;
