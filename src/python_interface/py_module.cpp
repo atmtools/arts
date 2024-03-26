@@ -47,6 +47,7 @@ void py_operators(py::module_& m);
 void py_lbl(py::module_& m);
 void py_interp(py::module_& m);
 void py_sensor(py::module_& m);
+void py_initAllValidWorkspaceGroups(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -100,6 +101,9 @@ PYBIND11_MODULE(arts, m) try {
   // so it should be included early for documentation purposes when its
   // data is used by modules below it
   py_auto_options(m);
+
+  // Initialize the workspace groups (this requires just pure python)
+  py_initAllValidWorkspaceGroups(m);
 
   py_basic(m);
   py_matpack(m);

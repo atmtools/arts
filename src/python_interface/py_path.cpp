@@ -1,7 +1,6 @@
 #include <path_point.h>
 #include <pybind11/pybind11.h>
 #include <python_interface.h>
-#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 

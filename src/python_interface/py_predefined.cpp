@@ -1,6 +1,5 @@
 #include <predefined/predef.h>
 #include <python_interface.h>
-#include <py_auto_wsg_init.h>
 
 #include <filesystem>
 #include <memory>

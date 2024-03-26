@@ -6,7 +6,6 @@
 #include "debug.h"
 #include "gridded_data.h"
 #include "mystring.h"
-#include "py_auto_wsg_init.h"
 #include "py_macros.h"
 #include "sorted_grid.h"
 

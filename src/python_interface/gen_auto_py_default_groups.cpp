@@ -9,31 +9,35 @@ void default_groups(const std::string& fname) {
   {
     std::ofstream hh(fname + ".h");
 
-    hh << "#pragma once\n\n#include <python_interface.h>\n#include <type_traits>\nnamespace Python {\nnamespace py = pybind11;\n\n";
+    hh << "#pragma once\n\n#include <python_interface_groups.h>\n#include <type_traits>\nnamespace Python {\nnamespace py = pybind11;\n\n";
 
     for (const auto& [name, wsg] : wsgs) {
+      if (wsg.skip_pyinit) continue;
+
       const std::string T = wsg.value_type ? "ValueHolder<" + name + ">" : name;
       const std::string dpyT =
-          wsg.is_array
+          wsg.array_depth
               ? var_string("decltype(artsarray<", T, ">(m, \"", name, "\"))")
               : "artsclass<" + T + ">";
 
       hh << "auto py_static" << name << "(py::module_& m) -> " << dpyT
          << "&;\n";
     }
-    hh << "}  // namespace Python\n";
+    hh << "void py_initAllValidWorkspaceGroups(py::module_&m);\n}  // namespace Python\n";
   }
   {
     std::ofstream cc(fname + ".cpp");
     cc << "#include \"" << fname
        << ".h\"\n#include <py_macros.h>\n\nnamespace Python{\n";
     for (const auto& [name, wsg] : wsgs) {
+      if (wsg.skip_pyinit) continue;
+
       const std::string T = wsg.value_type ? "ValueHolder<" + name + ">" : name;
       const std::string pyT = std::string{"arts"} +
-                              (wsg.is_array ? "array" : "class") + "<" + T +
+                              (wsg.array_depth ? "array" : "class") + "<" + T +
                               ">";
       const std::string dpyT =
-          wsg.is_array
+          wsg.array_depth
               ? var_string("decltype(artsarray<", T, ">(m, \"", name, "\"))")
               : "artsclass<" + T + ">";
 
@@ -66,7 +70,7 @@ void default_groups(const std::string& fname) {
       cc << "  g.PythonInterfaceCopyValue(" << T << ");\n";
       cc << "  g.PythonInterfaceFileIO2(" << T << ", " << name << ");\n";
 
-      if (wsg.is_simple_contiguous and not wsg.is_array) {
+      if (wsg.is_simple_contiguous and 0 == wsg.array_depth) {
         cc << R"-x-(
   g.def(py::pickle(
     [](const py::object& self) {
@@ -88,6 +92,21 @@ void default_groups(const std::string& fname) {
 
       cc << "  return g;\n}\n\n";
     }
-    cc << "}  // namespace Python\n";
+
+    //! Initialize first non-arrays
+    cc << "void py_initAllValidWorkspaceGroups(py::module_&m) {\n";
+    int i = 0;
+    bool any = false;
+    do {
+      any = false;
+      for (const auto& [name, wsg] : wsgs) {
+        if (wsg.skip_pyinit) continue;
+        if (wsg.array_depth != i) continue;
+        cc << "  py_static" << name << "(m);\n";
+        any = true;
+      }
+      i++;
+    } while (any);
+    cc << "}\n}  // namespace Python\n";
   }
 }

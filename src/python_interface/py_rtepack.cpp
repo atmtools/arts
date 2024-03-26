@@ -1,4 +1,3 @@
-#include <py_auto_wsg_init.h>
 #include <pybind11/pybind11.h>
 #include <python_interface.h>
 #include <rtepack.h>

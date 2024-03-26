@@ -1,5 +1,4 @@
 #include <python_interface.h>
-#include <py_auto_wsg_init.h>
 
 #include <memory>
 #include <utility>

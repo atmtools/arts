@@ -1,4 +1,3 @@
-#include <py_auto_wsg_init.h>
 #include <pybind11/attr.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>

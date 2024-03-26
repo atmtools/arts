@@ -1,5 +1,4 @@
 #include <parameters.h>
-#include <py_auto_wsg_init.h>
 #include <pybind11/cast.h>
 
 #include <algorithm>

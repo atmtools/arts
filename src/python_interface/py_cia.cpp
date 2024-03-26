@@ -1,5 +1,4 @@
 #include <lineshapemodel.h>
-#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 #include <zeemandata.h>
 

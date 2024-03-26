@@ -1,7 +1,6 @@
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <quantum_term_symbol.h>
-#include <py_auto_wsg_init.h>
 
 #include "py_macros.h"
 

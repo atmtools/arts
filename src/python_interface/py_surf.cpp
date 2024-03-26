@@ -1,6 +1,5 @@
 
 #include <debug.h>
-#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 #include <quantum_numbers.h>
 #include <species_tags.h>

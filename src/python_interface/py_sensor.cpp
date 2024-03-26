@@ -1,5 +1,4 @@
 #include <obsel.h>
-#include <py_auto_wsg_init.h>
 #include <python_interface.h>
 
 #include "py_macros.h"
