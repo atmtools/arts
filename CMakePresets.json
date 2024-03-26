@@ -51,6 +51,7 @@
       "inherits": "base-default",
       "generator": "Ninja",
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "$env{USERPROFILE}/arts_install",
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
         "ENABLE_FORTRAN": "0",
