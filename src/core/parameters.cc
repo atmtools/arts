@@ -31,16 +31,21 @@ void parse_path_from_environment(String envvar, ArrayOfString &paths) {
   char *envval = getenv(envvar.c_str());
   if (envval) {
     String pathstring(envval);
+#ifdef _MSC_VER
+    constexpr char delim{';'};
+#else
+    constexpr char delim{':'};
+#endif
 
     // Skip delimiters at beginning.
-    String::size_type lastPos = pathstring.find_first_not_of(":", 0);
+    String::size_type lastPos = pathstring.find_first_not_of(delim, 0);
     // Find first "non-delimiter".
-    String::size_type pos = pathstring.find_first_of(":", lastPos);
+    String::size_type pos = pathstring.find_first_of(delim, lastPos);
 
     while (String::npos != pos || String::npos != lastPos) {
       paths.push_back(pathstring.substr(lastPos, pos - lastPos));
-      lastPos = pathstring.find_first_not_of(":", pos);
-      pos = pathstring.find_first_of(":", lastPos);
+      lastPos = pathstring.find_first_not_of(delim, pos);
+      pos = pathstring.find_first_of(delim, lastPos);
     }
   }
 }

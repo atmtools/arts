@@ -467,7 +467,12 @@ else (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
   message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
 
-string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+if (WIN)
+  string(JOIN ";" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+else()
+  string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+endif()
+
 
 ########### Path to partition functions data ##########
 if (ARTS_PARTFUN_DATA_PATH)
