@@ -18,3 +18,7 @@ target_include_directories(test_sht PRIVATE ${ARTS_SOURCE_DIR}/src/core)
 add_executable(test_angle_integration test_integration.cc)
 target_link_libraries(test_angle_integration scattering shtns fftw3)
 target_include_directories(test_angle_integration PRIVATE ${ARTS_SOURCE_DIR}/src/core)
+
+add_executable(test_single_scattering_data test_single_scattering_data.cc)
+target_link_libraries(test_single_scattering_data scattering shtns fftw3 artsworkspace)
+target_include_directories(test_single_scattering_data PRIVATE ${ARTS_SOURCE_DIR}/src/core)
