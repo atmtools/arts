@@ -8,7 +8,7 @@
   "configurePresets": [
     {
       "name": "base-default",
-      "generator": "Unix Makefiles",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -32,7 +32,6 @@
     {
       "name": "default-gcc-conda",
       "inherits": "base-default",
-      "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "$env{CONDA_PREFIX}/bin/g++",
         "CMAKE_C_COMPILER": "$env{CONDA_PREFIX}/bin/gcc",
@@ -49,7 +48,6 @@
     {
       "name": "default-win-conda",
       "inherits": "base-default",
-      "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "$env{USERPROFILE}/arts_install",
         "CMAKE_C_COMPILER": "cl.exe",
