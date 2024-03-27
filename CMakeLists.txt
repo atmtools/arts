@@ -373,11 +373,11 @@ if (OpenMP_FOUND)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif ()
 
-set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
+set (ARTS_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
 ########### Xcode specific settings ##########
 if (CMAKE_GENERATOR STREQUAL "Xcode")
-  set (COMPILER "Xcode")
+  set (ARTS_COMPILER "Xcode")
   set (CMAKE_OSX_SYSROOT "")
   set (LIBRARY_OUTPUT_PATH ${ARTS_BINARY_DIR}/build CACHE PATH
        "Single output directory for building all libraries.")
