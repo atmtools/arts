@@ -19,6 +19,8 @@ std::ostream& operator<<(std::ostream& os, const CallbackOperator& op) {
 }
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {
+  ARTS_USER_ERROR_IF(not callback, "No callback function set for operator:\n", *this);
+  
   auto ws = std::make_shared<Workspace>(WorkspaceInitialization::Empty);
 
   for (auto& n : inputs) {

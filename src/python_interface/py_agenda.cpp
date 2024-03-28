@@ -55,10 +55,7 @@ void py_agenda(py::module_& m) try {
                       const std::vector<std::string>& o) {
             return std::make_shared<CallbackOperator>(f, i, o);
           }),
-          py::arg("f") = std::function<void(const std::shared_ptr<Workspace>&)>(
-              [](const std::shared_ptr<Workspace>&) {
-                throw std::runtime_error("No-op");
-              }),
+          py::arg("f"),
           py::arg("inputs") = std::vector<std::string>{},
           py::arg("outputs") = std::vector<std::string>{},
           py::doc("Initialize as structured call"))

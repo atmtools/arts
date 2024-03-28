@@ -13,6 +13,8 @@
 #include "matpack_iter.h"
 
 namespace matpack {
+struct par {};
+
 template <char... dim>
 struct einsum_id {
   static constexpr Size N = sizeof...(dim);
@@ -102,8 +104,11 @@ struct einsum_id {
   static consteval bool no_space() {
     return std::ranges::find(dims, ' ') == dims.end();
   }
-  static_assert(no_duplicate());
-  static_assert(no_space());
+  static_assert(
+      no_duplicate(),
+      "duplicate dimensions in einsum_id, not supported by einsum (yet)");
+  static_assert(no_space(),
+                "space character is reserved for internal use only");
 };
 
 template <typename T>
@@ -168,6 +173,24 @@ struct einsum_dims {
   }
 
   template <typename T, typename... Ts>
+  static T reduce_einsum(par, const Ts&... x)
+    requires(sizeof...(Ts) == sizeof...(in))
+  {
+    if constexpr (next == ' ') {
+      return (x * ...);
+    } else {
+      const Size n = inner_dimsize(x...);
+      T x0 = T{};
+#pragma omp parallel for
+      for (Size i = 0; i < n; i++) {
+        x0 += inner::template reduce_einsum<T>(
+            in::template select_if<next>(x, i)...);
+      }
+      return x0;
+    }
+  }
+
+  template <typename T, typename... Ts>
   static void einsum(T&& x0, const Ts&... x)
     requires(sizeof...(Ts) == sizeof...(in))
   {
@@ -181,8 +204,23 @@ struct einsum_dims {
       }
     }
   }
-};
 
+  template <typename T, typename... Ts>
+  static void einsum(par, T&& x0, const Ts&... x)
+    requires(sizeof...(Ts) == sizeof...(in))
+  {
+    if constexpr (reduce) {
+      x0 = reduce_einsum<std::decay_t<T>>(par{}, x...);
+    } else {
+      const Size n = out::template dimsize_if<next>(x0);
+#pragma omp parallel for
+      for (Size i = 0; i < n; i++) {
+        inner::einsum(out::template select_if<next>(x0, i),
+                      in::template select_if<next>(x, i)...);
+      }
+    }
+  }
+};
 
 template <std::array s>
 struct einsum_id_converter {
