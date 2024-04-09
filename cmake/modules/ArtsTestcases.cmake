@@ -1,4 +1,4 @@
-if (WINDOWS)
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(DELIM "\;")
 else()
   set(DELIM ":")
