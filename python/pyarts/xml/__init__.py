@@ -113,8 +113,8 @@ def load(filename, search_arts_path=True):
     if search_arts_path and not os.path.isabs(filename):
         # Use dict to remove duplicate paths from list and preserve order
         for path in dict.fromkeys(
-            [""] + os.environ.get("ARTS_INCLUDE_PATH", "").split(":") +
-                os.environ.get("ARTS_DATA_PATH", "").split(":")).keys():
+            [""] + os.environ.get("ARTS_INCLUDE_PATH", "").split(os.pathsep) +
+                os.environ.get("ARTS_DATA_PATH", "").split(os.pathsep)).keys():
             checkfile = os.path.join(path, filename)
             if isfile(checkfile) or isfile(checkfile + ".gz"):
                 filename = checkfile
