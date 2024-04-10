@@ -83,10 +83,23 @@ jobs:
             jbuild: 2
             jcheck: 2
 
+          - name: windows-default-msvc
+            os: windows-latest
+            preset: default-msvc-conda
+            check: "yes"
+            doc: "no"
+            devenv: "environment-dev-win.yml"
+            jbuild: 4
+            jcheck: 2
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 10
+      - uses: ilammy/msvc-dev-cmd@v1
+        if : runner.os == 'Windows'
+        with:
+          arch: x64
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
@@ -105,7 +118,7 @@ jobs:
       - name: Configure
         shell: bash -l {0}
         run: |
-          cmake --preset=${{ matrix.preset }} -DNUM_PYARTS_WSM=2 -DNUM_PYARTS_WSV=1
+          cmake --preset=${{ matrix.preset }}
 
       - name: Build ARTS Workspace
         shell: bash -l {0}
@@ -141,8 +154,7 @@ jobs:
         if: matrix.check == 'yes'
         shell: bash -l {0}
         run: |
-          cd build
-          make -j${{ matrix.jbuild }} -C src
+          ninja -C build -j${{ matrix.jbuild }} src/all
 
       - uses: actions/upload-artifact@v4
         if: matrix.doc == 'yes'

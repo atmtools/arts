@@ -1,8 +1,14 @@
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(DELIM "\;")
+else()
+  set(DELIM ":")
+endif()
+
 macro (ARTS_TEST_RUN_CTLFILE TESTNAME CTLFILE)
   set(ARTS_TEST_INCLUDE_PATH "${ARTS_SOURCE_DIR}/controlfiles")
 
   if (ARTS_DATA_DIR)
-    string(APPEND ARTS_TEST_INCLUDE_PATH ":${ARTS_DATA_DIR}")
+    string(APPEND ARTS_TEST_INCLUDE_PATH "${DELIM}${ARTS_DATA_DIR}")
   endif()
 
   if (ARTS_XML_DATA_DIR)
@@ -27,7 +33,7 @@ macro (ARTS_TEST_RUN_CTLFILE TESTNAME CTLFILE)
   )
   set_tests_properties(
     ${TESTNAME_LONG} PROPERTIES
-    ENVIRONMENT "ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}:${ARTS_TEST_INCLUDE_PATH}"
+    ENVIRONMENT "ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}${DELIM}${ARTS_TEST_INCLUDE_PATH}"
   )
 
   string(REGEX REPLACE ".arts$" ".py" PYTHONCTLFILE ${CTLFILE})
@@ -40,7 +46,7 @@ macro (ARTS_TEST_RUN_CTLFILE TESTNAME CTLFILE)
     )
   set_tests_properties(
     ${TESTNAME_LONG} PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python;ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}:${ARTS_TEST_INCLUDE_PATH}"
+    ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python;ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}${DELIM}${ARTS_TEST_INCLUDE_PATH}"
     DEPENDS python_tests
   )
 endmacro (ARTS_TEST_RUN_CTLFILE)
@@ -49,7 +55,7 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   set(PYARTS_TEST_INCLUDE_PATH "${ARTS_SOURCE_DIR}/controlfiles")
 
   if (ARTS_DATA_DIR)
-    string(APPEND PYARTS_TEST_INCLUDE_PATH ":${ARTS_DATA_DIR}")
+    string(APPEND PYARTS_TEST_INCLUDE_PATH "${DELIM}${ARTS_DATA_DIR}")
   endif()
 
   if (ARTS_XML_DATA_DIR)
@@ -76,7 +82,7 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
     )
   set_tests_properties(
     ${TESTNAME_LONG} PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python;ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}:${PYARTS_TEST_INCLUDE_PATH}"
+    ENVIRONMENT "PYTHONPATH=${ARTS_BINARY_DIR}/python;ARTS_HEADLESS=1;ARTS_INCLUDE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/${CFILESUBDIR}${DELIM}${PYARTS_TEST_INCLUDE_PATH}"
     DEPENDS python_tests
   )
 endmacro()
@@ -109,37 +115,37 @@ macro (SETUP_ARTS_CHECKS)
 
   add_custom_target(check
     COMMAND ${CTEST_ARGS}
-    -R '\(^ctlfile|^pytest|^pyarts|^doc||^cpp\)'
+    -R \"\(^ctlfile|^pytest|^pyarts|^doc||^cpp\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-pyarts
     COMMAND ${CTEST_ARGS}
-    -R '\(^pyarts\)'
+    -R \"\(^pyarts\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-controlfiles
     COMMAND ${CTEST_ARGS}
-    -R '\(^ctlfile\)'
+    -R \"\(^ctlfile\)\"
     DEPENDS check-deps)
 
   add_custom_target(check-conversion
     COMMAND ${CTEST_ARGS}
-    -R '\(^converted\)'
+    -R \"\(^converted\)\"
     DEPENDS check-deps python_conversion)
 
   add_custom_target(check-examples
     COMMAND ${CTEST_ARGS}
-    -R '\(\\.examples\\.\)' -E '\(^converted\)'
+    -R \"\(\\.examples\\.\)\" -E \"\(^converted\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-tests
     COMMAND ${CTEST_ARGS}
-    -R '\(\\.tests\\.\)' -E '\(^converted\)'
+    -R \"\(\\.tests\\.\)\" -E \"\(^converted\)\"
     DEPENDS check-deps pyarts)
 
   add_custom_target(check-doc
     COMMAND ${CTEST_ARGS}
-    -R '\(^doc\)'
+    -R \"\(^doc\)\"
     DEPENDS check-deps)
 
   add_custom_target(check-pytest DEPENDS pyarts_tests)

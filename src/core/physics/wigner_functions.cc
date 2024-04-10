@@ -27,13 +27,13 @@
 void arts_wigner_thread_init(int max_two_j [[maybe_unused]]) {
 #ifdef WIGXJPF_HAVE_THREAD
   wig_thread_temp_init(max_two_j);
+#else
+  wig_temp_init(max_two_j);
 #endif
 }
 
 void arts_wigner_thread_free() {
-#ifdef WIGXJPF_HAVE_THREAD
   wig_temp_free();
-#endif
 }
 
 Numeric wigner3j(const Rational j1,

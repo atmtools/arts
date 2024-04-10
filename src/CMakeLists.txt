@@ -278,7 +278,6 @@ target_link_libraries (xmliobase PUBLIC binio matpack)
 
 ########### IPO / LTO support
 if (IPO_SUPPORTED)
-  set_property(TARGET arts PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET artsworkspace PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET binio PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
   set_property(TARGET species PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)

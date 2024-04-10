@@ -4,7 +4,7 @@
 #cmakedefine COMPILE_FLAGS "${COMPILE_FLAGS}"
 
 /* Compiler */
-#cmakedefine COMPILER "${COMPILER}"
+#cmakedefine ARTS_COMPILER "${ARTS_COMPILER}"
 
 /* Compiler */
 #cmakedefine FORTRAN_COMPILER "${FORTRAN_COMPILER}"

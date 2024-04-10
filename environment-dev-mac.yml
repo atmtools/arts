@@ -16,6 +16,7 @@ dependencies:
         - llvm-openmp
         - matplotlib
         - netcdf4
+        - ninja
         - numpy
         - pkg-config
         - pybind11

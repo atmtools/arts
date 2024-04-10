@@ -29,7 +29,7 @@ target_link_libraries(test_linalg artsworkspace
 add_executable(test_integration
   test_integration.cc)
 
-target_link_libraries(test_integration matpack)
+target_link_libraries(test_integration PUBLIC artstime matpack)
 
 # ########## next testcase ###############
 set(MATLABDIR OFF CACHE PATH

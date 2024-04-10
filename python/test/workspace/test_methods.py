@@ -55,7 +55,9 @@ class TestMethods:
         """
         ws = self.ws
 
-        tempfile = NamedTemporaryFile()
+        tempfile = NamedTemporaryFile(delete_on_close=False)
+        tempfile.close()
+
         ws.mat = pyarts.arts.Matrix()
 
         mat = np.ones((2, 2))

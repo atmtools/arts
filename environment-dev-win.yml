@@ -9,6 +9,7 @@ dependencies:
         - libcxx
         - matplotlib
         - netcdf4
+        - ninja
         - numpy
         - openblas
         - pkg-config

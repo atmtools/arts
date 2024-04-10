@@ -373,11 +373,11 @@ if (OpenMP_FOUND)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif ()
 
-set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
+set (ARTS_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
 ########### Xcode specific settings ##########
 if (CMAKE_GENERATOR STREQUAL "Xcode")
-  set (COMPILER "Xcode")
+  set (ARTS_COMPILER "Xcode")
   set (CMAKE_OSX_SYSROOT "")
   set (LIBRARY_OUTPUT_PATH ${ARTS_BINARY_DIR}/build CACHE PATH
        "Single output directory for building all libraries.")
@@ -409,7 +409,7 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "CYGWIN")
 elseif (UNIX)
   set (OS_NAME "Unix")
   set (LINUX 1)
-elseif (WIN)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set (OS_NAME "Windows")
   set (WINDOWS 1)
 endif (APPLE)
@@ -467,7 +467,12 @@ else (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
   message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
 endif (NOT IS_DIRECTORY "${ARTS_CAT_DATA_DIR}")
 
-string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+if (WIN)
+  string(JOIN ";" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+else()
+  string(JOIN ":" ARTS_DATA_DIR ${ARTS_XML_DATA_DIR} ${ARTS_CAT_DATA_DIR})
+endif()
+
 
 ########### Path to partition functions data ##########
 if (ARTS_PARTFUN_DATA_PATH)
