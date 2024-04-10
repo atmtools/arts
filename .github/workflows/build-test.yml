@@ -83,9 +83,9 @@ jobs:
             jbuild: 2
             jcheck: 2
 
-          - name: windows-default
+          - name: windows-default-msvc
             os: windows-latest
-            preset: default-win-conda
+            preset: default-msvc-conda
             check: "yes"
             doc: "no"
             devenv: "environment-dev-win.yml"

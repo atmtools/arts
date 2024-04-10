@@ -46,7 +46,7 @@
       }
     },
     {
-      "name": "default-win-conda",
+      "name": "default-msvc-conda",
       "inherits": "base-default",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "$env{USERPROFILE}/arts_install",
