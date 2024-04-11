@@ -65,7 +65,7 @@ setup(
         "docs": ["sphinx_rtd_theme"],
         "tests": ["pytest", "pint", "gdal",],
     },
-    package_data={"": ["*.so"],},
+    package_data={"": ["*.so", "*.pyd"],},
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     include_package_data=True,
