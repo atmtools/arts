@@ -1,254 +1,273 @@
 #pragma once
 
-#include <nonstd.h>
+#include <matpack_concepts.h>
+#include <matpack_iter.h>
+#include <matpack_math.h>
 
-#include <algorithm>
-#include <array>
+#include <limits>
+#include <source_location>
+#include <sstream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include "compare.h"
-#include "configtypes.h"
-#include "matpack_concepts.h"
-#include "matpack_iter.h"
+#include "debug.h"
 
 namespace matpack {
-struct par {};
-
-template <char... dim>
-struct einsum_id {
-  static constexpr Size N = sizeof...(dim);
-  static constexpr std::array<char, N> dims{dim...};
-
-  template <char... other>
-  using extend_einsum_id = einsum_id<dim..., other...>;
-
-  template <char... other>
-  static consteval auto extend(einsum_id<other...>) {
-    return extend_einsum_id<other...>{};
-  }
-
-  template <char c>
-  static consteval Size shape_pos() {
-    return static_cast<Size>(
-        std::distance(dims.begin(), std::ranges::find(dims, c)));
-  }
-
-  template <char c>
-  static constexpr Size pos = shape_pos<c>();
-
-  template <char c, class T, char n, char... rem>
-  static consteval auto exclude_impl() {
-    if constexpr (n == c) {
-      return typename T::template extend_einsum_id<rem...>{};
-    } else if constexpr (sizeof...(rem) == 0) {
-      return T{};
-    } else {
-      return exclude_impl<c,
-                          typename T::template extend_einsum_id<n>,
-                          rem...>();
+namespace detail {
+template <char c, std::array cs, std::size_t N = cs.size()>
+consteval std::size_t position_first() {
+  for (std::size_t i = 0; i < N; ++i) {
+    if (cs[i] == c) {
+      return i;
     }
   }
+  return std::numeric_limits<std::size_t>::max();
+}
 
-  template <char c>
-  static consteval auto exclude() {
-    if constexpr (std::ranges::find(dims, c) == dims.end()) {
-      return einsum_id<dim...>{};
+template <char c, std::array cs, std::size_t N = cs.size()>
+consteval std::array<char, N - 1> drop_first() {
+  std::array<char, N - 1> result{};
+  bool done = false;
+  for (std::size_t i = 0; i < N; ++i) {
+    if (cs[i] == c and not done) {
+      done = true;
     } else {
-      return exclude_impl<c, einsum_id<>, dim...>();
+      result[i - done] = cs[i];
     }
   }
+  return result;
+}
 
-  template <char c>
-  using inner = std::decay_t<decltype(exclude<c>())>;
+template <char c, std::array cs, std::size_t N = cs.size()>
+consteval std::size_t count_char() {
+  std::size_t n = 0;
+  for (std::size_t i = 0; i < N; ++i) {
+    n += cs[i] == c;
+  }
+  return n;
+}
 
-  //! Selects the p-th element of the array x if c is to be selected
-  template <char c, typename T>
-  static constexpr decltype(auto) select_if(T& x, Index p) {
-    if constexpr (pos<c> < N) {
-      if constexpr (N == 1) {
-        return x[p];
-      } else {
-        return sub<pos<c>, N>(x, p);
-      }
+template <char c,
+          std::array cs,
+          std::size_t N = cs.size(),
+          std::size_t n = count_char<c, cs>()>
+constexpr decltype(auto) reduce_mdrank(auto&& arr, Index i [[maybe_unused]]) {
+  if constexpr (n == 0 or N == 0) {
+    return arr;
+  } else if constexpr (n == 1) {
+    if constexpr (N == 1 or cs[0] == c) {
+      return arr[i];
     } else {
-      return x;
+      return sub<position_first<c, cs>(), N>(arr, i);
+    }
+  } else {
+    return reduce_mdrank<c, drop_first<c, cs>()>(
+        sub<position_first<c, cs>(), N>(arr, i), i);
+  }
+}
+
+template <char c, std::array cs>
+consteval auto reduce_charrank() {
+  if constexpr (count_char<c, cs>() == 0) {
+    return cs;
+  } else {
+    return reduce_charrank<c, drop_first<c, cs>()>();
+  }
+}
+
+template <std::array cs, std::size_t N = cs.size()>
+consteval bool empty() {
+  return N == 0;
+}
+
+template <std::array cf,
+          std::array... cs,
+          std::size_t N = cf.size(),
+          std::size_t M = sizeof...(cs)>
+consteval char find_first_char() {
+  if constexpr (N == 0 and M == 0) {
+    return '\0';
+  } else if constexpr (N != 0) {
+    return cf.front();
+  } else if constexpr (M != 0) {
+    return find_first_char<cs...>();
+  } else {
+    return '\0';
+  }
+}
+
+template <char c, std::array cf, std::array... cs, std::size_t N = cf.size()>
+constexpr std::size_t mddimsize(const auto& xf, const auto&... xs) {
+  if constexpr (N > 0 and find_first_char<cf>() == c) {
+    constexpr std::size_t dim = position_first<c, cf>();
+    return static_cast<std::size_t>(std::get<dim>(mdshape(xf)));
+  } else if constexpr (sizeof...(cs) != 0) {
+    return mddimsize<c, cs...>(xs...);
+  } else {
+    return std::numeric_limits<std::size_t>::max();
+  }
+}
+
+constexpr std::string shape(const any_matpack_type auto& x) {
+  std::ostringstream os;
+  std::string_view sep = "(";
+  for (auto c : x.shape()) {
+    os << std::exchange(sep, ", ") << c;
+  }
+  os << ')';
+  return os.str();
+}
+
+constexpr std::string shape(const auto&) { return "()"; }
+
+template <std::array... cs>
+std::string error_msg(const auto&... xs) {
+  std::ostringstream os;
+  os << "operands could not be broadcast together with shapes ";
+  ((os << shape(xs) << ' '), ...);
+  return os.str();
+}
+
+template <std::array... cs>
+constexpr bool good_sizes(const auto&... xs) {
+  constexpr char first_char = detail::find_first_char<cs...>();
+  const std::size_t n = detail::mddimsize<first_char, cs...>(xs...);
+  return ((detail::mddimsize<first_char, cs>(xs) ==
+               std::numeric_limits<std::size_t>::max() or
+           n == detail::mddimsize<first_char, cs>(xs)) and
+          ...);
+}
+}  // namespace detail
+
+template <typename T, std::array... cs>
+constexpr T einsum_reduce(const auto&... xs) {
+  ARTS_ASSERT((detail::good_sizes<cs...>(xs...)),
+              "einsum_reduce: ",
+              detail::error_msg<cs...>(xs...))
+
+  if constexpr ((detail::empty<cs>() and ...)) {
+    return static_cast<T>((xs * ...));
+  } else {
+    constexpr char first_char = detail::find_first_char<cs...>();
+    const std::size_t n = detail::mddimsize<first_char, cs...>(xs...);
+
+    T sum{};
+    for (std::size_t i = 0; i < n; ++i) {
+      sum += einsum_reduce<T, detail::reduce_charrank<first_char, cs>()...>(
+          detail::reduce_mdrank<first_char, cs>(xs, i)...);
+    }
+    return sum;
+  }
+}
+
+namespace detail {
+template <std::array cr, std::array cs>
+constexpr bool copy_chars() {
+  if constexpr (cr.size() != cs.size()) {
+    return false;
+  } else {
+    return cr == cs;
+  }
+}
+
+template <std::array... c>
+constexpr bool copy_chars()
+  requires(sizeof...(c) != 2)
+{
+  return false;
+}
+
+template <std::array A,
+          std::array B,
+          std::array C,
+          std::size_t NA = A.size(),
+          std::size_t NB = B.size(),
+          std::size_t NC = C.size()>
+constexpr bool multiply_chars() {
+  if constexpr (NA == 2 and NB == 2 and NC == 2) {
+    return A[0] == B[0] and A[1] == C[1] and B[1] == C[0];
+  } else if (NA == 1 and NB == 2 and NC == 1) {
+    return A[0] == B[0] and B[1] == C[0];
+  } else {
+    return false;
+  }
+}
+
+template <std::array... c>
+constexpr bool multiply_chars()
+  requires(sizeof...(c) != 3)
+{
+  return false;
+}
+
+constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
+
+template <std::array cr, std::array... cs>
+constexpr void einsum_arr(auto&& xr, const auto&... xs) {
+  ARTS_ASSERT((detail::good_sizes<cr, cs...>(xr, xs...)),
+              "einsum: ",
+              detail::error_msg<cr, cs...>(xr, xs...))
+
+  if constexpr (copy_chars<cr, cs...>()) {
+    copy_arrs(xr, xs...);
+    return;
+  } else if constexpr (multiply_chars<cr, cs...>()) {
+    mult(xr, xs...);
+    return;
+  }
+
+  if constexpr (empty<cr>()) {
+    xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
+  } else {
+    constexpr char first_char = find_first_char<cr>();
+    const std::size_t n = mddimsize<first_char, cr>(xr);
+    for (std::size_t i = 0; i < n; i++) {
+      einsum_arr<reduce_charrank<first_char, cr>(),
+                 reduce_charrank<first_char, cs>()...>(
+          reduce_mdrank<first_char, cr>(xr, i),
+          reduce_mdrank<first_char, cs>(xs, i)...);
     }
   }
+}
 
-  //! Selects the size of the dimension c if it exists, otherwise it is 0
-  template <char c, typename T>
-  static constexpr Size dimsize_if(const T& x) {
-    if constexpr (pos<c> < N) {
-      return static_cast<Size>(std::get<pos<c>>(mdshape(x)));
-    } else {
-      return 0;
-    }
-  }
+template <std::size_t N>
+struct string_literal {
+  constexpr string_literal(const char (&in)[N]) { std::copy_n(in, N, str); }
+  char str[N];
 
-  //! What is the leftmost character, if any
-  static consteval char next_char() {
-    if constexpr (N > 0) {
-      return dims.front();
-    } else {
-      return ' ';
-    }
+  constexpr std::array<char, N - 1> to_array() const {
+    std::array<char, N - 1> out{};
+    std::copy_n(str, N - 1, out.begin());
+    return out;
   }
-
-  //! Built-in tests
-  static consteval bool no_duplicate() {
-    std::array<char, N> x{dim...};
-    std::ranges::sort(x);
-    return std::ranges::adjacent_find(x) == x.end();
-  }
-  static consteval bool no_space() {
-    return std::ranges::find(dims, ' ') == dims.end();
-  }
-  static_assert(
-      no_duplicate(),
-      "duplicate dimensions in einsum_id, not supported by einsum (yet)");
-  static_assert(no_space(),
-                "space character is reserved for internal use only");
 };
+}  // namespace detail
 
-template <typename T>
-concept einsumable = T::no_duplicate() and T::no_space();
+template <detail::string_literal sr,
+          detail::string_literal... si,
+          std::size_t N = sr.to_array().size()>
+constexpr void einsum(auto&& xr, const auto&... xi)
+  requires(sizeof...(si) == sizeof...(xi))
+{
+  detail::einsum_arr<sr.to_array(), si.to_array()...>(
+      std::forward<decltype(xr)>(xr), xi...);
+}
 
-template <einsumable out, einsumable... in>
-struct einsum_dims {
-  static constexpr Size N = 1 + sizeof...(in);
-  static constexpr bool remchar = out::N > 0 or ((in::N > 0) or ...);
-  static constexpr bool reduce = out::N == 0;
-
-  static consteval char find_next_char() {
-    if constexpr (remchar) {
-      constexpr std::array<char, N> all_chars{out::next_char(),
-                                              (in::next_char())...};
-      for (auto c : all_chars) {
-        if (c != ' ') {
-          return c;
-        }
-      }
-      std::unreachable();
-    } else {
-      return ' ';
-    }
+template <typename T,
+          detail::string_literal... s,
+          std::size_t N = std::get<0>(std::tuple{s...}).to_array().size()>
+constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
+  requires(sizeof...(s) == sizeof...(xi) + 1 and 1 != sizeof...(s))
+{
+  if constexpr (N == 0) {
+    T out{};
+    einsum<s...>(out, xi...);
+    return out;
+  } else {
+    T out(sz);
+    einsum<s...>(out, xi...);
+    return out;
   }
-
-  static constexpr char next = find_next_char();
-
-  template <typename... Ts>
-  static constexpr Size inner_dimsize(Ts&&... x) {
-    Size sz = 0;
-    for (Size s : {in::template dimsize_if<next>(x)...}) {
-      if (s != 0) {
-        if (sz == 0) {
-          sz = s;
-        } else if (sz != s) {
-          throw std::runtime_error("einsum_dims: dimension mismatch");
-        }
-      }
-    }
-    return sz;
-  }
-
-  using inner = einsum_dims<typename out::template inner<next>,
-                            typename in::template inner<next>...>;
-
-  template <typename T, typename... Ts>
-  static T reduce_einsum(const Ts&... x)
-    requires(sizeof...(Ts) == sizeof...(in))
-  {
-    if constexpr (next == ' ') {
-      return (x * ...);
-    } else {
-      const Size n = inner_dimsize(x...);
-      T x0 = T{};
-      for (Size i = 0; i < n; i++) {
-        x0 += inner::template reduce_einsum<T>(
-            in::template select_if<next>(x, i)...);
-      }
-      return x0;
-    }
-  }
-
-  template <typename T, typename... Ts>
-  static T reduce_einsum(par, const Ts&... x)
-    requires(sizeof...(Ts) == sizeof...(in))
-  {
-    if constexpr (next == ' ') {
-      return (x * ...);
-    } else {
-      const Size n = inner_dimsize(x...);
-      T x0 = T{};
-#pragma omp parallel for
-      for (Size i = 0; i < n; i++) {
-        x0 += inner::template reduce_einsum<T>(
-            in::template select_if<next>(x, i)...);
-      }
-      return x0;
-    }
-  }
-
-  template <typename T, typename... Ts>
-  static void einsum(T&& x0, const Ts&... x)
-    requires(sizeof...(Ts) == sizeof...(in))
-  {
-    if constexpr (reduce) {
-      x0 = reduce_einsum<std::decay_t<T>>(x...);
-    } else {
-      const Size n = out::template dimsize_if<next>(x0);
-      for (Size i = 0; i < n; i++) {
-        inner::einsum(out::template select_if<next>(x0, i),
-                      in::template select_if<next>(x, i)...);
-      }
-    }
-  }
-
-  template <typename T, typename... Ts>
-  static void einsum(par, T&& x0, const Ts&... x)
-    requires(sizeof...(Ts) == sizeof...(in))
-  {
-    if constexpr (reduce) {
-      x0 = reduce_einsum<std::decay_t<T>>(par{}, x...);
-    } else {
-      const Size n = out::template dimsize_if<next>(x0);
-#pragma omp parallel for
-      for (Size i = 0; i < n; i++) {
-        inner::einsum(out::template select_if<next>(x0, i),
-                      in::template select_if<next>(x, i)...);
-      }
-    }
-  }
-};
-
-template <std::array s>
-struct einsum_id_converter {
-  static consteval Size sz() { return s.size(); }
-
-  static consteval std::array<char, sz() - 1> red() {
-    std::array<char, sz() - 1> x;
-    for (Size i = 0; i < sz() - 1; i++) {
-      x[i] = s[i + 1];
-    }
-    return x;
-  }
-
-  static consteval auto convert() {
-    if constexpr (sz() == 0) {
-      return einsum_id<>{};
-    } else if constexpr (sz() == 1) {
-      return einsum_id<s[0]>{};
-    } else {
-      return einsum_id<s[0]>::extend(einsum_id_converter<red()>::convert());
-    }
-  }
-
-  using converted = decltype(convert());
-};
-
-template <std::array... s>
-constexpr void einsum(auto&&... x) {
-  einsum_dims<typename einsum_id_converter<s>::converted...>::einsum(x...);
 }
 }  // namespace matpack

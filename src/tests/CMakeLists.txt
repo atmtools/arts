@@ -182,7 +182,7 @@ target_link_libraries(run_partfun PRIVATE artsworkspace)
 
 # ####
 add_executable(test_mdspan test_mdspan.cc)
-target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack)
+target_link_libraries(test_mdspan PUBLIC ${LAPACK_LIBRARIES} matpack artstime)
 add_test(NAME "cpp.fast.test_mdspan" COMMAND test_mdspan)
 add_dependencies(check-deps test_mdspan)
 
@@ -256,3 +256,9 @@ add_custom_target(run_perf
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Creating performance test report"
 )
+
+# ####
+add_executable(test_legendre test_legendre.cc)
+target_link_libraries(test_legendre PUBLIC artscore)
+add_test(NAME "cpp.fast.test_legendre" COMMAND test_legendre)
+add_dependencies(check-deps test_legendre)

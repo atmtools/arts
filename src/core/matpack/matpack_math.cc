@@ -195,7 +195,7 @@ void mult(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstCompl
   }
 }
 
-void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
+void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x, Numeric alpha, Numeric beta) {
   ARTS_ASSERT(y.nelem() == M.nrows());
   ARTS_ASSERT(M.ncols() == x.nelem());
   ARTS_ASSERT(not M.empty());
@@ -203,8 +203,6 @@ void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
     char trans;
     int m, n;
-    double zero = 0.0;
-    double one = 1.0;
     int LDA, incx, incy;
 
     if (M.stride(1) != 1) {
@@ -228,7 +226,7 @@ void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
     double *ystart = y.unsafe_data_handle();
     double *xstart = x.unsafe_data_handle();
 
-    dgemv_(&trans, &m, &n, &one, mstart, &LDA, xstart, &incx, &zero, ystart,
+    dgemv_(&trans, &m, &n, &alpha, mstart, &LDA, xstart, &incx, &beta, ystart,
            &incy);
   } else {
     matpack::eigen::as_eigen(y).noalias() = M * x;

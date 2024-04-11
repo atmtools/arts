@@ -1,7 +1,9 @@
 #pragma once
 
+#include "configtypes.h"
 #include "grids.h"
 #include "matpack_data.h"
+#include "matpack_view.h"
 namespace Legendre {
 
 //! Stores the up (U), south (S), east (E) values of a field relative to the sphere
@@ -9,21 +11,21 @@ struct SphericalField {
   Numeric U{0};
   Numeric S{0};
   Numeric E{0};
-  
+
   //! Returns the total strength of the field
-  [[nodiscard]] Numeric total() const noexcept {return std::hypot(U, S, E);}
-  
+  [[nodiscard]] Numeric total() const noexcept { return std::hypot(U, S, E); }
+
   //! Returns the total strength of the field
-  [[nodiscard]] Numeric total_horizontal() const noexcept {return std::hypot(S, E);}
-  
+  [[nodiscard]] Numeric total_horizontal() const noexcept {
+    return std::hypot(S, E);
+  }
+
   //! Always construct to zeroes explicitly
   constexpr SphericalField() noexcept = default;
 };
 
-
 //! Holds a SphericalField for multiple dimensions (radius times longitudes)
 using MatrixOfSphericalField = Grid<SphericalField, 2>;
-
 
 /** Computes the spherical field
  * 
@@ -49,8 +51,12 @@ using MatrixOfSphericalField = Grid<SphericalField, 2>;
  * @param[in] lon The longitude (spherical)
  * @return A spherical field
  */
-SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Numeric r, const Numeric lat, const Numeric lon) ARTS_NOEXCEPT;
-
+SphericalField schmidt_fieldcalc(const Matrix& g,
+                                 const Matrix& h,
+                                 const Numeric r0,
+                                 const Numeric r,
+                                 const Numeric lat,
+                                 const Numeric lon) ARTS_NOEXCEPT;
 
 /** Computes the spherical field for many radius and longitudes
  * 
@@ -64,5 +70,28 @@ SphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric
  * @param[in] lon The longitude (spherical)
  * @return A spherical field
  */
-MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g, const Matrix& h, const Numeric r0, const Vector& r, const Numeric lat, const Vector& lon) ARTS_NOEXCEPT;
-} // namespace Legendre
+MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g,
+                                         const Matrix& h,
+                                         const Numeric r0,
+                                         const Vector& r,
+                                         const Numeric lat,
+                                         const Vector& lon) ARTS_NOEXCEPT;
+
+/** Computes sum (s[i] P_i(x)) for all s [first is for P_0, second is for P_1, ...]
+  * 
+  * @param[in] s The coefficients
+  * @param[in] x The x values
+  * @return The sum
+  */
+Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x);
+
+/** Computes P_n(x)
+  * 
+  * @param[in] s The coefficients
+  * @param[in] x The x values
+  * @return The sum
+  */
+Numeric legendre(Index n, Numeric x);
+Numeric assoc_legendre(Index l, Index m, Numeric x);
+Numeric tgamma_ratio(Numeric x, Numeric y);
+}  // namespace Legendre

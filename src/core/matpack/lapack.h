@@ -261,4 +261,13 @@ extern "C" void zgeev_(char *jobvl,
                        int *info);
 }  // namespace lapack
 
+extern "C" void dgesv_(int *n,
+                       int *nrhs,
+                       double *A,
+                       int *lda,
+                       int *ipiv,
+                       double *b,
+                       int *ldb,
+                       int *info);
+
 #endif  // LAPACK_H

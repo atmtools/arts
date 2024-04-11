@@ -15,6 +15,8 @@
   === External declarations
   ===========================================================================*/
 
+#include <array.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <cmath>
@@ -22,8 +24,7 @@
 
 #include "lapack.h"
 #include "matpack_math.h"
-
-#include <array.h>
+#include "matpack_view.h"
 
 #ifndef NDEBUG
 #include "logic.h"
@@ -101,8 +102,15 @@ void lubacksub(VectorView x,
     rhs[i] = b[i];
   }
 
-  lapack::dgetrs_(
-      &trans, &n_int, &one, LU.unsafe_data_handle(), &n_int, ipiv.data(), rhs.data(), &n_int, &info);
+  lapack::dgetrs_(&trans,
+                  &n_int,
+                  &one,
+                  LU.unsafe_data_handle(),
+                  &n_int,
+                  ipiv.data(),
+                  rhs.data(),
+                  &n_int,
+                  &info);
 
   for (Index i = 0; i < n; i++) {
     x[i] = rhs[i];
@@ -167,7 +175,13 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   int lwork = n_int;
   auto work = std::vector<double>(lwork);
 
-  lapack::dgetri_(&n_int, LU.data_handle(), &n_int, ipiv.data(), work.data(), &lwork, &info);
+  lapack::dgetri_(&n_int,
+                  LU.data_handle(),
+                  &n_int,
+                  ipiv.data(),
+                  work.data(),
+                  &lwork,
+                  &info);
 
   // Check for success.
   ARTS_USER_ERROR_IF(info not_eq 0,
@@ -234,7 +248,7 @@ void diagonalize(MatrixView P,
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
-  Matrix A_tmp{A};
+  Matrix A_tmp{transpose(A)};
   Matrix P2{P};
   Vector WR2{WR};
   Vector WI2{WI};
@@ -305,11 +319,11 @@ void diagonalize(ComplexMatrixView P,
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
 
-  ComplexMatrix A_tmp{A};
+  ComplexMatrix A_tmp{transpose(A)};
 
   // Integers
-  int LDA = int(A.ncols()), LDA_L = int(A.ncols()),
-      LDA_R = int(A.ncols()), n_int = int(n), info;
+  int LDA = int(A.ncols()), LDA_L = int(A.ncols()), LDA_R = int(A.ncols()),
+      n_int = int(n), info;
 
   // We want to calculate RP not LP
   char l_eig = 'N', r_eig = 'V';
@@ -337,7 +351,7 @@ void diagonalize(ComplexMatrixView P,
                  &info);
 
   for (Index i = 0; i < n; i++)
-    for (Index j = 0; j <= i; j++) std::swap(P(j, i), P(i, j));
+    for (Index j = 0; j < i; j++) std::swap(P(j, i), P(i, j));
 }
 
 //! General exponential of a Matrix
@@ -430,7 +444,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 */
 Numeric norm2(ConstVectorView v) {
   ARTS_ASSERT(v.nelem());
-  return sqrt(v*v);
+  return sqrt(v * v);
 }
 
 //! Maximum absolute row sum norm
@@ -591,4 +605,40 @@ Numeric lsf(VectorView x,
   }
 
   return 0;
+}
+
+std::vector<int> inplace_solve(Vector& X, Matrix& A) {
+  ARTS_ASSERT(A.nrows() == A.ncols());
+  ARTS_ASSERT(A.nrows() == X.size());
+
+  int n = static_cast<int>(X.size());
+  int nrhs = 1;
+  int info{};
+  std::vector<int> ipiv(n);
+
+  // DGESV computes the solution to a real system of linear equations
+  // A * X = B, where A is an N-by-N matrix and X and B are N-by-NRHS
+  // matrices.  Fortran requires the matrix to be column-major, so we
+  // need to transpose the matrix.
+  dgesv_(&n,
+         &nrhs,
+         inplace_transpose(A).data_handle(),
+         &n,
+         ipiv.data(),
+         X.data_handle(),
+         &n,
+         &info);
+
+  ARTS_USER_ERROR_IF(
+      info < 0, "dgesv: Argument ", -info, " has an illegal value.")
+
+  ARTS_USER_ERROR_IF(
+      info > 0,
+      "dgesv: U(",
+      info,
+      ",",
+      info,
+      ") is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.")
+
+  return ipiv;
 }

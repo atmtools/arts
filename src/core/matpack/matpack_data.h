@@ -328,6 +328,38 @@ class matpack_data {
         std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
   }
 
+  template <Index M>
+  constexpr matpack_view<T, M, false, false> reshape_as(
+      const std::array<Index, M>& sz) {
+    if (size() != mdsize<M>(sz)) std::terminate();
+    ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
+
+    return matpack_view<T, M, false, false>{data.data(), sz};
+  }
+
+  //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
+  template <integral... inds, Index M = sizeof...(inds)>
+  constexpr auto reshape_as(inds&&... sz) {
+    return std::move(*this).template reshape_as<M>(
+        std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
+  }
+
+  template <Index M>
+  constexpr matpack_view<T, M, true, false> reshape_as(
+      const std::array<Index, M>& sz) const {
+    if (size() != mdsize<M>(sz)) std::terminate();
+    ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
+
+    return matpack_view<T, M, true, false>{const_cast<T*>(data.data()), sz};
+  }
+
+  //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
+  template <integral... inds, Index M = sizeof...(inds)>
+  constexpr auto reshape_as(inds&&... sz) const {
+    return std::move(*this).template reshape_as<M>(
+        std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
+  }
+
   //! Reduce the rank of the object.  The new object must have the same size as the old one had
   template <Index... inds>
   constexpr auto reduce_rank() &&
@@ -348,7 +380,7 @@ class matpack_data {
 
   //! View this object as a 1-dimensional object
   constexpr matpack_view<T, 1, false, false> flat_view() {
-    return {data.data(), {size()}};
+    return view.flat_view();
   }
 
   constexpr auto slice(Index i0, Index nelem) { return view.slice(i0, nelem); }

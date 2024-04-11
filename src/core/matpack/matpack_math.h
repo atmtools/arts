@@ -1,16 +1,17 @@
 #pragma once
 
-#include <limits>
 #include <nonstd.h>
 
+#include <algorithm>
+#include <limits>
+#include <numeric>
+
+#include "configtypes.h"
 #include "debug.h"
 #include "matpack_concepts.h"
+#include "matpack_constexpr.h"
 #include "matpack_data.h"
 #include "matpack_view.h"
-#include "matpack_constexpr.h"
-
-#include <algorithm>
-#include <numeric>
 
 /** Return a transposed view of this matrix type
  * 
@@ -18,13 +19,23 @@
  * @return A transpose view of that matpack type
  */
 template <matpack::strict_rank_matpack_type<2> MAT>
-auto transpose(const MAT &x)
-    -> matpack::matpack_view<matpack::matpack_value_type<MAT>, 2,
-                             MAT::is_const(), true> {
+auto transpose(const MAT &x) -> matpack::
+    matpack_view<matpack::matpack_value_type<MAT>, 2, MAT::is_const(), true> {
   return matpack::strided_mdspan<matpack::matpack_value_type<MAT>, 2>{
       x.unsafe_data_handle(),
       {std::array{x.extent(1), x.extent(0)},
        std::array{x.stride(1), x.stride(0)}}};
+}
+
+template <matpack::strict_rank_matpack_type<2> MAT>
+constexpr MAT &inplace_transpose(MAT &x) {
+  ARTS_ASSERT(x.nrows() == x.ncols(), "Matrix must be square")
+  for (Index i = 0; i < x.nrows(); ++i) {
+    for (Index j = 0; j < i; ++j) {
+      std::swap(x(i, j), x(j, i));
+    }
+  }
+  return x;
 }
 
 /** Makes A = B * C
@@ -41,7 +52,21 @@ void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C);
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult(ComplexMatrixView A, const ConstComplexMatrixView &B, const ConstComplexMatrixView &C);
+void mult(ComplexMatrixView A,
+          const ConstComplexMatrixView &B,
+          const ConstComplexMatrixView &C);
+
+/** Makes y = alpha * M * x + beta * y
+ * 
+ * @param[out] y May not point at the same data as M or x
+ * @param M Any matrix
+ * @param x Any vector
+ */
+void mult(VectorView y,
+          const ConstMatrixView &M,
+          const ConstVectorView &x,
+          Numeric alpha = 1.0,
+          Numeric beta = 0.0);
 
 /** Makes y = M * x
  * 
@@ -49,15 +74,9 @@ void mult(ComplexMatrixView A, const ConstComplexMatrixView &B, const ConstCompl
  * @param M Any matrix
  * @param x Any vector
  */
-void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x);
-
-/** Makes y = M * x
- * 
- * @param[out] y May not point at the same data as M or x
- * @param M Any matrix
- * @param x Any vector
- */
-void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstComplexVectorView &x);
+void mult(ComplexVectorView y,
+          const ConstComplexMatrixView &M,
+          const ConstComplexVectorView &x);
 
 /** Computes the 3-dim cross-product of B and C
  * 
@@ -65,7 +84,7 @@ void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstCompl
  * @param B Any vector
  * @param C Any vector
  */
-void cross3(VectorView A, const ConstVectorView& B, const ConstVectorView& C);
+void cross3(VectorView A, const ConstVectorView &B, const ConstVectorView &C);
 
 /** Computes the 3-dim cross-product of B and C
  * 
@@ -73,10 +92,10 @@ void cross3(VectorView A, const ConstVectorView& B, const ConstVectorView& C);
  * @param B Any vector
  * @param C Any vector
  */
-constexpr Vector3 cross3(const Vector3& a, const Vector3& b) {
+constexpr Vector3 cross3(const Vector3 &a, const Vector3 &b) {
   return {a[1] * b[2] - a[2] * b[1],
-   a[2] * b[0] - a[0] * b[2],
-   a[0] * b[1] - a[1] * b[0]};
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0]};
 }
 
 /** Computes the 3-dim cross-product of B and C
@@ -85,10 +104,12 @@ constexpr Vector3 cross3(const Vector3& a, const Vector3& b) {
  * @param B Any vector
  * @param C Any vector
  */
-void cross3(ComplexVectorView A, const ConstComplexVectorView& B, const ConstComplexVectorView& C);
+void cross3(ComplexVectorView A,
+            const ConstComplexVectorView &B,
+            const ConstComplexVectorView &C);
 
 //! Copies the diagonal of matrix view A and returns it
-Vector diagonal(const ConstMatrixView& A);
+Vector diagonal(const ConstMatrixView &A);
 
 /** Returns a uniform grid
  * 
@@ -117,15 +138,14 @@ ComplexVector uniform_grid(Complex x0, Index N, Complex dx);
  * @param[in] in The input
  */
 template <matpack::any_matpack_type OUT, matpack::any_matpack_type IN>
-void transform(OUT &&out,
-               matpack::matpack_value_type<OUT> (&f)(
-                   matpack::matpack_value_type<IN>),
-               const IN &in)
+void transform(
+    OUT &&out,
+    matpack::matpack_value_type<OUT> (&f)(matpack::matpack_value_type<IN>),
+    const IN &in)
   requires(not std::remove_cvref_t<OUT>::is_const())
 {
   ARTS_ASSERT(out.size() == in.size())
-  std::transform(in.elem_begin(), in.elem_end(), out.elem_begin(),
-                 f);
+  std::transform(in.elem_begin(), in.elem_end(), out.elem_begin(), f);
 }
 
 /** Returns the minimal value of the object
@@ -138,7 +158,10 @@ constexpr auto min(const IN &in) {
   ARTS_ASSERT(in.size() > 0)
   using T = matpack::matpack_value_type<IN>;
   //FIXME: CLANG bug means we want to use std::reduce rather than min_element
-  return std::reduce(in.elem_begin(), in.elem_end(), std::numeric_limits<T>::max(), [](auto a, auto b){return a < b ? a : b;});
+  return std::reduce(in.elem_begin(),
+                     in.elem_end(),
+                     std::numeric_limits<T>::max(),
+                     [](auto a, auto b) { return a < b ? a : b; });
 }
 
 /** Returns the maximum value of the object
@@ -151,7 +174,10 @@ constexpr auto max(const IN &in) {
   ARTS_ASSERT(in.size() > 0)
   using T = matpack::matpack_value_type<IN>;
   //FIXME: CLANG bug means we want to use std::reduce rather than max_element
-  return std::reduce(in.elem_begin(), in.elem_end(), std::numeric_limits<T>::lowest(), [](auto a, auto b){return a > b ? a : b;});
+  return std::reduce(in.elem_begin(),
+                     in.elem_end(),
+                     std::numeric_limits<T>::lowest(),
+                     [](auto a, auto b) { return a > b ? a : b; });
 }
 
 /** Returns the minimum and maximum value of the object
@@ -182,7 +208,8 @@ constexpr auto sum(const IN &in) {
  * @param in Any matpack type
  * @return The mean
  */
-template <matpack::any_matpack_type IN> constexpr auto mean(const IN &in) {
+template <matpack::any_matpack_type IN>
+constexpr auto mean(const IN &in) {
   return sum(in) / static_cast<decltype(sum(in))>(in.size());
 }
 
@@ -191,17 +218,18 @@ template <matpack::any_matpack_type IN> constexpr auto mean(const IN &in) {
  * @param in Any matpack type
  * @return The mean
  */
-template <matpack::any_matpack_type IN> constexpr auto nanmean(const IN &in) {
+template <matpack::any_matpack_type IN>
+constexpr auto nanmean(const IN &in) {
   using T = matpack::matpack_value_type<IN>;
   using pt = std::pair<Index, T>;
   const auto [count, sum] = std::transform_reduce(
-      in.elem_begin(), in.elem_end(), pt(0, 0),
+      in.elem_begin(),
+      in.elem_end(),
+      pt(0, 0),
       [](pt a, pt b) {
         return pt{a.first + b.first, a.second + b.second};
       },
-      [](T a) {
-        return nonstd::isnan(a) ? pt(0, 0) : pt(1, a);
-      });
+      [](T a) { return nonstd::isnan(a) ? pt(0, 0) : pt(1, a); });
   return sum / static_cast<T>(count);
 }
 
@@ -212,7 +240,8 @@ template <strict_rank_matpack_type<1> VECONE,
 constexpr auto operator*(const VECONE &x, const VECTWO &y) {
   ARTS_ASSERT(x.size() == y.size(), x.size(), " vs ", y.size())
   using T = std::remove_cvref_t<decltype(x[0] * y[0])>;
-  return std::transform_reduce(x.elem_begin(), x.elem_end(), y.elem_begin(), T{0});
+  return std::transform_reduce(
+      x.elem_begin(), x.elem_end(), y.elem_begin(), T{0});
 }
 }  // namespace matpack
 

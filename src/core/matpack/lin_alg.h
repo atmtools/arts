@@ -25,6 +25,17 @@ void lubacksub(VectorView x,
 // Solve linear system
 void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
+/*! Solves A X = B inplace using dgesv.
+  * 
+  * Returns the Lapack ipiv array.
+  *
+  * @param[in,out] X   As equation, on input it is B on output is is X
+  * @param[in]     A   As equation
+  * @return The Lapack ipiv array, should be free to throw away
+  * @throws If the system cannot be solved according to Lapack info
+  */
+std::vector<int> inplace_solve(Vector& X, Matrix& A);
+
 // Matrix inverse
 void inv(MatrixView Ainv, ConstMatrixView A);
 

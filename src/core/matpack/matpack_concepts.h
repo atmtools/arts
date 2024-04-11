@@ -320,6 +320,10 @@ constexpr std::array<Index, dim> mdshape(const T& v) {
   }
 }
 
+constexpr std::array<Index, 0> mdshape(const Index&) {return {};}
+constexpr std::array<Index, 0> mdshape(const Numeric&) {return {};}
+constexpr std::array<Index, 0> mdshape(const Complex&) {return {};}
+
 //! Test that the object can have a shape
 template <typename T>
 concept has_mdshape = rankable<T> and requires(T a) {
