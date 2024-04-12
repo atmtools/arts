@@ -5853,7 +5853,9 @@ R"(
           "Valid choices for auxiliary data are:\n\n"
           "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
-          "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Level direct spectral radiance. Zero, if no sun is present \n"),
+          "- ``\"Asymmetry parameter\"``: Matrix [f_grid, size of p_grid - 1] layer asymmetry parameter.\n"
+          "- ``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. \n"
+          "- ``\"dFdtau\"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.\n"),
       AUTHORS("Patrick Eriksson", "Manfred Brath"),
       OUT("spectral_radiance_field","disort_aux"),
       GOUT(),
@@ -5920,6 +5922,7 @@ R"(
           "Valid choices for auxiliary data are:\n\n"
           "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single scattering albedo.\n"
+          "- ``\"Asymmetry parameter\"``: Matrix [f_grid, size of p_grid - 1] layer asymmetry parameter.\n"
           "- ``\"Direct downward spectral irradiance\"``: Matrix [f_grid, p_grid]. Direct downward spectral irradiance. Zero, if no sun is present. \n"
           "- ``\"dFdtau\"``: Matrix [f_grid, p_grid]. Flux divergence in optical thickness space.\n"),
       AUTHORS("Manfred Brath"),

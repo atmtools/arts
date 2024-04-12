@@ -1536,6 +1536,7 @@ void run_cdisort_flux(Workspace& ws,
   Matrix dFdtau(nf, N_lev, 0);
   Matrix deltatau(nf, N_lev, 0);
   Matrix snglsctalbedo(nf, N_lev, 0);
+  Matrix asymparameter(nf, N_lev, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1765,6 +1766,7 @@ void run_cdisort_flux(Workspace& ws,
       if (k>0){
         deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
         snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
+        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(1, ds.nlyr - k - 1 - cboxlims[0], 1);
       }
     }
 
@@ -1801,6 +1803,10 @@ void run_cdisort_flux(Workspace& ws,
       cnt+=1;
       disort_aux[cnt]=snglsctalbedo;
     }
+    else if (disort_aux_vars[i] == "Asymmetry parameter"){
+      cnt+=1;
+      disort_aux[cnt]=asymparameter;
+    }
     else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
       cnt += 1;
       disort_aux[cnt] = spectral_direct_irradiance_field;
@@ -1814,6 +1820,7 @@ void run_cdisort_flux(Workspace& ws,
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
+          "  \"Asymmetry parameter\"\n"
           "  \"Direct downward spectral irradiance\"\n"
           "  \"dFdtau\"\n"
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
