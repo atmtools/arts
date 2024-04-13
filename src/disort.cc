@@ -1766,7 +1766,7 @@ void run_cdisort_flux(Workspace& ws,
       if (k>0){
         deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
         snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
-        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(1, ds.nlyr - k - 1 - cboxlims[0], 1);
+        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(0, ds.nlyr - k - 1 - cboxlims[0], 1);
       }
     }
 
