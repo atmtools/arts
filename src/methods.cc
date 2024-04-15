@@ -5710,6 +5710,7 @@ R"(
           "\n"
           "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\" scattering albedo.\n"
+          "- ``\"Asymmetry parameter\"``: Matrix [f_grid, size of p_grid - 1] layer asymmetry parameter.\n"
           "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level. Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),
@@ -5782,6 +5783,7 @@ R"(
           "Valid choices for auxiliary data are:\n\n"
           "- ``\"Layer optical thickness\"``: Matrix [f_grid, size of p_grid - 1] layer optical thickness.\n"
           "- ``\"Single scattering albedo\"``: Matrix [f_grid, size of p_grid - 1] layer single\"scattering albedo.\n"
+          "- ``\"Asymmetry parameter\"``: Matrix [f_grid, size of p_grid - 1] layer asymmetry parameter.\n"
           "- ``\"Direct beam\"``: Matrix [f_grid, p_grid]. Attenuated direct at level.Zero, if no sun is present \n"),
       AUTHORS("Claudia Emde, Jana Mendrok", "Manfred Brath"),
       OUT("cloudbox_field","disort_aux"),

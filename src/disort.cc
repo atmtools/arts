@@ -1117,8 +1117,9 @@ void run_cdisort(Workspace& ws,
     pmom_gas.resize(ds.nlyr, Nlegendre);
   }
   Matrix directbeam(nf, N_lev, 0);
-  Matrix deltatau(nf, N_lev, 0);
-  Matrix snglsctalbedo(nf, N_lev, 0);
+  Matrix deltatau(nf, ds.nlyr, 0);
+  Matrix snglsctalbedo(nf, ds.nlyr, 0);
+  Matrix asymparameter(nf, ds.nlyr, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1313,8 +1314,13 @@ void run_cdisort(Workspace& ws,
     }
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-      snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+      snglsctalbedo(f_index, k + ncboxremoved) =
           ssalb(0, ds.nlyr - k + cboxlims[0]);
+    }
+
+    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
+      asymparameter(f_index, k + ncboxremoved) =
+          pmom(0, ds.nlyr - k + cboxlims[0],1);
     }
 
     if (suns_do){
@@ -1344,6 +1350,10 @@ void run_cdisort(Workspace& ws,
       cnt+=1;
       disort_aux[cnt]=snglsctalbedo;
     }
+    else if (disort_aux_vars[i] == "Asymmetry parameter"){
+      cnt+=1;
+      disort_aux[cnt]=asymparameter;
+    }
     else if (disort_aux_vars[i] == "Direct beam") {
       cnt += 1;
       disort_aux[cnt]=directbeam;
@@ -1352,6 +1362,7 @@ void run_cdisort(Workspace& ws,
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
+          "  \"Asymmetry parameter\"\n"
           "  \"Direct beam\"\n"
           "but you have selected: \"", disort_aux_vars[i], "\"\n");
     }
@@ -1534,9 +1545,9 @@ void run_cdisort_flux(Workspace& ws,
   Matrix dtauc(1, ds.nlyr);
 
   Matrix dFdtau(nf, N_lev, 0);
-  Matrix deltatau(nf, N_lev, 0);
-  Matrix snglsctalbedo(nf, N_lev, 0);
-  Matrix asymparameter(nf, N_lev, 0);
+  Matrix deltatau(nf, ds.nlyr, 0);
+  Matrix snglsctalbedo(nf, ds.nlyr, 0);
+  Matrix asymparameter(nf, ds.nlyr, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1764,9 +1775,9 @@ void run_cdisort_flux(Workspace& ws,
       // k is running over the number of levels but deltatau, ssalb is defined for layers,
       // therefore we need to exlude k==0 and remove one from the index.
       if (k>0){
-        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k - 1 - cboxlims[0]];
-        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k - 1 - cboxlims[0]];
-        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(0, ds.nlyr - k - 1 - cboxlims[0], 1);
+        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k  - cboxlims[0]];
+        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k  - cboxlims[0]];
+        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(0, ds.nlyr - k  - cboxlims[0], 1);
       }
     }
 
