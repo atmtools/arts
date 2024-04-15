@@ -1311,15 +1311,11 @@ void run_cdisort(Workspace& ws,
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
       deltatau(f_index, k - 1 + ncboxremoved) =
           dtauc(0, ds.nlyr - k  + cboxlims[0]);
-    }
 
-    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-      snglsctalbedo(f_index, k + ncboxremoved) =
+      snglsctalbedo(f_index, k - 1  + ncboxremoved) =
           ssalb(0, ds.nlyr - k + cboxlims[0]);
-    }
 
-    for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
-      asymparameter(f_index, k + ncboxremoved) =
+      asymparameter(f_index, k - 1 + ncboxremoved) =
           pmom(0, ds.nlyr - k + cboxlims[0],1);
     }
 
