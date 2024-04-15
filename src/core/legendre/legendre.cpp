@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <limits>
+#include <stdexcept>
+#include <iostream>
 
 #include "arts_constants.h"
 #include "arts_conversions.h"
@@ -549,6 +551,8 @@ Numeric next(Numeric l, Numeric m, Numeric x, Numeric Pl, Numeric Plm1) {
 
 // Port of Boost.Math legendre_p_imp
 Numeric assoc_legendre(Index l, Index m, Numeric x) {
+  if (x < -1 or x > 1) throw std::runtime_error("x must be in [-1, 1]");
+
   if (l < 0) return assoc_legendre(-l - 1, m, x);
   if ((l == 0) && (m == -1)) return std::sqrt((1 - x) / (1 + x));
   if ((l == 1) && (m == 0)) return x;
@@ -572,7 +576,6 @@ Numeric assoc_legendre(Index l, Index m, Numeric x) {
   if (m == l) return p0;
 
   Numeric p1 = x * static_cast<Numeric>(2 * m + 1) * p0;
-
   Index n = m + 1;
   while (n < l) {
     std::swap(p0, p1);

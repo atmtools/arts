@@ -259,6 +259,6 @@ add_custom_target(run_perf
 
 # ####
 add_executable(test_legendre test_legendre.cc)
-target_link_libraries(test_legendre PUBLIC artscore)
+target_link_libraries(test_legendre PUBLIC legendre)
 add_test(NAME "cpp.fast.test_legendre" COMMAND test_legendre)
 add_dependencies(check-deps test_legendre)

@@ -832,7 +832,7 @@ void test_einsum_arr() {
   }
 
   {
-    const Index N = 10'000;
+    const Index N = 1'000;
     Matrix A(N, N, 1);
     A(0, 0) = 2;
     A(N - 1, N - 1) = -2;
@@ -932,20 +932,6 @@ void test_lapack_vector_mult() {
   ARTS_USER_ERROR_IF((y != Vector{21., 48., 75.}), "Bad values:\n", y);
 }
 
-void test_solve2() {
-  ComplexMatrix A(4, 4);
-  A[0] = ComplexVector{1.8 + 1i, 2.88, 2.05, -0.89};
-  A[1] = ComplexVector{5.25, -2.95, -0.95, -3.8};
-  A[2] = ComplexVector{1.58, -2.69, -2.9, -1.04};
-  A[3] = ComplexVector{-1.11, -0.66, -0.59, 0.8};
-  ComplexVector b(4);
-  ComplexMatrix C(4, 4);
-  diagonalize(C, b, A);
-  std::cout << "A:\n" << A << '\n';
-  std::cout  << "b:\n" << b << '\n';
-  std::cout  << "C:\n" << C << '\n';
-}
-
 #define EXECUTE_TEST(X)                                                       \
   std::cout << "#########################################################\n"; \
   std::cout << "Executing test: " #X << '\n';                                 \
@@ -954,17 +940,16 @@ void test_solve2() {
   std::cout << "#########################################################\n";
 
 int main() {
-  // EXECUTE_TEST(test_view)
-  // EXECUTE_TEST(test_eigen)
-  // EXECUTE_TEST(test_data)
-  // EXECUTE_TEST(test_complex)
-  // EXECUTE_TEST(test_math)
-  // EXECUTE_TEST(test_mult)
-  // EXECUTE_TEST(test_const_view)
-  // EXECUTE_TEST(test_const_data)
-  // EXECUTE_TEST(test_my_interp)
-  // EXECUTE_TEST(test_sorted_grid)
-  // EXECUTE_TEST(test_einsum_arr)
-  // EXECUTE_TEST(test_lapack_vector_mult)
-  test_solve2();
+  EXECUTE_TEST(test_view)
+  EXECUTE_TEST(test_eigen)
+  EXECUTE_TEST(test_data)
+  EXECUTE_TEST(test_complex)
+  EXECUTE_TEST(test_math)
+  EXECUTE_TEST(test_mult)
+  EXECUTE_TEST(test_const_view)
+  EXECUTE_TEST(test_const_data)
+  EXECUTE_TEST(test_my_interp)
+  EXECUTE_TEST(test_sorted_grid)
+  EXECUTE_TEST(test_einsum_arr)
+  EXECUTE_TEST(test_lapack_vector_mult)
 }

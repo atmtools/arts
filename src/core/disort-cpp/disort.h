@@ -7,10 +7,8 @@
 namespace disort {
 struct BDRF {
   void operator()(ExhaustiveMatrixView,
-                                   const ExhaustiveConstVectorView&,
-                                   const ExhaustiveConstVectorView&) const {
-
-  }
+                  const ExhaustiveConstVectorView&,
+                  const ExhaustiveConstVectorView&) const {}
 };
 
 struct u_data {
@@ -57,7 +55,7 @@ struct flux_data {
 
 class main_data {
   Index NLayers;
-  Index NLeg_all;  // Propbably not needed
+  Index NLeg_all;
   Index NQuad;
   Index N;
   Index NFourier;
@@ -110,6 +108,8 @@ class main_data {
 
  public:
   main_data(Index NQuad,
+            Index NLeg,
+            Index NFourier,
             Vector tau_arr,
             Vector omega_arr,
             Matrix Leg_coeffs_all,
@@ -121,6 +121,8 @@ class main_data {
             Numeric mu0,
             Numeric I0,
             Numeric phi0);
+
+  [[nodiscard]] Index quads() const { return NQuad; }
 
   [[nodiscard]] Size mem() const {
     return sizeof(Numeric) *
@@ -139,7 +141,7 @@ class main_data {
   void u(u_data& data,
          const Numeric tau,
          const Numeric phi,
-         const bool return_fourier_error) const;
+         const bool return_fourier_error = false) const;
 
   void u0(u0_data& data, const Numeric tau) const;
 
@@ -148,9 +150,10 @@ class main_data {
               tms_data& tms_data,
               const Numeric tau,
               const Numeric phi,
-              const bool return_fourier_error) const;
+              const bool return_fourier_error = false) const;
 
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
-  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&, const Numeric tau) const;
+  [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&,
+                                                      const Numeric tau) const;
 };
 }  // namespace disort

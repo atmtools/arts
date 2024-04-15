@@ -169,7 +169,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                     G_collect_m[0].slice(0, N),
                     K_collect_m[0],
                     G_inv_collect_0[0],
-                    mu_arr);  // FIXME: mu_arr_pos???
+                    mu_arr);
 
       if (multilayer_bool) {
         for (Index l = 0; l < NLayers; l++) {
@@ -203,7 +203,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                     G_collect_m[NLayers - 1].slice(0, N),
                     K_collect_m[NLayers - 1],
                     G_inv_collect_0[NLayers - 1],
-                    mu_arr);  // FIXME: mu_arr_pos???
+                    mu_arr);
 
       if (NBDRF > 0) {
         // Add R@m to m using lapack
@@ -440,10 +440,8 @@ void diagonalize(Tensor4& G_collect_,
         asso_leg_term_neg(i - m, j) =
             asso_leg_term_pos(i - m, j) * signs[i - m];
       }
-      asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(m, ells[i - m], -mu0);
+      asso_leg_term_mu0[i-m] = Legendre::assoc_legendre(ells[i-m], m, -mu0);
     }
-
-    // SAME VALUES SO FAR
 
     const bool all_asso_leg_term_pos_finite =
         std::all_of(asso_leg_term_pos.elem_begin(),
@@ -462,23 +460,15 @@ void diagonalize(Tensor4& G_collect_,
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
-        for (Index i = 0; i < N; i++) {
-          for (Index j = 0; j < NLeg - m; j++) {
-            D_temp(i, j) +=
-                weighted_asso_Leg_coeffs_l[j] * asso_leg_term_pos(j, i);
-          }
-        }
+        einsum<"ij", "j", "ji">(D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos);
         mult(D_neg, D_temp, asso_leg_term_neg);
         D_pos *= 0.5 * scaled_omega_l;
         D_neg *= 0.5 * scaled_omega_l;
 
         if (beam_source_bool) {
-          for (Index i = 0; i < NLeg - m; i++) {
-            X_temp[i] = (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
-                         (4 * Constant::pi)) *
-                        weighted_asso_Leg_coeffs_l[i] * asso_leg_term_mu0[i];
-          }
+          einsum<"i", "i", "i", "">(X_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_mu0, (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
+                         (4 * Constant::pi)));
 
           mult(xpos, xtemp, asso_leg_term_pos);
           mult(xneg, xtemp, asso_leg_term_neg);
@@ -567,7 +557,29 @@ void diagonalize(Tensor4& G_collect_,
   }
 }
 
+void DoubleGaussLegendre(Vector& x, Vector& w, Index n) {
+  const Index N = n / 2;
+
+  Vector part_x(N);
+  Vector part_w(N);
+  GSL::Integration::GaussLegendre(part_x, part_w, n);
+
+  x.resize(n);
+  w.resize(n);
+  for (Index i = 0; i < N; i++) {
+    x[i] =  - part_x[N - 1 - i];
+    x[N + i] =  part_x[i];
+    w[i] = part_w[N - 1 - i];
+    w[N + i] = part_w[i];
+  }
+  x += 1.0;
+  x *= 0.5;
+  w *= 0.5;
+}
+
 main_data::main_data(Index NQuad_,
+                     Index NLeg_,
+                     Index NFourier_,
                      Vector tau_arr_,
                      Vector omega_arr_,
                      Matrix Leg_coeffs_all_,
@@ -583,10 +595,10 @@ main_data::main_data(Index NQuad_,
       NLeg_all(Leg_coeffs_all_.ncols()),
       NQuad(NQuad_),
       N(NQuad / 2),
-      NFourier(NQuad),  // For now, set to same as NQuad
+      NFourier(NFourier_),
       Nscoeffs(s_poly_coeffs_.nrows()),
       NBDRF(fourier_modes_.size()),
-      NLeg(NQuad),  // For now, set to same as NQuad
+      NLeg(NLeg_),
       tau_arr(std::move(tau_arr_)),
       omega_arr(std::move(omega_arr_)),
       f_arr(std::move(f_arr_)),
@@ -651,8 +663,7 @@ main_data::main_data(Index NQuad_,
   Leg_coeffs = Leg_coeffs_all(joker, Range(0, NLeg));
 
   // Quadrature points
-  // FIXME: Ask why he's doing transformations
-  GSL::Integration::GaussLegendre(mu_arr_pos, W, NQuad);
+  DoubleGaussLegendre(mu_arr_pos, W, N);
   std::transform(
       mu_arr_pos.begin(), mu_arr_pos.end(), M_inv.begin(), [](auto&& x) {
         return 1.0 / x;
@@ -698,7 +709,7 @@ main_data::main_data(Index NQuad_,
   }
 
   // Scaling
-  if (not f_arr.empty()) {
+  if (f_arr.size() != 1 and f_arr.front() != 0) {
     std::transform(omega_arr.begin(),
                    omega_arr.end(),
                    f_arr.begin(),
