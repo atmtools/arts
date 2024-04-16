@@ -19,6 +19,16 @@
 #include "matpack_view.h"
 #include "rational.h"
 
+
+void print(auto& x) {
+  auto ptr = x.elem_begin();
+  while (ptr != x.elem_end()) {
+    std::cout << *ptr << ",";
+    ptr++;
+  }
+  std::cout << '\n';
+}
+
 namespace disort {
 void mathscr_v_add(ExhaustiveVectorView um,
                    Matrix& mathscr_v_coeffs,
@@ -1006,8 +1016,8 @@ void calculate_nu(Vector& nu,
       mu.begin(),
       mu.end(),
       nu.begin(),
-      [mu_p, scl = mu_p * std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi)](
-          auto&& x) { return x * mu_p + scl * x * std::sqrt(1.0 - x * x); });
+      [mu_p, scl = std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi)](
+          auto&& x) { return x * mu_p + scl * std::sqrt(1.0 - x * x); });
 }
 
 void main_data::TMS(tms_data& data,
@@ -1253,7 +1263,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       beam_source_bool ? I0 * mu0 * std::exp(-tau / mu0) : 0;
   const Numeric direct_beam_scaled =
       beam_source_bool ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
-  data.direct_beam_contribution.resize(8);
+  data.direct_beam_contribution.resize(N);
   if (beam_source_bool) {
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(N, N),
