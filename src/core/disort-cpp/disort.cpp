@@ -440,7 +440,7 @@ void diagonalize(Tensor4& G_collect_,
         asso_leg_term_neg(i - m, j) =
             asso_leg_term_pos(i - m, j) * signs[i - m];
       }
-      asso_leg_term_mu0[i-m] = Legendre::assoc_legendre(ells[i-m], m, -mu0);
+      asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(ells[i - m], m, -mu0);
     }
 
     const bool all_asso_leg_term_pos_finite =
@@ -460,15 +460,20 @@ void diagonalize(Tensor4& G_collect_,
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
-        einsum<"ij", "j", "ji">(D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
+        einsum<"ij", "j", "ji">(
+            D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos);
         mult(D_neg, D_temp, asso_leg_term_neg);
         D_pos *= 0.5 * scaled_omega_l;
         D_neg *= 0.5 * scaled_omega_l;
 
         if (beam_source_bool) {
-          einsum<"i", "i", "i", "">(X_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_mu0, (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
-                         (4 * Constant::pi)));
+          einsum<"i", "i", "i", "">(
+              X_temp,
+              weighted_asso_Leg_coeffs_l,
+              asso_leg_term_mu0,
+              (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
+               (4 * Constant::pi)));
 
           mult(xpos, xtemp, asso_leg_term_pos);
           mult(xneg, xtemp, asso_leg_term_neg);
@@ -567,8 +572,8 @@ void DoubleGaussLegendre(Vector& x, Vector& w, Index n) {
   x.resize(n);
   w.resize(n);
   for (Index i = 0; i < N; i++) {
-    x[i] =  - part_x[N - 1 - i];
-    x[N + i] =  part_x[i];
+    x[i] = -part_x[N - 1 - i];
+    x[N + i] = part_x[i];
     w[i] = part_w[N - 1 - i];
     w[N + i] = part_w[i];
   }
@@ -628,7 +633,7 @@ main_data::main_data(Index NQuad_,
   // Input size checks
   ARTS_USER_ERROR_IF(tau_arr.size() != NLayers, "tau_arr layers mismatch");
   ARTS_USER_ERROR_IF(omega_arr.size() != NLayers, "omega_arr layers mismatch");
-  ARTS_USER_ERROR_IF(f_arr.size() != NLayers and f_arr.size() != 0,
+  ARTS_USER_ERROR_IF(not(f_arr.size() == NLayers or f_arr.size() == 0),
                      "f_arr layers mismatch");
   ARTS_USER_ERROR_IF(Leg_coeffs_all.nrows() != NLayers,
                      "Leg_coeffs_all layers mismatch");
@@ -709,7 +714,7 @@ main_data::main_data(Index NQuad_,
   }
 
   // Scaling
-  if (f_arr.size() != 1 and f_arr.front() != 0) {
+  if (not f_arr.empty()) {
     std::transform(omega_arr.begin(),
                    omega_arr.end(),
                    f_arr.begin(),
@@ -719,6 +724,7 @@ main_data::main_data(Index NQuad_,
     einsum<"i", "i", "i", "">(scale_tau, omega_arr, f_arr, -1);
 
     scale_tau += 1;
+
     scaled_tau_arr_with_0[0] = 0;
 
     Numeric part = 0.0;
@@ -728,10 +734,10 @@ main_data::main_data(Index NQuad_,
     }
 
     for (Index i = 0; i < NLayers; i++) {
-      const Numeric scl = static_cast<Numeric>(2 * i + 1) / (1.0 - f_arr[i]);
-      const Numeric rem = scl * f_arr[i];
       for (Index j = 0; j < NLeg; j++) {
-        weighted_scaled_Leg_coeffs(i, j) = scl * Leg_coeffs(i, j) - rem;
+        weighted_scaled_Leg_coeffs(i, j) = static_cast<Numeric>(2 * j + 1) *
+                                           (Leg_coeffs(i, j) - f_arr[i]) /
+                                           (1 - f_arr[i]);
       }
     }
 
@@ -990,7 +996,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
 }
 
 void calculate_nu(Vector& nu,
-                  const Vector& mu,
+                  const ExhaustiveConstVectorView& mu,
                   const Numeric phi,
                   const Numeric mu_p,
                   const Numeric phi_p) {
@@ -1000,8 +1006,8 @@ void calculate_nu(Vector& nu,
       mu.begin(),
       mu.end(),
       nu.begin(),
-      [scl = mu_p * std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi)](
-          auto&& x) { return scl * x * std::sqrt(1.0 - x * x); });
+      [mu_p, scl = mu_p * std::sqrt(1.0 - mu_p * mu_p) * std::cos(phi_p - phi)](
+          auto&& x) { return x * mu_p + scl * x * std::sqrt(1.0 - x * x); });
 }
 
 void main_data::TMS(tms_data& data,
@@ -1018,24 +1024,26 @@ void main_data::TMS(tms_data& data,
 
   // mathscr_B
   calculate_nu(data.nu, mu_arr, phi, -mu0, phi0);
+
   data.p_true.resize(NLayers, NQuad);
   data.p_trun.resize(NLayers, NQuad);
-  for (Index i = 0; i < NLayers; i++) {
-    for (Index j = 0; j < NQuad; j++) {
-      data.p_true(i, j) =
-          Legendre::legendre_sum(weighted_Leg_coeffs_all[i], data.nu[j]);
-      data.p_trun(i, j) =
-          Legendre::legendre_sum(weighted_scaled_Leg_coeffs[i], data.nu[j]);
+
+  for (Index j = 0; j < NLayers; j++) {
+    for (Index i = 0; i < NQuad; i++) {
+      data.p_true(j, i) =
+          Legendre::legendre_sum(weighted_Leg_coeffs_all[j], data.nu[i]);
+      data.p_trun(j, i) =
+          Legendre::legendre_sum(weighted_scaled_Leg_coeffs[j], data.nu[i]);
     }
   }
 
-  data.mathscr_B.resize(NQuad, NLayers);
-  for (Index i = 0; i < NQuad; i++) {
-    for (Index j = 0; j < NLayers; j++) {
-      data.mathscr_B(i, j) =
+  data.mathscr_B.resize(NLayers, NQuad);
+  for (Index j = 0; j < NLayers; j++) {
+    for (Index i = 0; i < NQuad; i++) {
+      data.mathscr_B(j, i) =
           (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
           (mu0 / (mu0 + mu_arr[i])) *
-          (data.p_true(i, j) / (1 - f_arr[j]) - data.p_trun(i, j));
+          (data.p_true(j, i) / (1 - f_arr[j]) - data.p_trun(j, i));
     }
   }
 
@@ -1043,22 +1051,22 @@ void main_data::TMS(tms_data& data,
   data.TMS_correction_pos = std::exp(-scaled_tau / mu0);
   for (Index i = 0; i < N; i++) {
     data.TMS_correction_pos[i] -=
-        -std::exp((scaled_tau - scaled_tau_arr_l) / mu_arr_pos[i] -
-                  scaled_tau_arr_l / mu0);
+        std::exp((scaled_tau - scaled_tau_arr_l) / mu_arr_pos[i] -
+                 scaled_tau_arr_l / mu0);
   }
 
   data.TMS_correction_neg.resize(N);
   data.TMS_correction_neg = std::exp(-scaled_tau / mu0);
   for (Index i = 0; i < N; i++) {
     data.TMS_correction_neg[i] -=
-        -std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu_arr_pos[i] -
-                  scaled_tau_arr_lm1 / mu0);
+        std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu_arr_pos[i] -
+                 scaled_tau_arr_lm1 / mu0);
   }
 
   data.TMS.resize(NQuad);
   for (Index i = 0; i < N; i++) {
-    data.TMS[i + 0] = data.mathscr_B(i + 0, l) * data.TMS_correction_pos[i];
-    data.TMS[i + N] = data.mathscr_B(i + N, l) * data.TMS_correction_neg[i];
+    data.TMS[i + 0] = data.mathscr_B(l, i + 0) * data.TMS_correction_pos[i];
+    data.TMS[i + N] = data.mathscr_B(l, i + N) * data.TMS_correction_neg[i];
   }
 
   if (multilayer_bool) {
@@ -1108,8 +1116,8 @@ void main_data::IMS(ims_data& data,
                     const Numeric phi) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
 
-  // IMS nu is just for mu_arr_pos, which is just the first half of mu_arr
-  calculate_nu(data.nu, mu_arr_pos, phi, -mu0, phi0);
+  // IMS nu is just for mu_arr_neg, which is just the second half of mu_arr
+  calculate_nu(data.nu, mu_arr.slice(N, N), phi, -mu0, phi0);
 
   data.x.resize(N);
   for (Index i = 0; i < N; i++) {
@@ -1119,8 +1127,8 @@ void main_data::IMS(ims_data& data,
   data.chi.resize(N);
   for (Index i = 0; i < N; i++) {
     data.chi[i] = (1 / (mu_arr_pos[i] * scaled_mu0 * data.x[i])) *
-                      (tau - 1 / data.x[i]) * std::exp(-tau / scaled_mu0) +
-                  std::exp(-tau / mu_arr_pos[i]) / data.x[i];
+                  ((tau - 1 / data.x[i]) * std::exp(-tau / scaled_mu0) +
+                   std::exp(-tau / mu_arr_pos[i]) / data.x[i]);
   }
 
   data.IMS.resize(N);
@@ -1128,7 +1136,7 @@ void main_data::IMS(ims_data& data,
     data.IMS[i] = (I0 / (4 * Constant::pi) * Math::pow2(omega_avg * f_avg) /
                    (1 - omega_avg * f_avg) *
                    Legendre::legendre_sum(Leg_coeffs_residue_avg, data.nu[i])) *
-                  data.IMS[i];
+                  data.chi[i];
   }
 }
 
@@ -1143,10 +1151,11 @@ void main_data::u_corr(u_data& u_data,
   u(u_data, tau, phi, return_fourier_error);
 
   for (Index i = 0; i < N; i++) {
-    u_data.intensities[i] += I0_orig * (tms_data.TMS[i] + ims_data.IMS[i]);
-  }
-  for (Index i = N; i < NQuad; i++) {
     u_data.intensities[i] += I0_orig * tms_data.TMS[i];
+  }
+
+  for (Index i = N; i < NQuad; i++) {
+    u_data.intensities[i] += I0_orig * (tms_data.TMS[i] + ims_data.IMS[i - N]);
   }
 
   if (return_fourier_error) {
@@ -1266,11 +1275,10 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       data.u0_neg, GC_collect(0, l, Range(N, N), joker), data.exponent);
   data.u0_neg += data.mathscr_v.slice(0, N);
   data.u0_neg += data.direct_beam_contribution;
-  ;
 
-  return {einsum<Numeric, "", "", "i", "i", "i">(
-              {}, Constant::two_pi * I0_orig, mu_arr_pos, W, data.u0_neg) -
-              direct_beam + direct_beam_scaled,
+  return {I0_orig * (einsum<Numeric, "", "", "i", "i", "i">(
+                         {}, Constant::two_pi, mu_arr_pos, W, data.u0_neg) -
+                     direct_beam + direct_beam_scaled),
           I0_orig * I0 * direct_beam};
 }
 }  // namespace disort
