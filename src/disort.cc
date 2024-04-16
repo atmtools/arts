@@ -981,14 +981,14 @@ void run_cdisort(Workspace& ws,
 
   //check if pnd field is zero, if yes we do not need to calculate particle
   //scattering properties
-  bool pnd_non_zero=false;
+  bool pnd_non_zero = false;
   for (Index i = 0; i < pnd.nrows(); i++) {
-    for (Index j = 0; j < pnd.ncols(); j++){
-      pnd_non_zero+=bool(pnd(i,j));
+    for (Index j = 0; j < pnd.ncols(); j++) {
+      pnd_non_zero += bool(pnd(i, j));
     }
   }
 
-  #if not ARTS_LGPL
+#if not ARTS_LGPL
   disort_state ds;
   disort_output out;
 
@@ -1009,7 +1009,7 @@ void run_cdisort(Workspace& ws,
   //Intensity of incident sun beam
   Numeric fbeam = 0.;
 
-  Index N_lev= p_grid.nelem();
+  Index N_lev = p_grid.nelem();
 
   if (suns_do) {
     nphi = aa_grid.nelem();
@@ -1078,8 +1078,9 @@ void run_cdisort(Workspace& ws,
   // fill up azimuth angle and temperature array
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
 
-  if  (ds.flag.planck==TRUE){
-    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = temperature[ds.nlyr - i];
+  if (ds.flag.planck == TRUE) {
+    for (Index i = 0; i <= ds.nlyr; i++)
+      ds.temper[i] = temperature[ds.nlyr - i];
   }
 
   // Transform to mu, starting with negative values
@@ -1087,8 +1088,13 @@ void run_cdisort(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, temperature, vmr, pressure, f_grid);
-
+  get_gasoptprop(ws,
+                 ext_bulk_gas,
+                 propmat_clearsky_agenda,
+                 temperature,
+                 vmr,
+                 pressure,
+                 f_grid);
 
   //get angles and number of angles
   Index nang;
@@ -1117,9 +1123,9 @@ void run_cdisort(Workspace& ws,
     pmom_gas.resize(ds.nlyr, Nlegendre);
   }
   Matrix directbeam(nf, N_lev, 0);
-  Matrix deltatau(nf, N_lev-1, 0);
-  Matrix snglsctalbedo(nf, N_lev-1, 0);
-  Matrix asymparameter(nf, N_lev-1, 0);
+  Matrix deltatau(nf, N_lev - 1, 0);
+  Matrix snglsctalbedo(nf, N_lev - 1, 0);
+  Matrix asymparameter(nf, N_lev - 1, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1130,8 +1136,7 @@ void run_cdisort(Workspace& ws,
 
   // loop over all frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-
-    f_grid_i=f_grid[f_index];
+    f_grid_i = f_grid[f_index];
 
     // Get particle bulk properties
     if (pnd_non_zero) {
@@ -1165,7 +1170,13 @@ void run_cdisort(Workspace& ws,
                        pressure,
                        cboxlims,
                        f_index);
-        get_parZ(pha_bulk_par, scat_data, pnd, temperature, pfct_angs, cboxlims, f_index);
+        get_parZ(pha_bulk_par,
+                 scat_data,
+                 pnd,
+                 temperature,
+                 pfct_angs,
+                 cboxlims,
+                 f_index);
       }
 
       get_pfct(
@@ -1207,8 +1218,9 @@ void run_cdisort(Workspace& ws,
 
     // Optical depth of layers
     // Single scattering albedo of layers
-    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
+    ext_bulk_gas_i(0, joker) = ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(
+        dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1230,7 +1242,6 @@ void run_cdisort(Workspace& ws,
     ds.bc.btemp = surface_skin_t;
     ds.bc.temis = 1.;
 
-
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
@@ -1250,8 +1261,8 @@ void run_cdisort(Workspace& ws,
 
     // Set irradiance of incident solar beam at top boundary
     if (suns_do) {
-      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
-              (100 * SPEED_OF_LIGHT)*scale_factor;
+      fbeam = suns[0].spectrum(f_index, 0) * (ds.wvnmhi - ds.wvnmlo) *
+              (100 * SPEED_OF_LIGHT) * scale_factor;
     }
     ds.bc.fbeam = fbeam;
 
@@ -1261,7 +1272,7 @@ void run_cdisort(Workspace& ws,
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
     Status tries = Status::FIRST_TRY;
-    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
     do {
       try {
         c_disort(&ds, &out);
@@ -1310,23 +1321,23 @@ void run_cdisort(Workspace& ws,
 
     for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
       deltatau(f_index, k - 1 + ncboxremoved) =
-          dtauc(0, ds.nlyr - k  + cboxlims[0]);
+          dtauc(0, ds.nlyr - k + cboxlims[0]);
 
-      snglsctalbedo(f_index, k - 1  + ncboxremoved) =
+      snglsctalbedo(f_index, k - 1 + ncboxremoved) =
           ssalb(0, ds.nlyr - k + cboxlims[0]);
 
       asymparameter(f_index, k - 1 + ncboxremoved) =
-          pmom(0, ds.nlyr - k + cboxlims[0],1);
+          pmom(0, ds.nlyr - k + cboxlims[0], 1);
     }
 
-    if (suns_do){
+    if (suns_do) {
       directbeam(f_index, cboxlims[1] - cboxlims[0] + ncboxremoved) =
-          suns[0].spectrum(f_index, 0)/PI;
+          suns[0].spectrum(f_index, 0) / PI;
 
       for (Index k = cboxlims[1] - cboxlims[0]; k > 0; k--) {
         directbeam(f_index, k - 1 + ncboxremoved) =
             directbeam(f_index, k + ncboxremoved) *
-            exp(-dtauc(0, ds.nlyr - k + cboxlims[0])/umu0);
+            exp(-dtauc(0, ds.nlyr - k + cboxlims[0]) / umu0);
       }
     }
   }
@@ -1334,33 +1345,30 @@ void run_cdisort(Workspace& ws,
   // Allocate aux data
   disort_aux.resize(disort_aux_vars.nelem());
   // Allocate and set (if possible here) iy_aux
-  Index cnt=-1;
+  Index cnt = -1;
   for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
-
-
-    if (disort_aux_vars[i] == "Layer optical thickness"){
+    if (disort_aux_vars[i] == "Layer optical thickness") {
       cnt += 1;
       disort_aux[cnt] = deltatau;
-    }
-    else if (disort_aux_vars[i] == "Single scattering albedo"){
-      cnt+=1;
-      disort_aux[cnt]=snglsctalbedo;
-    }
-    else if (disort_aux_vars[i] == "Asymmetry parameter"){
-      cnt+=1;
-      disort_aux[cnt]=asymparameter;
-    }
-    else if (disort_aux_vars[i] == "Direct beam") {
+    } else if (disort_aux_vars[i] == "Single scattering albedo") {
       cnt += 1;
-      disort_aux[cnt]=directbeam;
+      disort_aux[cnt] = snglsctalbedo;
+    } else if (disort_aux_vars[i] == "Asymmetry parameter") {
+      cnt += 1;
+      disort_aux[cnt] = asymparameter;
+    } else if (disort_aux_vars[i] == "Direct beam") {
+      cnt += 1;
+      disort_aux[cnt] = directbeam;
     } else {
-      ARTS_USER_ERROR (
+      ARTS_USER_ERROR(
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
           "  \"Asymmetry parameter\"\n"
           "  \"Direct beam\"\n"
-          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+          "but you have selected: \"",
+          disort_aux_vars[i],
+          "\"\n");
     }
   }
 
@@ -1368,9 +1376,9 @@ void run_cdisort(Workspace& ws,
   c_disort_out_free(&ds, &out);
   c_disort_state_free(&ds);
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 }
 
 void run_cdisort_flux(Workspace& ws,
@@ -1425,13 +1433,12 @@ void run_cdisort_flux(Workspace& ws,
 
   //check if pnd field is zero, if yes we do not need to calculate particle
   //scattering properties
-  bool pnd_non_zero=false;
+  bool pnd_non_zero = false;
   for (Index i = 0; i < pnd.nrows(); i++) {
-    for (Index j = 0; j < pnd.ncols(); j++){
-      pnd_non_zero+=bool(pnd(i,j));
+    for (Index j = 0; j < pnd.ncols(); j++) {
+      pnd_non_zero += bool(pnd(i, j));
     }
   }
-
 
 #if not ARTS_LGPL
 
@@ -1514,9 +1521,9 @@ void run_cdisort_flux(Workspace& ws,
   ds.bc.fluor = 0.;
 
   //
-  Index N_lev= p_grid.nelem();
+  Index N_lev = p_grid.nelem();
   Matrix spectral_direct_irradiance_field;
-  if (suns_do){
+  if (suns_do) {
     //Resize direct field
     spectral_direct_irradiance_field.resize(nf, N_lev);
     spectral_direct_irradiance_field = 0;
@@ -1524,7 +1531,13 @@ void run_cdisort_flux(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, temperature, vmr, pressure, f_grid);
+  get_gasoptprop(ws,
+                 ext_bulk_gas,
+                 propmat_clearsky_agenda,
+                 temperature,
+                 vmr,
+                 pressure,
+                 f_grid);
 
   //get angles and number of angles
   Index nang;
@@ -1541,9 +1554,9 @@ void run_cdisort_flux(Workspace& ws,
   Matrix dtauc(1, ds.nlyr);
 
   Matrix dFdtau(nf, N_lev, 0);
-  Matrix deltatau(nf, N_lev-1, 0);
-  Matrix snglsctalbedo(nf, N_lev-1, 0);
-  Matrix asymparameter(nf, N_lev-1, 0);
+  Matrix deltatau(nf, N_lev - 1, 0);
+  Matrix snglsctalbedo(nf, N_lev - 1, 0);
+  Matrix asymparameter(nf, N_lev - 1, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1555,7 +1568,17 @@ void run_cdisort_flux(Workspace& ws,
   WorkspaceOmpParallelCopyGuard wss{ws};
   // start loop over all frequencies
 #pragma omp parallel for if (!arts_omp_in_parallel() && f_grid.nelem() > 1) \
-    firstprivate(wss, ds, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, pha_bulk_par, umu0, pmom, ssalb, dtauc, out)
+    firstprivate(wss,                                                       \
+                     ds,                                                    \
+                     ext_bulk_gas_i,                                        \
+                     ext_bulk_par,                                          \
+                     abs_bulk_par,                                          \
+                     pha_bulk_par,                                          \
+                     umu0,                                                  \
+                     pmom,                                                  \
+                     ssalb,                                                 \
+                     dtauc,                                                 \
+                     out)
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     Vector f_grid_i(1);
 
@@ -1567,10 +1590,11 @@ void run_cdisort_flux(Workspace& ws,
     c_disort_out_alloc(&ds, &out);
     // fill up temperature array
     if (ds.flag.planck == TRUE) {
-      for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = temperature[ds.nlyr - i];
+      for (Index i = 0; i <= ds.nlyr; i++)
+        ds.temper[i] = temperature[ds.nlyr - i];
     }
 
-    f_grid_i=f_grid[f_index];
+    f_grid_i = f_grid[f_index];
 
     // Get particle bulk properties but onl if pnd_field is non-zero
     if (pnd_non_zero && (suns_do || emission)) {
@@ -1604,7 +1628,13 @@ void run_cdisort_flux(Workspace& ws,
                        pressure,
                        cboxlims,
                        f_index);
-        get_parZ(pha_bulk_par, scat_data, pnd, temperature, pfct_angs, cboxlims, f_index);
+        get_parZ(pha_bulk_par,
+                 scat_data,
+                 pnd,
+                 temperature,
+                 pfct_angs,
+                 cboxlims,
+                 f_index);
       }
       //get phase function
       Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
@@ -1630,9 +1660,9 @@ void run_cdisort_flux(Workspace& ws,
       get_scat_bulk_layer(sca_bulk_par_layer, ext_bulk_par, abs_bulk_par);
 
       // call gas_scattering_properties
-      sca_coeff_gas_layer=0;
-      sca_coeff_gas_level=0;
-      pmom_gas=0;
+      sca_coeff_gas_layer = 0;
+      sca_coeff_gas_level = 0;
+      pmom_gas = 0;
 
       get_gas_scattering_properties(wss,
                                     sca_coeff_gas_layer,
@@ -1654,8 +1684,9 @@ void run_cdisort_flux(Workspace& ws,
 
     // Optical depth of layers
     // Single scattering albedo of layers
-    ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
+    ext_bulk_gas_i(0, joker) = ext_bulk_gas(f_index, joker);
+    get_dtauc_ssalb(
+        dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1677,9 +1708,6 @@ void run_cdisort_flux(Workspace& ws,
     ds.bc.btemp = surface_skin_t;
     ds.bc.temis = 1.;
 
-
-
-
     snprintf(ds.header, 128, "ARTS Calc f_index = %" PRId64, f_index);
 
     std::memcpy(ds.dtauc,
@@ -1699,8 +1727,8 @@ void run_cdisort_flux(Workspace& ws,
 
     // Set irradiance of incident solar beam at top boundary
     if (suns_do) {
-      fbeam = suns[0].spectrum(f_index, 0)*(ds.wvnmhi - ds.wvnmlo)*
-              (100 * SPEED_OF_LIGHT)*scale_factor;
+      fbeam = suns[0].spectrum(f_index, 0) * (ds.wvnmhi - ds.wvnmlo) *
+              (100 * SPEED_OF_LIGHT) * scale_factor;
     }
     ds.bc.fbeam = fbeam;
 
@@ -1710,7 +1738,7 @@ void run_cdisort_flux(Workspace& ws,
 
     enum class Status { FIRST_TRY, RETRY, SUCCESS };
     Status tries = Status::FIRST_TRY;
-    const Numeric eps = 2e-4; //two times the value defined in cdisort.c:3653
+    const Numeric eps = 2e-4;  //two times the value defined in cdisort.c:3653
     do {
       try {
         c_disort(&ds, &out);
@@ -1741,39 +1769,43 @@ void run_cdisort_flux(Workspace& ws,
     } while (tries != Status::SUCCESS);
 
     //factor for converting it into spectral radiance units
-    const Numeric conv_fac=(ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
+    const Numeric conv_fac = (ds.wvnmhi - ds.wvnmlo) * (100 * SPEED_OF_LIGHT);
 
     for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-      if (suns_do){
+      if (suns_do) {
         // downward direct flux
         spectral_direct_irradiance_field(f_index, k + ncboxremoved) =
-            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldir / conv_fac;
 
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
             -(out.rad[ds.nlyr - k - cboxlims[0]].rfldir +
-            out.rad[ds.nlyr - k - cboxlims[0]].rfldn)/conv_fac;
+              out.rad[ds.nlyr - k - cboxlims[0]].rfldn) /
+            conv_fac;
 
       } else {
         // downward total flux
         spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 0) =
-            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn/conv_fac;
+            -out.rad[ds.nlyr - k - cboxlims[0]].rfldn / conv_fac;
       }
 
       // upward flux
       spectral_irradiance_field(f_index, k + ncboxremoved, 0, 0, 1) =
-          out.rad[ds.nlyr - k - cboxlims[0]].flup/conv_fac;
+          out.rad[ds.nlyr - k - cboxlims[0]].flup / conv_fac;
 
       // flux divergence in tau space
       dFdtau(f_index, k + ncboxremoved) =
-           -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
+          -out.rad[ds.nlyr - k - cboxlims[0]].dfdt;
 
       // k is running over the number of levels but deltatau, ssalb is defined for layers,
       // therefore we need to exlude k==0 and remove one from the index.
-      if (k>0){
-        deltatau(f_index, k - 1 + ncboxremoved) = ds.dtauc[ds.nlyr - k  - cboxlims[0]];
-        snglsctalbedo(f_index, k - 1 + ncboxremoved) = ds.ssalb[ds.nlyr - k  - cboxlims[0]];
-        asymparameter(f_index, k - 1 + ncboxremoved) = pmom(0, ds.nlyr - k  - cboxlims[0], 1);
+      if (k > 0) {
+        deltatau(f_index, k - 1 + ncboxremoved) =
+            ds.dtauc[ds.nlyr - k - cboxlims[0]];
+        snglsctalbedo(f_index, k - 1 + ncboxremoved) =
+            ds.ssalb[ds.nlyr - k - cboxlims[0]];
+        asymparameter(f_index, k - 1 + ncboxremoved) =
+            pmom(0, ds.nlyr - k - cboxlims[0], 1);
       }
     }
 
@@ -1798,45 +1830,40 @@ void run_cdisort_flux(Workspace& ws,
   // Allocate aux data
   disort_aux.resize(disort_aux_vars.nelem());
   // Allocate and set (if possible here) iy_aux
-  Index cnt=-1;
+  Index cnt = -1;
   for (Index i = 0; i < disort_aux_vars.nelem(); i++) {
-
-
-    if (disort_aux_vars[i] == "Layer optical thickness"){
-      cnt+=1;
-      disort_aux[cnt]=deltatau;
-    }
-    else if (disort_aux_vars[i] == "Single scattering albedo"){
-      cnt+=1;
-      disort_aux[cnt]=snglsctalbedo;
-    }
-    else if (disort_aux_vars[i] == "Asymmetry parameter"){
-      cnt+=1;
-      disort_aux[cnt]=asymparameter;
-    }
-    else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
+    if (disort_aux_vars[i] == "Layer optical thickness") {
+      cnt += 1;
+      disort_aux[cnt] = deltatau;
+    } else if (disort_aux_vars[i] == "Single scattering albedo") {
+      cnt += 1;
+      disort_aux[cnt] = snglsctalbedo;
+    } else if (disort_aux_vars[i] == "Asymmetry parameter") {
+      cnt += 1;
+      disort_aux[cnt] = asymparameter;
+    } else if (disort_aux_vars[i] == "Direct downward spectral irradiance") {
       cnt += 1;
       disort_aux[cnt] = spectral_direct_irradiance_field;
-    }
-    else if (disort_aux_vars[i] == "dFdtau") {
+    } else if (disort_aux_vars[i] == "dFdtau") {
       cnt += 1;
       disort_aux[cnt] = dFdtau;
-    }
-    else {
-      ARTS_USER_ERROR (
+    } else {
+      ARTS_USER_ERROR(
           "The only allowed strings in *disort_aux_vars* are:\n"
           "  \"Layer optical thickness\"\n"
           "  \"Single scattering albedo\"\n"
           "  \"Asymmetry parameter\"\n"
           "  \"Direct downward spectral irradiance\"\n"
           "  \"dFdtau\"\n"
-          "but you have selected: \"", disort_aux_vars[i], "\"\n");
+          "but you have selected: \"",
+          disort_aux_vars[i],
+          "\"\n");
     }
   }
 
-  #else
+#else
   ARTS_USER_ERROR("Did not compile with -DENABLE_ARTS_LGPL=0")
-  #endif
+#endif
 }
 
 void surf_albedoCalc(Workspace& ws,
