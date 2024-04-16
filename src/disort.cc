@@ -851,9 +851,9 @@ int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
   #endif
 }
 
-void reduced_1datm(Vector& p,
-                   Vector& z,
-                   Vector& t,
+void reduced_1datm(Vector& pressure,
+                   Vector& altitude,
+                   Vector& temperature,
                    Matrix& vmr,
                    Matrix& pnd,
                    ArrayOfIndex& cboxlims,
@@ -867,9 +867,9 @@ void reduced_1datm(Vector& p,
                    const ArrayOfIndex& cloudbox_limits) {
   // Surface at p_grid[0] and we just need to copy the original data
   if (abs(z_surface - z_profile[0]) < 1e-3) {
-    p = p_grid;
-    z = z_profile;
-    t = t_profile;
+    pressure = p_grid;
+    altitude = z_profile;
+    temperature = t_profile;
     vmr = vmr_profiles;
     pnd = pnd_profiles;
     cboxlims = cloudbox_limits;
@@ -885,27 +885,27 @@ void reduced_1datm(Vector& p,
     np -= ifirst;
     // Start by copying from ifirst to end
     Range ind(ifirst, np);
-    p = p_grid[ind];
-    z = z_profile[ind];
-    t = t_profile[ind];
+    pressure = p_grid[ind];
+    altitude = z_profile[ind];
+    temperature = t_profile[ind];
     vmr = vmr_profiles(joker, ind);
     // Insert surface altitude
-    z[0] = z_surface;
+    altitude[0] = z_surface;
     // Prepare interpolation
     ArrayOfGridPos gp(1);
     gridpos(gp[0], z_profile, z_surface);
     Vector itw(2);
     interpweights(itw, gp[0]);
     // t and vmr
-    t[0] = interp(itw, t, gp[0]);
+    temperature[0] = interp(itw, t_profile, gp[0]);
     for (int i = 0; i < vmr.nrows(); i++) {
-      vmr(i, 0) = interp(itw, vmr(i, joker), gp[0]);
+      vmr(i, 0) = interp(itw, vmr_profiles(i, joker), gp[0]);
     }
     // p (we need a matrix version of iwt to use the function *itw2p*)
     Matrix itw2(1, 2);
     itw2(0, 0) = itw[0];
     itw2(0, 1) = itw[1];
-    itw2p(ExhaustiveVectorView{p[0]}, p, gp, itw2);
+    itw2p(ExhaustiveVectorView{pressure[0]}, p_grid, gp, itw2);
     // pnd_field and cloudbox limits need special treatment
     cboxlims = cloudbox_limits;
     if (ifirst < cloudbox_limits[0]) {  // Surface below cloudbox
@@ -921,7 +921,7 @@ void reduced_1datm(Vector& p,
       pnd = pnd_profiles(joker, ind);
       gp[0].idx -= cloudbox_limits[0] + ncboxremoved;
       for (int i = 0; i < pnd.nrows(); i++) {
-        pnd(i, 0) = interp(itw, pnd(i, joker), gp[0]);
+        pnd(i, 0) = interp(itw, pnd_profiles(i, joker), gp[0]);
       }
     }
   }
@@ -959,14 +959,14 @@ void run_cdisort(Workspace& ws,
                  const Index& intensity_correction,
                  const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
-  Vector p, z, t;
+  Vector pressure, altitude, temperature;
   Matrix vmr, pnd;
   ArrayOfIndex cboxlims;
   Index ncboxremoved;
   //
-  reduced_1datm(p,
-                z,
-                t,
+  reduced_1datm(pressure,
+                altitude,
+                temperature,
                 vmr,
                 pnd,
                 cboxlims,
@@ -1033,7 +1033,7 @@ void run_cdisort(Workspace& ws,
   ds.flag.general_source = FALSE;
   ds.flag.output_uum = FALSE;
 
-  ds.nlyr = static_cast<int>(p.nelem() - 1);
+  ds.nlyr = static_cast<int>(pressure.nelem() - 1);
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -1079,7 +1079,7 @@ void run_cdisort(Workspace& ws,
   for (Index i = 0; i < ds.nphi; i++) ds.phi[i] = aa_grid[i];
 
   if  (ds.flag.planck==TRUE){
-    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+    for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = temperature[ds.nlyr - i];
   }
 
   // Transform to mu, starting with negative values
@@ -1087,7 +1087,7 @@ void run_cdisort(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, temperature, vmr, pressure, f_grid);
 
 
   //get angles and number of angles
@@ -1117,9 +1117,9 @@ void run_cdisort(Workspace& ws,
     pmom_gas.resize(ds.nlyr, Nlegendre);
   }
   Matrix directbeam(nf, N_lev, 0);
-  Matrix deltatau(nf, ds.nlyr, 0);
-  Matrix snglsctalbedo(nf, ds.nlyr, 0);
-  Matrix asymparameter(nf, ds.nlyr, 0);
+  Matrix deltatau(nf, N_lev-1, 0);
+  Matrix snglsctalbedo(nf, N_lev-1, 0);
+  Matrix asymparameter(nf, N_lev-1, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1151,7 +1151,7 @@ void run_cdisort(Workspace& ws,
                                 iss,
                                 pnd(Range(iflat, nse), joker),
                                 cboxlims,
-                                t,
+                                temperature,
                                 pfct_angs,
                                 f_index);
           iflat += nse;
@@ -1161,11 +1161,11 @@ void run_cdisort(Workspace& ws,
                        abs_bulk_par,
                        scat_data,
                        pnd,
-                       t,
-                       p,
+                       temperature,
+                       pressure,
                        cboxlims,
                        f_index);
-        get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
+        get_parZ(pha_bulk_par, scat_data, pnd, temperature, pfct_angs, cboxlims, f_index);
       }
 
       get_pfct(
@@ -1192,8 +1192,8 @@ void run_cdisort(Workspace& ws,
                                     sca_coeff_gas_level,
                                     pmom_gas,
                                     f_grid_i,
-                                    p,
-                                    t,
+                                    pressure,
+                                    temperature,
                                     vmr,
                                     gas_scattering_agenda);
 
@@ -1208,7 +1208,7 @@ void run_cdisort(Workspace& ws,
     // Optical depth of layers
     // Single scattering albedo of layers
     ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1403,14 +1403,14 @@ void run_cdisort_flux(Workspace& ws,
                       const Index& intensity_correction,
                       const Verbosity& verbosity) {
   // Create an atmosphere starting at z_surface
-  Vector p, z, t;
+  Vector pressure, altitude, temperature;
   Matrix vmr, pnd;
   ArrayOfIndex cboxlims;
   Index ncboxremoved;
   //
-  reduced_1datm(p,
-                z,
-                t,
+  reduced_1datm(pressure,
+                altitude,
+                temperature,
                 vmr,
                 pnd,
                 cboxlims,
@@ -1472,7 +1472,7 @@ void run_cdisort_flux(Workspace& ws,
   ds.flag.general_source = FALSE;
   ds.flag.output_uum = FALSE;
 
-  ds.nlyr = static_cast<int>(p.nelem() - 1);
+  ds.nlyr = static_cast<int>(pressure.nelem() - 1);
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -1524,7 +1524,7 @@ void run_cdisort_flux(Workspace& ws,
 
   //gas absorption
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
-  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, t, vmr, p, f_grid);
+  get_gasoptprop(ws, ext_bulk_gas, propmat_clearsky_agenda, temperature, vmr, pressure, f_grid);
 
   //get angles and number of angles
   Index nang;
@@ -1541,9 +1541,9 @@ void run_cdisort_flux(Workspace& ws,
   Matrix dtauc(1, ds.nlyr);
 
   Matrix dFdtau(nf, N_lev, 0);
-  Matrix deltatau(nf, ds.nlyr, 0);
-  Matrix snglsctalbedo(nf, ds.nlyr, 0);
-  Matrix asymparameter(nf, ds.nlyr, 0);
+  Matrix deltatau(nf, N_lev-1, 0);
+  Matrix snglsctalbedo(nf, N_lev-1, 0);
+  Matrix asymparameter(nf, N_lev-1, 0);
 
   //Special case for only tro
   if (only_tro && Npfct > 0) {
@@ -1567,7 +1567,7 @@ void run_cdisort_flux(Workspace& ws,
     c_disort_out_alloc(&ds, &out);
     // fill up temperature array
     if (ds.flag.planck == TRUE) {
-      for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = t[ds.nlyr - i];
+      for (Index i = 0; i <= ds.nlyr; i++) ds.temper[i] = temperature[ds.nlyr - i];
     }
 
     f_grid_i=f_grid[f_index];
@@ -1590,7 +1590,7 @@ void run_cdisort_flux(Workspace& ws,
                                 iss,
                                 pnd(Range(iflat, nse), joker),
                                 cboxlims,
-                                t,
+                                temperature,
                                 pfct_angs,
                                 f_index);
           iflat += nse;
@@ -1600,11 +1600,11 @@ void run_cdisort_flux(Workspace& ws,
                        abs_bulk_par,
                        scat_data,
                        pnd,
-                       t,
-                       p,
+                       temperature,
+                       pressure,
                        cboxlims,
                        f_index);
-        get_parZ(pha_bulk_par, scat_data, pnd, t, pfct_angs, cboxlims, f_index);
+        get_parZ(pha_bulk_par, scat_data, pnd, temperature, pfct_angs, cboxlims, f_index);
       }
       //get phase function
       Tensor3 pfct_bulk_par(1, ds.nlyr, nang);
@@ -1639,8 +1639,8 @@ void run_cdisort_flux(Workspace& ws,
                                     sca_coeff_gas_level,
                                     pmom_gas,
                                     f_grid_i,
-                                    p,
-                                    t,
+                                    pressure,
+                                    temperature,
                                     vmr,
                                     gas_scattering_agenda);
 
@@ -1655,7 +1655,7 @@ void run_cdisort_flux(Workspace& ws,
     // Optical depth of layers
     // Single scattering albedo of layers
     ext_bulk_gas_i(0,joker)=ext_bulk_gas(f_index, joker);
-    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, z);
+    get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas_i, ext_bulk_par, abs_bulk_par, altitude);
 
     //upper boundary conditions:
     // DISORT offers isotropic incoming radiance or emissivity-scaled planck
