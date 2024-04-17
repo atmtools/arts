@@ -4,13 +4,14 @@ Installation
 Pre-compiled binaries
 ^^^^^^^^^^^^^^^^^^^^^
 
-Pre-compiled binaries of the ARTS interface for macOS and Linux including
-the ARTS engine for performing RT simulations can be installed from the
-conda-forge environment at the rttools channel:
+Pre-compiled binaries of the ARTS interface for macOS and Linux including the
+ARTS engine for performing RT simulations can be installed in a `Miniforge3
+<https://github.com/conda-forge/miniforge#miniforge>`_ environment from the
+rttools channel:
 
 .. code-block:: bash
 
-    conda install -c rttools pyarts
+    mamba install -c rttools pyarts
 
 Building from source
 ^^^^^^^^^^^^^^^^^^^^
