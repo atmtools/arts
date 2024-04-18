@@ -703,6 +703,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
   {
+    assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),
@@ -737,6 +738,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
   {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),
@@ -753,6 +755,7 @@ class matpack_view {
             Index M = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),

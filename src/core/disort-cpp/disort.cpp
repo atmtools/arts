@@ -19,8 +19,7 @@
 #include "matpack_view.h"
 #include "rational.h"
 
-
-void print(auto& x) {
+void print(auto&& x) {
   auto ptr = x.elem_begin();
   while (ptr != x.elem_end()) {
     std::cout << *ptr << ",";
@@ -139,7 +138,6 @@ void solve_for_coefs(Tensor4& GC_collect,
       BDRF_Fourier_modes[m](mathscr_D_neg, mu_arr_pos, mu_arr_neg),
           einsum<"ij", "ij", "j", "">(
               R, mathscr_D_neg, mu_arr_pos_times_W, 1 + m_equals_0_bool);
-
       if (beam_source_bool) {
         BDRF_Fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
                               mu_arr_pos,
@@ -269,12 +267,9 @@ void solve_for_coefs(Tensor4& GC_collect,
       RHS.slice(RHS.size() - N, N) += b_pos_m;
     }
 
-    //RHS is correct in test1a
-
     // Fill LHS (THIS SHOULD BE SPARSE BUT IS NOT BECAUSE ARTS HAS NO SPARSE SOLVE!)
     LHS = 0.0;
 
-    const auto G_0_nn = G_collect_m(0, Range(N, N), Range(0, N));
     const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
     const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
     const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
@@ -295,9 +290,10 @@ void solve_for_coefs(Tensor4& GC_collect,
       BDRF_LHS_contribution_pos = 0;
     }
 
+    LHS(Range(0, N), Range(0, N)) = G_collect_m(0, Range(N, N), Range(0, N));
+
     for (Index i = 0; i < N; i++) {
       for (Index j = 0; j < N; j++) {
-        LHS(i, j) = G_0_nn(i, j);
         LHS(i, N + j) = G_0_np(i, j) *
                         std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
         LHS(LHS.nrows() - N + i, LHS.ncols() - 2 * N + j) =
@@ -308,15 +304,9 @@ void solve_for_coefs(Tensor4& GC_collect,
     }
 
     for (Index l = 0; l < NLayers - 1; l++) {
-      const auto G_l_pn = G_collect_m(l, Range(0, N), Range(0, N));
-      const auto G_l_nn = G_collect_m(l, Range(N, N), Range(0, N));
-      const auto G_l_ap = G_collect_m(l, joker, Range(N, N));
-      const auto G_lp1_an = G_collect_m(l + 1, joker, Range(0, N));
-      const auto G_lp1_pp = G_collect_m(l + 1, Range(0, N), Range(N, N));
-      const auto G_lp1_np = G_collect_m(l + 1, Range(N, N), Range(0, N));
-      const auto scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-      const auto scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-      const auto scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
+      const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
+      const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
+      const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
       // Postive eigenvalues
       const auto K_l_pos = K_collect_m[l].slice(N, N);
       const auto K_lp1_pos = K_collect_m[l + 1].slice(N, N);
@@ -328,19 +318,29 @@ void solve_for_coefs(Tensor4& GC_collect,
             std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
       }
 
-      for (Index i = 0; i < N; i++) {
-        for (Index j = 0; j < N; j++) {
-          LHS(N + l * NQuad + i, l * NQuad + j) = G_l_pn(i, j) * E_lm1l[j];
-          LHS(2 * N + l * NQuad + i, l * NQuad + j) = G_l_nn(i, j) * E_lm1l[j];
-          LHS(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
-              G_lp1_pp(i, j) * E_llp1[j];
-          LHS(2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
-              G_lp1_np(i, j) * E_llp1[j];
-        }
-      }
-      LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + N, N)) = G_l_ap;
-      LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + 2 * N, N)) = G_lp1_an;
-      LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + 2 * N, N)) *= -1;
+      einsum<"ij", "ij", "j">(LHS(Range(N + l * NQuad, N), Range(l * NQuad, N)),
+                              G_collect_m(l, Range(0, N), Range(0, N)),
+                              E_lm1l);
+      einsum<"ij", "ij", "j">(
+          LHS(Range(2 * N + l * NQuad, N), Range(l * NQuad, N)),
+          G_collect_m(l, Range(N, N), Range(0, N)),
+          E_lm1l);
+      einsum<"ij", "", "ij", "j">(
+          LHS(Range(N + l * NQuad, N), Range(l * NQuad + 2 * NQuad - N, N)),
+          -1,
+          G_collect_m(l + 1, Range(0, N), Range(N, N)),
+          E_llp1);
+      einsum<"ij", "", "ij", "j">(
+          LHS(Range(2 * N + l * NQuad, N), Range(l * NQuad + 2 * NQuad - N, N)),
+          -1,
+          G_collect_m(l + 1, Range(N, N), Range(N, N)),
+          E_llp1);
+      LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + N, N)) =
+          G_collect_m(l, joker, Range(N, N));
+      einsum<"ij", "", "ij">(
+          LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + 2 * N, N)),
+          -1,
+          G_collect_m(l + 1, joker, Range(0, N)));
     }
 
     inplace_solve(RHS, LHS);
@@ -793,18 +793,20 @@ main_data::main_data(Index NQuad_,
       "mu0 in mu_arr_pos, this creates a singularity.  Change NQuad or mu0.");
 
   // IMS
-
   const Numeric sum1 = omega_arr * tau_arr;
   omega_avg = sum1 / sum(tau_arr);
-  Numeric sum2 = 0.0;
-  for (Index i = 0; i < NLayers; i++) {
-    sum2 += f_arr[i] * omega_arr[i] * tau_arr[i];
-  }
+  const Numeric sum2 = f_arr.empty() ? 0.0
+                                     : einsum<Numeric, "", "i", "i", "i">(
+                                           {}, f_arr, omega_arr, tau_arr);
   f_avg = sum2 / sum1;
   Leg_coeffs_residue = Leg_coeffs_all;
-  for (Index i = 0; i < NLayers; i++) {
-    for (Index j = 0; j < NLeg; j++) {
-      Leg_coeffs_residue(i, j) = f_arr[i];
+  if (f_arr.empty()) {
+    Leg_coeffs_residue = 0;
+  } else {
+    for (Index i = 0; i < NLayers; i++) {
+      for (Index j = 0; j < NLeg; j++) {
+        Leg_coeffs_residue(i, j) = f_arr[i];
+      }
     }
   }
   Leg_coeffs_residue_avg.resize(NLeg_all);
@@ -1048,12 +1050,22 @@ void main_data::TMS(tms_data& data,
   }
 
   data.mathscr_B.resize(NLayers, NQuad);
-  for (Index j = 0; j < NLayers; j++) {
-    for (Index i = 0; i < NQuad; i++) {
-      data.mathscr_B(j, i) =
-          (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
-          (mu0 / (mu0 + mu_arr[i])) *
-          (data.p_true(j, i) / (1 - f_arr[j]) - data.p_trun(j, i));
+  if (f_arr.empty()) {
+    for (Index j = 0; j < NLayers; j++) {
+      for (Index i = 0; i < NQuad; i++) {
+        data.mathscr_B(j, i) = (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
+                               (mu0 / (mu0 + mu_arr[i])) *
+                               (data.p_true(j, i) - data.p_trun(j, i));
+      }
+    }
+  } else {
+    for (Index j = 0; j < NLayers; j++) {
+      for (Index i = 0; i < NQuad; i++) {
+        data.mathscr_B(j, i) =
+            (scaled_omega_arr[j] * I0) / (4 * Constant::pi) *
+            (mu0 / (mu0 + mu_arr[i])) *
+            (data.p_true(j, i) / (1 - f_arr[j]) - data.p_trun(j, i));
+      }
     }
   }
 
@@ -1089,7 +1101,7 @@ void main_data::TMS(tms_data& data,
         // neg
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_neg(j, i) =
-              (data.mathscr_B(j + N, i) *
+              (data.mathscr_B(i, j + N) *
                (std::exp((scaled_tau_arr_with_0[i] - scaled_tau) /
                              mu_arr_pos[j] -
                          scaled_tau_arr_with_0[i] / mu0) -
@@ -1101,7 +1113,7 @@ void main_data::TMS(tms_data& data,
         // pos
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_pos(j, i) =
-              (data.mathscr_B(j, i) *
+              (data.mathscr_B(i, j) *
                (std::exp((scaled_tau - scaled_tau_arr_with_0[i]) /
                              mu_arr_pos[j] -
                          scaled_tau_arr_with_0[i] / mu0) -

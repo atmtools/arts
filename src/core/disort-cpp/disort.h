@@ -2,13 +2,23 @@
 
 #include <matpack.h>
 
+#include <functional>
+
 #include "matpack_view.h"
 
 namespace disort {
 struct BDRF {
-  void operator()(ExhaustiveMatrixView,
-                  const ExhaustiveConstVectorView&,
-                  const ExhaustiveConstVectorView&) const {}
+  std::function<void(ExhaustiveMatrixView,
+                     const ExhaustiveConstVectorView&,
+                     const ExhaustiveConstVectorView&)>
+      f;
+  void operator()(ExhaustiveMatrixView x,
+                  const ExhaustiveConstVectorView& a,
+                  const ExhaustiveConstVectorView& b) const {
+    ARTS_ASSERT(x.nrows() == a.size());
+    ARTS_ASSERT(x.ncols() == b.size());
+    f(x, a, b);
+  }
 };
 
 struct u_data {

@@ -8,6 +8,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "debug.h"
+#include "matpack_constexpr.h"
 
 namespace Legendre {
 //! Converts latitude to co-latitude with a small distance from the poles and flags if this was activated
