@@ -8,7 +8,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "artstime/artstime.h"
 #include "debug.h"
 #include "matpack_data.h"
 
