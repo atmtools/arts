@@ -66,7 +66,7 @@ bool str_compare_nocase(const std::string& lhs, const std::string& rhs) {
 };
 
 std::string fix_newlines(std::string x) {
-  while (x.back() == '\n') x.pop_back();
+  while (not x.empty() and x.back() == '\n') x.pop_back();
   x.push_back('\n');
   return x;
 }
@@ -213,10 +213,10 @@ String to_defval_str(const Wsv& wsv) {
   std::string out =
       std::visit([](auto& a) { return var_string(*a); }, wsv.value);
 
-  while (out.front() == ' ') out.erase(out.begin());
-  while (out.back() == ' ') out.pop_back();
+  while (not out.empty() and out.front() == ' ') out.erase(out.begin());
+  while (not out.empty() and out.back() == ' ') out.pop_back();
 
-  if (group == "String" and out.front() not_eq '"' and out.back() not_eq '"') {
+  if (not out.empty() and group == "String" and out.front() not_eq '"' and out.back() not_eq '"') {
     return var_string('"', out, '"');
   }
 
