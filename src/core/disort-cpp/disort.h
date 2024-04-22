@@ -115,7 +115,7 @@ class main_data {
             Matrix b_neg,
             Vector f_arr,
             Matrix source_poly_coeffs,
-            const std::vector<BDRF>& fourier_modes,
+            const std::vector<BDRF>& brdf_fourier_modes,
             Numeric mu0,
             Numeric I0,
             Numeric phi0);

@@ -71,28 +71,29 @@ void mathscr_v_add(ExhaustiveVectorView um,
 }
 
 void solve_for_coefs(Tensor4& GC_collect,
-                     const Index NFourier,
                      const Tensor4& G_collect,
                      const Tensor3& K_collect,
                      const Tensor3& B_collect,
                      const Tensor3& G_inv_collect_0,
+                     const Matrix& source_poly_coeffs,
+                     const Matrix& b_pos,
+                     const Matrix& b_neg,
                      const AscendingGrid& tau_arr,
                      const Vector& scaled_tau_arr_with_0,
                      const Vector& W,
                      const Vector& mu_arr,
-                     const Index N,
-                     const Index NQuad,
-                     const Index NLayers,
-                     const std::vector<BDRF>& fourier_modes,
+                     const std::vector<BDRF>& brdf_fourier_modes,
                      const Numeric mu0,
                      const Numeric I0,
-                     const bool has_beam_source,
-                     const Matrix& b_pos,
-                     const Matrix& b_neg,
-                     const Matrix& source_poly_coeffs) {
-  const bool is_multilayer = NLayers > 1;
+                     const bool has_beam_source) {
   const bool has_source_poly = not source_poly_coeffs.empty();
-  const Index NBDRF = fourier_modes.size();
+
+  const Index NBDRF = brdf_fourier_modes.size();
+  const Index NFourier = G_collect.nbooks();
+  const Index NLayers = G_collect.npages();
+  const Index NQuad = G_collect.nrows();
+  const Index N = NQuad / 2;
+  const bool is_multilayer = NLayers > 1;
 
   GC_collect.resize(NFourier, NLayers, NQuad, NQuad);
 
@@ -130,11 +131,11 @@ void solve_for_coefs(Tensor4& GC_collect,
         has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
 
     if (BDRF_bool) {
-      fourier_modes[m](mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
+      brdf_fourier_modes[m](mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
           einsum<"ij", "ij", "j", "j", "">(
               R, mathscr_D_neg, mu_arr.slice(0, N), W, 1 + m_equals_0_bool);
       if (has_beam_source) {
-        fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
+        brdf_fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
                          mu_arr.slice(0, N),
                          ExhaustiveConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
@@ -351,19 +352,20 @@ void diagonalize(Tensor4& G_collect_,
                  Tensor3& B_collect_,
                  Tensor3& G_inv_collect_0,
                  const Index NFourier,
+                 const Matrix& weighted_scaled_Leg_coeffs,
                  const Vector& scaled_omega_arr,
                  const Vector& mu_arr,
                  const Vector& M_inv,
                  const Vector& W,
-                 const Index N,
-                 const Index NQuad,
-                 const Index NLeg,
-                 const Index NLayers,
-                 const Matrix& weighted_scaled_Leg_coeffs,
                  const Numeric mu0,
                  const Numeric I0,
                  const bool has_beam_source,
                  const bool has_source_poly) {
+  const Index NQuad = mu_arr.size();
+  const Index N = NQuad / 2;
+  const Index NLayers = scaled_omega_arr.size();
+  const Index NLeg = weighted_scaled_Leg_coeffs.ncols();
+
   G_collect_.resize(NFourier, NLayers, NQuad, NQuad);
   K_collect_.resize(NFourier, NLayers, NQuad);
   B_collect_.resize(NFourier, NLayers, NQuad);
@@ -603,7 +605,7 @@ main_data::main_data(const Index NQuad,
                      Matrix b_neg_,
                      Vector f_arr_,
                      Matrix source_poly_coeffs_,
-                     const std::vector<BDRF>& fourier_modes,
+                     const std::vector<BDRF>& brdf_fourier_modes,
                      Numeric mu0_,
                      Numeric I0_,
                      Numeric phi0_)
@@ -803,40 +805,32 @@ main_data::main_data(const Index NQuad,
               B_collect,
               G_inv_collect_0,
               NFourier,
+              weighted_scaled_Leg_coeffs,
               scaled_omega_arr,
               mu_arr,
               M_inv,
               W,
-              N,
-              NQuad,
-              NLeg,
-              NLayers,
-              weighted_scaled_Leg_coeffs,
               mu0,
               I0,
               has_beam_source,
               not source_poly_coeffs.empty());
 
   solve_for_coefs(GC_collect,
-                  NFourier,
                   G_collect,
                   K_collect,
                   B_collect,
                   G_inv_collect_0,
+                  source_poly_coeffs,
+                  b_pos,
+                  b_neg,
                   tau_arr,
                   scaled_tau_arr_with_0,
                   W,
                   mu_arr,
-                  N,
-                  NQuad,
-                  NLayers,
-                  fourier_modes,
+                  brdf_fourier_modes,
                   mu0,
                   I0,
-                  has_beam_source,
-                  b_pos,
-                  b_neg,
-                  source_poly_coeffs);
+                  has_beam_source);
 }
 
 [[nodiscard]] Index main_data::tau_index(const Numeric tau) const {
