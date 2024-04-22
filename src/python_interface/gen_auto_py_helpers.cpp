@@ -216,7 +216,8 @@ String to_defval_str(const Wsv& wsv) {
   while (not out.empty() and out.front() == ' ') out.erase(out.begin());
   while (not out.empty() and out.back() == ' ') out.pop_back();
 
-  if (not out.empty() and group == "String" and out.front() not_eq '"' and out.back() not_eq '"') {
+  if (group == "String" and
+      (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
     return var_string('"', out, '"');
   }
 
