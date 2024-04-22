@@ -205,6 +205,7 @@ constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 
 template <std::array cr, std::array... cs>
 constexpr void einsum_arr(auto&& xr, const auto&... xs) {
+  assert((detail::good_sizes<cr, cs...>(xr, xs...)));
   ARTS_ASSERT((detail::good_sizes<cr, cs...>(xr, xs...)),
               "einsum: ",
               detail::error_msg<cr, cs...>(xr, xs...))

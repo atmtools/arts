@@ -93,6 +93,7 @@ Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x);
   */
 Numeric legendre(Index n, Numeric x);
 
+Numeric factorial(Index i);
 Numeric assoc_legendre(Index l, Index m, Numeric x);
 Numeric tgamma_ratio(Numeric x, Numeric y);
 }  // namespace Legendre

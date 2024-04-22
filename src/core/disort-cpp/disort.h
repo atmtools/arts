@@ -7,6 +7,15 @@
 #include "matpack_view.h"
 
 namespace disort {
+void mathscr_v_add(ExhaustiveVectorView um,
+                   Matrix& mathscr_v_coeffs,
+                   const Numeric tau,
+                   const ExhaustiveConstVectorView& s_poly_coeffs,
+                   const ExhaustiveConstMatrixView& G,
+                   const ExhaustiveConstVectorView& K,
+                   const ExhaustiveConstMatrixView& G_inv,
+                   const ExhaustiveConstVectorView& mu_arr);
+
 struct BDRF {
   std::function<void(ExhaustiveMatrixView,
                      const ExhaustiveConstVectorView&,
@@ -64,57 +73,57 @@ struct flux_data {
 };
 
 class main_data {
-  Index NLayers;
-  Index NLeg_all;
-  Index NQuad;
-  Index N;
-  Index NFourier;
-  Index Nscoeffs;
-  Index NBDRF;
-  Index NLeg;
+  Index NLayers{};
+  Index NLeg_all{};
+  Index NQuad{};
+  Index N{};
+  Index NFourier{};
+  Index Nscoeffs{};
+  Index NBDRF{};
+  Index NLeg{};
 
-  Vector tau_arr;                   // [NLayers]
-  Vector omega_arr;                 // [NLayers]
-  Vector f_arr;                     // [NLayers] or [0]
-  Matrix Leg_coeffs_all;            // [NLayers, NLeg_all]
-  Matrix s_poly_coeffs;             // [Nscoeffs, NLayers] or [0, 0]
-  Matrix b_pos;                     // [NQuad/2, NFourier] or [1, 1]
-  Matrix b_neg;                     // [NQuad/2, NFourier] or [1, 1]
-  std::vector<BDRF> fourier_modes;  // [NBDRF]
-  Numeric mu0;
-  Numeric I0;
-  Numeric phi0;
+  Vector tau_arr{};                   // [NLayers]
+  Vector omega_arr{};                 // [NLayers]
+  Vector f_arr{};                     // [NLayers] or [0]
+  Matrix Leg_coeffs_all{};            // [NLayers, NLeg_all]
+  Matrix s_poly_coeffs{};             // [Nscoeffs, NLayers] or [0, 0]
+  Matrix b_pos{};                     // [NQuad/2, NFourier] or [1, 1]
+  Matrix b_neg{};                     // [NQuad/2, NFourier] or [1, 1]
+  std::vector<BDRF> fourier_modes{};  // [NBDRF]
+  Numeric mu0{};
+  Numeric I0{};
+  Numeric phi0{};
 
-  bool beam_source_bool;
-  bool iso_source_bool;
-  bool multilayer_bool;
-  bool scalar_b_pos;
-  bool scalar_b_neg;
+  bool beam_source_bool{};
+  bool iso_source_bool{};
+  bool multilayer_bool{};
+  bool scalar_b_pos{};
+  bool scalar_b_neg{};
 
-  Vector scale_tau;                   // [NLayers]
-  Vector scaled_omega_arr;            // [NLayers]
-  Vector thickness_arr;               // [NLayers]
-  Vector scaled_tau_arr_with_0;       // [NLayers + 1]
-  Vector W;                           // [NQuad/2]
-  Vector mu_arr;                      // [NQuad]
-  Vector M_inv;                       // [NQuad/2]
-  Vector mu_arr_pos;                  // [NQuad/2]
-  Matrix weighted_Leg_coeffs_all;     // [NLayers, NLeg_all]
-  Matrix Leg_coeffs;                  // [NLayers, NLeg]
-  Matrix weighted_scaled_Leg_coeffs;  // [NLayers, NLeg]
+  Vector scale_tau{};                   // [NLayers]
+  Vector scaled_omega_arr{};            // [NLayers]
+  Vector thickness_arr{};               // [NLayers]
+  Vector scaled_tau_arr_with_0{};       // [NLayers + 1]
+  Vector W{};                           // [NQuad/2]
+  Vector mu_arr{};                      // [NQuad]
+  Vector M_inv{};                       // [NQuad/2]
+  Vector mu_arr_pos{};                  // [NQuad/2]
+  Matrix weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
+  Matrix Leg_coeffs{};                  // [NLayers, NLeg]
+  Matrix weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
 
-  Tensor3 K_collect;        // [NFourier, NLayers, NQuad]
-  Tensor4 G_collect;        // [NFourier, NLayers, NQuad, NQuad]
-  Tensor3 G_inv_collect_0;  // [NLayers, NQuad, NQuad]
-  Tensor3 B_collect;        // [NFourier, NLayers, NQuad]
-  Tensor4 GC_collect;       // [NFourier, NLayers, NQuad, NQuad]
+  Tensor3 K_collect{};        // [NFourier, NLayers, NQuad]
+  Tensor4 G_collect{};        // [NFourier, NLayers, NQuad, NQuad]
+  Tensor3 G_inv_collect_0{};  // [NLayers, NQuad, NQuad]
+  Tensor3 B_collect{};        // [NFourier, NLayers, NQuad]
+  Tensor4 GC_collect{};       // [NFourier, NLayers, NQuad, NQuad]
 
-  Numeric I0_orig;
-  Numeric scaled_mu0;
-  Numeric omega_avg;
-  Numeric f_avg;
-  Matrix Leg_coeffs_residue;      // [NLayers, NLeg_all]
-  Vector Leg_coeffs_residue_avg;  // [NLeg_all]
+  Numeric I0_orig{};
+  Numeric scaled_mu0{};
+  Numeric omega_avg{};
+  Numeric f_avg{};
+  Matrix Leg_coeffs_residue{};      // [NLayers, NLeg_all]
+  Vector Leg_coeffs_residue_avg{};  // [NLeg_all]
 
  public:
   main_data(Index NQuad,

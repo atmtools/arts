@@ -44,13 +44,15 @@ void mathscr_v_add(ExhaustiveVectorView um,
 
   mathscr_v_coeffs.resize(Nc, Nk);
   mathscr_v_coeffs = 0.0;
-  for (Index c = 0; c < Nc; c++) {
-    for (Index k = 0; k < Nk; k++) {
-      for (Index j = 0; j < c + 1; j++) {
-        mathscr_v_coeffs(c, k) +=
-            Legendre::tgamma_ratio(static_cast<Numeric>(Nc - j),
-                                   static_cast<Numeric>(Nc - c)) *
-            std::pow(K(k), -(c - j + 1)) * s_poly_coeffs(c);
+  for (Index i : std::ranges::iota_view(0, Nc)) {
+    auto ci = mathscr_v_coeffs[i];
+    for (Index k = 0; k < 16; k++) {
+      auto& cik = ci[k];
+      for (Index j = 0; j <= i; j++) {
+        const Numeric fs = (Legendre::factorial(Nc - 1 - j) /
+                            Legendre::factorial(Nc - 1 - i)) *
+                           s_poly_coeffs[1 - j];
+        cik += fs * std::pow(K[k], -(i - j + 1));
       }
     }
   }
@@ -59,8 +61,8 @@ void mathscr_v_add(ExhaustiveVectorView um,
     for (Index k = 0; k < Nk; k++) {
       for (Index c = 0; c < Nc; c++) {
         for (Index j = 0; j < Nj; j++) {
-          um[i] += G(i, k) * std::pow(tau, c) * mathscr_v_coeffs(c, k) *
-                   G_inv(k, j) / mu_arr[j];
+          um[i] += G(i, k) * std::pow(tau, Nc - 1 - c) *
+                   mathscr_v_coeffs(c, k) * G_inv(k, j) / mu_arr[j];
         }
       }
     }
@@ -104,13 +106,8 @@ void solve_for_coefs(Tensor4& GC_collect,
   Vector b_neg_m(N);
 
   Matrix comp_matrix;
-  Vector mathscr_v_contribution_top(N);
-  Vector mathscr_v_contribution_middle_t(NQuad);
-  Vector mathscr_v_contribution_bottom(N);
-  Vector mathscr_v_contribution_middle(NQuad * (NLayers - 1));
-  Vector mathscr_v_contribution(mathscr_v_contribution_top.size() +
-                                mathscr_v_contribution_bottom.size() +
-                                mathscr_v_contribution_middle.size());
+  Vector mathscr_v_temporary(NQuad);
+  Vector mathscr_v_contribution(NQuad * NLayers);
 
   Vector BDRF_RHS_contribution(N);
 
@@ -170,19 +167,21 @@ void solve_for_coefs(Tensor4& GC_collect,
     RHS = 0.0;
 
     if (iso_source_bool and m_equals_0_bool) {
-      mathscr_v_add(mathscr_v_contribution_top = 0.0,
+      mathscr_v_contribution.slice(0, N) = 0.0;
+      mathscr_v_add(mathscr_v_contribution.slice(0, N),
                     comp_matrix,
                     0.0,
                     s_poly_coeffs[0],
-                    G_collect_m[0].slice(0, N),
+                    G_collect_m[0].slice(N, N),
                     K_collect_m[0],
                     G_inv_collect_0[0],
                     mu_arr);
+      mathscr_v_contribution.slice(0, N) *= -1;
 
       if (multilayer_bool) {
-        for (Index l = 0; l < NLayers; l++) {
-          mathscr_v_contribution_middle_t = 0;
-          mathscr_v_add(mathscr_v_contribution_middle_t,
+        for (Index l = 0; l < NLayers - 1; l++) {
+          mathscr_v_temporary = 0;
+          mathscr_v_add(mathscr_v_temporary,
                         comp_matrix,
                         tau_arr[l],
                         s_poly_coeffs[l + 1],
@@ -190,8 +189,10 @@ void solve_for_coefs(Tensor4& GC_collect,
                         K_collect_m[l + 1],
                         G_inv_collect_0[l + 1],
                         mu_arr);
-          mathscr_v_contribution_middle_t *= -1.0;
-          mathscr_v_add(mathscr_v_contribution_middle_t,
+          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) -=
+              mathscr_v_temporary;
+          mathscr_v_temporary = 0.0;
+          mathscr_v_add(mathscr_v_temporary,
                         comp_matrix,
                         tau_arr[l],
                         s_poly_coeffs[l],
@@ -199,34 +200,31 @@ void solve_for_coefs(Tensor4& GC_collect,
                         K_collect_m[l],
                         G_inv_collect_0[l],
                         mu_arr);
-          mathscr_v_contribution_middle(Range(l, NQuad, NLayers - 1)) =
-              mathscr_v_contribution_middle_t;
+          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) +=
+              mathscr_v_temporary;
         }
       }
-      mathscr_v_contribution_bottom = 0;
-      mathscr_v_add(mathscr_v_contribution_bottom,
-                    comp_matrix,
-                    tau_arr.back(),
-                    s_poly_coeffs[NLayers - 1],
-                    G_collect_m[NLayers - 1].slice(0, N),
-                    K_collect_m[NLayers - 1],
-                    G_inv_collect_0[NLayers - 1],
-                    mu_arr);
+      mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N) = 0;
+      mathscr_v_add(
+          mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
+          comp_matrix,
+          tau_arr.back(),
+          s_poly_coeffs[NLayers - 1],
+          G_collect_m[NLayers - 1].slice(N, N),
+          K_collect_m[NLayers - 1],
+          G_inv_collect_0[NLayers - 1],
+          mu_arr);
 
       if (NBDRF > 0) {
         // Add R@m to m using lapack
-        mult(mathscr_v_contribution_bottom,
+        mathscr_v_temporary =
+            mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N);
+        mult(mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
              R,
-             Vector{mathscr_v_contribution_bottom},
+             mathscr_v_temporary,
              1.0,
              1.0);
       }
-
-      mathscr_v_contribution.slice(0, N) = mathscr_v_contribution_top;
-      mathscr_v_contribution.slice(N, mathscr_v_contribution_middle.size()) =
-          mathscr_v_contribution_middle;
-      mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N) =
-          mathscr_v_contribution_bottom;
     } else {
       mathscr_v_contribution = 0.0;
     }
@@ -246,7 +244,7 @@ void solve_for_coefs(Tensor4& GC_collect,
       if (multilayer_bool) {
         for (Index l = 0; l < NLayers - 1; l++) {
           for (Index j = 0; j < NQuad; j++) {
-            RHS_middle(l, j) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
+            RHS_middle(j, l) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
                                std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
           }
         }
@@ -343,6 +341,8 @@ void solve_for_coefs(Tensor4& GC_collect,
           G_collect_m(l + 1, joker, Range(0, N)));
     }
 
+    //print(RHS);
+
     inplace_solve(RHS, LHS);
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
@@ -384,6 +384,8 @@ void diagonalize(Tensor4& G_collect_,
   Matrix X_tilde_arr(NFourier * NLayers, NQuad);
   std::vector<Index> no_shortcut_indices;
   no_shortcut_indices.reserve(NFourier * NLayers);
+  std::vector<std::pair<Index, Index>> no_shortcut_indices_0;
+  no_shortcut_indices_0.reserve(NLayers);
 
   Vector fac(NLeg);
   Vector signs(NLeg);
@@ -492,16 +494,20 @@ void diagonalize(Tensor4& G_collect_,
         auto alpha = alpha_arr[ind];
         auto beta = beta_arr[ind];
         no_shortcut_indices.push_back(ind);
-        for (Index i = 0; i < N; i++) {
-          for (Index j = 0; j < N; j++) {
-            alpha(i, j) = M_inv[i] * (D_pos(i, j) * W[j] - (i == j));
-            beta(i, j) = M_inv[i] * D_neg(i, j) * W[j];
-          }
-        }
 
-        einsum<"i", "i", "i", "">(
-            X_tilde_arr[ind].slice(0, N), M_inv, X_pos, -1);
+        einsum<"ij", "i", "ij", "j">(alpha, M_inv, D_pos, W);
+        alpha.diagonal() -= M_inv;
+
+        einsum<"ij", "i", "ij", "j">(beta, M_inv, D_neg, W);
+
+        einsum<"i", "", "i", "i">(
+            X_tilde_arr[ind].slice(0, N), -1, M_inv, X_pos);
+
         einsum<"i", "i", "i">(X_tilde_arr[ind].slice(N, N), M_inv, X_neg);
+
+        if (iso_source_bool and m_equals_0_bool) {
+          no_shortcut_indices_0.emplace_back(ind , l);
+        }
       } else {
         auto G = G_collect[ind];
         for (Index i = 0; i < N; i++) {
@@ -551,11 +557,11 @@ void diagonalize(Tensor4& G_collect_,
 
     // Get inverse by the layer
     inv(G_inv, G);
-    if (i % NFourier == 0) {
-      G_inv_collect_0[i / NFourier] = G_inv;
+    if (not no_shortcut_indices_0.empty() and no_shortcut_indices_0.front().first == i) {
+      G_inv_collect_0[no_shortcut_indices_0.front().second] = G_inv;
+      no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
     }
-
-    if (beam_source_bool) {
+    if (iso_source_bool) {
       auto B = B_collect[i];
       const auto X_tilde = X_tilde_arr[i];
 
@@ -648,8 +654,8 @@ main_data::main_data(Index NQuad_,
   ARTS_USER_ERROR_IF(Leg_coeffs_all.nrows() != NLayers,
                      "Leg_coeffs_all layers mismatch");
   ARTS_USER_ERROR_IF(
-      s_poly_coeffs.ncols() != NLayers and s_poly_coeffs.ncols() != 0,
-      "s_poly_coeffs layers mismatch");
+      s_poly_coeffs.nrows() != NLayers and s_poly_coeffs.ncols() != 0,
+      "s_poly_coeffs shape mismatch");
 
   // Memory allocation
   scale_tau.resize(NLayers);
@@ -664,11 +670,10 @@ main_data::main_data(Index NQuad_,
   Leg_coeffs.resize(NLayers, NLeg);
   weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
 
-  // Thickness is the difference between tau values, the first difference is towards 0 so it is kept as-is
+  // Thickness is the difference between tau values, the first difference is towards 0
   thickness_arr.resize(NLayers);
-  thickness_arr[0] = tau_arr[0];
   std::adjacent_difference(
-      tau_arr.begin(), tau_arr.end(), thickness_arr.begin() + 1);
+      tau_arr.begin(), tau_arr.end(), thickness_arr.begin());
 
   // Legendre coefficients selection
   weighted_Leg_coeffs_all = Leg_coeffs_all;
@@ -738,9 +743,9 @@ main_data::main_data(Index NQuad_,
     scaled_tau_arr_with_0[0] = 0;
 
     Numeric part = 0.0;
-    for (Index i = 0; i < NLayers + 1; i++) {
-      part += scale_tau[i - 1] * thickness_arr[i - 1];
-      scaled_tau_arr_with_0[i] = part;  // sum scaled_thickness_arr[:i]
+    for (Index i = 0; i < NLayers; i++) {
+      part += scale_tau[i] * thickness_arr[i];
+      scaled_tau_arr_with_0[i + 1] = part;
     }
 
     for (Index i = 0; i < NLayers; i++) {
@@ -782,8 +787,8 @@ main_data::main_data(Index NQuad_,
       "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere");
   ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative");
   ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1]");
-  ARTS_USER_ERROR_IF(phi0 > 0 and phi0 <= Constant::two_pi,
-                     "phi0 must be (0, 2*pi]");
+  ARTS_USER_ERROR_IF(phi0 < 0 and phi0 < Constant::two_pi,
+                     "phi0 must be [0, 2*pi)");
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
       "f_arr must be [0, 1]");
@@ -905,6 +910,7 @@ void main_data::u(u_data& data,
   data.um.resize(NFourier, NQuad);
   einsum<"mi", "mij", "mj">(
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
+      print(GC_collect);
 
   if (beam_source_bool) {
     const auto tmp = B_collect(joker, l, joker);
@@ -1258,9 +1264,9 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   const Numeric scaled_tau =
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  data.mathscr_v.resize(NQuad);
-  data.mathscr_v = 0.0;
   if (iso_source_bool) {
+    data.mathscr_v.resize(NQuad);
+    data.mathscr_v = 0.0;
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_coeffs,
                   tau,
@@ -1269,6 +1275,11 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
+    data.mathscr_v.slice(0, N) = data.mathscr_v.slice(N, N);
+    data.mathscr_v.resize(N);
+  } else {
+    data.mathscr_v.resize(N);
+    data.mathscr_v = 0.0;
   }
 
   const Numeric direct_beam =

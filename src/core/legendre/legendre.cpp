@@ -285,7 +285,7 @@ Numeric legendre(Index n, Numeric x) {
 
 static constexpr Index max_factorial = 170;
 
-constexpr Numeric factorial(Index i) {
+constexpr Numeric factorial_(Index i) {
   Numeric out = 1.0;
   for (Index j = 1; j <= i; j++) {
     out *= static_cast<Numeric>(j);
@@ -296,12 +296,17 @@ constexpr Numeric factorial(Index i) {
 constexpr std::array<Numeric, max_factorial> factorial_table() {
   std::array<Numeric, max_factorial> table;
   for (Index i = 0; i < max_factorial; i++) {
-    table[i] = factorial(i);
+    table[i] = factorial_(i);
   }
   return table;
 }
 
 constexpr static auto factab = factorial_table();
+
+Numeric factorial(Index i) {
+  if (i < max_factorial and i >= 0) return factab[i];
+  return factorial_(i);
+}
 
 //! Port of boost::math::double_factorial
 Numeric double_factorial(Index i) {
@@ -322,7 +327,7 @@ Numeric double_factorial(Index i) {
   } else {
     // even i:
     Index n = i / 2;
-    Numeric result = factorial(n);
+    Numeric result = factorial_(n);
     if (std::ldexp(std::numeric_limits<Numeric>::max(), -(int)n) > result)
       return result * std::ldexp(1.0, (int)n);
   }
