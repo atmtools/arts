@@ -1,108 +1,4 @@
-#include <disort.h>
-
-#include <algorithm>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-
-#include "debug.h"
-#include "matpack_data.h"
-
-bool is_good(const auto& a, const auto& b) {
-  if (a.shape() != b.shape()) return false;
-
-  return std::transform_reduce(
-      a.elem_begin(),
-      a.elem_end(),
-      b.elem_begin(),
-      true,
-      [](bool first, bool second) { return first and second; },
-      [](Numeric first, Numeric second) {
-        if (first == 0.0 or second == 0.0) return true;
-        const Numeric ratio = std::abs(first / second - 1);
-        return ratio < 1e-6;
-      });
-}
-
-Tensor3 compute_u(const disort::main_data& dis,
-                  const Vector& taus,
-                  const Vector& phis) {
-  Tensor3 u(phis.size(), taus.size(), dis.quads());
-  disort::u_data u_data;
-
-#pragma omp parallel for firstprivate(u_data) collapse(2)
-  for (Index j = 0; j < taus.size(); j++) {
-    for (Index i = 0; i < phis.size(); i++) {
-      dis.u(u_data, taus[j], phis[i]);
-      u(i, j, joker) = u_data.intensities;
-    }
-  }
-  return u;
-}
-
-Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
-  Matrix u0(taus.size(), dis.quads());
-  disort::u0_data u0_data;
-
-#pragma omp parallel for firstprivate(u0_data)
-  for (Index j = 0; j < taus.size(); j++) {
-    dis.u0(u0_data, taus[j]);
-    u0[j] = u0_data.u0;
-  }
-  return u0;
-}
-
-std::tuple<Vector, Vector, Vector> compute_flux(const disort::main_data& dis,
-                                                const Vector& taus) {
-  Vector flux_up(taus.size()), flux_down_diffuse(taus.size()),
-      flux_down_direct(taus.size());
-  disort::flux_data flux_data;
-
-#pragma omp parallel for firstprivate(flux_data)
-  for (Index j = 0; j < taus.size(); j++) {
-    auto [ds, dr] = dis.flux_down(flux_data, taus[j]);
-    flux_up[j] = dis.flux_up(flux_data, taus[j]);
-    flux_down_diffuse[j] = ds;
-    flux_down_direct[j] = dr;
-  }
-  return {flux_up, flux_down_diffuse, flux_down_direct};
-}
-
-void compare(const std::string_view name,
-             const disort::main_data& dis,
-             const Vector& taus,
-             const Vector& phis,
-             const Tensor3& u,
-             const Matrix& u0,
-             const Vector& flux_down_diffuse,
-             const Vector& flux_down_direct,
-             const Vector& flux_up) {
-  const auto u_arts = compute_u(dis, taus, phis);
-  const auto u0_arts = compute_u0(dis, taus);
-  const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts] =
-      compute_flux(dis, taus);
-
-  ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test ", name);
-  ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test ", name);
-  ARTS_USER_ERROR_IF(
-      not is_good(flux_up_arts, flux_up), "Failed flux_up in test ", name);
-  ARTS_USER_ERROR_IF(not is_good(flux_down_diffuse_arts, flux_down_diffuse),
-                     "Failed flux_down_diffuse in test ",
-                     name);
-  ARTS_USER_ERROR_IF(not is_good(flux_down_direct_arts, flux_down_direct),
-                     "Failed flux_down_direct in test ",
-                     name);
-};
-
-void flat_print(const auto& a, const auto& b) {
-  ARTS_USER_ERROR_IF(a.shape() != b.shape(), "Failed shape comparison");
-  const auto av = a.flat_view();
-  const auto bv = b.flat_view();
-
-  for (Index i = 0; i < a.size(); i++) {
-    std::cout << av[i] << ' ' << bv[i] << ' ' << (bv[i] / av[i] - 1) << '\n';
-  }
-}
+#include <disort-test.h>
 
 void test_2a() {
   const Vector tau_arr{0.2};
@@ -280,7 +176,8 @@ void test_2a() {
           u0,
           flux_down_diffuse,
           flux_down_direct,
-          flux_up);
+          flux_up,
+          false);
 }
 
 void test_2b() {
@@ -459,7 +356,8 @@ void test_2b() {
           u0,
           flux_down_diffuse,
           flux_down_direct,
-          flux_up);
+          flux_up,
+          false);
 }
 
 void test_2c() {
@@ -638,7 +536,8 @@ void test_2c() {
           u0,
           flux_down_diffuse,
           flux_down_direct,
-          flux_up);
+          flux_up,
+          false);
 }
 
 void test_2d() {
@@ -817,7 +716,8 @@ void test_2d() {
           u0,
           flux_down_diffuse,
           flux_down_direct,
-          flux_up);
+          flux_up,
+          false);
 }
 
 int main() {

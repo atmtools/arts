@@ -910,7 +910,6 @@ void main_data::u(u_data& data,
   data.um.resize(NFourier, NQuad);
   einsum<"mi", "mij", "mj">(
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
-      print(GC_collect);
 
   if (beam_source_bool) {
     const auto tmp = B_collect(joker, l, joker);
