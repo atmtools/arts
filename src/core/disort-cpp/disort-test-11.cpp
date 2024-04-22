@@ -389,7 +389,7 @@ void test_11a_multilayer() try {
 
 int main() try {
   std::cout << std::setprecision(16);
-  // test_11a_1layer();
+  test_11a_1layer();
   test_11a_multilayer();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';

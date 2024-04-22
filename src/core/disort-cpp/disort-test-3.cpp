@@ -37,10 +37,6 @@ void test_3a() try {
                               I0,
                               phi0);
 
-  disort::u_data u_data;
-  disort::ims_data ims_data;
-  disort::tms_data tms_data;
-
   const Vector taus{
       0.007943282347242814,
       0.07943282347242814,
@@ -225,10 +221,6 @@ void test_3b() try {
                               mu0,
                               I0,
                               phi0);
-
-  disort::u_data u_data;
-  disort::ims_data ims_data;
-  disort::tms_data tms_data;
 
   const Vector taus{
       0.06354625877794251,

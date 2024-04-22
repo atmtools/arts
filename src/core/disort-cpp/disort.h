@@ -39,7 +39,7 @@ struct u_data {
 };
 
 struct u0_data {
-  Matrix mathscr_v_coeffs;
+  Matrix mathscr_v_compdata;
   Vector exponent;
   Vector u0;
 };
@@ -49,25 +49,16 @@ struct tms_data {
   Vector TMS_correction_pos;
   Vector TMS_correction_neg;
   Vector TMS;
-  Matrix p_true;
-  Matrix p_trun;
   Matrix mathscr_B;
   Matrix contribution_from_other_layers_pos;
   Matrix contribution_from_other_layers_neg;
-};
-
-struct ims_data {
-  Vector nu;
-  Vector x;
-  Vector chi;
-  Vector IMS;
 };
 
 struct flux_data {
   Vector mathscr_v;
   Vector exponent;
   Vector direct_beam_contribution;
-  Matrix mathscr_v_coeffs;
+  Matrix mathscr_v_compdata;
   Vector u0_pos;
   Vector u0_neg;
 };
@@ -107,7 +98,6 @@ class main_data {
   Vector W{};                           // [NQuad/2]
   Vector mu_arr{};                      // [NQuad]
   Vector M_inv{};                       // [NQuad/2]
-  Vector mu_arr_pos{};                  // [NQuad/2]
   Matrix weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
   Matrix Leg_coeffs{};                  // [NLayers, NLeg]
   Matrix weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
@@ -155,7 +145,7 @@ class main_data {
 
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
 
-  void IMS(ims_data& data, const Numeric tau, const Numeric phi) const;
+  void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;
 
   void u(u_data& data,
          const Numeric tau,
@@ -165,7 +155,7 @@ class main_data {
   void u0(u0_data& data, const Numeric tau) const;
 
   void u_corr(u_data& u_data,
-              ims_data& ims_data,
+              Vector& ims,
               tms_data& tms_data,
               const Numeric tau,
               const Numeric phi,

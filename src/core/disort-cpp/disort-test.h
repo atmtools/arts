@@ -29,13 +29,13 @@ inline Tensor3 compute_u(const disort::main_data& dis,
                   const bool nt_corr) {
   Tensor3 u(phis.size(), taus.size(), dis.quads());
   disort::u_data u_data;
-  disort::ims_data ims_data;
+  Vector ims;
   disort::tms_data tms_data;
 
   for (Index j = 0; j < taus.size(); j++) {
     for (Index i = 0; i < phis.size(); i++) {
       if (nt_corr) {
-        dis.u_corr(u_data, ims_data, tms_data, taus[j], phis[i]);
+        dis.u_corr(u_data, ims, tms_data, taus[j], phis[i]);
       } else {
         dis.u(u_data, taus[j], phis[i]);
       }
