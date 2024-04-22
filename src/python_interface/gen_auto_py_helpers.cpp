@@ -250,10 +250,11 @@ String to_defval_str(const String& x, const String& group) {
     pos = out.find('\n');
   }
   
-  while (out.front() == ' ') out.erase(out.begin());
-  while (out.back() == ' ') out.pop_back();
+  while (not out.empty() and out.front() == ' ') out.erase(out.begin());
+  while (not out.empty() and out.back() == ' ') out.pop_back();
 
-  if (group == "String" and out.front() not_eq '"' and out.back() not_eq '"') {
+  if (group == "String" and
+      (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
     return var_string('"', out, '"');
   }
 
