@@ -396,7 +396,7 @@ void test_5a() try {
       0.7370660620643675,
   };
 
-  // flat_print(u, compute_u(dis, taus, phis, true) );
+  //flat_print(u, compute_u(dis, taus, phis, true) );
   //  const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 

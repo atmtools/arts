@@ -341,8 +341,6 @@ void solve_for_coefs(Tensor4& GC_collect,
           G_collect_m(l + 1, joker, Range(0, N)));
     }
 
-    //print(RHS);
-
     inplace_solve(RHS, LHS);
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
@@ -561,7 +559,8 @@ void diagonalize(Tensor4& G_collect_,
       G_inv_collect_0[no_shortcut_indices_0.front().second] = G_inv;
       no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
     }
-    if (iso_source_bool) {
+
+    if (beam_source_bool) {
       auto B = B_collect[i];
       const auto X_tilde = X_tilde_arr[i];
 

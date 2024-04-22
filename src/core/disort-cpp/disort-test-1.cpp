@@ -693,7 +693,7 @@ void test_1d() {
       1.0385254943329445e-14,
   };
 
-  flat_print(u, compute_u(dis, taus, phis, false));
+  // flat_print(u, compute_u(dis, taus, phis, false));
 
   compare("test_1d",
           dis,
