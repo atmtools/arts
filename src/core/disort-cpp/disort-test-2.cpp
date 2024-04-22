@@ -1,7 +1,7 @@
 #include <disort-test.h>
 
 void test_2a() {
-  const Vector tau_arr{0.2};
+  const AscendingGrid tau_arr{0.2};
   const Vector omega_arr{0.5};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -181,7 +181,7 @@ void test_2a() {
 }
 
 void test_2b() {
-  const Vector tau_arr{0.2};
+  const AscendingGrid tau_arr{0.2};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -361,7 +361,7 @@ void test_2b() {
 }
 
 void test_2c() {
-  const Vector tau_arr{5.0};
+  const AscendingGrid tau_arr{5.0};
   const Vector omega_arr{0.5};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -541,7 +541,7 @@ void test_2c() {
 }
 
 void test_2d() {
-  const Vector tau_arr{5.0};
+  const AscendingGrid tau_arr{5.0};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);

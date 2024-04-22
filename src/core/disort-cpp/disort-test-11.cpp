@@ -1,7 +1,7 @@
 #include <disort-test.h>
 
 void test_11a_1layer() try {
-  const Vector tau_arr{8.};
+  const AscendingGrid tau_arr{8.};
   const Vector omega_arr{0.999999};
   const Index NQuad = 16;
   const Matrix Leg_coeffs_all{
@@ -194,7 +194,7 @@ void test_11a_1layer() try {
 }
 
 void test_11a_multilayer() try {
-  const Vector tau_arr{
+  const AscendingGrid tau_arr{
       0.5, 1., 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 5.5, 6., 6.5, 7., 7.5, 8.};
   const Vector omega_arr(tau_arr.size(), 0.999999);
   const Index NQuad = 16;

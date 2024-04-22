@@ -1,4 +1,5 @@
 #include <disort-test.h>
+#include "sorted_grid.h"
 
 const Vector Leg_coeffs_ALL{
     1,      2.544,  3.883,  4.568,  5.235,  5.887,  6.457,  7.177,  7.859,
@@ -37,7 +38,7 @@ const Vector Leg_coeffs_ALL{
     0.001,  0.001,  0.001};
 
 void test_5a() try {
-  const Vector tau_arr{64};
+  const AscendingGrid tau_arr{64};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
@@ -415,7 +416,7 @@ void test_5a() try {
 }
 
 void test_5b() try {
-  const Vector tau_arr{64};
+  const AscendingGrid tau_arr{64};
   const Vector omega_arr{0.9};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);
@@ -793,7 +794,7 @@ void test_5b() try {
 }
 
 void test_5BDRF() try {
-  const Vector tau_arr{64};
+  const AscendingGrid tau_arr{64};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 48;
   Matrix Leg_coeffs_all(1, Leg_coeffs_ALL.nelem(), 1);

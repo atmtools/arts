@@ -16,6 +16,8 @@ class grid {
   Vector x;
 
  public:
+  [[nodiscard]] const Vector& vec() const { return x; }
+
   using value_type = Numeric;
 
   void assert_sorted() const {

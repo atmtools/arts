@@ -18,6 +18,7 @@
 #include "matpack_iter.h"
 #include "matpack_view.h"
 #include "rational.h"
+#include "sorted_grid.h"
 
 void print(auto&& x) {
   auto ptr = x.elem_begin();
@@ -32,14 +33,14 @@ namespace disort {
 void mathscr_v_add(ExhaustiveVectorView um,
                    Matrix& mathscr_v_coeffs,
                    const Numeric tau,
-                   const ExhaustiveConstVectorView& s_poly_coeffs,
+                   const ExhaustiveConstVectorView& source_poly_coeffs,
                    const ExhaustiveConstMatrixView& G,
                    const ExhaustiveConstVectorView& K,
                    const ExhaustiveConstMatrixView& G_inv,
                    const ExhaustiveConstVectorView& mu_arr) {
   const Index Ni = G.nrows();
   const Index Nk = G.ncols();
-  const Index Nc = s_poly_coeffs.size();
+  const Index Nc = source_poly_coeffs.size();
   const Index Nj = mu_arr.size();
 
   mathscr_v_coeffs.resize(Nc, Nk);
@@ -51,7 +52,7 @@ void mathscr_v_add(ExhaustiveVectorView um,
       for (Index j = 0; j <= i; j++) {
         const Numeric fs = (Legendre::factorial(Nc - 1 - j) /
                             Legendre::factorial(Nc - 1 - i)) *
-                           s_poly_coeffs[1 - j];
+                           source_poly_coeffs[1 - j];
         cik += fs * std::pow(K[k], -(i - j + 1));
       }
     }
@@ -75,25 +76,24 @@ void solve_for_coefs(Tensor4& GC_collect,
                      const Tensor3& K_collect,
                      const Tensor3& B_collect,
                      const Tensor3& G_inv_collect_0,
-                     const Vector& tau_arr,
+                     const AscendingGrid& tau_arr,
                      const Vector& scaled_tau_arr_with_0,
                      const Vector& W,
                      const Vector& mu_arr,
                      const Index N,
                      const Index NQuad,
                      const Index NLayers,
-                     const Index NBDRF,
-                     const bool multilayer_bool,
-                     const std::vector<BDRF>& BDRF_Fourier_modes,
+                     const std::vector<BDRF>& fourier_modes,
                      const Numeric mu0,
                      const Numeric I0,
-                     const bool beam_source_bool,
+                     const bool has_beam_source,
                      const Matrix& b_pos,
                      const Matrix& b_neg,
-                     const bool scalar_b_pos,
-                     const bool scalar_b_neg,
-                     const Matrix& s_poly_coeffs,
-                     bool iso_source_bool) {
+                     const Matrix& source_poly_coeffs) {
+  const bool is_multilayer = NLayers > 1;
+  const bool has_source_poly = not source_poly_coeffs.empty();
+  const Index NBDRF = fourier_modes.size();
+
   GC_collect.resize(NFourier, NLayers, NQuad, NQuad);
 
   Matrix R(NBDRF ? N : 0, N);
@@ -127,22 +127,21 @@ void solve_for_coefs(Tensor4& GC_collect,
     const auto G_collect_m = G_collect[m];
     const auto K_collect_m = K_collect[m];
     const auto B_collect_m =
-        beam_source_bool ? B_collect[m] : ExhaustiveConstMatrixView{};
+        has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
 
     if (BDRF_bool) {
-      BDRF_Fourier_modes[m](
-          mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
+      fourier_modes[m](mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
           einsum<"ij", "ij", "j", "j", "">(
               R, mathscr_D_neg, mu_arr.slice(0, N), W, 1 + m_equals_0_bool);
-      if (beam_source_bool) {
-        BDRF_Fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
-                              mu_arr.slice(0, N),
-                              ExhaustiveConstVectorView{-mu0});
+      if (has_beam_source) {
+        fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
+                         mu_arr.slice(0, N),
+                         ExhaustiveConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
       }
     }
 
-    if (scalar_b_pos) {
+    if (b_pos.size() == 1) {
       if (m_equals_0_bool) {
         b_pos_m = b_pos(0, 0);
       } else {
@@ -152,7 +151,7 @@ void solve_for_coefs(Tensor4& GC_collect,
       b_pos_m = b_pos(joker, m);
     }
 
-    if (scalar_b_neg) {
+    if (b_neg.size() == 1) {
       if (m_equals_0_bool) {
         b_neg_m = b_neg(0, 0);
       } else {
@@ -165,25 +164,25 @@ void solve_for_coefs(Tensor4& GC_collect,
     // Fill RHS
     RHS = 0.0;
 
-    if (iso_source_bool and m_equals_0_bool) {
+    if (has_source_poly and m_equals_0_bool) {
       mathscr_v_contribution.slice(0, N) = 0.0;
       mathscr_v_add(mathscr_v_contribution.slice(0, N),
                     comp_matrix,
                     0.0,
-                    s_poly_coeffs[0],
+                    source_poly_coeffs[0],
                     G_collect_m[0].slice(N, N),
                     K_collect_m[0],
                     G_inv_collect_0[0],
                     mu_arr);
       mathscr_v_contribution.slice(0, N) *= -1;
 
-      if (multilayer_bool) {
+      if (is_multilayer) {
         for (Index l = 0; l < NLayers - 1; l++) {
           mathscr_v_temporary = 0;
           mathscr_v_add(mathscr_v_temporary,
                         comp_matrix,
                         tau_arr[l],
-                        s_poly_coeffs[l + 1],
+                        source_poly_coeffs[l + 1],
                         G_collect_m[l + 1],
                         K_collect_m[l + 1],
                         G_inv_collect_0[l + 1],
@@ -194,7 +193,7 @@ void solve_for_coefs(Tensor4& GC_collect,
           mathscr_v_add(mathscr_v_temporary,
                         comp_matrix,
                         tau_arr[l],
-                        s_poly_coeffs[l],
+                        source_poly_coeffs[l],
                         G_collect_m[l],
                         K_collect_m[l],
                         G_inv_collect_0[l],
@@ -208,14 +207,13 @@ void solve_for_coefs(Tensor4& GC_collect,
           mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
           comp_matrix,
           tau_arr.back(),
-          s_poly_coeffs[NLayers - 1],
+          source_poly_coeffs[NLayers - 1],
           G_collect_m[NLayers - 1].slice(N, N),
           K_collect_m[NLayers - 1],
           G_inv_collect_0[NLayers - 1],
           mu_arr);
 
       if (NBDRF > 0) {
-        // Add R@m to m using lapack
         mathscr_v_temporary =
             mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N);
         mult(mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
@@ -228,7 +226,7 @@ void solve_for_coefs(Tensor4& GC_collect,
       mathscr_v_contribution = 0.0;
     }
 
-    if (beam_source_bool) {
+    if (has_beam_source) {
       if (BDRF_bool) {
         BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
         mult(BDRF_RHS_contribution,
@@ -240,7 +238,7 @@ void solve_for_coefs(Tensor4& GC_collect,
         BDRF_RHS_contribution = 0.0;
       }
 
-      if (multilayer_bool) {
+      if (is_multilayer) {
         for (Index l = 0; l < NLayers - 1; l++) {
           for (Index j = 0; j < NQuad; j++) {
             RHS_middle(j, l) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
@@ -364,12 +362,12 @@ void diagonalize(Tensor4& G_collect_,
                  const Matrix& weighted_scaled_Leg_coeffs,
                  const Numeric mu0,
                  const Numeric I0,
-                 const bool beam_source_bool,
-                 const bool iso_source_bool) {
+                 const bool has_beam_source,
+                 const bool has_source_poly) {
   G_collect_.resize(NFourier, NLayers, NQuad, NQuad);
   K_collect_.resize(NFourier, NLayers, NQuad);
   B_collect_.resize(NFourier, NLayers, NQuad);
-  G_inv_collect_0.resize(NLayers, NQuad, NQuad);
+  G_inv_collect_0.resize(has_source_poly * NLayers, NQuad, NQuad);
 
   auto G_collect = G_collect_.reshape_as(NFourier * NLayers, NQuad, NQuad);
   auto K_collect = K_collect_.reshape_as(NFourier * NLayers, NQuad);
@@ -474,7 +472,7 @@ void diagonalize(Tensor4& G_collect_,
         D_pos *= 0.5 * scaled_omega_l;
         D_neg *= 0.5 * scaled_omega_l;
 
-        if (beam_source_bool) {
+        if (has_beam_source) {
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -500,7 +498,7 @@ void diagonalize(Tensor4& G_collect_,
 
         einsum<"i", "i", "i">(X_tilde_arr[ind].slice(N, N), M_inv, X_neg);
 
-        if (iso_source_bool and m_equals_0_bool) {
+        if (has_source_poly and m_equals_0_bool) {
           no_shortcut_indices_0.emplace_back(ind, l);
         }
       } else {
@@ -512,7 +510,7 @@ void diagonalize(Tensor4& G_collect_,
         for (Index i = 0; i < NQuad; i++) {
           K_collect(ind, i) = -1 / mu_arr[i];
         }
-        if (iso_source_bool and m_equals_0_bool) {
+        if (has_source_poly and m_equals_0_bool) {
           G_inv_collect_0[l] = G;
         }
       }
@@ -558,7 +556,7 @@ void diagonalize(Tensor4& G_collect_,
       no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
     }
 
-    if (beam_source_bool) {
+    if (has_beam_source) {
       auto B = B_collect[i];
       const auto X_tilde = X_tilde_arr[i];
 
@@ -595,42 +593,35 @@ void DoubleGaussLegendre(ExhaustiveVectorView x,
   w *= 0.5;
 }
 
-main_data::main_data(Index NQuad_,
-                     Index NLeg_,
-                     Index NFourier_,
-                     Vector tau_arr_,
+main_data::main_data(const Index NQuad,
+                     const Index NLeg,
+                     const Index NFourier,
+                     AscendingGrid tau_arr_,
                      Vector omega_arr_,
                      Matrix Leg_coeffs_all_,
                      Matrix b_pos_,
                      Matrix b_neg_,
                      Vector f_arr_,
-                     Matrix s_poly_coeffs_,
-                     std::vector<BDRF> fourier_modes_,
+                     Matrix source_poly_coeffs_,
+                     const std::vector<BDRF>& fourier_modes,
                      Numeric mu0_,
                      Numeric I0_,
                      Numeric phi0_)
-    : NLayers(tau_arr_.size()),
-      NLeg_all(Leg_coeffs_all_.ncols()),
-      NQuad(NQuad_),
-      N(NQuad / 2),
-      NFourier(NFourier_),
-      Nscoeffs(s_poly_coeffs_.nrows()),
-      NBDRF(fourier_modes_.size()),
-      NLeg(NLeg_),
-      tau_arr(std::move(tau_arr_)),
+    : tau_arr(std::move(tau_arr_)),
       omega_arr(std::move(omega_arr_)),
       f_arr(std::move(f_arr_)),
       Leg_coeffs_all(std::move(Leg_coeffs_all_)),
-      s_poly_coeffs(std::move(s_poly_coeffs_)),
+      source_poly_coeffs(std::move(source_poly_coeffs_)),
       b_pos(std::move(b_pos_)),
       b_neg(std::move(b_neg_)),
-      fourier_modes(std::move(fourier_modes_)),
       mu0(mu0_),
       I0(I0_),
       phi0(phi0_),
-      beam_source_bool(I0 > 0),
-      iso_source_bool(Nscoeffs > 0),
-      multilayer_bool(NLayers > 1) {
+      has_beam_source(I0 > 0) {
+  const Index NLeg_all = legalls();
+  const Index NLayers = layers();
+  const Index N = NQuad / 2;
+
   // Index correctness checks
   ARTS_USER_ERROR_IF(NLeg <= 0, "NLeg must be positive");
   ARTS_USER_ERROR_IF(NLeg > NLeg_all,
@@ -644,53 +635,16 @@ main_data::main_data(Index NQuad_,
                      "NQuad must be at least NLeg (for accuracy reasons)");
 
   // Input size checks
-  ARTS_USER_ERROR_IF(tau_arr.size() != NLayers, "tau_arr layers mismatch");
   ARTS_USER_ERROR_IF(omega_arr.size() != NLayers, "omega_arr layers mismatch");
   ARTS_USER_ERROR_IF(not(f_arr.size() == NLayers or f_arr.size() == 0),
                      "f_arr layers mismatch");
   ARTS_USER_ERROR_IF(Leg_coeffs_all.nrows() != NLayers,
                      "Leg_coeffs_all layers mismatch");
   ARTS_USER_ERROR_IF(
-      s_poly_coeffs.nrows() != NLayers and s_poly_coeffs.ncols() != 0,
-      "s_poly_coeffs shape mismatch");
+      source_poly_coeffs.nrows() != NLayers and source_poly_coeffs.ncols() != 0,
+      "source_poly_coeffs shape mismatch");
 
-  // Memory allocation
-  scale_tau.resize(NLayers);
-  scaled_omega_arr.resize(NLayers);
-  thickness_arr.resize(NLayers);
-  scaled_tau_arr_with_0.resize(NLayers + 1);
-  W.resize(N);
-  mu_arr.resize(NQuad);
-  M_inv.resize(N);
-  weighted_Leg_coeffs_all.resize(NLayers, NLeg_all);
-  Leg_coeffs.resize(NLayers, NLeg);
-  weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
-
-  // Thickness is the difference between tau values, the first difference is towards 0
-  thickness_arr.resize(NLayers);
-  std::adjacent_difference(
-      tau_arr.begin(), tau_arr.end(), thickness_arr.begin());
-
-  // Legendre coefficients selection
-  weighted_Leg_coeffs_all = Leg_coeffs_all;
-  for (Index i = 0; i < NLeg_all; i++) {
-    weighted_Leg_coeffs_all(joker, i) *= 2 * i + 1;
-  }
-  Leg_coeffs = Leg_coeffs_all(joker, Range(0, NLeg));
-
-  // Quadrature points
-  DoubleGaussLegendre(mu_arr.slice(0, N), W, N);
-  std::transform(
-      mu_arr.begin(), mu_arr.begin() + N, M_inv.begin(), [](auto&& x) {
-        return 1.0 / x;
-      });
-  std::transform(
-      mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
-        return -x;
-      });
-
-  scalar_b_pos = b_pos.size() == 1;
-  if (not scalar_b_pos) {
+  if (b_pos.size() != 1) {
     ARTS_USER_ERROR_IF((b_pos.shape() != std::array{N, NFourier}),
                        "Bad shape for b_pos, should be (",
                        N,
@@ -700,8 +654,7 @@ main_data::main_data(Index NQuad_,
                        matpack::shape_help<2>{b_pos.shape()})
   }
 
-  scalar_b_neg = b_neg.size() == 1;
-  if (not scalar_b_neg) {
+  if (b_neg.size() != 1) {
     ARTS_USER_ERROR_IF((b_neg.shape() != std::array{N, NFourier}),
                        "Bad shape for b_neg, should be (",
                        N,
@@ -711,59 +664,9 @@ main_data::main_data(Index NQuad_,
                        matpack::shape_help<2>{b_neg.shape()})
   }
 
-  // Origin of I0
-  if ((scalar_b_pos and b_pos(0, 0) == 0) and not iso_source_bool and
-      beam_source_bool) {
-    I0_orig = I0;
-    I0 = 1;
-  } else {
-    I0_orig = 1;
-  }
-
-  // Scaling
-  if (not f_arr.empty()) {
-    std::transform(omega_arr.begin(),
-                   omega_arr.end(),
-                   f_arr.begin(),
-                   scaled_omega_arr.begin(),
-                   [](auto&& omega, auto&& f) { return 1.0 - omega * f; });
-
-    einsum<"i", "i", "i", "">(scale_tau, omega_arr, f_arr, -1);
-
-    scale_tau += 1;
-
-    scaled_tau_arr_with_0[0] = 0;
-
-    Numeric part = 0.0;
-    for (Index i = 0; i < NLayers; i++) {
-      part += scale_tau[i] * thickness_arr[i];
-      scaled_tau_arr_with_0[i + 1] = part;
-    }
-
-    for (Index i = 0; i < NLayers; i++) {
-      for (Index j = 0; j < NLeg; j++) {
-        weighted_scaled_Leg_coeffs(i, j) = static_cast<Numeric>(2 * j + 1) *
-                                           (Leg_coeffs(i, j) - f_arr[i]) /
-                                           (1 - f_arr[i]);
-      }
-    }
-
-    for (Index i = 0; i < NLayers; i++) {
-      scaled_omega_arr[i] = omega_arr[i] * (1.0 - f_arr[i]) / scale_tau[i];
-    }
-  } else {
-    scale_tau = 1.0;
-    scaled_tau_arr_with_0[0] = 0;
-    scaled_tau_arr_with_0(Range(1, NLayers)) = tau_arr;
-    weighted_scaled_Leg_coeffs = weighted_Leg_coeffs_all(joker, Range(0, NLeg));
-    scaled_omega_arr = omega_arr;
-  }
-
-  // Value checks
-  ARTS_USER_ERROR_IF(std::ranges::any_of(tau_arr, Cmp::le(0.0)),
-                     "tau_arr must be positive");
-  ARTS_USER_ERROR_IF(std::ranges::any_of(thickness_arr, Cmp::le(0.0)),
-                     "thickness_arr must be positive");
+  // Value correctness checks
+  ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
+                     "tau_arr must be strictly positive");
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(omega_arr,
                           [](auto&& omega) { return omega >= 1 or omega < 0; }),
@@ -784,34 +687,109 @@ main_data::main_data(Index NQuad_,
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
       "f_arr must be [0, 1]");
+
+  // Memory allocation
+  scale_tau.resize(NLayers);
+  scaled_omega_arr.resize(NLayers);
+  scaled_tau_arr_with_0.resize(NLayers + 1);
+  W.resize(N);
+  mu_arr.resize(NQuad);
+  weighted_Leg_coeffs_all.resize(NLayers, NLeg_all);
+  weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
+
+  // Quadrature points (FIXME: SHOULD THIS BE INPUT???)
+  DoubleGaussLegendre(mu_arr.slice(0, N), W, N);
+  std::transform(
+      mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
+        return -x;
+      });
+
   ARTS_USER_ERROR_IF(
       std::ranges::any_of(
           mu_arr.slice(0, N),
           [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
       "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0.");
 
+  Vector M_inv(N);
+  std::transform(
+      mu_arr.begin(), mu_arr.begin() + N, M_inv.begin(), [](auto&& x) {
+        return 1.0 / x;
+      });
+
+  // Legendre coefficients selection
+  weighted_Leg_coeffs_all = Leg_coeffs_all;
+  for (Index i = 0; i < NLeg_all; i++) {
+    weighted_Leg_coeffs_all(joker, i) *= 2 * i + 1;
+  }
+
+  // Origin of I0
+  if ((b_pos.size() == 1 and b_pos(0, 0) == 0) and
+      source_poly_coeffs.empty() and has_beam_source) {
+    I0_orig = I0;
+    I0 = 1;
+  } else {
+    I0_orig = 1;
+  }
+
+  // Scaling
+  if (not f_arr.empty()) {
+    std::transform(omega_arr.begin(),
+                   omega_arr.end(),
+                   f_arr.begin(),
+                   scaled_omega_arr.begin(),
+                   [](auto&& omega, auto&& f) { return 1.0 - omega * f; });
+
+    einsum<"i", "", "i", "i">(scale_tau, -1, omega_arr, f_arr);
+    scale_tau += 1;
+
+    scaled_tau_arr_with_0[0] = 0;
+
+    Numeric part = 0.0;
+    for (Index i = 0; i < NLayers; i++) {
+      part += scale_tau[i] *
+              (i == 0 ? tau_arr.front() : tau_arr[i] - tau_arr[i - 1]);
+      scaled_tau_arr_with_0[i + 1] = part;
+    }
+
+    for (Index i = 0; i < NLayers; i++) {
+      for (Index j = 0; j < NLeg; j++) {
+        weighted_scaled_Leg_coeffs(i, j) = static_cast<Numeric>(2 * j + 1) *
+                                           (Leg_coeffs_all(i, j) - f_arr[i]) /
+                                           (1 - f_arr[i]);
+      }
+    }
+
+    for (Index i = 0; i < NLayers; i++) {
+      scaled_omega_arr[i] = omega_arr[i] * (1.0 - f_arr[i]) / scale_tau[i];
+    }
+  } else {
+    scale_tau = 1.0;
+    scaled_tau_arr_with_0[0] = 0;
+    scaled_tau_arr_with_0(Range(1, NLayers)) = tau_arr;
+    weighted_scaled_Leg_coeffs = weighted_Leg_coeffs_all(joker, Range(0, NLeg));
+    scaled_omega_arr = omega_arr;
+  }
+
   // IMS
-  const Numeric sum1 = omega_arr * tau_arr;
+  const Numeric sum1 = omega_arr * tau_arr.vec();
   omega_avg = sum1 / sum(tau_arr);
   const Numeric sum2 = f_arr.empty() ? 0.0
                                      : einsum<Numeric, "", "i", "i", "i">(
                                            {}, f_arr, omega_arr, tau_arr);
   f_avg = sum2 / sum1;
-  Leg_coeffs_residue = Leg_coeffs_all;
-  if (f_arr.empty()) {
-    Leg_coeffs_residue = 0;
-  } else {
-    for (Index i = 0; i < NLayers; i++) {
-      for (Index j = 0; j < NLeg; j++) {
-        Leg_coeffs_residue(i, j) = f_arr[i];
-      }
-    }
-  }
   Leg_coeffs_residue_avg.resize(NLeg_all);
   for (Index i = 0; i < NLeg_all; i++) {
     Numeric sum3 = 0.0;
-    for (Index j = 0; j < NLayers; j++) {
-      sum3 += Leg_coeffs_residue(j, i) * omega_arr[j] * tau_arr[j];
+    if (not f_arr.empty()) {
+      if (i < NLeg) {
+        for (Index j = 0; j < NLayers; j++) {
+          sum3 += f_arr[j] * omega_arr[j] * tau_arr[j];
+        }
+      } else {
+        for (Index j = 0; j < NLayers; j++) {
+          sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
+        }
+      }
     }
     Leg_coeffs_residue_avg[i] = sum3 / sum2;
     Leg_coeffs_residue_avg[i] =
@@ -820,7 +798,6 @@ main_data::main_data(Index NQuad_,
   }
   scaled_mu0 = mu0 / (1 - omega_avg * f_avg);
 
-  // Diagonalize
   diagonalize(G_collect,
               K_collect,
               B_collect,
@@ -837,8 +814,8 @@ main_data::main_data(Index NQuad_,
               weighted_scaled_Leg_coeffs,
               mu0,
               I0,
-              beam_source_bool,
-              iso_source_bool);
+              has_beam_source,
+              not source_poly_coeffs.empty());
 
   solve_for_coefs(GC_collect,
                   NFourier,
@@ -853,25 +830,20 @@ main_data::main_data(Index NQuad_,
                   N,
                   NQuad,
                   NLayers,
-                  NBDRF,
-                  multilayer_bool,
                   fourier_modes,
                   mu0,
                   I0,
-                  beam_source_bool,
+                  has_beam_source,
                   b_pos,
                   b_neg,
-                  scalar_b_pos,
-                  scalar_b_neg,
-                  s_poly_coeffs,
-                  iso_source_bool);
+                  source_poly_coeffs);
 }
 
 [[nodiscard]] Index main_data::tau_index(const Numeric tau) const {
   const Index l =
       std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
   ARTS_USER_ERROR_IF(
-      l == NLayers, "tau (", tau, ") must be at most ", tau_arr.back());
+      l == layers(), "tau (", tau, ") must be at most ", tau_arr.back());
   return l;
 }
 
@@ -880,6 +852,10 @@ void main_data::u(u_data& data,
                   const Numeric phi,
                   const bool return_fourier_error) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+
+  const Index NFourier = fouriers();
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
 
   const Index l = tau_index(tau);
 
@@ -902,7 +878,7 @@ void main_data::u(u_data& data,
   einsum<"mi", "mij", "mj">(
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
 
-  if (beam_source_bool) {
+  if (has_beam_source) {
     const auto tmp = B_collect(joker, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -913,11 +889,11 @@ void main_data::u(u_data& data,
                    });
   }
 
-  if (iso_source_bool) {
+  if (not source_poly_coeffs.empty()) {
     mathscr_v_add(data.um[0],
                   data.mathscr_v_coeffs,
                   tau,
-                  s_poly_coeffs[l],
+                  source_poly_coeffs[l],
                   G_collect[0][l],
                   K_collect[0][l],
                   G_inv_collect_0[l],
@@ -939,7 +915,7 @@ void main_data::u(u_data& data,
     einsum<"i", "ij", "j">(data.ulast,
                            GC_collect(NFourier - 1, l, joker, joker),
                            data.exponent[NFourier - 1]);
-    if (beam_source_bool) {
+    if (has_beam_source) {
       const auto tmp = B_collect(NFourier - 1, l, joker);
       std::transform(tmp.elem_begin(),
                      tmp.elem_end(),
@@ -960,6 +936,9 @@ void main_data::u(u_data& data,
 void main_data::u0(u0_data& data, const Numeric tau) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
 
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
+
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -978,7 +957,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   data.u0.resize(NQuad);
   einsum<"i", "ij", "j">(
       data.u0, GC_collect(0, l, joker, joker), data.exponent);
-  if (beam_source_bool) {
+  if (has_beam_source) {
     const auto tmp = B_collect(0, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -989,11 +968,11 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                    });
   }
 
-  if (iso_source_bool) {
+  if (not source_poly_coeffs.empty()) {
     mathscr_v_add(data.u0,
                   data.mathscr_v_compdata,
                   tau,
-                  s_poly_coeffs[l],
+                  source_poly_coeffs[l],
                   G_collect[0][l],
                   K_collect[0][l],
                   G_inv_collect_0[l],
@@ -1030,6 +1009,10 @@ void main_data::TMS(tms_data& data,
                     const Numeric tau,
                     const Numeric phi) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
+
+  const Index NLayers = layers();
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
 
   const Index l = tau_index(tau);
 
@@ -1088,7 +1071,7 @@ void main_data::TMS(tms_data& data,
     data.TMS[i + N] = data.mathscr_B(l, i + N) * data.TMS_correction_neg[i];
   }
 
-  if (multilayer_bool) {
+  if (tau_arr.size() > 1) {
     data.contribution_from_other_layers_pos.resize(N, NLayers);
     data.contribution_from_other_layers_pos = 0;
     data.contribution_from_other_layers_neg.resize(N, NLayers);
@@ -1129,6 +1112,9 @@ void main_data::TMS(tms_data& data,
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
 
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
+
   ims.resize(N);
   for (Index i = 0; i < N; i++) {
     const Numeric nu = calculate_nu(mu_arr[i + N], phi, -mu0, phi0);
@@ -1153,6 +1139,9 @@ void main_data::u_corr(u_data& u_data,
   IMS(ims, tau, phi);
   u(u_data, tau, phi, return_fourier_error);
 
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
+
   for (Index i = 0; i < N; i++) {
     u_data.intensities[i] += I0_orig * tms_data.TMS[i];
   }
@@ -1175,6 +1164,9 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
                      tau_arr.back(),
                      ")");
 
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
+
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1184,11 +1176,11 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
 
   data.mathscr_v.resize(NQuad);
   data.mathscr_v = 0.0;
-  if (iso_source_bool) {
+  if (not source_poly_coeffs.empty()) {
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_compdata,
                   tau,
-                  s_poly_coeffs[l],
+                  source_poly_coeffs[l],
                   G_collect[0][l],
                   K_collect[0][l],
                   G_inv_collect_0[l],
@@ -1196,7 +1188,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   }
 
   data.direct_beam_contribution.resize(N);
-  if (beam_source_bool) {
+  if (has_beam_source) {
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(0, N),
                          std::exp(-scaled_tau / mu0));
@@ -1232,6 +1224,9 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
                      tau_arr.back(),
                      ")");
 
+  const Index NQuad = quads();
+  const Index N = NQuad / 2;
+
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1239,13 +1234,13 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   const Numeric scaled_tau =
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  if (iso_source_bool) {
+  if (not source_poly_coeffs.empty()) {
     data.mathscr_v.resize(NQuad);
     data.mathscr_v = 0.0;
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_compdata,
                   tau,
-                  s_poly_coeffs[l],
+                  source_poly_coeffs[l],
                   G_collect[0][l],
                   K_collect[0][l],
                   G_inv_collect_0[l],
@@ -1258,11 +1253,11 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   }
 
   const Numeric direct_beam =
-      beam_source_bool ? I0 * mu0 * std::exp(-tau / mu0) : 0;
+      has_beam_source ? I0 * mu0 * std::exp(-tau / mu0) : 0;
   const Numeric direct_beam_scaled =
-      beam_source_bool ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
+      has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
   data.direct_beam_contribution.resize(N);
-  if (beam_source_bool) {
+  if (has_beam_source) {
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(N, N),
                          std::exp(-scaled_tau / mu0));

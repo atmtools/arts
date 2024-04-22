@@ -1,7 +1,7 @@
 #include <disort-test.h>
 
 void test_1a() {
-  const Vector tau_arr{0.03125};
+  const AscendingGrid tau_arr{0.03125};
   const Vector omega_arr{0.2};
   const Index NQuad = 16;
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -178,7 +178,7 @@ void test_1a() {
 }
 
 void test_1b() {
-  const Vector tau_arr{0.03125};
+  const AscendingGrid tau_arr{0.03125};
   // Reduced from 1 because we have not implemented that special case
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad = 16;
@@ -354,7 +354,7 @@ void test_1b() {
 }
 
 void test_1c() {
-  const Vector tau_arr{0.03125};
+  const AscendingGrid tau_arr{0.03125};
   const Vector omega_arr{0.99};
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -531,7 +531,7 @@ void test_1c() {
 }
 
 void test_1d() {
-  const Vector tau_arr{32};
+  const AscendingGrid tau_arr{32};
   const Vector omega_arr{0.2};
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -708,7 +708,7 @@ void test_1d() {
 }
 
 void test_1e() {
-  const Vector tau_arr{32};
+  const AscendingGrid tau_arr{32};
   const Vector omega_arr{1 - 1e-6};
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
@@ -885,7 +885,7 @@ void test_1e() {
 }
 
 void test_1f() {
-  const Vector tau_arr{32};
+  const AscendingGrid tau_arr{32};
   const Vector omega_arr{0.99};
   const Index NQuad{16};
   Matrix Leg_coeffs_all(1, 17, 0);
