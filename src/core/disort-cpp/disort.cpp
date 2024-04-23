@@ -43,27 +43,33 @@ void mathscr_v_add(ExhaustiveVectorView um,
   const Index Nc = source_poly_coeffs.size();
   const Index Nj = mu_arr.size();
 
-  mathscr_v_coeffs.resize(Nc, Nk);
+  mathscr_v_coeffs.resize(Nk, Nc);
   mathscr_v_coeffs = 0.0;
-  for (Index i : std::ranges::iota_view(0, Nc)) {
-    auto ci = mathscr_v_coeffs[i];
-    for (Index k = 0; k < 16; k++) {
-      auto& cik = ci[k];
+  for (Index k = 0; k < Nk; k++) {
+    auto&& ck = mathscr_v_coeffs[k];
+    for (Index i : std::ranges::iota_view(0, Nc)) {
+      auto&& cki = ck[i];
       for (Index j = 0; j <= i; j++) {
         const Numeric fs = (Legendre::factorial(Nc - 1 - j) /
                             Legendre::factorial(Nc - 1 - i)) *
                            source_poly_coeffs[1 - j];
-        cik += fs * std::pow(K[k], -(i - j + 1));
+        cki += fs * std::pow(K[k], -(i - j + 1));
       }
     }
   }
 
   for (Index i = 0; i < Ni; i++) {
+    auto&& umi = um[i];
+    auto&& Gi = G[i];
     for (Index k = 0; k < Nk; k++) {
+      auto&& Gik = Gi[k];
+      auto&& G_inv_k = G_inv[k];
+      auto&& ck = mathscr_v_coeffs[k];
       for (Index c = 0; c < Nc; c++) {
+        auto&& ckc = ck[c];
+        const auto ptau = std::pow(tau, Nc - 1 - c);
         for (Index j = 0; j < Nj; j++) {
-          um[i] += G(i, k) * std::pow(tau, Nc - 1 - c) *
-                   mathscr_v_coeffs(c, k) * G_inv(k, j) / mu_arr[j];
+          umi += Gik * ptau * ckc * G_inv_k[j] / mu_arr[j];
         }
       }
     }
@@ -131,13 +137,14 @@ void solve_for_coefs(Tensor4& GC_collect,
         has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
 
     if (BDRF_bool) {
-      brdf_fourier_modes[m](mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
+      brdf_fourier_modes[m](
+          mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
           einsum<"ij", "ij", "j", "j", "">(
               R, mathscr_D_neg, mu_arr.slice(0, N), W, 1 + m_equals_0_bool);
       if (has_beam_source) {
         brdf_fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
-                         mu_arr.slice(0, N),
-                         ExhaustiveConstVectorView{-mu0});
+                              mu_arr.slice(0, N),
+                              ExhaustiveConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
       }
     }
@@ -179,6 +186,18 @@ void solve_for_coefs(Tensor4& GC_collect,
 
       if (is_multilayer) {
         for (Index l = 0; l < NLayers - 1; l++) {
+          mathscr_v_temporary = 0.0;
+          mathscr_v_add(mathscr_v_temporary,
+                        comp_matrix,
+                        tau_arr[l],
+                        source_poly_coeffs[l],
+                        G_collect_m[l],
+                        K_collect_m[l],
+                        G_inv_collect_0[l],
+                        mu_arr);
+          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) =
+              mathscr_v_temporary;
+
           mathscr_v_temporary = 0;
           mathscr_v_add(mathscr_v_temporary,
                         comp_matrix,
@@ -189,17 +208,6 @@ void solve_for_coefs(Tensor4& GC_collect,
                         G_inv_collect_0[l + 1],
                         mu_arr);
           mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) -=
-              mathscr_v_temporary;
-          mathscr_v_temporary = 0.0;
-          mathscr_v_add(mathscr_v_temporary,
-                        comp_matrix,
-                        tau_arr[l],
-                        source_poly_coeffs[l],
-                        G_collect_m[l],
-                        K_collect_m[l],
-                        G_inv_collect_0[l],
-                        mu_arr);
-          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) +=
               mathscr_v_temporary;
         }
       }
@@ -411,10 +419,13 @@ void diagonalize(Tensor4& G_collect_,
   Vector eigi(N);
   Matrix G_inv(NQuad, NQuad);
 
-  matpack::matpack_data<Index, 1> ells_all(NLeg);
-  for (Index i = 0; i < NLeg; i++) {
-    ells_all[i] = i;
-  }
+  const auto ells_all = [NLeg]() {
+    matpack::matpack_data<Index, 1> out(NLeg);
+    for (Index i = 0; i < NLeg; i++) {
+      out[i] = i;
+    }
+    return out;
+  }();
 
   Index ind = 0;
   for (Index m = 0; m < NFourier; m++) {
