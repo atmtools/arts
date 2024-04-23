@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
@@ -53,4 +54,6 @@ void sumlegtest() {
   }
 }
 
-int main() { sumlegtest(); }
+int main() {
+  sumlegtest();
+}

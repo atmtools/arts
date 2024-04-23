@@ -87,13 +87,41 @@ Numeric legendre_sum(const ExhaustiveConstVectorView& s, const Numeric& x);
 
 /** Computes P_n(x)
   * 
-  * @param[in] s The coefficients
-  * @param[in] x The x values
-  * @return The sum
+  * @param[in] n The order
+  * @param[in] x The value
+  * @return The polynomial
   */
 Numeric legendre(Index n, Numeric x);
 
-Numeric factorial(Index i);
+/** Computes n!
+  * 
+  * @param[in] n The index
+  * @return The factorial value
+  */
+Numeric factorial(Index n);
+
+/** Computes P^m_l(x)
+  * 
+  * @param[in] l The degree
+  * @param[in] m The order
+  * @param[in] x The value
+  * @return The associated polynomial
+  */
 Numeric assoc_legendre(Index l, Index m, Numeric x);
+
+/** Computes the ratio of gamma functions
+  * 
+  * @param[in] x The first argument
+  * @param[in] y The second argument
+  * @return The ratio
+  */
 Numeric tgamma_ratio(Numeric x, Numeric y);
+
+/** Computes the double Gauss Legendre quadrature
+ * 
+ * @param x The coordinates
+ * @param w The weights
+ */
+void DoubleGaussLegendre(ExhaustiveVectorView x,
+                         ExhaustiveVectorView w);
 }  // namespace Legendre

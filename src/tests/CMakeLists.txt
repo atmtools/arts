@@ -262,3 +262,10 @@ add_executable(test_legendre test_legendre.cc)
 target_link_libraries(test_legendre PUBLIC legendre)
 add_test(NAME "cpp.fast.test_legendre" COMMAND test_legendre)
 add_dependencies(check-deps test_legendre)
+
+
+# ####
+add_executable(test_einsum_perf test_einsum_perf.cc)
+target_link_libraries(test_einsum_perf PUBLIC matpack artstime)
+add_test(NAME "cpp.fast.test_einsum_perf" COMMAND test_einsum_perf)
+add_dependencies(check-deps test_einsum_perf)

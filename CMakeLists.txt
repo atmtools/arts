@@ -126,6 +126,9 @@ enable_testing ()
 
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
+########### Find Boost ###########
+find_package (Boost COMPONENTS REQUIRED headers)
+
 ########### Find Python ##########
 find_package (Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 

@@ -12,6 +12,7 @@
 #include "arts_constants.h"
 #include "configtypes.h"
 #include "debug.h"
+#include "fastgl.h"
 #include "legendre.h"
 #include "matpack_data.h"
 #include "matpack_einsum.h"
@@ -586,26 +587,6 @@ void diagonalize(Tensor4& G_collect_,
   }
 }
 
-void DoubleGaussLegendre(ExhaustiveVectorView x,
-                         ExhaustiveVectorView w,
-                         Index n) {
-  const Index N = n / 2;
-
-  Vector part_x(N);
-  Vector part_w(N);
-  GSL::Integration::GaussLegendre(part_x, part_w, n);
-
-  for (Index i = 0; i < N; i++) {
-    x[i] = -part_x[N - 1 - i];
-    x[N + i] = part_x[i];
-    w[i] = part_w[N - 1 - i];
-    w[N + i] = part_w[i];
-  }
-  x += 1.0;
-  x *= 0.5;
-  w *= 0.5;
-}
-
 main_data::main_data(const Index NQuad,
                      const Index NLeg,
                      const Index NFourier,
@@ -711,7 +692,7 @@ main_data::main_data(const Index NQuad,
   weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
 
   // Quadrature points (FIXME: SHOULD THIS BE INPUT???)
-  DoubleGaussLegendre(mu_arr.slice(0, N), W, N);
+  Legendre::DoubleGaussLegendre(mu_arr.slice(0, N), W);
   std::transform(
       mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
         return -x;
