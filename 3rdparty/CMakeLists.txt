@@ -1,4 +1,3 @@
-add_subdirectory(cdisort)
 add_subdirectory(polradtran)
 #add_subdirectory(rt4)
 add_subdirectory(fastem)

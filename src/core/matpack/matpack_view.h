@@ -1322,6 +1322,8 @@ class matpack_view {
   {
     return *std::prev(end());
   }
+
+  static constexpr bool is_strided() { return strided; }
 };
 
 /** Describe the matpack data type

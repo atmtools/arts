@@ -138,7 +138,6 @@ add_library (artsworkspace STATIC
   workspace_class.cpp
   auto_version.cc
   compile_time_tests.cc
-  disort.cc
   doit.cc
   guim_propmat.cc
   m_abs.cc
@@ -223,7 +222,6 @@ add_library (artsworkspace STATIC
         m_fluxes.cc)
 
 target_include_directories (artsworkspace PUBLIC 
-  ${ARTS_SOURCE_DIR}/3rdparty/cdisort
   ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
   ${NETCDF_INCLUDE_DIR}
   )
@@ -233,7 +231,7 @@ if (ENABLE_PCH)
   target_precompile_headers(artsworkspace PRIVATE pch_artsworkspace.h)
 endif()
 
-target_link_libraries(artsworkspace PUBLIC auto_partfun cdisort xmliobase artscore workspace_internals)
+target_link_libraries(artsworkspace PUBLIC auto_partfun xmliobase artscore workspace_internals)
 
 if (ENABLE_GUI)
   target_link_libraries (artsworkspace PUBLIC imgui implot)

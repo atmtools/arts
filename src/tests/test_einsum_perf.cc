@@ -244,7 +244,8 @@ void pathing(int N) {
     ts.back()([&] {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
-      Matrix C(k, l, .3); C(0, 0) = 2;
+      Matrix C(k, l, .3);
+      C(0, 0) = 2;
       Matrix D(i, l);
       einsum<"il", "ij", "jk", "kl">(D, A, B, C);
       some_results.push_back(D(0, 0));
@@ -254,7 +255,8 @@ void pathing(int N) {
     ts.back()([&] {
       const Matrix A(i, j, .1);
       const Matrix B(j, k, .2);
-      Matrix C(k, l, .3); C(0, 0) = 2;
+      Matrix C(k, l, .3);
+      C(0, 0) = 2;
       Matrix CB(j, l);
       Matrix D(i, l);
       einsum<"jl", "kl", "jk">(CB, C, B);
@@ -263,30 +265,28 @@ void pathing(int N) {
     });
 
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-direct-einsum");
-    ts.back()(
-      [&](){
-        const Tensor4 I(i, i, i, i, 1);
-        Matrix C(i, i, 1); C(0, 0) = 2;
-        Tensor4 D(i, i, i, i);
-        einsum<"efgh", "ea","fb","abcd","gc","hd">(D, C, C, I, C, C);
-        some_results.push_back(D(0, 0, 0, 0));
-      }
-    );
+    ts.back()([&]() {
+      const Tensor4 I(i, i, i, i, 1);
+      Matrix C(i, i, 1);
+      C(0, 0) = 2;
+      Tensor4 D(i, i, i, i);
+      einsum<"efgh", "ea", "fb", "abcd", "gc", "hd">(D, C, C, I, C, C);
+      some_results.push_back(D(0, 0, 0, 0));
+    });
 
     ts.emplace_back("ea,fb,abcd,gc,hd->efgh-np.einsum_path-einsum");
-    ts.back()(
-      [&](){
-        const Tensor4 I(i, i, i, i, 1);
-        Matrix C(i, i, 1); C(0, 0) = 2;
-        Tensor4 B(i, i, i, i);
-        Tensor4 D(i, i, i, i);
-        einsum<"bcde", "abcd","ea">(B, I, C);
-        einsum<"cdef", "bcde","fb" >(D, B, C);
-        einsum<"defg", "cdef","gc">(B, D, C);
-        einsum<"efgh", "defg","hd">(D, B, C);
-        some_results.push_back(D(0, 0, 0, 0));
-      }
-    );
+    ts.back()([&]() {
+      const Tensor4 I(i, i, i, i, 1);
+      Matrix C(i, i, 1);
+      C(0, 0) = 2;
+      Tensor4 B(i, i, i, i);
+      Tensor4 D(i, i, i, i);
+      einsum<"bcde", "abcd", "ea">(B, I, C);
+      einsum<"cdef", "bcde", "fb">(D, B, C);
+      einsum<"defg", "cdef", "gc">(B, D, C);
+      einsum<"efgh", "defg", "hd">(D, B, C);
+      some_results.push_back(D(0, 0, 0, 0));
+    });
   }
 
   std::cout << ts;

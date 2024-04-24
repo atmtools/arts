@@ -1,10 +1,6 @@
 #include "disort.h"
 
-#include <gsl_gauss_legendre.h>
-
 #include <algorithm>
-#include <functional>
-#include <iostream>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
@@ -12,22 +8,14 @@
 #include "arts_constants.h"
 #include "configtypes.h"
 #include "debug.h"
-#include "fastgl.h"
 #include "legendre.h"
 #include "matpack_data.h"
 #include "matpack_einsum.h"
 #include "matpack_iter.h"
 #include "matpack_view.h"
-#include "rational.h"
 #include "sorted_grid.h"
 
-void print(auto&& x) {
-  auto ptr = x.elem_begin();
-  while (ptr != x.elem_end()) {
-    std::cout << *ptr << ",";
-    ptr++;
-  }
-  std::cout << '\n';
+consteval void test(Index) {
 }
 
 namespace disort {
@@ -138,35 +126,50 @@ void solve_for_coefs(Tensor4& GC_collect,
         has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
 
     if (BDRF_bool) {
+      test(1);
       brdf_fourier_modes[m](
           mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
           einsum<"ij", "ij", "j", "j", "">(
               R, mathscr_D_neg, mu_arr.slice(0, N), W, 1 + m_equals_0_bool);
       if (has_beam_source) {
+      test(2);
         brdf_fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
                               mu_arr.slice(0, N),
                               ExhaustiveConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
+      } else {
+
+      test(3);
       }
-    }
+    } else{
+      test(4);}
 
     if (b_pos.size() == 1) {
+      test(5);
       if (m_equals_0_bool) {
+
+      test(6);
         b_pos_m = b_pos(0, 0);
       } else {
+      test(7);
         b_pos_m = 0.0;
       }
     } else {
+      test(8);
       b_pos_m = b_pos(joker, m);
     }
 
     if (b_neg.size() == 1) {
+      test(9);
       if (m_equals_0_bool) {
+      test(10);
         b_neg_m = b_neg(0, 0);
       } else {
+      test(11);
         b_neg_m = 0.0;
       }
     } else {
+      test(12);
       b_neg_m = b_neg(joker, m);
     }
 
@@ -174,6 +177,7 @@ void solve_for_coefs(Tensor4& GC_collect,
     RHS = 0.0;
 
     if (has_source_poly and m_equals_0_bool) {
+      test(13);
       mathscr_v_contribution.slice(0, N) = 0.0;
       mathscr_v_add(mathscr_v_contribution.slice(0, N),
                     comp_matrix,
@@ -186,6 +190,7 @@ void solve_for_coefs(Tensor4& GC_collect,
       mathscr_v_contribution.slice(0, N) *= -1;
 
       if (is_multilayer) {
+      test(14);
         for (Index l = 0; l < NLayers - 1; l++) {
           mathscr_v_temporary = 0.0;
           mathscr_v_add(mathscr_v_temporary,
@@ -211,7 +216,8 @@ void solve_for_coefs(Tensor4& GC_collect,
           mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) -=
               mathscr_v_temporary;
         }
-      }
+      } else {
+      test(15);}
       mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N) = 0;
       mathscr_v_add(
           mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
@@ -224,6 +230,7 @@ void solve_for_coefs(Tensor4& GC_collect,
           mu_arr);
 
       if (NBDRF > 0) {
+      test(16);
         mathscr_v_temporary =
             mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N);
         mult(mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
@@ -231,13 +238,17 @@ void solve_for_coefs(Tensor4& GC_collect,
              mathscr_v_temporary,
              1.0,
              1.0);
-      }
+      } else {
+      test(17);}
     } else {
+      test(18);
       mathscr_v_contribution = 0.0;
     }
 
     if (has_beam_source) {
+      test(19);
       if (BDRF_bool) {
+      test(20);
         BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
         mult(BDRF_RHS_contribution,
              R,
@@ -245,10 +256,12 @@ void solve_for_coefs(Tensor4& GC_collect,
              1.0,
              1.0);
       } else {
+      test(21);
         BDRF_RHS_contribution = 0.0;
       }
 
       if (is_multilayer) {
+      test(22);
         for (Index l = 0; l < NLayers - 1; l++) {
           for (Index j = 0; j < NQuad; j++) {
             RHS_middle(j, l) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
@@ -267,6 +280,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                 std::exp(-scaled_tau_arr_with_0.back() / mu0);
       }
     } else {
+      test(23);
       RHS = mathscr_v_contribution;
       RHS.slice(0, N) += b_neg_m;
       RHS.slice(RHS.size() - N, N) += b_pos_m;
@@ -288,9 +302,11 @@ void solve_for_coefs(Tensor4& GC_collect,
     }
 
     if (BDRF_bool) {
+      test(24);
       mult(BDRF_LHS_contribution_neg, R, G_L_nn);
       mult(BDRF_LHS_contribution_pos, R, G_L_np);
     } else {
+      test(25);
       BDRF_LHS_contribution_neg = 0;
       BDRF_LHS_contribution_pos = 0;
     }
@@ -479,6 +495,7 @@ void diagonalize(Tensor4& G_collect_,
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
+      test(26);
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos);
@@ -487,6 +504,7 @@ void diagonalize(Tensor4& G_collect_,
         D_neg *= 0.5 * scaled_omega_l;
 
         if (has_beam_source) {
+      test(27);
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -496,7 +514,8 @@ void diagonalize(Tensor4& G_collect_,
 
           mult(xpos, xtemp, asso_leg_term_pos);
           mult(xneg, xtemp, asso_leg_term_neg);
-        }
+        } else 
+      test(28);
 
         auto alpha = alpha_arr[ind];
         auto beta = beta_arr[ind];
@@ -513,9 +532,12 @@ void diagonalize(Tensor4& G_collect_,
         einsum<"i", "i", "i">(X_tilde_arr[ind].slice(N, N), M_inv, X_neg);
 
         if (has_source_poly and m_equals_0_bool) {
+      test(29);
           no_shortcut_indices_0.emplace_back(ind, l);
-        }
+        }else {
+      test(30);}
       } else {
+      test(31);
         auto G = G_collect[ind];
         for (Index i = 0; i < N; i++) {
           G(i + N, i) = 1;
@@ -525,8 +547,10 @@ void diagonalize(Tensor4& G_collect_,
           K_collect(ind, i) = -1 / mu_arr[i];
         }
         if (has_source_poly and m_equals_0_bool) {
+      test(32);
           G_inv_collect_0[l] = G;
-        }
+        }else
+      test(33);
       }
       ++ind;
     }
@@ -566,11 +590,14 @@ void diagonalize(Tensor4& G_collect_,
     inv(G_inv, G);
     if (not no_shortcut_indices_0.empty() and
         no_shortcut_indices_0.front().first == i) {
+      test(34);
       G_inv_collect_0[no_shortcut_indices_0.front().second] = G_inv;
       no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
-    }
+    } else
+      test(35);
 
     if (has_beam_source) {
+      test(36);
       auto B = B_collect[i];
       const auto X_tilde = X_tilde_arr[i];
 
@@ -583,7 +610,8 @@ void diagonalize(Tensor4& G_collect_,
         }
         B[pos] = sum;
       }
-    }
+    } else 
+      test(37);
   }
 }
 
@@ -639,6 +667,7 @@ main_data::main_data(const Index NQuad,
       "source_poly_coeffs shape mismatch");
 
   if (b_pos.size() != 1) {
+      test(38);
     ARTS_USER_ERROR_IF((b_pos.shape() != std::array{N, NFourier}),
                        "Bad shape for b_pos, should be (",
                        N,
@@ -646,9 +675,11 @@ main_data::main_data(const Index NQuad,
                        NFourier,
                        ") is ",
                        matpack::shape_help<2>{b_pos.shape()})
-  }
+  }else
+      test(39);
 
   if (b_neg.size() != 1) {
+      test(40);
     ARTS_USER_ERROR_IF((b_neg.shape() != std::array{N, NFourier}),
                        "Bad shape for b_neg, should be (",
                        N,
@@ -656,7 +687,8 @@ main_data::main_data(const Index NQuad,
                        NFourier,
                        ") is ",
                        matpack::shape_help<2>{b_neg.shape()})
-  }
+  }else
+      test(41);
 
   // Value correctness checks
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
@@ -719,14 +751,17 @@ main_data::main_data(const Index NQuad,
   // Origin of I0
   if ((b_pos.size() == 1 and b_pos(0, 0) == 0) and
       source_poly_coeffs.empty() and has_beam_source) {
+      test(42);
     I0_orig = I0;
     I0 = 1;
   } else {
+      test(43);
     I0_orig = 1;
   }
 
   // Scaling
   if (not f_arr.empty()) {
+      test(44);
     std::transform(omega_arr.begin(),
                    omega_arr.end(),
                    f_arr.begin(),
@@ -757,6 +792,7 @@ main_data::main_data(const Index NQuad,
       scaled_omega_arr[i] = omega_arr[i] * (1.0 - f_arr[i]) / scale_tau[i];
     }
   } else {
+      test(45);
     scale_tau = 1.0;
     scaled_tau_arr_with_0[0] = 0;
     scaled_tau_arr_with_0(Range(1, NLayers)) = tau_arr;
@@ -775,16 +811,20 @@ main_data::main_data(const Index NQuad,
   for (Index i = 0; i < NLeg_all; i++) {
     Numeric sum3 = 0.0;
     if (not f_arr.empty()) {
+      test(46);
       if (i < NLeg) {
+      test(47);
         for (Index j = 0; j < NLayers; j++) {
           sum3 += f_arr[j] * omega_arr[j] * tau_arr[j];
         }
       } else {
+      test(48);
         for (Index j = 0; j < NLayers; j++) {
           sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
         }
       }
-    }
+    }else
+      test(49);
     Leg_coeffs_residue_avg[i] = sum3 / sum2;
     Leg_coeffs_residue_avg[i] =
         static_cast<Numeric>(2 * i + 1) *
@@ -865,6 +905,7 @@ void main_data::u(u_data& data,
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
 
   if (has_beam_source) {
+      test(50);
     const auto tmp = B_collect(joker, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -873,9 +914,11 @@ void main_data::u(u_data& data,
                    [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                      return scl * x + y;
                    });
-  }
+  }else
+      test(51);
 
   if (not source_poly_coeffs.empty()) {
+      test(52);
     mathscr_v_add(data.um[0],
                   data.mathscr_v_coeffs,
                   tau,
@@ -884,7 +927,8 @@ void main_data::u(u_data& data,
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }
+  }else
+      test(53);
 
   data.intensities.resize(NQuad);
   data.intensities = 0.0;
@@ -897,11 +941,13 @@ void main_data::u(u_data& data,
   }
 
   if (return_fourier_error) {
+      test(54);
     data.ulast.resize(NQuad);
     einsum<"i", "ij", "j">(data.ulast,
                            GC_collect(NFourier - 1, l, joker, joker),
                            data.exponent[NFourier - 1]);
     if (has_beam_source) {
+      test(55);
       const auto tmp = B_collect(NFourier - 1, l, joker);
       std::transform(tmp.elem_begin(),
                      tmp.elem_end(),
@@ -910,11 +956,13 @@ void main_data::u(u_data& data,
                      [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                        return scl * x + y;
                      });
-    }
+    } else
+      test(56);
 
     throw std::runtime_error(
         "Not implemented yet, cannot figure out max-statement");
-  }
+  }else
+      test(57);
 
   data.intensities *= I0_orig;
 }
@@ -944,6 +992,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   einsum<"i", "ij", "j">(
       data.u0, GC_collect(0, l, joker, joker), data.exponent);
   if (has_beam_source) {
+      test(58);
     const auto tmp = B_collect(0, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -952,9 +1001,11 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                    [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                      return scl * x + y;
                    });
-  }
+  }else
+      test(59);
 
   if (not source_poly_coeffs.empty()) {
+      test(60);
     mathscr_v_add(data.u0,
                   data.mathscr_v_compdata,
                   tau,
@@ -963,7 +1014,8 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }
+  }else
+      test(61);
 
   data.u0 *= I0_orig;
 }
@@ -1012,6 +1064,7 @@ void main_data::TMS(tms_data& data,
 
   data.mathscr_B.resize(NLayers, NQuad);
   if (f_arr.empty()) {
+      test(62);
     for (Index j = 0; j < NLayers; j++) {
       for (Index i = 0; i < NQuad; i++) {
         const Numeric p_true =
@@ -1023,6 +1076,7 @@ void main_data::TMS(tms_data& data,
       }
     }
   } else {
+      test(63);
     for (Index j = 0; j < NLayers; j++) {
       for (Index i = 0; i < NQuad; i++) {
         const Numeric p_true =
@@ -1058,12 +1112,14 @@ void main_data::TMS(tms_data& data,
   }
 
   if (tau_arr.size() > 1) {
+      test(64);
     data.contribution_from_other_layers_pos.resize(N, NLayers);
     data.contribution_from_other_layers_pos = 0;
     data.contribution_from_other_layers_neg.resize(N, NLayers);
     data.contribution_from_other_layers_neg = 0;
     for (Index i = 0; i < NLayers; i++) {
       if (l > i) {
+      test(65);
         // neg
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_neg(j, i) =
@@ -1074,6 +1130,7 @@ void main_data::TMS(tms_data& data,
                          scaled_tau_arr_with_0[i] / mu0)));
         }
       } else if (l < i) {
+      test(65);
         // pos
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_pos(j, i) =
@@ -1084,6 +1141,7 @@ void main_data::TMS(tms_data& data,
                          scaled_tau_arr_with_0[i] / mu0)));
         }
       } else {
+      test(66);
         continue;
       }
     }
@@ -1092,7 +1150,8 @@ void main_data::TMS(tms_data& data,
       data.TMS[i + 0] += sum(data.contribution_from_other_layers_pos[i]);
       data.TMS[i + N] += sum(data.contribution_from_other_layers_neg[i]);
     }
-  }
+  }else
+      test(67);
 }
 
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
@@ -1137,8 +1196,10 @@ void main_data::u_corr(u_data& u_data,
   }
 
   if (return_fourier_error) {
+      test(68);
     throw std::runtime_error("Not implemented yet");
-  }
+  }else
+      test(69);
 }
 
 Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
@@ -1163,6 +1224,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   data.mathscr_v.resize(NQuad);
   data.mathscr_v = 0.0;
   if (not source_poly_coeffs.empty()) {
+      test(70);
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_compdata,
                   tau,
@@ -1171,14 +1233,17 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }
+  }else
+      test(71);
 
   data.direct_beam_contribution.resize(N);
   if (has_beam_source) {
+      test(72);
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(0, N),
                          std::exp(-scaled_tau / mu0));
   } else {
+      test(73);
     data.direct_beam_contribution = 0.0;
   }
 
@@ -1221,6 +1286,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   if (not source_poly_coeffs.empty()) {
+      test(74);
     data.mathscr_v.resize(NQuad);
     data.mathscr_v = 0.0;
     mathscr_v_add(data.mathscr_v,
@@ -1234,6 +1300,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
     data.mathscr_v.slice(0, N) = data.mathscr_v.slice(N, N);
     data.mathscr_v.resize(N);
   } else {
+      test(75);
     data.mathscr_v.resize(N);
     data.mathscr_v = 0.0;
   }
@@ -1244,10 +1311,12 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
   data.direct_beam_contribution.resize(N);
   if (has_beam_source) {
+      test(76);
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(N, N),
                          std::exp(-scaled_tau / mu0));
   } else {
+      test(77);
     data.direct_beam_contribution = 0.0;
   }
 
