@@ -118,10 +118,32 @@ Numeric assoc_legendre(Index l, Index m, Numeric x);
 Numeric tgamma_ratio(Numeric x, Numeric y);
 
 /** Computes the double Gauss Legendre quadrature
+ *
+ * The degree of the single Gauss Legendre quadrature is the length of x and w,
+ * which must be the same.
  * 
  * @param x The coordinates
  * @param w The weights
  */
-void DoubleGaussLegendre(ExhaustiveVectorView x,
-                         ExhaustiveVectorView w);
+void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
+                                 ExhaustiveVectorView w);
+
+/** Computes the Gauss Legendre quadrature
+  * 
+  * @param x The coordinates
+  * @param w The weights
+  */
+  void GaussLegendre(ExhaustiveVectorView x,
+                      ExhaustiveVectorView w);
+
+/** Computes the positive part of the Gauss Legendre quadrature
+  *
+  * The degree of the full polynomial is twice the legnth of x and w,
+  * which must be the same, but only the positive parts are kept.
+  * 
+  * @param x The coordinates
+  * @param w The weights
+  */
+  void PositiveGaussLegendre(ExhaustiveVectorView x,
+                             ExhaustiveVectorView w);
 }  // namespace Legendre

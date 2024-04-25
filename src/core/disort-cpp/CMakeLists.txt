@@ -1,6 +1,6 @@
 add_library(disort-cpp STATIC disort.cpp)
 
-target_link_libraries(disort-cpp PUBLIC matpack legendre artsworkspace_gpl_selector)
+target_link_libraries(disort-cpp PUBLIC matpack legendre artstime)
 target_include_directories(disort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Add tests, split them because they contain too much data otherwise
@@ -39,3 +39,8 @@ add_dependencies(check-deps disort-cpp-test-5)
 add_dependencies(check-deps disort-cpp-test-8)
 add_dependencies(check-deps disort-cpp-test-9)
 add_dependencies(check-deps disort-cpp-test-11)
+
+
+# Test for Freddy
+add_executable(freddy freddy.cpp)
+target_link_libraries(freddy disort-cpp artstime)

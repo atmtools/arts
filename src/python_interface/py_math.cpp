@@ -1,7 +1,15 @@
+#include <fastgl.h>
+#include <matpack.h>
+#include <pybind11/attr.h>
 #include <pybind11/cast.h>
 #include <pybind11/pybind11.h>
+#include <wigner_functions.h>
 
-#include "wigner_functions.h"
+#include <utility>
+
+#include "gsl_gauss_legendre.h"
+#include "legendre.h"
+#include "matpack_data.h"
 
 namespace Python {
 namespace py = pybind11;
@@ -16,7 +24,8 @@ void py_math(py::module_& m) try {
       py::arg("fastest") = 250,
       py::arg("largest") = 20000000,
       py::arg("symbol_size") = 6,
-      py::doc(R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
+      py::doc(
+          R"--(Initialize a Wigner computation block for :func:`wigner3j` or :func:`wigner6j`
 
 Parameters
 ----------
@@ -147,7 +156,8 @@ w3 : float
       py::arg("C"),
       py::arg("D"),
       py::arg("F"),
-      py::doc(R"--(Computes the Wigner 6J symbol using floating point approximation
+      py::doc(
+          R"--(Computes the Wigner 6J symbol using floating point approximation
 
 .. math::
     w_6 = \left\{\begin{array}{ccc} A&B&1\\D&C&F\end{array}\right\}
@@ -175,7 +185,19 @@ Returns
 w6 : float
     The value
 )--"));
-} catch(std::exception& e) {
-  throw std::runtime_error(var_string("DEV ERROR:\nCannot initialize math\n", e.what()));
+
+  math.def(
+      "leggauss",
+      [](Index deg) {
+        if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
+        auto out = std::make_pair<Vector, Vector>(deg, deg);
+        Legendre::GaussLegendre(out.first, out.second);
+        return out;
+      },
+      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
+      py::doc("Computes the Gauss-Legendre quadrature"));
+} catch (std::exception& e) {
+  throw std::runtime_error(
+      var_string("DEV ERROR:\nCannot initialize math\n", e.what()));
 }
 }  // namespace Python

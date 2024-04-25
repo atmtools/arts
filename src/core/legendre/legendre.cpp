@@ -1,11 +1,11 @@
 #include "legendre.h"
-#include "fastgl.h"
 
 #include <boost/math/special_functions/legendre.hpp>
 #include <cmath>
 
 #include "arts_conversions.h"
 #include "debug.h"
+#include "fastgl.h"
 
 namespace Legendre {
 //! Converts latitude to co-latitude with a small distance from the poles and flags if this was activated
@@ -290,19 +290,41 @@ Numeric assoc_legendre(Index l, Index m, Numeric x) {
   return legendre_p(static_cast<int>(l), static_cast<int>(m), x);
 }
 
-
-void DoubleGaussLegendre(ExhaustiveVectorView x,
-                         ExhaustiveVectorView w) {
+void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
+                                 ExhaustiveVectorView w) {
   const Index n = x.size();
-  ARTS_ASSERT(n == w.size());
-  
-  for (Index k = 1; k <= n; k++) {
-    auto p = fastgl::GLPair(n, n - k + 1);
-    x[k - 1] = p.x();
-    w[k - 1] = p.weight;
+  ARTS_ASSERT(n == w.size());  // same size
+  ARTS_ASSERT(n % 2 == 0);     // even length
+
+  for (Index k = 0; k < n; k++) {
+    auto p = fastgl::GLPair(n, n - k);
+    x[k] = p.x();
+    w[k] = p.weight;
   }
   x += 1.0;
   x *= 0.5;
   w *= 0.5;
+}
+
+void PositiveGaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w) {
+  const Index n = x.size();
+  ARTS_ASSERT(n == w.size());
+
+  for (Index k = 0; k < n; k++) {
+    auto p = fastgl::GLPair(2 * n, 2 * n - k - n);
+    x[k] = p.x();
+    w[k] = p.weight;
+  }
+}
+
+void GaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w) {
+  const Index n = x.size();
+  ARTS_ASSERT(n == w.size());
+
+  for (Index k = 0; k < n; k++) {
+    auto p = fastgl::GLPair(n, n - k);
+    x[k] = p.x();
+    w[k] = p.weight;
+  }
 }
 }  // namespace Legendre

@@ -1,22 +1,21 @@
 #include "disort.h"
 
+#include <matpack.h>
+#include <matpack_eigen.h>
+
+#include <Eigen/Sparse>
 #include <algorithm>
+#include <iostream>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
 
+#include "Eigen/src/SparseCore/SparseUtil.h"
 #include "arts_constants.h"
+#include "artstime.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "legendre.h"
-#include "matpack_data.h"
-#include "matpack_einsum.h"
-#include "matpack_iter.h"
-#include "matpack_view.h"
-#include "sorted_grid.h"
-
-consteval void test(Index) {
-}
 
 namespace disort {
 void mathscr_v_add(ExhaustiveVectorView um,
@@ -81,6 +80,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                      const Numeric mu0,
                      const Numeric I0,
                      const bool has_beam_source) {
+  DebugTime solve_for_coefs{"solve_for_coefs"};
   const bool has_source_poly = not source_poly_coeffs.empty();
 
   const Index NBDRF = brdf_fourier_modes.size();
@@ -88,6 +88,7 @@ void solve_for_coefs(Tensor4& GC_collect,
   const Index NLayers = G_collect.npages();
   const Index NQuad = G_collect.nrows();
   const Index N = NQuad / 2;
+  const Index n = NQuad * NLayers;
   const bool is_multilayer = NLayers > 1;
 
   GC_collect.resize(NFourier, NLayers, NQuad, NQuad);
@@ -101,12 +102,12 @@ void solve_for_coefs(Tensor4& GC_collect,
 
   Matrix comp_matrix;
   Vector mathscr_v_temporary(NQuad);
-  Vector mathscr_v_contribution(NQuad * NLayers);
+  Vector mathscr_v_contribution(n);
 
   Vector BDRF_RHS_contribution(N);
 
   Matrix RHS_middle(NQuad, NLayers - 1);
-  Vector RHS(NQuad * NLayers);
+  Vector RHS(n);
 
   Matrix C_m(NLayers, NQuad);
   Vector E_Lm1L(N);
@@ -115,9 +116,17 @@ void solve_for_coefs(Tensor4& GC_collect,
 
   Matrix BDRF_LHS_contribution_neg(N, N);
   Matrix BDRF_LHS_contribution_pos(N, N);
-  Matrix LHS(NLayers * NQuad, NLayers * NQuad);
+
+  Eigen::SparseMatrix<Numeric> LHS(n, n);
+  Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>
+      solver;
+  // FIXME: FIND EXACT NUMBER OF ELEMENTS
+  std::vector<Eigen::Triplet<Numeric>> sparse_triplets;
+  sparse_triplets.reserve(n * NLayers);
 
   for (Index m = 0; m < NFourier; m++) {
+    sparse_triplets.resize(0);
+
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -126,58 +135,40 @@ void solve_for_coefs(Tensor4& GC_collect,
         has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
 
     if (BDRF_bool) {
-      test(1);
       brdf_fourier_modes[m](
           mathscr_D_neg, mu_arr.slice(0, N), mu_arr.slice(N, N)),
           einsum<"ij", "ij", "j", "j", "">(
               R, mathscr_D_neg, mu_arr.slice(0, N), W, 1 + m_equals_0_bool);
       if (has_beam_source) {
-      test(2);
         brdf_fourier_modes[m](mathscr_X_pos.reshape_as(N, 1),
                               mu_arr.slice(0, N),
                               ExhaustiveConstVectorView{-mu0});
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
-      } else {
-
-      test(3);
       }
-    } else{
-      test(4);}
+    }
 
     if (b_pos.size() == 1) {
-      test(5);
       if (m_equals_0_bool) {
-
-      test(6);
         b_pos_m = b_pos(0, 0);
       } else {
-      test(7);
         b_pos_m = 0.0;
       }
     } else {
-      test(8);
       b_pos_m = b_pos(joker, m);
     }
 
     if (b_neg.size() == 1) {
-      test(9);
       if (m_equals_0_bool) {
-      test(10);
         b_neg_m = b_neg(0, 0);
       } else {
-      test(11);
         b_neg_m = 0.0;
       }
     } else {
-      test(12);
       b_neg_m = b_neg(joker, m);
     }
 
     // Fill RHS
-    RHS = 0.0;
-
     if (has_source_poly and m_equals_0_bool) {
-      test(13);
       mathscr_v_contribution.slice(0, N) = 0.0;
       mathscr_v_add(mathscr_v_contribution.slice(0, N),
                     comp_matrix,
@@ -190,7 +181,6 @@ void solve_for_coefs(Tensor4& GC_collect,
       mathscr_v_contribution.slice(0, N) *= -1;
 
       if (is_multilayer) {
-      test(14);
         for (Index l = 0; l < NLayers - 1; l++) {
           mathscr_v_temporary = 0.0;
           mathscr_v_add(mathscr_v_temporary,
@@ -216,8 +206,8 @@ void solve_for_coefs(Tensor4& GC_collect,
           mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) -=
               mathscr_v_temporary;
         }
-      } else {
-      test(15);}
+      }
+
       mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N) = 0;
       mathscr_v_add(
           mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
@@ -230,7 +220,6 @@ void solve_for_coefs(Tensor4& GC_collect,
           mu_arr);
 
       if (NBDRF > 0) {
-      test(16);
         mathscr_v_temporary =
             mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N);
         mult(mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
@@ -238,17 +227,14 @@ void solve_for_coefs(Tensor4& GC_collect,
              mathscr_v_temporary,
              1.0,
              1.0);
-      } else {
-      test(17);}
+      }
     } else {
-      test(18);
       mathscr_v_contribution = 0.0;
     }
+    RHS = mathscr_v_contribution;
 
     if (has_beam_source) {
-      test(19);
       if (BDRF_bool) {
-      test(20);
         BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
         mult(BDRF_RHS_contribution,
              R,
@@ -256,12 +242,10 @@ void solve_for_coefs(Tensor4& GC_collect,
              1.0,
              1.0);
       } else {
-      test(21);
         BDRF_RHS_contribution = 0.0;
       }
 
       if (is_multilayer) {
-      test(22);
         for (Index l = 0; l < NLayers - 1; l++) {
           for (Index j = 0; j < NQuad; j++) {
             RHS_middle(j, l) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
@@ -270,7 +254,6 @@ void solve_for_coefs(Tensor4& GC_collect,
         }
       }
 
-      RHS = mathscr_v_contribution;
       RHS.slice(N, RHS_middle.size()) += RHS_middle.flat_view();
       for (Index i = 0; i < N; i++) {
         RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
@@ -280,14 +263,9 @@ void solve_for_coefs(Tensor4& GC_collect,
                 std::exp(-scaled_tau_arr_with_0.back() / mu0);
       }
     } else {
-      test(23);
-      RHS = mathscr_v_contribution;
       RHS.slice(0, N) += b_neg_m;
       RHS.slice(RHS.size() - N, N) += b_pos_m;
     }
-
-    // Fill LHS (THIS SHOULD BE SPARSE BUT IS NOT BECAUSE ARTS HAS NO SPARSE SOLVE!)
-    LHS = 0.0;
 
     const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
     const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
@@ -302,25 +280,29 @@ void solve_for_coefs(Tensor4& GC_collect,
     }
 
     if (BDRF_bool) {
-      test(24);
       mult(BDRF_LHS_contribution_neg, R, G_L_nn);
       mult(BDRF_LHS_contribution_pos, R, G_L_np);
     } else {
-      test(25);
       BDRF_LHS_contribution_neg = 0;
       BDRF_LHS_contribution_pos = 0;
     }
 
-    LHS(Range(0, N), Range(0, N)) = G_collect_m(0, Range(N, N), Range(0, N));
-
     for (Index i = 0; i < N; i++) {
       for (Index j = 0; j < N; j++) {
-        LHS(i, N + j) = G_0_np(i, j) *
-                        std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
-        LHS(LHS.nrows() - N + i, LHS.ncols() - 2 * N + j) =
-            (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
-        LHS(LHS.nrows() - N + i, LHS.ncols() - N + j) =
-            G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
+        sparse_triplets.emplace_back(i, j, G_collect_m(0, N + i, j));
+        sparse_triplets.emplace_back(
+            i,
+            N + j,
+            G_0_np(i, j) *
+                std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]));
+        sparse_triplets.emplace_back(
+            n - N + i,
+            n - 2 * N + j,
+            (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j]);
+        sparse_triplets.emplace_back(
+            n - N + i,
+            n - N + j,
+            G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j));
       }
     }
 
@@ -339,32 +321,43 @@ void solve_for_coefs(Tensor4& GC_collect,
             std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
       }
 
-      einsum<"ij", "ij", "j">(LHS(Range(N + l * NQuad, N), Range(l * NQuad, N)),
-                              G_collect_m(l, Range(0, N), Range(0, N)),
-                              E_lm1l);
-      einsum<"ij", "ij", "j">(
-          LHS(Range(2 * N + l * NQuad, N), Range(l * NQuad, N)),
-          G_collect_m(l, Range(N, N), Range(0, N)),
-          E_lm1l);
-      einsum<"ij", "", "ij", "j">(
-          LHS(Range(N + l * NQuad, N), Range(l * NQuad + 2 * NQuad - N, N)),
-          -1,
-          G_collect_m(l + 1, Range(0, N), Range(N, N)),
-          E_llp1);
-      einsum<"ij", "", "ij", "j">(
-          LHS(Range(2 * N + l * NQuad, N), Range(l * NQuad + 2 * NQuad - N, N)),
-          -1,
-          G_collect_m(l + 1, Range(N, N), Range(N, N)),
-          E_llp1);
-      LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + N, N)) =
-          G_collect_m(l, joker, Range(N, N));
-      einsum<"ij", "", "ij">(
-          LHS(Range(N + l * NQuad, NQuad), Range(l * NQuad + 2 * N, N)),
-          -1,
-          G_collect_m(l + 1, joker, Range(0, N)));
+      for (Index i = 0; i < N; i++) {
+        for (Index j = 0; j < N; j++) {
+          sparse_triplets.emplace_back(N + l * NQuad + i,
+                                       l * NQuad + j,
+                                       G_collect_m(l, i, j) * E_lm1l[j]);
+          sparse_triplets.emplace_back(2 * N + l * NQuad + i,
+                                       l * NQuad + j,
+                                       G_collect_m(l, N + i, j) * E_lm1l[j]);
+          sparse_triplets.emplace_back(
+              N + l * NQuad + i,
+              l * NQuad + 2 * NQuad - N + j,
+              -G_collect_m(l + 1, i, N + j) * E_llp1[j]);
+          sparse_triplets.emplace_back(
+              2 * N + l * NQuad + i,
+              l * NQuad + 2 * NQuad - N + j,
+              -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j]);
+        }
+      }
+
+      for (Index i = 0; i < NQuad; i++) {
+        for (Index j = 0; j < N; j++) {
+          sparse_triplets.emplace_back(
+              N + l * NQuad + i, l * NQuad + N + j, G_collect_m(l, i, N + j));
+          sparse_triplets.emplace_back(N + l * NQuad + i,
+                                       l * NQuad + 2 * N + j,
+                                       -G_collect_m(l + 1, i, j));
+        }
+      }
     }
 
-    inplace_solve(RHS, LHS);
+    LHS.setZero();
+    LHS.setFromTriplets(sparse_triplets.begin(), sparse_triplets.end());
+
+    solver.analyzePattern(LHS);
+    solver.factorize(LHS);
+    matpack::eigen::as_eigen(RHS) = solver.solve(matpack::eigen::as_eigen(RHS));
+
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
   }
@@ -403,6 +396,7 @@ void diagonalize(Tensor4& G_collect_,
   Tensor3 alpha_arr(NFourier * NLayers, N, N);
   Tensor3 beta_arr(NFourier * NLayers, N, N);
   Matrix X_tilde_arr(NFourier * NLayers, NQuad);
+
   std::vector<Index> no_shortcut_indices;
   no_shortcut_indices.reserve(NFourier * NLayers);
   std::vector<std::pair<Index, Index>> no_shortcut_indices_0;
@@ -495,7 +489,6 @@ void diagonalize(Tensor4& G_collect_,
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
-      test(26);
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos);
@@ -504,7 +497,6 @@ void diagonalize(Tensor4& G_collect_,
         D_neg *= 0.5 * scaled_omega_l;
 
         if (has_beam_source) {
-      test(27);
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -514,8 +506,7 @@ void diagonalize(Tensor4& G_collect_,
 
           mult(xpos, xtemp, asso_leg_term_pos);
           mult(xneg, xtemp, asso_leg_term_neg);
-        } else 
-      test(28);
+        }
 
         auto alpha = alpha_arr[ind];
         auto beta = beta_arr[ind];
@@ -532,12 +523,9 @@ void diagonalize(Tensor4& G_collect_,
         einsum<"i", "i", "i">(X_tilde_arr[ind].slice(N, N), M_inv, X_neg);
 
         if (has_source_poly and m_equals_0_bool) {
-      test(29);
           no_shortcut_indices_0.emplace_back(ind, l);
-        }else {
-      test(30);}
+        }
       } else {
-      test(31);
         auto G = G_collect[ind];
         for (Index i = 0; i < N; i++) {
           G(i + N, i) = 1;
@@ -546,11 +534,10 @@ void diagonalize(Tensor4& G_collect_,
         for (Index i = 0; i < NQuad; i++) {
           K_collect(ind, i) = -1 / mu_arr[i];
         }
+
         if (has_source_poly and m_equals_0_bool) {
-      test(32);
           G_inv_collect_0[l] = G;
-        }else
-      test(33);
+        }
       }
       ++ind;
     }
@@ -587,17 +574,16 @@ void diagonalize(Tensor4& G_collect_,
     G *= 0.5;
 
     // Get inverse by the layer
-    inv(G_inv, G);
     if (not no_shortcut_indices_0.empty() and
         no_shortcut_indices_0.front().first == i) {
-      test(34);
+      inv(G_inv, G);
       G_inv_collect_0[no_shortcut_indices_0.front().second] = G_inv;
       no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
-    } else
-      test(35);
+    } else if (has_beam_source) {
+      inv(G_inv, G);
+    }
 
     if (has_beam_source) {
-      test(36);
       auto B = B_collect[i];
       const auto X_tilde = X_tilde_arr[i];
 
@@ -610,8 +596,7 @@ void diagonalize(Tensor4& G_collect_,
         }
         B[pos] = sum;
       }
-    } else 
-      test(37);
+    }
   }
 }
 
@@ -619,10 +604,10 @@ main_data::main_data(const Index NQuad,
                      const Index NLeg,
                      const Index NFourier,
                      AscendingGrid tau_arr_,
-                     Vector omega_arr_,
-                     Matrix Leg_coeffs_all_,
-                     Matrix b_pos_,
-                     Matrix b_neg_,
+                     const Vector& omega_arr,
+                     const Matrix& Leg_coeffs_all,
+                     const Matrix& b_pos,
+                     const Matrix& b_neg,
                      Vector f_arr_,
                      Matrix source_poly_coeffs_,
                      const std::vector<BDRF>& brdf_fourier_modes,
@@ -630,18 +615,14 @@ main_data::main_data(const Index NQuad,
                      Numeric I0_,
                      Numeric phi0_)
     : tau_arr(std::move(tau_arr_)),
-      omega_arr(std::move(omega_arr_)),
       f_arr(std::move(f_arr_)),
-      Leg_coeffs_all(std::move(Leg_coeffs_all_)),
       source_poly_coeffs(std::move(source_poly_coeffs_)),
-      b_pos(std::move(b_pos_)),
-      b_neg(std::move(b_neg_)),
       mu0(mu0_),
       I0(I0_),
       phi0(phi0_),
       has_beam_source(I0 > 0) {
-  const Index NLeg_all = legalls();
-  const Index NLayers = layers();
+  const Index NLeg_all = Leg_coeffs_all.ncols();
+  const Index NLayers = tau_arr.size();
   const Index N = NQuad / 2;
 
   // Index correctness checks
@@ -667,7 +648,6 @@ main_data::main_data(const Index NQuad,
       "source_poly_coeffs shape mismatch");
 
   if (b_pos.size() != 1) {
-      test(38);
     ARTS_USER_ERROR_IF((b_pos.shape() != std::array{N, NFourier}),
                        "Bad shape for b_pos, should be (",
                        N,
@@ -675,11 +655,9 @@ main_data::main_data(const Index NQuad,
                        NFourier,
                        ") is ",
                        matpack::shape_help<2>{b_pos.shape()})
-  }else
-      test(39);
+  }
 
   if (b_neg.size() != 1) {
-      test(40);
     ARTS_USER_ERROR_IF((b_neg.shape() != std::array{N, NFourier}),
                        "Bad shape for b_neg, should be (",
                        N,
@@ -687,8 +665,7 @@ main_data::main_data(const Index NQuad,
                        NFourier,
                        ") is ",
                        matpack::shape_help<2>{b_neg.shape()})
-  }else
-      test(41);
+  }
 
   // Value correctness checks
   ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
@@ -720,11 +697,10 @@ main_data::main_data(const Index NQuad,
   scaled_tau_arr_with_0.resize(NLayers + 1);
   W.resize(N);
   mu_arr.resize(NQuad);
-  weighted_Leg_coeffs_all.resize(NLayers, NLeg_all);
   weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
 
   // Quadrature points (FIXME: SHOULD THIS BE INPUT???)
-  Legendre::DoubleGaussLegendre(mu_arr.slice(0, N), W);
+  Legendre::PositiveDoubleGaussLegendre(mu_arr.slice(0, N), W);
   std::transform(
       mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
         return -x;
@@ -751,17 +727,14 @@ main_data::main_data(const Index NQuad,
   // Origin of I0
   if ((b_pos.size() == 1 and b_pos(0, 0) == 0) and
       source_poly_coeffs.empty() and has_beam_source) {
-      test(42);
     I0_orig = I0;
     I0 = 1;
   } else {
-      test(43);
     I0_orig = 1;
   }
 
   // Scaling
   if (not f_arr.empty()) {
-      test(44);
     std::transform(omega_arr.begin(),
                    omega_arr.end(),
                    f_arr.begin(),
@@ -792,7 +765,6 @@ main_data::main_data(const Index NQuad,
       scaled_omega_arr[i] = omega_arr[i] * (1.0 - f_arr[i]) / scale_tau[i];
     }
   } else {
-      test(45);
     scale_tau = 1.0;
     scaled_tau_arr_with_0[0] = 0;
     scaled_tau_arr_with_0(Range(1, NLayers)) = tau_arr;
@@ -811,20 +783,17 @@ main_data::main_data(const Index NQuad,
   for (Index i = 0; i < NLeg_all; i++) {
     Numeric sum3 = 0.0;
     if (not f_arr.empty()) {
-      test(46);
       if (i < NLeg) {
-      test(47);
         for (Index j = 0; j < NLayers; j++) {
           sum3 += f_arr[j] * omega_arr[j] * tau_arr[j];
         }
       } else {
-      test(48);
         for (Index j = 0; j < NLayers; j++) {
           sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
         }
       }
-    }else
-      test(49);
+    }
+
     Leg_coeffs_residue_avg[i] = sum3 / sum2;
     Leg_coeffs_residue_avg[i] =
         static_cast<Numeric>(2 * i + 1) *
@@ -905,7 +874,6 @@ void main_data::u(u_data& data,
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
 
   if (has_beam_source) {
-      test(50);
     const auto tmp = B_collect(joker, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -914,11 +882,9 @@ void main_data::u(u_data& data,
                    [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                      return scl * x + y;
                    });
-  }else
-      test(51);
+  }
 
   if (not source_poly_coeffs.empty()) {
-      test(52);
     mathscr_v_add(data.um[0],
                   data.mathscr_v_coeffs,
                   tau,
@@ -927,8 +893,7 @@ void main_data::u(u_data& data,
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }else
-      test(53);
+  }
 
   data.intensities.resize(NQuad);
   data.intensities = 0.0;
@@ -941,13 +906,11 @@ void main_data::u(u_data& data,
   }
 
   if (return_fourier_error) {
-      test(54);
     data.ulast.resize(NQuad);
     einsum<"i", "ij", "j">(data.ulast,
                            GC_collect(NFourier - 1, l, joker, joker),
                            data.exponent[NFourier - 1]);
     if (has_beam_source) {
-      test(55);
       const auto tmp = B_collect(NFourier - 1, l, joker);
       std::transform(tmp.elem_begin(),
                      tmp.elem_end(),
@@ -956,13 +919,11 @@ void main_data::u(u_data& data,
                      [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                        return scl * x + y;
                      });
-    } else
-      test(56);
+    }
 
     throw std::runtime_error(
         "Not implemented yet, cannot figure out max-statement");
-  }else
-      test(57);
+  }
 
   data.intensities *= I0_orig;
 }
@@ -992,7 +953,6 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   einsum<"i", "ij", "j">(
       data.u0, GC_collect(0, l, joker, joker), data.exponent);
   if (has_beam_source) {
-      test(58);
     const auto tmp = B_collect(0, l, joker);
     std::transform(tmp.elem_begin(),
                    tmp.elem_end(),
@@ -1001,11 +961,9 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                    [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                      return scl * x + y;
                    });
-  }else
-      test(59);
+  }
 
   if (not source_poly_coeffs.empty()) {
-      test(60);
     mathscr_v_add(data.u0,
                   data.mathscr_v_compdata,
                   tau,
@@ -1014,8 +972,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }else
-      test(61);
+  }
 
   data.u0 *= I0_orig;
 }
@@ -1064,7 +1021,6 @@ void main_data::TMS(tms_data& data,
 
   data.mathscr_B.resize(NLayers, NQuad);
   if (f_arr.empty()) {
-      test(62);
     for (Index j = 0; j < NLayers; j++) {
       for (Index i = 0; i < NQuad; i++) {
         const Numeric p_true =
@@ -1076,7 +1032,6 @@ void main_data::TMS(tms_data& data,
       }
     }
   } else {
-      test(63);
     for (Index j = 0; j < NLayers; j++) {
       for (Index i = 0; i < NQuad; i++) {
         const Numeric p_true =
@@ -1090,36 +1045,25 @@ void main_data::TMS(tms_data& data,
     }
   }
 
-  data.TMS_correction_pos.resize(N);
-  data.TMS_correction_pos = std::exp(-scaled_tau / mu0);
-  for (Index i = 0; i < N; i++) {
-    data.TMS_correction_pos[i] -= std::exp(
-        (scaled_tau - scaled_tau_arr_l) / mu_arr[i] - scaled_tau_arr_l / mu0);
-  }
-
-  data.TMS_correction_neg.resize(N);
-  data.TMS_correction_neg = std::exp(-scaled_tau / mu0);
-  for (Index i = 0; i < N; i++) {
-    data.TMS_correction_neg[i] -=
-        std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu_arr[i] -
-                 scaled_tau_arr_lm1 / mu0);
-  }
-
   data.TMS.resize(NQuad);
+  const Numeric exptau = std::exp(-scaled_tau / mu0);
   for (Index i = 0; i < N; i++) {
-    data.TMS[i + 0] = data.mathscr_B(l, i + 0) * data.TMS_correction_pos[i];
-    data.TMS[i + N] = data.mathscr_B(l, i + N) * data.TMS_correction_neg[i];
+    data.TMS[i] =
+        exptau - std::exp((scaled_tau - scaled_tau_arr_l) / mu_arr[i] -
+                          scaled_tau_arr_l / mu0);
+    data.TMS[i + N] =
+        exptau - std::exp((scaled_tau_arr_lm1 - scaled_tau) / mu_arr[i] -
+                          scaled_tau_arr_lm1 / mu0);
   }
+  data.TMS *= data.mathscr_B[l];
 
   if (tau_arr.size() > 1) {
-      test(64);
     data.contribution_from_other_layers_pos.resize(N, NLayers);
     data.contribution_from_other_layers_pos = 0;
     data.contribution_from_other_layers_neg.resize(N, NLayers);
     data.contribution_from_other_layers_neg = 0;
     for (Index i = 0; i < NLayers; i++) {
       if (l > i) {
-      test(65);
         // neg
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_neg(j, i) =
@@ -1130,7 +1074,6 @@ void main_data::TMS(tms_data& data,
                          scaled_tau_arr_with_0[i] / mu0)));
         }
       } else if (l < i) {
-      test(65);
         // pos
         for (Index j = 0; j < N; j++) {
           data.contribution_from_other_layers_pos(j, i) =
@@ -1141,7 +1084,6 @@ void main_data::TMS(tms_data& data,
                          scaled_tau_arr_with_0[i] / mu0)));
         }
       } else {
-      test(66);
         continue;
       }
     }
@@ -1150,8 +1092,7 @@ void main_data::TMS(tms_data& data,
       data.TMS[i + 0] += sum(data.contribution_from_other_layers_pos[i]);
       data.TMS[i + N] += sum(data.contribution_from_other_layers_neg[i]);
     }
-  }else
-      test(67);
+  }
 }
 
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
@@ -1196,10 +1137,8 @@ void main_data::u_corr(u_data& u_data,
   }
 
   if (return_fourier_error) {
-      test(68);
     throw std::runtime_error("Not implemented yet");
-  }else
-      test(69);
+  }
 }
 
 Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
@@ -1224,7 +1163,6 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   data.mathscr_v.resize(NQuad);
   data.mathscr_v = 0.0;
   if (not source_poly_coeffs.empty()) {
-      test(70);
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_compdata,
                   tau,
@@ -1233,17 +1171,14 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
                   K_collect[0][l],
                   G_inv_collect_0[l],
                   mu_arr);
-  }else
-      test(71);
+  }
 
   data.direct_beam_contribution.resize(N);
   if (has_beam_source) {
-      test(72);
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(0, N),
                          std::exp(-scaled_tau / mu0));
   } else {
-      test(73);
     data.direct_beam_contribution = 0.0;
   }
 
@@ -1286,7 +1221,6 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   if (not source_poly_coeffs.empty()) {
-      test(74);
     data.mathscr_v.resize(NQuad);
     data.mathscr_v = 0.0;
     mathscr_v_add(data.mathscr_v,
@@ -1300,7 +1234,6 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
     data.mathscr_v.slice(0, N) = data.mathscr_v.slice(N, N);
     data.mathscr_v.resize(N);
   } else {
-      test(75);
     data.mathscr_v.resize(N);
     data.mathscr_v = 0.0;
   }
@@ -1311,12 +1244,10 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       has_beam_source ? I0 * mu0 * std::exp(-scaled_tau / mu0) : 0;
   data.direct_beam_contribution.resize(N);
   if (has_beam_source) {
-      test(76);
     einsum<"i", "i", "">(data.direct_beam_contribution,
                          B_collect(0, l, joker).slice(N, N),
                          std::exp(-scaled_tau / mu0));
   } else {
-      test(77);
     data.direct_beam_contribution = 0.0;
   }
 

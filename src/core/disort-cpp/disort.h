@@ -7,15 +7,6 @@
 #include "matpack_view.h"
 
 namespace disort {
-void mathscr_v_add(ExhaustiveVectorView um,
-                   Matrix& mathscr_v_coeffs,
-                   const Numeric tau,
-                   const ExhaustiveConstVectorView& s_poly_coeffs,
-                   const ExhaustiveConstMatrixView& G,
-                   const ExhaustiveConstVectorView& K,
-                   const ExhaustiveConstMatrixView& G_inv,
-                   const ExhaustiveConstVectorView& mu_arr);
-
 struct BDRF {
   std::function<void(ExhaustiveMatrixView,
                      const ExhaustiveConstVectorView&,
@@ -46,8 +37,6 @@ struct u0_data {
 
 struct tms_data {
   Vector nu;
-  Vector TMS_correction_pos;
-  Vector TMS_correction_neg;
   Vector TMS;
   Matrix mathscr_B;
   Matrix contribution_from_other_layers_pos;
@@ -65,12 +54,8 @@ struct flux_data {
 
 class main_data {
   AscendingGrid tau_arr{};      // [NLayers]
-  Vector omega_arr{};           // [NLayers]
   Vector f_arr{};               // [NLayers] or [0]
-  Matrix Leg_coeffs_all{};      // [NLayers, NLeg_all]
   Matrix source_poly_coeffs{};  // [Nscoeffs, NLayers] or [0, 0]
-  Matrix b_pos{};               // [NQuad/2, NFourier] or [1, 1]
-  Matrix b_neg{};               // [NQuad/2, NFourier] or [1, 1]
   Numeric mu0{};
   Numeric I0{};
   Numeric phi0{};
@@ -109,10 +94,10 @@ class main_data {
             const Index NLeg,
             const Index NFourier,
             AscendingGrid tau_arr,
-            Vector omega_arr,
-            Matrix Leg_coeffs_all,
-            Matrix b_pos,
-            Matrix b_neg,
+            const Vector& omega_arr,
+            const Matrix& Leg_coeffs_all,
+            const Matrix& b_pos,
+            const Matrix& b_neg,
             Vector f_arr,
             Matrix source_poly_coeffs,
             const std::vector<BDRF>& brdf_fourier_modes,
@@ -123,7 +108,7 @@ class main_data {
   [[nodiscard]] Index quads() const { return mu_arr.size(); }
   [[nodiscard]] Index fouriers() const { return GC_collect.nbooks(); }
   [[nodiscard]] Index layers() const { return tau_arr.size(); }
-  [[nodiscard]] Index legalls() const { return Leg_coeffs_all.ncols(); }
+  [[nodiscard]] Index legalls() const { return weighted_Leg_coeffs_all.ncols(); }
   [[nodiscard]] Index scoeffs() const { return source_poly_coeffs.nrows(); }
 
   [[nodiscard]] Index tau_index(const Numeric tau) const;
