@@ -80,7 +80,6 @@ void solve_for_coefs(Tensor4& GC_collect,
                      const Numeric mu0,
                      const Numeric I0,
                      const bool has_beam_source) {
-  DebugTime solve_for_coefs{"solve_for_coefs"};
   const bool has_source_poly = not source_poly_coeffs.empty();
 
   const Index NBDRF = brdf_fourier_modes.size();
@@ -120,6 +119,7 @@ void solve_for_coefs(Tensor4& GC_collect,
   Eigen::SparseMatrix<Numeric> LHS(n, n);
   Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>
       solver;
+
   // FIXME: FIND EXACT NUMBER OF ELEMENTS
   std::vector<Eigen::Triplet<Numeric>> sparse_triplets;
   sparse_triplets.reserve(n * NLayers);
@@ -351,7 +351,7 @@ void solve_for_coefs(Tensor4& GC_collect,
       }
     }
 
-    LHS.setZero();
+    LHS.coeffs() = 0.0;
     LHS.setFromTriplets(sparse_triplets.begin(), sparse_triplets.end());
 
     solver.analyzePattern(LHS);
