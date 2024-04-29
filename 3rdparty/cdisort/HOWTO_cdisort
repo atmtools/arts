@@ -1,0 +1,214 @@
+/*
+ *   Copyright (c) 2011 by Timothy E. Dowling
+ *   
+ *   This file is part of cdisort.
+ *
+ *   cdisort is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   cdisort is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with cdisort.  If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
+
+  ---------------------------------------------
+  How to setup and call the C version of DISORT
+  ---------------------------------------------
+
+  The C version of DISORT uses dynamically allocated memory
+  and organizes the input and output arrays into structures.
+  The following steps outline how to connect this version of
+  DISORT to your C program.
+
+  1. Include the cdisort header file at the top of your C program
+
+#include "cdisort.h"
+
+  To get unit-offset arrays that have the same appearance as
+  the Fortran version, add the following shift macros to your C program:
+
+#undef  DTAUC
+#define DTAUC(lc)   ds.dtauc[lc-1]
+#undef  PHI
+#define PHI(j)      ds.phi[j-1]
+#undef  PMOM
+#define PMOM(k,lc)  ds.pmom[k+(lc-1)*(ds.nmom_nstr+1)]
+#undef  SSALB
+#define SSALB(lc)   ds.ssalb[lc-1]
+#undef  TEMPER
+#define TEMPER(lc)  ds.temper[lc]
+#undef  UMU
+#define UMU(iu)     ds.umu[iu-1]
+#undef  UTAU
+#define UTAU(lu)    ds.utau[lu-1]
+#undef  RFLDIR
+#define RFLDIR(lu)  out.rad[lu-1].rfldir
+#undef  RFLDN
+#define RFLDN(lu)   out.rad[lu-1].rfldn
+#undef  FLUP
+#define FLUP(lu)    out.rad[lu-1].flup
+#undef  DFDT
+#define DFDT(lu)    out.rad[lu-1].dfdt
+#undef  UAVG
+#define UAVG(lu)    out.rad[lu-1].uavg
+#undef  UU
+#define UU(iu,lu,j) out.uu[iu-1+(lu-1+(j-1)->ds.ntau)*ds->numu]
+#undef  ALBMED
+#define ALBMED(iu)  out.albmed[iu-1]
+#undef  TRNMED
+#define TRNMED(iu)  out.trnmed[iu-1]
+
+
+  2. Declare the disort_state and disort_output structures in the same
+     manner that you would declare an integer:
+
+  int
+    lc;
+  disort_state
+    ds;
+  disort_output
+    out;
+
+  The name "disort_state" is used rather than "disort_input" because
+  this structure includes the arrays that switch between input and output status 
+  depending on whether the user chooses to supply them or have them be
+  generated automatically.
+
+
+  3. Specify the DISORT flags and dimensions for your problem. 
+     For example, here are the settings for an emitting/absorbing/scattering
+     medium corresponding to test-case 9c in disotest.c:
+
+  ds.accur = 0.;
+  ds.flag.prnt[0]=TRUE, ds.flag.prnt[1]=FALSE, ds.flag.prnt[2]=FALSE,
+  ds.flag.prnt[3]=FALSE,ds.flag.prnt[4]=TRUE;
+
+  ds.flag.ibcnd  = GENERAL_BC;
+  ds.flag.usrtau = TRUE;
+  ds.flag.usrang = TRUE;
+  ds.flag.lamber = TRUE;
+  ds.flag.onlyfl = FALSE;
+  ds.flag.quiet  = TRUE;
+  ds.flag.spher  = FALSE;
+  ds.flag.general_source = FALSE;
+  ds.flag.output_uum = FALSE;
+  ds.flag.intensity_correction = TRUE;
+  ds.flag.old_intensity_correction = TRUE;
+  ds.flag.planck = TRUE;
+
+  ds.nstr   = 8;
+  ds.nphase = ds.nstr;
+  ds.nlyr   = 6;
+  ds.nmom   = 8;
+  ds.ntau   = 5;
+  ds.numu   = 4;
+  ds.nphi   = 3;
+
+
+  4. Allocate the memory for the arrays attached to ds and out:
+
+  /* Allocate memory */
+  c_disort_state_alloc(&ds);
+  c_disort_out_alloc(&ds,&out);
+
+  (The flag settings are included with the dimension sizes in Step 3 because
+  they affect the array allocation in this step.)
+
+
+  5. Assign values to the input arrays. Here are the inputs for test-case 9c:
+
+  for (lc = 1; lc <= ds.nlyr; lc++) {
+    DTAUC(lc) = (double)lc;
+    SSALB(lc) = 0.6+(double)lc*0.05;
+  }
+
+  UTAU(1)  = 0.;
+  UTAU(2)  = 1.05;
+  UTAU(3)  = 2.1;
+  UTAU(4)  = 6.;
+  UTAU(5)  = 21.;
+
+  UMU(1)   = -1.;
+  UMU(2)   = -0.2;
+  UMU(3)   =  0.2;
+  UMU(4)   =  1.;
+
+  TEMPER(0) = 600.0;
+  for (lc = 1; lc <= ds.nlyr; lc++) {
+    gg = (double)lc/7.;
+    c_getmom(HENYEY_GREENSTEIN,gg,ds.nmom,&PMOM(0,lc));
+    TEMPER(lc) = 600.+(double)lc*10.;
+  }
+
+  PHI(1) =  60.0;
+  PHI(2) = 120.0;
+  PHI(3) = 180.0;
+
+
+  6. Assign values to the remaining DISORT parameters. Continuing with
+     the test-case 9c example:
+
+  ds.accur      = 0.;
+
+  ds.wvnmlo     = 999.0;
+  ds.wvnmhi     = 1000.0;
+
+  ds.bc.fbeam   = M_PI;
+  ds.bc.umu0    = 0.5;
+  ds.bc.phi0    = 0.0;
+  ds.bc.fisot   = 1.0;
+  ds.bc.albedo  = 0.5;
+  ds.bc.btemp   = 700.0;
+  ds.bc.ttemp   = 550.0;
+  ds.bc.temis   = 1.0;
+  ds.bc.fluor =   0.;
+
+  7. DISORT is now ready to use.  The call is
+
+  c_disort(&ds,&out);
+
+  Subsequent calls to c_disort() do not require freeing and reallocating the ds and out
+  structures, so long as the flags and dimensions in Step 3 are not changed.
+
+
+  8. Using the shift-macros from Step 1, the output arrays appear as in the Fortran version:
+
+  RFLDIR(lu)
+  RFLDN(lu)
+  FLUP(lu)
+  DFDT(lu)
+  UAVG(lu)
+  UU(iu,lu,j)
+  ALBMED(iu)
+  TRNMED(iu)
+
+
+  9. When you are done, free the allocated memory associated with out and ds:
+
+  /* Free allocated memory. */
+  c_disort_out_free(&ds,&out);
+  c_disort_state_free(&ds);
+
+
+  10. To use Makefile_cdisort, first set the environment variables CC and CFLAGS. 
+      For example, in csh to compile using gcc with optimization -O3, one would type
+
+%setenv CC gcc
+%setenv CFLAGS -O2
+%make -f Makefile_cdisort
+
+
+  11. Link the cdisort function library, libcdisort.a, to your C program via -lcdisort.
+      For a complete set of examples, see disotest.c and Makefile_cdisort.
+
+
+  These instructions are covered by the GNU General Public License as described in cdisort.c.
+
+

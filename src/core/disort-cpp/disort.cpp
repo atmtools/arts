@@ -1,18 +1,17 @@
 #include "disort.h"
 
+#include <artstime.h>
 #include <matpack.h>
 #include <matpack_eigen.h>
 
 #include <Eigen/Sparse>
 #include <algorithm>
-#include <iostream>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
 
 #include "Eigen/src/SparseCore/SparseUtil.h"
 #include "arts_constants.h"
-#include "artstime.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "legendre.h"
@@ -26,6 +25,7 @@ void mathscr_v_add(ExhaustiveVectorView um,
                    const ExhaustiveConstVectorView& K,
                    const ExhaustiveConstMatrixView& G_inv,
                    const ExhaustiveConstVectorView& mu_arr) {
+  // DebugTime t{"mathscr_v_add"};
   const Index Ni = G.nrows();
   const Index Nk = G.ncols();
   const Index Nc = source_poly_coeffs.size();
@@ -80,6 +80,8 @@ void solve_for_coefs(Tensor4& GC_collect,
                      const Numeric mu0,
                      const Numeric I0,
                      const bool has_beam_source) {
+  DebugTime solve_for_coefs{"solve_for_coefs"};
+
   const bool has_source_poly = not source_poly_coeffs.empty();
 
   const Index NBDRF = brdf_fourier_modes.size();
@@ -101,32 +103,34 @@ void solve_for_coefs(Tensor4& GC_collect,
 
   Matrix comp_matrix;
   Vector mathscr_v_temporary(NQuad);
-  Vector mathscr_v_contribution(n);
 
-  Vector BDRF_RHS_contribution(N);
-
-  Matrix RHS_middle(NQuad, NLayers - 1);
   Vector RHS(n);
+  auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
 
   Matrix C_m(NLayers, NQuad);
   Vector E_Lm1L(N);
   Vector E_lm1l(N);
   Vector E_llp1(N);
 
+  Vector BDRF_RHS_contribution(N);
   Matrix BDRF_LHS_contribution_neg(N, N);
   Matrix BDRF_LHS_contribution_pos(N, N);
 
   Eigen::SparseMatrix<Numeric> LHS(n, n);
-  Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>>
-      solver;
 
-  // FIXME: FIND EXACT NUMBER OF ELEMENTS
+  // FIXME: This is a guess, find true size:
   std::vector<Eigen::Triplet<Numeric>> sparse_triplets;
   sparse_triplets.reserve(n * NLayers);
 
-  for (Index m = 0; m < NFourier; m++) {
-    sparse_triplets.resize(0);
+  //! Factor 10 difference in speed between these two solvers, but the
+  //! conjugate gradient solver is not as accurate as the LU solver.
+  //! FIXME: Make a choice????
+  // Eigen::SparseQR<Eigen::SparseMatrix<Numeric>, Eigen::COLAMDOrdering<int>>
+  Eigen::SparseLU<Eigen::SparseMatrix<Numeric>> solver;
 
+  for (Index m = 0; m < NFourier; m++) {
+    // DebugTime mloop{"mloop"};
+    const bool empty_lhs = sparse_triplets.empty();
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -168,206 +172,255 @@ void solve_for_coefs(Tensor4& GC_collect,
     }
 
     // Fill RHS
-    if (has_source_poly and m_equals_0_bool) {
-      mathscr_v_contribution.slice(0, N) = 0.0;
-      mathscr_v_add(mathscr_v_contribution.slice(0, N),
-                    comp_matrix,
-                    0.0,
-                    source_poly_coeffs[0],
-                    G_collect_m[0].slice(N, N),
-                    K_collect_m[0],
-                    G_inv_collect_0[0],
-                    mu_arr);
-      mathscr_v_contribution.slice(0, N) *= -1;
+    {
+      // DebugTime fill{"fill RHS"};
+      if (has_source_poly and m_equals_0_bool) {
+        RHS.slice(0, N) = 0.0;
+        mathscr_v_add(RHS.slice(0, N),
+                      comp_matrix,
+                      0.0,
+                      source_poly_coeffs[0],
+                      G_collect_m[0].slice(N, N),
+                      K_collect_m[0],
+                      G_inv_collect_0[0],
+                      mu_arr);
+        RHS.slice(0, N) *= -1;
 
-      if (is_multilayer) {
-        for (Index l = 0; l < NLayers - 1; l++) {
-          mathscr_v_temporary = 0.0;
-          mathscr_v_add(mathscr_v_temporary,
-                        comp_matrix,
-                        tau_arr[l],
-                        source_poly_coeffs[l],
-                        G_collect_m[l],
-                        K_collect_m[l],
-                        G_inv_collect_0[l],
-                        mu_arr);
-          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) =
-              mathscr_v_temporary;
+        if (is_multilayer) {
+          for (Index l = 0; l < NLayers - 1; l++) {
+            mathscr_v_temporary = 0.0;
+            mathscr_v_add(mathscr_v_temporary,
+                          comp_matrix,
+                          tau_arr[l],
+                          source_poly_coeffs[l],
+                          G_collect_m[l],
+                          K_collect_m[l],
+                          G_inv_collect_0[l],
+                          mu_arr);
+            RHS(Range(l + N, NQuad, NLayers - 1)) = mathscr_v_temporary;
 
-          mathscr_v_temporary = 0;
-          mathscr_v_add(mathscr_v_temporary,
-                        comp_matrix,
-                        tau_arr[l],
-                        source_poly_coeffs[l + 1],
-                        G_collect_m[l + 1],
-                        K_collect_m[l + 1],
-                        G_inv_collect_0[l + 1],
-                        mu_arr);
-          mathscr_v_contribution(Range(l + N, NQuad, NLayers - 1)) -=
-              mathscr_v_temporary;
+            mathscr_v_temporary = 0;
+            mathscr_v_add(mathscr_v_temporary,
+                          comp_matrix,
+                          tau_arr[l],
+                          source_poly_coeffs[l + 1],
+                          G_collect_m[l + 1],
+                          K_collect_m[l + 1],
+                          G_inv_collect_0[l + 1],
+                          mu_arr);
+            RHS(Range(l + N, NQuad, NLayers - 1)) -= mathscr_v_temporary;
+          }
         }
-      }
 
-      mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N) = 0;
-      mathscr_v_add(
-          mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
-          comp_matrix,
-          tau_arr.back(),
-          source_poly_coeffs[NLayers - 1],
-          G_collect_m[NLayers - 1].slice(N, N),
-          K_collect_m[NLayers - 1],
-          G_inv_collect_0[NLayers - 1],
-          mu_arr);
+        RHS.slice(n - N, N) = 0;
+        mathscr_v_add(RHS.slice(n - N, N),
+                      comp_matrix,
+                      tau_arr.back(),
+                      source_poly_coeffs[NLayers - 1],
+                      G_collect_m[NLayers - 1].slice(N, N),
+                      K_collect_m[NLayers - 1],
+                      G_inv_collect_0[NLayers - 1],
+                      mu_arr);
 
-      if (NBDRF > 0) {
-        mathscr_v_temporary =
-            mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N);
-        mult(mathscr_v_contribution.slice(mathscr_v_contribution.size() - N, N),
-             R,
-             mathscr_v_temporary,
-             1.0,
-             1.0);
-      }
-    } else {
-      mathscr_v_contribution = 0.0;
-    }
-    RHS = mathscr_v_contribution;
-
-    if (has_beam_source) {
-      if (BDRF_bool) {
-        BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
-        mult(BDRF_RHS_contribution,
-             R,
-             B_collect_m[NLayers - 1].slice(0, N),
-             1.0,
-             1.0);
+        if (NBDRF > 0) {
+          mathscr_v_temporary = RHS.slice(n - N, N);
+          mult(RHS.slice(n - N, N), R, mathscr_v_temporary, 1.0, 1.0);
+        }
       } else {
-        BDRF_RHS_contribution = 0.0;
+        RHS = 0.0;
       }
 
-      if (is_multilayer) {
-        for (Index l = 0; l < NLayers - 1; l++) {
-          for (Index j = 0; j < NQuad; j++) {
-            RHS_middle(j, l) = (B_collect_m(l + 1, j) - B_collect_m(l, j)) *
-                               std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
+      if (has_beam_source) {
+        if (BDRF_bool) {
+          BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
+          mult(BDRF_RHS_contribution,
+               R,
+               B_collect_m[NLayers - 1].slice(0, N),
+               1.0,
+               1.0);
+        } else {
+          BDRF_RHS_contribution = 0.0;
+        }
+
+        if (is_multilayer) {
+          for (Index l = 0; l < NLayers - 1; l++) {
+            const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
+            for (Index j = 0; j < NQuad; j++) {
+              RHS_middle(j, l) +=
+                  (B_collect_m(l + 1, j) - B_collect_m(l, j)) * scl;
+            }
+          }
+        }
+
+        for (Index i = 0; i < N; i++) {
+          RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
+          RHS[n - N + i] +=
+              b_pos_m[i] +
+              (BDRF_RHS_contribution[i] - B_collect_m(NLayers - 1, i)) *
+                  std::exp(-scaled_tau_arr_with_0.back() / mu0);
+        }
+      } else {
+        RHS.slice(0, N) += b_neg_m;
+        RHS.slice(n - N, N) += b_pos_m;
+      }
+    }
+
+    // Fill LHS
+    {
+      // DebugTime fill{"fill sparse-data"};
+      const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
+      const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
+      const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
+      const auto G_L_pp = G_collect_m(NLayers - 1, Range(0, N), Range(N, N));
+      const auto G_L_np = G_collect_m(NLayers - 1, Range(N, N), Range(N, N));
+      for (Index i = 0; i < N; i++) {
+        E_Lm1L[i] =
+            std::exp(K_collect_m(K_collect_m.nrows() - 1, i) *
+                     (scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 1] -
+                      scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 2]));
+      }
+
+      if (BDRF_bool) {
+        mult(BDRF_LHS_contribution_neg, R, G_L_nn);
+        mult(BDRF_LHS_contribution_pos, R, G_L_np);
+      } else {
+        BDRF_LHS_contribution_neg = 0;
+        BDRF_LHS_contribution_pos = 0;
+      }
+
+      if (empty_lhs) {
+        for (Index i = 0; i < N; i++) {
+          for (Index j = 0; j < N; j++) {
+            sparse_triplets.emplace_back(i, j, G_collect_m(0, N + i, j));
+            sparse_triplets.emplace_back(
+                i,
+                N + j,
+                G_0_np(i, j) *
+                    std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]));
+            sparse_triplets.emplace_back(
+                n - N + i,
+                n - 2 * N + j,
+                (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j]);
+            sparse_triplets.emplace_back(
+                n - N + i,
+                n - N + j,
+                G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j));
+          }
+        }
+      } else {
+        for (Index i = 0; i < N; i++) {
+          for (Index j = 0; j < N; j++) {
+            LHS.coeffRef(i, j) = G_collect_m(0, N + i, j);
+            LHS.coeffRef(i, N + j) =
+                G_0_np(i, j) *
+                std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
+            LHS.coeffRef(n - N + i, n - 2 * N + j) =
+                (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
+            LHS.coeffRef(n - N + i, n - N + j) =
+                G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
           }
         }
       }
 
-      RHS.slice(N, RHS_middle.size()) += RHS_middle.flat_view();
-      for (Index i = 0; i < N; i++) {
-        RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
-        RHS[RHS.size() - N + i] +=
-            b_pos_m[i] +
-            (BDRF_RHS_contribution[i] - B_collect_m(NLayers - 1, i)) *
-                std::exp(-scaled_tau_arr_with_0.back() / mu0);
-      }
-    } else {
-      RHS.slice(0, N) += b_neg_m;
-      RHS.slice(RHS.size() - N, N) += b_pos_m;
-    }
+      for (Index l = 0; l < NLayers - 1; l++) {
+        const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
+        const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
+        const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
+        // Postive eigenvalues
+        const auto K_l_pos = K_collect_m[l].slice(N, N);
+        const auto K_lp1_pos = K_collect_m[l + 1].slice(N, N);
 
-    const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
-    const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
-    const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
-    const auto G_L_pp = G_collect_m(NLayers - 1, Range(0, N), Range(N, N));
-    const auto G_L_np = G_collect_m(NLayers - 1, Range(N, N), Range(N, N));
-    for (Index i = 0; i < N; i++) {
-      E_Lm1L[i] =
-          std::exp(K_collect_m(K_collect_m.nrows() - 1, i) *
-                   (scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 1] -
-                    scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 2]));
-    }
-
-    if (BDRF_bool) {
-      mult(BDRF_LHS_contribution_neg, R, G_L_nn);
-      mult(BDRF_LHS_contribution_pos, R, G_L_np);
-    } else {
-      BDRF_LHS_contribution_neg = 0;
-      BDRF_LHS_contribution_pos = 0;
-    }
-
-    for (Index i = 0; i < N; i++) {
-      for (Index j = 0; j < N; j++) {
-        sparse_triplets.emplace_back(i, j, G_collect_m(0, N + i, j));
-        sparse_triplets.emplace_back(
-            i,
-            N + j,
-            G_0_np(i, j) *
-                std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]));
-        sparse_triplets.emplace_back(
-            n - N + i,
-            n - 2 * N + j,
-            (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j]);
-        sparse_triplets.emplace_back(
-            n - N + i,
-            n - N + j,
-            G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j));
-      }
-    }
-
-    for (Index l = 0; l < NLayers - 1; l++) {
-      const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-      const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-      const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
-      // Postive eigenvalues
-      const auto K_l_pos = K_collect_m[l].slice(N, N);
-      const auto K_lp1_pos = K_collect_m[l + 1].slice(N, N);
-
-      for (Index i = 0; i < N; i++) {
-        E_lm1l[i] =
-            std::exp(K_l_pos[i] * (scaled_tau_arr_lm1 - scaled_tau_arr_l));
-        E_llp1[i] =
-            std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
-      }
-
-      for (Index i = 0; i < N; i++) {
-        for (Index j = 0; j < N; j++) {
-          sparse_triplets.emplace_back(N + l * NQuad + i,
-                                       l * NQuad + j,
-                                       G_collect_m(l, i, j) * E_lm1l[j]);
-          sparse_triplets.emplace_back(2 * N + l * NQuad + i,
-                                       l * NQuad + j,
-                                       G_collect_m(l, N + i, j) * E_lm1l[j]);
-          sparse_triplets.emplace_back(
-              N + l * NQuad + i,
-              l * NQuad + 2 * NQuad - N + j,
-              -G_collect_m(l + 1, i, N + j) * E_llp1[j]);
-          sparse_triplets.emplace_back(
-              2 * N + l * NQuad + i,
-              l * NQuad + 2 * NQuad - N + j,
-              -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j]);
+        for (Index i = 0; i < N; i++) {
+          E_lm1l[i] =
+              std::exp(K_l_pos[i] * (scaled_tau_arr_lm1 - scaled_tau_arr_l));
+          E_llp1[i] =
+              std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
         }
-      }
 
-      for (Index i = 0; i < NQuad; i++) {
-        for (Index j = 0; j < N; j++) {
-          sparse_triplets.emplace_back(
-              N + l * NQuad + i, l * NQuad + N + j, G_collect_m(l, i, N + j));
-          sparse_triplets.emplace_back(N + l * NQuad + i,
-                                       l * NQuad + 2 * N + j,
-                                       -G_collect_m(l + 1, i, j));
+        if (empty_lhs) {
+          for (Index i = 0; i < N; i++) {
+            for (Index j = 0; j < N; j++) {
+              sparse_triplets.emplace_back(N + l * NQuad + i,
+                                           l * NQuad + j,
+                                           G_collect_m(l, i, j) * E_lm1l[j]);
+              sparse_triplets.emplace_back(
+                  2 * N + l * NQuad + i,
+                  l * NQuad + j,
+                  G_collect_m(l, N + i, j) * E_lm1l[j]);
+              sparse_triplets.emplace_back(
+                  N + l * NQuad + i,
+                  l * NQuad + 2 * NQuad - N + j,
+                  -G_collect_m(l + 1, i, N + j) * E_llp1[j]);
+              sparse_triplets.emplace_back(
+                  2 * N + l * NQuad + i,
+                  l * NQuad + 2 * NQuad - N + j,
+                  -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j]);
+            }
+          }
+
+          for (Index i = 0; i < NQuad; i++) {
+            for (Index j = 0; j < N; j++) {
+              sparse_triplets.emplace_back(N + l * NQuad + i,
+                                           l * NQuad + N + j,
+                                           G_collect_m(l, i, N + j));
+              sparse_triplets.emplace_back(N + l * NQuad + i,
+                                           l * NQuad + 2 * N + j,
+                                           -G_collect_m(l + 1, i, j));
+            }
+          }
+        } else {
+          for (Index i = 0; i < N; i++) {
+            for (Index j = 0; j < N; j++) {
+              LHS.coeffRef(N + l * NQuad + i, l * NQuad + j) =
+                  G_collect_m(l, i, j) * E_lm1l[j];
+              LHS.coeffRef(2 * N + l * NQuad + i, l * NQuad + j) =
+                  G_collect_m(l, N + i, j) * E_lm1l[j];
+              LHS.coeffRef(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
+                  -G_collect_m(l + 1, i, N + j) * E_llp1[j];
+              LHS.coeffRef(2 * N + l * NQuad + i,
+                           l * NQuad + 2 * NQuad - N + j) =
+                  -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j];
+            }
+          }
+
+          for (Index i = 0; i < NQuad; i++) {
+            for (Index j = 0; j < N; j++) {
+              LHS.coeffRef(N + l * NQuad + i, l * NQuad + N + j) =
+                  G_collect_m(l, i, N + j);
+              LHS.coeffRef(N + l * NQuad + i, l * NQuad + 2 * N + j) =
+                  -G_collect_m(l + 1, i, j);
+            }
+          }
         }
       }
     }
 
-    LHS.coeffs() = 0.0;
-    LHS.setFromTriplets(sparse_triplets.begin(), sparse_triplets.end());
+    if (empty_lhs) {
+      // DebugTime fill{"copy sparse-data"};
+      LHS.setFromTriplets(sparse_triplets.begin(), sparse_triplets.end());
+      solver.analyzePattern(LHS);
+    }
 
-    solver.analyzePattern(LHS);
-    solver.factorize(LHS);
-    matpack::eigen::as_eigen(RHS) = solver.solve(matpack::eigen::as_eigen(RHS));
+    {
+      // DebugTime fill{"solve sparse-problem"};
+      solver.factorize(LHS);
+      matpack::eigen::as_eigen(RHS).noalias() =
+          solver.solve(matpack::eigen::as_eigen(RHS));
+    }
 
-    einsum<"ijm", "ijm", "im">(
-        GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
+    {
+      // DebugTime fill{"finalize"};
+      einsum<"ijm", "ijm", "im">(
+          GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
+    }
   }
 }
 
 Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
 
-void diagonalize(Tensor4& G_collect_,
-                 Tensor3& K_collect_,
-                 Tensor3& B_collect_,
+void diagonalize(Tensor4& G_collect,
+                 Tensor3& K_collect,
+                 Tensor3& B_collect,
                  Tensor3& G_inv_collect_0,
                  const Index NFourier,
                  const Matrix& weighted_scaled_Leg_coeffs,
@@ -379,31 +432,23 @@ void diagonalize(Tensor4& G_collect_,
                  const Numeric I0,
                  const bool has_beam_source,
                  const bool has_source_poly) {
+  DebugTime diagonalize{"diagonalize"};
+
   const Index NQuad = mu_arr.size();
   const Index N = NQuad / 2;
   const Index NLayers = scaled_omega_arr.size();
   const Index NLeg = weighted_scaled_Leg_coeffs.ncols();
 
-  G_collect_.resize(NFourier, NLayers, NQuad, NQuad);
-  K_collect_.resize(NFourier, NLayers, NQuad);
-  B_collect_.resize(NFourier, NLayers, NQuad);
+  G_collect.resize(NFourier, NLayers, NQuad, NQuad);
+  K_collect.resize(NFourier, NLayers, NQuad);
+  B_collect.resize(NFourier, NLayers, NQuad);
   G_inv_collect_0.resize(has_source_poly * NLayers, NQuad, NQuad);
 
-  auto G_collect = G_collect_.reshape_as(NFourier * NLayers, NQuad, NQuad);
-  auto K_collect = K_collect_.reshape_as(NFourier * NLayers, NQuad);
-  auto B_collect = B_collect_.reshape_as(NFourier * NLayers, NQuad);
-
-  Tensor3 alpha_arr(NFourier * NLayers, N, N);
-  Tensor3 beta_arr(NFourier * NLayers, N, N);
-  Matrix X_tilde_arr(NFourier * NLayers, NQuad);
-
-  std::vector<Index> no_shortcut_indices;
-  no_shortcut_indices.reserve(NFourier * NLayers);
-  std::vector<std::pair<Index, Index>> no_shortcut_indices_0;
-  no_shortcut_indices_0.reserve(NLayers);
+  Matrix alpha(N, N);
+  Matrix beta(N, N);
+  Vector X_tilde(NQuad);
 
   Vector fac(NLeg);
-  Vector signs(NLeg);
   Vector weighted_asso_Leg_coeffs_l(NLeg);
 
   Vector asso_leg_term_mu0(NLeg);
@@ -415,17 +460,12 @@ void diagonalize(Tensor4& G_collect_,
   Matrix D_neg(N, N);
 
   Vector X_temp(NLeg);
-  Vector X_pos(N);
-  Vector X_neg(N);
-  auto xpos = X_pos.reshape_as(1, N);
-  auto xneg = X_neg.reshape_as(1, N);
 
   Matrix apb(N, N);
   Matrix amb(N, N);
   Matrix sqr(N, N);
 
   Matrix GmG(N, NQuad);
-  Matrix P(N, N);
   Vector eigr(N);
   Vector eigi(N);
   Matrix G_inv(NQuad, NQuad);
@@ -438,36 +478,37 @@ void diagonalize(Tensor4& G_collect_,
     return out;
   }();
 
-  Index ind = 0;
   for (Index m = 0; m < NFourier; m++) {
-    // All resizeing:
+    // DebugTime mloop{"mloop"};
+
+    auto Km = K_collect[m];
+    auto Gm = G_collect[m];
+    auto Bm = B_collect[m];
+
     const auto ells = ells_all.slice(m, NLeg - m);
+
     D_temp.resize(N, NLeg - m);
     X_temp.resize(NLeg - m);
-    auto xtemp = X_temp.reshape_as(1, NLeg - m);
-    fac.resize(ells.size());
     asso_leg_term_pos.resize(NLeg - m, N);
     asso_leg_term_neg.resize(NLeg - m, N);
     asso_leg_term_mu0.resize(NLeg - m);
     weighted_asso_Leg_coeffs_l.resize(ells.size());
-    signs.resize(NLeg - m);
+
+    auto xtemp = X_temp.reshape_as(1, NLeg - m);
 
     const bool m_equals_0_bool = (m == 0);
 
+    fac.resize(ells.size());
     for (auto i : ells) {
       fac[i - m] =
           poch(static_cast<Numeric>(i + m + 1), static_cast<Numeric>(-2 * m));
-    }
-
-    for (Index i = 0; i < NLeg - m; i++) {
-      signs[i] = i % 2 ? -1 : 1;
     }
 
     for (Index i = m; i < NLeg; i++) {
       for (Index j = 0; j < N; j++) {
         asso_leg_term_pos(i - m, j) = Legendre::assoc_legendre(i, m, mu_arr[j]);
         asso_leg_term_neg(i - m, j) =
-            asso_leg_term_pos(i - m, j) * signs[i - m];
+            asso_leg_term_pos(i - m, j) * ((i- m) % 2 ? -1.0 : 1.0);
       }
       asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(ells[i - m], m, -mu0);
     }
@@ -478,6 +519,8 @@ void diagonalize(Tensor4& G_collect_,
                     [](auto& x) { return std::isfinite(x); });
 
     for (Index l = 0; l < NLayers; l++) {
+      // DebugTime lloop{"lloop"};
+
       for (Index i = 0; i < NLeg - m; i++) {
         weighted_asso_Leg_coeffs_l[i] =
             weighted_scaled_Leg_coeffs(l, ells[i]) * fac[i];
@@ -491,10 +534,8 @@ void diagonalize(Tensor4& G_collect_,
                       Cmp::gt(0))) {
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
-        mult(D_pos, D_temp, asso_leg_term_pos);
-        mult(D_neg, D_temp, asso_leg_term_neg);
-        D_pos *= 0.5 * scaled_omega_l;
-        D_neg *= 0.5 * scaled_omega_l;
+        mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
+        mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
 
         if (has_beam_source) {
           einsum<"i", "i", "i", "">(
@@ -504,97 +545,84 @@ void diagonalize(Tensor4& G_collect_,
               (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
                (4 * Constant::pi)));
 
-          mult(xpos, xtemp, asso_leg_term_pos);
-          mult(xneg, xtemp, asso_leg_term_neg);
-        }
+          mult(X_tilde.slice(0, N).reshape_as(1, N),
+               xtemp,
+               asso_leg_term_pos,
+               -1);
+          X_tilde.slice(0, N) *= M_inv;
 
-        auto alpha = alpha_arr[ind];
-        auto beta = beta_arr[ind];
-        no_shortcut_indices.push_back(ind);
+          mult(X_tilde.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
+          X_tilde.slice(N, N) *= M_inv;
+        }
 
         einsum<"ij", "i", "ij", "j">(alpha, M_inv, D_pos, W);
         alpha.diagonal() -= M_inv;
 
         einsum<"ij", "i", "ij", "j">(beta, M_inv, D_neg, W);
 
-        einsum<"i", "", "i", "i">(
-            X_tilde_arr[ind].slice(0, N), -1, M_inv, X_pos);
+        auto K = Km[l];
+        auto G = Gm[l];
 
-        einsum<"i", "i", "i">(X_tilde_arr[ind].slice(N, N), M_inv, X_neg);
+        apb = alpha;
+        amb = alpha;
+        apb += beta;
+        amb -= beta;
+        mult(sqr, amb, apb);
 
+        auto GpG = G(Range(0, N), Range(0, N));
+        ::diagonalize(GpG, eigr, eigi, sqr);
+        G(Range(0, N), Range(N, N)) = GpG;
+
+        for (Index j = 0; j < N; j++) {
+          const Numeric sqrt_x = std::sqrt(eigr[j]);
+          K[j] = -sqrt_x;
+          K[j + N] = sqrt_x;
+        }
+
+        mult(GmG, apb, G.slice(0, N));
+        for (Index j = 0; j < NQuad; j++) {
+          GmG(joker, j) /= K[j];
+        }
+
+        G.slice(N, N) = G.slice(0, N);
+        G.slice(0, N) -= GmG;
+        G.slice(N, N) += GmG;
+        G *= 0.5;
+
+        // Get inverse by the layer
         if (has_source_poly and m_equals_0_bool) {
-          no_shortcut_indices_0.emplace_back(ind, l);
+          inv(G_inv, G);
+          G_inv_collect_0[l] = G_inv;
+        } else if (has_beam_source) {
+          inv(G_inv, G);
+        }
+
+        if (has_beam_source) {
+          auto B = Bm[l];
+          for (Index pos = 0; pos < NQuad; pos++) {
+            Numeric sum = 0.0;
+            for (Index j = 0; j < NQuad; j++) {
+              for (Index k = 0; k < NQuad; k++) {
+                sum -=
+                    G(pos, j) / (1.0 / mu0 + K[j]) * G_inv(j, k) * X_tilde[k];
+              }
+            }
+            B[pos] = sum;
+          }
         }
       } else {
-        auto G = G_collect[ind];
+        auto G = Gm[l];
         for (Index i = 0; i < N; i++) {
           G(i + N, i) = 1;
           G(i, i + N) = 1;
         }
         for (Index i = 0; i < NQuad; i++) {
-          K_collect(ind, i) = -1 / mu_arr[i];
+          Km(l, i) = -1 / mu_arr[i];
         }
 
         if (has_source_poly and m_equals_0_bool) {
           G_inv_collect_0[l] = G;
         }
-      }
-      ++ind;
-    }
-  }
-
-  for (auto i : no_shortcut_indices) {
-    auto K = K_collect[i];
-    auto G = G_collect[i];
-
-    apb = alpha_arr[i];
-    amb = alpha_arr[i];
-    apb += beta_arr[i];
-    amb -= beta_arr[i];
-    mult(sqr, amb, apb);
-
-    auto GpG = G(Range(0, N), Range(0, N));
-    ::diagonalize(GpG, eigr, eigi, sqr);
-    G(Range(0, N), Range(N, N)) = GpG;
-
-    for (Index j = 0; j < N; j++) {
-      const Numeric sqrt_x = std::sqrt(eigr[j]);
-      K[j] = -sqrt_x;
-      K[j + N] = sqrt_x;
-    }
-
-    mult(GmG, apb, G.slice(0, N));
-    for (Index j = 0; j < NQuad; j++) {
-      GmG(joker, j) /= K[j];
-    }
-
-    G.slice(N, N) = G.slice(0, N);
-    G.slice(0, N) -= GmG;
-    G.slice(N, N) += GmG;
-    G *= 0.5;
-
-    // Get inverse by the layer
-    if (not no_shortcut_indices_0.empty() and
-        no_shortcut_indices_0.front().first == i) {
-      inv(G_inv, G);
-      G_inv_collect_0[no_shortcut_indices_0.front().second] = G_inv;
-      no_shortcut_indices_0.erase(no_shortcut_indices_0.begin());
-    } else if (has_beam_source) {
-      inv(G_inv, G);
-    }
-
-    if (has_beam_source) {
-      auto B = B_collect[i];
-      const auto X_tilde = X_tilde_arr[i];
-
-      for (Index pos = 0; pos < NQuad; pos++) {
-        Numeric sum = 0.0;
-        for (Index j = 0; j < NQuad; j++) {
-          for (Index k = 0; k < NQuad; k++) {
-            sum -= G(pos, j) / (1.0 / mu0 + K[j]) * G_inv(j, k) * X_tilde[k];
-          }
-        }
-        B[pos] = sum;
       }
     }
   }
@@ -621,6 +649,8 @@ main_data::main_data(const Index NQuad,
       I0(I0_),
       phi0(phi0_),
       has_beam_source(I0 > 0) {
+  // DebugTime dis{"main_data"};
+
   const Index NLeg_all = Leg_coeffs_all.ncols();
   const Index NLayers = tau_arr.size();
   const Index N = NQuad / 2;

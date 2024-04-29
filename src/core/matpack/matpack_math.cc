@@ -5,7 +5,11 @@
 #include "blas.h"
 #include "matpack_eigen.h"
 
-void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C) {
+void mult(MatrixView A,
+          const ConstMatrixView &B,
+          const ConstMatrixView &C,
+          Numeric alpha,
+          Numeric beta) {
   // Check dimensions:
   ARTS_ASSERT(A.nrows() == B.nrows());
   ARTS_ASSERT(A.ncols() == C.ncols());
@@ -78,7 +82,6 @@ void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C) {
     if ((A.stride(1) == 1) && (A.stride(0) == 1)) {
       ldc = m;
     }
-    double alpha = 1.0, beta = 0.0;
 
     dgemm_(&transa,
            &transb,
@@ -95,7 +98,12 @@ void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C) {
            &ldc);
 
   } else {
-    matpack::eigen::as_eigen(A).noalias() = B * C;
+    if (beta == 0.0) {
+      matpack::eigen::as_eigen(A).noalias() = alpha * B * C;
+    } else {
+      A *= beta;
+      matpack::eigen::as_eigen(A).noalias() += alpha * B * C;
+    }
   }
 }
 
@@ -244,7 +252,8 @@ void mult(VectorView y,
     if (beta == 0.0) {
       matpack::eigen::as_eigen(y).noalias() = alpha * M * x;
     } else {
-      matpack::eigen::as_eigen(y) = alpha * M * x + beta * y;
+      y *= beta;
+      matpack::eigen::as_eigen(y).noalias() += alpha * M * x;
     }
   }
 }

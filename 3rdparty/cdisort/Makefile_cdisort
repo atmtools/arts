@@ -1,0 +1,76 @@
+#
+#  Copyright (c) 2011 by Timothy E. Dowling
+#  
+#  This file is part of cdisort.
+#
+#  cdisort is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  cdisort is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with cdisort.  If not, see <http://www.gnu.org/licenses/>.
+#
+# 
+#
+ 
+
+CDISORT_HOME = .
+LINKER      = $(CC)
+AR          = ar crl
+RANLIB      = ranlib
+
+LIB_PATH = -L$(CDISORT_HOME)
+LIB_LIST = -lcdisort -lm
+
+INCLUDE_DIR = -I$(CDISORT_HOME)
+HFILES      = $(CDISORT_HOME)/cdisort.h \
+              $(CDISORT_HOME)/locate.h
+
+DSSRC     = $(CDISORT_HOME)/cdisort.c \
+            $(CDISORT_HOME)/locate.c
+
+DSTESTSRC = $(CDISORT_HOME)/disotest.c
+
+DSOBJS    = $(CDISORT_HOME)/cdisort.o \
+            $(CDISORT_HOME)/locate.o
+
+DSTESTOBJ = $(CDISORT_HOME)/disotest.o
+
+SRCS  = $(DSTESTSRC) $(DSSRC)
+
+PROGS = disotest
+
+C_FLAGS  = $(CFLAGS) $(INCLUDE_DIR)
+
+LIBS     = $(LIB_PATH) $(LIB_LIST)
+LD_FLAGS = $(LDFLAGS)
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+.c.o: $(HFILES)
+	$(CC) $(C_FLAGS) -c $*.c -o $*.o
+
+all: $(PROGS)
+
+libcdisort.a: $(DSOBJS) $(HFILES)
+	$(AR) libcdisort.a $(DSOBJS) ; \
+	$(RANLIB) libcdisort.a
+
+disotest: libcdisort.a $(DSTESTOBJ) $(HFILES)
+	$(LINKER) $(LD_FLAGS) $(DSTESTOBJ) $(LIBS) -o $@
+
+install: all
+
+clean:
+	@rm -f core *a *o *BAK *bak *~ *% *.log $(PROGS)
+
+clear:
+	@rm -f core *a *o *BAK *bak *~ *% *.log $(PROGS)
+
+

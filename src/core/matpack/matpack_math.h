@@ -38,13 +38,17 @@ constexpr MAT &inplace_transpose(MAT &x) {
   return x;
 }
 
-/** Makes A = B * C
+/** Makes A = alpha * B * C + beta * A
  * 
  * @param[out] A May not point at the same data as B or C
  * @param B Any matrix
  * @param C Any matrix
  */
-void mult(MatrixView A, const ConstMatrixView &B, const ConstMatrixView &C);
+void mult(MatrixView A,
+          const ConstMatrixView &B,
+          const ConstMatrixView &C,
+          Numeric alpha = 1.0,
+          Numeric beta = 0.0);
 
 /** Makes A = B * C
  * 
