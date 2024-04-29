@@ -15,6 +15,7 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "legendre.h"
+#include "lin_alg.h"
 
 namespace disort {
 void mathscr_v_add(ExhaustiveVectorView um,
@@ -80,7 +81,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                      const Numeric mu0,
                      const Numeric I0,
                      const bool has_beam_source) {
-  DebugTime solve_for_coefs{"solve_for_coefs"};
+  // DebugTime solve_for_coefs{"solve_for_coefs"};
 
   const bool has_source_poly = not source_poly_coeffs.empty();
 
@@ -432,7 +433,7 @@ void diagonalize(Tensor4& G_collect,
                  const Numeric I0,
                  const bool has_beam_source,
                  const bool has_source_poly) {
-  DebugTime diagonalize{"diagonalize"};
+  // DebugTime diagonalize{"diagonalize"};
 
   const Index NQuad = mu_arr.size();
   const Index N = NQuad / 2;
@@ -444,8 +445,6 @@ void diagonalize(Tensor4& G_collect,
   B_collect.resize(NFourier, NLayers, NQuad);
   G_inv_collect_0.resize(has_source_poly * NLayers, NQuad, NQuad);
 
-  Matrix alpha(N, N);
-  Matrix beta(N, N);
   Vector X_tilde(NQuad);
 
   Vector fac(NLeg);
@@ -465,41 +464,36 @@ void diagonalize(Tensor4& G_collect,
   Matrix amb(N, N);
   Matrix sqr(N, N);
 
-  Matrix GmG(N, NQuad);
-  Vector eigr(N);
-  Vector eigi(N);
+  diagonalize_workdata diag_work(N);
+  inv_workdata inv_work(NQuad);
+
   Matrix G_inv(NQuad, NQuad);
 
-  const auto ells_all = [NLeg]() {
-    matpack::matpack_data<Index, 1> out(NLeg);
-    for (Index i = 0; i < NLeg; i++) {
-      out[i] = i;
-    }
-    return out;
-  }();
+  // TimeStep dt_lloop, dt_diag_set, dt_diag_calc, dt_inv, dt_alpha_beta,
+      // dt_weighted_asso_Leg_coeffs_l, dt_D_vars, dt_all_asso_leg_term_pos,
+      // dt_has_beam_source_1, dt_has_beam_source_2, dt_lloop_all;
 
+  // Time mloop_all{};
   for (Index m = 0; m < NFourier; m++) {
-    // DebugTime mloop{"mloop"};
+    // Time mloop{};
 
     auto Km = K_collect[m];
     auto Gm = G_collect[m];
     auto Bm = B_collect[m];
-
-    const auto ells = ells_all.slice(m, NLeg - m);
 
     D_temp.resize(N, NLeg - m);
     X_temp.resize(NLeg - m);
     asso_leg_term_pos.resize(NLeg - m, N);
     asso_leg_term_neg.resize(NLeg - m, N);
     asso_leg_term_mu0.resize(NLeg - m);
-    weighted_asso_Leg_coeffs_l.resize(ells.size());
+    weighted_asso_Leg_coeffs_l.resize(NLeg - m);
 
     auto xtemp = X_temp.reshape_as(1, NLeg - m);
 
     const bool m_equals_0_bool = (m == 0);
 
-    fac.resize(ells.size());
-    for (auto i : ells) {
+    fac.resize(NLeg - m);
+    for (Index i = m; i < NLeg; i++) {
       fac[i - m] =
           poch(static_cast<Numeric>(i + m + 1), static_cast<Numeric>(-2 * m));
     }
@@ -508,36 +502,43 @@ void diagonalize(Tensor4& G_collect,
       for (Index j = 0; j < N; j++) {
         asso_leg_term_pos(i - m, j) = Legendre::assoc_legendre(i, m, mu_arr[j]);
         asso_leg_term_neg(i - m, j) =
-            asso_leg_term_pos(i - m, j) * ((i- m) % 2 ? -1.0 : 1.0);
+            asso_leg_term_pos(i - m, j) * ((i - m) % 2 ? -1.0 : 1.0);
       }
-      asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(ells[i - m], m, -mu0);
+      asso_leg_term_mu0[i - m] = Legendre::assoc_legendre(i, m, -mu0);
     }
 
     const bool all_asso_leg_term_pos_finite =
         std::all_of(asso_leg_term_pos.elem_begin(),
                     asso_leg_term_pos.elem_end(),
                     [](auto& x) { return std::isfinite(x); });
-
+    // Time t_lloop_all{};
     for (Index l = 0; l < NLayers; l++) {
-      // DebugTime lloop{"lloop"};
+      // Time t_lloop{};
 
+      // Time t_weighted_asso_Leg_coeffs_l_start{};
       for (Index i = 0; i < NLeg - m; i++) {
         weighted_asso_Leg_coeffs_l[i] =
-            weighted_scaled_Leg_coeffs(l, ells[i]) * fac[i];
+            weighted_scaled_Leg_coeffs(l, i + m) * fac[i];
       }
+      // dt_weighted_asso_Leg_coeffs_l =
+          // Time{} - t_weighted_asso_Leg_coeffs_l_start;
 
       const Numeric scaled_omega_l = scaled_omega_arr[l];
 
+      // Time t_all_asso_leg_term_pos{};
       if (all_asso_leg_term_pos_finite and
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
+        // Time t_D_vars{};
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
         mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
+       // dt_D_vars = Time{} - t_D_vars;
 
         if (has_beam_source) {
+          // Time t_has_beam_source_1{};
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -553,32 +554,42 @@ void diagonalize(Tensor4& G_collect,
 
           mult(X_tilde.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
           X_tilde.slice(N, N) *= M_inv;
+        //  dt_has_beam_source_1 = Time{} - t_has_beam_source_1;
         }
 
-        einsum<"ij", "i", "ij", "j">(alpha, M_inv, D_pos, W);
-        alpha.diagonal() -= M_inv;
-
-        einsum<"ij", "i", "ij", "j">(beta, M_inv, D_neg, W);
+        // Time alpha_beta{};
+        einsum<"ij", "i", "ij", "j">(sqr, M_inv, D_neg, W);
+        einsum<"ij", "i", "ij", "j">(apb, M_inv, D_pos, W);
+        apb.diagonal() -= M_inv;
 
         auto K = Km[l];
         auto G = Gm[l];
 
-        apb = alpha;
-        amb = alpha;
-        apb += beta;
-        amb -= beta;
+        amb = apb;   // still just alpha
+        apb += sqr;  // sqr is beta
+        amb -= sqr;
         mult(sqr, amb, apb);
 
-        auto GpG = G(Range(0, N), Range(0, N));
-        ::diagonalize(GpG, eigr, eigi, sqr);
-        G(Range(0, N), Range(N, N)) = GpG;
+      //  dt_alpha_beta = Time{} - alpha_beta;
+
+        // Time diag_calc{};
+        ::diagonalize_inplace(amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
+        G(Range(0, N), Range(0, N)) = amb;
+      //  dt_diag_calc = Time{} - diag_calc;
+
+        // Time diag_set{};
+        for (Index i = 0; i < N; i++) {
+          G[i].slice(0, N) *= 0.5;
+          G[i].slice(N, N) = G[i].slice(0, N);
+        }
 
         for (Index j = 0; j < N; j++) {
-          const Numeric sqrt_x = std::sqrt(eigr[j]);
+          const Numeric sqrt_x = std::sqrt(K[j]);
           K[j] = -sqrt_x;
           K[j + N] = sqrt_x;
         }
 
+        auto GmG = G_inv.slice(0, N);
         mult(GmG, apb, G.slice(0, N));
         for (Index j = 0; j < NQuad; j++) {
           GmG(joker, j) /= K[j];
@@ -587,28 +598,35 @@ void diagonalize(Tensor4& G_collect,
         G.slice(N, N) = G.slice(0, N);
         G.slice(0, N) -= GmG;
         G.slice(N, N) += GmG;
-        G *= 0.5;
+
+     //   dt_diag_set = Time{} - diag_set;
 
         // Get inverse by the layer
+        // Time t_inv{};
         if (has_source_poly and m_equals_0_bool) {
-          inv(G_inv, G);
+          G_inv = G;
+          inv_inplace(G_inv, inv_work);
           G_inv_collect_0[l] = G_inv;
         } else if (has_beam_source) {
-          inv(G_inv, G);
+          G_inv = G;
+          inv_inplace(G_inv, inv_work);
         }
+       // dt_inv = Time{} - t_inv;
 
         if (has_beam_source) {
+          // Time has_beam{};
           auto B = Bm[l];
           for (Index pos = 0; pos < NQuad; pos++) {
-            Numeric sum = 0.0;
+            B[pos] = 0.0;
             for (Index j = 0; j < NQuad; j++) {
               for (Index k = 0; k < NQuad; k++) {
-                sum -=
+                B[pos] -=
                     G(pos, j) / (1.0 / mu0 + K[j]) * G_inv(j, k) * X_tilde[k];
               }
             }
-            B[pos] = sum;
           }
+
+        //  dt_has_beam_source_2 = Time{} - has_beam;
         }
       } else {
         auto G = Gm[l];
@@ -624,8 +642,52 @@ void diagonalize(Tensor4& G_collect,
           G_inv_collect_0[l] = G;
         }
       }
+
+      // dt_all_asso_leg_term_pos = Time{} - t_all_asso_leg_term_pos;
+      // dt_lloop = Time{} - t_lloop;
+      // std::cout << "dt_lloop: " << dt_lloop
+      //           << " or ratio: " << dt_lloop.count() / dt_lloop.count() << '\n';
+      // std::cout << "dt_weighted_asso_Leg_coeffs_l: "
+      //           << dt_weighted_asso_Leg_coeffs_l << " or ratio: "
+      //           << dt_weighted_asso_Leg_coeffs_l.count() / dt_lloop.count()
+      //           << '\n';
+      // std::cout << "dt_all_asso_leg_term_pos: " << dt_all_asso_leg_term_pos
+      //           << " or ratio: "
+      //           << dt_all_asso_leg_term_pos.count() / dt_lloop.count() << '\n';
+      // std::cout << "dt_D_vars: " << dt_D_vars
+      //           << " or ratio: " << dt_D_vars.count() / dt_lloop.count()
+      //           << '\n';
+      // std::cout << "dt_has_beam_source_1: " << dt_has_beam_source_1
+      //           << " or ratio: "
+      //           << dt_has_beam_source_1.count() / dt_lloop.count() << '\n';
+      // std::cout << "dt_has_beam_source_2: " << dt_has_beam_source_2
+      //           << " or ratio: "
+      //           << dt_has_beam_source_2.count() / dt_lloop.count() << '\n';
+      // std::cout << "dt_alpha_beta: " << dt_alpha_beta
+      //           << " or ratio: " << dt_alpha_beta.count() / dt_lloop.count()
+      //           << '\n';
+      // std::cout << "dt_diag_calc: " << dt_diag_calc
+      //           << " or ratio: " << dt_diag_calc.count() / dt_lloop.count()
+      //           << '\n';
+      // std::cout << "dt_diag_set: " << dt_diag_set
+      //           << " or ratio: " << dt_diag_set.count() / dt_lloop.count()
+      //           << '\n';
+      // std::cout << "dt_inv: " << dt_inv
+      //           << " or ratio: " << dt_inv.count() / dt_lloop.count() << '\n';
+      // std::cout << '\n';
     }
+    // dt_lloop_all = Time{} - t_lloop_all;
+
+    // // // TimeStep dt_mloop = Time{} - mloop;
+    // std::cout << "dt_mloop: " << dt_mloop
+    //           << " or ratio: " << dt_mloop.count() / dt_mloop.count() << '\n';
+    // std::cout << "dt_lloop_all: " << dt_lloop_all
+    //           << " or ratio: " << dt_lloop_all.count() / dt_lloop_all.count()
+    //           << '\n';
+    // std::cout << '\n';
   }
+
+  // std::cout << "dt_mloop_all: " << Time{} - mloop_all << '\n';
 }
 
 main_data::main_data(const Index NQuad,

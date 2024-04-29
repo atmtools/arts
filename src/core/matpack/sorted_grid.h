@@ -25,6 +25,9 @@ class grid {
         not std::ranges::is_sorted(x, Compare{}), "Wrong sorting:\n", x);
   }
 
+  //! Unsafe constructor
+  grid(Index N) : x(N) {}
+
   grid(std::initializer_list<Numeric> il) : x(il) { assert_sorted(); }
 
   template <typename... Ts>

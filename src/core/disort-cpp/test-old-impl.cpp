@@ -160,6 +160,6 @@ void newimpl(bool print_results) {
 }
 
 int main() {
-  newimpl(false);
   oldimpl(false);
+  newimpl(false);
 }

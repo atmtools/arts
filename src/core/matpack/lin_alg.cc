@@ -146,6 +146,51 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   lubacksub(x, LU, b, indx);
 }
 
+void inv_inplace(ExhaustiveMatrixView A, inv_workdata& wo) {
+  Index n = A.ncols();
+
+  // A must be a square matrix.
+  ARTS_ASSERT(n == A.nrows());
+  ARTS_ASSERT(n == wo.N);
+
+  int info;
+  int n_int = (int)n;
+
+  // Compute LU decomposition using LAPACK dgetrf_.
+  lapack::dgetrf_(
+      &n_int, &n_int, A.data_handle(), &n_int, wo.ipiv.data(), &info);
+
+  // Invert matrix.
+  int lwork = n_int;
+
+  lapack::dgetri_(&n_int,
+                  A.data_handle(),
+                  &n_int,
+                  wo.ipiv.data(),
+                  wo.work.data(),
+                  &lwork,
+                  &info);
+
+  // Check for success.
+  ARTS_USER_ERROR_IF(info not_eq 0,
+                     "Error inverting matrix: Matrix not of full rank.");
+}
+
+//! Matrix Inverse
+/*!
+  Compute the inverse of a matrix such that I = Ainv*A = A*Ainv. Both
+  MatrixViews must be square and have the same size n. During the inversion one
+  additional n times n Matrix is allocated and work space memory for faster
+  inversion is allocated and freed.
+
+  \param[out] Ainv The MatrixView to contain the inverse of A.
+  \param[in] A The matrix to be inverted.
+*/
+void inv_inplace(ExhaustiveMatrixView A) {
+  inv_workdata wo(A.ncols());
+  inv_inplace(A, wo);
+}
+
 //! Matrix Inverse
 /*!
   Compute the inverse of a matrix such that I = Ainv*A = A*Ainv. Both
@@ -157,35 +202,8 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
   \param[in] A The matrix to be inverted.
 */
 void inv(MatrixView Ainv, ConstMatrixView A) {
-  // A must be a square matrix.
-  ARTS_ASSERT(A.ncols() == A.nrows());
-
-  Index n = A.ncols();
   Matrix LU(A);
-
-  int n_int, info;
-  auto ipiv = std::vector<int>(n);
-
-  n_int = (int)n;
-
-  // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(&n_int, &n_int, LU.data_handle(), &n_int, ipiv.data(), &info);
-
-  // Invert matrix.
-  int lwork = n_int;
-  auto work = std::vector<double>(lwork);
-
-  lapack::dgetri_(&n_int,
-                  LU.data_handle(),
-                  &n_int,
-                  ipiv.data(),
-                  work.data(),
-                  &lwork,
-                  &info);
-
-  // Check for success.
-  ARTS_USER_ERROR_IF(info not_eq 0,
-                     "Error inverting matrix: Matrix not of full rank.");
+  inv_inplace(LU);
   Ainv = LU;
 }
 
@@ -217,6 +235,68 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
                      "Error inverting matrix: Matrix not of full rank.");
 }
 
+void diagonalize_inplace(ExhaustiveMatrixView P,
+                         ExhaustiveVectorView WR,
+                         ExhaustiveVectorView WI,
+                         ExhaustiveMatrixView A,
+                         diagonalize_workdata& wo) {
+  Index n = A.ncols();
+
+  // A must be a square matrix.
+  ARTS_ASSERT(n == A.nrows());
+  ARTS_ASSERT(n == WR.nelem());
+  ARTS_ASSERT(n == WI.nelem());
+  ARTS_ASSERT(n == P.nrows());
+  ARTS_ASSERT(n == P.ncols());
+  ARTS_ASSERT(n == wo.N);
+
+  inplace_transpose(A);
+
+  // Integers
+  int LDA, LDA_L, LDA_R, n_int, info;
+  n_int = (int)n;
+  LDA = LDA_L = LDA_R = (int)A.extent(0);
+
+  // We want to calculate RP not LP
+  char l_eig = 'N', r_eig = 'V';
+
+  // Work matrix
+  int lwork = 2 * n_int + n_int * n_int;
+
+  // Memory references
+  double* adata = A.data_handle();
+  double* rpdata = P.data_handle();
+  double* wrdata = WR.data_handle();
+  double* widata = WI.data_handle();
+
+  // Main calculations.  Note that errors in the output is ignored
+  lapack::dgeev_(&l_eig,
+                 &r_eig,
+                 &n_int,
+                 adata,
+                 &LDA,
+                 wrdata,
+                 widata,
+                 nullptr,
+                 &LDA_L,
+                 rpdata,
+                 &LDA_R,
+                 wo.work(),
+                 &lwork,
+                 wo.rwork(),
+                 &info);
+
+  inplace_transpose(P);
+}
+
+void diagonalize_inplace(ExhaustiveMatrixView P,
+                         ExhaustiveVectorView WR,
+                         ExhaustiveVectorView WI,
+                         ExhaustiveMatrixView A) {
+  diagonalize_workdata wo(A.ncols());
+  diagonalize_inplace(P, WR, WI, A, wo);
+}
+
 //! Matrix Diagonalization
 /*!
  * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
@@ -239,59 +319,33 @@ void diagonalize(MatrixView P,
                  VectorView WR,
                  VectorView WI,
                  ConstMatrixView A) {
-  Index n = A.ncols();
-
-  // A must be a square matrix.
-  ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == WR.nelem());
-  ARTS_ASSERT(n == WI.nelem());
-  ARTS_ASSERT(n == P.nrows());
-  ARTS_ASSERT(n == P.ncols());
-
-  Matrix A_tmp{transpose(A)};
+  Matrix A_tmp{A};
   Matrix P2{P};
   Vector WR2{WR};
   Vector WI2{WI};
 
-  // Integers
-  int LDA, LDA_L, LDA_R, n_int, info;
-  n_int = (int)n;
-  LDA = LDA_L = LDA_R = (int)A.extent(0);
-
-  // We want to calculate RP not LP
-  char l_eig = 'N', r_eig = 'V';
-
-  // Work matrix
-  int lwork = 2 * n_int + n_int * n_int;
-  auto work = std::vector<double>(lwork);
-  auto rwork = std::vector<double>(2 * n_int);
-
-  // Memory references
-  double* adata = A_tmp.data_handle();
-  double* rpdata = P2.data_handle();
-  double* wrdata = WR2.data_handle();
-  double* widata = WI2.data_handle();
-
-  // Main calculations.  Note that errors in the output is ignored
-  lapack::dgeev_(&l_eig,
-                 &r_eig,
-                 &n_int,
-                 adata,
-                 &LDA,
-                 wrdata,
-                 widata,
-                 nullptr,
-                 &LDA_L,
-                 rpdata,
-                 &LDA_R,
-                 work.data(),
-                 &lwork,
-                 rwork.data(),
-                 &info);
+  diagonalize_inplace(P2, WR2, WI2, A_tmp);
 
   // Re-order.  This can be done better?
-  for (Index i = 0; i < n; i++)
-    for (Index j = 0; j < n; j++) P(j, i) = P2(i, j);
+  P = P2;
+  WI = WI2;
+  WR = WR2;
+}
+
+void diagonalize(MatrixView P,
+                 VectorView WR,
+                 VectorView WI,
+                 ConstMatrixView A,
+                 diagonalize_workdata& wo) {
+  Matrix A_tmp{A};
+  Matrix P2{P};
+  Vector WR2{WR};
+  Vector WI2{WI};
+
+  diagonalize_inplace(P2, WR2, WI2, A_tmp, wo);
+
+  // Re-order.  This can be done better?
+  P = P2;
   WI = WI2;
   WR = WR2;
 }
