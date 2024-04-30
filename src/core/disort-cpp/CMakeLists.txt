@@ -40,7 +40,7 @@ add_dependencies(check-deps disort-cpp-test-8)
 add_dependencies(check-deps disort-cpp-test-9)
 add_dependencies(check-deps disort-cpp-test-11)
 
-
-# Test for Freddy's old implementation usage
-add_executable(test-old-impl test-old-impl.cpp)
-target_link_libraries(test-old-impl disort-cpp artstime cdisort)
+if (NOT ENABLE_ARTS_LGPL)
+  add_executable(test-old-impl test-old-impl.cpp)
+  target_link_libraries(test-old-impl disort-cpp artstime cdisort)
+endif ()

@@ -4,18 +4,18 @@
 #include <matpack.h>
 #include <matpack_eigen.h>
 
-#include <Eigen/Sparse>
 #include <algorithm>
+#include <iostream>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
 
-#include "Eigen/src/SparseCore/SparseUtil.h"
 #include "arts_constants.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "legendre.h"
 #include "lin_alg.h"
+#include "matpack_iter.h"
 
 namespace disort {
 void mathscr_v_add(ExhaustiveVectorView um,
@@ -65,79 +65,43 @@ void mathscr_v_add(ExhaustiveVectorView um,
   }
 }
 
-void solve_for_coefs(Tensor4& GC_collect,
-                     const Tensor4& G_collect,
-                     const Tensor3& K_collect,
-                     const Tensor3& B_collect,
-                     const Tensor3& G_inv_collect_0,
-                     const Matrix& source_poly_coeffs,
-                     const Matrix& b_pos,
-                     const Matrix& b_neg,
-                     const AscendingGrid& tau_arr,
-                     const Vector& scaled_tau_arr_with_0,
-                     const Vector& W,
-                     const Vector& mu_arr,
-                     const std::vector<BDRF>& brdf_fourier_modes,
-                     const Numeric mu0,
-                     const Numeric I0,
-                     const bool has_beam_source) {
+/** Solves the system of equations
+ * 
+ * Depends on:
+ * - G_collect 
+ * - K_collect 
+ * - B_collect 
+ * - G_inv_collect_0 
+ * - source_poly_coeffs 
+ * - b_pos 
+ * - b_neg 
+ * - tau_arr 
+ * - scaled_tau_arr_with_0 
+ * - brdf_fourier_modes 
+ * - mu0 
+ * - I0 
+ *
+ * Modifies:
+ * - GC_collect 
+ */
+void main_data::solve_for_coefs() {
   // DebugTime solve_for_coefs{"solve_for_coefs"};
 
-  const bool has_source_poly = not source_poly_coeffs.empty();
-
-  const Index NBDRF = brdf_fourier_modes.size();
-  const Index NFourier = G_collect.nbooks();
-  const Index NLayers = G_collect.npages();
-  const Index NQuad = G_collect.nrows();
-  const Index N = NQuad / 2;
-  const Index n = NQuad * NLayers;
-  const bool is_multilayer = NLayers > 1;
-
-  GC_collect.resize(NFourier, NLayers, NQuad, NQuad);
-
-  Matrix R(NBDRF ? N : 0, N);
-  Matrix mathscr_D_neg(NBDRF ? N : 0, N);
-  Vector mathscr_X_pos(NBDRF ? N : 0);
-
-  Vector b_pos_m(N);
-  Vector b_neg_m(N);
-
-  Matrix comp_matrix;
-  Vector mathscr_v_temporary(NQuad);
-
-  Vector RHS(n);
   auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
-
-  Matrix C_m(NLayers, NQuad);
-  Vector E_Lm1L(N);
-  Vector E_lm1l(N);
-  Vector E_llp1(N);
-
-  Vector BDRF_RHS_contribution(N);
-  Matrix BDRF_LHS_contribution_neg(N, N);
-  Matrix BDRF_LHS_contribution_pos(N, N);
-
-  Eigen::SparseMatrix<Numeric> LHS(n, n);
-
-  // FIXME: This is a guess, find true size:
-  std::vector<Eigen::Triplet<Numeric>> sparse_triplets;
-  sparse_triplets.reserve(n * NLayers);
 
   //! Factor 10 difference in speed between these two solvers, but the
   //! conjugate gradient solver is not as accurate as the LU solver.
   //! FIXME: Make a choice????
   // Eigen::SparseQR<Eigen::SparseMatrix<Numeric>, Eigen::COLAMDOrdering<int>>
-  Eigen::SparseLU<Eigen::SparseMatrix<Numeric>> solver;
 
   for (Index m = 0; m < NFourier; m++) {
     // DebugTime mloop{"mloop"};
-    const bool empty_lhs = sparse_triplets.empty();
+    const bool empty_lhs = LHS.nonZeros() == 0;
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
     const auto K_collect_m = K_collect[m];
-    const auto B_collect_m =
-        has_beam_source ? B_collect[m] : ExhaustiveConstMatrixView{};
+    const auto B_collect_m = B_collect[m];
 
     if (BDRF_bool) {
       brdf_fourier_modes[m](
@@ -189,8 +153,8 @@ void solve_for_coefs(Tensor4& GC_collect,
 
         if (is_multilayer) {
           for (Index l = 0; l < NLayers - 1; l++) {
-            mathscr_v_temporary = 0.0;
-            mathscr_v_add(mathscr_v_temporary,
+            jvec = 0.0;
+            mathscr_v_add(jvec,
                           comp_matrix,
                           tau_arr[l],
                           source_poly_coeffs[l],
@@ -198,10 +162,10 @@ void solve_for_coefs(Tensor4& GC_collect,
                           K_collect_m[l],
                           G_inv_collect_0[l],
                           mu_arr);
-            RHS(Range(l + N, NQuad, NLayers - 1)) = mathscr_v_temporary;
+            RHS(Range(l + N, NQuad, NLayers - 1)) = jvec;
 
-            mathscr_v_temporary = 0;
-            mathscr_v_add(mathscr_v_temporary,
+            jvec = 0;
+            mathscr_v_add(jvec,
                           comp_matrix,
                           tau_arr[l],
                           source_poly_coeffs[l + 1],
@@ -209,7 +173,7 @@ void solve_for_coefs(Tensor4& GC_collect,
                           K_collect_m[l + 1],
                           G_inv_collect_0[l + 1],
                           mu_arr);
-            RHS(Range(l + N, NQuad, NLayers - 1)) -= mathscr_v_temporary;
+            RHS(Range(l + N, NQuad, NLayers - 1)) -= jvec;
           }
         }
 
@@ -224,8 +188,8 @@ void solve_for_coefs(Tensor4& GC_collect,
                       mu_arr);
 
         if (NBDRF > 0) {
-          mathscr_v_temporary = RHS.slice(n - N, N);
-          mult(RHS.slice(n - N, N), R, mathscr_v_temporary, 1.0, 1.0);
+          jvec = RHS.slice(n - N, N);
+          mult(RHS.slice(n - N, N), R, jvec, 1.0, 1.0);
         }
       } else {
         RHS = 0.0;
@@ -419,59 +383,26 @@ void solve_for_coefs(Tensor4& GC_collect,
 
 Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
 
-void diagonalize(Tensor4& G_collect,
-                 Tensor3& K_collect,
-                 Tensor3& B_collect,
-                 Tensor3& G_inv_collect_0,
-                 const Index NFourier,
-                 const Matrix& weighted_scaled_Leg_coeffs,
-                 const Vector& scaled_omega_arr,
-                 const Vector& mu_arr,
-                 const Vector& M_inv,
-                 const Vector& W,
-                 const Numeric mu0,
-                 const Numeric I0,
-                 const bool has_beam_source,
-                 const bool has_source_poly) {
+/** Diagonalize the system of equations
+ * 
+ * Depends on:
+ * - weighted_scaled_Leg_coeffs 
+ * - scaled_omega_arr 
+ * - mu0 
+ * - I0
+ *
+ * Modifies:
+ * - G_collect 
+ * - K_collect 
+ * - B_collect 
+ * - G_inv_collect_0 
+ */
+void main_data::diagonalize() {
   // DebugTime diagonalize{"diagonalize"};
 
-  const Index NQuad = mu_arr.size();
-  const Index N = NQuad / 2;
-  const Index NLayers = scaled_omega_arr.size();
-  const Index NLeg = weighted_scaled_Leg_coeffs.ncols();
-
-  G_collect.resize(NFourier, NLayers, NQuad, NQuad);
-  K_collect.resize(NFourier, NLayers, NQuad);
-  B_collect.resize(NFourier, NLayers, NQuad);
-  G_inv_collect_0.resize(has_source_poly * NLayers, NQuad, NQuad);
-
-  Vector X_tilde(NQuad);
-
-  Vector fac(NLeg);
-  Vector weighted_asso_Leg_coeffs_l(NLeg);
-
-  Vector asso_leg_term_mu0(NLeg);
-  Matrix asso_leg_term_pos(N, NLeg);
-  Matrix asso_leg_term_neg(N, NLeg);
-
-  Matrix D_temp(N, NLeg);
-  Matrix D_pos(N, N);
-  Matrix D_neg(N, N);
-
-  Vector X_temp(NLeg);
-
-  Matrix apb(N, N);
-  Matrix amb(N, N);
-  Matrix sqr(N, N);
-
-  diagonalize_workdata diag_work(N);
-  inv_workdata inv_work(NQuad);
-
-  Matrix G_inv(NQuad, NQuad);
-
   // TimeStep dt_lloop, dt_diag_set, dt_diag_calc, dt_inv, dt_alpha_beta,
-      // dt_weighted_asso_Leg_coeffs_l, dt_D_vars, dt_all_asso_leg_term_pos,
-      // dt_has_beam_source_1, dt_has_beam_source_2, dt_lloop_all;
+  //     dt_weighted_asso_Leg_coeffs_l, dt_D_vars, dt_all_asso_leg_term_pos,
+  //     dt_has_beam_source_1, dt_has_beam_source_2, dt_lloop_all;
 
   // Time mloop_all{};
   for (Index m = 0; m < NFourier; m++) {
@@ -520,8 +451,7 @@ void diagonalize(Tensor4& G_collect,
         weighted_asso_Leg_coeffs_l[i] =
             weighted_scaled_Leg_coeffs(l, i + m) * fac[i];
       }
-      // dt_weighted_asso_Leg_coeffs_l =
-          // Time{} - t_weighted_asso_Leg_coeffs_l_start;
+      // dt_weighted_asso_Leg_coeffs_l = Time{} - t_weighted_asso_Leg_coeffs_l_start;
 
       const Numeric scaled_omega_l = scaled_omega_arr[l];
 
@@ -530,15 +460,15 @@ void diagonalize(Tensor4& G_collect,
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
-        // Time t_D_vars{};
+        Time t_D_vars{};
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
         mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
-       // dt_D_vars = Time{} - t_D_vars;
+        // dt_D_vars = Time{} - t_D_vars;
 
         if (has_beam_source) {
-          // Time t_has_beam_source_1{};
+          Time t_has_beam_source_1{};
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -554,7 +484,7 @@ void diagonalize(Tensor4& G_collect,
 
           mult(X_tilde.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
           X_tilde.slice(N, N) *= M_inv;
-        //  dt_has_beam_source_1 = Time{} - t_has_beam_source_1;
+          // dt_has_beam_source_1 = Time{} - t_has_beam_source_1;
         }
 
         // Time alpha_beta{};
@@ -570,12 +500,14 @@ void diagonalize(Tensor4& G_collect,
         amb -= sqr;
         mult(sqr, amb, apb);
 
-      //  dt_alpha_beta = Time{} - alpha_beta;
+        // dt_alpha_beta = Time{} - alpha_beta;
 
         // Time diag_calc{};
-        ::diagonalize_inplace(amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
+        //FIXME: The matrix produces real eigen values, a specialized solver might be good
+        ::diagonalize_inplace(
+            amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
         G(Range(0, N), Range(0, N)) = amb;
-      //  dt_diag_calc = Time{} - diag_calc;
+        // dt_diag_calc = Time{} - diag_calc;
 
         // Time diag_set{};
         for (Index i = 0; i < N; i++) {
@@ -599,7 +531,7 @@ void diagonalize(Tensor4& G_collect,
         G.slice(0, N) -= GmG;
         G.slice(N, N) += GmG;
 
-     //   dt_diag_set = Time{} - diag_set;
+        // dt_diag_set = Time{} - diag_set;
 
         // Get inverse by the layer
         // Time t_inv{};
@@ -611,22 +543,18 @@ void diagonalize(Tensor4& G_collect,
           G_inv = G;
           inv_inplace(G_inv, inv_work);
         }
-       // dt_inv = Time{} - t_inv;
+        // dt_inv = Time{} - t_inv;
 
         if (has_beam_source) {
           // Time has_beam{};
-          auto B = Bm[l];
-          for (Index pos = 0; pos < NQuad; pos++) {
-            B[pos] = 0.0;
-            for (Index j = 0; j < NQuad; j++) {
-              for (Index k = 0; k < NQuad; k++) {
-                B[pos] -=
-                    G(pos, j) / (1.0 / mu0 + K[j]) * G_inv(j, k) * X_tilde[k];
-              }
-            }
-          }
 
-        //  dt_has_beam_source_2 = Time{} - has_beam;
+          einsum<"j", "k", "jk">(jvec, X_tilde, G_inv);
+          for (Index j=0; j<NQuad; j++) {
+            jvec[j] /= (1.0 / mu0 + K[j]);
+          }
+          mult(Bm[l], G, jvec, -1);
+
+          // dt_has_beam_source_2 = Time{} - has_beam;
         }
       } else {
         auto G = Gm[l];
@@ -678,7 +606,7 @@ void diagonalize(Tensor4& G_collect,
     }
     // dt_lloop_all = Time{} - t_lloop_all;
 
-    // // // TimeStep dt_mloop = Time{} - mloop;
+    // // TimeStep dt_mloop = Time{} - mloop;
     // std::cout << "dt_mloop: " << dt_mloop
     //           << " or ratio: " << dt_mloop.count() / dt_mloop.count() << '\n';
     // std::cout << "dt_lloop_all: " << dt_lloop_all
@@ -690,142 +618,63 @@ void diagonalize(Tensor4& G_collect,
   // std::cout << "dt_mloop_all: " << Time{} - mloop_all << '\n';
 }
 
-main_data::main_data(const Index NQuad,
-                     const Index NLeg,
-                     const Index NFourier,
-                     AscendingGrid tau_arr_,
-                     const Vector& omega_arr,
-                     const Matrix& Leg_coeffs_all,
-                     const Matrix& b_pos,
-                     const Matrix& b_neg,
-                     Vector f_arr_,
-                     Matrix source_poly_coeffs_,
-                     const std::vector<BDRF>& brdf_fourier_modes,
-                     Numeric mu0_,
-                     Numeric I0_,
-                     Numeric phi0_)
-    : tau_arr(std::move(tau_arr_)),
-      f_arr(std::move(f_arr_)),
-      source_poly_coeffs(std::move(source_poly_coeffs_)),
-      mu0(mu0_),
-      I0(I0_),
-      phi0(phi0_),
-      has_beam_source(I0 > 0) {
-  // DebugTime dis{"main_data"};
-
-  const Index NLeg_all = Leg_coeffs_all.ncols();
-  const Index NLayers = tau_arr.size();
-  const Index N = NQuad / 2;
-
-  // Index correctness checks
-  ARTS_USER_ERROR_IF(NLeg <= 0, "NLeg must be positive");
-  ARTS_USER_ERROR_IF(NLeg > NLeg_all,
-                     "NLeg must be less than or equal to NLeg_all");
-  ARTS_USER_ERROR_IF(NQuad < 2, "NQuad must be at least 2");
-  ARTS_USER_ERROR_IF(NQuad % 2 != 0, "NQuad must be even");
-  ARTS_USER_ERROR_IF(NFourier <= 0, "NFourier must be positive");
-  ARTS_USER_ERROR_IF(NFourier > NLeg,
-                     "NFourier must be less than or equal to NLeg");
-  ARTS_USER_ERROR_IF(NQuad < NLeg,
-                     "NQuad must be at least NLeg (for accuracy reasons)");
-
-  // Input size checks
-  ARTS_USER_ERROR_IF(omega_arr.size() != NLayers, "omega_arr layers mismatch");
-  ARTS_USER_ERROR_IF(not(f_arr.size() == NLayers or f_arr.size() == 0),
-                     "f_arr layers mismatch");
-  ARTS_USER_ERROR_IF(Leg_coeffs_all.nrows() != NLayers,
-                     "Leg_coeffs_all layers mismatch");
-  ARTS_USER_ERROR_IF(
-      source_poly_coeffs.nrows() != NLayers and source_poly_coeffs.ncols() != 0,
-      "source_poly_coeffs shape mismatch");
-
-  if (b_pos.size() != 1) {
-    ARTS_USER_ERROR_IF((b_pos.shape() != std::array{N, NFourier}),
-                       "Bad shape for b_pos, should be (",
-                       N,
-                       ", ",
-                       NFourier,
-                       ") is ",
-                       matpack::shape_help<2>{b_pos.shape()})
-  }
-
-  if (b_neg.size() != 1) {
-    ARTS_USER_ERROR_IF((b_neg.shape() != std::array{N, NFourier}),
-                       "Bad shape for b_neg, should be (",
-                       N,
-                       ", ",
-                       NFourier,
-                       ") is ",
-                       matpack::shape_help<2>{b_neg.shape()})
-  }
-
-  // Value correctness checks
-  ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
-                     "tau_arr must be strictly positive");
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(omega_arr,
-                          [](auto&& omega) { return omega >= 1 or omega < 0; }),
-      "omega_arr must be [0, 1)");
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(Leg_coeffs_all,
-                          [](auto&& x) {
-                            return x[0] != 1 or
-                                   std::ranges::any_of(x, [](auto&& u) {
-                                     return std::abs<Numeric>(u) > 1;
-                                   });
-                          }),
-      "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere");
-  ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative");
-  ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1]");
-  ARTS_USER_ERROR_IF(phi0 < 0 and phi0 < Constant::two_pi,
-                     "phi0 must be [0, 2*pi)");
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
-      "f_arr must be [0, 1]");
-
-  // Memory allocation
-  scale_tau.resize(NLayers);
-  scaled_omega_arr.resize(NLayers);
-  scaled_tau_arr_with_0.resize(NLayers + 1);
-  W.resize(N);
-  mu_arr.resize(NQuad);
-  weighted_scaled_Leg_coeffs.resize(NLayers, NLeg);
-
-  // Quadrature points (FIXME: SHOULD THIS BE INPUT???)
-  Legendre::PositiveDoubleGaussLegendre(mu_arr.slice(0, N), W);
-  std::transform(
-      mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
-        return -x;
-      });
-
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
-          mu_arr.slice(0, N),
-          [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
-      "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0.");
-
-  Vector M_inv(N);
-  std::transform(
-      mu_arr.begin(), mu_arr.begin() + N, M_inv.begin(), [](auto&& x) {
-        return 1.0 / x;
-      });
-
-  // Legendre coefficients selection
-  weighted_Leg_coeffs_all = Leg_coeffs_all;
+/** Computes the IMS factors
+ * 
+ * Dependent on:
+ * - omega_arr
+ * - tau_arr
+ * - f_arr
+ * - mu0
+ * - Leg_coeffs_all
+ *
+ * Modifies:
+ * - scaled_mu0
+ * - Leg_coeffs_residue_avg
+ * - omega_avg
+ * - f_avg
+ */
+void main_data::set_ims_factors() {
+  const Numeric sum1 = omega_arr * tau_arr.vec();
+  omega_avg = sum1 / sum(tau_arr);
+  const Numeric sum2 = f_arr.empty() ? 0.0
+                                     : einsum<Numeric, "", "i", "i", "i">(
+                                           {}, f_arr, omega_arr, tau_arr);
+  f_avg = sum2 / sum1;
   for (Index i = 0; i < NLeg_all; i++) {
-    weighted_Leg_coeffs_all(joker, i) *= 2 * i + 1;
-  }
+    Numeric sum3 = 0.0;
+    if (not f_arr.empty()) {
+      if (i < NLeg) {
+        for (Index j = 0; j < NLayers; j++) {
+          sum3 += f_arr[j] * omega_arr[j] * tau_arr[j];
+        }
+      } else {
+        for (Index j = 0; j < NLayers; j++) {
+          sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
+        }
+      }
+    }
 
-  // Origin of I0
-  if ((b_pos.size() == 1 and b_pos(0, 0) == 0) and
-      source_poly_coeffs.empty() and has_beam_source) {
-    I0_orig = I0;
-    I0 = 1;
-  } else {
-    I0_orig = 1;
+    Leg_coeffs_residue_avg[i] = static_cast<Numeric>(2 * i + 1) *
+                                (2 * sum3 / sum2 - Math::pow2(sum3 / sum2));
   }
+  scaled_mu0 = mu0 / (1 - omega_avg * f_avg);
+}
 
-  // Scaling
+/** Set the scaled objects
+ *
+ * Dependent on:
+ * - omega_arr
+ * - tau_arr
+ * - f_arr
+ * - Leg_coeffs_all
+ *
+ * Modifies:
+ * - scale_tau
+ * - scaled_tau_arr_with_0
+ * - weighted_scaled_Leg_coeffs
+ * - scaled_omega_arr
+ */
+void main_data::set_scales() {
   if (not f_arr.empty()) {
     std::transform(omega_arr.begin(),
                    omega_arr.end(),
@@ -833,17 +682,13 @@ main_data::main_data(const Index NQuad,
                    scaled_omega_arr.begin(),
                    [](auto&& omega, auto&& f) { return 1.0 - omega * f; });
 
-    einsum<"i", "", "i", "i">(scale_tau, -1, omega_arr, f_arr);
-    scale_tau += 1;
+    for (Index i = 0; i < NLayers; i++) {
+      scale_tau[i] = 1.0 - omega_arr[i] * f_arr[i];
+    }
 
     scaled_tau_arr_with_0[0] = 0;
-
-    Numeric part = 0.0;
-    for (Index i = 0; i < NLayers; i++) {
-      part += scale_tau[i] *
-              (i == 0 ? tau_arr.front() : tau_arr[i] - tau_arr[i - 1]);
-      scaled_tau_arr_with_0[i + 1] = part;
-    }
+    einsum<"i", "i", "i">(
+        scaled_tau_arr_with_0.slice(1, NLayers), tau_arr, scale_tau);
 
     for (Index i = 0; i < NLayers; i++) {
       for (Index j = 0; j < NLeg; j++) {
@@ -863,67 +708,255 @@ main_data::main_data(const Index NQuad,
     weighted_scaled_Leg_coeffs = weighted_Leg_coeffs_all(joker, Range(0, NLeg));
     scaled_omega_arr = omega_arr;
   }
+}
 
-  // IMS
-  const Numeric sum1 = omega_arr * tau_arr.vec();
-  omega_avg = sum1 / sum(tau_arr);
-  const Numeric sum2 = f_arr.empty() ? 0.0
-                                     : einsum<Numeric, "", "i", "i", "i">(
-                                           {}, f_arr, omega_arr, tau_arr);
-  f_avg = sum2 / sum1;
-  Leg_coeffs_residue_avg.resize(NLeg_all);
-  for (Index i = 0; i < NLeg_all; i++) {
-    Numeric sum3 = 0.0;
-    if (not f_arr.empty()) {
-      if (i < NLeg) {
-        for (Index j = 0; j < NLayers; j++) {
-          sum3 += f_arr[j] * omega_arr[j] * tau_arr[j];
-        }
-      } else {
-        for (Index j = 0; j < NLayers; j++) {
-          sum3 += Leg_coeffs_all(j, i) * omega_arr[j] * tau_arr[j];
-        }
-      }
+/** Set the weighted Leg coeffs all object
+ * 
+ * Dependent on:
+ * - Leg_coeffs_all
+ *
+ * Modifies:
+ * - weighted_Leg_coeffs_all
+ */
+void main_data::set_weighted_Leg_coeffs_all() {
+  for (Index j = 0; j < NLayers; j++) {
+    for (Index i = 0; i < NLeg_all; i++) {
+      weighted_Leg_coeffs_all(joker, i) =
+          static_cast<Numeric>(2 * i + 1) * Leg_coeffs_all(j, i);
     }
-
-    Leg_coeffs_residue_avg[i] = sum3 / sum2;
-    Leg_coeffs_residue_avg[i] =
-        static_cast<Numeric>(2 * i + 1) *
-        (2 * Leg_coeffs_residue_avg[i] - Math::pow2(Leg_coeffs_residue_avg[i]));
   }
-  scaled_mu0 = mu0 / (1 - omega_avg * f_avg);
+}
 
-  diagonalize(G_collect,
-              K_collect,
-              B_collect,
-              G_inv_collect_0,
-              NFourier,
-              weighted_scaled_Leg_coeffs,
-              scaled_omega_arr,
-              mu_arr,
-              M_inv,
-              W,
-              mu0,
-              I0,
-              has_beam_source,
-              not source_poly_coeffs.empty());
+/** Set the beam origin
+ * 
+ * Dependent on:
+ * - b_pos
+ *
+ * Modifies:
+ * - I0_orig
+ * - I0
+ */
+void main_data::set_beam(const Numeric I0_) {
+  if ((b_pos.size() == 1 and b_pos(0, 0) == 0) and not has_source_poly and
+      has_beam_source) {
+    I0_orig = I0_;
+    I0 = 1;
+  } else {
+    I0_orig = 1;
+    I0 = I0_;
+  }
+}
 
-  solve_for_coefs(GC_collect,
-                  G_collect,
-                  K_collect,
-                  B_collect,
-                  G_inv_collect_0,
-                  source_poly_coeffs,
-                  b_pos,
-                  b_neg,
-                  tau_arr,
-                  scaled_tau_arr_with_0,
-                  W,
-                  mu_arr,
-                  brdf_fourier_modes,
-                  mu0,
-                  I0,
-                  has_beam_source);
+void main_data::check_input_size() const {
+  ARTS_USER_ERROR_IF(
+      tau_arr.size() != NLayers, tau_arr.size(), " vs ", NLayers);
+
+  ARTS_USER_ERROR_IF(
+      omega_arr.size() != NLayers, omega_arr.size(), " vs ", NLayers);
+
+  if (has_source_poly) {
+    ARTS_USER_ERROR_IF(
+        (source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
+        matpack::shape_help{source_poly_coeffs.shape()},
+        " vs (",
+        NLayers,
+        ", ",
+        Nscoeffs,
+        ')');
+  } else {
+    ARTS_USER_ERROR_IF(source_poly_coeffs.size() != 0,
+                       "source_poly_coeffs must be empty");
+  }
+
+  ARTS_USER_ERROR_IF(f_arr.size() != 0 and f_arr.size() != NLayers,
+                     f_arr.size(),
+                     " vs ",
+                     NLayers,
+                     " or 0");
+
+  ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
+                     " vs (",
+                     NLayers,
+                     ", ",
+                     NLeg_all,
+                     ")");
+
+  if (b_pos.size() != 1) {
+    ARTS_USER_ERROR_IF((b_pos.shape() != std::array{N, NFourier}),
+                       matpack::shape_help{b_pos.shape()},
+                       " vs (",
+                       N,
+                       ", ",
+                       NFourier,
+                       ')')
+  }
+
+  if (b_neg.size() != 1) {
+    ARTS_USER_ERROR_IF((b_neg.shape() != std::array{N, NFourier}),
+                       matpack::shape_help{b_neg.shape()},
+                       " vs (",
+                       N,
+                       ", ",
+                       NFourier,
+                       ')')
+  }
+
+  ARTS_USER_ERROR_IF(
+      brdf_fourier_modes.size() != static_cast<std::size_t>(NBDRF),
+      brdf_fourier_modes.size(),
+      " vs ",
+      NBDRF);
+}
+
+void main_data::check_input_value() const {
+  ARTS_USER_ERROR_IF(tau_arr.front() <= 0.0,
+                     "tau_arr must be strictly positive");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(omega_arr,
+                          [](auto&& omega) { return omega >= 1 or omega < 0; }),
+      "omega_arr must be [0, 1)");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(Leg_coeffs_all,
+                          [](auto&& x) {
+                            return x[0] != 1 or
+                                   std::ranges::any_of(x, [](auto&& u) {
+                                     return std::abs<Numeric>(u) > 1;
+                                   });
+                          }),
+      "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere");
+
+  ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative");
+
+  ARTS_USER_ERROR_IF(mu0 < 0 or mu0 > 1, "mu0 must be [0, 1]");
+
+  ARTS_USER_ERROR_IF(phi0 < 0 and phi0 < Constant::two_pi,
+                     "phi0 must be [0, 2*pi)");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(f_arr, [](auto&& x) { return x > 1 or x < 0; }),
+      "f_arr must be [0, 1]");
+
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          mu_arr.slice(0, N),
+          [mu = mu0](auto&& x) { return std::abs(x - mu) < 1e-8; }),
+      "mu0 in mu_arr, this creates a singularity.  Change NQuad or mu0.");
+}
+
+void main_data::update_all(const Numeric I0_) {
+  set_weighted_Leg_coeffs_all();
+  set_beam(I0);
+  set_scales();
+  set_ims_factors();
+  diagonalize();
+  solve_for_coefs();
+}
+
+main_data::main_data(const Index NQuad_,
+                     const Index NLeg_,
+                     const Index NFourier_,
+                     AscendingGrid tau_arr_,
+                     Vector omega_arr_,
+                     Matrix Leg_coeffs_all_,
+                     Matrix b_pos_,
+                     Matrix b_neg_,
+                     Vector f_arr_,
+                     Matrix source_poly_coeffs_,
+                     std::vector<BDRF> brdf_fourier_modes_,
+                     Numeric mu0_,
+                     Numeric I0_,
+                     Numeric phi0_)
+    : NLayers(tau_arr_.size()),
+      NQuad(NQuad_),
+      NLeg(NLeg_),
+      NFourier(NFourier_),
+      N(NQuad / 2),
+      Nscoeffs(source_poly_coeffs_.ncols()),
+      NLeg_all(Leg_coeffs_all_.ncols()),
+      NBDRF(brdf_fourier_modes_.size()),
+      has_beam_source(I0_ > 0),
+      has_source_poly(Nscoeffs > 0),
+      is_multilayer(NLayers > 1),
+      // User data
+      tau_arr(std::move(tau_arr_)),
+      omega_arr(std::move(omega_arr_)),
+      f_arr(std::move(f_arr_)),
+      source_poly_coeffs(std::move(source_poly_coeffs_)),
+      Leg_coeffs_all(std::move(Leg_coeffs_all_)),
+      b_pos(std::move(b_pos_)),
+      b_neg(std::move(b_neg_)),
+      brdf_fourier_modes(std::move(brdf_fourier_modes_)),
+      mu0(mu0_),
+      I0(I0_),
+      phi0(phi0_),
+      // Derived data
+      scale_tau(NLayers),
+      scaled_omega_arr(NLayers),
+      scaled_tau_arr_with_0(NLayers + 1),
+      mu_arr(NQuad),
+      W(N),
+      M_inv(N),
+      Leg_coeffs_residue_avg(NLeg_all),
+      weighted_scaled_Leg_coeffs(NLayers, NLeg),
+      weighted_Leg_coeffs_all(NLayers, NLeg_all),
+      GC_collect(NFourier, NLayers, NQuad, NQuad),
+      G_collect(NFourier, NLayers, NQuad, NQuad),
+      G_inv_collect_0(NLayers, NQuad, NQuad),
+      K_collect(NFourier, NLayers, NQuad),
+      B_collect(NFourier, NLayers, NQuad),
+      // Pure compute allocations
+      n(NQuad * NLayers),
+      RHS(n),
+      jvec(NQuad),
+      X_tilde(NQuad),
+      fac(NLeg),
+      weighted_asso_Leg_coeffs_l(NLeg),
+      asso_leg_term_mu0(NLeg),
+      X_temp(NLeg),
+      inv_work(NQuad),
+      diag_work(N),
+      mathscr_X_pos(N),
+      b_pos_m(N),
+      b_neg_m(N),
+      E_Lm1L(N),
+      E_lm1l(N),
+      E_llp1(N),
+      BDRF_RHS_contribution(N),
+      LHS(n, n),
+      comp_matrix(NQuad, Nscoeffs),
+      G_inv(NQuad, NQuad),
+      BDRF_LHS_contribution_neg(N, N),
+      BDRF_LHS_contribution_pos(N, N),
+      R(N, N),
+      mathscr_D_neg(N, N),
+      D_pos(N, N),
+      D_neg(N, N),
+      apb(N, N),
+      amb(N, N),
+      sqr(N, N),
+      asso_leg_term_pos(N, NLeg),
+      asso_leg_term_neg(N, NLeg),
+      D_temp(N, NLeg) {
+  // DebugTime dis{"main_data"};
+  sparse_triplets.reserve(n * NLayers);  // FIXME: compute correct values
+
+  Legendre::PositiveDoubleGaussLegendre(mu_arr.slice(0, N), W);
+
+  std::transform(
+      mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
+        return -x;
+      });
+
+  std::transform(
+      mu_arr.begin(), mu_arr.begin() + N, M_inv.begin(), [](auto&& x) {
+        return 1.0 / x;
+      });
+
+  check_input_size();
+  check_input_value();
+  update_all(I0_);
 }
 
 [[nodiscard]] Index main_data::tau_index(const Numeric tau) const {
@@ -939,10 +972,6 @@ void main_data::u(u_data& data,
                   const Numeric phi,
                   const bool return_fourier_error) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
-
-  const Index NFourier = fouriers();
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
 
   const Index l = tau_index(tau);
 
@@ -976,7 +1005,7 @@ void main_data::u(u_data& data,
                    });
   }
 
-  if (not source_poly_coeffs.empty()) {
+  if (has_source_poly) {
     mathscr_v_add(data.um[0],
                   data.mathscr_v_coeffs,
                   tau,
@@ -1023,9 +1052,6 @@ void main_data::u(u_data& data,
 void main_data::u0(u0_data& data, const Numeric tau) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
 
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
-
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1055,7 +1081,7 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                    });
   }
 
-  if (not source_poly_coeffs.empty()) {
+  if (has_source_poly) {
     mathscr_v_add(data.u0,
                   data.mathscr_v_compdata,
                   tau,
@@ -1096,10 +1122,6 @@ void main_data::TMS(tms_data& data,
                     const Numeric tau,
                     const Numeric phi) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
-
-  const Index NLayers = layers();
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
 
   const Index l = tau_index(tau);
 
@@ -1190,9 +1212,6 @@ void main_data::TMS(tms_data& data,
 void main_data::IMS(Vector& ims, const Numeric tau, const Numeric phi) const {
   ARTS_USER_ERROR_IF(tau < 0, "tau (", tau, ") must be positive");
 
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
-
   ims.resize(N);
   for (Index i = 0; i < N; i++) {
     const Numeric nu = calculate_nu(mu_arr[i + N], phi, -mu0, phi0);
@@ -1217,9 +1236,6 @@ void main_data::u_corr(u_data& u_data,
   IMS(ims, tau, phi);
   u(u_data, tau, phi, return_fourier_error);
 
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
-
   for (Index i = 0; i < N; i++) {
     u_data.intensities[i] += I0_orig * tms_data.TMS[i];
   }
@@ -1242,9 +1258,6 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
                      tau_arr.back(),
                      ")");
 
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
-
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1254,7 +1267,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
 
   data.mathscr_v.resize(NQuad);
   data.mathscr_v = 0.0;
-  if (not source_poly_coeffs.empty()) {
+  if (has_source_poly) {
     mathscr_v_add(data.mathscr_v,
                   data.mathscr_v_compdata,
                   tau,
@@ -1302,9 +1315,6 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
                      tau_arr.back(),
                      ")");
 
-  const Index NQuad = quads();
-  const Index N = NQuad / 2;
-
   const Index l = tau_index(tau);
 
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -1312,7 +1322,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   const Numeric scaled_tau =
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  if (not source_poly_coeffs.empty()) {
+  if (has_source_poly) {
     data.mathscr_v.resize(NQuad);
     data.mathscr_v = 0.0;
     mathscr_v_add(data.mathscr_v,

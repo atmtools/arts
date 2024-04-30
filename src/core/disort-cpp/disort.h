@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 
+#include <Eigen/Sparse>
 #include <functional>
 
 #include "matpack_view.h"
@@ -53,54 +54,100 @@ struct flux_data {
 };
 
 class main_data {
-  AscendingGrid tau_arr{};      // [NLayers]
-  Vector f_arr{};               // [NLayers] or [0]
-  Matrix source_poly_coeffs{};  // [Nscoeffs, NLayers] or [0, 0]
+  const Index NLayers;
+  const Index NQuad;
+  const Index NLeg;
+  const Index NFourier;
+  const Index N;
+  const Index Nscoeffs;
+  const Index NLeg_all;
+  const Index NBDRF;
+
+  const bool has_beam_source{};
+  const bool has_source_poly{};
+  const bool is_multilayer{};
+
+  //! User inputs
+  AscendingGrid tau_arr{};                 // [NLayers]
+  Vector omega_arr{};                      // [NLayers]
+  Vector f_arr{};                          // [NLayers] or [0]
+  Matrix source_poly_coeffs{};             // [NLayers, Nscoeffs] or [0, 0]
+  Matrix Leg_coeffs_all{};                 // [NLayers, NLeg_all]
+  Matrix b_pos{};                          // [1, 1] or [N, NFourier]
+  Matrix b_neg{};                          // [1, 1] or [N, NFourier]
+  std::vector<BDRF> brdf_fourier_modes{};  // [NBDRF]
   Numeric mu0{};
   Numeric I0{};
   Numeric phi0{};
 
-  bool has_beam_source{};
-
-  // When source function exists
-  Tensor3 G_inv_collect_0{};  // [NLayers, NQuad, NQuad]
-
-  // For all solvers
-  Tensor4 GC_collect{};            // [NFourier, NLayers, NQuad, NQuad]
-  Tensor4 G_collect{};             // [NFourier, NLayers, NQuad, NQuad]
-  Tensor3 K_collect{};             // [NFourier, NLayers, NQuad]
-  Tensor3 B_collect{};             // [NFourier, NLayers, NQuad]
-  Vector scale_tau{};              // [NLayers]
-  Vector scaled_tau_arr_with_0{};  // [NLayers + 1]
-  Vector mu_arr{};                 // [NQuad]
-  Numeric I0_orig{};
-
-  // For flux
-  Vector W{};  // [NQuad/2]
-
-  // For TMS
+  //! Derived values
+  Vector scale_tau{};                   // [NLayers]
   Vector scaled_omega_arr{};            // [NLayers]
+  Vector scaled_tau_arr_with_0{};       // [NLayers + 1]
+  Vector mu_arr{};                      // [NQuad]
+  Vector W{};                           // [N]
+  Vector M_inv{};                       // [N]
+  Vector Leg_coeffs_residue_avg{};      // [NLeg_all]
   Matrix weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
   Matrix weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
-
-  // For IMS
-  Vector Leg_coeffs_residue_avg{};  // [NLeg_all]
+  Tensor4 GC_collect{};                 // [NFourier, NLayers, NQuad, NQuad]
+  Tensor4 G_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
+  Tensor3 G_inv_collect_0{};            // [NLayers, NQuad, NQuad]
+  Tensor3 K_collect{};                  // [NFourier, NLayers, NQuad]
+  Tensor3 B_collect{};                  // [NFourier, NLayers, NQuad]
+  Numeric I0_orig{};
   Numeric f_avg{};
   Numeric omega_avg{};
   Numeric scaled_mu0{};
+
+  //! Internal compute data
+  const Index n;                        // NQuad * NLayers;
+  Vector RHS{};                         // [n]
+  Vector jvec{};                        // [NQuad]
+  Vector X_tilde{};                     // [NQuad]
+  Vector fac{};                         // [NLeg]
+  Vector weighted_asso_Leg_coeffs_l{};  // [NLeg]
+  Vector asso_leg_term_mu0{};           // [NLeg]
+  Vector X_temp{};                      // [NLeg]
+  inv_workdata inv_work{};              // [NQuad]
+  diagonalize_workdata diag_work{};     // [N]
+  Vector mathscr_X_pos{};               // [N]
+  Vector b_pos_m{};                     // [N]
+  Vector b_neg_m{};                     // [N]
+  Vector E_Lm1L{};                      // [N]
+  Vector E_lm1l{};                      // [N]
+  Vector E_llp1{};                      // [N]
+  Vector BDRF_RHS_contribution{};       // [N]
+  Eigen::SparseMatrix<Numeric> LHS{};   // [n, n]
+  Matrix comp_matrix;                   // [NQuad, Nscoeffs]
+  Matrix G_inv{};                       // [NQuad, NQuad]
+  Matrix BDRF_LHS_contribution_neg{};   // [N, N]
+  Matrix BDRF_LHS_contribution_pos{};   // [N, N]
+  Matrix R{};                           // [N, N]
+  Matrix mathscr_D_neg{};               // [N, N]
+  Matrix D_pos{};                       // [N, N]
+  Matrix D_neg{};                       // [N, N]
+  Matrix apb{};                         // [N, N]
+  Matrix amb{};                         // [N, N]
+  Matrix sqr{};                         // [N, N]
+  Matrix asso_leg_term_pos{};           // [N, NLeg]
+  Matrix asso_leg_term_neg{};           // [N, NLeg]
+  Matrix D_temp{};                      // [N, NLeg]
+  std::vector<Eigen::Triplet<Numeric>> sparse_triplets{};
+  Eigen::SparseLU<Eigen::SparseMatrix<Numeric>> solver{};
 
  public:
   main_data(const Index NQuad,
             const Index NLeg,
             const Index NFourier,
             AscendingGrid tau_arr,
-            const Vector& omega_arr,
-            const Matrix& Leg_coeffs_all,
-            const Matrix& b_pos,
-            const Matrix& b_neg,
+            Vector omega_arr,
+            Matrix Leg_coeffs_all,
+            Matrix b_pos,
+            Matrix b_neg,
             Vector f_arr,
             Matrix source_poly_coeffs,
-            const std::vector<BDRF>& brdf_fourier_modes,
+            std::vector<BDRF> brdf_fourier_modes,
             Numeric mu0,
             Numeric I0,
             Numeric phi0);
@@ -108,7 +155,9 @@ class main_data {
   [[nodiscard]] Index quads() const { return mu_arr.size(); }
   [[nodiscard]] Index fouriers() const { return GC_collect.nbooks(); }
   [[nodiscard]] Index layers() const { return tau_arr.size(); }
-  [[nodiscard]] Index legalls() const { return weighted_Leg_coeffs_all.ncols(); }
+  [[nodiscard]] Index legalls() const {
+    return weighted_Leg_coeffs_all.ncols();
+  }
   [[nodiscard]] Index scoeffs() const { return source_poly_coeffs.nrows(); }
 
   [[nodiscard]] Index tau_index(const Numeric tau) const;
@@ -134,5 +183,19 @@ class main_data {
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
   [[nodiscard]] std::pair<Numeric, Numeric> flux_down(flux_data&,
                                                       const Numeric tau) const;
+
+  void set_ims_factors();
+  void set_scales();
+  void diagonalize();
+  void solve_for_coefs();
+  void set_weighted_Leg_coeffs_all();
+  void set_beam(const Numeric I0);
+  void update_all(const Numeric I0);
+
+  void check_input_size() const;
+  void check_input_value() const;
+
+  ExhaustiveConstVectorView mu() const { return mu_arr; }
+  ExhaustiveConstVectorView tau() const { return tau_arr; }
 };
 }  // namespace disort
