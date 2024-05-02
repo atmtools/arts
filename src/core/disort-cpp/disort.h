@@ -4,6 +4,7 @@
 
 #include <functional>
 
+#include "lin_alg.h"
 #include "matpack_view.h"
 
 namespace disort {
@@ -21,16 +22,34 @@ struct BDRF {
   }
 };
 
+struct mathscr_v_data {
+  Matrix src;
+  Matrix G;
+  solve_workdata solve_work;
+  Vector k1, k2;
+  Vector cvec;
+  mathscr_v_data(const Index Nk = 0, const Index Nc = 0)
+      : src(Nk, Nc), G(Nk, Nk), solve_work(Nk), k1(Nk), k2(Nk), cvec(Nc) {}
+  void resize(const Index Nk, const Index Nc) {
+    src.resize(Nk, Nc);
+    G.resize(Nk, Nk);
+    solve_work.resize(Nk);
+    k1.resize(Nk);
+    k2.resize(Nk);
+    cvec.resize(Nc);
+  }
+};
+
 struct u_data {
   Matrix exponent;
   Matrix um;
-  Matrix mathscr_v_coeffs;
+  mathscr_v_data src;
   Vector intensities;
   Vector ulast;
 };
 
 struct u0_data {
-  Matrix mathscr_v_compdata;
+  mathscr_v_data src;
   Vector exponent;
   Vector u0;
 };
@@ -47,7 +66,7 @@ struct flux_data {
   Vector mathscr_v;
   Vector exponent;
   Vector direct_beam_contribution;
-  Matrix mathscr_v_compdata;
+  mathscr_v_data src;
   Vector u0_pos;
   Vector u0_neg;
 };
@@ -84,14 +103,13 @@ class main_data {
   Vector scaled_omega_arr{};            // [NLayers]
   Vector scaled_tau_arr_with_0{};       // [NLayers + 1]
   Vector mu_arr{};                      // [NQuad]
+  Vector inv_mu_arr{};                  // [NQuad]
   Vector W{};                           // [N]
-  Vector M_inv{};                       // [N]
   Vector Leg_coeffs_residue_avg{};      // [NLeg_all]
   Matrix weighted_scaled_Leg_coeffs{};  // [NLayers, NLeg]
   Matrix weighted_Leg_coeffs_all{};     // [NLayers, NLeg_all]
   Tensor4 GC_collect{};                 // [NFourier, NLayers, NQuad, NQuad]
   Tensor4 G_collect{};                  // [NFourier, NLayers, NQuad, NQuad]
-  Tensor3 G_inv_collect_0{};            // [NLayers, NQuad, NQuad]
   Tensor3 K_collect{};                  // [NFourier, NLayers, NQuad]
   Tensor3 B_collect{};                  // [NFourier, NLayers, NQuad]
   Numeric I0_orig{};
@@ -103,12 +121,11 @@ class main_data {
   const Index n;                        // NQuad * NLayers;
   Vector RHS{};                         // [n]
   Vector jvec{};                        // [NQuad]
-  Vector X_tilde{};                     // [NQuad]
   Vector fac{};                         // [NLeg]
   Vector weighted_asso_Leg_coeffs_l{};  // [NLeg]
   Vector asso_leg_term_mu0{};           // [NLeg]
   Vector X_temp{};                      // [NLeg]
-  inv_workdata inv_work{};              // [NQuad]
+  solve_workdata solve_work{};          // [NQuad]
   diagonalize_workdata diag_work{};     // [N]
   Vector mathscr_X_pos{};               // [N]
   Vector b_pos_m{};                     // [N]
@@ -118,20 +135,21 @@ class main_data {
   Vector E_llp1{};                      // [N]
   Vector BDRF_RHS_contribution{};       // [N]
   matpack::band_matrix LHSB;            // [n, n]
-  Matrix comp_matrix;                   // [NQuad, Nscoeffs]
-  Matrix G_inv{};                       // [NQuad, NQuad]
-  Matrix BDRF_LHS_contribution_neg{};   // [N, N]
-  Matrix BDRF_LHS_contribution_pos{};   // [N, N]
-  Matrix R{};                           // [N, N]
-  Matrix mathscr_D_neg{};               // [N, N]
-  Matrix D_pos{};                       // [N, N]
-  Matrix D_neg{};                       // [N, N]
-  Matrix apb{};                         // [N, N]
-  Matrix amb{};                         // [N, N]
-  Matrix sqr{};                         // [N, N]
-  Matrix asso_leg_term_pos{};           // [N, NLeg]
-  Matrix asso_leg_term_neg{};           // [N, NLeg]
-  Matrix D_temp{};                      // [N, NLeg]
+  mathscr_v_data
+      comp_data;  // [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
+  Matrix Gml{};                        // [NQuad, NQuad]
+  Matrix BDRF_LHS_contribution_neg{};  // [N, N]
+  Matrix BDRF_LHS_contribution_pos{};  // [N, N]
+  Matrix R{};                          // [N, N]
+  Matrix mathscr_D_neg{};              // [N, N]
+  Matrix D_pos{};                      // [N, N]
+  Matrix D_neg{};                      // [N, N]
+  Matrix apb{};                        // [N, N]
+  Matrix amb{};                        // [N, N]
+  Matrix sqr{};                        // [N, N]
+  Matrix asso_leg_term_pos{};          // [N, NLeg]
+  Matrix asso_leg_term_neg{};          // [N, NLeg]
+  Matrix D_temp{};                     // [N, NLeg]
 
  public:
   main_data(const Index NQuad,

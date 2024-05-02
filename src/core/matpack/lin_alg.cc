@@ -661,38 +661,42 @@ Numeric lsf(VectorView x,
   return 0;
 }
 
-std::vector<int> inplace_solve(Vector& X, Matrix& A) {
-  ARTS_ASSERT(A.nrows() == A.ncols());
-  ARTS_ASSERT(A.nrows() == X.size());
+void solve_inplace(ExhaustiveVectorView X,
+                   ExhaustiveMatrixView A,
+                   solve_workdata& wo) {
+  // Assert that A is quadratic.
+  const Index n = A.nrows();
+  ARTS_ASSERT(is_size(A, n, n));
 
-  int n = static_cast<int>(X.size());
-  int nrhs = 1;
+  char trans = 'N';
+  int n_int = static_cast<int>(n);
   int info{};
-  std::vector<int> ipiv(n);
+  int one = 1;
 
-  // DGESV computes the solution to a real system of linear equations
-  // A * X = B, where A is an N-by-N matrix and X and B are N-by-NRHS
-  // matrices.  Fortran requires the matrix to be column-major, so we
-  // need to transpose the matrix.
-  dgesv_(&n,
-         &nrhs,
-         inplace_transpose(A).data_handle(),
-         &n,
-         ipiv.data(),
-         X.data_handle(),
-         &n,
-         &info);
+  // Standard case: The arts matrix is not transposed, the leading
+  // dimension is the row stride of the matrix.
+  n_int = (int)n;
 
-  ARTS_USER_ERROR_IF(
-      info < 0, "dgesv: Argument ", -info, " has an illegal value.")
+  // Compute LU decomposition using LAPACK dgetrf_.
+  lapack::dgetrf_(&n_int,
+                  &n_int,
+                  inplace_transpose(A).data_handle(),
+                  &n_int,
+                  wo.ipiv.data(),
+                  &info);
 
-  ARTS_USER_ERROR_IF(
-      info > 0,
-      "dgesv: U(",
-      info,
-      ",",
-      info,
-      ") is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.")
+  lapack::dgetrs_(&trans,
+                  &n_int,
+                  &one,
+                  A.unsafe_data_handle(),
+                  &n_int,
+                  wo.ipiv.data(),
+                  X.data_handle(),
+                  &n_int,
+                  &info);
+}
 
-  return ipiv;
+void solve_inplace(ExhaustiveVectorView X, ExhaustiveMatrixView A) {
+  solve_workdata wo(A.ncols());
+  solve_inplace(X, A, wo);
 }

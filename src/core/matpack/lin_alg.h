@@ -25,16 +25,32 @@ void lubacksub(VectorView x,
 // Solve linear system
 void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
+struct solve_workdata {
+  std::size_t N{};
+  std::vector<int> ipiv{};
+  constexpr solve_workdata() = default;
+  constexpr solve_workdata(std::size_t N_) : N(N_), ipiv(N) {}
+  constexpr void resize(std::size_t N_) {
+    N = N_;
+    ipiv.resize(N);
+  }
+};
+
 /*! Solves A X = B inplace using dgesv.
   * 
   * Returns the Lapack ipiv array.
   *
   * @param[in,out] X   As equation, on input it is B on output is is X
   * @param[in]     A   As equation, it is destroyed on output (LU decomposition)
-  * @return The Lapack ipiv array, should be free to throw away
   * @throws If the system cannot be solved according to Lapack info
   */
-std::vector<int> inplace_solve(Vector& X, Matrix& A);
+void solve_inplace(ExhaustiveVectorView X,
+                   ExhaustiveMatrixView A,
+                   solve_workdata& wo);
+
+//! As above but allocates WO
+void solve_inplace(ExhaustiveVectorView X,
+                   ExhaustiveMatrixView A);
 
 struct inv_workdata {
   std::size_t N{};
@@ -42,6 +58,11 @@ struct inv_workdata {
   std::vector<Numeric> work{};
   constexpr inv_workdata() = default;
   constexpr inv_workdata(std::size_t N_) : N(N_), ipiv(N), work(N) {}
+  constexpr void resize(std::size_t N_) {
+    N = N_;
+    ipiv.resize(N);
+    work.resize(N);
+  }
 };
 
 // Matrix inverse

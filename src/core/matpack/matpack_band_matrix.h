@@ -28,4 +28,4 @@ public:
   //! Solves the system of equations A * x = b destructively
   int solve(Vector& bx);
 };
-};
+}  // namespace matpack

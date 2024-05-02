@@ -5,6 +5,7 @@
 #include <matpack_eigen.h>
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <numeric>
 #include <ranges>
@@ -19,51 +20,40 @@
 #include "matpack_iter.h"
 
 namespace disort {
-void mathscr_v_add(ExhaustiveVectorView um,
-                   Matrix& mathscr_v_coeffs,
-                   const Numeric tau,
-                   const ExhaustiveConstVectorView& source_poly_coeffs,
-                   const ExhaustiveConstMatrixView& G,
-                   const ExhaustiveConstVectorView& K,
-                   const ExhaustiveConstMatrixView& G_inv,
-                   const ExhaustiveConstVectorView& mu_arr) {
-  // DebugTime t{"mathscr_v_add"};
-  const Index Ni = G.nrows();
+void mathscr_v(ExhaustiveVectorView um,
+               mathscr_v_data& data,
+               const Numeric tau,
+               const ExhaustiveConstVectorView& source_poly_coeffs,
+               const ExhaustiveConstMatrixView& G,
+               const ExhaustiveConstVectorView& K,
+               const ExhaustiveConstVectorView& inv_mu,
+               const Index Ni0 = 0) {
+  const Index Ni = um.size();
   const Index Nk = G.ncols();
   const Index Nc = source_poly_coeffs.size();
-  const Index Nj = mu_arr.size();
 
-  mathscr_v_coeffs.resize(Nk, Nc);
-  mathscr_v_coeffs = 0.0;
+  for (Index c = 0; c < Nc; c++) {
+    data.cvec[c] = std::pow(tau, Nc - 1 - c);
+  }
+
+  data.src = 0.0;
   for (Index k = 0; k < Nk; k++) {
-    auto&& ck = mathscr_v_coeffs[k];
     for (Index i : std::ranges::iota_view(0, Nc)) {
-      auto&& cki = ck[i];
       for (Index j = 0; j <= i; j++) {
         const Numeric fs = (Legendre::factorial(Nc - 1 - j) /
                             Legendre::factorial(Nc - 1 - i)) *
                            source_poly_coeffs[1 - j];
-        cki += fs * std::pow(K[k], -(i - j + 1));
+        data.src(k, i) += fs * std::pow(K[k], -(i - j + 1));
       }
     }
   }
 
-  for (Index i = 0; i < Ni; i++) {
-    auto&& umi = um[i];
-    auto&& Gi = G[i];
-    for (Index k = 0; k < Nk; k++) {
-      auto&& Gik = Gi[k];
-      auto&& G_inv_k = G_inv[k];
-      auto&& ck = mathscr_v_coeffs[k];
-      for (Index c = 0; c < Nc; c++) {
-        auto&& ckc = ck[c];
-        const auto ptau = std::pow(tau, Nc - 1 - c);
-        for (Index j = 0; j < Nj; j++) {
-          umi += Gik * ptau * ckc * G_inv_k[j] / mu_arr[j];
-        }
-      }
-    }
-  }
+  std::copy(inv_mu.elem_begin(), inv_mu.elem_end(), data.k1.elem_begin());
+  std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
+  solve_inplace(data.k1, data.G, data.solve_work);
+  mult(data.k2, data.src, data.cvec);
+  data.k1 *= data.k2;
+  mult(um, G.slice(Ni0, Ni), data.k1);
 }
 
 /** Solves the system of equations
@@ -72,7 +62,6 @@ void mathscr_v_add(ExhaustiveVectorView um,
  * - G_collect 
  * - K_collect 
  * - B_collect 
- * - G_inv_collect_0 
  * - source_poly_coeffs 
  * - b_pos 
  * - b_neg 
@@ -86,8 +75,6 @@ void mathscr_v_add(ExhaustiveVectorView um,
  * - GC_collect 
  */
 void main_data::solve_for_coefs() {
-  // DebugTime solve_for_coefs{"solve_for_coefs"};
-
   auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
 
   //! Factor 10 difference in speed between these two solvers, but the
@@ -96,7 +83,6 @@ void main_data::solve_for_coefs() {
   // Eigen::SparseQR<Eigen::SparseMatrix<Numeric>, Eigen::COLAMDOrdering<int>>
 
   for (Index m = 0; m < NFourier; m++) {
-    // DebugTime mloop{"mloop"};
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -138,54 +124,47 @@ void main_data::solve_for_coefs() {
 
     // Fill RHS
     {
-      // DebugTime fill{"fill RHS"};
       if (has_source_poly and m_equals_0_bool) {
-        RHS.slice(0, N) = 0.0;
-        mathscr_v_add(RHS.slice(0, N),
-                      comp_matrix,
-                      0.0,
-                      source_poly_coeffs[0],
-                      G_collect_m[0].slice(N, N),
-                      K_collect_m[0],
-                      G_inv_collect_0[0],
-                      mu_arr);
+        mathscr_v(RHS.slice(0, N),
+                  comp_data,
+                  0.0,
+                  source_poly_coeffs[0],
+                  G_collect_m[0],
+                  K_collect_m[0],
+                  inv_mu_arr,
+                  N);
         RHS.slice(0, N) *= -1;
 
         if (is_multilayer) {
           for (Index l = 0; l < NLayers - 1; l++) {
-            jvec = 0.0;
-            mathscr_v_add(jvec,
-                          comp_matrix,
-                          tau_arr[l],
-                          source_poly_coeffs[l],
-                          G_collect_m[l],
-                          K_collect_m[l],
-                          G_inv_collect_0[l],
-                          mu_arr);
+            mathscr_v(jvec,
+                      comp_data,
+                      tau_arr[l],
+                      source_poly_coeffs[l],
+                      G_collect_m[l],
+                      K_collect_m[l],
+                      inv_mu_arr);
             RHS(Range(l + N, NQuad, NLayers - 1)) = jvec;
 
-            jvec = 0;
-            mathscr_v_add(jvec,
-                          comp_matrix,
-                          tau_arr[l],
-                          source_poly_coeffs[l + 1],
-                          G_collect_m[l + 1],
-                          K_collect_m[l + 1],
-                          G_inv_collect_0[l + 1],
-                          mu_arr);
+            mathscr_v(jvec,
+                      comp_data,
+                      tau_arr[l],
+                      source_poly_coeffs[l + 1],
+                      G_collect_m[l + 1],
+                      K_collect_m[l + 1],
+                      inv_mu_arr);
             RHS(Range(l + N, NQuad, NLayers - 1)) -= jvec;
           }
         }
 
-        RHS.slice(n - N, N) = 0;
-        mathscr_v_add(RHS.slice(n - N, N),
-                      comp_matrix,
-                      tau_arr.back(),
-                      source_poly_coeffs[NLayers - 1],
-                      G_collect_m[NLayers - 1].slice(N, N),
-                      K_collect_m[NLayers - 1],
-                      G_inv_collect_0[NLayers - 1],
-                      mu_arr);
+        mathscr_v(RHS.slice(n - N, N),
+                  comp_data,
+                  tau_arr.back(),
+                  source_poly_coeffs[NLayers - 1],
+                  G_collect_m[NLayers - 1],
+                  K_collect_m[NLayers - 1],
+                  inv_mu_arr,
+                  N);
 
         if (NBDRF > 0) {
           jvec = RHS.slice(n - N, N);
@@ -232,7 +211,6 @@ void main_data::solve_for_coefs() {
 
     // Fill LHS
     {
-      // DebugTime fill{"fill sparse-data"};
       const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
       const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
       const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
@@ -264,7 +242,7 @@ void main_data::solve_for_coefs() {
               G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
         }
       }
-      
+
       for (Index l = 0; l < NLayers - 1; l++) {
         const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
         const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -303,7 +281,7 @@ void main_data::solve_for_coefs() {
         }
       }
     }
-    
+
     LHSB.solve(RHS);
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
@@ -324,19 +302,9 @@ Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
  * - G_collect 
  * - K_collect 
  * - B_collect 
- * - G_inv_collect_0 
  */
 void main_data::diagonalize() {
-  // DebugTime diagonalize{"diagonalize"};
-
-  // TimeStep dt_lloop, dt_diag_set, dt_diag_calc, dt_inv, dt_alpha_beta,
-  //     dt_weighted_asso_Leg_coeffs_l, dt_D_vars, dt_all_asso_leg_term_pos,
-  //     dt_has_beam_source_1, dt_has_beam_source_2, dt_lloop_all;
-
-  // Time mloop_all{};
   for (Index m = 0; m < NFourier; m++) {
-    // Time mloop{};
-
     auto Km = K_collect[m];
     auto Gm = G_collect[m];
     auto Bm = B_collect[m];
@@ -371,33 +339,24 @@ void main_data::diagonalize() {
         std::all_of(asso_leg_term_pos.elem_begin(),
                     asso_leg_term_pos.elem_end(),
                     [](auto& x) { return std::isfinite(x); });
-    // Time t_lloop_all{};
     for (Index l = 0; l < NLayers; l++) {
-      // Time t_lloop{};
-
-      // Time t_weighted_asso_Leg_coeffs_l_start{};
       for (Index i = 0; i < NLeg - m; i++) {
         weighted_asso_Leg_coeffs_l[i] =
             weighted_scaled_Leg_coeffs(l, i + m) * fac[i];
       }
-      // dt_weighted_asso_Leg_coeffs_l = Time{} - t_weighted_asso_Leg_coeffs_l_start;
 
       const Numeric scaled_omega_l = scaled_omega_arr[l];
 
-      // Time t_all_asso_leg_term_pos{};
       if (all_asso_leg_term_pos_finite and
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
-        Time t_D_vars{};
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
         mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
-        // dt_D_vars = Time{} - t_D_vars;
 
         if (has_beam_source) {
-          Time t_has_beam_source_1{};
           einsum<"i", "i", "i", "">(
               X_temp,
               weighted_asso_Leg_coeffs_l,
@@ -405,21 +364,19 @@ void main_data::diagonalize() {
               (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
                (4 * Constant::pi)));
 
-          mult(X_tilde.slice(0, N).reshape_as(1, N),
+          mult(jvec.slice(0, N).reshape_as(1, N),
                xtemp,
                asso_leg_term_pos,
                -1);
-          X_tilde.slice(0, N) *= M_inv;
+          jvec.slice(0, N) *= inv_mu_arr.slice(0, N);
 
-          mult(X_tilde.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
-          X_tilde.slice(N, N) *= M_inv;
-          // dt_has_beam_source_1 = Time{} - t_has_beam_source_1;
+          mult(jvec.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
+          jvec.slice(N, N) *= inv_mu_arr.slice(0, N);
         }
 
-        // Time alpha_beta{};
-        einsum<"ij", "i", "ij", "j">(sqr, M_inv, D_neg, W);
-        einsum<"ij", "i", "ij", "j">(apb, M_inv, D_pos, W);
-        apb.diagonal() -= M_inv;
+        einsum<"ij", "i", "ij", "j">(sqr, inv_mu_arr.slice(0, N), D_neg, W);
+        einsum<"ij", "i", "ij", "j">(apb, inv_mu_arr.slice(0, N), D_pos, W);
+        apb.diagonal() -= inv_mu_arr.slice(0, N);
 
         auto K = Km[l];
         auto G = Gm[l];
@@ -429,16 +386,11 @@ void main_data::diagonalize() {
         amb -= sqr;
         mult(sqr, amb, apb);
 
-        // dt_alpha_beta = Time{} - alpha_beta;
-
-        // Time diag_calc{};
         //FIXME: The matrix produces real eigen values, a specialized solver might be good
         ::diagonalize_inplace(
             amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
         G(Range(0, N), Range(0, N)) = amb;
-        // dt_diag_calc = Time{} - diag_calc;
 
-        // Time diag_set{};
         for (Index i = 0; i < N; i++) {
           G[i].slice(0, N) *= 0.5;
           G[i].slice(N, N) = G[i].slice(0, N);
@@ -450,7 +402,7 @@ void main_data::diagonalize() {
           K[j + N] = sqrt_x;
         }
 
-        auto GmG = G_inv.slice(0, N);
+        auto GmG = Gml.slice(0, N);
         mult(GmG, apb, G.slice(0, N));
         for (Index j = 0; j < NQuad; j++) {
           GmG(joker, j) /= K[j];
@@ -460,30 +412,15 @@ void main_data::diagonalize() {
         G.slice(0, N) -= GmG;
         G.slice(N, N) += GmG;
 
-        // dt_diag_set = Time{} - diag_set;
-
-        // Get inverse by the layer
-        // Time t_inv{};
-        if (has_source_poly and m_equals_0_bool) {
-          G_inv = G;
-          inv_inplace(G_inv, inv_work);
-          G_inv_collect_0[l] = G_inv;
-        } else if (has_beam_source) {
-          G_inv = G;
-          inv_inplace(G_inv, inv_work);
-        }
-        // dt_inv = Time{} - t_inv;
-
         if (has_beam_source) {
-          // Time has_beam{};
+          std::copy(G.elem_begin(), G.elem_end(), Gml.elem_begin());
+          solve_inplace(jvec, Gml, solve_work);
 
-          einsum<"j", "k", "jk">(jvec, X_tilde, G_inv);
           for (Index j = 0; j < NQuad; j++) {
             jvec[j] /= (1.0 / mu0 + K[j]);
           }
-          mult(Bm[l], G, jvec, -1);
 
-          // dt_has_beam_source_2 = Time{} - has_beam;
+          mult(Bm[l], G, jvec, -1);
         }
       } else {
         auto G = Gm[l];
@@ -494,57 +431,9 @@ void main_data::diagonalize() {
         for (Index i = 0; i < NQuad; i++) {
           Km(l, i) = -1 / mu_arr[i];
         }
-
-        if (has_source_poly and m_equals_0_bool) {
-          G_inv_collect_0[l] = G;
-        }
       }
-
-      // dt_all_asso_leg_term_pos = Time{} - t_all_asso_leg_term_pos;
-      // dt_lloop = Time{} - t_lloop;
-      // std::cout << "dt_lloop: " << dt_lloop
-      //           << " or ratio: " << dt_lloop.count() / dt_lloop.count() << '\n';
-      // std::cout << "dt_weighted_asso_Leg_coeffs_l: "
-      //           << dt_weighted_asso_Leg_coeffs_l << " or ratio: "
-      //           << dt_weighted_asso_Leg_coeffs_l.count() / dt_lloop.count()
-      //           << '\n';
-      // std::cout << "dt_all_asso_leg_term_pos: " << dt_all_asso_leg_term_pos
-      //           << " or ratio: "
-      //           << dt_all_asso_leg_term_pos.count() / dt_lloop.count() << '\n';
-      // std::cout << "dt_D_vars: " << dt_D_vars
-      //           << " or ratio: " << dt_D_vars.count() / dt_lloop.count()
-      //           << '\n';
-      // std::cout << "dt_has_beam_source_1: " << dt_has_beam_source_1
-      //           << " or ratio: "
-      //           << dt_has_beam_source_1.count() / dt_lloop.count() << '\n';
-      // std::cout << "dt_has_beam_source_2: " << dt_has_beam_source_2
-      //           << " or ratio: "
-      //           << dt_has_beam_source_2.count() / dt_lloop.count() << '\n';
-      // std::cout << "dt_alpha_beta: " << dt_alpha_beta
-      //           << " or ratio: " << dt_alpha_beta.count() / dt_lloop.count()
-      //           << '\n';
-      // std::cout << "dt_diag_calc: " << dt_diag_calc
-      //           << " or ratio: " << dt_diag_calc.count() / dt_lloop.count()
-      //           << '\n';
-      // std::cout << "dt_diag_set: " << dt_diag_set
-      //           << " or ratio: " << dt_diag_set.count() / dt_lloop.count()
-      //           << '\n';
-      // std::cout << "dt_inv: " << dt_inv
-      //           << " or ratio: " << dt_inv.count() / dt_lloop.count() << '\n';
-      // std::cout << '\n';
     }
-    // dt_lloop_all = Time{} - t_lloop_all;
-
-    // // TimeStep dt_mloop = Time{} - mloop;
-    // std::cout << "dt_mloop: " << dt_mloop
-    //           << " or ratio: " << dt_mloop.count() / dt_mloop.count() << '\n';
-    // std::cout << "dt_lloop_all: " << dt_lloop_all
-    //           << " or ratio: " << dt_lloop_all.count() / dt_lloop_all.count()
-    //           << '\n';
-    // std::cout << '\n';
   }
-
-  // std::cout << "dt_mloop_all: " << Time{} - mloop_all << '\n';
 }
 
 /** Computes the IMS factors
@@ -825,26 +714,24 @@ main_data::main_data(const Index NQuad_,
       scaled_omega_arr(NLayers),
       scaled_tau_arr_with_0(NLayers + 1),
       mu_arr(NQuad),
+      inv_mu_arr(NQuad),
       W(N),
-      M_inv(N),
       Leg_coeffs_residue_avg(NLeg_all),
       weighted_scaled_Leg_coeffs(NLayers, NLeg),
       weighted_Leg_coeffs_all(NLayers, NLeg_all),
       GC_collect(NFourier, NLayers, NQuad, NQuad),
       G_collect(NFourier, NLayers, NQuad, NQuad),
-      G_inv_collect_0(NLayers, NQuad, NQuad),
       K_collect(NFourier, NLayers, NQuad),
       B_collect(NFourier, NLayers, NQuad),
       // Pure compute allocations
       n(NQuad * NLayers),
       RHS(n),
       jvec(NQuad),
-      X_tilde(NQuad),
       fac(NLeg),
       weighted_asso_Leg_coeffs_l(NLeg),
       asso_leg_term_mu0(NLeg),
       X_temp(NLeg),
-      inv_work(NQuad),
+      solve_work(NQuad),
       diag_work(N),
       mathscr_X_pos(N),
       b_pos_m(N),
@@ -853,9 +740,9 @@ main_data::main_data(const Index NQuad_,
       E_lm1l(N),
       E_llp1(N),
       BDRF_RHS_contribution(N),
-      LHSB(3*N-1, 3*N-1, n, n),
-      comp_matrix(NQuad, Nscoeffs),
-      G_inv(NQuad, NQuad),
+      LHSB(3 * N - 1, 3 * N - 1, n, n),
+      comp_data(NQuad, Nscoeffs),
+      Gml(NQuad, NQuad),
       BDRF_LHS_contribution_neg(N, N),
       BDRF_LHS_contribution_pos(N, N),
       R(N, N),
@@ -868,17 +755,14 @@ main_data::main_data(const Index NQuad_,
       asso_leg_term_pos(N, NLeg),
       asso_leg_term_neg(N, NLeg),
       D_temp(N, NLeg) {
-  // DebugTime dis{"main_data"};
-
   Legendre::PositiveDoubleGaussLegendre(mu_arr.slice(0, N), W);
 
   std::transform(
       mu_arr.begin(), mu_arr.begin() + N, mu_arr.begin() + N, [](auto&& x) {
         return -x;
       });
-
   std::transform(
-      mu_arr.begin(), mu_arr.begin() + N, M_inv.begin(), [](auto&& x) {
+      mu_arr.begin(), mu_arr.end(), inv_mu_arr.begin(), [](auto&& x) {
         return 1.0 / x;
       });
 
@@ -934,14 +818,16 @@ void main_data::u(u_data& data,
   }
 
   if (has_source_poly) {
-    mathscr_v_add(data.um[0],
-                  data.mathscr_v_coeffs,
-                  tau,
-                  source_poly_coeffs[l],
-                  G_collect[0][l],
-                  K_collect[0][l],
-                  G_inv_collect_0[l],
-                  mu_arr);
+    data.ulast.resize(NQuad);
+    data.src.resize(NQuad, Nscoeffs);
+    mathscr_v(data.ulast,
+              data.src,
+              tau,
+              source_poly_coeffs[l],
+              G_collect[0][l],
+              K_collect[0][l],
+              inv_mu_arr);
+    data.um[0] += data.ulast;
   }
 
   data.intensities.resize(NQuad);
@@ -996,8 +882,21 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
   }
 
   data.u0.resize(NQuad);
-  einsum<"i", "ij", "j">(
-      data.u0, GC_collect(0, l, joker, joker), data.exponent);
+  if (has_source_poly) {
+    data.src.resize(NQuad, Nscoeffs);
+    mathscr_v(data.u0,
+              data.src,
+              tau,
+              source_poly_coeffs[l],
+              G_collect[0][l],
+              K_collect[0][l],
+              inv_mu_arr);
+  } else {
+    data.u0 = 0.0;
+  }
+
+  mult(data.u0, GC_collect(0, l, joker, joker), data.exponent, 1.0, 1.0);
+
   if (has_beam_source) {
     const auto tmp = B_collect(0, l, joker);
     std::transform(tmp.elem_begin(),
@@ -1007,17 +906,6 @@ void main_data::u0(u0_data& data, const Numeric tau) const {
                    [scl = std::exp(-scaled_tau / mu0)](auto&& x, auto&& y) {
                      return scl * x + y;
                    });
-  }
-
-  if (has_source_poly) {
-    mathscr_v_add(data.u0,
-                  data.mathscr_v_compdata,
-                  tau,
-                  source_poly_coeffs[l],
-                  G_collect[0][l],
-                  K_collect[0][l],
-                  G_inv_collect_0[l],
-                  mu_arr);
   }
 
   data.u0 *= I0_orig;
@@ -1194,16 +1082,17 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   data.mathscr_v.resize(NQuad);
-  data.mathscr_v = 0.0;
   if (has_source_poly) {
-    mathscr_v_add(data.mathscr_v,
-                  data.mathscr_v_compdata,
-                  tau,
-                  source_poly_coeffs[l],
-                  G_collect[0][l],
-                  K_collect[0][l],
-                  G_inv_collect_0[l],
-                  mu_arr);
+    data.src.resize(NQuad, Nscoeffs);
+    mathscr_v(data.mathscr_v,
+              data.src,
+              tau,
+              source_poly_coeffs[l],
+              G_collect[0][l],
+              K_collect[0][l],
+              inv_mu_arr);
+  } else {
+    data.mathscr_v = 0.0;
   }
 
   data.direct_beam_contribution.resize(N);
@@ -1251,16 +1140,15 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
   if (has_source_poly) {
+    data.src.resize(NQuad, Nscoeffs);
     data.mathscr_v.resize(NQuad);
-    data.mathscr_v = 0.0;
-    mathscr_v_add(data.mathscr_v,
-                  data.mathscr_v_compdata,
-                  tau,
-                  source_poly_coeffs[l],
-                  G_collect[0][l],
-                  K_collect[0][l],
-                  G_inv_collect_0[l],
-                  mu_arr);
+    mathscr_v(data.mathscr_v,
+              data.src,
+              tau,
+              source_poly_coeffs[l],
+              G_collect[0][l],
+              K_collect[0][l],
+              inv_mu_arr);
     data.mathscr_v.slice(0, N) = data.mathscr_v.slice(N, N);
     data.mathscr_v.resize(N);
   } else {
