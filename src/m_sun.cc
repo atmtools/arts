@@ -190,6 +190,29 @@ void sunsAddSingleFromGridAtLocation(
 
 }
 
+void sunsChangeGeometry(ArrayOfSun &suns,
+                         // Inputs:
+                         const Numeric &radius,
+                         const Numeric &distance,
+                         const Numeric &latitude,
+                         const Numeric &longitude,
+                         const Index &sun_index,
+                         const Verbosity &)
+{
+
+  if (radius > 0) suns[sun_index].radius=radius;
+  if (distance > 0) suns[sun_index].distance=distance;
+
+  //some sanity checks
+  ARTS_USER_ERROR_IF (distance<radius,
+                      "The distance to the center of the sun (",distance," m) \n"
+                     " is smaller than the radius of the sun (", radius," m )")
+
+  if (latitude > -999) suns[sun_index].latitude=latitude;
+  if (longitude > -999) suns[sun_index].latitude=longitude;
+}
+
+
 void sunsOff(Index &suns_do,
              ArrayOfSun &suns,
              const Verbosity &){

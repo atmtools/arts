@@ -19770,7 +19770,28 @@ where N>=0 and the species name is something line "H2O".
                "The description of the sun. ",
                "The latitude of the sun spectrum measurement. ",
                "The longitude of the sun spectrum measurement. ",
-               "The altitude of the sun spectrum measurement. ")));  
+               "The altitude of the sun spectrum measurement. ")));
+
+  md_data_raw.push_back(create_mdrecord(
+        NAME("sunsChangeGeometry"),
+        DESCRIPTION(
+            "Change the geometry of desired sun\n"),
+        AUTHORS("Manfred Brath"),
+        OUT("suns"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN("radius","distance","latitude","longitude","index"),
+        GIN_TYPE("Numeric","Numeric","Numeric","Numeric","Index"),
+        GIN_DEFAULT("-999","-999","-999","-999",NODEF),
+        GIN_DESC("The radius of the sun in meter. "
+                 "Default is the radius of our Sun. ",
+                 "The distance between the location and the  "
+                 "center of the sun in meter.",
+                 "The latitude or the zenith position of the sun in the sky.",
+                 "The longitude or azimuthal position of the sun in the sky.",
+                 "The index of the sun to change.")));
       
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsOff"),
