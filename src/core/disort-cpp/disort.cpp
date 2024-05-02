@@ -20,7 +20,7 @@
 #include "matpack_iter.h"
 
 namespace disort {
-void mathscr_v(ExhaustiveVectorView um,
+void mathscr_v(auto&& um,
                mathscr_v_data& data,
                const Numeric tau,
                const ExhaustiveConstVectorView& source_poly_coeffs,
@@ -77,12 +77,11 @@ void mathscr_v(ExhaustiveVectorView um,
 void main_data::solve_for_coefs() {
   auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
 
-  //! Factor 10 difference in speed between these two solvers, but the
-  //! conjugate gradient solver is not as accurate as the LU solver.
-  //! FIXME: Make a choice????
-  // Eigen::SparseQR<Eigen::SparseMatrix<Numeric>, Eigen::COLAMDOrdering<int>>
+  TimeStep dtm{}, dtcollec{}, dtsolv{}, dtlhs{}, dtrhs{}, dtstart{};
 
+  Time total{};
   for (Index m = 0; m < NFourier; m++) {
+    Time tm{};
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -122,8 +121,11 @@ void main_data::solve_for_coefs() {
       b_neg_m = b_neg(joker, m);
     }
 
+    dtstart = Time{} - tm;
+
     // Fill RHS
     {
+      Time trhs{};
       if (has_source_poly and m_equals_0_bool) {
         mathscr_v(RHS.slice(0, N),
                   comp_data,
@@ -137,14 +139,13 @@ void main_data::solve_for_coefs() {
 
         if (is_multilayer) {
           for (Index l = 0; l < NLayers - 1; l++) {
-            mathscr_v(jvec,
+            mathscr_v(RHS(Range(l + N, NQuad, NLayers - 1)),
                       comp_data,
                       tau_arr[l],
                       source_poly_coeffs[l],
                       G_collect_m[l],
                       K_collect_m[l],
                       inv_mu_arr);
-            RHS(Range(l + N, NQuad, NLayers - 1)) = jvec;
 
             mathscr_v(jvec,
                       comp_data,
@@ -207,10 +208,13 @@ void main_data::solve_for_coefs() {
         RHS.slice(0, N) += b_neg_m;
         RHS.slice(n - N, N) += b_pos_m;
       }
+
+      dtrhs = Time{} - trhs;
     }
 
     // Fill LHS
     {
+      Time dlhs{};
       const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
       const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
       const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
@@ -280,12 +284,31 @@ void main_data::solve_for_coefs() {
           }
         }
       }
+      dtlhs = Time{} - dlhs;
     }
 
+    Time solv{};
     LHSB.solve(RHS);
+    dtsolv = Time{} - solv;
+
+    Time collec{};
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
+    dtcollec = Time{} - collec;
+
+    dtm = Time{} - tm;
+
+
+    const auto ratio = [](TimeStep a, TimeStep b) { return std::round(1000 * a / b)/ 10; };
+    std::cout << "Total m-time: " << dtm << '\n';
+    std::cout << "Ratio in START: " << ratio(dtstart, dtm) << '%' << '\n';
+    std::cout << "Ratio in RHS:   " << ratio(dtrhs, dtm) << '%' << '\n';
+    std::cout << "Ratio in LHS:   " << ratio(dtlhs, dtm) << '%' << '\n';
+    std::cout << "Ratio in SOLVE: " << ratio(dtsolv, dtm) << '%' << '\n';
+    std::cout << "Ratio in GCCOL: " << ratio(dtcollec, dtm) << '%' << '\n';
   }
+  
+  std::cout << "Total time: " << Time{} - total << '\n';
 }
 
 Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
@@ -1081,7 +1104,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   const Numeric scaled_tau =
       scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
 
-  data.mathscr_v.resize(NQuad);
+  data.mathscr_v.resize(N);
   if (has_source_poly) {
     data.src.resize(NQuad, Nscoeffs);
     mathscr_v(data.mathscr_v,
@@ -1115,7 +1138,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   data.u0_pos.resize(N);
   einsum<"i", "ij", "j">(
       data.u0_pos, GC_collect(0, l, Range(0, N), joker), data.exponent);
-  data.u0_pos += data.mathscr_v.slice(0, N);
+  data.u0_pos += data.mathscr_v;
   data.u0_pos += data.direct_beam_contribution;
 
   return einsum<Numeric, "", "", "i", "i", "i">(
