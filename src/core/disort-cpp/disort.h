@@ -2,7 +2,6 @@
 
 #include <matpack.h>
 
-#include <Eigen/Sparse>
 #include <functional>
 
 #include "matpack_view.h"
@@ -118,7 +117,7 @@ class main_data {
   Vector E_lm1l{};                      // [N]
   Vector E_llp1{};                      // [N]
   Vector BDRF_RHS_contribution{};       // [N]
-  Eigen::SparseMatrix<Numeric> LHS{};   // [n, n]
+  matpack::band_matrix LHSB;            // [n, n]
   Matrix comp_matrix;                   // [NQuad, Nscoeffs]
   Matrix G_inv{};                       // [NQuad, NQuad]
   Matrix BDRF_LHS_contribution_neg{};   // [N, N]
@@ -133,8 +132,6 @@ class main_data {
   Matrix asso_leg_term_pos{};           // [N, NLeg]
   Matrix asso_leg_term_neg{};           // [N, NLeg]
   Matrix D_temp{};                      // [N, NLeg]
-  std::vector<Eigen::Triplet<Numeric>> sparse_triplets{};
-  Eigen::SparseLU<Eigen::SparseMatrix<Numeric>> solver{};
 
  public:
   main_data(const Index NQuad,

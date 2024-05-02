@@ -151,7 +151,7 @@ void inv_inplace(ExhaustiveMatrixView A, inv_workdata& wo) {
 
   // A must be a square matrix.
   ARTS_ASSERT(n == A.nrows());
-  ARTS_ASSERT(n == wo.N);
+  ARTS_ASSERT(n == static_cast<Index>(wo.N));
 
   int info;
   int n_int = (int)n;
@@ -248,7 +248,7 @@ void diagonalize_inplace(ExhaustiveMatrixView P,
   ARTS_ASSERT(n == WI.nelem());
   ARTS_ASSERT(n == P.nrows());
   ARTS_ASSERT(n == P.ncols());
-  ARTS_ASSERT(n == wo.N);
+  ARTS_ASSERT(n == static_cast<Index>(wo.N));
 
   inplace_transpose(A);
 

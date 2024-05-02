@@ -269,3 +269,10 @@ add_executable(test_einsum_perf test_einsum_perf.cc)
 target_link_libraries(test_einsum_perf PUBLIC matpack artstime)
 add_test(NAME "cpp.fast.test_einsum_perf" COMMAND test_einsum_perf)
 add_dependencies(check-deps test_einsum_perf)
+
+
+# ####
+add_executable(test_band_matrix_solver test_band_matrix_solver.cc)
+target_link_libraries(test_band_matrix_solver PUBLIC matpack lapack)
+add_test(NAME "cpp.fast.test_band_matrix_solver" COMMAND test_band_matrix_solver)
+add_dependencies(check-deps test_band_matrix_solver)

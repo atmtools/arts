@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
@@ -96,7 +97,6 @@ void main_data::solve_for_coefs() {
 
   for (Index m = 0; m < NFourier; m++) {
     // DebugTime mloop{"mloop"};
-    const bool empty_lhs = LHS.nonZeros() == 0;
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -253,40 +253,18 @@ void main_data::solve_for_coefs() {
         BDRF_LHS_contribution_pos = 0;
       }
 
-      if (empty_lhs) {
-        for (Index i = 0; i < N; i++) {
-          for (Index j = 0; j < N; j++) {
-            sparse_triplets.emplace_back(i, j, G_collect_m(0, N + i, j));
-            sparse_triplets.emplace_back(
-                i,
-                N + j,
-                G_0_np(i, j) *
-                    std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]));
-            sparse_triplets.emplace_back(
-                n - N + i,
-                n - 2 * N + j,
-                (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j]);
-            sparse_triplets.emplace_back(
-                n - N + i,
-                n - N + j,
-                G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j));
-          }
-        }
-      } else {
-        for (Index i = 0; i < N; i++) {
-          for (Index j = 0; j < N; j++) {
-            LHS.coeffRef(i, j) = G_collect_m(0, N + i, j);
-            LHS.coeffRef(i, N + j) =
-                G_0_np(i, j) *
-                std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
-            LHS.coeffRef(n - N + i, n - 2 * N + j) =
-                (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
-            LHS.coeffRef(n - N + i, n - N + j) =
-                G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
-          }
+      for (Index i = 0; i < N; i++) {
+        for (Index j = 0; j < N; j++) {
+          LHSB(i, j) = G_collect_m(0, N + i, j);
+          LHSB(i, N + j) = G_0_np(i, j) * std::exp(K_collect_m(0, j) *
+                                                   scaled_tau_arr_with_0[1]);
+          LHSB(n - N + i, n - 2 * N + j) =
+              (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
+          LHSB(n - N + i, n - N + j) =
+              G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
         }
       }
-
+      
       for (Index l = 0; l < NLayers - 1; l++) {
         const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
         const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
@@ -302,82 +280,33 @@ void main_data::solve_for_coefs() {
               std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
         }
 
-        if (empty_lhs) {
-          for (Index i = 0; i < N; i++) {
-            for (Index j = 0; j < N; j++) {
-              sparse_triplets.emplace_back(N + l * NQuad + i,
-                                           l * NQuad + j,
-                                           G_collect_m(l, i, j) * E_lm1l[j]);
-              sparse_triplets.emplace_back(
-                  2 * N + l * NQuad + i,
-                  l * NQuad + j,
-                  G_collect_m(l, N + i, j) * E_lm1l[j]);
-              sparse_triplets.emplace_back(
-                  N + l * NQuad + i,
-                  l * NQuad + 2 * NQuad - N + j,
-                  -G_collect_m(l + 1, i, N + j) * E_llp1[j]);
-              sparse_triplets.emplace_back(
-                  2 * N + l * NQuad + i,
-                  l * NQuad + 2 * NQuad - N + j,
-                  -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j]);
-            }
+        for (Index i = 0; i < N; i++) {
+          for (Index j = 0; j < N; j++) {
+            LHSB(N + l * NQuad + i, l * NQuad + j) =
+                G_collect_m(l, i, j) * E_lm1l[j];
+            LHSB(2 * N + l * NQuad + i, l * NQuad + j) =
+                G_collect_m(l, N + i, j) * E_lm1l[j];
+            LHSB(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
+                -G_collect_m(l + 1, i, N + j) * E_llp1[j];
+            LHSB(2 * N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
+                -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j];
           }
+        }
 
-          for (Index i = 0; i < NQuad; i++) {
-            for (Index j = 0; j < N; j++) {
-              sparse_triplets.emplace_back(N + l * NQuad + i,
-                                           l * NQuad + N + j,
-                                           G_collect_m(l, i, N + j));
-              sparse_triplets.emplace_back(N + l * NQuad + i,
-                                           l * NQuad + 2 * N + j,
-                                           -G_collect_m(l + 1, i, j));
-            }
-          }
-        } else {
-          for (Index i = 0; i < N; i++) {
-            for (Index j = 0; j < N; j++) {
-              LHS.coeffRef(N + l * NQuad + i, l * NQuad + j) =
-                  G_collect_m(l, i, j) * E_lm1l[j];
-              LHS.coeffRef(2 * N + l * NQuad + i, l * NQuad + j) =
-                  G_collect_m(l, N + i, j) * E_lm1l[j];
-              LHS.coeffRef(N + l * NQuad + i, l * NQuad + 2 * NQuad - N + j) =
-                  -G_collect_m(l + 1, i, N + j) * E_llp1[j];
-              LHS.coeffRef(2 * N + l * NQuad + i,
-                           l * NQuad + 2 * NQuad - N + j) =
-                  -1 * G_collect_m(l + 1, N + i, N + j) * E_llp1[j];
-            }
-          }
-
-          for (Index i = 0; i < NQuad; i++) {
-            for (Index j = 0; j < N; j++) {
-              LHS.coeffRef(N + l * NQuad + i, l * NQuad + N + j) =
-                  G_collect_m(l, i, N + j);
-              LHS.coeffRef(N + l * NQuad + i, l * NQuad + 2 * N + j) =
-                  -G_collect_m(l + 1, i, j);
-            }
+        for (Index i = 0; i < NQuad; i++) {
+          for (Index j = 0; j < N; j++) {
+            LHSB(N + l * NQuad + i, l * NQuad + N + j) =
+                G_collect_m(l, i, N + j);
+            LHSB(N + l * NQuad + i, l * NQuad + 2 * N + j) =
+                -G_collect_m(l + 1, i, j);
           }
         }
       }
     }
-
-    if (empty_lhs) {
-      // DebugTime fill{"copy sparse-data"};
-      LHS.setFromTriplets(sparse_triplets.begin(), sparse_triplets.end());
-      solver.analyzePattern(LHS);
-    }
-
-    {
-      // DebugTime fill{"solve sparse-problem"};
-      solver.factorize(LHS);
-      matpack::eigen::as_eigen(RHS).noalias() =
-          solver.solve(matpack::eigen::as_eigen(RHS));
-    }
-
-    {
-      // DebugTime fill{"finalize"};
-      einsum<"ijm", "ijm", "im">(
-          GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
-    }
+    
+    LHSB.solve(RHS);
+    einsum<"ijm", "ijm", "im">(
+        GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
   }
 }
 
@@ -549,7 +478,7 @@ void main_data::diagonalize() {
           // Time has_beam{};
 
           einsum<"j", "k", "jk">(jvec, X_tilde, G_inv);
-          for (Index j=0; j<NQuad; j++) {
+          for (Index j = 0; j < NQuad; j++) {
             jvec[j] /= (1.0 / mu0 + K[j]);
           }
           mult(Bm[l], G, jvec, -1);
@@ -847,7 +776,7 @@ void main_data::check_input_value() const {
 
 void main_data::update_all(const Numeric I0_) {
   set_weighted_Leg_coeffs_all();
-  set_beam(I0);
+  set_beam(I0_);
   set_scales();
   set_ims_factors();
   diagonalize();
@@ -924,7 +853,7 @@ main_data::main_data(const Index NQuad_,
       E_lm1l(N),
       E_llp1(N),
       BDRF_RHS_contribution(N),
-      LHS(n, n),
+      LHSB(3*N-1, 3*N-1, n, n),
       comp_matrix(NQuad, Nscoeffs),
       G_inv(NQuad, NQuad),
       BDRF_LHS_contribution_neg(N, N),
@@ -940,7 +869,6 @@ main_data::main_data(const Index NQuad_,
       asso_leg_term_neg(N, NLeg),
       D_temp(N, NLeg) {
   // DebugTime dis{"main_data"};
-  sparse_triplets.reserve(n * NLayers);  // FIXME: compute correct values
 
   Legendre::PositiveDoubleGaussLegendre(mu_arr.slice(0, N), W);
 

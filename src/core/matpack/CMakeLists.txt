@@ -2,6 +2,7 @@ add_library(matpack STATIC
   double_imanip.cc
   lin_alg.cc
   logic.cc
+  matpack_band_matrix.cc
   matpack_math.cc
   matpack_sparse.cc
   rational.cc
