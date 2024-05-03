@@ -16,7 +16,6 @@
 
 #ifdef TIMEIT
 #include <artstime.h>
-
 #include <iostream>
 #define TIMEMACRO(x) x
 #else
@@ -340,6 +339,8 @@ Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
  * - B_collect 
  */
 void main_data::diagonalize() {
+  auto GmG = Gml.slice(0, N);
+
   TIMEMACRO(Numeric dtm{});
   TIMEMACRO(Numeric dtstart{});
   TIMEMACRO(Numeric dtspecial{});
@@ -461,7 +462,6 @@ void main_data::diagonalize() {
           K[j + N] = sqrt_x;
         }
 
-        auto GmG = Gml.slice(0, N);
         mult(GmG, apb, G.slice(0, N));
         for (Index j = 0; j < NQuad; j++) {
           GmG(joker, j) /= K[j];
