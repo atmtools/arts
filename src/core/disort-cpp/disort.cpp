@@ -16,6 +16,7 @@
 
 #ifdef TIMEIT
 #include <artstime.h>
+
 #include <iostream>
 #define TIMEMACRO(x) x
 #else
@@ -187,11 +188,7 @@ void main_data::solve_for_coefs() {
       if (has_beam_source) {
         if (BDRF_bool) {
           BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
-          mult(BDRF_RHS_contribution,
-               R,
-               B_collect_m[ln].slice(0, N),
-               1.0,
-               1.0);
+          mult(BDRF_RHS_contribution, R, B_collect_m[ln].slice(0, N), 1.0, 1.0);
         } else {
           BDRF_RHS_contribution = 0.0;
         }
@@ -209,9 +206,8 @@ void main_data::solve_for_coefs() {
         for (Index i = 0; i < N; i++) {
           RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
           RHS[n - N + i] +=
-              b_pos_m[i] +
-              (BDRF_RHS_contribution[i] - B_collect_m(ln, i)) *
-                  std::exp(-scaled_tau_arr_with_0.back() / mu0);
+              b_pos_m[i] + (BDRF_RHS_contribution[i] - B_collect_m(ln, i)) *
+                               std::exp(-scaled_tau_arr_with_0.back() / mu0);
         }
       } else {
         RHS.slice(0, N) += b_neg_m;
@@ -224,11 +220,6 @@ void main_data::solve_for_coefs() {
     // Fill LHS
     {
       TIMEMACRO(Time dlhs{});
-      const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
-      const auto G_L_pn = G_collect_m(ln, Range(0, N), Range(0, N));
-      const auto G_L_nn = G_collect_m(ln, Range(N, N), Range(0, N));
-      const auto G_L_pp = G_collect_m(ln, Range(0, N), Range(N, N));
-      const auto G_L_np = G_collect_m(ln, Range(N, N), Range(N, N));
       for (Index i = 0; i < N; i++) {
         E_Lm1L[i] =
             std::exp(K_collect_m(K_collect_m.nrows() - 1, i) *
@@ -237,8 +228,8 @@ void main_data::solve_for_coefs() {
       }
 
       if (BDRF_bool) {
-        mult(BDRF_LHS_contribution_neg, R, G_L_nn);
-        mult(BDRF_LHS_contribution_pos, R, G_L_np);
+        mult(BDRF_LHS_contribution_neg, R, G_collect_m(ln, Range(N, N), Range(0, N)));
+        mult(BDRF_LHS_contribution_pos, R, G_collect_m(ln, Range(N, N), Range(N, N)));
       } else {
         BDRF_LHS_contribution_neg = 0;
         BDRF_LHS_contribution_pos = 0;
@@ -246,13 +237,13 @@ void main_data::solve_for_coefs() {
 
       for (Index i = 0; i < N; i++) {
         for (Index j = 0; j < N; j++) {
-          LHSB(i, j) = G_collect_m(0, N + i, j);
-          LHSB(i, N + j) = G_0_np(i, j) * std::exp(K_collect_m(0, j) *
+          LHSB(i, j) = G_collect_m(0, i + N, j);
+          LHSB(i, N + j) = G_collect_m(0, i + N, j + N) * std::exp(K_collect_m(0, j) *
                                                    scaled_tau_arr_with_0[1]);
           LHSB(n - N + i, n - 2 * N + j) =
-              (G_L_pn(i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
+              (G_collect_m(ln, i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
           LHSB(n - N + i, n - N + j) =
-              G_L_pp(i, j) - BDRF_LHS_contribution_pos(i, j);
+              G_collect_m(ln, i, j + N) - BDRF_LHS_contribution_pos(i, j);
         }
       }
 
@@ -261,14 +252,12 @@ void main_data::solve_for_coefs() {
         const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
         const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
         // Postive eigenvalues
-        const auto K_l_pos = K_collect_m[l].slice(N, N);
-        const auto K_lp1_pos = K_collect_m[l + 1].slice(N, N);
 
         for (Index i = 0; i < N; i++) {
-          E_lm1l[i] =
-              std::exp(K_l_pos[i] * (scaled_tau_arr_lm1 - scaled_tau_arr_l));
-          E_llp1[i] =
-              std::exp(K_lp1_pos[i] * (scaled_tau_arr_l - scaled_tau_arr_lp1));
+          E_lm1l[i] = std::exp(K_collect_m(l, i + N) *
+                               (scaled_tau_arr_lm1 - scaled_tau_arr_l));
+          E_llp1[i] = std::exp(K_collect_m(l + 1, i + N) *
+                               (scaled_tau_arr_l - scaled_tau_arr_lp1));
         }
 
         for (Index i = 0; i < N; i++) {
