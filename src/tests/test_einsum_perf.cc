@@ -8,8 +8,8 @@
 void matvec(int N) {
   constexpr int NTEST = 10;
 
-  constexpr Index n = 1000;
-  constexpr Index m = 100000;
+  constexpr Index n = 100;
+  constexpr Index m = 10000;
 
   Array<Timing> ts;
   ts.reserve(N * NTEST);
@@ -104,8 +104,8 @@ void matvec(int N) {
 void matmat(int N) {
   constexpr int NTEST = 10;
 
-  constexpr Index n = 100;
-  constexpr Index m = 1000;
+  constexpr Index n = 10;
+  constexpr Index m = 100;
   constexpr Index p = 10000;
 
   Array<Timing> ts;
@@ -229,8 +229,8 @@ void pathing(int N) {
   constexpr int NTEST = 10;
 
   constexpr Index i = 10;
-  constexpr Index j = 100;
-  constexpr Index k = 1000;
+  constexpr Index j = 10;
+  constexpr Index k = 100;
   constexpr Index l = 1000;
 
   Array<Timing> ts;
