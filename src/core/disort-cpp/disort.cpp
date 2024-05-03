@@ -78,6 +78,7 @@ void mathscr_v(auto&& um,
  * - GC_collect 
  */
 void main_data::solve_for_coefs() {
+  const Index ln = NLayers - 1;
   auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
 
   TIMEMACRO(Numeric dtm{});
@@ -146,8 +147,8 @@ void main_data::solve_for_coefs() {
         RHS.slice(0, N) *= -1;
 
         if (is_multilayer) {
-          for (Index l = 0; l < NLayers - 1; l++) {
-            mathscr_v(RHS(Range(l + N, NQuad, NLayers - 1)),
+          for (Index l = 0; l < ln; l++) {
+            mathscr_v(RHS(Range(l + N, NQuad, ln)),
                       comp_data,
                       tau_arr[l],
                       source_poly_coeffs[l],
@@ -162,16 +163,16 @@ void main_data::solve_for_coefs() {
                       G_collect_m[l + 1],
                       K_collect_m[l + 1],
                       inv_mu_arr);
-            RHS(Range(l + N, NQuad, NLayers - 1)) -= jvec;
+            RHS(Range(l + N, NQuad, ln)) -= jvec;
           }
         }
 
         mathscr_v(RHS.slice(n - N, N),
                   comp_data,
                   tau_arr.back(),
-                  source_poly_coeffs[NLayers - 1],
-                  G_collect_m[NLayers - 1],
-                  K_collect_m[NLayers - 1],
+                  source_poly_coeffs[ln],
+                  G_collect_m[ln],
+                  K_collect_m[ln],
                   inv_mu_arr,
                   N);
 
@@ -188,7 +189,7 @@ void main_data::solve_for_coefs() {
           BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
           mult(BDRF_RHS_contribution,
                R,
-               B_collect_m[NLayers - 1].slice(0, N),
+               B_collect_m[ln].slice(0, N),
                1.0,
                1.0);
         } else {
@@ -196,7 +197,7 @@ void main_data::solve_for_coefs() {
         }
 
         if (is_multilayer) {
-          for (Index l = 0; l < NLayers - 1; l++) {
+          for (Index l = 0; l < ln; l++) {
             const Numeric scl = std::exp(-mu0 * scaled_tau_arr_with_0[l + 1]);
             for (Index j = 0; j < NQuad; j++) {
               RHS_middle(j, l) +=
@@ -209,7 +210,7 @@ void main_data::solve_for_coefs() {
           RHS[i] += b_neg_m[i] - B_collect_m(0, N + i);
           RHS[n - N + i] +=
               b_pos_m[i] +
-              (BDRF_RHS_contribution[i] - B_collect_m(NLayers - 1, i)) *
+              (BDRF_RHS_contribution[i] - B_collect_m(ln, i)) *
                   std::exp(-scaled_tau_arr_with_0.back() / mu0);
         }
       } else {
@@ -224,10 +225,10 @@ void main_data::solve_for_coefs() {
     {
       TIMEMACRO(Time dlhs{});
       const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
-      const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
-      const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
-      const auto G_L_pp = G_collect_m(NLayers - 1, Range(0, N), Range(N, N));
-      const auto G_L_np = G_collect_m(NLayers - 1, Range(N, N), Range(N, N));
+      const auto G_L_pn = G_collect_m(ln, Range(0, N), Range(0, N));
+      const auto G_L_nn = G_collect_m(ln, Range(N, N), Range(0, N));
+      const auto G_L_pp = G_collect_m(ln, Range(0, N), Range(N, N));
+      const auto G_L_np = G_collect_m(ln, Range(N, N), Range(N, N));
       for (Index i = 0; i < N; i++) {
         E_Lm1L[i] =
             std::exp(K_collect_m(K_collect_m.nrows() - 1, i) *
@@ -255,7 +256,7 @@ void main_data::solve_for_coefs() {
         }
       }
 
-      for (Index l = 0; l < NLayers - 1; l++) {
+      for (Index l = 0; l < ln; l++) {
         const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
         const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
         const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
