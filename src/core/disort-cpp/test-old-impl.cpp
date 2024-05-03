@@ -8,6 +8,31 @@
 #include "configtypes.h"
 #include "sorted_grid.h"
 
+struct Timing {
+  std::string_view name;
+  Timing(const char* c) : name(c) {}
+  TimeStep dt{};
+  template <typename Function>
+  void operator()(Function&& f) {
+    Time start{};
+    f();
+    Time end{};
+    dt = end - start;
+  }
+};
+
+inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
+  for (auto& t : vt) {
+    if (t.name.contains('\n') or t.name.contains(' ') or t.name.empty())
+      throw std::runtime_error(
+          var_string("bad name: ", std::quoted(std::string(t.name))));
+    if (t.name not_eq "dummy") {
+      os << std::setprecision(15) << t.name << " " << t.dt.count() << '\n';
+    }
+  }
+  return os;
+}
+
 constexpr Index NQuad = 40;
 constexpr Numeric mu0 = 1.0;
 constexpr Numeric phi0 = 0.0;
@@ -38,9 +63,7 @@ static const Index NLayers = dtau.size();
 
 const Vector omega(NLayers, 1.0 - 1e-6);  // not 1.0
 
-void oldimpl(bool print_results) {
-  DebugTime oldimpl{"oldimpl"};
-
+void oldimpl(bool print_results = false) {
   disort_state ds;
   disort_output out;
 
@@ -101,9 +124,7 @@ void oldimpl(bool print_results) {
   }
 }
 
-void newimpl(bool print_results) {
-  DebugTime newimpl{"newimpl"};
-
+void newimpl(bool print_results = false) {
   const auto tau = []() {
     Vector out(NLayers);
     out[0] = dtau[0];
@@ -161,6 +182,38 @@ void newimpl(bool print_results) {
 
 int main() {
   bool print = false;
-  oldimpl(print);
-  newimpl(print);
+
+  if (print) {
+    oldimpl(print);
+    newimpl(print);
+  } else {
+    Index N = 100;
+
+    Array<Timing> ts1;
+    ts1.reserve(N);
+    Array<Timing> ts2;
+    ts2.reserve(N);
+
+    for (Index i = 0; i < N; i++) {
+      ts1.emplace_back("old")([]() { oldimpl(); });
+    }
+    std::cout << "old best: "
+              << std::ranges::min(
+                     ts1,
+                     [](auto a, auto b) { return a.count() < b.count(); },
+                     &Timing::dt)
+                     .dt
+              << '\n';
+
+    for (Index i = 0; i < N; i++) {
+      ts2.emplace_back("new")([]() { newimpl(); });
+    }
+    std::cout << "new best: "
+              << std::ranges::min(
+                     ts2,
+                     [](auto a, auto b) { return a.count() < b.count(); },
+                     &Timing::dt)
+                     .dt
+              << '\n';
+  }
 }

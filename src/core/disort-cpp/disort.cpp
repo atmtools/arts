@@ -44,15 +44,16 @@ void mathscr_v(auto&& um,
   for (Index k = 0; k < Nk; k++) {
     for (Index i : std::ranges::iota_view(0, Nc)) {
       for (Index j = 0; j <= i; j++) {
-        const Numeric fs = (Legendre::factorial(Nc - 1 - j) /
-                            Legendre::factorial(Nc - 1 - i)) *
-                           source_poly_coeffs[1 - j];
+        const Numeric fs =
+            Legendre::tgamma_ratio(static_cast<Numeric>(Nc - j),
+                                   static_cast<Numeric>(Nc - i)) *
+            source_poly_coeffs[1 - j];
         data.src(k, i) += fs * std::pow(K[k], -(i - j + 1));
       }
     }
   }
 
-  std::copy(inv_mu.elem_begin(), inv_mu.elem_end(), data.k1.elem_begin());
+  std::ranges::copy(inv_mu, data.k1.begin());
   std::copy(G.elem_begin(), G.elem_end(), data.G.elem_begin());
   solve_inplace(data.k1, data.G, data.solve_work);
   mult(data.k2, data.src, data.cvec);
@@ -187,7 +188,7 @@ void main_data::solve_for_coefs() {
 
       if (has_beam_source) {
         if (BDRF_bool) {
-          BDRF_RHS_contribution = mathscr_X_pos.reshape_as(N);
+          std::ranges::copy(mathscr_X_pos, BDRF_RHS_contribution.begin());
           mult(BDRF_RHS_contribution, R, B_collect_m[ln].slice(0, N), 1.0, 1.0);
         } else {
           BDRF_RHS_contribution = 0.0;
@@ -228,36 +229,32 @@ void main_data::solve_for_coefs() {
       }
 
       if (BDRF_bool) {
-        mult(BDRF_LHS_contribution_neg, R, G_collect_m(ln, Range(N, N), Range(0, N)));
-        mult(BDRF_LHS_contribution_pos, R, G_collect_m(ln, Range(N, N), Range(N, N)));
+        mult(BDRF_LHS, R, G_collect_m[ln].slice(N, N));
       } else {
-        BDRF_LHS_contribution_neg = 0;
-        BDRF_LHS_contribution_pos = 0;
+        BDRF_LHS = 0;
       }
 
       for (Index i = 0; i < N; i++) {
         for (Index j = 0; j < N; j++) {
           LHSB(i, j) = G_collect_m(0, i + N, j);
-          LHSB(i, N + j) = G_collect_m(0, i + N, j + N) * std::exp(K_collect_m(0, j) *
-                                                   scaled_tau_arr_with_0[1]);
+          LHSB(i, N + j) =
+              G_collect_m(0, i + N, j + N) *
+              std::exp(K_collect_m(0, j) * scaled_tau_arr_with_0[1]);
           LHSB(n - N + i, n - 2 * N + j) =
-              (G_collect_m(ln, i, j) - BDRF_LHS_contribution_neg(i, j)) * E_Lm1L[j];
+              (G_collect_m(ln, i, j) - BDRF_LHS(i, j)) * E_Lm1L[j];
           LHSB(n - N + i, n - N + j) =
-              G_collect_m(ln, i, j + N) - BDRF_LHS_contribution_pos(i, j);
+              G_collect_m(ln, i, j + N) - BDRF_LHS(i, j + N);
         }
       }
 
       for (Index l = 0; l < ln; l++) {
-        const Numeric scaled_tau_arr_lm1 = scaled_tau_arr_with_0[l];
-        const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
-        const Numeric scaled_tau_arr_lp1 = scaled_tau_arr_with_0[l + 2];
-        // Postive eigenvalues
-
         for (Index i = 0; i < N; i++) {
-          E_lm1l[i] = std::exp(K_collect_m(l, i + N) *
-                               (scaled_tau_arr_lm1 - scaled_tau_arr_l));
-          E_llp1[i] = std::exp(K_collect_m(l + 1, i + N) *
-                               (scaled_tau_arr_l - scaled_tau_arr_lp1));
+          E_lm1l[i] =
+              std::exp(K_collect_m(l, i + N) * (scaled_tau_arr_with_0[l] -
+                                                scaled_tau_arr_with_0[l + 1]));
+          E_llp1[i] = std::exp(
+              K_collect_m(l + 1, i + N) *
+              (scaled_tau_arr_with_0[l + 1] - scaled_tau_arr_with_0[l + 2]));
         }
 
         for (Index i = 0; i < N; i++) {
@@ -821,8 +818,7 @@ main_data::main_data(const Index NQuad_,
       LHSB(3 * N - 1, 3 * N - 1, n, n),
       comp_data(NQuad, Nscoeffs),
       Gml(NQuad, NQuad),
-      BDRF_LHS_contribution_neg(N, N),
-      BDRF_LHS_contribution_pos(N, N),
+      BDRF_LHS(N, NQuad),
       R(N, N),
       mathscr_D_neg(N, N),
       D_pos(N, N),
