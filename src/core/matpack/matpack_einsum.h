@@ -163,7 +163,7 @@ constexpr T einsum_reduce(const auto&... xs) {
 
 namespace detail {
 template <std::array cr, std::array cs>
-constexpr bool copy_chars() {
+consteval bool copy_chars() {
   if constexpr (cr.size() != cs.size()) {
     return false;
   } else {
@@ -172,7 +172,7 @@ constexpr bool copy_chars() {
 }
 
 template <std::array... c>
-constexpr bool copy_chars()
+consteval bool copy_chars()
   requires(sizeof...(c) != 2)
 {
   return false;
@@ -184,7 +184,7 @@ template <std::array A,
           std::size_t NA = A.size(),
           std::size_t NB = B.size(),
           std::size_t NC = C.size()>
-constexpr bool multiply_chars() {
+consteval bool multiply_chars() {
   if constexpr (NA == 2 and NB == 2 and NC == 2) {
     return A[0] == B[0] and A[1] == C[1] and B[1] == C[0];
   } else if (NA == 1 and NB == 2 and NC == 1) {
@@ -195,7 +195,7 @@ constexpr bool multiply_chars() {
 }
 
 template <std::array... c>
-constexpr bool multiply_chars()
+consteval bool multiply_chars()
   requires(sizeof...(c) != 3)
 {
   return false;
@@ -209,18 +209,19 @@ constexpr void einsum_arr(auto&& xr, const auto&... xs) {
   ARTS_ASSERT((detail::good_sizes<cr, cs...>(xr, xs...)),
               "einsum: ",
               detail::error_msg<cr, cs...>(xr, xs...))
-
-  if constexpr (copy_chars<cr, cs...>()) {
-    copy_arrs(xr, xs...);
-    return;
-  } else if constexpr (multiply_chars<cr, cs...>()) {
-    mult(xr, xs...);
-    return;
-  }
-
   if constexpr (empty<cr>()) {
     xr = einsum_reduce<std::remove_cvref_t<decltype(xr)>, cs...>(xs...);
-  } else {
+  }
+
+  else if constexpr (copy_chars<cr, cs...>()) {
+    copy_arrs(xr, xs...);
+  }
+
+  else if constexpr (multiply_chars<cr, cs...>()) {
+    mult(xr, xs...);
+  }
+
+  else {
     constexpr char first_char = find_first_char<cr>();
     const std::size_t n = mddimsize<first_char, cr>(xr);
     for (std::size_t i = 0; i < n; i++) {
@@ -229,6 +230,27 @@ constexpr void einsum_arr(auto&& xr, const auto&... xs) {
           reduce_mdrank<first_char, cr>(xr, i),
           reduce_mdrank<first_char, cs>(xs, i)...);
     }
+  }
+}
+
+template <std::array cr, std::array... cs>
+consteval bool einsum_arr_optpath() {
+  if constexpr (empty<cr>()) {
+    return false;
+  }
+
+  else if constexpr (copy_chars<cr, cs...>()) {
+    return true;
+  }
+
+  else if constexpr (multiply_chars<cr, cs...>()) {
+    return true;
+  }
+
+  else {
+    constexpr char first_char = find_first_char<cr>();
+    return einsum_arr_optpath<reduce_charrank<first_char, cr>(),
+                              reduce_charrank<first_char, cs>()...>();
   }
 }
 
@@ -270,5 +292,10 @@ constexpr T einsum(std::array<Index, N> sz, const auto&... xi)
     einsum<s...>(out, xi...);
     return out;
   }
+}
+
+template <detail::string_literal... s>
+consteval bool einsum_optpath() {
+  return detail::einsum_arr_optpath<s.to_array()...>();
 }
 }  // namespace matpack

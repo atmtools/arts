@@ -33,7 +33,7 @@ int main() {
   //! Ensure that the difference is within the machine epsilon
   for (auto& x : dense_y) {
     ARTS_USER_ERROR_IF(std::abs(x) > std::numeric_limits<Numeric>::epsilon(),
-                       "Error in band matrix solver")
+                       "Error in band matrix solver: ", x)
   }
 
   return 0;

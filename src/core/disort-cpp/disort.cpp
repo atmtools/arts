@@ -1,23 +1,27 @@
 #include "disort.h"
 
-#include <artstime.h>
 #include <matpack.h>
-#include <matpack_eigen.h>
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
-#include <numeric>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
 
 #include "arts_constants.h"
-#include "configtypes.h"
-#include "debug.h"
 #include "legendre.h"
 #include "lin_alg.h"
-#include "matpack_iter.h"
+
+// #define TIMEIT
+
+#ifdef TIMEIT
+#include <artstime.h>
+
+#include <iostream>
+#define TIMEMACRO(x) x
+#else
+#define TIMEMACRO(x)
+#endif
 
 namespace disort {
 void mathscr_v(auto&& um,
@@ -77,11 +81,16 @@ void mathscr_v(auto&& um,
 void main_data::solve_for_coefs() {
   auto RHS_middle = RHS.slice(N, n - NQuad).reshape_as(NQuad, NLayers - 1);
 
-  TimeStep dtm{}, dtcollec{}, dtsolv{}, dtlhs{}, dtrhs{}, dtstart{};
+  TIMEMACRO(Numeric dtm{});
+  TIMEMACRO(Numeric dtcollec{});
+  TIMEMACRO(Numeric dtsolv{});
+  TIMEMACRO(Numeric dtlhs{});
+  TIMEMACRO(Numeric dtrhs{});
+  TIMEMACRO(Numeric dtstart{});
 
-  Time total{};
+  TIMEMACRO(Time total{});
   for (Index m = 0; m < NFourier; m++) {
-    Time tm{};
+    TIMEMACRO(Time tm{});
     const bool m_equals_0_bool = m == 0;
     const bool BDRF_bool = m < NBDRF;
     const auto G_collect_m = G_collect[m];
@@ -121,11 +130,11 @@ void main_data::solve_for_coefs() {
       b_neg_m = b_neg(joker, m);
     }
 
-    dtstart = Time{} - tm;
+    TIMEMACRO(dtstart += TimeStep(Time{} - tm).count());
 
     // Fill RHS
     {
-      Time trhs{};
+      TIMEMACRO(Time trhs{});
       if (has_source_poly and m_equals_0_bool) {
         mathscr_v(RHS.slice(0, N),
                   comp_data,
@@ -209,12 +218,12 @@ void main_data::solve_for_coefs() {
         RHS.slice(n - N, N) += b_pos_m;
       }
 
-      dtrhs = Time{} - trhs;
+      TIMEMACRO(dtrhs += TimeStep(Time{} - trhs).count());
     }
 
     // Fill LHS
     {
-      Time dlhs{};
+      TIMEMACRO(Time dlhs{});
       const auto G_0_np = G_collect_m(0, Range(N, N), Range(N, N));
       const auto G_L_pn = G_collect_m(NLayers - 1, Range(0, N), Range(0, N));
       const auto G_L_nn = G_collect_m(NLayers - 1, Range(N, N), Range(0, N));
@@ -284,31 +293,35 @@ void main_data::solve_for_coefs() {
           }
         }
       }
-      dtlhs = Time{} - dlhs;
+      TIMEMACRO(dtlhs += TimeStep(Time{} - dlhs).count());
     }
 
-    Time solv{};
+    TIMEMACRO(Time solv{});
     LHSB.solve(RHS);
-    dtsolv = Time{} - solv;
+    TIMEMACRO(dtsolv += TimeStep(Time{} - solv).count());
 
-    Time collec{};
+    TIMEMACRO(Time collec{});
     einsum<"ijm", "ijm", "im">(
         GC_collect[m], G_collect_m, RHS.reshape_as(NLayers, NQuad));
-    dtcollec = Time{} - collec;
+    TIMEMACRO(dtcollec += TimeStep(Time{} - collec).count());
 
-    dtm = Time{} - tm;
-
-
-    const auto ratio = [](TimeStep a, TimeStep b) { return std::round(1000 * a / b)/ 10; };
-    std::cout << "Total m-time: " << dtm << '\n';
-    std::cout << "Ratio in START: " << ratio(dtstart, dtm) << '%' << '\n';
-    std::cout << "Ratio in RHS:   " << ratio(dtrhs, dtm) << '%' << '\n';
-    std::cout << "Ratio in LHS:   " << ratio(dtlhs, dtm) << '%' << '\n';
-    std::cout << "Ratio in SOLVE: " << ratio(dtsolv, dtm) << '%' << '\n';
-    std::cout << "Ratio in GCCOL: " << ratio(dtcollec, dtm) << '%' << '\n';
+    TIMEMACRO(dtm += TimeStep(Time{} - tm).count());
   }
-  
-  std::cout << "Total time: " << Time{} - total << '\n';
+
+  TIMEMACRO(const auto ratio = [](auto a, auto b) {
+    return std::round(1000 * a / b) / 10;
+  });
+  TIMEMACRO(std::cout << "Total solve-for-coeffs-time: " << dtm << '\n');
+  TIMEMACRO(std::cout << "Ratio in START: " << ratio(dtstart, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in RHS:   " << ratio(dtrhs, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in LHS:   " << ratio(dtlhs, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in SOLVE: " << ratio(dtsolv, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in GCCOL: " << ratio(dtcollec, dtm) << '%'
+                      << '\n');
 }
 
 Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
@@ -327,7 +340,19 @@ Numeric poch(Numeric x, Numeric n) { return Legendre::tgamma_ratio(x + n, x); }
  * - B_collect 
  */
 void main_data::diagonalize() {
+  TIMEMACRO(Numeric dtm{});
+  TIMEMACRO(Numeric dtstart{});
+  TIMEMACRO(Numeric dtspecial{});
+  TIMEMACRO(Numeric dtlstart{});
+  TIMEMACRO(Numeric dtsrc{});
+  TIMEMACRO(Numeric dtD{});
+  TIMEMACRO(Numeric dtX{});
+  TIMEMACRO(Numeric dtsqr{});
+  TIMEMACRO(Numeric dtdiag{});
+  TIMEMACRO(Numeric dtcollectG{});
+
   for (Index m = 0; m < NFourier; m++) {
+    TIMEMACRO(Time tm{});
     auto Km = K_collect[m];
     auto Gm = G_collect[m];
     auto Bm = B_collect[m];
@@ -362,7 +387,11 @@ void main_data::diagonalize() {
         std::all_of(asso_leg_term_pos.elem_begin(),
                     asso_leg_term_pos.elem_end(),
                     [](auto& x) { return std::isfinite(x); });
+
+    TIMEMACRO(dtstart += TimeStep(Time{} - tm).count());
+
     for (Index l = 0; l < NLayers; l++) {
+      TIMEMACRO(Time lstart{});
       for (Index i = 0; i < NLeg - m; i++) {
         weighted_asso_Leg_coeffs_l[i] =
             weighted_scaled_Leg_coeffs(l, i + m) * fac[i];
@@ -370,15 +399,20 @@ void main_data::diagonalize() {
 
       const Numeric scaled_omega_l = scaled_omega_arr[l];
 
+      TIMEMACRO(dtlstart += TimeStep(Time{} - lstart).count());
+
       if (all_asso_leg_term_pos_finite and
           std::any_of(weighted_asso_Leg_coeffs_l.elem_begin(),
                       weighted_asso_Leg_coeffs_l.elem_end(),
                       Cmp::gt(0))) {
+        TIMEMACRO(Time D{});
         einsum<"ij", "j", "ji">(
             D_temp, weighted_asso_Leg_coeffs_l, asso_leg_term_pos);
         mult(D_pos, D_temp, asso_leg_term_pos, 0.5 * scaled_omega_l);
         mult(D_neg, D_temp, asso_leg_term_neg, 0.5 * scaled_omega_l);
+        TIMEMACRO(dtD += TimeStep(Time{} - D).count());
 
+        TIMEMACRO(Time X{});
         if (has_beam_source) {
           einsum<"i", "i", "i", "">(
               X_temp,
@@ -387,16 +421,15 @@ void main_data::diagonalize() {
               (scaled_omega_l * I0 * (2 - m_equals_0_bool) /
                (4 * Constant::pi)));
 
-          mult(jvec.slice(0, N).reshape_as(1, N),
-               xtemp,
-               asso_leg_term_pos,
-               -1);
+          mult(jvec.slice(0, N).reshape_as(1, N), xtemp, asso_leg_term_pos, -1);
           jvec.slice(0, N) *= inv_mu_arr.slice(0, N);
 
           mult(jvec.slice(N, N).reshape_as(1, N), xtemp, asso_leg_term_neg);
           jvec.slice(N, N) *= inv_mu_arr.slice(0, N);
         }
+        TIMEMACRO(dtX += TimeStep(Time{} - X).count());
 
+        TIMEMACRO(Time rrsqr{});
         einsum<"ij", "i", "ij", "j">(sqr, inv_mu_arr.slice(0, N), D_neg, W);
         einsum<"ij", "i", "ij", "j">(apb, inv_mu_arr.slice(0, N), D_pos, W);
         apb.diagonal() -= inv_mu_arr.slice(0, N);
@@ -408,17 +441,20 @@ void main_data::diagonalize() {
         apb += sqr;  // sqr is beta
         amb -= sqr;
         mult(sqr, amb, apb);
+        TIMEMACRO(dtsqr += TimeStep(Time{} - rrsqr).count());
 
         //FIXME: The matrix produces real eigen values, a specialized solver might be good
+        TIMEMACRO(Time diag{});
         ::diagonalize_inplace(
             amb, K.slice(0, N), K.slice(N, N), sqr, diag_work);
-        G(Range(0, N), Range(0, N)) = amb;
+        TIMEMACRO(dtdiag += TimeStep(Time{} - diag).count());
 
+        TIMEMACRO(Time collectG{});
+        G(Range(0, N), Range(0, N)) = amb;
         for (Index i = 0; i < N; i++) {
           G[i].slice(0, N) *= 0.5;
           G[i].slice(N, N) = G[i].slice(0, N);
         }
-
         for (Index j = 0; j < N; j++) {
           const Numeric sqrt_x = std::sqrt(K[j]);
           K[j] = -sqrt_x;
@@ -430,11 +466,12 @@ void main_data::diagonalize() {
         for (Index j = 0; j < NQuad; j++) {
           GmG(joker, j) /= K[j];
         }
-
         G.slice(N, N) = G.slice(0, N);
         G.slice(0, N) -= GmG;
         G.slice(N, N) += GmG;
+        TIMEMACRO(dtcollectG += TimeStep(Time{} - collectG).count());
 
+        TIMEMACRO(Time src{});
         if (has_beam_source) {
           std::copy(G.elem_begin(), G.elem_end(), Gml.elem_begin());
           solve_inplace(jvec, Gml, solve_work);
@@ -445,7 +482,9 @@ void main_data::diagonalize() {
 
           mult(Bm[l], G, jvec, -1);
         }
+        TIMEMACRO(dtsrc += TimeStep(Time{} - src).count());
       } else {
+        TIMEMACRO(Time tspecial{});
         auto G = Gm[l];
         for (Index i = 0; i < N; i++) {
           G(i + N, i) = 1;
@@ -454,9 +493,35 @@ void main_data::diagonalize() {
         for (Index i = 0; i < NQuad; i++) {
           Km(l, i) = -1 / mu_arr[i];
         }
+        TIMEMACRO(dtspecial += TimeStep(Time{} - tspecial).count());
       }
     }
+
+    TIMEMACRO(dtm += TimeStep(Time{} - tm).count());
   }
+
+  TIMEMACRO(const auto ratio = [](auto a, auto b) {
+    return std::round(1000 * a / b) / 10;
+  });
+  TIMEMACRO(std::cout << "Total Diagonalize time: " << dtm << '\n');
+  TIMEMACRO(std::cout << "Ratio in START:   " << ratio(dtstart, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in SPECIAL: " << ratio(dtspecial, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in LSTART:  " << ratio(dtlstart, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in SRC:     " << ratio(dtsrc, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in D:       " << ratio(dtD, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in X:       " << ratio(dtX, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in SQR:     " << ratio(dtsqr, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in DIAG:    " << ratio(dtdiag, dtm) << '%'
+                      << '\n');
+  TIMEMACRO(std::cout << "Ratio in COLLECT: " << ratio(dtcollectG, dtm) << '%'
+                      << '\n');
 }
 
 /** Computes the IMS factors
@@ -826,6 +891,9 @@ void main_data::u(u_data& data,
   }
 
   data.um.resize(NFourier, NQuad);
+  static_assert(
+      matpack::einsum_optpath<"mi", "mij", "mj">(),
+      "On Failure, the einsum has been changed to not use optimal path");
   einsum<"mi", "mij", "mj">(
       data.um, GC_collect(joker, l, joker, joker), data.exponent);
 
@@ -1138,7 +1206,7 @@ Numeric main_data::flux_up(flux_data& data, const Numeric tau) const {
   data.u0_pos.resize(N);
   einsum<"i", "ij", "j">(
       data.u0_pos, GC_collect(0, l, Range(0, N), joker), data.exponent);
-  data.u0_pos += data.mathscr_v;
+  data.u0_pos += data.mathscr_v.slice(0, N);
   data.u0_pos += data.direct_beam_contribution;
 
   return einsum<Numeric, "", "", "i", "i", "i">(
@@ -1203,7 +1271,7 @@ std::pair<Numeric, Numeric> main_data::flux_down(flux_data& data,
   data.u0_neg.resize(N);
   einsum<"i", "ij", "j">(
       data.u0_neg, GC_collect(0, l, Range(N, N), joker), data.exponent);
-  data.u0_neg += data.mathscr_v.slice(0, N);
+  data.u0_neg += data.mathscr_v;
   data.u0_neg += data.direct_beam_contribution;
 
   return {
