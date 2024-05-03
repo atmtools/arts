@@ -222,7 +222,7 @@ void main_data::solve_for_coefs() {
       TIMEMACRO(Time dlhs{});
       for (Index i = 0; i < N; i++) {
         E_Lm1L[i] =
-            std::exp(K_collect_m(K_collect_m.nrows() - 1, i) *
+            std::exp(K_collect_m(ln, i) *
                      (scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 1] -
                       scaled_tau_arr_with_0[scaled_tau_arr_with_0.size() - 2]));
       }
