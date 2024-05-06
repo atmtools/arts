@@ -34,6 +34,7 @@ inline std::ostream& operator<<(std::ostream& os, const Array<Timing>& vt) {
 }
 
 constexpr Index NQuad = 40;
+constexpr Index NFourier = 3;
 constexpr Numeric mu0 = 1.0;
 constexpr Numeric phi0 = 0.0;
 constexpr Numeric I0 = 1.0;
@@ -135,18 +136,18 @@ void newimpl(bool print_results = false) {
   }();
 
   const Matrix Leg_coeffs_all = []() {
-    Matrix out(80, 3);
+    Matrix out(NLayers, NFourier);
     for (Index i = 0; i < NLayers; i++) {
       out[i] = {1.0, 0.0, 0.1};
     }
     return out;
   }();
 
-  const Matrix b_pos(1, 1, 0);
-  const Matrix b_neg(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NFourier, NQuad / 2, 0);
+  const Matrix b_neg(NFourier, NQuad / 2, 0);
+  const Vector f_arr(NLayers, 0);
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(NLayers, 0);
 
   // DebugTime setup{"setup"};
   disort::main_data dis(NQuad,

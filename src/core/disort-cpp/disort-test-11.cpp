@@ -18,8 +18,10 @@ void test_11a_1layer() try {
   const Numeric mu0 = 0.6;
   const Numeric I0 = Constant::pi / mu0;
   const Numeric phi0 = 0.9 * Constant::pi;
-  const Matrix b_neg(1, 1, 1);
-  const Matrix b_pos(1, 1, 1);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = 1;
+  Matrix b_pos(NQuad, NQuad / 2, 0);
+  b_pos[0] = 1;
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   const Matrix s_poly_coeffs{
@@ -187,8 +189,8 @@ void test_11a_1layer() try {
                            .reshape_as(3)};
 
   //flat_print(u, compute_u(dis, taus, phis, true) );
-  // const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
-  // flat_print(flux_up, flux_up_);
+  //const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
+  //flat_print(flux_up, flux_up_);
 
   compare("test_11a-1layer",
           dis,
@@ -223,8 +225,10 @@ void test_11a_multilayer() try {
   const Numeric mu0 = 0.6;
   const Numeric I0 = Constant::pi / mu0;
   const Numeric phi0 = 0.9 * Constant::pi;
-  const Matrix b_neg(1, 1, 1);
-  const Matrix b_pos(1, 1, 1);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = 1;
+  Matrix b_pos(NQuad, NQuad / 2, 0);
+  b_pos[0] = 1;
   const std::vector<disort::BDRF> BDRF_Fourier_modes{
       disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
   Matrix s_poly_coeffs(tau_arr.size(), 2);

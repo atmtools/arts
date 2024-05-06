@@ -10,15 +10,16 @@ void test_9a() try {
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
   const Numeric phi0 = 0;
-  const Matrix b_neg(1, 1, Constant::inv_pi);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = Constant::inv_pi;
 
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Vector f_arr{0, 0, 0, 0, 0, 0};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(6, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -159,15 +160,14 @@ void test_9b() try {
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
   const Numeric phi0 = 0;
-  const Matrix b_neg(1, 1, Constant::inv_pi);
-
-  // Optional (unused)
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = Constant::inv_pi;
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Vector f_arr{0, 0, 0, 0, 0, 0};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(6, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,

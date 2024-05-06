@@ -1,5 +1,7 @@
 #include <disort-test.h>
 
+#include "arts_constants.h"
+
 void test_8a() try {
   const AscendingGrid tau_arr{0.25, 0.5};
   const Vector omega_arr{0.5, 0.3};
@@ -10,15 +12,16 @@ void test_8a() try {
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
   const Numeric phi0 = 0;
-  const Matrix b_neg(1, 1, Constant::inv_pi);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = Constant::inv_pi;
 
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Vector f_arr{0, 0};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(2, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -141,15 +144,16 @@ void test_8b() try {
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
   const Numeric phi0 = 0;
-  const Matrix b_neg(1, 1, Constant::inv_pi);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = Constant::inv_pi;
 
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Vector f_arr{0, 0};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(2, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -276,15 +280,16 @@ void test_8c() try {
   const Numeric mu0 = 0;
   const Numeric I0 = 0;
   const Numeric phi0 = 0;
-  const Matrix b_neg(1, 1, Constant::inv_pi);
+  Matrix b_neg(NQuad, NQuad / 2, 0);
+  b_neg[0] = Constant::inv_pi;
 
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Vector f_arr{};
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Vector f_arr{0, 0};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(2, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,

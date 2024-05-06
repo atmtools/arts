@@ -5,6 +5,7 @@
 #include <concepts>
 #include <functional>
 #include <ranges>
+#include <stdexcept>
 
 #include "matpack_concepts.h"
 #include "matpack_data.h"
@@ -12,15 +13,44 @@
 
 namespace matpack {
 template <class Compare>
+class grid;
+
+template <class Compare>
+class grid_view {
+  grid<Compare>& x;
+
+ public:
+  grid_view(grid<Compare>& x_) : x(x_) {}
+
+  [[nodiscard]] const Vector& vec() const { return x.x; }
+
+  grid_view& operator=(const grid<Compare>& y) {
+    if (&y.x != &x.x) ExhaustiveVectorView{x.x} = y.x;
+    return *this;
+  }
+
+  grid_view& operator=(const ConstVectorView& y) {
+    *this = grid<Compare>{y};
+    return *this;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const grid_view& y) {
+    return os << y.x;
+  }
+};
+
+template <class Compare>
 class grid {
   Vector x;
+
+  friend class grid_view<Compare>;
 
  public:
   [[nodiscard]] const Vector& vec() const { return x; }
 
   using value_type = Numeric;
 
-  void assert_sorted() const {
+  static void assert_sorted(const Vector& x) {
     ARTS_USER_ERROR_IF(
         not std::ranges::is_sorted(x, Compare{}), "Wrong sorting:\n", x);
   }
@@ -28,29 +58,27 @@ class grid {
   //! Unsafe constructor
   grid(Index N) : x(N) {}
 
-  grid(std::initializer_list<Numeric> il) : x(il) { assert_sorted(); }
+  grid(std::initializer_list<Numeric> il) : x(il) { assert_sorted(x); }
 
   template <typename... Ts>
   explicit grid(Ts&&... ts)
     requires std::constructible_from<Vector, Ts...>
       : x(Vector{std::forward<Ts>(ts)...}) {
-    assert_sorted();
+    assert_sorted(x);
   }
 
-  grid(Vector&& in) : x(std::move(in)) {
-    assert_sorted();
-  }
+  grid(Vector&& in) : x(std::move(in)) { assert_sorted(x); }
 
   grid& operator=(Vector&& in) {
     x = std::move(in);
-    assert_sorted();
+    assert_sorted(x);
     return *this;
   }
 
   template <typename T>
   grid& operator=(T&& in) {
     x = std::forward<T>(in);
-    assert_sorted();
+    assert_sorted(x);
     return *this;
   }
 
@@ -83,15 +111,19 @@ class grid {
   [[nodiscard]] constexpr Numeric back() const { return x.back(); }
   void clear() { x.clear(); }
   void reserve(Size n) { x.reserve(n); }
-  void erase(auto ... it) { x.erase(it...); }
+  void erase(auto... it) { x.erase(it...); }
+  constexpr Numeric& emplace_back(Numeric v) {
+    return x.size() == 0 ? x.emplace_back(v)
+           : Compare{}(v, x.back())
+               ? throw std::runtime_error("grid::emplace_back: not sorted")
+               : x.emplace_back(v);
+  }
 
   void unsafe_resize(const Index n) { x.resize(n); }
   [[nodiscard]] constexpr auto unsafe_begin() { return x.begin(); }
   [[nodiscard]] constexpr auto unsafe_end() { return x.end(); }
   void unsafe_push_back(Numeric v) { x.push_back(v); }
-  Numeric& unsafe_emplace_back(Numeric v) {
-    return x.emplace_back(v);
-  }
+  Numeric& unsafe_emplace_back(Numeric v) { return x.emplace_back(v); }
 
   //! Return a pointer to this object's allocated data
   [[nodiscard]] constexpr auto data_handle() const { return x.data_handle(); }
@@ -105,6 +137,7 @@ class grid {
 }  // namespace matpack
 
 using AscendingGrid = matpack::grid<std::less_equal<>>;
+using AscendingGridView = matpack::grid_view<std::less_equal<>>;
 using DescendingGrid = matpack::grid<std::greater_equal<>>;
 using ArrayOfAscendingGrid = Array<AscendingGrid>;
 

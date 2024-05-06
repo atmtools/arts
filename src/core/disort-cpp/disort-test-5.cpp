@@ -1,4 +1,5 @@
 #include <disort-test.h>
+
 #include "sorted_grid.h"
 
 const Vector Leg_coeffs_ALL{
@@ -54,11 +55,11 @@ void test_5a() try {
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Matrix b_neg(1, 1, 0);
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Matrix b_neg(NQuad, NQuad / 2, 0);
   const Vector f_arr{Leg_coeffs_all(0, NQuad)};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -398,8 +399,8 @@ void test_5a() try {
   };
 
   //flat_print(u, compute_u(dis, taus, phis, true) );
-  //  const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
-  //  flat_print(flux_down_diffuse, flux_down_diffuse_);
+  //const auto [flux_up_, flux_down_diffuse_, flux_down_direct_] =  compute_flux(dis, taus);
+  // flat_print(flux_down_direct, flux_down_direct_);
 
   compare("test_5a",
           dis,
@@ -432,11 +433,11 @@ void test_5b() try {
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Matrix b_neg(1, 1, 0);
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Matrix b_neg(NQuad, NQuad / 2, 0);
   const Vector f_arr{Leg_coeffs_all(0, NQuad)};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -812,10 +813,10 @@ void test_5BDRF() try {
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(1, 1, 0);
-  const Matrix b_neg(1, 1, 0);
+  const Matrix b_pos(NQuad, NQuad / 2, 0);
+  const Matrix b_neg(NQuad, NQuad / 2, 0);
   const Vector f_arr{Leg_coeffs_all(0, NQuad)};
-  const Matrix s_poly_coeffs(0, 0);
+  const Matrix s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,

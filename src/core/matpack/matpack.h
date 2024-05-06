@@ -22,5 +22,4 @@
 
 #include "sorted_grid.h"
 
-
 #include "matpack_einsum.h"
