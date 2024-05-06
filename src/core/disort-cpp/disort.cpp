@@ -849,7 +849,7 @@ main_data::main_data(const Index NQuad_,
   const Index l =
       std::distance(tau_arr.begin(), std::ranges::lower_bound(tau_arr, tau));
   ARTS_USER_ERROR_IF(
-      l == layers(), "tau (", tau, ") must be at most ", tau_arr.back());
+      l == NLayers, "tau (", tau, ") must be at most ", tau_arr.back());
   return l;
 }
 

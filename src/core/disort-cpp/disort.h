@@ -166,16 +166,18 @@ class main_data {
             Numeric I0,
             Numeric phi0);
 
-  [[nodiscard]] Index quads() const { return mu_arr.size(); }
-  [[nodiscard]] Index fouriers() const { return GC_collect.nbooks(); }
-  [[nodiscard]] Index layers() const { return tau_arr.size(); }
-  [[nodiscard]] Index legalls() const {
-    return weighted_Leg_coeffs_all.ncols();
-  }
-  [[nodiscard]] Index scoeffs() const { return source_poly_coeffs.nrows(); }
-
   [[nodiscard]] Index tau_index(const Numeric tau) const;
 
+  /** Get the TMS correction factor
+   * 
+   *  Called by u_corr, exists for testing purposes
+   *
+   *  Safe for parallel use if data is unique for each call
+   *
+   * @param data Compute data, the main output is in data.TMS
+   * @param tau The point-wise optical thickness 
+   * @param phi 
+   */
   void TMS(tms_data& data, const Numeric tau, const Numeric phi) const;
 
   void IMS(Vector& ims, const Numeric tau, const Numeric phi) const;

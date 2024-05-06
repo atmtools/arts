@@ -3,10 +3,13 @@
 #include <matpack.h>
 #include <disort.h>
 #include <iostream>
+#include "matpack_iter.h"
 
 inline bool is_good(const auto& a, const auto& b) {
   if (a.shape() != b.shape()) {
     std::cerr << "!!!\n\nBad shapes\n\n!!!\n";
+    std::cerr << matpack::shape_help{a.shape()} << '\n';
+    std::cerr << matpack::shape_help{b.shape()} << '\n';
     return false;
   }
 
@@ -27,7 +30,7 @@ inline Tensor3 compute_u(const disort::main_data& dis,
                   const Vector& taus,
                   const Vector& phis,
                   const bool nt_corr) {
-  Tensor3 u(phis.size(), taus.size(), dis.quads());
+  Tensor3 u(phis.size(), taus.size(), dis.mu().size());
   disort::u_data u_data;
   Vector ims;
   disort::tms_data tms_data;
@@ -46,7 +49,7 @@ inline Tensor3 compute_u(const disort::main_data& dis,
 }
 
 inline Matrix compute_u0(const disort::main_data& dis, const Vector& taus) {
-  Matrix u0(taus.size(), dis.quads());
+  Matrix u0(taus.size(), dis.mu().size());
   disort::u0_data u0_data;
 
   for (Index j = 0; j < taus.size(); j++) {
