@@ -16,11 +16,11 @@ void test_3a() try {
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(NQuad, NQuad / 2, 0);
-  const Matrix b_neg(NQuad, NQuad / 2, 0);
+  const Matrix b_pos(NQuad, NQuad, 0);
+  const Matrix b_neg(1, 1, 0);
   const Vector f_arr{Leg_coeffs_all(0, NQuad)};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(1, 0);
+  const Matrix s_poly_coeffs(0, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,
@@ -201,11 +201,11 @@ void test_3b() try {
   // Optional (unused)
   const Index NLeg = NQuad;
   const Index NFourier = NQuad;
-  const Matrix b_pos(NQuad, NQuad / 2, 0);
-  const Matrix b_neg(NQuad, NQuad / 2, 0);
+  const Matrix b_pos(NQuad, NQuad, 0);
+  const Matrix b_neg(1, 1, 0);
   const Vector f_arr{Leg_coeffs_all(0, NQuad)};
   const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix s_poly_coeffs(1, 0);
+  const Matrix s_poly_coeffs(0, 0);
 
   const disort::main_data dis(NQuad,
                               NLeg,

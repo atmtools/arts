@@ -4,6 +4,7 @@
 #include <disort.h>
 #include <iostream>
 #include "matpack_iter.h"
+#include "nonstd.h"
 
 inline bool is_good(const auto& a, const auto& b) {
   if (a.shape() != b.shape()) {
@@ -20,6 +21,7 @@ inline bool is_good(const auto& a, const auto& b) {
       true,
       [](bool first, bool second) { return first and second; },
       [](Numeric first, Numeric second) {
+        if (nonstd::isnan(first) or nonstd::isnan(second)) return false;
         if (first == 0.0 and second == 0.0) return true;
         const Numeric ratio = std::abs(first / second - 1);
         return ratio < 1e-6;

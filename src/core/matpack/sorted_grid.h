@@ -2,11 +2,13 @@
 
 #include <array.h>
 
+#include <algorithm>
 #include <concepts>
 #include <functional>
 #include <ranges>
 #include <stdexcept>
 
+#include "configtypes.h"
 #include "matpack_concepts.h"
 #include "matpack_data.h"
 #include "matpack_view.h"
@@ -20,6 +22,8 @@ class grid_view {
   grid<Compare>& x;
 
  public:
+  [[nodiscard]] Index size() const { return x.x.size(); }
+
   grid_view(grid<Compare>& x_) : x(x_) {}
 
   [[nodiscard]] const Vector& vec() const { return x.x; }

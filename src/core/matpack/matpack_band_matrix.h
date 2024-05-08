@@ -13,9 +13,15 @@ class band_matrix {
 
   static Matrix mat(Index KL, Index KU, Index N);
 
-public:
+ public:
   // Empty matrix of known size
   band_matrix(Index ku, Index kl, Index m, Index n);
+
+  band_matrix() = default;
+  band_matrix(const band_matrix&) = default;
+  band_matrix(band_matrix&&) = default;
+  band_matrix& operator=(const band_matrix&) = default;
+  band_matrix& operator=(band_matrix&&) = default;
 
   [[nodiscard]] Index end_row(Index j) const;
 

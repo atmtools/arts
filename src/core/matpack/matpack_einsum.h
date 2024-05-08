@@ -201,6 +201,14 @@ consteval bool multiply_chars()
   return false;
 }
 
+template <typename T>
+constexpr void transform_reduce(T& xr,
+                                const any_matpack_type auto& x1,
+                                const any_matpack_type auto& x2) {
+  xr = std::transform_reduce(
+      x1.elem_begin(), x1.elem_end(), x2.elem_begin(), T{});
+}
+
 constexpr void copy_arrs(auto&& xr, const auto& xs) { xr = xs; }
 
 template <std::array cr, std::array... cs>

@@ -10,10 +10,12 @@
 
 namespace disort {
 struct BDRF {
-  std::function<void(ExhaustiveMatrixView,
-                     const ExhaustiveConstVectorView&,
-                     const ExhaustiveConstVectorView&)>
-      f;
+  using func = std::function<void(ExhaustiveMatrixView,
+                                  const ExhaustiveConstVectorView&,
+                                  const ExhaustiveConstVectorView&)>;
+  func f{[](auto, auto&, auto&) {
+    throw std::runtime_error("BDRF function not set");
+  }};
 
   void operator()(ExhaustiveMatrixView x,
                   const ExhaustiveConstVectorView& a,
@@ -21,6 +23,12 @@ struct BDRF {
     ARTS_ASSERT(x.nrows() == a.size());
     ARTS_ASSERT(x.ncols() == b.size());
     f(x, a, b);
+  }
+
+  Matrix operator()(const Vector& a, const Vector& b) const {
+    Matrix x(a.size(), b.size());
+    f(x, a, b);
+    return x;
   }
 };
 
@@ -30,8 +38,14 @@ struct mathscr_v_data {
   solve_workdata solve_work;
   Vector k1, k2;
   Vector cvec;
+
   mathscr_v_data(const Index Nk = 0, const Index Nc = 0)
       : src(Nk, Nc), G(Nk, Nk), solve_work(Nk), k1(Nk), k2(Nk), cvec(Nc) {}
+  mathscr_v_data(const mathscr_v_data&) = default;
+  mathscr_v_data(mathscr_v_data&&) = default;
+  mathscr_v_data& operator=(const mathscr_v_data&) = default;
+  mathscr_v_data& operator=(mathscr_v_data&&) = default;
+
   void resize(const Index Nk, const Index Nc) {
     src.resize(Nk, Nc);
     G.resize(Nk, Nk);
@@ -47,7 +61,6 @@ struct u_data {
   Matrix um;
   mathscr_v_data src;
   Vector intensities;
-  Vector ulast;
 };
 
 struct u0_data {
@@ -65,27 +78,24 @@ struct tms_data {
 };
 
 struct flux_data {
-  Vector mathscr_v;
   Vector exponent;
-  Vector direct_beam_contribution;
   mathscr_v_data src;
   Vector u0_pos;
   Vector u0_neg;
 };
 
 class main_data {
-  const Index NLayers;
-  const Index NQuad;
-  const Index NLeg;
-  const Index NFourier;
-  const Index N;
-  const Index Nscoeffs;
-  const Index NLeg_all;
-  const Index NBDRF;
-  const bool has_source_poly;
-  const bool is_multilayer;
-
-  bool has_beam_source{};
+  Index NLayers{0};
+  Index NQuad{0};
+  Index NLeg{0};
+  Index NFourier{0};
+  Index N{0};
+  Index Nscoeffs{0};
+  Index NLeg_all{0};
+  Index NBDRF{0};
+  bool has_source_poly{false};
+  bool is_multilayer{false};
+  bool has_beam_source{false};
 
   //! User inputs
   AscendingGrid tau_arr{};                 // [NLayers]
@@ -120,45 +130,57 @@ class main_data {
   Numeric scaled_mu0{};
 
   //! Internal compute data
-  const Index n;                        // NQuad * NLayers;
+  Index n{};                            // NQuad * NLayers;
   Vector RHS{};                         // [n]
   Vector jvec{};                        // [NQuad]
   Vector fac{};                         // [NLeg]
   Vector weighted_asso_Leg_coeffs_l{};  // [NLeg]
   Vector asso_leg_term_mu0{};           // [NLeg]
   Vector X_temp{};                      // [NLeg]
-  solve_workdata solve_work{};          // [NQuad]
-  diagonalize_workdata diag_work{};     // [N]
   Vector mathscr_X_pos{};               // [N]
   Vector E_Lm1L{};                      // [N]
   Vector E_lm1l{};                      // [N]
   Vector E_llp1{};                      // [N]
   Vector BDRF_RHS_contribution{};       // [N]
-  matpack::band_matrix LHSB;            // [n, n]
-  mathscr_v_data
-      comp_data;  // [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
-  Matrix Gml{};                // [NQuad, NQuad]
-  Matrix BDRF_LHS{};           // [N, NQuad]
-  Matrix R{};                  // [N, N]
-  Matrix mathscr_D_neg{};      // [N, N]
-  Matrix D_pos{};              // [N, N]
-  Matrix D_neg{};              // [N, N]
-  Matrix apb{};                // [N, N]
-  Matrix amb{};                // [N, N]
-  Matrix sqr{};                // [N, N]
-  Matrix asso_leg_term_pos{};  // [N, NLeg]
-  Matrix asso_leg_term_neg{};  // [N, NLeg]
-  Matrix D_temp{};             // [N, NLeg]
+  Matrix Gml{};                         // [NQuad, NQuad]
+  Matrix BDRF_LHS{};                    // [N, NQuad]
+  Matrix R{};                           // [N, N]
+  Matrix mathscr_D_neg{};               // [N, N]
+  Matrix D_pos{};                       // [N, N]
+  Matrix D_neg{};                       // [N, N]
+  Matrix apb{};                         // [N, N]
+  Matrix amb{};                         // [N, N]
+  Matrix sqr{};                         // [N, N]
+  Matrix asso_leg_term_pos{};           // [N, NLeg]
+  Matrix asso_leg_term_neg{};           // [N, NLeg]
+  Matrix D_temp{};                      // [N, NLeg]
+
+  //! [NQuad / 2]
+  solve_workdata solve_work{};
+
+  //! [4 * N] + [N, N]
+  diagonalize_workdata diag_work{};
+
+  //! [n, 9 * N - 2] + [n / 2]
+  matpack::band_matrix LHSB{};
+
+  //! [NQuad, Nscoeffs] + [NQuad, NQuad] + 3 * [Nquad] + [Nscoeffs]
+  mathscr_v_data comp_data{};
 
  public:
-  main_data(
-  const Index NLayers,
-  const Index NQuad,
-  const Index NLeg,
-  const Index NFourier,
-  const Index Nscoeffs,
-  const Index NLeg_all,
-  const Index NBDRF);
+  main_data() = default;
+  main_data(const main_data&) = default;
+  main_data(main_data&&) = default;
+  main_data& operator=(const main_data&) = default;
+  main_data& operator=(main_data&&) = default;
+
+  main_data(const Index NLayers,
+            const Index NQuad,
+            const Index NLeg,
+            const Index NFourier,
+            const Index Nscoeffs,
+            const Index NLeg_all,
+            const Index NBDRF);
 
   main_data(const Index NQuad,
             const Index NLeg,
@@ -255,16 +277,29 @@ class main_data {
 
   /** Compute the upward flux at a given tau
     *
-    * Safe for parallel use
+    * Safe for parallel use if flux_data is unique per thread
     * 
     * @param tau The point-wise optical thickness 
     * @return Numeric value of the upward flux
     */
   [[nodiscard]] Numeric flux_up(flux_data&, const Numeric tau) const;
 
+  void gridded_u(ExhaustiveTensor3View, const Vector& phi) const;
+  void gridded_flux(ExhaustiveVectorView up,
+                    ExhaustiveVectorView down,
+                    ExhaustiveVectorView down_direct) const;
+
+  void ungridded_u(ExhaustiveTensor3View out,
+                   const AscendingGrid& tau,
+                   const Vector& phi) const;
+  void ungridded_flux(ExhaustiveVectorView flux_up,
+                      ExhaustiveVectorView flux_do,
+                      ExhaustiveVectorView flux_dd,
+                      const AscendingGrid& tau) const;
+
   /** Compute the downward flux at a given tau
     *
-    * Safe for parallel use
+    * Safe for parallel use if flux_data is unique per thread
     * 
     * @param tau The point-wise optical thickness 
     * @return std::pair<Numeric, Numeric> Diffuse and direct downward flux, respectively
@@ -447,7 +482,7 @@ class main_data {
     * 
     * @param I0 The new beam intensity if it should be changed, otherwise -1
     */
-  void update_all(const Numeric I0=-1);
+  void update_all(const Numeric I0 = -1);
 
   //! The angles of quadrature - NQuad
   [[nodiscard]] auto&& mu() const { return mu_arr; }
@@ -498,10 +533,14 @@ class main_data {
   [[nodiscard]] auto f() { return ExhaustiveVectorView{f_arr}; }
 
   //! Polynomial coefficients of isotropic internal sources - NLayers x Nscoeffs or 0 x 0
-  [[nodiscard]] auto source_poly() { return ExhaustiveMatrixView{source_poly_coeffs}; }
+  [[nodiscard]] auto source_poly() {
+    return ExhaustiveMatrixView{source_poly_coeffs};
+  }
 
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
-  [[nodiscard]] auto all_legendre_coeffs() { return ExhaustiveMatrixView{Leg_coeffs_all}; }
+  [[nodiscard]] auto all_legendre_coeffs() {
+    return ExhaustiveMatrixView{Leg_coeffs_all};
+  }
 
   //! Positive Fourier coefficients of the beam source - 1 x 1 or N x NFourier
   [[nodiscard]] auto positive_boundary() { return ExhaustiveMatrixView{b_pos}; }
@@ -527,5 +566,9 @@ class main_data {
 
   //! The azimuthal angle of the beam source
   [[nodiscard]] Numeric& beam_azimuth() { return phi0; }
+
+  friend std::ostream& operator<<(std::ostream& os, const main_data&) {
+    return os << "Not implemented, output stream operator\n";
+  }
 };
 }  // namespace disort

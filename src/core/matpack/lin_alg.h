@@ -28,7 +28,13 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 struct solve_workdata {
   std::size_t N{};
   std::vector<int> ipiv{};
+
   constexpr solve_workdata() = default;
+  constexpr solve_workdata(const solve_workdata&) = default;
+  constexpr solve_workdata(solve_workdata&&) = default;
+  constexpr solve_workdata& operator=(const solve_workdata&) = default;
+  constexpr solve_workdata& operator=(solve_workdata&&) = default;
+
   constexpr solve_workdata(std::size_t N_) : N(N_), ipiv(N) {}
   constexpr void resize(std::size_t N_) {
     N = N_;
@@ -49,14 +55,19 @@ void solve_inplace(ExhaustiveVectorView X,
                    solve_workdata& wo);
 
 //! As above but allocates WO
-void solve_inplace(ExhaustiveVectorView X,
-                   ExhaustiveMatrixView A);
+void solve_inplace(ExhaustiveVectorView X, ExhaustiveMatrixView A);
 
 struct inv_workdata {
   std::size_t N{};
   std::vector<int> ipiv{};
   std::vector<Numeric> work{};
+
   constexpr inv_workdata() = default;
+  constexpr inv_workdata(const inv_workdata&) = default;
+  constexpr inv_workdata(inv_workdata&&) = default;
+  constexpr inv_workdata& operator=(const inv_workdata&) = default;
+  constexpr inv_workdata& operator=(inv_workdata&&) = default;
+
   constexpr inv_workdata(std::size_t N_) : N(N_), ipiv(N), work(N) {}
   constexpr void resize(std::size_t N_) {
     N = N_;
@@ -80,7 +91,14 @@ void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A);
 struct diagonalize_workdata {
   std::size_t N{};
   std::vector<Numeric> w{};
+
   constexpr diagonalize_workdata() = default;
+  constexpr diagonalize_workdata(const diagonalize_workdata&) = default;
+  constexpr diagonalize_workdata(diagonalize_workdata&&) = default;
+  constexpr diagonalize_workdata& operator=(const diagonalize_workdata&) =
+      default;
+  constexpr diagonalize_workdata& operator=(diagonalize_workdata&&) = default;
+
   constexpr diagonalize_workdata(std::size_t N_) : N(N_), w(4 * N + N * N) {}
   constexpr Numeric* work() { return w.data(); }
   constexpr Numeric* rwork() { return w.data() + 2 * N; }

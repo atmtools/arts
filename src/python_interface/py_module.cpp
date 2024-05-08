@@ -48,6 +48,7 @@ void py_operators(py::module_& m);
 void py_lbl(py::module_& m);
 void py_interp(py::module_& m);
 void py_sensor(py::module_& m);
+void py_disort(py::module_& m);
 
 /** Construct a new pybind11 module object to hold all the Arts types and functions
  * 
@@ -136,6 +137,7 @@ PYBIND11_MODULE(arts, m) try {
   py_operators(m);
   py_lbl(m);
   py_sensor(m);
+  py_disort(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(ws);
