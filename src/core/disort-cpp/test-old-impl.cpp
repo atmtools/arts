@@ -199,7 +199,7 @@ std::pair<Numeric, Numeric> absrel(ExhaustiveVectorView v1,
 
 void test_flat() try {
   const Index NLayers_ = 100;
-  const Index NQuad_ = 30;
+  const Index NQuad_ = 28;
 
   RandomNumberGenerator<> rng;
   auto draw = rng.get(0.00001, 0.99999);

@@ -148,6 +148,15 @@
         "CMAKE_PREFIX_PATH": "",
         "BLAS_blas_LIBRARY": "/sw/spack-levante/openblas-0.3.18-mzclcq/lib/libopenblas.so"
       }
+    },
+    {
+      "name": "mac-gcc14-hb-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-14",
+        "CMAKE_CXX_COMPILER": "g++-14",
+        "CMAKE_Fortran_COMPILER": "gfortran-14"
+      }
     }
   ]
 }

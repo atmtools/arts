@@ -586,7 +586,7 @@ void py_spectroscopy(py::module_& m) try {
                 VMR,
                 "\nSpecies: ",
                 band.broadeningspecies)
-            band.lines.at(line);
+            auto& _ = band.lines.at(line);
 
             return band.ShapeParameters(line, T, P, VMR);
           },

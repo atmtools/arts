@@ -24,18 +24,18 @@ void py_disort(py::module_& m) try {
   artsclass<disort::BDRF>(disort_nm, "bdrf")
       .def(py::init<>())
       .def(py::init([](const bdrf_func& f) {
-             return disort::BDRF([f](ExhaustiveMatrixView m,
+             return disort::BDRF([f](ExhaustiveMatrixView mat,
                                      const ExhaustiveConstVectorView& a,
                                      const ExhaustiveConstVectorView& b) {
                const Matrix out = f(Vector{a}, Vector{b});
-               if (out.shape() != m.shape()) {
+               if (out.shape() != mat.shape()) {
                  throw std::runtime_error(
                      var_string("BDRF function returned wrong shape\n",
                                 matpack::shape_help{out.shape()},
                                 " vs ",
-                                matpack::shape_help{m.shape()}));
+                                matpack::shape_help{mat.shape()}));
                }
-               m = out;
+               mat = out;
              });
            }),
            py::keep_alive<0, 1>())

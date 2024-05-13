@@ -23,10 +23,10 @@ void matvec(int N) {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
       Vector y(n);
-      for (Index i = 0; i < n; i++) {
-        y[i] = 0;
+      for (Index v = 0; v < n; v++) {
+        y[v] = 0;
         for (Index j = 0; j < m; j++) {
-          y[i] += A(i, j) * x[j];
+          y[v] += A(v, j) * x[j];
         }
       }
       some_results.push_back(y[0]);
@@ -37,8 +37,8 @@ void matvec(int N) {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
       Vector y(n);
-      for (Index i = 0; i < n; i++) {
-        y[i] = einsum<Numeric, "", "m", "m">({}, A[i], x);
+      for (Index v = 0; v < n; v++) {
+        y[v] = einsum<Numeric, "", "m", "m">({}, A[v], x);
       }
       some_results.push_back(y[0]);
     });
@@ -48,8 +48,8 @@ void matvec(int N) {
       const Matrix A(n, m, 1);
       const Vector x(m, 1);
       Vector y(n);
-      for (Index i = 0; i < n; i++) {
-        y[i] = A[i] * x;
+      for (Index v = 0; v < n; v++) {
+        y[v] = A[v] * x;
       }
       some_results.push_back(y[0]);
     });
@@ -120,11 +120,11 @@ void matmat(int N) {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
       Matrix C(m, p);
-      for (Index i = 0; i < m; i++) {
+      for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
-          C(i, j) = 0;
+          C(x, j) = 0;
           for (Index k = 0; k < n; k++) {
-            C(i, j) += A(i, k) * B(k, j);
+            C(x, j) += A(x, k) * B(k, j);
           }
         }
       }
@@ -136,8 +136,8 @@ void matmat(int N) {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
       Matrix C(m, p);
-      for (Index i = 0; i < m; i++) {
-        einsum<"p", "n", "np">(C[i], A[i], B);
+      for (Index x = 0; x < m; x++) {
+        einsum<"p", "n", "np">(C[x], A[x], B);
       }
       some_results.push_back(C(0, 0));
     });
@@ -147,9 +147,9 @@ void matmat(int N) {
       const Matrix A(m, n, 1);
       const Matrix B(n, p, 1);
       Matrix C(m, p);
-      for (Index i = 0; i < m; i++) {
+      for (Index x = 0; x < m; x++) {
         for (Index j = 0; j < p; j++) {
-          C(i, j) = A[i] * B(joker, j);
+          C(x, j) = A[x] * B(joker, j);
         }
       }
       some_results.push_back(C(0, 0));
@@ -161,10 +161,10 @@ void matmat(int N) {
       const Matrix B(n, p, 1);
       Matrix C(m, p);
       C = 0;
-      for (Index i = 0; i < m; i++) {
+      for (Index x = 0; x < m; x++) {
         for (Index k = 0; k < n; k++) {
           for (Index j = 0; j < p; j++) {
-            C(i, j) += A(i, k) * B(k, j);
+            C(x, j) += A(x, k) * B(k, j);
           }
         }
       }
@@ -177,8 +177,8 @@ void matmat(int N) {
       const Matrix B(n, p, 1);
       Matrix C(m, p);
       C = 0;
-      for (Index i = 0; i < p; i++) {
-        einsum<"m", "mn", "n">(C(joker, i), A, B(joker, i));
+      for (Index x = 0; x < p; x++) {
+        einsum<"m", "mn", "n">(C(joker, x), A, B(joker, x));
       }
       some_results.push_back(C(0, 0));
     });
@@ -189,8 +189,8 @@ void matmat(int N) {
       const Matrix B(n, p, 1);
       Matrix C(m, p);
       C = 0;
-      for (Index i = 0; i < p; i++) {
-        mult(C(joker, i), A, B(joker, i));
+      for (Index x = 0; x < p; x++) {
+        mult(C(joker, x), A, B(joker, x));
       }
       some_results.push_back(C(0, 0));
     });
