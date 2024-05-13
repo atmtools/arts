@@ -19781,7 +19781,7 @@ where N>=0 and the species name is something line "H2O".
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
+        IN("suns_do"),
         GIN("radius","distance","latitude","longitude","index"),
         GIN_TYPE("Numeric","Numeric","Numeric","Numeric","Index"),
         GIN_DEFAULT("-999","-999","-999","-999",NODEF),
