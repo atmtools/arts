@@ -4,6 +4,7 @@ dependencies:
         - make
         - cmake
         - docutils
+        - eigen
         - glew
         - glfw
         - lark-parser

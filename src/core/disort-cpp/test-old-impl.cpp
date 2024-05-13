@@ -189,12 +189,12 @@ std::pair<Numeric, Numeric> absrel(ExhaustiveVectorView v1,
   }
 
   v1 -= v2;
-  const Numeric a = std::abs(std::ranges::max(
+  const Numeric a_ = std::abs(std::ranges::max(
       v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
   v1 /= v2;
-  const Numeric b = std::abs(std::ranges::max(
+  const Numeric b_ = std::abs(std::ranges::max(
       v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
-  return {a, b};
+  return {a_, b_};
 }
 
 void test_flat() try {
