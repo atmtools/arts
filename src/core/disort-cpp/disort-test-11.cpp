@@ -4,7 +4,6 @@
 #include "disort.h"
 #include "matpack_data.h"
 #include "matpack_math.h"
-#include "rng.h"
 
 void test_11a_1layer() try {
   const AscendingGrid tau_arr{8.};
@@ -420,168 +419,10 @@ void test_11a_multilayer() try {
       var_string("Error in test-11a-multilayer:\n", e.what()));
 }
 
-std::pair<Numeric, Numeric> absrel(ExhaustiveVectorView v1,
-                                   const ExhaustiveConstVectorView& v2) {
-  for (Index i=0; i<v1.size(); i++) {
-    if (v1[i] == 0) std::cerr << "ERROR\n";
-  }
-
-  v1 -= v2;
-  const Numeric a = std::abs(std::ranges::max(
-      v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
-  v1 /= v2;
-  const Numeric b = std::abs(std::ranges::max(
-      v1, [](auto a, auto b) { return std::abs(a) < std::abs(b); }));
-  return {a, b};
-}
-
-void test_flat() try {
-  const Index NLayers = 100;
-  const Index NQuad = 30;
-
-  RandomNumberGenerator<> rng;
-  auto draw = rng.get(0.00001, 0.99999);
-  std::vector<Numeric> taus{0.5};
-  for (Index i = 0; i < NLayers - 1; i++) taus.push_back(taus.back() + draw());
-  for (Index i=0;i<NLayers; i++) {
-    taus[i] *= 20.0 / taus.back();
-  }
-
-  const AscendingGrid tau_arr{taus};
-  Vector omega_arr(NLayers);
-  for (auto& o : omega_arr) o = draw();
-  Matrix Leg_coeffs_all(tau_arr.size(), 32);
-  for (auto&& v : Leg_coeffs_all)
-    v = {1.00000000e+00, 7.50000000e-01, 5.62500000e-01, 4.21875000e-01,
-         3.16406250e-01, 2.37304688e-01, 1.77978516e-01, 1.33483887e-01,
-         1.00112915e-01, 7.50846863e-02, 5.63135147e-02, 4.22351360e-02,
-         3.16763520e-02, 2.37572640e-02, 1.78179480e-02, 1.33634610e-02,
-         1.00225958e-02, 7.51694682e-03, 5.63771011e-03, 4.22828259e-03,
-         3.17121194e-03, 2.37840895e-03, 1.78380672e-03, 1.33785504e-03,
-         1.00339128e-03, 7.52543458e-04, 5.64407594e-04, 4.23305695e-04,
-         3.17479271e-04, 2.38109454e-04, 1.78582090e-04, 1.33936568e-04};
-
-  std::cout << tau_arr << '\n';
-  std::cout << omega_arr << '\n';
-
-  const Numeric mu0 = 0.6;
-  const Numeric I0 = Constant::pi / mu0;
-  const Numeric phi0 = 0.9 * Constant::pi;
-  Matrix b_neg(NQuad, NQuad / 2, 0);
-  b_neg[0] = 1;
-  Matrix b_pos(NQuad, NQuad / 2, 0);
-  b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{
-      disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
-  Matrix s_poly_coeffs(tau_arr.size(), 2);
-  for (auto&& v : s_poly_coeffs) v = {172311.79936609, -102511.4417051};
-  const Vector f_arr{Leg_coeffs_all(joker, NQuad)};
-
-  // Optional (unused)
-  const Index NLeg = NQuad;
-  const Index NFourier = NQuad;
-
-  const disort::main_data dis(NQuad,
-                              NLeg,
-                              NFourier,
-                              tau_arr,
-                              omega_arr,
-                              Leg_coeffs_all,
-                              b_pos,
-                              b_neg,
-                              f_arr,
-                              s_poly_coeffs,
-                              BDRF_Fourier_modes,
-                              mu0,
-                              I0,
-                              phi0);
-
-  const Index NP = 500;
-  const Vector phi = uniform_grid(0, NP, Constant::pi / NP);
-
-  Tensor3 u1(NLayers, NP, NQuad), u2(NLayers, NP, NQuad),
-      u3(NLayers, NP, NQuad);
-  {
-    DebugTime norm{"1-by-1 U"};
-    disort::u_data data_u;
-    for (Index i = 0; i < NLayers; i++) {
-      for (Index j = 0; j < NP; j++) {
-        dis.u(data_u, tau_arr[i], phi[j]);
-        u1(i, j, joker) = data_u.intensities;
-      }
-    }
-  }
-
-  {
-    DebugTime norm{"Gridded U"};
-    dis.gridded_u(u2, phi);
-  }
-
-  {
-    DebugTime norm{"Ungridded U"};
-    dis.ungridded_u(u3, tau_arr, phi);
-  }
-
-  const auto [u2_abs, u2_rel] = absrel(u2.flat_view(), u1.flat_view());
-  std::cout << "u abs-max gridded:   " << u2_abs << '\n';
-  std::cout << "u abs-rel gridded:   " << u2_rel << '\n';
-
-  const auto [u3_abs, u3_rel] = absrel(u3.flat_view(), u1.flat_view());
-  std::cout << "u abs-max ungridded: " << u3_abs << '\n';
-  std::cout << "u abs-rel ungridded: " << u3_rel << '\n';
-
-  Vector fu1(NLayers), fu2(NLayers), fu3(NLayers);
-  Vector fd1(NLayers), fd2(NLayers), fd3(NLayers);
-  Vector fb1(NLayers), fb2(NLayers), fb3(NLayers);
-  {
-    DebugTime norm{"1-by-1 Flux"};
-    disort::flux_data data_flux;
-    for (Index i = 0; i < NLayers; i++) {
-      fu1[i] = dis.flux_up(data_flux, tau_arr[i]);
-      auto [d, b] = dis.flux_down(data_flux, tau_arr[i]);
-      fd1[i] = d;
-      fb1[i] = b;
-    }
-  }
-
-  {
-    DebugTime norm{"Gridded Flux"};
-    dis.gridded_flux(fu2, fd2, fb2);
-  }
-
-  {
-    DebugTime norm{"Ungridded Flux"};
-    dis.ungridded_flux(fu3, fd3, fb3, tau_arr);
-  }
-
-  const auto [fu2_abs, fu2_rel] = absrel(fu2.flat_view(), fu1.flat_view());
-  const auto [fd2_abs, fd2_rel] = absrel(fd2.flat_view(), fd1.flat_view());
-  const auto [fb2_abs, fb2_rel] = absrel(fb2.flat_view(), fb1.flat_view());
-  std::cout << "fu abs-max gridded:   " << fu2_abs << '\n';
-  std::cout << "fu abs-rel gridded:   " << fu2_rel << '\n';
-  std::cout << "fd abs-max gridded:   " << fd2_abs << '\n';
-  std::cout << "fd abs-rel gridded:   " << fd2_rel << '\n';
-  std::cout << "fb abs-max gridded:   " << fb2_abs << '\n';
-  std::cout << "fb abs-rel gridded:   " << fb2_rel << '\n';
-
-  const auto [fu3_abs, fu3_rel] = absrel(fu3.flat_view(), fu1.flat_view());
-  const auto [fd3_abs, fd3_rel] = absrel(fd3.flat_view(), fd1.flat_view());
-  const auto [fb3_abs, fb3_rel] = absrel(fb3.flat_view(), fb1.flat_view());
-  std::cout << "fu abs-max ungridded: " << fu3_abs << '\n';
-  std::cout << "fu abs-rel ungridded: " << fu3_rel << '\n';
-  std::cout << "fd abs-max ungridded: " << fd3_abs << '\n';
-  std::cout << "fd abs-rel ungridded: " << fd3_rel << '\n';
-  std::cout << "fb abs-max ungridded: " << fb3_abs << '\n';
-  std::cout << "fb abs-rel ungridded: " << fb3_rel << '\n';
-} catch (std::exception& e) {
-  throw std::runtime_error(var_string("Error in test-test:\n", e.what()));
-}
-
 int main() try {
   std::cout << std::setprecision(16);
   test_11a_1layer();
   test_11a_multilayer();
-  test_flat();
 } catch (std::exception& e) {
   std::cerr << "Error in main:\n" << e.what() << '\n';
   return EXIT_FAILURE;
