@@ -1977,14 +1977,14 @@ Gets the ellispoid from *surface_field*
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radiance_backgroundDefaultTransmission"] = {
-      .desc = R"--(Sets default *spectral_radiance_background* and *spectral_radiance_background_jacobian* for transmission.
+  wsm_data["spectral_radianceDefaultTransmission"] = {
+      .desc = R"--(Sets default *spectral_radiance* and *spectral_radiance_jacobian* for transmission.
 
-The Jacobian is all 0, the background is [1 0 0 0] everywhere
+The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
-      .out = {"spectral_radiance_background",
-              "spectral_radiance_background_jacobian"},
+      .out = {"spectral_radiance",
+              "spectral_radiance_jacobian"},
       .in = {"frequency_grid",
              "jacobian_targets"},
   };

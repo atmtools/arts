@@ -56,7 +56,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 
   ARTS_USER_ERROR_IF(
       spectral_radiance_background.nelem() not_eq frequency_grid.nelem(),
-      "Bad size spectral_radiance (",
+      "Bad size spectral_radiance_background (",
       spectral_radiance_background.nelem(),
       ").  It should have the same size as frequency_grid (",
       frequency_grid.nelem(),
@@ -163,17 +163,17 @@ void background_transmittanceFromPathPropagationFront(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radiance_backgroundDefaultTransmission(
-    StokvecVector& spectral_radiance_background,
-    StokvecMatrix& spectral_radiance_background_jacobian,
+void spectral_radianceDefaultTransmission(
+    StokvecVector& spectral_radiance,
+    StokvecMatrix& spectral_radiance_background,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets) {
   const Index nf = frequency_grid.nelem();
   const Index nq = jacobian_targets.x_size();
 
-  spectral_radiance_background_jacobian.resize(nq, nf);
-  spectral_radiance_background_jacobian = 0.0;
+  spectral_radiance_background.resize(nq, nf);
+  spectral_radiance_background = 0.0;
 
-  spectral_radiance_background.resize(nf);
-  spectral_radiance_background = 1;
+  spectral_radiance.resize(nf);
+  spectral_radiance = 1;
 }

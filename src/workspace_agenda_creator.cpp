@@ -83,6 +83,9 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
       agenda.add("spectral_radianceUniformCosmicBackground");
       agenda.add("spectral_radiance_jacobianEmpty");
       break;
+    case Transmission:
+      agenda.add("spectral_radiance_backgroundDefaultTransmission");
+      break;
   }
 
   return std::move(agenda).finalize();
@@ -95,6 +98,9 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
   switch (to<spectral_radiance_surface_agendaPredefined>(option)) {
     case Blackbody:
       agenda.add("spectral_radianceSurfaceBlackbody");
+      break;
+    case Transmission:
+      agenda.add("spectral_radiance_backgroundDefaultTransmission");
       break;
   }
 

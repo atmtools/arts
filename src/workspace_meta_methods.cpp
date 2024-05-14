@@ -38,7 +38,29 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "spectral_radianceClearskyTransmission",
-      .desc = "Computes clearsky emission of spectral radiances",
+      .desc = "Computes clearsky transmission of spectral radiances",
+      .author = {"Richard Larsson"},
+      .methods = {"propagation_path_pointBackground",
+                  "spectral_radiance_backgroundAgendasAtEndOfPath",
+                  "propagation_path_atmospheric_pointFromPath",
+                  "propagation_path_frequency_gridFromPath",
+                  "propagation_path_propagation_matrixFromPath",
+                  "propagation_path_transmission_matrixFromPath",
+                  "propagation_path_transmission_matrix_cumulativeForward",
+                  "propagation_path_spectral_radianceCalcTransmission",
+                  "background_transmittanceFromPathPropagationBack",
+                  "spectral_radianceFromPathPropagation",
+                  "spectral_radiance_jacobianFromBackground",
+                  "spectral_radiance_jacobianAddPathPropagation",
+                  "propagation_path_pointForeground",
+                  "spectral_radiance_jacobianApplyUnit",
+                  "spectral_radianceApplyUnit"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "spectral_radianceClearskyBackgroundTransmission",
+      .desc = "Computes clearsky transmission of spectral radiances",
       .author = {"Richard Larsson"},
       .methods = {"propagation_path_pointBackground",
                   "propagation_path_atmospheric_pointFromPath",

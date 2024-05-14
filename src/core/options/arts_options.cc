@@ -483,6 +483,10 @@ std::vector<EnumeratedOption> internal_options_create() {
   - *spectral_radianceUniformCosmicBackground*
   - *spectral_radiance_jacobianEmpty*
 )"},
+              Value{"Transmission", R"(
+
+  - *spectral_radianceDefaultTransmission*
+)"},
           },
   });
 
@@ -495,6 +499,10 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"Blackbody", R"(
 
   - *spectral_radianceSurfaceBlackbody*
+)"},
+              Value{"Transmission", R"(
+
+  - *spectral_radianceDefaultTransmission*
 )"},
           },
   });

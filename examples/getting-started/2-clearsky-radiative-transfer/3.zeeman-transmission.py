@@ -33,15 +33,14 @@ ws.atmospheric_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Checks and settings
 
 ws.spectral_radiance_unit = "1"
-ws.spectral_radiance_space_agendaSet(option="UniformCosmicBackground")
-ws.spectral_radiance_surface_agendaSet(option="Blackbody")
+ws.spectral_radiance_space_agendaSet(option="Transmission")
+ws.spectral_radiance_surface_agendaSet(option="Transmission")
 
 # %% Core calculations
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 ws.propagation_pathGeometric(pos=pos, los=los, max_step=1000.0)
-ws.spectral_radiance_backgroundDefaultTransmission()
 ws.spectral_radianceClearskyTransmission()
 
 # %% Show results
