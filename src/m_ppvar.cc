@@ -11,11 +11,16 @@
 void propagation_path_spectral_radianceCalcTransmission(
     ArrayOfStokvecVector &propagation_path_spectral_radiance,
     ArrayOfStokvecMatrix &propagation_path_spectral_radiance_jacobian,
+    const StokvecVector &spectral_radiance_background,
     const ArrayOfMuelmatVector &propagation_path_transmission_matrix,
     const ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
     const ArrayOfArrayOfMuelmatMatrix
         &propagation_path_transmission_matrix_jacobian) try {
   const Size np = propagation_path_transmission_matrix.size();
+  const Index nq =
+      propagation_path_transmission_matrix_jacobian.front().front().nrows();
+  const Index nf =
+      propagation_path_transmission_matrix_jacobian.front().front().ncols();
 
   ARTS_USER_ERROR_IF(
       np not_eq propagation_path_transmission_matrix.size(),
@@ -31,16 +36,19 @@ void propagation_path_spectral_radianceCalcTransmission(
               np,
       "propagation_path_transmission_matrix_jacobian must (2 x np) elements")
 
+  ARTS_USER_ERROR_IF(
+      spectral_radiance_background.size() != nf,
+      "spectral_radiance_background must have (nf) elements. Should have (",
+      nf,
+      ") vs have (",
+      spectral_radiance_background.size(),
+      ")")
+
   if (np == 0) {
     propagation_path_spectral_radiance.resize(0);
     propagation_path_spectral_radiance_jacobian.resize(0);
     return;
   }
-
-  const Index nq =
-      propagation_path_transmission_matrix_jacobian.front().front().nrows();
-  const Index nf =
-      propagation_path_transmission_matrix_jacobian.front().front().ncols();
 
   const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
   ARTS_USER_ERROR_IF(
@@ -68,8 +76,8 @@ void propagation_path_spectral_radianceCalcTransmission(
                   test_nfnq),
       "propagation_path_transmission_matrix_jacobian must have (nq x nf) inner elements")
 
-  propagation_path_spectral_radiance.resize(
-      np, StokvecVector(nf, Stokvec{1, 0, 0, 0}));
+  propagation_path_spectral_radiance.resize(np);
+  propagation_path_spectral_radiance.back() = spectral_radiance_background;
   propagation_path_spectral_radiance_jacobian.resize(np, StokvecMatrix(nq, nf));
   for (Index ip = np - 2; ip >= 0; ip--) {
     propagation_path_spectral_radiance[ip] =

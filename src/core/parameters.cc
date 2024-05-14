@@ -8,14 +8,13 @@
    \date   2001-07-24
 */
 
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include "file.h"
 #include "parameters.h"
 
+#include <cstdlib>
+
 /// Holds the command line parameters.
-extern Parameters parameters{};
+extern Parameters parameters;
+Parameters parameters{};
 
 //! Parse path environment variable
 /** 
@@ -49,5 +48,3 @@ void parse_path_from_environment(String envvar, ArrayOfString &paths) {
     }
   }
 }
-
-

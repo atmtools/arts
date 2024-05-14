@@ -1,10 +1,7 @@
 #include "workspace_agenda_creator.h"
 
-#include <memory>
 #include <string>
 #include <unordered_map>
-#include "atm.h"
-#include "path_point.h"
 
 SetWsv::SetWsv(std::string n) : name(std::move(n)) {
   if (auto ind = name.find('='); ind not_eq name.npos) {
@@ -70,7 +67,7 @@ Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
   switch (to<spectral_radiance_observer_agendaPredefined>(option)) {
     case Emission:
       agenda.add("propagation_path_observer_agendaExecute");
-      agenda.add("spectral_radianceStandardEmission");
+      agenda.add("spectral_radianceClearskyEmission");
       break;
   }
 
@@ -86,6 +83,9 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
       agenda.add("spectral_radianceUniformCosmicBackground");
       agenda.add("spectral_radiance_jacobianEmpty");
       break;
+    case Transmission:
+      agenda.add("spectral_radianceDefaultTransmission");
+      break;
   }
 
   return std::move(agenda).finalize();
@@ -98,6 +98,9 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
   switch (to<spectral_radiance_surface_agendaPredefined>(option)) {
     case Blackbody:
       agenda.add("spectral_radianceSurfaceBlackbody");
+      break;
+    case Transmission:
+      agenda.add("spectral_radianceDefaultTransmission");
       break;
   }
 

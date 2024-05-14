@@ -1,12 +1,12 @@
 #include "arts_options.h"
 
 #include <algorithm>
+#include <array>
 #include <iomanip>
 #include <limits>
 #include <ranges>
 #include <sstream>
 #include <utility>
-#include <array>
 #include <vector>
 
 using Value = std::vector<std::string>;
@@ -468,7 +468,7 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"Emission", R"(
 
   - *propagation_path_observer_agendaExecute*
-  - *spectral_radianceStandardEmission*)"},
+  - *spectral_radianceClearskyEmission*)"},
           },
   });
 
@@ -483,6 +483,10 @@ std::vector<EnumeratedOption> internal_options_create() {
   - *spectral_radianceUniformCosmicBackground*
   - *spectral_radiance_jacobianEmpty*
 )"},
+              Value{"Transmission", R"(
+
+  - *spectral_radianceDefaultTransmission*
+)"},
           },
   });
 
@@ -495,6 +499,10 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"Blackbody", R"(
 
   - *spectral_radianceSurfaceBlackbody*
+)"},
+              Value{"Transmission", R"(
+
+  - *spectral_radianceDefaultTransmission*
 )"},
           },
   });
@@ -718,15 +726,16 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
                     "Tb",
                     R"(Planck brightness temperature [K]
 )"},
-              Value{
-                  "W_m2_m_sr",
-                  "W/(m^2 m sr)",
-                  "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
+              Value{"W_m2_m_sr",
+                    "W/(m^2 m sr)",
+                    "Spectral radiance wavelength [W / m :math:`^{2}` m sr`]"},
               Value{
                   "W_m2_m1_sr",
                   "W/(m^2 m-1 sr)",
                   "Spectral radiance wavenumber [W / m :math:`^{2}` m :math:`^{-1}` sr`]"},
-              Value{"unit", "1", "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
+              Value{"unit",
+                    "1",
+                    "Unit spectral radiance [W / m :math:`^{2}` Hz sr]"},
           },
   });
 
@@ -1157,7 +1166,7 @@ std::string EnumeratedOption::head() const {
 
   for (auto& v : values_and_desc) {
     for (auto& s : v) {
-    if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
+      if (std::ranges::any_of(reserved, [&s](auto& r) { return r == s; })) {
         throw std::runtime_error("Reserved word used for enum class " + name);
       }
     }

@@ -56,7 +56,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
 
   ARTS_USER_ERROR_IF(
       spectral_radiance_background.nelem() not_eq frequency_grid.nelem(),
-      "Bad size spectral_radiance (",
+      "Bad size spectral_radiance_background (",
       spectral_radiance_background.nelem(),
       ").  It should have the same size as frequency_grid (",
       frequency_grid.nelem(),
@@ -86,9 +86,7 @@ StokvecVector from_temp(const ExhaustiveConstVectorView& frequency_grid,
   std::transform(frequency_grid.begin(),
                  frequency_grid.end(),
                  v.begin(),
-                 [t](auto f) -> Stokvec {
-                   return {planck(f, t), 0, 0, 0};
-                 });
+                 [t](auto f) -> Stokvec { return {planck(f, t), 0, 0, 0}; });
   return v;
 }
 }  // namespace detail
@@ -164,3 +162,18 @@ void background_transmittanceFromPathPropagationFront(
       propagation_path_transmission_matrix_cumulative.front();
 }
 ARTS_METHOD_ERROR_CATCH
+
+void spectral_radianceDefaultTransmission(
+    StokvecVector& spectral_radiance,
+    StokvecMatrix& spectral_radiance_background,
+    const AscendingGrid& frequency_grid,
+    const JacobianTargets& jacobian_targets) {
+  const Index nf = frequency_grid.nelem();
+  const Index nq = jacobian_targets.x_size();
+
+  spectral_radiance_background.resize(nq, nf);
+  spectral_radiance_background = 0.0;
+
+  spectral_radiance.resize(nf);
+  spectral_radiance = 1;
+}
