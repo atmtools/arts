@@ -84,6 +84,16 @@ struct flux_data {
   Vector u0_neg;
 };
 
+/** The main data structure for the DISORT algorithm
+ * 
+ * This pre-allocates all the memory needed for the computations
+ *
+ * Note to cite the original author of the algorithm when this is presented:
+ * https://github.com/LDEO-CREW/Pythonic-DISORT
+ *
+ * Also note to present the original author of the new Legendre Gauss algorithm:
+ * https://doi.org/10.1137/140954969
+ */
 class main_data {
   Index NLayers{0};
   Index NQuad{0};
