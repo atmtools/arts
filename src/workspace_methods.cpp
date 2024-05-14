@@ -1035,12 +1035,13 @@ The calculations are in parallel if the program is not in parallel already.
 
   wsm_data["propagation_path_spectral_radianceCalcTransmission"] = {
       .desc =
-          R"--(Gets the radiation along the path by linear emission calculations.
+          R"--(Gets the radiation along the path by linear transmission calculations.
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_path_spectral_radiance",
               "propagation_path_spectral_radiance_jacobian"},
-      .in = {"propagation_path_transmission_matrix",
+      .in = {"spectral_radiance_background",
+             "propagation_path_transmission_matrix",
              "propagation_path_transmission_matrix_cumulative",
              "propagation_path_transmission_matrix_jacobian"},
   };
@@ -1974,6 +1975,18 @@ Gets the ellispoid from *surface_field*
              "spectral_radiance_space_agenda",
              "spectral_radiance_surface_agenda"},
       .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radiance_backgroundDefaultTransmission"] = {
+      .desc = R"--(Sets default *spectral_radiance_background* and *spectral_radiance_background_jacobian* for transmission.
+
+The Jacobian is all 0, the background is [1 0 0 0] everywhere
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance_background",
+              "spectral_radiance_background_jacobian"},
+      .in = {"frequency_grid",
+             "jacobian_targets"},
   };
 
   wsm_data["spectral_radianceUniformCosmicBackground"] = {

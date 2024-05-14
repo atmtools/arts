@@ -14,8 +14,8 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceStandardEmission",
-      .desc = "Computes standard emission of spectral radiances",
+      .name = "spectral_radianceClearskyEmission",
+      .desc = "Computes clearsky emission of spectral radiances",
       .author = {"Richard Larsson"},
       .methods = {"propagation_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
@@ -26,6 +26,27 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "propagation_path_transmission_matrix_cumulativeForward",
                   "propagation_path_spectral_radiance_sourceFromPropmat",
                   "propagation_path_spectral_radianceCalcEmission",
+                  "background_transmittanceFromPathPropagationBack",
+                  "spectral_radianceFromPathPropagation",
+                  "spectral_radiance_jacobianFromBackground",
+                  "spectral_radiance_jacobianAddPathPropagation",
+                  "propagation_path_pointForeground",
+                  "spectral_radiance_jacobianApplyUnit",
+                  "spectral_radianceApplyUnit"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "spectral_radianceClearskyTransmission",
+      .desc = "Computes clearsky emission of spectral radiances",
+      .author = {"Richard Larsson"},
+      .methods = {"propagation_path_pointBackground",
+                  "propagation_path_atmospheric_pointFromPath",
+                  "propagation_path_frequency_gridFromPath",
+                  "propagation_path_propagation_matrixFromPath",
+                  "propagation_path_transmission_matrixFromPath",
+                  "propagation_path_transmission_matrix_cumulativeForward",
+                  "propagation_path_spectral_radianceCalcTransmission",
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
