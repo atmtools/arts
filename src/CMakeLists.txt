@@ -282,7 +282,4 @@ if (IPO_SUPPORTED)
   set_property(TARGET xmliobase PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-add_subdirectory(gpl)
-target_link_libraries(artsworkspace PUBLIC artsworkspace_gpl_selector)
-
 add_subdirectory(tests)

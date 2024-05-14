@@ -11,7 +11,7 @@
 #include "arts_constants.h"
 #include "arts_conversions.h"
 #include "atm.h"
-#include "gsl_gauss_legendre.h"
+#include "legendre.h"
 #include "math_funcs.h"
 #include "matpack_data.h"
 
@@ -71,12 +71,12 @@ void AngularGridsSetFluxCalc(AscendingGrid& za_grid,
   if (za_grid_type == "double_gauss") {
     Vector x;
     Vector w;
-    Vector xtemp;
-    Vector wtemp;
+    Vector xtemp(nph / 2);
+    Vector wtemp(nph / 2);
     //Numeric theta;
 
     //calculate legendre weights and evaluation points
-    GSL::Integration::GaussLegendre(xtemp, wtemp, nph);
+    Legendre::PositiveGaussLegendre(xtemp, wtemp);
 
     x.resize(nph);
     w.resize(nph);

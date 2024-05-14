@@ -294,16 +294,12 @@ void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
                                  ExhaustiveVectorView w) {
   const Index n = x.size();
   ARTS_ASSERT(n == w.size());  // same size
-  ARTS_ASSERT(n % 2 == 0);     // even length
 
   for (Index k = 0; k < n; k++) {
     auto p = fastgl::GLPair(n, n - k);
-    x[k] = p.x();
-    w[k] = p.weight;
+    x[k] = 0.5 * (1.0 + p.x());
+    w[k] = 0.5 * p.weight;
   }
-  x += 1.0;
-  x *= 0.5;
-  w *= 0.5;
 }
 
 void PositiveGaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w) {

@@ -1,4 +1,5 @@
 #include <fastgl.h>
+#include <legendre.h>
 #include <matpack.h>
 #include <pybind11/attr.h>
 #include <pybind11/cast.h>
@@ -6,10 +7,6 @@
 #include <wigner_functions.h>
 
 #include <utility>
-
-#include "gsl_gauss_legendre.h"
-#include "legendre.h"
-#include "matpack_data.h"
 
 namespace Python {
 namespace py = pybind11;
@@ -195,7 +192,69 @@ w6 : float
         return out;
       },
       py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
-      py::doc("Computes the Gauss-Legendre quadrature"));
+      py::doc(R"(Computes the Gauss-Legendre quadrature
+
+Parameters
+----------
+deg : int
+    The degree of the Gauss-Legendre quadrature
+
+Returns
+-------
+x : List[float]
+    The abscissas
+w : List[float]
+    The weights
+)"));
+
+  math.def(
+      "pdleggauss",
+      [](Index deg) {
+        if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
+        if (deg % 2) throw std::invalid_argument("Degree must be even");
+        auto out = std::make_pair<Vector, Vector>(deg / 2, deg / 2);
+        Legendre::PositiveDoubleGaussLegendre(out.first, out.second);
+        return out;
+      },
+      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
+      py::doc(R"(Computes the Positive Double Gauss-Legendre quadrature
+
+Parameters
+----------
+deg : int
+    The degree of the Gauss-Legendre quadrature
+
+Returns
+-------
+x : List[float]
+    The abscissas
+w : List[float]
+    The weights
+)"));
+
+  math.def(
+      "pleggauss",
+      [](Index deg) {
+        if (deg < 1) throw std::invalid_argument("Degree must be at least 1");
+        auto out = std::make_pair<Vector, Vector>(deg, deg);
+        Legendre::PositiveGaussLegendre(out.first, out.second);
+        return out;
+      },
+      py::arg_v("deg", Index{0}, "The degree of the Gauss-Legendre quadrature"),
+      py::doc(R"(Computes the Positive Gauss-Legendre quadrature
+
+Parameters
+----------
+deg : int
+    The degree of the Gauss-Legendre quadrature
+
+Returns
+-------
+x : List[float]
+    The abscissas
+w : List[float]
+    The weights
+)"));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize math\n", e.what()));
