@@ -84,7 +84,7 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
       agenda.add("spectral_radiance_jacobianEmpty");
       break;
     case Transmission:
-      agenda.add("spectral_radiance_backgroundDefaultTransmission");
+      agenda.add("spectral_radianceDefaultTransmission");
       break;
   }
 
@@ -100,7 +100,7 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
       agenda.add("spectral_radianceSurfaceBlackbody");
       break;
     case Transmission:
-      agenda.add("spectral_radiance_backgroundDefaultTransmission");
+      agenda.add("spectral_radianceDefaultTransmission");
       break;
   }
 
