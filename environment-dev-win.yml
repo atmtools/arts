@@ -1,8 +1,10 @@
 dependencies:
+        - boost
         - build
         - make
         - cmake
         - docutils
+        - eigen
         - glew
         - glfw
         - lark-parser

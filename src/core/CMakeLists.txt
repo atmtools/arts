@@ -31,6 +31,8 @@ add_subdirectory(path)
 add_subdirectory(util)
 add_subdirectory(options)
 add_subdirectory(sensor)
+add_subdirectory(disort-cpp)
+add_subdirectory(legendre)
 
 # #####
 add_library(artscore STATIC
@@ -46,7 +48,6 @@ add_library(artscore STATIC
   igrf13.cc
   interpolation.cc
   jpl_species.cc
-  legendre.cc
   lineshapemodel.cc
   mc_antenna.cc
   mc_interp.cc
@@ -86,6 +87,8 @@ target_link_libraries(artscore PUBLIC
   species_tags
   surface
   util
+  disort-cpp
+  legendre
 )
 
 target_include_directories(artscore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

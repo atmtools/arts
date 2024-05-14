@@ -1,5 +1,6 @@
 dependencies:
         - binutils
+        - boost
         - build
         - ccache
         - clang
@@ -7,6 +8,7 @@ dependencies:
         - cmake
         - doxygen
         - docutils
+        - eigen
         - gcc
         - gfortran
         - glew

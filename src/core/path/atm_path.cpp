@@ -7,7 +7,9 @@
 #include <memory>
 #include <vector>
 
+#include "debug.h"
 #include "path_point.h"
+#include "sorted_grid.h"
 
 ArrayOfAtmPoint &atm_path_resize(ArrayOfAtmPoint &atm_path,
                                  const ArrayOfPropagationPathPoint &ppath) {
@@ -61,14 +63,13 @@ void forward_path_freq(ArrayOfAscendingGrid &path_freq,
   };
 
   for (Size ip = 0; ip < atm_path.size(); ip++) {
+    const Numeric fac =
+        1.0 - (along_path_atm_speed + dot_prod(ip)) / Constant::speed_of_light;
+    ARTS_USER_ERROR_IF(fac < 0, "Bad frequency scaling factor: ", fac)
     std::transform(main_freq.begin(),
                    main_freq.end(),
                    path_freq[ip].unsafe_begin(),
-                   [fac = 1.0 - (along_path_atm_speed + dot_prod(ip)) /
-                                    Constant::speed_of_light](const auto &f) {
-                     return fac * f;
-                   });
-    path_freq[ip].assert_sorted();
+                   [fac](const auto &f) { return fac * f; });
   }
 }
 

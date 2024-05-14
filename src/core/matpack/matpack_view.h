@@ -703,6 +703,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator()(access&&... ind) -> ret_t
     requires(sizeof...(access) == N and not constant)
   {
+    assert(check_index_sizes(view, 0, std::forward<access>(ind)...));
     ARTS_ASSERT(check_index_sizes(view, 0, std::forward<access>(ind)...),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),
@@ -737,6 +738,7 @@ class matpack_view {
   [[nodiscard]] constexpr auto operator[](access&& ind) -> ret_t
     requires(not constant)
   {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),
@@ -753,6 +755,7 @@ class matpack_view {
             Index M = num_index<access>,
             class ret_t = constant_left_access<access>>
   [[nodiscard]] constexpr auto operator[](access&& ind) const -> ret_t {
+    assert(check_index_sizes(view, 0, ind));
     ARTS_ASSERT(check_index_sizes(view, 0, ind),
                 "Out-of-bounds:\nShape:    ",
                 shape_help<N>(shape()),
@@ -1030,6 +1033,26 @@ class matpack_view {
     return strided_mdspan<T, 1>{
         unsafe_data_handle(),
         {std::array<Index, 1>{nrows()}, std::array<Index, 1>{nrows() + 1}}};
+  }
+
+  constexpr matpack_view<T, 1, constant, false> flat_view() requires(not strided) {
+    return {view.data_handle(), {size()}};
+  }
+
+  template <Index M>
+  constexpr matpack_view<T, M, constant, false> reshape_as(
+      const std::array<Index, M>& sz) const requires(not strided)  {
+    if (size() != mdsize<M>(sz)) std::terminate();
+    ARTS_ASSERT(size() == mdsize<M>(sz), size(), " vs ", mdsize<M>(sz))
+
+    return matpack_view<T, M, constant, false>{data_handle(), sz};
+  }
+
+  //! Reshape this object to another size of matpack data.  The new object must have the same size as the old one had
+  template <integral... inds, Index M = sizeof...(inds)>
+  constexpr auto reshape_as(inds&&... sz) const requires(not strided)  {
+    return reshape_as<M>(
+        std::array<Index, M>{static_cast<Index>(std::forward<inds>(sz))...});
   }
 
   constexpr matpack_view& operator=(std::convertible_to<T> auto x)
@@ -1315,6 +1338,8 @@ class matpack_view {
   {
     return *std::prev(end());
   }
+
+  static constexpr bool is_strided() { return strided; }
 };
 
 /** Describe the matpack data type

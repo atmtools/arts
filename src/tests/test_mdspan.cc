@@ -6,11 +6,14 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
+#include "artstime/artstime.h"
 #include "debug.h"
 #include "interp.h"
+#include "lin_alg.h"
 #include "logic.h"
 #include "matpack_algo.h"
 #include "matpack_arrays.h"
@@ -593,202 +596,64 @@ void test_sorted_grid() {
   }
 }
 
-void test_einsum() {
-  const Matrix Z = uniform_grid(2, 490000, 0.2).reshape(700, 700);
+void test_lapack_vector_mult() {
+  Vector x{1, 2, 3};
+  Matrix A = Vector{1, 2, 3, 4, 5, 6, 7, 8, 9}.reshape(3, 3);
+  Vector y{0, 0, 0};
 
-  {
-    Matrix xm(700, 700, 1.0), ym(700, 700, 0.0);
-    matpack::einsum<std::array{'i', 'j'},
-                    std::array{'i', 'j'},
-                    std::array{'j', 'i'},
-                    std::array{'i', 'j'}>(xm, Z, Z, Z);
+  mult(y, A, x);
+  ARTS_USER_ERROR_IF((y != Vector{14., 32., 50.}), "Bad values:\n", y);
 
-    for (Size i = 0; i < 700; i++) {
-      for (Size j = 0; j < 700; j++) {
-        ym[i][j] += Z(i, j) * Z(j, i) * Z(i, j);
-      }
-    }
+  mult(y, A, x, 0.5);
+  ARTS_USER_ERROR_IF((y != Vector{7., 16., 25.}), "Bad values:\n", y);
 
-    xm /= ym;
-    xm -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(xm), std::abs(min(xm))) > 1e-10,
-                       "Large discrepancy (main): ",
-                       max(xm),
-                       " or ",
-                       min(xm));
+  mult(y, A, x, 1.0, 1.0);
+  ARTS_USER_ERROR_IF((y != Vector{21., 48., 75.}), "Bad values:\n", y);
+}
+
+void test_grid() {
+  AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
+
+  AscendingGridView y{x};
+
+  std::cout << x << '\n';
+  std::cout << y << '\n';
+
+  y = {1, 2, 3, 4, 5, 6, 7, 9};
+  std::cout << x << '\n';
+  std::cout << y << '\n';
+
+  x.emplace_back(10);
+  std::cout << x << '\n';
+  std::cout << y << '\n';
+
+  bool set_low;
+  try {
+    x.emplace_back(8);
+    set_low = true;
+  } catch (...) {
+    set_low = false;
   }
+  ARTS_USER_ERROR_IF(set_low, "Should not be able to set low value");
 
-  {
-    Matrix xm(700, 700, 1.0), ym(700, 700, 0.0);
-    matpack::einsum<std::array{'j', 'i'},
-                    std::array{'i', 'j'},
-                    std::array{'j', 'i'},
-                    std::array{'i', 'j'}>(xm, Z, Z, Z);
-
-    for (Size i = 0; i < 700; i++) {
-      for (Size j = 0; j < 700; j++) {
-        ym[j][i] += Z(i, j) * Z(j, i) * Z(i, j);
-      }
-    }
-
-    xm /= ym;
-    xm -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(xm), std::abs(min(xm))) > 1e-10,
-                       "Large discrepancy (transpose): ",
-                       max(xm),
-                       " or ",
-                       min(xm));
+  bool set_same;
+  try {
+    x.emplace_back(x.back());
+    set_same = true;
+  } catch (...) {
+    {};
+    set_same = false;
   }
+  ARTS_USER_ERROR_IF(set_same, "Should not be able to set same value");
 
-  {
-    Vector xv(700, 1.0), yv(700, 0.0);
-    matpack::einsum<std::array{'i'},
-                    std::array{'i', 'j'},
-                    std::array{'j', 'i'},
-                    std::array{'i', 'j'}>(xv, Z, Z, Z);
+  Vector z{1, 2, 3, 4, 5, 6, 7, 9, 20};
+  y = z;
+  std::cout << x << '\n';
+  std::cout << y << '\n';
 
-    for (Size i = 0; i < 700; i++) {
-      for (Size j = 0; j < 700; j++) {
-        yv[i] += Z(i, j) * Z(j, i) * Z(i, j);
-      }
-    }
-
-    xv /= yv;
-    xv -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(xv), std::abs(min(xv))) > 1e-10,
-                       "Large discrepancy (main): ",
-                       max(xv),
-                       " or ",
-                       min(xv));
-  }
-
-  {
-    Vector xv(700, 1.0), yv(700, 0.0);
-    matpack::einsum<std::array{'j'},
-                    std::array{'i', 'j'},
-                    std::array{'j', 'i'},
-                    std::array{'i', 'j'}>(xv, Z, Z, Z);
-
-    for (Size i = 0; i < 700; i++) {
-      for (Size j = 0; j < 700; j++) {
-        yv[j] += Z(i, j) * Z(j, i) * Z(i, j);
-      }
-    }
-
-    xv /= yv;
-    xv -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(xv), std::abs(min(xv))) > 1e-10,
-                       "Large discrepancy (transpose): ",
-                       max(xv),
-                       " or ",
-                       min(xv));
-  }
-
-  {
-    Numeric xn{0.0}, yn{0.0};
-    matpack::einsum<std::array<char, 0>{},
-                    std::array{'i', 'j'},
-                    std::array{'j', 'i'},
-                    std::array{'i', 'j'}>(xn, Z, Z, Z);
-
-    for (Size i = 0; i < 700; i++) {
-      for (Size j = 0; j < 700; j++) {
-        yn += Z(i, j) * Z(j, i) * Z(i, j);
-      }
-    }
-
-    xn /= yn;
-    xn -= 1.0;
-    ARTS_USER_ERROR_IF(std::abs(xn) > 1e-10, "Large discrepancy: ", xn);
-  }
-
-  {
-    const Index L = 30, M = 20, N = 10, P = 25, C = 32;
-    const Tensor3 LMN = uniform_grid(2, L * M * N, 0.2).reshape(L, M, N);
-    const Tensor3 LMP = uniform_grid(2, L * M * P, 0.2).reshape(L, M, P);
-    const Tensor4 LMNC =
-        uniform_grid(2, L * M * N * C, 0.2).reshape(L, M, N, C);
-    const Tensor4 LMPC =
-        uniform_grid(2, L * M * P * C, 0.2).reshape(L, M, P, C);
-    const Tensor5 LMNCP =
-        uniform_grid(2, L * M * N * C * P, 0.2).reshape(L, M, N, C, P);
-    Matrix x(L, M, 0.0), y(L, M, 0.0);
-
-    matpack::einsum<std::array{'l', 'm'},
-                    std::array{'l', 'm', 'n'},
-                    std::array{'l', 'm', 'p'},
-                    std::array{'l', 'm', 'n', 'c'},
-                    std::array{'l', 'm', 'p', 'c'},
-                    std::array{'l', 'm', 'n', 'c', 'p'}>(
-        x, LMN, LMP, LMNC, LMPC, LMNCP);
-
-    for (Index l = 0; l < L; l++) {
-      for (Index m = 0; m < M; m++) {
-        Numeric sum = 0.0;
-        for (Index n = 0; n < N; n++) {
-          for (Index p = 0; p < P; p++) {
-            for (Index c = 0; c < C; c++) {
-              sum += LMN(l, m, n) * LMP(l, m, p) * LMNC(l, m, n, c) *
-                     LMPC(l, m, p, c) * LMNCP(l, m, n, c, p);
-            }
-          }
-        }
-        y(l, m) = sum;
-      }
-    }
-
-    x /= y;
-    x -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(x), std::abs(min(x))) > 1e-10,
-                       "Large discrepancy (main): ",
-                       max(x),
-                       " or ",
-                       min(x));
-  }
-
-  {
-    const Index L = 30, M = 20, N = 10, P = 25, C = 32;
-    const Tensor3 LMN = uniform_grid(2, L * M * N, 0.2).reshape(L, M, N);
-    const Tensor3 LMP = uniform_grid(2, L * M * P, 0.2).reshape(L, M, P);
-    const Tensor4 LMNC =
-        uniform_grid(2, L * M * N * C, 0.2).reshape(L, M, N, C);
-    const Tensor4 LMPC =
-        uniform_grid(2, L * M * P * C, 0.2).reshape(L, M, P, C);
-    const Tensor5 LMNCP =
-        uniform_grid(2, L * M * N * C * P, 0.2).reshape(L, M, N, C, P);
-    Matrix x(M, L, 0.0), y(M, L, 0.0);
-
-    matpack::einsum<std::array{'m', 'l'},
-                    std::array{'l', 'm', 'n'},
-                    std::array{'l', 'm', 'p'},
-                    std::array{'l', 'm', 'n', 'c'},
-                    std::array{'l', 'm', 'p', 'c'},
-                    std::array{'l', 'm', 'n', 'c', 'p'}>(
-        x, LMN, LMP, LMNC, LMPC, LMNCP);
-
-    for (Index l = 0; l < L; l++) {
-      for (Index m = 0; m < M; m++) {
-        Numeric sum = 0.0;
-        for (Index n = 0; n < N; n++) {
-          for (Index p = 0; p < P; p++) {
-            for (Index c = 0; c < C; c++) {
-              sum += LMN(l, m, n) * LMP(l, m, p) * LMNC(l, m, n, c) *
-                     LMPC(l, m, p, c) * LMNCP(l, m, n, c, p);
-            }
-          }
-        }
-        y(m, l) = sum;
-      }
-    }
-
-    x /= y;
-    x -= 1.0;
-    ARTS_USER_ERROR_IF(std::max(max(x), std::abs(min(x))) > 1e-10,
-                       "Large discrepancy (transpose): ",
-                       max(x),
-                       " or ",
-                       min(x));
-  }
+  y = VectorView{z};
+  std::cout << x << '\n';
+  std::cout << y << '\n';
 }
 
 #define EXECUTE_TEST(X)                                                       \
@@ -809,5 +674,6 @@ int main() {
   EXECUTE_TEST(test_const_data)
   EXECUTE_TEST(test_my_interp)
   EXECUTE_TEST(test_sorted_grid)
-  EXECUTE_TEST(test_einsum)
+  EXECUTE_TEST(test_lapack_vector_mult)
+  EXECUTE_TEST(test_grid)
 }

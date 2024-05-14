@@ -2,6 +2,7 @@ add_library(matpack STATIC
   double_imanip.cc
   lin_alg.cc
   logic.cc
+  matpack_band_matrix.cc
   matpack_math.cc
   matpack_sparse.cc
   rational.cc
@@ -9,10 +10,12 @@ add_library(matpack STATIC
   poly_roots.cc
 )
 
+find_package (Eigen3 3.4 REQUIRED NO_MODULE)
+message(STATUS "Found Eigen3: ${EIGEN3_INCLUDE_DIR}")
+
 target_link_libraries(matpack PRIVATE ${LAPACK_LIBRARIES})
-target_link_libraries(matpack PUBLIC coretypes util arts_enum_options)
+target_link_libraries(matpack PUBLIC coretypes util arts_enum_options Eigen3::Eigen)
 target_include_directories(matpack PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/Eigen")
 target_include_directories(matpack PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/mdspan/include")
 
 if (IPO_SUPPORTED)

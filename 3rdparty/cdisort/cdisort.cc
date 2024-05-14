@@ -7942,8 +7942,6 @@ void c_albtrans_spherical(disort_state *ds,
  * Print out a warning or error message;  abort if type == DS_ERROR
  */
 
-#ifdef ENABLE_ORIGINAL_OUTPUT_HANDLING
-
 #define MAX_WARNINGS 100
 
 void c_errmsg(const char *messag,
@@ -8030,8 +8028,6 @@ int c_write_too_small_dim(int   quiet,
 }
 
 /*============================= end of c_write_too_small_dim =============*/
-
-#endif /* ENABLE_ORIGINAL_OUTPUT_HANDLING */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Call tree:

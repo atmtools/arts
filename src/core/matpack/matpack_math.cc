@@ -1,11 +1,15 @@
-#include "matpack_eigen.h"
 #include "matpack_math.h"
-
-#include "blas.h"
 
 #include <algorithm>
 
-void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C) {
+#include "blas.h"
+#include "matpack_eigen.h"
+
+void mult(MatrixView A,
+          const ConstMatrixView &B,
+          const ConstMatrixView &C,
+          Numeric alpha,
+          Numeric beta) {
   // Check dimensions:
   ARTS_ASSERT(A.nrows() == B.nrows());
   ARTS_ASSERT(A.ncols() == C.ncols());
@@ -17,8 +21,7 @@ void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C) {
   // Matrices B and C must be continuous in at least on dimension,  C
   // must be continuous along the second dimension.
   if (((B.stride(0) == 1) || (B.stride(1) == 1)) &&
-      ((C.stride(0) == 1) || (C.stride(1) == 1)) &&
-      (A.stride(1) == 1)) {
+      ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
     // BLAS uses column-major order while arts uses row-major order.
     // Hence instead of C = A * B we compute C^T = A^T * B^T!
 
@@ -79,7 +82,6 @@ void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C) {
     if ((A.stride(1) == 1) && (A.stride(0) == 1)) {
       ldc = m;
     }
-    double alpha = 1.0, beta = 0.0;
 
     dgemm_(&transa,
            &transb,
@@ -96,11 +98,18 @@ void mult(MatrixView A, const ConstMatrixView& B, const ConstMatrixView& C) {
            &ldc);
 
   } else {
-    matpack::eigen::as_eigen(A).noalias() = B * C;
+    if (beta == 0.0) {
+      matpack::eigen::as_eigen(A).noalias() = alpha * B * C;
+    } else {
+      A *= beta;
+      matpack::eigen::as_eigen(A).noalias() += alpha * B * C;
+    }
   }
 }
 
-void mult(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstComplexMatrixView& C) {
+void mult(ComplexMatrixView A,
+          const ConstComplexMatrixView &B,
+          const ConstComplexMatrixView &C) {
   // Check dimensions:
   ARTS_ASSERT(A.nrows() == B.nrows());
   ARTS_ASSERT(A.ncols() == C.ncols());
@@ -112,8 +121,7 @@ void mult(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstCompl
   // Matrices B and C must be continuous in at least on dimension,  C
   // must be continuous along the second dimension.
   if (((B.stride(0) == 1) || (B.stride(1) == 1)) &&
-      ((C.stride(0) == 1) || (C.stride(1) == 1)) &&
-      (A.stride(1) == 1)) {
+      ((C.stride(0) == 1) || (C.stride(1) == 1)) && (A.stride(1) == 1)) {
     // BLAS uses column-major order while arts uses row-major order.
     // Hence instead of C = A * B we compute C^T = A^T * B^T!
 
@@ -195,7 +203,11 @@ void mult(ComplexMatrixView A, const ConstComplexMatrixView& B, const ConstCompl
   }
 }
 
-void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
+void mult(VectorView y,
+          const ConstMatrixView &M,
+          const ConstVectorView &x,
+          Numeric alpha,
+          Numeric beta) {
   ARTS_ASSERT(y.nelem() == M.nrows());
   ARTS_ASSERT(M.ncols() == x.nelem());
   ARTS_ASSERT(not M.empty());
@@ -203,8 +215,6 @@ void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
   if ((M.stride(0) == 1) || (M.stride(1) == 1)) {
     char trans;
     int m, n;
-    double zero = 0.0;
-    double one = 1.0;
     int LDA, incx, incy;
 
     if (M.stride(1) != 1) {
@@ -217,8 +227,7 @@ void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
       m = (int)M.ncols();
       n = (int)M.nrows();
       LDA = (int)M.stride(0);
-      if (M.stride(0) == 1)
-        LDA = m;
+      if (M.stride(0) == 1) LDA = m;
     }
 
     incx = (int)x.stride(0);
@@ -228,14 +237,30 @@ void mult(VectorView y, const ConstMatrixView &M, const ConstVectorView &x) {
     double *ystart = y.unsafe_data_handle();
     double *xstart = x.unsafe_data_handle();
 
-    dgemv_(&trans, &m, &n, &one, mstart, &LDA, xstart, &incx, &zero, ystart,
+    dgemv_(&trans,
+           &m,
+           &n,
+           &alpha,
+           mstart,
+           &LDA,
+           xstart,
+           &incx,
+           &beta,
+           ystart,
            &incy);
   } else {
-    matpack::eigen::as_eigen(y).noalias() = M * x;
+    if (beta == 0.0) {
+      matpack::eigen::as_eigen(y).noalias() = alpha * M * x;
+    } else {
+      y *= beta;
+      matpack::eigen::as_eigen(y).noalias() += alpha * M * x;
+    }
   }
 }
 
-void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstComplexVectorView &x) {
+void mult(ComplexVectorView y,
+          const ConstComplexMatrixView &M,
+          const ConstComplexVectorView &x) {
   ARTS_ASSERT(y.nelem() == M.nrows());
   ARTS_ASSERT(M.ncols() == x.nelem());
   ARTS_ASSERT(not M.empty());
@@ -257,8 +282,7 @@ void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstCompl
       m = (int)M.ncols();
       n = (int)M.nrows();
       LDA = (int)M.stride(0);
-      if (M.stride(0) == 1)
-        LDA = m;
+      if (M.stride(0) == 1) LDA = m;
     }
 
     incx = (int)x.stride(0);
@@ -268,7 +292,16 @@ void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstCompl
     auto *ystart = y.unsafe_data_handle();
     auto *xstart = x.unsafe_data_handle();
 
-    zgemv_(&trans, &m, &n, &one, mstart, &LDA, xstart, &incx, &zero, ystart,
+    zgemv_(&trans,
+           &m,
+           &n,
+           &one,
+           mstart,
+           &LDA,
+           xstart,
+           &incx,
+           &zero,
+           ystart,
            &incy);
   } else {
     matpack::eigen::as_eigen(y).noalias() = M * x;
@@ -277,22 +310,30 @@ void mult(ComplexVectorView y, const ConstComplexMatrixView &M, const ConstCompl
 
 Vector uniform_grid(Numeric x0, Index N, Numeric dx) {
   Vector out(N);
-  std::generate(out.begin(), out.end(), [x=x0, dx]() mutable {auto xd=x; x+=dx; return xd;});
+  std::generate(out.begin(), out.end(), [x = x0, dx]() mutable {
+    auto xd = x;
+    x += dx;
+    return xd;
+  });
   return out;
 }
 
 ComplexVector uniform_grid(Complex x0, Index N, Complex dx) {
   ComplexVector out(N);
-  std::generate(out.begin(), out.end(), [x=x0, dx]() mutable {auto xd=x; x+=dx; return xd;});
+  std::generate(out.begin(), out.end(), [x = x0, dx]() mutable {
+    auto xd = x;
+    x += dx;
+    return xd;
+  });
   return out;
 }
 
-Vector diagonal(const ConstMatrixView& A) {
+Vector diagonal(const ConstMatrixView &A) {
   using namespace matpack::eigen;
   return Vector{as_eigen(A).diagonal()};
 }
 
-void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) {
+void cross3(VectorView c, const ConstVectorView &a, const ConstVectorView &b) {
   ARTS_ASSERT(a.nelem() == 3, a.nelem(), " vs 3");
   ARTS_ASSERT(b.nelem() == 3, b.nelem(), " vs 3");
   ARTS_ASSERT(c.nelem() == 3, c.nelem(), " vs 3");
@@ -302,7 +343,9 @@ void cross3(VectorView c, const ConstVectorView& a, const ConstVectorView& b) {
   c[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-void cross3(ComplexVectorView c, const ConstComplexVectorView& a, const ConstComplexVectorView& b) {
+void cross3(ComplexVectorView c,
+            const ConstComplexVectorView &a,
+            const ConstComplexVectorView &b) {
   ARTS_ASSERT(a.nelem() == 3, a.nelem(), " vs 3");
   ARTS_ASSERT(b.nelem() == 3, b.nelem(), " vs 3");
   ARTS_ASSERT(c.nelem() == 3, c.nelem(), " vs 3");

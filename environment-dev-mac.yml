@@ -1,4 +1,5 @@
 dependencies:
+        - boost
         - build
         - ccache
         - clang=16.*
@@ -6,6 +7,7 @@ dependencies:
         - cmake
         - docutils
         - doxygen
+        - eigen
         - gfortran
         - glew
         - glfw
