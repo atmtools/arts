@@ -20,3 +20,4 @@ pyarts.utils.common
    path_append
    path_prepend
    path_remove
+   TempFileHandler

@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from tempfile import NamedTemporaryFile
 import pyarts
+from pyarts.utils.common import TempFileHandler
 from pyarts.workspace import Workspace
 
 
@@ -55,22 +56,20 @@ class TestMethods:
         """
         ws = self.ws
 
-        tempfile = NamedTemporaryFile(delete_on_close=False)
-        tempfile.close()
+        with TempFileHandler() as tempfile:
+            ws.mat = pyarts.arts.Matrix()
 
-        ws.mat = pyarts.arts.Matrix()
+            mat = np.ones((2, 2))
+            ws.mat = np.ones((2, 2))
+            ws.WriteXML("ascii", ws.mat, tempfile)
 
-        mat = np.ones((2, 2))
-        ws.mat = np.ones((2, 2))
-        ws.WriteXML("ascii", ws.mat, tempfile.name)
+            ws.mat = np.zeros((2, 2))
+            ws.ReadXML(ws.mat, tempfile)
+            assert np.allclose(mat, ws.mat.value)
 
-        ws.mat = np.zeros((2, 2))
-        ws.ReadXML(ws.mat, tempfile.name)
-        assert np.allclose(mat, ws.mat.value)
-
-        ws.mat = np.zeros((2, 2))
-        ws.ReadXML(output=ws.mat, filename=tempfile.name)
-        assert np.allclose(mat, ws.mat)
+            ws.mat = np.zeros((2, 2))
+            ws.ReadXML(output=ws.mat, filename=tempfile)
+            assert np.allclose(mat, ws.mat)
 
     def test_supergeneric_overload_failure(self):
         """
