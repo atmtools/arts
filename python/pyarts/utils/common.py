@@ -3,8 +3,9 @@
 """
 
 import os
+from functools import partial, wraps
+from tempfile import mkstemp
 from warnings import warn
-from functools import (partial, wraps)
 
 __all__ = [
     'deprecated',
@@ -12,6 +13,7 @@ __all__ = [
     'path_append',
     'path_prepend',
     'path_remove',
+    'TempFileHandler',
 ]
 
 
@@ -154,3 +156,36 @@ def path_remove(dirname, path='PATH'):
         dir_list = os.environ[path].split(os.pathsep)
         dir_list.remove(dirname)
         os.environ[path] = os.pathsep.join(dir_list)
+
+
+class TempFileHandler:
+    """Context manager for creating and deleting temporary files.
+
+    This class is a context manager that creates a temporary file and
+    deletes it when the context is exited. The file is automatically
+    removed if an exception occurs.
+
+    Parameters:
+        prefix (str): Optional prefix for the temporary file name.
+        suffix (str): Optional suffix for the temporary file name.
+        dir (str): Optional directory for the temporary file.
+    """
+    def __init__(self, prefix="pyarts", suffix=".tmp", dir=None):
+        self.prefix = prefix
+        self.suffix = suffix
+        self.dir = dir
+        self.filename = None
+
+    def __enter__(self):
+        # Generate a unique filename
+        (fd, self.filename) = mkstemp(
+            suffix=self.suffix, prefix=self.prefix, dir=self.dir
+        )
+        os.close(fd)
+        return self.filename
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Remove the file if it exists
+        if self.filename and os.path.exists(self.filename):
+            os.remove(self.filename)
+        return False  # False means to propagate exceptions, if any occurred
