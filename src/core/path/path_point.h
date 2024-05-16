@@ -18,7 +18,8 @@ struct PropagationPathPoint {
    * the current point's pos_type, and that the current point's los_type is the
    * same as the next point's pos_type.
    */
-  PathPositionType pos_type{PathPositionType::unknown}, los_type{PathPositionType::unknown};
+  PathPositionType pos_type{PathPositionType::unknown},
+      los_type{PathPositionType::unknown};
 
   //! Position of the point: alt [m], lat [deg], lon [deg]
   Vector3 pos;
@@ -52,7 +53,8 @@ struct PropagationPathPoint {
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
-using ArrayOfArrayOfPropagationPathPoint = std::vector<ArrayOfPropagationPathPoint>;
+using ArrayOfArrayOfPropagationPathPoint =
+    std::vector<ArrayOfPropagationPathPoint>;
 
 std::ostream& operator<<(std::ostream& os,
                          const ArrayOfPropagationPathPoint& p);
@@ -274,4 +276,5 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
 
 using PropagationPathPoint = path::PropagationPathPoint;
 using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;
-using ArrayOfArrayOfPropagationPathPoint = path::ArrayOfArrayOfPropagationPathPoint;
+using ArrayOfArrayOfPropagationPathPoint =
+    path::ArrayOfArrayOfPropagationPathPoint;

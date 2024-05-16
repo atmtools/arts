@@ -211,12 +211,13 @@ Numeric refell2r(const Vector2 ell, const Numeric lat) {
 Vector3 sph2cart(const Vector3 sph) {
   using Conversion::cosd;
   using Conversion::sind;
+  
+  const auto& [r, lat, lon] = sph;
 
-  ARTS_ASSERT(r > 0);
   ARTS_ASSERT(std::abs(lat) <= 90);
   ARTS_ASSERT(std::abs(lon) <= 360);
+  ARTS_ASSERT(r > 0);
 
-  const auto& [r, lat, lon] = sph;
   return {r * cosd(lat) * cosd(lon), r * cosd(lat) * sind(lon), r * sind(lat)};
 }
 

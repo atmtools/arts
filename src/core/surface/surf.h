@@ -43,7 +43,8 @@ struct hash<SurfacePropertyTag> {
 };
 }  // namespace std
 
-using SurfaceKeyVal = std::variant<SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>;
+using SurfaceKeyVal =
+    std::variant<SurfaceKey, SurfaceTypeTag, SurfacePropertyTag>;
 
 std::ostream &operator<<(std::ostream &os, const SurfaceKeyVal &key);
 
@@ -59,7 +60,8 @@ concept isSurfacePropertyTag =
     std::same_as<std::remove_cvref_t<T>, SurfacePropertyTag>;
 
 template <typename T>
-concept KeyType = isSurfaceKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
+concept KeyType =
+    isSurfaceKey<T> or isSurfaceTypeTag<T> or isSurfacePropertyTag<T>;
 
 struct Point {
   Numeric elevation{std::numeric_limits<Numeric>::quiet_NaN()};

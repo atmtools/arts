@@ -34,14 +34,14 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sunsAddSingleBlackbody(ArrayOfSun &suns,
+void sunsAddSingleBlackbody(ArrayOfSun& suns,
                             // Inputs:
-                            const AscendingGrid &f_grid,
-                            const Numeric &radius,
-                            const Numeric &distance,
-                            const Numeric &temperature,
-                            const Numeric &latitude,
-                            const Numeric &longitude) {
+                            const AscendingGrid& f_grid,
+                            const Numeric& radius,
+                            const Numeric& distance,
+                            const Numeric& temperature,
+                            const Numeric& latitude,
+                            const Numeric& longitude) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun (",
@@ -51,7 +51,7 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
                      radius,
                      " m )")
 
-  Sun &new_sun = suns.emplace_back();
+  Sun& new_sun = suns.emplace_back();
 
   // spectrum
   new_sun.spectrum = Matrix(f_grid.nelem(), 4, 0.);
@@ -67,16 +67,16 @@ void sunsAddSingleBlackbody(ArrayOfSun &suns,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sunsAddSingleFromGrid(ArrayOfSun &suns,
+void sunsAddSingleFromGrid(ArrayOfSun& suns,
                            // Inputs:
-                           const AscendingGrid &f_grid,
-                           const GriddedField2 &sun_spectrum_raw,
-                           const Numeric &radius,
-                           const Numeric &distance,
-                           const Numeric &temperature,
-                           const Numeric &latitude,
-                           const Numeric &longitude,
-                           const String &description) {
+                           const AscendingGrid& f_grid,
+                           const GriddedField2& sun_spectrum_raw,
+                           const Numeric& radius,
+                           const Numeric& distance,
+                           const Numeric& temperature,
+                           const Numeric& latitude,
+                           const Numeric& longitude,
+                           const String& description) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun (",
@@ -87,9 +87,10 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
                      " m )")
 
   // init sun
-  Sun &new_sun = suns.emplace_back();
-  new_sun.spectrum = regrid_sun_spectrum(
-      sun_spectrum_raw, f_grid, temperature);  // set spectrum
+  Sun& new_sun = suns.emplace_back();
+  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw,
+                                         f_grid,
+                                         temperature);  // set spectrum
   new_sun.description = description;
   new_sun.radius = radius;
   new_sun.distance = distance;
@@ -97,19 +98,19 @@ void sunsAddSingleFromGrid(ArrayOfSun &suns,
   new_sun.longitude = longitude;
 }
 
-void sunsOff(ArrayOfSun &suns) {
+void sunsOff(ArrayOfSun& suns) {
   // create empty Array of Matrix for the sun_spectrum
   suns.resize(0);
 }
 
-void sun_pathFromObserverAgenda(const Workspace &ws,
-                                ArrayOfPropagationPathPoint &sun_path,
-                                const SurfaceField &surface_field,
-                                const Agenda &propagation_path_observer_agenda,
-                                const Sun &sun,
-                                const Vector3 &observer_pos,
-                                const Numeric &za_cut,
-                                const Index &just_hit) {
+void sun_pathFromObserverAgenda(const Workspace& ws,
+                                ArrayOfPropagationPathPoint& sun_path,
+                                const SurfaceField& surface_field,
+                                const Agenda& propagation_path_observer_agenda,
+                                const Sun& sun,
+                                const Vector3& observer_pos,
+                                const Numeric& za_cut,
+                                const Index& just_hit) {
   find_sun_path(ws,
                 sun_path,
                 sun,
@@ -121,14 +122,14 @@ void sun_pathFromObserverAgenda(const Workspace &ws,
 }
 
 void sun_pathsFromPathObserver(
-    const Workspace &ws,
-    ArrayOfArrayOfPropagationPathPoint &sun_paths,
-    const SurfaceField &surface_field,
-    const Agenda &propagation_path_observer_agenda,
-    const ArrayOfPropagationPathPoint &propagation_path,
-    const Sun &sun,
-    const Numeric &za_cut,
-    const Index &just_hit) {
+    const Workspace& ws,
+    ArrayOfArrayOfPropagationPathPoint& sun_paths,
+    const SurfaceField& surface_field,
+    const Agenda& propagation_path_observer_agenda,
+    const ArrayOfPropagationPathPoint& propagation_path,
+    const Sun& sun,
+    const Numeric& za_cut,
+    const Index& just_hit) {
   const Size np = propagation_path.size();
 
   sun_paths.resize(np);
@@ -157,7 +158,7 @@ void sun_pathsFromPathObserver(
                       propagation_path[i].pos,
                       za_cut,
                       just_hit);
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
 #pragma omp critical
         error += e.what();
       }
@@ -168,18 +169,18 @@ void sun_pathsFromPathObserver(
 }
 
 void propagation_path_spectral_radiance_solarClearskyTransmissionFromBackground(
-    const Workspace &ws,
-    ArrayOfStokvecVector &propagation_path_spectral_radiance_solar,
-    ArrayOfStokvecMatrix &propagation_path_spectral_radiance_solar_jacobian,
-    const ArrayOfArrayOfPropagationPathPoint &sun_paths,
-    const AtmField &atmospheric_field,
-    const AscendingGrid &frequency_grid,
-    //const JacobianTargets &jacobian_targets,
-    const Agenda &propagation_matrix_agenda,
-    const SurfaceField &surface_field,
-    const Numeric &rte_alonglos_v,
-    const Index &hse_derivative,
-    const Sun &sun) {
+    const Workspace& ws,
+    ArrayOfStokvecVector& propagation_path_spectral_radiance_solar,
+    ArrayOfStokvecMatrix& propagation_path_spectral_radiance_solar_jacobian,
+    const ArrayOfArrayOfPropagationPathPoint& sun_paths,
+    const AtmField& atmospheric_field,
+    const AscendingGrid& frequency_grid,
+    // const JacobianTargets &jacobian_targets,
+    const Agenda& propagation_matrix_agenda,
+    const SurfaceField& surface_field,
+    const Numeric& rte_alonglos_v,
+    const Index& hse_derivative,
+    const Sun& sun) {
   const Size np = sun_paths.size();
   propagation_path_spectral_radiance_solar.resize(np);
   propagation_path_spectral_radiance_solar_jacobian.resize(np);
@@ -242,7 +243,7 @@ void propagation_path_spectral_radiance_solarClearskyTransmissionFromBackground(
             surface_field,
             rte_alonglos_v,
             hse_derivative);
-      } catch (const std::exception &e) {
+      } catch (const std::exception& e) {
 #pragma omp critical
         error += e.what();
       }

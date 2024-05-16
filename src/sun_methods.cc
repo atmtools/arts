@@ -170,7 +170,6 @@ angle_move next(angle_move x) {
   std::unreachable();
 }
 
-
 void find_sun_path(const Workspace& ws,
                    ArrayOfPropagationPathPoint& sun_path,
                    const Sun& sun,
@@ -190,7 +189,7 @@ void find_sun_path(const Workspace& ws,
   auto best_los = los;
 
   constexpr Numeric za_min = 0.0;
-   Numeric za_max = 180;
+  Numeric za_max = 180;
 
   Numeric best_beta = std::numeric_limits<Numeric>::infinity();
   angle_move move = angle_move::za_up;
@@ -229,7 +228,7 @@ void find_sun_path(const Workspace& ws,
             break;
         }
       }
-        
+
       move = next(move);
       switch (move) {
         case angle_move::za_up:

@@ -750,16 +750,17 @@ Intersections pair_line_ellipsoid_intersect(
         atm_field.top_of_atmosphere, ecef, decef, surface_field.ellipsoid);
   };
 
-  const auto get_point = [&, ecef = x.first, decef = x.second](
-                             Numeric r, PathPositionType start, PathPositionType end) {
-    PropagationPathPoint p =
-        path_at_distance(ecef, decef, surface_field.ellipsoid, r, start, end);
-    if (end == surface)
-      p.pos[0] = surface_altitude(surface_field, p.pos[1], p.pos[2]);
-    else
-      p.pos[0] = atm_field.top_of_atmosphere;
-    return p;
-  };
+  const auto get_point =
+      [&, ecef = x.first, decef = x.second](
+          Numeric r, PathPositionType start, PathPositionType end) {
+        PropagationPathPoint p = path_at_distance(
+            ecef, decef, surface_field.ellipsoid, r, start, end);
+        if (end == surface)
+          p.pos[0] = surface_altitude(surface_field, p.pos[1], p.pos[2]);
+        else
+          p.pos[0] = atm_field.top_of_atmosphere;
+        return p;
+      };
 
   const auto error = [&path](PathPositionType end) {
     PropagationPathPoint p = path;
