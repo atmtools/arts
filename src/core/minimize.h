@@ -299,6 +299,6 @@ std::pair<bool, typename Functor::InputType>
             Inputs&& ... ins) {
   return curve_fit(Functor(X, Y, std::forward<Inputs>(ins)...));
 }
-}
+} // namespace Minimize
 
 #endif  // minimize_wrap_h

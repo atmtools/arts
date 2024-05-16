@@ -25,10 +25,19 @@
  *            cross sectionand matrix.
  */
 void get_scattered_sunsource(const Workspace& ws,
-                              StokvecVector& scattered_sunlight,
-                              const Vector& f_grid,
-                              const AtmPoint& atm_point,
-                              const Matrix& transmitted_sunlight,
-                              const Vector& gas_scattering_los_in,
-                              const Vector& gas_scattering_los_out,
-                              const Agenda& gas_scattering_agenda);
+                             StokvecVector& scattered_sunlight,
+                             const Vector& f_grid,
+                             const AtmPoint& atm_point,
+                             const Matrix& transmitted_sunlight,
+                             const Vector& gas_scattering_los_in,
+                             const Vector& gas_scattering_los_out,
+                             const Agenda& gas_scattering_agenda);
+
+void find_sun_path(const Workspace& ws,
+                   ArrayOfPropagationPathPoint& sun_path,
+                   const Sun& sun,
+                   const Agenda& propagation_path_observer_agenda,
+                   const SurfaceField& surface_field,
+                   const Vector3& observer_pos,
+                   const Numeric& angle_cut,
+                   const bool just_hit);

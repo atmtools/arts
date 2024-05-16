@@ -15,7 +15,9 @@
   ===========================================================================*/
 
 #include <matpack.h>
+#include <path_point.h>
 #include <rtepack.h>
+#include <surf.h>
 
 /*===========================================================================
   === structs/classes  in sun.h
@@ -43,14 +45,12 @@ struct Sun {
   friend std::ostream& operator<<(std::ostream& os, const Sun& sun);
 };
 
-
-
 /** An array of sun. */
 using ArrayOfSun = Array<Sun>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
- 
- /** regrid_sun_spectrum
+
+/** regrid_sun_spectrum
  *
  * Regrids a given spectrum from a griddedfield2 to the f_grid.
  * if the f_grid covers a larger range as the given one, one
@@ -69,7 +69,39 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
  * @date   2022-01-19
  */
 Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw,
-                           const Vector &f_grid,
-                           const Numeric &temperature);
+                           const Vector& f_grid,
+                           const Numeric& temperature);
+
+Vector3 sph2cart(const Vector3 sph);
+
+/** Checks and sets sun radiance if sun is in line of sight.
+ *
+ * @param[out] spectral_radiance Spectral radiance of sun if set.
+ * @param[in] sun Sun-structure.
+ * @param[in] propagation_path_point A path poistion and line of sight.
+ * @param[in] surface_field The surface for the ellipsoid.
+ * @return True if sun is in line of sight and spectral_radiance is set.
+  */
+bool set_spectral_radiance_if_sun_intersection(
+    StokvecVector& spectral_radiance,
+    const Sun& sun,
+    const PropagationPathPoint& propagation_path_point,
+    const SurfaceField& surface_field);
+
+/** Checks if the sun is within the line of sight.
+ * 
+ * Returns the angle between the sun center and the line of sight
+ * as first output, and whether the sun is hit as second output.
+ *
+ * @param sun 
+ * @param pos [h, lat, lon]
+ * @param los [za, aa]
+ * @param ell [a, b]
+ * @return Angle and whether or not the sun is hit
+ */
+std::pair<Numeric, bool> hit_sun(const Sun& sun,
+                                 const Vector3 pos,
+                                 const Vector2 los,
+                                 const Vector2 ell);
 
 #endif /* star_h */

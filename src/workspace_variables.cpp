@@ -286,12 +286,16 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
+
+Shape: NJAC x NFREQ
 )--",
       .type = "StokvecMatrix",
   };
 
   wsv_data["spectral_radiance_background"] = {
       .desc = R"--(Spectral radiance from the background
+
+Shape: NFREQ
 )--",
       .type = "StokvecVector",
   };

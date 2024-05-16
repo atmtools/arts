@@ -1978,15 +1978,14 @@ Gets the ellispoid from *surface_field*
   };
 
   wsm_data["spectral_radianceDefaultTransmission"] = {
-      .desc = R"--(Sets default *spectral_radiance* and *spectral_radiance_jacobian* for transmission.
+      .desc =
+          R"--(Sets default *spectral_radiance* and *spectral_radiance_jacobian* for transmission.
 
 The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
 )--",
       .author = {"Richard Larsson"},
-      .out = {"spectral_radiance",
-              "spectral_radiance_jacobian"},
-      .in = {"frequency_grid",
-             "jacobian_targets"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+      .in = {"frequency_grid", "jacobian_targets"},
   };
 
   wsm_data["spectral_radianceUniformCosmicBackground"] = {
@@ -3140,6 +3139,60 @@ The resulting vector of sensor elements cannot be considered exhaustive in futur
            "A line of sight [zenith, azimuth]",
            "The polarization whos dot-product with the spectral radiance becomes the measurement"},
   };
+
+  wsm_data["sun_pathFromObserverAgenda"] = {
+      .desc =
+          R"--(Find a path that hits the sun if possible
+
+The algorithm finds the pair of angles with the least error in regards to angular zenith and 
+azimuth offset from the sun.  It uses this pair of angles to compute said path.  The algorithm
+is iterative.  It first finds the geometric pair of angles pointing at the sun.  It then
+computes the path, using the space-facing path point's pointing offset relative to the sun
+to change the angles in the four directions (up, left, right, down) until it finds a better
+solution.  If no better solution is found, the algorithm stops, and it recomputes the path
+based on the best solution.
+
+Note that special care is taken to eliminate surface intersections so that part of the sun may
+still be hit if it is above the horizon.  If the sun is entirerly below the horizon, the path
+will point close to the horizon.
+
+The two control parameters are the ``angle_cut`` and ``just_hit``.  The ``angle_cut`` is the limit
+in degrees to which the algorithm should search for a better solution.  The ``just_hit`` is a flag
+that just returns the first time a path hits the sun.
+)--",
+      .author = {"Richard Larsson"},
+      .gout = {"sun_path"},
+      .gout_type = {"ArrayOfPropagationPathPoint"},
+      .gout_desc =
+          {"A path that should hit the sun if it is possible, otherwise, it should look up"},
+      .in = {"surface_field", "propagation_path_observer_agenda"},
+      .gin = {"sun", "pos", "angle_cut", "just_hit"},
+      .gin_type = {"Sun", "Vector3", "Numeric", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}, Index{0}},
+      .gin_desc =
+          {"A sun object",
+           "An observer position [alt, lat, lon]",
+           "The angle delta-cutoff in the iterative solver [0.0, ...]",
+           "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radianceSunOrCosmicBackground"] = {
+      .desc =
+          R"--(Get the spectral radiance of a sun or of the cosmic background if no sun is hit
+
+Note that only the first hit sun is considered by this method.  In case of multiple suns, please
+ensure that they are sorted by proximity to the observer, or a sun blocked by another might still
+shine through into the calculations.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance"},
+      .in = {"frequency_grid", "propagation_path_point", "surface_field"},
+      .gin = {"suns"},
+      .gin_type = {"ArrayOfSun"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {
+          "A list of sun objects - sorted by distance if suns can overlap for \"nearest\" sun"}};
 
   /*
   LEAVE THIS LAST AS IT REQUIRES THE DATA ABOVE TO FUNCTION

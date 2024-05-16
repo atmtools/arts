@@ -7,12 +7,15 @@
 
 #include "arts_omp.h"
 #include "debug.h"
+#include "enums.h"
 #include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
+#include "matpack_constexpr.h"
 #include "obsel.h"
 #include "path_point.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
+#include "surf.h"
 #include "workspace_class.h"
 
 void spectral_radiance_operatorClearsky1D(
@@ -362,5 +365,133 @@ void measurement_vectorFromOperatorPath(
                     poslos);
     }
   }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radianceClearsky(
+    const Workspace& ws,
+    StokvecVector& spectral_radiance,
+    StokvecMatrix& spectral_radiance_jacobian,
+    const AtmField& atmospheric_field,
+    const AscendingGrid& frequency_grid,
+    const JacobianTargets& jacobian_targets,
+    const Agenda& propagation_matrix_agenda,
+    const ArrayOfPropagationPathPoint& propagation_path,
+    const Agenda& spectral_radiance_space_agenda,
+    const Agenda& spectral_radiance_surface_agenda,
+    const String& spectral_radiance_unit,
+    const SurfaceField& surface_field,
+    const Numeric& rte_alonglos_v,
+    const Index& hse_derivative) try {
+  PropagationPathPoint propagation_path_point;
+  propagation_path_pointBackground(propagation_path_point, propagation_path);
+  StokvecVector spectral_radiance_background;
+  StokvecMatrix spectral_radiance_background_jacobian;
+  spectral_radiance_backgroundAgendasAtEndOfPath(
+      ws,
+      spectral_radiance_background,
+      spectral_radiance_background_jacobian,
+      frequency_grid,
+      jacobian_targets,
+      propagation_path_point,
+      surface_field,
+      spectral_radiance_space_agenda,
+      spectral_radiance_surface_agenda);
+  ArrayOfAtmPoint propagation_path_atmospheric_point;
+  propagation_path_atmospheric_pointFromPath(
+      propagation_path_atmospheric_point, propagation_path, atmospheric_field);
+  ArrayOfAscendingGrid propagation_path_frequency_grid;
+  propagation_path_frequency_gridFromPath(propagation_path_frequency_grid,
+                                          frequency_grid,
+                                          propagation_path,
+                                          propagation_path_atmospheric_point,
+                                          rte_alonglos_v);
+  ArrayOfPropmatVector propagation_path_propagation_matrix;
+  ArrayOfStokvecVector propagation_path_propagation_matrix_source_vector_nonlte;
+  ArrayOfPropmatMatrix propagation_path_propagation_matrix_jacobian;
+  ArrayOfStokvecMatrix
+      propagation_path_propagation_matrix_source_vector_nonlte_jacobian;
+  propagation_path_propagation_matrixFromPath(
+      ws,
+      propagation_path_propagation_matrix,
+      propagation_path_propagation_matrix_source_vector_nonlte,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path_propagation_matrix_source_vector_nonlte_jacobian,
+      propagation_matrix_agenda,
+      jacobian_targets,
+      propagation_path_frequency_grid,
+      propagation_path,
+      propagation_path_atmospheric_point);
+  ArrayOfMuelmatVector propagation_path_transmission_matrix;
+  ArrayOfArrayOfMuelmatMatrix propagation_path_transmission_matrix_jacobian;
+  propagation_path_transmission_matrixFromPath(
+      propagation_path_transmission_matrix,
+      propagation_path_transmission_matrix_jacobian,
+      propagation_path_propagation_matrix,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path,
+      propagation_path_atmospheric_point,
+      surface_field,
+      jacobian_targets,
+      hse_derivative);
+  ArrayOfMuelmatVector propagation_path_transmission_matrix_cumulative;
+  propagation_path_transmission_matrix_cumulativeForward(
+      propagation_path_transmission_matrix_cumulative,
+      propagation_path_transmission_matrix);
+  ArrayOfStokvecVector propagation_path_spectral_radiance_source;
+  ArrayOfStokvecMatrix propagation_path_spectral_radiance_source_jacobian;
+  propagation_path_spectral_radiance_sourceFromPropmat(
+      propagation_path_spectral_radiance_source,
+      propagation_path_spectral_radiance_source_jacobian,
+      propagation_path_propagation_matrix,
+      propagation_path_propagation_matrix_source_vector_nonlte,
+      propagation_path_propagation_matrix_jacobian,
+      propagation_path_propagation_matrix_source_vector_nonlte_jacobian,
+      propagation_path_frequency_grid,
+      propagation_path_atmospheric_point,
+      jacobian_targets);
+  // propagation_path_spectral_radiance_sourceAddSuns(
+  //     propagation_path_spectral_radiance_source,
+  //     propagation_path_spectral_radiance_source_jacobian,
+  //     propagation_path_propagation_matrix,
+  //     propagation_path,
+  //     jacobian_targets);
+  ArrayOfStokvecVector propagation_path_spectral_radiance;
+  ArrayOfStokvecMatrix propagation_path_spectral_radiance_jacobian;
+  propagation_path_spectral_radianceCalcEmission(
+      propagation_path_spectral_radiance,
+      propagation_path_spectral_radiance_jacobian,
+      spectral_radiance_background,
+      propagation_path_spectral_radiance_source,
+      propagation_path_spectral_radiance_source_jacobian,
+      propagation_path_transmission_matrix,
+      propagation_path_transmission_matrix_cumulative,
+      propagation_path_transmission_matrix_jacobian);
+  MuelmatVector background_transmittance;
+  background_transmittanceFromPathPropagationBack(
+      background_transmittance,
+      propagation_path_transmission_matrix_cumulative);
+  spectral_radianceFromPathPropagation(spectral_radiance,
+                                       propagation_path_spectral_radiance);
+  spectral_radiance_jacobianFromBackground(
+      spectral_radiance_jacobian,
+      spectral_radiance_background_jacobian,
+      background_transmittance);
+  spectral_radiance_jacobianAddPathPropagation(
+      spectral_radiance_jacobian,
+      propagation_path_spectral_radiance_jacobian,
+      jacobian_targets,
+      atmospheric_field,
+      propagation_path);
+  propagation_path_pointForeground(propagation_path_point, propagation_path);
+  spectral_radiance_jacobianApplyUnit(spectral_radiance_jacobian,
+                                      spectral_radiance,
+                                      frequency_grid,
+                                      propagation_path_point,
+                                      spectral_radiance_unit);
+  spectral_radianceApplyUnit(spectral_radiance,
+                             frequency_grid,
+                             propagation_path_point,
+                             spectral_radiance_unit);
 }
 ARTS_METHOD_ERROR_CATCH

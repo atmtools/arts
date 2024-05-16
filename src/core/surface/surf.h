@@ -11,9 +11,6 @@
 #include "fieldmap.h"
 #include "mystring.h"
 
-using Vector2 = matpack::matpack_constant_data<Numeric, 2>;
-using Vector3 = matpack::matpack_constant_data<Numeric, 3>;
-
 struct SurfaceTypeTag {
   String name;
 

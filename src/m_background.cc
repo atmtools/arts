@@ -1,6 +1,7 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <sun.h>
 #include <surf.h>
 #include <workspace.h>
 
@@ -97,20 +98,45 @@ void spectral_radianceUniformCosmicBackground(
   spectral_radiance = detail::from_temp(frequency_grid, t);
 }
 
+void spectral_radianceSunOrCosmicBackground(
+    StokvecVector& spectral_radiance,
+    const AscendingGrid& frequency_grid,
+    const PropagationPathPoint& propagation_path_point,
+    const SurfaceField& surface_field,
+    const ArrayOfSun& suns) {
+  ARTS_USER_ERROR_IF(std::ranges::any_of(
+                         suns,
+                         [nf = frequency_grid.size()](auto& spec) {
+                           return nf != spec.nrows() or 4 != spec.ncols();
+                         },
+                         &Sun::spectrum),
+                     "Sun spectrum has wrong shape")
+
+  spectral_radiance.resize(frequency_grid.size());
+  for (const auto& sun : suns) {
+    if (set_spectral_radiance_if_sun_intersection(
+            spectral_radiance, sun, propagation_path_point, surface_field)) {
+      return;
+    }
+  }
+
+  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+}
+
 void spectral_radianceSurfaceBlackbody(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& frequency_grid,
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& propagatin_path_point) {
+    const PropagationPathPoint& propagation_path_point) {
   constexpr auto key = SurfaceKey::t;
 
   ARTS_USER_ERROR_IF(not surface_field.contains(key),
                      "Surface field does not contain temperature")
 
   const auto t = surface_field.single_value(
-      key, propagatin_path_point.pos[1], propagatin_path_point.pos[2]);
+      key, propagation_path_point.pos[1], propagation_path_point.pos[2]);
   spectral_radiance = detail::from_temp(frequency_grid, t);
 
   spectral_radiance_jacobianEmpty(
@@ -121,8 +147,8 @@ void spectral_radianceSurfaceBlackbody(
       pair.first) {
     const auto x_start = pair.second->x_start;
     const auto& surf_data = surface_field[key];
-    const auto weights = surf_data.flat_weights(propagatin_path_point.pos[1],
-                                                propagatin_path_point.pos[2]);
+    const auto weights = surf_data.flat_weights(propagation_path_point.pos[1],
+                                                propagation_path_point.pos[2]);
     for (auto& w : weights) {
       if (w.second != 0.0) {
         const auto i = w.first + x_start;

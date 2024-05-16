@@ -469,6 +469,106 @@ void propagation_path_spectral_radianceCalcEmission(
 }
 ARTS_METHOD_ERROR_CATCH
 
+void propagation_path_spectral_radianceCalcClearsky(
+    ArrayOfStokvecVector &propagation_path_spectral_radiance,
+    ArrayOfStokvecMatrix &propagation_path_spectral_radiance_jacobian,
+    const StokvecVector &background_rad,
+    const ArrayOfStokvecVector &propagation_path_spectral_radiance_source,
+    const ArrayOfStokvecMatrix
+        &propagation_path_spectral_radiance_source_jacobian,
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix,
+    const ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
+    const ArrayOfArrayOfMuelmatMatrix
+        &propagation_path_transmission_matrix_jacobian) try {
+  const Size np = propagation_path_spectral_radiance_source.size();
+
+  ARTS_USER_ERROR_IF(
+      np not_eq propagation_path_spectral_radiance_source_jacobian.size(),
+      "propagation_path_spectral_radiance_source_jacobian must have (np) elements")
+  ARTS_USER_ERROR_IF(
+      np not_eq propagation_path_transmission_matrix.size(),
+      "propagation_path_transmission_matrix must have (np) elements")
+  ARTS_USER_ERROR_IF(
+      np not_eq propagation_path_transmission_matrix_cumulative.size(),
+      "propagation_path_transmission_matrix_cumulative must have (np) elements")
+  ARTS_USER_ERROR_IF(
+      2 not_eq propagation_path_transmission_matrix_jacobian.size() or
+          propagation_path_transmission_matrix_jacobian.front().size() not_eq
+              propagation_path_transmission_matrix_jacobian.back().size() or
+          propagation_path_transmission_matrix_jacobian.front().size() not_eq
+              np,
+      "propagation_path_transmission_matrix_jacobian must (2 x np) elements")
+
+  if (np == 0) {
+    propagation_path_spectral_radiance.resize(0);
+    propagation_path_spectral_radiance_jacobian.resize(0);
+    return;
+  }
+
+  const Index nq =
+      propagation_path_spectral_radiance_source_jacobian.front().nrows();
+  const Index nf =
+      propagation_path_spectral_radiance_source_jacobian.front().ncols();
+
+  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
+  ARTS_USER_ERROR_IF(nf not_eq background_rad.size(),
+                     "background_rad must have nf elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_spectral_radiance_source.begin(),
+                  propagation_path_spectral_radiance_source.end(),
+                  test_nf),
+      "propagation_path_spectral_radiance_source must have (nf) inner elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_transmission_matrix.begin(),
+                  propagation_path_transmission_matrix.end(),
+                  test_nf),
+      "propagation_path_transmission_matrix must have (nf) inner elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_transmission_matrix_cumulative.begin(),
+                  propagation_path_transmission_matrix_cumulative.end(),
+                  test_nf),
+      "propagation_path_spectral_radiance_source must have (nf) inner elements")
+
+  const auto test_nfnq = [nf, nq](auto &v) {
+    return v.ncols() not_eq nf or v.nrows() not_eq nq;
+  };
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_spectral_radiance_source_jacobian.begin(),
+                  propagation_path_spectral_radiance_source_jacobian.end(),
+                  test_nfnq),
+      "propagation_path_spectral_radiance_source_jacobian must have (nq x nf) inner elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_transmission_matrix_jacobian.front().begin(),
+                  propagation_path_transmission_matrix_jacobian.front().end(),
+                  test_nfnq),
+      "propagation_path_transmission_matrix_jacobian must have (nq x nf) inner elements")
+  ARTS_USER_ERROR_IF(
+      std::any_of(propagation_path_transmission_matrix_jacobian.back().begin(),
+                  propagation_path_transmission_matrix_jacobian.back().end(),
+                  test_nfnq),
+      "propagation_path_transmission_matrix_jacobian must have (nq x nf) inner elements")
+
+  propagation_path_spectral_radiance.resize(np, background_rad);
+  propagation_path_spectral_radiance_jacobian.resize(np, StokvecMatrix(nq, nf));
+  for (Index ip = np - 2; ip >= 0; ip--) {
+    propagation_path_spectral_radiance[ip] =
+        propagation_path_spectral_radiance[ip + 1];
+    two_level_linear_emission_step(
+        propagation_path_spectral_radiance[ip],
+        propagation_path_spectral_radiance_jacobian[ip],
+        propagation_path_spectral_radiance_jacobian[ip + 1],
+        propagation_path_spectral_radiance_source[ip],
+        propagation_path_spectral_radiance_source[ip + 1],
+        propagation_path_spectral_radiance_source_jacobian[ip],
+        propagation_path_spectral_radiance_source_jacobian[ip + 1],
+        propagation_path_transmission_matrix[ip + 1],
+        propagation_path_transmission_matrix_cumulative[ip],
+        propagation_path_transmission_matrix_jacobian[0][ip + 1],
+        propagation_path_transmission_matrix_jacobian[1][ip + 1]);
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
 void propagation_path_transmission_matrix_cumulativeForward(
     ArrayOfMuelmatVector &propagation_path_transmission_matrix_cumulative,
     const ArrayOfMuelmatVector &propagation_path_transmission_matrix) try {

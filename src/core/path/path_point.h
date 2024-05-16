@@ -52,9 +52,13 @@ struct PropagationPathPoint {
 };
 
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
+using ArrayOfArrayOfPropagationPathPoint = std::vector<ArrayOfPropagationPathPoint>;
 
 std::ostream& operator<<(std::ostream& os,
                          const ArrayOfPropagationPathPoint& p);
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfPropagationPathPoint& p);
 
 /** Mirror the line-of-sight
  * 
@@ -270,3 +274,4 @@ ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(
 
 using PropagationPathPoint = path::PropagationPathPoint;
 using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;
+using ArrayOfArrayOfPropagationPathPoint = path::ArrayOfArrayOfPropagationPathPoint;
