@@ -222,7 +222,8 @@ TimeStep mean(const ArrayOfTimeStep&);
 struct DebugTime {
   Time start{};
   std::string_view msg;
-  DebugTime(const std::string_view s = "Time") : msg(s) {}
+  DebugTime(const std::string_view s) : msg(s) {}
+  DebugTime(const char* s = "Time") : msg(s) {}
   DebugTime(std::string&&) =
       delete;  // Class keeps string-view, cannot move from a string
   ~DebugTime();
