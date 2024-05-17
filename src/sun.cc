@@ -173,7 +173,8 @@ void get_sun_radiation(Matrix& iy,
   //using scalar product
   const Numeric cos_beta =
       (r_ps_x * r_los_x + r_ps_y * r_los_y + r_ps_z * r_los_z) / (r_ps * r_glos);
-  const Numeric beta = acos(cos_beta);
+
+  const Numeric beta = acos(std::clamp(cos_beta, -1., 1.));
 
   // angular radius of sun
   const Numeric alpha = atan(sun.radius / r_ps);
