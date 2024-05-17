@@ -109,7 +109,8 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                                 const Agenda& propagation_path_observer_agenda,
                                 const Sun& sun,
                                 const Vector3& observer_pos,
-                                const Numeric& za_cut,
+                                const Numeric& angle_cut,
+                                const Index& refinements,
                                 const Index& just_hit) {
   find_sun_path(ws,
                 sun_path,
@@ -117,7 +118,8 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                 propagation_path_observer_agenda,
                 surface_field,
                 observer_pos,
-                za_cut,
+                angle_cut,
+                refinements,
                 just_hit);
 }
 
@@ -128,8 +130,11 @@ void sun_pathsFromPathObserver(
     const Agenda& propagation_path_observer_agenda,
     const ArrayOfPropagationPathPoint& propagation_path,
     const Sun& sun,
-    const Numeric& za_cut,
+    const Numeric& angle_cut,
+    const Index& refinements,
     const Index& just_hit) {
+  ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
+
   const Size np = propagation_path.size();
 
   sun_paths.resize(np);
@@ -141,7 +146,8 @@ void sun_pathsFromPathObserver(
                     propagation_path_observer_agenda,
                     surface_field,
                     propagation_path[i].pos,
-                    za_cut,
+                    angle_cut,
+                    refinements,
                     just_hit);
     }
   } else {
@@ -156,7 +162,8 @@ void sun_pathsFromPathObserver(
                       propagation_path_observer_agenda,
                       surface_field,
                       propagation_path[i].pos,
-                      za_cut,
+                      angle_cut,
+                      refinements,
                       just_hit);
       } catch (const std::exception& e) {
 #pragma omp critical

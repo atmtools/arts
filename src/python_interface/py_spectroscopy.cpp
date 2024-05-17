@@ -587,7 +587,7 @@ void py_spectroscopy(py::module_& m) try {
                 VMR,
                 "\nSpecies: ",
                 band.broadeningspecies)
-            if (line >= 0 and line < band.lines.size())
+            if (line >= band.lines.size())
               throw std::out_of_range("Line index out of range");
 
             return band.ShapeParameters(line, T, P, VMR);

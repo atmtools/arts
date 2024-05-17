@@ -14,6 +14,7 @@
 #include "configtypes.h"
 #include "debug.h"
 #include "enums.h"
+#include "matpack_constexpr.h"
 #include "sun.h"
 #include "workspace_class.h"
 
@@ -154,20 +155,63 @@ Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
   return cart2geodeticlos(cart_from, cart_los, ell);
 }
 
-enum class angle_move { za_up, aa_up, aa_do, za_do };
+Numeric zenith_horizon(const Workspace& ws,
+                       const Vector3 observer_pos,
+                       const Numeric aa,
+                       const Agenda& propagation_path_observer_agenda,
+                       const Numeric angle_cut) {
+  ArrayOfPropagationPathPoint path;
+  const auto hits_space = [&](const Numeric za) {
+    propagation_path_observer_agendaExecute(
+        ws, path, observer_pos, {za, aa}, propagation_path_observer_agenda);
+    return path.back().los_type == PathPositionType::space;
+  };
 
-angle_move next(angle_move x) {
-  switch (x) {
-    case angle_move::za_up:
-      return angle_move::aa_up;
-    case angle_move::aa_up:
-      return angle_move::aa_do;
-    case angle_move::aa_do:
-      return angle_move::za_do;
-    case angle_move::za_do:
-      return angle_move::za_up;
+  Numeric za0 = 180, za1 = 90.0;
+  while (std::nextafter(za0, za1) != za1 and za1 - za0 > angle_cut) {
+    const Numeric za = std::midpoint(za0, za1);
+    (hits_space(za) ? za1 : za0) = za;
   }
-  std::unreachable();
+
+  return za1;
+}
+
+std::pair<Numeric, bool> beta_angle(
+    const Workspace& ws,
+    ArrayOfPropagationPathPoint& sun_path,
+    const Sun& sun,
+    const Vector3& observer_pos,
+    const Vector2& observer_los,
+    const Agenda& propagation_path_observer_agenda,
+    const SurfaceField& surface_field,
+    const Numeric& angle_cut) {
+  propagation_path_observer_agendaExecute(ws,
+                                          sun_path,
+                                          observer_pos,
+                                          observer_los,
+                                          propagation_path_observer_agenda);
+  if (sun_path.back().los_type != PathPositionType::space) {
+    Vector2 horizon_los = observer_los;
+    horizon_los[0] = zenith_horizon(ws,
+                                    observer_pos,
+                                    observer_los[1],
+                                    propagation_path_observer_agenda,
+                                    angle_cut);
+    propagation_path_observer_agendaExecute(ws,
+                                            sun_path,
+                                            observer_pos,
+                                            horizon_los,
+                                            propagation_path_observer_agenda);
+    ARTS_USER_ERROR_IF(sun_path.back().los_type != PathPositionType::space,
+                       "Path above the horizon is not possible")
+  }
+
+  const auto [beta, hit] = hit_sun(sun,
+                                   sun_path.back().pos,
+                                   path::mirror(sun_path.back().los),
+                                   surface_field.ellipsoid);
+
+  return {Conversion::rad2deg(beta), hit};
 }
 
 void find_sun_path(const Workspace& ws,
@@ -175,8 +219,9 @@ void find_sun_path(const Workspace& ws,
                    const Sun& sun,
                    const Agenda& propagation_path_observer_agenda,
                    const SurfaceField& surface_field,
-                   const Vector3& observer_pos,
-                   const Numeric& angle_cut,
+                   const Vector3 observer_pos,
+                   const Numeric angle_cut,
+                   const Index count_limit,
                    const bool just_hit) {
   ARTS_ASSERT(angle_cut >= 0.0)
 
@@ -188,75 +233,114 @@ void find_sun_path(const Workspace& ws,
   auto los = geometric_los(observer_pos, sun_pos, surface_field.ellipsoid);
   auto best_los = los;
 
-  constexpr Numeric za_min = 0.0;
-  Numeric za_max = 180;
-
   Numeric best_beta = std::numeric_limits<Numeric>::infinity();
-  angle_move move = angle_move::za_up;
-  bool za_up{false}, aa_up{false}, aa_do{false}, za_do{false};
+  Numeric fac = 1.0;
+
+  //! Startup close to (?) target
+  {
+    const auto [beta, hit] = beta_angle(ws,
+                                        sun_path,
+                                        sun,
+                                        observer_pos,
+                                        best_los,
+                                        propagation_path_observer_agenda,
+                                        surface_field,
+                                        angle_cut);
+
+    if (hit and just_hit) return;
+    if (beta < best_beta) {
+      best_beta = beta;
+      best_los = los;
+    }
+  }
+
+  Index count = 0;
   do {
-    propagation_path_observer_agendaExecute(
-        ws, sun_path, observer_pos, los, propagation_path_observer_agenda);
+    if (best_beta < angle_cut) return;
 
-    if (sun_path.back().los_type == PathPositionType::space) {
-      auto [beta, hit] = hit_sun(sun,
-                                 sun_path.back().pos,
-                                 path::mirror(sun_path.back().los),
-                                 surface_field.ellipsoid);
+    {
+      los = best_los;
+      los[0] = std::clamp(los[0] + fac * best_beta, 0.0, 180.0);
+      const auto [beta, hit] = beta_angle(ws,
+                                          sun_path,
+                                          sun,
+                                          observer_pos,
+                                          los,
+                                          propagation_path_observer_agenda,
+                                          surface_field,
+                                          angle_cut);
+
       if (hit and just_hit) return;
-
-      beta = Conversion::rad2deg(std::abs(beta));
       if (beta < best_beta) {
         best_beta = beta;
         best_los = los;
-        za_do = za_up = aa_up = aa_do = false;
-      } else {
-        los = best_los;
-
-        switch (move) {
-          case angle_move::za_up:
-            za_up = true;
-            break;
-          case angle_move::aa_up:
-            aa_up = true;
-            break;
-          case angle_move::aa_do:
-            aa_do = true;
-            break;
-          case angle_move::za_do:
-            za_do = true;
-            break;
-        }
+        continue;
       }
-
-      move = next(move);
-      switch (move) {
-        case angle_move::za_up:
-          los[0] = std::clamp(los[0] + 0.5 * best_beta, za_min, za_max);
-          break;
-        case angle_move::aa_up:
-          los[1] += 0.5 * best_beta;
-          break;
-        case angle_move::aa_do:
-          los[1] -= 0.5 * best_beta;
-          break;
-        case angle_move::za_do:
-          los[0] = std::clamp(los[0] - 0.5 * best_beta, za_min, za_max);
-          break;
-      }
-    } else {
-      za_max = std::nextafter(los[0], za_min);
-      los[0] = std::clamp(los[0] - 0.5 * best_beta, za_min, za_max);
-      move = angle_move::za_up;
-      za_do = za_up = aa_up = aa_do = false;
     }
-  } while ((not za_do or not aa_do or not aa_up or not za_up) and
-           best_beta >= angle_cut);
 
-  // Add the best path, since it is possible we missed it in the loop (which only eliminates bad paths)
-  propagation_path_observer_agendaExecute(
-      ws, sun_path, observer_pos, best_los, propagation_path_observer_agenda);
+    {
+      los = best_los;
+      los[0] = std::clamp(los[0] - fac * best_beta, 0.0, 180.0);
+      const auto [beta, hit] = beta_angle(ws,
+                                          sun_path,
+                                          sun,
+                                          observer_pos,
+                                          los,
+                                          propagation_path_observer_agenda,
+                                          surface_field,
+                                          angle_cut);
 
-  ARTS_USER_ERROR_IF(sun_path.back().los_type != PathPositionType::space,
-                     "Path above the horizon is not found")
+      if (hit and just_hit) return;
+      if (beta < best_beta) {
+        best_beta = beta;
+        best_los = los;
+        continue;
+      }
+    }
+
+    {
+      los = best_los;
+      los[1] += fac * best_beta;
+      const auto [beta, hit] = beta_angle(ws,
+                                          sun_path,
+                                          sun,
+                                          observer_pos,
+                                          los,
+                                          propagation_path_observer_agenda,
+                                          surface_field,
+                                          angle_cut);
+
+      if (hit and just_hit) return;
+      if (beta < best_beta) {
+        best_beta = beta;
+        best_los = los;
+        continue;
+      }
+    }
+
+    {
+      los = best_los;
+      los[1] -= fac * best_beta;
+      const auto [beta, hit] = beta_angle(ws,
+                                          sun_path,
+                                          sun,
+                                          observer_pos,
+                                          los,
+                                          propagation_path_observer_agenda,
+                                          surface_field,
+                                          angle_cut);
+
+      if (hit and just_hit) return;
+      if (beta < best_beta) {
+        best_beta = beta;
+        best_los = los;
+        continue;
+      }
+    }
+
+    count++;
+    fac *= 0.5;
+    if (count < count_limit) continue;
+    break;
+  } while (true);
 }

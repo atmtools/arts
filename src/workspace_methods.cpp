@@ -3149,8 +3149,8 @@ azimuth offset from the sun.  It uses this pair of angles to compute said path. 
 is iterative.  It first finds the geometric pair of angles pointing at the sun.  It then
 computes the path, using the space-facing path point's pointing offset relative to the sun
 to change the angles in the four directions (up, left, right, down) until it finds a better
-solution.  If no better solution is found, the algorithm stops, and it recomputes the path
-based on the best solution.
+solution.  If no better solution is found, the algorithm it refines the angular search to half
+for every level of refinement above 1, it then stops.
 
 Note that special care is taken to eliminate surface intersections so that part of the sun may
 still be hit if it is above the horizon.  If the sun is entirerly below the horizon, the path
@@ -3166,13 +3166,14 @@ that just returns the first time a path hits the sun.
       .gout_desc =
           {"A path that should hit the sun if it is possible, otherwise, it should look up"},
       .in = {"surface_field", "propagation_path_observer_agenda"},
-      .gin = {"sun", "pos", "angle_cut", "just_hit"},
-      .gin_type = {"Sun", "Vector3", "Numeric", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}, Index{0}},
+      .gin = {"sun", "pos", "angle_cut", "refinement", "just_hit"},
+      .gin_type = {"Sun", "Vector3", "Numeric", "Index", "Index"},
+      .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
       .gin_desc =
           {"A sun object",
            "An observer position [alt, lat, lon]",
            "The angle delta-cutoff in the iterative solver [0.0, ...]",
+           "The refinement of the search algorithm (twice the power of this is the resultion)",
            "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
       .pass_workspace = true,
   };
