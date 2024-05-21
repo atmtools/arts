@@ -830,20 +830,20 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
 
   wsm_data["background_transmittanceFromPathPropagationBack"] = {
       .desc =
-          R"--(Sets *background_transmittance* to back of *propagation_path_transmission_matrix_cumulative*
+          R"--(Sets *background_transmittance* to back of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
       .out = {"background_transmittance"},
-      .in = {"propagation_path_transmission_matrix_cumulative"},
+      .in = {"ray_path_transmission_matrix_cumulative"},
   };
 
   wsm_data["background_transmittanceFromPathPropagationFront"] = {
       .desc =
-          R"--(Sets *background_transmittance* to front of *propagation_path_transmission_matrix_cumulative*
+          R"--(Sets *background_transmittance* to front of *ray_path_transmission_matrix_cumulative*
 )--",
       .author = {"Richard Larsson"},
       .out = {"background_transmittance"},
-      .in = {"propagation_path_transmission_matrix_cumulative"},
+      .in = {"ray_path_transmission_matrix_cumulative"},
   };
 
   wsm_data["spectral_radiance_observer_agendaSet"] = {
@@ -859,13 +859,13 @@ See *spectral_radiance_space_agendaPredefined* for valid ``option``
       .gin_desc = {R"--(Default agenda option (see description))--"},
   };
 
-  wsm_data["propagation_path_observer_agendaSet"] = {
-      .desc = R"--(Sets *propagation_path_observer_agenda*
+  wsm_data["ray_path_observer_agendaSet"] = {
+      .desc = R"--(Sets *ray_path_observer_agenda*
 
-See *propagation_path_observer_agendaPredefined* for valid ``option``
+See *ray_path_observer_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_observer_agenda"},
+      .out = {"ray_path_observer_agenda"},
       .gin = {"option"},
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
@@ -957,40 +957,38 @@ call of *absorption_lookup_table_dataAdapt*.
       .in = {"absorption_lookup_table_data"},
   };
 
-  wsm_data["propagation_path_atmospheric_pointFromPath"] = {
+  wsm_data["ray_path_atmospheric_pointFromPath"] = {
       .desc = R"--(Gets the atmospheric points along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_atmospheric_point"},
-      .in = {"propagation_path", "atmospheric_field"},
+      .out = {"ray_path_atmospheric_point"},
+      .in = {"ray_path", "atmospheric_field"},
   };
 
-  wsm_data["propagation_path_transmission_matrix_cumulativeForward"] = {
+  wsm_data["ray_path_transmission_matrix_cumulativeForward"] = {
       .desc =
-          R"--(Sets *propagation_path_transmission_matrix_cumulative* by forward iteration of *propagation_path_transmission_matrix*
+          R"--(Sets *ray_path_transmission_matrix_cumulative* by forward iteration of *ray_path_transmission_matrix*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_transmission_matrix_cumulative"},
-      .in = {"propagation_path_transmission_matrix"},
+      .out = {"ray_path_transmission_matrix_cumulative"},
+      .in = {"ray_path_transmission_matrix"},
   };
 
-  wsm_data["propagation_path_transmission_matrix_cumulativeReverse"] = {
+  wsm_data["ray_path_transmission_matrix_cumulativeReverse"] = {
       .desc =
-          R"--(Sets *propagation_path_transmission_matrix_cumulative* by reverse iteration of *propagation_path_transmission_matrix*
+          R"--(Sets *ray_path_transmission_matrix_cumulative* by reverse iteration of *ray_path_transmission_matrix*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_transmission_matrix_cumulative"},
-      .in = {"propagation_path_transmission_matrix"},
+      .out = {"ray_path_transmission_matrix_cumulative"},
+      .in = {"ray_path_transmission_matrix"},
   };
 
-  wsm_data["propagation_path_frequency_gridFromPath"] = {
+  wsm_data["ray_path_frequency_gridFromPath"] = {
       .desc = R"--(Gets the frequency grid along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_frequency_grid"},
-      .in = {"frequency_grid",
-             "propagation_path",
-             "propagation_path_atmospheric_point"},
+      .out = {"ray_path_frequency_grid"},
+      .in = {"frequency_grid", "ray_path", "ray_path_atmospheric_point"},
       .gin = {"rte_alonglos_v"},
       .gin_type = {"Numeric"},
       .gin_value = {Numeric{0.0}},
@@ -998,83 +996,81 @@ call of *absorption_lookup_table_dataAdapt*.
           {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--"},
   };
 
-  wsm_data["propagation_path_propagation_matrixFromPath"] = {
+  wsm_data["ray_path_propagation_matrixFromPath"] = {
       .desc =
           R"--(Gets the propagation matrix and non-LTE source term along the path.
 
 The calculations are in parallel if the program is not in parallel already.
 )--",
       .author = {"Richard Larsson"},
-      .out =
-          {"propagation_path_propagation_matrix",
-           "propagation_path_propagation_matrix_source_vector_nonlte",
-           "propagation_path_propagation_matrix_jacobian",
-           "propagation_path_propagation_matrix_source_vector_nonlte_jacobian"},
+      .out = {"ray_path_propagation_matrix",
+              "ray_path_propagation_matrix_source_vector_nonlte",
+              "ray_path_propagation_matrix_jacobian",
+              "ray_path_propagation_matrix_source_vector_nonlte_jacobian"},
       .in = {"propagation_matrix_agenda",
              "jacobian_targets",
-             "propagation_path_frequency_grid",
-             "propagation_path",
-             "propagation_path_atmospheric_point"},
+             "ray_path_frequency_grid",
+             "ray_path",
+             "ray_path_atmospheric_point"},
       .pass_workspace = true,
   };
 
-  wsm_data["propagation_path_spectral_radianceCalcEmission"] = {
+  wsm_data["ray_path_spectral_radianceCalcEmission"] = {
       .desc =
           R"--(Gets the radiation along the path by linear emission calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_spectral_radiance",
-              "propagation_path_spectral_radiance_jacobian"},
+      .out = {"ray_path_spectral_radiance",
+              "ray_path_spectral_radiance_jacobian"},
       .in = {"spectral_radiance_background",
-             "propagation_path_spectral_radiance_source",
-             "propagation_path_spectral_radiance_source_jacobian",
-             "propagation_path_transmission_matrix",
-             "propagation_path_transmission_matrix_cumulative",
-             "propagation_path_transmission_matrix_jacobian"},
+             "ray_path_spectral_radiance_source",
+             "ray_path_spectral_radiance_source_jacobian",
+             "ray_path_transmission_matrix",
+             "ray_path_transmission_matrix_cumulative",
+             "ray_path_transmission_matrix_jacobian"},
   };
 
-  wsm_data["propagation_path_spectral_radianceCalcTransmission"] = {
+  wsm_data["ray_path_spectral_radianceCalcTransmission"] = {
       .desc =
           R"--(Gets the radiation along the path by linear transmission calculations.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_spectral_radiance",
-              "propagation_path_spectral_radiance_jacobian"},
+      .out = {"ray_path_spectral_radiance",
+              "ray_path_spectral_radiance_jacobian"},
       .in = {"spectral_radiance_background",
-             "propagation_path_transmission_matrix",
-             "propagation_path_transmission_matrix_cumulative",
-             "propagation_path_transmission_matrix_jacobian"},
+             "ray_path_transmission_matrix",
+             "ray_path_transmission_matrix_cumulative",
+             "ray_path_transmission_matrix_jacobian"},
   };
 
-  wsm_data["propagation_path_spectral_radiance_sourceFromPropmat"] = {
+  wsm_data["ray_path_spectral_radiance_sourceFromPropmat"] = {
       .desc = R"--(Gets the source term along the path.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_spectral_radiance_source",
-              "propagation_path_spectral_radiance_source_jacobian"},
-      .in =
-          {"propagation_path_propagation_matrix",
-           "propagation_path_propagation_matrix_source_vector_nonlte",
-           "propagation_path_propagation_matrix_jacobian",
-           "propagation_path_propagation_matrix_source_vector_nonlte_jacobian",
-           "propagation_path_frequency_grid",
-           "propagation_path_atmospheric_point",
-           "jacobian_targets"},
+      .out = {"ray_path_spectral_radiance_source",
+              "ray_path_spectral_radiance_source_jacobian"},
+      .in = {"ray_path_propagation_matrix",
+             "ray_path_propagation_matrix_source_vector_nonlte",
+             "ray_path_propagation_matrix_jacobian",
+             "ray_path_propagation_matrix_source_vector_nonlte_jacobian",
+             "ray_path_frequency_grid",
+             "ray_path_atmospheric_point",
+             "jacobian_targets"},
   };
 
-  wsm_data["propagation_path_transmission_matrixFromPath"] = {
+  wsm_data["ray_path_transmission_matrixFromPath"] = {
       .desc = R"--(Gets the transmission matrix in layers along the path.
 
 A layer is defined as made up by the average of 2 levels, thus the outer-most size
 of the derivatives out of this function is 2.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_transmission_matrix",
-              "propagation_path_transmission_matrix_jacobian"},
-      .in = {"propagation_path_propagation_matrix",
-             "propagation_path_propagation_matrix_jacobian",
-             "propagation_path",
-             "propagation_path_atmospheric_point",
+      .out = {"ray_path_transmission_matrix",
+              "ray_path_transmission_matrix_jacobian"},
+      .in = {"ray_path_propagation_matrix",
+             "ray_path_propagation_matrix_jacobian",
+             "ray_path",
+             "ray_path_atmospheric_point",
              "surface_field",
              "jacobian_targets"},
       .gin = {"hse_derivative"},
@@ -1184,7 +1180,7 @@ but adds further contributions.
              "propagation_matrix_select_species",
              "jacobian_targets",
              "atmospheric_point",
-             "propagation_path_point"},
+             "ray_path_point"},
   };
 
   wsm_data["propagation_matrixAddFromLookup"] = {
@@ -1970,7 +1966,7 @@ Gets the ellispoid from *surface_field*
               "spectral_radiance_background_jacobian"},
       .in = {"frequency_grid",
              "jacobian_targets",
-             "propagation_path_point",
+             "ray_path_point",
              "surface_field",
              "spectral_radiance_space_agenda",
              "spectral_radiance_surface_agenda"},
@@ -2006,7 +2002,7 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
       .in = {"frequency_grid",
              "surface_field",
              "jacobian_targets",
-             "propagation_path_point"},
+             "ray_path_point"},
   };
 
   wsm_data["spectral_radiance_jacobianEmpty"] = {
@@ -2046,10 +2042,10 @@ Size : (*jacobian_targets*, *frequency_grid*)
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance_jacobian"},
       .in = {"spectral_radiance_jacobian",
-             "propagation_path_spectral_radiance_jacobian",
+             "ray_path_spectral_radiance_jacobian",
              "jacobian_targets",
              "atmospheric_field",
-             "propagation_path"},
+             "ray_path"},
   };
 
   wsm_data["spectral_radiance_jacobianApplyUnit"] = {
@@ -2065,7 +2061,7 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
       .in = {"spectral_radiance_jacobian",
              "spectral_radiance",
              "frequency_grid",
-             "propagation_path_point",
+             "ray_path_point",
              "spectral_radiance_unit"},
   };
 
@@ -2081,17 +2077,17 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
       .out = {"spectral_radiance"},
       .in = {"spectral_radiance",
              "frequency_grid",
-             "propagation_path_point",
+             "ray_path_point",
              "spectral_radiance_unit"},
   };
 
   wsm_data["spectral_radianceFromPathPropagation"] = {
       .desc =
-          R"--(Sets *spectral_radiance* from front of *propagation_path_spectral_radiance*
+          R"--(Sets *spectral_radiance* from front of *ray_path_spectral_radiance*
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
-      .in = {"propagation_path_spectral_radiance"},
+      .in = {"ray_path_spectral_radiance"},
   };
 
   wsm_data["propagation_matrixAddLines"] = {
@@ -2112,7 +2108,7 @@ Also be aware that *spectral_radiance_jacobianApplyUnit* must be called before *
              "absorption_bands",
              "ecs_data",
              "atmospheric_point",
-             "propagation_path_point"},
+             "ray_path_point"},
       .gin = {"no_negative_absorption"},
       .gin_type = {"Index"},
       .gin_value = {Index{1}},
@@ -2384,7 +2380,7 @@ variables are not considered
       .gin_desc = {"Absolute or relative path to the directory"},
   };
 
-  wsm_data["propagation_pathGeometric"] = {
+  wsm_data["ray_pathGeometric"] = {
       .desc = R"--(Get a geometric radiation path
 
 The path is defined by the origo and the line of sight.
@@ -2417,7 +2413,7 @@ of the azimuth angle makes use of IEEE atan2, some paths may produce
 bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path"},
+      .out = {"ray_path"},
       .in = {"atmospheric_field", "surface_field"},
       .gin = {"pos",
               "los",
@@ -2458,7 +2454,7 @@ bad angles if this is turned off.
            "Whether or not to search for the surface intersection in a safer but slower manner"},
   };
 
-  wsm_data["propagation_pathGeometricTangentAltitude"] = {
+  wsm_data["ray_pathGeometricTangentAltitude"] = {
       .desc =
           R"--(Get a geometric radiation path that crosses the tangent altitude
 
@@ -2493,7 +2489,7 @@ of the azimuth angle makes use of IEEE atan2, some paths may produce
 bad angles if this is turned off.
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path"},
+      .out = {"ray_path"},
       .in = {"atmospheric_field", "surface_field"},
       .gin = {"pos",
               "tangent_altitude",
@@ -2584,7 +2580,7 @@ Limitations:
 
   wsm_data["spectral_radiance_fieldFromOperatorPath"] = {
       .desc =
-          R"--(Computes the spectral radiance field using *propagation_path_observer_agenda*.
+          R"--(Computes the spectral radiance field using *ray_path_observer_agenda*.
 
 Each point is in computed individually, so there will be
 zenith x azimuth x altitude x latitude x longitude x frequency number of calculations.
@@ -2598,7 +2594,7 @@ the first 5 dimensions are computed in parallel.
       .gout_type = {"StokvecGriddedField6"},
       .gout_desc = {"The spectral radiance field"},
       .in = {"spectral_radiance_operator",
-             "propagation_path_observer_agenda",
+             "ray_path_observer_agenda",
              "frequency_grid"},
       .gin = {"zenith_grid", "azimuth_grid"},
       .gin_type = {"AscendingGrid", "AscendingGrid"},
@@ -2980,22 +2976,22 @@ See *SpeciesIsotope* for valid ``species``
                    "Maximum line frequency to set Zeeman splitting for"},
   };
 
-  wsm_data["propagation_path_pointBackground"] = {
+  wsm_data["ray_path_pointBackground"] = {
       .desc =
-          R"--(Sets *propagation_path_point* to the expected background point of *propagation_path*
+          R"--(Sets *ray_path_point* to the expected background point of *ray_path*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_point"},
-      .in = {"propagation_path"},
+      .out = {"ray_path_point"},
+      .in = {"ray_path"},
   };
 
-  wsm_data["propagation_path_pointForeground"] = {
+  wsm_data["ray_path_pointForeground"] = {
       .desc =
-          R"--(Sets *propagation_path_point* to the expected foreground point of *propagation_path*
+          R"--(Sets *ray_path_point* to the expected foreground point of *ray_path*
 )--",
       .author = {"Richard Larsson"},
-      .out = {"propagation_path_point"},
-      .in = {"propagation_path"},
+      .out = {"ray_path_point"},
+      .in = {"ray_path"},
   };
 
   wsm_data["measurement_vectorFromOperatorPath"] = {
@@ -3010,7 +3006,7 @@ The core calculations happens inside the *spectral_radiance_operator*.
       .gout_desc = {"The measurement vector"},
       .in = {"measurement_vector_sensor",
              "spectral_radiance_operator",
-             "propagation_path_observer_agenda"},
+             "ray_path_observer_agenda"},
       .gin = {"exhaustive"},
       .gin_type = {"Index"},
       .gin_value = {Index{0}},
@@ -3161,39 +3157,114 @@ in degrees to which the algorithm should search for a better solution.  The ``ju
 that just returns the first time a path hits the sun.
 )--",
       .author = {"Richard Larsson"},
-      .gout = {"sun_path"},
-      .gout_type = {"ArrayOfPropagationPathPoint"},
-      .gout_desc =
-          {"A path that should hit the sun if it is possible, otherwise, it should look up"},
-      .in = {"surface_field", "propagation_path_observer_agenda"},
-      .gin = {"sun", "pos", "angle_cut", "refinement", "just_hit"},
-      .gin_type = {"Sun", "Vector3", "Numeric", "Index", "Index"},
-      .gin_value = {std::nullopt, std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
+      .out = {"sun_path"},
+      .in = {"surface_field", "ray_path_observer_agenda", "sun"},
+      .gin = {"pos", "angle_cut", "refinement", "just_hit"},
+      .gin_type = {"Vector3", "Numeric", "Index", "Index"},
+      .gin_value = {std::nullopt, Numeric{0.0}, Index{1}, Index{0}},
       .gin_desc =
-          {"A sun object",
-           "An observer position [alt, lat, lon]",
+          {"An observer position [alt, lat, lon]",
            "The angle delta-cutoff in the iterative solver [0.0, ...]",
            "The refinement of the search algorithm (twice the power of this is the resultion)",
            "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radianceSunOrCosmicBackground"] = {
+  wsm_data["ray_path_suns_pathFromPathObserver"] = {
       .desc =
-          R"--(Get the spectral radiance of a sun or of the cosmic background if no sun is hit
+          R"--(Wraps *sun_pathFromObserverAgenda* for all paths to all suns.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ray_path_suns_path"},
+      .in = {"surface_field", "ray_path_observer_agenda", "ray_path", "suns"},
+      .gin = {"angle_cut", "refinement", "just_hit"},
+      .gin_type = {"Numeric", "Index", "Index"},
+      .gin_value = {Numeric{0.0}, Index{1}, Index{0}},
+      .gin_desc =
+          {"The angle delta-cutoff in the iterative solver [0.0, ...]",
+           "The refinement of the search algorithm (twice the power of this is the resultion)",
+           "Whether or not it is enough to just hit the sun or if better accuracy is needed"},
+      .pass_workspace = true,
+  };
 
-Note that only the first hit sun is considered by this method.  In case of multiple suns, please
-ensure that they are sorted by proximity to the observer, or a sun blocked by another might still
-shine through into the calculations.
+  wsm_data["spectral_radianceSunsOrCosmicBackground"] = {
+      .desc =
+          R"--(Get the spectral radiance of a sun or of the cosmic background if no sun is hit.
+
+Note that only the first sun is used if multiple suns are defined, so it is advantageous to
+have sorted *suns* by distance before running this code.
 )--",
       .author = {"Richard Larsson"},
       .out = {"spectral_radiance"},
-      .in = {"frequency_grid", "propagation_path_point", "surface_field"},
-      .gin = {"suns"},
-      .gin_type = {"ArrayOfSun"},
-      .gin_value = {std::nullopt},
-      .gin_desc = {
-          "A list of sun objects - sorted by distance if suns can overlap for \"nearest\" sun"}};
+      .in = {"frequency_grid", "ray_path_point", "suns", "surface_field"},
+  };
+
+  wsm_data["spectral_radianceSunOrCosmicBackground"] = {
+      .desc =
+          R"--(Get the spectral radiance of a sun or of the cosmic background if the sun is not hit.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"spectral_radiance"},
+      .in = {"frequency_grid", "sun_path", "sun", "surface_field"},
+  };
+
+  wsm_data["sunBlackbody"] = {
+      .desc =
+          R"--(Set *sun* to blackbody.
+
+.. note::
+    For a Sol-like sun there are huge differences in the UV-range
+    between the actual sun spectrum and the blackbody spectrum
+    with the effective temperature of the sun. The blackbody sun
+    strongly overestimates the UV radiation.
+)--",
+      .author = {"Jon Petersen", "Richard Larsson"},
+      .out = {"sun"},
+      .in = {"frequency_grid"},
+      .gin = {"radius", "distance", "temperature", "latitude", "longitude"},
+      .gin_type = {"Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
+      .gin_value = {6.963242e8, 1.495978707e11, 5772.0, 0.0, 0.0},
+      .gin_desc =
+          {"The radius of the sun in meter. "
+           "Default is the radius of our sun. ",
+           "The average distance between the sun and the planet in meter. "
+           "Default value is set to 1 a.u. ",
+           "The effective temperature of the suns photosphere in Kelvin. "
+           "Default is the temperature of our sun - 5772 Kelvin ",
+           "The latitude or the zenith position of the sun in the sky. ",
+           "The longitude or azimuthal position of the sun in the sky. "},
+  };
+
+  wsm_data["sunsAddSun"] = {
+      .desc = "Add *sun* to *suns*, only exist for composability.\n",
+      .author = {"Richard Larsson"},
+      .out = {"suns"},
+      .in = {"suns", "sun"},
+  };
+
+  wsm_data["ray_path_spectral_radiance_sourceAddBackgroundSuns"] = {
+      .desc = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ray_path_spectral_radiance_source"},
+      .in = {"ray_path_spectral_radiance_source",
+             "ray_path_propagation_matrix",
+             "ray_path",
+             "ray_path_suns_path",
+             "suns",
+             "jacobian_targets",
+             "frequency_grid",
+             "atmospheric_field",
+             "surface_field",
+             "propagation_matrix_agenda"},
+      .gin = {"rte_alonglos_v", "hse_derivative"},
+      .gin_type = {"Numeric", "Index"},
+      .gin_value = {Numeric{0.0}, Index{0}},
+      .gin_desc =
+          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
+           "Flag to compute the hypsometric distance derivatives"},
+      .pass_workspace = true,
+  };
 
   /*
   LEAVE THIS LAST AS IT REQUIRES THE DATA ABOVE TO FUNCTION

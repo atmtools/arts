@@ -467,8 +467,15 @@ std::vector<EnumeratedOption> internal_options_create() {
           {
               Value{"Emission", R"(
 
-  - *propagation_path_observer_agendaExecute*
-  - *spectral_radianceClearskyEmission*)"},
+  - *ray_path_observer_agendaExecute*
+  - *spectral_radianceClearskyEmission*
+)"},
+              Value{"EmissionUnits", R"(
+
+  - *ray_path_observer_agendaExecute*
+  - *spectral_radianceClearskyEmission*
+  - *spectral_radianceApplyUnitFromSpectralRadiance*
+)"},
           },
   });
 
@@ -481,6 +488,11 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"UniformCosmicBackground", R"(
 
   - *spectral_radianceUniformCosmicBackground*
+  - *spectral_radiance_jacobianEmpty*
+)"},
+              Value{"SunOrCosmicBackground", R"(
+
+  - *spectral_radianceSunsOrCosmicBackground*
   - *spectral_radiance_jacobianEmpty*
 )"},
               Value{"Transmission", R"(
@@ -508,14 +520,14 @@ std::vector<EnumeratedOption> internal_options_create() {
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "propagation_path_observer_agendaPredefined",
-      .desc = R"(The types of predefined *propagation_path_observer_agenda*.
+      .name = "ray_path_observer_agendaPredefined",
+      .desc = R"(The types of predefined *ray_path_observer_agenda*.
 )",
       .values_and_desc =
           {
               Value{"Geometric", R"(
 
-  - *propagation_pathGeometric*
+  - *ray_pathGeometric*
 
     - With ``pos`` as *spectral_radiance_observer_position*
     - With ``los`` as *spectral_radiance_observer_line_of_sight*

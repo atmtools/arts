@@ -6,6 +6,7 @@
 
 #include "arts_omp.h"
 #include "atm.h"
+#include "configtypes.h"
 #include "debug.h"
 #include "jacobian.h"
 #include "path_point.h"
@@ -34,14 +35,14 @@ using Constant::pi;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sunsAddSingleBlackbody(ArrayOfSun& suns,
-                            // Inputs:
-                            const AscendingGrid& f_grid,
-                            const Numeric& radius,
-                            const Numeric& distance,
-                            const Numeric& temperature,
-                            const Numeric& latitude,
-                            const Numeric& longitude) {
+void sunBlackbody(Sun& sun,
+                  // Inputs:
+                  const AscendingGrid& f_grid,
+                  const Numeric& radius,
+                  const Numeric& distance,
+                  const Numeric& temperature,
+                  const Numeric& latitude,
+                  const Numeric& longitude) {
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
                      "The distance to the center of the sun (",
@@ -50,63 +51,26 @@ void sunsAddSingleBlackbody(ArrayOfSun& suns,
                      " is smaller than the radius of the sun (",
                      radius,
                      " m )")
-
-  Sun& new_sun = suns.emplace_back();
 
   // spectrum
-  new_sun.spectrum = Matrix(f_grid.nelem(), 4, 0.);
+  sun.spectrum = Matrix(f_grid.nelem(), 4, 0.);
 
-  planck(new_sun.spectrum(joker, 0), f_grid, temperature);
-  new_sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
+  planck(sun.spectrum(joker, 0), f_grid, temperature);
+  sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 
-  new_sun.description = "Blackbody sun";
-  new_sun.radius = radius;
-  new_sun.distance = distance;
-  new_sun.latitude = latitude;
-  new_sun.longitude = longitude;
+  sun.description = "Blackbody sun";
+  sun.radius = radius;
+  sun.distance = distance;
+  sun.latitude = latitude;
+  sun.longitude = longitude;
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sunsAddSingleFromGrid(ArrayOfSun& suns,
-                           // Inputs:
-                           const AscendingGrid& f_grid,
-                           const GriddedField2& sun_spectrum_raw,
-                           const Numeric& radius,
-                           const Numeric& distance,
-                           const Numeric& temperature,
-                           const Numeric& latitude,
-                           const Numeric& longitude,
-                           const String& description) {
-  // some sanity checks
-  ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun (",
-                     distance,
-                     " m) \n"
-                     " is smaller than the radius of the sun (",
-                     radius,
-                     " m )")
-
-  // init sun
-  Sun& new_sun = suns.emplace_back();
-  new_sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw,
-                                         f_grid,
-                                         temperature);  // set spectrum
-  new_sun.description = description;
-  new_sun.radius = radius;
-  new_sun.distance = distance;
-  new_sun.latitude = latitude;
-  new_sun.longitude = longitude;
-}
-
-void sunsOff(ArrayOfSun& suns) {
-  // create empty Array of Matrix for the sun_spectrum
-  suns.resize(0);
-}
+void sunsAddSun(ArrayOfSun& suns, const Sun& sun) { suns.push_back(sun); }
 
 void sun_pathFromObserverAgenda(const Workspace& ws,
                                 ArrayOfPropagationPathPoint& sun_path,
                                 const SurfaceField& surface_field,
-                                const Agenda& propagation_path_observer_agenda,
+                                const Agenda& ray_path_observer_agenda,
                                 const Sun& sun,
                                 const Vector3& observer_pos,
                                 const Numeric& angle_cut,
@@ -115,7 +79,7 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
   find_sun_path(ws,
                 sun_path,
                 sun,
-                propagation_path_observer_agenda,
+                ray_path_observer_agenda,
                 surface_field,
                 observer_pos,
                 angle_cut,
@@ -123,32 +87,33 @@ void sun_pathFromObserverAgenda(const Workspace& ws,
                 just_hit);
 }
 
-void sun_pathsFromPathObserver(
+void ray_path_sun_pathFromPathObserver(
     const Workspace& ws,
-    ArrayOfArrayOfPropagationPathPoint& sun_paths,
+    ArrayOfArrayOfPropagationPathPoint& ray_path_sun_path,
     const SurfaceField& surface_field,
-    const Agenda& propagation_path_observer_agenda,
-    const ArrayOfPropagationPathPoint& propagation_path,
+    const Agenda& ray_path_observer_agenda,
+    const ArrayOfPropagationPathPoint& ray_path,
     const Sun& sun,
     const Numeric& angle_cut,
     const Index& refinements,
     const Index& just_hit) {
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
-  const Size np = propagation_path.size();
+  const Size np = ray_path.size();
 
-  sun_paths.resize(np);
-  if (arts_omp_in_parallel()) {
+  ray_path_sun_path.resize(np);
+  if (arts_omp_in_parallel() and
+      static_cast<Index>(np) >= arts_omp_get_max_threads()) {
     for (Size i = 0; i < np; ++i) {
-      find_sun_path(ws,
-                    sun_paths[i],
-                    sun,
-                    propagation_path_observer_agenda,
-                    surface_field,
-                    propagation_path[i].pos,
-                    angle_cut,
-                    refinements,
-                    just_hit);
+      sun_pathFromObserverAgenda(ws,
+                                 ray_path_sun_path[i],
+                                 surface_field,
+                                 ray_path_observer_agenda,
+                                 sun,
+                                 ray_path[i].pos,
+                                 angle_cut,
+                                 refinements,
+                                 just_hit);
     }
   } else {
     String error{};
@@ -156,15 +121,15 @@ void sun_pathsFromPathObserver(
 #pragma omp parallel for
     for (Size i = 0; i < np; ++i) {
       try {
-        find_sun_path(ws,
-                      sun_paths[i],
-                      sun,
-                      propagation_path_observer_agenda,
-                      surface_field,
-                      propagation_path[i].pos,
-                      angle_cut,
-                      refinements,
-                      just_hit);
+        sun_pathFromObserverAgenda(ws,
+                                   ray_path_sun_path[i],
+                                   surface_field,
+                                   ray_path_observer_agenda,
+                                   sun,
+                                   ray_path[i].pos,
+                                   angle_cut,
+                                   refinements,
+                                   just_hit);
       } catch (const std::exception& e) {
 #pragma omp critical
         error += e.what();
@@ -175,87 +140,166 @@ void sun_pathsFromPathObserver(
   }
 }
 
-void propagation_path_spectral_radiance_solarClearskyTransmissionFromBackground(
+void ray_path_suns_pathFromPathObserver(
     const Workspace& ws,
-    ArrayOfStokvecVector& propagation_path_spectral_radiance_solar,
-    ArrayOfStokvecMatrix& propagation_path_spectral_radiance_solar_jacobian,
-    const ArrayOfArrayOfPropagationPathPoint& sun_paths,
-    const AtmField& atmospheric_field,
-    const AscendingGrid& frequency_grid,
-    // const JacobianTargets &jacobian_targets,
-    const Agenda& propagation_matrix_agenda,
+    ArrayOfArrayOfArrayOfPropagationPathPoint& ray_path_suns_path,
     const SurfaceField& surface_field,
-    const Numeric& rte_alonglos_v,
-    const Index& hse_derivative,
-    const Sun& sun) {
-  const Size np = sun_paths.size();
-  propagation_path_spectral_radiance_solar.resize(np);
-  propagation_path_spectral_radiance_solar_jacobian.resize(np);
+    const Agenda& ray_path_observer_agenda,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const ArrayOfSun& suns,
+    const Numeric& angle_cut,
+    const Index& refinements,
+    const Index& just_hit) {
+  ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
-  const ArrayOfSun suns{sun};
-  StokvecVector spectral_radiance_background(frequency_grid.nelem(), 0.);
-  const StokvecMatrix spectral_radiance_background_jacobian(
-      0, frequency_grid.nelem());
-  const String spectral_radiance_unit{"1"};
-  const JacobianTargets jacobian_targets{};
+  const Size np = ray_path.size();
+  const Size nsuns = suns.size();
 
-  if (arts_omp_in_parallel()) {
+  ray_path_suns_path.resize(np);
+  for (auto& p : ray_path_suns_path) p.resize(nsuns);
+
+  if (arts_omp_in_parallel() and
+      static_cast<Index>(np * nsuns) >= arts_omp_get_max_threads()) {
     for (Size i = 0; i < np; ++i) {
-      spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
-                                             frequency_grid,
-                                             sun_paths[i].back(),
-                                             surface_field,
-                                             suns);
-
-      spectral_radianceClearskyBackgroundTransmission(
-          ws,
-          propagation_path_spectral_radiance_solar[i],
-          propagation_path_spectral_radiance_solar_jacobian[i],
-          atmospheric_field,
-          frequency_grid,
-          jacobian_targets,
-          propagation_matrix_agenda,
-          sun_paths[i],
-          spectral_radiance_background,
-          spectral_radiance_background_jacobian,
-          spectral_radiance_unit,
-          surface_field,
-          rte_alonglos_v,
-          hse_derivative);
+      for (Size j = 0; j < nsuns; ++j) {
+        sun_pathFromObserverAgenda(ws,
+                                   ray_path_suns_path[i][j],
+                                   surface_field,
+                                   ray_path_observer_agenda,
+                                   suns[j],
+                                   ray_path[i].pos,
+                                   angle_cut,
+                                   refinements,
+                                   just_hit);
+      }
     }
   } else {
     String error{};
 
-#pragma omp parallel for firstprivate(spectral_radiance_background)
+#pragma omp parallel for collapse(2)
     for (Size i = 0; i < np; ++i) {
-      try {
-        spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
-                                               frequency_grid,
-                                               sun_paths[i].back(),
-                                               surface_field,
-                                               suns);
-
-        spectral_radianceClearskyBackgroundTransmission(
-            ws,
-            propagation_path_spectral_radiance_solar[i],
-            propagation_path_spectral_radiance_solar_jacobian[i],
-            atmospheric_field,
-            frequency_grid,
-            jacobian_targets,
-            propagation_matrix_agenda,
-            sun_paths[i],
-            spectral_radiance_background,
-            spectral_radiance_background_jacobian,
-            spectral_radiance_unit,
-            surface_field,
-            rte_alonglos_v,
-            hse_derivative);
-      } catch (const std::exception& e) {
+      for (Size j = 0; j < nsuns; ++j) {
+        try {
+          sun_pathFromObserverAgenda(ws,
+                                     ray_path_suns_path[i][j],
+                                     surface_field,
+                                     ray_path_observer_agenda,
+                                     suns[j],
+                                     ray_path[i].pos,
+                                     angle_cut,
+                                     refinements,
+                                     just_hit);
+        } catch (const std::exception& e) {
 #pragma omp critical
-        error += e.what();
+          error += e.what();
+        }
       }
     }
 
     ARTS_USER_ERROR_IF(error.size(), error)
   }
 }
+
+void ray_path_spectral_radiance_sourceAddBackgroundSuns(
+    const Workspace& ws,
+    ArrayOfStokvecVector& ray_path_spectral_radiance_source,
+    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfPropagationPathPoint& ray_path,
+    const ArrayOfArrayOfArrayOfPropagationPathPoint& ray_path_suns_path,
+    const ArrayOfSun& suns,
+    const JacobianTargets& jacobian_targets,
+    const AscendingGrid& frequency_grid,
+    const AtmField& atmospheric_field,
+    const SurfaceField& surface_field,
+    const Agenda& propagation_matrix_agenda,
+    const Numeric& rte_alonglos_v,
+    const Index& hse_derivative) try {
+  ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
+                     "Cannot have any Jacobian targets")
+
+  const Size np = ray_path.size();
+  ARTS_USER_ERROR_IF(
+      np != ray_path_spectral_radiance_source.size(),
+      "Bad ray_path_spectral_radiance_source: incorrect number of path points")
+  ARTS_USER_ERROR_IF(
+      np != ray_path_propagation_matrix.size(),
+      "Bad ray_path_propagation_matrix: incorrect number of path points")
+  ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(),
+                     "Bad ray_path_suns_path: incorrect number of path points")
+
+  const Size nsuns = suns.size();
+  ARTS_USER_ERROR_IF(std::ranges::any_of(ray_path_suns_path,
+                                         [nsuns](auto& ray_path_sun_path) {
+                                           return ray_path_sun_path.size() !=
+                                                  nsuns;
+                                         }),
+                     "Bad ray_path_suns_path: incorrect number of suns")
+
+  const Index nv = frequency_grid.size();
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(ray_path_spectral_radiance_source,
+                          [nv](auto& spectral_radiance_source) {
+                            return nv != spectral_radiance_source.size();
+                          }),
+      "Bad ray_path_spectral_radiance_source: incorrect number of frequencies")
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(ray_path_propagation_matrix,
+                          [nv](auto& propagation_matrix) {
+                            return nv != propagation_matrix.size();
+                          }),
+      "Bad ray_path_propagation_matrix: incorrect number of frequencies")
+
+  StokvecVector spectral_radiance{};
+  StokvecMatrix spectral_radiance_jacobian{};
+  StokvecVector spectral_radiance_background{};
+  const StokvecMatrix spectral_radiance_background_jacobian(0, nv);
+
+  for (Size ip = 0; ip < np; ip++) {
+    for (Size isun = 0; isun < nsuns; isun++) {
+      const auto& sun_path = ray_path_suns_path[ip][isun];
+      const auto& sun = suns[isun];
+      auto& spectral_radiance_source = ray_path_spectral_radiance_source[ip];
+      const auto& propagation_matrix = ray_path_propagation_matrix[ip];
+
+      spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
+                                             frequency_grid,
+                                             sun_path,
+                                             sun,
+                                             surface_field);
+
+      spectral_radianceClearskyBackgroundTransmission(
+          ws,
+          spectral_radiance,
+          spectral_radiance_jacobian,
+          atmospheric_field,
+          frequency_grid,
+          jacobian_targets,
+          propagation_matrix_agenda,
+          sun_path,
+          spectral_radiance_background,
+          spectral_radiance_background_jacobian,
+          surface_field,
+          rte_alonglos_v,
+          hse_derivative);
+
+      ARTS_USER_ERROR_IF(spectral_radiance.size() != nv,
+                         "Bad size spectral_radiance (",
+                         spectral_radiance.size(),
+                         ").  It should have the same size as frequency_grid (",
+                         nv,
+                         ")")
+
+      // Scatter the source into the target direction
+      // Direction the radiation is arriving: sun_path.front().los [MOVING TOWARDS POINT]
+      // Direction the radiation is leaving: ray_path[ip].los [MOVING AWAY FROM POINT]
+      spectral_radiance *= 0;  // placeholder for the actual scattering
+
+      // Add the source to the target
+      for (Index iv = 0; iv < nv; iv++) {
+        spectral_radiance_source +=
+            inv(propagation_matrix[iv]) * spectral_radiance[iv];
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH

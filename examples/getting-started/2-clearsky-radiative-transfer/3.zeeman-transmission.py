@@ -40,7 +40,7 @@ ws.spectral_radiance_surface_agendaSet(option="Transmission")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.propagation_pathGeometric(pos=pos, los=los, max_step=1000.0)
+ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.0)
 ws.spectral_radianceClearskyTransmission()
 
 # %% Show results

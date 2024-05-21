@@ -16,6 +16,6 @@ void spectral_radiance_observer_agendaSet(Agenda& out, const String& option) {
   out = get_spectral_radiance_observer_agenda(option);
 }
 
-void propagation_path_observer_agendaSet(Agenda& out, const String& option) {
-  out = get_propagation_path_observer_agenda(option);
+void ray_path_observer_agendaSet(Agenda& out, const String& option) {
+  out = get_ray_path_observer_agenda(option);
 }

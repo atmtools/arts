@@ -55,12 +55,17 @@ struct PropagationPathPoint {
 using ArrayOfPropagationPathPoint = std::vector<PropagationPathPoint>;
 using ArrayOfArrayOfPropagationPathPoint =
     std::vector<ArrayOfPropagationPathPoint>;
+using ArrayOfArrayOfArrayOfPropagationPathPoint =
+    std::vector<ArrayOfArrayOfPropagationPathPoint>;
 
 std::ostream& operator<<(std::ostream& os,
                          const ArrayOfPropagationPathPoint& p);
 
 std::ostream& operator<<(std::ostream& os,
                          const ArrayOfArrayOfPropagationPathPoint& p);
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfArrayOfPropagationPathPoint& p);
 
 /** Mirror the line-of-sight
  * 
@@ -278,3 +283,5 @@ using PropagationPathPoint = path::PropagationPathPoint;
 using ArrayOfPropagationPathPoint = path::ArrayOfPropagationPathPoint;
 using ArrayOfArrayOfPropagationPathPoint =
     path::ArrayOfArrayOfPropagationPathPoint;
+using ArrayOfArrayOfArrayOfPropagationPathPoint =
+    path::ArrayOfArrayOfArrayOfPropagationPathPoint;

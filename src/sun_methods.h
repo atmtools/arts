@@ -51,7 +51,7 @@ void get_scattered_sunsource(const Workspace& ws,
  * @param[in] ws ARTS workspace
  * @param[out] sun_path A path to the sun.
  * @param[in] sun A sun object.
- * @param[in] propagation_path_observer_agenda As WSV.
+ * @param[in] ray_path_observer_agenda As WSV.
  * @param[in] surface_field As WSV.
  * @param[in] observer_pos Position of the observer.
  * @param[in] angle_cut Angular cutoff to return the path, see above.
@@ -61,9 +61,18 @@ void get_scattered_sunsource(const Workspace& ws,
 void find_sun_path(const Workspace& ws,
                    ArrayOfPropagationPathPoint& sun_path,
                    const Sun& sun,
-                   const Agenda& propagation_path_observer_agenda,
+                   const Agenda& ray_path_observer_agenda,
                    const SurfaceField& surface_field,
                    const Vector3 observer_pos,
                    const Numeric angle_cut,
                    const Index refinements,
                    const bool just_hit);
+
+std::pair<Numeric, bool> beta_angle(const Workspace& ws,
+                                    ArrayOfPropagationPathPoint& sun_path,
+                                    const Sun& sun,
+                                    const Vector3& observer_pos,
+                                    const Vector2& observer_los,
+                                    const Agenda& ray_path_observer_agenda,
+                                    const SurfaceField& surface_field,
+                                    const Numeric& angle_cut);

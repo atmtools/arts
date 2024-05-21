@@ -133,8 +133,8 @@ void propagation_matrix_agendaGUI(const Workspace& ws [[maybe_unused]],
   if (load) {
     if (ws.wsv_and_contains("frequency_grid")) f_grid = ws.get<AscendingGrid>("frequency_grid");
     if (ws.wsv_and_contains("atmospheric_point")) atm_point = ws.get<AtmPoint>("atmospheric_point");
-    if (ws.wsv_and_contains("propagation_path_point"))
-      path_point = ws.get<PropagationPathPoint>("propagation_path_point");
+    if (ws.wsv_and_contains("ray_path_point"))
+      path_point = ws.get<PropagationPathPoint>("ray_path_point");
   }
 
   auto success = std::async(std::launch::async,

@@ -136,7 +136,7 @@ inputs required to initialize the propagation matrix
 
 ws.jacobian_targets = pyarts.arts.JacobianTargets()
 ws.frequency_grid = np.linspace(40e9, 120e9, 1001)  # Frequencies between 40 and 120 GHz
-ws.propagation_path_point  # No particular POSLOS
+ws.ray_path_point  # No particular POSLOS
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 295  # At room temperature
 ws.atmospheric_point.pressure = 1e5  # At 1 bar

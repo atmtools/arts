@@ -158,12 +158,12 @@ Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
 Numeric zenith_horizon(const Workspace& ws,
                        const Vector3 observer_pos,
                        const Numeric aa,
-                       const Agenda& propagation_path_observer_agenda,
+                       const Agenda& ray_path_observer_agenda,
                        const Numeric angle_cut) {
   ArrayOfPropagationPathPoint path;
   const auto hits_space = [&](const Numeric za) {
-    propagation_path_observer_agendaExecute(
-        ws, path, observer_pos, {za, aa}, propagation_path_observer_agenda);
+    ray_path_observer_agendaExecute(
+        ws, path, observer_pos, {za, aa}, ray_path_observer_agenda);
     return path.back().los_type == PathPositionType::space;
   };
 
@@ -176,32 +176,22 @@ Numeric zenith_horizon(const Workspace& ws,
   return za1;
 }
 
-std::pair<Numeric, bool> beta_angle(
-    const Workspace& ws,
-    ArrayOfPropagationPathPoint& sun_path,
-    const Sun& sun,
-    const Vector3& observer_pos,
-    const Vector2& observer_los,
-    const Agenda& propagation_path_observer_agenda,
-    const SurfaceField& surface_field,
-    const Numeric& angle_cut) {
-  propagation_path_observer_agendaExecute(ws,
-                                          sun_path,
-                                          observer_pos,
-                                          observer_los,
-                                          propagation_path_observer_agenda);
+std::pair<Numeric, bool> beta_angle(const Workspace& ws,
+                                    ArrayOfPropagationPathPoint& sun_path,
+                                    const Sun& sun,
+                                    const Vector3& observer_pos,
+                                    const Vector2& observer_los,
+                                    const Agenda& ray_path_observer_agenda,
+                                    const SurfaceField& surface_field,
+                                    const Numeric& angle_cut) {
+  ray_path_observer_agendaExecute(
+      ws, sun_path, observer_pos, observer_los, ray_path_observer_agenda);
   if (sun_path.back().los_type != PathPositionType::space) {
     Vector2 horizon_los = observer_los;
-    horizon_los[0] = zenith_horizon(ws,
-                                    observer_pos,
-                                    observer_los[1],
-                                    propagation_path_observer_agenda,
-                                    angle_cut);
-    propagation_path_observer_agendaExecute(ws,
-                                            sun_path,
-                                            observer_pos,
-                                            horizon_los,
-                                            propagation_path_observer_agenda);
+    horizon_los[0] = zenith_horizon(
+        ws, observer_pos, observer_los[1], ray_path_observer_agenda, angle_cut);
+    ray_path_observer_agendaExecute(
+        ws, sun_path, observer_pos, horizon_los, ray_path_observer_agenda);
     ARTS_USER_ERROR_IF(sun_path.back().los_type != PathPositionType::space,
                        "Path above the horizon is not possible")
   }
@@ -217,7 +207,7 @@ std::pair<Numeric, bool> beta_angle(
 void find_sun_path(const Workspace& ws,
                    ArrayOfPropagationPathPoint& sun_path,
                    const Sun& sun,
-                   const Agenda& propagation_path_observer_agenda,
+                   const Agenda& ray_path_observer_agenda,
                    const SurfaceField& surface_field,
                    const Vector3 observer_pos,
                    const Numeric angle_cut,
@@ -243,7 +233,7 @@ void find_sun_path(const Workspace& ws,
                                         sun,
                                         observer_pos,
                                         best_los,
-                                        propagation_path_observer_agenda,
+                                        ray_path_observer_agenda,
                                         surface_field,
                                         angle_cut);
 
@@ -266,7 +256,7 @@ void find_sun_path(const Workspace& ws,
                                           sun,
                                           observer_pos,
                                           los,
-                                          propagation_path_observer_agenda,
+                                          ray_path_observer_agenda,
                                           surface_field,
                                           angle_cut);
 
@@ -286,7 +276,7 @@ void find_sun_path(const Workspace& ws,
                                           sun,
                                           observer_pos,
                                           los,
-                                          propagation_path_observer_agenda,
+                                          ray_path_observer_agenda,
                                           surface_field,
                                           angle_cut);
 
@@ -306,7 +296,7 @@ void find_sun_path(const Workspace& ws,
                                           sun,
                                           observer_pos,
                                           los,
-                                          propagation_path_observer_agenda,
+                                          ray_path_observer_agenda,
                                           surface_field,
                                           angle_cut);
 
@@ -326,7 +316,7 @@ void find_sun_path(const Workspace& ws,
                                           sun,
                                           observer_pos,
                                           los,
-                                          propagation_path_observer_agenda,
+                                          ray_path_observer_agenda,
                                           surface_field,
                                           angle_cut);
 

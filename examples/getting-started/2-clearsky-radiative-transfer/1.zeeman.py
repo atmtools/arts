@@ -39,8 +39,9 @@ ws.spectral_radiance_surface_agendaSet(option="Blackbody")
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.propagation_pathGeometric(pos=pos, los=los, max_step=1000.)
+ws.ray_pathGeometric(pos=pos, los=los, max_step=1000.)
 ws.spectral_radianceClearskyEmission()
+ws.spectral_radianceApplyUnitFromSpectralRadiance()
 
 # %% Show results
 

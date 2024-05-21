@@ -1156,6 +1156,15 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfArrayOfPropagationPathPoint& ps) {
+  std::string_view sep = "";
+  for (const auto& p : ps) {
+    os << std::exchange(sep, "\n") << p;
+  }
+  return os;
+}
+
 ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
   using enum PathPositionType;
   path.erase(std::remove_if(
