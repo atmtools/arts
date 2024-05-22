@@ -4,7 +4,6 @@
 #include <cmath>
 #include <functional>
 #include <iomanip>
-#include <iostream>
 #include <limits>
 #include <numeric>
 #include <ranges>
@@ -810,6 +809,8 @@ Intersections pair_line_ellipsoid_intersect(
   ARTS_USER_ERROR("Invalid start position type");
 }
 
+constexpr bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
+
 ArrayOfPropagationPathPoint& set_geometric_extremes(
     ArrayOfPropagationPathPoint& path,
     const AtmField& atm_field,
@@ -822,6 +823,12 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
   ARTS_USER_ERROR_IF(
       path.back().los_type != PathPositionType::unknown,
       "Cannot set extremes for path that knows where it is looking")
+
+  if (not_looking_down(path.back().los) and
+      atm_field.top_of_atmosphere <= path.back().pos[0]) {
+    path.back().los_type = PathPositionType::space;
+    return path;
+  }
 
   const auto [first, second, second_is_valid] =
       pair_line_ellipsoid_intersect(path.back(),

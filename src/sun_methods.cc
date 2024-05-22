@@ -213,6 +213,8 @@ void find_sun_path(const Workspace& ws,
                    const Numeric angle_cut,
                    const Index count_limit,
                    const bool just_hit) {
+  using Conversion::rad2deg;
+
   ARTS_ASSERT(angle_cut >= 0.0)
 
   const Vector3 sun_pos{
@@ -223,7 +225,7 @@ void find_sun_path(const Workspace& ws,
   auto los = geometric_los(observer_pos, sun_pos, surface_field.ellipsoid);
   auto best_los = los;
 
-  Numeric best_beta = std::numeric_limits<Numeric>::infinity();
+  Numeric best_beta = 360;
   Numeric fac = 1.0;
 
   //! Startup close to (?) target
@@ -239,7 +241,7 @@ void find_sun_path(const Workspace& ws,
 
     if (hit and just_hit) return;
     if (beta < best_beta) {
-      best_beta = beta;
+      best_beta = rad2deg(beta);
       best_los = los;
     }
   }
@@ -262,7 +264,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = beta;
+        best_beta = rad2deg(beta);
         best_los = los;
         continue;
       }
@@ -282,7 +284,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = beta;
+        best_beta = rad2deg(beta);
         best_los = los;
         continue;
       }
@@ -302,7 +304,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = beta;
+        best_beta = rad2deg(beta);
         best_los = los;
         continue;
       }
@@ -322,7 +324,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = beta;
+        best_beta = rad2deg(beta);
         best_los = los;
         continue;
       }

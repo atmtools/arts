@@ -42,6 +42,8 @@ struct Sun {
   /** longitude of the sun in the sky of the planet */
   Numeric longitude;
 
+  [[nodiscard]] Numeric sin_alpha_squared(Vector3 pos, Vector2 ell) const;
+
   friend std::ostream& operator<<(std::ostream& os, const Sun& sun);
 };
 

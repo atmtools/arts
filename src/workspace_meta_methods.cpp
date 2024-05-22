@@ -44,7 +44,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   });
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "spectral_radianceClearskyFirstOrderSunsScattering",
+      .name = "spectral_radianceClearskyRayleighScattering",
       .desc = "Computes clearsky emission of spectral radiances",
       .author = {"Richard Larsson"},
       .methods = {"ray_path_pointBackground",
@@ -55,7 +55,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "ray_path_transmission_matrixFromPath",
                   "ray_path_transmission_matrix_cumulativeForward",
                   "ray_path_spectral_radiance_sourceFromPropmat",
-                  "ray_path_spectral_radiance_sourceAddBackgroundSuns",
+                  "ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering",
                   "ray_path_spectral_radianceCalcEmission",
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",

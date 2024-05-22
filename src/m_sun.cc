@@ -12,6 +12,7 @@
 #include "path_point.h"
 #include "physics_funcs.h"
 #include "rtepack.h"
+#include "sorted_grid.h"
 #include "sun.h"
 #include "sun_methods.h"
 #include "workspace_class.h"
@@ -29,6 +30,7 @@
 */
 
 using Constant::pi;
+using Math::pow2;
 
 /*===========================================================================
   === The functions
@@ -37,7 +39,7 @@ using Constant::pi;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sunBlackbody(Sun& sun,
                   // Inputs:
-                  const AscendingGrid& f_grid,
+                  const AscendingGrid& frequency_grid,
                   const Numeric& radius,
                   const Numeric& distance,
                   const Numeric& temperature,
@@ -53,9 +55,9 @@ void sunBlackbody(Sun& sun,
                      " m )")
 
   // spectrum
-  sun.spectrum = Matrix(f_grid.nelem(), 4, 0.);
+  sun.spectrum = Matrix(frequency_grid.nelem(), 4, 0.);
 
-  planck(sun.spectrum(joker, 0), f_grid, temperature);
+  planck(sun.spectrum(joker, 0), frequency_grid, temperature);
   sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 
   sun.description = "Blackbody sun";
@@ -200,11 +202,34 @@ void ray_path_suns_pathFromPathObserver(
   }
 }
 
-void ray_path_spectral_radiance_sourceAddBackgroundSuns(
+void gas_scattering_coefAirSimple(Vector& gas_scattering_coef,
+                                  const AscendingGrid& frequency_grid,
+                                  const AtmPoint& atmospheric_point) {
+  static constexpr std::array coefficients{
+      3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
+
+  gas_scattering_coef.resize(frequency_grid.nelem());
+  for (Index f = 0; f < frequency_grid.nelem(); f++) {
+    const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
+    Numeric sum = 0;
+    Numeric pows = 1;
+    for (auto& coef : coefficients) {
+      sum += coef * pows;
+      pows /= Math::pow2(wavelen);
+    }
+    gas_scattering_coef[f] = 1e-32 * sum / Math::pow4(wavelen);
+  }
+
+  gas_scattering_coef *=
+      number_density(atmospheric_point.pressure, atmospheric_point.temperature);
+}
+
+void ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering(
     const Workspace& ws,
     ArrayOfStokvecVector& ray_path_spectral_radiance_source,
     const ArrayOfPropmatVector& ray_path_propagation_matrix,
     const ArrayOfPropagationPathPoint& ray_path,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point,
     const ArrayOfArrayOfArrayOfPropagationPathPoint& ray_path_suns_path,
     const ArrayOfSun& suns,
     const JacobianTargets& jacobian_targets,
@@ -212,6 +237,7 @@ void ray_path_spectral_radiance_sourceAddBackgroundSuns(
     const AtmField& atmospheric_field,
     const SurfaceField& surface_field,
     const Agenda& propagation_matrix_agenda,
+    const Numeric& depolarization_factor,
     const Numeric& rte_alonglos_v,
     const Index& hse_derivative) try {
   ARTS_USER_ERROR_IF(jacobian_targets.x_size(),
@@ -226,6 +252,8 @@ void ray_path_spectral_radiance_sourceAddBackgroundSuns(
       "Bad ray_path_propagation_matrix: incorrect number of path points")
   ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(),
                      "Bad ray_path_suns_path: incorrect number of path points")
+  ARTS_USER_ERROR_IF(ray_path_atmospheric_point.size() != np,
+                     "Bad ray_path_atmospheric_point: incorrect number of path points")
 
   const Size nsuns = suns.size();
   ARTS_USER_ERROR_IF(std::ranges::any_of(ray_path_suns_path,
@@ -252,14 +280,20 @@ void ray_path_spectral_radiance_sourceAddBackgroundSuns(
   StokvecVector spectral_radiance{};
   StokvecMatrix spectral_radiance_jacobian{};
   StokvecVector spectral_radiance_background{};
+  Vector gas_scattering_coef;
   const StokvecMatrix spectral_radiance_background_jacobian(0, nv);
 
   for (Size ip = 0; ip < np; ip++) {
+    auto& spectral_radiance_source = ray_path_spectral_radiance_source[ip];
+    const auto& propagation_matrix = ray_path_propagation_matrix[ip];
+    const auto& ray_path_point = ray_path[ip];
+    const auto& atmospheric_point = ray_path_atmospheric_point[ip];
+    gas_scattering_coefAirSimple(
+        gas_scattering_coef, frequency_grid, atmospheric_point);
+
     for (Size isun = 0; isun < nsuns; isun++) {
       const auto& sun_path = ray_path_suns_path[ip][isun];
       const auto& sun = suns[isun];
-      auto& spectral_radiance_source = ray_path_spectral_radiance_source[ip];
-      const auto& propagation_matrix = ray_path_propagation_matrix[ip];
 
       spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
                                              frequency_grid,
@@ -282,6 +316,11 @@ void ray_path_spectral_radiance_sourceAddBackgroundSuns(
           rte_alonglos_v,
           hse_derivative);
 
+      // irradiance ratio
+      const Numeric radiance_2_irradiance =
+          pi * suns[isun].sin_alpha_squared(sun_path.back().pos,
+                                            surface_field.ellipsoid);
+
       ARTS_USER_ERROR_IF(spectral_radiance.size() != nv,
                          "Bad size spectral_radiance (",
                          spectral_radiance.size(),
@@ -289,15 +328,18 @@ void ray_path_spectral_radiance_sourceAddBackgroundSuns(
                          nv,
                          ")")
 
+      const Muelmat scatmat = rtepack::rayleigh_scattering(
+          sun_path.front().los, ray_path_point.los, depolarization_factor);
+
       // Scatter the source into the target direction
       // Direction the radiation is arriving: sun_path.front().los [MOVING TOWARDS POINT]
       // Direction the radiation is leaving: ray_path[ip].los [MOVING AWAY FROM POINT]
-      spectral_radiance *= 0;  // placeholder for the actual scattering
 
       // Add the source to the target
       for (Index iv = 0; iv < nv; iv++) {
-        spectral_radiance_source +=
-            inv(propagation_matrix[iv]) * spectral_radiance[iv];
+        spectral_radiance_source += (radiance_2_irradiance / (4 * pi)) *
+                                    inv(propagation_matrix[iv]) * scatmat *
+                                    spectral_radiance[iv];
       }
     }
   }

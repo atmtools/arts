@@ -3242,28 +3242,31 @@ have sorted *suns* by distance before running this code.
       .in = {"suns", "sun"},
   };
 
-  wsm_data["ray_path_spectral_radiance_sourceAddBackgroundSuns"] = {
-      .desc = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
+  wsm_data
+      ["ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering"] = {
+          .desc = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"ray_path_spectral_radiance_source"},
-      .in = {"ray_path_spectral_radiance_source",
-             "ray_path_propagation_matrix",
-             "ray_path",
-             "ray_path_suns_path",
-             "suns",
-             "jacobian_targets",
-             "frequency_grid",
-             "atmospheric_field",
-             "surface_field",
-             "propagation_matrix_agenda"},
-      .gin = {"rte_alonglos_v", "hse_derivative"},
-      .gin_type = {"Numeric", "Index"},
-      .gin_value = {Numeric{0.0}, Index{0}},
-      .gin_desc =
-          {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
-           "Flag to compute the hypsometric distance derivatives"},
-      .pass_workspace = true,
+          .author = {"Richard Larsson"},
+          .out = {"ray_path_spectral_radiance_source"},
+          .in = {"ray_path_spectral_radiance_source",
+                 "ray_path_propagation_matrix",
+                 "ray_path",
+                 "ray_path_atmospheric_point",
+                 "ray_path_suns_path",
+                 "suns",
+                 "jacobian_targets",
+                 "frequency_grid",
+                 "atmospheric_field",
+                 "surface_field",
+                 "propagation_matrix_agenda"},
+          .gin = {"rte_alonglos_v", "depolarization_factor", "hse_derivative"},
+          .gin_type = {"Numeric", "Numeric", "Index"},
+          .gin_value = {Numeric{0.0}, Numeric{0.0}, Index{0}},
+          .gin_desc =
+              {R"--(Velocity along the line-of-sight to consider for a RT calculation.)--",
+               R"--(The depolarization factor to use.)--",
+               "Flag to compute the hypsometric distance derivatives"},
+          .pass_workspace = true,
   };
 
   /*
