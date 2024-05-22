@@ -337,7 +337,7 @@ void ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering(
 
       // Add the source to the target
       for (Index iv = 0; iv < nv; iv++) {
-        spectral_radiance_source += (radiance_2_irradiance / (4 * pi)) *
+        spectral_radiance_source += (gas_scattering_coef[iv] * radiance_2_irradiance / (4 * pi)) *
                                     inv(propagation_matrix[iv]) * scatmat *
                                     spectral_radiance[iv];
       }
