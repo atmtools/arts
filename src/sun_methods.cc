@@ -241,7 +241,7 @@ void find_sun_path(const Workspace& ws,
 
     if (hit and just_hit) return;
     if (beta < best_beta) {
-      best_beta = rad2deg(beta);
+      best_beta = beta;
       best_los = los;
     }
   }
@@ -264,7 +264,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = rad2deg(beta);
+        best_beta = beta;
         best_los = los;
         continue;
       }
@@ -284,7 +284,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = rad2deg(beta);
+        best_beta = beta;
         best_los = los;
         continue;
       }
@@ -304,7 +304,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = rad2deg(beta);
+        best_beta = beta;
         best_los = los;
         continue;
       }
@@ -324,7 +324,7 @@ void find_sun_path(const Workspace& ws,
 
       if (hit and just_hit) return;
       if (beta < best_beta) {
-        best_beta = rad2deg(beta);
+        best_beta = beta;
         best_los = los;
         continue;
       }
