@@ -18,10 +18,10 @@ are available on the `ARTS website <https://www.radiativetransfer.org>`_.
 
    about
    installation
-   getting.started
-   doc
+   examples
+   guide
    workspace
    pyarts
-   examples
+   develop
    indices
    contact

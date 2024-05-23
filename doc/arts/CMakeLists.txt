@@ -1,7 +1,8 @@
 set(files
-  doc.rst
-  doc.theory.rst
-  doc.user.rst
+  guide.rst
+  guide.theory.rst
+  guide.user.rst
+  develop.rst
 )
 
 foreach(fil ${files})
