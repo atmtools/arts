@@ -4,8 +4,11 @@
 
 #include <workspace.h>
 
+#include <algorithm>
+
 #include "arts_omp.h"
 #include "atm.h"
+#include "compare.h"
 #include "configtypes.h"
 #include "debug.h"
 #include "jacobian.h"
@@ -30,7 +33,6 @@
 */
 
 using Constant::pi;
-using Math::pow2;
 
 /*===========================================================================
   === The functions
@@ -202,14 +204,28 @@ void ray_path_suns_pathFromPathObserver(
   }
 }
 
-void gas_scattering_coefAirSimple(Vector& gas_scattering_coef,
-                                  const AscendingGrid& frequency_grid,
-                                  const AtmPoint& atmospheric_point) {
+void propagation_matrix_scatteringInit(
+    PropmatVector& propagation_matrix_scattering,
+    const AscendingGrid& frequency_grid) {
+  propagation_matrix_scattering.resize(frequency_grid.nelem());
+  propagation_matrix_scattering = 0.0;
+}
+
+void propagation_matrix_scatteringAirSimple(
+    PropmatVector& propagation_matrix_scattering,
+    const AscendingGrid& frequency_grid,
+    const AtmPoint& atmospheric_point) {
+  const Index nf = frequency_grid.size();
+  ARTS_USER_ERROR_IF(
+      propagation_matrix_scattering.size() != nf,
+      "Mismatch in size of propagation_matrix_scattering and frequency_grid")
+
   static constexpr std::array coefficients{
       3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
-  gas_scattering_coef.resize(frequency_grid.nelem());
-  for (Index f = 0; f < frequency_grid.nelem(); f++) {
+  const Numeric nd =
+      number_density(atmospheric_point.pressure, atmospheric_point.temperature);
+  for (Index f = 0; f < nf; f++) {
     const Numeric wavelen = Conversion::freq2wavelen(frequency_grid[f]) * 1e6;
     Numeric sum = 0;
     Numeric pows = 1;
@@ -217,22 +233,146 @@ void gas_scattering_coefAirSimple(Vector& gas_scattering_coef,
       sum += coef * pows;
       pows /= Math::pow2(wavelen);
     }
-    gas_scattering_coef[f] = 1e-32 * sum / Math::pow4(wavelen);
+    propagation_matrix_scattering[f].A() +=
+        1e-32 * nd * sum / Math::pow4(wavelen);
   }
-
-  gas_scattering_coef *=
-      number_density(atmospheric_point.pressure, atmospheric_point.temperature);
 }
 
-void ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering(
+void ray_path_propagation_matrix_scatteringFromPath(
     const Workspace& ws,
+    ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
+    const Agenda& propagation_matrix_scattering_agenda,
+    const ArrayOfAscendingGrid& ray_path_frequency_grid,
+    const ArrayOfAtmPoint& ray_path_atmospheric_point) {
+  const Size np = ray_path_frequency_grid.size();
+  ARTS_USER_ERROR_IF(
+      np != ray_path_atmospheric_point.size(),
+      "Bad ray_path_atmospheric_point: incorrect number of path points")
+
+  ray_path_propagation_matrix_scattering.resize(np);
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 0; ip < np; ip++) {
+      propagation_matrix_scattering_agendaExecute(
+          ws,
+          ray_path_propagation_matrix_scattering[ip],
+          ray_path_frequency_grid[ip],
+          ray_path_atmospheric_point[ip],
+          propagation_matrix_scattering_agenda);
+    }
+  } else {
+    String error{};
+#pragma omp parallel for
+    for (Size ip = 0; ip < np; ip++) {
+      try {
+        propagation_matrix_scattering_agendaExecute(
+            ws,
+            ray_path_propagation_matrix_scattering[ip],
+            ray_path_frequency_grid[ip],
+            ray_path_atmospheric_point[ip],
+            propagation_matrix_scattering_agenda);
+      } catch (const std::exception& e) {
+#pragma omp critical
+        error += e.what();
+      }
+    }
+
+    ARTS_USER_ERROR_IF(error.size(), error)
+  }
+}
+
+void ray_path_propagation_matrixAddScattering(
+    ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering) {
+  const Size np = ray_path_propagation_matrix.size();
+
+  ARTS_USER_ERROR_IF(
+      np != ray_path_propagation_matrix_scattering.size(),
+      "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
+
+  if (np == 0) return;
+  const Index nf = ray_path_propagation_matrix_scattering.front().size();
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          ray_path_propagation_matrix, Cmp::ne(nf), &PropmatVector::size),
+      "Mismatch frequency size of ray_path_propagation_matrix and ray_path_propagation_matrix_scattering")
+
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 0; ip < np; ip++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        ray_path_propagation_matrix[ip][iv] +=
+            ray_path_propagation_matrix_scattering[ip][iv];
+      }
+    }
+  } else {
+#pragma omp parallel for collapse(2)
+    for (Size ip = 0; ip < np; ip++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        ray_path_propagation_matrix[ip][iv] +=
+            ray_path_propagation_matrix_scattering[ip][iv];
+      }
+    }
+  }
+}
+
+void ray_path_spectral_radiance_sourceAddScattering(
     ArrayOfStokvecVector& ray_path_spectral_radiance_source,
-    const ArrayOfPropmatVector& ray_path_propagation_matrix,
+    const ArrayOfStokvecVector& ray_path_spectral_radiance_scattering,
+    const ArrayOfPropmatVector& ray_path_propagation_matrix) {
+  const Size np = ray_path_propagation_matrix.size();
+  ARTS_USER_ERROR_IF(
+      np != ray_path_spectral_radiance_source.size(),
+      "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
+  ARTS_USER_ERROR_IF(
+      np != ray_path_spectral_radiance_scattering.size(),
+      "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
+
+  if (np == 0) return;
+  const Index nf = ray_path_propagation_matrix.front().size();
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(
+          ray_path_spectral_radiance_source, Cmp::ne(nf), &StokvecVector::size),
+      "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_source")
+  ARTS_USER_ERROR_IF(
+      std::ranges::any_of(ray_path_spectral_radiance_scattering,
+                          Cmp::ne(nf),
+                          &StokvecVector::size),
+      "Mismatch frequency size of ray_path_propagation_matrix and ray_path_spectral_radiance_scattering")
+
+  if (arts_omp_in_parallel()) {
+    for (Size ip = 0; ip < np; ip++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        ray_path_spectral_radiance_source[ip][iv] +=
+            inv(ray_path_propagation_matrix[ip][iv]) *
+            ray_path_spectral_radiance_scattering[ip][iv];
+      }
+    }
+  } else {
+#pragma omp parallel for collapse(2)
+    for (Size ip = 0; ip < np; ip++) {
+      for (Index iv = 0; iv < nf; iv++) {
+        ray_path_spectral_radiance_source[ip][iv] +=
+            inv(ray_path_propagation_matrix[ip][iv]) *
+            ray_path_spectral_radiance_scattering[ip][iv];
+      }
+    }
+  }
+}
+
+void ray_path_spectral_radiance_scatteredSunsFirstOrderRayleighScattering(
+    const Workspace& ws,
+    // [np, nf]:
+    ArrayOfStokvecVector& ray_path_spectral_radiance_scattered,
+    // [np, nf]:
+    const ArrayOfPropmatVector& ray_path_propagation_matrix_scattering,
+    // [np]:
     const ArrayOfPropagationPathPoint& ray_path,
-    const ArrayOfAtmPoint& ray_path_atmospheric_point,
+    // [np, suns, np2]:
     const ArrayOfArrayOfArrayOfPropagationPathPoint& ray_path_suns_path,
+    // [nsuns]:
     const ArrayOfSun& suns,
+    // [njac]:
     const JacobianTargets& jacobian_targets,
+    // [nf]:
     const AscendingGrid& frequency_grid,
     const AtmField& atmospheric_field,
     const SurfaceField& surface_field,
@@ -245,54 +385,47 @@ void ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering(
 
   const Size np = ray_path.size();
   ARTS_USER_ERROR_IF(
-      np != ray_path_spectral_radiance_source.size(),
-      "Bad ray_path_spectral_radiance_source: incorrect number of path points")
-  ARTS_USER_ERROR_IF(
-      np != ray_path_propagation_matrix.size(),
-      "Bad ray_path_propagation_matrix: incorrect number of path points")
+      np != ray_path_propagation_matrix_scattering.size(),
+      "Bad ray_path_propagation_matrix_scattering: incorrect number of path points")
   ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(),
                      "Bad ray_path_suns_path: incorrect number of path points")
-  ARTS_USER_ERROR_IF(ray_path_atmospheric_point.size() != np,
-                     "Bad ray_path_atmospheric_point: incorrect number of path points")
 
   const Size nsuns = suns.size();
   ARTS_USER_ERROR_IF(std::ranges::any_of(ray_path_suns_path,
-                                         [nsuns](auto& ray_path_sun_path) {
-                                           return ray_path_sun_path.size() !=
-                                                  nsuns;
+                                         [nsuns](auto& suns_path) {
+                                           return suns_path.size() != nsuns;
                                          }),
                      "Bad ray_path_suns_path: incorrect number of suns")
 
-  const Index nv = frequency_grid.size();
+  const Index nf = frequency_grid.size();
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_spectral_radiance_source,
-                          [nv](auto& spectral_radiance_source) {
-                            return nv != spectral_radiance_source.size();
+      std::ranges::any_of(ray_path_spectral_radiance_scattered,
+                          [nf](auto& spectral_radiance_source) {
+                            return nf != spectral_radiance_source.size();
                           }),
       "Bad ray_path_spectral_radiance_source: incorrect number of frequencies")
-  ARTS_USER_ERROR_IF(
-      std::ranges::any_of(ray_path_propagation_matrix,
-                          [nv](auto& propagation_matrix) {
-                            return nv != propagation_matrix.size();
-                          }),
-      "Bad ray_path_propagation_matrix: incorrect number of frequencies")
 
   StokvecVector spectral_radiance{};
   StokvecMatrix spectral_radiance_jacobian{};
   StokvecVector spectral_radiance_background{};
-  Vector gas_scattering_coef;
-  const StokvecMatrix spectral_radiance_background_jacobian(0, nv);
+  const StokvecMatrix spectral_radiance_background_jacobian(0, nf);
 
+  ray_path_spectral_radiance_scattered.resize(np);
   for (Size ip = 0; ip < np; ip++) {
-    auto& spectral_radiance_source = ray_path_spectral_radiance_source[ip];
-    const auto& propagation_matrix = ray_path_propagation_matrix[ip];
+    auto& spectral_radiance_scattered =
+        ray_path_spectral_radiance_scattered[ip];
+
+    // Reset as we do not know the size is correct
+    spectral_radiance_scattered.resize(nf);
+    spectral_radiance_scattered = 0;
+
+    const auto& propagation_matrix_scattering =
+        ray_path_propagation_matrix_scattering[ip];
     const auto& ray_path_point = ray_path[ip];
-    const auto& atmospheric_point = ray_path_atmospheric_point[ip];
-    gas_scattering_coefAirSimple(
-        gas_scattering_coef, frequency_grid, atmospheric_point);
+    const auto& suns_path = ray_path_suns_path[ip];
 
     for (Size isun = 0; isun < nsuns; isun++) {
-      const auto& sun_path = ray_path_suns_path[ip][isun];
+      const auto& sun_path = suns_path[isun];
       const auto& sun = suns[isun];
 
       spectral_radianceSunOrCosmicBackground(spectral_radiance_background,
@@ -321,25 +454,23 @@ void ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering(
           pi * suns[isun].sin_alpha_squared(sun_path.back().pos,
                                             surface_field.ellipsoid);
 
-      ARTS_USER_ERROR_IF(spectral_radiance.size() != nv,
+      ARTS_USER_ERROR_IF(spectral_radiance.size() != nf,
                          "Bad size spectral_radiance (",
                          spectral_radiance.size(),
                          ").  It should have the same size as frequency_grid (",
-                         nv,
+                         nf,
                          ")")
 
-      const Muelmat scatmat = rtepack::rayleigh_scattering(
-          sun_path.front().los, ray_path_point.los, depolarization_factor);
-
-      // Scatter the source into the target direction
-      // Direction the radiation is arriving: sun_path.front().los [MOVING TOWARDS POINT]
-      // Direction the radiation is leaving: ray_path[ip].los [MOVING AWAY FROM POINT]
+      const Muelmat scatmat =
+          rtepack::rayleigh_scattering(
+              sun_path.front().los, ray_path_point.los, depolarization_factor) /
+          (4 * pi);
 
       // Add the source to the target
-      for (Index iv = 0; iv < nv; iv++) {
-        spectral_radiance_source += (gas_scattering_coef[iv] * radiance_2_irradiance / (4 * pi)) *
-                                    inv(propagation_matrix[iv]) * scatmat *
-                                    spectral_radiance[iv];
+      for (Index iv = 0; iv < nf; iv++) {
+        spectral_radiance_scattered += propagation_matrix_scattering[iv] *
+                                       scatmat * radiance_2_irradiance *
+                                       spectral_radiance[iv];
       }
     }
   }

@@ -48,13 +48,26 @@ Agenda AgendaCreator::finalize() && {
   return ag;
 };
 
+Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
+  AgendaCreator agenda("propagation_matrix_scattering_agenda");
+
+  using enum propagation_matrix_scattering_agendaPredefined;
+  switch (to<propagation_matrix_scattering_agendaPredefined>(option)) {
+    case AirSimple:
+      agenda.add("propagation_matrix_scatteringInit");
+      agenda.add("propagation_matrix_scatteringAirSimple");
+  }
+
+  return std::move(agenda).finalize();
+}
+
 Agenda get_propagation_matrix_agenda(const std::string& option) {
-  AgendaCreator agenda("propmat_clearsky_agenda");
+  AgendaCreator agenda("propagation_matrix_agenda");
 
   using enum propagation_matrix_agendaPredefined;
   switch (to<propagation_matrix_agendaPredefined>(option)) {
     case Empty:
-      agenda.add("propmat_clearskyInit");
+      agenda.add("propagation_matrixInit");
   }
 
   return std::move(agenda).finalize();

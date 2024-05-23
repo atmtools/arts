@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "isotopologues.h"
 #include "lbl_lineshape_linemixing.h"
+#include "matpack_math.h"
 #include "partfun.h"
 #include "sorting.h"
 #include "species.h"
@@ -105,6 +106,7 @@ void ComputeData::core_calc_eqv() {
   for (Index k = 0; k < m; k++) {
     auto V = Vs[k];
     auto W = Ws[k];
+    inplace_transpose(W);
     auto eqv_str = eqv_strs[k];
     auto eqv_val = eqv_vals[k];
 

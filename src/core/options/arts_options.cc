@@ -460,6 +460,20 @@ std::vector<EnumeratedOption> internal_options_create() {
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "propagation_matrix_scattering_agendaPredefined",
+      .desc = R"(The types of predefined *propagation_matrix_scattering_agenda*.
+)",
+      .values_and_desc =
+          {
+              Value{"AirSimple", R"(
+
+  - *propagation_matrix_scatteringInit*
+  - *propagation_matrix_scatteringAirSimple*
+)"},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "spectral_radiance_observer_agendaPredefined",
       .desc = R"(The types of predefined *spectral_radiance_observer_agenda*.
 )",

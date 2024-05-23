@@ -269,7 +269,23 @@ as:
 where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distance
 over which it is considered constant.
 
-The unit is [1 / m]
+The unit is [1 / m].
+
+Dimension: *frequency_grid*.
+)--",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["propagation_matrix_scattering"] = {
+      .desc =
+          R"--(This contains the propagation matrix for scattering for the current path point.
+
+This needs to be used when scattering into the line of sight is considered. And it needs then to
+also be added to the *propagation_matrix*, which you should see for more information.
+
+The unit is [1 / m].
+
+Dimension: *frequency_grid*.
 )--",
       .type = "PropmatVector",
   };
@@ -312,6 +328,12 @@ Shape: NFREQ
       .type = "ArrayOfStokvecVector",
   };
 
+  wsv_data["ray_path_spectral_radiance_scattering"] = {
+      .desc = R"--(Spectral radiance scattered into the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
   wsv_data["ray_path_spectral_radiance_jacobian"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
@@ -320,6 +342,12 @@ Shape: NFREQ
 
   wsv_data["ray_path_propagation_matrix"] = {
       .desc = R"--(Propagation matrices along the propagation path
+)--",
+      .type = "ArrayOfPropmatVector",
+  };
+
+  wsv_data["ray_path_propagation_matrix_scattering"] = {
+      .desc = R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
   };

@@ -1015,6 +1015,45 @@ The calculations are in parallel if the program is not in parallel already.
       .pass_workspace = true,
   };
 
+  wsm_data["ray_path_propagation_matrix_scatteringFromPath"] = {
+      .desc =
+          R"--(Gets the propagation matrix for scattering along the path.
+
+The calculations are in parallel if the program is not in parallel already.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ray_path_propagation_matrix_scattering"},
+      .in = {"propagation_matrix_scattering_agenda",
+             "ray_path_frequency_grid",
+             "ray_path_atmospheric_point"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["ray_path_propagation_matrixAddScattering"] = {
+      .desc =
+          R"--(Adds the scattering part of the propagation matrix to the rest along the path.
+
+The calculations are in parallel if the program is not in parallel already.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ray_path_propagation_matrix"},
+      .in = {"ray_path_propagation_matrix", 
+             "ray_path_propagation_matrix_scattering"},
+  };
+
+  wsm_data["ray_path_spectral_radiance_sourceAddScattering"] = {
+      .desc =
+          R"--(Adds the scattering part of the propagation matrix to the rest along the path.
+
+The calculations are in parallel if the program is not in parallel already.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"ray_path_spectral_radiance_source"},
+      .in = {"ray_path_spectral_radiance_source", 
+             "ray_path_spectral_radiance_scattering", 
+             "ray_path_propagation_matrix"},
+  };
+
   wsm_data["ray_path_spectral_radianceCalcEmission"] = {
       .desc =
           R"--(Gets the radiation along the path by linear emission calculations.
@@ -1587,6 +1626,26 @@ this method.
                    R"--(Positive value forces constant temperature [K].)--"},
   };
 
+  wsm_data["propagation_matrix_scatteringInit"] = {
+      .desc =
+          R"--(Initialize *propagation_matrix_scattering* to zeroes.
+
+This method must be used inside *propagation_matrix_scattering_agenda* and then be called first.
+)--",
+      .author = {"Oliver Lemke", "Richard Larsson"},
+      .out = {"propagation_matrix_scattering"},
+      .in = {"frequency_grid"},
+  };
+
+  wsm_data["propagation_matrix_scatteringAirSimple"] = {
+      .desc =
+          R"--(Add simple air to *propagation_matrix_scattering*.
+)--",
+      .author = {"Oliver Lemke", "Richard Larsson"},
+      .out = {"propagation_matrix_scattering"},
+      .in = {"propagation_matrix_scattering", "frequency_grid", "atmospheric_point"},
+  };
+
   wsm_data["propagation_matrixInit"] = {
       .desc =
           R"--(Initialize *propagation_matrix*, *propagation_matrix_source_vector_nonlte*, and their derivatives to zeroes.
@@ -1690,6 +1749,19 @@ See *propagation_matrix_agendaPredefined* for valid ``option``
 )--",
       .author = {"Richard Larsson"},
       .out = {"propagation_matrix_agenda"},
+      .gin = {"option"},
+      .gin_type = {"String"},
+      .gin_value = {std::nullopt},
+      .gin_desc = {R"--(Default agenda option (see description))--"},
+  };
+
+  wsm_data["propagation_matrix_scattering_agendaSet"] = {
+      .desc = R"--(Sets *propagation_matrix_scattering_agenda* to a default value
+
+See *propagation_matrix_scattering_agendaPredefined* for valid ``option``
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"propagation_matrix_scattering_agenda"},
       .gin = {"option"},
       .gin_type = {"String"},
       .gin_value = {std::nullopt},
@@ -3243,15 +3315,13 @@ have sorted *suns* by distance before running this code.
   };
 
   wsm_data
-      ["ray_path_spectral_radiance_sourceAddSunsFirstOrderRayleighScattering"] = {
+      ["ray_path_spectral_radiance_scatteredSunsFirstOrderRayleighScattering"] = {
           .desc = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
 )--",
           .author = {"Richard Larsson"},
-          .out = {"ray_path_spectral_radiance_source"},
-          .in = {"ray_path_spectral_radiance_source",
-                 "ray_path_propagation_matrix",
+          .out = {"ray_path_spectral_radiance_scattering"},
+          .in = {"ray_path_propagation_matrix_scattering",
                  "ray_path",
-                 "ray_path_atmospheric_point",
                  "ray_path_suns_path",
                  "suns",
                  "jacobian_targets",

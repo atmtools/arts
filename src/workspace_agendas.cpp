@@ -18,6 +18,14 @@ internal_workspace_agendas() {
                 "atmospheric_point"},
   };
 
+  wsa_data["propagation_matrix_scattering_agenda"] = {
+      .desc = R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
+)--",
+      .output = {"propagation_matrix_scattering"},
+      .input = {"frequency_grid",
+                "atmospheric_point"},
+  };
+
   wsa_data["ray_path_observer_agenda"] = {
       .desc = R"--(Get the propagation path as it is obeserved.
 

@@ -40,6 +40,7 @@ class AgendaCreator {
 };
 
 Agenda get_propagation_matrix_agenda(const std::string& option);
+Agenda get_propagation_matrix_scattering_agenda(const std::string& option);
 Agenda get_ray_path_observer_agenda(const std::string& option);
 Agenda get_spectral_radiance_observer_agenda(const std::string& option);
 Agenda get_spectral_radiance_space_agenda(const std::string& option);
