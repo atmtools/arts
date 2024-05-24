@@ -5,6 +5,8 @@
 
 #include <tuple>
 
+#include "sorted_grid.h"
+
 namespace sensor {
 struct PosLos {
   Vector3 pos;
@@ -40,12 +42,16 @@ struct PosLos {
 using PosLosVector = matpack::matpack_data<PosLos, 1>;
 
 struct Obsel {
-  //! Relevant frequencies
+  //! Frequency grid weight, should likely sum to 1.0 - must have same size as f_grid
   Vector f_grid_w{};
+
+  //! Frequency grid, must be ascending - must have same size as f_grid_w
   AscendingGrid f_grid{};
 
-  //! Relevant propagation from antenna to sensor
+  //! Position and line of sight grid weight - must have same size as poslos_grid
   MuelmatVector poslos_grid_w{};
+
+  //! Position and line of sight grid of the sensor - must have same size as poslos_grid_w
   PosLosVector poslos_grid{};
 
   //! Sampled polariazation state at antenna
@@ -83,6 +89,32 @@ struct Obsel {
   friend std::ostream& operator<<(std::ostream& os, const Obsel& obsel);
 
   [[nodiscard]] bool ok() const;
+
+  void set_frequency_dirac(const Numeric& f0);
+
+  void set_frequency_boxcar(const Numeric& f0,
+                            const Numeric& width,
+                            const Index& N);
+  void set_frequency_boxcar(const Numeric& f0,
+                            const Numeric& width,
+                            const AscendingGrid& f_grid);
+
+  void set_frequency_metmm_sampler(const DescendingGrid& f0s,
+                                   const Numeric& width,
+                                   const Index& N);
+  void set_frequency_metmm_sampler(const DescendingGrid& f0s,
+                                   const Numeric& width,
+                                   const AscendingGrid& f_grid);
+
+  void set_frequency_gaussian(const Numeric& f0,
+                              const Numeric& fwhm,
+                              const Index& N);
+  void set_frequency_gaussian(const Numeric& f0,
+                              const Numeric& fwhm,
+                              const AscendingGrid& f_grid);
+
+  void normalize_frequency_weights();
+  void cutoff_frequency_weights(const Numeric& cutoff);
 };
 
 AscendingGrid& collect_f_grid(AscendingGrid& f_grid,

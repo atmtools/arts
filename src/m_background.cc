@@ -103,7 +103,7 @@ void spectral_radianceSunOrCosmicBackground(
     const AscendingGrid& frequency_grid,
     const ArrayOfPropagationPathPoint& sun_path,
     const Sun& sun,
-    const SurfaceField& surface_field) {
+    const SurfaceField& surface_field) try {
   spectral_radiance.resize(frequency_grid.size());
 
   if (set_spectral_radiance_if_sun_intersection(
@@ -111,7 +111,7 @@ void spectral_radianceSunOrCosmicBackground(
     return;
 
   spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
-}
+} ARTS_METHOD_ERROR_CATCH
 
 void spectral_radianceSunsOrCosmicBackground(
     StokvecVector& spectral_radiance,

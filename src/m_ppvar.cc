@@ -6,6 +6,7 @@
 #include <surf.h>
 #include <workspace.h>
 
+#include "debug.h"
 #include "sorted_grid.h"
 
 void ray_path_spectral_radianceCalcTransmission(
@@ -22,16 +23,16 @@ void ray_path_spectral_radianceCalcTransmission(
   const Index nf =
       ray_path_transmission_matrix_jacobian.front().front().ncols();
 
-  ARTS_USER_ERROR_IF(np not_eq ray_path_transmission_matrix.size(),
+  ARTS_USER_ERROR_IF(np != ray_path_transmission_matrix.size(),
                      "ray_path_transmission_matrix must have (np) elements")
   ARTS_USER_ERROR_IF(
-      np not_eq ray_path_transmission_matrix_cumulative.size(),
+      np != ray_path_transmission_matrix_cumulative.size(),
       "ray_path_transmission_matrix_cumulative must have (np) elements")
   ARTS_USER_ERROR_IF(
-      2 not_eq ray_path_transmission_matrix_jacobian.size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq
+      2 != ray_path_transmission_matrix_jacobian.size() or
+          ray_path_transmission_matrix_jacobian.front().size() !=
               ray_path_transmission_matrix_jacobian.back().size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq np,
+          ray_path_transmission_matrix_jacobian.front().size() != np,
       "ray_path_transmission_matrix_jacobian must (2 x np) elements")
 
   ARTS_USER_ERROR_IF(
@@ -48,7 +49,7 @@ void ray_path_spectral_radianceCalcTransmission(
     return;
   }
 
-  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
+  const auto test_nf = [nf](auto &v) { return v.size() != nf; };
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_transmission_matrix.begin(),
                   ray_path_transmission_matrix.end(),
@@ -61,7 +62,7 @@ void ray_path_spectral_radianceCalcTransmission(
       "ray_path_spectral_radiance_source must have (nf) inner elements")
 
   const auto test_nfnq = [nf, nq](auto &v) {
-    return v.ncols() not_eq nf or v.nrows() not_eq nq;
+    return v.ncols() != nf or v.nrows() != nq;
   };
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_transmission_matrix_jacobian.front().begin(),
@@ -76,7 +77,11 @@ void ray_path_spectral_radianceCalcTransmission(
 
   ray_path_spectral_radiance.resize(np);
   ray_path_spectral_radiance.back() = spectral_radiance_background;
-  ray_path_spectral_radiance_jacobian.resize(np, StokvecMatrix(nq, nf));
+  ray_path_spectral_radiance_jacobian.resize(np);
+  for (auto &t : ray_path_spectral_radiance_jacobian) {
+    t.resize(nq, nf);
+    t = 0;
+  }
   for (Index ip = np - 2; ip >= 0; ip--) {
     ray_path_spectral_radiance[ip] = ray_path_spectral_radiance[ip + 1];
     two_level_linear_transmission_step(
@@ -193,8 +198,16 @@ void ray_path_spectral_radiance_sourceFromPropmat(
   const Index it =
       jacobian_targets.target_position<Jacobian::AtmTarget>(AtmKey::t);
 
-  ray_path_spectral_radiance_source.resize(np, StokvecVector(nf));
-  ray_path_spectral_radiance_source_jacobian.resize(np, StokvecMatrix(nq, nf));
+  ray_path_spectral_radiance_source.resize(np);
+  for (auto &t : ray_path_spectral_radiance_source) {
+    t.resize(nf);
+    t = 0;
+  }
+  ray_path_spectral_radiance_source_jacobian.resize(np);
+  for (auto &t : ray_path_spectral_radiance_source_jacobian) {
+    t.resize(nq, nf);
+    t = 0;
+  }
 
   // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel())
@@ -244,7 +257,9 @@ void ray_path_transmission_matrixFromPath(
 
   if (np == 0) {
     ray_path_transmission_matrix.resize(0);
-    ray_path_transmission_matrix_jacobian.resize(2, ArrayOfMuelmatMatrix{});
+    ray_path_transmission_matrix_jacobian.resize(2);
+    ray_path_transmission_matrix_jacobian[0].resize(0);
+    ray_path_transmission_matrix_jacobian[1].resize(0);
     return;
   }
 
@@ -254,9 +269,19 @@ void ray_path_transmission_matrixFromPath(
   Vector ray_path_distance_jacobian1(nq, 0.0);
   Vector ray_path_distance_jacobian2(nq, 0.0);
 
-  ray_path_transmission_matrix.resize(np, MuelmatVector(nf));
-  ray_path_transmission_matrix_jacobian.resize(
-      2, ArrayOfMuelmatMatrix(np, MuelmatMatrix(nq, nf)));
+  ray_path_transmission_matrix.resize(np);
+  for (auto &t : ray_path_transmission_matrix) {
+    t.resize(nf);
+    t = 0.0;
+  }
+  ray_path_transmission_matrix_jacobian.resize(2);
+  for (auto &t : ray_path_transmission_matrix_jacobian) {
+    t.resize(np);
+    for (auto &tt : t) {
+      tt.resize(nq, nf);
+      tt = 0.0;
+    }
+  }
 
   if (arts_omp_in_parallel()) {
     for (Size ip = 1; ip < np; ip++) {
@@ -369,20 +394,32 @@ void ray_path_spectral_radianceCalcEmission(
         &ray_path_transmission_matrix_jacobian) try {
   const Size np = ray_path_spectral_radiance_source.size();
 
+  ARTS_USER_ERROR_IF(np != ray_path_spectral_radiance_source_jacobian.size(),
+                     "ray_path_spectral_radiance_source_jacobian must have (",
+                     np,
+                     ") elements, has ",
+                     ray_path_spectral_radiance_source_jacobian.size())
+  ARTS_USER_ERROR_IF(np != ray_path_transmission_matrix.size(),
+                     "ray_path_transmission_matrix must have (",
+                     np,
+                     ") elements, has ",
+                     ray_path_transmission_matrix.size())
+  ARTS_USER_ERROR_IF(np != ray_path_transmission_matrix_cumulative.size(),
+                     "ray_path_transmission_matrix_cumulative must have (",
+                     np,
+                     ") elements, has ",
+                     ray_path_transmission_matrix_cumulative.size())
   ARTS_USER_ERROR_IF(
-      np not_eq ray_path_spectral_radiance_source_jacobian.size(),
-      "ray_path_spectral_radiance_source_jacobian must have (np) elements")
-  ARTS_USER_ERROR_IF(np not_eq ray_path_transmission_matrix.size(),
-                     "ray_path_transmission_matrix must have (np) elements")
+      2 != ray_path_transmission_matrix_jacobian.size(),
+      "Outer size of ray_path_transmission_matrix_jacobian must be 2, is ",
+      ray_path_transmission_matrix_jacobian.size())
   ARTS_USER_ERROR_IF(
-      np not_eq ray_path_transmission_matrix_cumulative.size(),
-      "ray_path_transmission_matrix_cumulative must have (np) elements")
-  ARTS_USER_ERROR_IF(
-      2 not_eq ray_path_transmission_matrix_jacobian.size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq
-              ray_path_transmission_matrix_jacobian.back().size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq np,
-      "ray_path_transmission_matrix_jacobian must (2 x np) elements")
+      std::ranges::any_of(ray_path_transmission_matrix_jacobian,
+                          Cmp::ne(np),
+                          &ArrayOfMuelmatMatrix::size),
+      "Inner size of ray_path_transmission_matrix_jacobian must be (",
+      np,
+      "), isn't for some element.  Good luck!")
 
   if (np == 0) {
     ray_path_spectral_radiance.resize(0);
@@ -393,8 +430,8 @@ void ray_path_spectral_radianceCalcEmission(
   const Index nq = ray_path_spectral_radiance_source_jacobian.front().nrows();
   const Index nf = ray_path_spectral_radiance_source_jacobian.front().ncols();
 
-  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
-  ARTS_USER_ERROR_IF(nf not_eq background_rad.size(),
+  const auto test_nf = [nf](auto &v) { return v.size() != nf; };
+  ARTS_USER_ERROR_IF(nf != background_rad.size(),
                      "background_rad must have nf elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_spectral_radiance_source.begin(),
@@ -413,7 +450,7 @@ void ray_path_spectral_radianceCalcEmission(
       "ray_path_spectral_radiance_source must have (nf) inner elements")
 
   const auto test_nfnq = [nf, nq](auto &v) {
-    return v.ncols() not_eq nf or v.nrows() not_eq nq;
+    return v.ncols() != nf or v.nrows() != nq;
   };
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_spectral_radiance_source_jacobian.begin(),
@@ -431,8 +468,15 @@ void ray_path_spectral_radianceCalcEmission(
                   test_nfnq),
       "ray_path_transmission_matrix_jacobian must have (nq x nf) inner elements")
 
-  ray_path_spectral_radiance.resize(np, background_rad);
-  ray_path_spectral_radiance_jacobian.resize(np, StokvecMatrix(nq, nf));
+  ray_path_spectral_radiance.resize(np);
+  ray_path_spectral_radiance.back() = background_rad;
+
+  ray_path_spectral_radiance_jacobian.resize(np);
+  for (auto &t : ray_path_spectral_radiance_jacobian) {
+    t.resize(nq, nf);
+    t = 0;
+  }
+
   for (Index ip = np - 2; ip >= 0; ip--) {
     ray_path_spectral_radiance[ip] = ray_path_spectral_radiance[ip + 1];
     two_level_linear_emission_step(
@@ -464,18 +508,18 @@ void ray_path_spectral_radianceCalcClearsky(
   const Size np = ray_path_spectral_radiance_source.size();
 
   ARTS_USER_ERROR_IF(
-      np not_eq ray_path_spectral_radiance_source_jacobian.size(),
+      np != ray_path_spectral_radiance_source_jacobian.size(),
       "ray_path_spectral_radiance_source_jacobian must have (np) elements")
-  ARTS_USER_ERROR_IF(np not_eq ray_path_transmission_matrix.size(),
+  ARTS_USER_ERROR_IF(np != ray_path_transmission_matrix.size(),
                      "ray_path_transmission_matrix must have (np) elements")
   ARTS_USER_ERROR_IF(
-      np not_eq ray_path_transmission_matrix_cumulative.size(),
+      np != ray_path_transmission_matrix_cumulative.size(),
       "ray_path_transmission_matrix_cumulative must have (np) elements")
   ARTS_USER_ERROR_IF(
-      2 not_eq ray_path_transmission_matrix_jacobian.size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq
+      2 != ray_path_transmission_matrix_jacobian.size() or
+          ray_path_transmission_matrix_jacobian.front().size() !=
               ray_path_transmission_matrix_jacobian.back().size() or
-          ray_path_transmission_matrix_jacobian.front().size() not_eq np,
+          ray_path_transmission_matrix_jacobian.front().size() != np,
       "ray_path_transmission_matrix_jacobian must (2 x np) elements")
 
   if (np == 0) {
@@ -487,8 +531,8 @@ void ray_path_spectral_radianceCalcClearsky(
   const Index nq = ray_path_spectral_radiance_source_jacobian.front().nrows();
   const Index nf = ray_path_spectral_radiance_source_jacobian.front().ncols();
 
-  const auto test_nf = [nf](auto &v) { return v.size() not_eq nf; };
-  ARTS_USER_ERROR_IF(nf not_eq background_rad.size(),
+  const auto test_nf = [nf](auto &v) { return v.size() != nf; };
+  ARTS_USER_ERROR_IF(nf != background_rad.size(),
                      "background_rad must have nf elements")
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_spectral_radiance_source.begin(),
@@ -507,7 +551,7 @@ void ray_path_spectral_radianceCalcClearsky(
       "ray_path_spectral_radiance_source must have (nf) inner elements")
 
   const auto test_nfnq = [nf, nq](auto &v) {
-    return v.ncols() not_eq nf or v.nrows() not_eq nq;
+    return v.ncols() != nf or v.nrows() != nq;
   };
   ARTS_USER_ERROR_IF(
       std::any_of(ray_path_spectral_radiance_source_jacobian.begin(),
@@ -525,8 +569,13 @@ void ray_path_spectral_radianceCalcClearsky(
                   test_nfnq),
       "ray_path_transmission_matrix_jacobian must have (nq x nf) inner elements")
 
-  ray_path_spectral_radiance.resize(np, background_rad);
-  ray_path_spectral_radiance_jacobian.resize(np, StokvecMatrix(nq, nf));
+  ray_path_spectral_radiance.resize(np);
+  ray_path_spectral_radiance.back() = background_rad;
+  ray_path_spectral_radiance_jacobian.resize(np);
+  for (auto &t : ray_path_spectral_radiance_jacobian) {
+    t.resize(nq, nf);
+    t = 0;
+  }
   for (Index ip = np - 2; ip >= 0; ip--) {
     ray_path_spectral_radiance[ip] = ray_path_spectral_radiance[ip + 1];
     two_level_linear_emission_step(

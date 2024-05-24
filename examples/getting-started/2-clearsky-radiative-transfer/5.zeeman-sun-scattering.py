@@ -42,7 +42,6 @@ ws.ray_path_observer_agendaSet(option="Geometric")
 ws.propagation_matrix_scattering_agendaSet(option="AirSimple")
 
 # %% Core calculations
-
 pos = [90e3, 0, 0]
 zas = np.linspace(0, 5, 21)
 aas = np.linspace(-180, 180, 21)
@@ -61,15 +60,6 @@ for iza in range(len(zas)):
 r, theta = np.meshgrid(zas, np.rad2deg(aas))
 fig, ax = plt.subplots(subplot_kw=dict(projection="polar"))
 ax.contourf(theta, r, res.T)
-
-pos = [90e3, 0, 0]
-za = 18.0
-aa = -90.0
-ws.ray_pathGeometric(pos=pos, los=[za, aa], max_step=1000.0)
-ws.ray_path_suns_pathFromPathObserver()
-ws.spectral_radianceClearskyRayleighScattering()
-ws.spectral_radianceApplyUnitFromSpectralRadiance()
-
 
 assert np.allclose(
     res.flatten()[::10],

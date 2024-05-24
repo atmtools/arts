@@ -3315,7 +3315,7 @@ have sorted *suns* by distance before running this code.
   };
 
   wsm_data
-      ["ray_path_spectral_radiance_scatteredSunsFirstOrderRayleighScattering"] = {
+      ["ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh"] = {
           .desc = R"--(Add *suns* to *ray_path_spectral_radiance_source*.
 )--",
           .author = {"Richard Larsson"},

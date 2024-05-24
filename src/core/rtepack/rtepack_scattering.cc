@@ -1,5 +1,6 @@
 #include "rtepack_scattering.h"
 
+#include "debug.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
@@ -177,7 +178,7 @@ Numeric cos_scat_angle(const Vector2 &los_in, const Vector2 &los_out) {
 
 muelmat rayleigh_scattering(const Vector2 &los_in,
                             const Vector2 &los_out,
-                            const Numeric depolarization_factor) {
+                            const Numeric depolarization_factor) try {
   using Constant::pi;
   using Math::pow2;
 
@@ -322,5 +323,5 @@ muelmat rayleigh_scattering(const Vector2 &los_in,
   }
 
   return pha;
-}
+} ARTS_METHOD_ERROR_CATCH
 }  // namespace rtepack

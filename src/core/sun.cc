@@ -323,7 +323,7 @@ std::pair<Numeric, bool> hit_sun(const Sun& sun,
   return {beta, beta <= alpha};
 }
 
-Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const {
+Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const try {
   using Math::pow2;
 
   const auto[alt, lat, lon] = pos;
@@ -339,7 +339,7 @@ Numeric Sun::sin_alpha_squared(Vector3 pos, Vector2 ell) const {
   const Numeric r_ps2 = d * d;
 
   return pow2(radius) / (pow2(radius) + r_ps2);
-}
+} ARTS_METHOD_ERROR_CATCH
 
 //! Returns true if the sun was hit, false otherwise.  Sets the spectral radiance if the sun was hit.
 bool set_spectral_radiance_if_sun_intersection(

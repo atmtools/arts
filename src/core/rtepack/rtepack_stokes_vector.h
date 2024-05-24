@@ -14,6 +14,11 @@ struct stokvec final : vec4 {
                                   Numeric d = 0.0)
       : vec4{a, b, c, d} {}
 
+  constexpr stokvec &operator=(Numeric a) {
+    data = {a, 0., 0., 0.};
+    return *this;
+  }
+
   [[nodiscard]] constexpr Numeric I() const { return data[0]; }
   [[nodiscard]] constexpr Numeric Q() const { return data[1]; }
   [[nodiscard]] constexpr Numeric U() const { return data[2]; }
@@ -103,9 +108,9 @@ constexpr stokvec avg(const stokvec &a, const stokvec &b) {
  * @return A function that takes a stokes vector and a frequency and returns a converted stokes vector
  */
 std::function<stokvec(const stokvec, const Numeric)> unit_converter(
-    const SpectralRadianceUnitType type, const Numeric n=1.0);
-std::function<stokvec(const stokvec, const stokvec, const Numeric)> dunit_converter(
-    const SpectralRadianceUnitType type, const Numeric n=1.0);
+    const SpectralRadianceUnitType type, const Numeric n = 1.0);
+std::function<stokvec(const stokvec, const stokvec, const Numeric)>
+dunit_converter(const SpectralRadianceUnitType type, const Numeric n = 1.0);
 
 using stokvec_vector = matpack::matpack_data<stokvec, 1>;
 using stokvec_vector_view = matpack::matpack_view<stokvec, 1, false, false>;

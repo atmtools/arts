@@ -57,7 +57,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
                   "ray_path_transmission_matrixFromPath",
                   "ray_path_transmission_matrix_cumulativeForward",
                   "ray_path_spectral_radiance_sourceFromPropmat",
-                  "ray_path_spectral_radiance_scatteredSunsFirstOrderRayleighScattering",
+                  "ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh",
                   "ray_path_spectral_radiance_sourceAddScattering",
                   "ray_path_spectral_radianceCalcEmission",
                   "background_transmittanceFromPathPropagationBack",
