@@ -40,7 +40,7 @@ for band in ws.absorption_bands:
 ws.propagation_matrix_agendaAuto()
 
 # Settings (Standard atmosphere midlatitude-summer)
-ws.propagation_path_point.los = [45, 45]
+ws.ray_path_point.los = [45, 45]
 ws.frequency_grid = pyarts.arts.convert.kaycm2freq(np.linspace(300, 3000, 1000))
 ws.atmospheric_pointInit()
 ws.atmospheric_point.temperature = 2.942000e+02

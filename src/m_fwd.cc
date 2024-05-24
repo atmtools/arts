@@ -7,12 +7,15 @@
 
 #include "arts_omp.h"
 #include "debug.h"
+#include "enums.h"
 #include "fwd_path.h"
 #include "fwd_spectral_radiance.h"
+#include "matpack_constexpr.h"
 #include "obsel.h"
 #include "path_point.h"
 #include "rtepack.h"
 #include "sorted_grid.h"
+#include "surf.h"
 #include "workspace_class.h"
 
 void spectral_radiance_operatorClearsky1D(
@@ -175,7 +178,7 @@ void spectral_radiance_fieldFromOperatorPath(
     const Workspace& ws,
     StokvecGriddedField6& spectral_radiance_field,
     const SpectralRadianceOperator& spectral_radiance_operator,
-    const Agenda& propagation_path_observer_agenda,
+    const Agenda& ray_path_observer_agenda,
     const AscendingGrid& frequency_grid,
     const AscendingGrid& zenith_grid,
     const AscendingGrid& azimuth_grid) {
@@ -213,22 +216,21 @@ void spectral_radiance_fieldFromOperatorPath(
         for (Index ialt = 0; ialt < nalt; ++ialt) {
           for (Index ilat = 0; ilat < nlat; ++ilat) {
             for (Index ilon = 0; ilon < nlon; ++ilon) {
-              ArrayOfPropagationPathPoint propagation_path;
-              propagation_path_observer_agendaExecute(
+              ArrayOfPropagationPathPoint ray_path;
+              ray_path_observer_agendaExecute(
                   ws,
-                  propagation_path,
+                  ray_path,
                   {altitude_grid[ialt],
                    latitude_grid[ilat],
                    longitude_grid[ilon]},
                   {zenith_grid[iza], azimuth_grid[iaa]},
-                  propagation_path_observer_agenda);
+                  ray_path_observer_agenda);
               std::transform(
                   frequency_grid.begin(),
                   frequency_grid.end(),
                   spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
                       .begin(),
-                  [path =
-                       spectral_radiance_operator.from_path(propagation_path),
+                  [path = spectral_radiance_operator.from_path(ray_path),
                    &spectral_radiance_operator](Numeric f) {
                     return spectral_radiance_operator(f, path);
                   });
@@ -247,22 +249,21 @@ void spectral_radiance_fieldFromOperatorPath(
           for (Index ilat = 0; ilat < nlat; ++ilat) {
             for (Index ilon = 0; ilon < nlon; ++ilon) {
               try {
-                ArrayOfPropagationPathPoint propagation_path;
-                propagation_path_observer_agendaExecute(
+                ArrayOfPropagationPathPoint ray_path;
+                ray_path_observer_agendaExecute(
                     ws,
-                    propagation_path,
+                    ray_path,
                     {altitude_grid[ialt],
                      latitude_grid[ilat],
                      longitude_grid[ilon]},
                     {zenith_grid[iza], azimuth_grid[iaa]},
-                    propagation_path_observer_agenda);
+                    ray_path_observer_agenda);
                 std::transform(
                     frequency_grid.begin(),
                     frequency_grid.end(),
                     spectral_radiance_field(iza, iaa, ialt, ilat, ilon, joker)
                         .begin(),
-                    [path =
-                         spectral_radiance_operator.from_path(propagation_path),
+                    [path = spectral_radiance_operator.from_path(ray_path),
                      &spectral_radiance_operator](Numeric f) {
                       return spectral_radiance_operator(f, path);
                     });
@@ -285,7 +286,7 @@ void measurement_vectorFromOperatorPath(
     Vector& measurement_vector,
     const ArrayOfSensorObsel& measurement_vector_sensor,
     const SpectralRadianceOperator& spectral_radiance_operator,
-    const Agenda& propagation_path_observer_agenda,
+    const Agenda& ray_path_observer_agenda,
     const Index& exhaustive_) try {
   //! Flag whether or not all frequency and pos-los grids are to be assumed the same
   const bool exhaustive = static_cast<bool>(exhaustive_);
@@ -300,7 +301,7 @@ void measurement_vectorFromOperatorPath(
   measurement_vector = 0.0;
   if (measurement_vector_sensor.empty()) return;
 
-  ArrayOfPropagationPathPoint propagation_path;
+  ArrayOfPropagationPathPoint ray_path;
   AscendingGrid frequency_grid;
   std::vector<fwd::path> path;
   StokvecVector spectral_radiance;
@@ -313,12 +314,9 @@ void measurement_vectorFromOperatorPath(
   for (const auto poslos :
        (exhaustive ? measurement_vector_sensor.front().poslos_grid
                    : sensor::collect_poslos(measurement_vector_sensor))) {
-    propagation_path_observer_agendaExecute(ws,
-                                            propagation_path,
-                                            poslos.pos,
-                                            poslos.los,
-                                            propagation_path_observer_agenda);
-    spectral_radiance_operator.from_path(path, propagation_path);
+    ray_path_observer_agendaExecute(
+        ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
+    spectral_radiance_operator.from_path(path, ray_path);
 
     if (not exhaustive) {
       sensor::collect_f_grid(frequency_grid, measurement_vector_sensor, poslos);

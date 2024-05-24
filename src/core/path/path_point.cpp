@@ -4,7 +4,6 @@
 #include <cmath>
 #include <functional>
 #include <iomanip>
-#include <iostream>
 #include <limits>
 #include <numeric>
 #include <ranges>
@@ -750,16 +749,17 @@ Intersections pair_line_ellipsoid_intersect(
         atm_field.top_of_atmosphere, ecef, decef, surface_field.ellipsoid);
   };
 
-  const auto get_point = [&, ecef = x.first, decef = x.second](
-                             Numeric r, PathPositionType start, PathPositionType end) {
-    PropagationPathPoint p =
-        path_at_distance(ecef, decef, surface_field.ellipsoid, r, start, end);
-    if (end == surface)
-      p.pos[0] = surface_altitude(surface_field, p.pos[1], p.pos[2]);
-    else
-      p.pos[0] = atm_field.top_of_atmosphere;
-    return p;
-  };
+  const auto get_point =
+      [&, ecef = x.first, decef = x.second](
+          Numeric r, PathPositionType start, PathPositionType end) {
+        PropagationPathPoint p = path_at_distance(
+            ecef, decef, surface_field.ellipsoid, r, start, end);
+        if (end == surface)
+          p.pos[0] = surface_altitude(surface_field, p.pos[1], p.pos[2]);
+        else
+          p.pos[0] = atm_field.top_of_atmosphere;
+        return p;
+      };
 
   const auto error = [&path](PathPositionType end) {
     PropagationPathPoint p = path;
@@ -809,6 +809,8 @@ Intersections pair_line_ellipsoid_intersect(
   ARTS_USER_ERROR("Invalid start position type");
 }
 
+constexpr bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
+
 ArrayOfPropagationPathPoint& set_geometric_extremes(
     ArrayOfPropagationPathPoint& path,
     const AtmField& atm_field,
@@ -821,6 +823,12 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(
   ARTS_USER_ERROR_IF(
       path.back().los_type != PathPositionType::unknown,
       "Cannot set extremes for path that knows where it is looking")
+
+  if (not_looking_down(path.back().los) and
+      atm_field.top_of_atmosphere <= path.back().pos[0]) {
+    path.back().los_type = PathPositionType::space;
+    return path;
+  }
 
   const auto [first, second, second_is_valid] =
       pair_line_ellipsoid_intersect(path.back(),
@@ -1139,6 +1147,24 @@ std::ostream& operator<<(std::ostream& os, const PropagationPathPoint& p) {
 
 std::ostream& operator<<(std::ostream& os,
                          const ArrayOfPropagationPathPoint& ps) {
+  std::string_view sep = "";
+  for (const auto& p : ps) {
+    os << std::exchange(sep, "\n") << p;
+  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfPropagationPathPoint& ps) {
+  std::string_view sep = "";
+  for (const auto& p : ps) {
+    os << std::exchange(sep, "\n") << p;
+  }
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const ArrayOfArrayOfArrayOfPropagationPathPoint& ps) {
   std::string_view sep = "";
   for (const auto& p : ps) {
     os << std::exchange(sep, "\n") << p;

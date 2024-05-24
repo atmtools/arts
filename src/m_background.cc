@@ -1,6 +1,7 @@
 #include <path_point.h>
 #include <physics_funcs.h>
 #include <rtepack.h>
+#include <sun.h>
 #include <surf.h>
 #include <workspace.h>
 
@@ -16,12 +17,12 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
     StokvecMatrix& spectral_radiance_background_jacobian,
     const AscendingGrid& frequency_grid,
     const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& propagation_path_point,
+    const PropagationPathPoint& ray_path_point,
     const SurfaceField& surface_field,
     const Agenda& spectral_radiance_space_agenda,
     const Agenda& spectral_radiance_surface_agenda) try {
   using enum PathPositionType;
-  switch (propagation_path_point.los_type) {
+  switch (ray_path_point.los_type) {
     case atm:
       ARTS_USER_ERROR("Undefined what to do with an atmospheric background")
       break;
@@ -38,7 +39,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background_jacobian,
           frequency_grid,
           jacobian_targets,
-          propagation_path_point,
+          ray_path_point,
           spectral_radiance_space_agenda);
       break;
     case surface:
@@ -48,7 +49,7 @@ void spectral_radiance_backgroundAgendasAtEndOfPath(
           spectral_radiance_background_jacobian,
           frequency_grid,
           jacobian_targets,
-          propagation_path_point,
+          ray_path_point,
           surface_field,
           spectral_radiance_surface_agenda);
       break;
@@ -97,20 +98,53 @@ void spectral_radianceUniformCosmicBackground(
   spectral_radiance = detail::from_temp(frequency_grid, t);
 }
 
+void spectral_radianceSunOrCosmicBackground(
+    StokvecVector& spectral_radiance,
+    const AscendingGrid& frequency_grid,
+    const ArrayOfPropagationPathPoint& sun_path,
+    const Sun& sun,
+    const SurfaceField& surface_field) try {
+  spectral_radiance.resize(frequency_grid.size());
+
+  if (set_spectral_radiance_if_sun_intersection(
+          spectral_radiance, sun, sun_path.back(), surface_field))
+    return;
+
+  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+} ARTS_METHOD_ERROR_CATCH
+
+void spectral_radianceSunsOrCosmicBackground(
+    StokvecVector& spectral_radiance,
+    const AscendingGrid& frequency_grid,
+    const PropagationPathPoint& ray_path_point,
+    const ArrayOfSun& suns,
+    const SurfaceField& surface_field) {
+  spectral_radiance.resize(frequency_grid.size());
+
+  for (auto& sun : suns) {
+    if (set_spectral_radiance_if_sun_intersection(
+            spectral_radiance, sun, ray_path_point, surface_field)) {
+      return;
+    }
+  }
+
+  spectral_radianceUniformCosmicBackground(spectral_radiance, frequency_grid);
+}
+
 void spectral_radianceSurfaceBlackbody(
     StokvecVector& spectral_radiance,
     StokvecMatrix& spectral_radiance_jacobian,
     const AscendingGrid& frequency_grid,
     const SurfaceField& surface_field,
     const JacobianTargets& jacobian_targets,
-    const PropagationPathPoint& propagatin_path_point) {
+    const PropagationPathPoint& ray_path_point) {
   constexpr auto key = SurfaceKey::t;
 
   ARTS_USER_ERROR_IF(not surface_field.contains(key),
                      "Surface field does not contain temperature")
 
   const auto t = surface_field.single_value(
-      key, propagatin_path_point.pos[1], propagatin_path_point.pos[2]);
+      key, ray_path_point.pos[1], ray_path_point.pos[2]);
   spectral_radiance = detail::from_temp(frequency_grid, t);
 
   spectral_radiance_jacobianEmpty(
@@ -121,8 +155,8 @@ void spectral_radianceSurfaceBlackbody(
       pair.first) {
     const auto x_start = pair.second->x_start;
     const auto& surf_data = surface_field[key];
-    const auto weights = surf_data.flat_weights(propagatin_path_point.pos[1],
-                                                propagatin_path_point.pos[2]);
+    const auto weights =
+        surf_data.flat_weights(ray_path_point.pos[1], ray_path_point.pos[2]);
     for (auto& w : weights) {
       if (w.second != 0.0) {
         const auto i = w.first + x_start;
@@ -141,25 +175,19 @@ void spectral_radianceSurfaceBlackbody(
 
 void background_transmittanceFromPathPropagationBack(
     MuelmatVector& background_transmittance,
-    const ArrayOfMuelmatVector&
-        propagation_path_transmission_matrix_cumulative) try {
-  ARTS_USER_ERROR_IF(
-      propagation_path_transmission_matrix_cumulative.size() == 0,
-      "Cannot extract from empty list.")
-  background_transmittance =
-      propagation_path_transmission_matrix_cumulative.back();
+    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+  ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
+                     "Cannot extract from empty list.")
+  background_transmittance = ray_path_transmission_matrix_cumulative.back();
 }
 ARTS_METHOD_ERROR_CATCH
 
 void background_transmittanceFromPathPropagationFront(
     MuelmatVector& background_transmittance,
-    const ArrayOfMuelmatVector&
-        propagation_path_transmission_matrix_cumulative) try {
-  ARTS_USER_ERROR_IF(
-      propagation_path_transmission_matrix_cumulative.size() == 0,
-      "Cannot extract from empty list.")
-  background_transmittance =
-      propagation_path_transmission_matrix_cumulative.front();
+    const ArrayOfMuelmatVector& ray_path_transmission_matrix_cumulative) try {
+  ARTS_USER_ERROR_IF(ray_path_transmission_matrix_cumulative.size() == 0,
+                     "Cannot extract from empty list.")
+  background_transmittance = ray_path_transmission_matrix_cumulative.front();
 }
 ARTS_METHOD_ERROR_CATCH
 

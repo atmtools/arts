@@ -146,6 +146,12 @@ constexpr muelmat operator*(muelmat a, const Numeric &b) {
 constexpr muelmat operator*(const Numeric &a, muelmat b) { return b * a; }
 
 //! Scaling a muelmat matrix
+constexpr muelmat operator/(muelmat a, const Numeric &b) {
+  a /= b;
+ return a;
+}
+
+//! Scaling a muelmat matrix
 constexpr muelmat operator*(muelmat a, const muelmat &b) {
   return a *= b;
 }

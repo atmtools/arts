@@ -13,6 +13,7 @@
 #include <cmath>
 
 #include "atm.h"
+#include "debug.h"
 #include "enums.h"
 #include "gas_abs_lookup.h"
 #include "interp.h"
@@ -340,7 +341,7 @@ void absorption_speciesInit(ArrayOfArrayOfSpeciesTag& absorption_species) {
 void absorption_speciesSet(  // WS Output:
     ArrayOfArrayOfSpeciesTag& absorption_species,
     // Control Parameters:
-    const ArrayOfString& names) {
+    const ArrayOfString& names) try {
   absorption_species.resize(names.size());
 
   //cout << "Names: " << names << "\n";
@@ -352,7 +353,7 @@ void absorption_speciesSet(  // WS Output:
     // Call this function.
     absorption_species[i] = ArrayOfSpeciesTag(names[i]);
   }
-}
+} ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void absorption_lookup_table_dataAdapt(

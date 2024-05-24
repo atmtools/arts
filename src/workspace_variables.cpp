@@ -224,7 +224,7 @@ The unit is in *spectral_radiance* per meter.
       .type = "StokvecVector",
   };
 
-  wsv_data["propagation_path_atmospheric_point"] = {
+  wsv_data["ray_path_atmospheric_point"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 
 See *atmospheric_point* for information about atmospheric points
@@ -236,7 +236,7 @@ Usage: Output of radiative transfer methods.
       .type = "ArrayOfAtmPoint",
   };
 
-  wsv_data["propagation_path_frequency_grid"] = {
+  wsv_data["ray_path_frequency_grid"] = {
       .desc = R"--(Atmospheric frequency grids along the propagation path.
 
 See *frequency_grid* for information about the frequency grid
@@ -269,7 +269,23 @@ as:
 where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distance
 over which it is considered constant.
 
-The unit is [1 / m]
+The unit is [1 / m].
+
+Dimension: *frequency_grid*.
+)--",
+      .type = "PropmatVector",
+  };
+
+  wsv_data["propagation_matrix_scattering"] = {
+      .desc =
+          R"--(This contains the propagation matrix for scattering for the current path point.
+
+This needs to be used when scattering into the line of sight is considered. And it needs then to
+also be added to the *propagation_matrix*, which you should see for more information.
+
+The unit is [1 / m].
+
+Dimension: *frequency_grid*.
 )--",
       .type = "PropmatVector",
   };
@@ -286,12 +302,16 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
 
   wsv_data["spectral_radiance_background_jacobian"] = {
       .desc = R"--(Spectral radiance derivative from the background
+
+Shape: NJAC x NFREQ
 )--",
       .type = "StokvecMatrix",
   };
 
   wsv_data["spectral_radiance_background"] = {
       .desc = R"--(Spectral radiance from the background
+
+Shape: NFREQ
 )--",
       .type = "StokvecVector",
   };
@@ -302,68 +322,80 @@ If set to empty, this selection is void.  It must otherwise match perfectly a ta
       .type = "MuelmatVector",
   };
 
-  wsv_data["propagation_path_spectral_radiance"] = {
+  wsv_data["ray_path_spectral_radiance"] = {
       .desc = R"--(Spectral radiance along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["propagation_path_spectral_radiance_jacobian"] = {
+  wsv_data["ray_path_spectral_radiance_scattering"] = {
+      .desc = R"--(Spectral radiance scattered into the propagation path
+)--",
+      .type = "ArrayOfStokvecVector",
+  };
+
+  wsv_data["ray_path_spectral_radiance_jacobian"] = {
       .desc = R"--(Spectral radiance derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["propagation_path_propagation_matrix"] = {
+  wsv_data["ray_path_propagation_matrix"] = {
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector",
   };
 
-  wsv_data["propagation_path_propagation_matrix_jacobian"] = {
+  wsv_data["ray_path_propagation_matrix_scattering"] = {
+      .desc = R"--(Propagation matrices along the propagation path for scattering
+)--",
+      .type = "ArrayOfPropmatVector",
+  };
+
+  wsv_data["ray_path_propagation_matrix_jacobian"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix",
   };
 
-  wsv_data["propagation_path_propagation_matrix_source_vector_nonlte"] = {
+  wsv_data["ray_path_propagation_matrix_source_vector_nonlte"] = {
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
   wsv_data
-      ["propagation_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
+      ["ray_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
           .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
           .type = "ArrayOfStokvecMatrix",
       };
 
-  wsv_data["propagation_path_spectral_radiance_source"] = {
+  wsv_data["ray_path_spectral_radiance_source"] = {
       .desc = R"--(Source vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data["propagation_path_spectral_radiance_source_jacobian"] = {
+  wsv_data["ray_path_spectral_radiance_source_jacobian"] = {
       .desc = R"--(Source derivative vectors along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
   };
 
-  wsv_data["propagation_path_transmission_matrix"] = {
+  wsv_data["ray_path_transmission_matrix"] = {
       .desc = R"--(Transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["propagation_path_transmission_matrix_cumulative"] = {
+  wsv_data["ray_path_transmission_matrix_cumulative"] = {
       .desc = R"--(Cumulative transmission matrices along the propagation path
 )--",
       .type = "ArrayOfMuelmatVector",
   };
 
-  wsv_data["propagation_path_transmission_matrix_jacobian"] = {
+  wsv_data["ray_path_transmission_matrix_jacobian"] = {
       .desc = R"--(Transmission derivative matrices along the propagation path
 )--",
       .type = "ArrayOfArrayOfMuelmatMatrix",
@@ -439,13 +471,13 @@ size of the local *spectral_radiance* as columns.
       .default_value = JacobianTargets{},
   };
 
-  wsv_data["propagation_path_point"] = {
+  wsv_data["ray_path_point"] = {
       .desc = R"--(A single path point.
 )--",
       .type = "PropagationPathPoint",
   };
 
-  wsv_data["propagation_path"] = {
+  wsv_data["ray_path"] = {
       .desc = R"--(A list path points making up a propagation path.
 )--",
       .type = "ArrayOfPropagationPathPoint",
@@ -480,9 +512,43 @@ radiance.
   };
 
   wsv_data["measurement_vector_sensor"] = {
-      .desc = R"(A list of of sensor elements
+      .desc = R"(A list of sensor elements.
+
+Size is number of elements of the sensor.
 )",
       .type = "ArrayOfSensorObsel",
+  };
+
+  wsv_data["sun"] = {
+      .desc = R"(A sun.
+)",
+      .type = "Sun",
+  };
+
+  wsv_data["suns"] = {
+      .desc = R"(A list of *Sun*.
+
+Size is number of suns.
+)",
+      .type = "ArrayOfSun",
+  };
+
+  wsv_data["sun_path"] = {
+      .desc = R"(A path to a sun if it is visible.
+
+A related variable is *ray_path*
+
+Size is number of path points for the sun.
+)",
+      .type = "ArrayOfPropagationPathPoint",
+  };
+
+  wsv_data["ray_path_suns_path"] = {
+      .desc = R"(A list of paths to the suns from the ray path.
+
+Dimensions: *ray_path* x *suns* x *sun_path*
+)",
+      .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
   return wsv_data;

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -571,7 +572,7 @@ void py_spectroscopy(py::module_& m) try {
       .def(
           "LineShapeOutput",
           [](AbsorptionLines& band,
-             Index line,
+             Size line,
              Numeric T,
              Numeric P,
              const Vector& VMR) {
@@ -586,7 +587,8 @@ void py_spectroscopy(py::module_& m) try {
                 VMR,
                 "\nSpecies: ",
                 band.broadeningspecies)
-            auto& _ = band.lines.at(line);
+            if (line >= band.lines.size())
+              throw std::out_of_range("Line index out of range");
 
             return band.ShapeParameters(line, T, P, VMR);
           },

@@ -19,8 +19,10 @@ Index Obsel::ind(const PosLos& pl) const {
 }
 
 Index Obsel::ind(const Numeric& f) const {
-  auto d = std::distance(f_grid.begin(), std::ranges::lower_bound(f_grid, f));
-  return d >= f_grid.size() or f_grid[d] != f ? dont_have : d;
+  auto elem = std::ranges::lower_bound(f_grid, f);
+  return (elem == f_grid.end() or *elem != f)
+             ? dont_have
+             : std::distance(f_grid.begin(), elem);
 }
 
 //! Question: The sensor should be a Muelmat?  All materials can have different propagation speeds for different polarization states.

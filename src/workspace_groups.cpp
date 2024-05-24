@@ -867,6 +867,18 @@ radiation.
       .array_depth = 1,
   };
 
+  wsg_data["ArrayOfArrayOfPropagationPathPoint"] = {
+      .file = "path_point.h",
+      .desc = "A list of *ArrayOfPropagationPathPoint*.\n",
+      .array_depth = 2,
+  };
+
+  wsg_data["ArrayOfArrayOfArrayOfPropagationPathPoint"] = {
+      .file = "path_point.h",
+      .desc = "A list of *ArrayOfArrayOfPropagationPathPoint*.\n",
+      .array_depth = 3,
+  };
+
   wsg_data["Vector3"] = {
       .file = "matpack.h",
       .desc = "A fixed-size 3D version of *Vector*.\n",

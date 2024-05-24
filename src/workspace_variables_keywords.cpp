@@ -9,7 +9,8 @@ static constexpr std::array keywords{"absorption",
                                      "propagation_matrix",
                                      "source_vector",
                                      "nonlte",
-                                     "propagation_path",
+                                     "ray_path",
+                                     "scattering",
                                      "grid"};
 
 bool workspace_variables_keywords_match(const std::string_view some_wsv,

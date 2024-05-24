@@ -48,13 +48,26 @@ Agenda AgendaCreator::finalize() && {
   return ag;
 };
 
+Agenda get_propagation_matrix_scattering_agenda(const std::string& option) {
+  AgendaCreator agenda("propagation_matrix_scattering_agenda");
+
+  using enum propagation_matrix_scattering_agendaPredefined;
+  switch (to<propagation_matrix_scattering_agendaPredefined>(option)) {
+    case AirSimple:
+      agenda.add("propagation_matrix_scatteringInit");
+      agenda.add("propagation_matrix_scatteringAirSimple");
+  }
+
+  return std::move(agenda).finalize();
+}
+
 Agenda get_propagation_matrix_agenda(const std::string& option) {
-  AgendaCreator agenda("propmat_clearsky_agenda");
+  AgendaCreator agenda("propagation_matrix_agenda");
 
   using enum propagation_matrix_agendaPredefined;
   switch (to<propagation_matrix_agendaPredefined>(option)) {
     case Empty:
-      agenda.add("propmat_clearskyInit");
+      agenda.add("propagation_matrixInit");
   }
 
   return std::move(agenda).finalize();
@@ -66,8 +79,13 @@ Agenda get_spectral_radiance_observer_agenda(const std::string& option) {
   using enum spectral_radiance_observer_agendaPredefined;
   switch (to<spectral_radiance_observer_agendaPredefined>(option)) {
     case Emission:
-      agenda.add("propagation_path_observer_agendaExecute");
+      agenda.add("ray_path_observer_agendaExecute");
       agenda.add("spectral_radianceClearskyEmission");
+      break;
+    case EmissionUnits:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radianceClearskyEmission");
+      agenda.add("spectral_radianceApplyUnitFromSpectralRadiance");
       break;
   }
 
@@ -81,6 +99,10 @@ Agenda get_spectral_radiance_space_agenda(const std::string& option) {
   switch (to<spectral_radiance_space_agendaPredefined>(option)) {
     case UniformCosmicBackground:
       agenda.add("spectral_radianceUniformCosmicBackground");
+      agenda.add("spectral_radiance_jacobianEmpty");
+      break;
+    case SunOrCosmicBackground:
+      agenda.add("spectral_radianceSunsOrCosmicBackground");
       agenda.add("spectral_radiance_jacobianEmpty");
       break;
     case Transmission:
@@ -107,13 +129,13 @@ Agenda get_spectral_radiance_surface_agenda(const std::string& option) {
   return std::move(agenda).finalize();
 }
 
-Agenda get_propagation_path_observer_agenda(const std::string& option) {
-  AgendaCreator agenda("propagation_path_observer_agenda");
+Agenda get_ray_path_observer_agenda(const std::string& option) {
+  AgendaCreator agenda("ray_path_observer_agenda");
 
-  using enum propagation_path_observer_agendaPredefined;
-  switch (to<propagation_path_observer_agendaPredefined>(option)) {
+  using enum ray_path_observer_agendaPredefined;
+  switch (to<ray_path_observer_agendaPredefined>(option)) {
     case Geometric:
-      agenda.add("propagation_pathGeometric",
+      agenda.add("ray_pathGeometric",
                  SetWsv{"pos", "spectral_radiance_observer_position"},
                  SetWsv{"los", "spectral_radiance_observer_line_of_sight"},
                  SetWsv{"as_observer", Index{1}});

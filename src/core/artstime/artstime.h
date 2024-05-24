@@ -9,12 +9,12 @@
 #ifndef ARTSTIME_H
 #define ARTSTIME_H
 
+#include <matpack.h>
+
 #include <chrono>
 #include <cmath>
 #include <ctime>
 #include <string_view>
-
-#include <matpack.h>
 
 /** A duration of time, 1 full tick should be 1 second */
 using TimeStep = std::chrono::duration<Numeric>;
@@ -222,7 +222,10 @@ TimeStep mean(const ArrayOfTimeStep&);
 struct DebugTime {
   Time start{};
   std::string_view msg;
-  DebugTime(const std::string_view s="Time") : msg(s) {}
+  DebugTime(const std::string_view s) : msg(s) {}
+  DebugTime(const char* s = "Time") : msg(s) {}
+  DebugTime(std::string&&) =
+      delete;  // Class keeps string-view, cannot move from a string
   ~DebugTime();
 };
 

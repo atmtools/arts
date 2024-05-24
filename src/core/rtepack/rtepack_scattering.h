@@ -23,4 +23,8 @@ void bulk_backscatter_commutative_transmission_rte(
     const Array<muelmat_matrix> &dT1,
     const Array<muelmat_matrix> &dT2,
     const Array<muelmat_matrix> &dZ);
+
+muelmat rayleigh_scattering(const Vector2 &los_in,
+                            const Vector2 &los_out,
+                            const Numeric depolarization_factor);
 }  // namespace rtepack

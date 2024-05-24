@@ -14,25 +14,56 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> out;
 
   out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "spectral_radianceApplyUnitFromSpectralRadiance",
+      .desc = "Apply unit changes to spectral radiance and its Jacobian",
+      .author = {"Richard Larsson"},
+      .methods = {"ray_path_pointForeground",
+                  "spectral_radiance_jacobianApplyUnit",
+                  "spectral_radianceApplyUnit"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "spectral_radianceClearskyEmission",
       .desc = "Computes clearsky emission of spectral radiances",
       .author = {"Richard Larsson"},
-      .methods = {"propagation_path_pointBackground",
+      .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "propagation_path_atmospheric_pointFromPath",
-                  "propagation_path_frequency_gridFromPath",
-                  "propagation_path_propagation_matrixFromPath",
-                  "propagation_path_transmission_matrixFromPath",
-                  "propagation_path_transmission_matrix_cumulativeForward",
-                  "propagation_path_spectral_radiance_sourceFromPropmat",
-                  "propagation_path_spectral_radianceCalcEmission",
+                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_frequency_gridFromPath",
+                  "ray_path_propagation_matrixFromPath",
+                  "ray_path_transmission_matrixFromPath",
+                  "ray_path_transmission_matrix_cumulativeForward",
+                  "ray_path_spectral_radiance_sourceFromPropmat",
+                  "ray_path_spectral_radianceCalcEmission",
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation",
-                  "propagation_path_pointForeground",
-                  "spectral_radiance_jacobianApplyUnit",
-                  "spectral_radianceApplyUnit"},
+                  "spectral_radiance_jacobianAddPathPropagation"},
+      .out = {"spectral_radiance", "spectral_radiance_jacobian"},
+  });
+
+  out.push_back(WorkspaceMethodInternalMetaRecord{
+      .name = "spectral_radianceClearskyRayleighScattering",
+      .desc = "Computes clearsky emission of spectral radiances",
+      .author = {"Richard Larsson"},
+      .methods = {"ray_path_pointBackground",
+                  "spectral_radiance_backgroundAgendasAtEndOfPath",
+                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_frequency_gridFromPath",
+                  "ray_path_propagation_matrixFromPath",
+                  "ray_path_propagation_matrix_scatteringFromPath",
+                  "ray_path_propagation_matrixAddScattering",
+                  "ray_path_transmission_matrixFromPath",
+                  "ray_path_transmission_matrix_cumulativeForward",
+                  "ray_path_spectral_radiance_sourceFromPropmat",
+                  "ray_path_spectral_radiance_scatteringSunsFirstOrderRayleigh",
+                  "ray_path_spectral_radiance_sourceAddScattering",
+                  "ray_path_spectral_radianceCalcEmission",
+                  "background_transmittanceFromPathPropagationBack",
+                  "spectral_radianceFromPathPropagation",
+                  "spectral_radiance_jacobianFromBackground",
+                  "spectral_radiance_jacobianAddPathPropagation"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
@@ -40,21 +71,18 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name = "spectral_radianceClearskyTransmission",
       .desc = "Computes clearsky transmission of spectral radiances",
       .author = {"Richard Larsson"},
-      .methods = {"propagation_path_pointBackground",
+      .methods = {"ray_path_pointBackground",
                   "spectral_radiance_backgroundAgendasAtEndOfPath",
-                  "propagation_path_atmospheric_pointFromPath",
-                  "propagation_path_frequency_gridFromPath",
-                  "propagation_path_propagation_matrixFromPath",
-                  "propagation_path_transmission_matrixFromPath",
-                  "propagation_path_transmission_matrix_cumulativeForward",
-                  "propagation_path_spectral_radianceCalcTransmission",
+                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_frequency_gridFromPath",
+                  "ray_path_propagation_matrixFromPath",
+                  "ray_path_transmission_matrixFromPath",
+                  "ray_path_transmission_matrix_cumulativeForward",
+                  "ray_path_spectral_radianceCalcTransmission",
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation",
-                  "propagation_path_pointForeground",
-                  "spectral_radiance_jacobianApplyUnit",
-                  "spectral_radianceApplyUnit"},
+                  "spectral_radiance_jacobianAddPathPropagation"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
@@ -62,20 +90,17 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
       .name = "spectral_radianceClearskyBackgroundTransmission",
       .desc = "Computes clearsky transmission of spectral radiances",
       .author = {"Richard Larsson"},
-      .methods = {"propagation_path_pointBackground",
-                  "propagation_path_atmospheric_pointFromPath",
-                  "propagation_path_frequency_gridFromPath",
-                  "propagation_path_propagation_matrixFromPath",
-                  "propagation_path_transmission_matrixFromPath",
-                  "propagation_path_transmission_matrix_cumulativeForward",
-                  "propagation_path_spectral_radianceCalcTransmission",
+      .methods = {"ray_path_pointBackground",
+                  "ray_path_atmospheric_pointFromPath",
+                  "ray_path_frequency_gridFromPath",
+                  "ray_path_propagation_matrixFromPath",
+                  "ray_path_transmission_matrixFromPath",
+                  "ray_path_transmission_matrix_cumulativeForward",
+                  "ray_path_spectral_radianceCalcTransmission",
                   "background_transmittanceFromPathPropagationBack",
                   "spectral_radianceFromPathPropagation",
                   "spectral_radiance_jacobianFromBackground",
-                  "spectral_radiance_jacobianAddPathPropagation",
-                  "propagation_path_pointForeground",
-                  "spectral_radiance_jacobianApplyUnit",
-                  "spectral_radianceApplyUnit"},
+                  "spectral_radiance_jacobianAddPathPropagation"},
       .out = {"spectral_radiance", "spectral_radiance_jacobian"},
   });
 
@@ -118,7 +143,12 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
   for (const auto& m : methods) {
     wsm.desc += "  - *" + m + "*\n";
 
-    const auto& wm = wsms.at(m);
+    const auto ptr = wsms.find(m);
+    if (ptr == wsms.end()) {
+      throw std::runtime_error("Method " + m + " not found");
+    }
+
+    const auto& wm = ptr->second;
 
     if (wm.has_any() or wm.has_overloads()) {
       throw std::runtime_error(
@@ -244,10 +274,6 @@ Equivalent (mostly) Python code:
 
   for (Size i = 0; i < out.size(); i++) {
     const auto& o = out[i];
-    if (not std::ranges::binary_search(first_out, o) and
-        not std::ranges::binary_search(first_inout, o)) {
-      throw std::runtime_error("Output " + o + " not found in any method");
-    }
 
     if (std::ranges::binary_search(first_inout, o)) {
       wsm.in.insert(wsm.in.begin() + i, o);
@@ -273,7 +299,11 @@ std::string WorkspaceMethodInternalMetaRecord::call(
   const static auto wsvs = internal_workspace_variables();
   const static auto wsas = internal_workspace_agendas();
 
-  const auto& wsm = wsms.at(name);
+  const auto ptr = wsms.find(name);
+  if (ptr == wsms.end()) {
+    throw std::runtime_error("Meta-function " + name + " not found");
+  }
+  const auto& wsm = ptr->second;
   std::vector<std::string> first_out;
 
   std::stringstream code;

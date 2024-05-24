@@ -47,7 +47,7 @@ void absorption_predefined_model_dataReadSpeciesSplitCatalog(
                                                      other.data.end());
       } else {
         ARTS_USER_ERROR_IF(not name_missing, "File " + filename + " not found")
-        absorption_predefined_model_data.data.at(spec.Isotopologue()) =
+        absorption_predefined_model_data.data[spec.Isotopologue()] =
             Absorption::PredefinedModel::ModelName{};
       }
     }
