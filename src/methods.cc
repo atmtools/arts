@@ -288,7 +288,7 @@ void define_md_data_raw() {
       GIN("basename", "robust"),
       GIN_TYPE("String", "Index"),
       GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("The path to the split catalog files",
+      GIN_DESC("The basename of the split catalog files. If it points to a directory, it has to end with a /",
                "Flag to continue in case nothing is found [0 throws, 1 continues]")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -709,7 +709,7 @@ void define_md_data_raw() {
       GIN("basename", "robust"),
       GIN_TYPE("String", "Index"),
       GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("The path to the split catalog files",
+      GIN_DESC("The basename of the split catalog files. If it points to a directory, it has to end with a /",
                "Flag to continue in case nothing is found [0 throws, 1 continues]")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -724,7 +724,7 @@ void define_md_data_raw() {
       GIN("basename", "robust"),
       GIN_TYPE("String", "Index"),
       GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("The path to the split catalog files",
+      GIN_DESC("The basename to the split catalog files. If it points to a directory, it has to end with a /",
                "Flag to continue in case nothing is found [0 throws, 1 continues]")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -2212,8 +2212,8 @@ For "ByLine", the negative frequency is at F0-cutoff-D0
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC(
-          "The name and path of a particular atmospheric scenario."
-          " For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical")));
+          "The basename of a particular atmospheric scenario. If it points to a directory, it has to end with a /"
+          "For example: /data/arts-xml-data/planets/Earth/Fascod/tropical/tropical")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAll"),
@@ -3821,9 +3821,8 @@ R"(
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-               "tropical\"")));
+      GIN_DESC("Name of scenario, probably including the full path. If it points to a directory, it has to end with a / . "
+               "For example: \"/data/arts-xml-data/planets/Earth/Fascod/tropical/tropical\"")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("AtmWithNLTERawRead"),
@@ -3863,8 +3862,8 @@ R"(
       GIN("basename", "expect_vibrational_energies"),
       GIN_TYPE("String", "Index"),
       GIN_DEFAULT(NODEF, "0"),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/smiles_local/arts-data/atmosphere/fascod/"
+      GIN_DESC("Name of scenario, probably including the full path. If it points to a directory, it has to end with a / . "
+               "For example: \"/data/arts-xml-data/planets/Earth/Fascod/tropical/tropical"
                "tropical\"",
                "Should ev.xml be read?")));
 
@@ -11235,8 +11234,8 @@ R"(
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/data/magnetic_field\"")));
+      GIN_DESC("Name of scenario, probably including the full path. If it points to a directory, it has to end with a / . "
+               "For example: \"/data/magnetic_field/\"")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("MatrixAdd"),
@@ -11964,7 +11963,7 @@ R"(
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT("./"),
-      GIN_DESC("path to files to read")));
+      GIN_DESC("Basename of files to read. If it points to a directory, it has to end with a /")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("NumericAdd"),
@@ -15876,7 +15875,7 @@ approximations.   Change the value of no_negatives to 0 to allow these negative 
                "String", "String", "String", "String", "Numeric", "Numeric"),
       GIN_DEFAULT(NODEF, "-1e99", "1e99", "", "", "0", "None", "None", "LTE", "VP",
                  "None", "750e9", "-1"),
-      GIN_DESC("Path to the files",
+      GIN_DESC("Basename of the files to read. If it points to a directory, it has to end with a /",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
@@ -16070,7 +16069,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Path to store the files at")));
+      GIN_DESC("Path to store the files at. If it points to a directory, it has to end with a /")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesWriteSpeciesSplitCatalog"),
@@ -16087,7 +16086,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Path to store the files at")));
+      GIN_DESC("Path to store the files at. If it points to a directory, it has to end with a /")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadXsecData"),
@@ -16104,7 +16103,7 @@ where N>=0 and the species name is something line "H2O".
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Basepath to the files")));
+      GIN_DESC("Basepath to the files. If it points to a directory, it has to end with a /")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),
@@ -22428,8 +22427,8 @@ where N>=0 and the species name is something line "H2O".
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of scenario, probably including the full path. For "
-               "example: \"/data/wind_field\"")));
+      GIN_DESC("Name of scenario, probably including the full path. If it points to a directory, it has to end with a / . "
+               "For example: \"/data/wind_field/\"")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("wind_u_fieldIncludePlanetRotation"),
