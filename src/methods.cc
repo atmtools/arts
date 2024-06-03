@@ -19781,17 +19781,18 @@ where N>=0 and the species name is something line "H2O".
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("suns_do"),
+        IN(),
         GIN("radius","distance","latitude","longitude","index"),
         GIN_TYPE("Numeric","Numeric","Numeric","Numeric","Index"),
-        GIN_DEFAULT("-999","-999","-999","-999",NODEF),
-        GIN_DESC("The radius of the sun in meter. "
-                 "Default is the radius of our Sun. ",
-                 "The distance between the location and the  "
-                 "center of the sun in meter.",
-                 "The latitude or the zenith position of the sun in the sky.",
-                 "The longitude or azimuthal position of the sun in the sky.",
-                 "The index of the sun to change.")));
+        GIN_DEFAULT("-999","-999","-999","-999","-999"),
+        GIN_DESC("The radius of the sun in meter. If set to -999, it is not changed",
+                 "Distance from center of the planet to center of the sun in meter."
+                 "If set to -999, it is not changed",
+                 "Latitude of the zenith position of the sun. Must be between -90 and 90."
+                 "If set to -999, it is not changed",
+                 "Longitude of the zenith position of the sun. Must be between -180 and 360."
+                 "If set to -999, it is not changed",
+                 "The index of the sun to change. If set to -999 nothing is changed")));
       
   md_data_raw.push_back(create_mdrecord(
       NAME("sunsOff"),
