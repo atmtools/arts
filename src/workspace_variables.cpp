@@ -130,13 +130,13 @@ The units are *spectral_radiance_jacobian* per meter.
   };
 
   wsv_data["ecs_data"] = {
-      .desc = R"--(Error corrected sudden data
+      .desc          = R"--(Error corrected sudden data
 
 Dimensions: [num Isotopologues] [num Species]
 
 Used in line-by-line calculations requiring ECS data.
 )--",
-      .type = "LinemixingEcsData",
+      .type          = "LinemixingEcsData",
       .default_value = LinemixingEcsData{},
   };
 
@@ -347,7 +347,8 @@ Shape: NFREQ
   };
 
   wsv_data["ray_path_propagation_matrix_scattering"] = {
-      .desc = R"--(Propagation matrices along the propagation path for scattering
+      .desc =
+          R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
   };
@@ -364,12 +365,11 @@ Shape: NFREQ
       .type = "ArrayOfStokvecVector",
   };
 
-  wsv_data
-      ["ray_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
-          .desc = R"--(Additional non-LTE derivative along the propagation path
+  wsv_data["ray_path_propagation_matrix_source_vector_nonlte_jacobian"] = {
+      .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
-          .type = "ArrayOfStokvecMatrix",
-      };
+      .type = "ArrayOfStokvecMatrix",
+  };
 
   wsv_data["ray_path_spectral_radiance_source"] = {
       .desc = R"--(Source vectors along the propagation path
@@ -413,13 +413,27 @@ temperature but also entirerly abstract properties and types.
   wsv_data["gravity_operator"] = {
       .desc = R"--(The gravity operator.
 
-Returns gravity in m/s^2 for a given altitude [m], latitude [deg] and longitude [deg].
+Usage: gravity = gravity_operator(altitude, latitude, longitude).
+
+Parameters
+----------
+altitude : Numeric
+    Altitude in meters.
+latitude : Numeric
+    Latitude in degrees.
+longitude : Numeric
+    Longitude in degrees.
+
+Returns
+-------
+gravity : Numeric
+    The gravity in m/s :math:`^2`.
 )--",
       .type = "NumericTernaryOperator",
   };
 
   wsv_data["spectral_radiance_unit"] = {
-      .desc = R"--(The spectral radiance unit after conversion.
+      .desc          = R"--(The spectral radiance unit after conversion.
 
 If a unit conversion is desired, the user has to set this variable to one
 of the valid options in *SpectralRadianceUnitType*.
@@ -432,7 +446,7 @@ Unless a method or variable explicitly mention that a unit conversion is support
 it is called, the use of *spectral_radiance_unit* with a different unit than "1" may lead to
 undesired results.
 )--",
-      .type = "String",
+      .type          = "String",
       .default_value = String{"1"},
   };
 

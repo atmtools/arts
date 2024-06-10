@@ -5,36 +5,37 @@ internal_workspace_agendas() {
   std::unordered_map<std::string, WorkspaceAgendaInternalRecord> wsa_data;
 
   wsa_data["propagation_matrix_agenda"] = {
-      .desc = R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
+      .desc =
+          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
 )--",
       .output = {"propagation_matrix",
                  "propagation_matrix_source_vector_nonlte",
                  "propagation_matrix_jacobian",
                  "propagation_matrix_source_vector_nonlte_jacobian"},
-      .input = {"jacobian_targets",
-                "propagation_matrix_select_species",
-                "frequency_grid",
-                "ray_path_point",
-                "atmospheric_point"},
+      .input  = {"jacobian_targets",
+                 "propagation_matrix_select_species",
+                 "frequency_grid",
+                 "ray_path_point",
+                 "atmospheric_point"},
   };
 
   wsa_data["propagation_matrix_scattering_agenda"] = {
-      .desc = R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
+      .desc =
+          R"--(Compute the propagation matrix, the non-LTE source vector, and their derivatives
 )--",
       .output = {"propagation_matrix_scattering"},
-      .input = {"frequency_grid",
-                "atmospheric_point"},
+      .input  = {"frequency_grid", "atmospheric_point"},
   };
 
   wsa_data["ray_path_observer_agenda"] = {
-      .desc = R"--(Get the propagation path as it is obeserved.
+      .desc   = R"--(Get the propagation path as it is obeserved.
 
 The intent of this agenda is to provide a propagation path as seen from the observer
 position and line of sight.
 )--",
       .output = {"ray_path"},
-      .input = {"spectral_radiance_observer_position",
-                "spectral_radiance_observer_line_of_sight"},
+      .input  = {"spectral_radiance_observer_position",
+                 "spectral_radiance_observer_line_of_sight"},
   };
 
   wsa_data["spectral_radiance_observer_agenda"] = {
@@ -50,17 +51,17 @@ The output must be sized as:
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input = {"frequency_grid",
-                "jacobian_targets",
-                "spectral_radiance_observer_position",
-                "spectral_radiance_observer_line_of_sight",
-                "atmospheric_field",
-                "surface_field",
-                "spectral_radiance_unit"},
+      .input  = {"frequency_grid",
+                 "jacobian_targets",
+                 "spectral_radiance_observer_position",
+                 "spectral_radiance_observer_line_of_sight",
+                 "atmospheric_field",
+                 "surface_field",
+                 "spectral_radiance_unit"},
   };
 
   wsa_data["spectral_radiance_space_agenda"] = {
-      .desc = R"--(Spectral radiance as seen of space.
+      .desc   = R"--(Spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
 One common use-case us to provide a background spectral radiance.
@@ -73,11 +74,11 @@ The output must be sized as:
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input = {"frequency_grid", "jacobian_targets", "ray_path_point"},
+      .input  = {"frequency_grid", "jacobian_targets", "ray_path_point"},
   };
 
   wsa_data["spectral_radiance_surface_agenda"] = {
-      .desc = R"--(Spectral radiance as seen of the surface.
+      .desc   = R"--(Spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -90,10 +91,10 @@ The output must be sized as:
 - *spectral_radiance_jacobian* : (*jacobian_targets*, *frequency_grid*)
 )--",
       .output = {"spectral_radiance", "spectral_radiance_jacobian"},
-      .input = {"frequency_grid",
-                "jacobian_targets",
-                "ray_path_point",
-                "surface_field"},
+      .input  = {"frequency_grid",
+                 "jacobian_targets",
+                 "ray_path_point",
+                 "surface_field"},
   };
 
   return wsa_data;

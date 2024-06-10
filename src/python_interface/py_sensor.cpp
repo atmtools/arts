@@ -2,6 +2,7 @@
 #include <python_interface.h>
 
 #include "py_macros.h"
+#include "sorted_grid.h"
 
 namespace Python {
 void py_sensor(py::module_& m) try {
@@ -77,7 +78,66 @@ void py_sensor(py::module_& m) try {
                      "Position and line of sight grid")
       .def_readwrite(
           "polarization", &SensorObsel::polarization, "Polarization sampling")
-      .def("ok", &SensorObsel::ok, "Check if the obsel is valid");
+      .def(
+          "set_frequency_gaussian",
+          [](SensorObsel& s,
+             const Numeric& f0,
+             const Numeric& fwhm,
+             const Index& Nfwhm,
+             const Index& Nhwhm) {
+            s.set_frequency_gaussian(f0, fwhm, Nfwhm, Nhwhm);
+          },
+          py::arg("f0"),
+          py::arg("fwhm"),
+          py::arg("Nfwhm") = Index{5},
+          py::arg("Nhwhm") = Index{3},
+          py::doc(R"--(Gaussian frequency grid
+  
+Parameters
+----------
+f0 : float
+    Center frequency
+fwhm : float
+    Full width at half maximum
+Nfwhm : int
+    Number of fwhm to include
+Nhwhm : int
+    Number of half width at half maximum to include
+)--"))
+      .def(
+          "set_frequency_lochain",
+          [](SensorObsel& s,
+             const Vector& f0s,
+             const Numeric& width,
+             const Index& N,
+             const String& filter) {
+            s.set_frequency_lochain(DescendingGrid{f0s}, width, N, filter);
+          },
+          py::arg("f0s"),
+          py::arg("width"),
+          py::arg("N"),
+          py::arg("filter") = String{},
+          py::doc(R"--(Local oscillator style channel selection frequency grid
+  
+Parameters
+----------
+f0s : list of descending floats
+    Effectively, the local oscillator frequencies for the channels
+width : float
+    Boxcar width of each sub-channel
+N : int
+    Number of points per sub-channel
+filter : list of int, optional
+    Selection of sub-channels to include - one shorter than f0s
+    with each element being U for upper bandpass, L for lower bandpass,
+    or anything else for full bandpass.  Default is full bandpass.
+)--"))
+      .def("ok", &SensorObsel::ok, "Check if the obsel is valid")
+      .def("cutoff_frequency_weights",
+           &SensorObsel::cutoff_frequency_weights,
+           py::arg("cutoff"),
+           py::arg("relative") = true,
+           "Cuts out parts of the frequency grid with low weights");
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize rtepack\n", e.what()));

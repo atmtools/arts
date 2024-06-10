@@ -57,9 +57,9 @@ constexpr Numeric erot(const Rational N, const Rational j = -1) {
     using Math::pow2;
     using Math::pow3;
 
-    constexpr Numeric B0 = 43100.4425e0;
-    constexpr Numeric D0 = .145123e0;
-    constexpr Numeric H0 = 3.8e-08;
+    constexpr Numeric B0  = 43100.4425e0;
+    constexpr Numeric D0  = .145123e0;
+    constexpr Numeric H0  = 3.8e-08;
     constexpr Numeric xl0 = 59501.3435e0;
     constexpr Numeric xg0 = -252.58633e0;
     constexpr Numeric xl1 = 0.058369e0;
@@ -67,11 +67,11 @@ constexpr Numeric erot(const Rational N, const Rational j = -1) {
     constexpr Numeric xg1 = -2.4344e-04;
     constexpr Numeric xg2 = -1.45e-09;
 
-    const auto XN = Numeric(N);
-    const Numeric XX = XN * (XN + 1);
+    const Numeric XN      = static_cast<Numeric>(N);
+    const Numeric XX      = XN * (XN + 1);
     const Numeric xlambda = xl0 + xl1 * XX + xl2 * pow2(XX);
-    const Numeric xgama = xg0 + xg1 * XX + xg2 * pow2(XX);
-    const Numeric C1 = B0 * XX - D0 * pow2(XX) + H0 * pow3(XX);
+    const Numeric xgama   = xg0 + xg1 * XX + xg2 * pow2(XX);
+    const Numeric C1      = B0 * XX - D0 * pow2(XX) + H0 * pow3(XX);
 
     if (J < N) {
       if (N == 1)  // erot<false>(1, 0)
@@ -99,7 +99,8 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
                                    const AtmPoint& atm) {
   using Conversion::kelvin2joule;
 
-  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot, "Bad isotopologue.")
+  ARTS_USER_ERROR_IF(bnd_qid.Isotopologue() != "O2-66"_isot,
+                     "Bad isotopologue.")
 
   if (bnd.size() == 0) return;
 
@@ -107,7 +108,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
   const auto n = bnd.size();
 
-  auto& S = bnd_qid.val[QuantumNumberType::S];
+  auto& S           = bnd_qid.val[QuantumNumberType::S];
   const Rational Si = S.upp();
   const Rational Sf = S.low();
 
@@ -160,7 +161,7 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
       // Tran etal 2006 symbol with modifications:
       //    1) [Ji] * [Ji_p] instead of [Ji_p] ^ 2 in partial accordance with Makarov etal 2013
-      Numeric sum = 0;
+      Numeric sum       = 0;
       const Numeric scl = (iseven(Ji_p + Ji + 1) ? 1 : -1) * bk(Ni) * bk(Nf) *
                           bk(Nf_p) * bk(Ni_p) * bk(Jf) * bk(Jf_p) * bk(Ji) *
                           bk(Ji_p);
@@ -180,8 +181,9 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
 
       // Add to W and rescale to upwards element by the populations
       W(i, j) = sum;
-      W(j, i) = sum * std::exp((erot(Nf_p) - erot(Nf)) /
-                               kelvin2joule(atm.temperature));
+      W(j, i) =
+          sum * std::exp((bnd.lines[sorting[j]].e0 - bnd.lines[sorting[i]].e0) /
+                         kelvin2joule(atm.temperature));
     }
   }
   arts_wigner_thread_free();
@@ -201,19 +203,16 @@ void relaxation_matrix_offdiagonal(ExhaustiveMatrixView& W,
       }
     }
 
-    const Rational Ni =
-        bnd.lines[sorting[i]].qn.val[QuantumNumberType::N].low();
     for (Size j = i + 1; j < n; j++) {
-      const Rational Nj =
-          bnd.lines[sorting[j]].qn.val[QuantumNumberType::N].low();
       if (sumlw == 0) {
         W(j, i) = 0.0;
         W(i, j) = 0.0;
       } else {
         W(j, i) *= -sumup / sumlw;
-        W(i, j) = W(j, i) *
-                  std::exp((erot(Ni) - erot(Nj)) /
-                           kelvin2joule(atm.temperature));  // This gives LTE
+        W(i, j) =
+            W(j, i) *
+            std::exp((bnd.lines[sorting[i]].e0 - bnd.lines[sorting[j]].e0) /
+                     kelvin2joule(atm.temperature));
       }
     }
   }

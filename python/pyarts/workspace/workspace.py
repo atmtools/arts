@@ -50,7 +50,8 @@ class Workspace(cxx._Workspace):
             self.set(attr, value)
         else:
             if attr in _wsvs:
-                super().__setattr__(attr, value)
+                super().init(attr)
+                setattr(self, attr, value)
             elif type(value) in _group_types:
                 self.set(attr, value)
             else:

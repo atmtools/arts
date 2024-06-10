@@ -17,8 +17,8 @@ internal_workspace_groups_creator() {
   };
 
   wsg_data["ArrayOfAbsorptionBand"] = {
-      .file = "lbl.h",
-      .desc = "A list of *AbsorptionBand*\n",
+      .file        = "lbl.h",
+      .desc        = "A list of *AbsorptionBand*\n",
       .array_depth = 2,
   };
 
@@ -34,177 +34,177 @@ internal_workspace_groups_creator() {
   };
 
   wsg_data["ArrayOfAbsorptionLines"] = {
-      .file = "absorptionlines.h",
-      .desc = "A list of *AbsorptionLines*\n",
+      .file        = "absorptionlines.h",
+      .desc        = "A list of *AbsorptionLines*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfArrayOfAbsorptionLines"] = {
-      .file = "absorptionlines.h",
-      .desc = "A list of *ArrayOfAbsorptionLines*\n",
+      .file        = "absorptionlines.h",
+      .desc        = "A list of *ArrayOfAbsorptionLines*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfAgenda"] = {
-      .file = "workspace_agenda_class.h",
-      .desc = "A list of *Agenda*\n",
+      .file        = "workspace_agenda_class.h",
+      .desc        = "A list of *Agenda*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfArrayOfGriddedField1"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField1*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfGriddedField1*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField2*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfGriddedField2*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfGriddedField3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfGriddedField3*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfGriddedField3*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfIndex"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfIndex*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfIndex*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfMatrix"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfMatrix*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfMatrix*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfScatteringMetaData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ArrayOfScatteringMetaData*\n",
+      .file        = "optproperties.h",
+      .desc        = "A list of *ArrayOfScatteringMetaData*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfSingleScatteringData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ArrayOfSingleScatteringData*\n",
+      .file        = "optproperties.h",
+      .desc        = "A list of *ArrayOfSingleScatteringData*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfSpeciesTag"] = {
-      .file = "species_tags.h",
-      .desc = "A list of *ArrayOfSpeciesTag*\n",
+      .file        = "species_tags.h",
+      .desc        = "A list of *ArrayOfSpeciesTag*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfString"] = {
-      .file = "mystring.h",
-      .desc = "A list of *ArrayOfString*\n",
+      .file        = "mystring.h",
+      .desc        = "A list of *ArrayOfString*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfTensor3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfTensor3*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfTensor3*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfTensor6"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfTensor6*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfTensor6*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfTime"] = {
-      .file = "artstime.h",
-      .desc = "A list of *ArrayOfTime*\n",
+      .file        = "artstime.h",
+      .desc        = "A list of *ArrayOfTime*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfVector"] = {
-      .file = "matpack.h",
-      .desc = "A list of *ArrayOfVector*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *ArrayOfVector*\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfAtmPoint"] = {
-      .file = "atm.h",
-      .desc = "A list of *AtmPoint*\n",
+      .file        = "atm.h",
+      .desc        = "A list of *AtmPoint*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfCIARecord"] = {
-      .file = "cia.h",
-      .desc = "A list of *CIARecord*\n",
+      .file        = "cia.h",
+      .desc        = "A list of *CIARecord*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfGriddedField1"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField1*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *GriddedField1*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField2*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *GriddedField2*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfGriddedField1Named"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField1Named*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *GriddedField1Named*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfNamedGriddedField2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *NamedGriddedField2*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *NamedGriddedField2*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfGriddedField3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField3*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *GriddedField3*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfGriddedField4"] = {
-      .file = "matpack.h",
-      .desc = "A list of *GriddedField4*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *GriddedField4*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfIndex"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Index*\n",
-      .array_depth = 1,
+      .file                 = "matpack.h",
+      .desc                 = "A list of *Index*\n",
+      .array_depth          = 1,
       .is_simple_contiguous = true,
   };
 
   wsg_data["ArrayOfMatrix"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Matrix*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Matrix*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfQuantumIdentifier"] = {
-      .file = "quantum_numbers.h",
-      .desc = "A list of *QuantumIdentifier*\n",
+      .file        = "quantum_numbers.h",
+      .desc        = "A list of *QuantumIdentifier*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfScatteringMetaData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *ScatteringMetaData*\n",
+      .file        = "optproperties.h",
+      .desc        = "A list of *ScatteringMetaData*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfSingleScatteringData"] = {
-      .file = "optproperties.h",
-      .desc = "A list of *SingleScatteringData*\n",
+      .file        = "optproperties.h",
+      .desc        = "A list of *SingleScatteringData*\n",
       .array_depth = 1,
   };
 
@@ -218,30 +218,30 @@ about the isotopologue, the absorption scheme, and the frequency limits
   };
 
   wsg_data["ArrayOfSpeciesTag"] = {
-      .file = "species_tags.h",
-      .desc = R"--(A list of *SpeciesTag*
+      .file        = "species_tags.h",
+      .desc        = R"--(A list of *SpeciesTag*
 )--",
       .array_depth = 1,
       .skip_pyinit = true,
   };
 
   wsg_data["ArrayOfSpeciesEnum"] = {
-      .file = "species.h",
-      .desc = R"--(A list of *SpeciesEnum*
+      .file        = "species.h",
+      .desc        = R"--(A list of *SpeciesEnum*
 )--",
       .array_depth = 1,
   };
 
   wsg_data["SpeciesEnum"] = {
-      .file = "species.h",
-      .desc = R"--(An atmospheric species
+      .file        = "species.h",
+      .desc        = R"--(An atmospheric species
 )--",
       .skip_pyinit = true,
   };
 
   wsg_data["ArrayOfSparse"] = {
-      .file = "matpack_sparse.h",
-      .desc = "A list of *Sparse*\n",
+      .file        = "matpack_sparse.h",
+      .desc        = "A list of *Sparse*\n",
       .array_depth = 1,
   };
 
@@ -256,62 +256,62 @@ longitude in the sky of the planet and the type)-x-",
   };
 
   wsg_data["ArrayOfSun"] = {
-      .file = "sun.h",
-      .desc = "A list of *Sun*\n",
+      .file        = "sun.h",
+      .desc        = "A list of *Sun*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfString"] = {
-      .file = "mystring.h",
-      .desc = "A list of *String*\n",
+      .file        = "mystring.h",
+      .desc        = "A list of *String*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTelsemAtlas"] = {
-      .file = "matpack.h",
-      .desc = "A list of *TelsemAtlas*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *TelsemAtlas*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTensor3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor3*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Tensor3*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTensor4"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor4*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Tensor4*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTensor5"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor5*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Tensor5*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTensor6"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor6*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Tensor6*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTensor7"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Tensor7*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Tensor7*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfTime"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Time*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Time*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfVector"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Vector*\n",
       .array_depth = 1,
   };
 
@@ -484,9 +484,9 @@ Both the data and the grid may be named
   };
 
   wsg_data["Index"] = {
-      .file = "matpack.h",
-      .desc = "A 64 bit signed integer type\n",
-      .value_type = true,
+      .file                 = "matpack.h",
+      .desc                 = "A 64 bit signed integer type\n",
+      .value_type           = true,
       .is_simple_contiguous = true,
   };
 
@@ -503,15 +503,15 @@ Both the data and the grid may be named
   };
 
   wsg_data["Matrix"] = {
-      .file = "matpack.h",
-      .desc = "A 2 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 2 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Numeric"] = {
-      .file = "matpack.h",
-      .desc = "IEEE 754 binary64 floating point number\n",
-      .value_type = true,
+      .file                 = "matpack.h",
+      .desc                 = "IEEE 754 binary64 floating point number\n",
+      .value_type           = true,
       .is_simple_contiguous = true,
   };
 
@@ -560,8 +560,8 @@ and can thus be used to identify one of the following:
   };
 
   wsg_data["String"] = {
-      .file = "mystring.h",
-      .desc = "Basic string type\n",
+      .file       = "mystring.h",
+      .desc       = "Basic string type\n",
       .value_type = true,
   };
 
@@ -599,32 +599,32 @@ if it is contained in the Atlas and NAN otherwise.
   };
 
   wsg_data["Tensor3"] = {
-      .file = "matpack.h",
-      .desc = "A 3 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 3 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Tensor4"] = {
-      .file = "matpack.h",
-      .desc = "A 4 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 4 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Tensor5"] = {
-      .file = "matpack.h",
-      .desc = "A 5 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 5 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Tensor6"] = {
-      .file = "matpack.h",
-      .desc = "A 6 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 6 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Tensor7"] = {
-      .file = "matpack.h",
-      .desc = "A 7 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 7 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
@@ -640,8 +640,8 @@ if it is contained in the Atlas and NAN otherwise.
   };
 
   wsg_data["Vector"] = {
-      .file = "matpack.h",
-      .desc = "A 1 dimensional array of *Numeric*\n",
+      .file                 = "matpack.h",
+      .desc                 = "A 1 dimensional array of *Numeric*\n",
       .is_simple_contiguous = true,
   };
 
@@ -652,8 +652,8 @@ if it is contained in the Atlas and NAN otherwise.
 
   // rtepack types
   wsg_data["Propmat"] = {
-      .file = "rtepack.h",
-      .desc = R"--(A single propagation matrix.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A single propagation matrix.
 
 Due to the properties of a propagation matrix, only 7 independents need be stored.
 The propagation matrix is thus represented as:
@@ -676,74 +676,74 @@ of this term multiplied by a negative distance.
   };
 
   wsg_data["Muelmat"] = {
-      .file = "rtepack.h",
-      .desc = "A single Mueller 4x4 matrix.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A single Mueller 4x4 matrix.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Stokvec"] = {
-      .file = "rtepack.h",
-      .desc = "A single Stokes vector (of length 4).\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A single Stokes vector (of length 4).\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["PropmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A vector of *Propmat*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A vector of *Propmat*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["MuelmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A vector of *Muelmat*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A vector of *Muelmat*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecVector"] = {
-      .file = "rtepack.h",
-      .desc = "A vector of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A vector of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["PropmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A matrix of *Propmat*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A matrix of *Propmat*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["MuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A matrix of *Muelmat*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A matrix of *Muelmat*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A matrix of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A matrix of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecTensor3"] = {
-      .file = "rtepack.h",
-      .desc = "A *Tensor3* but of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor3* but of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecTensor4"] = {
-      .file = "rtepack.h",
-      .desc = "A *Tensor4* but of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor4* but of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecTensor5"] = {
-      .file = "rtepack.h",
-      .desc = "A *Tensor5* but of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor5* but of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["StokvecTensor6"] = {
-      .file = "rtepack.h",
-      .desc = "A *Tensor6* but of *Stokvec*.\n",
+      .file                 = "rtepack.h",
+      .desc                 = "A *Tensor6* but of *Stokvec*.\n",
       .is_simple_contiguous = true,
   };
 
@@ -754,74 +754,74 @@ of this term multiplied by a negative distance.
   };
 
   wsg_data["ArrayOfPropmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *PropmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *PropmatVector*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfMuelmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *MuelmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatVector*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfStokvecVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *StokvecVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecVector*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfPropmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *PropmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *PropmatMatrix*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfMuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *MuelmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *MuelmatMatrix*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfStokvecMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *StokvecMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *StokvecMatrix*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfArrayOfPropmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfPropmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfPropmatVector*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfMuelmatVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfMuelmatVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfMuelmatVector*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfStokvecVector"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfStokvecVector*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfStokvecVector*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfPropmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfPropmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfPropmatMatrix*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfMuelmatMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfMuelmatMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfMuelmatMatrix*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfStokvecMatrix"] = {
-      .file = "rtepack.h",
-      .desc = "A list of *ArrayOfStokvecMatrix*.\n",
+      .file        = "rtepack.h",
+      .desc        = "A list of *ArrayOfStokvecMatrix*.\n",
       .array_depth = 2,
   };
 
@@ -862,56 +862,56 @@ radiation.
   };
 
   wsg_data["ArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *PropagationPathPoint*.\n",
+      .file        = "path_point.h",
+      .desc        = "A list of *PropagationPathPoint*.\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *ArrayOfPropagationPathPoint*.\n",
+      .file        = "path_point.h",
+      .desc        = "A list of *ArrayOfPropagationPathPoint*.\n",
       .array_depth = 2,
   };
 
   wsg_data["ArrayOfArrayOfArrayOfPropagationPathPoint"] = {
-      .file = "path_point.h",
-      .desc = "A list of *ArrayOfArrayOfPropagationPathPoint*.\n",
+      .file        = "path_point.h",
+      .desc        = "A list of *ArrayOfArrayOfPropagationPathPoint*.\n",
       .array_depth = 3,
   };
 
   wsg_data["Vector3"] = {
-      .file = "matpack.h",
-      .desc = "A fixed-size 3D version of *Vector*.\n",
+      .file                 = "matpack.h",
+      .desc                 = "A fixed-size 3D version of *Vector*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["Vector2"] = {
-      .file = "matpack.h",
-      .desc = "A fixed-size 2D version of *Vector*.\n",
+      .file                 = "matpack.h",
+      .desc                 = "A fixed-size 2D version of *Vector*.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["ArrayOfVector3"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector3*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Vector3*\n",
       .array_depth = 1,
   };
 
   wsg_data["ArrayOfVector2"] = {
-      .file = "matpack.h",
-      .desc = "A list of *Vector2*\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *Vector2*\n",
       .array_depth = 1,
   };
 
   wsg_data["AscendingGrid"] = {
-      .file = "matpack.h",
-      .desc = "A sorted grid of always ascending values.\n",
+      .file                 = "matpack.h",
+      .desc                 = "A sorted grid of always ascending values.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["ArrayOfAscendingGrid"] = {
-      .file = "matpack.h",
-      .desc = "A list of *AscendingGrid*.\n",
+      .file        = "matpack.h",
+      .desc        = "A list of *AscendingGrid*.\n",
       .array_depth = 1,
   };
 
@@ -930,20 +930,20 @@ line-of-sight to get the corresponding spectral radiance.
   };
 
   wsg_data["ArrayOfSpeciesIsotope"] = {
-      .file = "isotopologues.h",
-      .desc = "List of *SpeciesIsotope*.\n",
+      .file        = "isotopologues.h",
+      .desc        = "List of *SpeciesIsotope*.\n",
       .array_depth = 1,
   };
 
   wsg_data["SensorPosLos"] = {
-      .file = "obsel.h",
-      .desc = "A position and line-of-sight of a sensor.\n",
+      .file                 = "obsel.h",
+      .desc                 = "A position and line-of-sight of a sensor.\n",
       .is_simple_contiguous = true,
   };
 
   wsg_data["SensorPosLosVector"] = {
-      .file = "obsel.h",
-      .desc = "Vector of *SensorPosLos*.\n",
+      .file                 = "obsel.h",
+      .desc                 = "Vector of *SensorPosLos*.\n",
       .is_simple_contiguous = true,
   };
 
@@ -963,8 +963,8 @@ well as the sampling device's polarization response.
   };
 
   wsg_data["ArrayOfSensorObsel"] = {
-      .file = "obsel.h",
-      .desc = "List of *SensorObsel*.\n",
+      .file        = "obsel.h",
+      .desc        = "List of *SensorObsel*.\n",
       .array_depth = 1,
   };
 

@@ -282,6 +282,13 @@ class matpack_data {
     view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
   }
 
+  void pop_back()
+    requires(N == 1)
+  {
+    data.pop_back();
+    view.secret_set(view_type{data.data(), {static_cast<Index>(data.size())}});
+  }
+
   void erase(auto... it)
     requires(N == 1)
   {

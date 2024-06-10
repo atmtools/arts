@@ -36,17 +36,19 @@ auto is_not_in(const std::vector<std::string>& seq) {
 void Agenda::finalize(bool fix) try {
   static const auto& wsa = workspace_agendas();
 
-  auto ag_ptr = wsa.find(name);
+  auto ag_ptr                          = wsa.find(name);
   const std::vector<std::string> empty = {};
-  const std::vector<std::string>& must_out = ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
-  const std::vector<std::string>& must_in = ag_ptr == wsa.end() ? empty :ag_ptr->second.input;
+  const std::vector<std::string>& must_out =
+      ag_ptr == wsa.end() ? empty : ag_ptr->second.output;
+  const std::vector<std::string>& must_in =
+      ag_ptr == wsa.end() ? empty : ag_ptr->second.input;
 
   std::vector<std::string> ins_first;
   std::vector<std::string> outs_first;
   std::vector<std::string> in_then_out;
 
   for (const Method& method : methods) {
-    const auto& ins = method.get_ins();
+    const auto& ins  = method.get_ins();
     const auto& outs = method.get_outs();
 
     std::ranges::copy_if(
@@ -144,7 +146,7 @@ void Agenda::finalize(bool fix) try {
     return std::ranges::binary_search(in_then_out, str);
   });
 
-  copy = in_then_out;
+  copy  = in_then_out;
   share = ins_first;
 
   checked = true;
@@ -261,8 +263,8 @@ std::vector<std::string> split(const std::string& s, char c) {
 std::ostream& operator<<(std::ostream& os, const Agenda& a) {
   static const auto& wsa = workspace_agendas();
 
-  auto ptr = wsa.find(a.name);
-  const bool named = ptr != wsa.end();
+  auto ptr           = wsa.find(a.name);
+  const bool named   = ptr != wsa.end();
   const bool checked = a.checked;
 
   os << "Agenda " << a.name;

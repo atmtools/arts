@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& os, const Workspace& ws) {
     std::string varvalue =
         std::visit([](auto& val) { return var_string(*val); }, wsv.value);
     constexpr std::size_t len = 50;
-    const bool is_long = varvalue.size() > len;
+    const bool is_long        = varvalue.size() > len;
     if (is_long) varvalue = varvalue.substr(0, len);
     std::replace(varvalue.begin(), varvalue.end(), '\n', ' ');
 
