@@ -255,6 +255,28 @@ x : List[float]
 w : List[float]
     The weights
 )"));
+
+  math.def(
+      "schmidt_legendre_polynomial",
+      &Legendre::schmidt,
+      py::arg("theta"),
+      py::arg("nmax"),
+      py::doc(R"(Computes the Positive Gauss-Legendre quadrature
+
+Parameters
+----------
+theta : Numeric
+    The colatitude in radians
+nmax : int
+    The maximum degree of the polynomial matrix
+
+Returns
+-------
+Pnm : Matrix
+    The Polynominal matrix (nmax+1 x nmax+1; valid the the left of the diagonal only)
+dPnm : Matrix
+    The Polynominal matrix derivative (nmax+1 x nmax+1; valid the the left of the diagonal only)
+)"));
 } catch (std::exception& e) {
   throw std::runtime_error(
       var_string("DEV ERROR:\nCannot initialize math\n", e.what()));

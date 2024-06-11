@@ -1,9 +1,10 @@
 #pragma once
 
+#include <matpack.h>
+
 #include "configtypes.h"
 #include "grids.h"
-#include "matpack_data.h"
-#include "matpack_view.h"
+
 namespace Legendre {
 
 //! Stores the up (U), south (S), east (E) values of a field relative to the sphere
@@ -27,6 +28,22 @@ struct SphericalField {
 //! Holds a SphericalField for multiple dimensions (radius times longitudes)
 using MatrixOfSphericalField = Grid<SphericalField, 2>;
 
+/** Returns the Schmidt normalized Lagrange polynominal and its derivative
+ *
+ * The derivative is undefined if theta is 0 or pi, so the function cannot
+ * be called with these values
+ *
+ * This function is taken from the implementation by Isabela de Oliveira Martins
+ * at https://github.com/de-oliveira/IsabelaFunctions/blob/master/IsabelaFunctions/fieldmodel.py
+ * (2021-05-06).  It implements the calculations step-by-step, updating both main and derivative
+ * based on previous values.
+ *
+ * @param[in] theta Colatitude in radians
+ * @param[in] nmax Max number of n
+ * @return The pair of (nmax+1) x (nmax+1) matrices, order: main and derivative
+ */
+std::pair<Matrix, Matrix> schmidt(const Numeric theta, const Index nmax);
+
 /** Computes the spherical field
  * 
  * If latitude is beyond a limit, the longitude is set to zero
@@ -46,36 +63,13 @@ using MatrixOfSphericalField = Grid<SphericalField, 2>;
  * @param[in] g A N x N matrix of g-coefficients
  * @param[in] h A N x N matrix of h-coefficients
  * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
+ * @param[in] pos The position [r, lat, lon] (spherical)
+ * @return A spherical field {Br, Btheta, Bphi}
  */
-SphericalField schmidt_fieldcalc(const Matrix& g,
-                                 const Matrix& h,
-                                 const Numeric r0,
-                                 const Numeric r,
-                                 const Numeric lat,
-                                 const Numeric lon) ARTS_NOEXCEPT;
-
-/** Computes the spherical field for many radius and longitudes
- * 
- * See purely Numeric implementation for more information.
- * 
- * @param[in] g A N x N matrix of g-coefficients
- * @param[in] h A N x N matrix of h-coefficients
- * @param[in] r0 The reference radius (spherical)
- * @param[in] r The actual radius (spherical)
- * @param[in] lat The latitude (spherical)
- * @param[in] lon The longitude (spherical)
- * @return A spherical field
- */
-MatrixOfSphericalField schmidt_fieldcalc(const Matrix& g,
-                                         const Matrix& h,
-                                         const Numeric r0,
-                                         const Vector& r,
-                                         const Numeric lat,
-                                         const Vector& lon) ARTS_NOEXCEPT;
+Vector3 schmidt_fieldcalc(const Matrix& g,
+                          const Matrix& h,
+                          const Numeric r0,
+                          const Vector3 pos);
 
 /** Computes sum (s[i] P_i(x)) for all s [first is for P_0, second is for P_1, ...]
   * 
@@ -133,8 +127,7 @@ void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
   * @param x The coordinates
   * @param w The weights
   */
-  void GaussLegendre(ExhaustiveVectorView x,
-                      ExhaustiveVectorView w);
+void GaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w);
 
 /** Computes the positive part of the Gauss Legendre quadrature
   *
@@ -144,6 +137,5 @@ void PositiveDoubleGaussLegendre(ExhaustiveVectorView x,
   * @param x The coordinates
   * @param w The weights
   */
-  void PositiveGaussLegendre(ExhaustiveVectorView x,
-                             ExhaustiveVectorView w);
+void PositiveGaussLegendre(ExhaustiveVectorView x, ExhaustiveVectorView w);
 }  // namespace Legendre

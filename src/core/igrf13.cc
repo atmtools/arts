@@ -1,8 +1,10 @@
+#include "igrf13.h"
+
 #include <cmath>
 
 #include "arts_conversions.h"
 #include "arts_omp.h"
-#include "igrf13.h"
+#include "geodetic.h"
 #include "legendre.h"
 #include "matpack_constexpr.h"
 
@@ -305,30 +307,50 @@ constexpr matpack::matpack_constant_data<Numeric, 14, 14> h2000{
 //! The reference radius in IGRF13
 constexpr Numeric r0{6371.2e3};
 
-/** Get the radius from ellipsoidal coordinates
- *
- * @param[in] h Altitude [m]
- * @param[in] lat Latitude [deg]
- * @param[in] lon Longitude [deg]
- * @param[in] a Semi-major axis [m]
- * @param[in] e Eccentricity [-]
- * @return Radius [m]
- */
-Numeric radius(const Numeric h, const Numeric lat, const Numeric lon,
-               const Numeric a, const Numeric b) ARTS_NOEXCEPT {
-  using Conversion::cosd;
-  using Conversion::sind;
-  using Math::pow2;
-  using std::sqrt;
+Vector3 geocentric2ecef(const Vector3 pos) {
+  const Numeric latrad = Conversion::deg2rad(pos[1]);
+  const Numeric lonrad = Conversion::deg2rad(pos[2]);
+  Vector3 ecef;
+  ecef[0] = pos[0] * std::cos(latrad);  // Common term for x and z
+  ecef[1] = ecef[0] * std::sin(lonrad);
+  ecef[0] = ecef[0] * std::cos(lonrad);
+  ecef[2] = pos[0] * std::sin(latrad);
+  return ecef;
+}
 
-  const Numeric e = std::sqrt(1 - pow2(b / a));
-  ARTS_ASSERT(e >= 0 and e < 1)
+Vector3 geodetic2ecef(const Vector3 pos, const Vector2 refellipsoid) {
+  Vector3 ecef;
 
-  const Numeric N = a / sqrt(1 - pow2(e * sind(lat)));
+  // Use geocentric function if geoid is spherical
+  if (is_ellipsoid_spherical(refellipsoid)) {
+    ecef = geocentric2ecef({pos[0] + refellipsoid[0], pos[1], pos[2]});
+  } else {
+    // See https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates
+    const Numeric latrad = Conversion::deg2rad(pos[1]);
+    const Numeric lonrad = Conversion::deg2rad(pos[2]);
+    const Numeric sinlat = std::sin(latrad);
+    const Numeric coslat = std::cos(latrad);
+    const Numeric a2     = refellipsoid[0] * refellipsoid[0];
+    const Numeric b2     = refellipsoid[1] * refellipsoid[1];
+    const Numeric N =
+        a2 / std::sqrt(a2 * coslat * coslat + b2 * sinlat * sinlat);
+    const Numeric nhcos = (N + pos[0]) * coslat;
+    ecef[0]             = nhcos * std::cos(lonrad);
+    ecef[1]             = nhcos * std::sin(lonrad);
+    ecef[2]             = ((b2 / a2) * N + pos[0]) * sinlat;
+  }
 
-  return std::hypot((N + h) * cosd(lon) * cosd(lat),
-                    (N + h) * sind(lon) * cosd(lat),
-                    (N * (1 - pow2(e)) + h) * sind(lat));
+  return ecef;
+}
+
+Vector3 ecef2geocentric(const Vector3 ecef) {
+  const Numeric r = hypot(ecef);
+  return {
+      r, Conversion::asind(ecef[2] / r), Conversion::atan2d(ecef[1], ecef[0])};
+}
+
+Vector3 geodetic2geocentric(const Vector3 pos, const Vector2 ell) {
+  return ecef2geocentric(geodetic2ecef(pos, ell));
 }
 
 /** Perform all computations on pre-allocated local data
@@ -343,107 +365,102 @@ Numeric radius(const Numeric h, const Numeric lat, const Numeric lon,
  * \param[in] scale the addition scales with this, set to 1.0 for complete
  * calculations
  */
-void compute_impl(MagneticField &out, const Matrix &g, const Matrix &h,
-                  const Tensor3 &z_field, const Vector &lat_grid,
-                  const Vector &lon_grid, const Vector2 ell,
-                  const Numeric scale) ARTS_NOEXCEPT {
-  // Constant sizes
-  const Index nz = z_field.npages();
-  const Index nlat = z_field.nrows();
-  const Index nlon = z_field.ncols();
+Vector3 igrf_impl(const Matrix &g,
+                  const Matrix &h,
+                  const Vector3 pos,
+                  const Vector2 ell) {
+  using Conversion::cosd, Conversion::sind;
 
-#pragma omp parallel for if (!arts_omp_in_parallel())
-  for (Index ilat = 0; ilat < nlat; ilat++) {
-    const Numeric lat = lat_grid[ilat];
+  const Vector3 geoc = geodetic2geocentric(pos, ell);
+  const Vector3 mag  = Legendre::schmidt_fieldcalc(g, h, r0, geoc);
+  const Numeric ang =
+      sind(pos[1]) * sind(90.0 - geoc[1]) - cosd(pos[1]) * cosd(90.0 - geoc[1]);
+  const Numeric ca = std::cos(ang);
+  const Numeric sa = std::sin(ang);
 
-    Vector r(nlon * nz);
-    for (Index ilon = 0; ilon < nlon; ilon++) {
-      for (Index iz = 0; iz < nz; iz++) {
-        r[ilon + nlon * iz] = radius(z_field(iz, ilat, ilon), lat,
-                                     lon_grid[ilon], ell[0], ell[1]);
-      }
-    }
-
-    const auto f = Legendre::schmidt_fieldcalc(g, h, r0, r, lat, lon_grid);
-    for (Index iz = 0; iz < nz; iz++) {
-      for (Index ilon = 0; ilon < nlon; ilon++) {
-        const auto &flz{f(ilon, ilon + nlon * iz)};
-        out.u(iz, ilat, ilon) += scale * flz.E;
-        out.v(iz, ilat, ilon) -= scale * flz.S;
-        out.w(iz, ilat, ilon) += scale * flz.U;
-      }
-    }
-  }
+  return {1e-9 * mag[2],
+          1e-9 * (-ca * mag[1] - sa * mag[0]),
+          1e-9 * (-sa * mag[1] + ca * mag[0])};
 }
 
-MagneticField compute(const Tensor3 &z_field, const Vector &lat_grid,
-                      const Vector &lon_grid, const Time &time,
-                      const Vector2 ell) {
-  // Constant sizes
-  const Index nz = z_field.npages();
-  const Index nlat = z_field.nrows();
-  const Index nlon = z_field.ncols();
-
-  // Constant times
+Vector3 igrf(const Vector3 pos, const Vector2 ell, const Time &time) {
   static const Time y2020("2020-01-01 00:00:00");
-  static const Time y2015("2015-01-01 00:00:00");
-  static const Time y2010("2010-01-01 00:00:00");
-  static const Time y2005("2005-01-01 00:00:00");
-  static const Time y2000("2000-01-01 00:00:00");
+  static const Matrix mg2020{g2020};
+  static const Matrix mh2020{h2020};
 
-  // Output
-  MagneticField out(nz, nlat, nlon); // Inits to zeroes
-
-  // Select the correct time
   if (time >= y2020) {
-    compute_impl(out, Matrix(g2020), Matrix(h2020), z_field, lat_grid, lon_grid,
-                 ell, 1.0);
-  } else if (time >= y2015) {
+    return igrf_impl(mg2020, mh2020, pos, ell);
+  }
+
+  static const Time y2015("2015-01-01 00:00:00");
+  static const Matrix mg2015{g2015};
+  static const Matrix mh2015{h2015};
+
+  if (time >= y2015) {
     const Numeric scale = (time.Seconds() - y2015.Seconds()) /
                           (y2020.Seconds() - y2015.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
 
-    compute_impl(out, Matrix(g2020), Matrix(h2020), z_field, lat_grid, lon_grid,
-                 ell, scale);
-    compute_impl(out, Matrix(g2015), Matrix(h2015), z_field, lat_grid, lon_grid,
-                 ell, 1.0 - scale);
-  } else if (time >= y2010) {
+    Vector3 out  = igrf_impl(mg2020, mh2020, pos, ell);
+    out         *= (1.0 - scale);
+    Vector3 tmp  = igrf_impl(mg2015, mh2015, pos, ell);
+    tmp         *= scale;
+    out         += tmp;
+    return out;
+  }
+
+  static const Time y2010("2010-01-01 00:00:00");
+  static const Matrix mg2010{g2010};
+  static const Matrix mh2010{h2010};
+
+  if (time >= y2010) {
     const Numeric scale = (time.Seconds() - y2010.Seconds()) /
                           (y2015.Seconds() - y2010.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
 
-    compute_impl(out, Matrix(g2015), Matrix(h2015), z_field, lat_grid, lon_grid,
-                 ell, scale);
-    compute_impl(out, Matrix(g2010), Matrix(h2010), z_field, lat_grid, lon_grid,
-                 ell, 1.0 - scale);
-  } else if (time >= y2005) {
+    Vector3 out  = igrf_impl(mg2015, mh2015, pos, ell);
+    out         *= (1.0 - scale);
+    Vector3 tmp  = igrf_impl(mg2010, mh2010, pos, ell);
+    tmp         *= scale;
+    out         += tmp;
+    return out;
+  }
+
+  static const Time y2005("2005-01-01 00:00:00");
+  static const Matrix mg2005{g2005};
+  static const Matrix mh2005{h2005};
+
+  if (time >= y2005) {
     const Numeric scale = (time.Seconds() - y2005.Seconds()) /
                           (y2010.Seconds() - y2005.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
 
-    compute_impl(out, Matrix(g2010), Matrix(h2010), z_field, lat_grid, lon_grid,
-                 ell, scale);
-    compute_impl(out, Matrix(g2005), Matrix(h2005), z_field, lat_grid, lon_grid,
-                 ell, 1.0 - scale);
-  } else if (time >= y2000) {
+    Vector3 out  = igrf_impl(mg2010, mh2010, pos, ell);
+    out         *= (1.0 - scale);
+    Vector3 tmp  = igrf_impl(mg2005, mh2005, pos, ell);
+    tmp         *= scale;
+    out         += tmp;
+
+    return out;
+  }
+
+  static const Time y2000("2000-01-01 00:00:00");
+  static const Matrix mg2000{g2000};
+  static const Matrix mh2000{h2000};
+
+  if (time >= y2000) {
     const Numeric scale = (time.Seconds() - y2000.Seconds()) /
                           (y2005.Seconds() - y2000.Seconds());
     ARTS_ASSERT(scale >= 0 and scale < 1)
 
-    compute_impl(out, Matrix(g2005), Matrix(h2005), z_field, lat_grid, lon_grid,
-                 ell, scale);
-    compute_impl(out, Matrix(g2000), Matrix(h2000), z_field, lat_grid, lon_grid,
-                 ell, 1.0 - scale);
-  } else {
-    compute_impl(out, Matrix(g2000), Matrix(h2000), z_field, lat_grid, lon_grid,
-                 ell, 1.0);
+    Vector3 out  = igrf_impl(mg2005, mh2005, pos, ell);
+    out         *= (1.0 - scale);
+    Vector3 tmp  = igrf_impl(mg2000, mh2000, pos, ell);
+    tmp         *= scale;
+    out         += tmp;
+    return out;
   }
 
-  // Conversion from nano-Tesla to Tesla
-  out.u *= 1e-9;
-  out.v *= 1e-9;
-  out.w *= 1e-9;
-
-  return out;
+  return igrf_impl(mg2000, mh2000, pos, ell);
 }
-} // namespace IGRF
+}  // namespace IGRF

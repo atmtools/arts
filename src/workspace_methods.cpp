@@ -858,6 +858,22 @@ See *spectral_radiance_space_agendaPredefined* for valid ``option``
       .gin_desc  = {R"--(Default agenda option (see description))--"},
   };
 
+  wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
+      .desc      = R"--(Sets A path of Zeeman effec magnetic field properties.
+
+This will return a list of magnetic field properties along the path.
+The magnetic properties in Zeeman coordinates are the absolute strength [H],
+the angle between the magnetic field and the line of sight [theta], and the
+the rotation of the magnetic field in the plane perpendicular to the line of
+sight [eta].
+)--",
+      .author    = {"Richard Larsson"},
+      .gout      = {"ray_path_zeeman_magnetic_field"},
+      .gout_type = {"ArrayOfVector3"},
+      .gout_desc = {R"--(Along-the-path [H, theta, eta])--"},
+      .in        = {"ray_path", "ray_path_atmospheric_point"},
+  };
+
   wsm_data["ray_path_observer_agendaSet"] = {
       .desc      = R"--(Sets *ray_path_observer_agenda*
 

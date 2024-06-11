@@ -19,8 +19,7 @@
 #include "wigner_functions.h"
 
 namespace lbl::zeeman {
-constexpr Numeric get_lande_spin_constant(
-    const SpeciesEnum species) noexcept {
+constexpr Numeric get_lande_spin_constant(const SpeciesEnum species) noexcept {
   switch (species) {
     case to<SpeciesEnum>("O2"):
       return 2.002064;
@@ -48,10 +47,10 @@ data SimpleG(const Quantum::Number::ValueList& qns,
               QuantumNumberType::J,
               QuantumNumberType::Lambda,
               QuantumNumberType::S)) {
-    auto& Omega = qns[QuantumNumberType::Omega];
-    auto& J = qns[QuantumNumberType::J];
+    auto& Omega  = qns[QuantumNumberType::Omega];
+    auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S = qns[QuantumNumberType::S];
+    auto& S      = qns[QuantumNumberType::S];
     return {
         .gu = SimpleGCaseA(Omega.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
         .gl =
@@ -63,10 +62,10 @@ data SimpleG(const Quantum::Number::ValueList& qns,
               QuantumNumberType::J,
               QuantumNumberType::Lambda,
               QuantumNumberType::S)) {
-    auto& N = qns[QuantumNumberType::N];
-    auto& J = qns[QuantumNumberType::J];
+    auto& N      = qns[QuantumNumberType::N];
+    auto& J      = qns[QuantumNumberType::J];
     auto& Lambda = qns[QuantumNumberType::Lambda];
-    auto& S = qns[QuantumNumberType::S];
+    auto& S      = qns[QuantumNumberType::S];
     return {
         .gu = SimpleGCaseB(N.upp(), J.upp(), Lambda.upp(), S.upp(), GS, GL),
         .gl = SimpleGCaseB(N.low(), J.low(), Lambda.low(), S.low(), GS, GL)};
@@ -141,25 +140,25 @@ data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
                     QuantumNumberType::v1)) {
       if (qid.val[QuantumNumberType::v1].low() == 0 and
           qid.val[QuantumNumberType::v1].upp() == 0) {
-        constexpr Numeric GS = 2.002084;
+        constexpr Numeric GS  = 2.002084;
         constexpr Numeric GLE = 2.77e-3;
-        constexpr Numeric GR = -1.16e-4;
-        constexpr Numeric B = 43100.44276e6;
-        constexpr Numeric D = 145.1271e3;
-        constexpr Numeric H = 49e-3;
-        constexpr Numeric lB = 59501.3438e6;
-        constexpr Numeric lD = 58.3680e3;
-        constexpr Numeric lH = 290.8e-3;
-        constexpr Numeric gB = -252.58634e6;
-        constexpr Numeric gD = -243.42;
-        constexpr Numeric gH = -1.46e-3;
+        constexpr Numeric GR  = -1.16e-4;
+        constexpr Numeric B   = 43100.44276e6;
+        constexpr Numeric D   = 145.1271e3;
+        constexpr Numeric H   = 49e-3;
+        constexpr Numeric lB  = 59501.3438e6;
+        constexpr Numeric lD  = 58.3680e3;
+        constexpr Numeric lH  = 290.8e-3;
+        constexpr Numeric gB  = -252.58634e6;
+        constexpr Numeric gD  = -243.42;
+        constexpr Numeric gH  = -1.46e-3;
 
         const auto& J = qid.val[QuantumNumberType::J];
         const auto& N = qid.val[QuantumNumberType::N];
-        auto JU = J.upp();
-        auto NU = N.upp();
-        auto JL = J.low();
-        auto NL = N.low();
+        auto JU       = J.upp();
+        auto NU       = N.upp();
+        auto JL       = J.low();
+        auto NL       = N.low();
 
         Numeric gu = case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -174,25 +173,25 @@ data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
                     QuantumNumberType::v1)) {
       if (qid.val[QuantumNumberType::v1].low() == 0 and
           qid.val[QuantumNumberType::v1].upp() == 0) {
-        constexpr Numeric GS = 2.002025;
+        constexpr Numeric GS  = 2.002025;
         constexpr Numeric GLE = 2.813e-3;
-        constexpr Numeric GR = -1.26e-4;
-        constexpr Numeric B = 40707.38657e6;
-        constexpr Numeric D = 129.4142e3;
-        constexpr Numeric H = 0;
-        constexpr Numeric lB = 59499.0375e6;
-        constexpr Numeric lD = 54.9777e3;
-        constexpr Numeric lH = 272.1e-3;
-        constexpr Numeric gB = -238.51530e6;
-        constexpr Numeric gD = -217.77;
-        constexpr Numeric gH = -1.305e-3;
+        constexpr Numeric GR  = -1.26e-4;
+        constexpr Numeric B   = 40707.38657e6;
+        constexpr Numeric D   = 129.4142e3;
+        constexpr Numeric H   = 0;
+        constexpr Numeric lB  = 59499.0375e6;
+        constexpr Numeric lD  = 54.9777e3;
+        constexpr Numeric lH  = 272.1e-3;
+        constexpr Numeric gB  = -238.51530e6;
+        constexpr Numeric gD  = -217.77;
+        constexpr Numeric gH  = -1.305e-3;
 
         const auto& J = qid.val[QuantumNumberType::J];
         const auto& N = qid.val[QuantumNumberType::N];
-        auto JU = J.upp();
-        auto NU = N.upp();
-        auto JL = J.low();
-        auto NL = N.low();
+        auto JU       = J.upp();
+        auto NU       = N.upp();
+        auto JL       = J.low();
+        auto NL       = N.low();
 
         Numeric gu = case_b_g_coefficient_o2(
             JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
@@ -215,12 +214,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
         0 /
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
     if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J = qid.val[QuantumNumberType::J];
+      const auto& J  = qid.val[QuantumNumberType::J];
       const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU = J.upp();
-      auto KU = Ka.upp();
-      auto JL = J.low();
-      auto KL = Ka.low();
+      auto JU        = J.upp();
+      auto KU        = Ka.upp();
+      auto JL        = J.low();
+      auto KL        = Ka.low();
 
       return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -234,12 +233,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
     if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J = qid.val[QuantumNumberType::J];
+      const auto& J  = qid.val[QuantumNumberType::J];
       const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU = J.upp();
-      auto KU = Ka.upp();
-      auto JL = J.low();
-      auto KL = Ka.low();
+      auto JU        = J.upp();
+      auto KU        = Ka.upp();
+      auto JL        = J.low();
+      auto KL        = Ka.low();
 
       return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -253,12 +252,12 @@ data GetAdvancedModel(const QuantumIdentifier& qid) ARTS_NOEXCEPT {
         Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
 
     if (qid.val.has(QuantumNumberType::J, QuantumNumberType::Ka)) {
-      const auto& J = qid.val[QuantumNumberType::J];
+      const auto& J  = qid.val[QuantumNumberType::J];
       const auto& Ka = qid.val[QuantumNumberType::Ka];
-      auto JU = J.upp();
-      auto KU = Ka.upp();
-      auto JL = J.low();
-      auto KL = Ka.low();
+      auto JU        = J.upp();
+      auto KU        = Ka.upp();
+      auto JL        = J.low();
+      auto KL        = Ka.low();
 
       return {.gu = closed_shell_trilinear(KU, JU, gperp, gpara),
               .gl = closed_shell_trilinear(KL, JL, gperp, gpara)};
@@ -348,65 +347,102 @@ constexpr Vector3 proj(const Vector3 a, const Vector3 b, const Numeric ct) {
   return {a[0] - ct * b[0], a[1] - ct * b[1], a[2] - ct * b[2]};
 }
 
-struct magnetic_angles {
-  Numeric u, v, w, sa, ca, sz, cz, H, uct, duct;
+magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)
+    : u(mag[0]),
+      v(mag[1]),
+      w(mag[2]),
+      sa(std::sin(los[1])),
+      ca(std::cos(los[1])),
+      sz(std::sin(los[0])),
+      cz(std::cos(los[0])),
+      H(std::hypot(u, v, w)),
+      uct(ca * sz * v + cz * w + sa * sz * u),
+      duct(u * sa * cz + v * ca * cz - w * sz) {}
 
-  magnetic_angles(const Vector3 mag, const Vector2 los)
-      : u(mag[0]),
-        v(mag[1]),
-        w(mag[2]),
-        sa(std::sin(los[1])),
-        ca(std::cos(los[1])),
-        sz(std::sin(los[0])),
-        cz(std::cos(los[0])),
-        H(std::hypot(u, v, w)),
-        uct(ca * sz * v + cz * w + sa * sz * u),
-        duct(u * sa * cz + v * ca * cz - w * sz) {}
+Numeric magnetic_angles::theta() const {
+  return H == 0 ? 0 : std::acos(uct / H);
+}
 
-  [[nodiscard]] Numeric theta() const {
-    return H == 0 ? 0 : std::acos(uct / H);
-  }
+Numeric magnetic_angles::dtheta_du() const {
+  return H == 0 ? 0
+                : (-H * sa * sz + u * uct) /
+                      (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+}
 
-  [[nodiscard]] Numeric dtheta_du() const {
-    return H == 0 ? 0
-                  : (-H * sa * sz + u * uct) /
-                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
-  }
+Numeric magnetic_angles::dtheta_dv() const {
+  return H == 0 ? 0
+                : (-H * ca * sz + v * uct) /
+                      (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+}
 
-  [[nodiscard]] Numeric dtheta_dv() const {
-    return H == 0 ? 0
-                  : (-H * ca * sz + v * uct) /
-                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
-  }
+Numeric magnetic_angles::dtheta_dw() const {
+  return H == 0 ? 0
+                : (-H * cz + w * uct) /
+                      (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
+}
 
-  [[nodiscard]] Numeric dtheta_dw() const {
-    return H == 0 ? 0
-                  : (-H * cz + w * uct) /
-                        (H * std::sqrt(Math::pow4(H) - Math::pow2(uct)));
-  }
+Numeric magnetic_angles::eta() const {
+  return std::atan2(u * ca - v * sa, duct);
+}
 
-  [[nodiscard]] Numeric eta() const {
-    return std::atan2(u * ca - v * sa, duct);
-  }
+Numeric magnetic_angles::deta_du() const {
+  return H == 0 ? 0
+                : (-ca * sz * w + cz * v) /
+                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+}
 
-  [[nodiscard]] Numeric deta_du() const {
-    return H == 0 ? 0
-                  : (-ca * sz * w + cz * v) /
-                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
-  }
+Numeric magnetic_angles::deta_dv() const {
+  return H == 0 ? 0
+                : (-cz * u + sa * sz * w) /
+                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+}
 
-  [[nodiscard]] Numeric deta_dv() const {
-    return H == 0 ? 0
-                  : (-cz * u + sa * sz * w) /
-                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
-  }
+Numeric magnetic_angles::deta_dw() const {
+  return H == 0 ? 0
+                : sz * (ca * u - sa * v) /
+                      (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
+}
 
-  [[nodiscard]] Numeric deta_dw() const {
-    return H == 0 ? 0
-                  : sz * (ca * u - sa * v) /
-                        (Math::pow2(ca * u - sa * v) + Math::pow2(duct));
-  }
-};
+std::ostream& operator<<(std::ostream& os, const magnetic_angles& m) {
+  os << var_string("Magnetic angles:",
+                   "\n\tu: ",
+                   m.u,
+                   "\n\tv: ",
+                   m.v,
+                   "\n\tw: ",
+                   m.w,
+                   "\n\tsa: ",
+                   m.sa,
+                   "\n\tca: ",
+                   m.ca,
+                   "\n\tsz: ",
+                   m.sz,
+                   "\n\tcz: ",
+                   m.cz,
+                   "\n\tH: ",
+                   m.H,
+                   "\n\tuct: ",
+                   m.uct,
+                   "\n\tduct: ",
+                   m.duct,
+                   "\n\ttheta: ",
+                   m.theta(),
+                   "\n\tdtheta_du: ",
+                   m.dtheta_du(),
+                   "\n\tdtheta_dv: ",
+                   m.dtheta_dv(),
+                   "\n\tdtheta_dw: ",
+                   m.dtheta_dw(),
+                   "\n\teta: ",
+                   m.eta(),
+                   "\n\tdeta_du: ",
+                   m.deta_du(),
+                   "\n\tdeta_dv: ",
+                   m.deta_dv(),
+                   "\n\tdeta_dw: ",
+                   m.deta_dw());
+  return os;
+}
 
 Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
   if (p == pol::no) {
@@ -415,10 +451,10 @@ Propmat norm_view(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
 
   const magnetic_angles ma(mag, los);
   const Numeric theta = ma.theta();
-  const Numeric eta = ma.eta();
+  const Numeric eta   = ma.eta();
 
-  const Numeric CT = std::cos(theta);
-  const Numeric ST = std::sin(theta);
+  const Numeric CT  = std::cos(theta);
+  const Numeric ST  = std::sin(theta);
   const Numeric C2E = std::cos(2 * eta);
   const Numeric S2E = std::sin(2 * eta);
 
@@ -457,13 +493,13 @@ Propmat dnorm_view_du(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
   }
 
   const magnetic_angles ma(mag, los);
-  const Numeric theta = ma.theta();
-  const Numeric eta = ma.eta();
+  const Numeric theta  = ma.theta();
+  const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_du();
-  const Numeric deta = ma.deta_du();
+  const Numeric deta   = ma.deta_du();
 
-  const Numeric CT = std::cos(theta);
-  const Numeric ST = std::sin(theta);
+  const Numeric CT  = std::cos(theta);
+  const Numeric ST  = std::sin(theta);
   const Numeric S2T = 2 * ST * CT;
   const Numeric C2E = std::cos(2 * eta);
   const Numeric S2E = std::sin(2 * eta);
@@ -500,13 +536,13 @@ Propmat dnorm_view_dv(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
   }
 
   const magnetic_angles ma(mag, los);
-  const Numeric theta = ma.theta();
-  const Numeric eta = ma.eta();
+  const Numeric theta  = ma.theta();
+  const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_dv();
-  const Numeric deta = ma.deta_dv();
+  const Numeric deta   = ma.deta_dv();
 
-  const Numeric CT = std::cos(theta);
-  const Numeric ST = std::sin(theta);
+  const Numeric CT  = std::cos(theta);
+  const Numeric ST  = std::sin(theta);
   const Numeric S2T = 2 * ST * CT;
   const Numeric C2E = std::cos(2 * eta);
   const Numeric S2E = std::sin(2 * eta);
@@ -543,13 +579,13 @@ Propmat dnorm_view_dw(pol p, Vector3 mag, Vector2 los) ARTS_NOEXCEPT {
   }
 
   const magnetic_angles ma(mag, los);
-  const Numeric theta = ma.theta();
-  const Numeric eta = ma.eta();
+  const Numeric theta  = ma.theta();
+  const Numeric eta    = ma.eta();
   const Numeric dtheta = ma.dtheta_dw();
-  const Numeric deta = ma.deta_dw();
+  const Numeric deta   = ma.deta_dw();
 
-  const Numeric CT = std::cos(theta);
-  const Numeric ST = std::sin(theta);
+  const Numeric CT  = std::cos(theta);
+  const Numeric ST  = std::sin(theta);
   const Numeric S2T = 2 * ST * CT;
   const Numeric C2E = std::cos(2 * eta);
   const Numeric S2E = std::sin(2 * eta);
