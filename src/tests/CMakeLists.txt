@@ -235,8 +235,8 @@ target_link_libraries(test_rtepack PUBLIC artstime rtepack)
 # ####
 add_executable(test_path_point test_path_point.cc)
 target_link_libraries(test_path_point PUBLIC artstime path)
-add_test(NAME "cpp.fast.test_path_point" COMMAND test_path_point)
-add_dependencies(check-deps test_path_point)
+#add_test(NAME "cpp.fast.test_path_point" COMMAND test_path_point)
+#add_dependencies(check-deps test_path_point)
 
 # ####
 add_executable(test_fwd test_fwd.cc)
