@@ -102,6 +102,11 @@ jobs:
           conda config --show
           printenv | sort
 
+      - name: Setup (Linux)
+        if: runner.os == 'Linux' && matrix.doc == 'yes'
+        run: |
+          sudo apt-get install -y texlive texlive-latex-extra doxygen
+
       - name: Configure
         shell: bash -l {0}
         run: |
