@@ -59,6 +59,37 @@
       }
     },
     {
+      "name": "debug-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "debug-clang-conda",
+      "inherits": "default-clang-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "nofortran-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_FORTRAN": "0"
+      }
+    },
+    {
+      "name": "lgpl-gcc-conda",
+      "inherits": "default-gcc-conda",
+      "cacheVariables": {
+        "ENABLE_ARTS_LGPL": "1",
+        "NO_FASTEM": "1",
+        "NO_RT4": "1",
+        "NO_TMATRIX": "1"
+      }
+    },
+    {
       "name": "mac-gcc13-hb-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {
