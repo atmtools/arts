@@ -15,17 +15,17 @@ if (SPHINX_FOUND)
     COMMENT "Generating documentation with Sphinx")
   add_dependencies (pyarts_build_docs pyarts gen_pyarts_arts_rst gen_arts_overview_rst gen_examples_rst)
 
-  add_custom_target(pyarts_copy_docs
-    COMMAND ${CMAKE_COMMAND} -E
-                    copy_if_different
-                    "${ARTS_BINARY_DIR}/doc/uguide/arts_user.pdf"
-                    "${ARTS_BINARY_DIR}/doc/uguide/arts_theory.pdf"
-                    "${ARTS_BINARY_DIR}/doc/uguide/arts_developer.pdf"
-                    "${ARTS_BINARY_DIR}/python/doc/build/_downloads/"
-    COMMENT "Copying guides to documentation build directory")
-  add_dependencies (pyarts_copy_docs pyarts_build_docs arts_docs)
-
   if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
+    add_custom_target(pyarts_copy_docs
+      COMMAND ${CMAKE_COMMAND} -E
+                      copy_if_different
+                      "${ARTS_BINARY_DIR}/doc/uguide/arts_user.pdf"
+                      "${ARTS_BINARY_DIR}/doc/uguide/arts_theory.pdf"
+                      "${ARTS_BINARY_DIR}/doc/uguide/arts_developer.pdf"
+                      "${ARTS_BINARY_DIR}/python/doc/build/_downloads/"
+      COMMENT "Copying guides to documentation build directory")
+    add_dependencies (pyarts_copy_docs pyarts_build_docs arts_docs)
+
     add_custom_target(pyarts_docs DEPENDS pyarts_copy_docs)
   else()
     add_custom_target(pyarts_docs DEPENDS pyarts_build_docs)
